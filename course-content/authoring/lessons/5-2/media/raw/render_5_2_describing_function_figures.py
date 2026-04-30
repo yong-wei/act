@@ -93,63 +93,187 @@ def setup_complex(ax, title):
     ax.set_aspect("equal", adjustable="box")
 
 
+def inv_from_N(A: np.ndarray, N: np.ndarray) -> np.ndarray:
+    valid = np.isfinite(N) & (np.abs(N) > 1e-10)
+    Z = np.full_like(N, np.nan + 1j * np.nan, dtype=complex)
+    Z[valid] = -1 / N[valid]
+    return np.column_stack([A[valid], Z[valid].real, Z[valid].imag])
+
+
+def N_sat_py(A: np.ndarray, k: float, a: float) -> np.ndarray:
+    N = k * np.ones_like(A)
+    idx = A > a
+    r = a / A[idx]
+    N[idx] = (2 * k / np.pi) * (np.arcsin(r) + r * np.sqrt(1 - r**2))
+    return N.astype(complex)
+
+
+def N_deadzone_py(A: np.ndarray, k: float, d: float) -> np.ndarray:
+    N = np.zeros_like(A, dtype=complex)
+    idx = A > d
+    r = d / A[idx]
+    N[idx] = (2 * k / np.pi) * (np.pi / 2 - np.arcsin(r) - r * np.sqrt(1 - r**2))
+    return N
+
+
+def N_relay_py(A: np.ndarray, M: float) -> np.ndarray:
+    return (4 * M / (np.pi * A)).astype(complex)
+
+
+def N_dzrelay_py(A: np.ndarray, M: float, d: float) -> np.ndarray:
+    N = np.zeros_like(A, dtype=complex)
+    idx = A > d
+    r = d / A[idx]
+    N[idx] = (4 * M / (np.pi * A[idx])) * np.sqrt(1 - r**2)
+    return N
+
+
+def N_hystrelay_py(A: np.ndarray, M: float, h: float) -> np.ndarray:
+    N = np.zeros_like(A, dtype=complex)
+    idx = A > h
+    r = h / A[idx]
+    N[idx] = (4 * M / (np.pi * A[idx])) * (np.sqrt(1 - r**2) - 1j * r)
+    return N
+
+
+def N_backlash_py(A: np.ndarray, k: float, b: float) -> np.ndarray:
+    N = np.zeros_like(A, dtype=complex)
+    idx = A > b
+    r = b / A[idx]
+    real_part = (k / np.pi) * (
+        np.pi / 2 + np.arcsin(1 - 2 * r) + 2 * (1 - 2 * r) * np.sqrt(r * (1 - r))
+    )
+    imag_part = (4 * k * b / (np.pi * A[idx])) * (r - 1)
+    N[idx] = real_part + 1j * imag_part
+    return N
+
+
+def N_dzsat_py(A: np.ndarray, k: float, d: float, a: float) -> np.ndarray:
+    N = np.zeros_like(A, dtype=complex)
+    mid = (A > d) & (A <= a)
+    r = d / A[mid]
+    N[mid] = (2 * k / np.pi) * (np.pi / 2 - np.arcsin(r) - r * np.sqrt(1 - r**2))
+    high = A > a
+    rd = d / A[high]
+    ra = a / A[high]
+    N[high] = (2 * k / np.pi) * (
+        np.arcsin(ra)
+        - np.arcsin(rd)
+        + ra * np.sqrt(1 - ra**2)
+        - rd * np.sqrt(1 - rd**2)
+    )
+    return N
+
+
+def draw_direction_arrow(ax, data: np.ndarray, xlim, ylim, color: str) -> None:
+    if len(data) < 6:
+        return
+    visible = np.where(
+        (data[:, 1] >= xlim[0]) & (data[:, 1] <= xlim[1]) &
+        (data[:, 2] >= ylim[0]) & (data[:, 2] <= ylim[1])
+    )[0]
+    if len(visible) < 6:
+        return
+    start = visible[max(1, len(visible) // 4)]
+    end = visible[min(len(visible) - 2, len(visible) // 4 + max(4, len(visible) // 10))]
+    ax.annotate(
+        "",
+        xy=(data[end, 1], data[end, 2]),
+        xytext=(data[start, 1], data[start, 2]),
+        arrowprops={"arrowstyle": "->", "lw": 1.0, "color": color},
+    )
+
+
+def draw_start_circle(ax, data: np.ndarray, xlim, ylim, color: str) -> None:
+    visible = np.where(
+        (data[:, 1] >= xlim[0]) & (data[:, 1] <= xlim[1]) &
+        (data[:, 2] >= ylim[0]) & (data[:, 2] <= ylim[1])
+    )[0]
+    if len(visible) == 0:
+        return
+    idx = visible[0]
+    ax.scatter(
+        [data[idx, 1]],
+        [data[idx, 2]],
+        s=38,
+        facecolors="white",
+        edgecolors=color,
+        linewidths=1.2,
+        zorder=5,
+    )
+
+
 def render_negative_inverse_summary() -> None:
-    curves = [
-        ("inv_saturation.csv", "饱和：k=1, a=1", "#1f77b4", (-7.2, 0.4), (-0.8, 0.8), "起点 $-1/k$"),
-        ("inv_deadzone.csv", "死区：k=1, Δ=0.55", "#2ca02c", (-8.2, 0.4), (-0.8, 0.8), "A>Δ 后出现"),
-        ("inv_relay.csv", "理想继电：M=1", "#d62728", (-6.8, 0.4), (-0.8, 0.8), "$-\\pi A/(4M)$"),
-        ("inv_deadzone_relay.csv", "死区继电：M=1, d=0.55", "#9467bd", (-6.8, 0.4), (-0.8, 0.8), "A>d 后出现"),
-        ("inv_hysteresis_relay.csv", "滞环继电：M=1, h=0.45", "#8c564b", (-6.8, 0.4), (-1.1, 0.4), "虚部为负常数"),
-        ("inv_backlash.csv", "间隙：k=1, b=0.45", "#17becf", (-6.8, 0.4), (-4.5, 0.4), "进入第四象限"),
-        ("inv_deadzone_saturation.csv", "死区饱和：Δ=0.35, a=1.35", "#7f7f7f", (-8.2, 0.4), (-0.8, 0.8), "死区与限幅叠加"),
+    A = np.linspace(0.02, 8.0, 1600)
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]
+    specs = [
+        {
+            "title": "饱和：k 增大，起点向原点靠近",
+            "params": [(0.7, "k=0.7"), (1.0, "k=1.0"), (1.4, "k=1.4")],
+            "curve": lambda p: inv_from_N(A, N_sat_py(A, p, 1.0)),
+            "xlim": (-7.0, 0.25),
+            "ylim": (-0.7, 0.7),
+        },
+        {
+            "title": "死区：Δ 增大，曲线出现门槛右移",
+            "params": [(0.35, "Δ=0.35"), (0.65, "Δ=0.65"), (1.00, "Δ=1.00")],
+            "curve": lambda p: inv_from_N(A, N_deadzone_py(A, 1.0, p)),
+            "xlim": (-8.0, 0.25),
+            "ylim": (-0.7, 0.7),
+        },
+        {
+            "title": "理想继电：M 增大，同一 A 下曲线靠近原点",
+            "params": [(0.7, "M=0.7"), (1.0, "M=1.0"), (1.4, "M=1.4")],
+            "curve": lambda p: inv_from_N(A, N_relay_py(A, p)),
+            "xlim": (-6.5, 0.25),
+            "ylim": (-0.7, 0.7),
+        },
+        {
+            "title": "死区继电：d 增大，折返点左移",
+            "params": [(0.35, "d=0.35"), (0.65, "d=0.65"), (1.00, "d=1.00")],
+            "curve": lambda p: inv_from_N(A, N_dzrelay_py(A, 1.0, p)),
+            "xlim": (-6.5, 0.25),
+            "ylim": (-0.7, 0.7),
+        },
+        {
+            "title": "滞环继电：h 增大，水平线下移",
+            "params": [(0.25, "h=0.25"), (0.55, "h=0.55"), (0.90, "h=0.90")],
+            "curve": lambda p: inv_from_N(A, N_hystrelay_py(A, 1.0, p)),
+            "xlim": (-6.5, 0.25),
+            "ylim": (-1.0, 0.35),
+        },
+        {
+            "title": "间隙：b 增大，曲线更深进入第四象限",
+            "params": [(0.25, "b=0.25"), (0.55, "b=0.55"), (0.90, "b=0.90")],
+            "curve": lambda p: inv_from_N(A, N_backlash_py(A, 1.0, p)),
+            "xlim": (-6.5, 0.25),
+            "ylim": (-4.2, 0.35),
+        },
+        {
+            "title": "死区饱和：Δ 增大，起始段左移并延后出现",
+            "params": [(0.25, "Δ=0.25"), (0.45, "Δ=0.45"), (0.65, "Δ=0.65")],
+            "curve": lambda p: inv_from_N(A, N_dzsat_py(A, 1.0, p, 1.35)),
+            "xlim": (-8.0, 0.25),
+            "ylim": (-0.7, 0.7),
+        },
     ]
-    fig, axes = plt.subplots(4, 2, figsize=(10.8, 12.2), constrained_layout=True)
+    fig, axes = plt.subplots(4, 2, figsize=(11.2, 12.6), constrained_layout=True)
     axes = axes.ravel()
-    for ax, (file, title, color, xlim, ylim, note) in zip(axes, curves):
-        data = load(file)
-        plot_complex(ax, data, "", color)
-        setup_complex(ax, title)
-        ax.set_xlim(*xlim)
-        ax.set_ylim(*ylim)
+    for ax, spec in zip(axes, specs):
+        setup_complex(ax, spec["title"])
+        ax.set_xlim(*spec["xlim"])
+        ax.set_ylim(*spec["ylim"])
         ax.set_aspect("auto")
-        ax.text(0.04, 0.86, note, transform=ax.transAxes, fontsize=9)
-        if len(data) > 0:
-            idx = min(80, len(data) - 1)
-            ax.scatter([data[idx, 1]], [data[idx, 2]], color=color, s=20, zorder=4)
-            ax.annotate(f"A={data[idx,0]:.2g}", xy=(data[idx, 1], data[idx, 2]),
-                        xytext=(0.58, 0.14), textcoords="axes fraction",
-                        arrowprops={"arrowstyle": "->", "lw": 0.8}, fontsize=8)
+        for (param, label), color in zip(spec["params"], colors):
+            data = spec["curve"](param)
+            ax.plot(data[:, 1], data[:, 2], color=color, lw=1.9, label=label)
+            draw_start_circle(ax, data, spec["xlim"], spec["ylim"], color)
+            draw_direction_arrow(ax, data, spec["xlim"], spec["ylim"], color)
+        ax.legend(fontsize=8, loc="upper left")
     axes[-1].axis("off")
-    fig.suptitle("常见描述函数的负倒曲线：按非线性类型分别绘制", fontsize=15)
+    fig.suptitle("常见描述函数的负倒曲线：子图内同时标注参数变化", fontsize=15)
     fig.savefig(PROCESSED / "5-2-negative-inverse-summary.png", bbox_inches="tight")
     plt.close(fig)
-
-
-def render_parameter_effects() -> None:
-    fig, axes = plt.subplots(2, 2, figsize=(11.2, 7.4), constrained_layout=True)
-    specs = [
-        (axes[0, 0], "family_sat_k_", ["0.7", "1.0", "1.4"], "饱和：k 增大，起点向右靠近原点", "k"),
-        (axes[0, 1], "family_deadzone_d_", ["0.35", "0.65", "1.00"], "死区：Δ 增大，起始幅值右移", "Δ"),
-        (axes[1, 0], "family_hysteresis_h_", ["0.25", "0.55", "0.90"], "滞环继电：h 增大，虚部下移", "h"),
-        (axes[1, 1], "family_backlash_b_", ["0.25", "0.55", "0.90"], "间隙：b 增大，曲线更深进入第四象限", "b"),
-    ]
-    colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]
-    for ax, prefix, vals, title, symbol in specs:
-        for val, color in zip(vals, colors):
-            file = f"{prefix}{val}.csv"
-            data = load(file)
-            plot_complex(ax, data, f"{symbol}={val}", color)
-        setup_complex(ax, title)
-        ax.set_aspect("auto")
-        ax.legend(fontsize=9)
-    axes[0, 0].set_xlim(-7, 0.4); axes[0, 0].set_ylim(-1, 1)
-    axes[0, 1].set_xlim(-8, 0.4); axes[0, 1].set_ylim(-1, 1)
-    axes[1, 0].set_xlim(-7, 0.4); axes[1, 0].set_ylim(-3.8, 0.8)
-    axes[1, 1].set_xlim(-7, 0.4); axes[1, 1].set_ylim(-4.5, 0.8)
-    fig.suptitle("参数变化对负倒描述函数的影响", fontsize=15)
-    fig.savefig(PROCESSED / "5-2-negative-inverse-parameter-effects.png", bbox_inches="tight")
-    plt.close(fig)
-
 
 def points_inside_polygon(points: np.ndarray, polygon: np.ndarray) -> np.ndarray:
     x = points[:, 0]
@@ -178,6 +302,10 @@ def shade_inside_region(ax, polygon: np.ndarray, xlim, ylim) -> None:
 
 
 def render_small_perturbation() -> None:
+    # This figure is an intentionally schematic TikZ diagram. It is compiled
+    # from 5-2-small-perturbation-method.tex so that the illustrated
+    # intersections and enclosed region stay pedagogically controlled.
+    return
     g = load("small_perturbation_nyquist.csv")
     inv = load("inv_hysteresis_relay.csv")
     pos = np.column_stack([g[:, 1], g[:, 2]])
@@ -324,7 +452,6 @@ if __name__ == "__main__":
     style()
     render_static_characteristics()
     render_negative_inverse_summary()
-    render_parameter_effects()
     render_small_perturbation()
     render_examples()
     render_ship_case_simulation()

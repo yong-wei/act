@@ -262,14 +262,14 @@
         "chapter": 3,
         "chapterName": "时域分析",
         "category": "概念性",
-        "bloom_level": null,
+        "bloom_level": "理解",
         "definition": "在闭环极点中，对主要时域和频域表现影响最持续、最显著的那一组极点。",
         "examples": [],
         "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": null,
-        "importance": null,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
           "3-5",
           "极点分析",
@@ -1009,8 +1009,8 @@
       "name": "带宽",
       "nodeType": "THEORY",
       "description": "闭环幅频特性下降到低频值的 $\\dfrac{1}{\\sqrt{2}}$，也就是 `-3 dB` 时对应的频率范围入口。",
-      "positionX": -138.6,
-      "positionY": -80.0,
+      "positionX": -80.0,
+      "positionY": -138.6,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -1020,14 +1020,14 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": null,
+        "bloom_level": "理解",
         "definition": "闭环幅频特性下降到低频值的 $\\dfrac{1}{\\sqrt{2}}$，也就是 `-3 dB` 时对应的频率范围入口。",
         "examples": [],
         "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": null,
-        "importance": null,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
           "3-5",
           "频域分析",
@@ -1069,8 +1069,8 @@
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
-      "positionX": -160.3,
-      "positionY": -43.0,
+      "positionX": -83.0,
+      "positionY": -143.8,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -1080,14 +1080,14 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": null,
+        "bloom_level": "理解",
         "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
         "examples": [],
         "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": null,
-        "importance": null,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
           "3-5",
           "频域分析",
@@ -1129,8 +1129,8 @@
       "name": "串联无源滞后校正",
       "nodeType": "THEORY",
       "description": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
-      "positionX": 131.5,
-      "positionY": -131.5,
+      "positionX": 166.3,
+      "positionY": 96.0,
       "positionZ": 6,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -1323,14 +1323,6 @@
       "strength": 0.96
     },
     {
-      "id": "rel-26bda15fe829a58e",
-      "sourceId": "主导极点_3_4c4c6bbd",
-      "targetId": "左半平面零点的动态改善机理_3_35002",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.88
-    },
-    {
       "id": "rel-0e1154b9ea361887",
       "sourceId": "相角裕度_5_0a9c6e90",
       "targetId": "低频补偿稳态改善路径_3_37003",
@@ -1339,9 +1331,25 @@
       "strength": 0.88
     },
     {
-      "id": "rel-bafa4c350ba40112",
+      "id": "rel-26bda15fe829a58e",
+      "sourceId": "主导极点_3_4c4c6bbd",
+      "targetId": "左半平面零点的动态改善机理_3_35002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-430931b72ef954fc",
       "sourceId": "带宽_5_6730fda4",
-      "targetId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "三频段闭环性能回读_3_38003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-617ca58234d210b2",
+      "sourceId": "相角裕度_5_0a9c6e90",
+      "targetId": "模块4入口的首轮任务判断_3_39004",
       "relation": "cross_domain",
       "relationType": "cross_domain",
       "strength": 0.88
@@ -1355,12 +1363,12 @@
       "strength": 0.93
     },
     {
-      "id": "rel-430931b72ef954fc",
+      "id": "rel-6a0b1fc484f58812",
       "sourceId": "带宽_5_6730fda4",
-      "targetId": "三频段闭环性能回读_3_38003",
+      "targetId": "模块4入口的首轮任务判断_3_39004",
       "relation": "cross_domain",
       "relationType": "cross_domain",
-      "strength": 0.92
+      "strength": 0.88
     },
     {
       "id": "rel-a7ff8a896ebcd8fd",
@@ -1371,17 +1379,9 @@
       "strength": 0.89
     },
     {
-      "id": "rel-617ca58234d210b2",
-      "sourceId": "相角裕度_5_0a9c6e90",
-      "targetId": "模块4入口的首轮任务判断_3_39004",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-6a0b1fc484f58812",
+      "id": "rel-bafa4c350ba40112",
       "sourceId": "带宽_5_6730fda4",
-      "targetId": "模块4入口的首轮任务判断_3_39004",
+      "targetId": "低频补偿稳态改善路径_3_37003",
       "relation": "cross_domain",
       "relationType": "cross_domain",
       "strength": 0.88

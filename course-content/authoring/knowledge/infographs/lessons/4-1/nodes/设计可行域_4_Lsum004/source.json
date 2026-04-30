@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:04:05.724826Z",
+  "lesson": {
+    "lesson_id": "4-1",
+    "title": "设计起点：性能指标体系、工程约束与可行域表达",
+    "groups": [
+      "任务分类与区域分层"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "设计可行域_4_Lsum004",
+    "name": "设计可行域",
+    "name_en": "Design Feasible Domain",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "同时满足所有性能约束的参数允许范围，在三域各有投影——这是从\"分析\"走向\"设计\"的核心工具。",
+    "examples": [
+      "Mp≤20%、ts≤5s的约束将开环增益限制在[K_min, K_max]；约束越严则可行域越小，有时约束过严导致原系统无解，需改变系统结构"
+    ],
+    "formulas": [],
+    "keywords": [
+      "可行域",
+      "参数范围",
+      "约束映射",
+      "三域投影",
+      "设计决策",
+      "层0速通",
+      "框架概念",
+      "设计型"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/设计可行域_4_Lsum004.md",
+  "card_frontmatter": {
+    "node_id": "设计可行域_4_Lsum004",
+    "name": "设计可行域",
+    "name_en": "Design Feasible Domain",
+    "lesson_units": [
+      "L-∑",
+      "3-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "层0速通",
+      "框架概念",
+      "设计型"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/legacy/L-sum/design/handout.md",
+      "authoring/lessons/3-2/design/handout.md"
+    ],
+    "asset_refs": [
+      "cd-01-feasible-domain-overview.svg"
+    ]
+  },
+  "card_overview": "# 设计可行域 | Design Feasible Domain\n\n**一句话定义**：同时满足所有性能约束的参数允许范围，在三域各有投影——这是从\"分析\"走向\"设计\"的核心工具。\n\n**直觉图**：\n![设计可行域三域映射关系：性能约束→复平面可行域→时域包络/频域可行带](/course-runtime/lessons/legacy/L-sum/media/cd-01-feasible-domain-overview.svg)\n\n**关联**：前置 → 复平面可行域、三域直觉联动 · 精化 → 单元 2-1、3-1\n\n---",
+  "card_detail": "### 完整解释\n\n**分析问题 vs 设计问题**：\n- 分析：给定 K，求 $M_p$、$t_s$（唯一答案）\n- 设计：给定 $M_p \\leq ?$，$t_s \\leq ?$，求 K 的允许范围（一个区域）\n\n设计可行域是设计问题的答案空间。工程师的任务是：\n1. 确定可行域是否非空（约束是否可实现）\n2. 在可行域内按优化目标选取最优点\n\n**三域统一**：同一个 K 值范围 $[K_{\\min}, K_{\\max}]$ 在三域各有投影，三张图描述同一个设计可行域的不同面孔。\n\n**可行域收窄的含义**：\n- 约束收紧 → 可行域缩小 → K 的允许范围变窄\n- 约束过严 → 可行域为空 → 原系统结构无法满足要求 → 需改变系统（加校正器、改变极点分布）\n\n### 公式与推导路径\n\n设计可行域本身无独立公式，由各约束关系确定边界：\n\n| 约束 | 边界条件 | 精化单元 |\n|------|---------|---------|\n| $M_p \\leq \\sigma_0\\%$ | $K \\leq K_{\\max}$（阻尼比射线截断根轨迹） | 2-1、3-1 |\n| $t_s \\leq T_0$ | $K \\geq K_{\\min}$（实部垂线截断根轨迹） | 2-1、3-1 |\n| 稳定性 | $K > 0$（或劳斯判据确定的稳定范围） | 1-3 |\n\n### 工程实例（船舶航向控制）\n\n$G(s) = K/[s(s+2)]$，要求 $M_p \\leq 20\\%$，$t_s \\leq 5\\text{s}$：\n- 设计可行域：$K \\in (0,\\ 4.84]$（超调量给出上界，本例调节时间约束不紧）\n- 设计选择：工程上推荐 $K = 2$（最佳阻尼比 $\\zeta = 0.707$ 附近，超调约4%，裕量充足）\n\n若追加约束 $t_s \\leq 2\\text{s}$：根轨迹实部恒为 $-1$，但约束要求实部 $\\leq -2$，可行域为空 → 需改变系统结构（开环极点左移）。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 复平面可行域 | 设计可行域的几何核心 |\n| 前置 | 极点迁移 | K变化→极点运动→与可行域求交 |\n| 前置 | 三域直觉联动 | 建立三域统一视角的认知前提 |\n| 包含 | 时域响应包络 | 设计可行域在时域的表达 |\n| 包含 | 频域可行带 | 设计可行域在频域的表达 |\n| 精化 | 单元 2-1 | 可行域边界的精确几何推导 |\n| 精化 | 单元 3-1 | 在可行域内进行极点配置与校正器设计 |\n\n### 常见误区\n\n1. **误区**：设计可行域就是\"最优参数点\"。**纠正**：可行域是满足约束的参数**范围**，最优点是在可行域内进一步优化的结果，两者是不同层次的概念。\n2. **误区**：约束越多，系统性能越好。**纠正**：约束越多，可行域越小，设计自由度越低；约束过多可能导致无解，此时需放宽约束或改变系统结构。",
+  "card_plain_excerpt": "## 首页\n\n# 设计可行域 | Design Feasible Domain\n\n**一句话定义**：同时满足所有性能约束的参数允许范围，在三域各有投影——这是从\"分析\"走向\"设计\"的核心工具。\n\n**直觉图**：\n![设计可行域三域映射关系：性能约束→复平面可行域→时域包络/频域可行带](/course-runtime/lessons/legacy/L-sum/media/cd-01-feasible-domain-overview.svg)\n\n**关联**：前置 → 复平面可行域、三域直觉联动 · 精化 → 单元 2-1、3-1\n\n---\n\n## 详情\n\n### 完整解释\n\n**分析问题 vs 设计问题**：\n- 分析：给定 K，求 $M_p$、$t_s$（唯一答案）\n- 设计：给定 $M_p \\leq ?$，$t_s \\leq ?$，求 K 的允许范围（一个区域）\n\n设计可行域是设计问题的答案空间。工程师的任务是：\n1. 确定可行域是否非空（约束是否可实现）\n2. 在可行域内按优化目标选取最优点\n\n**三域统一**：同一个 K 值范围 $[K_{\\min}, K_{\\max}]$ 在三域各有投影，三张图描述同一个设计可行域的不同面孔。\n\n**可行域收窄的含义**：\n- 约束收紧 → 可行域缩小 → K 的允许范围变窄\n- 约束过严 → 可行域为空 → 原系统结构无法满足要求 → 需改变系统（加校正器、改变极点分布）\n\n### 公式与推导路径\n\n设计可行域本身无独立公式，由各约束关系确定边界：\n\n| 约束 | 边界条件 | 精化单元 |\n|------|---------|---------|\n| $M_p \\leq \\sigma_0\\%$ | $K \\leq K_{\\max}$（阻尼比射线截断根轨迹） | 2-1、3-1 |\n| $t_s \\leq T_0$ | $K \\geq K_{\\min}$（实部垂线截断根轨迹） | 2-1、3-1 |\n| 稳定性 | $K > 0$（或劳斯判据确定的稳定范围） | 1-3 |\n\n### 工程实例（船舶航向控制）\n\n$G(s) = K/[s(s+2)]$，要求 $M_p \\leq 20\\%$，$t_s \\leq 5\\text{s}$：\n- 设计可行域：$K \\in (0,\\ 4.84]$（超调量给出上界，本例调节时间约束不紧）\n- 设计选择：工程上推荐 $K = 2$（最佳阻尼比 $\\zeta = 0.707$ 附近，超调约4%，裕量充足）\n\n若追加约束 $t_s \\leq 2\\text{s}$：根轨迹实部恒为 $-1$，但约束要求实部 $\\leq -2$，可行域为空 → 需改变系统结构（开环极点左移）。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 复平面可行域 | 设计可行域的几何核心 |\n| 前置 | 极点迁移 | K变化→极点运动→与可行域求交 |\n| 前置 | 三域直觉联动 | 建立三域统一视角的认知前提 |\n| 包含 | 时域响应包络 | 设计可行域在时域的表达 |\n| 包含 | 频域可行带 | 设计可行域在频域的表达 |\n| 精化 | 单元 2-1 | 可行域边界的精确几何推导 |\n| 精化 | 单元 3-1 | 在可行域内进行极点配置与校正器设计 |\n\n### 常见误区\n\n1. **误区**：设计可行域就是\"最优参数点\"。**纠正**：可行域是满足约束的参数**范围**，最优点是在可行域内进一步优化的结果，两者是不同层次的概念。\n2. **误区**：约束越多，系统性能越好。**纠正**：约束越多，可行域越小，设计自由度越低；约束过多可能导致无解，此时需放宽约束或改变系统结构。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "三域直觉联动",
+      "target_id": null,
+      "target": "设计可行域",
+      "relation": "leads_to",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "复平面可行域",
+      "target_id": null,
+      "target": "设计可行域",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "变量平移判稳",
+      "target_id": null,
+      "target": "设计可行域",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "设计可行域",
+      "relation": "generalizes",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计可行域",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "contains",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "设计可行域_4_Lsum004",
+      "source": "设计可行域",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "contains",
+      "strength": 0.94,
+      "description": "4-1 用设计可行域承接“先排除不能做的，再比较可用方案”的入口逻辑。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "设计可行域",
+        "可行域",
+        "参数范围",
+        "约束映射",
+        "三域投影",
+        "设计决策",
+        "层0速通",
+        "框架概念",
+        "设计型"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

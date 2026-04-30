@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:04:05.422076Z",
+  "lesson": {
+    "lesson_id": "4-1",
+    "title": "设计起点：性能指标体系、工程约束与可行域表达",
+    "groups": [
+      "对照案例与排序重排"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "谐振峰值Mr_5_b3a87785",
+    "name": "谐振峰值Mr",
+    "name_en": "Resonance Peak Mr",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "闭环幅频特性曲线的最大峰值，用来表征系统的峰化风险和相对稳定性倾向。",
+    "examples": [
+      "Mr值在1.0~1.4范围内通常对应满意的动态性能。"
+    ],
+    "formulas": [
+      "M_r=\\frac{1}{2\\zeta\\sqrt{1-\\zeta^2}}"
+    ],
+    "keywords": [
+      "相对稳定性",
+      "阻尼比",
+      "相角裕度",
+      "幅频特性",
+      "频域指标",
+      "峰化风险"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md",
+  "card_frontmatter": {
+    "node_id": "谐振峰值Mr_5_b3a87785",
+    "name": "谐振峰值Mr",
+    "name_en": "Resonance Peak Mr",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "4-1",
+      "频域指标",
+      "峰化风险"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/handout.md"
+    ],
+    "asset_refs": [
+      "4-1-platform-pitch-quad.png",
+      "4-1-case-compare-summary.png"
+    ]
+  },
+  "card_overview": "# 谐振峰值Mr | Resonance Peak Mr\n\n**一句话定义**：闭环幅频特性曲线的最大峰值，用来表征系统的峰化风险和相对稳定性倾向。\n\n**核心直觉**：在 `4-1` 的对照案例里，`Mr` 更像“速度提升后要持续盯住的代价证据”。\n\n**关键公式**：\n$$\nM_r=\\frac{1}{2\\zeta\\sqrt{1-\\zeta^2}}\n$$\n\n**关联**：前置 → 相角裕度、带宽频率 · 后续 → 跨域联读任务重排、`4-5` 多目标权衡",
+  "card_detail": "### 完整解释\n\n谐振峰值 `Mr` 在 `4-1` 不是主场景 A 的第一入口，但在稳定平台对照案例里很关键。因为当速度与带宽被前移后，峰化风险就更值得被持续盯住：\n\n- 它通常不直接写成最前面的硬约束；\n- 但它能解释“为什么高带宽收益会伴随更紧的中频代价”；\n- 因而很适合放在观察指标栏里，辅助说明任务排序为什么会重排。\n\n![4-1 稳定平台综合图](../../lessons/4-1/media/processed/4-1-platform-pitch-quad.png)\n\n### 常见误区\n\n1. **误区**：谐振峰值只要不单独超标，就可以忽略。\n   **纠正**：在高带宽场景里，它往往是解释“为什么不能再继续冒进”的关键证据。\n\n2. **误区**：`Mr` 和超调量完全是一回事。\n   **纠正**：两者相关，但一个来自闭环频域峰化，一个来自时域峰值；在设计课里常常被用来互相印证风险。",
+  "card_plain_excerpt": "## 首页\n\n# 谐振峰值Mr | Resonance Peak Mr\n\n**一句话定义**：闭环幅频特性曲线的最大峰值，用来表征系统的峰化风险和相对稳定性倾向。\n\n**核心直觉**：在 `4-1` 的对照案例里，`Mr` 更像“速度提升后要持续盯住的代价证据”。\n\n**关键公式**：\n$$\nM_r=\\frac{1}{2\\zeta\\sqrt{1-\\zeta^2}}\n$$\n\n**关联**：前置 → 相角裕度、带宽频率 · 后续 → 跨域联读任务重排、`4-5` 多目标权衡\n\n## 详情\n\n### 完整解释\n\n谐振峰值 `Mr` 在 `4-1` 不是主场景 A 的第一入口，但在稳定平台对照案例里很关键。因为当速度与带宽被前移后，峰化风险就更值得被持续盯住：\n\n- 它通常不直接写成最前面的硬约束；\n- 但它能解释“为什么高带宽收益会伴随更紧的中频代价”；\n- 因而很适合放在观察指标栏里，辅助说明任务排序为什么会重排。\n\n![4-1 稳定平台综合图](../../lessons/4-1/media/processed/4-1-platform-pitch-quad.png)\n\n### 常见误区\n\n1. **误区**：谐振峰值只要不单独超标，就可以忽略。\n   **纠正**：在高带宽场景里，它往往是解释“为什么不能再继续冒进”的关键证据。\n\n2. **误区**：`Mr` 和超调量完全是一回事。\n   **纠正**：两者相关，但一个来自闭环频域峰化，一个来自时域峰值；在设计课里常常被用来互相印证风险。",
+  "core_intuition": "在 `4-1` 的对照案例里，`Mr` 更像“速度提升后要持续盯住的代价证据”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "超调量",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "二阶系统",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "leads_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "阻尼比",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "欠阻尼二阶系统",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "leads_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "测速反馈控制",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "速度反馈",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "leads_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "阻尼比",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "超前补偿",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅频特性",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相频特性",
+      "target_id": null,
+      "target": "谐振峰值Mr",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "谐振峰值Mr",
+        "相对稳定性",
+        "阻尼比",
+        "相角裕度",
+        "幅频特性",
+        "频域指标",
+        "峰化风险"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "M_r=\\frac{1}{2\\zeta\\sqrt{1-\\zeta^2}}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

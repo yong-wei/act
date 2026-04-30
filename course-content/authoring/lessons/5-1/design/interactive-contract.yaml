@@ -1,0 +1,343 @@
+contract_version: '2.2'
+lesson_id: '5-1'
+course_title: '5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配'
+course_route_segment: 'unit-5-1-linear-backbone-boundaries'
+preview_mode:
+  default_entry: 'student_demo'
+  student_demo_base_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo'
+media_policy:
+  runtime_only: true
+  runtime_media_base: '/course-runtime/lessons/5-1/media'
+telemetry_strategy: 'step_level_learning_evidence'
+teacher_insight_strategy: 'step_level_aggregation_only'
+required_step_fields: [layout, modules, content_blocks, evidence_sequence, interaction_spec, teacher_controls, student_access, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks]
+
+steps:
+  step-01:
+    title: '舵机大角度响应中的线性边界显现'
+    layout: { template: 'bridge_scene_observation', regions: [{ id: 'title', width: 'full', order: 1 }, { id: 'cover', width: 'full', order: 2 }, { id: 'scene', width: 'full', order: 3 }, { id: 'overview', width: 'full', order: 4 }, { id: 'explanation', width: 'full', order: 5 }] }
+    modules:
+      - { id: 'page-title', title: '线性边界显现场景', region: 'title', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'title_text' } }
+      - { id: 'cover-comic', title: '导入漫画', region: 'cover', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-1/media/5-1-cover-comic.png', caption_key: 'cover_caption' } }
+      - { id: 'scene-text', title: '舵机场景文案', region: 'scene', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'scene_text' } }
+      - { id: 'boundary-overview', title: '非线性边界现象总览', region: 'overview', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-1/media/5-1非线性边界总览插图.png', caption_key: 'overview_caption' } }
+      - { id: 'bridge-text', title: '工作范围桥接', region: 'explanation', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'bridge_text' } }
+    content_blocks:
+      title_text: { type: 'plain_text', body: '同一条线性信号路径进入真实执行机构后，预测曲线和实际曲线会在边界处产生分离。' }
+      cover_caption: '封面漫画用于建立舵机大角度响应场景。'
+      overview_caption: '执行器限位、死区、继电器、滞回、摩擦、速率限制和量化共同提示线性主干的工作范围。'
+      scene_text: { type: 'plain_text', body: '舵机小角度修航时响应正常；大角度转向时，控制指令继续增大，实际舵角停在最大允许角附近，航向响应前段变慢。' }
+      bridge_text: { type: 'plain_text', body: '这个场景把线性主干的有效范围显露出来：模型在小范围内仍有价值，但执行器、路径和工况会限定它的使用边界。' }
+    evidence_sequence: ['页面标题', '封面漫画', '舵机场景说明', '边界总览图', '工作范围桥接']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读导入场景，不提交。', activity_cards: [] }
+    teacher_controls: &no_controls { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: &visible_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['view_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '从舵机大角度响应场景进入线性主干边界识别。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-01', must_match_student_page: true }
+    acceptance_checks: ['导入页不设置作答题；漫画和总览图只服务场景桥接。']
+
+  step-02:
+    title: '本次课程目标'
+    layout: { template: 'objective_cards', regions: [{ id: 'main', width: 'full', order: 1 }] }
+    modules:
+      - { id: 'objective-list', title: '完成本次课程后，学习者能够', region: 'main', kind: 'objective-list', must_be_visible: true, payload: { block_key: 'objectives' } }
+    content_blocks:
+      objectives:
+        type: 'bullet_list'
+        items: ['说明线性定常主干默认依赖哪些工程假设。', '识别饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模型失配和强扰动破坏的假设。', '判断非线性环节能否在工作点附近合理线性化，并写出对应微分方程和传递函数。', '比较忽略非线性和含非线性响应的差异，说明线性预测低估的风险。', '写出方法迁移前的最小边界说明。']
+    evidence_sequence: ['布鲁姆能力目标单列表']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读本次课程目标。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['view_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '呈现 5-1 的五项目标。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-02', must_match_student_page: true }
+    acceptance_checks: ['目标页只出现本次课程目标。']
+
+  step-03:
+    title: '前测：线性模型的预备判断'
+    layout: { template: 'pretest_quiz_group', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'pretest-bridge', title: '前测桥接', region: 'header', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'bridge' } }
+      - { id: 'pretest-quiz', title: '预备判断题组', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['model-range', 'superposition-check', 'parameter-reuse'] } }
+    content_blocks:
+      bridge: { type: 'plain_text', body: '以下题目检验关于线性比例关系、传递函数适用范围和叠加原理的理解。' }
+    evidence_sequence: ['前测桥接文案', '三道客观题']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道预备判断题。'
+      activity_cards:
+        - { id: 'model-range', title: '传递函数适用范围', prompt: '某一工作范围内辨识得到的传递函数，能否不加验证地外推到任意输入幅值？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'a', label: '能，传递函数一旦建立就全范围有效。' }, { value: 'b', label: '不能，还要检查模型建立时的工作范围和输入幅值。' }, { value: 'c', label: '只要稳态值接近就可以。' }], reference_answer: '选 B。线性模型的适用范围需要由建模范围和验证证据支持。' }
+        - { id: 'superposition-check', title: '叠加原理判断', prompt: '在线性定常模型中，两个输入同时作用时，响应通常如何由单独响应得到？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'a', label: '两个单独响应相加。' }, { value: 'b', label: '只保留幅值更大的那一个响应。' }, { value: 'c', label: '必须重新更换模型结构。' }], reference_answer: '选 A。叠加原理是线性模型的基本前提。' }
+        - { id: 'parameter-reuse', title: '参数复用条件', prompt: '同一对象在两组工况下阶跃响应系统性不同，是否还能不加说明地共用同一组模型参数？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'a', label: '可以，参数和工况无关。' }, { value: 'b', label: '不宜直接共用，应说明参数复用范围或重新辨识。' }, { value: 'c', label: '只需要改变输入单位。' }], reference_answer: '选 B。固定参数模型需要稳定工况或重新辨识证据。' }
+    teacher_controls: &quiz_controls { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
+    student_access: &released_activity_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['model_range_overgeneralization', 'superposition_error', 'parameter_reuse_error'] }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '检查线性模型使用前的预备判断。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-03', must_match_student_page: true }
+    acceptance_checks: ['前测全部为客观题，不考察本课新分类。']
+
+  step-04:
+    title: '线性主干依赖的五个默认条件'
+    layout: { template: 'concept_table_match', regions: [{ id: 'concept', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'concept-note', title: '线性主干的使用范围', region: 'concept', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'concept_note' } }
+      - { id: 'assumption-table', title: '默认条件与失效信号', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'assumption_table' } }
+      - { id: 'assumption-match', title: '失效信号匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['assumption-match'] } }
+    content_blocks:
+      concept_note: { type: 'plain_text', body: '线性主干不要求真实世界完全线性，它要求在当前任务范围内，非线性因素没有主导响应。' }
+      assumption_table: { type: 'native_table', columns: ['默认条件', '在分析中的作用', '常见失效信号'], rows: [['比例关系近似成立', '输入放大多少，输出趋势也按比例变化', '大输入下输出被压平、分段或动作受限'], ['叠加原理近似成立', '多个输入或扰动的影响可以分开分析再相加', '两个作用叠加后出现额外状态、突跳或额外振荡'], ['输入输出关系单值连续', '同一输入对应同一输出，路径不影响结果', '上行和下行路径不同，回程后存在残差'], ['模型参数在短时内稳定', '同一对象可以用同一组参数解释', '载荷、航速、温度或工况改变后响应系统性偏离'], ['工作模式不发生突变', '结构、控制律和执行逻辑保持同一形式', '阈值触发、保护逻辑介入、控制模式切换']] }
+    evidence_sequence: ['使用范围说明', '默认条件表', '失效信号匹配']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '把失效信号匹配到被破坏的线性默认条件。'
+      activity_cards:
+        - { id: 'assumption-match', title: '失效信号匹配', prompt: '把三条“现象 -> 默认条件”的配对按正确顺序排列：输出被压平、路径回程残差、保护逻辑介入。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' }, { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' }, { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' }], reference_answer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['assumption_mapping_error'] }
+    teacher_insight_spec: { widgets: ['card_completion_rate', 'common_mismatch'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把线性主干的默认条件转化为可检查假设。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-04', must_match_student_page: true }
+    acceptance_checks: ['五个默认条件与失效信号必须完整出现。']
+
+  step-05:
+    title: '典型非线性环节的假设破坏类型'
+    layout: { template: 'nonlinear_characteristic_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'catalog', width: 'full', order: 3 }, { id: 'risk', width: 'full', order: 4 }, { id: 'activity', width: 'full', order: 5 }] }
+    modules:
+      - { id: 'figure-role', title: '图的用途', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'figure_role' } }
+      - { id: 'static-characteristics', title: '典型非线性环节的边界特性对照', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-1/media/5-1-boundary-static-characteristics.png', caption_key: 'figure_caption' } }
+      - { id: 'nonlinear-catalog', title: '非线性类型、表达式与风险', region: 'catalog', kind: 'native-table', must_be_visible: true, payload: { block_key: 'nonlinear_catalog' } }
+      - { id: 'risk-summary', title: '假设破坏风险说明', region: 'risk', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'risk_summary' } }
+      - { id: 'boundary-classify', title: '假设破坏分类', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['boundary-classify'] } }
+    content_blocks:
+      figure_role: { type: 'plain_text', body: '这张图用于识别输入输出特性和被破坏的线性假设，不是完整动态模型。' }
+      figure_caption: '从饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模式切换和模型失配中识别边界类型。'
+      nonlinear_catalog: { type: 'native_table', columns: ['类型', '代表表达或特征', '主要破坏的默认条件', '线性预测低估的风险'], rows: [['饱和', '$u=\\operatorname{sat}(v)$，输出存在最大幅值', '比例关系近似成立', '高估执行器能力和大幅动作速度'], ['死区', '$|v|\\le\\Delta$ 时 $u=0$', '小信号比例灵敏度', '高估稳态附近连续修正能力'], ['继电器', '$u=M\\operatorname{sgn}(v)$', '小幅比例关系和单值连续', '掩盖阈值切换与开关幅值'], ['滞回、间隙、回差', '同一输入值的输出依赖上行或下行路径', '输入输出关系单值连续', '忽略路径记忆、回程残差和周期摆动'], ['摩擦', '小作用先被静摩擦抵消，超过起动条件后才运动', '小信号比例灵敏度和参数稳定', '把间歇起动误判为连续微调'], ['速率限制', '$|\\dot u|$ 受最大变化率约束', '比例关系和动态跟随假设', '高估初段跟随速度和安全裕度'], ['量化', '连续输入输出被分成离散档位', '输入输出连续性', '忽略台阶误差、极限环和分辨率边界'], ['平滑非线性', '$u=\\tanh v$ 等局部可导但斜率随幅值变', '固定增益近似', '把局部小扰动结论误推到全幅值'], ['分段增益与模式切换', '$\\dot x=f_1(x,u)$ 或 $f_2(x,u)$', '工作模式不发生突变', '把结构改变误看成同一传函参数变化'], ['模型失配与强扰动', '载荷、航速、海况、老化等改变对象参数或工作点', '模型参数稳定和工作范围固定', '把跨工况系统性偏差误判为普通误差']] }
+      risk_summary: { type: 'plain_text', body: '典型非线性不是同一种“曲线弯曲”。有的截断大幅动作，有的吞掉小信号，有的引入路径记忆、档位、切换或工况漂移。识别时要同时写出特性、被破坏的线性默认条件和线性预测会低估的工程风险。' }
+    evidence_sequence: ['图的用途说明', '静态特性图', '逐类表达与风险表', '分类判断']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '把典型非线性现象归类到被破坏的线性默认条件。'
+      activity_cards:
+        - { id: 'boundary-classify', title: '假设破坏分类', prompt: '把七条“非线性类型 -> 主要破坏假设”的配对按表格中的判断顺序排列。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'saturation', label: '饱和 -> 比例关系或固定增益近似' }, { value: 'deadzone', label: '死区 -> 小信号比例灵敏度' }, { value: 'hysteresis', label: '滞回 -> 单值连续关系' }, { value: 'rate_limit', label: '速率限制 -> 比例关系或动态跟随假设' }, { value: 'quantization', label: '量化 -> 单值连续关系' }, { value: 'mode_switch', label: '模式切换 -> 工作模式不突变' }, { value: 'model_mismatch', label: '模型失配 -> 模型参数稳定' }], reference_answer: '饱和和速率限制主要破坏比例或固定增益近似；死区破坏小信号灵敏度；滞回和量化破坏单值连续；模式切换破坏结构固定；模型失配破坏参数稳定。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['all_nonlinear_same', 'hysteresis_as_delay'] }
+    teacher_insight_spec: { widgets: ['card_completion_rate', 'common_mismatch'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '识别典型非线性边界环节及其假设破坏类型。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-05', must_match_student_page: true }
+    acceptance_checks: ['图片不得早于图的用途说明；静态图不要求 Rust 面板。']
+
+  step-06:
+    title: '合理局部线性化：平滑非线性的小扰动模型'
+    layout: &curve_layout { template: 'worked_example_curve_compare', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'figure', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'smooth-problem', title: '平滑非线性题面', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'smooth-reveal', title: '局部线性化公式链', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+      - { id: 'smooth-panel', title: '时域与频域对比面板', region: 'figure', kind: 'rust-analysis-panel', must_be_visible: true, payload: { block_key: 'rust_panel', text: '左侧显示小阶跃、大阶跃、正弦三类信号的时域对比，右侧显示线性模型与原非线性系统一次谐波 Bode 对比。', items: ['默认模型：2dy/dt=-y+u, u=tanh(v)', '线性化模型：Glin(s)=1/(2s+1)', '控件位于图形下方。'] } }
+    content_blocks:
+      problem: { type: 'plain_text', body: '考虑 $2\\dot y(t)=-y(t)+u(t)$，$u(t)=\\tanh v(t)$。在 $v_0=0,y_0=0,u_0=0$ 附近写出小扰动模型和传递函数。' }
+      reveal_layers: { type: 'reveal', layers: ['局部线性化基本式使用一阶导数：$y\\approx f(x_0)+f^{\\prime}(x_0)(x-x_0)$。', '$\\tanh v\\approx \\tanh 0+(1-\\tanh^2 0)(v-0)=v$。', '$2\\Delta\\dot y(t)=-\\Delta y(t)+\\Delta v(t)$。', '$G_{lin}(s)=\\Delta Y(s)/\\Delta V(s)=1/(2s+1)$。', '小阶跃和小幅正弦接近；大幅输入时 $\\tanh v$ 等效增益下降。'] }
+      rust_panel: { type: 'interactive_figure', model_id: 'smooth_tanh_first_order', model_equations: ['2 dy/dt = -y + u', 'u = tanh(v)', 'linearized: 2 dDelta_y/dt = -Delta_y + Delta_v'], default_parameters: { operating_point_v: 0, operating_point_y: 0, input_amplitude: 0.2, large_input_amplitude: 1.5 }, time_domain_series: ['small_step_original', 'small_step_linearized', 'large_step_original', 'large_step_linearized', 'sine_original', 'sine_linearized'], frequency_series: ['Glin_bode', 'small_signal_first_harmonic', 'large_signal_first_harmonic'], axis_policy: { time: 'shared_y_axis_by_signal_type', bode: 'log_frequency_shared_axes' }, controls: [{ id: 'input_type', label: '输入类型', kind: 'segmented', default: 'small_step', options: ['small_step', 'large_step', 'sine'] }, { id: 'input_amplitude', label: '输入幅值', kind: 'slider', default: 0.2, min: 0.05, max: 2.0, step: 0.05 }, { id: 'show_linearized', label: '显示线性化曲线', kind: 'toggle', default: true }, { id: 'show_original', label: '显示原非线性曲线', kind: 'toggle', default: true }], submit_fields: ['input_amplitude', 'separation_observed', 'gain_bias'], baseline: '复现左侧三类信号时域对比与右侧 Bode 对比' }
+    evidence_sequence: ['例题题面', '工作点', '线性化公式链', '三类信号对比', 'Bode 对比', '适用范围结论']
+    interaction_spec: &parameter_interaction { interaction_kind: 'curve_compare_panel', student_task: '调节曲线面板参数后提交当前参数和观察结论。', step_reveal_policy: { mode: 'teacher_or_open_browse', min_layers: 4 }, activity_cards: [] }
+    interactive_figure_spec: { engine: 'rust', model_id: 'smooth_tanh_first_order', layout_mirror: 'two_panel_time_bode', baseline_media: '/course-runtime/lessons/5-1/media/5-1-local-linearization-smooth-compare.png', default_parameters: { operating_point_v: 0, input_amplitude: 0.2, large_input_amplitude: 1.5 }, curve_series: ['small_step_original', 'small_step_linearized', 'large_step_original', 'large_step_linearized', 'sine_original', 'sine_linearized', 'Glin_bode', 'first_harmonic_bode'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: &reveal_controls { release_activity: 'teacher_toggle', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'teacher_toggle' }
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['globalizing_local_linearization'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count', 'step_reveal_progress'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用平滑非线性例子说明合理局部线性化。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-06', must_match_student_page: true }
+    acceptance_checks: ['题面常显；公式链先于曲线图；曲线控件在图形下方。']
+
+  step-07:
+    title: '继电器切换的伪线性化失真'
+    layout: { template: 'bad_linearization_compare', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'figure', width: 'full', order: 3 }, { id: 'boundary', width: 'full', order: 4 }] }
+    modules:
+      - { id: 'relay-problem', title: '继电器题面', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'relay-reveal', title: '伪线性化链与反证', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+      - { id: 'relay-panel', title: '继电器响应与伪线性 Bode', region: 'figure', kind: 'rust-analysis-panel', must_be_visible: true, payload: { block_key: 'rust_panel', text: '左侧显示小阶跃、大阶跃、正弦时域反证，右侧显示伪线性 Bode 与继电器一次谐波估计。', items: ['默认模型：2dy/dt=-y+u, u=sgn(v)', '伪模型：Gfake(s)=1/(2s+1)', '右侧 Bode 标注为一次谐波近似。'] } }
+      - { id: 'linearization-boundary-table', title: '局部线性化使用边界', region: 'boundary', kind: 'native-table', must_be_visible: true, payload: { block_key: 'linearization_boundary_table' } }
+    content_blocks:
+      problem: { type: 'plain_text', body: '同一阶对象前接继电器：$2\\dot y(t)=-y(t)+u(t)$，$u(t)=\\operatorname{sgn}v(t)$。在 $v=0$ 附近考察伪线性化的失真。' }
+      reveal_layers: { type: 'reveal', layers: ['$\\operatorname{sgn}v$ 在零点不连续，没有普通意义下的有限导数。', '强行写 $u\\approx k_fv, k_f=1$ 只能得到形式相似的伪模型。', '$2\\Delta\\dot y=-\\Delta y+\\Delta v,\\ G_{fake}(s)=1/(2s+1)$ 不是合法局部线性化。', '小阶跃已经触发继电器输出，原系统朝 $1$ 收敛，伪模型只朝 $0.2$ 收敛。', '右侧 Bode 是一次谐波近似，用于暴露伪模型掩盖的切换和高次谐波。'] }
+      rust_panel: { type: 'interactive_figure', model_id: 'relay_bad_linearization_first_order', model_equations: ['2 dy/dt = -y + u', 'u = sgn(v)', 'fake: 2 dDelta_y/dt = -Delta_y + Delta_v'], default_parameters: { relay_amplitude: 1, fake_gain: 1, small_step_amplitude: 0.2, large_step_amplitude: 1.2 }, time_domain_series: ['small_step_relay', 'small_step_fake_linear', 'large_step_relay', 'large_step_fake_linear', 'sine_relay', 'sine_fake_linear'], frequency_series: ['Gfake_bode', 'relay_first_harmonic_estimate'], axis_policy: { time: 'shared_y_axis_by_signal_type', bode: 'log_frequency_shared_axes' }, controls: [{ id: 'input_amplitude', label: '输入幅值', kind: 'slider', default: 0.2, min: 0.05, max: 2.0, step: 0.05 }, { id: 'relay_amplitude', label: '继电器幅值', kind: 'slider', default: 1.0, min: 0.2, max: 2.0, step: 0.1 }, { id: 'show_fake_gain', label: '显示伪线性曲线', kind: 'toggle', default: true }], submit_fields: ['input_amplitude', 'invalid_reason', 'counter_evidence'], baseline: '复现继电器三类信号时域对比与一次谐波 Bode 对比' }
+      linearization_boundary_table: { type: 'native_table', columns: ['情况', '线性近似的有效性', '判断依据'], rows: [['平滑非线性的小扰动围绕同一工作点变化', '通常有效', '函数可导，输入幅值小，执行器未触边'], ['同一对象在相邻工况运行', '可能有效', '参数变化可被重新辨识或裕度覆盖'], ['大幅指令触碰执行器限制', '明显不足', '控制量被限幅，输出过程与线性预测分离'], ['系统出现路径记忆、继电器切换或量化', '不能直接用单一传函替代', '同一输入下响应依赖历史、阈值或档位'], ['强扰动推动系统跨工作区', '单一模型不足', '模型参数、边界环节和外部扰动共同变化']] }
+    evidence_sequence: ['继电器题面', '不连续说明', '伪传函', '时域反证', '频域近似反证', '局部线性化使用边界表']
+    interaction_spec: *parameter_interaction
+    interactive_figure_spec: { engine: 'rust', model_id: 'relay_bad_linearization_first_order', layout_mirror: 'two_panel_time_bode', baseline_media: '/course-runtime/lessons/5-1/media/5-1-local-linearization-relay-bad-compare.png', default_parameters: { relay_amplitude: 1, fake_gain: 1, small_step_amplitude: 0.2 }, curve_series: ['small_step_relay', 'small_step_fake_linear', 'large_step_relay', 'large_step_fake_linear', 'sine_relay', 'sine_fake_linear', 'Gfake_bode', 'relay_first_harmonic_estimate'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['relay_as_linear_gain'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count', 'step_reveal_progress'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用继电器例子说明伪线性化的失真。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-07', must_match_student_page: true }
+    acceptance_checks: ['标题为陈述式；题面常显；Bode 标注为一次谐波近似。']
+
+  step-08:
+    title: '饱和执行器：大指令下前段响应变慢'
+    layout: &case_layout { template: 'nonlinear_response_compare', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'figure', width: 'full', order: 3 }] }
+    modules: &case_modules
+      - { id: 'case-problem', title: '场景与模型', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'case-reveal', title: '表达式与风险显影', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+      - { id: 'case-panel', title: '忽略预测与实际响应对比', region: 'figure', kind: 'rust-analysis-panel', must_be_visible: true, payload: { block_key: 'rust_panel', text: '按本页模型生成忽略非线性预测和实际非线性响应对比，控件位于图形下方。', items: ['左侧为时域响应或控制量对比。', '默认参数复现讲义基线图。', '提交当前参数和风险判断。'] } }
+    content_blocks:
+      problem: { type: 'plain_text', body: '航向舵机角度存在上限。对象 $2\\dot y=-y+u$，控制律 $v=2(r-y)$。比较小阶跃 $r=0.3$ 与大阶跃 $r=1.2$。' }
+      reveal_layers: { type: 'reveal', layers: ['忽略饱和时取 $u=v$。', '考虑舵机上限时 $u=\\operatorname{sat}(v), |u|\\le1.2$。', '小阶跃初始 $v(0)=0.6$ 未触边；大阶跃初始 $v(0)=2.4$ 已越过上限。', '线性预测高估执行器能力，实际输出前段变慢。'] }
+      baseline_media: '/course-runtime/lessons/5-1/media/5-1-saturation-response-compare.png'
+      rust_panel: { type: 'interactive_figure', model_id: 'saturation_actuator_first_order', model_equations: ['2 dy/dt = -y + u', 'v = 2(r-y)', 'linear: u = v', 'nonlinear: u = sat(v), |u| <= u_max'], default_parameters: { small_reference_r: 0.3, large_reference_r: 1.2, u_max: 1.2 }, curve_series: ['small_step_linear', 'small_step_saturated', 'large_step_linear', 'large_step_saturated', 'control_v', 'actual_u'], controls: [{ id: 'reference_r', label: '参考输入 r', kind: 'slider', default: 1.2, min: 0.1, max: 1.5, step: 0.05 }, { id: 'u_max', label: '饱和上限', kind: 'slider', default: 1.2, min: 0.4, max: 2.0, step: 0.1 }], submit_fields: ['reference_r', 'boundary_touched', 'risk_statement'] }
+    evidence_sequence: ['对象与控制律', '忽略饱和', '饱和表达', '小/大阶跃对比', '风险结论']
+    interaction_spec: *parameter_interaction
+    interactive_figure_spec: { engine: 'rust', model_id: 'saturation_actuator_first_order', layout_mirror: 'two_step_response_compare', baseline_media: '/course-runtime/lessons/5-1/media/5-1-saturation-response-compare.png', default_parameters: { small_reference_r: 0.3, large_reference_r: 1.2, u_max: 1.2 }, curve_series: ['small_step_linear', 'small_step_saturated', 'large_step_linear', 'large_step_saturated', 'control_v', 'actual_u'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['final_value_only'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较饱和执行器下线性预测与实际响应差异。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-08', must_match_student_page: true }
+    acceptance_checks: ['先给对象和饱和表达，再出现响应图。']
+
+  step-09:
+    title: '死区执行机构：小误差附近连续修正失效'
+    layout: *case_layout
+    modules: *case_modules
+    content_blocks:
+      problem: { type: 'plain_text', body: '阀控执行机构在小开度附近存在死区。对象 $2\\dot y=-y+u$，$v=2(r-y)$，小参考输入 $r=0.12$，死区宽度 $\\Delta=0.2$。' }
+      reveal_layers: { type: 'reveal', layers: ['忽略死区时 $u=v$，闭环为 $2\\dot y=-y+2(r-y)$。', '考虑死区时 $|v|\\le\\Delta$ 区间内 $u=0$，死区外按 $v\\mp0.2$ 输出。', '线性预测最终输出约 $0.08$，实际响应约 $0.013$。', '主要风险是小信号连续修正被执行机构吞掉。'] }
+      baseline_media: '/course-runtime/lessons/5-1/media/5-1-deadzone-feedback-compare.png'
+      rust_panel: { type: 'interactive_figure', model_id: 'deadzone_feedback_first_order', model_equations: ['2 dy/dt = -y + u', 'v = 2(r-y)', 'linear: u = v', 'deadzone: u = 0 when |v| <= Delta; u = v - Delta when v > Delta; u = v + Delta when v < -Delta'], default_parameters: { reference_r: 0.12, deadzone_delta: 0.2, outer_slope: 1.0 }, curve_series: ['linear_response', 'deadzone_response', 'controller_command_v', 'actual_u'], controls: [{ id: 'reference_r', label: '参考输入 r', kind: 'slider', default: 0.12, min: 0.02, max: 0.5, step: 0.01 }, { id: 'deadzone_delta', label: '死区宽度 Delta', kind: 'slider', default: 0.2, min: 0.0, max: 0.4, step: 0.02 }, { id: 'outer_slope', label: '死区外斜率', kind: 'slider', default: 1.0, min: 0.5, max: 2.0, step: 0.1 }], submit_fields: ['reference_r', 'deadzone_delta', 'effective_action'] }
+    evidence_sequence: ['对象与控制律', '忽略死区闭环', '死区表达', '响应图', '风险结论']
+    interaction_spec: *parameter_interaction
+    interactive_figure_spec: { engine: 'rust', model_id: 'deadzone_feedback_first_order', layout_mirror: 'response_compare', baseline_media: '/course-runtime/lessons/5-1/media/5-1-deadzone-feedback-compare.png', default_parameters: { reference_r: 0.12, deadzone_delta: 0.2, outer_slope: 1.0 }, curve_series: ['linear_response', 'deadzone_response', 'controller_command_v', 'actual_u'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['deadzone_as_slow_large_motion'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较死区执行机构下小信号线性预测与实际响应差异。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-09', must_match_student_page: true }
+    acceptance_checks: ['突出小修正失效，不写成大动作变慢。']
+
+  step-10:
+    title: '滞环继电器：阈值附近的切换和周期摆动'
+    layout: *case_layout
+    modules: *case_modules
+    content_blocks:
+      problem: { type: 'plain_text', body: '开关控制对象取 $2\\dot y=-y+u$，目标 $r=0.5$。忽略继电器时 $u_{lin}=2(r-y)$；实际采用滞环宽度 $h=0.05$、输出幅值 $1$ 的继电器。' }
+      reveal_layers: { type: 'reveal', layers: ['线性预测给出连续控制量和平滑收敛。', '滞环继电器满足 $r-y>h$ 输出 $1$，$r-y<-h$ 输出 $-1$，保持区内取 $u(t^-)$。', '$u(t^-)$ 表示路径记忆，当前输出依赖上一时刻状态。', '实际系统在目标附近形成周期摆动，线性预测掩盖切换与阈值穿越。'] }
+      baseline_media: '/course-runtime/lessons/5-1/media/5-1-relay-hysteresis-feedback-compare.png'
+      rust_panel: { type: 'interactive_figure', model_id: 'hysteresis_relay_feedback_first_order', model_equations: ['2 dy/dt = -y + u', 'linear: u_lin = 2(r-y)', 'relay: u = 1 if r-y > h; u = -1 if r-y < -h; otherwise u(t-)'], default_parameters: { reference_r: 0.5, hysteresis_h: 0.05, relay_amplitude: 1.0 }, curve_series: ['linear_response', 'relay_response', 'linear_control', 'relay_switching_u'], controls: [{ id: 'hysteresis_h', label: '滞环宽度 h', kind: 'slider', default: 0.05, min: 0.0, max: 0.2, step: 0.01 }, { id: 'relay_amplitude', label: '继电器幅值', kind: 'slider', default: 1.0, min: 0.2, max: 2.0, step: 0.1 }, { id: 'reference_r', label: '目标 r', kind: 'slider', default: 0.5, min: 0.1, max: 1.0, step: 0.05 }], submit_fields: ['hysteresis_h', 'switching_observed', 'risk_statement'] }
+    evidence_sequence: ['对象与目标', '伪比例预测', '滞环表达', '路径记忆', '周期摆动风险']
+    interaction_spec: *parameter_interaction
+    interactive_figure_spec: { engine: 'rust', model_id: 'hysteresis_relay_feedback_first_order', layout_mirror: 'response_compare_with_switching', baseline_media: '/course-runtime/lessons/5-1/media/5-1-relay-hysteresis-feedback-compare.png', default_parameters: { reference_r: 0.5, hysteresis_h: 0.05, relay_amplitude: 1.0 }, curve_series: ['linear_response', 'relay_response', 'linear_control', 'relay_switching_u'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['relay_as_smooth_control'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较滞环继电器下平滑预测与实际切换响应。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-10', must_match_student_page: true }
+    acceptance_checks: ['必须同时解释路径记忆和周期摆动。']
+
+  step-11:
+    title: '速率限制舵机：快速指令下动作被拖慢'
+    layout: *case_layout
+    modules: *case_modules
+    content_blocks:
+      problem: { type: 'plain_text', body: '舵机角度没有越界，但角速度受限。对象 $2\\dot y=-y+u$，$v=2(r-y)$，$r=1.0$，执行器 $T_a=0.2$，最大变化率 $0.35$。' }
+      reveal_layers: { type: 'reveal', layers: ['忽略速率限制时 $u=v$。', '考虑速率限制时 $\\dot u=\\operatorname{sat}((v-u)/T_a)$，且 $|\\dot u|\\le0.35$。', '实际执行器输出只能按最大变化率爬升。', '后段稳态可能接近，但初段差异会影响调节时间和安全裕度。'] }
+      baseline_media: '/course-runtime/lessons/5-1/media/5-1-rate-limit-feedback-compare.png'
+      rust_panel: { type: 'interactive_figure', model_id: 'rate_limited_servo_first_order', model_equations: ['2 dy/dt = -y + u', 'v = 2(r-y)', 'linear: u = v', 'rate_limited: du/dt = sat((v-u)/Ta), |du/dt| <= rate_limit'], default_parameters: { reference_r: 1.0, actuator_Ta: 0.2, rate_limit: 0.35 }, curve_series: ['linear_response', 'rate_limited_response', 'desired_v', 'actual_u'], controls: [{ id: 'rate_limit', label: '最大变化率', kind: 'slider', default: 0.35, min: 0.1, max: 1.2, step: 0.05 }, { id: 'actuator_Ta', label: '执行器时间常数 Ta', kind: 'slider', default: 0.2, min: 0.05, max: 0.6, step: 0.05 }, { id: 'reference_r', label: '参考输入 r', kind: 'slider', default: 1.0, min: 0.2, max: 1.5, step: 0.05 }], submit_fields: ['rate_limit', 'initial_lag', 'risk_statement'] }
+    evidence_sequence: ['对象与参考', '忽略速率限制', '速率限制表达', '响应图', '初段风险']
+    interaction_spec: *parameter_interaction
+    interactive_figure_spec: { engine: 'rust', model_id: 'rate_limited_servo_first_order', layout_mirror: 'response_compare', baseline_media: '/course-runtime/lessons/5-1/media/5-1-rate-limit-feedback-compare.png', default_parameters: { reference_r: 1.0, actuator_Ta: 0.2, rate_limit: 0.35 }, curve_series: ['linear_response', 'rate_limited_response', 'desired_v', 'actual_u'], feasible_region_policy: 'not_applicable', controls_position: 'below_figure' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['parameterSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['rate_limit_as_amplitude_limit'] }
+    teacher_insight_spec: { widgets: ['parameter_submission_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较速率限制舵机下线性预测与实际初段响应。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-11', must_match_student_page: true }
+    acceptance_checks: ['必须区分速率限制和幅值饱和。']
+
+  step-12:
+    title: '边界识别五步与方法迁移前说明'
+    layout: { template: 'boundary_statement_workspace', regions: [{ id: 'framework', width: 'full', order: 1 }, { id: 'directions', width: 'full', order: 2 }, { id: 'structure', width: 'full', order: 3 }, { id: 'reveal', width: 'full', order: 4 }, { id: 'activity', width: 'full', order: 5 }] }
+    modules:
+      - { id: 'five-step-table', title: '边界识别五步框架', region: 'framework', kind: 'native-table', must_be_visible: true, payload: { block_key: 'five_step_table' } }
+      - { id: 'direction-cards', title: '三类处理方向', region: 'directions', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'directions' } }
+      - { id: 'boundary-structure', title: '边界说明结构式', region: 'structure', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'boundary_structure' } }
+      - { id: 'boundary-example-reveal', title: '边界说明样例显影', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+      - { id: 'boundary-activity', title: '边界说明提交', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['evidence-select', 'boundary-statement'] } }
+    content_blocks:
+      five_step_table: { type: 'native_table', columns: ['步骤', '要回答的问题', '典型证据'], rows: [['现象定位', '异常出现在输出、控制量、误差、频域响应还是模式状态中', '响应曲线、控制量曲线、Bode 对比、切换日志'], ['假设回查', '哪个线性默认条件被破坏', '比例、叠加、单值连续、参数稳定、结构固定'], ['范围判断', '问题只出现在局部还是跨越多个工况', '小/大输入对比、工况切换对比'], ['风险说明', '继续沿用线性主干会低估什么风险', '执行器越界、尾段误差、振荡、误判裕度'], ['处理方向', '继续线性修正还是进入边界工具或系统视角迁移', '重新线性化、分段建模、非线性分析、链路重构']] }
+      directions: { type: 'bullet_list', items: ['继续留在线性主干内修正：参数偏差、工作点小幅移动或裕度不足。', '进入边界工具分析：饱和、死区、滞回、继电器、量化或切换主导响应。', '更换系统视角：感知、估计、规划、执行器约束和环境扰动同时耦合。'] }
+      boundary_structure: { type: 'formula_card', formula: '$\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}$', fields: ['证据', '假设破坏', '线性内处理', '迁移理由'], explanation: '边界说明先写观察证据，再说明哪条线性默认条件被破坏，随后判断能否留在线性主干内修正，最后给出是否进入边界工具或系统视角的理由。' }
+      reveal_layers: { type: 'reveal', layers: ['证据：海试响应持续拖尾，控制量比试验池中更频繁触碰限幅。', '假设破坏：执行器能力边界和载荷、海况变化使比例关系、参数稳定或固定工作范围假设不再充分。', '线性内处理：先检查限幅参考、重新辨识参数、增加裕度或重设控制器参数能否解释主要差异。', '迁移理由：若大范围运行中限幅和环境扰动持续主导响应，应进入边界工具分析或把对象放回复杂系统链路。'] }
+    evidence_sequence: ['五步框架', '三类处理方向', '边界说明结构式', '说明样例显影', '两张作答卡']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '完成证据选择和边界说明。'
+      activity_cards:
+        - { id: 'evidence-select', title: '五步证据选择', prompt: '给定“海试拖尾 + 控制量频繁限幅”，选出应进入边界说明的证据。', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'a', label: '控制量频繁限幅。' }, { value: 'b', label: '载荷和海况变化。' }, { value: 'c', label: '只看最终稳态值。' }], reference_answer: '选 A、B。' }
+        - { id: 'boundary-statement', title: '方法迁移前边界说明', prompt: '用 80 到 120 字写出证据、假设破坏、线性内处理和迁移理由。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '参考口径：先说明控制量限幅和工况变化，再指出比例关系、参数稳定或执行器能力假设被破坏，随后给出线性内修正与迁移理由。' }
+    teacher_controls: *reveal_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['migration_without_evidence', 'risk_missing'] }
+    teacher_insight_spec: { widgets: ['card_completion_rate', 'short_answer_tags'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把边界识别五步转化为可提交说明。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-12', must_match_student_page: true }
+    acceptance_checks: ['必须同时出现五步表、三类方向、边界说明结构式、样例显影和边界说明作答。']
+
+  step-13:
+    title: '后测：边界类型、线性化与风险说明'
+    layout: { template: 'posttest_quiz_group', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'posttest-header', title: '后测任务', region: 'header', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'header' } }
+      - { id: 'posttest-cards', title: '后测题组', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['boundary-type-match', 'linearization-judgment', 'boundary-note'] } }
+    content_blocks:
+      header: { type: 'plain_text', body: '用最少题目检查能否识别边界、判断线性化、说明风险并写出边界说明。' }
+    evidence_sequence: ['后测说明', '两道客观题', '一道边界说明短答', '提交统计']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成 2 道客观题和 1 道主观题。'
+      activity_cards:
+        - { id: 'boundary-type-match', title: '边界类型匹配', prompt: '把两个“现象 -> 边界类型”的配对按正确顺序排列：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'rudder_limit', label: '大角度舵机触碰上限 -> 饱和' }, { value: 'small_error_no_action', label: '小修正长期落在无动作区间内而误差不减 -> 死区' }], reference_answer: '大角度舵机触碰上限对应饱和；小修正落在无动作区间内对应死区。' }
+        - { id: 'linearization-judgment', title: '局部线性化判断', prompt: '关于 $u=\\tanh v$ 与 $u=\\operatorname{sgn}v$ 的局部线性化判断，哪些说法成立？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'a', label: '$\\tanh v$ 在 $v=0$ 附近可用切线近似。' }, { value: 'b', label: '$\\operatorname{sgn}v$ 在零点可以直接写成固定比例增益。' }, { value: 'c', label: '合理线性化必须说明工作点和扰动范围。' }], reference_answer: '选 A、C。' }
+        - { id: 'boundary-note', title: '边界说明短答', prompt: '根据“海试拖尾 + 控制量频繁限幅”写不超过 150 字的边界说明，包含证据、假设破坏、线性内处理和迁移理由。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full', reference_answer: '教师查看四字段完整性：证据、假设破坏、线性内处理、迁移理由。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['boundary_type_error', 'linearization_rule_error', 'boundary_note_incomplete'] }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution', 'short_answer_field_completeness'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用三道题检查 5-1 目标达成。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-13', must_match_student_page: true }
+    acceptance_checks: ['后测共 3 题，客观题 2 个，主观题 1 个。']
+
+  step-14:
+    title: '总结：局部有效、全局失真与方法去向'
+    layout: { template: 'summary_with_infographic', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'info-graphic', title: '线性主干边界识别框架', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-1/media/5-1-info.png', caption_key: 'info_caption' } }
+      - { id: 'summary-text', title: '本课收束', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'practice-review', title: '分层练习回看', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'practice_review' } }
+      - { id: 'extension-thought', title: '扩展思考', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'extension_thought' } }
+      - { id: 'personal-stats', title: '个人课堂表现统计', region: 'stats', kind: 'stat-panel', must_be_visible: true, payload: { block_key: 'personal_stats', role_visibility: 'student_only', data_source: 'telemetry.current_student_lesson_attempt', resolver: 'lesson_summary.current_student', metrics: [{ id: 'viewed_steps', source_field: 'step_viewed_count', aggregation: 'count_distinct_step', format: 'integer' }, { id: 'submitted_cards', source_field: 'card_submission_count', aggregation: 'count', format: 'integer' }, { id: 'pre_post_completion', source_field: 'quiz_completion_state', aggregation: 'completion_pair', format: 'status_text' }, { id: 'parameter_submission_count', source_field: 'parameterSubmitted', aggregation: 'count', format: 'integer' }, { id: 'competency_summary', source_field: 'competency_evidence', aggregation: 'rubric_summary', format: 'short_text' }] } }
+      - { id: 'class-stats', title: '班级整体表现统计', region: 'stats', kind: 'stat-panel', must_be_visible: true, payload: { block_key: 'class_stats', role_visibility: 'teacher_only', data_source: 'teacher_insight.lesson_level_class_aggregation', resolver: 'lesson_summary.class_dashboard', metrics: [{ id: 'submission_rate', source_field: 'cardSubmitted', aggregation: 'submitted_students_over_enrolled', format: 'percent' }, { id: 'objective_accuracy', source_field: 'objective_quiz_correct', aggregation: 'mean_accuracy', format: 'percent' }, { id: 'short_answer_completeness', source_field: 'boundary_note_fields', aggregation: 'four_field_completeness_rate', format: 'percent' }, { id: 'parameter_coverage', source_field: 'parameterSubmitted', aggregation: 'students_with_parameter_submission_rate', format: 'percent' }, { id: 'misconception_tags', source_field: 'misconception_tags', aggregation: 'top_tags', format: 'tag_list' }] } }
+    content_blocks:
+      info_caption: '封底信息图回收“证据、假设破坏、线性内处理、迁移理由”的判断链。'
+      summary: { type: 'bullet_list', items: ['线性主干通常局部有效，成立依赖比例、叠加、单值连续、参数稳定和结构固定等条件。', '工程对象触碰饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、切换、模型失配或强扰动时，单一线性预测会失真。', '局部线性化必须说明工作点、平滑性和扰动范围。', '方法迁移前先写边界证据，再选择线性内修正、边界工具或系统视角。'] }
+      practice_review: { type: 'bullet_list', items: ['练习 1：大角度舵机控制量继续增大而实际舵角停在最大允许角附近，判断边界类型、被破坏假设和只看最终值的风险。', '练习 2：执行机构存在 Delta=0.2 的死区，稳态附近修正指令长期落在 [-0.15,0.15] 内，解释线性模型为何高估小信号修正能力。', '练习 3：比较 u=tanh v 与 u=sgn v 接同一一阶对象时，哪一个能在 v=0 附近合理线性化，并写出对应微分方程和传递函数。', '练习 4：海试载荷变化和海况扰动导致持续拖尾且控制量频繁限幅，写出证据、假设破坏、线性内处理和迁移理由。'] }
+      extension_thought: { type: 'plain_text', body: '数据驱动方法、强化学习和复杂自主系统架构的价值通常出现在边界之后；方法迁移建立在已有线性主干的边界证据之上，目标是选择更能解释当前对象的语言。' }
+      personal_stats: { type: 'stat_panel', note: '学生端显示个人课堂表现统计。', fields: ['已浏览页面数：来自 step_viewed_count。', '已提交互动数：来自 card_submission_count。', '前后测完成情况：来自 quiz_completion_state。', '参数探索提交次数：来自 parameterSubmitted。', '关键能力达成摘要：来自 competency_evidence。'] }
+      class_stats: { type: 'stat_panel', note: '教师端显示班级整体表现统计。', fields: ['提交率：已提交学生数 / 班级人数。', '客观题正确率：后测客观题平均正确率。', '主观题四字段完整率：证据、假设破坏、线性内处理、迁移理由完整率。', '参数探索覆盖：完成参数提交的学生比例。', '常见误判标签：按 misconception_tags 聚合。'] }
+    evidence_sequence: ['课程信息图', '主要内容', '局限性', '重点难点', '分层练习回看', '拓展思考', '课堂表现统计']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读总结并查看课堂表现统计。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep', 'summaryViewed'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['class_submission_rate', 'objective_accuracy', 'short_answer_completeness', 'parameter_coverage', 'misconception_tags'], aggregation: 'lesson_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '总结线性主干边界识别并展示个人或班级表现统计。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo?step=step-14', must_match_student_page: true }
+    acceptance_checks: ['总结页顶部必须放信息图；学生端和教师端统计模块必须同时声明。']

@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:04:06.040660Z",
+  "lesson": {
+    "lesson_id": "4-1",
+    "title": "设计起点：性能指标体系、工程约束与可行域表达",
+    "groups": [
+      "任务分类与区域分层",
+      "任务表达与收束"
+    ],
+    "card_order_index": 11
+  },
+  "node": {
+    "id": "可行域-满意域-最优域分层_4_41004",
+    "name": "可行域-满意域-最优域分层",
+    "name_en": "Feasible Satisficing and Optimal Region Layering",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "把入口判断分成“先排除不能做的可行域筛选、再保留当前可接受的满意域、最后才比较更优的最优域”三层。",
+    "examples": [
+      "客船案例中，当前闭环极点虽然稳定，但仍在舒适导向的复平面可行域之外，因此还不能写成“任务已接受”。",
+      "稳定平台案例中，即使调节时间已经很短，也不能越过满意域层直接把高速工作点认定为最优。"
+    ],
+    "formulas": [
+      "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+    ],
+    "keywords": [
+      "可行域",
+      "满意域",
+      "最优域",
+      "分层筛选",
+      "分层判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/可行域-满意域-最优域分层_4_41004.md",
+  "card_frontmatter": {
+    "node_id": "可行域-满意域-最优域分层_4_41004",
+    "name": "可行域-满意域-最优域分层",
+    "name_en": "Feasible Satisficing and Optimal Region Layering",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-1",
+      "可行域",
+      "分层判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/handout.md"
+    ],
+    "asset_refs": [
+      "4-1-region-layering.png"
+    ]
+  },
+  "card_overview": "# 可行域-满意域-最优域分层 | Feasible Satisficing and Optimal Region Layering\n\n**一句话定义**：把入口判断分成“先排除不能做的可行域筛选、再保留当前可接受的满意域、最后才比较更优的最优域”三层。\n\n**核心直觉**：`4-1` 只负责把边界写清楚，不把筛边界和求最优混成一步。\n\n**关键公式**：\n$$\n\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}\n$$\n\n**关联**：前置 → 稳定可行域、复平面可行域、设计可行域 · 后续 → 跨域联读任务重排、设计任务表达卡",
+  "card_detail": "### 完整解释\n\n模块 4 的入口课必须把三层区域拆开：\n\n- **可行域**：至少没有踩线，还值得留在桌面上；\n- **满意域**：已经达到当前任务愿意接受的水平；\n- **最优域**：在既定评价口径下还能继续比较谁更优。\n\n![4-1 区域分层示意图](../../lessons/4-1/media/processed/4-1-region-layering.png)\n\n如果这三层不拆开，学生就会把“系统稳定”直接当成“任务已经完成”，或者把“已经可接受”误写成“已经最优”，从而在 `4-2` 之前就抢跑到错误的问题上。\n\n### 常见误区\n\n1. **误区**：只要进入可行域，就等于已经完成当前任务。\n   **纠正**：可行只表示“还能继续考虑”，并不等于“已经可接受”。\n\n2. **误区**：入口课就应该开始求最优。\n   **纠正**：`4-1` 先把边界写扎实，最优比较要等到 `4-5/4-6` 再进入。",
+  "card_plain_excerpt": "## 首页\n\n# 可行域-满意域-最优域分层 | Feasible Satisficing and Optimal Region Layering\n\n**一句话定义**：把入口判断分成“先排除不能做的可行域筛选、再保留当前可接受的满意域、最后才比较更优的最优域”三层。\n\n**核心直觉**：`4-1` 只负责把边界写清楚，不把筛边界和求最优混成一步。\n\n**关键公式**：\n$$\n\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}\n$$\n\n**关联**：前置 → 稳定可行域、复平面可行域、设计可行域 · 后续 → 跨域联读任务重排、设计任务表达卡\n\n## 详情\n\n### 完整解释\n\n模块 4 的入口课必须把三层区域拆开：\n\n- **可行域**：至少没有踩线，还值得留在桌面上；\n- **满意域**：已经达到当前任务愿意接受的水平；\n- **最优域**：在既定评价口径下还能继续比较谁更优。\n\n![4-1 区域分层示意图](../../lessons/4-1/media/processed/4-1-region-layering.png)\n\n如果这三层不拆开，学生就会把“系统稳定”直接当成“任务已经完成”，或者把“已经可接受”误写成“已经最优”，从而在 `4-2` 之前就抢跑到错误的问题上。\n\n### 常见误区\n\n1. **误区**：只要进入可行域，就等于已经完成当前任务。\n   **纠正**：可行只表示“还能继续考虑”，并不等于“已经可接受”。\n\n2. **误区**：入口课就应该开始求最优。\n   **纠正**：`4-1` 先把边界写扎实，最优比较要等到 `4-5/4-6` 再进入。",
+  "core_intuition": "`4-1` 只负责把边界写清楚，不把筛边界和求最优混成一步。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "可行域-满意域-最优域分层",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "prerequisite",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "硬约束-软目标-观察指标分类",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "复平面可行域",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "applies_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计可行域",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "contains",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "硬约束-软目标-观察指标分类_4_41003",
+      "source": "硬约束-软目标-观察指标分类",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "只有先分清指标角色，才能进一步判断哪些区域先排除、哪些区域只是当前可接受。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "稳定可行域_3_7eed0929",
+      "source": "稳定可行域",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": "4-1 把“只满足稳定”压回为最外层底线，提醒学生稳定域并不等于任务可接受域。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "复平面可行域_4_Lsum001",
+      "source": "复平面可行域",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "applies_to",
+      "strength": 0.93,
+      "description": "复平面可行域为 4-1 提供“极点是否进入允许区域”的几何表达。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "设计可行域_4_Lsum004",
+      "source": "设计可行域",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "contains",
+      "strength": 0.94,
+      "description": "4-1 用设计可行域承接“先排除不能做的，再比较可用方案”的入口逻辑。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "可行域-满意域-最优域分层_4_41004",
+      "source": "可行域-满意域-最优域分层",
+      "target_id": "跨域联读任务重排_4_41005",
+      "target": "跨域联读任务重排",
+      "relation": "prerequisite",
+      "strength": 0.92,
+      "description": "只有先分清当前工作点位于哪一层区域，四联图联读才不会直接滑成“谁最快谁最好”。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "可行域-满意域-最优域分层",
+        "可行域",
+        "满意域",
+        "最优域",
+        "分层筛选",
+        "分层判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

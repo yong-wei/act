@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:04:05.522011Z",
+  "lesson": {
+    "lesson_id": "4-1",
+    "title": "设计起点：性能指标体系、工程约束与可行域表达",
+    "groups": [
+      "任务分类与区域分层"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "稳定可行域_3_7eed0929",
+    "name": "稳定可行域",
+    "name_en": "Stability Feasible Domain",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "由劳斯表第一列全正条件联立得到的参数范围，就是稳定可行域。",
+    "examples": [
+      "对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)，由劳斯表可得稳定可行域 -2<k<18。",
+      "参数落在稳定可行域端点时，系统进入原点根或纯虚根对应的临界边界。"
+    ],
+    "formulas": [
+      "\\text{稳定可行域}=\\{\\theta \\mid \\text{劳斯表第一列全正}\\}"
+    ],
+    "keywords": [
+      "稳定区间",
+      "参数范围",
+      "临界边界",
+      "可行域",
+      "层2深化",
+      "设计型",
+      "参数约束"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/稳定可行域_3_7eed0929.md",
+  "card_frontmatter": {
+    "node_id": "稳定可行域_3_7eed0929",
+    "name": "稳定可行域",
+    "name_en": "Stability Feasible Domain",
+    "lesson_units": [
+      "3-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "层2深化",
+      "设计型",
+      "参数约束"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-2/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-2-pole-migration.png",
+      "3-2-step-comparison.png",
+      "3-2-bode-magnitude.png"
+    ]
+  },
+  "card_overview": "# 稳定可行域 | Stability Feasible Domain\n\n**一句话定义**：由劳斯表第一列全正条件联立得到的参数范围，就是稳定可行域。\n\n**核心直觉**：稳定可行域把“能否稳定”写成一段明确的参数区间，边界点对应极点压到虚轴或原点的临界状态。\n\n**关键公式**：\n$$\n\\text{稳定可行域}=\\{\\theta \\mid \\text{劳斯表第一列全正}\\}\n$$\n\n**关联**：前置 → 劳斯判据、稳定性 · 后续 → 复平面可行域、设计可行域\n\n---",
+  "card_detail": "### 完整解释\n\n在主对象\n\n$$\nD(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)\n$$\n\n中，劳斯表第一列条件联立后得到\n\n$$\n-2<k<18.\n$$\n\n这段区间就是参数 $k$ 的稳定可行域。它的意义有三层：\n\n- 区间内部，全部闭环极点都在左半平面；\n- 区间端点，对应系统压到稳定边界；\n- 区间外部，至少有一个极点穿过虚轴进入右半平面。\n\n![主对象极点随参数变化的迁移范围](../../lessons/3-2/media/processed/3-2-pole-migration.png)\n\n![典型参数值的单位阶跃响应对照](../../lessons/3-2/media/processed/3-2-step-comparison.png)\n\n![稳定边界附近的幅频响应对照](../../lessons/3-2/media/processed/3-2-bode-magnitude.png)\n\n这三幅图分别对应同一件事的三种表达：极点结构、时域响应和频域峰值都会随着参数逼近边界而改变。\n\n### 常见误区\n\n1. **误区**：稳定可行域只是一段代数区间，与极点分布无关。\n   **纠正**：区间两端都能在复平面上找到对应边界点。\n2. **误区**：参数一旦落入稳定可行域，后续设计就已经完成。\n   **纠正**：稳定可行域给出第一层筛选，后续还要继续叠加动态性能约束。",
+  "card_plain_excerpt": "## 首页\n\n# 稳定可行域 | Stability Feasible Domain\n\n**一句话定义**：由劳斯表第一列全正条件联立得到的参数范围，就是稳定可行域。\n\n**核心直觉**：稳定可行域把“能否稳定”写成一段明确的参数区间，边界点对应极点压到虚轴或原点的临界状态。\n\n**关键公式**：\n$$\n\\text{稳定可行域}=\\{\\theta \\mid \\text{劳斯表第一列全正}\\}\n$$\n\n**关联**：前置 → 劳斯判据、稳定性 · 后续 → 复平面可行域、设计可行域\n\n---\n\n## 详情\n\n### 完整解释\n\n在主对象\n\n$$\nD(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)\n$$\n\n中，劳斯表第一列条件联立后得到\n\n$$\n-2<k<18.\n$$\n\n这段区间就是参数 $k$ 的稳定可行域。它的意义有三层：\n\n- 区间内部，全部闭环极点都在左半平面；\n- 区间端点，对应系统压到稳定边界；\n- 区间外部，至少有一个极点穿过虚轴进入右半平面。\n\n![主对象极点随参数变化的迁移范围](../../lessons/3-2/media/processed/3-2-pole-migration.png)\n\n![典型参数值的单位阶跃响应对照](../../lessons/3-2/media/processed/3-2-step-comparison.png)\n\n![稳定边界附近的幅频响应对照](../../lessons/3-2/media/processed/3-2-bode-magnitude.png)\n\n这三幅图分别对应同一件事的三种表达：极点结构、时域响应和频域峰值都会随着参数逼近边界而改变。\n\n### 常见误区\n\n1. **误区**：稳定可行域只是一段代数区间，与极点分布无关。\n   **纠正**：区间两端都能在复平面上找到对应边界点。\n2. **误区**：参数一旦落入稳定可行域，后续设计就已经完成。\n   **纠正**：稳定可行域给出第一层筛选，后续还要继续叠加动态性能约束。",
+  "core_intuition": "稳定可行域把“能否稳定”写成一段明确的参数区间，边界点对应极点压到虚轴或原点的临界状态。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "复平面可行域",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "劳斯判据",
+      "target_id": null,
+      "target": "稳定可行域",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "设计可行域",
+      "relation": "generalizes",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "根轨迹完整法则",
+      "relation": "related",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "参数窗口判断",
+      "relation": "prerequisite",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定可行域",
+      "target_id": null,
+      "target": "可行域-满意域-最优域分层",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "稳定可行域_3_7eed0929",
+      "source": "稳定可行域",
+      "target_id": "可行域-满意域-最优域分层_4_41004",
+      "target": "可行域-满意域-最优域分层",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": "4-1 把“只满足稳定”压回为最外层底线，提醒学生稳定域并不等于任务可接受域。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "稳定可行域",
+        "稳定区间",
+        "参数范围",
+        "临界边界",
+        "可行域",
+        "层2深化",
+        "设计型",
+        "参数约束"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{稳定可行域}=\\{\\theta \\mid \\text{劳斯表第一列全正}\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

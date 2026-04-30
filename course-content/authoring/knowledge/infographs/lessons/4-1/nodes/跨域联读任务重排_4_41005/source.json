@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:04:06.138581Z",
+  "lesson": {
+    "lesson_id": "4-1",
+    "title": "设计起点：性能指标体系、工程约束与可行域表达",
+    "groups": [
+      "主场景联读",
+      "对照案例与排序重排",
+      "任务表达与收束"
+    ],
+    "card_order_index": 12
+  },
+  "node": {
+    "id": "跨域联读任务重排_4_41005",
+    "name": "跨域联读任务重排",
+    "name_en": "Cross-Domain Reading for Task Reordering",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "按“时域响应 → 根轨迹/可行域 → Bode 幅频 → 相频/裕度”的顺序联读同一对象证据，再据此重排任务优先级。",
+    "examples": [
+      "客船航向控制的四联图会把“过程不够平顺、储备不够从容”压到速度之前。",
+      "稳定平台的四联图会把“速度优势已建立，但阻尼和储备仍需补足”写成比客船更激进的任务排序。"
+    ],
+    "formulas": [
+      "\\text{读图顺序}=\\text{时域响应}\\rightarrow\\text{根轨迹/可行域}\\rightarrow\\text{Bode 幅频}\\rightarrow\\text{相频/裕度}"
+    ],
+    "keywords": [
+      "跨域联读",
+      "四联图",
+      "任务排序",
+      "案例对照",
+      "案例分析"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/跨域联读任务重排_4_41005.md",
+  "card_frontmatter": {
+    "node_id": "跨域联读任务重排_4_41005",
+    "name": "跨域联读任务重排",
+    "name_en": "Cross-Domain Reading for Task Reordering",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "4",
+    "tags": [
+      "4-1",
+      "跨域联读",
+      "案例分析"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/handout.md",
+      "authoring/lessons/4-1/design/interactive-page.md"
+    ],
+    "asset_refs": [
+      "4-1-case-compare-summary.png",
+      "4-1-platform-pitch-quad.png"
+    ]
+  },
+  "card_overview": "# 跨域联读任务重排 | Cross-Domain Reading for Task Reordering\n\n**一句话定义**：按“时域响应 → 根轨迹/可行域 → Bode 幅频 → 相频/裕度”的顺序联读同一对象证据，再据此重排任务优先级。\n\n**核心直觉**：同一套图不直接给控制器答案，它先告诉我们“当前最紧的矛盾到底排在什么顺序”。\n\n**关键公式**：\n$$\n\\text{读图顺序}=\\text{时域响应}\\rightarrow\\text{根轨迹/可行域}\\rightarrow\\text{Bode 幅频}\\rightarrow\\text{相频/裕度}\n$$\n\n**关联**：前置 → 超调量、调节时间、相角裕度、带宽频率、谐振峰值Mr、可行域-满意域-最优域分层 · 后续 → 设计任务表达卡",
+  "card_detail": "### 完整解释\n\n`4-1` 的主动作是“同图异读”。客船航向控制和船载稳定平台都可以用同一套跨域图来读，但最后写出的排序并不相同：\n\n- 客船场景把“平顺与储备优先，再谈提速”压到前面；\n- 稳定平台则把“先保住速度优势，再把超调和储备整理到位”压得更靠前。\n\n![4-1 双案例同图异读对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n这说明入口课真正要教的不是“再背一遍指标”，而是“如何用同一组证据写出符合场景的任务排序”。\n\n### 常见误区\n\n1. **误区**：只看一张时域图，就足够写任务结论。\n   **纠正**：单域读图很容易失真，`4-1` 必须完成四步联读后才允许写排序。\n\n2. **误区**：场景一变，只是参数不同，排序不会改。\n   **纠正**：模块 4 的入口恰恰强调“基础语言相同，但任务排序会重排”。",
+  "card_plain_excerpt": "## 首页\n\n# 跨域联读任务重排 | Cross-Domain Reading for Task Reordering\n\n**一句话定义**：按“时域响应 → 根轨迹/可行域 → Bode 幅频 → 相频/裕度”的顺序联读同一对象证据，再据此重排任务优先级。\n\n**核心直觉**：同一套图不直接给控制器答案，它先告诉我们“当前最紧的矛盾到底排在什么顺序”。\n\n**关键公式**：\n$$\n\\text{读图顺序}=\\text{时域响应}\\rightarrow\\text{根轨迹/可行域}\\rightarrow\\text{Bode 幅频}\\rightarrow\\text{相频/裕度}\n$$\n\n**关联**：前置 → 超调量、调节时间、相角裕度、带宽频率、谐振峰值Mr、可行域-满意域-最优域分层 · 后续 → 设计任务表达卡\n\n## 详情\n\n### 完整解释\n\n`4-1` 的主动作是“同图异读”。客船航向控制和船载稳定平台都可以用同一套跨域图来读，但最后写出的排序并不相同：\n\n- 客船场景把“平顺与储备优先，再谈提速”压到前面；\n- 稳定平台则把“先保住速度优势，再把超调和储备整理到位”压得更靠前。\n\n![4-1 双案例同图异读对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n这说明入口课真正要教的不是“再背一遍指标”，而是“如何用同一组证据写出符合场景的任务排序”。\n\n### 常见误区\n\n1. **误区**：只看一张时域图，就足够写任务结论。\n   **纠正**：单域读图很容易失真，`4-1` 必须完成四步联读后才允许写排序。\n\n2. **误区**：场景一变，只是参数不同，排序不会改。\n   **纠正**：模块 4 的入口恰恰强调“基础语言相同，但任务排序会重排”。",
+  "core_intuition": "同一套图不直接给控制器答案，它先告诉我们“当前最紧的矛盾到底排在什么顺序”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "可行域-满意域-最优域分层",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "prerequisite",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽频率",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "跨域联读任务重排",
+      "target_id": null,
+      "target": "设计任务表达卡",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "谐振峰值Mr",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "related",
+      "strength": 0.76,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "相角裕度_5_5a74b451",
+      "source": "相角裕度",
+      "target_id": "跨域联读任务重排_4_41005",
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.91,
+      "description": "四联图的最后一格要用相角裕度判断提速代价是否还能接受。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "带宽频率_5_6996a44a",
+      "source": "带宽频率",
+      "target_id": "跨域联读任务重排_4_41005",
+      "target": "跨域联读任务重排",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "Bode 幅频读出的带宽位置决定“快慢改善空间”在任务排序中的权重。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "谐振峰值Mr_5_b3a87785",
+      "source": "谐振峰值Mr",
+      "target_id": "跨域联读任务重排_4_41005",
+      "target": "跨域联读任务重排",
+      "relation": "related",
+      "strength": 0.76,
+      "description": "稳定平台案例把谐振峰值当作观察证据，用来解释高带宽下的峰化风险。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "可行域-满意域-最优域分层_4_41004",
+      "source": "可行域-满意域-最优域分层",
+      "target_id": "跨域联读任务重排_4_41005",
+      "target": "跨域联读任务重排",
+      "relation": "prerequisite",
+      "strength": 0.92,
+      "description": "只有先分清当前工作点位于哪一层区域，四联图联读才不会直接滑成“谁最快谁最好”。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "跨域联读任务重排_4_41005",
+      "source": "跨域联读任务重排",
+      "target_id": "设计任务表达卡_4_41001",
+      "target": "设计任务表达卡",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "四联图联读的最终出口不是控制器名字，而是能交给 4-2 和 4-3 使用的任务表达卡。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "跨域联读任务重排",
+        "跨域联读",
+        "四联图",
+        "任务排序",
+        "案例对照",
+        "案例分析"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{读图顺序}=\\text{时域响应}\\rightarrow\\text{根轨迹/可行域}\\rightarrow\\text{Bode 幅频}\\rightarrow\\text{相频/裕度}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

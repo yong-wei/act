@@ -2,16 +2,35 @@
   "lesson_id": "5-1",
   "groups": [
     {
-      "group_name": "入口现象与边界假设",
-      "step_ids": ["step-01", "step-02", "step-03"],
+      "group_name": "入口现象",
+      "step_ids": ["step-01"],
       "node_ids": [
         "线性主干边界识别_5_51001",
+        "传统控制结构局限_4_47008"
+      ]
+    },
+    {
+      "group_name": "目标与前测",
+      "step_ids": ["step-02", "step-03"],
+      "node_ids": []
+    },
+    {
+      "group_name": "线性默认条件",
+      "step_ids": ["step-04"],
+      "node_ids": [
+        "线性主干边界识别_5_51001"
+      ]
+    },
+    {
+      "group_name": "典型非线性环节",
+      "step_ids": ["step-05"],
+      "node_ids": [
         "典型非线性边界环节_5_51002"
       ]
     },
     {
       "group_name": "局部线性化与预测对比",
-      "step_ids": ["step-04", "step-05", "step-06"],
+      "step_ids": ["step-06", "step-07", "step-08", "step-09", "step-10", "step-11"],
       "node_ids": [
         "局部线性化边界判断_5_51003",
         "线性预测失真对比_5_51004"
@@ -19,10 +38,12 @@
     },
     {
       "group_name": "边界判断与方法迁移",
-      "step_ids": ["step-07", "step-08", "step-09"],
+      "step_ids": ["step-12", "step-13", "step-14"],
       "node_ids": [
         "线性主干边界识别_5_51001",
+        "线性预测失真对比_5_51004",
         "方法迁移前边界说明_5_51005",
+        "工程指标代价函数翻译_4_47003",
         "传统控制结构局限_4_47008"
       ]
     }

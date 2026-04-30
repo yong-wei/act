@@ -6,29 +6,29 @@
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{1.2pt}
-\renewcommand{\arraystretch}{0.78}
+\renewcommand{\arraystretch}{0.76}
 \graphicspath{{./assets/}{course-content/runtime/lessons/review/assets/}}
 
 \definecolor{sheetblue}{RGB}{0,82,168}
 \definecolor{ruleblue}{RGB}{36,99,178}
-\newcommand{\boxfont}{\fontsize{4.75pt}{5.35pt}\selectfont}
-\newcommand{\microfont}{\fontsize{4.25pt}{4.85pt}\selectfont}
+\newcommand{\boxfont}{\fontsize{4.82pt}{5.28pt}\selectfont}
+\newcommand{\microfont}{\fontsize{4.28pt}{4.76pt}\selectfont}
 \newcommand{\headfont}{\fontsize{7.6pt}{8.2pt}\selectfont\bfseries}
-\newcommand{\subh}[1]{{\color{sheetblue}\bfseries #1}\par\vspace{.15mm}}
+\newcommand{\subh}[1]{{\color{sheetblue}\bfseries #1}\par\vspace{.10mm}}
 \newcommand{\drawbox}[5]{%
   \draw[ruleblue,line width=.33pt] (#1,#2) rectangle ++(#3,#4);
   \fill[sheetblue] (#1,#2) rectangle ++(#3,4.6);
   \node[white,font=\headfont,anchor=center] at (#1+#3/2,#2+2.3) {#5};
 }
 \newcommand{\contentnode}[4]{%
-  \node[anchor=north west,inner sep=.65mm,text width=#3,align=left] at (#1,#2) {\boxfont #4};
+  \node[anchor=north west,inner sep=.52mm,text width=#3,align=left] at (#1,#2) {\boxfont #4};
 }
 \newcommand{\subbox}[2]{%
   \noindent\fcolorbox{ruleblue}{white}{%
     \begin{minipage}[t]{#1}
       \boxfont #2
     \end{minipage}}%
-  \par\vspace{.28mm}%
+  \par\vspace{.20mm}%
 }
 
 \begin{document}
@@ -38,7 +38,7 @@
     {经典控制理论 CHEAT SHEET};
   \node[anchor=north,font=\fontsize{7.5pt}{8pt}\selectfont\bfseries,text=sheetblue] at (105,10.7)
     {建模 \quad | \quad 时域分析 \quad | \quad 根轨迹 \quad | \quad 频域分析 \quad | \quad 典型校正方法};
-  \draw[ruleblue,line width=.33pt] (1.5,17.2) rectangle (208.5,28.5);
+  \draw[ruleblue,line width=.33pt] (1.5,17.0) rectangle (208.5,28.3);
   \node[anchor=north west,font=\fontsize{5pt}{5.5pt}\selectfont\bfseries] at (3,18.2) {常用符号：};
   \node[anchor=north west,font=\fontsize{4.65pt}{5.15pt}\selectfont,text width=188mm,align=left,inner sep=0] at (18,18.1)
     {$r(t)$ 输入 \quad $c(t)$ 输出 \quad $e(t)=r(t)-b(t)$ 误差 \quad
@@ -47,13 +47,13 @@
      $p$ 极点 \quad $z$ 零点 \quad $\omega$ 角频率(rad/s) \quad $\zeta$ 阻尼比
      \quad $\omega_n$ 自然频率 \quad $\omega_d$ 阻尼振荡频率 \quad $K$ 增益 \quad $\tau$ 时间常数/延迟};
 
-  \drawbox{1.5}{30}{67.5}{146}{1. 建模基础}
-  \drawbox{70.5}{30}{68}{146}{2. 时域分析}
-  \drawbox{140}{30}{68.5}{88}{3. 根轨迹分析}
-  \drawbox{140}{119}{68.5}{145}{4. 频域分析}
-  \drawbox{1.5}{177}{67.5}{87}{5. 典型校正方法}
-  \drawbox{70.5}{177}{68}{87}{6. 经典结论速查}
-  \drawbox{1.5}{265}{207}{26}{7. 图形速览}
+  \drawbox{1.5}{29.8}{67.5}{146.2}{1. 建模基础}
+  \drawbox{70.5}{29.8}{68}{146.2}{2. 时域分析}
+  \drawbox{140}{29.8}{68.5}{88.4}{3. 根轨迹分析}
+  \drawbox{140}{119}{68.5}{145.6}{4. 频域分析}
+  \drawbox{1.5}{176.8}{67.5}{87.4}{5. 典型校正方法}
+  \drawbox{70.5}{176.8}{68}{87.4}{6. 经典结论速查}
+  \drawbox{1.5}{264.8}{207}{26.4}{7. 图形速览}
 
   \contentnode{2.2}{35.2}{65mm}{
     \subbox{61.7mm}{\subh{1.1 标准负反馈结构}
@@ -106,6 +106,7 @@
       \draw[->](c)--(29,6)--(29,3.5); \draw[->](d)--(29,1)--(29,3.5)--(35,3.5);
       \node at (48,3.5) {$G=G_1+G_2$};
     \end{tikzpicture}
+    \par\vspace{.2mm}
     3) 负反馈：$T=G/(1+GH)$；正反馈：$T=G/(1-GH)$。}
     \subbox{61.7mm}{\subh{1.5 信号流图与梅森公式}
     \[
@@ -133,7 +134,7 @@
       t_s\approx\frac{4}{\zeta\omega_n}(2\%\text{准则}),\qquad
       t_s\approx\frac{3}{\zeta\omega_n}(5\%\text{准则})
     \]
-    \centerline{\includegraphics[width=34mm,height=13mm,keepaspectratio]{step_response.png}}}
+    \centerline{\includegraphics[width=38mm,height=15mm,keepaspectratio]{step_response.png}}}
     \subbox{62.3mm}{\subh{2.3 极点与稳定性}
     \begin{tabular}{|c|c|}
       \hline 根点位置 & 系统性质\\ \hline
@@ -189,7 +190,7 @@
     6) 分离点/汇合点由 $dK/ds=0$ 求得。\\
     7) 与虚轴交点可由劳斯判据求临界$K$与$\omega$。}
     \subbox{62.8mm}{\subh{3.4 典型根轨迹示意}
-    \centerline{\includegraphics[width=41mm,height=21mm,keepaspectratio]{root_locus.png}}}
+    \centerline{\includegraphics[width=45mm,height=22.5mm,keepaspectratio]{root_locus.png}}}
     \subbox{62.8mm}{\subh{3.5 主导极点与设计思维}
     靠近虚轴的一对闭环极点决定主要瞬态；根轨迹整体左移通常加快响应，远离虚轴通常减弱振荡。}
   }
@@ -208,7 +209,7 @@
       二阶振荡 & $-40$dB/dec（高频） & $0^\circ\to-180^\circ$\\ \hline
     \end{tabular}}
     \subbox{62.8mm}{\subh{4.3 Bode图示意}
-    \centerline{\includegraphics[width=45mm,height=27mm,keepaspectratio]{bode_plot.png}}}
+    \centerline{\includegraphics[width=48mm,height=28.5mm,keepaspectratio]{bode_plot.png}}}
     \subbox{62.8mm}{\subh{4.4 二阶系统共振特性}
     当$\zeta<1/\sqrt2$时存在共振峰：
     \[
@@ -219,7 +220,7 @@
     带宽 $\omega_b$：$|G(j\omega_b)|=\frac1{\sqrt2}|G(0)|$（$-3$dB点）。带宽越大，一般响应越快，但对高频噪声更敏感。}
     \subbox{62.8mm}{\subh{4.6 奈奎斯特判据}
     对开环频率特性 $L(j\omega)$，闭环稳定要求围绕$(-1,j0)$的方向、次数与开环右半平面极点数一致。常用约定：$N=Z-P$，稳定时$Z=0$。
-    \centerline{\includegraphics[width=35mm,height=21mm,keepaspectratio]{nyquist_plot.png}}}
+    \centerline{\includegraphics[width=39mm,height=22.5mm,keepaspectratio]{nyquist_plot.png}}}
     \subbox{62.8mm}{\subh{4.7 稳定裕度}
     相位交叉频率：$\angle L(j\omega_\pi)=-180^\circ$；增益交叉频率：$|L(j\omega_c)|=1$。
     \[
@@ -287,14 +288,14 @@
     实根产生指数项，共轭复根产生衰减振荡项；离虚轴最近的极点通常主导响应。}
   }
 
-  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (2.5,270)
-    {\boxfont\subh{7.1 阶跃响应（二阶欠阻尼）}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{step_response.png}};
+  \node[anchor=north west,inner sep=.65mm,text width=48mm] at (2.5,269.9)
+    {\boxfont\subh{7.1 阶跃响应（二阶欠阻尼）}\includegraphics[width=39mm,height=17.8mm,keepaspectratio]{step_response.png}};
   \node[anchor=north west,inner sep=.8mm,text width=48mm] at (54.5,270)
-    {\boxfont\subh{7.2 根轨迹图}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{root_locus.png}};
-  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (106,270)
-    {\boxfont\subh{7.3 Bode图（示意）}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{bode_plot.png}};
-  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (157.5,270)
-    {\boxfont\subh{7.4 奈奎斯特图}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{nyquist_plot.png}};
+    {\boxfont\subh{7.2 根轨迹图}\includegraphics[width=39mm,height=17.8mm,keepaspectratio]{root_locus.png}};
+  \node[anchor=north west,inner sep=.65mm,text width=48mm] at (106,269.9)
+    {\boxfont\subh{7.3 Bode图（示意）}\includegraphics[width=40mm,height=18.4mm,keepaspectratio]{bode_plot.png}};
+  \node[anchor=north west,inner sep=.65mm,text width=48mm] at (157.5,269.9)
+    {\boxfont\subh{7.4 奈奎斯特图}\includegraphics[width=40mm,height=18.4mm,keepaspectratio]{nyquist_plot.png}};
   \draw[ruleblue,line width=.25pt] (53.4,269.5) -- (53.4,291);
   \draw[ruleblue,line width=.25pt] (105,269.5) -- (105,291);
   \draw[ruleblue,line width=.25pt] (156.6,269.5) -- (156.6,291);

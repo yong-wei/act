@@ -1,0 +1,31 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-1",
+  "status": "accepted",
+  "accepted_at": "2026-04-30T09:29:59+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-1/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-1/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "review_mode": "page_level_and_whole_lesson",
+    "final_reviewer_agent_id": "019ddbf9-8864-73a1-b924-5592c9ac103f",
+    "final_result": "pass",
+    "review_focus": [
+      "page_self_contained",
+      "handout_coverage",
+      "contract_runtime_consumability",
+      "sequence_alignment"
+    ]
+  },
+  "issues": []
+}

@@ -1,0 +1,80 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\begin{document}
+\begin{CJK}{UTF8}{gbsn}
+\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=Stealth]
+  \tikzset{
+    axis/.style={->, line width=1.1pt, draw=black},
+    gridline/.style={draw=black!22, line width=0.45pt},
+    gcurve/.style={draw=blue!75!black, line width=1.25pt},
+    invcurve/.style={draw=red!75!black, line width=1.25pt},
+    pointA/.style={circle, fill=red!80!black, inner sep=2.2pt},
+    pointB/.style={circle, fill=green!55!black, inner sep=2.2pt},
+    hollow/.style={circle, draw=red!75!black, fill=white, line width=0.9pt, minimum size=5.2pt, inner sep=0pt},
+    labelbox/.style={font=\scriptsize, fill=white, fill opacity=0.86, text opacity=1, inner sep=1.3pt},
+    region/.style={font=\large\bfseries, fill=white, fill opacity=0.70, text opacity=1, inner sep=1.5pt}
+  }
+
+  \def\xmin{-6.2}
+  \def\xmax{0.42}
+  \def\ymin{-4.05}
+  \def\ymax{2.03}
+
+  \path[fill=blue!10] (\xmin,\ymin) rectangle (0,\ymax);
+  \path[fill=white]
+    (-2.95,-0.05)
+    .. controls (-2.55,-0.58) and (-1.95,-1.08) .. (-1.60,-1.42)
+    .. controls (-2.55,-1.52) and (-3.45,-1.97) .. (-4.18,-2.63)
+    .. controls (-4.55,-2.98) and (-4.82,-3.45) .. (-5.03,\ymin)
+    -- (0,\ymin) -- (0,-0.05) -- cycle;
+
+  \foreach \x in {-6,-5,...,0} {
+    \draw[gridline] (\x,\ymin) -- (\x,\ymax);
+  }
+  \foreach \y in {-4,-3,...,2} {
+    \draw[gridline] (\xmin,\y) -- (0,\y);
+  }
+
+  \draw[axis] (\xmin,0) -- (\xmax,0) node[below left=1pt] {$\Re$};
+  \draw[axis] (0,\ymin) -- (0,\ymax) node[left=2pt] {$\Im$};
+  \node[labelbox, below left=2pt] at (0,0) {$0$};
+
+  \draw[gcurve]
+    (-5.05,\ymin)
+    .. controls (-4.64,-3.05) and (-4.36,-2.72) .. (-4.18,-2.63)
+    .. controls (-3.55,-1.53) and (-3.18,-0.55) .. (-2.96,-0.05)
+    .. controls (-2.36,1.00) and (-1.50,1.38) .. (-0.78,1.36)
+    .. controls (-0.34,1.34) and (-0.05,0.70) .. (0,0);
+  \node[labelbox, text=blue!75!black] at (-4.20,-1.88) {$G(j\omega)$};
+  \draw[->, gcurve] (-4.83,-3.62) -- (-4.70,-3.25);
+  \node[labelbox] at (-4.55,-3.70) {$\omega \uparrow$};
+
+  \draw[invcurve]
+    (\xmin,-0.08) -- (-2.96,-0.05)
+    .. controls (-2.45,-0.05) and (-2.02,-0.07) .. (-1.60,-0.11)
+    .. controls (-1.62,-0.32) and (-2.25,-0.70) .. (-2.95,-1.06)
+    .. controls (-3.55,-1.38) and (-3.92,-2.04) .. (-4.18,-2.63)
+    .. controls (-4.48,-3.10) and (-4.84,-3.46) .. (-5.20,-3.88);
+  \draw[->, invcurve] (-5.18,-3.82) -- (-4.88,-3.47);
+  \draw[->, invcurve] (-2.08,-0.08) -- (-2.52,-0.06);
+  \node[labelbox, text=red!75!black, anchor=east] at (-5.28,-0.36) {$-\dfrac{1}{N(A)}$};
+
+  \node[pointA] (a) at (-2.96,-0.05) {};
+  \node[pointB] (b) at (-4.18,-2.63) {};
+  \node[hollow] at (-3.37,-0.06) {};
+  \node[hollow] at (-2.55,-0.06) {};
+  \node[hollow] at (-4.50,-3.05) {};
+  \node[hollow] at (-3.88,-2.08) {};
+
+  \node[labelbox, above=2pt of a] {$a$};
+  \node[labelbox, right=2pt of a] {$(A_a,\omega_a)$};
+  \node[labelbox, below right=2pt of b] {$b(A_b,\omega_b)$};
+
+  \node[region] at (-4.70,1.15) {稳定区域};
+  \node[region] at (-1.92,-1.60) {不稳定区域};
+  \node[labelbox, left=0pt] at (-5.82,0.55) {$A \uparrow$};
+\end{tikzpicture}
+\end{CJK}
+\end{document}
