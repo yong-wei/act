@@ -4,9 +4,8 @@
  * 提供AI助手组件的主题自适应样式
  */
 
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { KONLING_BRAND } from './ai-branding';
+import { useTheme } from '@/components/providers/theme-provider';
 
 export interface AIThemeStyles {
   container: string;
@@ -32,7 +31,7 @@ export interface AIThemeStyles {
  * 获取AI助手的主题感知样式
  */
 export function useAIThemeStyles(): AIThemeStyles {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -44,8 +43,7 @@ export function useAIThemeStyles(): AIThemeStyles {
     return getDarkStyles();
   }
 
-  const currentTheme = theme === 'system' ? systemTheme : theme;
-  return currentTheme === 'light' ? getLightStyles() : getDarkStyles();
+  return theme === 'light' ? getLightStyles() : getDarkStyles();
 }
 
 function getDarkStyles(): AIThemeStyles {
@@ -148,7 +146,7 @@ export function getAvatarBorderStyles(): string {
  * 获取浮动按钮样式
  */
 export function getFloatingButtonStyles(isDark: boolean): string {
-  const base = 'fixed bottom-16 right-6 z-40 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110';
+  const base = 'fixed bottom-20 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 hover:scale-110';
   const colors = isDark
     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
     : 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-lg shadow-amber-400/25';

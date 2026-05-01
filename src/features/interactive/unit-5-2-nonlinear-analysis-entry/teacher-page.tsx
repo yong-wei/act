@@ -7,6 +7,7 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_5_2TeacherSession,
@@ -186,6 +187,7 @@ export function UNIT_5_2TeacherPage({
               </button>
             ))}
           </div>
+          <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
           <button type="button" onClick={() => void handleEndSession()} disabled={endingSession} className="premium-lesson-action-secondary mt-4 flex w-full">
             {endingSession ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             结束课堂

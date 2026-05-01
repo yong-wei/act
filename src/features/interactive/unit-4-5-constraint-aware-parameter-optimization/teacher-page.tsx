@@ -8,6 +8,7 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
@@ -238,6 +239,7 @@ export function UNIT_4_5TeacherPage({
                 教师可推进步骤、查看学生提交统计，并在需要时释放题目、推进显影或显示参考答案。
               </div>
             </div>
+            <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
             <button
               type="button"
               onClick={() => void handleEndSession()}

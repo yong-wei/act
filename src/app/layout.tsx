@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/session-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
-import { ThemeToggleButton } from '@/components/shared/theme-toggle-button'
+import { PageFloatingControlsProvider } from '@/components/shared/page-floating-controls'
 import { getServerAuthSession } from '@/lib/auth'
 import { buildThemeInitScript } from '@/lib/theme-config'
 import { GlobalAIProvider } from '@/components/providers/global-ai-provider'
@@ -35,10 +35,11 @@ export default async function RootLayout({
         <ThemeProvider>
           <SessionProvider session={session}>
             <GlobalAIProvider>
-              {children}
-              <ThemeToggleButton />
-              <GlobalAIFloatingButton />
-              <GlobalAISidebar />
+              <PageFloatingControlsProvider>
+                {children}
+                <GlobalAIFloatingButton />
+                <GlobalAISidebar />
+              </PageFloatingControlsProvider>
             </GlobalAIProvider>
           </SessionProvider>
         </ThemeProvider>

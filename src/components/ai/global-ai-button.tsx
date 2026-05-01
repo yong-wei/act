@@ -8,13 +8,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
 import { KonlingAvatar } from './konling-avatar';
 import { getFloatingButtonStyles, getUnreadBadgeStyles } from '@/lib/ai-theme-styles';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import { useTheme } from '@/components/providers/theme-provider';
 
 export function GlobalAIFloatingButton() {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { shouldShowButton, isOpen, toggleSidebar, unreadCount } = useGlobalAI();
 
@@ -22,9 +22,7 @@ export function GlobalAIFloatingButton() {
     setMounted(true);
   }, []);
 
-  const isDark = mounted
-    ? (theme === 'system' ? systemTheme : theme) !== 'light'
-    : true;
+  const isDark = mounted ? theme !== 'light' : true;
 
   const buttonStyles = getFloatingButtonStyles(isDark);
   const badgeStyles = getUnreadBadgeStyles(isDark);
@@ -60,7 +58,7 @@ export function GlobalAIFloatingButton() {
  * 带文字提示的按钮变体（用于特定场景）
  */
 export function GlobalAITextButton() {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { shouldShowButton, toggleSidebar } = useGlobalAI();
 
@@ -72,9 +70,7 @@ export function GlobalAITextButton() {
     return null;
   }
 
-  const isDark = mounted
-    ? (theme === 'system' ? systemTheme : theme) !== 'light'
-    : true;
+  const isDark = mounted ? theme !== 'light' : true;
 
   return (
     <button

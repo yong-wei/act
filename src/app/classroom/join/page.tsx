@@ -1,11 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, Users, Loader2, AlertCircle } from 'lucide-react';
 
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+
 export default function JoinClassroomPage() {
+  return (
+    <Suspense fallback={<JoinClassroomShell />}>
+      <JoinClassroomContent />
+    </Suspense>
+  );
+}
+
+function JoinClassroomContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [joinCode, setJoinCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +27,7 @@ export default function JoinClassroomPage() {
     teacher: { name: string };
     class?: { name: string };
   } | null>(null);
+  const autoLookupCodeRef = useRef<string | null>(null);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // 只允许数字，最多6位
@@ -25,8 +37,8 @@ export default function JoinClassroomPage() {
     setSessionInfo(null);
   };
 
-  const lookupSession = async () => {
-    if (joinCode.length !== 6) {
+  const lookupSession = useCallback(async (code = joinCode) => {
+    if (code.length !== 6) {
       setError('请输入完整的6位入会码');
       return;
     }
@@ -35,8 +47,13 @@ export default function JoinClassroomPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/session/join?code=${joinCode}`);
+      const res = await fetch(`/api/session/join?code=${code}`);
       const data = await res.json();
+
+      if (res.status === 401) {
+        router.replace(buildLoginRedirectForPath(`/classroom/join?code=${code}`));
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || '查询失败');
@@ -49,7 +66,20 @@ export default function JoinClassroomPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [joinCode, router]);
+
+  useEffect(() => {
+    const codeFromUrl = searchParams.get('code')?.replace(/\D/g, '').slice(0, 6) ?? '';
+    if (codeFromUrl.length !== 6 || autoLookupCodeRef.current === codeFromUrl) {
+      return;
+    }
+
+    autoLookupCodeRef.current = codeFromUrl;
+    setJoinCode(codeFromUrl);
+    setError(null);
+    setSessionInfo(null);
+    void lookupSession(codeFromUrl);
+  }, [lookupSession, searchParams]);
 
   const joinSession = () => {
     if (sessionInfo) {
@@ -57,6 +87,42 @@ export default function JoinClassroomPage() {
     }
   };
 
+  return (
+    <JoinClassroomShell
+      joinCode={joinCode}
+      isLoading={isLoading}
+      error={error}
+      sessionInfo={sessionInfo}
+      onCodeChange={handleCodeChange}
+      onLookup={() => void lookupSession()}
+      onJoin={joinSession}
+    />
+  );
+}
+
+function JoinClassroomShell({
+  joinCode = '',
+  isLoading = false,
+  error = null,
+  sessionInfo = null,
+  onCodeChange,
+  onLookup,
+  onJoin,
+}: {
+  joinCode?: string;
+  isLoading?: boolean;
+  error?: string | null;
+  sessionInfo?: {
+    id: string;
+    studentHref: string;
+    plan: { title: string };
+    teacher: { name: string };
+    class?: { name: string };
+  } | null;
+  onCodeChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLookup?: () => void;
+  onJoin?: () => void;
+}) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -73,14 +139,15 @@ export default function JoinClassroomPage() {
         <div className="bg-slate-900/50 rounded-2xl border border-slate-800 p-6 shadow-xl">
           {/* Code Input */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-400 mb-2">
+            <label htmlFor="classroom-join-code" className="block text-sm font-medium text-slate-400 mb-2">
               入会码
             </label>
             <input
+              id="classroom-join-code"
               type="text"
               inputMode="numeric"
               value={joinCode}
-              onChange={handleCodeChange}
+              onChange={onCodeChange}
               placeholder="输入6位数字"
               className="w-full h-14 text-center text-3xl font-mono tracking-[0.5em] bg-slate-950 border border-slate-700 rounded-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-white placeholder:text-slate-600 placeholder:tracking-normal placeholder:text-base"
               maxLength={6}
@@ -114,7 +181,7 @@ export default function JoinClassroomPage() {
           <div className="space-y-3">
             {!sessionInfo ? (
               <button
-                onClick={lookupSession}
+                onClick={onLookup}
                 disabled={joinCode.length !== 6 || isLoading}
                 className="w-full h-12 rounded-xl font-medium transition-all flex items-center justify-center gap-2
                   bg-slate-800 hover:bg-slate-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
@@ -130,7 +197,7 @@ export default function JoinClassroomPage() {
               </button>
             ) : (
               <button
-                onClick={joinSession}
+                onClick={onJoin}
                 className="w-full h-12 rounded-xl font-medium transition-all flex items-center justify-center gap-2
                   bg-cyan-600 hover:bg-cyan-500 text-white"
               >

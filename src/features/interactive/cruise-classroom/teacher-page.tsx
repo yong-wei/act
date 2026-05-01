@@ -1,5 +1,6 @@
 'use client';
 
+import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -428,6 +429,7 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
               >
                 复制课堂码
               </button>
+              <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
             </div>
             {copyNotice ? <p className="mt-2 text-xs text-cyan-100/90">{copyNotice}</p> : null}
           </div>

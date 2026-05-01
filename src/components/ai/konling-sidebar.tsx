@@ -9,7 +9,6 @@
 import { useChat, type Message } from 'ai/react';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Send, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { KonlingAvatar } from './konling-avatar';
 import { AIMessageContent } from './ai-message-content';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import {
@@ -265,6 +266,7 @@ export function LSUMTeacherPage({
               <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
               <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。</div>
             </div>
+            <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
             <button
               type="button"
               onClick={() => void handleEndSession()}

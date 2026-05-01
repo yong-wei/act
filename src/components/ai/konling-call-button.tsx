@@ -6,10 +6,10 @@
 
 'use client';
 
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { KonlingAvatar } from './konling-avatar';
 import { getFloatingButtonStyles, getUnreadBadgeStyles } from '@/lib/ai-theme-styles';
+import { useTheme } from '@/components/providers/theme-provider';
 
 interface KonlingCallButtonProps {
   isOpen: boolean;
@@ -24,16 +24,14 @@ export function KonlingCallButton({
   unreadCount = 0,
   className = '',
 }: KonlingCallButtonProps) {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted
-    ? (theme === 'system' ? systemTheme : theme) !== 'light'
-    : true;
+  const isDark = mounted ? theme !== 'light' : true;
 
   const buttonStyles = getFloatingButtonStyles(isDark);
   const badgeStyles = getUnreadBadgeStyles(isDark);
@@ -69,16 +67,14 @@ export function KonlingMiniButton({
   onClick: () => void;
   className?: string;
 }) {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted
-    ? (theme === 'system' ? systemTheme : theme) !== 'light'
-    : true;
+  const isDark = mounted ? theme !== 'light' : true;
 
   return (
     <button
@@ -111,16 +107,14 @@ export function KonlingTextButton({
   label?: string;
   className?: string;
 }) {
-  const { theme, systemTheme } = useTheme();
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted
-    ? (theme === 'system' ? systemTheme : theme) !== 'light'
-    : true;
+  const isDark = mounted ? theme !== 'light' : true;
 
   return (
     <button
