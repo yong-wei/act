@@ -275,7 +275,11 @@ const secondOrderModel = (gain: number, zeta: number, omega: number, delay?: num
   tf([gain * omega * omega], [omega * omega, 2 * zeta * omega, 1], delay);
 
 const nonMinimumPhaseModel = (gain: number, zeroTime: number, timeConstant: number, delay?: number) =>
-  tf(scalePolynomial([1, -zeroTime], gain), [1, timeConstant], delay);
+  tf(
+    scalePolynomial([1, -zeroTime], gain),
+    convolvePolynomials([1, timeConstant], [1, timeConstant * 0.35]),
+    delay
+  );
 
 const nonMinimumPhaseIntegratorModel = (
   gain: number,

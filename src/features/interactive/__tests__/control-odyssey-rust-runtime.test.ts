@@ -55,6 +55,26 @@ describe('control odyssey Rust runtime adapter', () => {
     expect(request.model.delay).toBe(0.3);
   });
 
+  it('initializes derivative-on-measurement state for the Rust stepper', () => {
+    const state = createInitialRustSimulationState(200);
+
+    expect(state.prevFeedbackY).toBe(200);
+    expect(state.derivativeState).toBe(0);
+  });
+
+  it('keeps game level transfer functions strictly proper to avoid instant ship teleports', () => {
+    for (const level of CONTROL_ODYSSEY_LEVELS) {
+      const model = getTransferFunctionModel(level.model);
+      const numeratorOrder = model.numerator.length - 1;
+      const denominatorOrder = model.denominator.length - 1;
+
+      expect(
+        numeratorOrder,
+        `${level.id} should not have a direct feedthrough term in the game plant`,
+      ).toBeLessThan(denominatorOrder);
+    }
+  });
+
   it('keeps the production PhysicsEngine facade off the old TypeScript numeric plant', () => {
     const source = readFileSync(
       path.join(process.cwd(), 'src/resources/interactive-learning/control-odyssey/engine/physics.ts'),
@@ -63,5 +83,20 @@ describe('control odyssey Rust runtime adapter', () => {
 
     expect(source).not.toContain('createLinearPlant');
     expect(source).toContain('computeRustSimulationStep');
+  });
+
+  it('keeps the PD visual layer from redrawing the full ship silhouette', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/resources/interactive-learning/control-odyssey/components/ShipAvatar.tsx'),
+      'utf8',
+    );
+    const dLayerStart = source.indexOf('className={styles.dAura}');
+    const dLayerEnd = source.indexOf('<g className={cn(styles.layer, hasFF', dLayerStart);
+    const dLayerSource = source.slice(dLayerStart, dLayerEnd);
+
+    expect(dLayerStart).toBeGreaterThan(0);
+    expect(dLayerSource).not.toContain('baseHullPath');
+    expect(dLayerSource).not.toContain('wingTopPath');
+    expect(dLayerSource).not.toContain('engineTopPath');
   });
 });

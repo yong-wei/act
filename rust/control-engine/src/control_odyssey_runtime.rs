@@ -93,6 +93,10 @@ pub struct SimulationState {
     predictor_delay_buffer: Vec<f64>,
     predictor_no_delay_y: f64,
     predictor_delay_y: f64,
+    #[serde(default)]
+    prev_feedback_y: Option<f64>,
+    #[serde(default)]
+    derivative_state: f64,
     last_mode: Option<String>,
     y: f64,
     v: f64,
@@ -186,6 +190,8 @@ fn compute_simulation_step_inner(
     if state.last_mode.as_deref() != Some(mode.as_str()) {
         state.integral = 0.0;
         state.prev_error = 0.0;
+        state.prev_feedback_y = None;
+        state.derivative_state = 0.0;
         if mode == "auto" {
             state.r = state.y;
         }
@@ -254,12 +260,17 @@ fn compute_simulation_step_inner(
         } else {
             0.0
         };
-        let derivative = (error - state.prev_error) / dt;
+        let previous_feedback_y = state.prev_feedback_y.unwrap_or(feedback_y);
+        let raw_derivative = -((feedback_y - previous_feedback_y) / 200.0) / dt;
+        let derivative_tau = 0.05_f64;
+        let derivative_alpha = (dt / (derivative_tau + dt)).min(1.0);
+        state.derivative_state += (raw_derivative - state.derivative_state) * derivative_alpha;
+        state.prev_feedback_y = Some(feedback_y);
         state.prev_error = error;
 
         terms.p = limit_value(request.controller.pid.kp * error, limits.p);
         terms.i = limit_value(request.controller.pid.ki * state.integral, limits.i);
-        terms.d = limit_value(request.controller.pid.kd * derivative, limits.d);
+        terms.d = limit_value(request.controller.pid.kd * state.derivative_state, limits.d);
         let speed_feedback = request
             .controller
             .speed_feedback

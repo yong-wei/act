@@ -86,6 +86,9 @@ const vfArmorShapes = [
     mirror: true
   }))
 ];
+const dHullSparkPath = 'M130 50 C144 45 160 48 173 58';
+const dWingSparkPath = 'M80 39 C93 34 105 36 118 44';
+const dEngineSparkPath = 'M45 38 C58 32 70 33 83 40';
 const buildPulseValues = (intensity: number, low = 0.7) =>
   `${(intensity * low).toFixed(2)};${intensity.toFixed(2)};${(intensity * low).toFixed(2)}`;
 const iFlowShapes = (() => {
@@ -455,7 +458,7 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
         <g className={cn(styles.layer, hasD && styles.layerActive)}>
           <g className={styles.dAura} transform={dAuraTransform}>
             {showHull && dHullIntensity > 0 && (
-              <path d={baseHullPath} transform={hullTransform}>
+              <path d={dHullSparkPath}>
                 <animate
                   attributeName="stroke-opacity"
                   values={buildPulseValues(dHullIntensity, 0.6)}
@@ -467,7 +470,7 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
             {showWings && dWingIntensity > 0 && (
               <>
                 <g transform={`translate(${wingTop.x} ${wingTop.y})`}>
-                  <path d={wingTopPath}>
+                  <path d={dWingSparkPath}>
                     <animate
                       attributeName="stroke-opacity"
                       values={buildPulseValues(dWingIntensity, 0.6)}
@@ -477,7 +480,7 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
                   </path>
                 </g>
                 <g transform={mirrorWithOffset(wingBottom.x, wingBottom.y)}>
-                  <path d={wingTopPath}>
+                  <path d={dWingSparkPath}>
                     <animate
                       attributeName="stroke-opacity"
                       values={buildPulseValues(dWingIntensity, 0.6)}
@@ -490,10 +493,7 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
             )}
             {showEngines && dEngineIntensity > 0 && (
               <>
-                <path
-                  d={engineTopPath}
-                  transform={`translate(${engineTop.x} ${engineTop.y})`}
-                >
+                <path d={dEngineSparkPath}>
                   <animate
                     attributeName="stroke-opacity"
                     values={buildPulseValues(dEngineIntensity, 0.6)}
@@ -502,10 +502,7 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
                   />
                 </path>
                 <g transform={mirrorTransform}>
-                  <path
-                    d={engineTopPath}
-                    transform={`translate(${engineTop.x} ${engineTop.y})`}
-                  >
+                  <path d={dEngineSparkPath}>
                     <animate
                       attributeName="stroke-opacity"
                       values={buildPulseValues(dEngineIntensity, 0.6)}

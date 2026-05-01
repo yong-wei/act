@@ -22,6 +22,8 @@ export interface RustSimulationState extends ShipState {
   predictorDelayBuffer: number[];
   predictorNoDelayY: number;
   predictorDelayY: number;
+  prevFeedbackY: number | null;
+  derivativeState: number;
   lastMode: 'manual' | 'auto' | null;
 }
 
@@ -132,6 +134,8 @@ export const createInitialRustSimulationState = (initialY: number = 200): RustSi
   predictorDelayBuffer: [],
   predictorNoDelayY: initialY,
   predictorDelayY: initialY,
+  prevFeedbackY: initialY,
+  derivativeState: 0,
   lastMode: 'manual',
   y: initialY,
   v: 0,
