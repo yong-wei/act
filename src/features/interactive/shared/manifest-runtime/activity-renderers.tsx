@@ -650,7 +650,7 @@ function hasTeacherRevealControl(stepManifest: InteractiveRuntimeStepManifest) {
     || stepManifest.teacherControls.teacherStepReveal === 'teacher_direct';
 }
 
-function TeacherControls({
+export function ManifestTeacherControls({
   stepManifest,
   released,
   browseEnabled,
@@ -751,7 +751,7 @@ function TeacherSummary({
   const cards = cardsFor(stepManifest);
   return (
     <div className="space-y-4">
-      <TeacherControls
+      <ManifestTeacherControls
         stepManifest={stepManifest}
         released={released}
         browseEnabled={browseEnabled}
@@ -807,7 +807,7 @@ function TeacherRevealOnlySummary({
   onResetReveal: () => void;
 }) {
   return (
-    <TeacherControls
+    <ManifestTeacherControls
       stepManifest={stepManifest}
       released={released}
       browseEnabled={browseEnabled}
@@ -842,7 +842,9 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     card_sort: (props) => <StudentCards {...props} />,
     triple_match: (props) => <StudentCards {...props} />,
     structured_compare: (props) => <StudentCards {...props} />,
+    parameter_slider: (props) => <StudentCards {...props} />,
     activity_card_set: (props) => <StudentCards {...props} />,
+    table_builder: (props) => <StudentCards {...props} />,
     task_card_workspace: (props) => <StudentCards {...props} />,
     quiz_group: (props) => <StudentCards {...props} />,
     multi_select_matrix: (props) => <StudentCards {...props} />,
@@ -872,7 +874,9 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     card_sort: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     triple_match: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     structured_compare: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    parameter_slider: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     activity_card_set: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    table_builder: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     task_card_workspace: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_group: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     multi_select_matrix: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,

@@ -367,7 +367,7 @@ function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRu
   const directItems = asStringArray(payload.items);
   if (directItems.length) return directItems;
   const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
-  const items = asStringArray(block.items ?? block.steps ?? block.bullets);
+  const items = asStringArray(block.items ?? block.steps ?? block.layers ?? block.bullets);
   if (items.length) return items;
   const revealLayers = step.contentBlocks.reveal_layers;
   const layerItems = asStringArray(revealLayers);
@@ -615,7 +615,7 @@ function ImagePanel({ title, src, notes }: { title: string; src: string; notes: 
     <div className="premium-lesson-panel">
       <div className="premium-lesson-kicker">{title}</div>
       <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <Image src={src} alt={title} width={1600} height={960} className="h-auto w-full" />
+        <Image src={src} alt={title} width={1600} height={960} className="h-auto w-full" unoptimized />
       </div>
       {notes.length ? (
         <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
@@ -636,7 +636,7 @@ function ImageGallery({ title, items }: { title: string; items: Array<{ src: str
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <div key={item.src} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <Image src={item.src} alt={item.caption || title} width={1600} height={960} className="h-auto w-full" />
+            <Image src={item.src} alt={item.caption || title} width={1600} height={960} className="h-auto w-full" unoptimized />
             {item.caption ? (
               <p className="premium-lesson-muted border-t border-slate-100 px-3 py-2 text-sm leading-6">
                 {renderInlineContent(item.caption)}

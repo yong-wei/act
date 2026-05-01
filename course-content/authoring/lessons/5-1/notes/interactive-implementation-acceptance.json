@@ -1,0 +1,118 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-1",
+  "status": "accepted",
+  "accepted_at": "2026-04-30T16:35:50+0800",
+  "review_mode": "subagent+browser",
+  "implementation_contract_source": "course-content/runtime/lessons/5-1/interactive-manifest.json",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/5-1/interactive-manifest.json",
+    "course-content/runtime/lessons/5-1/review/interactive-page-check.json",
+    "course-content/runtime/lessons/5-1/review/review-report.md"
+  ],
+  "browser_acceptance": {
+    "base_url": "http://127.0.0.1:3001",
+    "route": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries",
+    "entry_page": {
+      "status": "pass",
+      "checked_points": [
+        "entry renders runtime media hub",
+        "entry exposes teacher start, student demo, handout, runtime media, knowledge graph, and knowledge cards",
+        "runtime media images load without broken-image failures"
+      ]
+    },
+    "demo_page_walkthrough": {
+      "status": "pass",
+      "validated_steps": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "evidence": [
+        "each demo route was opened in a fresh browser page to avoid Next client state carrying the prior step",
+        "all steps rendered the manifest step id and title expected by ?step=step-01 through ?step=step-14",
+        "no missing renderer, TODO, placeholder, authoring path leak, pageerror, or blocking console warning was detected",
+        "step-14 rendered the student personal classroom statistics panel"
+      ]
+    },
+    "curve_panel_checks": {
+      "status": "pass",
+      "validated_steps": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "evidence": [
+        "each curve page rendered the 5-1 nonlinear boundary panel",
+        "each curve page rendered two ECharts canvas elements after chart readiness",
+        "the first range control on each curve page changed value within its legal min/max bound",
+        "panel metrics changed after the slider update, proving the same-page parameter redraw path is live"
+      ]
+    },
+    "classroom_sync_checks": {
+      "status": "pass",
+      "teacher_account": "test_teacher",
+      "student_account": "demo",
+      "session_id": "cmol8abrm00qciad0no4x4jf5",
+      "join_code": "178503",
+      "teacher_student_flow": "teacher_login -> create_session_from_5_1_preset -> student_login -> join_by_code -> teacher_step_03 -> release_activity -> student_submit_pretest_cards -> teacher_aggregate_check -> teacher_step_06 -> teacher_reveal_progress -> student_sync_to_step_06_reveal_layer_2",
+      "evidence": [
+        "teacher created a 5-1 classroom from the dedicated preset and received a six-digit join code",
+        "student joined the generated classroom route through the join API using the same browser session",
+        "teacher released step-03 activity and student submitted visible pretest answer cards",
+        "teacher page showed submitted-count aggregation for step-03 after reload",
+        "teacher advanced step-06 reveal progress and student page synced to step-06 with two visible reveal layers and no out-of-sync warning"
+      ]
+    },
+    "browser_evidence": {
+      "demo_console_errors": [],
+      "demo_page_errors": [],
+      "classroom_blocking_console_errors": [],
+      "classroom_page_errors": [],
+      "benign_console_warnings": [
+        "Next Image LCP priority suggestion for above-the-fold images during classroom flow"
+      ]
+    }
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "evidence": [
+        "5-1 uses hidden page AI context plus the global assistant surface; no step body exposes a standalone AI implementation panel."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "evidence": [
+        "all 14 demo steps rendered from runtime interactive-manifest.json with no missing renderer or authoring path leak."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "evidence": [
+        "step-06 through step-11 used live curve panels with ECharts canvas and slider-driven metric updates instead of static screenshot-only display."
+      ]
+    },
+    "browser_closed_loop": {
+      "status": "pass",
+      "evidence": [
+        "teacher/student browser flow covered classroom creation, joining, step release, student submission, teacher aggregation, and teacher reveal synchronization."
+      ]
+    }
+  },
+  "issues": []
+}

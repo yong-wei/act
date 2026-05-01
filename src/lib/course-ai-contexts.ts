@@ -98,6 +98,11 @@ import {
   getUnit47StepQuickQuestionsLocal,
   UNIT_4_7_COURSE_META,
 } from './unit-4-7-ai-contexts';
+import {
+  getUnit51StepAIContextLocal,
+  getUnit51StepQuickQuestionsLocal,
+  UNIT_5_1_COURSE_META,
+} from './unit-5-1-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -279,6 +284,14 @@ export {
   getUnit47StepAIContextLocal,
   getUnit47StepQuickQuestionsLocal,
 } from './unit-4-7-ai-contexts';
+export {
+  UNIT_5_1_COURSE_META,
+  UNIT_5_1_STEP_AI_CONTEXTS,
+  getUnit51StepAIContext,
+  getUnit51StepQuickQuestions,
+  getUnit51StepAIContextLocal,
+  getUnit51StepQuickQuestionsLocal,
+} from './unit-5-1-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -509,6 +522,15 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_4_7_COURSE_META.courseId,
       courseTitle: UNIT_4_7_COURSE_META.courseTitle,
       courseDescription: UNIT_4_7_COURSE_META.courseDescription,
+    },
+  },
+  'unit-5-1-linear-backbone-boundaries-v1': {
+    getStepContext: (stepId: string) => getUnit51StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit51StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_5_1_COURSE_META.courseId,
+      courseTitle: UNIT_5_1_COURSE_META.courseTitle,
+      courseDescription: UNIT_5_1_COURSE_META.courseDescription,
     },
   },
 };

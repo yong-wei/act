@@ -13,6 +13,7 @@ import {
   type InteractiveLayoutRegionNode,
   type InteractiveRuntimeStepManifest,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
+import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
   createManifestTeacherActivityRegistry,
   renderTeacherInteractiveActivity,
@@ -239,6 +240,60 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('正文只保留静态内容。');
     expect(html).not.toContain('本页作答');
     expect(html).not.toContain('这个题面只能出现在活动作答区。');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders reveal blocks that store progressive content in a layers field', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-reveal-layers': {
+          title: '显影层测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'formula-reveal',
+              title: '公式显影链',
+              region: 'main',
+              kind: 'step-reveal',
+              must_be_visible: true,
+              payload: { block_key: 'reveal_layers' },
+            },
+          ],
+          content_blocks: {
+            reveal_layers: {
+              type: 'reveal',
+              layers: ['第一层推导', '第二层结论'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 1,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 1,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('公式显影链');
+    expect(html).toContain('第一层推导');
+    expect(html).toContain('第二层结论');
     expect(html).not.toContain('data-manifest-render-error');
   });
 
@@ -607,6 +662,74 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('当前教师显影层级：2');
   });
 
+  it('keeps parameter slider and table builder teacher controls in the shared activity registry', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-slider': {
+          title: '参数调节页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'parameter_slider',
+            activity_cards: [{ id: 'design', prompt: '提交当前参数判断。', response_kind: 'text' }],
+          },
+          teacher_controls: {
+            release_activity: 'teacher_toggle',
+            open_browse: 'not_applicable',
+            teacher_step_reveal: 'not_applicable',
+            reveal_reference_answer: 'not_applicable',
+          },
+        },
+        'step-table': {
+          title: '表格填写页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'table_builder',
+            activity_cards: [{ id: 'mapping', prompt: '填写综合映射表。', response_kind: 'table_builder' }],
+          },
+          teacher_controls: {
+            release_activity: 'teacher_toggle',
+            open_browse: 'not_applicable',
+            teacher_step_reveal: 'not_applicable',
+            reveal_reference_answer: 'not_applicable',
+          },
+        },
+      },
+    });
+    const registry = createManifestTeacherActivityRegistry();
+
+    for (const step of manifest!.steps) {
+      const html = renderToStaticMarkup(
+        createElement(
+          'div',
+          null,
+          renderTeacherInteractiveActivity({
+            registry,
+            step: { id: step.id },
+            stepManifest: step,
+            responses: [],
+            released: false,
+            browseEnabled: true,
+            answerVisible: false,
+            revealProgress: 0,
+            onToggleRelease: () => undefined,
+            onToggleBrowse: () => undefined,
+            onToggleAnswerVisible: () => undefined,
+            onAdvanceReveal: () => undefined,
+            onResetReveal: () => undefined,
+          }),
+        ),
+      );
+
+      expect(html).toContain('发放作答');
+      expect(html).toContain(step.interactionSpec.activityCards?.[0]?.prompt);
+    }
+  });
+
   it('keeps manifest activity registries for the three shared activity kinds without course-id answer maps', () => {
     const source = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
@@ -614,7 +737,9 @@ describe('interactive runtime manifest', () => {
     );
 
     expect(source).toContain('activity_card_set:');
+    expect(source).toContain('parameter_slider:');
     expect(source).toContain('task_card_workspace:');
+    expect(source).toContain('table_builder:');
     expect(source).toContain('quiz_group:');
     expect(source).toContain('teacher_reveal_only:');
     expect(source).toContain('worked_example_reveal:');

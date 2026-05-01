@@ -19,6 +19,7 @@ import { UNIT_4_3_COURSE_TITLE, UNIT_4_3_ROUTE_SEGMENT } from '@/lib/unit-4-3-co
 import { UNIT_4_4_COURSE_TITLE, UNIT_4_4_ROUTE_SEGMENT } from '@/lib/unit-4-4-course';
 import { UNIT_4_6_COURSE_TITLE, UNIT_4_6_ROUTE_SEGMENT } from '@/lib/unit-4-6-course';
 import { UNIT_4_7_COURSE_TITLE, UNIT_4_7_ROUTE_SEGMENT } from '@/lib/unit-4-7-course';
+import { UNIT_5_1_COURSE_TITLE, UNIT_5_1_ROUTE_SEGMENT } from '@/lib/unit-5-1-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 const UNIT_4_5_ROUTE_SEGMENT = 'unit-4-5-constraint-aware-parameter-optimization';
@@ -221,6 +222,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '4-7：高保真辨识、设计验证与扰动边界',
       '高保真辨识、设计验证与扰动边界',
       '完整工程设计闭环实践',
+    ],
+  },
+  {
+    routeSegment: UNIT_5_1_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_5_1_COURSE_TITLE,
+      '5-1：线性主干的边界',
+      '线性主干的边界',
+      '饱和、死区、滞回、切换与模型失配',
     ],
   },
 ];
