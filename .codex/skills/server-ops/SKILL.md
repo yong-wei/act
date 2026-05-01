@@ -14,6 +14,7 @@ description: Use when this repository needs server-side operations, online fault
 ## Hard Constraints
 
 - 部署模式固定为“本机构建镜像或镜像包，再在远端执行装载与启停”；不得改为远端源码构建、远端常驻代码目录构建或任何临时改变部署模式的做法。
+- 本地镜像打包必须使用本机 Docker 守护进程执行 `scripts/build.sh` 中的 `docker buildx build`；若 Docker 未运行，应先启动 Docker 并验证 `docker info`，不得擅自切换到 Colima、Podman、Lima 或其他构建运行时，也不得用旧镜像包替代本次构建。
 - 远端 `/home/projects/act` 只允许保留运维脚本、环境变量文件与 `course-content/runtime`；不得上传业务源码、测试、文档、记忆文件或其他代码目录。
 - 禁止在远端执行 `podman build`、`docker build`、`npm run build`、`next build` 或任何等价的源码构建命令。
 - 若发现远端已有源码残留，应优先清理为最小运维壳层，再继续后续排障或部署。

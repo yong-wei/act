@@ -9,8 +9,10 @@
 强制约束：
 
 - 只允许本机构建镜像或镜像包，再在远端加载和部署；禁止远端 `podman build`、`docker build`、`npm run build`、`next build`
+- 本地镜像构建必须走 Docker：使用本机 Docker 守护进程运行 `bash scripts/build.sh`，由脚本内的 `docker buildx build` 导出镜像包；若 Docker 未运行，先启动 Docker 并用 `docker info` 验证后再构建，不得自行改用 Colima、Podman、Lima 或其他 builder
 - 远端 `/home/projects/act` 不得保存源码；只保留运维脚本、环境变量文件和 `course-content/runtime`
 - 不得通过上传源码、常驻远端代码目录或临时改造部署模式来绕过本机构建
+- 本次构建失败时不得直接沿用旧的 `deploy/images/act-obe.tar` 部署；必须先完成新的 Docker 构建并记录新的 SHA256
 - 若本次修改涉及 `deploy/podman/` 下的部署脚本，先确认这些文件已经被显式纳入 Git 版本控制；本仓库根级 `.gitignore` 默认忽略 `deploy/`，不要只在本地修改未跟踪脚本后直接执行远端部署
 
 推荐顺序：
@@ -26,6 +28,7 @@ node scripts/tests/test-remote-deploy-script.mjs
 
 2. 镜像构建
 ```bash
+docker info
 bash scripts/build.sh
 ```
 
