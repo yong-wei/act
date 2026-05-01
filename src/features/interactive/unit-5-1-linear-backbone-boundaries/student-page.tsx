@@ -143,8 +143,7 @@ export function UNIT_5_1StudentPage({
         : false;
   const revealProgress =
     teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
-  const allowInlineReveal =
-    isDemo || (browseEnabled && pageContract.teacherControls.teacherStepReveal === 'not_applicable');
+  const allowInlineReveal = isDemo || browseEnabled;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {

@@ -15,7 +15,9 @@ import {
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
+  createManifestStudentActivityRegistry,
   createManifestTeacherActivityRegistry,
+  renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
   type ManifestStepResponse,
 } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
@@ -294,7 +296,117 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('公式显影链');
     expect(html).toContain('第一层推导');
     expect(html).toContain('第二层结论');
+    expect(html).not.toContain('第 1 层');
     expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders objective lists from content block items', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-objectives': {
+          title: '目标页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'objective-list',
+              title: '完成本次课程后，学习者能够',
+              region: 'main',
+              kind: 'objective-list',
+              must_be_visible: true,
+              payload: { block_key: 'objectives' },
+            },
+          ],
+          content_blocks: {
+            objectives: {
+              type: 'bullet_list',
+              items: ['识别边界条件。', '解释预测失真。'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('完成本次课程后，学习者能够');
+    expect(html).toContain('识别边界条件。');
+    expect(html).toContain('解释预测失真。');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders drag-match activity cards as three-column matching slots', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-match': {
+          title: '配对页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'match-a',
+                title: '边界配对',
+                prompt: '完成现象与边界类型配对。',
+                response_kind: 'drag_match',
+                options: [
+                  { value: 'sat', label: '输出被压平 -> 饱和' },
+                  { value: 'dead', label: '小信号无动作 -> 死区' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          savedResponse: undefined,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('待配对项');
+    expect(html).toContain('配对空槽');
+    expect(html).toContain('备选项');
+    expect(html).toContain('输出被压平');
+    expect(html).toContain('饱和');
   });
 
   it('maps 4-7 task and identification manifest content without title-only shells or duplicate activity prompts', async () => {
@@ -660,6 +772,62 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('推进显影');
     expect(html).toContain('重置显影');
     expect(html).toContain('当前教师显影层级：2');
+  });
+
+  it('caps teacher reveal controls at the number of manifest layers', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-reveal-cap': {
+          title: '教师显影上限测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {
+            reveal_layers: {
+              type: 'reveal',
+              layers: ['第一层', '第二层'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'worked_example_reveal',
+            activity_cards: [],
+          },
+          teacher_controls: {
+            release_activity: 'not_applicable',
+            open_browse: 'not_applicable',
+            teacher_step_reveal: 'teacher_direct',
+            reveal_reference_answer: 'not_applicable',
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          responses: [],
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 3,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('当前教师显影层级：2 / 2');
+    expect(html).toContain('disabled=""');
   });
 
   it('keeps parameter slider and table builder teacher controls in the shared activity registry', () => {

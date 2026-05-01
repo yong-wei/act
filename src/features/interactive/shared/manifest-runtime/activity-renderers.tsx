@@ -1,6 +1,6 @@
 'use client';
 
-import { createElement, Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createElement, Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -173,6 +173,10 @@ function cardTitle(card: InteractiveRuntimeActivityCardManifest, index: number) 
   return card.title?.trim() || `作答 ${index + 1}`;
 }
 
+function ManifestSectionTitle({ children }: { children: ReactNode }) {
+  return <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{children}</div>;
+}
+
 function ReferenceAnswer({
   card,
 }: {
@@ -223,6 +227,10 @@ function isMultiSelectCard(card: InteractiveRuntimeActivityCardManifest) {
 
 function isDragSortCard(card: InteractiveRuntimeActivityCardManifest) {
   return card.responseKind === 'drag_sort';
+}
+
+function isDragMatchCard(card: InteractiveRuntimeActivityCardManifest) {
+  return card.responseKind === 'drag_match';
 }
 
 function formatAnswerValue(card: InteractiveRuntimeActivityCardManifest, value: string) {
@@ -290,7 +298,7 @@ function TeacherCardAnswerSummary({
 
   return (
     <div className="premium-lesson-surface-elevated px-4 py-3">
-      <div className="premium-lesson-title text-sm font-semibold">{cardTitle(card, index)}</div>
+      <ManifestSectionTitle>{cardTitle(card, index)}</ManifestSectionTitle>
       <CardPrompt card={card} />
       <TeacherCardOptions card={card} />
       {answerVisible ? (
@@ -334,7 +342,7 @@ function TeacherCardAnswerSummary({
       </div>
       {detailsVisible ? (
         <div className="premium-lesson-tone-block premium-tone-slate mt-3 text-sm leading-7">
-          <div className="premium-lesson-kicker">提交细节</div>
+          <ManifestSectionTitle>提交细节</ManifestSectionTitle>
           <div className="mt-2 space-y-2">
             {cardResponses.map((item) => (
               <p key={`${card.id}-${item.studentName}-${item.response.submittedAt}`} className="premium-lesson-muted leading-6">
@@ -345,6 +353,157 @@ function TeacherCardAnswerSummary({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function splitMatchLabel(label: string) {
+  const [source, target] = label.split(/\s*(?:->|→|=>|⇒)\s*/);
+  return {
+    source: source?.trim() || label,
+    target: target?.trim() || label,
+  };
+}
+
+function DragMatchAnswerInput({
+  card,
+  value,
+  onChange,
+}: {
+  card: InteractiveRuntimeActivityCardManifest;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const optionValues = useMemo(() => card.options.map((option) => option.value), [card.options]);
+  const [draggedValue, setDraggedValue] = useState<string | null>(null);
+  const draggedValueRef = useRef<string | null>(null);
+  const normalizedAssignments = useMemo(() => {
+    const raw = value.split('|').filter(Boolean);
+    const normalized = raw.length === optionValues.length ? raw : [];
+    return optionValues.map((_, index) => {
+      const candidate = normalized[index];
+      return candidate && optionValues.includes(candidate) ? candidate : '';
+    });
+  }, [optionValues, value]);
+  const [localAssignments, setLocalAssignments] = useState<string[]>(normalizedAssignments);
+
+  useEffect(() => {
+    setLocalAssignments(normalizedAssignments);
+  }, [normalizedAssignments]);
+
+  const assignments = localAssignments.length === optionValues.length ? localAssignments : normalizedAssignments;
+  const assignedValues = new Set(assignments.filter(Boolean));
+  const availableOptions = card.options.filter((option) => !assignedValues.has(option.value));
+  const labelFor = (optionValue: string) =>
+    card.options.find((option) => option.value === optionValue)?.label ?? optionValue;
+  const targetLabelFor = (optionValue: string) => splitMatchLabel(labelFor(optionValue)).target;
+  const commitAssignments = (next: string[]) => {
+    setLocalAssignments(next);
+    onChange(next.join('|'));
+  };
+  const assignToSlot = (slotIndex: number, optionValue: string | null) => {
+    if (!optionValue || !optionValues.includes(optionValue)) return;
+    const next = assignments.map((item) => (item === optionValue ? '' : item));
+    next[slotIndex] = optionValue;
+    commitAssignments(next);
+    draggedValueRef.current = null;
+    setDraggedValue(null);
+  };
+
+  if (!card.options.length) {
+    return (
+      <div
+        className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+        data-manifest-missing-field={`${card.id}:options`}
+      >
+        manifest 未提供本配对题选项，请在 activity_cards[].options 中补齐。
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
+        <ManifestSectionTitle>待配对项</ManifestSectionTitle>
+        <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
+        {card.options.map((option, index) => {
+          const assigned = assignments[index];
+          return (
+            <Fragment key={option.value}>
+              <div className="premium-lesson-surface-elevated min-h-[64px] px-4 py-3 text-sm leading-6">
+                {renderActivityInlineContent(splitMatchLabel(option.label).source)}
+              </div>
+              <button
+                type="button"
+              onDragOver={(event) => event.preventDefault()}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                const dragged = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
+                assignToSlot(index, dragged);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
+                assignToSlot(index, droppedValue);
+              }}
+              onMouseEnter={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
+              onMouseUp={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
+              onClick={() => {
+                if (!assigned) return;
+                  const next = [...assignments];
+                  next[index] = '';
+                  commitAssignments(next);
+                }}
+                className={`min-h-[64px] w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
+                  assigned ? 'border-cyan-200 bg-cyan-50' : 'border-dashed border-slate-300 bg-slate-50'
+                }`}
+                aria-label={`${splitMatchLabel(option.label).source} 的配对空槽`}
+              >
+                {assigned ? renderActivityInlineContent(targetLabelFor(assigned)) : '拖入对应备选项'}
+              </button>
+            </Fragment>
+          );
+        })}
+      </div>
+      <div className="space-y-2">
+        <ManifestSectionTitle>备选项</ManifestSectionTitle>
+        {availableOptions.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            draggable
+            onMouseDown={() => {
+              draggedValueRef.current = option.value;
+              setDraggedValue(option.value);
+            }}
+            onDragStart={(event) => {
+              draggedValueRef.current = option.value;
+              setDraggedValue(option.value);
+              event.dataTransfer.setData('text/plain', option.value);
+              event.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragEnd={() => {
+              draggedValueRef.current = null;
+              setDraggedValue(null);
+            }}
+            onClick={() => {
+              const firstEmptyIndex = assignments.findIndex((item) => !item);
+              if (firstEmptyIndex < 0) return;
+              const next = [...assignments];
+              next[firstEmptyIndex] = option.value;
+              commitAssignments(next);
+            }}
+            className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left text-sm leading-6 active:cursor-grabbing"
+          >
+            {renderActivityInlineContent(splitMatchLabel(option.label).target)}
+          </button>
+        ))}
+        {!availableOptions.length ? (
+          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-4 py-3 text-sm">
+            所有备选项已放入空槽，点击空槽可撤回。
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -433,6 +592,10 @@ function StudentCardAnswerInput({
 }) {
   if (isDragSortCard(card)) {
     return <DragSortAnswerInput card={card} value={value} onChange={onChange} />;
+  }
+
+  if (isDragMatchCard(card)) {
+    return <DragMatchAnswerInput card={card} value={value} onChange={onChange} />;
   }
 
   if (isMultiSelectCard(card)) {
@@ -545,27 +708,36 @@ function StudentCards({
   const cardKeys = useMemo(() => cards.map((card) => card.id), [cards]);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [localSubmittedKeys, setLocalSubmittedKeys] = useState<Set<string>>(() => new Set());
+  const [touchedKeys, setTouchedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setDraftAnswers((currentDraft) =>
-      mergeSavedAnswersIntoDraft({
-        savedAnswers: savedResponse?.answers,
-        currentDraft,
-        keys: cardKeys,
-      }),
+      Object.fromEntries(
+        Object.entries(
+          mergeSavedAnswersIntoDraft({
+            savedAnswers: savedResponse?.answers,
+            currentDraft,
+            keys: cardKeys,
+          }),
+        ).map(([key, value]) => [
+          key,
+          touchedKeys.has(key) ? currentDraft[key] ?? value : value,
+        ]),
+      ),
     );
-  }, [cardKeys, savedResponse]);
+  }, [cardKeys, savedResponse, touchedKeys]);
 
   useEffect(() => {
     setLocalSubmittedKeys(new Set());
+    setTouchedKeys(new Set());
   }, [stepManifest.id]);
 
   if (!cards.length) return null;
 
   if (!released) {
     return (
-      <div className="premium-lesson-panel">
-        <div className="premium-lesson-kicker">本页作答</div>
+        <div className="premium-lesson-panel">
+        <ManifestSectionTitle>本页作答</ManifestSectionTitle>
         <div className="premium-lesson-tone-block premium-tone-amber mt-3">教师尚未发放本页作答卡，请先阅读上方证据。</div>
       </div>
     );
@@ -573,8 +745,8 @@ function StudentCards({
 
   if (!browseEnabled && stepManifest.interactionSpec.interactionKind === 'quiz_group') {
     return (
-      <div className="premium-lesson-panel">
-        <div className="premium-lesson-kicker">本页作答</div>
+        <div className="premium-lesson-panel">
+        <ManifestSectionTitle>本页作答</ManifestSectionTitle>
         <div className="premium-lesson-tone-block premium-tone-amber mt-3">教师尚未开放浏览，请等待课堂推进。</div>
       </div>
     );
@@ -587,18 +759,26 @@ function StudentCards({
       <div className={`grid gap-4 ${cards.every((card) => card.layoutSpan === 'half') ? 'md:grid-cols-2' : ''}`}>
         {cards.map((card, index) => (
           <div key={card.id} className="premium-lesson-panel">
-            <div className="premium-lesson-kicker">{cardTitle(card, index)}</div>
+            <ManifestSectionTitle>{cardTitle(card, index)}</ManifestSectionTitle>
             <CardPrompt card={card} />
             <StudentCardAnswerInput
               card={card}
               value={draftAnswers[card.id] ?? ''}
-              onChange={(value) => setDraftAnswers((prev) => ({ ...prev, [card.id]: value }))}
+              onChange={(value) => {
+                setTouchedKeys((prev) => new Set(prev).add(card.id));
+                setDraftAnswers((prev) => ({ ...prev, [card.id]: value }));
+              }}
             />
             <div className="mt-3 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setLocalSubmittedKeys((previous) => new Set(previous).add(card.id));
+                  setTouchedKeys((previous) => {
+                    const next = new Set(previous);
+                    next.delete(card.id);
+                    return next;
+                  });
                   onSubmit({
                     stepId: stepManifest.id,
                     submittedAt: Date.now(),
@@ -633,7 +813,7 @@ function StudentCards({
         ))}
       </div>
       <div className="premium-lesson-panel">
-        <div className="premium-lesson-kicker">提交状态</div>
+        <ManifestSectionTitle>提交状态</ManifestSectionTitle>
         <SubmissionStatus
           submitted={cards.every((card) => submittedKeys.has(card.id))}
           submittedText="本页作答卡已至少提交一次，可继续修改并逐卡重提。"
@@ -648,6 +828,15 @@ function StudentCards({
 function hasTeacherRevealControl(stepManifest: InteractiveRuntimeStepManifest) {
   return stepManifest.teacherControls.teacherStepReveal === 'teacher_only'
     || stepManifest.teacherControls.teacherStepReveal === 'teacher_direct';
+}
+
+function revealLayerCount(stepManifest: InteractiveRuntimeStepManifest) {
+  const layers = stepManifest.contentBlocks.reveal_layers;
+  if (Array.isArray(layers)) return layers.length;
+  if (layers && typeof layers === 'object' && Array.isArray((layers as { layers?: unknown[] }).layers)) {
+    return (layers as { layers: unknown[] }).layers.length;
+  }
+  return 0;
 }
 
 export function ManifestTeacherControls({
@@ -674,9 +863,13 @@ export function ManifestTeacherControls({
   onResetReveal: () => void;
 }) {
   const controls = stepManifest.teacherControls;
+  const layerCount = revealLayerCount(stepManifest);
+  const maxRevealProgress = Math.max(0, layerCount - 1);
+  const normalizedRevealProgress = layerCount ? Math.min(revealProgress, maxRevealProgress) : revealProgress;
+  const canAdvanceReveal = !layerCount || revealProgress < maxRevealProgress;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">教师控制</div>
+      <ManifestSectionTitle>教师控制</ManifestSectionTitle>
       <div className="mt-3 flex flex-wrap gap-2">
         {controls.releaseActivity !== 'not_applicable' ? (
           <button
@@ -707,7 +900,12 @@ export function ManifestTeacherControls({
         ) : null}
         {hasTeacherRevealControl(stepManifest) ? (
           <>
-            <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-tone premium-tone-cyan">
+            <button
+              type="button"
+              onClick={onAdvanceReveal}
+              disabled={!canAdvanceReveal}
+              className="premium-lesson-action-tone premium-tone-cyan disabled:cursor-not-allowed disabled:opacity-40"
+            >
               推进显影
             </button>
             <button type="button" onClick={onResetReveal} className="premium-lesson-action-tone premium-tone-slate">
@@ -717,7 +915,9 @@ export function ManifestTeacherControls({
         ) : null}
       </div>
       {hasTeacherRevealControl(stepManifest) ? (
-        <p className="premium-lesson-muted mt-3 text-sm">当前教师显影层级：{revealProgress + 1}</p>
+        <p className="premium-lesson-muted mt-3 text-sm">
+          当前教师显影层级：{normalizedRevealProgress + 1}{layerCount ? ` / ${layerCount}` : ''}
+        </p>
       ) : null}
     </div>
   );
@@ -765,7 +965,7 @@ function TeacherSummary({
       />
       {cards.length ? (
         <div className="premium-lesson-panel">
-          <div className="premium-lesson-kicker">学生提交汇总</div>
+          <ManifestSectionTitle>学生提交汇总</ManifestSectionTitle>
           <div className="mt-3 space-y-3">
             {cards.map((card, index) => (
               <TeacherCardAnswerSummary
@@ -841,6 +1041,7 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     binary_choice: (props) => <StudentCards {...props} />,
     card_sort: (props) => <StudentCards {...props} />,
     triple_match: (props) => <StudentCards {...props} />,
+    drag_match: (props) => <StudentCards {...props} />,
     structured_compare: (props) => <StudentCards {...props} />,
     parameter_slider: (props) => <StudentCards {...props} />,
     activity_card_set: (props) => <StudentCards {...props} />,
@@ -873,6 +1074,7 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     binary_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     card_sort: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     triple_match: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    drag_match: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     structured_compare: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     parameter_slider: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     activity_card_set: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,

@@ -48,6 +48,26 @@ function asStringArray(value: unknown): string[] {
     .map((item) => String(item));
 }
 
+function asOptionItems(value: unknown): Array<{ value: string; label: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') {
+        const text = String(item);
+        return { value: text, label: text };
+      }
+      const record = asRecord(item);
+      const optionValue = record.value;
+      const optionLabel = record.label;
+      if (typeof optionValue !== 'string' && typeof optionLabel !== 'string') return null;
+      return {
+        value: String(optionValue ?? optionLabel),
+        label: String(optionLabel ?? optionValue),
+      };
+    })
+    .filter((item): item is { value: string; label: string } => Boolean(item));
+}
+
 function numberValue(value: unknown, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -162,7 +182,7 @@ function simulateBoundaryModel(modelId: string, params: Record<string, number | 
     const inputType = String(params.input_type ?? 'small_step');
     const amplitude = numberValue(params.input_amplitude, inputType === 'large_step' ? 1.5 : 0.2);
     const signal = (t: number) => {
-      if (inputType === 'sine') return amplitude * Math.sin(1.2 * t);
+      if (inputType === 'sine' || inputType === '正弦输入') return amplitude * Math.sin(1.2 * t);
       return amplitude;
     };
     const original = firstOrderResponse((t) => Math.tanh(signal(t)));
@@ -319,7 +339,7 @@ function Unit51ControlField({
   const id = String(control.id ?? '');
   const label = String(control.label ?? id);
   const kind = String(control.kind ?? 'slider');
-  const options = asStringArray(control.options);
+  const options = asOptionItems(control.options);
 
   if (kind === 'toggle') {
     return (
@@ -336,8 +356,8 @@ function Unit51ControlField({
         <span>{label}</span>
         <select value={String(value)} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
           {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -385,7 +405,6 @@ function Unit51NonlinearBoundaryPanel({
   const [params, setParams] = useState<Record<string, number | string | boolean>>(() => defaultParamsFromControls(controls));
   const result = useMemo(() => simulateBoundaryModel(modelId, params), [modelId, params]);
   const text = typeof module.payload.text === 'string' ? module.payload.text : undefined;
-  const items = asStringArray(module.payload.items);
 
   useEffect(() => {
     onParameterChange?.(step.id, stringifySnapshot(params));
@@ -395,22 +414,10 @@ function Unit51NonlinearBoundaryPanel({
     <section className="premium-lesson-panel p-4" data-testid="unit-5-1-nonlinear-boundary-panel">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="premium-lesson-kicker">参数联动曲线</div>
-          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{module.title ?? '非线性边界曲线面板'}</h3>
+          <h3 className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{module.title ?? '非线性边界曲线面板'}</h3>
           {text ? <p className="premium-lesson-muted mt-2 text-sm leading-7">{text}</p> : null}
         </div>
-        <div className="premium-lesson-tone-pill premium-tone-cyan px-3 py-1 text-xs">图形随参数重绘</div>
       </div>
-
-      {items.length ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {items.map((item) => (
-            <span key={item} className="premium-lesson-tone-pill premium-tone-slate px-3 py-1 text-xs">
-              {item}
-            </span>
-          ))}
-        </div>
-      ) : null}
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <ControlChartPanel title={result.responseTitle} option={lineOption(result.response, 'y')} chartClassName="h-[300px]" />
@@ -473,7 +480,7 @@ export function Unit51StudentSummaryStats({
 
   return (
     <section className="premium-lesson-panel p-4" data-testid="unit-5-1-student-summary-stats">
-      <div className="premium-lesson-kicker">个人课堂表现统计</div>
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">个人课堂表现统计</div>
       <div className="mt-3 grid gap-3 md:grid-cols-5">
         <div className="premium-lesson-surface-elevated px-3 py-3">
           <div className="premium-lesson-caption text-xs">已浏览页面</div>
@@ -520,7 +527,7 @@ export function Unit51TeacherSummaryStats({
   const rate = studentCount ? Math.round((submittedStudents / studentCount) * 100) : 0;
   return (
     <section className="premium-lesson-panel p-4" data-testid="unit-5-1-teacher-summary-stats">
-      <div className="premium-lesson-kicker">班级整体表现统计</div>
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">班级整体表现统计</div>
       <div className="mt-3 grid gap-3 md:grid-cols-5">
         <div className="premium-lesson-surface-elevated px-3 py-3">
           <div className="premium-lesson-caption text-xs">参与学生</div>

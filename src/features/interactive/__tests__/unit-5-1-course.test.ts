@@ -142,4 +142,33 @@ describe('unit 5-1 interactive course', () => {
       expect(step.interactiveFigureSpec.controlsPlacement ?? 'below_figure').toBe('below_figure');
     }
   });
+
+  it('renders 5-1 objectives, matching cards, and formula reveal payloads from the runtime manifest', () => {
+    const manifest = readManifest();
+    const objectiveStep = manifest.steps.find((step) => step.id === 'step-02');
+    const step04Card = manifest.steps.find((step) => step.id === 'step-04')?.interactionSpec.activityCards?.[0];
+    const step05Card = manifest.steps.find((step) => step.id === 'step-05')?.interactionSpec.activityCards?.[0];
+    const step13Card = manifest.steps.find((step) => step.id === 'step-13')?.interactionSpec.activityCards?.[0];
+    const step06 = manifest.steps.find((step) => step.id === 'step-06');
+    const step07 = manifest.steps.find((step) => step.id === 'step-07');
+
+    expect(objectiveStep?.contentBlocks.objectives).toMatchObject({
+      items: expect.arrayContaining([expect.stringContaining('说明线性定常主干默认依赖')]),
+    });
+    expect([step04Card?.responseKind, step05Card?.responseKind, step13Card?.responseKind]).toEqual([
+      'drag_match',
+      'drag_match',
+      'drag_match',
+    ]);
+    expect(step06?.modules.map((module) => module.id)).toEqual(
+      expect.arrayContaining(['smooth-base-formula', 'smooth-reveal', 'smooth-panel']),
+    );
+    expect(step07?.modules.map((module) => module.id)).toEqual(
+      expect.arrayContaining(['relay-base-formula', 'relay-reveal', 'relay-panel']),
+    );
+    expect((step06?.contentBlocks.reveal_layers as { layers?: unknown[] })?.layers).toHaveLength(4);
+    expect(JSON.stringify(step06?.contentBlocks.rust_panel)).not.toContain('show_linearized');
+    expect(JSON.stringify(step06?.contentBlocks.rust_panel)).not.toContain('show_original');
+    expect(JSON.stringify(step07?.contentBlocks.rust_panel)).not.toContain('show_fake_gain');
+  });
 });

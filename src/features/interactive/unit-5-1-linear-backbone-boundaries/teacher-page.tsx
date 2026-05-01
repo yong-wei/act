@@ -65,7 +65,7 @@ function normalizeAnswerList(value: string, comparison: Unit51ObjectiveCard['com
 }
 
 function expectedObjectiveAnswer(card: InteractiveRuntimeActivityCardManifest) {
-  if (card.responseKind === 'drag_sort' && card.options.length) {
+  if ((card.responseKind === 'drag_sort' || card.responseKind === 'drag_match') && card.options.length) {
     return {
       expected: card.options.map((option) => option.value).join('|'),
       comparison: 'ordered' as const,
@@ -127,6 +127,15 @@ function tagForCard(manifest: InteractiveRuntimeManifest | null | undefined, ste
   const step = manifest?.steps.find((item) => item.id === stepId);
   const cardIndex = step?.interactionSpec.activityCards?.findIndex((card) => card.id === cardId) ?? -1;
   return cardIndex >= 0 ? step?.telemetrySpec.misconceptionTags[cardIndex] : undefined;
+}
+
+function revealLayerCount(manifest: InteractiveRuntimeManifest | null | undefined, stepId: string) {
+  const layers = manifest?.steps.find((item) => item.id === stepId)?.contentBlocks.reveal_layers;
+  if (Array.isArray(layers)) return layers.length;
+  if (layers && typeof layers === 'object' && Array.isArray((layers as { layers?: unknown[] }).layers)) {
+    return (layers as { layers: unknown[] }).layers.length;
+  }
+  return 0;
 }
 
 export function UNIT_5_1TeacherPage({
@@ -468,10 +477,15 @@ export function UNIT_5_1TeacherPage({
               }))
             }
             onAdvanceReveal={() =>
-              setLocalTeacherRevealProgress((prev) => ({
-                ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),
-                [step.id]: (prev?.[step.id] ?? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0) + 1,
-              }))
+              setLocalTeacherRevealProgress((prev) => {
+                const base = prev ?? teacherSyncState?.teacherRevealProgress ?? {};
+                const layerCount = revealLayerCount(runtimeManifest, step.id);
+                const maxProgress = Math.max(0, layerCount - 1);
+                return {
+                  ...base,
+                  [step.id]: Math.min(maxProgress, (base[step.id] ?? 0) + 1),
+                };
+              })
             }
             onResetReveal={() =>
               setLocalTeacherRevealProgress((prev) => ({

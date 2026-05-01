@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -15,6 +15,7 @@ import type {
 type ContentRecord = Record<string, unknown>;
 type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
+type RevealItem = { body: string; formula?: string; title?: string };
 
 function asRecord(value: unknown): ContentRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
@@ -96,6 +97,10 @@ function titleFromModule(module: InteractiveRuntimeModuleManifest) {
   const title = module.title ?? module.payload.title;
   if (typeof title === 'string' && title.trim()) return title;
   return module.id.replace(/-/g, ' ');
+}
+
+function ManifestContentTitle({ children }: { children: ReactNode }) {
+  return <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{children}</div>;
 }
 
 function blockFor(step: InteractiveRuntimeStepManifest, payload: ContentRecord) {
@@ -362,17 +367,40 @@ function tableFor(step: InteractiveRuntimeStepManifest, module: InteractiveRunti
   return tables[tableModuleIndex] ?? firstBlockWithTable(step);
 }
 
-function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+function revealItemFromValue(value: unknown): RevealItem | null {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return { body: String(value) };
+  }
+  const record = asRecord(value);
+  const body = record.body ?? record.text ?? record.prompt ?? record.explanation ?? record.note ?? record.value;
+  const formula = record.formula ?? record.latex ?? record.math;
+  const title = record.title ?? record.label ?? record.name;
+  if (typeof body !== 'string' && typeof formula !== 'string') return null;
+  return {
+    body: typeof body === 'string' ? body : '',
+    formula: typeof formula === 'string' ? formula : undefined,
+    title: typeof title === 'string' ? title : undefined,
+  };
+}
+
+function revealItemsFromValue(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(revealItemFromValue)
+    .filter((item): item is RevealItem => Boolean(item));
+}
+
+function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest): RevealItem[] {
   const payload = module.payload;
-  const directItems = asStringArray(payload.items);
+  const directItems = revealItemsFromValue(payload.items);
   if (directItems.length) return directItems;
   const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
-  const items = asStringArray(block.items ?? block.steps ?? block.layers ?? block.bullets);
+  const items = revealItemsFromValue(block.items ?? block.steps ?? block.layers ?? block.bullets);
   if (items.length) return items;
   const revealLayers = step.contentBlocks.reveal_layers;
-  const layerItems = asStringArray(revealLayers);
+  const layerItems = revealItemsFromValue(revealLayers);
   if (layerItems.length) return layerItems;
-  return listFromRecordItems(revealLayers);
+  return listFromRecordItems(revealLayers).map((body) => ({ body }));
 }
 
 function summaryContent(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
@@ -393,7 +421,11 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
       ? String(block[field])
       : typeof block.text === 'string'
         ? block.text
-        : undefined;
+        : typeof block.body === 'string'
+          ? block.body
+          : typeof block.lead === 'string'
+            ? block.lead
+            : undefined;
   const recordItems = listFromRecordItems(rawBlock);
   const rawArrayItems = Array.isArray(rawBlock) ? asStringArray([...rawBlock]) : [];
   const bullets = asStringArray(payload.bullets).length
@@ -404,6 +436,7 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
       ? rawArrayItems
     : asStringArray(
       block[bulletsKey]
+        ?? block.items
         ?? block.bullets
         ?? step.contentBlocks.takeaways
         ?? step.contentBlocks.goal_cards
@@ -460,7 +493,7 @@ function FormulaCard({ title, formulas }: { title: string; formulas: string[] })
   if (!formulas.length) return null;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 space-y-2 overflow-x-auto">
         {formulas.map((formula) => (
           <Fragment key={formula}>{renderFormulaContent(formula)}</Fragment>
@@ -474,7 +507,7 @@ function SummaryCard({ title, text, bullets }: { title: string; text?: string; b
   if (!text && !bullets?.length) return null;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       {text ? <p className="premium-lesson-title mt-2 text-sm leading-7">{renderInlineContent(text)}</p> : null}
       {bullets?.length ? (
         <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
@@ -491,7 +524,7 @@ function CardGrid({ title, items, columns = 'md:grid-cols-2' }: { title: string;
   if (!items.length) return null;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className={`mt-3 grid gap-3 ${columns}`}>
         {items.map((item) => (
           <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-sm leading-7">
@@ -507,7 +540,7 @@ function CourseObjectiveList({ items }: { items: string[] }) {
   if (!items.length) return null;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">完成本单元后，学习者能够：</div>
+      <ManifestContentTitle>完成本次课程后，学习者能够</ManifestContentTitle>
       <ol className="premium-lesson-muted mt-3 space-y-3">
         {items.map((item, index) => (
           <li key={item} className="flex gap-3">
@@ -523,7 +556,7 @@ function CourseObjectiveList({ items }: { items: string[] }) {
 function PathStageMap({ title, lead, items }: { title: string; lead?: string; items: string[] }) {
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       {items.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
           {items.map((item, index) => (
@@ -554,7 +587,7 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
 
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       {formulas.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           {formulas.map((formula) => (
@@ -583,7 +616,7 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
 function NativeTable({ title, columns, rows }: { title: string; columns: string[]; rows: TableCell[][] }) {
   return (
     <div className="premium-lesson-panel overflow-hidden">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
@@ -613,7 +646,7 @@ function NativeTable({ title, columns, rows }: { title: string; columns: string[
 function ImagePanel({ title, src, notes }: { title: string; src: string; notes: string[] }) {
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <Image src={src} alt={title} width={1600} height={960} className="h-auto w-full" unoptimized />
       </div>
@@ -632,7 +665,7 @@ function ImageGallery({ title, items }: { title: string; items: Array<{ src: str
   if (!items.length) return null;
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <div key={item.src} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -656,7 +689,7 @@ function StepReveal({
   allowInlineReveal,
 }: {
   title: string;
-  items: string[];
+  items: RevealItem[];
   revealProgress: number;
   allowInlineReveal: boolean;
 }) {
@@ -671,25 +704,35 @@ function StepReveal({
 
   return (
     <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
+      <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 space-y-3" data-progressive-reveal="step_click_reveal">
         {items.slice(0, visibleCount).map((item, index) => {
           const canExpand = allowInlineReveal && index === visibleCount - 1 && visibleCount < items.length;
+          const showNext = () => {
+            if (canExpand) setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
+          };
           return (
-            <button
-              key={item}
-              type="button"
-              onClick={() => {
-                if (canExpand) setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
+            <div
+              key={`${item.title ?? ''}:${item.body}:${item.formula ?? ''}`}
+              role={canExpand ? 'button' : undefined}
+              tabIndex={canExpand ? 0 : undefined}
+              onClick={showNext}
+              onKeyDown={(event) => {
+                if (!canExpand || (event.key !== 'Enter' && event.key !== ' ')) return;
+                event.preventDefault();
+                showNext();
               }}
               className={`block w-full rounded-2xl border px-4 py-3 text-left ${
-                canExpand ? 'border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
+                canExpand ? 'cursor-pointer border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
               }`}
             >
-              <div className="premium-lesson-kicker">第 {index + 1} 层</div>
-              <p className="premium-lesson-title mt-1 text-sm leading-7">{renderInlineContent(item)}</p>
+              {item.title ? <ManifestContentTitle>{item.title}</ManifestContentTitle> : null}
+              {item.body ? (
+                <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(item.body)}</p>
+              ) : null}
+              {item.formula ? <div className="mt-2 overflow-x-auto">{renderFormulaContent(item.formula)}</div> : null}
               {canExpand ? <p className="premium-lesson-muted mt-2 text-xs">点击当前最下方步骤继续显示下一层。</p> : null}
-            </button>
+            </div>
           );
         })}
       </div>
