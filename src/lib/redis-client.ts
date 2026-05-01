@@ -15,11 +15,11 @@ class RedisClient {
   private client: Redis | null = null;
   private isConnected = false;
 
-  constructor() {
-    this.connect();
-  }
+  private connect(): Redis | null {
+    if (this.client) {
+      return this.client;
+    }
 
-  private connect(): void {
     try {
       this.client = new Redis(REDIS_URL, {
         retryStrategy: (times) => {
@@ -46,15 +46,19 @@ class RedisClient {
       });
     } catch (error) {
       console.error('[Redis] Failed to connect:', error);
+      this.client = null;
     }
-  }
 
-  getClient(): Redis | null {
     return this.client;
   }
 
+  getClient(): Redis | null {
+    return this.connect();
+  }
+
   isReady(): boolean {
-    return this.isConnected && this.client?.status === 'ready';
+    const client = this.getClient();
+    return this.isConnected && client?.status === 'ready';
   }
 
   /**
@@ -277,6 +281,7 @@ class RedisClient {
     if (this.client) {
       await this.client.quit();
       this.isConnected = false;
+      this.client = null;
     }
   }
 }
