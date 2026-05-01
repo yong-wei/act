@@ -12,6 +12,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 CONTENT_RENDERER_PATH = REPO_ROOT / "src" / "features" / "interactive" / "shared" / "manifest-runtime" / "content-renderers.tsx"
+ACTIVITY_RENDERER_PATH = REPO_ROOT / "src" / "features" / "interactive" / "shared" / "manifest-runtime" / "activity-renderers.tsx"
 LAYOUT_RENDERER_PATH = REPO_ROOT / "src" / "features" / "interactive" / "shared" / "manifest-runtime" / "layout-renderer.tsx"
 
 ACTIVITY_MODULE_KINDS = {
@@ -79,14 +80,16 @@ def extract_registry_kinds(path: Path, function_name: str | None = None) -> set[
     source = path.read_text(encoding="utf-8")
     if function_name:
         match = re.search(
-            rf"function\s+{re.escape(function_name)}[\s\S]*?return\s*\{{(?P<body>[\s\S]*?)^\s*\}}\s*;",
+            rf"function\s+{re.escape(function_name)}(?:<[^>]+>)?[\s\S]*?return\s*\{{(?P<body>[\s\S]*?)^\s*\}}\s*;?\s*^\s*\}}",
             source,
             re.MULTILINE,
         )
         if match:
             source = match.group("body")
 
-    return set(re.findall(r"^\s*['\"]([^'\"]+)['\"]\s*:", source, re.MULTILINE))
+    quoted = re.findall(r"^\s*['\"]([^'\"]+)['\"]\s*:", source, re.MULTILINE)
+    bare = re.findall(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:", source, re.MULTILINE)
+    return set([*quoted, *bare])
 
 
 def extract_set_literal(path: Path, set_name: str) -> set[str]:
@@ -105,6 +108,14 @@ def extract_set_literal(path: Path, set_name: str) -> set[str]:
 
 def shared_content_renderer_kinds() -> set[str]:
     return extract_registry_kinds(CONTENT_RENDERER_PATH, "createManifestContentModuleRegistry")
+
+
+def shared_student_activity_kinds() -> set[str]:
+    return extract_registry_kinds(ACTIVITY_RENDERER_PATH, "createManifestStudentActivityRegistry")
+
+
+def shared_teacher_activity_kinds() -> set[str]:
+    return extract_registry_kinds(ACTIVITY_RENDERER_PATH, "createManifestTeacherActivityRegistry")
 
 
 def layout_activity_module_kinds() -> set[str]:
@@ -247,6 +258,14 @@ def resolve_content(step: dict[str, Any], module: dict[str, Any]) -> dict[str, A
         "formula",
         "formulas",
         "src",
+        "path",
+        "runtime_media",
+        "runtimeMedia",
+        "caption",
+        "explanation",
+        "note",
+        "panel_id",
+        "panelId",
         "text",
         "bullets",
         "items",
@@ -335,9 +354,9 @@ def resolve_content(step: dict[str, Any], module: dict[str, Any]) -> dict[str, A
             "notes_sources": [],
         }
 
-    if kind in {"image-panel", "native-figure"}:
+    if kind in {"image-panel", "native-figure", "figure", "comparison-graphic", "interactive-figure-panel", "media-card"}:
         media_items = as_list(blocks.get("media"))
-        index = module_index(step_modules, module, {"image-panel", "native-figure"})
+        index = module_index(step_modules, module, {"image-panel", "native-figure", "figure", "comparison-graphic", "interactive-figure-panel", "media-card"})
         media_value = None
         if media_items:
             media_value = media_items[index] if 0 <= index < len(media_items) else None
@@ -431,12 +450,29 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
     issues: list[dict[str, Any]] = []
     steps = normalize_steps(manifest)
     content_renderer_kinds = shared_content_renderer_kinds()
+    student_activity_kinds = shared_student_activity_kinds()
+    teacher_activity_kinds = shared_teacher_activity_kinds()
     activity_module_kinds = layout_activity_module_kinds()
 
     for step_id, step in steps.items():
         step_modules = modules(step)
         blocks = content_blocks(step)
         cards = interaction_cards(step)
+        interaction_spec = as_record(step.get("interaction_spec", step.get("interactionSpec", {})))
+        interaction_kind = str(interaction_spec.get("interaction_kind", interaction_spec.get("interactionKind", "none")))
+        if interaction_kind not in {"none", "display", "summary"}:
+            if interaction_kind not in student_activity_kinds:
+                issues.append({
+                    "step_id": step_id,
+                    "interaction_kind": interaction_kind,
+                    "issue": "missing_shared_student_activity_renderer",
+                })
+            if interaction_kind not in teacher_activity_kinds:
+                issues.append({
+                    "step_id": step_id,
+                    "interaction_kind": interaction_kind,
+                    "issue": "missing_shared_teacher_activity_renderer",
+                })
         prompts = [
             str(card.get("prompt", "")).strip()
             for card in cards
@@ -512,7 +548,7 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
             if diagnostic:
                 issues.append({**entry, "issue": diagnostic})
 
-        if any(module.get("kind") in {"image-panel", "native-figure"} for module in step_modules):
+        if any(module.get("kind") in {"image-panel", "native-figure", "figure", "comparison-graphic", "interactive-figure-panel", "media-card"} for module in step_modules):
             consumed = {
                 source
                 for entry in entries
@@ -536,8 +572,11 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
         },
         "implementation_sources": {
             "content_renderer": str(CONTENT_RENDERER_PATH.relative_to(REPO_ROOT)),
+            "activity_renderer": str(ACTIVITY_RENDERER_PATH.relative_to(REPO_ROOT)),
             "layout_renderer": str(LAYOUT_RENDERER_PATH.relative_to(REPO_ROOT)),
             "content_renderer_kinds": sorted(content_renderer_kinds),
+            "student_activity_kinds": sorted(student_activity_kinds),
+            "teacher_activity_kinds": sorted(teacher_activity_kinds),
             "activity_module_kinds": sorted(activity_module_kinds),
         },
         "entries": entries,

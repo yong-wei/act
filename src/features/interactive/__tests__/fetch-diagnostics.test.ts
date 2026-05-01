@@ -44,6 +44,30 @@ describe('buildFetchFailureTelemetry', () => {
       connectionDownlink: 8.4,
       retryCount: 3,
       pollIntervalMs: 5000,
+      timeoutMs: null,
+      timedOut: false,
+    });
+  });
+
+  it('marks aborted fetches as timeouts when the sync timeout fires', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_776_307_920_000);
+
+    const abortError = new DOMException('The operation was aborted.', 'AbortError');
+    const telemetry = buildFetchFailureTelemetry({
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      startedAt: 1_776_307_900_000,
+      error: abortError,
+      timeoutMs: 20_000,
+    });
+
+    expect(telemetry).toMatchObject({
+      source: 'session_progress_get',
+      errorName: 'AbortError',
+      timedOut: true,
+      elapsedMs: 20_000,
+      timeoutMs: 20_000,
     });
   });
 });

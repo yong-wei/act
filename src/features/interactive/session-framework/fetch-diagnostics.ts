@@ -14,6 +14,7 @@ export interface FetchTelemetryInput {
   error: unknown;
   retryCount?: number;
   pollIntervalMs?: number;
+  timeoutMs?: number;
 }
 
 export interface HttpTelemetryInput extends Omit<FetchTelemetryInput, 'error'> {
@@ -21,6 +22,8 @@ export interface HttpTelemetryInput extends Omit<FetchTelemetryInput, 'error'> {
 }
 
 export type FetchFailureTelemetry = Record<string, string | number | boolean | null>;
+
+export const DEFAULT_SYNC_FETCH_TIMEOUT_MS = 20_000;
 
 export class FetchTelemetryError extends Error {
   telemetry: FetchFailureTelemetry;
@@ -57,6 +60,7 @@ function baseTelemetry(input: Omit<FetchTelemetryInput, 'error'>): FetchFailureT
     connectionDownlink: connection.downlink ?? null,
     retryCount: input.retryCount ?? null,
     pollIntervalMs: input.pollIntervalMs ?? null,
+    timeoutMs: input.timeoutMs ?? null,
   };
 }
 
@@ -66,6 +70,7 @@ export function buildFetchFailureTelemetry(input: FetchTelemetryInput): FetchFai
     ...baseTelemetry(input),
     errorName: error?.name ?? typeof input.error,
     errorMessage: error?.message ?? 'Unknown fetch failure',
+    timedOut: error?.name === 'AbortError',
   };
 }
 
@@ -86,4 +91,20 @@ export function getFetchFailureTelemetry(error: unknown): FetchFailureTelemetry 
 
 export function toFetchTelemetryError(message: string, telemetry: FetchFailureTelemetry) {
   return new FetchTelemetryError(message, telemetry);
+}
+
+export function createFetchTimeout(timeoutMs = DEFAULT_SYNC_FETCH_TIMEOUT_MS) {
+  if (typeof AbortController === 'undefined') {
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  return {
+    signal: controller.signal,
+    clear: () => clearTimeout(timeoutId),
+  };
 }

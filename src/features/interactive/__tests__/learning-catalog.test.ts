@@ -11,8 +11,8 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual(['cruise-comfort-boppps']);
   });
 
-  it('exposes module 2 and module 3 on the interactive course hub', () => {
-    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2', 'module-3', 'module-4']);
+  it('exposes module 2 through module 5 on the interactive course hub', () => {
+    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2', 'module-3', 'module-4', 'module-5']);
   });
 
   it('does not surface retired module 1 lessons anywhere on the hub', () => {
@@ -160,6 +160,25 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-4-7-destroyer-hifi-design-closure',
         unitLabel: '4-7',
+        legacySourceLabel: null,
+      },
+    ]);
+  });
+
+  it('exposes units 5-1 and 5-2 in module 5', () => {
+    expect(INTERACTIVE_COURSE_MODULES[3]?.lessons.map((lesson) => ({
+      id: lesson.id,
+      unitLabel: lesson.unitLabel,
+      legacySourceLabel: lesson.legacySourceLabel ?? null,
+    }))).toEqual([
+      {
+        id: 'unit-5-1-linear-backbone-boundaries',
+        unitLabel: '5-1',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-5-2-nonlinear-analysis-entry',
+        unitLabel: '5-2',
         legacySourceLabel: null,
       },
     ]);

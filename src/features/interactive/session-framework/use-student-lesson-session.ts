@@ -11,6 +11,7 @@ import { useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 import { useSessionSSE } from './use-session-sse';
 import { getFetchFailureTelemetry } from './fetch-diagnostics';
+import { shouldRunHiddenAwarePoll } from './polling-visibility';
 
 interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
   sessionId: string;
@@ -101,6 +102,8 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const initialPresenceSyncedRef = useRef(false);
+  const isSyncingStatesRef = useRef(false);
+  const lastHiddenStatePollAtRef = useRef(0);
 
   // 合并 SSE 和轮询的错误状态
   const combinedError = useMemo(() => error ?? progressError, [error, progressError]);
@@ -120,6 +123,11 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   }, [enableSSE, isDemo, sseLastUpdate, sseConnection.state, syncProgressSession]);
 
   const syncStates = useCallback(async () => {
+    if (isSyncingStatesRef.current) {
+      return;
+    }
+
+    isSyncingStatesRef.current = true;
     try {
       await fetchStudentViewStates();
       setError(null);
@@ -127,6 +135,8 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
       setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
+    } finally {
+      isSyncingStatesRef.current = false;
     }
   }, [fetchStudentViewStates]);
 
@@ -144,11 +154,36 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     }
 
     const timer = window.setInterval(() => {
+      const pollDecision = shouldRunHiddenAwarePoll({
+        now: Date.now(),
+        lastHiddenPollAt: lastHiddenStatePollAtRef.current,
+      });
+      lastHiddenStatePollAtRef.current = pollDecision.lastHiddenPollAt;
+      if (!pollDecision.shouldRun) {
+        return;
+      }
       void syncStates();
     }, pollIntervalMs ?? 5000);
 
     return () => window.clearInterval(timer);
   }, [isDemo, pollIntervalMs, syncStates]);
+
+  useEffect(() => {
+    if (isDemo || typeof document === 'undefined') {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      lastHiddenStatePollAtRef.current = 0;
+      void syncStates();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isDemo, syncStates]);
 
   const selfState = useMemo(() => {
     if (!currentUserId) {

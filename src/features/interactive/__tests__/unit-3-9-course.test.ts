@@ -195,6 +195,8 @@ describe('unit 3-9 interactive course', () => {
     expect(studentSource).toContain('lessonRuntime.interactiveManifest');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('ManifestTeacherControls');
+    expect(stepPanelsSource).toContain('TeacherParameterWorkspace');
     expect(stepPanelsSource).toContain('ControlFigureWorkspace');
     expect(stepPanelsSource).toContain('buildUnit39AnalysisRequest');
     expect(stepPanelsSource).not.toContain('STEP_BLUEPRINTS');
@@ -203,6 +205,30 @@ describe('unit 3-9 interactive course', () => {
     expect(stepPanelsSource).not.toContain('复制提示词');
     expect(workspaceSource).toContain('MATRIX_WORKSPACE_FIELDS');
     expect(workspaceSource).toContain('TABLE_BUILDER_FIELDS');
+  });
+
+  it('tracks session finalization before marking the classroom as finished', async () => {
+    const courseModule = await import('@/lib/unit-3-9-course');
+    const calls: string[] = [];
+
+    await courseModule.finalizeUNIT_3_9TeacherSession({
+      currentStepId: 'step-11',
+      trackSessionFinalize(data) {
+        calls.push(`track:${data.currentStepId}`);
+      },
+      async finishSession() {
+        calls.push('finish');
+      },
+    });
+
+    expect(calls).toEqual(['track:step-11', 'finish']);
+  });
+
+  it('sends full student response details in 3-9 lesson submit telemetry', () => {
+    const studentSource = readFileSync(studentFile, 'utf8');
+
+    expect(studentSource).toContain('buildUNIT_3_9SubmissionTelemetry(response)');
+    expect(studentSource).not.toContain('data: { stepId: step.id }');
   });
 
   it('keeps the redesigned page requirements in the 3-9 runtime manifest', async () => {

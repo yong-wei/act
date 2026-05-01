@@ -12,6 +12,7 @@ import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledg
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
+  buildUNIT_3_9SubmissionTelemetry,
   buildUNIT_3_9RuntimeSteps,
   getUNIT_3_9StepManifest,
   isUNIT_3_9InteractivePageType,
@@ -153,7 +154,11 @@ export function UNIT_3_9StudentPage({
           [step.id]: response,
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: buildUNIT_3_9SubmissionTelemetry(response),
+      });
       return nextState;
     });
   };

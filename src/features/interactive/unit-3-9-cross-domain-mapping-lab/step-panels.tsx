@@ -11,6 +11,7 @@ import {
 import {
   createManifestStudentActivityRegistry,
   createManifestTeacherActivityRegistry,
+  ManifestTeacherControls,
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
   type ManifestStepResponse,
@@ -485,9 +486,7 @@ function ParameterSliderSubmission({
   onSubmit: (response: UNIT_3_9StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const panelModule = stepManifest.modules.find((item) => item.payload.panel_id);
-  const panelId = (panelModule?.payload.panel_id as Unit39PanelId | undefined)
-    ?? (stepManifest.id === 'step-06' ? 'lead' : stepManifest.id === 'step-07' ? 'integral' : stepManifest.id === 'step-08' ? 'integral_example' : 'lag');
+  const panelId = resolveUnit39PanelId(stepManifest);
   const initial = savedResponse?.answers ?? (PANEL_CONFIG[panelId].defaultParams as Record<string, string | number>);
   const [params, setParams] = useState<Record<string, string | number>>(initial);
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
@@ -535,6 +534,27 @@ function ParameterSliderSubmission({
         />
       </SurfaceCard>
     </div>
+  );
+}
+
+function resolveUnit39PanelId(stepManifest: InteractiveRuntimeStepManifest): Unit39PanelId {
+  const panelModule = stepManifest.modules.find((item) => item.payload.panel_id);
+  return (panelModule?.payload.panel_id as Unit39PanelId | undefined)
+    ?? (stepManifest.id === 'step-06' ? 'lead' : stepManifest.id === 'step-07' ? 'integral' : stepManifest.id === 'step-08' ? 'integral_example' : 'lag');
+}
+
+function TeacherParameterWorkspace({ stepManifest }: { stepManifest: InteractiveRuntimeStepManifest }) {
+  const panelId = resolveUnit39PanelId(stepManifest);
+  const [params, setParams] = useState<Record<string, string | number>>(
+    PANEL_CONFIG[panelId].defaultParams as Record<string, string | number>,
+  );
+
+  return (
+    <Unit39RustPanel
+      panelId={panelId}
+      params={params as Unit39PanelParams}
+      onParamChange={(key, value) => setParams((prev) => ({ ...prev, [key]: value }))}
+    />
   );
 }
 
@@ -667,6 +687,21 @@ const SHARED_TEACHER_ACTIVITY = createManifestTeacherActivityRegistry<UNIT_3_9St
   TeacherResponseItem
 >;
 
+function Unit39TeacherControlsBlock(props: {
+  stepManifest: InteractiveRuntimeStepManifest;
+  released: boolean;
+  browseEnabled: boolean;
+  answerVisible: boolean;
+  revealProgress: number;
+  onToggleRelease: () => void;
+  onToggleBrowse: () => void;
+  onToggleAnswerVisible: () => void;
+  onAdvanceReveal: () => void;
+  onResetReveal: () => void;
+}) {
+  return <ManifestTeacherControls {...props} />;
+}
+
 export function UNIT_3_9TeacherActivitySummary({
   stepManifest,
   step,
@@ -699,19 +734,26 @@ export function UNIT_3_9TeacherActivitySummary({
     registry: {
       ...SHARED_TEACHER_ACTIVITY,
       parameter_slider: (props) => (
-        <SurfaceCard title="参数设计提交汇总">
-          <div className="premium-lesson-muted text-sm">当前收到 {props.responses.length} 份提交。</div>
-          {props.responses.slice(0, 6).map((item) => (
-            <div key={item.studentName} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-sm">
-              <strong>{item.studentName}：</strong>{item.response.answers.evaluation ?? '已提交参数。'}
-            </div>
-          ))}
-        </SurfaceCard>
+        <div className="space-y-4">
+          <Unit39TeacherControlsBlock {...props} />
+          <TeacherParameterWorkspace stepManifest={props.stepManifest} />
+          <SurfaceCard title="参数设计提交汇总">
+            <div className="premium-lesson-muted text-sm">当前收到 {props.responses.length} 份提交。</div>
+            {props.responses.slice(0, 6).map((item) => (
+              <div key={item.studentName} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-sm">
+                <strong>{item.studentName}：</strong>{item.response.answers.evaluation ?? '已提交参数。'}
+              </div>
+            ))}
+          </SurfaceCard>
+        </div>
       ),
       table_builder: (props) => (
-        <SurfaceCard title="综合映射表提交汇总">
-          <div className="premium-lesson-muted text-sm">当前收到 {props.responses.length} 份表格记录。</div>
-        </SurfaceCard>
+        <div className="space-y-4">
+          <Unit39TeacherControlsBlock {...props} />
+          <SurfaceCard title="综合映射表提交汇总">
+            <div className="premium-lesson-muted text-sm">当前收到 {props.responses.length} 份表格记录。</div>
+          </SurfaceCard>
+        </div>
       ),
     },
     step,

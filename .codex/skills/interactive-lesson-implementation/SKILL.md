@@ -773,6 +773,8 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
   - 设计核对、浏览器验收、笔记更新与验证清单
 - `references/closed-loop-browser-validation.md`
   - 浏览器闭环验收总则
+- `references/browser-closed-loop-acceptance.md`
+  - 教师 / 学生双身份真实课堂闭环验收硬闸门
 - `references/browser-validation-teacher-subagent.md`
   - 教师端验收细则
 - `references/browser-validation-student-subagent.md`

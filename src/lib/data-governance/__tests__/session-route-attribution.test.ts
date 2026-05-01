@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -119,5 +121,12 @@ describe('PATCH /api/session/[sessionId]', () => {
       data: { classId: 'class-2024' },
     });
     expect(payload.classId).toBe('class-2024');
+  });
+
+  it('schedules student and class snapshots when a classroom session is finished', () => {
+    const routeSource = readFileSync(join(process.cwd(), 'src/app/api/session/[sessionId]/route.ts'), 'utf8');
+
+    expect(routeSource).toContain('enqueueSessionFinalizationSnapshots');
+    expect(routeSource).toContain("status === 'FINISHED'");
   });
 });

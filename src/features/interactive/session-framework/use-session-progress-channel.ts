@@ -6,10 +6,13 @@ import type { SessionInfo } from './session-contract';
 import {
   buildFetchFailureTelemetry,
   buildHttpFailureTelemetry,
+  createFetchTimeout,
+  DEFAULT_SYNC_FETCH_TIMEOUT_MS,
   getFetchFailureTelemetry,
   toFetchTelemetryError,
   type FetchFailureTelemetry,
 } from './fetch-diagnostics';
+import { shouldRunHiddenAwarePoll } from './polling-visibility';
 
 interface UseSessionProgressChannelOptions {
   sessionId: string;
@@ -86,6 +89,8 @@ export function useSessionProgressChannel({
   const errorCountRef = useRef<number>(0);
   const lastErrorTimeRef = useRef<number>(0);
   const isPausedRef = useRef<boolean>(false);
+  const isSyncingRef = useRef<boolean>(false);
+  const lastHiddenPollAtRef = useRef<number>(0);
 
   /**
    * 获取服务器状态的时间戳（毫秒）
@@ -117,8 +122,15 @@ export function useSessionProgressChannel({
     const url = `/api/session/${sessionId}`;
     const startedAt = Date.now();
 
+    if (isSyncingRef.current) {
+      return;
+    }
+
+    isSyncingRef.current = true;
+    const timeout = createFetchTimeout();
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, timeout ? { signal: timeout.signal } : undefined);
       const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string };
 
       if (!response.ok) {
@@ -213,6 +225,7 @@ export function useSessionProgressChannel({
             error: requestError,
             retryCount: errorCountRef.current,
             pollIntervalMs,
+            timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
           }),
       );
       setLoadingSession(false);
@@ -225,6 +238,9 @@ export function useSessionProgressChannel({
           errorCountRef.current = 0;
         }, 5000);
       }
+    } finally {
+      timeout?.clear();
+      isSyncingRef.current = false;
     }
   }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stableStepIds]);
 
@@ -232,11 +248,13 @@ export function useSessionProgressChannel({
     async (patch: Record<string, unknown>) => {
       const url = `/api/session/${sessionId}`;
       const startedAt = Date.now();
+      const timeout = createFetchTimeout();
       try {
         const response = await fetch(url, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(patch),
+          ...(timeout ? { signal: timeout.signal } : {}),
         });
 
         const data = (await response.json().catch(() => ({}))) as { error?: string };
@@ -267,8 +285,11 @@ export function useSessionProgressChannel({
             method: 'PATCH',
             startedAt,
             error: requestError,
+            timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
           }),
         );
+      } finally {
+        timeout?.clear();
       }
     },
     [sessionId],
@@ -290,12 +311,14 @@ export function useSessionProgressChannel({
 
       const url = `/api/session/${sessionId}`;
       const startedAt = Date.now();
+      const timeout = createFetchTimeout();
 
       try {
         const response = await fetch(url, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(patch),
+          ...(timeout ? { signal: timeout.signal } : {}),
         });
 
         const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string };
@@ -335,12 +358,14 @@ export function useSessionProgressChannel({
               startedAt,
               error: requestError,
               pollIntervalMs,
+              timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
             }),
         );
         setActiveIndex(previousIndex);
         setTeacherIndex(previousIndex);
         throw requestError;
       } finally {
+        timeout?.clear();
         // 恢复轮询
         isPatchingRef.current = false;
       }
@@ -397,11 +422,36 @@ export function useSessionProgressChannel({
       if (isPausedRef.current) {
         return;
       }
+      const pollDecision = shouldRunHiddenAwarePoll({
+        now: Date.now(),
+        lastHiddenPollAt: lastHiddenPollAtRef.current,
+      });
+      lastHiddenPollAtRef.current = pollDecision.lastHiddenPollAt;
+      if (!pollDecision.shouldRun) {
+        return;
+      }
       void syncSession();
     }, pollIntervalMs);
 
     return () => window.clearInterval(timer);
   }, [isDemo, pollIntervalMs, syncSession]);
+
+  useEffect(() => {
+    if (isDemo || typeof document === 'undefined') {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      lastHiddenPollAtRef.current = 0;
+      void syncSession();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isDemo, syncSession]);
 
   return useMemo(
     () => ({

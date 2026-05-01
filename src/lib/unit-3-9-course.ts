@@ -33,6 +33,16 @@ export interface UNIT_3_9StepResponse {
   answers: Record<string, string>;
 }
 
+export interface UNIT_3_9SubmissionTelemetry extends Record<string, unknown> {
+  stepId: string;
+  submittedAt: number;
+  assessmentKind: 'pretest' | 'activity' | 'posttest';
+  responseKind: 'draft' | 'submitted';
+  answerKeys: Record<string, string>;
+  answerCount: number;
+  outcome: 'partial' | 'success';
+}
+
 export interface UNIT_3_9StudentCourseState {
   kind: 'unit39_student_state';
   version: 1;
@@ -260,6 +270,35 @@ export function createEmptyUNIT_3_9StudentState(studentName: string): UNIT_3_9St
   };
 }
 
+function getUNIT_3_9AssessmentKind(stepId: string): UNIT_3_9SubmissionTelemetry['assessmentKind'] {
+  if (stepId === 'step-03') return 'pretest';
+  if (stepId === 'step-10') return 'posttest';
+  return 'activity';
+}
+
+function summarizeUNIT_3_9AnswerKeys(answers: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(answers).filter(([key, value]) => !key.startsWith('__') && value.trim().length > 0),
+  );
+}
+
+export function buildUNIT_3_9SubmissionTelemetry(
+  response: UNIT_3_9StepResponse,
+): UNIT_3_9SubmissionTelemetry {
+  const answerKeys = summarizeUNIT_3_9AnswerKeys(response.answers);
+  const responseKind = response.answers.__draft === 'true' ? 'draft' : 'submitted';
+
+  return {
+    stepId: response.stepId,
+    submittedAt: response.submittedAt,
+    assessmentKind: getUNIT_3_9AssessmentKind(response.stepId),
+    responseKind,
+    answerKeys,
+    answerCount: Object.keys(answerKeys).length,
+    outcome: responseKind === 'draft' || Object.keys(answerKeys).length === 0 ? 'partial' : 'success',
+  };
+}
+
 export const UNIT_3_9_PREMIUM_LESSON_CARD = {
   id: 'unit-3-9-cross-domain-mapping-lab',
   title: UNIT_3_9_COURSE_TITLE,
@@ -327,9 +366,9 @@ export function resolveUNIT_3_9TeacherSyncDraft(input: {
 }
 
 export async function finalizeUNIT_3_9TeacherSession(input: UNIT_3_9TeacherFinalizeInput) {
-  await input.finishSession();
   input.trackSessionFinalize(buildSessionFinalizeTelemetry({
     currentStepId: input.currentStepId,
     steps: UNIT_3_9_LESSON_STEPS,
   }));
+  await input.finishSession();
 }

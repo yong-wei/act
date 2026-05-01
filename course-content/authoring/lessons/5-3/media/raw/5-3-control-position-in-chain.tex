@@ -32,24 +32,24 @@
   \node[source] (goal) at (0,0) {任务目标\\到达/避碰/节能};
   \node[block] (perception) at (2.55,0) {感知与估计\\我在何处};
   \node[block] (planner) at (5.25,0) {规划\\我要去哪里};
-  \node[sum] (sum) at (7.25,0) {};
-  \node[smallblock] (controller) at (8.75,0) {$C(s)$\\跟踪控制};
-  \node[smallblock] (allocator) at (10.85,0) {分配/限幅\\执行约束};
-  \node[source] (ship) at (13.05,0) {船舶运动\\位置、航向、速度};
-  \node[tap] (tap) at (14.35,0) {};
-  \node (out) at (15.35,0) {状态更新};
+  \node[sum] (sum) at (7.45,0) {};
+  \node[smallblock] (controller) at (9.25,0) {$C(s)$\\跟踪控制};
+  \node[smallblock] (allocator) at (11.75,0) {分配/限幅\\执行约束};
+  \node[source] (ship) at (14.25,0) {船舶运动\\位置、航向、速度};
+  \node[tap] (tap) at (15.85,0) {};
+  \node (out) at (17.15,0) {状态更新};
 
   \draw[signal] (goal) -- (perception);
   \draw[signal] (perception) -- (planner);
-  \draw[signal] (planner) -- node[above, font=\scriptsize] {$r(t)$} (sum);
-  \draw[signal] (sum) -- node[above, font=\scriptsize] {$e(t)$} (controller);
-  \draw[signal] (controller) -- node[above, font=\scriptsize] {$u^\ast(t)$} (allocator);
-  \draw[signal] (allocator) -- node[above, font=\scriptsize] {$u(t)$} (ship);
+  \draw[signal] (planner) -- node[midway, above, font=\scriptsize, yshift=1.5pt] {$r(t)$} (sum);
+  \draw[signal] (sum) -- node[midway, above, font=\scriptsize, yshift=1.5pt] {$e(t)$} (controller);
+  \draw[signal] (controller) -- node[midway, above, font=\scriptsize, yshift=1.5pt] {$u^\ast(t)$} (allocator);
+  \draw[signal] (allocator) -- node[midway, above, font=\scriptsize, yshift=1.5pt] {$u(t)$} (ship);
   \draw[signal] (ship) -- (tap) -- (out);
-  \draw[dashedsignal] (tap) |- ++(0,-1.25) -| node[labeltext, left] {量测反馈} (perception.south);
-  \draw[dashedsignal] (tap) |- ++(0,-2.05) -| node[labeltext, left] {$-$} (sum.south);
+  \draw[dashedsignal] (tap) |- ++(0,-1.25) -| node[labeltext, left] {$-$} (sum.south);
+  \draw[dashedsignal] (tap) |- ++(0,-2.25) -| node[labeltext, left] {量测反馈} (perception.south);
 
-  \node[labeltext] at (8.75,-1.15) {经典控制主要负责这一段};
-  \draw[-{Stealth[length=2.2mm]}, line width=1.0pt, draw={rgb,255:red,51;green,51;blue,51}] (8.75,-0.92) -- (8.75,-0.45);
+  \node[labeltext] at (9.25,1.28) {经典控制主要负责这一段};
+  \draw[-{Stealth[length=2.2mm]}, line width=1.0pt, draw={rgb,255:red,51;green,51;blue,51}] (9.25,1.05) -- (controller.north);
 \end{tikzpicture}
 \end{document}

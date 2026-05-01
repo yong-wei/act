@@ -106,7 +106,9 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).toContain('课前预习台');
     expect(sharedSource).toContain('预习导入视频');
     expect(sharedSource).toContain('完整课程视频');
-    expect(sharedSource).toContain('[introVideoResource, courseVideoResource].map');
+    expect(sharedSource).toContain('getReadyLessonEntryResource');
+    expect(sharedSource).toContain('primaryMediaItems.map');
+    expect(sharedSource).toContain('secondaryMediaItems.length > 0');
     expect(sharedSource).toContain('lessonRuntime.mediaResources');
     expect(source).not.toContain('运行态媒体索引');
     expect(source).not.toContain('2-1-media.md');
@@ -115,6 +117,14 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).toContain('在线阅读讲义');
     expect(sharedSource).toContain('setIsHandoutOpen(true)');
     expect(sharedSource).toContain('LessonEntryHandoutDialog');
+    expect(sharedSource).toContain('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"');
+    expect(sharedSource).toContain('className="grid gap-4 lg:grid-cols-3"');
+    expect(sharedSource.indexOf('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"')).toBeLessThan(
+      sharedSource.indexOf('className="grid gap-4 lg:grid-cols-3"'),
+    );
+    expect(sharedSource).not.toContain('当前资源暂未就绪。');
+    expect(sharedSource).not.toContain('待补充');
+    expect(sharedSource).not.toContain('链接待补充');
     expect(source).not.toContain('href={lessonRuntime.handoutPath}');
     expect(source).toContain('<LessonEntryMediaHub');
     expect(source).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');

@@ -1,0 +1,66 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,calc}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=1.82cm, minimum height=0.70cm, line width=1.2pt,
+      font=\scriptsize\bfseries, align=center},
+    wideblock/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=2.15cm, minimum height=0.70cm, line width=1.2pt,
+      font=\scriptsize\bfseries, align=center},
+    sum/.style={circle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
+      minimum size=0.44cm, line width=1.2pt,
+      path picture={
+        \draw[line width=0.8pt] (path picture bounding box.south west) --
+          (path picture bounding box.north east);
+        \draw[line width=0.8pt] (path picture bounding box.north west) --
+          (path picture bounding box.south east);
+      }},
+    tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none,
+      minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+    signal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}},
+    feedback/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}, dashed},
+    plotbox/.style={rectangle, draw={rgb,255:red,198;green,208;blue,218}, fill=none,
+      minimum width=1.70cm, minimum height=0.55cm, line width=0.8pt},
+    labeltext/.style={font=\scriptsize, align=center}
+  }
+
+  \node[labeltext, font=\small\bfseries] at (6.7,2.65)
+    {传感器噪声在一般闭环链路中的传播与滤波缓解};
+
+  \newcommand{\drawrow}[4]{
+    \node[labeltext, anchor=west, font=\scriptsize\bfseries] at (-0.35,#2+1.05) {#3};
+    \node[block] (r#1) at (0,#2) {参考\\$r$};
+    \node[sum] (s#1) at (2.05,#2) {};
+    \node[block] (e#1) at (3.20,#2) {误差\\$e$};
+    \node[block] (c#1) at (5.25,#2) {控制器};
+    \node[wideblock] (a#1) at (7.65,#2) {执行机构};
+    \node[wideblock] (p#1) at (10.15,#2) {对象输出};
+    \node[tap] (tap#1) at (11.65,#2) {};
+    \node[labeltext] (out#1) at (12.55,#2) {$y$};
+    \node[wideblock] (m#1) at (7.65,#2-1.02) {#4};
+
+    \draw[signal] (r#1) -- (s#1);
+    \draw[signal] (s#1) -- (e#1);
+    \draw[signal] (e#1) -- (c#1);
+    \draw[signal] (c#1) -- (a#1);
+    \draw[signal] (a#1) -- (p#1);
+    \draw[signal] (p#1) -- (tap#1) -- (out#1);
+    \draw[feedback] (tap#1) |- (m#1.east);
+    \draw[feedback] (m#1.west) -| node[labeltext, left, pos=0.94] {$-$} (s#1.south);
+
+    \node[plotbox] (pr#1) at (0,#2+0.68) {};
+    \node[plotbox] (pe#1) at (3.20,#2+0.68) {};
+    \node[plotbox] (pc#1) at (5.25,#2+0.68) {};
+    \node[plotbox] (pa#1) at (7.65,#2+0.68) {};
+    \node[plotbox] (py#1) at (10.15,#2+0.68) {};
+    \node[plotbox, minimum width=2.05cm] (pm#1) at (7.65,#2-1.72) {};
+  }
+
+  \drawrow{A}{1.15}{无传感器滤波：噪声直接进入误差与控制量}{传感器}
+  \drawrow{B}{-2.05}{加入一阶传感器滤波：反馈更平滑，执行器动作减轻}{传感器/滤波}
+\end{tikzpicture}
+\end{document}

@@ -82,6 +82,8 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
   - `binary_choice`
   - `activity_card_set`
   - `quiz_group`
+  - `parameter_slider`
+  - `table_builder`
   - `teacher_reveal_only`
 - Rust/WASM 共享分析模块属于正式覆盖面，包括但不限于：
   - `rust-analysis-panel`
@@ -123,6 +125,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 - `must_be_visible: true` 的 activity 模块不得因为 content registry 缺 renderer 而报错，也不得进入正文 layout。
 - `activity_cards[].prompt` 默认在最终页面只出现一次；重复出现通常说明 content/activity 双重消费。
 - `activity_cards[].prompt` 必须非空；共享教师活动汇总必须显示完整题面，并在选择题、排序题、多选题等场景显示选项，不能只显示回收结果。
+- `interaction_spec.interaction_kind` 若不是 `none` / `display` / `summary`，共享学生与教师 activity registry 都必须有对应 renderer；课程窄适配器只能扩展具体工作区，不能替代教师控制入口。
 - 共享教师活动汇总默认只显示答案聚合统计与提交人数，不显示提交人姓名；提交人姓名与逐条答案只能在教师点击该互动模块的`查看细节`后展示。
 - `formula-card` 使用 `content_blocks.key_formulas` 隐式消费时，公式数应与同页公式模块数匹配，或由 payload 指定索引。
 - `image-panel` 使用 `content_blocks.media` 隐式消费时，媒体数应与同页图片模块数匹配，或由 payload 指定索引。

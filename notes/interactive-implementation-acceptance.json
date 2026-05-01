@@ -1,27 +1,130 @@
 {
   "acceptance_version": 1,
-  "lesson_id": "4-2",
+  "lesson_id": "3-9",
   "status": "accepted",
-  "accepted_at": "2026-04-19T20:29:59+0800",
-  "review_mode": "main_agent_fallback",
-  "implementation_contract_source": "src/lib/unit-4-2-course.ts",
+  "accepted_at": "2026-04-30T14:02:46+0800",
+  "review_mode": "main_agent_browser_acceptance",
+  "implementation_contract_source": "course-content/runtime/lessons/3-9/interactive-manifest.json",
   "reviewed_runtime_artifacts": [
-    "course-content/runtime/lessons/4-2/review/review-report.md",
-    "course-content/runtime/lessons/4-2/review/interactive-page-check.json"
+    "course-content/runtime/lessons/3-9/review/review-report.md",
+    "course-content/runtime/lessons/3-9/review/interactive-page-check.json",
+    "course-content/runtime/lessons/3-9/interactive-manifest.json"
   ],
+  "browser_acceptance": {
+    "base_url": "http://127.0.0.1:3001",
+    "route": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab",
+    "teacher_account": "test_teacher",
+    "student_account": "demo",
+    "session_id": "cmol2pe6z0145yrzt7ikk2lc8",
+    "join_code": "957387",
+    "step_count": 11,
+    "validated_steps": [
+      "step-01",
+      "step-02",
+      "step-03",
+      "step-04",
+      "step-05",
+      "step-06",
+      "step-07",
+      "step-08",
+      "step-09",
+      "step-10",
+      "step-11"
+    ],
+    "interactive_steps_with_student_responses": [
+      "step-03",
+      "step-05",
+      "step-06",
+      "step-07",
+      "step-08",
+      "step-09",
+      "step-10"
+    ],
+    "teacher_student_flow": "teacher_create_session -> student_join_by_code -> teacher_step_advance -> student_sync_to_teacher -> teacher_release -> student_submit -> teacher_aggregate_check -> teacher_next_step -> teacher_finish_session",
+    "database_evidence": {
+      "class_session_status": "FINISHED",
+      "current_item_id": "step-11",
+      "student_state_count": 2,
+      "student_course_response_keys": [
+        "step-03",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "interaction_log_count": 266,
+      "grouped_logs": {
+        "teacher:interact": 21,
+        "teacher:view": 22,
+        "teacher:complete": 1,
+        "student:view": 31,
+        "student:interact": 15,
+        "student:submit": 108,
+        "student:param_change": 68
+      }
+    },
+    "browser_evidence": {
+      "teacher_warnings_and_errors": [],
+      "student_warnings_and_errors": [],
+      "page_errors": [],
+      "missing_panel_signal": false,
+      "locked_after_release": false
+    }
+  },
   "checks": {
     "inline_ai_visibility": {
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx 中仅保留隐藏式页面上下文入口，学生正文未新增页内 AI 卡片。"
+        "浏览器闭环验收中未发现学生页正文暴露页内 AI 入口或旧 /ai 跳转。"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "evidence": [
+        "runtime interactive-manifest.json 驱动 11 页；浏览器验收未出现 missing renderer、尚未支持或暂无可渲染等缺失组件信号。"
       ]
     },
     "static_media_downgrade": {
       "status": "pass",
-      "step_ids": [],
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
       "evidence": [
-        "step-05 与 step-07 继续使用原生统一面板；step-06 与 step-08 本轮补的是讲义要求的频域公式链与表格证据，不是把互动降级为静态截图主页面。"
+        "参数页使用 Rust/WASM 图形面板并记录 student:param_change 68 条，不是静态截图替代。"
+      ]
+    },
+    "browser_closed_loop": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "evidence": [
+        "教师创建课堂并逐页推进，学生按课堂码加入并跟页，互动页均完成释放、提交与教师端汇总检查，课堂最终结束。"
       ]
     }
   },

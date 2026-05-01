@@ -17,6 +17,7 @@ export interface SessionFinalizeTelemetry {
   endedBeforeAssessment: boolean;
   endedBeforeSummary: boolean;
   outcome: 'success' | 'partial';
+  countAfterSessionEnd: true;
 }
 
 export function buildSessionFinalizeTelemetry({
@@ -43,5 +44,6 @@ export function buildSessionFinalizeTelemetry({
     endedBeforeAssessment,
     endedBeforeSummary,
     outcome: endedBeforeAssessment || endedBeforeSummary || completionRatio < 1 ? 'partial' : 'success',
+    countAfterSessionEnd: true,
   };
 }

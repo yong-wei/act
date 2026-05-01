@@ -19,6 +19,7 @@ import { LessonEntryHandoutDialog } from '@/features/interactive/shared/lesson-e
 import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-runtime';
 
 type LessonEntryMediaSlot = 'introVideo' | 'courseVideo' | 'audio' | 'slides';
+type ReadyLessonEntryResource = RuntimeLessonMediaResource & { status: 'ready'; url: string };
 
 interface LessonEntryMediaHubProps {
   lessonRuntime: RuntimeLessonEntryBundle;
@@ -31,9 +32,9 @@ interface LessonEntryMediaHubProps {
 
 const DEFAULT_TITLE = '课前预习台';
 const DEFAULT_DESCRIPTION =
-  '先用导入视频进入问题情境，再用完整课程视频建立全课主线；如果时间紧张，可以搭配音频、课件和讲义完成一轮轻量预习。';
+  '根据当前已开放的媒体资源和课前讲义，先建立本课的问题情境、知识主线与关键图表线索。';
 const DEFAULT_RECOMMENDATION =
-  '建议顺序：先看导入视频，再看完整课程视频；通勤时可以改听音频，最后结合课件和讲义回看关键图表与公式。';
+  '建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
 const MEDIA_PROGRESS_THRESHOLDS = [25, 50, 75, 90] as const;
 
@@ -62,7 +63,7 @@ const SLOT_COPY = {
 const SLOT_NARRATIVE_FALLBACK: Record<LessonEntryMediaSlot, string> = {
   introVideo: '先用一个短场景抓住本课要解决的问题，再带着问题进入后续内容。',
   courseVideo: '完整梳理本课主线、关键图表、核心公式和分析步骤。',
-  audio: '当前音频资源链接尚未填写。',
+  audio: '用对话形式回顾本课主线，适合在碎片时间先建立整体印象。',
   slides: '结合结构图、公式和例题位置，快速建立本课提纲。',
 };
 
@@ -94,6 +95,17 @@ function getResourceNarrative(resource: RuntimeLessonMediaResource | null, slot:
   return SLOT_NARRATIVE_FALLBACK[slot];
 }
 
+function getReadyLessonEntryResource(resource: RuntimeLessonMediaResource | null): ReadyLessonEntryResource | null {
+  if (resource?.status === 'ready' && resource.url) {
+    return {
+      ...resource,
+      status: 'ready',
+      url: resource.url,
+    };
+  }
+  return null;
+}
+
 function TrackedMediaElement({
   resource,
   mediaType,
@@ -103,7 +115,7 @@ function TrackedMediaElement({
   onProgress,
   onComplete,
 }: {
-  resource: RuntimeLessonMediaResource;
+  resource: ReadyLessonEntryResource;
   mediaType: 'video' | 'audio';
   src: string;
   className: string;
@@ -207,7 +219,7 @@ function InlineMediaPreview({
   onProgress,
   onComplete,
 }: {
-  resource: RuntimeLessonMediaResource | null;
+  resource: ReadyLessonEntryResource;
   wrapperClassName: string;
   innerClassName?: string;
   onOpen: (resource: RuntimeLessonMediaResource) => void;
@@ -218,9 +230,9 @@ function InlineMediaPreview({
   const frameClassName = 'block h-full w-full border-0';
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [embedVersion, setEmbedVersion] = useState(0);
-  const isDirectVideo = Boolean(resource?.kind === 'video' && resource.url && isDirectPlayableUrl(resource.url, resource.kind));
-  const isDirectAudio = Boolean(resource?.kind === 'audio' && resource.url && isDirectPlayableUrl(resource.url, resource.kind));
-  const needsResponsiveIframeReload = Boolean(resource?.url && !isDirectVideo && !isDirectAudio);
+  const isDirectVideo = resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind);
+  const isDirectAudio = resource.kind === 'audio' && isDirectPlayableUrl(resource.url, resource.kind);
+  const needsResponsiveIframeReload = Boolean(resource.url && !isDirectVideo && !isDirectAudio);
 
   useEffect(() => {
     if (!needsResponsiveIframeReload || !wrapperRef.current || typeof ResizeObserver === 'undefined') {
@@ -258,16 +270,6 @@ function InlineMediaPreview({
       }
     };
   }, [needsResponsiveIframeReload]);
-
-  if (!resource || resource.status !== 'ready' || !resource.url) {
-    return (
-      <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60`}>
-        <div className={`flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,rgba(148,163,184,0.18),rgba(15,23,42,0.08))] px-4 text-sm text-muted-foreground ${innerClassName ?? ''}`}>
-          当前资源暂未就绪。
-        </div>
-      </div>
-    );
-  }
 
   if (resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind)) {
     return (
@@ -326,7 +328,7 @@ function ResolvedAudioPlayer({
   onProgress,
   onComplete,
 }: {
-  resource: RuntimeLessonMediaResource | null;
+  resource: ReadyLessonEntryResource | null;
   onPlay: (resource: RuntimeLessonMediaResource) => void;
   onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
   onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
@@ -450,10 +452,18 @@ export function LessonEntryMediaHub({
     () => new Map(lessonRuntime.mediaResources.map((resource) => [resource.filename, resource])),
     [lessonRuntime.mediaResources],
   );
-  const introVideoResource = mediaByFilename.get(`${lessonId}-intro-video.mp4`) ?? null;
-  const courseVideoResource = mediaByFilename.get(`${lessonId}-course.mp4`) ?? null;
-  const audioResource = mediaByFilename.get(`${lessonId}-audio.m4a`) ?? null;
-  const slidesResource = mediaByFilename.get(`${lessonId}-slides.pdf`) ?? null;
+  const introVideoResource = getReadyLessonEntryResource(mediaByFilename.get(`${lessonId}-intro-video.mp4`) ?? null);
+  const courseVideoResource = getReadyLessonEntryResource(mediaByFilename.get(`${lessonId}-course.mp4`) ?? null);
+  const audioResource = getReadyLessonEntryResource(mediaByFilename.get(`${lessonId}-audio.m4a`) ?? null);
+  const slidesResource = getReadyLessonEntryResource(mediaByFilename.get(`${lessonId}-slides.pdf`) ?? null);
+  const primaryMediaItems = [
+    introVideoResource ? { resource: introVideoResource, slot: 'introVideo' as const } : null,
+    courseVideoResource ? { resource: courseVideoResource, slot: 'courseVideo' as const } : null,
+  ].filter((item): item is { resource: ReadyLessonEntryResource; slot: 'introVideo' | 'courseVideo' } => Boolean(item));
+  const secondaryMediaItems = [
+    audioResource ? { resource: audioResource, slot: 'audio' as const } : null,
+    slidesResource ? { resource: slidesResource, slot: 'slides' as const } : null,
+  ].filter((item): item is { resource: ReadyLessonEntryResource; slot: 'audio' | 'slides' } => Boolean(item));
 
   useEffect(() => {
     resourceTracker.trackResourceView();
@@ -567,11 +577,10 @@ export function LessonEntryMediaHub({
         </div>
 
         <div className="mt-6 space-y-4">
-          {[introVideoResource, courseVideoResource].map((resource, index) => {
-            const slot = index === 0 ? 'introVideo' : 'courseVideo';
+          {primaryMediaItems.map(({ resource, slot }) => {
             const copy = SLOT_COPY[slot];
             return (
-              <section key={resource?.filename ?? copy.title} className="premium-lesson-panel-soft rounded-[28px] border border-border/70 p-4 sm:p-5">
+              <section key={resource.filename} className="premium-lesson-panel-soft rounded-[28px] border border-border/70 p-4 sm:p-5">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <div className="premium-lesson-kicker">{copy.kicker}</div>
@@ -583,7 +592,7 @@ export function LessonEntryMediaHub({
                     </p>
                   </div>
                   <span className={`premium-lesson-tone-pill ${copy.tone}`}>
-                    {resource?.status === 'ready' ? '可播放' : '待补充'}
+                    可播放
                   </span>
                 </div>
                 <InlineMediaPreview
@@ -598,87 +607,9 @@ export function LessonEntryMediaHub({
             );
           })}
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            {[audioResource, slidesResource].map((resource) => {
-              const isAudio = resource?.kind === 'audio';
-              const slot: LessonEntryMediaSlot = isAudio ? 'audio' : 'slides';
-              const copy = {
-                ...SLOT_COPY[slot],
-                title: isAudio ? audioCardTitle : SLOT_COPY.slides.title,
-              };
-              const Icon = getResourceIcon(resource ?? { kind: 'other' } as RuntimeLessonMediaResource);
-
-              return (
-                <section
-                  key={resource?.filename ?? copy.title}
-                  className={`premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 ${isAudio ? 'lg:col-span-2' : ''}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="inline-flex items-center gap-2">
-                      <span className="premium-lesson-control inline-flex items-center justify-center">
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <div className="premium-lesson-kicker">{copy.kicker}</div>
-                        <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{copy.title}</h3>
-                      </div>
-                    </div>
-                    <span className={`premium-lesson-tone-pill ${copy.tone}`}>
-                      {resource?.status === 'ready' ? '可访问' : '待补充'}
-                    </span>
-                  </div>
-                  <p className="premium-lesson-muted mt-3 text-sm">
-                    {isAudio
-                      ? `听主持人洛嘉和思稳带来的新一期节目：${getResourceNarrative(resource, slot)}`
-                      : getResourceNarrative(resource, slot)}
-                  </p>
-                  {isAudio ? (
-                    <div className="mt-4">
-                      <ResolvedAudioPlayer
-                        resource={resource}
-                        onPlay={trackMediaPlay}
-                        onProgress={trackMediaProgress}
-                        onComplete={trackMediaComplete}
-                      />
-                    </div>
-                  ) : (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {resource?.status === 'ready' ? (
-                        <a
-                          href={resource.url ?? '#'}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={() => {
-                            resourceTracker.trackResourceOpen({
-                              resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
-                              targetType: resource.kind,
-                              targetId: resource.id,
-                              targetLabel: resource.title,
-                              openMode: 'new_tab',
-                            });
-                          }}
-                          className="premium-lesson-action-secondary flex"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          打开课件
-                        </a>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled
-                          className="premium-lesson-action-secondary flex cursor-not-allowed opacity-50"
-                        >
-                          链接待补充
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
-
-            <section className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4">
-              <div className="flex items-start justify-between gap-3">
+          <section className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
                 <div className="inline-flex items-center gap-2">
                   <span className="premium-lesson-control inline-flex items-center justify-center">
                     <BookOpen className="h-4 w-4" />
@@ -688,16 +619,16 @@ export function LessonEntryMediaHub({
                     <h3 className="premium-lesson-title mt-1 text-lg font-semibold">讲义阅读与下载</h3>
                   </div>
                 </div>
-                <span className="premium-lesson-tone-pill premium-tone-cyan">
+                <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lessonRuntime.handoutSummary}
+                  </ReactMarkdown>
+                </div>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
+                <span className="premium-lesson-tone-pill premium-tone-cyan basis-full justify-center">
                   {lessonRuntime.handoutPdfPath ? '已备好' : '在线阅读'}
                 </span>
-              </div>
-              <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {lessonRuntime.handoutSummary}
-                </ReactMarkdown>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -725,8 +656,79 @@ export function LessonEntryMediaHub({
                   下载 PDF 讲义
                 </button>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
+
+          {secondaryMediaItems.length > 0 ? (
+            <div className="grid gap-4 lg:grid-cols-3">
+              {secondaryMediaItems.map(({ resource, slot }) => {
+                const isAudio = slot === 'audio';
+                const copy = {
+                  ...SLOT_COPY[slot],
+                  title: isAudio ? audioCardTitle : SLOT_COPY.slides.title,
+                };
+                const Icon = getResourceIcon(resource);
+
+                return (
+                  <section
+                    key={resource.filename}
+                    className={`premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 ${isAudio ? 'lg:col-span-2' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="premium-lesson-control inline-flex items-center justify-center">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <div className="premium-lesson-kicker">{copy.kicker}</div>
+                          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{copy.title}</h3>
+                        </div>
+                      </div>
+                      <span className={`premium-lesson-tone-pill ${copy.tone}`}>
+                        可访问
+                      </span>
+                    </div>
+                    <p className="premium-lesson-muted mt-3 text-sm">
+                      {isAudio
+                        ? `听主持人洛嘉和思稳带来的新一期节目：${getResourceNarrative(resource, slot)}`
+                        : getResourceNarrative(resource, slot)}
+                    </p>
+                    {isAudio ? (
+                      <div className="mt-4">
+                        <ResolvedAudioPlayer
+                          resource={resource}
+                          onPlay={trackMediaPlay}
+                          onProgress={trackMediaProgress}
+                          onComplete={trackMediaComplete}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <a
+                          href={resource.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => {
+                            resourceTracker.trackResourceOpen({
+                              resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+                              targetType: resource.kind,
+                              targetId: resource.id,
+                              targetLabel: resource.title,
+                              openMode: 'new_tab',
+                            });
+                          }}
+                          className="premium-lesson-action-secondary flex"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          打开课件
+                        </a>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       </section>
 

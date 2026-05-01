@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { resolveDemoStepSyncUpdate } from '../session-framework/use-session-progress-channel';
+import { shouldRunHiddenAwarePoll } from '../session-framework/polling-visibility';
 
 describe('resolveDemoStepSyncUpdate', () => {
   it('skips resetting demo progress when the route inputs are unchanged', () => {
@@ -40,6 +41,41 @@ describe('resolveDemoStepSyncUpdate', () => {
     expect(nextSync).toEqual({
       nextIndex: 2,
       syncKey: 'intro::analysis::summary::summary',
+    });
+  });
+
+  it('throttles hidden document polling but allows periodic recovery checks', () => {
+    Object.defineProperty(globalThis, 'document', {
+      value: { visibilityState: 'hidden' },
+      configurable: true,
+    });
+
+    const firstPoll = shouldRunHiddenAwarePoll({
+      now: 10_000,
+      lastHiddenPollAt: 0,
+      hiddenPollIntervalMs: 30_000,
+    });
+    expect(firstPoll).toEqual({
+      shouldRun: true,
+      lastHiddenPollAt: 10_000,
+    });
+
+    const skippedPoll = shouldRunHiddenAwarePoll({
+      now: 20_000,
+      lastHiddenPollAt: firstPoll.lastHiddenPollAt,
+      hiddenPollIntervalMs: 30_000,
+    });
+    expect(skippedPoll.shouldRun).toBe(false);
+    expect(skippedPoll.lastHiddenPollAt).toBe(10_000);
+
+    const recoveryPoll = shouldRunHiddenAwarePoll({
+      now: 41_000,
+      lastHiddenPollAt: skippedPoll.lastHiddenPollAt,
+      hiddenPollIntervalMs: 30_000,
+    });
+    expect(recoveryPoll).toEqual({
+      shouldRun: true,
+      lastHiddenPollAt: 41_000,
     });
   });
 });

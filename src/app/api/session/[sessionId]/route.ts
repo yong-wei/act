@@ -7,6 +7,7 @@ import {
   shouldPersistInferredClassAttribution,
   type SessionClassInfo,
 } from '@/lib/data-governance/class-session-attribution';
+import { enqueueSessionFinalizationSnapshots } from '@/lib/data-governance/session-finalization-snapshots';
 import { SessionStatus, BopppsStage } from '@prisma/client';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { redisClient } from '@/lib/redis-client';
@@ -201,6 +202,10 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
         currentStage: currentStage ?? null,
         status: status ?? null,
       });
+    }
+
+    if (status === 'FINISHED') {
+      await enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId);
     }
 
     return NextResponse.json(updatedSession);

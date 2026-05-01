@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   LessonSessionAdapter,
@@ -58,8 +58,14 @@ export function useTeacherLessonSession<
   } = useSessionStateChannel({ sessionId });
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
+  const isSyncingStatesRef = useRef(false);
 
   const syncStates = useCallback(async () => {
+    if (isSyncingStatesRef.current) {
+      return;
+    }
+
+    isSyncingStatesRef.current = true;
     try {
       await fetchTeacherViewStates();
       setError(null);
@@ -67,6 +73,8 @@ export function useTeacherLessonSession<
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
       setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
+    } finally {
+      isSyncingStatesRef.current = false;
     }
   }, [fetchTeacherViewStates]);
 

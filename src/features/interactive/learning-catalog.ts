@@ -31,6 +31,7 @@ import { UNIT_4_4_PREMIUM_LESSON_CARD } from '@/lib/unit-4-4-course';
 import { UNIT_4_6_PREMIUM_LESSON_CARD } from '@/lib/unit-4-6-course';
 import { UNIT_4_7_PREMIUM_LESSON_CARD } from '@/lib/unit-4-7-course';
 import { UNIT_5_1_PREMIUM_LESSON_CARD } from '@/lib/unit-5-1-course';
+import { UNIT_5_2_PREMIUM_LESSON_CARD } from '@/lib/unit-5-2-course';
 
 const UNIT_4_5_PREMIUM_LESSON_CARD = {
   id: 'unit-4-5-constraint-aware-parameter-optimization',
@@ -169,6 +170,7 @@ export const FEATURED_LESSONS = [
   UNIT_4_6_PREMIUM_LESSON_CARD,
   UNIT_4_7_PREMIUM_LESSON_CARD,
   UNIT_5_1_PREMIUM_LESSON_CARD,
+  UNIT_5_2_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -343,7 +345,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-4-5-constraint-aware-parameter-optimization' &&
     lesson.id !== 'unit-4-6-fixed-structure-boundary-structural-encoding' &&
     lesson.id !== 'unit-4-7-destroyer-hifi-design-closure' &&
-    lesson.id !== 'unit-5-1-linear-backbone-boundaries'
+    lesson.id !== 'unit-5-1-linear-backbone-boundaries' &&
+    lesson.id !== 'unit-5-2-nonlinear-analysis-entry'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -419,10 +422,11 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-5',
     title: '模块5',
     description:
-      '模块5 当前开放 5-1 新主线单元，从线性主干边界识别进入饱和、死区、滞回、切换与模型失配的判断。',
-    chipLabel: '线性边界入口',
+      '模块5 当前开放 5-1、5-2 两个新主线单元，从线性主干边界识别推进到局部线性化、相平面、描述函数、负倒曲线和自振风险判断。',
+    chipLabel: '非线性边界入口',
     lessons: [
       createModuleLesson('unit-5-1-linear-backbone-boundaries', '5-1'),
+      createModuleLesson('unit-5-2-nonlinear-analysis-entry', '5-2'),
     ],
   },
 ] as const;

@@ -97,6 +97,7 @@ ssh root@121.40.124.135 "curl -k -s https://act.adapt-learn.online/api/readyz"
 - `status=429`：课堂接口限流。重点看同一用户是否触发请求风暴、是否频繁刷新或多端同时打开。
 - `status=500`：服务端异常。立刻对齐 `act-obe-app` 日志；常见下一跳是 Prisma 数据库错误、Redis 访问异常或接口空值处理问题。
 - `errorName=TypeError` 且 `errorMessage=Failed to fetch`：浏览器未拿到 HTTP 响应。若同时 `navigatorOnLine=false` 或 RTT 异常，优先客户端网络；若同一时间多用户同接口失败，优先公网、反代、应用进程或容器网络。
+- `Failed to fetch` / `Load failed` 无 HTTP 状态、`navigatorOnLine=true`、多数 `documentVisibilityState=hidden`，且 `elapsedMs` 明显大于轮询间隔时，优先检查前端是否存在后台标签页轮询叠加或请求长期挂起。统一课堂 session framework 应具备：请求 in-flight 防重入、fetch 超时、后台页降频轮询、回到前台立即同步。
 
 接口到后端排查点：
 

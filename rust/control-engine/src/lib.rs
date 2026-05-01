@@ -163,6 +163,94 @@ struct ControlAnalysisResult {
     root_locus: RootLocusData,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct NonlinearAnalysisRequest {
+    runtime_mode: String,
+    analysis_kind: String,
+    model_id: String,
+    parameters: Option<HashMap<String, serde_json::Value>>,
+    initial_point: Option<Vec<f64>>,
+    time_range: TimeRangeConfig,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct VectorFieldPoint {
+    x: f64,
+    y: f64,
+    dx: f64,
+    dy: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NamedCurve {
+    id: String,
+    points: Vec<CurvePoint>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PhasePlaneResult {
+    vector_field: Vec<VectorFieldPoint>,
+    trajectories: Vec<NamedCurve>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NegativeInverseCurve {
+    id: String,
+    label: String,
+    points: Vec<ComplexPoint>,
+    marks: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NegativeInverseResult {
+    curves: Vec<NegativeInverseCurve>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct HarmonicResult {
+    input: Vec<CurvePoint>,
+    relay_output: Vec<CurvePoint>,
+    filtered_output: Vec<CurvePoint>,
+    describing_function_approximation: Vec<CurvePoint>,
+    spectrum: Vec<CurvePoint>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CharacteristicResult {
+    curve: Vec<CurvePoint>,
+    sine_envelope: Vec<CurvePoint>,
+    describing_function: ComplexPoint,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NonlinearSummary {
+    outcome: String,
+    metrics: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NonlinearAnalysisResult {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    phase_plane: Option<PhasePlaneResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    negative_inverse: Option<NegativeInverseResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    harmonic: Option<HarmonicResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    characteristic: Option<CharacteristicResult>,
+    summary: NonlinearSummary,
+}
+
 #[derive(Clone)]
 struct TransferFunction {
     numerator: Vec<f64>,
@@ -1228,6 +1316,352 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
     }
 }
 
+fn nonlinear_param(request: &NonlinearAnalysisRequest, key: &str, fallback: f64) -> f64 {
+    request
+        .parameters
+        .as_ref()
+        .and_then(|params| params.get(key))
+        .and_then(|value| value.as_f64())
+        .filter(|value| value.is_finite())
+        .unwrap_or(fallback)
+}
+
+fn nonlinear_range(request: &NonlinearAnalysisRequest) -> Vec<f64> {
+    linspace(
+        request.time_range.start,
+        request.time_range.end,
+        request.time_range.samples.max(2),
+    )
+}
+
+fn phase_derivative(model_id: &str, x: f64, y: f64, request: &NonlinearAnalysisRequest) -> (f64, f64) {
+    match model_id {
+        "double_integrator" => (y, 0.0),
+        "integral_inertia" => {
+            let t = nonlinear_param(request, "T", 1.0).max(1e-6);
+            (y, -y / t)
+        }
+        _ => {
+            let mu = nonlinear_param(request, "mu", 1.0);
+            (y, mu * (1.0 - x * x) * y - x)
+        }
+    }
+}
+
+fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    let initial = request.initial_point.clone().unwrap_or_else(|| vec![1.2, 0.1]);
+    let mut x = *initial.first().unwrap_or(&1.2);
+    let mut y = *initial.get(1).unwrap_or(&0.1);
+    let samples = request.time_range.samples.max(2);
+    let dt = (request.time_range.end - request.time_range.start) / (samples - 1) as f64;
+    let mut points = Vec::with_capacity(samples);
+
+    for _ in 0..samples {
+        points.push(CurvePoint { x, y });
+        let (dx1, dy1) = phase_derivative(&request.model_id, x, y, request);
+        let (dx2, dy2) = phase_derivative(&request.model_id, x + 0.5 * dt * dx1, y + 0.5 * dt * dy1, request);
+        let (dx3, dy3) = phase_derivative(&request.model_id, x + 0.5 * dt * dx2, y + 0.5 * dt * dy2, request);
+        let (dx4, dy4) = phase_derivative(&request.model_id, x + dt * dx3, y + dt * dy3, request);
+        x += dt * (dx1 + 2.0 * dx2 + 2.0 * dx3 + dx4) / 6.0;
+        y += dt * (dy1 + 2.0 * dy2 + 2.0 * dy3 + dy4) / 6.0;
+    }
+
+    let mut vector_field = Vec::new();
+    for ix in 0..9 {
+        for iy in 0..9 {
+            let vx = -3.0 + ix as f64 * 0.75;
+            let vy = -3.0 + iy as f64 * 0.75;
+            let (dx, dy) = phase_derivative(&request.model_id, vx, vy, request);
+            vector_field.push(VectorFieldPoint { x: vx, y: vy, dx, dy });
+        }
+    }
+
+    let outcome = match request.model_id.as_str() {
+        "double_integrator" => "速度保持并沿相平面直线漂移",
+        "integral_inertia" => "速度衰减后状态逐渐停留",
+        _ => "趋向闭合轨道",
+    };
+
+    NonlinearAnalysisResult {
+        phase_plane: Some(PhasePlaneResult {
+            vector_field,
+            trajectories: vec![NamedCurve { id: request.model_id.clone(), points }],
+        }),
+        negative_inverse: None,
+        harmonic: None,
+        characteristic: None,
+        summary: NonlinearSummary {
+            outcome: outcome.to_string(),
+            metrics: vec![
+                format!("样本数 {}", samples),
+                format!("初始点 ({:.2}, {:.2})", initial.first().unwrap_or(&1.2), initial.get(1).unwrap_or(&0.1)),
+            ],
+        },
+    }
+}
+
+fn describing_function(model_id: &str, amplitude: f64, request: &NonlinearAnalysisRequest) -> Complex64 {
+    let a_input = amplitude.max(1e-6);
+    let pi = std::f64::consts::PI;
+    match model_id {
+        "hysteresis_relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(1e-6);
+            let h = nonlinear_param(request, "h", 0.5).max(1e-6);
+            if a_input <= h {
+                return Complex64::new(0.0, 0.0);
+            }
+            let ratio = (h / a_input).clamp(0.0, 0.999_999);
+            Complex64::new(
+                4.0 * m / (pi * a_input) * (1.0 - ratio * ratio).sqrt(),
+                -4.0 * m / (pi * a_input) * ratio,
+            )
+        }
+        "relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(1e-6);
+            Complex64::new(4.0 * m / (pi * a_input), 0.0)
+        }
+        "deadzone_relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(1e-6);
+            let d = nonlinear_param(request, "d", 0.5).max(1e-6);
+            if a_input <= d {
+                return Complex64::new(0.0, 0.0);
+            }
+            let ratio = (d / a_input).clamp(0.0, 0.999_999);
+            Complex64::new(4.0 * m / (pi * a_input) * (1.0 - ratio * ratio).sqrt(), 0.0)
+        }
+        "deadzone" => {
+            let k = nonlinear_param(request, "k", 1.0).max(1e-6);
+            let delta = nonlinear_param(request, "Delta", 0.5).max(1e-6);
+            if a_input <= delta {
+                return Complex64::new(0.0, 0.0);
+            }
+            let ratio = (delta / a_input).clamp(0.0, 0.999_999);
+            Complex64::new(
+                2.0 * k / pi * (pi / 2.0 - ratio.asin() - ratio * (1.0 - ratio * ratio).sqrt()),
+                0.0,
+            )
+        }
+        "deadzone_saturation" => {
+            let k = nonlinear_param(request, "k", 1.0).max(1e-6);
+            let delta = nonlinear_param(request, "Delta", 0.5).max(1e-6);
+            let a = nonlinear_param(request, "a", 2.0).max(delta + 1e-6);
+            if a_input <= delta {
+                return Complex64::new(0.0, 0.0);
+            }
+            let delta_ratio = (delta / a_input).clamp(0.0, 0.999_999);
+            if a_input <= a {
+                return Complex64::new(
+                    2.0 * k / pi * (pi / 2.0 - delta_ratio.asin() - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()),
+                    0.0,
+                );
+            }
+            let a_ratio = (a / a_input).clamp(0.0, 0.999_999);
+            Complex64::new(
+                2.0 * k / pi * (
+                    a_ratio.asin()
+                    - delta_ratio.asin()
+                    + a_ratio * (1.0 - a_ratio * a_ratio).sqrt()
+                    - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()
+                ),
+                0.0,
+            )
+        }
+        "backlash" => {
+            let k = nonlinear_param(request, "k", 1.0).max(1e-6);
+            let b = nonlinear_param(request, "b", 0.5).max(1e-6);
+            if a_input <= b {
+                return Complex64::new(0.0, 0.0);
+            }
+            let ratio = (b / a_input).clamp(1e-6, 0.999_999);
+            Complex64::new(k * (1.0 - ratio), -4.0 * k * b / (pi * a_input) * (1.0 - ratio))
+        }
+        _ => {
+            let k = nonlinear_param(request, "k", 1.0).max(1e-6);
+            let a = nonlinear_param(request, "a", 1.0).max(1e-6);
+            if a_input <= a {
+                return Complex64::new(k, 0.0);
+            }
+            let ratio = (a / a_input).clamp(0.0, 0.999_999);
+            Complex64::new(
+                2.0 * k / pi * (ratio.asin() + ratio * (1.0 - ratio * ratio).sqrt()),
+                0.0,
+            )
+        }
+    }
+}
+
+fn characteristic_value(model_id: &str, x: f64, request: &NonlinearAnalysisRequest) -> f64 {
+    let k = nonlinear_param(request, "k", 1.0).max(0.05);
+    match model_id {
+        "deadzone" => {
+            let delta = nonlinear_param(request, "Delta", 0.5).max(0.0);
+            if x.abs() <= delta { 0.0 } else { x.signum() * k * (x.abs() - delta) }
+        }
+        "deadzone_saturation" => {
+            let delta = nonlinear_param(request, "Delta", 0.5).max(0.0);
+            let a = nonlinear_param(request, "a", 2.0).max(delta + 1e-6);
+            if x.abs() <= delta {
+                0.0
+            } else {
+                x.signum() * k * (x.abs() - delta).min(a - delta)
+            }
+        }
+        "relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(0.05);
+            if x >= 0.0 { m } else { -m }
+        }
+        "deadzone_relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(0.05);
+            let d = nonlinear_param(request, "d", 0.5).max(0.0);
+            if x.abs() <= d { 0.0 } else { x.signum() * m }
+        }
+        _ => {
+            let limit = nonlinear_param(request, "a", 1.0).max(0.05);
+            (k * x).clamp(-k * limit, k * limit)
+        }
+    }
+}
+
+fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    let min_a = nonlinear_param(request, "A_min", 0.05).max(0.001);
+    let max_a = nonlinear_param(request, "A_max", 8.0).max(min_a + 0.01);
+    let samples = request.time_range.samples.max(2);
+    let mut points = Vec::with_capacity(samples);
+    for index in 0..samples {
+        let progress = index as f64 / (samples - 1) as f64;
+        let amplitude = min_a + (max_a - min_a) * progress;
+        let n = describing_function(&request.model_id, amplitude, request);
+        if n.norm() <= 1e-9 {
+            continue;
+        }
+        let value = -Complex64::new(1.0, 0.0) / n;
+        points.push(ComplexPoint { re: value.re, im: value.im });
+    }
+
+    let mut marks = HashMap::new();
+    marks.insert("start".to_string(), "open_circle_start".to_string());
+    marks.insert("direction".to_string(), "arrow_for_increasing_A".to_string());
+
+    NonlinearAnalysisResult {
+        phase_plane: None,
+        negative_inverse: Some(NegativeInverseResult {
+            curves: vec![NegativeInverseCurve {
+                id: request.model_id.clone(),
+                label: request.model_id.replace('_', " "),
+                points,
+                marks,
+            }],
+        }),
+        harmonic: None,
+        characteristic: None,
+        summary: NonlinearSummary {
+            outcome: "负倒曲线随 A 增大按表达式数值生成".to_string(),
+            metrics: vec![format!("幅值范围 {:.2}..{:.2}", min_a, max_a)],
+        },
+    }
+}
+
+fn compute_harmonic(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    let a = nonlinear_param(request, "A", 2.0).max(0.05);
+    let omega = nonlinear_param(request, "omega", 1.0).max(0.05);
+    let omega_c = nonlinear_param(request, "omega_c", 2.0).max(0.05);
+    let m = nonlinear_param(request, "M", 1.0).max(0.05);
+    let mut input = Vec::new();
+    let mut relay_output = Vec::new();
+    let mut filtered_output = Vec::new();
+    let mut approximation = Vec::new();
+    let attenuation = omega_c / (omega_c * omega_c + omega * omega).sqrt();
+    for t in nonlinear_range(request) {
+        let e = a * (omega * t).sin();
+        let relay = if e >= 0.0 { m } else { -m };
+        let base = 4.0 * m / std::f64::consts::PI * (omega * t).sin();
+        input.push(CurvePoint { x: t, y: e });
+        relay_output.push(CurvePoint { x: t, y: relay });
+        filtered_output.push(CurvePoint { x: t, y: attenuation * base });
+        approximation.push(CurvePoint { x: t, y: base });
+    }
+    NonlinearAnalysisResult {
+        phase_plane: None,
+        negative_inverse: None,
+        harmonic: Some(HarmonicResult {
+            input,
+            relay_output,
+            filtered_output,
+            describing_function_approximation: approximation,
+            spectrum: vec![
+                CurvePoint { x: 1.0, y: 4.0 * m / std::f64::consts::PI },
+                CurvePoint { x: 3.0, y: 4.0 * m / (3.0 * std::f64::consts::PI) },
+                CurvePoint { x: 5.0, y: 4.0 * m / (5.0 * std::f64::consts::PI) },
+            ],
+        }),
+        characteristic: None,
+        summary: NonlinearSummary {
+            outcome: "低通截止频率越低，高次谐波越被衰减".to_string(),
+            metrics: vec![format!("基波衰减系数 {:.2}", attenuation)],
+        },
+    }
+}
+
+fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    let k = nonlinear_param(request, "k", 1.0).max(0.05);
+    let amplitude = nonlinear_param(request, "A", 2.0).max(0.05);
+    let range = nonlinear_range(request);
+    let curve = match request.model_id.as_str() {
+        "hysteresis_relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(0.05);
+            let h = nonlinear_param(request, "h", 0.5).max(0.0);
+            let increasing = range.iter().map(|x| CurvePoint { x: *x, y: if *x >= h { m } else { -m } });
+            let decreasing = range.iter().rev().map(|x| CurvePoint { x: *x, y: if *x <= -h { -m } else { m } });
+            increasing.chain(decreasing).collect::<Vec<_>>()
+        }
+        "backlash" => {
+            let b = nonlinear_param(request, "b", 0.5).max(0.0);
+            let increasing = range.iter().map(|x| CurvePoint { x: *x, y: k * (*x - b) });
+            let decreasing = range.iter().rev().map(|x| CurvePoint { x: *x, y: k * (*x + b) });
+            increasing.chain(decreasing).collect::<Vec<_>>()
+        }
+        _ => range
+            .into_iter()
+            .map(|x| CurvePoint {
+                x,
+                y: characteristic_value(&request.model_id, x, request),
+            })
+            .collect::<Vec<_>>(),
+    };
+    let min_y = curve.iter().map(|point| point.y).fold(f64::INFINITY, f64::min);
+    let max_y = curve.iter().map(|point| point.y).fold(f64::NEG_INFINITY, f64::max);
+    let sine_envelope = vec![
+        CurvePoint { x: -amplitude, y: min_y },
+        CurvePoint { x: -amplitude, y: max_y },
+        CurvePoint { x: amplitude, y: max_y },
+        CurvePoint { x: amplitude, y: min_y },
+    ];
+    let n = describing_function(&request.model_id, amplitude, request);
+    NonlinearAnalysisResult {
+        phase_plane: None,
+        negative_inverse: None,
+        harmonic: None,
+        characteristic: Some(CharacteristicResult {
+            curve,
+            sine_envelope,
+            describing_function: ComplexPoint { re: n.re, im: n.im },
+        }),
+        summary: NonlinearSummary {
+            outcome: "输入输出特性与当前描述函数参数已联动".to_string(),
+            metrics: vec![format!("N(A)=({:.3},{:.3})", n.re, n.im)],
+        },
+    }
+}
+
+fn compute_nonlinear_analysis_inner(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    match request.analysis_kind.as_str() {
+        "phase_plane" => compute_phase_plane(request),
+        "negative_inverse_family" => compute_negative_inverse(request),
+        "harmonic_lowpass" => compute_harmonic(request),
+        _ => compute_characteristic(request),
+    }
+}
+
 #[wasm_bindgen]
 pub fn compute_analysis(request_json: &str) -> Result<String, JsValue> {
     let request: ControlAnalysisRequest = serde_json::from_str(request_json)
@@ -1239,6 +1673,17 @@ pub fn compute_analysis(request_json: &str) -> Result<String, JsValue> {
         return Err(JsValue::from_str("outputs 不能为空。"));
     }
     let result = compute_analysis_inner(&request);
+    serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn compute_nonlinear_analysis(request_json: &str) -> Result<String, JsValue> {
+    let request: NonlinearAnalysisRequest = serde_json::from_str(request_json)
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    if request.runtime_mode != "nonlinear_analysis" {
+        return Err(JsValue::from_str("只支持 nonlinear_analysis 模式请求。"));
+    }
+    let result = compute_nonlinear_analysis_inner(&request);
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
 }
 

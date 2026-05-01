@@ -1,4 +1,4 @@
-import initControlEngine, { compute_analysis } from '../wasm/control_engine/index.js';
+import initControlEngine, * as controlEngine from '../wasm/control_engine/index.js';
 
 let initPromise: Promise<void> | null = null;
 
@@ -13,7 +13,14 @@ self.onmessage = async (event: MessageEvent<{ id: string; requestJson: string }>
   const { id, requestJson } = event.data;
   try {
     await ensureEngine();
-    const resultJson = compute_analysis(requestJson);
+    const request = JSON.parse(requestJson) as { runtimeMode?: string };
+    const nonlinearCompute = (controlEngine as typeof controlEngine & {
+      compute_nonlinear_analysis?: (request: string) => string;
+    }).compute_nonlinear_analysis;
+    const resultJson =
+      request.runtimeMode === 'nonlinear_analysis' && typeof nonlinearCompute === 'function'
+        ? nonlinearCompute(requestJson)
+        : controlEngine.compute_analysis(requestJson);
     self.postMessage({ id, ok: true, resultJson });
   } catch (error) {
     self.postMessage({

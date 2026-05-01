@@ -11,6 +11,8 @@ import type {
 import {
   buildFetchFailureTelemetry,
   buildHttpFailureTelemetry,
+  createFetchTimeout,
+  DEFAULT_SYNC_FETCH_TIMEOUT_MS,
   toFetchTelemetryError,
   type FetchTelemetrySource,
 } from './fetch-diagnostics';
@@ -43,8 +45,12 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
     async <T,>(url: string, source: FetchTelemetrySource, init?: RequestInit): Promise<T> => {
       const method = init?.method ?? 'GET';
       const startedAt = Date.now();
+      const timeout = init?.signal ? null : createFetchTimeout();
+      const requestInit = timeout
+        ? { ...(init ?? {}), signal: timeout.signal }
+        : init;
       try {
-        const response = await fetch(url, init);
+        const response = await fetch(url, requestInit);
         if (!response.ok) {
           let message = '课堂状态读取失败';
           try {
@@ -65,8 +71,17 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
         }
         throw toFetchTelemetryError(
           error instanceof Error ? error.message : '课堂状态读取失败',
-          buildFetchFailureTelemetry({ source, url, method, startedAt, error }),
+          buildFetchFailureTelemetry({
+            source,
+            url,
+            method,
+            startedAt,
+            error,
+            timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
+          }),
         );
+      } finally {
+        timeout?.clear();
       }
     },
     [],
