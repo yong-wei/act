@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import FancyArrowPatch, Rectangle
+from matplotlib.patches import Circle, FancyArrowPatch, Rectangle
 from PIL import Image
 
 RAW = ROOT / 'course-content/authoring/lessons/5-3/media/raw'
@@ -133,18 +133,18 @@ def render_sensor_noise_chain():
   bg_ax.axis('off')
 
   plot_slots = {
-    'r_top': (0.045, 0.810, 0.090, 0.045),
-    'e_top': (0.285, 0.810, 0.090, 0.045),
-    'c_top': (0.440, 0.810, 0.090, 0.045),
-    'a_top': (0.610, 0.810, 0.090, 0.045),
-    'y_top': (0.800, 0.810, 0.090, 0.045),
-    'm_top': (0.617, 0.500, 0.103, 0.045),
-    'r_bottom': (0.045, 0.360, 0.090, 0.045),
-    'e_bottom': (0.285, 0.360, 0.090, 0.045),
-    'c_bottom': (0.440, 0.360, 0.090, 0.045),
-    'a_bottom': (0.610, 0.360, 0.090, 0.045),
-    'y_bottom': (0.800, 0.360, 0.090, 0.045),
-    'm_bottom': (0.617, 0.048, 0.103, 0.045),
+    'r_top': (0.045, 0.822, 0.090, 0.043),
+    'e_top': (0.285, 0.822, 0.090, 0.043),
+    'c_top': (0.447, 0.822, 0.090, 0.043),
+    'a_top': (0.632, 0.822, 0.090, 0.043),
+    'y_top': (0.824, 0.822, 0.090, 0.043),
+    'm_top': (0.639, 0.478, 0.103, 0.043),
+    'r_bottom': (0.045, 0.338, 0.090, 0.043),
+    'e_bottom': (0.285, 0.338, 0.090, 0.043),
+    'c_bottom': (0.447, 0.338, 0.090, 0.043),
+    'a_bottom': (0.632, 0.338, 0.090, 0.043),
+    'y_bottom': (0.824, 0.338, 0.090, 0.043),
+    'm_bottom': (0.639, 0.010, 0.103, 0.043),
   }
 
   def add_plot(slot, t, series, color, ylim):
@@ -170,6 +170,27 @@ def render_sensor_noise_chain():
     add_plot(f'a_{suffix}', t, d['delta'], PURPLE, (-0.6, 1.25))
     add_plot(f'y_{suffix}', t, d['y'], GREEN, (0.0, 0.8))
     add_plot(f'm_{suffix}', t, feedback, GRAY, (0.0, 0.85))
+  label_box = dict(facecolor='white', edgecolor='none', alpha=0.90, pad=1.6)
+  fig.text(
+    0.070,
+    0.892,
+    '无传感器滤波：噪声直接进入误差与控制量',
+    fontsize=13,
+    weight='bold',
+    ha='left',
+    va='center',
+    bbox=label_box,
+  )
+  fig.text(
+    0.070,
+    0.398,
+    '加入一阶传感器滤波：反馈更平滑，执行器动作减轻',
+    fontsize=13,
+    weight='bold',
+    ha='left',
+    va='center',
+    bbox=label_box,
+  )
   save(fig, '5-3-sensor-noise-filter-chain.png')
 
 
@@ -185,7 +206,7 @@ def render_sensor_delay_heading_track():
   ax.set_title('航向信号：同一控制器在延迟系统中出现滞后')
   ax.set_xlabel('时间 / s')
   ax.set_ylabel('航向角 / deg')
-  ax.legend(loc='lower right')
+  ax.legend(loc='upper left', frameon=True, facecolor='white', framealpha=0.92, edgecolor='#d5dbe3')
   ax = axes[1]
   ax.plot(ideal['x'], ideal['y'], color=GRAY, lw=2.0, linestyle='--', label='理想航迹（无测量延迟）')
   ax.plot(delayed['x'], delayed['y'], color=RED, lw=2.1, label='实际航迹（测量延迟）')
@@ -283,32 +304,73 @@ def render_actuator_limits():
 
 def render_turning_radius():
   curves = [
-    ('R=35 m', load('turn_R35.csv'), RED),
-    ('R=65 m', load('turn_R65.csv'), ORANGE),
-    ('R=140 m', load('turn_R140.csv'), GREEN),
+    ('估计 R=35 m', load('turn_R35.csv'), RED),
+    ('估计 R=65 m', load('turn_R65.csv'), ORANGE),
+    ('估计 R=140 m', load('turn_R140.csv'), GREEN),
   ]
   fig, axes = plt.subplots(1, 2, figsize=(14.4, 5.0), constrained_layout=True)
   ax = axes[0]
   for label, d, color in curves:
-    ax.plot(d['t'], d['delta'], color=color, lw=1.9, label=label)
-    ax.plot(d['t'], np.minimum(d['delta_needed'], 18), color=color, alpha=0.20, lw=4.0)
+    ax.plot(d['t'], d['delta_target'], color=color, lw=1.3, linestyle='--', alpha=0.70)
+    ax.plot(d['t'], d['delta'], color=color, lw=2.0, label=label)
   ax.axhline(18, color=GRAY, lw=1.0, linestyle='--', label='舵角饱和边界')
-  ax.set_title('不同转弯半径下的舵角指令（含饱和）')
+  ax.axhline(-18, color=GRAY, lw=1.0, linestyle='--')
+  ax.set_ylim(-2, 48)
+  ax.set_title('进入避障启动圈后的舵角指令')
   ax.set_xlabel('时间 / s')
   ax.set_ylabel('舵角 / deg')
-  ax.legend()
+  ax.legend(loc='upper right')
   ax = axes[1]
-  obstacle = plt.Circle((88, 30), 20, color=RED, alpha=0.13, ec=RED, lw=1.5)
+  base = curves[0][1]
+  obstacle_center = (float(base['obstacle_x'][0]), float(base['obstacle_y'][0]))
+  obstacle_radius = float(base['obstacle_radius'][0])
+  clearance = float(base['clearance'][0])
+  obstacle = Circle(obstacle_center, obstacle_radius, color=RED, alpha=0.16, ec=RED, lw=1.5)
   ax.add_patch(obstacle)
-  ax.text(88, 30, '名义障碍物', color=RED, ha='center', va='center', fontsize=10)
+  safety = Circle(obstacle_center, clearance, fill=False, ec=GRAY, lw=1.0, linestyle=':', alpha=0.70)
+  ax.add_patch(safety)
+  ax.text(
+    obstacle_center[0],
+    obstacle_center[1] - 18,
+    '障碍物',
+    color=RED,
+    ha='center',
+    va='center',
+    fontsize=10,
+    bbox=dict(facecolor='white', edgecolor='none', alpha=0.74, pad=1.2),
+  )
   for label, d, color in curves:
     ax.plot(d['x'], d['y'], color=color, lw=2.0, label=label)
+    start_circle = Circle(
+      obstacle_center,
+      float(d['start_radius'][0]),
+      fill=False,
+      ec=color,
+      lw=1.4,
+      linestyle=(0, (5, 4)),
+      alpha=0.70,
+    )
+    ax.add_patch(start_circle)
+    hit = np.where(d['collision'] > 0.5)[0]
+    if len(hit) > 0:
+      k = int(hit[0])
+      ax.scatter(d['x'][k], d['y'][k], marker='x', color=color, s=70, linewidths=2.0, zorder=5)
+      ax.text(
+        d['x'][k] - 28,
+        d['y'][k] + 11,
+        '碰撞点',
+        color=color,
+        fontsize=9,
+        bbox=dict(facecolor='white', edgecolor='none', alpha=0.78, pad=1.1),
+      )
   ax.set_aspect('equal', adjustable='box')
-  ax.set_title('同一执行器驱动下的实际航迹')
+  ax.set_title('沿航线接近障碍物并按启动圈开始避障')
   ax.set_xlabel('x / m')
   ax.set_ylabel('y / m')
-  ax.legend()
-  fig.suptitle('转弯半径越小，规划参考越容易触碰舵角边界', fontsize=15, weight='bold')
+  ax.set_xlim(0, 260)
+  ax.set_ylim(-45, 165)
+  ax.legend(loc='upper left')
+  fig.suptitle('过小转弯半径会低估避障启动距离，饱和后可能撞上障碍物', fontsize=15, weight='bold')
   save(fig, '5-3-turning-radius-saturation-comparison.png')
 
 

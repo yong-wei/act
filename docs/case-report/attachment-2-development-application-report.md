@@ -10,7 +10,7 @@
 
 ### （一）平台与技术选择
 
-系统采用 Next.js 14、TypeScript、PostgreSQL、Prisma 构建教学平台主干，使用 Rust/WASM 承担船舶动力学、控制响应和数值分析等高频计算，使用 Three.js 与 React Three Fiber 呈现 3D 仿真场景。AI 能力通过 Vercel AI SDK 接入 SiliconFlow API，默认模型为 Qwen/Qwen3-Omni-30B-A3B-Thinking。课堂运行采用 DB BOPPPS 教案、TeachingResource 资源注册和 ClassSession 会话同步，学习数据进入 InteractionLog、LearningFact、StudentCompetencySnapshot 等结构化表。
+系统采用 Next.js 14、TypeScript、PostgreSQL、Prisma 构建教学平台主干，使用 Rust/WASM 承担船舶动力学、控制响应和数值分析等高频计算，使用 Three.js 与 React Three Fiber 呈现 3D 仿真场景。AI 能力通过 Vercel AI SDK 接入 SiliconFlow API，默认模型为 deepseek-ai/DeepSeek-V4-Flash。课堂运行采用 DB BOPPPS 教案、TeachingResource 资源注册和 ClassSession 会话同步，学习数据进入 InteractionLog、LearningFact、StudentCompetencySnapshot 等结构化表。
 
 ### （二）开发过程
 
@@ -33,4 +33,3 @@ AI 开发证据主要体现在三类提示词：需求拆解提示词用于把�
 本案例的创新点在于把生成式 AI 放进完整教学信息系统，而不是孤立聊天窗口。AI 既参与开发过程，也在运行时读取课程、仿真和画像上下文；Rust/WASM 数值内核保证仿真结果稳定可复现；LearningFact 和六维能力画像使学习过程能够解释、追溯和反馈；船舶控制场景把控制理论、工程约束和伦理安全连接起来。
 
 当前仍有三点需要继续改进：一是应用成效还需用更完整的真实班级数据支撑；二是配套资源在无法公开完整代码时，需要提供足够详细的流程、截图和提示词，使他人能够复现关键思路；三是学生隐私保护必须贯穿演示视频和资源包，所有截图应脱敏，不出现学生正面画面，AI 生成的文本、图片、视频、音频和动画均应标记“AI 生成”。
-

@@ -8,7 +8,7 @@ import { getAIModel } from '@/lib/ai-client';
 import { generateText } from 'ai';
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 180;
 
 interface CheckModelingRequest {
   equation: string;

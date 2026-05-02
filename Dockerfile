@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl
+  && apk add --no-cache libc6-compat openssl curl
 
 # Dependencies stage
 FROM base AS deps

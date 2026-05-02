@@ -88,7 +88,7 @@ npm run logs:error       # Tail error.log
 ### Tech Stack
 - **Framework**: Next.js 14 (App Router)
 - **3D Graphics**: Three.js, React Three Fiber, Drei
-- **AI**: Vercel AI SDK + SiliconFlow (OpenAI-compatible, Qwen model)
+- **AI**: Vercel AI SDK + SiliconFlow (OpenAI-compatible, DeepSeek model)
 - **Database**: PostgreSQL + Prisma ORM
 - **Auth**: NextAuth.js (Credentials provider)
 - **State**: Zustand (client), React hooks
@@ -187,7 +187,7 @@ NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="..."
 SILICONFLOW_API_KEY="sk-..."
 SILICONFLOW_API_URL="https://api.siliconflow.cn/v1"
-SILICONFLOW_MODEL="Qwen/Qwen3-Omni-30B-A3B-Thinking"
+SILICONFLOW_MODEL="deepseek-ai/DeepSeek-V4-Flash"
 ```
 
 ## Python 控制系统仿真工具

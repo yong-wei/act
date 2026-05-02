@@ -8,7 +8,7 @@
 | 团队成员 | 待补，含负责人不超过 3 人 |
 | 申报学段 | □ 幼儿园  □ 小学  □ 初中  □ 高中  □ 特教  □ 中等职业教育  ■ 高等教育（含高职） |
 | 解决的教学问题 | 自动控制原理中抽象公式、工程对象、仿真实验与学习评价割裂，教师难以及时获得可解释学情并给出个性化反馈。 |
-| 开发平台/工具 | Next.js 14、TypeScript、PostgreSQL、Prisma、Rust/WASM、Three.js、React Three Fiber、Vercel AI SDK、SiliconFlow API、Qwen/Qwen3-Omni-30B-A3B-Thinking、Playwright、Vitest。 |
+| 开发平台/工具 | Next.js 14、TypeScript、PostgreSQL、Prisma、Rust/WASM、Three.js、React Three Fiber、Vercel AI SDK、SiliconFlow API、deepseek-ai/DeepSeek-V4-Flash、Playwright、Vitest。 |
 | 特色与创新 | 将船舶控制仿真、课堂互动、知识图谱、生成式 AI 辅导和六维能力画像贯通，形成“教学过程数据 -> 学情诊断 -> 个性化建议”的闭环。 |
 | 相关网址 | 应用地址：待补；演示地址：待补；开源仓库：如无法公开代码，则提交本目录配套开发文档与脱敏截图资源。 |
 | 配套资源 | □ 完整代码；■ 无法提供代码则提供完整开发流程、截图、提示词等；■ 应用文档；■ 其他：演示视频设计、开发记录、安装手册、使用手册、隐私保护说明。 |
@@ -34,4 +34,3 @@
 年  月  日
 
 共享提示：同意将案例推荐给国家智慧教育公共服务平台（www.smartedu.cn）并在主办单位活动网站共享。
-

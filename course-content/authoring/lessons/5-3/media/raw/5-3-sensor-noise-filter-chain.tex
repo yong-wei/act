@@ -28,20 +28,19 @@
     labeltext/.style={font=\scriptsize, align=center}
   }
 
-  \node[labeltext, font=\small\bfseries] at (6.7,2.65)
+  \node[labeltext, font=\small\bfseries] at (7.05,3.40)
     {传感器噪声在一般闭环链路中的传播与滤波缓解};
 
   \newcommand{\drawrow}[4]{
-    \node[labeltext, anchor=west, font=\scriptsize\bfseries] at (-0.35,#2+1.05) {#3};
     \node[block] (r#1) at (0,#2) {参考\\$r$};
     \node[sum] (s#1) at (2.05,#2) {};
     \node[block] (e#1) at (3.20,#2) {误差\\$e$};
-    \node[block] (c#1) at (5.25,#2) {控制器};
-    \node[wideblock] (a#1) at (7.65,#2) {执行机构};
-    \node[wideblock] (p#1) at (10.15,#2) {对象输出};
-    \node[tap] (tap#1) at (11.65,#2) {};
-    \node[labeltext] (out#1) at (12.55,#2) {$y$};
-    \node[wideblock] (m#1) at (7.65,#2-1.02) {#4};
+    \node[block] (c#1) at (5.45,#2) {控制器};
+    \node[wideblock] (a#1) at (8.05,#2) {执行机构};
+    \node[wideblock] (p#1) at (10.75,#2) {对象输出};
+    \node[tap] (tap#1) at (12.25,#2) {};
+    \node[labeltext] (out#1) at (13.20,#2) {$y$};
+    \node[wideblock] (m#1) at (8.05,#2-1.36) {#4};
 
     \draw[signal] (r#1) -- (s#1);
     \draw[signal] (s#1) -- (e#1);
@@ -54,13 +53,13 @@
 
     \node[plotbox] (pr#1) at (0,#2+0.68) {};
     \node[plotbox] (pe#1) at (3.20,#2+0.68) {};
-    \node[plotbox] (pc#1) at (5.25,#2+0.68) {};
-    \node[plotbox] (pa#1) at (7.65,#2+0.68) {};
-    \node[plotbox] (py#1) at (10.15,#2+0.68) {};
-    \node[plotbox, minimum width=2.05cm] (pm#1) at (7.65,#2-1.72) {};
+    \node[plotbox] (pc#1) at (5.45,#2+0.68) {};
+    \node[plotbox] (pa#1) at (8.05,#2+0.68) {};
+    \node[plotbox] (py#1) at (10.75,#2+0.68) {};
+    \node[plotbox, minimum width=2.05cm] (pm#1) at (8.05,#2-2.08) {};
   }
 
-  \drawrow{A}{1.15}{无传感器滤波：噪声直接进入误差与控制量}{传感器}
-  \drawrow{B}{-2.05}{加入一阶传感器滤波：反馈更平滑，执行器动作减轻}{传感器/滤波}
+  \drawrow{A}{1.35}{无传感器滤波：噪声直接进入误差与控制量}{传感器}
+  \drawrow{B}{-2.45}{加入一阶传感器滤波：反馈更平滑，执行器动作减轻}{传感器/滤波}
 \end{tikzpicture}
 \end{document}

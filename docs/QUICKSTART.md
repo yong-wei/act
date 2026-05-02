@@ -39,6 +39,7 @@ NEXTAUTH_SECRET="your-secret-key-here"
 # 硅基流动 AI 配置
 SILICONFLOW_API_URL="https://api.siliconflow.cn/v1"
 SILICONFLOW_API_KEY="sk-your-api-key"
+SILICONFLOW_MODEL="deepseek-ai/DeepSeek-V4-Flash"
 ```
 
 ### 3. 创建数据库

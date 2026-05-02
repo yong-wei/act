@@ -263,7 +263,7 @@ export default function SystemConfigPage() {
                   type="text"
                   value={config.aiModelName}
                   onChange={(e) => setConfig({ ...config, aiModelName: e.target.value })}
-                  placeholder="Qwen/Qwen3-Omni-30B-A3B-Thinking"
+                  placeholder="deepseek-ai/DeepSeek-V4-Flash"
                   className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
                 />
               </div>

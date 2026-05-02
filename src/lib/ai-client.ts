@@ -2,20 +2,176 @@
  * AI 客户端配置
  *
  * 使用硅基流动 (SiliconFlow) API 服务
- * 模型：Qwen/Qwen3-Omni-30B-A3B-Thinking
+ * 模型：deepseek-ai/DeepSeek-V4-Flash
  */
 
 import { createOpenAI } from '@ai-sdk/openai';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+const DEEPSEEK_V4_FLASH_MODEL = 'deepseek-ai/DeepSeek-V4-Flash';
+const SILICONFLOW_CURL_TIMEOUT_SECONDS = 150;
+const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 180;
+const SILICONFLOW_CURL_ATTEMPTS = 3;
+
+function normalizeSiliconFlowCompletion(rawBody: string): string {
+  const data = JSON.parse(rawBody) as {
+    choices?: Array<{ message?: { role?: string | null } }>;
+  };
+  if (!data.choices?.[0]?.message) {
+    throw new Error('SiliconFlow response did not include choices[0].message.');
+  }
+
+  for (const choice of data.choices ?? []) {
+    if (choice.message && !choice.message.role) {
+      choice.message.role = 'assistant';
+    }
+  }
+
+  return JSON.stringify(data);
+}
+
+function completionToSse(rawBody: string): string {
+  const data = JSON.parse(normalizeSiliconFlowCompletion(rawBody)) as {
+    id?: string;
+    created?: number;
+    model?: string;
+    usage?: unknown;
+    choices?: Array<{
+      index?: number;
+      finish_reason?: string | null;
+      message?: { content?: string | null };
+    }>;
+  };
+  const choice = data.choices?.[0];
+  const baseChunk = {
+    id: data.id,
+    object: 'chat.completion.chunk',
+    created: data.created,
+    model: data.model,
+  };
+  const textChunk = {
+    ...baseChunk,
+    choices: [
+      {
+        index: choice?.index ?? 0,
+        delta: { role: 'assistant', content: choice?.message?.content ?? '' },
+        finish_reason: null,
+      },
+    ],
+  };
+  const finishChunk = {
+    ...baseChunk,
+    choices: [
+      {
+        index: choice?.index ?? 0,
+        delta: {},
+        finish_reason: choice?.finish_reason ?? 'stop',
+      },
+    ],
+    usage: data.usage,
+  };
+
+  return [
+    `data: ${JSON.stringify(textChunk)}\n\n`,
+    `data: ${JSON.stringify(finishChunk)}\n\n`,
+    'data: [DONE]\n\n',
+  ].join('');
+}
+
+async function siliconflowFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const rawBody = typeof init?.body === 'string' ? init.body : undefined;
+  const requestBody = rawBody ? JSON.parse(rawBody) as Record<string, unknown> : undefined;
+
+  if (requestBody?.model !== DEEPSEEK_V4_FLASH_MODEL) {
+    return globalThis.fetch(input, init);
+  }
+
+  const providerBody = JSON.stringify({
+    ...requestBody,
+    stream: false,
+    stream_options: undefined,
+    tools: undefined,
+    tool_choice: undefined,
+  });
+  const marker = '\n__HTTP_STATUS__:';
+  let responseBody = '';
+  let status = 0;
+  let lastError: unknown;
+  const startedAt = Date.now();
+  for (let attempt = 1; attempt <= SILICONFLOW_CURL_ATTEMPTS; attempt += 1) {
+    const elapsedSeconds = Math.ceil((Date.now() - startedAt) / 1000);
+    const remainingSeconds = SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS - elapsedSeconds;
+    if (remainingSeconds < 15) {
+      break;
+    }
+    const requestTimeoutSeconds = Math.min(SILICONFLOW_CURL_TIMEOUT_SECONDS, remainingSeconds);
+    try {
+      const result = await execFileAsync(
+        'curl',
+        [
+          '-sS',
+          '--connect-timeout',
+          '3',
+          '--max-time',
+          String(requestTimeoutSeconds),
+          '-H',
+          `Authorization: Bearer ${process.env.SILICONFLOW_API_KEY ?? ''}`,
+          '-H',
+          'Content-Type: application/json',
+          '--data-binary',
+          providerBody,
+          '-w',
+          `${marker}%{http_code}`,
+          String(input),
+        ],
+        { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }
+      );
+      const markerIndex = result.stdout.lastIndexOf(marker);
+      if (markerIndex < 0) {
+        throw new Error('SiliconFlow response did not include an HTTP status marker.');
+      }
+
+      const rawResponseBody = result.stdout.slice(0, markerIndex);
+      status = Number(result.stdout.slice(markerIndex + marker.length).trim());
+      responseBody = status >= 400 ? rawResponseBody : normalizeSiliconFlowCompletion(rawResponseBody);
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!responseBody) {
+    const message = lastError instanceof Error
+      ? lastError.message.replace(/Bearer\s+\S+/g, 'Bearer ***')
+      : 'unknown error';
+    throw new Error(`SiliconFlow DeepSeek request failed after retries: ${message}`);
+  }
+  const isStreamRequest = requestBody.stream === true;
+
+  if (status >= 400 || !isStreamRequest) {
+    return new Response(responseBody, {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(completionToSse(responseBody), {
+    status,
+    headers: { 'Content-Type': 'text/event-stream; charset=utf-8' },
+  });
+}
 
 // 硅基流动 API 客户端（OpenAI 兼容）
 export const siliconflow = createOpenAI({
   baseURL: process.env.SILICONFLOW_API_URL || 'https://api.siliconflow.cn/v1',
   apiKey: process.env.SILICONFLOW_API_KEY || '',
   compatibility: 'compatible', // 使用 OpenAI 兼容模式
+  fetch: siliconflowFetch,
 });
 
 // 默认模型
-export const DEFAULT_MODEL = process.env.SILICONFLOW_MODEL || 'Qwen/Qwen3-Omni-30B-A3B-Thinking';
+export const DEFAULT_MODEL = process.env.SILICONFLOW_MODEL || DEEPSEEK_V4_FLASH_MODEL;
 
 // 获取 AI 模型实例
 export function getAIModel(modelId?: string) {

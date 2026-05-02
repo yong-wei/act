@@ -12,7 +12,7 @@
 - 数据层：PostgreSQL、Prisma。
 - 仿真内核：Rust/WASM。
 - 可视化：Three.js、React Three Fiber、Recharts。
-- AI 服务：Vercel AI SDK 接入 SiliconFlow API，默认模型为 Qwen/Qwen3-Omni-30B-A3B-Thinking。
+- AI 服务：Vercel AI SDK 接入 SiliconFlow API，默认模型为 deepseek-ai/DeepSeek-V4-Flash。
 - 验证工具：Vitest、Playwright、ESLint、Next.js build。
 
 核心数据流为：课堂与仿真事件进入 `/api/interactive/events`，先记录到 InteractionLog，再规范化为 LearningEvent，高价值事件沉淀为 LearningFact，后续生成 StudentCompetencySnapshot 与教师侧班级分析。
@@ -46,4 +46,3 @@
 - 构建验证：`npm run build`。
 - 浏览器验证：Playwright 录制课程入口、仿真页和教师/学生课堂流程。
 - 数值内核验证：Rust `cargo test` 与 WASM 构建验证。
-

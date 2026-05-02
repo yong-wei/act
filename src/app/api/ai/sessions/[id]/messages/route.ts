@@ -16,6 +16,8 @@ import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from 'ai/react';
 
+export const runtime = 'nodejs';
+export const maxDuration = 180;
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {

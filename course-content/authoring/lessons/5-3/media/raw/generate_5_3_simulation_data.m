@@ -215,27 +215,53 @@ function out = simulate_actuator_response(mode)
 endfunction
 
 function out = simulate_turning_radius(R)
-  dt = 0.06;
-  t = (0:dt:78)';
+  dt = 0.05;
+  t = (0:dt:82)';
   n = length(t);
   v = 4.0;
   delta_max = 18 * pi / 180;
   L = 34.0;
+  obstacle_x = 145.0;
+  obstacle_y = 0.0;
+  obstacle_radius = 25.0;
+  safety_margin = 16.0;
+  clearance = obstacle_radius + safety_margin;
+  start_radius = sqrt(clearance * (2 * R + clearance));
   delta_needed = atan(L / R);
   delta_cmd = zeros(n, 1);
+  delta_target = zeros(n, 1);
   psi = zeros(n, 1);
   x = zeros(n, 1);
   y = zeros(n, 1);
+  dist = zeros(n, 1);
+  started = zeros(n, 1);
+  collision = zeros(n, 1);
+  active = false;
+  dist(1) = sqrt((obstacle_x - x(1))^2 + (obstacle_y - y(1))^2);
   for k = 2:n
-    gate = 1 / (1 + exp(-0.85 * (t(k) - 5))) - 1 / (1 + exp(-0.55 * (t(k) - 49)));
-    target = clamp(delta_needed * gate, -delta_max, delta_max);
-    delta_cmd(k) = rate_limit(delta_cmd(k - 1), target, 10 * pi / 180, dt);
+    prev_dist = sqrt((obstacle_x - x(k - 1))^2 + (obstacle_y - y(k - 1))^2);
+    if (!active && prev_dist <= start_radius)
+      active = true;
+    endif
+    if active && psi(k - 1) < 70 * pi / 180
+      delta_target(k) = delta_needed;
+    else
+      delta_target(k) = 0;
+    endif
+    target = clamp(delta_target(k), -delta_max, delta_max);
+    delta_cmd(k) = rate_limit(delta_cmd(k - 1), target, 12 * pi / 180, dt);
     yaw_rate = v / L * tan(delta_cmd(k));
     psi(k) = psi(k - 1) + dt * yaw_rate;
     x(k) = x(k - 1) + dt * v * cos(psi(k));
     y(k) = y(k - 1) + dt * v * sin(psi(k));
+    dist(k) = sqrt((obstacle_x - x(k))^2 + (obstacle_y - y(k))^2);
+    started(k) = active;
+    collision(k) = dist(k) <= obstacle_radius;
   endfor
-  out = [t, delta_cmd * 180 / pi, psi * 180 / pi, x, y, R * ones(n, 1), delta_needed * 180 / pi * ones(n, 1)];
+  out = [t, delta_cmd * 180 / pi, psi * 180 / pi, x, y, R * ones(n, 1), ...
+    delta_needed * 180 / pi * ones(n, 1), start_radius * ones(n, 1), ...
+    obstacle_x * ones(n, 1), obstacle_y * ones(n, 1), obstacle_radius * ones(n, 1), ...
+    clearance * ones(n, 1), delta_target * 180 / pi, dist, started, collision];
 endfunction
 
 write_table(fullfile(data_dir, "sensor_no_filter.csv"), "t,r,y,ym,yf,feedback,e,u,delta", simulate_sensor_case(false));
@@ -248,6 +274,6 @@ write_table(fullfile(data_dir, "planning_feasible.csv"), "t,x,y,psi_ref,u,delta"
 write_table(fullfile(data_dir, "actuator_raw.csv"), "t,u_raw,u_sat,u_rate,ref,psi,x,y", simulate_actuator_response(1));
 write_table(fullfile(data_dir, "actuator_sat.csv"), "t,u_raw,u_sat,u_rate,ref,psi,x,y", simulate_actuator_response(2));
 write_table(fullfile(data_dir, "actuator_rate.csv"), "t,u_raw,u_sat,u_rate,ref,psi,x,y", simulate_actuator_response(3));
-write_table(fullfile(data_dir, "turn_R35.csv"), "t,delta,psi,x,y,R,delta_needed", simulate_turning_radius(35));
-write_table(fullfile(data_dir, "turn_R65.csv"), "t,delta,psi,x,y,R,delta_needed", simulate_turning_radius(65));
-write_table(fullfile(data_dir, "turn_R140.csv"), "t,delta,psi,x,y,R,delta_needed", simulate_turning_radius(140));
+write_table(fullfile(data_dir, "turn_R35.csv"), "t,delta,psi,x,y,R,delta_needed,start_radius,obstacle_x,obstacle_y,obstacle_radius,clearance,delta_target,dist,started,collision", simulate_turning_radius(35));
+write_table(fullfile(data_dir, "turn_R65.csv"), "t,delta,psi,x,y,R,delta_needed,start_radius,obstacle_x,obstacle_y,obstacle_radius,clearance,delta_target,dist,started,collision", simulate_turning_radius(65));
+write_table(fullfile(data_dir, "turn_R140.csv"), "t,delta,psi,x,y,R,delta_needed,start_radius,obstacle_x,obstacle_y,obstacle_radius,clearance,delta_target,dist,started,collision", simulate_turning_radius(140));

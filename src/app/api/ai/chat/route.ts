@@ -15,7 +15,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 180;
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
