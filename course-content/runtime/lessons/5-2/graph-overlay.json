@@ -198,14 +198,29 @@
           "泰勒展开",
           "平衡点"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+          "title": "非线性微分方程的线性化 信息图",
+          "lessonId": "5-2",
+          "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+        },
         "createdAt": "2026-02-04T17:54:16.627496",
         "updatedAt": "2026-02-04T17:54:16.627496",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md"
+        "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+          "title": "非线性微分方程的线性化 信息图",
+          "lessonId": "5-2",
+          "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+        }
       ],
       "tags": [
         "小偏差法",
@@ -219,8 +234,8 @@
       "name": "局部线性化工作点",
       "nodeType": "THEORY",
       "description": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
-      "positionX": -138.6,
-      "positionY": -80.0,
+      "positionX": -41.4,
+      "positionY": -154.5,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -253,14 +268,29 @@
           "小信号增益",
           "泰勒展开"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+          "title": "局部线性化工作点 信息图",
+          "lessonId": "5-2",
+          "nodeId": "局部线性化工作点_5_52002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/局部线性化工作点_5_52002.md"
+        "course-content/runtime/knowledge/cards/nodes/局部线性化工作点_5_52002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+          "title": "局部线性化工作点 信息图",
+          "lessonId": "5-2",
+          "nodeId": "局部线性化工作点_5_52002"
+        }
       ],
       "tags": [
         "工作点",
@@ -275,8 +305,8 @@
       "name": "描述函数适用条件",
       "nodeType": "THEORY",
       "description": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
-      "positionX": -83.0,
-      "positionY": 143.8,
+      "positionX": -160.3,
+      "positionY": -43.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -309,14 +339,29 @@
           "高次谐波",
           "描述函数"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+          "title": "描述函数适用条件 信息图",
+          "lessonId": "5-2",
+          "nodeId": "描述函数适用条件_5_52003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/描述函数适用条件_5_52003.md"
+        "course-content/runtime/knowledge/cards/nodes/描述函数适用条件_5_52003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+          "title": "描述函数适用条件 信息图",
+          "lessonId": "5-2",
+          "nodeId": "描述函数适用条件_5_52003"
+        }
       ],
       "tags": [
         "基波近似",
@@ -331,8 +376,8 @@
       "name": "自振微小扰动判断",
       "nodeType": "THEORY",
       "description": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
-      "positionX": 44.5,
-      "positionY": 166.1,
+      "positionX": -149.0,
+      "positionY": 86.0,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "PROCEDURAL",
@@ -366,14 +411,29 @@
           "稳定交点",
           "包围关系"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+          "title": "自振微小扰动判断 信息图",
+          "lessonId": "5-2",
+          "nodeId": "自振微小扰动判断_5_52004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/自振微小扰动判断_5_52004.md"
+        "course-content/runtime/knowledge/cards/nodes/自振微小扰动判断_5_52004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+          "title": "自振微小扰动判断 信息图",
+          "lessonId": "5-2",
+          "nodeId": "自振微小扰动判断_5_52004"
+        }
       ],
       "tags": [
         "微小扰动法",
@@ -388,8 +448,8 @@
       "name": "舵机死区饱和自振风险",
       "nodeType": "THEORY",
       "description": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
-      "positionX": 0.0,
-      "positionY": 172.0,
+      "positionX": -166.1,
+      "positionY": 44.5,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "FACTUAL",
@@ -424,14 +484,29 @@
           "自振风险",
           "抗积分饱和"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "title": "舵机死区饱和自振风险 信息图",
+          "lessonId": "5-2",
+          "nodeId": "舵机死区饱和自振风险_5_52005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md"
+        "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "title": "舵机死区饱和自振风险 信息图",
+          "lessonId": "5-2",
+          "nodeId": "舵机死区饱和自振风险_5_52005"
+        }
       ],
       "tags": [
         "舵机",
@@ -447,8 +522,8 @@
       "name": "非线性边界工具选择",
       "nodeType": "THEORY",
       "description": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
-      "positionX": -86.0,
-      "positionY": -149.0,
+      "positionX": 178.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -483,14 +558,29 @@
           "轨迹证据",
           "频域证据"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+          "title": "非线性边界工具选择 信息图",
+          "lessonId": "5-2",
+          "nodeId": "非线性边界工具选择_5_52001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/非线性边界工具选择_5_52001.md"
+        "course-content/runtime/knowledge/cards/nodes/非线性边界工具选择_5_52001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+          "title": "非线性边界工具选择 信息图",
+          "lessonId": "5-2",
+          "nodeId": "非线性边界工具选择_5_52001"
+        }
       ],
       "tags": [
         "工具选择",
@@ -506,8 +596,8 @@
       "name": "描述函数法",
       "nodeType": "THEORY",
       "description": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
-      "positionX": -176.8,
-      "positionY": -176.8,
+      "positionX": 241.5,
+      "positionY": -64.7,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -560,14 +650,29 @@
           "自振",
           "等效线性化"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+          "title": "描述函数法 信息图",
+          "lessonId": "5-2",
+          "nodeId": "描述函数法_8_849fa8a1"
+        },
         "createdAt": "2026-02-04T17:54:16.629345",
         "updatedAt": "2026-02-04T17:54:16.629345",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/描述函数法_8_849fa8a1.md"
+        "course-content/runtime/knowledge/cards/nodes/描述函数法_8_849fa8a1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+          "title": "描述函数法 信息图",
+          "lessonId": "5-2",
+          "nodeId": "描述函数法_8_849fa8a1"
+        }
       ],
       "tags": [
         "谐波线性化",
@@ -594,8 +699,8 @@
       "name": "死区饱和非线性",
       "nodeType": "THEORY",
       "description": "一种分段线性非线性特性，包含输入信号低于某阈值无输出（死区）和高于某阈值输出饱和的区域。",
-      "positionX": 176.8,
-      "positionY": -176.8,
+      "positionX": 66.3,
+      "positionY": 247.3,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -645,8 +750,8 @@
       "name": "相平面图",
       "nodeType": "THEORY",
       "description": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
-      "positionX": 247.3,
-      "positionY": 66.3,
+      "positionX": -181.0,
+      "positionY": 181.0,
       "positionZ": 8,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -673,14 +778,29 @@
           "开关线",
           "稳态误差"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+          "title": "相平面图 信息图",
+          "lessonId": "5-2",
+          "nodeId": "相平面图_8_bd606f51"
+        },
         "createdAt": "2026-02-04T17:54:16.629493",
         "updatedAt": "2026-02-04T17:54:16.629493",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md"
+        "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+          "title": "相平面图 信息图",
+          "lessonId": "5-2",
+          "nodeId": "相平面图_8_bd606f51"
+        }
       ],
       "tags": [
         "相轨迹",
@@ -695,8 +815,8 @@
       "name": "自振",
       "nodeType": "THEORY",
       "description": "非线性系统在没有外部周期输入时，自身产生并维持的稳定周期振荡。",
-      "positionX": -247.3,
-      "positionY": -66.3,
+      "positionX": 181.0,
+      "positionY": -181.0,
       "positionZ": 8,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -751,8 +871,8 @@
       "name": "负倒描述函数",
       "nodeType": "THEORY",
       "description": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
-      "positionX": -0.0,
-      "positionY": -256.0,
+      "positionX": 226.9,
+      "positionY": 131.0,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -783,14 +903,29 @@
           "复平面",
           "曲线"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+          "title": "负倒描述函数 信息图",
+          "lessonId": "5-2",
+          "nodeId": "负倒描述函数_8_159ff256"
+        },
         "createdAt": "2026-02-04T17:54:16.629536",
         "updatedAt": "2026-02-04T17:54:16.629537",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md"
+        "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+          "title": "负倒描述函数 信息图",
+          "lessonId": "5-2",
+          "nodeId": "负倒描述函数_8_159ff256"
+        }
       ],
       "tags": [
         "负倒数",
@@ -808,7 +943,7 @@
       "nodeType": "THEORY",
       "description": "一种常见的非线性特性，当输入超过一定范围后，输出保持为常值。",
       "positionX": -131.0,
-      "positionY": 226.9,
+      "positionY": -226.9,
       "positionZ": 8,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",

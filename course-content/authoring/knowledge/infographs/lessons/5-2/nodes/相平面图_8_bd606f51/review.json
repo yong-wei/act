@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T09:16:37.207334Z",
+  "lesson_id": "5-2",
+  "node_id": "相平面图_8_bd606f51",
+  "node_name": "相平面图",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：相轨迹、初值点、奇点、开关线和收敛/发散边界表达一致。"
+}

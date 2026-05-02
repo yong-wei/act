@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T09:55:33.125295Z",
+  "lesson_id": "5-2",
+  "node_id": "负倒描述函数_8_159ff256",
+  "node_name": "负倒描述函数",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：复平面中 G(jω) 与 -1/N(A) 的实际交点被作为自振候选，未混用 Nyquist -1 临界点。"
+}

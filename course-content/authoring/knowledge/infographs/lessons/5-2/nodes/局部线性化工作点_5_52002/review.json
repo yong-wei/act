@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T09:10:08.782671Z",
+  "lesson_id": "5-2",
+  "node_id": "局部线性化工作点_5_52002",
+  "node_name": "局部线性化工作点",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：围绕工作点、邻域、小偏差与切线近似表达局部线性化边界。"
+}

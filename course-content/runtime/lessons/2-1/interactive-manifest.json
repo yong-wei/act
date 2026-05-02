@@ -1,0 +1,2084 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-1",
+  "course_title": "2-1：建模与变换语言——从真实对象到统一分析对象",
+  "course_route_segment": "unit-2-1-modeling-language",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗仅用于看 BOPPPS 骨架；默认页面预览必须打开学生演示页，保持所见即所得。"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——为什么模块 2 先从建模语言开始",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "map-banner",
+          "region": "lead",
+          "kind": "stage-map",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "map-banner",
+            "title": "模块定位",
+            "text": "模块 1 停留在现象直觉层，2-1 要正式建立对象语言，2-2 才在这些对象上讨论时间响应。"
+          }
+        },
+        {
+          "id": "today-task",
+          "region": "summary",
+          "kind": "key-task-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "today-task",
+            "title": "今天的任务",
+            "items": [
+              "不是继续看快慢、稳不稳的表面现象。",
+              "而是把对象怎样被写出来、连起来、收束起来这条链真正立住。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "map-banner": {
+          "type": "plain_text",
+          "title": "模块定位",
+          "body": "模块 1 停留在现象直觉层，2-1 要正式建立对象语言，2-2 才在这些对象上讨论时间响应。"
+        },
+        "today-task": {
+          "type": "bullet_list",
+          "title": "今天的任务",
+          "items": [
+            "不是继续看快慢、稳不稳的表面现象。",
+            "而是把对象怎样被写出来、连起来、收束起来这条链真正立住。"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": []
+      },
+      "teacher_controls": [
+        "推进到下一页",
+        "强调模块 1 -> 模块 2 的语言层切换"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "teacherFollowSync"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "帮助学生理解 2-1 在整门课中的入口作用。",
+        "allowed_scope": [
+          "模块1现象直觉",
+          "模块2对象语言任务"
+        ],
+        "forbidden_scope": [
+          "提前展开传递函数推导",
+          "提前进入 2-2 时域指标"
+        ],
+        "canonical_facts": [
+          "2-1 的职责是建立统一分析对象。",
+          "2-2 的职责是研究这些对象在时间中的运动。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "学生演示页首屏能看到模块地图与今天任务。",
+        "本页没有作答区或简化占位卡。"
+      ]
+    },
+    "step-02": {
+      "title": "情境引入——为什么光有微分方程还不够",
+      "layout": {
+        "template": "cover_top_formula_then_judge",
+        "regions": [
+          {
+            "id": "comic",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "equation",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "core-equation",
+          "region": "equation",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "core-equation",
+            "title": "船舶航向动力学方程",
+            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)"
+          }
+        },
+        {
+          "id": "three-questions",
+          "region": "equation",
+          "kind": "question-list",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-questions",
+            "title": "只拿着这条方程还不够的三件事",
+            "items": [
+              "能不能一眼判断它属于什么对象？",
+              "它以后怎么接控制器和传感器？",
+              "它进入反馈后，整体对象怎么写？"
+            ]
+          }
+        },
+        {
+          "id": "cover-comic",
+          "region": "comic",
+          "kind": "image-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "cover-comic"
+          }
+        },
+        {
+          "id": "binary-judge",
+          "region": "interaction",
+          "kind": "binary-choice",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "core-equation",
+            "title": "船舶航向动力学方程",
+            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)"
+          }
+        }
+      ],
+      "content_blocks": {
+        "core-equation": {
+          "type": "formula",
+          "title": "船舶航向动力学方程",
+          "value": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)"
+        },
+        "three-questions": {
+          "type": "bullet_list",
+          "title": "只拿着这条方程还不够的三件事",
+          "items": [
+            "能不能一眼判断它属于什么对象？",
+            "它以后怎么接控制器和传感器？",
+            "它进入反馈后，整体对象怎么写？"
+          ]
+        },
+        "cover-comic": {
+          "type": "media",
+          "asset": "2-1-cover-comic.png"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
+        "correct_answer": "B",
+        "failure_feedback": "只提示“还缺少统一对象语言”线索，不直接解释三问答案。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "binary-judge",
+            "title": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
+            "prompt": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放二选一判断",
+        "显示正确选项及一句点评"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "teacherRevealSeen",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "equation_is_enough"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "reveal_correction_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生意识到微分方程不是后续分析的终点。",
+        "allowed_scope": [
+          "微分方程的物理意义",
+          "统一对象语言的必要性"
+        ],
+        "forbidden_scope": [
+          "完整拉氏推导",
+          "复杂反馈公式"
+        ],
+        "canonical_facts": [
+          "这一页要解决的是“为什么需要语言切换”。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式和三条追问必须在不展开互动时仍然可见。",
+        "演示页与学生页使用同一判断组件。"
+      ]
+    },
+    "step-03": {
+      "title": "学习目标——今天要建哪条对象链",
+      "layout": {
+        "template": "center_chain_slide",
+        "regions": [
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "cards",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "object-chain",
+          "region": "chain",
+          "kind": "formula-chain",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "object-chain",
+            "title": "本课主线",
+            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}"
+          }
+        },
+        {
+          "id": "goal-cards",
+          "region": "cards",
+          "kind": "goal-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "object-chain",
+            "title": "本课主线",
+            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}"
+          }
+        }
+      ],
+      "content_blocks": {
+        "object-chain": {
+          "type": "formula",
+          "title": "本课主线",
+          "value": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立整体预期，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": []
+      },
+      "teacher_controls": [
+        "逐段讲解对象链"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生先看到整条对象建立链。",
+        "allowed_scope": [
+          "六段对象链",
+          "先认对象再做连接"
+        ],
+        "forbidden_scope": [
+          "任一单段的完整推导"
+        ],
+        "canonical_facts": [
+          "整课围绕对象建立链展开。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "六段对象链必须作为页面主视觉。",
+        "目标卡片只能补充，不得替代主链。"
+      ]
+    },
+    "step-04": {
+      "title": "前测——对象、初值与结构的三个误区",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          {
+            "id": "question-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "submit-bar",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "misconception-q1",
+          "region": "question-stack",
+          "kind": "single-choice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question-stems",
+            "title": "三道误区题必须完整落页",
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+          }
+        },
+        {
+          "id": "misconception-q2",
+          "region": "question-stack",
+          "kind": "single-choice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question-stems",
+            "title": "三道误区题必须完整落页",
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+          }
+        },
+        {
+          "id": "misconception-q3",
+          "region": "question-stack",
+          "kind": "single-choice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question-stems",
+            "title": "三道误区题必须完整落页",
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "question-stems": {
+          "type": "plain_text",
+          "title": "三道误区题必须完整落页",
+          "body": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道客观题。",
+        "attempt_model": "允许重提一次，但教师端只看首答/重提分布。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "misconception-q1",
+            "title": "完成三道客观题。",
+            "prompt": "完成三道客观题。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          },
+          {
+            "id": "misconception-q2",
+            "title": "完成三道客观题。",
+            "prompt": "完成三道客观题。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          },
+          {
+            "id": "misconception-q3",
+            "title": "完成三道客观题。",
+            "prompt": "完成三道客观题。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放前测",
+        "显示统计",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "omit_zero_initial_state",
+          "calculate_before_identify",
+          "block_equals_sfg"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "解释学生为何在对象、初值和结构三件事上混淆。",
+        "allowed_scope": [
+          "误区解释",
+          "错因归类"
+        ],
+        "forbidden_scope": [
+          "代替作答",
+          "超出本页的推导"
+        ],
+        "canonical_facts": [
+          "本页目的是暴露混淆，而不是讲完答案。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三题题干在未答题时全部可读。",
+        "教师端能看到题目分布，不记录逐次点击轨迹。"
+      ]
+    },
+    "step-05": {
+      "title": "拉氏变换的工程动机",
+      "layout": {
+        "template": "table_plus_formula_plus_short_response",
+        "regions": [
+          {
+            "id": "contrast",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula-strip",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reflection",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "language-contrast",
+          "region": "contrast",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "minimum-formulas"
+          }
+        },
+        {
+          "id": "minimum-formulas",
+          "region": "formula-strip",
+          "kind": "formula-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "minimum-formulas"
+          }
+        },
+        {
+          "id": "one-line-reflection",
+          "region": "reflection",
+          "kind": "short-response",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "minimum-formulas"
+          }
+        }
+      ],
+      "content_blocks": {
+        "minimum-formulas": {
+          "type": "formula_group",
+          "values": [
+            "F(s)=\\mathcal{L}\\{f(t)\\}",
+            "\\mathcal{L}\\{\\dot f(t)\\}=sF(s)",
+            "\\mathcal{L}\\{\\ddot f(t)\\}=s^2F(s)"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "short_response",
+        "student_task": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-05-activity",
+            "title": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
+            "prompt": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "显示参考表达",
+        "点评关键词"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "submitted",
+          "aiUsed",
+          "resultState",
+          "durationBand"
+        ],
+        "misconception_tags": [
+          "laplace_as_integration_trick"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "keyword_cloud",
+          "ai_usage_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把拉氏变换讲成课程中的工程语言切换。",
+        "allowed_scope": [
+          "微分变代数",
+          "统一对象"
+        ],
+        "forbidden_scope": [
+          "积分技巧训练",
+          "复杂拉氏表推导"
+        ],
+        "canonical_facts": [
+          "这一页只讲工程动机，不讲技巧训练。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "两种语言对照和最小公式组必须同时出现。",
+        "答题区是短答，不是单选。"
+      ]
+    },
+    "step-06": {
+      "title": "零初值下传递函数怎样形成",
+      "layout": {
+        "template": "formula_explain_checklist",
+        "regions": [
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "explain-cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reason-checklist",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "transfer-definition",
+          "region": "formula-card",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "transfer-definition",
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+          }
+        },
+        {
+          "id": "object-separation",
+          "region": "explain-cards",
+          "kind": "conclusion-cards",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "transfer-definition",
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+          }
+        },
+        {
+          "id": "checklist",
+          "region": "reason-checklist",
+          "kind": "multi-check",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "transfer-definition",
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+          }
+        }
+      ],
+      "content_blocks": {
+        "transfer-definition": {
+          "type": "formula",
+          "value": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "multi_check",
+        "student_task": "勾选“对象与输入分离”的三个理由。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-06-activity",
+            "title": "勾选“对象与输入分离”的三个理由。",
+            "prompt": "勾选“对象与输入分离”的三个理由。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放勾选题",
+        "显示答案与点评"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "transfer_function_is_rewritten_equation"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "checklist_accuracy",
+          "reveal_correction_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把对象和具体输入彻底分开。",
+        "allowed_scope": [
+          "零初值定义",
+          "对象可复用"
+        ],
+        "forbidden_scope": [
+          "超出本页的完整一般式推导"
+        ],
+        "canonical_facts": [
+          "传递函数不是原方程简单改写。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式与两条结论必须在作答前已经可见。"
+      ]
+    },
+    "step-07": {
+      "title": "非零初值为什么不能混进对象定义",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          {
+            "id": "compare-table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "self-judgment",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "ai-panel",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "object-state-compare",
+          "region": "compare-table",
+          "kind": "two-column-compare",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "compare-formulas"
+          }
+        },
+        {
+          "id": "reflection-form",
+          "region": "self-judgment",
+          "kind": "three-field-form",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "compare-formulas"
+          }
+        },
+        {
+          "id": "bounded-ai",
+          "region": "ai-panel",
+          "kind": "ai-assistant",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "compare-formulas"
+          }
+        }
+      ],
+      "content_blocks": {
+        "compare-formulas": {
+          "type": "formula_group",
+          "values": [
+            "Y(s)=G(s)U(s)",
+            "Y(s)=G(s)U(s)+\\text{初值项}"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "reflection_form",
+        "student_task": "先写个人判断，再用页内 AI 对照。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-07-activity",
+            "title": "先写个人判断，再用页内 AI 对照。",
+            "prompt": "先写个人判断，再用页内 AI 对照。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放 AI 对照",
+        "显示参考答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "submitted",
+          "aiUsed",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "mix_object_and_state"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "ai_usage_rate",
+          "misconception_tags",
+          "keyword_cloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "只围绕对象项和初值项的边界解释。",
+        "allowed_scope": [
+          "对象项与初值项差别",
+          "非零初值为何额外带出状态项"
+        ],
+        "forbidden_scope": [
+          "代替学生完成三段文字",
+          "跳到时域响应分析"
+        ],
+        "canonical_facts": [
+          "AI 只能核对推理链，不能替代第一步自判。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "先自判再 AI 的流程必须显式可见。",
+        "对象项 / 初值项双列对照不能被 AI 面板替代。"
+      ]
+    },
+    "step-08": {
+      "title": "典型环节对象库：先看清对象由什么组成",
+      "layout": {
+        "template": "courseware_top_game_stage_bottom",
+        "regions": [
+          {
+            "id": "table-zone",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "map-zone",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "game-stage",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "submit-zone",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "elements-table",
+          "region": "table-zone",
+          "kind": "table-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "elements-table",
+            "title": "五类典型环节及其第一判断"
+          }
+        },
+        {
+          "id": "elements-map",
+          "region": "map-zone",
+          "kind": "image-or-table-fallback",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "elements-map"
+          }
+        },
+        {
+          "id": "drag-board",
+          "region": "game-stage",
+          "kind": "drag-match-board",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "game-rules",
+            "title": "互动舞台规则",
+            "text": "先看上方总表，再进入下方拖拽舞台。学生要把公式卡、名称卡、第一眼工程判断卡拖到同一对象槽位中；舞台允许加入干扰项，但不能把拖拽题降级成单选或文本表单。"
+          }
+        },
+        {
+          "id": "result-bar",
+          "region": "submit-zone",
+          "kind": "submit-feedback-bar",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "elements-table",
+            "title": "五类典型环节及其第一判断"
+          }
+        }
+      ],
+      "content_blocks": {
+        "elements-table": {
+          "type": "table",
+          "title": "五类典型环节及其第一判断",
+          "headers": [
+            "典型环节",
+            "传递函数形式",
+            "你应先抓住的物理或工程含义",
+            "第一眼判断"
+          ],
+          "rows": [
+            [
+              "比例环节",
+              "G(s)=K",
+              "只有比例放大或缩小，不引入动态记忆",
+              "改变强弱，不改变动态阶次"
+            ],
+            [
+              "积分环节",
+              "G(s)=1/s",
+              "输出是输入随时间的累积",
+              "引入记忆，常使系统慢慢积累"
+            ],
+            [
+              "微分环节",
+              "G(s)=s",
+              "输出更敏感于输入变化率",
+              "强调变化趋势，对快变化敏感"
+            ],
+            [
+              "一阶惯性环节",
+              "G(s)=1/(Ts+1)",
+              "存在滞后，响应不会立刻到位",
+              "不振荡，主要体现快慢差异"
+            ],
+            [
+              "振荡环节",
+              "G(s)=\\omega_n^2/(s^2+2\\zeta\\omega_n s+\\omega_n^2)",
+              "同时包含快慢与振荡特征",
+              "可能超调、振荡、再稳定"
+            ]
+          ]
+        },
+        "elements-map": {
+          "type": "media",
+          "asset": "2-1-md-01-typical-elements-map.png",
+          "fallback": "若媒体未到位，仍必须完整保留上方总表，不得删成简表。"
+        },
+        "game-rules": {
+          "type": "plain_text",
+          "title": "互动舞台规则",
+          "body": "先看上方总表，再进入下方拖拽舞台。学生要把公式卡、名称卡、第一眼工程判断卡拖到同一对象槽位中；舞台允许加入干扰项，但不能把拖拽题降级成单选或文本表单。"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "game_shell": "三列拖拽配对舞台",
+        "student_task": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
+        "draggables": [
+          "G(s)=K",
+          "G(s)=1/s",
+          "G(s)=s",
+          "G(s)=1/(Ts+1)",
+          "G(s)=\\omega_n^2/(s^2+2\\zeta\\omega_n s+\\omega_n^2)",
+          "比例环节",
+          "积分环节",
+          "微分环节",
+          "惯性环节",
+          "振荡环节",
+          "改变强弱，不改变动态阶次",
+          "引入记忆，常使系统慢慢积累",
+          "强调变化趋势，对快变化敏感",
+          "不振荡，主要体现快慢差异",
+          "可能超调、振荡、再稳定"
+        ],
+        "targets": [
+          "比例对象槽位",
+          "积分对象槽位",
+          "微分对象槽位",
+          "惯性对象槽位",
+          "振荡对象槽位"
+        ],
+        "distractors": [
+          "G(s)=1/(s(Ts+1))",
+          "先直接算总式",
+          "所有对象都先看稳态误差"
+        ],
+        "attempt_model": "允许重试；每次提交仅指出错位槽位数量和位置类型，不直接给答案。",
+        "success_feedback": "锁定正确槽位，播放成功描边和对象亮牌反馈。",
+        "failure_feedback": "高亮错位槽位，并提示“先回到上方对象总表核对”。",
+        "answer_reveal": "teacher_toggle_stepwise",
+        "activity_cards": [
+          {
+            "id": "step-08-activity",
+            "title": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
+            "prompt": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放拖拽配对舞台",
+        "逐行揭示正确映射",
+        "显示高错对象槽位"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "durationBand",
+          "hintUsed",
+          "teacherRevealSeen",
+          "misconceptionTags"
+        ],
+        "misconception_tags": [
+          "identify_after_calculation",
+          "integral_meaning_missing",
+          "inertia_vs_oscillation_confusion"
+        ],
+        "high_frequency_events_disabled": [
+          "drag_pointer_trace",
+          "every_slot_hover"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "first_pass_rate",
+          "retry_rate",
+          "error_hotspots",
+          "misconception_tag_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "帮助学生建立典型环节第一眼识别能力。",
+        "allowed_scope": [
+          "典型环节第一眼识别",
+          "先认对象再做运算",
+          "五类对象的最小判断"
+        ],
+        "forbidden_scope": [
+          "提前展开2-2时域响应分析",
+          "直接替学生完成拖拽答案",
+          "讲复杂组合对象化简技巧"
+        ],
+        "canonical_facts": [
+          "典型环节对象库是后续全课的标准对象库。",
+          "这一步的重点是识别，不是化简。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-08",
+        "must_match_student_page": true,
+        "preview_note": "默认预览必须打开学生演示页并直接显示拖拽舞台。"
+      },
+      "acceptance_checks": [
+        "上方总表必须完整落页，不得只剩缩略卡。",
+        "学生演示页必须看到真实拖拽舞台，而不是文本问答替代品。",
+        "教师端汇总只展示首过率、重试率和错因标签，不保存逐拖动轨迹。"
+      ]
+    },
+    "step-09": {
+      "title": "结构图三类基本连接",
+      "layout": {
+        "template": "formula_strip_plus_rule_check",
+        "regions": [
+          {
+            "id": "formula-strip",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "rule-cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "judge-zone",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "three-formulas",
+          "region": "formula-strip",
+          "kind": "formula-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-formulas"
+          }
+        },
+        {
+          "id": "rule-cards",
+          "region": "rule-cards",
+          "kind": "rule-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-formulas"
+          }
+        },
+        {
+          "id": "judge-zone",
+          "region": "judge-zone",
+          "kind": "judge-form",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-formulas"
+          }
+        }
+      ],
+      "content_blocks": {
+        "three-formulas": {
+          "type": "formula_group",
+          "values": [
+            "G(s)=G_1(s)G_2(s)",
+            "G(s)=G_1(s)+G_2(s)",
+            "\\frac{Y(s)}{R(s)}=\\frac{G(s)}{1+G(s)H(s)}"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "rule_judge",
+        "student_task": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-09-activity",
+            "title": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
+            "prompt": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放判断任务",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "misconceptionTags"
+        ],
+        "misconception_tags": [
+          "feedback_as_sum",
+          "parallel_as_product"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "feedback_explanation_keywords"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把串联、并联、反馈三类规则立住。",
+        "allowed_scope": [
+          "三类基本连接",
+          "反馈的核心意义"
+        ],
+        "forbidden_scope": [
+          "复杂结构图比较点移动"
+        ],
+        "canonical_facts": [
+          "今天只保三类主工具，不展开复杂化简。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三条公式在作答前必须完整可见。"
+      ]
+    },
+    "step-10": {
+      "title": "船舶航向系统：把对象真正连成系统",
+      "layout": {
+        "template": "engineering_block_diagram",
+        "regions": [
+          {
+            "id": "diagram",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "role-cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "feedback-task",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "ship-diagram",
+          "region": "diagram",
+          "kind": "engineering-diagram",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-diagram"
+          }
+        },
+        {
+          "id": "role-cards",
+          "region": "role-cards",
+          "kind": "role-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-diagram"
+          }
+        },
+        {
+          "id": "feedback-task",
+          "region": "feedback-task",
+          "kind": "short-response",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-diagram"
+          }
+        }
+      ],
+      "content_blocks": {
+        "ship-diagram": {
+          "type": "media",
+          "asset": "2-1-md-05-ship-heading-physical-blocks.png"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "hotspot_labeling",
+        "student_task": "指出反馈信号，并说明传感器怎样把闭环关上。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-10-activity",
+            "title": "指出反馈信号，并说明传感器怎样把闭环关上。",
+            "prompt": "指出反馈信号，并说明传感器怎样把闭环关上。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "显示反馈信号高亮",
+        "显示参考答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "sensor_role_unclear"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "hotspot_accuracy",
+          "common_feedback_errors"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生把抽象对象放回真实工程结构。",
+        "allowed_scope": [
+          "控制器/舵机/船体/传感器分工",
+          "反馈信号"
+        ],
+        "forbidden_scope": [
+          "超出当前系统的复杂建模细节"
+        ],
+        "canonical_facts": [
+          "结构图是在表达对象怎样组成系统。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "结构图和四个角色说明必须同屏可见。"
+      ]
+    },
+    "step-11": {
+      "title": "方框图为什么还不够：信号流图补位",
+      "layout": {
+        "template": "comparison_slide",
+        "regions": [
+          {
+            "id": "left-diagram",
+            "width": "1/2",
+            "order": 1
+          },
+          {
+            "id": "right-diagram",
+            "width": "1/2",
+            "order": 2
+          },
+          {
+            "id": "comparison-table",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "diagram-comparison",
+          "region": "left-diagram",
+          "kind": "dual-diagram",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diagram-comparison"
+          }
+        },
+        {
+          "id": "task-table",
+          "region": "comparison-table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diagram-comparison"
+          }
+        }
+      ],
+      "content_blocks": {
+        "diagram-comparison": {
+          "type": "media",
+          "asset": "2-1-md-06-block-vs-sfg.png"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "bucket_sort",
+        "student_task": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-11-activity",
+            "title": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
+            "prompt": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放任务分工拖拽",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "misconceptionTags"
+        ],
+        "misconception_tags": [
+          "block_equals_sfg"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "task_assignment_accuracy"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把两种图形语言的分工说清。",
+        "allowed_scope": [
+          "模块连接",
+          "路径与回路"
+        ],
+        "forbidden_scope": [
+          "梅森公式细算"
+        ],
+        "canonical_facts": [
+          "信号流图不是方框图换个名字。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "至少保留一张方框图/信号流图对照图。"
+      ]
+    },
+    "step-12": {
+      "title": "梅森公式的最小使用集",
+      "layout": {
+        "template": "formula_then_term_match",
+        "regions": [
+          {
+            "id": "formula-zone",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "term-cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "match-stage",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "mason-formula",
+          "region": "formula-zone",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "mason-formula",
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+          }
+        },
+        {
+          "id": "term-defs",
+          "region": "term-cards",
+          "kind": "definition-cards",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "mason-formula",
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+          }
+        },
+        {
+          "id": "term-match",
+          "region": "match-stage",
+          "kind": "drag-match-board",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "mason-formula",
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+          }
+        }
+      ],
+      "content_blocks": {
+        "mason-formula": {
+          "type": "formula",
+          "value": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "student_task": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
+        "distractors": [
+          "局部模块",
+          "传感器噪声"
+        ],
+        "answer_reveal": "teacher_toggle_stepwise",
+        "activity_cards": [
+          {
+            "id": "step-12-activity",
+            "title": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
+            "prompt": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放术语配对",
+        "逐项揭示正确关系"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "misconceptionTags",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "delta_as_loop",
+          "touching_definition_blur"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "term_accuracy",
+          "common_term_confusions"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "只保留梅森公式最小使用集。",
+        "allowed_scope": [
+          "前向通路",
+          "回路",
+          "互不接触回路",
+          "余子式"
+        ],
+        "forbidden_scope": [
+          "复杂多回路数值代入技巧"
+        ],
+        "canonical_facts": [
+          "本页是术语理解，不是技巧堆叠。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式本体必须先可见，再进入术语配对。",
+        "互动不能退化为文本选择题。"
+      ]
+    },
+    "step-13": {
+      "title": "例题一：单回路闭环对象如何收束",
+      "layout": {
+        "template": "prompt_image_then_worked_example",
+        "regions": [
+          {
+            "id": "diagram-zone",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "step-cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "check-zone",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "example-steps",
+          "region": "step-cards",
+          "kind": "worked-example-cards",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "forward-formula",
+            "formula": "G(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}"
+          }
+        },
+        {
+          "id": "loop-diagram",
+          "region": "diagram-zone",
+          "kind": "diagram-pair",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closed-loop-formula",
+            "formula": "\\Phi(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}"
+          }
+        },
+        {
+          "id": "channel-check",
+          "region": "check-zone",
+          "kind": "choice-check",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diagrams"
+          }
+        }
+      ],
+      "content_blocks": {
+        "forward-formula": {
+          "type": "formula",
+          "value": "G(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}"
+        },
+        "closed-loop-formula": {
+          "type": "formula",
+          "value": "\\Phi(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}"
+        },
+        "diagrams": {
+          "type": "media_group",
+          "assets": [
+            "2-1-md-07-example-ship-loop.png",
+            "2-1-md-08-example-ship-sfg.png"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "choice_check",
+        "student_task": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "step-13-activity",
+            "title": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
+            "prompt": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放例题判断",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "misconceptionTags"
+        ],
+        "misconception_tags": [
+          "local_module_as_final_object"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "closed_loop_focus_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把例题组织顺序和闭环对象结论讲清。",
+        "allowed_scope": [
+          "对象识别",
+          "前向通路",
+          "闭环对象",
+          "信号流图验证"
+        ],
+        "forbidden_scope": [
+          "展开无关的参数讨论"
+        ],
+        "canonical_facts": [
+          "例题最终分析的是闭环对象。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "前向通路总式和闭环总式都必须显式写出。"
+      ]
+    },
+    "step-14": {
+      "title": "补充辨析：余子式为什么不一定等于 1",
+      "layout": {
+        "template": "prompt_image_then_path_reasoning",
+        "regions": [
+          {
+            "id": "highlight-stage",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula-chain",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "explain-box",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "formula-chain",
+          "region": "formula-chain",
+          "kind": "formula-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula-chain"
+          }
+        },
+        {
+          "id": "sfg-stage",
+          "region": "highlight-stage",
+          "kind": "path-highlight-stage",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "sfg-stage"
+          }
+        },
+        {
+          "id": "reason-box",
+          "region": "explain-box",
+          "kind": "single-reason-response",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula-chain"
+          }
+        }
+      ],
+      "content_blocks": {
+        "formula-chain": {
+          "type": "formula_group",
+          "values": [
+            "P_1=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}",
+            "L_1=-\\frac{K_cK_pK_h}{s(T_as+1)(T_ps+1)}",
+            "\\Delta=1-L_1",
+            "\\Delta_1=1"
+          ]
+        },
+        "sfg-stage": {
+          "type": "media",
+          "asset": "2-1-md-14-example2-sfg.png"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "path_highlight",
+        "student_task": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
+        "answer_reveal": "teacher_toggle_stepwise",
+        "activity_cards": [
+          {
+            "id": "step-14-activity",
+            "title": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
+            "prompt": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "逐层高亮前向通路",
+        "逐层高亮局部回路",
+        "显示参考解释"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "misconceptionTags",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "non_touching_loops_vs_non_touching_path"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "highlight_accuracy",
+          "common_contact_confusions"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "帮助学生把“回路之间互不接触”和“回路不接触该前向通路”分开。",
+        "allowed_scope": [
+          "接触关系",
+          "何时出现 Delta_k"
+        ],
+        "forbidden_scope": [
+          "跳过接触判定直接给结论"
+        ],
+        "canonical_facts": [
+          "只有存在不接触该前向通路的局部回路时，才讨论 Delta_k 保留。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "前向通路、局部回路与接触判定必须具备可视化高亮。",
+        "不能只剩一句口头结论。"
+      ]
+    },
+    "step-15": {
+      "title": "后测——会不会用对象语言复述本课",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          {
+            "id": "quiz-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "distribution",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "post-quiz",
+          "region": "quiz-stack",
+          "kind": "quiz-group",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "post-quiz",
+            "text": "三题分别检查零初值、典型环节识别和余子式判断。"
+          }
+        },
+        {
+          "id": "distribution",
+          "region": "distribution",
+          "kind": "teacher-only-distribution",
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "post-quiz",
+            "text": "三题分别检查零初值、典型环节识别和余子式判断。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "post-quiz": {
+          "type": "plain_text",
+          "body": "三题分别检查零初值、典型环节识别和余子式判断。"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成后测三题。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "post-quiz",
+            "title": "完成后测三题。",
+            "prompt": "完成后测三题。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": [
+        "释放后测",
+        "显示全班分布",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "zero_initial_state",
+          "typical_element_identification",
+          "delta_k_judgment"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_error_question"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "帮助学生定位自己仍卡在对象定义、结构表达还是余子式判断。",
+        "allowed_scope": [
+          "错因定位",
+          "对象语言复述"
+        ],
+        "forbidden_scope": [
+          "代替学生完成后测"
+        ],
+        "canonical_facts": [
+          "本页以错因定位为主。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "后测分布只在教师端显示聚合结果。"
+      ]
+    },
+    "step-16": {
+      "title": "总结——对象语言已建立，下一课进入响应分析",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          {
+            "id": "summary-chain",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "finished-steps",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "next-lesson",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "summary-chain",
+          "region": "summary-chain",
+          "kind": "summary-chain",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary-chain",
+            "text": "对象建立 -> 对象识别 -> 结构表达 -> 总体对象"
+          }
+        },
+        {
+          "id": "summary-image",
+          "region": "finished-steps",
+          "kind": "summary-image",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary-image"
+          }
+        }
+      ],
+      "content_blocks": {
+        "summary-chain": {
+          "type": "plain_text",
+          "body": "对象建立 -> 对象识别 -> 结构表达 -> 总体对象"
+        },
+        "summary-image": {
+          "type": "media",
+          "asset": "2-1-info.png"
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读收束与下一课过渡。",
+        "answer_reveal": "none",
+        "activity_cards": []
+      },
+      "teacher_controls": [
+        "口头收束并过渡到 2-2"
+      ],
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "session_finalize_ready"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用四个关键词收束本课，并把视角推进到下一课。",
+        "allowed_scope": [
+          "对象建立",
+          "对象识别",
+          "结构表达",
+          "总体对象",
+          "2-2 过渡"
+        ],
+        "forbidden_scope": [
+          "提前展开时域响应具体公式"
+        ],
+        "canonical_facts": [
+          "对象已立住，下一课开始看对象怎样在时间里运动。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总结页必须显式写出四段主线结论和下一课入口。"
+      ]
+    }
+  }
+}

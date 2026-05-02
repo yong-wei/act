@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T10:13:09.262482Z",
+  "lesson_id": "5-2",
+  "node_id": "舵机死区饱和自振风险_5_52005",
+  "node_name": "舵机死区饱和自振风险",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：舵机死区/饱和、航向闭环、闭环振荡、自振风险和风险复核表达一致。"
+}

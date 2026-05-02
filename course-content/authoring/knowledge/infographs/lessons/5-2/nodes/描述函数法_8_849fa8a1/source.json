@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:31:45.531653Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "描述函数与非线性特性"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "描述函数法_8_849fa8a1",
+    "name": "描述函数法",
+    "name_en": "Describing Function Method",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
+    "examples": [
+      "用于分析无外作用下非线性系统的稳定性和自振荡问题。",
+      "例 8-3 和例 8-4 计算了继电特性和特定非线性元件的描述函数。",
+      "用于分析具有饱和非线性、死区非线性等典型非线性特性的控制系统稳定性。",
+      "例8-5和例8-6中，通过绘制负倒描述函数曲线和线性部分奈奎斯特曲线，判断系统稳定性。",
+      "分析死区继电特性非线性系统的自振荡存在性与稳定性。",
+      "通过绘制负倒描述函数曲线与线性部分奈奎斯特曲线判断系统稳定性。",
+      "通过绘制G(jω)曲线和-1/N(A)曲线，根据交点判断自振的存在与稳定性。",
+      "用于分析具有死区、饱和、继电器等非线性特性的系统稳定性"
+    ],
+    "formulas": [
+      "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+    ],
+    "keywords": [
+      "谐波线性化",
+      "频率法",
+      "稳定性分析",
+      "频率特性",
+      "一次谐波",
+      "近似分析",
+      "自振荡",
+      "负倒描述函数",
+      "稳定性判据",
+      "周期运动",
+      "非线性系统",
+      "奈奎斯特曲线",
+      "非线性分析",
+      "频率响应",
+      "自振",
+      "等效线性化",
+      "描述函数"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/描述函数法_8_849fa8a1.md",
+  "card_frontmatter": {
+    "node_id": "描述函数法_8_849fa8a1",
+    "name": "描述函数法",
+    "name_en": "Describing Function Method",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "描述函数"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-static-nonlinearity-characteristics.png"
+    ]
+  },
+  "card_overview": "# 描述函数法\n\n核心定义：保留非线性环节正弦输出中的基波，把它近似为幅值相关复增益。\n\n关键公式：\n\n$$\nN(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}\n$$\n\n关联节点：描述函数适用条件、负倒描述函数\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 描述函数法\n\n核心定义：保留非线性环节正弦输出中的基波，把它近似为幅值相关复增益。\n\n关键公式：\n\n$$\nN(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}\n$$\n\n关联节点：描述函数适用条件、负倒描述函数\n\n---\n\n## 详情页\n\n描述函数法把部分非线性问题放回频域比较。它适合继电、饱和、死区、滞环、间隙等典型环节的自振边界估计。\n\n核心限制是基波近似。若线性部分不能有效衰减高次谐波，描述函数交点只能作为预警线索。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "正弦函数",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹法",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹图",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅频曲线",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数相频曲线",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环幅相特性曲线",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率响应实验",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "奈奎斯特曲线",
+      "target_id": null,
+      "target": "描述函数法",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用物理对象或信号通道的分层剖面解释近似模型的生成机制和边界。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "描述函数法",
+        "谐波线性化",
+        "频率法",
+        "稳定性分析",
+        "频率特性",
+        "一次谐波",
+        "近似分析",
+        "自振荡",
+        "负倒描述函数"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

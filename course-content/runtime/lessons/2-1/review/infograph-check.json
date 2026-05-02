@@ -1,0 +1,166 @@
+{
+  "lesson_id": "2-1",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/2-1/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/2-1/nodes",
+  "card_order": [
+    "微分方程_2_775c96a3",
+    "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
+    "零初值传递函数_2_21001",
+    "传递函数_1_5b0faf8b",
+    "典型环节对象库_2_21002",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6",
+    "结构图_2_3f312ccc",
+    "闭环传递函数_2_5399c369",
+    "信号流图_2_372d4084",
+    "前向通路_1_7d1c792e",
+    "回路_2_e1adbdfa",
+    "余因子式_2_1da0d7e8",
+    "梅森增益公式_2_419eab0c",
+    "余子式接触判定_2_21003"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "微分方程_2_775c96a3",
+    "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
+    "零初值传递函数_2_21001",
+    "传递函数_1_5b0faf8b",
+    "典型环节对象库_2_21002",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6",
+    "结构图_2_3f312ccc",
+    "闭环传递函数_2_5399c369",
+    "信号流图_2_372d4084",
+    "前向通路_1_7d1c792e",
+    "回路_2_e1adbdfa",
+    "余因子式_2_1da0d7e8",
+    "梅森增益公式_2_419eab0c",
+    "余子式接触判定_2_21003"
+  ],
+  "missing_source_files": {
+    "微分方程_2_775c96a3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "拉氏变换工程动机_2_11001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "船舶航向控制对象_2_21004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "零初值传递函数_2_21001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "传递函数_1_5b0faf8b": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "典型环节对象库_2_21002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "比例环节_2_11004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "积分环节_2_11005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "微分环节_2_11006": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "惯性环节_2_11007": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "振荡环节_5_d677d1e6": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "结构图_2_3f312ccc": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "闭环传递函数_2_5399c369": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "信号流图_2_372d4084": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "前向通路_1_7d1c792e": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "回路_2_e1adbdfa": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "余因子式_2_1da0d7e8": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "梅森增益公式_2_419eab0c": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "余子式接触判定_2_21003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

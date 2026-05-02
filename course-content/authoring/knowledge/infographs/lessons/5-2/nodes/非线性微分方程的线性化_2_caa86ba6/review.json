@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T09:13:41.845964Z",
+  "lesson_id": "5-2",
+  "node_id": "非线性微分方程的线性化_2_caa86ba6",
+  "node_name": "非线性微分方程的线性化",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：原方程、平衡点、一阶近似、小偏差法与线性化系数表达一致。"
+}

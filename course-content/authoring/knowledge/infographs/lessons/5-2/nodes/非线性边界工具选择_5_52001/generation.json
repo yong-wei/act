@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:05:10.278436Z",
+  "lesson_id": "5-2",
+  "node_id": "非线性边界工具选择_5_52001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019de7e9-3300-7243-ba29-a39ac83f5d48/ig_057a4c5cb12ac4230169f5bda4bfc08191bacb456f8765c8c6.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/5-2/nodes/非线性边界工具选择_5_52001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/5-2/nodes/非线性边界工具选择_5_52001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/5-2/nodes/非线性边界工具选择_5_52001/source.json"
+}

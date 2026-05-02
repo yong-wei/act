@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:31:45.613870Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "描述函数与非线性特性",
+      "舵机案例与课程收束"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "描述函数适用条件_5_52003",
+    "name": "描述函数适用条件",
+    "name_en": "Applicability Conditions of Describing Function Method",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
+    "examples": [
+      "继电、饱和、死区等非线性与惯性型或含积分型线性部分串联时，可用描述函数估计自振边界。"
+    ],
+    "formulas": [
+      "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+    ],
+    "keywords": [
+      "基波近似",
+      "低通滤波",
+      "高次谐波",
+      "描述函数"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/描述函数适用条件_5_52003.md",
+  "card_frontmatter": {
+    "node_id": "描述函数适用条件_5_52003",
+    "name": "描述函数适用条件",
+    "name_en": "Applicability Conditions of Describing Function Method",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "基波近似"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-nonlinear-feedback-block.png"
+    ]
+  },
+  "card_overview": "# 描述函数适用条件\n\n核心定义：描述函数法可信的关键是非线性集中、基波主导、线性部分能滤掉高次谐波。\n\n关联节点：描述函数法、负倒描述函数\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 描述函数适用条件\n\n核心定义：描述函数法可信的关键是非线性集中、基波主导、线性部分能滤掉高次谐波。\n\n关联节点：描述函数法、负倒描述函数\n\n---\n\n## 详情页\n\n常用条件：\n\n- 主要非线性可以等效集中为一个环节。\n- 非线性环节在正弦输入下的基波代表主要输出。\n- 线性部分具有较好的低通滤波特性。\n- 分析目标是自由系统稳定性和自振边界。\n\n条件不满足时，交点仍有提示价值，但不能直接作为工程结论。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "描述函数适用条件",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "leads_to",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "舵机死区饱和自振风险",
+      "target_id": null,
+      "target": "描述函数适用条件",
+      "relation": "instance_of",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "描述函数法",
+      "target_id": null,
+      "target": "描述函数适用条件",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "描述函数法_8_849fa8a1",
+      "source": "描述函数法",
+      "target_id": "描述函数适用条件_5_52003",
+      "target": "描述函数适用条件",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "描述函数适用条件_5_52003",
+      "source": "描述函数适用条件",
+      "target_id": "负倒描述函数_8_159ff256",
+      "target": "负倒描述函数",
+      "relation": "leads_to",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "舵机死区饱和自振风险_5_52005",
+      "source": "舵机死区饱和自振风险",
+      "target_id": "描述函数适用条件_5_52003",
+      "target": "描述函数适用条件",
+      "relation": "instance_of",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "process_board",
+      "name": "流程板",
+      "description": "用连续判断步骤表达何时选用某类非线性分析工具及其使用边界。"
+    },
+    "layout_contract": "16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；每步只放一个图像动作或技术小窗；底部一条结论/边界条。",
+    "text_contract": {
+      "allowed_labels": [
+        "描述函数适用条件",
+        "基波近似",
+        "低通滤波",
+        "高次谐波",
+        "描述函数"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

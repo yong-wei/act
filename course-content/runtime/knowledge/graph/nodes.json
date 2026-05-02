@@ -6685,14 +6685,29 @@
         "泰勒展开",
         "平衡点"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+        "title": "非线性微分方程的线性化 信息图",
+        "lessonId": "5-2",
+        "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+      },
       "createdAt": "2026-02-04T17:54:16.627496",
       "updatedAt": "2026-02-04T17:54:16.627496",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md"
+      "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
+        "title": "非线性微分方程的线性化 信息图",
+        "lessonId": "5-2",
+        "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+      }
     ],
     "tags": [
       "小偏差法",
@@ -20019,14 +20034,29 @@
         "小信号增益",
         "泰勒展开"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+        "title": "局部线性化工作点 信息图",
+        "lessonId": "5-2",
+        "nodeId": "局部线性化工作点_5_52002"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/局部线性化工作点_5_52002.md"
+      "course-content/runtime/knowledge/cards/nodes/局部线性化工作点_5_52002.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
+        "title": "局部线性化工作点 信息图",
+        "lessonId": "5-2",
+        "nodeId": "局部线性化工作点_5_52002"
+      }
     ],
     "tags": [
       "工作点",
@@ -21128,14 +21158,29 @@
         "高次谐波",
         "描述函数"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+        "title": "描述函数适用条件 信息图",
+        "lessonId": "5-2",
+        "nodeId": "描述函数适用条件_5_52003"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/描述函数适用条件_5_52003.md"
+      "course-content/runtime/knowledge/cards/nodes/描述函数适用条件_5_52003.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
+        "title": "描述函数适用条件 信息图",
+        "lessonId": "5-2",
+        "nodeId": "描述函数适用条件_5_52003"
+      }
     ],
     "tags": [
       "基波近似",
@@ -22286,14 +22331,29 @@
         "稳定交点",
         "包围关系"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+        "title": "自振微小扰动判断 信息图",
+        "lessonId": "5-2",
+        "nodeId": "自振微小扰动判断_5_52004"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/自振微小扰动判断_5_52004.md"
+      "course-content/runtime/knowledge/cards/nodes/自振微小扰动判断_5_52004.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
+        "title": "自振微小扰动判断 信息图",
+        "lessonId": "5-2",
+        "nodeId": "自振微小扰动判断_5_52004"
+      }
     ],
     "tags": [
       "微小扰动法",
@@ -22344,14 +22404,29 @@
         "自振风险",
         "抗积分饱和"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+        "title": "舵机死区饱和自振风险 信息图",
+        "lessonId": "5-2",
+        "nodeId": "舵机死区饱和自振风险_5_52005"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md"
+      "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+        "title": "舵机死区饱和自振风险 信息图",
+        "lessonId": "5-2",
+        "nodeId": "舵机死区饱和自振风险_5_52005"
+      }
     ],
     "tags": [
       "舵机",
@@ -23042,14 +23117,29 @@
         "轨迹证据",
         "频域证据"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+        "title": "非线性边界工具选择 信息图",
+        "lessonId": "5-2",
+        "nodeId": "非线性边界工具选择_5_52001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/非线性边界工具选择_5_52001.md"
+      "course-content/runtime/knowledge/cards/nodes/非线性边界工具选择_5_52001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
+        "title": "非线性边界工具选择 信息图",
+        "lessonId": "5-2",
+        "nodeId": "非线性边界工具选择_5_52001"
+      }
     ],
     "tags": [
       "工具选择",
@@ -30161,14 +30251,29 @@
         "自振",
         "等效线性化"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+        "title": "描述函数法 信息图",
+        "lessonId": "5-2",
+        "nodeId": "描述函数法_8_849fa8a1"
+      },
       "createdAt": "2026-02-04T17:54:16.629345",
       "updatedAt": "2026-02-04T17:54:16.629345",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/描述函数法_8_849fa8a1.md"
+      "course-content/runtime/knowledge/cards/nodes/描述函数法_8_849fa8a1.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
+        "title": "描述函数法 信息图",
+        "lessonId": "5-2",
+        "nodeId": "描述函数法_8_849fa8a1"
+      }
     ],
     "tags": [
       "谐波线性化",
@@ -30671,14 +30776,29 @@
         "开关线",
         "稳态误差"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+        "title": "相平面图 信息图",
+        "lessonId": "5-2",
+        "nodeId": "相平面图_8_bd606f51"
+      },
       "createdAt": "2026-02-04T17:54:16.629493",
       "updatedAt": "2026-02-04T17:54:16.629493",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md"
+      "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
+        "title": "相平面图 信息图",
+        "lessonId": "5-2",
+        "nodeId": "相平面图_8_bd606f51"
+      }
     ],
     "tags": [
       "相轨迹",
@@ -31497,14 +31617,29 @@
         "复平面",
         "曲线"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+        "title": "负倒描述函数 信息图",
+        "lessonId": "5-2",
+        "nodeId": "负倒描述函数_8_159ff256"
+      },
       "createdAt": "2026-02-04T17:54:16.629536",
       "updatedAt": "2026-02-04T17:54:16.629537",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md"
+      "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
+        "title": "负倒描述函数 信息图",
+        "lessonId": "5-2",
+        "nodeId": "负倒描述函数_8_159ff256"
+      }
     ],
     "tags": [
       "负倒数",

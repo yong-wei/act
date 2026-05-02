@@ -13,8 +13,7 @@
     "自振微小扰动判断_5_52004",
     "舵机死区饱和自振风险_5_52005"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "非线性边界工具选择_5_52001",
     "局部线性化工作点_5_52002",
     "非线性微分方程的线性化_2_caa86ba6",
@@ -25,62 +24,8 @@
     "自振微小扰动判断_5_52004",
     "舵机死区饱和自振风险_5_52005"
   ],
-  "missing_source_files": {
-    "非线性边界工具选择_5_52001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "局部线性化工作点_5_52002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "非线性微分方程的线性化_2_caa86ba6": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "相平面图_8_bd606f51": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "描述函数法_8_849fa8a1": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "描述函数适用条件_5_52003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "负倒描述函数_8_159ff256": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "自振微小扰动判断_5_52004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "舵机死区饱和自振风险_5_52005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

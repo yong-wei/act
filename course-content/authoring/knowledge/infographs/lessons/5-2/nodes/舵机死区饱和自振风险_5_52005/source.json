@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:31:45.864417Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "舵机案例与课程收束"
+    ],
+    "card_order_index": 9
+  },
+  "node": {
+    "id": "舵机死区饱和自振风险_5_52005",
+    "name": "舵机死区饱和自振风险",
+    "name_en": "Limit-Cycle Risk from Rudder Dead Zone and Saturation",
+    "category": "事实性",
+    "knowledge_type": "X",
+    "bloom_level": "评价",
+    "definition": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
+    "examples": [
+      "低速进港时，高 PI 增益叠加舵机死区和饱和，可能让航向误差和舵角形成周期振荡。"
+    ],
+    "formulas": [
+      "G(s)=\\frac{K}{s(s+1)(0.2s+1)}"
+    ],
+    "keywords": [
+      "舵机",
+      "死区",
+      "饱和",
+      "自振风险",
+      "抗积分饱和",
+      "船舶案例"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md",
+  "card_frontmatter": {
+    "node_id": "舵机死区饱和自振风险_5_52005",
+    "name": "舵机死区饱和自振风险",
+    "name_en": "Limit-Cycle Risk from Rudder Dead Zone and Saturation",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "事实性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "船舶案例"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-ship-rudder-actuator-case.png",
+      "course-content/authoring/lessons/5-2/media/processed/5-2-ship-rudder-actuator-case-sim.png"
+    ]
+  },
+  "card_overview": "# 舵机死区饱和自振风险\n\n核心定义：舵机死区、限幅和机械间隙可能与航向回路共同形成周期振荡。\n\n关键直觉：自振不是只由控制器参数决定，也来自执行器结构边界。\n\n关联节点：死区饱和非线性、自振微小扰动判断\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 舵机死区饱和自振风险\n\n核心定义：舵机死区、限幅和机械间隙可能与航向回路共同形成周期振荡。\n\n关键直觉：自振不是只由控制器参数决定，也来自执行器结构边界。\n\n关联节点：死区饱和非线性、自振微小扰动判断\n\n---\n\n## 详情页\n\n低速进港的小航向保持场景中，高 PI 增益可能让误差反复穿过舵机死区，执行器在无动作和突然动作之间切换。若负倒描述函数与 $G(j\\omega)$ 存在稳定交点，就可能形成舵角和航向误差的自持振荡。\n\n整改方向包括降低中低频增益、加入抗积分饱和、维护或补偿死区与间隙、调整滤波或相位校正，并用含执行器非线性的时域仿真和试验复核。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "舵机死区饱和自振风险",
+      "target_id": null,
+      "target": "自振微小扰动判断",
+      "relation": "related",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "舵机死区饱和自振风险",
+      "target_id": null,
+      "target": "描述函数适用条件",
+      "relation": "instance_of",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "舵机死区饱和自振风险_5_52005",
+      "source": "舵机死区饱和自振风险",
+      "target_id": "描述函数适用条件_5_52003",
+      "target": "描述函数适用条件",
+      "relation": "instance_of",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "舵机死区饱和自振风险_5_52005",
+      "source": "舵机死区饱和自振风险",
+      "target_id": "自振微小扰动判断_5_52004",
+      "target": "自振微小扰动判断",
+      "relation": "related",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把轨线、交点、微扰和工程波形组织成证据评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "舵机死区饱和自振风险",
+        "舵机",
+        "死区",
+        "饱和",
+        "自振风险",
+        "抗积分饱和",
+        "船舶案例"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G(s)=\\frac{K}{s(s+1)(0.2s+1)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

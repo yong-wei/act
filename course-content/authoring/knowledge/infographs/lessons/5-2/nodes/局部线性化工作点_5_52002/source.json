@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:31:45.249197Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "局部线性化与相平面"
+    ],
+    "card_order_index": 2
+  },
+  "node": {
+    "id": "局部线性化工作点_5_52002",
+    "name": "局部线性化工作点",
+    "name_en": "Operating Point in Local Linearization",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
+    "examples": [
+      "同一条 y=tanh x 曲线在 x0=0 和 x0=1 附近得到不同斜率。"
+    ],
+    "formulas": [
+      "\\Delta y\\approx f'(x_0)\\Delta x"
+    ],
+    "keywords": [
+      "工作点",
+      "增量变量",
+      "小信号增益",
+      "泰勒展开"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/局部线性化工作点_5_52002.md",
+  "card_frontmatter": {
+    "node_id": "局部线性化工作点_5_52002",
+    "name": "局部线性化工作点",
+    "name_en": "Operating Point in Local Linearization",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "工作点"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-nonlinear-tool-comparison.png"
+    ]
+  },
+  "card_overview": "# 局部线性化工作点\n\n核心定义：线性化模型只描述指定工作点附近的增量关系。\n\n关键公式：\n\n$$\n\\Delta y\\approx f'(x_0)\\Delta x\n$$\n\n关联节点：非线性微分方程的线性化\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 局部线性化工作点\n\n核心定义：线性化模型只描述指定工作点附近的增量关系。\n\n关键公式：\n\n$$\n\\Delta y\\approx f'(x_0)\\Delta x\n$$\n\n关联节点：非线性微分方程的线性化\n\n---\n\n## 详情页\n\n同一条非线性曲线在不同工作点附近会得到不同斜率。以 $y=\\tanh x$ 为例，$x_0=0$ 附近斜率为 1，$x_0=1$ 附近斜率约为 0.420。\n\n判断局部线性化是否可信时，应同时看工作点、扰动幅值和是否触碰饱和、死区或切换边界。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "非线性边界工具选择",
+      "target_id": null,
+      "target": "局部线性化工作点",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非线性微分方程的线性化",
+      "target_id": null,
+      "target": "局部线性化工作点",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "非线性边界工具选择_5_52001",
+      "source": "非线性边界工具选择",
+      "target_id": "局部线性化工作点_5_52002",
+      "target": "局部线性化工作点",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "非线性微分方程的线性化_2_caa86ba6",
+      "source": "非线性微分方程的线性化",
+      "target_id": "局部线性化工作点_5_52002",
+      "target": "局部线性化工作点",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用物理对象或信号通道的分层剖面解释近似模型的生成机制和边界。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "局部线性化工作点",
+        "工作点",
+        "增量变量",
+        "小信号增益",
+        "泰勒展开"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\Delta y\\approx f'(x_0)\\Delta x"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

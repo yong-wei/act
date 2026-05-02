@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T09:27:53.484774Z",
+  "lesson_id": "5-2",
+  "node_id": "描述函数法_8_849fa8a1",
+  "node_name": "描述函数法",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉检查通过：正弦输入、非线性环节、基波提取、N(A) 与频域等效表达一致。"
+}

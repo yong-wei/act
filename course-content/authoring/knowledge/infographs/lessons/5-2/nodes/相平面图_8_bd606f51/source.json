@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:31:45.445166Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "局部线性化与相平面"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "相平面图_8_bd606f51",
+    "name": "相平面图",
+    "name_en": "Phase Plane Plot",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
+    "examples": [
+      "图 8-32(b) 展示了系统起始于任何初始点的相轨迹最终收敛于奇点。",
+      "图 8-32(c) 展示了系统存在稳态误差时的相平面图。"
+    ],
+    "formulas": [],
+    "keywords": [
+      "相轨迹",
+      "奇点",
+      "开关线",
+      "稳态误差",
+      "相平面"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/相平面图_8_bd606f51.md",
+  "card_frontmatter": {
+    "node_id": "相平面图_8_bd606f51",
+    "name": "相平面图",
+    "name_en": "Phase Plane Plot",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "相平面"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-phase-plane-limit-cycle.png"
+    ]
+  },
+  "card_overview": "# 相平面图\n\n核心定义：把二阶系统的状态变量和导数放在同一平面中观察轨迹。\n\n关键直觉：相平面能看到平衡点、方向场、吸引行为和闭合轨道。\n\n关联节点：非线性边界工具选择、自振微小扰动判断\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 相平面图\n\n核心定义：把二阶系统的状态变量和导数放在同一平面中观察轨迹。\n\n关键直觉：相平面能看到平衡点、方向场、吸引行为和闭合轨道。\n\n关联节点：非线性边界工具选择、自振微小扰动判断\n\n---\n\n## 详情页\n\n对二阶系统\n\n$$\n\\dot{x}_1=x_2,\\qquad \\dot{x}_2=f(x_1,x_2),\n$$\n\n相平面方向场满足\n\n$$\n\\frac{dx_2}{dx_1}=\\frac{f(x_1,x_2)}{x_2}.\n$$\n\n相平面适合观察轨迹形态，不直接给出通用控制器整定规则。高阶系统需要投影或降阶后才能用二维图阅读。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "非线性系统",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "线性系统",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "prerequisite",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "饱和特性",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "死区特性",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "间隙特性",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "自激振荡",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "平衡状态",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "小偏差线性化",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相平面法",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "描述函数法",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "逆系统法",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "等效增益",
+      "target_id": null,
+      "target": "相平面图",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把轨线、交点、微扰和工程波形组织成证据评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "相平面图",
+        "相轨迹",
+        "奇点",
+        "开关线",
+        "稳态误差",
+        "相平面"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

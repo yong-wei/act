@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T10:02:28.716595Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "负倒描述函数与自振判断",
+      "舵机案例与课程收束"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "自振微小扰动判断_5_52004",
+    "name": "自振微小扰动判断",
+    "name_en": "Small-Perturbation Judgment of Limit Cycle Stability",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "评价",
+    "definition": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
+    "examples": [
+      "负倒描述函数穿出包围边界时，两侧扰动回到交点，可作为稳定自振点判断。"
+    ],
+    "formulas": [
+      "G(j\\omega)=-\\frac{1}{N(A)}"
+    ],
+    "keywords": [
+      "微小扰动法",
+      "自振",
+      "稳定交点",
+      "包围关系",
+      "自振判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/自振微小扰动判断_5_52004.md",
+  "card_frontmatter": {
+    "node_id": "自振微小扰动判断_5_52004",
+    "name": "自振微小扰动判断",
+    "name_en": "Small-Perturbation Judgment of Limit Cycle Stability",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "自振判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-small-perturbation-method.png"
+    ]
+  },
+  "card_overview": "# 自振微小扰动判断\n\n核心定义：观察交点两侧振幅微小变化后，运动是回到交点还是远离交点。\n\n关键直觉：交点只是候选自振点；稳定性由扰动方向决定。\n\n关联节点：负倒描述函数、自振\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 自振微小扰动判断\n\n核心定义：观察交点两侧振幅微小变化后，运动是回到交点还是远离交点。\n\n关键直觉：交点只是候选自振点；稳定性由扰动方向决定。\n\n关联节点：负倒描述函数、自振\n\n---\n\n## 详情页\n\n若 $-1/N(A)$ 曲线穿入包围区域，交点两侧扰动通常远离该点，属于非稳定候选点。若曲线穿出包围区域，交点两侧扰动回到该点，可判断为稳定自振点。\n\n判断时要同时说明区内/区外、振幅增大/减小和是否回到交点。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "负倒描述函数",
+      "target_id": null,
+      "target": "自振微小扰动判断",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "舵机死区饱和自振风险",
+      "target_id": null,
+      "target": "自振微小扰动判断",
+      "relation": "related",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相平面图",
+      "target_id": null,
+      "target": "自振微小扰动判断",
+      "relation": "cross_domain",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "负倒描述函数_8_159ff256",
+      "source": "负倒描述函数",
+      "target_id": "自振微小扰动判断_5_52004",
+      "target": "自振微小扰动判断",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "相平面图_8_bd606f51",
+      "source": "相平面图",
+      "target_id": "自振微小扰动判断_5_52004",
+      "target": "自振微小扰动判断",
+      "relation": "cross_domain",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "舵机死区饱和自振风险_5_52005",
+      "source": "舵机死区饱和自振风险",
+      "target_id": "自振微小扰动判断_5_52004",
+      "target": "自振微小扰动判断",
+      "relation": "related",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把轨线、交点、微扰和工程波形组织成证据评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "自振微小扰动判断",
+        "微小扰动法",
+        "自振",
+        "稳定交点",
+        "包围关系",
+        "自振判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G(j\\omega)=-\\frac{1}{N(A)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

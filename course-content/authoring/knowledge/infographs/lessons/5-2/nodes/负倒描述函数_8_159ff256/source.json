@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T09:49:50.475541Z",
+  "lesson": {
+    "lesson_id": "5-2",
+    "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+    "groups": [
+      "负倒描述函数与自振判断"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "负倒描述函数_8_159ff256",
+    "name": "负倒描述函数",
+    "name_en": "Negative Inverse Describing Function",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
+    "examples": [
+      "图8-44至图8-47中，绘制负倒描述函数曲线与G(jω)曲线，根据相对位置判断系统稳定性及周期运动稳定性。",
+      "绘制死区继电特性的负倒描述函数曲线，并与G(jω)曲线相交以判断自振。"
+    ],
+    "formulas": [
+      "G(j\\omega)=-\\frac{1}{N(A)}"
+    ],
+    "keywords": [
+      "负倒数",
+      "复平面曲线",
+      "稳定性分析",
+      "描述函数",
+      "复平面",
+      "曲线",
+      "负倒曲线"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/负倒描述函数_8_159ff256.md",
+  "card_frontmatter": {
+    "node_id": "负倒描述函数_8_159ff256",
+    "name": "负倒描述函数",
+    "name_en": "Negative Inverse Describing Function",
+    "lesson_units": [
+      "5-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-2",
+      "负倒曲线"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-2/design/5-2-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-2/media/processed/5-2-negative-inverse-summary.png"
+    ]
+  },
+  "card_overview": "# 负倒描述函数\n\n核心定义：把 $-1/N(A)$ 画在复平面中，与线性部分 $G(j\\omega)$ 比较。\n\n关键公式：\n\n$$\nG(j\\omega)=-\\frac{1}{N(A)}\n$$\n\n关联节点：描述函数法、自振微小扰动判断\n\n---",
+  "card_detail": "",
+  "card_plain_excerpt": "## 首页\n\n# 负倒描述函数\n\n核心定义：把 $-1/N(A)$ 画在复平面中，与线性部分 $G(j\\omega)$ 比较。\n\n关键公式：\n\n$$\nG(j\\omega)=-\\frac{1}{N(A)}\n$$\n\n关联节点：描述函数法、自振微小扰动判断\n\n---\n\n## 详情页\n\n负倒描述函数把自振候选条件转成复平面交点问题。交点给出候选频率和候选振幅。\n\n实描述函数的负倒曲线落在负实轴上；滞环和间隙等带相位非线性会进入复平面。交点还需用微小扰动法和时域仿真判断。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "零极点分布图",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹图",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非线性系统",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "线性系统",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "prerequisite",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "饱和特性",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "死区特性",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "applies_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "间隙特性",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "自激振荡",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "平衡状态",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "小偏差线性化",
+      "target_id": null,
+      "target": "负倒描述函数",
+      "relation": "related",
+      "strength": 0.1,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把轨线、交点、微扰和工程波形组织成证据评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "负倒描述函数",
+        "负倒数",
+        "复平面曲线",
+        "稳定性分析",
+        "描述函数",
+        "复平面",
+        "曲线",
+        "负倒曲线"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G(j\\omega)=-\\frac{1}{N(A)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}
