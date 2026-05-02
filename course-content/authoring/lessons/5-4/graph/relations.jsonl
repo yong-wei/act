@@ -1,0 +1,18 @@
+{"source_id":"方法迁移前边界说明_5_51005","source":"方法迁移前边界说明","target_id":"模型依赖松动_5_54001","target":"模型依赖松动","relation_type":"leads_to","strength":0.9,"label":"边界证据写清后，才能判断模型依赖是否需要松动。"}
+{"source_id":"MASS协同链路_5_53001","source":"MASS协同链路","target_id":"模型依赖松动_5_54001","target":"模型依赖松动","relation_type":"prerequisite","strength":0.86,"label":"复杂自主系统链路让模型对象不再只是一条固定传递函数。"}
+{"source_id":"模型依赖松动_5_54001","source":"模型依赖松动","target_id":"MPC再定位_5_54002","target":"MPC再定位","relation_type":"leads_to","strength":0.92,"label":"模型独自承担全部预测任务变困难后，需要重新理解 MPC 的中间位置。"}
+{"source_id":"模型预测控制_4_f3d4a099","source":"模型预测控制","target_id":"MPC再定位_5_54002","target":"MPC再定位","relation_type":"prerequisite","strength":0.9,"label":"既有 MPC 概念是理解 5-4 中 MPC 再定位的前提。"}
+{"source_id":"MPC再定位_5_54002","source":"MPC再定位","target_id":"数据驱动控制_5_54003","target":"数据驱动控制","relation_type":"leads_to","strength":0.9,"label":"MPC 暴露的预测模型质量问题引出数据驱动模型更新。"}
+{"source_id":"模型依赖松动_5_54001","source":"模型依赖松动","target_id":"数据驱动控制_5_54003","target":"数据驱动控制","relation_type":"leads_to","strength":0.88,"label":"模型依赖松动提供数据驱动进入控制问题的理由。"}
+{"source_id":"数据驱动控制_5_54003","source":"数据驱动控制","target_id":"数据驱动进入条件_5_54004","target":"数据驱动进入条件","relation_type":"leads_to","strength":0.94,"label":"数据驱动能否进入闭环必须先检查数据、算力、验证和泛化条件。"}
+{"source_id":"数据驱动进入条件_5_54004","source":"数据驱动进入条件","target_id":"数据覆盖与泛化边界_5_54005","target":"数据覆盖与泛化边界","relation_type":"contains","strength":0.92,"label":"覆盖和泛化是数据驱动进入条件中的关键风险项。"}
+{"source_id":"数据驱动控制_5_54003","source":"数据驱动控制","target_id":"在线辨识与模型更新_5_54006","target":"在线辨识与模型更新","relation_type":"contains","strength":0.85,"label":"在线辨识和模型更新是数据驱动控制在 MPC 中的一种局部职责。"}
+{"source_id":"MPC再定位_5_54002","source":"MPC再定位","target_id":"在线辨识与模型更新_5_54006","target":"在线辨识与模型更新","relation_type":"prerequisite","strength":0.88,"label":"模型更新需要回到 MPC 预测结构中才形成闭环意义。"}
+{"source_id":"在线辨识与模型更新_5_54006","source":"在线辨识与模型更新","target_id":"三路线控制比较_5_54008","target":"三路线控制比较","relation_type":"leads_to","strength":0.9,"label":"在线更新后的 MPC 与名义 MPC、固定控制构成三路线比较。"}
+{"source_id":"MPC再定位_5_54002","source":"MPC再定位","target_id":"三路线控制比较_5_54008","target":"三路线控制比较","relation_type":"leads_to","strength":0.86,"label":"MPC 再定位使比较不只看固定控制和学习方法，也看名义 MPC 的中间收益。"}
+{"source_id":"数据覆盖与泛化边界_5_54005","source":"数据覆盖与泛化边界","target_id":"模型数据责任分配_5_54007","target":"模型数据责任分配","relation_type":"leads_to","strength":0.9,"label":"覆盖不足时必须把数据职责限制在可验证范围内。"}
+{"source_id":"数据驱动进入条件_5_54004","source":"数据驱动进入条件","target_id":"模型数据责任分配_5_54007","target":"模型数据责任分配","relation_type":"leads_to","strength":0.9,"label":"进入条件检查完成后，才能分配模型、数据、优化和安全保护责任。"}
+{"source_id":"三路线控制比较_5_54008","source":"三路线控制比较","target_id":"模型数据责任分配_5_54007","target":"模型数据责任分配","relation_type":"leads_to","strength":0.88,"label":"三路线性能和风险比较最终收束为责任分配判断。"}
+{"source_id":"船舶航向控制对象_2_21004","source":"船舶航向控制对象","target_id":"三路线控制比较_5_54008","target":"三路线控制比较","relation_type":"applies_to","strength":0.82,"label":"5-4 用船舶航向控制对象承载三路线比较案例。"}
+{"source_id":"传统控制结构局限_4_47008","source":"传统控制结构局限","target_id":"三路线控制比较_5_54008","target":"三路线控制比较","relation_type":"cross_domain","strength":0.82,"label":"固定结构局限在 5-4 中通过固定控制、名义 MPC 和数据驱动 MPC 对比呈现。"}
+{"source_id":"控制在自主系统链路中的位置_5_53002","source":"控制在自主系统链路中的位置","target_id":"模型数据责任分配_5_54007","target":"模型数据责任分配","relation_type":"cross_domain","strength":0.84,"label":"控制层位置决定模型、数据和安全层不能混成一个黑箱职责。"}
