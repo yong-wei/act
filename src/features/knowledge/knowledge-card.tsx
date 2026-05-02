@@ -3,13 +3,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
+import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
-import { ArrowLeftRight, X } from 'lucide-react';
+import { ArrowLeftRight, Image as ImageIcon, Maximize2, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Dialog,
@@ -93,6 +94,16 @@ export function extractInfographResource(resources?: unknown[]): KnowledgeInfogr
     };
   }
   return null;
+}
+
+export function resolveKnowledgeInfographSrc(resource: KnowledgeInfographResource | null) {
+  if (!resource) return null;
+  if (resource.url) return resource.url;
+  if (!resource.path) return null;
+  if (resource.path.startsWith('course-content/runtime/knowledge/')) {
+    return resource.path.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/');
+  }
+  return resource.path.startsWith('/') ? resource.path : `/${resource.path}`;
 }
 
 export function normalizeKnowledgeMetadata({
@@ -279,8 +290,12 @@ export function KnowledgeCard({
   const typeLabel = getNodeTypeLabel(nodeType);
 
   const mdxPaths = extractMdxPaths(resources);
+  const infographResource = extractInfographResource(resources);
+  const infographSrc = resolveKnowledgeInfographSrc(infographResource);
+  const infographTitle = infographResource?.title ?? `${name} 信息图`;
   const runtimeNodeCardPath = mdxPaths.find((path) => isRuntimeNodeCardPath(path)) ?? null;
   const isCompact = variant === 'compact';
+  const [isInfographOpen, setIsInfographOpen] = useState(false);
   const detailTracker = useResourceInteractionTracking({
     resourceKey: trackingContext?.resourceKey ?? `knowledge-card:${slugifyTrackingTarget(name)}`,
     lessonKey: trackingContext?.lessonKey ?? metadata.lessonId ?? null,
@@ -434,7 +449,59 @@ export function KnowledgeCard({
             ))}
           </div>
         )}
+
+        {infographSrc ? (
+          <figure className="overflow-hidden rounded-2xl border border-border bg-muted/30">
+            <div className="flex items-center gap-2 border-b border-border/70 px-3 py-2 text-xs font-medium text-muted-foreground">
+              <ImageIcon className="h-3.5 w-3.5" />
+              信息图
+            </div>
+            <button
+              type="button"
+              aria-label={`放大查看${infographTitle}`}
+              onClick={() => setIsInfographOpen(true)}
+              className="group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Image
+                src={infographSrc}
+                alt={infographTitle}
+                width={1600}
+                height={900}
+                unoptimized
+                className="h-auto w-full object-contain transition duration-200 group-hover:brightness-95"
+                loading="lazy"
+              />
+              <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-background/90 px-2.5 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border backdrop-blur">
+                <Maximize2 className="h-3.5 w-3.5" />
+                查看大图
+              </span>
+            </button>
+          </figure>
+        ) : null}
       </CardContent>
+      {infographSrc ? (
+        <Dialog open={isInfographOpen} onOpenChange={setIsInfographOpen}>
+          <DialogContent className="max-w-[min(96vw,1400px)] border-border bg-background p-0 text-foreground">
+            <DialogHeader className="border-b border-border px-6 py-4">
+              <DialogTitle className="text-foreground">{infographTitle}</DialogTitle>
+              <DialogDescription className="sr-only">
+                放大查看知识卡片信息图。
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[82vh] overflow-auto bg-white p-3">
+              <Image
+                src={infographSrc}
+                alt={infographTitle}
+                width={1600}
+                height={900}
+                unoptimized
+                className="mx-auto h-auto w-full max-w-none object-contain"
+                priority
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </Card>
   );
 }

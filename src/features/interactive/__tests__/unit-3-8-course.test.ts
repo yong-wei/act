@@ -180,11 +180,10 @@ describe('unit 3-8 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="3-8 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('parses the 3-8 runtime media index into typed pre-study resources', () => {

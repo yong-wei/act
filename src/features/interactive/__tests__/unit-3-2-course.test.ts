@@ -160,11 +160,10 @@ describe('unit 3-2 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="3-2 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('keeps runtime lesson metadata for handout pdf and media index in lesson.json', () => {

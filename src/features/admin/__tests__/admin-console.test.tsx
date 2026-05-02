@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ADMIN_CONSOLE_ENTRIES } from '../admin-console-config';
 
 describe('ADMIN_CONSOLE_ENTRIES', () => {
-  it('should expose the three admin sub-route entries', () => {
+  it('should expose the admin sub-route entries', () => {
     expect(
       ADMIN_CONSOLE_ENTRIES.map((entry) => ({
         title: entry.title,
@@ -13,6 +13,7 @@ describe('ADMIN_CONSOLE_ENTRIES', () => {
       { title: '用户管理', href: '/admin/users' },
       { title: '系统使用量统计', href: '/admin/states' },
       { title: '数据治理', href: '/admin/data-governance' },
+      { title: '系统配置', href: '/admin/config' },
     ]);
   });
   it('should keep the labels in Chinese for the admin home cards', () => {

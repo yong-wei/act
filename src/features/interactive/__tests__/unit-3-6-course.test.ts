@@ -119,11 +119,10 @@ describe('unit 3-6 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="3-6 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('parses the 3-6 runtime media index into typed pre-study resources', () => {

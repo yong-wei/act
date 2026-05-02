@@ -115,11 +115,10 @@ describe('unit 3-3 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="3-3 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('removes generalized-root-locus residue from entry and authoring lesson sources', () => {

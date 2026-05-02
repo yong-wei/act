@@ -13,6 +13,9 @@ import {
   Plus,
   Trash2,
   Gauge,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 
 interface AIProviderModelSetting {
@@ -69,19 +72,19 @@ const DEFAULT_AI_SETTINGS: AIProviderSettings = {
           id: 'qwen-3-6-35b-a3b',
           label: 'Qwen3.6 35B A3B',
           model: 'Qwen/Qwen3.6-35B-A3B',
-          description: '当前主力语言模型',
+          description: '当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。',
         },
         {
           id: 'deepseek-v4-flash',
           label: 'DeepSeek V4 Flash',
           model: 'deepseek-ai/DeepSeek-V4-Flash',
-          description: '保留为可选模型',
+          description: '保留为可选模型，当前响应速度可能较慢。',
         },
         {
           id: 'minimax-m2-5',
           label: 'MiniMax M2.5',
           model: 'MiniMaxAI/MiniMax-M2.5',
-          description: 'SiliconFlow 可选语言模型',
+          description: 'SiliconFlow 可选语言模型。',
         },
       ],
     },
@@ -111,7 +114,14 @@ export default function SystemConfigPage() {
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [aiSettings, setAiSettings] = useState<AIProviderSettings>(DEFAULT_AI_SETTINGS);
   const [newProvider, setNewProvider] = useState({ id: '', name: '', baseURL: '' });
-  const [newModel, setNewModel] = useState({ label: '', model: '' });
+  const [newModel, setNewModel] = useState({ label: '', model: '', description: '' });
+  const [editingModel, setEditingModel] = useState<{
+    providerId: string;
+    modelId: string;
+    label: string;
+    model: string;
+    description: string;
+  } | null>(null);
   const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
 
   useEffect(() => {
@@ -265,12 +275,54 @@ export default function SystemConfigPage() {
       id: makeId(newModel.label || model, `model-${activeProvider.models.length + 1}`),
       label: newModel.label.trim() || model,
       model,
+      description: newModel.description.trim() || undefined,
     };
     updateProvider(activeProvider.id, {
       models: [...activeProvider.models, nextModel],
       selectedModel: activeProvider.selectedModel || model,
     });
-    setNewModel({ label: '', model: '' });
+    setNewModel({ label: '', model: '', description: '' });
+  };
+
+  const startEditModel = (providerId: string, model: AIProviderModelSetting) => {
+    setEditingModel({
+      providerId,
+      modelId: model.id,
+      label: model.label,
+      model: model.model,
+      description: model.description ?? '',
+    });
+  };
+
+  const saveEditedModel = () => {
+    if (!editingModel) return;
+    const provider = aiSettings.providers.find((item) => item.id === editingModel.providerId);
+    if (!provider) return;
+    const nextModelId = editingModel.model.trim();
+    if (!nextModelId) {
+      showNotice('error', '模型 ID 不能为空');
+      return;
+    }
+    if (provider.models.some((item) => item.id !== editingModel.modelId && item.model === nextModelId)) {
+      showNotice('error', '该模型已存在');
+      return;
+    }
+    const currentModel = provider.models.find((item) => item.id === editingModel.modelId);
+    const models = provider.models.map((item) => (
+      item.id === editingModel.modelId
+        ? {
+            ...item,
+            label: editingModel.label.trim() || nextModelId,
+            model: nextModelId,
+            description: editingModel.description.trim() || undefined,
+          }
+        : item
+    ));
+    updateProvider(provider.id, {
+      models,
+      selectedModel: currentModel?.model === provider.selectedModel ? nextModelId : provider.selectedModel,
+    });
+    setEditingModel(null);
   };
 
   const removeModel = (providerId: string, model: string) => {
@@ -386,14 +438,14 @@ export default function SystemConfigPage() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6">
           {/* 基础设置 */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
             <div className="mb-6 flex items-center gap-3">
               <Server className="h-5 w-5 text-cyan-400" />
               <h2 className="text-lg font-semibold text-white">基础设置</h2>
             </div>
-            <div className="space-y-4">
+            <div className="grid gap-4 xl:grid-cols-3">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">
                   平台名称
@@ -534,21 +586,64 @@ export default function SystemConfigPage() {
                     {activeProvider.models.map((model) => {
                       const key = `${activeProvider.id}:${model.model}`;
                       const result = testResults[key];
+                      const isEditing = editingModel?.providerId === activeProvider.id && editingModel.modelId === model.id;
                       return (
-                        <div key={model.model} className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+                        <div key={model.id} className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
                           <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-slate-100">{model.label}</p>
-                              <p className="break-all text-xs text-slate-400">{model.model}</p>
-                              {model.description && <p className="mt-1 text-xs text-slate-500">{model.description}</p>}
-                            </div>
+                            {isEditing && editingModel ? (
+                              <div className="grid min-w-0 flex-1 gap-3 md:grid-cols-[0.7fr_1fr_1.2fr]">
+                                <input
+                                  type="text"
+                                  value={editingModel.label}
+                                  onChange={(event) => setEditingModel({ ...editingModel, label: event.target.value })}
+                                  placeholder="模型显示名"
+                                  className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={editingModel.model}
+                                  onChange={(event) => setEditingModel({ ...editingModel, model: event.target.value })}
+                                  placeholder="模型 ID，例如 vendor/model"
+                                  className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={editingModel.description}
+                                  onChange={(event) => setEditingModel({ ...editingModel, description: event.target.value })}
+                                  placeholder="备注，可选"
+                                  className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                                />
+                              </div>
+                            ) : (
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-slate-100">{model.label}</p>
+                                <p className="break-all text-xs text-slate-400">{model.model}</p>
+                                {model.description && <p className="mt-1 text-xs text-slate-500">{model.description}</p>}
+                              </div>
+                            )}
                             <div className="flex items-center gap-2">
-                              <button type="button" onClick={() => selectModel(activeProvider.id, model.model)} className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-500 hover:text-cyan-200">
-                                选用
-                              </button>
-                              <button type="button" onClick={() => testModel(activeProvider.id, model.model)} disabled={result?.status === 'running'} className="rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
-                                {result?.status === 'running' ? '测试中...' : '测试'}
-                              </button>
+                              {isEditing ? (
+                                <>
+                                  <button type="button" onClick={saveEditedModel} className="rounded-md border border-emerald-500/50 p-1.5 text-emerald-200 transition hover:bg-emerald-500/10" aria-label="保存模型">
+                                    <Check className="h-4 w-4" />
+                                  </button>
+                                  <button type="button" onClick={() => setEditingModel(null)} className="rounded-md border border-slate-700 p-1.5 text-slate-400 transition hover:border-slate-500 hover:text-slate-200" aria-label="取消编辑">
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button type="button" onClick={() => selectModel(activeProvider.id, model.model)} className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-500 hover:text-cyan-200">
+                                    选用
+                                  </button>
+                                  <button type="button" onClick={() => testModel(activeProvider.id, model.model)} disabled={result?.status === 'running'} className="rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
+                                    {result?.status === 'running' ? '测试中...' : '测试'}
+                                  </button>
+                                  <button type="button" onClick={() => startEditModel(activeProvider.id, model)} className="rounded-md border border-slate-700 p-1.5 text-slate-400 transition hover:border-cyan-500 hover:text-cyan-200" aria-label="编辑模型">
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+                                </>
+                              )}
                               <button type="button" onClick={() => removeModel(activeProvider.id, model.model)} className="rounded-md border border-slate-700 p-1.5 text-slate-400 transition hover:border-rose-500 hover:text-rose-300" aria-label="删除模型">
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -571,9 +666,10 @@ export default function SystemConfigPage() {
                     })}
                   </div>
 
-                  <div className="grid gap-3 border-t border-slate-800 pt-4 md:grid-cols-[0.7fr_1fr_auto]">
+                  <div className="grid gap-3 border-t border-slate-800 pt-4 md:grid-cols-[0.7fr_1fr_1.2fr_auto]">
                     <input type="text" value={newModel.label} onChange={(event) => setNewModel({ ...newModel, label: event.target.value })} placeholder="模型显示名" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
                     <input type="text" value={newModel.model} onChange={(event) => setNewModel({ ...newModel, model: event.target.value })} placeholder="模型 ID，例如 vendor/model" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <input type="text" value={newModel.description} onChange={(event) => setNewModel({ ...newModel, description: event.target.value })} placeholder="备注，可选" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
                     <button type="button" onClick={addModel} className="inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/10">
                       <Plus className="h-4 w-4" />
                       添加模型

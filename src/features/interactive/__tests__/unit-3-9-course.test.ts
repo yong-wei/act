@@ -160,11 +160,10 @@ describe('unit 3-9 interactive course', () => {
     if (!existsSync(entryFile)) return;
 
     const entrySource = readFileSync(entryFile, 'utf8');
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="3-9 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('parses the 3-9 runtime media index and keeps handout summary outside mediaResources', () => {

@@ -119,8 +119,8 @@ describe('unit 2-2 interactive course', () => {
       'utf8',
     );
 
-    expect(unit22EntrySource).toContain('LessonEntryMediaHub');
-    expect(unit22EntrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(unit22EntrySource).toContain('PremiumLessonEntryPage');
+    expect(unit22EntrySource).toContain('mediaCourseLabel');
     expect(unit22EntrySource).not.toContain('2-2-media.md');
     expect(runtimeSectionsSource).toContain("surface: 'lesson_entry'");
     expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
@@ -128,6 +128,10 @@ describe('unit 2-2 interactive course', () => {
     expect(knowledgeCardSource).toContain('trackingContext');
     expect(knowledgeCardSource).toContain('onDetailOpen');
     expect(knowledgeCardSource).toContain('trackKnowledgeCardOpen');
+    expect(knowledgeCardSource).toContain('extractInfographResource(resources)');
+    expect(knowledgeCardSource).toContain('resolveKnowledgeInfographSrc');
+    expect(knowledgeCardSource).toContain('setIsInfographOpen(true)');
+    expect(knowledgeCardSource).toContain('aria-label={`放大查看${infographTitle}`}');
   });
 
   it('defines the second-order parameter mapping cards and metric callouts', async () => {

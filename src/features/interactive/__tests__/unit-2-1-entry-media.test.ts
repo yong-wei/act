@@ -93,6 +93,14 @@ describe('unit 2-1 entry media runtime', () => {
       join(repoRoot, 'src/features/interactive/shared/lesson-entry-media-hub.tsx'),
       'utf8',
     );
+    const handoutPanelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-entry-handout-panel.tsx'),
+      'utf8',
+    );
+    const entryPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'),
+      'utf8',
+    );
     const runtimeSectionsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/lesson-entry-runtime-sections.tsx'),
       'utf8',
@@ -102,7 +110,7 @@ describe('unit 2-1 entry media runtime', () => {
       'utf8',
     );
 
-    expect(source).toContain('LessonEntryMediaHub');
+    expect(source).toContain('PremiumLessonEntryPage');
     expect(sharedSource).toContain('课前预习台');
     expect(sharedSource).toContain('预习导入视频');
     expect(sharedSource).toContain('完整课程视频');
@@ -114,23 +122,26 @@ describe('unit 2-1 entry media runtime', () => {
     expect(source).not.toContain('2-1-media.md');
     expect(source).not.toContain('讲义入口');
     expect(source).not.toContain('<Dialog open={Boolean(activeMedia)}');
-    expect(sharedSource).toContain('在线阅读讲义');
+    expect(handoutPanelSource).toContain('在线阅读讲义');
     expect(sharedSource).toContain('setIsHandoutOpen(true)');
     expect(sharedSource).toContain('LessonEntryHandoutDialog');
-    expect(sharedSource).toContain('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"');
+    expect(handoutPanelSource).toContain('xl:grid-cols-[minmax(0,1fr)_auto]');
+    expect(handoutPanelSource).toContain('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"');
     expect(sharedSource).toContain('className="grid gap-4 lg:grid-cols-3"');
-    expect(sharedSource.indexOf('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"')).toBeLessThan(
+    expect(sharedSource).toContain('LessonEntryHandoutPanel');
+    expect(sharedSource.indexOf('LessonEntryHandoutPanel')).toBeLessThan(
       sharedSource.indexOf('className="grid gap-4 lg:grid-cols-3"'),
     );
     expect(sharedSource).not.toContain('当前资源暂未就绪。');
     expect(sharedSource).not.toContain('待补充');
     expect(sharedSource).not.toContain('链接待补充');
     expect(source).not.toContain('href={lessonRuntime.handoutPath}');
-    expect(source).toContain('<LessonEntryMediaHub');
-    expect(source).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(source).toContain('<PremiumLessonEntryPage');
+    expect(source).toContain('mediaCourseLabel');
+    expect(entryPageSource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
     expect(sharedSource).toContain('lessonRuntime.handoutPdfPath');
     expect(sharedSource).toContain('lessonId: lessonRuntime.lesson.lesson_id');
-    expect(sharedSource).toContain('下载 PDF 讲义');
+    expect(handoutPanelSource).toContain('下载 PDF 讲义');
     expect(sharedSource).toContain('useResourceInteractionTracking');
     expect(sharedSource).toContain('trackResourceView');
     expect(sharedSource).toContain('trackResourceOpen');
@@ -154,15 +165,15 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).not.toContain('先用一段短视频快速进入本课情境');
     expect(sharedSource).not.toContain('适合在正式进入课堂前先建立全课节奏');
     expect(sharedSource).not.toContain('lessonRuntime.handoutPreview');
-    expect(sharedSource).toContain('<ReactMarkdown');
-    expect(sharedSource).toContain('remarkPlugins={[remarkGfm]}');
+    expect(handoutPanelSource).toContain('<ReactMarkdown');
+    expect(handoutPanelSource).toContain('remarkPlugins={[remarkGfm]}');
     expect(runtimeSectionsSource).toContain('hideHandoutEntry?: boolean');
     expect(runtimeSectionsSource).toContain('export function LessonEntryHandoutDialog');
     expect(runtimeSectionsSource).toContain('handoutPdfPath: runtime.handoutPdfPath');
     expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
     expect(runtimeSectionsSource).toContain('trackResourceOpen');
     expect(runtimeSectionsSource).toContain('trackResourceDownload');
-    expect(unit22Source).toContain('LessonEntryMediaHub');
-    expect(unit22Source).toContain('hideHandoutEntry');
+    expect(unit22Source).toContain('PremiumLessonEntryPage');
+    expect(entryPageSource).toContain('hideHandoutEntry');
   });
 });

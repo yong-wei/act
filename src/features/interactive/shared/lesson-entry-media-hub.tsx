@@ -1,11 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import {
-  BookOpen,
-  Download,
   ExternalLink,
   FileAudio2,
   FileText,
@@ -15,6 +11,7 @@ import {
 
 import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
+import { LessonEntryHandoutPanel } from '@/features/interactive/shared/lesson-entry-handout-panel';
 import { LessonEntryHandoutDialog } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-runtime';
 
@@ -607,57 +604,22 @@ export function LessonEntryMediaHub({
             );
           })}
 
-          <section className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2">
-                  <span className="premium-lesson-control inline-flex items-center justify-center">
-                    <BookOpen className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <div className="premium-lesson-kicker">课前讲义</div>
-                    <h3 className="premium-lesson-title mt-1 text-lg font-semibold">讲义阅读与下载</h3>
-                  </div>
-                </div>
-                <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {lessonRuntime.handoutSummary}
-                  </ReactMarkdown>
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
-                <span className="premium-lesson-tone-pill premium-tone-cyan basis-full justify-center">
-                  {lessonRuntime.handoutPdfPath ? '已备好' : '在线阅读'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    resourceTracker.trackResourceOpen({
-                      resourceKey: buildLessonEntryResourceKey(lessonId, 'handout'),
-                      targetType: 'handout',
-                      targetId: 'handout',
-                      targetLabel: '讲义阅读与下载',
-                      openMode: 'dialog',
-                    });
-                    setIsHandoutOpen(true);
-                  }}
-                  className="premium-lesson-action-secondary flex"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  在线阅读讲义
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleHandoutDownload()}
-                  disabled={!lessonRuntime.handoutPdfPath || isDownloadingHandout}
-                  className="premium-lesson-action-secondary flex disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isDownloadingHandout ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  下载 PDF 讲义
-                </button>
-              </div>
-            </div>
-          </section>
+          <LessonEntryHandoutPanel
+            summary={lessonRuntime.handoutSummary}
+            pdfReady={Boolean(lessonRuntime.handoutPdfPath)}
+            isDownloading={isDownloadingHandout}
+            onOpen={() => {
+              resourceTracker.trackResourceOpen({
+                resourceKey: buildLessonEntryResourceKey(lessonId, 'handout'),
+                targetType: 'handout',
+                targetId: 'handout',
+                targetLabel: '讲义阅读与下载',
+                openMode: 'dialog',
+              });
+              setIsHandoutOpen(true);
+            }}
+            onDownload={() => void handleHandoutDownload()}
+          />
 
           {secondaryMediaItems.length > 0 ? (
             <div className="grid gap-4 lg:grid-cols-3">

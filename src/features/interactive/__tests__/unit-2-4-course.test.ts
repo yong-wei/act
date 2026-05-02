@@ -103,11 +103,10 @@ describe('unit 2-4 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="2-4 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('parses the 2-4 runtime media index into typed pre-study resources', () => {
@@ -128,7 +127,7 @@ describe('unit 2-4 interactive course', () => {
       accessMode: 'dialog',
       embedMode: 'iframe',
       status: 'ready',
-      title: '先用一个短场景说明：同一个 G(jω) 为什么既要看 Bode，也要看 Nyquist',
+      title: '一辆旧自动叉车擦着仓库拐角前进，监控室先给出分散曲线与指针，再切到完整轨迹图，让人直观看到同一频率对象换一种图就更容易判断风险边界。',
     });
     expect(resources[1]).toMatchObject({
       kind: 'audio',

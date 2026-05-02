@@ -53,7 +53,7 @@ function resolveInfographSrc(resource: ReturnType<typeof extractInfographResourc
 
 export function LessonEntryRuntimeSections({
   runtime,
-  hideHandoutEntry = false,
+  hideHandoutEntry = true,
 }: {
   runtime: RuntimeLessonEntryBundle;
   hideHandoutEntry?: boolean;

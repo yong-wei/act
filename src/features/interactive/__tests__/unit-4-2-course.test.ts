@@ -174,11 +174,10 @@ describe('unit 4-2 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('LessonEntryMediaHub');
-    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('PremiumLessonEntryPage');
+    expect(entrySource).toContain('<PremiumLessonEntryPage');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
-    expect(entrySource).toContain('courseLabel="4-2 · Pre-study"');
-    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).toContain('mediaCourseLabel');
   });
 
   it('keeps the migrated 4-2 content blocks visible through the runtime manifest', () => {
@@ -302,7 +301,7 @@ describe('unit 4-2 interactive course', () => {
 
     expect(revealChainSlice).toContain('useState(');
     expect(revealChainSlice).toContain('setLocalVisibleCount');
-    expect(revealChainSlice).toContain('onClick={() => {');
+    expect(revealChainSlice).toContain('onClick={showNext}');
   });
 
   it('does not directly reuse the unit-4-1 request builder or fallback fixtures inside the 4-2 step panels', () => {

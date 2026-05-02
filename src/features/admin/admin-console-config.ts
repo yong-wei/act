@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, Database, Users } from 'lucide-react';
+import { BarChart3, Database, Settings, Users } from 'lucide-react';
 
 export type AdminConsoleUser = {
   id: string;
@@ -37,5 +37,12 @@ export const ADMIN_CONSOLE_ENTRIES: AdminConsoleEntry[] = [
     description: '追踪学习事实、快照队列、风险清单与数据新鲜度。',
     eyebrow: '治理链路',
     icon: Database,
+  },
+  {
+    title: '系统配置',
+    href: '/admin/config',
+    description: '管理平台基础参数、AI 供应商、模型目录与响应测试。',
+    eyebrow: '平台参数',
+    icon: Settings,
   },
 ];

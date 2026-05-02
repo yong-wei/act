@@ -7,8 +7,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-04-27
+📅 **最后更新**：2026-05-02
 # 近期更新
+
+🧩 **系统配置、互动课程入口与知识卡信息图挂载（2026-05-02）**：本轮将管理后台新增为“用户管理 / 系统配置 / 系统使用量统计 / 数据治理”四入口结构，`/admin/config` 的基础设置保持通栏置顶，AI 供应商与模型管理作为第二个通栏模块，支持管理员维护供应商、模型显示名、模型 ID、备注、启用状态与一键响应测试。互动课程入口页统一迁入 `PremiumLessonEntryPage` 与共享讲义面板，讲义摘要占据主要宽度，功能按钮只保留必要宽度，底部旧版讲义入口默认关闭；当前所有 `src/features/interactive/**/entry-page.tsx` 均已接入统一组件。知识卡片增加 `infograph` 资源识别与挂载能力，存在信息图时在卡片下方展示并支持点击放大，缺失时不占位。
 
 🧩 **互动课程数据治理闭环整改（2026-04-27）**：本轮围绕最近一次 `3-6` 互动课堂的数据质量调查完成治理链整改：`/api/interactive/events` 对 `lesson_submit / lesson_resubmit / session_finalize` 等 core 事件在原有 `InteractionLog` 之外同步物化 `LearningFact`，并用 `sourceEventId` 唯一约束保证幂等；`scripts/workers/data-governance-worker.ts` 与 `scripts/db/backfill-learning-facts-from-event-batches.ts` 统一复用同一套事实物化逻辑，避免 API、worker、回放脚本三处口径漂移。`3-6` 学生提交事件现补齐前测/后测答案键、正确数、总题数、分数和文本完整度摘要，使事件载荷可直接支持课堂诊断与学生画像证据；回填脚本新增 `--enqueue-snapshots`，可在历史 `LearningFact` 回放后为相关学生入队 `snapshot-student`，让既有数据进入学生画像更新链路。针对 `Failed to fetch`，会话同步 hook 现在把失败来源、URL、方法、HTTP 状态、耗时、在线状态、页面可见性和网络连接信息透传到 `sync_error` 事件，后续可以区分 `/api/session/[id]` 与 `/state?scope=student-view` 的失败来源。当前已通过数据治理与 3-6 定向 Vitest、`npm run lint`、`npm run build` 验证。
 
