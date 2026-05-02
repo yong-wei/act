@@ -55,13 +55,15 @@ $$
 
 ![同一舵角序列下的模型预测偏差](../media/processed/5-4-model-mismatch-prediction.png){width=100%}
 
-这张仿真图中，红色虚线是名义模型预测，黑色曲线是真实对象。红色曲线在后段明显高于真实对象，最大预测误差约为 $13.23^\circ$。这说明模型本身并没有失去解释价值，但名义参数已经不足以支撑当前工况的预测。蓝色曲线用早段运行数据修正了有效参数，最大误差降至约 $2.93^\circ$；它改善了预测，却也暴露出新的问题：数据只来自早段工况，后段能否继续可信还需要验证。
+这张仿真图中，红色虚线是名义模型预测，黑色曲线是真实对象。红色曲线在后段明显高于真实对象，最大预测误差约为 $14.04^\circ$。这说明模型本身并没有失去解释价值，但名义参数已经不足以支撑当前工况的预测。蓝色曲线用早段运行数据修正了有效参数，最大误差降至约 $5.48^\circ$；它改善了预测，却也暴露出新的问题：数据只来自早段工况，后段能否继续可信还需要验证。
 
 ## 二、MPC 连接模型、预测和约束
 
 ### 2.1 MPC 仍以模型为预测基础
 
 MPC，即模型预测控制，仍属于模型驱动方法。它在每一个采样时刻利用对象模型预测未来一段时间内的状态和输出，再求解一个带约束的优化问题，只执行当前时刻的第一步控制动作。到下一个采样时刻，系统重新测量状态，重新预测，重新优化。
+
+![MPC 滚动优化原理框图](../media/processed/5-4-mpc-principle-block.png){width=100%}
 
 一个简化的 MPC 目标函数可写为
 
@@ -75,12 +77,12 @@ $$
 同时满足
 
 $$
-x_{k+i+1}=f(x_{k+i},u_{k+i}),\quad
-u_{\min}\le u_{k+i}\le u_{\max},\quad
-y_{\min}\le y_{k+i}\le y_{\max}
+x_{k+i+1}=f(x_{k+i},u_{k+i}),\qquad
+y_{k+i}=h(x_{k+i}),\qquad
+u_{\min}\le u_{k+i}\le u_{\max}
 $$
 
-这里的 $N$ 是预测时域，$r_{k+i}$ 是参考轨迹，$Q$ 和 $R$ 分别衡量跟踪误差和控制代价。MPC 的核心在于三件事同时出现：模型预测未来，优化权衡目标，约束限制动作。
+这里的 $N$ 是预测时域，$r_{k+i}$ 是参考轨迹，$Q$ 和 $R$ 分别衡量跟踪误差和控制代价。MPC 的核心在于三件事同时出现：模型预测未来，优化权衡目标，约束限制动作。求解器得到的是一串候选控制量 $u_k^\star,u_{k+1}^\star,\ldots,u_{k+N-1}^\star$，但系统只执行第一步 $u_k^\star$；新的测量值到来后，旧预测被丢弃，优化问题重新求解。这个“预测一段、执行一步、再预测”的滚动结构，是 MPC 能在约束下处理动态变化的关键。
 
 ### 2.2 MPC 的难点集中在模型质量和在线计算
 
@@ -119,6 +121,24 @@ MPC 在方法迁移链中的位置很关键。它没有放弃模型，却已经�
 在航向仿真中，蓝色曲线用早段数据修正有效模型参数，预测误差明显低于名义模型。这个结果可以支持一个谨慎结论：当物理结构仍然可信、参数偏差成为主要误差来源时，数据可以帮助模型重新贴近对象。它不能支持一个过度结论：只要有早段数据，后段运行就一定安全。
 
 数据修正后的模型仍需回答三个问题。第一，早段数据是否覆盖了后续会出现的舵角幅值、航速和扰动范围。第二，拟合误差降低是否同时保持了稳定性、约束满足和可解释性。第三，若对象继续变化，系统是否能识别修正模型已经过期。数据驱动方法把一部分建模成本转移到数据采集、覆盖性检查和运行时监控上。
+
+![数据驱动 MPC 的在线模型更新链路](../media/processed/5-4-data-driven-mpc-block.png){width=100%}
+
+把这个思想放入 MPC，可以得到一种保守的数据驱动模型 MPC。控制目标、舵角约束和滚动优化结构保持不变，改变的是预测模型的来源。系统把最近一段闭环数据放入缓冲区，用离散模型
+
+$$
+r_{j+1}=a r_j+b\delta_j+c
+$$
+
+估计当前有效参数，其中 $r_j$ 是航向角速度，$\delta_j$ 是舵角，$c$ 吸收短时扰动偏置。估计得到 $\hat a_k,\hat b_k,\hat c_k$ 后，再换算为连续对象的有效参数：
+
+$$
+\hat T_k=\frac{\Delta t}{1-\hat a_k},\qquad
+\hat K_k=\frac{\hat b_k\hat T_k}{\Delta t},\qquad
+\hat d_k=\frac{\hat c_k}{\Delta t}
+$$
+
+闭环数据的激励并不总是充分，估计值会受到参考变化、舵角饱和和扰动的共同影响。因此，工程上不能把一次最小二乘结果直接塞进优化器，而要进行参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。数据驱动在这里承担的是“更新预测模型”的局部职责，而不是替代 MPC 的目标函数、约束和安全边界。
 
 ### 3.3 辨析例子：数据补偿适合承担局部责任
 
@@ -175,7 +195,7 @@ $$
 K_a:0.18\rightarrow0.065,\qquad T_a:8.0\ \mathrm{s}\rightarrow18.0\ \mathrm{s}
 $$
 
-同时，横流扰动从 $t=34\ \mathrm{s}$ 附近进入，规划模块在 $t=36\ \mathrm{s}$ 给出避碰航向调整，在 $t=58\ \mathrm{s}$ 给出航迹恢复指令。这个任务同时包含模型漂移、环境扰动和参考航向变化，适合检验“只靠旧模型”和“带数据修正模型”的差异。
+漂移从 $t=28\ \mathrm{s}$ 开始，到 $t=108\ \mathrm{s}$ 才结束；横流扰动从 $t=34\ \mathrm{s}$ 附近进入；规划模块在 $t=45\ \mathrm{s}$、$78\ \mathrm{s}$、$122\ \mathrm{s}$ 和 $152\ \mathrm{s}$ 多次改变参考航向。这个任务不再是短时模型失配对比，而是长时漂移下的持续闭环运行检验。短时间内，名义 MPC 可能仍接近数据驱动 MPC；漂移持续存在时，固定名义模型会不断低估对象响应变化，预测偏差会在后续航向调整中反复出现。
 
 我们比较三种路线。
 
@@ -191,27 +211,31 @@ $$
 
 ### 5.2 仿真结果与指标比较
 
+![长时模型漂移下的参数真实值与在线推断值](../media/processed/5-4-model-parameter-drift.png){width=100%}
+
+参数图给出三条证据。橙色虚线是固定名义参数，黑色曲线是实际对象从 $K=0.18,T=8.0\ \mathrm{s}$ 向 $K=0.065,T=18.0\ \mathrm{s}$ 的长时漂移，蓝色曲线是数据驱动 MPC 从闭环运行数据中推断出的有效参数。蓝色曲线没有直接读取真实参数，也不会完全贴合真实曲线；它反映的是闭环数据能够支持的局部辨识结果。即便如此，它已经明显不同于固定名义参数，说明预测模型正在随运行数据更新。
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{../media/processed/5-4-mpc-drift-comparison.png}
 \caption{模型漂移与环境信息变化下的闭环航向跟踪}
 \end{figure}
 
-图中红色曲线是传统固定控制，黄色曲线是使用名义模型的 MPC，蓝色曲线是使用数据驱动模型的 MPC。黄色阴影表示对象参数逐渐漂移，紫色虚线表示避碰航向调整，绿色虚线表示航迹恢复。
+图中红色曲线是传统固定控制，黄色曲线是使用名义模型的 MPC，蓝色曲线是使用数据驱动模型的 MPC。黄色阴影表示对象参数从 $28\ \mathrm{s}$ 到 $108\ \mathrm{s}$ 持续漂移，紫色虚线表示参考航向调整。
 
 Table: 三种路线的闭环指标 {cols=0.16,0.17,0.20,0.16,0.15,0.16}
 
 | 路线 | 最大绝对误差 | 累计绝对误差 IAE | 平均绝对误差 | 舵角触边比例 | 环境变化后平均绝对误差 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 传统固定控制 | $22.40^\circ$ | $664.20\ \mathrm{deg\cdot s}$ | $8.28^\circ$ | $28.68\%$ | $10.95^\circ$ |
-| 名义模型 MPC | $13.61^\circ$ | $381.51\ \mathrm{deg\cdot s}$ | $4.76^\circ$ | $33.17\%$ | $6.43^\circ$ |
-| 数据驱动模型 MPC | $13.79^\circ$ | $372.55\ \mathrm{deg\cdot s}$ | $4.65^\circ$ | $43.89\%$ | $6.22^\circ$ |
+| 传统固定控制 | $25.41^\circ$ | $1976.45\ \mathrm{deg\cdot s}$ | $10.97^\circ$ | $46.61\%$ | $12.07^\circ$ |
+| 名义模型 MPC | $16.39^\circ$ | $859.80\ \mathrm{deg\cdot s}$ | $4.77^\circ$ | $12.99\%$ | $4.98^\circ$ |
+| 数据驱动模型 MPC | $12.19^\circ$ | $622.52\ \mathrm{deg\cdot s}$ | $3.45^\circ$ | $19.31\%$ | $3.45^\circ$ |
 
 传统固定控制在第一次航向变化后出现明显滞后，模型漂移和环境扰动进入后误差继续积累。它不是完全失效，但它对“未来会怎样”和“舵角约束是否会限制修正动作”没有显式表达，因此在复杂链路中很快暴露出控制边界。
 
-名义模型 MPC 明显降低了累计绝对误差，说明滚动预测和约束表达本身有价值。它的局限也很清楚：预测模型仍停留在 $K_m=0.18,T_m=8.0\ \mathrm{s}$，当真实对象变慢、舵效降低并受到横流扰动时，优化器会低估后续误差和所需舵角。MPC 改善了“是否考虑约束”的问题，但没有自动解决“预测对象是否仍可信”的问题。
+名义模型 MPC 明显降低了累计绝对误差，说明滚动预测和约束表达本身有价值。它的局限也很清楚：预测模型仍停留在 $K_m=0.18,T_m=8.0\ \mathrm{s}$，当真实对象变慢、舵效降低并受到横流扰动时，优化器会低估后续误差和所需舵角。MPC 改善了“是否考虑约束”的问题，但没有自动解决“预测对象是否仍可信”的问题。短时内，名义 MPC 的航向曲线并不会立刻崩坏；长时漂移持续存在后，它在多个参考调整段都会留下残余偏差。
 
-数据驱动模型 MPC 的累计绝对误差和环境变化后平均误差继续下降，说明运行数据修正有效模型后，MPC 的预测更贴近当前对象。它也付出了新的代价：舵角触边比例升高，说明修正后的模型更早看见控制需求，却也更频繁把动作推到约束边界附近。这个结果比“数据驱动更先进”更重要：数据驱动能缓解模型依赖，但会把风险转移到数据覆盖、在线辨识、约束监控和部署验证上。
+数据驱动模型 MPC 的累计绝对误差降至 $622.52\ \mathrm{deg\cdot s}$，比名义模型 MPC 降低约 $27.60\%$，环境变化后平均误差也继续下降。这说明运行数据修正有效模型后，MPC 的预测更贴近当前对象。它也付出了新的代价：舵角触边比例升高，说明修正后的模型更早看见控制需求，却也更频繁把动作推到约束边界附近。这个结果比“数据驱动更先进”更重要：数据驱动能缓解模型依赖，但会把风险转移到数据覆盖、在线辨识、约束监控和部署验证上。
 
 ### 5.3 从仿真比较得到的判断
 
@@ -306,3 +330,12 @@ MPC 位于这条迁移链的中间位置。它仍依赖模型预测未来，却�
 1. 当模型预测误差下降但边界工况尚未覆盖时，控制系统应如何设置保守保护？
 2. 若数据驱动模块只负责扰动预测，哪些稳定性和约束证据仍应由模型主干提供？
 3. 面对同一自主航行任务，什么条件会让方法继续从数据驱动走向策略学习？
+
+## 附录 A 参考文献
+
+1. Rawlings, J. B., Mayne, D. Q., and Diehl, M. *Model Predictive Control: Theory, Computation, and Design*, 2nd ed. 官方 PDF：<https://sites.chemengr.ucsb.edu/~jbraw/mpc/MPC-book-2nd-edition-5th-printing.pdf>
+2. Ljung, L. *System Identification: Theory for the User*, 2nd ed. 书目信息：<https://www.sciencedirect.com/science/article/pii/S000510980100214X>
+3. Willems, J. C., Rapisarda, P., Markovsky, I., and De Moor, B. “A note on persistency of excitation.” *Systems & Control Letters*, 2005. <https://researchportal.vub.be/en/publications/a-note-on-persistency-of-excitation/>
+4. Coulson, J., Lygeros, J., and Dörfler, F. “Data-Enabled Predictive Control: In the Shallows of the DeePC.” ECC 2019. <https://www.research-collection.ethz.ch/handle/20.500.11850/373586>
+5. Berberich, J., Köhler, J., Müller, M. A., and Allgöwer, F. “Data-Driven Model Predictive Control With Stability and Robustness Guarantees.” *IEEE Transactions on Automatic Control*, 2021. <https://www.irt.uni-hannover.de/en/forschung/publikationen/publikation-detail?tx_t3luhpublications_publications%5Bpublication%5D=1744>
+6. Brunton, S. L., and Kutz, J. N. *Data-Driven Science and Engineering: Machine Learning, Dynamical Systems, and Control*. Cambridge University Press. <https://www.cambridge.org/core/books/datadriven-science-and-engineering/377A58289370FD012E997610B86065DA>

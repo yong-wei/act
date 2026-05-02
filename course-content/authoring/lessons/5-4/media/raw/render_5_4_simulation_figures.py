@@ -77,9 +77,46 @@ def plot_prediction_mismatch() -> None:
 
 
 def add_environment_marks(ax: plt.Axes) -> None:
-    ax.axvspan(28, 44, color="#fef3c7", alpha=0.55, label="模型漂移")
-    ax.axvline(36, color="#7c3aed", linewidth=1.0, linestyle=":", label="避碰航向调整")
-    ax.axvline(58, color="#0f766e", linewidth=1.0, linestyle=":", label="航迹恢复")
+    ax.axvspan(28, 108, color="#fef3c7", alpha=0.48, label="模型漂移")
+    for marker in (45, 78, 122, 152):
+        ax.axvline(marker, color="#7c3aed", linewidth=0.9, linestyle=":", alpha=0.7)
+    ax.set_xlim(0, 180)
+
+
+def plot_model_parameter_drift() -> None:
+    df = pd.read_csv(CLOSED_LOOP_DATA)
+
+    fig, axes = plt.subplots(2, 1, figsize=(9.8, 6.6), sharex=True)
+    ax = axes[0]
+    add_environment_marks(ax)
+    ax.plot(df["t"], [0.18] * len(df), color="#f59e0b", linewidth=1.8, linestyle="--", label="名义参数")
+    ax.plot(df["t"], df["K_actual"], color="#111827", linewidth=2.1, label="实际漂移参数")
+    ax.plot(df["t"], df["K_est_data"], color="#2563eb", linewidth=1.9, label="数据驱动推断参数")
+    ax.set_title("长时模型漂移下的参数真实值与在线推断值")
+    ax.set_ylabel("增益 K")
+    ax.grid(True, color="#e5e7eb", linewidth=0.8)
+    ax.legend(loc="upper right", frameon=False, ncol=3)
+    soften_axes(ax)
+
+    ax = axes[1]
+    add_environment_marks(ax)
+    ax.plot(df["t"], [8.0] * len(df), color="#f59e0b", linewidth=1.8, linestyle="--", label="名义参数")
+    ax.plot(df["t"], df["T_actual"], color="#111827", linewidth=2.1, label="实际漂移参数")
+    ax.plot(df["t"], df["T_est_data"], color="#2563eb", linewidth=1.9, label="数据驱动推断参数")
+    ax.set_xlabel("时间 / s")
+    ax.set_ylabel("时间常数 T / s")
+    ax.grid(True, color="#e5e7eb", linewidth=0.8)
+    soften_axes(ax)
+
+    fig.text(
+        0.02,
+        0.01,
+        "在线推断只使用已发生的闭环运行数据；为避免激励不足造成跳变，估计值经过投影、平滑和保守预测处理。",
+        fontsize=9,
+        color="#4b5563",
+    )
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    save(fig, "5-4-model-parameter-drift.png")
 
 
 def plot_closed_loop_comparison() -> None:
@@ -143,7 +180,7 @@ def plot_closed_loop_comparison() -> None:
     fig.text(
         0.02,
         0.01,
-        "传统控制使用固定名义参数；名义模型 MPC 显式处理舵角约束但仍按旧模型预测；数据驱动模型 MPC 使用当前运行数据修正有效模型。",
+        "传统控制使用固定名义参数；名义模型 MPC 显式处理舵角约束但仍按旧模型预测；数据驱动模型 MPC 使用运行数据滚动修正有效模型。",
         fontsize=9,
         color="#4b5563",
     )
@@ -154,6 +191,7 @@ def plot_closed_loop_comparison() -> None:
 def main() -> None:
     configure_matplotlib()
     plot_prediction_mismatch()
+    plot_model_parameter_drift()
     plot_closed_loop_comparison()
 
 

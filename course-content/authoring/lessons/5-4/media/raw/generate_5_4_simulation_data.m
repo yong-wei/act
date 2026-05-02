@@ -7,7 +7,7 @@ if exist(out_dir, "dir") != 7
 endif
 
 dt = 0.2;
-t = (0:dt:80)';
+t = (0:dt:180)';
 n = numel(t);
 
 function y = clip_value(x, lo, hi)
@@ -33,12 +33,16 @@ endfunction
 function value = ref_at_time(t_value)
   if t_value < 5
     value = 0;
-  elseif t_value < 36
+  elseif t_value < 45
     value = 12;
-  elseif t_value < 58
+  elseif t_value < 78
     value = -6;
+  elseif t_value < 122
+    value = 10;
+  elseif t_value < 152
+    value = -4;
   else
-    value = 8;
+    value = 6;
   endif
 endfunction
 
@@ -57,8 +61,8 @@ function [K_actual, T_actual, bias_actual] = build_actual_environment(t)
   for k = 1:n
     if t(k) < 28
       drift = 0;
-    elseif t(k) < 44
-      drift = (t(k) - 28) / 16;
+    elseif t(k) < 108
+      drift = (t(k) - 28) / 80;
     else
       drift = 1;
     endif
@@ -66,7 +70,7 @@ function [K_actual, T_actual, bias_actual] = build_actual_environment(t)
     T_actual(k) = 8.0 + drift * (18.0 - 8.0);
 
     if t(k) >= 34
-      bias_actual(k) = 0.014 + 0.009 * sin(0.16 * (t(k) - 34));
+      bias_actual(k) = 0.016 + 0.010 * sin(0.085 * (t(k) - 34));
     endif
   endfor
 endfunction
@@ -100,6 +104,65 @@ function u = choose_mpc_input(psi, r, t_now, u_prev, dt, alpha, beta, gamma, u_l
   endfor
 
   u = apply_rate_and_saturation(best_u, u_prev, dt, u_limit, rate_limit);
+endfunction
+
+function [K_fit, T_fit, gamma_fit] = estimate_data_model(k, r, u, dt, K_prev, T_prev, gamma_prev)
+  min_samples = 24;
+  window = 110;
+  first = max(1, k - window);
+  last = k - 1;
+  sample_count = last - first + 1;
+
+  if sample_count < min_samples
+    K_fit = K_prev;
+    T_fit = T_prev;
+    gamma_fit = gamma_prev;
+    return;
+  endif
+
+  X = zeros(sample_count, 3);
+  y = zeros(sample_count, 1);
+  weights = zeros(sample_count, 1);
+  for idx = 1:sample_count
+    j = first + idx - 1;
+    X(idx, :) = [r(j), u(j), 1];
+    y(idx) = r(j + 1);
+    weights(idx) = 0.35 + 0.65 * (idx / sample_count)^2;
+  endfor
+
+  sqrt_w = sqrt(weights);
+  Xw = X .* repmat(sqrt_w, 1, 3);
+  yw = y .* sqrt_w;
+
+  a_prev = 1 - dt / T_prev;
+  b_prev = K_prev * dt / T_prev;
+  c_prev = gamma_prev * dt;
+  theta_prior = [a_prev; b_prev; c_prev];
+  reg = 0.12;
+  theta = (Xw' * Xw + reg * eye(3)) \ (Xw' * yw + reg * theta_prior);
+
+  a_raw = clip_value(theta(1), 1 - dt / 5.0, 1 - dt / 24.0);
+  T_raw = dt / max(1 - a_raw, 0.001);
+  T_raw = clip_value(T_raw, 5.0, 24.0);
+
+  b_raw = clip_value(theta(2), 0.00035, 0.0065);
+  K_raw = b_raw * T_raw / dt;
+  K_raw = clip_value(K_raw, 0.045, 0.22);
+
+  gamma_raw = clip_value(theta(3) / dt, -0.04, 0.04);
+  K_raw = clip_value(K_raw, K_prev - 0.008, K_prev + 0.008);
+  T_raw = clip_value(T_raw, T_prev - 0.45, T_prev + 0.45);
+  gamma_raw = clip_value(gamma_raw, gamma_prev - 0.0025, gamma_prev + 0.0025);
+
+  input_span = max(u(first:last)) - min(u(first:last));
+  blend = min(0.26, max(0.05, 0.26 * sample_count / window));
+  if input_span < 1.0
+    blend = min(blend, 0.06);
+  endif
+
+  K_fit = (1 - blend) * K_prev + blend * K_raw;
+  T_fit = (1 - blend) * T_prev + blend * T_raw;
+  gamma_fit = (1 - blend) * gamma_prev + blend * gamma_raw;
 endfunction
 
 function [psi, r, u] = simulate_traditional_controller(t, ref, dt, K_actual, T_actual, bias_actual)
@@ -139,25 +202,26 @@ function [psi, r, u, K_est, T_est, bias_est] = simulate_mpc_controller(t, dt, K_
   beta_nominal = K_nominal / T_nominal;
   u_limit = 12;
   rate_limit = 3.0;
-  horizon_steps = 55;
-  window = 1;
+  horizon_steps = 80;
+  K_fit = K_nominal;
+  t_fit = T_nominal;
+  gamma = 0;
 
   for k = 1:n-1
     if use_data_model
-      start_idx = max(1, k - window);
-      k_fit = mean(K_actual(start_idx:k));
-      t_fit = mean(T_actual(start_idx:k));
-      gamma = mean(bias_actual(start_idx:k));
-      alpha = -1 / t_fit;
-      beta = k_fit / t_fit;
+      [K_fit, t_fit, gamma] = estimate_data_model(k, r, u, dt, K_fit, t_fit, gamma);
+      control_K = clip_value(0.88 * K_fit, 0.045, 0.22);
+      control_T = clip_value(1.12 * t_fit, 5.0, 24.0);
+      alpha = -1 / control_T;
+      beta = control_K / control_T;
     else
       alpha = alpha_nominal;
       beta = beta_nominal;
       gamma = 0;
-      k_fit = K_nominal;
+      K_fit = K_nominal;
       t_fit = T_nominal;
     endif
-    K_est(k) = k_fit;
+    K_est(k) = K_fit;
     T_est(k) = t_fit;
     bias_est(k) = gamma;
 
@@ -276,9 +340,9 @@ closed_loop_data = [
 closed_loop_header = "t,ref,K_actual,T_actual,bias_actual,psi_traditional,psi_mpc_nominal,psi_mpc_data,u_traditional,u_mpc_nominal,u_mpc_data,err_traditional,err_mpc_nominal,err_mpc_data,r_traditional,r_mpc_nominal,r_mpc_data,K_est_data,T_est_data,bias_est_data";
 write_csv(fullfile(out_dir, "5-4-mpc-drift-comparison.csv"), closed_loop_header, closed_loop_data);
 
-metric_traditional = controller_metrics(t, ref, psi_traditional, u_traditional, dt, 36);
-metric_mpc_nominal = controller_metrics(t, ref, psi_mpc_nominal, u_mpc_nominal, dt, 36);
-metric_mpc_data = controller_metrics(t, ref, psi_mpc_data, u_mpc_data, dt, 36);
+metric_traditional = controller_metrics(t, ref, psi_traditional, u_traditional, dt, 28);
+metric_mpc_nominal = controller_metrics(t, ref, psi_mpc_nominal, u_mpc_nominal, dt, 28);
+metric_mpc_data = controller_metrics(t, ref, psi_mpc_data, u_mpc_data, dt, 28);
 metrics = [
   metric_traditional;
   metric_mpc_nominal;

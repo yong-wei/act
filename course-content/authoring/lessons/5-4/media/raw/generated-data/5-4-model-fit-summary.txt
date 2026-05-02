@@ -4,5 +4,5 @@ K_actual=0.125000
 T_actual=11.500000
 K_fit=0.150002
 T_fit=14.645976
-max_abs_nominal_error=13.227228
-max_abs_fitted_error=2.929237
+max_abs_nominal_error=14.043158
+max_abs_fitted_error=5.478231
