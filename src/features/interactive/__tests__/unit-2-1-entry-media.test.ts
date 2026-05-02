@@ -125,7 +125,16 @@ describe('unit 2-1 entry media runtime', () => {
     expect(handoutPanelSource).toContain('在线阅读讲义');
     expect(sharedSource).toContain('setIsHandoutOpen(true)');
     expect(sharedSource).toContain('LessonEntryHandoutDialog');
-    expect(handoutPanelSource).toContain('xl:grid-cols-[minmax(0,1fr)_auto]');
+    expect(sharedSource).not.toContain('<p className="premium-lesson-muted mt-3 max-w-3xl">');
+    expect(sharedSource).toContain('premium-lesson-tone-block premium-tone-slate mt-4 w-full text-sm');
+    expect(handoutPanelSource).toContain('xl:grid-cols-[220px_minmax(0,1fr)]');
+    expect(handoutPanelSource).toContain('flex flex-col items-start gap-3');
+    expect(handoutPanelSource.indexOf('premium-lesson-tone-pill premium-tone-cyan')).toBeLessThan(
+      handoutPanelSource.indexOf('在线阅读讲义'),
+    );
+    expect(handoutPanelSource.indexOf('在线阅读讲义')).toBeLessThan(
+      handoutPanelSource.indexOf('下载 PDF 讲义'),
+    );
     expect(handoutPanelSource).toContain('className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5"');
     expect(sharedSource).toContain('className="grid gap-4 lg:grid-cols-3"');
     expect(sharedSource).toContain('LessonEntryHandoutPanel');

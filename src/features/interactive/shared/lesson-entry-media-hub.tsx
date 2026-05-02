@@ -28,8 +28,6 @@ interface LessonEntryMediaHubProps {
 }
 
 const DEFAULT_TITLE = '课前预习台';
-const DEFAULT_DESCRIPTION =
-  '根据当前已开放的媒体资源和课前讲义，先建立本课的问题情境、知识主线与关键图表线索。';
 const DEFAULT_RECOMMENDATION =
   '建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
@@ -426,7 +424,6 @@ export function LessonEntryMediaHub({
   lessonRuntime,
   courseLabel,
   title = DEFAULT_TITLE,
-  description = DEFAULT_DESCRIPTION,
   recommendation = DEFAULT_RECOMMENDATION,
   audioCardTitle = DEFAULT_AUDIO_CARD_TITLE,
 }: LessonEntryMediaHubProps) {
@@ -560,15 +557,12 @@ export function LessonEntryMediaHub({
   return (
     <>
       <section className="premium-lesson-panel mt-4 px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
           <div>
             <div className="premium-lesson-kicker">{courseLabel}</div>
             <h2 className="premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl">{title}</h2>
-            <p className="premium-lesson-muted mt-3 max-w-3xl">
-              {description}
-            </p>
           </div>
-          <div className="premium-lesson-tone-block premium-tone-slate max-w-sm text-sm">
+          <div className="premium-lesson-tone-block premium-tone-slate mt-4 w-full text-sm">
             {recommendation}
           </div>
         </div>

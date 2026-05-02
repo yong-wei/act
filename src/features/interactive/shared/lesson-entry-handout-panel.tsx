@@ -21,8 +21,8 @@ export function LessonEntryHandoutPanel({
 }: LessonEntryHandoutPanelProps) {
   return (
     <section className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 sm:p-5">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-        <div className="min-w-0">
+      <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-start">
+        <div className="flex flex-col items-start gap-3">
           <div className="inline-flex items-center gap-2">
             <span className="premium-lesson-control inline-flex items-center justify-center">
               <BookOpen className="h-4 w-4" />
@@ -32,13 +32,6 @@ export function LessonEntryHandoutPanel({
               <h3 className="premium-lesson-title mt-1 text-lg font-semibold">讲义阅读与下载</h3>
             </div>
           </div>
-          <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {summary}
-            </ReactMarkdown>
-          </div>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
           <span className="premium-lesson-tone-pill premium-tone-cyan shrink-0">
             {pdfReady ? '已备好' : '在线阅读'}
           </span>
@@ -59,6 +52,13 @@ export function LessonEntryHandoutPanel({
             {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             下载 PDF 讲义
           </button>
+        </div>
+        <div className="min-w-0">
+          <div className="prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {summary}
+            </ReactMarkdown>
+          </div>
         </div>
       </div>
     </section>
