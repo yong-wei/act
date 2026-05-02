@@ -1,10 +1,12 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { DEFAULT_SILICONFLOW_MODEL, type AIProviderConfig } from '../provider-config';
+import type { AIProviderConfig } from '../provider-config';
 import type { AIProviderAdapter } from './types';
 
 const execFileAsync = promisify(execFile);
+const DEEPSEEK_V4_FLASH_MODEL = 'deepseek-ai/DeepSeek-V4-Flash';
+const QWEN_3_6_35B_A3B_MODEL = 'Qwen/Qwen3.6-35B-A3B';
 const SILICONFLOW_CURL_TIMEOUT_SECONDS = 240;
 const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 300;
 const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 60;
@@ -160,6 +162,17 @@ async function fetchDeepSeekV4Flash(
   });
 }
 
+function withSiliconFlowDefaults(requestBody: Record<string, unknown>, config: AIProviderConfig): Record<string, unknown> {
+  if (requestBody.model === QWEN_3_6_35B_A3B_MODEL) {
+    return {
+      ...requestBody,
+      enable_thinking: config.modelOptions?.enableThinking ?? false,
+    };
+  }
+
+  return requestBody;
+}
+
 export function createSiliconFlowAdapter(config: AIProviderConfig): AIProviderAdapter {
   const siliconflow = createOpenAI({
     baseURL: config.baseURL,
@@ -168,8 +181,11 @@ export function createSiliconFlowAdapter(config: AIProviderConfig): AIProviderAd
     fetch: async (input, init) => {
       const rawBody = typeof init?.body === 'string' ? init.body : undefined;
       const requestBody = rawBody ? JSON.parse(rawBody) as Record<string, unknown> : undefined;
-      if (requestBody?.model !== DEFAULT_SILICONFLOW_MODEL) {
-        return globalThis.fetch(input, init);
+      if (requestBody?.model !== DEEPSEEK_V4_FLASH_MODEL) {
+        return globalThis.fetch(input, {
+          ...init,
+          body: requestBody ? JSON.stringify(withSiliconFlowDefaults(requestBody, config)) : init?.body,
+        });
       }
 
       return fetchDeepSeekV4Flash(input, init, config.apiKey);

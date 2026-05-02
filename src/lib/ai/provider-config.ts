@@ -1,14 +1,20 @@
-export type AIProviderId = 'siliconflow';
+export type AIProviderId = string;
+
+export interface AIModelRuntimeOptions {
+  enableThinking?: boolean;
+}
 
 export interface AIProviderConfig {
   provider: AIProviderId;
   baseURL: string;
   apiKey: string;
   model: string;
+  modelOptions?: AIModelRuntimeOptions;
 }
 
-const DEFAULT_PROVIDER: AIProviderId = 'siliconflow';
-export const DEFAULT_SILICONFLOW_MODEL = 'deepseek-ai/DeepSeek-V4-Flash';
+export const SILICONFLOW_PROVIDER_ID = 'siliconflow';
+const DEFAULT_PROVIDER: AIProviderId = SILICONFLOW_PROVIDER_ID;
+export const DEFAULT_SILICONFLOW_MODEL = 'Qwen/Qwen3.6-35B-A3B';
 const DEFAULT_SILICONFLOW_BASE_URL = 'https://api.siliconflow.cn/v1';
 
 function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
@@ -17,8 +23,8 @@ function firstNonEmpty(...values: Array<string | undefined>): string | undefined
 
 function resolveProviderId(value: string | undefined): AIProviderId {
   const provider = (value ?? DEFAULT_PROVIDER).trim().toLowerCase();
-  if (provider === 'siliconflow') {
-    return 'siliconflow';
+  if (provider === SILICONFLOW_PROVIDER_ID) {
+    return SILICONFLOW_PROVIDER_ID;
   }
 
   throw new Error(`Unsupported AI provider: ${provider}`);
@@ -27,7 +33,7 @@ function resolveProviderId(value: string | undefined): AIProviderId {
 export function resolveAIProviderConfig(env: NodeJS.ProcessEnv = process.env): AIProviderConfig {
   const provider = resolveProviderId(firstNonEmpty(env.AI_PROVIDER, env.LLM_PROVIDER));
 
-  if (provider === 'siliconflow') {
+  if (provider === SILICONFLOW_PROVIDER_ID) {
     return {
       provider,
       baseURL: firstNonEmpty(env.AI_BASE_URL, env.SILICONFLOW_API_URL) ?? DEFAULT_SILICONFLOW_BASE_URL,

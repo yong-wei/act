@@ -11,7 +11,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { StreamingTextResponse, streamText } from 'ai';
-import { getAIModel } from '@/lib/ai-client';
+import { getConfiguredAIModel } from '@/lib/ai-client';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from 'ai/react';
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // 调用AI
     const result = await streamText({
-      model: getAIModel(),
+      model: await getConfiguredAIModel(),
       messages: [
         { role: 'system', content: systemPrompt },
         ...updatedMessages.map((m) => ({

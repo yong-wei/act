@@ -40,7 +40,7 @@ NEXTAUTH_SECRET="your-secret-key-here"
 AI_PROVIDER="siliconflow"
 AI_BASE_URL="https://api.siliconflow.cn/v1"
 AI_API_KEY="sk-your-api-key"
-AI_MODEL="deepseek-ai/DeepSeek-V4-Flash"
+AI_MODEL="Qwen/Qwen3.6-35B-A3B"
 ```
 
 ### 3. 创建数据库
@@ -251,13 +251,13 @@ npm run startup
 - **UI 组件**: shadcn/ui + Radix UI
 - **认证**: NextAuth.js
 - **数据库**: PostgreSQL + Prisma ORM
-- **AI**: 可配置供应商适配层，当前使用 SiliconFlow + deepseek-ai/DeepSeek-V4-Flash
+- **AI**: 可配置供应商适配层，当前使用 SiliconFlow + Qwen/Qwen3.6-35B-A3B
 
 ## 💡 常见问题
 
 ### Q: 如何修改 AI 模型？
 
-修改 `.env` 中的 `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。业务代码仍通过 `getAIModel()` 调用，不需要修改业务路由。
+修改 `.env` 中的 `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`，或在管理员后台的 AI 供应商与模型页面保存当前模型。业务代码通过 `getConfiguredAIModel()` 调用，不需要修改业务路由。
 
 ### Q: 如何添加新任务？
 

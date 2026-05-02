@@ -10,7 +10,30 @@ import {
   Shield,
   Save,
   RefreshCcw,
+  Plus,
+  Trash2,
+  Gauge,
 } from 'lucide-react';
+
+interface AIProviderModelSetting {
+  id: string;
+  label: string;
+  model: string;
+  description?: string;
+}
+
+interface AIProviderSetting {
+  id: string;
+  name: string;
+  baseURL: string;
+  selectedModel: string;
+  models: AIProviderModelSetting[];
+}
+
+interface AIProviderSettings {
+  activeProvider: string;
+  providers: AIProviderSetting[];
+}
 
 interface SystemConfig {
   siteName: string;
@@ -23,6 +46,51 @@ interface SystemConfig {
   enableNotifications: boolean;
   ethicsAlertThreshold: number;
   homeDynamicModelEnabled: boolean;
+}
+
+interface ModelTestResult {
+  status: 'running' | 'success' | 'error';
+  elapsedMs?: number;
+  chars?: number;
+  text?: string;
+  error?: string;
+}
+
+const DEFAULT_AI_SETTINGS: AIProviderSettings = {
+  activeProvider: 'siliconflow',
+  providers: [
+    {
+      id: 'siliconflow',
+      name: 'SiliconFlow',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      selectedModel: 'Qwen/Qwen3.6-35B-A3B',
+      models: [
+        {
+          id: 'qwen-3-6-35b-a3b',
+          label: 'Qwen3.6 35B A3B',
+          model: 'Qwen/Qwen3.6-35B-A3B',
+          description: '当前主力语言模型',
+        },
+        {
+          id: 'deepseek-v4-flash',
+          label: 'DeepSeek V4 Flash',
+          model: 'deepseek-ai/DeepSeek-V4-Flash',
+          description: '保留为可选模型',
+        },
+        {
+          id: 'minimax-m2-5',
+          label: 'MiniMax M2.5',
+          model: 'MiniMaxAI/MiniMax-M2.5',
+          description: 'SiliconFlow 可选语言模型',
+        },
+      ],
+    },
+  ],
+};
+
+function makeId(value: string, fallback: string): string {
+  const id = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return id || fallback;
 }
 
 export default function SystemConfigPage() {
@@ -41,19 +109,32 @@ export default function SystemConfigPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [aiSettings, setAiSettings] = useState<AIProviderSettings>(DEFAULT_AI_SETTINGS);
+  const [newProvider, setNewProvider] = useState({ id: '', name: '', baseURL: '' });
+  const [newModel, setNewModel] = useState({ label: '', model: '' });
+  const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
 
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const response = await fetch('/api/admin/platform-settings', { cache: 'no-store' });
-        if (!response.ok) {
+        const [platformResponse, aiResponse] = await Promise.all([
+          fetch('/api/admin/platform-settings', { cache: 'no-store' }),
+          fetch('/api/admin/ai-settings', { cache: 'no-store' }),
+        ]);
+        if (!platformResponse.ok) {
           throw new Error('加载配置失败');
         }
-        const payload = await response.json() as { homeDynamicModelEnabled?: boolean };
+        const payload = await platformResponse.json() as { homeDynamicModelEnabled?: boolean };
+        const aiPayload = aiResponse.ok ? await aiResponse.json() as AIProviderSettings : DEFAULT_AI_SETTINGS;
+        const activeProvider = aiPayload.providers.find((provider) => provider.id === aiPayload.activeProvider) ?? aiPayload.providers[0];
         setConfig((prev) => ({
           ...prev,
           homeDynamicModelEnabled: payload.homeDynamicModelEnabled === true,
+          aiProvider: aiPayload.activeProvider,
+          aiModelEndpoint: activeProvider?.baseURL ?? '',
+          aiModelName: activeProvider?.selectedModel ?? '',
         }));
+        setAiSettings(aiPayload);
       } catch {
         setNotice({ type: 'error', message: '读取平台配置失败，已使用默认值' });
         setTimeout(() => setNotice(null), 3000);
@@ -73,21 +154,170 @@ export default function SystemConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/admin/platform-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          homeDynamicModelEnabled: config.homeDynamicModelEnabled,
+      const [platformResponse, aiResponse] = await Promise.all([
+        fetch('/api/admin/platform-settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            homeDynamicModelEnabled: config.homeDynamicModelEnabled,
+          }),
         }),
-      });
-      if (!response.ok) {
+        fetch('/api/admin/ai-settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(aiSettings),
+        }),
+      ]);
+      if (!platformResponse.ok || !aiResponse.ok) {
         throw new Error('保存失败');
       }
+      const savedAiSettings = await aiResponse.json() as AIProviderSettings;
+      setAiSettings(savedAiSettings);
       showNotice('success', '配置已保存');
     } catch {
       showNotice('error', '保存失败');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const activeProvider = aiSettings.providers.find((provider) => provider.id === aiSettings.activeProvider) ?? aiSettings.providers[0];
+
+  const updateProvider = (providerId: string, patch: Partial<AIProviderSetting>) => {
+    setAiSettings((prev) => {
+      const providers = prev.providers.map((provider) => (
+        provider.id === providerId ? { ...provider, ...patch } : provider
+      ));
+      const next = { ...prev, providers };
+      const updatedProvider = providers.find((provider) => provider.id === providerId);
+      if (updatedProvider && providerId === prev.activeProvider) {
+        setConfig((current) => ({
+          ...current,
+          aiProvider: providerId,
+          aiModelEndpoint: updatedProvider.baseURL,
+          aiModelName: updatedProvider.selectedModel,
+        }));
+      }
+      return next;
+    });
+  };
+
+  const selectProvider = (providerId: string) => {
+    const provider = aiSettings.providers.find((item) => item.id === providerId);
+    setAiSettings((prev) => ({ ...prev, activeProvider: providerId }));
+    setConfig((prev) => ({
+      ...prev,
+      aiProvider: providerId,
+      aiModelEndpoint: provider?.baseURL ?? '',
+      aiModelName: provider?.selectedModel ?? '',
+    }));
+  };
+
+  const selectModel = (providerId: string, model: string) => {
+    updateProvider(providerId, { selectedModel: model });
+  };
+
+  const addProvider = () => {
+    const id = makeId(newProvider.id || newProvider.name, `provider-${aiSettings.providers.length + 1}`);
+    if (aiSettings.providers.some((provider) => provider.id === id)) {
+      showNotice('error', '供应商 ID 已存在');
+      return;
+    }
+    const provider: AIProviderSetting = {
+      id,
+      name: newProvider.name.trim() || id,
+      baseURL: newProvider.baseURL.trim(),
+      selectedModel: '',
+      models: [],
+    };
+    setAiSettings((prev) => ({
+      activeProvider: id,
+      providers: [...prev.providers, provider],
+    }));
+    setNewProvider({ id: '', name: '', baseURL: '' });
+    setConfig((prev) => ({ ...prev, aiProvider: id, aiModelEndpoint: provider.baseURL, aiModelName: '' }));
+  };
+
+  const removeProvider = (providerId: string) => {
+    if (providerId === 'siliconflow') {
+      showNotice('error', '默认 SiliconFlow 供应商不能删除');
+      return;
+    }
+    setAiSettings((prev) => {
+      const providers = prev.providers.filter((provider) => provider.id !== providerId);
+      const activeProviderId = prev.activeProvider === providerId ? providers[0]?.id ?? 'siliconflow' : prev.activeProvider;
+      return { activeProvider: activeProviderId, providers };
+    });
+  };
+
+  const addModel = () => {
+    if (!activeProvider) return;
+    const model = newModel.model.trim();
+    if (!model) {
+      showNotice('error', '模型 ID 不能为空');
+      return;
+    }
+    if (activeProvider.models.some((item) => item.model === model)) {
+      showNotice('error', '该模型已存在');
+      return;
+    }
+    const nextModel: AIProviderModelSetting = {
+      id: makeId(newModel.label || model, `model-${activeProvider.models.length + 1}`),
+      label: newModel.label.trim() || model,
+      model,
+    };
+    updateProvider(activeProvider.id, {
+      models: [...activeProvider.models, nextModel],
+      selectedModel: activeProvider.selectedModel || model,
+    });
+    setNewModel({ label: '', model: '' });
+  };
+
+  const removeModel = (providerId: string, model: string) => {
+    const provider = aiSettings.providers.find((item) => item.id === providerId);
+    if (!provider) return;
+    const models = provider.models.filter((item) => item.model !== model);
+    updateProvider(providerId, {
+      models,
+      selectedModel: provider.selectedModel === model ? models[0]?.model ?? '' : provider.selectedModel,
+    });
+  };
+
+  const testModel = async (providerId: string, model: string) => {
+    const key = `${providerId}:${model}`;
+    setTestResults((prev) => ({ ...prev, [key]: { status: 'running' } }));
+    try {
+      const response = await fetch('/api/admin/ai-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, model }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(payload?.error || '测试失败');
+      }
+      const payload = await response.json() as {
+        elapsedMs: number;
+        chars: number;
+        text: string;
+      };
+      setTestResults((prev) => ({
+        ...prev,
+        [key]: {
+          status: 'success',
+          elapsedMs: payload.elapsedMs,
+          chars: payload.chars,
+          text: payload.text,
+        },
+      }));
+    } catch (error) {
+      setTestResults((prev) => ({
+        ...prev,
+        [key]: {
+          status: 'error',
+          error: error instanceof Error ? error.message : '测试失败',
+        },
+      }));
     }
   };
 
@@ -104,6 +334,7 @@ export default function SystemConfigPage() {
       ethicsAlertThreshold: 3,
       homeDynamicModelEnabled: false,
     });
+    setAiSettings(DEFAULT_AI_SETTINGS);
     showNotice('success', '已重置为默认配置');
   };
 
@@ -242,48 +473,138 @@ export default function SystemConfigPage() {
           {/* AI 模型配置 */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
             <div className="mb-6 flex items-center gap-3">
-              <Server className="h-5 w-5 text-cyan-400" />
-              <h2 className="text-lg font-semibold text-white">AI 模型配置</h2>
+              <Gauge className="h-5 w-5 text-cyan-400" />
+              <div>
+                <h2 className="text-lg font-semibold text-white">AI 供应商与模型</h2>
+                <p className="text-xs text-slate-500">保存后，业务 AI route 会按当前选择调用</p>
+              </div>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  供应商
-                </label>
-                <input
-                  type="text"
-                  value={config.aiProvider}
-                  onChange={(e) => setConfig({ ...config, aiProvider: e.target.value })}
-                  placeholder="siliconflow"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
-                />
+            <div className="space-y-5">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-300">当前供应商</label>
+                  <select
+                    value={aiSettings.activeProvider}
+                    onChange={(event) => selectProvider(event.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                  >
+                    {aiSettings.providers.map((provider) => (
+                      <option key={provider.id} value={provider.id}>{provider.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-300">当前模型</label>
+                  <select
+                    value={activeProvider?.selectedModel ?? ''}
+                    onChange={(event) => activeProvider && selectModel(activeProvider.id, event.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                  >
+                    {(activeProvider?.models ?? []).map((model) => (
+                      <option key={model.model} value={model.model}>{model.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  API 端点
-                </label>
-                <input
-                  type="text"
-                  value={config.aiModelEndpoint}
-                  onChange={(e) => setConfig({ ...config, aiModelEndpoint: e.target.value })}
-                  placeholder="https://api.siliconflow.cn/v1"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
-                />
+
+              {activeProvider && (
+                <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                  <div className="grid gap-3 md:grid-cols-[0.8fr_1fr]">
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-slate-400">供应商名称</label>
+                      <input
+                        type="text"
+                        value={activeProvider.name}
+                        onChange={(event) => updateProvider(activeProvider.id, { name: event.target.value })}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-slate-400">API 端点</label>
+                      <input
+                        type="text"
+                        value={activeProvider.baseURL}
+                        onChange={(event) => updateProvider(activeProvider.id, { baseURL: event.target.value })}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {activeProvider.models.map((model) => {
+                      const key = `${activeProvider.id}:${model.model}`;
+                      const result = testResults[key];
+                      return (
+                        <div key={model.model} className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-slate-100">{model.label}</p>
+                              <p className="break-all text-xs text-slate-400">{model.model}</p>
+                              {model.description && <p className="mt-1 text-xs text-slate-500">{model.description}</p>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button type="button" onClick={() => selectModel(activeProvider.id, model.model)} className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-500 hover:text-cyan-200">
+                                选用
+                              </button>
+                              <button type="button" onClick={() => testModel(activeProvider.id, model.model)} disabled={result?.status === 'running'} className="rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
+                                {result?.status === 'running' ? '测试中...' : '测试'}
+                              </button>
+                              <button type="button" onClick={() => removeModel(activeProvider.id, model.model)} className="rounded-md border border-slate-700 p-1.5 text-slate-400 transition hover:border-rose-500 hover:text-rose-300" aria-label="删除模型">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                          {result && result.status !== 'running' && (
+                            <div className={`mt-3 rounded-md border px-3 py-2 text-xs ${result.status === 'success' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100' : 'border-rose-500/30 bg-rose-500/10 text-rose-100'}`}>
+                              {result.status === 'success' ? (
+                                <>
+                                  <p>响应时间：{((result.elapsedMs ?? 0) / 1000).toFixed(2)} 秒，正文 {result.chars ?? 0} 字。</p>
+                                  <p className="mt-1 line-clamp-3 text-slate-300">{result.text}</p>
+                                </>
+                              ) : (
+                                <p>{result.error}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid gap-3 border-t border-slate-800 pt-4 md:grid-cols-[0.7fr_1fr_auto]">
+                    <input type="text" value={newModel.label} onChange={(event) => setNewModel({ ...newModel, label: event.target.value })} placeholder="模型显示名" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <input type="text" value={newModel.model} onChange={(event) => setNewModel({ ...newModel, model: event.target.value })} placeholder="模型 ID，例如 vendor/model" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <button type="button" onClick={addModel} className="inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/10">
+                      <Plus className="h-4 w-4" />
+                      添加模型
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-200">供应商目录</p>
+                  {activeProvider && activeProvider.id !== 'siliconflow' && (
+                    <button type="button" onClick={() => removeProvider(activeProvider.id)} className="inline-flex items-center gap-1 text-xs text-rose-300 transition hover:text-rose-200">
+                      <Trash2 className="h-3.5 w-3.5" />
+                      删除当前供应商
+                    </button>
+                  )}
+                </div>
+                <div className="grid gap-3 md:grid-cols-[0.7fr_0.9fr_1fr_auto]">
+                  <input type="text" value={newProvider.id} onChange={(event) => setNewProvider({ ...newProvider, id: event.target.value })} placeholder="provider-id" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                  <input type="text" value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} placeholder="供应商名称" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                  <input type="text" value={newProvider.baseURL} onChange={(event) => setNewProvider({ ...newProvider, baseURL: event.target.value })} placeholder="https://example.com/v1" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                  <button type="button" onClick={addProvider} className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-500 hover:text-cyan-200">
+                    <Plus className="h-4 w-4" />
+                    添加供应商
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  模型名称
-                </label>
-                <input
-                  type="text"
-                  value={config.aiModelName}
-                  onChange={(e) => setConfig({ ...config, aiModelName: e.target.value })}
-                  placeholder="deepseek-ai/DeepSeek-V4-Flash"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
-                />
-              </div>
+
               <p className="text-xs text-slate-500">
-                AI 模型用于智能教学助手和答疑功能。运行时读取 AI_PROVIDER、AI_BASE_URL、AI_API_KEY、AI_MODEL；未设置时兼容 SILICONFLOW_*。
+                API Key 仍从环境变量读取。当前只有 SiliconFlow 具备运行时适配；新增供应商会先进入目录，待适配器实现后可启用调用。
               </p>
             </div>
           </div>

@@ -7,7 +7,7 @@
  */
 
 import { streamText, convertToCoreMessages, type Message } from 'ai';
-import { getAIModel, isAIServiceConfigured, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     }
 
     // 检查 API Key 配置
-    if (!isAIServiceConfigured()) {
+    if (!(await isConfiguredAIServiceAvailable())) {
       return new Response(
         JSON.stringify({
           error: 'AI 服务未配置',
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
     // 使用 Vercel AI SDK 生成流式响应
     const result = await streamText({
-      model: getAIModel(),
+      model: await getConfiguredAIModel(),
       system: systemPrompt,
       messages: convertToCoreMessages(messages),
       tools: aiTools,

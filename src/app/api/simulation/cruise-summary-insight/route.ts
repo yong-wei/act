@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { getAIModel, isAIServiceConfigured } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    if (!isAIServiceConfigured()) {
+    if (!(await isConfiguredAIServiceAvailable())) {
       return NextResponse.json({ text: buildFallback(payload), source: 'fallback' });
     }
 
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 要求：先评价当前状态，再给出一条下一步改进建议。`;
 
     const generated = await generateText({
-      model: getAIModel(),
+      model: await getConfiguredAIModel(),
       prompt,
       temperature: 0.2,
       maxTokens: 160,

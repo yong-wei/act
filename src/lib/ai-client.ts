@@ -4,7 +4,8 @@
  * 业务侧只依赖 getAIModel；供应商和模型由 src/lib/ai/provider-registry 解析。
  */
 
-import { getActiveAIProvider, getAIProviderConfig } from '@/lib/ai/provider-registry';
+import { createAIProviderFromConfig, getActiveAIProvider, getAIProviderConfig } from '@/lib/ai/provider-registry';
+import { resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
 
 // 默认模型
 export const DEFAULT_MODEL = getAIProviderConfig().model;
@@ -16,6 +17,16 @@ export function getAIModel(modelId?: string) {
 
 export function isAIServiceConfigured(): boolean {
   return getAIProviderConfig().apiKey.trim().length > 0;
+}
+
+export async function getConfiguredAIModel(modelId?: string) {
+  const config = await resolveConfiguredAIProviderConfig(undefined, modelId);
+  return createAIProviderFromConfig(config).getModel(modelId || config.model);
+}
+
+export async function isConfiguredAIServiceAvailable(): Promise<boolean> {
+  const config = await resolveConfiguredAIProviderConfig();
+  return config.apiKey.trim().length > 0;
 }
 
 // 系统提示词 - AI-OBE平台智能学习助手「控灵」

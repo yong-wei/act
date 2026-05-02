@@ -170,7 +170,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **海况模拟**：5 级海况，动态风浪干扰
 
 ### 3.3 AI 虚拟总工 ✅
-- **智能对话系统**：基于可配置 LLM 供应商适配层，当前默认使用 SiliconFlow + deepseek-ai/DeepSeek-V4-Flash
+- **智能对话系统**：基于可配置 LLM 供应商适配层，当前默认使用 SiliconFlow + Qwen/Qwen3.6-35B-A3B
 - **Function Calling**：
   - `get_simulation_status` - 获取实时仿真状态
   - `set_simulation_params` - 修改 PID/环境参数
@@ -459,7 +459,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 4.3 AI 技术栈
 - **LLM 服务**：通过 `AI_PROVIDER` 配置，当前支持 SiliconFlow
-- **模型**：通过 `AI_MODEL` 配置，当前默认 deepseek-ai/DeepSeek-V4-Flash
+- **模型**：通过 `AI_MODEL` 配置，当前默认 Qwen/Qwen3.6-35B-A3B
 - **SDK**：Vercel AI SDK v3.4
 - **功能**：流式对话、Function Calling、参数优化建议
 

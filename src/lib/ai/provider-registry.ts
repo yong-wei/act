@@ -18,6 +18,14 @@ export function getActiveAIProvider(): AIProviderAdapter {
   throw new Error(`Unsupported AI provider: ${config.provider}`);
 }
 
+export function createAIProviderFromConfig(config = resolveAIProviderConfig()): AIProviderAdapter {
+  if (config.provider === 'siliconflow') {
+    return createSiliconFlowAdapter(config);
+  }
+
+  throw new Error(`Unsupported AI provider: ${config.provider}`);
+}
+
 export function getAIProviderConfig() {
   return getActiveAIProvider().config;
 }
