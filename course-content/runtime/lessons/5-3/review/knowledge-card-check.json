@@ -1,0 +1,17 @@
+{
+  "lesson_id": "5-3",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-3/sequence.json",
+  "card_order": [
+    "MASS协同链路_5_53001",
+    "控制在自主系统链路中的位置_5_53002",
+    "上游信息质量_5_53003",
+    "规划参考可实现性_5_53004",
+    "执行约束反馈_5_53005",
+    "链路责任诊断_5_53006",
+    "避碰转弯半径可行域_5_53007",
+    "MASS自动化等级责任边界_5_53008"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

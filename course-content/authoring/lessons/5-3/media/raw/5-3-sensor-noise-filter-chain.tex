@@ -6,10 +6,10 @@
 \begin{tikzpicture}[>=Stealth]
   \tikzset{
     block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
-      minimum width=1.82cm, minimum height=0.70cm, line width=1.2pt,
+      minimum width=1.55cm, minimum height=0.70cm, line width=1.2pt,
       font=\scriptsize\bfseries, align=center},
     wideblock/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
-      minimum width=2.15cm, minimum height=0.70cm, line width=1.2pt,
+      minimum width=1.90cm, minimum height=0.70cm, line width=1.2pt,
       font=\scriptsize\bfseries, align=center},
     sum/.style={circle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
       minimum size=0.44cm, line width=1.2pt,
@@ -33,14 +33,14 @@
 
   \newcommand{\drawrow}[4]{
     \node[block] (r#1) at (0,#2) {参考\\$r$};
-    \node[sum] (s#1) at (2.05,#2) {};
-    \node[block] (e#1) at (3.20,#2) {误差\\$e$};
-    \node[block] (c#1) at (5.45,#2) {控制器};
-    \node[wideblock] (a#1) at (8.05,#2) {执行机构};
-    \node[wideblock] (p#1) at (10.75,#2) {对象输出};
-    \node[tap] (tap#1) at (12.25,#2) {};
-    \node[labeltext] (out#1) at (13.20,#2) {$y$};
-    \node[wideblock] (m#1) at (8.05,#2-1.36) {#4};
+    \node[sum] (s#1) at (1.95,#2) {};
+    \node[block] (e#1) at (3.45,#2) {误差\\$e$};
+    \node[block] (c#1) at (5.55,#2) {控制器};
+    \node[wideblock] (a#1) at (8.00,#2) {执行机构};
+    \node[wideblock] (p#1) at (10.45,#2) {对象输出};
+    \node[tap] (tap#1) at (11.75,#2) {};
+    \node[labeltext] (out#1) at (12.60,#2) {$y$};
+    \node[wideblock] (m#1) at (8.00,#2-1.36) {#4};
 
     \draw[signal] (r#1) -- (s#1);
     \draw[signal] (s#1) -- (e#1);
@@ -52,11 +52,11 @@
     \draw[feedback] (m#1.west) -| node[labeltext, left, pos=0.94] {$-$} (s#1.south);
 
     \node[plotbox] (pr#1) at (0,#2+0.68) {};
-    \node[plotbox] (pe#1) at (3.20,#2+0.68) {};
-    \node[plotbox] (pc#1) at (5.45,#2+0.68) {};
-    \node[plotbox] (pa#1) at (8.05,#2+0.68) {};
-    \node[plotbox] (py#1) at (10.75,#2+0.68) {};
-    \node[plotbox, minimum width=2.05cm] (pm#1) at (8.05,#2-2.08) {};
+    \node[plotbox] (pe#1) at (3.45,#2+0.68) {};
+    \node[plotbox] (pc#1) at (5.55,#2+0.68) {};
+    \node[plotbox] (pa#1) at (8.00,#2+0.68) {};
+    \node[plotbox] (py#1) at (10.45,#2+0.68) {};
+    \node[plotbox, minimum width=2.05cm] (pm#1) at (8.00,#2-2.08) {};
   }
 
   \drawrow{A}{1.35}{无传感器滤波：噪声直接进入误差与控制量}{传感器}

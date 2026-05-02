@@ -1,0 +1,95 @@
+{
+  "lesson_id": "5-3",
+  "unit_type": "理论",
+  "generated_at": "2026-05-02T06:38:24.519180+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/5-3/design/handout.md"
+  ],
+  "interactive_page_source": null,
+  "interactive_contract_source": "course-content/authoring/lessons/5-3/design/interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/5-3/design/handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/5-3/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/5-3/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "5-3-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-mass-coordination-chain.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-control-position-in-chain.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-sensor-noise-filter-chain.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-sensor-delay-heading-track.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-planning-path-control-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-actuator-limits-response-track.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-diagnostic-sequence-infographic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-autonomous-avoidance-scene.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-turning-radius-saturation-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-automation-levels-scene.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-3-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

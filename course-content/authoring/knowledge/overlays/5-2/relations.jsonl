@@ -1,0 +1,10 @@
+{"source_id":"非线性边界工具选择_5_52001","source":"非线性边界工具选择","target_id":"局部线性化工作点_5_52002","target":"局部线性化工作点","relation_type":"contains","strength":0.9,"label":"小扰动证据由工作点附近的局部线性化提供"}
+{"source_id":"非线性边界工具选择_5_52001","source":"非线性边界工具选择","target_id":"相平面图_8_bd606f51","target":"相平面图","relation_type":"contains","strength":0.85,"label":"二阶状态轨迹由相平面观察"}
+{"source_id":"非线性边界工具选择_5_52001","source":"非线性边界工具选择","target_id":"描述函数法_8_849fa8a1","target":"描述函数法","relation_type":"contains","strength":0.85,"label":"自振边界由描述函数法近似观察"}
+{"source_id":"非线性微分方程的线性化_2_caa86ba6","source":"非线性微分方程的线性化","target_id":"局部线性化工作点_5_52002","target":"局部线性化工作点","relation_type":"prerequisite","strength":0.9,"label":"线性化必须先确定工作点和增量变量"}
+{"source_id":"描述函数法_8_849fa8a1","source":"描述函数法","target_id":"描述函数适用条件_5_52003","target":"描述函数适用条件","relation_type":"leads_to","strength":0.9,"label":"描述函数法可信度取决于基波近似和线性部分滤波能力"}
+{"source_id":"描述函数适用条件_5_52003","source":"描述函数适用条件","target_id":"负倒描述函数_8_159ff256","target":"负倒描述函数","relation_type":"leads_to","strength":0.85,"label":"满足近似条件后可绘制 -1/N(A) 与 G(jω) 比较"}
+{"source_id":"负倒描述函数_8_159ff256","source":"负倒描述函数","target_id":"自振微小扰动判断_5_52004","target":"自振微小扰动判断","relation_type":"leads_to","strength":0.95,"label":"交点需要进一步用微小扰动方向判断稳定性"}
+{"source_id":"相平面图_8_bd606f51","source":"相平面图","target_id":"自振微小扰动判断_5_52004","target":"自振微小扰动判断","relation_type":"cross_domain","strength":0.7,"label":"相平面周期行为和描述函数自振交点互为非线性周期运动证据"}
+{"source_id":"舵机死区饱和自振风险_5_52005","source":"舵机死区饱和自振风险","target_id":"描述函数适用条件_5_52003","target":"描述函数适用条件","relation_type":"instance_of","strength":0.8,"label":"舵机死区饱和案例可用描述函数估计候选自振边界"}
+{"source_id":"舵机死区饱和自振风险_5_52005","source":"舵机死区饱和自振风险","target_id":"自振微小扰动判断_5_52004","target":"自振微小扰动判断","relation_type":"related","strength":0.85,"label":"舵机自振风险需要交点判断、时域仿真和工程验证共同支持"}

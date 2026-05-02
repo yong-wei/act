@@ -347,6 +347,21 @@
       "notes": "5-3 为模块5当前主线课次，对应从单回路控制到复杂自主系统链路：MASS 的感知—估计—规划—控制协同。"
     },
     {
+      "request_ids": ["5-4"],
+      "canonical_id": "5-4",
+      "display_id": "5-4",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-4",
+      "source_group": null,
+      "authoring_lesson_dir": "5-4",
+      "authoring_cards_dir": "5-4",
+      "authoring_overlays_dir": "5-4",
+      "runtime_lesson_dir": "5-4",
+      "legacy_source_ids": [],
+      "notes": "5-4 为模块5当前主线课次，对应从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",

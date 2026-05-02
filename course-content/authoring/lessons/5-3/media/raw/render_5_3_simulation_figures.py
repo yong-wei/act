@@ -132,20 +132,61 @@ def render_sensor_noise_chain():
   bg_ax.imshow(background)
   bg_ax.axis('off')
 
-  plot_slots = {
-    'r_top': (0.045, 0.822, 0.090, 0.043),
-    'e_top': (0.285, 0.822, 0.090, 0.043),
-    'c_top': (0.447, 0.822, 0.090, 0.043),
-    'a_top': (0.632, 0.822, 0.090, 0.043),
-    'y_top': (0.824, 0.822, 0.090, 0.043),
-    'm_top': (0.639, 0.478, 0.103, 0.043),
-    'r_bottom': (0.045, 0.338, 0.090, 0.043),
-    'e_bottom': (0.285, 0.338, 0.090, 0.043),
-    'c_bottom': (0.447, 0.338, 0.090, 0.043),
-    'a_bottom': (0.632, 0.338, 0.090, 0.043),
-    'y_bottom': (0.824, 0.338, 0.090, 0.043),
-    'm_bottom': (0.639, 0.010, 0.103, 0.043),
-  }
+  def detect_plot_slots(image):
+    arr = np.asarray(image)
+    height, width = arr.shape[:2]
+    mask = (
+      (arr[:, :, 0] > 170)
+      & (arr[:, :, 0] < 230)
+      & (arr[:, :, 1] > 180)
+      & (arr[:, :, 1] < 235)
+      & (arr[:, :, 2] > 190)
+      & (arr[:, :, 2] < 245)
+      & ((arr[:, :, 2].astype(int) - arr[:, :, 0].astype(int)) > 5)
+    )
+    seen = np.zeros(mask.shape, dtype=bool)
+    boxes = []
+    for row in range(height):
+      for col in np.where(mask[row] & ~seen[row])[0]:
+        if seen[row, col] or not mask[row, col]:
+          continue
+        stack = [(row, col)]
+        seen[row, col] = True
+        xs, ys = [], []
+        while stack:
+          y0, x0 = stack.pop()
+          xs.append(x0)
+          ys.append(y0)
+          for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            yy, xx = y0 + dy, x0 + dx
+            if 0 <= yy < height and 0 <= xx < width and mask[yy, xx] and not seen[yy, xx]:
+              seen[yy, xx] = True
+              stack.append((yy, xx))
+        x1, x2 = min(xs), max(xs)
+        y1, y2 = min(ys), max(ys)
+        if x2 - x1 > 80 and y2 - y1 > 35:
+          boxes.append((x1, y1, x2, y2))
+    boxes = sorted(boxes, key=lambda box: ((box[1] + box[3]) / 2, box[0]))
+    if len(boxes) != 12:
+      raise RuntimeError(f'Expected 12 plot boxes in sensor noise chain, found {len(boxes)}')
+    groups = [boxes[:5], boxes[5:6], boxes[6:11], boxes[11:12]]
+    keys = [
+      ['r_top', 'e_top', 'c_top', 'a_top', 'y_top'],
+      ['m_top'],
+      ['r_bottom', 'e_bottom', 'c_bottom', 'a_bottom', 'y_bottom'],
+      ['m_bottom'],
+    ]
+    slots = {}
+    for group, key_group in zip(groups, keys):
+      for key, (x1, y1, x2, y2) in zip(key_group, sorted(group, key=lambda box: box[0])):
+        bw = (x2 - x1) / width
+        bh = (y2 - y1) / height
+        x = x1 / width + bw * 0.08
+        y = 1 - y2 / height + bh * 0.12
+        slots[key] = (x, y, bw * 0.84, bh * 0.70)
+    return slots
+
+  plot_slots = detect_plot_slots(background)
 
   def add_plot(slot, t, series, color, ylim):
     ax = fig.add_axes(plot_slots[slot])

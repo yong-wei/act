@@ -1,0 +1,15 @@
+{"source_id":"MASS协同链路_5_53001","source":"MASS协同链路","target_id":"控制在自主系统链路中的位置_5_53002","target":"控制在自主系统链路中的位置","relation_type":"contains","strength":0.95,"label":"控制层是 MASS 链路中的运动落地环节"}
+{"source_id":"MASS协同链路_5_53001","source":"MASS协同链路","target_id":"上游信息质量_5_53003","target":"上游信息质量","relation_type":"contains","strength":0.9,"label":"感知和估计决定控制层收到的状态质量"}
+{"source_id":"MASS协同链路_5_53001","source":"MASS协同链路","target_id":"规划参考可实现性_5_53004","target":"规划参考可实现性","relation_type":"contains","strength":0.9,"label":"规划层生成的参考必须满足链路可实现性"}
+{"source_id":"MASS协同链路_5_53001","source":"MASS协同链路","target_id":"执行约束反馈_5_53005","target":"执行约束反馈","relation_type":"contains","strength":0.9,"label":"执行层边界需要反馈给控制和规划"}
+{"source_id":"上游信息质量_5_53003","source":"上游信息质量","target_id":"控制在自主系统链路中的位置_5_53002","target":"控制在自主系统链路中的位置","relation_type":"prerequisite","strength":0.88,"label":"反馈状态可信是控制层发挥作用的前提"}
+{"source_id":"规划参考可实现性_5_53004","source":"规划参考可实现性","target_id":"控制在自主系统链路中的位置_5_53002","target":"控制在自主系统链路中的位置","relation_type":"prerequisite","strength":0.86,"label":"参考可执行性决定控制层是否被迫触边补救"}
+{"source_id":"执行约束反馈_5_53005","source":"执行约束反馈","target_id":"规划参考可实现性_5_53004","target":"规划参考可实现性","relation_type":"leads_to","strength":0.92,"label":"执行器边界应反向约束规划参考"}
+{"source_id":"上游信息质量_5_53003","source":"上游信息质量","target_id":"链路责任诊断_5_53006","target":"链路责任诊断","relation_type":"leads_to","strength":0.9,"label":"信息质量异常优先进入链路诊断"}
+{"source_id":"规划参考可实现性_5_53004","source":"规划参考可实现性","target_id":"链路责任诊断_5_53006","target":"链路责任诊断","relation_type":"leads_to","strength":0.9,"label":"不可执行参考是链路诊断的重要证据"}
+{"source_id":"执行约束反馈_5_53005","source":"执行约束反馈","target_id":"链路责任诊断_5_53006","target":"链路责任诊断","relation_type":"leads_to","strength":0.9,"label":"执行饱和和速率限制需要作为责任定位证据"}
+{"source_id":"避碰转弯半径可行域_5_53007","source":"避碰转弯半径可行域","target_id":"规划参考可实现性_5_53004","target":"规划参考可实现性","relation_type":"instance_of","strength":0.92,"label":"转弯半径案例说明规划参考必须吸收控制可行域"}
+{"source_id":"避碰转弯半径可行域_5_53007","source":"避碰转弯半径可行域","target_id":"执行约束反馈_5_53005","target":"执行约束反馈","relation_type":"related","strength":0.9,"label":"舵角上限决定最小可实现转弯半径"}
+{"source_id":"MASS自动化等级责任边界_5_53008","source":"MASS自动化等级责任边界","target_id":"链路责任诊断_5_53006","target":"链路责任诊断","relation_type":"related","strength":0.82,"label":"自动化等级不能替代链路证据诊断"}
+{"source_id":"方法迁移前边界说明_5_51005","source":"方法迁移前边界说明","target_id":"MASS协同链路_5_53001","target":"MASS协同链路","relation_type":"leads_to","strength":0.85,"label":"线性主干边界识别后进入复杂自主系统链路视角"}
+{"source_id":"传统控制结构局限_4_47008","source":"传统控制结构局限","target_id":"控制在自主系统链路中的位置_5_53002","target":"控制在自主系统链路中的位置","relation_type":"cross_domain","strength":0.82,"label":"固定单回路结构的表达边界促使控制位置重新定位"}
