@@ -4,10 +4,10 @@
 
 本目录用于 lesson 主线下的人读文档，包括但不限于：
 
-- `design/handout.md`
-- `design/teacher-handout.md`
-- `design/boppps.md`
-- `design/interactive-page.md`
+- `design/{unit}-handout.md`
+- `design/{unit}-teacher-handout.md`
+- `design/AGENTS.override.md-boppps.md`
+- `design/{unit}-interactive-page.md`
 
 这些文件都继承上层 [course-content/AGENTS.override.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/AGENTS.override.md) 的总闸门；本文件只补本文类特化要求，不重复改写总则。
 

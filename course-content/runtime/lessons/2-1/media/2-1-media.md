@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=0fef0b322fe78c
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=5310e82ed0b86b8e0976fb7cc5ed5d7b&v=1775440169141&puid=26652392&enc=4ad928d438facb5ecc0c095a00f48056&wps=9e74661270f150cae2a143f9d7093169d70d687fb84ea7b5
 
-# handout.md
+# 2-1-handout.md
 
 这份资料详细介绍了**控制系统建模**的核心理论与实践方法。内容涵盖了从**拉普拉斯变换**到**传递函数**的基础推导，并重点讲解了**阻尼系统**和**舵机伺服系统**的动态方程。通过对**方框图**和**信号流图**的解析，文中阐述了如何利用级联、并联及反馈规则来简化复杂系统。此外，资料还深入探讨了**梅森增益公式**的应用，通过具体步骤指导读者计算系统的总增益。最后，文中对比了多种控制元件的数学模型，为深入研究**稳定性分析**和频率响应奠定了基础。

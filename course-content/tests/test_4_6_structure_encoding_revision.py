@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-6' / 'design' / 'handout.md'
+HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-6' / 'design' / '4-6-handout.md'
 RENDER_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-6' / 'media' / 'raw' / 'render_structure_search_figures.py'
 DATA_JSON_PATH = ROOT / 'authoring' / 'lessons' / '4-6' / 'media' / 'raw' / 'generated-data' / '4-6-structure-search-data.json'
 FEEDFORWARD_PROBE_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-6' / 'media' / 'raw' / 'probe_feedforward_structure_search.py'

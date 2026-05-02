@@ -2,15 +2,15 @@
 
 ## 审查范围
 - 课型：理论
-- `course-content/authoring/lessons/3-5/design/handout.md`
-- `course-content/authoring/lessons/3-5/design/interactive-page.md`
-- `course-content/authoring/lessons/3-5/design/boppps.md`
+- `course-content/authoring/lessons/3-5/design/3-5-handout.md`
+- `course-content/authoring/lessons/3-5/design/3-5-interactive-page.md`
+- `course-content/authoring/lessons/3-5/design/3-5-boppps.md`
 
 ## 文本技术审查
 - 未发现阻塞导出的公式配对问题。
 
 ## BOPPPS 对照
-- 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
+- 已将 `design/3-5-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
 - 以下 handout_anchor 未在讲义标题中命中：### 1.1 从 3-4 的结论继续往前走, ### 1.5 [AI融入点] 先写下你的直觉, ### 2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被拉走的方式也不同, ### 3.1` 与 `### 3.2 不先看名字，先看等效阻尼相同的后果, ### 3.2, ### 3.3, ### 3.4, ### 4.2 超前为什么更像在关键位置补角, ### 4.3 频域下的一般设计原则, ### 4.4 频域设计下的适用规律, ### 5.2 非最小相最先暴露出来的，不是慢，而是先往反方向动, ### 5.4 如何控制不能只说原则，先看一个保守带宽实例, 附录A

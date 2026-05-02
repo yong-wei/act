@@ -4,10 +4,10 @@
 - 课次：L-2d
 - 标题：三域联动探索——平台操作初体验
 - 当前设计源：
-  - `course-content/authoring/lessons/legacy/L-2d/design/interactive-page.md`
-  - `course-content/authoring/lessons/legacy/L-2d/design/practice-guide.md`
-  - `course-content/authoring/lessons/legacy/L-2d/design/assessment-spec.md`
-  - `course-content/authoring/lessons/legacy/L-2d/design/boppps.md`
+  - `course-content/authoring/lessons/legacy/L-2d/design/L-2d-interactive-page.md`
+  - `course-content/authoring/lessons/legacy/L-2d/design/L-2d-practice-guide.md`
+  - `course-content/authoring/lessons/legacy/L-2d/design/L-2d-assessment-spec.md`
+  - `course-content/authoring/lessons/legacy/L-2d/design/L-2d-boppps.md`
 
 ## 任务模式
 - 模式：现有课程核对与收尾
@@ -54,12 +54,12 @@
 - `src/lib/l2d-course.ts`：课程元数据、14 步配置、评分结构、学生状态
 - `src/features/interactive/l2d-three-domain-linkage/*`：入口页、教师页、学生页、步骤面板、三面板工作区
 - `src/app/interactive-learning/courses/l2d-three-domain-linkage-practice/*`：课程路由
-- `course-content/scripts/export_runtime.py`：支持 `practice-guide.md -> runtime/handout.md`
+- `course-content/scripts/export_runtime.py`：支持 `practice-guide.md -> runtime/<lesson>-handout.md`
 
 ## 最新核对结论（2026-03-14）
 - 设计稿与实现稿的主干已基本对齐：
   - 14 步步骤标题、顺序与主要活动类型齐备
-  - `practice-guide.md -> runtime/handout.md` 已导出
+  - `practice-guide.md -> runtime/<lesson>-handout.md` 已导出
   - `lesson.json` 与 `graph-overlay.json` 已存在
   - `L-2d` 路由、课程目录卡片、预设课与课堂码路由解析已挂接
   - 本轮已补齐“互动课程 -> 精品课程”入口过滤，`l2d-three-domain-linkage-practice` 会出现在精品课程分组

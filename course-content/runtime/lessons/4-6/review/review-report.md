@@ -2,15 +2,15 @@
 
 ## 审查范围
 - 课型：理论
-- `course-content/authoring/lessons/4-6/design/handout.md`
-- `course-content/authoring/lessons/4-6/design/interactive-page.md`
-- `course-content/authoring/lessons/4-6/design/boppps.md`
+- `course-content/authoring/lessons/4-6/design/4-6-handout.md`
+- `course-content/authoring/lessons/4-6/design/4-6-interactive-page.md`
+- `course-content/authoring/lessons/4-6/design/4-6-boppps.md`
 
 ## 文本技术审查
 - 未发现阻塞导出的公式配对问题。
 
 ## BOPPPS 对照
-- 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
+- 已将 `design/4-6-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
 - 已覆盖讲义中的核心公式与静态承载内容。

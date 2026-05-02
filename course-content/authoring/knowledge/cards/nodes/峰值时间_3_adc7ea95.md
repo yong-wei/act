@@ -13,7 +13,7 @@ tags:
   - 动态性能指标
 card_version: 1
 source_docs:
-  - authoring/lessons/2-2/design/handout.md
+  - authoring/lessons/2-2/design/2-2-handout.md
 asset_refs:
   - td-04-time-domain-indices-annotated.svg
   - td-05-example-response-with-indices.svg

@@ -84,9 +84,9 @@ assert.equal(
 );
 
 assert.equal(
-  lessonsOverride.includes('handout.md') &&
-    lessonsOverride.includes('teacher-handout.md') &&
-    lessonsOverride.includes('interactive-page.md'),
+  lessonsOverride.includes('{unit}-handout.md') &&
+    lessonsOverride.includes('{unit}-teacher-handout.md') &&
+    lessonsOverride.includes('{unit}-interactive-page.md'),
   true,
   'lessons 目录 override 必须分别约束 handout、teacher-handout 与 interactive-page 三类人读文档',
 );

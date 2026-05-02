@@ -20,6 +20,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=cbe5aa47f5ea88
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=fdabfc2650770c21b609886a7fbc946b&v=1777011518585&puid=26652392&enc=ef52e18bd5d148dbf19eeb0d735299bb&wps=3fa6102a4c72d01df70461217662c6c6d70d687fb84ea7b5
 
-# handout.md
+# 4-6-handout.md
 
 本讲义详细探讨了针对**驱逐舰自动化控制系统**的优化设计方案。文中对比了**PID控制**与**滞后-超前补偿**等多种控制结构，并提供了相应的数学模型与参数范围。为了寻找最优配置，研究采用了**遗传算法 (GA)** 与**粒子群算法 (PSO)** 进行结构搜索和参数调优。通过分析**方波跟踪**与**航迹比对**的实验曲线，报告验证了专用代价函数在提升机动方案稳定性方面的有效性。最终，该研究确定了一套结合了**前馈控制**与**滤波速率**的复合结构，以实现更高精度的航向与轨迹控制。

@@ -18,7 +18,7 @@
 
 ```python
 def test_extract_expected_code_media_reads_storage_lines():
-    multimedia_path = Path('authoring/lessons/2-2/design/multimedia.md')
+    multimedia_path = Path('authoring/lessons/2-2/design/2-2-multimedia.md')
     expected_media = review_lesson_content.extract_expected_code_media(multimedia_path)
     assert [item['output'] for item in expected_media] == [
         'td-01-time-domain-input-response-overview.svg',

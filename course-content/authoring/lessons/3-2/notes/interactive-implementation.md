@@ -2,7 +2,7 @@
 
 ## 本轮目标
 
-- 以 `design/interactive-page.md` 与 `design/interactive-contract.yaml` 为真源，整改 3-2 runtime 到新版 13 步合同。
+- 以 `design/3-2-interactive-page.md` 与 `design/3-2-interactive-contract.yaml` 为真源，整改 3-2 runtime 到新版 13 步合同。
 - 保持“双卡独立提交、正文在前作答在后、发放作答 / 开放浏览 / 逐行显影推进 / 参考答案分离”。
 
 ## 真源与实现落点
@@ -25,8 +25,8 @@
 
 ## 关键文件
 
-- 课程真源：`course-content/authoring/lessons/3-2/design/interactive-page.md`
-- 机读合同：`course-content/authoring/lessons/3-2/design/interactive-contract.yaml`
+- 课程真源：`course-content/authoring/lessons/3-2/design/3-2-interactive-page.md`
+- 机读合同：`course-content/authoring/lessons/3-2/design/3-2-interactive-contract.yaml`
 - runtime 课程：`src/lib/unit-3-2-course.ts`
 - AI 上下文：`src/lib/unit-3-2-ai-contexts.ts`
 - 页面实现：`src/features/interactive/unit-3-2-routh-stability-boundary/step-panels.tsx`

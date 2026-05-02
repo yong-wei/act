@@ -32,6 +32,12 @@ from lesson_id_map import (  # noqa: E402
     get_runtime_lesson_dir,
     load_lesson_id_map,
 )
+from lesson_artifacts import (  # noqa: E402
+    handout_markdown_filename,
+    handout_pdf_filename,
+    resolve_lesson_artifact_path,
+    with_lesson_prefix,
+)
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 CHAPTER_NAME_BY_NUMBER = {
@@ -348,22 +354,31 @@ def export_handout(lesson_id: str) -> None:
     runtime_dir = get_runtime_lesson_dir(lesson_id)
     runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
     design_dir = lesson_dir / 'design'
-    source = design_dir / 'handout.md'
+    source = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.md')
     if not source.exists():
-        practice_guide = design_dir / 'practice-guide.md'
+        practice_guide = resolve_lesson_artifact_path(design_dir, lesson_id, 'practice-guide.md')
         if practice_guide.exists():
             source = practice_guide
-    destination = runtime_dir / 'handout.md'
+    destination = runtime_dir / handout_markdown_filename(lesson_id)
     content = source.read_text(encoding='utf-8')
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(rewrite_markdown_media(content, runtime_fragment), encoding='utf-8')
 
-    pdf_source = design_dir / 'handout.pdf'
-    pdf_destination = runtime_dir / 'handout.pdf'
+    legacy_destination = runtime_dir / 'handout.md'
+    if legacy_destination.exists() and legacy_destination != destination:
+        legacy_destination.unlink()
+
+    pdf_source = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.pdf')
+    pdf_destination = runtime_dir / handout_pdf_filename(lesson_id)
     if pdf_source.exists():
         shutil.copy2(pdf_source, pdf_destination)
-    elif pdf_destination.exists():
-        pdf_destination.unlink()
+    else:
+        if pdf_destination.exists():
+            pdf_destination.unlink()
+
+    legacy_pdf_destination = runtime_dir / 'handout.pdf'
+    if legacy_pdf_destination.exists() and legacy_pdf_destination != pdf_destination:
+        legacy_pdf_destination.unlink()
 
 
 def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
@@ -465,15 +480,19 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
     }
 
     for source_name, json_key in copy_pairs.items():
-        source = design_dir / source_name
+        source = resolve_lesson_artifact_path(design_dir, lesson_id, source_name)
         if not source.exists():
             continue
-        destination = review_dir / source_name
+        destination_name = with_lesson_prefix(lesson_id, source_name)
+        destination = review_dir / destination_name
         destination.write_text(
             rewrite_markdown_media(source.read_text(encoding='utf-8'), runtime_fragment),
             encoding='utf-8',
         )
-        review_paths[json_key] = f'/course-runtime/lessons/{runtime_fragment}/review/{source_name}'
+        legacy_destination = review_dir / source_name
+        if legacy_destination.exists() and legacy_destination != destination:
+            legacy_destination.unlink()
+        review_paths[json_key] = f'/course-runtime/lessons/{runtime_fragment}/review/{destination_name}'
 
     report_path = review_dir / 'review-report.md'
     if report_path.exists():
@@ -501,7 +520,11 @@ def load_sequence(lesson_id: str) -> dict[str, Any]:
 
 
 def load_interactive_contract(lesson_id: str) -> dict[str, Any] | None:
-    contract_path = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-contract.yaml'
+    contract_path = resolve_lesson_artifact_path(
+        get_authoring_lesson_dir(lesson_id) / 'design',
+        lesson_id,
+        'interactive-contract.yaml',
+    )
     if not contract_path.exists():
         return None
     payload = yaml.safe_load(contract_path.read_text(encoding='utf-8'))
@@ -772,10 +795,14 @@ def export_lesson_runtime(
         **manifest,
         'lesson_id': graph_lesson_id,
         'sequence': runtime_sequence,
-        'handout_path': f'/course-runtime/lessons/{runtime_fragment}/handout.md',
-        'handout_source_path': f'course-content/runtime/lessons/{runtime_fragment}/handout.md',
-        'handout_pdf_path': f'/course-runtime/lessons/{runtime_fragment}/handout.pdf',
-        'handout_pdf_source_path': f'course-content/runtime/lessons/{runtime_fragment}/handout.pdf',
+        'handout_path': f'/course-runtime/lessons/{runtime_fragment}/{handout_markdown_filename(lesson_id)}',
+        'handout_source_path': (
+            f'course-content/runtime/lessons/{runtime_fragment}/{handout_markdown_filename(lesson_id)}'
+        ),
+        'handout_pdf_path': f'/course-runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}',
+        'handout_pdf_source_path': (
+            f'course-content/runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}'
+        ),
         'graph_overlay_path': f'/course-runtime/lessons/{runtime_fragment}/graph-overlay.json',
         'media_base_path': f'/course-runtime/lessons/{runtime_fragment}/media',
         'media_index_path': f'/course-runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',

@@ -35,7 +35,7 @@
 | step-14 | 任务 E：右半平面零点下的边界与结构选择 | `boundary_decision_workspace` | 边界对象、风险图、保守示例抽屉、选择矩阵 | `decision_submit` | 8 分钟 |
 | step-15 | 后测与收束：从指标走到结构选择 | `summary_assessment_board` | 三题后测、三句结论、信息图、去向卡 | `quiz_group + exit_reflection` | 4 分钟 |
 
-> 核心实践承接位于 `step-04`、`step-05`、`step-06`、`step-07`、`step-08`、`step-09`、`step-10`、`step-11`、`step-12`、`step-13`、`step-14`，其中可计入课堂实践训练的操作、记录、对比、判断与提交累计约 `54` 分钟；与 `design/boppps.md` 中的实践时长口径保持一致。
+> 核心实践承接位于 `step-04`、`step-05`、`step-06`、`step-07`、`step-08`、`step-09`、`step-10`、`step-11`、`step-12`、`step-13`、`step-14`，其中可计入课堂实践训练的操作、记录、对比、判断与提交累计约 `54` 分钟；与 `design/3-6-boppps.md` 中的实践时长口径保持一致。
 
 ## 节点与步骤分组
 - `group-01｜从 3-5 机理切到目标翻译`：`step-01` 到 `step-06`

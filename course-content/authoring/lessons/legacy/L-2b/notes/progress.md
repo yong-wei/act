@@ -8,16 +8,16 @@
 
 | 产物 | 文件 | 状态 |
 |------|------|:---:|
-| 讲义 | `design/handout.md` | ✅ |
+| 讲义 | `design/L-2b-handout.md` | ✅ |
 | 知识图谱节点 | `graph/nodes.jsonl`（2个新节点）| ✅ |
 | 知识图谱关系 | `graph/relations.jsonl`（6条）| ✅ |
 | 图谱消费清单 | `graph/card-refs.json` | ✅ |
 | 知识卡片 | `../../knowledge/cards/nodes/极点迁移_4_L2b001.md` | ✅ |
 | 知识卡片 | `../../knowledge/cards/nodes/最佳阻尼比_3_L2b002.md` | ✅ |
 | 卡片序列 | `../../knowledge/cards/lessons/legacy/L-2b/sequence.json` | ✅ |
-| BOPPPS课案 | `design/boppps.md` | ✅ |
-| 互动页面蓝图 | `design/interactive-page.md`（17步骤）| ✅ |
-| 多模态资源规格 | `design/multimedia.md`（5项代码直出+3项前端绘制）| ✅ |
+| BOPPPS课案 | `design/L-2b-boppps.md` | ✅ |
+| 互动页面蓝图 | `design/L-2b-interactive-page.md`（17步骤）| ✅ |
+| 多模态资源规格 | `design/L-2b-multimedia.md`（5项代码直出+3项前端绘制）| ✅ |
 | Python源文件 | `media/raw/sh-01~03.py`, `h-04~05.py` | ✅ |
 
 ## 关键设计决策

@@ -59,7 +59,7 @@ describe('unit 3-6 interactive course', () => {
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
     const contract = parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/3-6/design/3-6-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {
@@ -237,12 +237,12 @@ describe('unit 3-6 interactive course', () => {
 
   it('keeps step-03 as a static two-column overview instead of adding a separate activity area', () => {
     const authoringPageSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/3-6-interactive-page.md'),
       'utf8',
     );
     const contract = parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/3-6/design/3-6-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {
@@ -264,7 +264,7 @@ describe('unit 3-6 interactive course', () => {
 
   it('keeps step-06 on a shared root-locus engine with click-to-reveal formulas and a right-side record area', () => {
     const authoringPageSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/3-6-interactive-page.md'),
       'utf8',
     );
     const stepPanelsSource = readFileSync(
@@ -289,7 +289,7 @@ describe('unit 3-6 interactive course', () => {
   it('keeps step-08 as a native structure evidence board without bitmap fallback or a separate submit form', async () => {
     const courseModule = await import('@/lib/unit-3-6-course');
     const authoringPageSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/3-6-interactive-page.md'),
       'utf8',
     );
     const stepPanelsSource = readFileSync(

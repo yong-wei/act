@@ -75,7 +75,7 @@
 ## 6. 课程级资源索引对接
 
 - 统一媒体索引文件：`media/processed/4-2-media.md`
-- 统一讲义下载源：`design/handout.pdf`
+- 统一讲义下载源：`design/4-2-handout.pdf`
 - 后续若进入 runtime 导出，继续沿用：
   - `handout.md` 在线阅读；
   - `handout.pdf` 静态下载；

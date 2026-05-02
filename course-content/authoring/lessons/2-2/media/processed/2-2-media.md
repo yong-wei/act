@@ -21,6 +21,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=2de828cd2c2ed6
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=b1afefc2d5fe477dd6a03416b69e1b21&v=1775460295959&puid=26652392&enc=66ee4af57bbe20bc22f6fdafcdbb7019&wps=dc32c985969dea1d68d50eb27388c91dd70d687fb84ea7b5
 
-# handout.md
+# 2-2-handout.md
 
 这份学习指南主要介绍了**自动控制系统**中的**时域分析方法**，重点探讨了**一阶和二阶系统**的动态特性。文章详细阐述了如何通过**传递函数**推导系统的**单位阶跃响应**，并定义了**上升时间**、**峰值时间**、**超调量**以及**调节时间**等关键性能指标。通过对比不同的**阻尼比**和**时间常数**，文中展示了参数变化如何直接影响系统的收敛速度与震荡幅度。此外，内容还涵盖了根据设计要求反向确定**极点配置区域**的工程方法。最后，指南提供了配套的 **MATLAB/Octave 代码**，旨在通过数值仿真帮助学习者直观理解控制理论。

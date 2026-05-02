@@ -98,7 +98,7 @@ assert.equal(
 );
 
 assert.equal(
-  mediaIndexContract.includes('# handout.md') &&
+  mediaIndexContract.includes('# <lesson>-handout.md') &&
     mediaIndexContract.includes('runtime/lessons/<lesson>/media/<lesson>-media.md') &&
     mediaIndexContract.includes('第一条 `- ` 行作为用户可见标题') &&
     mediaIndexContract.includes('页面真值必须是 runtime `media/<lesson>-media.md`'),

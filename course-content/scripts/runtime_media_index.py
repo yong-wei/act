@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from lesson_artifacts import handout_markdown_filename, is_handout_markdown_filename
+
 
 STANDARD_MEDIA_SUFFIXES = (
     'intro-video.mp4',
@@ -18,7 +20,13 @@ def build_standard_media_filenames(lesson_id: str) -> list[str]:
 
 
 def build_required_media_filenames(lesson_id: str) -> list[str]:
-    return [*build_standard_media_filenames(lesson_id), HANDOUT_SECTION_NAME]
+    return [*build_standard_media_filenames(lesson_id), handout_markdown_filename(lesson_id)]
+
+
+def normalize_media_section_filename(lesson_id: str, filename: str) -> str:
+    if is_handout_markdown_filename(filename):
+        return handout_markdown_filename(lesson_id)
+    return filename
 
 
 def parse_runtime_media_sections(markdown: str) -> dict[str, list[str]]:
@@ -305,8 +313,14 @@ def merge_runtime_media_index_content(
     existing_markdown: str | None,
     supplement_markdown: str | None,
 ) -> str:
-    existing_sections = parse_runtime_media_sections(existing_markdown or '')
-    supplement_sections = parse_runtime_media_sections(supplement_markdown or '')
+    existing_sections = {
+        normalize_media_section_filename(lesson_id, filename): lines
+        for filename, lines in parse_runtime_media_sections(existing_markdown or '').items()
+    }
+    supplement_sections = {
+        normalize_media_section_filename(lesson_id, filename): lines
+        for filename, lines in parse_runtime_media_sections(supplement_markdown or '').items()
+    }
     if not existing_sections and not supplement_sections:
         return build_blank_runtime_media_index_content(lesson_id)
 
@@ -337,11 +351,14 @@ def compose_runtime_media_index_content(
     lesson_id: str,
     existing_markdown: str | None,
 ) -> str:
-    existing_sections = parse_runtime_media_sections(existing_markdown or '')
+    existing_sections = {
+        normalize_media_section_filename(lesson_id, filename): lines
+        for filename, lines in parse_runtime_media_sections(existing_markdown or '').items()
+    }
     if not existing_sections:
         return build_blank_runtime_media_index_content(lesson_id)
 
-    existing_content = (existing_markdown or '').rstrip('\n')
+    existing_content = merge_runtime_media_index_content(lesson_id, existing_markdown, None).rstrip('\n')
     missing_filenames = [
         filename for filename in build_required_media_filenames(lesson_id)
         if filename not in existing_sections

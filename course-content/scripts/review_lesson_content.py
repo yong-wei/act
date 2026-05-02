@@ -28,6 +28,11 @@ from lesson_id_map import (  # noqa: E402
     get_authoring_lesson_dir,
     get_runtime_lesson_dir,
 )
+from lesson_artifacts import (  # noqa: E402
+    handout_pdf_filename,
+    resolve_lesson_artifact_path,
+    with_lesson_prefix,
+)
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 
@@ -262,9 +267,9 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
             citation_text = str(row.get('引用位置', ''))
             page_formula_sources: list[str] = []
             if 'handout' in citation_text:
-                page_formula_sources.append('design/handout.md')
+                page_formula_sources.append(f'design/{with_lesson_prefix(lesson_dir.name, "handout.md")}')
             if 'interactive-page' in citation_text:
-                page_formula_sources.append('design/interactive-page.md')
+                page_formula_sources.append(f'design/{with_lesson_prefix(lesson_dir.name, "interactive-page.md")}')
             if page_formula_sources:
                 expected['page_formula_sources'] = page_formula_sources
 
@@ -321,10 +326,10 @@ def validate_formula_media_contract(expected_media: list[dict[str, Any]], lesson
 def build_primary_sources(lesson_id: str, unit_type: str) -> list[Path]:
     design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
     sources: list[Path] = []
-    handout = design_dir / 'handout.md'
-    interactive_page = design_dir / 'interactive-page.md'
-    practice_guide = design_dir / 'practice-guide.md'
-    assessment_spec = design_dir / 'assessment-spec.md'
+    handout = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.md')
+    interactive_page = resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-page.md')
+    practice_guide = resolve_lesson_artifact_path(design_dir, lesson_id, 'practice-guide.md')
+    assessment_spec = resolve_lesson_artifact_path(design_dir, lesson_id, 'assessment-spec.md')
 
     if handout.exists():
         sources.append(handout)
@@ -857,7 +862,7 @@ def validate_design_acceptance(
     lesson_id: str,
     lesson_dir: Path,
 ) -> tuple[Path, dict[str, Any] | None, list[str], list[str]]:
-    path = lesson_dir / 'design' / 'interactive-design-acceptance.json'
+    path = resolve_lesson_artifact_path(lesson_dir / 'design', lesson_id, 'interactive-design-acceptance.json')
     payload, issues = load_acceptance_payload(path, '互动设计接受文件')
     if payload is None:
         return path, None, issues, []
@@ -865,8 +870,8 @@ def validate_design_acceptance(
     issues.extend(validate_common_acceptance_fields(payload, lesson_id, '互动设计接受文件'))
     source_files = collect_acceptance_source_files(payload.get('source_files'))
     required_suffixes = [
-        'design/interactive-page.md',
-        'design/interactive-contract.yaml',
+        f'design/{with_lesson_prefix(lesson_id, "interactive-page.md")}',
+        f'design/{with_lesson_prefix(lesson_id, "interactive-contract.yaml")}',
     ]
     for suffix in required_suffixes:
         if not any(source_file.endswith(suffix) for source_file in source_files):
@@ -1441,15 +1446,19 @@ def extract_step_sections(markdown: str) -> dict[str, dict[str, str]]:
 
 def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) -> dict[str, Any]:
     lesson_dir = get_authoring_lesson_dir(lesson_id)
-    interactive_page = lesson_dir / 'design' / 'interactive-page.md'
-    interactive_contract = lesson_dir / 'design' / 'interactive-contract.yaml'
-    handout_path = lesson_dir / 'design' / 'handout.md'
+    design_dir = lesson_dir / 'design'
+    interactive_page = resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-page.md')
+    interactive_contract = resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-contract.yaml')
+    handout_path = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.md')
     if not interactive_page.exists():
+        missing_page_message = f'缺少 design/{with_lesson_prefix(lesson_id, "interactive-page.md")}'
         return {
             'lesson_id': lesson_id,
             'source_path': None,
             'contract_path': format_repo_path(interactive_contract),
-            'design_acceptance_path': format_repo_path(lesson_dir / 'design' / 'interactive-design-acceptance.json'),
+            'design_acceptance_path': format_repo_path(
+                resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-design-acceptance.json')
+            ),
             'implementation_acceptance_path': format_repo_path(lesson_dir / 'notes' / 'interactive-implementation-acceptance.json'),
             'implementation_contract_source': None,
             'contract_required_fields': INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS,
@@ -1478,13 +1487,13 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'runtime_review_stale_issues': [],
             'hard_gate_issues': [],
             'hard_gate_issue_codes': [],
-            'blocking_issues': ['缺少 design/interactive-page.md'],
+            'blocking_issues': [missing_page_message],
             'implementation_contract_summary': [],
             'implementation_contract_issues': [],
             'summary': [],
             'warnings': [],
-            'missing': ['缺少 design/interactive-page.md'],
-            'issues': ['缺少 design/interactive-page.md'],
+            'missing': [missing_page_message],
+            'issues': [missing_page_message],
         }
 
     text = interactive_page.read_text(encoding='utf-8')
@@ -1918,15 +1927,16 @@ def build_runtime_asset_check(lesson_id: str, lesson_dir: Path) -> dict[str, Any
     media_index_path = runtime_dir / 'media' / media_index_filename
     ensure_runtime_media_index(media_index_path, lesson_id)
 
-    handout_pdf_source = lesson_dir / 'design' / 'handout.pdf'
-    expected_assets = ['handout.pdf', media_index_filename]
+    handout_pdf_source = resolve_lesson_artifact_path(lesson_dir / 'design', lesson_id, 'handout.pdf')
+    prefixed_handout_pdf = handout_pdf_filename(lesson_id)
+    expected_assets = [prefixed_handout_pdf, media_index_filename]
     generated_assets: list[str] = []
     missing_assets: list[str] = []
 
     if handout_pdf_source.exists():
-        generated_assets.append('handout.pdf')
+        generated_assets.append(prefixed_handout_pdf)
     else:
-        missing_assets.append('handout.pdf')
+        missing_assets.append(prefixed_handout_pdf)
 
     if media_index_path.exists():
         generated_assets.append(media_index_filename)
@@ -2078,9 +2088,8 @@ def build_review_report(
     interactive_page_check: dict[str, Any],
 ) -> str:
     reviewed_paths = [format_repo_path(path) for path in primary_sources]
-    reviewed_paths.append(
-        format_repo_path(get_authoring_lesson_dir(lesson_id) / 'design' / 'boppps.md')
-    )
+    design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
+    reviewed_paths.append(format_repo_path(resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')))
 
     issue_lines: list[str] = []
     for item in text_review['files']:
@@ -2128,7 +2137,7 @@ def build_review_report(
         interactive_page_lines.append(f'- {warning}')
     if not interactive_page_lines:
         interactive_page_lines.append(
-            '- `interactive-page.md` 已纳入审查，并满足讲义核心内容映射与步骤级“静态承载内容 / 互动升级点”基本契约。'
+            f'- `{with_lesson_prefix(lesson_id, "interactive-page.md")}` 已纳入审查，并满足讲义核心内容映射与步骤级“静态承载内容 / 互动升级点”基本契约。'
         )
     interactive_page_summary = '\n'.join(interactive_page_lines)
 
@@ -2143,7 +2152,7 @@ def build_review_report(
         *issue_lines,
         '',
         '## BOPPPS 对照',
-        '- 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。',
+        f'- 已将 `design/{with_lesson_prefix(lesson_id, "boppps.md")}` 作为 runtime/review 产物导出，供课程制作技能直接读取。',
         '',
         '## 互动页覆盖审查',
         interactive_page_summary,
@@ -2168,9 +2177,10 @@ def build_source_manifest(
     primary_sources: list[Path],
     expected_media: list[dict[str, str]],
 ) -> dict[str, Any]:
-    interactive_page = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-page.md'
-    interactive_contract = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-contract.yaml'
-    handout_pdf = get_authoring_lesson_dir(lesson_id) / 'design' / 'handout.pdf'
+    design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
+    interactive_page = resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-page.md')
+    interactive_contract = resolve_lesson_artifact_path(design_dir, lesson_id, 'interactive-contract.yaml')
+    handout_pdf = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.pdf')
     return {
         'lesson_id': lesson_id,
         'unit_type': unit_type,
@@ -2190,7 +2200,7 @@ def build_source_manifest(
             else format_repo_path(interactive_contract)
         ),
         'handout_pdf_source': format_repo_path(handout_pdf) if handout_pdf.exists() else None,
-        'boppps_source': format_repo_path(get_authoring_lesson_dir(lesson_id) / 'design' / 'boppps.md'),
+        'boppps_source': format_repo_path(resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')),
         'sequence_source': format_repo_path(get_authoring_cards_dir(lesson_id) / 'sequence.json'),
         'expected_code_media': expected_media,
     }
@@ -2208,8 +2218,8 @@ def main() -> None:
     if not primary_sources:
         raise FileNotFoundError(f'No primary review sources found for lesson {lesson_id}')
 
-    boppps_path = design_dir / 'boppps.md'
-    multimedia_path = design_dir / 'multimedia.md'
+    boppps_path = resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')
+    multimedia_path = resolve_lesson_artifact_path(design_dir, lesson_id, 'multimedia.md')
 
     expected_media = extract_expected_code_media(multimedia_path)
     multimedia_check = run_media_generation(lesson_id, expected_media)

@@ -3,6 +3,7 @@
   "title": "建模与变换语言——从真实对象到统一分析对象",
   "focus_node_ids": [
     "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
     "零初值传递函数_2_21001",
     "传递函数_1_5b0faf8b",
     "典型环节对象库_2_21002",
@@ -33,6 +34,7 @@
   "card_order": [
     "微分方程_2_775c96a3",
     "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
     "零初值传递函数_2_21001",
     "传递函数_1_5b0faf8b",
     "典型环节对象库_2_21002",
@@ -62,7 +64,8 @@
       ],
       "node_ids": [
         "微分方程_2_775c96a3",
-        "拉氏变换工程动机_2_11001"
+        "拉氏变换工程动机_2_11001",
+        "船舶航向控制对象_2_21004"
       ]
     },
     {
@@ -154,6 +157,7 @@
           "零初始条件",
           "线性系统"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627008",
         "updatedAt": "2026-02-04T17:54:16.627008",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -200,6 +204,7 @@
           "输入端到输出端",
           "通路"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.626775",
         "updatedAt": "2026-02-04T17:54:16.626775",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -247,6 +252,7 @@
           "不接触",
           "余项"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627683",
         "updatedAt": "2026-02-04T17:54:16.627683",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -268,16 +274,16 @@
       "name": "余子式接触判定",
       "nodeType": "THEORY",
       "description": "在梅森公式中判断某条前向通路对应余子式Δ_k的操作规则：删除所有与该前向通路接触的回路后，对剩余回路写特征式；若仍有不接触回路保留，则Δ_k不等于1。",
-      "positionX": 13.0,
-      "positionY": -22.5,
-      "positionZ": 0,
+      "positionX": 20.0,
+      "positionY": -34.6,
+      "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "程序性",
         "bloom_level": "应用",
         "definition": "在梅森公式中判断某条前向通路对应余子式Δ_k的操作规则：删除所有与该前向通路接触的回路后，对剩余回路写特征式；若仍有不接触回路保留，则Δ_k不等于1。",
@@ -307,6 +313,7 @@
           "梅森公式",
           "Δk"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -321,7 +328,7 @@
         "不接触",
         "梅森公式",
         "Δk",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -365,6 +372,7 @@
           "图形化模型",
           "梅森公式"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627608",
         "updatedAt": "2026-02-04T17:54:16.627608",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -392,16 +400,16 @@
       "name": "典型环节对象库",
       "nodeType": "THEORY",
       "description": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
-      "positionX": 25.1,
-      "positionY": -6.7,
-      "positionZ": 0,
+      "positionX": 38.6,
+      "positionY": -10.4,
+      "positionZ": 2,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "概念性",
         "bloom_level": "分析",
         "definition": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
@@ -431,6 +439,7 @@
           "标准对象库",
           "系统分解"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -444,7 +453,7 @@
         "对象识别",
         "标准对象库",
         "系统分解",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -482,6 +491,7 @@
           "单独回路",
           "不接触回路"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627667",
         "updatedAt": "2026-02-04T17:54:16.627667",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -539,6 +549,7 @@
           "建模",
           "输入输出"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627432",
         "updatedAt": "2026-02-04T17:54:16.627432",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -564,15 +575,15 @@
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=s的环节，输出反映输入的变化率。有零点在原点，无极点。纯微分环节不可物理实现，实际使用不完全微分。",
       "positionX": -0.0,
-      "positionY": -32.0,
-      "positionZ": 0,
+      "positionY": -46.0,
+      "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "典型环节",
         "bloom_level": "理解",
         "definition": "传递函数为G(s)=s的环节，输出反映输入的变化率。有零点在原点，无极点。纯微分环节不可物理实现，实际使用不完全微分。",
@@ -599,6 +610,7 @@
           "不可实现",
           "原点零点"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -612,7 +624,7 @@
         "变化率",
         "不可实现",
         "原点零点",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -620,16 +632,16 @@
       "name": "惯性环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
-      "positionX": 8.3,
-      "positionY": -30.9,
-      "positionZ": 0,
+      "positionX": 11.9,
+      "positionY": -44.4,
+      "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "典型环节",
         "bloom_level": "理解",
         "definition": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
@@ -658,6 +670,7 @@
           "负实极点",
           "RC电路"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -672,7 +685,7 @@
         "时间常数",
         "负实极点",
         "RC电路",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -680,16 +693,16 @@
       "name": "拉氏变换工程动机",
       "nodeType": "THEORY",
       "description": "拉氏变换将时域微分运算映射为s域乘法运算，从而将常系数线性微分方程降维为代数方程，是控制系统分析的基础数学工具。",
-      "positionX": 30.9,
-      "positionY": -8.3,
-      "positionZ": 0,
+      "positionX": 44.4,
+      "positionY": -11.9,
+      "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "系统建模",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "系统建模",
         "bloom_level": "理解",
         "definition": "拉氏变换将时域微分运算映射为s域乘法运算，从而将常系数线性微分方程降维为代数方程，是控制系统分析的基础数学工具。",
@@ -715,6 +728,7 @@
           "微分变乘法",
           "s域"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -728,7 +742,7 @@
         "降维",
         "微分变乘法",
         "s域",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -774,6 +788,7 @@
           "余因子式",
           "回路"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627672",
         "updatedAt": "2026-02-04T17:54:16.627672",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -800,16 +815,16 @@
       "name": "比例环节",
       "nodeType": "THEORY",
       "description": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
-      "positionX": -19.0,
-      "positionY": 32.9,
-      "positionZ": 0,
+      "positionX": -26.0,
+      "positionY": 45.0,
+      "positionZ": 2,
       "bloomLevel": "REMEMBER",
       "knowledgeDim": "典型环节",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "典型环节",
         "bloom_level": "记忆",
         "definition": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
@@ -834,6 +849,7 @@
           "增益",
           "无动态"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -846,7 +862,7 @@
         "比例",
         "增益",
         "无动态",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -855,15 +871,15 @@
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
       "positionX": -0.0,
-      "positionY": -38.0,
-      "positionZ": 0,
+      "positionY": -52.0,
+      "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "典型环节",
         "bloom_level": "理解",
         "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
@@ -889,19 +905,35 @@
           "原点极点",
           "累积效应"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+          "title": "积分环节 信息图",
+          "lessonId": "3-9",
+          "nodeId": "积分环节_2_11005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+          "title": "积分环节 信息图",
+          "lessonId": "3-9",
+          "nodeId": "积分环节_2_11005"
+        }
       ],
       "tags": [
         "积分",
         "原点极点",
         "累积效应",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -937,6 +969,7 @@
           "方框图",
           "系统表示"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627442",
         "updatedAt": "2026-02-04T17:54:16.627442",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -955,12 +988,74 @@
       ]
     },
     {
+      "id": "船舶航向控制对象_2_21004",
+      "name": "船舶航向控制对象",
+      "nodeType": "THEORY",
+      "description": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+      "positionX": 56.0,
+      "positionY": 15.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+        "examples": [
+          "2-1 中，船舶航向动力学先由微分方程给出，再在零初值下转写成传递函数。",
+          "船舶航向闭环结构把控制器、舵机、船体和罗经反馈放入同一张结构图，便于后续时域、频域和设计比较。"
+        ],
+        "formulas": [
+          "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+          "G_\\theta(s)=\\frac{K}{s(Js+B)}"
+        ],
+        "prerequisites": [
+          "微分方程_2_775c96a3",
+          "拉氏变换工程动机_2_11001"
+        ],
+        "relatedConcepts": [
+          "零初值传递函数_2_21001",
+          "典型环节对象库_2_21002",
+          "结构图_2_3f312ccc"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "船舶",
+          "航向控制",
+          "工程对象",
+          "传递函数",
+          "结构图"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/船舶航向控制对象_2_21004.md"
+      ],
+      "tags": [
+        "船舶",
+        "航向控制",
+        "工程对象",
+        "传递函数",
+        "结构图",
+        "chapter-2"
+      ]
+    },
+    {
       "id": "闭环传递函数_2_5399c369",
       "name": "闭环传递函数",
       "nodeType": "THEORY",
       "description": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
-      "positionX": 0.0,
-      "positionY": 58.0,
+      "positionX": -15.0,
+      "positionY": 56.0,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -999,6 +1094,7 @@
           "系统性能",
           "稳定性"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.627641",
         "updatedAt": "2026-02-04T17:54:16.627641",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -1026,16 +1122,16 @@
       "name": "零初值传递函数",
       "nodeType": "THEORY",
       "description": "把传递函数理解为零初值语境下的输入输出固有关系：系统对象由传递函数给出，而初始状态带来的附加项必须与该对象分开处理。",
-      "positionX": -22.0,
-      "positionY": 38.1,
-      "positionZ": 0,
+      "positionX": -41.0,
+      "positionY": 41.0,
+      "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
-      "chapterName": "未分章",
+      "chapter": 2,
+      "chapterName": "系统模型",
       "metadata": {
-        "chapter": null,
-        "chapterName": "未分章",
+        "chapter": 2,
+        "chapterName": "系统模型",
         "category": "概念性",
         "bloom_level": "理解",
         "definition": "把传递函数理解为零初值语境下的输入输出固有关系：系统对象由传递函数给出，而初始状态带来的附加项必须与该对象分开处理。",
@@ -1063,6 +1159,7 @@
           "初始状态",
           "传递函数"
         ],
+        "infograph": null,
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -1076,7 +1173,7 @@
         "系统对象",
         "初始状态",
         "传递函数",
-        "chapter-0"
+        "chapter-2"
       ]
     },
     {
@@ -1084,8 +1181,8 @@
       "name": "振荡环节",
       "nodeType": "THEORY",
       "description": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
-      "positionX": 148.0,
-      "positionY": 0.0,
+      "positionX": -160.3,
+      "positionY": 43.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -1112,6 +1209,7 @@
           "阻尼比",
           "自然频率"
         ],
+        "infograph": null,
         "createdAt": "2026-02-04T17:54:16.628458",
         "updatedAt": "2026-02-04T17:54:16.628458",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
@@ -1536,6 +1634,30 @@
       "relation": "contains",
       "relationType": "contains",
       "strength": 0.95
+    },
+    {
+      "id": "rel-2d19391c577a0470",
+      "sourceId": "船舶航向控制对象_2_21004",
+      "targetId": "零初值传递函数_2_21001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-79c434653f337dec",
+      "sourceId": "船舶航向控制对象_2_21004",
+      "targetId": "典型环节对象库_2_21002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-bd22ea0de06d1b28",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "船舶航向控制对象_2_21004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
     }
   ]
 }

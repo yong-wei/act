@@ -14,8 +14,8 @@ tags:
   - 动态判断
 card_version: 1
 source_docs:
-  - authoring/lessons/3-1/design/handout.md
-  - authoring/lessons/3-5/design/handout.md
+  - authoring/lessons/3-1/design/3-1-handout.md
+  - authoring/lessons/3-5/design/3-5-handout.md
 asset_refs:
   - 3-5-rl-02-high-order-zero-compare.png
 ---

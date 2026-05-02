@@ -26,6 +26,6 @@
 
 说明：
 - 2026-04-06 审计确认：`src/lib/unit-2-4-course.ts` 已与双轨真源对齐，本轮不重制 17 步主干，只补入口页预习台、多媒体文案与课堂外资源追踪接入。
-- 双轨真源是 `design/interactive-page.md` 与 `design/interactive-contract.yaml`；实现时不得降级组件形态。
+- 双轨真源是 `design/2-4-interactive-page.md` 与 `design/2-4-interactive-contract.yaml`；实现时不得降级组件形态。
 - runtime 真源统一来自 `course-content/runtime/lessons/2-4/`。
-- 对齐校验命令应显式传参：`node scripts/tests/test-interactive-contract-implementation-alignment.mjs --contract course-content/authoring/lessons/2-4/design/interactive-contract.yaml --implementation src/lib/unit-2-4-course.ts --pageContractConst UNIT_2_4_PAGE_CONTRACTS --stepConst UNIT_2_4_LESSON_STEPS`。
+- 对齐校验命令应显式传参：`node scripts/tests/test-interactive-contract-implementation-alignment.mjs --contract course-content/authoring/lessons/2-4/design/2-4-interactive-contract.yaml --implementation src/lib/unit-2-4-course.ts --pageContractConst UNIT_2_4_PAGE_CONTRACTS --stepConst UNIT_2_4_LESSON_STEPS`。

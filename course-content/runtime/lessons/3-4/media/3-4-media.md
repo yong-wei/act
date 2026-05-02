@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=e48d423acabf2f
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=0901910456ec4530f2976749ac4ea445&v=1775530974608&puid=26652392&enc=74c3ae3ffa2d32d67f2ac9ffb3ef7938&wps=e7b2385e92a5d7176cd3c4b7c519f051d70d687fb84ea7b5
 
-# handout.md
+# 3-4-handout.md
 
 这份文档主要探讨了**船舶航向控制系统**的分析与仿真，核心围绕**根轨迹法**展开。通过对特定的**传递函数**进行数学推导，研究者计算出了系统的**分离点**、**稳定性极限**以及在虚轴上的交点。文中对比了三个不同**增益系数 K** 的场景，分析了系统在**时域**（如阶跃响应）和**频域**（如带宽与相位裕度）中的表现差异。作者指出，较低的增益虽安全但响应缓慢，而过高的增益则会导致**稳定性下降**。此外，文档还提供了配套的 **MATLAB/Octave 代码**，用于自动化计算波特图和系统极点。最终，通过**三域对照**的方法，完整地评估了自动化控制系统的动态性能。

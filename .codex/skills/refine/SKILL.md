@@ -1,6 +1,6 @@
 ---
 name: refine
-description: Use when refining student-facing `handout.md` files under `course-content/authoring/lessons/*/design/`, especially when a handout still contains teacher-facing or meta narration, needs tighter wording with consistent "我们" perspective, adjective dimension expansion, verb specificity, Chinese collocation review, and the polished result should be written back to the same `design/handout.md` without changing formulas, figures, tables, or syllabus boundaries. Also use when user asks to "润色讲义", "精炼讲义", "refine handout", or specifies a unit handout that needs polishing.
+description: Use when refining student-facing `handout.md` files under `course-content/authoring/lessons/*/design/`, especially when a handout still contains teacher-facing or meta narration, needs tighter wording with consistent "我们" perspective, adjective dimension expansion, verb specificity, Chinese collocation review, and the polished result should be written back to the same `design/{unit}-handout.md` without changing formulas, figures, tables, or syllabus boundaries. Also use when user asks to "润色讲义", "精炼讲义", "refine handout", or specifies a unit handout that needs polishing.
 tags: [handout, polish, chinese-prose, quality]
 ---
 
@@ -8,9 +8,9 @@ tags: [handout, polish, chinese-prose, quality]
 
 ## 概述
 
-对 `course-content/authoring/lessons/{unit}/design/handout.md` 进行系统性文风润色与中文专业表达校准，直接回写到同一个 `handout.md`。
+对 `course-content/authoring/lessons/{unit}/design/{unit}-handout.md` 进行系统性文风润色与中文专业表达校准，直接回写到同一个 `{unit}-handout.md`。
 
-**定位**：整条生成链中的最后一道文风清扫与语言校准工序。不替代 `lesson` 技能的结构生成，不负责重新发明知识结构。
+**定位**：整条生成链中的最后一道文风清扫工序，同时承担语言校准。不替代 `lesson` 技能的结构生成，不负责重新发明知识结构。
 
 **核心目标**：让讲义读起来像受过专业写作训练的中文作者所写——准确、克制、有判断、有节奏。
 
@@ -27,7 +27,7 @@ tags: [handout, polish, chinese-prose, quality]
 ## 启动方式
 
 1. 如果用户已指定单元编号（如 `2-1`），直接进入工作流
-2. 如果未指定，列出 `course-content/authoring/lessons/` 下所有含 `design/handout.md` 的单元，让用户选择
+2. 如果未指定，列出 `course-content/authoring/lessons/` 下所有含 `design/{unit}-handout.md` 的单元，让用户选择
 3. 支持批量指定（如"润色 2-1 到 2-4"）
 
 ## 工作流
@@ -43,7 +43,7 @@ tags: [handout, polish, chinese-prose, quality]
 ### Phase 1: 判边界，确大纲
 
 读取这些文件：
-1. `course-content/authoring/lessons/{unit}/design/handout.md`
+1. `course-content/authoring/lessons/{unit}/design/{unit}-handout.md`
 2. `course-content/syllabus-refactor/main.md`
 3. `course-content/syllabus-refactor/unit-design-details/module{N}.md`
 
@@ -61,7 +61,7 @@ tags: [handout, polish, chinese-prose, quality]
 2. 支撑该结论的3-5个关键小点
 3. 哪些段落只是重复提醒、课程调度语或作者态解释
 
-**结构性缺陷检测**：如果原稿缺少以下任一要件，标记为"需回到 `lesson` 的讲义生成阶段重写结构"，不靠润色强行补救：
+**结构性缺陷检测**：如果原稿缺少以下任一要件，标记为"需返回 `lesson` 的讲义生成阶段重写结构"，不靠润色强行补救：
 - 没有明确的问题/任务引入
 - 没有前置知识缺口与能力目标
 - 没有锚点案例
@@ -87,7 +87,7 @@ tags: [handout, polish, chinese-prose, quality]
 
 ### Phase 4: 写入并汇报
 
-输出直接覆盖到 `course-content/authoring/lessons/{unit}/design/handout.md`。
+输出直接覆盖到 `course-content/authoring/lessons/{unit}/design/{unit}-handout.md`。
 不要另存为 `handout-refine.md` 或其他平行副本。
 
 完成后汇报四类信息：
@@ -310,6 +310,7 @@ tags: [handout, polish, chinese-prose, quality]
 - 附录内容（仅做文风微调）
 - `> 引用块`中的核心论断（可微调措辞使其更自然）
 - 单元知识边界
+- **中文引号**：原文中的中文双引号 `""` 必须保留，不得替换为英文双引号 `""`；新写入的引文内容同样必须使用中文引号
 
 #### 规则16：允许有限结构修正
 
@@ -421,6 +422,7 @@ tags: [handout, polish, chinese-prose, quality]
 - [ ] 所有图片引用完整保留（含属性）
 - [ ] 所有表格结构完整保留
 - [ ] 知识点无遗漏
+- [ ] 中文引号（`""`）未被替换为英文引号（`""`），新写入内容使用中文引号
 - [ ] 行文不违背大纲中的知识边界
 - [ ] 结构性缺陷已标记（如适用）
 

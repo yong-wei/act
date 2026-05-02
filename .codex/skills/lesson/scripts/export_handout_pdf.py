@@ -29,6 +29,13 @@ PROTECTED_SEGMENT_TOKEN_RE = re.compile(r'\x00PROTECTED(?P<index>\d+)\x00')
 PDF_TABLE_COLS_COMMENT_RE = re.compile(r'^\s*<!--\s*pdf-table-cols:\s*(?P<cols>[0-9.,\s]+)\s*-->\s*$')
 
 
+def strip_lesson_prefix(stem: str, lesson_id: str) -> str:
+    prefix = f"{lesson_id}-"
+    if stem.startswith(prefix):
+        return stem[len(prefix):]
+    return stem
+
+
 def is_course_summary_asset(target: str, alt_text: str = "") -> bool:
     stem = Path(target).stem.lower()
     return any(token in stem for token in ("cover", "info")) or any(
@@ -60,11 +67,12 @@ def derive_lesson_id(markdown_path: Path) -> str:
 
 
 def derive_right_header(stem: str, lesson_id: str) -> str:
-    if stem == "handout":
+    artifact_stem = strip_lesson_prefix(stem, lesson_id)
+    if artifact_stem == "handout":
         return f"单元 {lesson_id} 讲义"
-    if stem == "teacher-handout":
+    if artifact_stem == "teacher-handout":
         return f"单元 {lesson_id} 教师课堂讲义"
-    return f"单元 {lesson_id} {stem}"
+    return f"单元 {lesson_id} {artifact_stem}"
 
 
 def derive_pdf_title(markdown_path: Path) -> str:

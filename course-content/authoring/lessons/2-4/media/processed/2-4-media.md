@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=0fef0b322fe78c
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=5310e82ed0b86b8e0976fb7cc5ed5d7b&v=1775440169141&puid=26652392&enc=4ad928d438facb5ecc0c095a00f48056&wps=9e74661270f150cae2a143f9d7093169d70d687fb84ea7b5
 
-# handout.md
+# 2-4-handout.md
 
 这份教学材料详细介绍了控制系统中**Bode图**与**Nyquist图**的基础理论与应用方法。作者首先对比了单一频率响应计算的局限性，进而阐述了如何利用这两种图形化工具从**宏观维度**掌握系统特性。**Bode图**通过对数幅频和相频曲线展示频率变化对系统的影响，而**Nyquist图**则在复平面上勾勒出完整的频率轨迹。文中深入剖析了比例、积分、微分以及一、二阶惯性环节等**标准对象**的图形特征，并提供了具体的**判读步骤**与手绘技巧。最后，材料通过**MATLAB代码**演示了如何自动化生成这些图表，旨在帮助学习者建立从数学模型到图形语言的直观联系。

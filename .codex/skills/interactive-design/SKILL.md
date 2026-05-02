@@ -9,8 +9,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 本技能负责作者态互动课程设计，不负责前端实现，也不负责 runtime 审查。它的唯一目标是把讲义中的证据链，转换成可实现、可审查、不可随意降级，且**学生脱离讲稿也能独立理解知识对象、判断动作与本次课程目标**的双轨设计真源：
 
-- `design/interactive-page.md`
-- `design/interactive-contract.yaml`
+- `design/{unit}-interactive-page.md`
+- `design/{unit}-interactive-contract.yaml`
 
 本技能主文件只保留总流程、职责边界与参考文件入口。凡是例题与推导显影、曲线互动面板、页面顺序与教师/学生控制语义等细则，一律下沉到 `references/`。
 
@@ -34,15 +34,15 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 开始前至少读取：
 
-1. `course-content/authoring/lessons/[单元编号]/design/handout.md`
-2. `course-content/authoring/lessons/[单元编号]/design/boppps.md`
+1. `course-content/authoring/lessons/[单元编号]/design/[单元编号]-handout.md`
+2. `course-content/authoring/lessons/[单元编号]/design/[单元编号]-boppps.md`
 3. `course-content/authoring/lessons/[单元编号]/manifest.json`
 4. 已有知识卡片与 `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`（若存在）
 
 如已存在旧版互动设计，还必须读取：
 
-5. `course-content/authoring/lessons/[单元编号]/design/interactive-page.md`
-6. `course-content/authoring/lessons/[单元编号]/design/interactive-contract.yaml`
+5. `course-content/authoring/lessons/[单元编号]/design/[单元编号]-interactive-page.md`
+6. `course-content/authoring/lessons/[单元编号]/design/[单元编号]-interactive-contract.yaml`
 
 ## 核心原则
 
@@ -362,8 +362,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
   "accepted_at": "2026-04-19T00:00:00+08:00",
   "review_mode": "subagent",
   "source_files": {
-    "interactive_page": "course-content/authoring/lessons/<lesson>/design/interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml"
+    "interactive_page": "course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-contract.yaml"
   },
   "checks": {
     "evidence_complete": "pass",

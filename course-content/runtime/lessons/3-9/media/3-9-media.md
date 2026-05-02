@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=8c592da419dda4
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=56ea1825141258a76243402f750f69e7&v=1775885809413&puid=26652392&enc=b9c6bffdd3e0bfb2b01460e68045b641&wps=a546555994ad839fd318527f680ad569d70d687fb84ea7b5
 
-# handout.md
+# 3-9-handout.md
 
 本讲义重点探讨了**控制系统设计**中稳定、动态与稳态性能的综合映射关系。文中通过一个具体的**船舶控制模型**，详细对比了不同**校正控制器**对系统响应的影响，包括基准版、零点补偿、积分校正及滞后对照等多种方案。利用**时域响应曲线**、**根轨迹图**以及**波特图**等可视化工具，定量分析了超调量、调节时间和相角裕度等核心指标。最终，这些素材旨在指导学生掌握如何通过调整**传递函数**的参数，在复杂任务中实现系统性能的精确平衡。

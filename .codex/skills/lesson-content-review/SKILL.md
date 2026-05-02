@@ -12,7 +12,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 核心原则：
 - 先修 `authoring` 源文件，再导出 runtime；不要只在 runtime 打补丁。
 - 以**正确性**为第一优先级：先查错，再谈完整性与可制作性；不主动润色文风。
-- 所有课型都必须审 `design/interactive-page.md` 与 `design/interactive-contract.yaml`（若已建立）；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
+- 所有课型都必须审 `design/{unit}-interactive-page.md` 与 `design/{unit}-interactive-contract.yaml`（若已建立）；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
 - 互动设计默认采用双轨真源：人读 `interactive-page.md`，机读 `interactive-contract.yaml`；审查时不得只看其中一份。
 - 若课次已经落地本地互动实现，还必须把 `interactive-page.md`、`interactive-contract.yaml` 与本地实现契约一起做三层审查；只审作者态而不审实现，视为审查未完成。
 - 互动页覆盖审查必须确认：讲义核心概念、公式、图表、例题、结论已经落到页面；静态页合法且必要；关键知识不能只藏在互动组件里。
@@ -31,13 +31,13 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 始终先读取：
 - `course-content/authoring/lessons/<lesson>/manifest.json`
-- `design/handout.md`
-- `design/handout.pdf`（若已生成）
-- `course-content/authoring/lessons/<lesson>/design/boppps.md`
-- `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
-- `course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml`（若存在）
-- `course-content/authoring/lessons/<lesson>/design/interactive-design-acceptance.json`
-- `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
+- `design/{unit}-handout.md`
+- `design/{unit}-handout.pdf`（若已生成）
+- `course-content/authoring/lessons/<lesson>/design/<lesson>-boppps.md`
+- `course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-page.md`
+- `course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-contract.yaml`（若存在）
+- `course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-design-acceptance.json`
+- `course-content/authoring/lessons/<lesson>/design/<lesson>-multimedia.md`（如果存在）
 - `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`（若已存在；互动设计前可缺失或为草案）
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
 
@@ -48,8 +48,8 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/authoring/lessons/<lesson>/notes/interactive-implementation-acceptance.json`
 
 若是 legacy 实践课且仍未迁移到讲义主线，可额外读取：
-- `design/practice-guide.md`
-- `design/assessment-spec.md`
+- `design/{unit}-practice-guide.md`
+- `design/{unit}-assessment-spec.md`
 
 如正文、卡片、教案、媒体说明中出现以下类型事实，还必须额外准备核验证据：
 - 任务、工程项目、人物事迹、机构事件、新闻、政策、比赛、标准、年份/日期、统计数字
@@ -88,8 +88,8 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ### 2. 审正文正确性（不是只审格式）
 
-- 理论课与实践课都必须先审 `design/handout.md` 与 `design/interactive-page.md`
-- 实践课额外强化核对 `design/boppps.md` 与 `design/interactive-page.md` 的学生参与/实践训练时长，确认学生参与并进行实践训练的时间不少于 45 分钟
+- 理论课与实践课都必须先审 `design/{unit}-handout.md` 与 `design/{unit}-interactive-page.md`
+- 实践课额外强化核对 `design/{unit}-boppps.md` 与 `design/{unit}-interactive-page.md` 的学生参与/实践训练时长，确认学生参与并进行实践训练的时间不少于 45 分钟
 - 重点核对：
   - LaTeX 公式可渲染且符号正确
   - 事实表述、例题计算、评分逻辑正确
@@ -102,7 +102,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
     - `[单元编号]-intro-video.mp4`
     - `[单元编号]-course.mp4`
     - `[单元编号]-audio.m4a`
-  - 作者态是否已生成 `design/handout.pdf`，供 runtime 直接下载而不是浏览器现场渲染
+  - 作者态是否已生成 `design/{unit}-handout.pdf`，供 runtime 直接下载而不是浏览器现场渲染
   - 正文是否围绕单元主线组织，而不是零散堆砌
   - 正式讲义中的图片、表格是否按出现顺序编号，并以“图1. …”“表1. …”等成品图题/表题呈现
   - 正文是否还残留“图示建议”“待制作”“占位说明”“脚本验证”等作者态过程文本
@@ -153,7 +153,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 验证脚本优先落在本课 `media/raw/` 或等价可追溯位置，不要只做一次性口头校验
   - 审查结论里可以记录“已用 `Octave` + `control` 内置函数复现”，但不要要求把这一审查过程写回正式讲义正文
 
-### 6. 审 `design/boppps.md`
+### 6. 审 `design/{unit}-boppps.md`
 
 - 检查 BOPPPS 是否覆盖正文的核心知识点或实践任务
 - 检查各阶段中的公式、事实、工程结论是否正确
@@ -165,10 +165,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 详细核对项见 `references/boppps-coverage-review.md`。
 
-### 6.5 审 `design/interactive-page.md`（所有课型必查）
+### 6.5 审 `design/{unit}-interactive-page.md`（所有课型必查）
 
-- 不分理论课或实践课，都必须读取并审查 `design/interactive-page.md`
-- 若课次已建立双轨设计，则必须同步读取并审查 `design/interactive-contract.yaml`
+- 不分理论课或实践课，都必须读取并审查 `design/{unit}-interactive-page.md`
+- 若课次已建立双轨设计，则必须同步读取并审查 `design/{unit}-interactive-contract.yaml`
 - 若课次已进入互动课程实现阶段，则必须把本地实现契约一并纳入审查
 - 先检查人读稿是否是“页面蓝图”而不是“讲课脚本”：
   - 页面模板 / 区域布局
@@ -276,7 +276,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ### 8. 生成并审代码直出媒体
 
-- 根据 `design/multimedia.md` 的描述识别代码直出图
+- 根据 `design/{unit}-multimedia.md` 的描述识别代码直出图
 - 先在 `course-content/authoring/lessons/<lesson>/media/raw/` 补齐脚本
 - 统一运行脚本生成到 `course-content/authoring/lessons/<lesson>/media/processed/`
 - 先检查本课关键媒体完整性：
@@ -286,7 +286,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-intro-video.mp4`
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-course.mp4`
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-audio.m4a`
-  - `course-content/authoring/lessons/<lesson>/design/handout.pdf`
+  - `course-content/authoring/lessons/<lesson>/design/<lesson>-handout.pdf`
 - 检查所有媒体命名是否统一采用单元前缀：
   - AI 媒体、代码直出图、线框图、信息图、课件 PDF、音视频都必须以 `<lesson>-` 开头
   - 例如 `2-1-cover-comic.png`、`2-1-info.png`、`2-1-fd-01-bode-overview.svg`
@@ -301,10 +301,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - `# <lesson>-audio.m4a`
   - `# <lesson>-slides.pdf`
   - `# <lesson>-course.mp4`
-  - `# handout.md`
+  - `# <lesson>-handout.md`
 - 其中导入视频节若能在作者态 `media/raw/*intro-video-prompt*.md` 中找到 `Agent 模式视频生成提示词`，应自动生成一句“视频主题文案”追加到 `# <lesson>-intro-video.mp4` 节内；若原节已有人工标题，应保留原标题并把主题句附在后面
 - `audio.m4a`、`slides.pdf`、`course.mp4` 若原文件中已有人工标题或备注，必须原样保留；不要因为生成骨架而覆盖
-- `# handout.md` 若原文件中已有人工录入的讲义摘要，必须原样保留；仅在缺失该节时补一个空节
+- `# <lesson>-handout.md` 若原文件中已有人工录入的讲义摘要，必须原样保留；仅在缺失该节时补一个空节
 - 若该文件已存在且用户已填写链接、标题或摘要，只允许规范标题顺序、补导入视频主题句并保留既有内容，不得覆盖人工录入内容
 
 详细规则见 `references/multimedia-review.md`。
@@ -333,19 +333,19 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --stri
 - 作者态契约与本地实现契约漂移
 
 预期产物：
-- `course-content/runtime/lessons/<lesson>/handout.md`
-- `course-content/runtime/lessons/<lesson>/handout.pdf`
+- `course-content/runtime/lessons/<lesson>/<lesson>-handout.md`
+- `course-content/runtime/lessons/<lesson>/<lesson>-handout.pdf`
 - `course-content/runtime/lessons/<lesson>/graph-overlay.json`
 - `course-content/runtime/lessons/<lesson>/lesson.json`
 - `course-content/runtime/lessons/<lesson>/media/*`
 - `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
-- `course-content/runtime/lessons/<lesson>/review/boppps.md`
+- `course-content/runtime/lessons/<lesson>/review/<lesson>-boppps.md`
 - `course-content/runtime/lessons/<lesson>/review/review-report.md`
 - `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
 - `course-content/runtime/lessons/<lesson>/review/knowledge-card-check.json`
 - `course-content/runtime/lessons/<lesson>/review/multimedia-check.json`
 
-legacy 实践课若仍保留 `practice-guide.md`、`assessment-spec.md`，可作为兼容性产物额外导出，但不再是新体系实践课的主合同。
+legacy 实践课若仍保留 `{unit}-practice-guide.md`、`{unit}-assessment-spec.md`，可作为兼容性产物额外导出，但不再是新体系实践课的主合同。
 
 runtime 契约见 `references/runtime-output-contract.md`。
 
@@ -365,12 +365,12 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已确认课型（理论 / 实践）
 - [ ] 已先修 authoring，再导出 runtime
 - [ ] 已建立待审事实与结论清单
-- [ ] 已检查 design/handout.md
-- [ ] 已检查 `design/interactive-page.md`
-- [ ] 若课次已建立双轨设计，已检查 `design/interactive-contract.yaml`
+- [ ] 已检查 design/{unit}-handout.md
+- [ ] 已检查 `design/{unit}-interactive-page.md`
+- [ ] 若课次已建立双轨设计，已检查 `design/{unit}-interactive-contract.yaml`
 - [ ] 已检查 `design/interactive-design-acceptance.json`
-- [ ] 已确认 `design/interactive-page.md` 采用页面蓝图写法，而不是教师/学生动作脚本
-- [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射` 或 `## 讲义证据单元映射`
+- [ ] 已确认 `design/{unit}-interactive-page.md` 采用页面蓝图写法，而不是教师/学生动作脚本
+- [ ] 已确认 `design/{unit}-interactive-page.md` 含 `## 讲义核心内容映射` 或 `## 讲义证据单元映射`
 - [ ] 已确认每一步都写明页面模板、区域布局、模块清单、固定内容、互动机制、教师聚合、AI 边界与学生页预览
 - [ ] 若采用证据单元映射，已确认表头字段完整且 `handout_anchor`、`target_step` 可命中
 - [ ] 已确认采用证据单元映射的步骤都写出 `主阅读顺序`
@@ -396,16 +396,16 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
 - [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
-- [ ] 已确认作者态 `design/handout.pdf` 已生成，供 runtime 静态下载
+- [ ] 已确认作者态 `design/{unit}-handout.pdf` 已生成，供 runtime 静态下载
 - [ ] 已确认学生复现内容采用“正文点名 `.m` 文件 + 附录最简 MATLAB/Octave 代码”的成品形式（如适用）
 - [ ] 若为实践课，已确认讲义仍是主线正文，不是用 practice-guide 替代讲义
-- [ ] 若为实践课，已检查 `design/boppps.md` 与 `design/interactive-page.md` 中学生参与/实践训练累计不少于 45 分钟
+- [ ] 若为实践课，已检查 `design/{unit}-boppps.md` 与 `design/{unit}-interactive-page.md` 中学生参与/实践训练累计不少于 45 分钟
 - [ ] 已检查关键媒体完整性：`<lesson>-cover-comic.png`、`<lesson>-info.png`、`<lesson>-slides.pdf`、`<lesson>-intro-video.mp4`、`<lesson>-course.mp4`、`<lesson>-audio.m4a`
 - [ ] 已确认 runtime 会生成并保留 `media/<lesson>-media.md` 标题骨架，不覆盖用户已填写链接
 - [ ] 已完成外部事实的联网核验（如适用）
 - [ ] 已完成科学合理性分析
 - [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）
-- [ ] 已检查 design/boppps.md 的覆盖与事实正确性
+- [ ] 已检查 design/{unit}-boppps.md 的覆盖与事实正确性
 - [ ] 已生成并检查 `review/interactive-page-check.json`
 - [ ] 若互动设计已完成，已检查 lesson sequence 与知识卡片节点文件；若未完成互动设计，已检查知识卡片正文且未把 sequence 缺失作为阻塞项
 - [ ] 已生成 `media/processed/` 并核对图片正确性

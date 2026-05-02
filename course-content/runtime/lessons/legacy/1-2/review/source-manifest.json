@@ -3,9 +3,9 @@
   "unit_type": "理论",
   "generated_at": "2026-03-20T07:19:27.712965+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/legacy/1-2/design/handout.md"
+    "course-content/authoring/lessons/legacy/1-2/design/1-2-handout.md"
   ],
-  "boppps_source": "course-content/authoring/lessons/legacy/1-2/design/boppps.md",
+  "boppps_source": "course-content/authoring/lessons/legacy/1-2/design/1-2-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/legacy/1-2/sequence.json",
   "expected_code_media": [
     {

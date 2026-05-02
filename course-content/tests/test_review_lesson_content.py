@@ -25,7 +25,7 @@ def test_extract_expected_code_media_reads_storage_lines():
         / 'lessons'
         / '2-2'
         / 'design'
-        / 'multimedia.md'
+        / '2-2-multimedia.md'
     )
 
     expected_media = review_lesson_content.extract_expected_code_media(multimedia_path)
@@ -53,7 +53,7 @@ def test_extract_expected_code_media_reads_resource_table_assets():
         / 'lessons'
         / '3-1'
         / 'design'
-        / 'multimedia.md'
+        / '3-1-multimedia.md'
     )
 
     expected_media = review_lesson_content.extract_expected_code_media(multimedia_path)
@@ -82,7 +82,7 @@ def test_extract_expected_code_media_reads_formula_metadata(tmp_path):
                 '### 资源 td-05 | 例题一响应曲线与指标结果',
                 '- **存放**：`media/raw/example.py` -> `media/processed/example.svg`',
                 '- **公式模式**：`svg-mathtext`',
-                '- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`',
+                '- **页面公式来源**：`design/demo-0-handout.md`, `design/demo-0-interactive-page.md`',
                 '',
             ]
         ),
@@ -96,7 +96,7 @@ def test_extract_expected_code_media_reads_formula_metadata(tmp_path):
             'script': 'example.py',
             'output': 'example.svg',
             'formula_mode': 'svg-mathtext',
-            'page_formula_sources': ['design/handout.md', 'design/interactive-page.md'],
+            'page_formula_sources': ['design/demo-0-handout.md', 'design/demo-0-interactive-page.md'],
         }
     ]
 
@@ -105,7 +105,7 @@ def test_validate_formula_media_contract_flags_non_svg_and_missing_formula_sourc
     lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-1'
     design_dir = lesson_dir / 'design'
     design_dir.mkdir(parents=True)
-    (design_dir / 'handout.md').write_text('这里只是普通文字，没有公式。', encoding='utf-8')
+    (design_dir / 'demo-1-handout.md').write_text('这里只是普通文字，没有公式。', encoding='utf-8')
 
     issues = review_lesson_content.validate_formula_media_contract(
         [
@@ -113,7 +113,7 @@ def test_validate_formula_media_contract_flags_non_svg_and_missing_formula_sourc
                 'script': 'example.py',
                 'output': 'example.png',
                 'formula_mode': 'svg-mathtext',
-                'page_formula_sources': ['design/handout.md', 'design/interactive-page.md'],
+                'page_formula_sources': ['design/demo-1-handout.md', 'design/demo-1-interactive-page.md'],
             }
         ],
         lesson_dir,
@@ -121,8 +121,8 @@ def test_validate_formula_media_contract_flags_non_svg_and_missing_formula_sourc
 
     assert issues == [
         'example.png 声明为 svg-mathtext，但输出格式不是 SVG',
-        'example.png 的页面公式来源 `design/handout.md` 未检测到 LaTeX 公式标记',
-        'example.png 的页面公式来源 `design/interactive-page.md` 不存在',
+        'example.png 的页面公式来源 `design/demo-1-handout.md` 未检测到 LaTeX 公式标记',
+        'example.png 的页面公式来源 `design/demo-1-interactive-page.md` 不存在',
     ]
 
 
@@ -133,7 +133,7 @@ def test_extract_expected_code_media_reads_3_2_svg_formula_assets():
         / 'lessons'
         / '3-2'
         / 'design'
-        / 'multimedia.md'
+        / '3-2-multimedia.md'
     )
 
     expected_media = {
@@ -143,13 +143,13 @@ def test_extract_expected_code_media_reads_3_2_svg_formula_assets():
 
     assert expected_media['3-2-special-cases-card.svg']['formula_mode'] == 'svg-mathtext'
     assert expected_media['3-2-special-cases-card.svg']['page_formula_sources'] == [
-        'design/handout.md',
-        'design/interactive-page.md',
+        'design/3-2-handout.md',
+        'design/3-2-interactive-page.md',
     ]
     assert expected_media['3-2-parameter-range-flow.svg']['formula_mode'] == 'svg-mathtext'
     assert expected_media['3-2-parameter-range-flow.svg']['page_formula_sources'] == [
-        'design/handout.md',
-        'design/interactive-page.md',
+        'design/3-2-handout.md',
+        'design/3-2-interactive-page.md',
     ]
 
 
@@ -160,7 +160,7 @@ def test_validate_formula_media_contract_accepts_3_2_formula_svg_assets():
         / 'lessons'
         / '3-2'
     )
-    multimedia_path = lesson_dir / 'design' / 'multimedia.md'
+    multimedia_path = lesson_dir / 'design' / '3-2-multimedia.md'
 
     issues = review_lesson_content.validate_formula_media_contract(
         review_lesson_content.extract_expected_code_media(multimedia_path),
@@ -174,8 +174,8 @@ def test_build_primary_sources_includes_interactive_page_for_theory_lesson():
     sources = review_lesson_content.build_primary_sources('2-1', '理论')
 
     assert [str(path.relative_to(Path(__file__).resolve().parents[1])) for path in sources] == [
-        'authoring/lessons/2-1/design/handout.md',
-        'authoring/lessons/2-1/design/interactive-page.md',
+        'authoring/lessons/2-1/design/2-1-handout.md',
+        'authoring/lessons/2-1/design/2-1-interactive-page.md',
     ]
 
 
@@ -184,8 +184,8 @@ def test_build_source_manifest_records_interactive_page_source_for_theory_lesson
 
     source_manifest = review_lesson_content.build_source_manifest('2-1', '理论', primary_sources, [])
 
-    assert source_manifest['interactive_page_source'] == 'course-content/authoring/lessons/2-1/design/interactive-page.md'
-    assert source_manifest['interactive_contract_source'] == 'course-content/authoring/lessons/2-1/design/interactive-contract.yaml'
+    assert source_manifest['interactive_page_source'] == 'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md'
+    assert source_manifest['interactive_contract_source'] == 'course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml'
 
 
 def test_build_review_report_adds_interactive_page_section():
@@ -197,7 +197,7 @@ def test_build_review_report_adds_interactive_page_section():
         primary_sources,
         {
             'lesson_id': '2-1',
-            'files': [{'path': 'course-content/authoring/lessons/2-1/design/handout.md', 'issues': []}],
+            'files': [{'path': 'course-content/authoring/lessons/2-1/design/2-1-handout.md', 'issues': []}],
         },
         {
             'lesson_id': '2-1',
@@ -219,7 +219,7 @@ def test_build_review_report_adds_interactive_page_section():
         },
         {
             'lesson_id': '2-1',
-            'source_path': 'course-content/authoring/lessons/2-1/design/interactive-page.md',
+            'source_path': 'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md',
             'step_count': 16,
             'teacher_block_count': 16,
             'student_block_count': 16,
@@ -242,8 +242,8 @@ def test_build_primary_sources_includes_interactive_page_for_theory_lessons():
         str(path.relative_to(review_lesson_content.REPO_ROOT)).replace('\\', '/')
         for path in sources
     ] == [
-        'course-content/authoring/lessons/2-1/design/handout.md',
-        'course-content/authoring/lessons/2-1/design/interactive-page.md',
+        'course-content/authoring/lessons/2-1/design/2-1-handout.md',
+        'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md',
     ]
 
 
@@ -291,8 +291,8 @@ def test_2_2_interactive_page_contract_passes_review():
 
     check = review_lesson_content.build_interactive_page_check('2-2', primary_sources)
 
-    assert check['source_path'] == 'course-content/authoring/lessons/2-2/design/interactive-page.md'
-    assert check['contract_path'] == 'course-content/authoring/lessons/2-2/design/interactive-contract.yaml'
+    assert check['source_path'] == 'course-content/authoring/lessons/2-2/design/2-2-interactive-page.md'
+    assert check['contract_path'] == 'course-content/authoring/lessons/2-2/design/2-2-interactive-contract.yaml'
     assert check['contract_required_fields'] == [
         'layout',
         'modules',
@@ -342,7 +342,7 @@ def test_theory_review_contract_includes_interactive_page_source_and_section():
         },
         {
             'lesson_id': '2-1',
-            'source_path': 'course-content/authoring/lessons/2-1/design/interactive-page.md',
+            'source_path': 'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md',
             'summary': ['已覆盖讲义中的核心公式与静态承载内容。'],
             'warnings': [],
             'missing': [],
@@ -350,8 +350,8 @@ def test_theory_review_contract_includes_interactive_page_source_and_section():
         },
     )
 
-    assert manifest['interactive_page_source'] == 'course-content/authoring/lessons/2-1/design/interactive-page.md'
-    assert manifest['interactive_contract_source'] == 'course-content/authoring/lessons/2-1/design/interactive-contract.yaml'
+    assert manifest['interactive_page_source'] == 'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md'
+    assert manifest['interactive_contract_source'] == 'course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml'
     assert '## 互动页覆盖审查' in report
 
 
@@ -1136,7 +1136,7 @@ def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
             '',
             '# 2-1-audio.m4a',
             '',
-            '# handout.md',
+            '# 2-1-handout.md',
             '',
         ]
     )
@@ -1194,7 +1194,7 @@ def test_ensure_runtime_media_index_preserves_existing_links_and_order(tmp_path)
             '',
             'https://example.com/intro',
             '',
-            '# handout.md',
+            '# 2-1-handout.md',
             '',
             '旧讲义摘要，应当保留。',
             '',
@@ -1273,7 +1273,7 @@ def test_ensure_runtime_media_index_restores_authoring_content_over_runtime_shel
             '',
             '# demo-4-audio.m4a',
             '',
-            '# handout.md',
+            '# demo-4-handout.md',
             '',
             '已写好的讲义摘要，不能被运行态空骨架覆盖。',
             '',
@@ -1326,7 +1326,7 @@ def test_ensure_runtime_media_index_completes_partial_authoring_index(tmp_path):
             '',
             '# demo-5-audio.m4a',
             '',
-            '# handout.md',
+            '# demo-5-handout.md',
             '',
         ]
     )

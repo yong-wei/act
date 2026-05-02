@@ -5,8 +5,8 @@ import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'design' / 'handout.md'
-MULTIMEDIA_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'design' / 'multimedia.md'
+HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'design' / '3-7-handout.md'
+MULTIMEDIA_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'design' / '3-7-multimedia.md'
 PLOT_DATA_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'media' / 'raw' / 'generate_design_data.m'
 PLOT_RENDER_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'media' / 'raw' / 'render_figures.py'
 EXAMPLE2_TEX_PATH = ROOT / 'authoring' / 'lessons' / '3-7' / 'media' / 'raw' / '3-7-example2-structure.tex'

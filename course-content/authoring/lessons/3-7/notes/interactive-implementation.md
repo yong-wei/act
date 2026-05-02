@@ -20,7 +20,7 @@
 | step-12 | `summary_quiz_board`，后测、小结卡、规则表、`3-8` 去向卡同页 | `src/lib/unit-3-7-course.ts` + `step-panels.tsx` | 实现中 | 契约单测 + 演示页 |
 
 说明：
-- 本轮以 `course-content/authoring/lessons/3-7/design/interactive-page.md` 与 `interactive-contract.yaml` 为双轨真源，不接受降级实现。
+- 本轮以 `course-content/authoring/lessons/3-7/design/3-7-interactive-page.md` 与 `3-7-interactive-contract.yaml` 为双轨真源，不接受降级实现。
 - runtime 真源统一来自 `course-content/runtime/lessons/3-7/`，入口页媒体与讲义摘要只消费 runtime 产物。
 - 入口页沿用 `LessonEntryMediaHub` + `LessonEntryRuntimeSections` 的统一模板，课堂外资源埋点复用共享链路。
 - 当前主缺口是 `3-7` 课程代码目录、注册点、AI 上下文与契约对齐测试。
@@ -45,7 +45,7 @@
 
 - `course-content/runtime/lessons/3-7/lesson.json`
 - `course-content/runtime/lessons/3-7/graph-overlay.json`
-- `course-content/runtime/lessons/3-7/handout.md`
-- `course-content/runtime/lessons/3-7/handout.pdf`
+- `course-content/runtime/lessons/3-7/3-7-handout.md`
+- `course-content/runtime/lessons/3-7/3-7-handout.pdf`
 - `course-content/runtime/lessons/3-7/media/3-7-media.md`
 - `course-content/runtime/lessons/3-7/review/*`

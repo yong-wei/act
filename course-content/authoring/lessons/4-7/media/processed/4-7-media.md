@@ -20,7 +20,7 @@ https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=cc1d09a4fe6
 
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=645d0888df9a09aa9f355e3fb3fb7e6a&v=1777250237612&puid=26652392&enc=9b7cbc0e2f34f09ac2e0aa85d11b2d61&wps=8b9146e5e97b78561d24cb9ecff68697d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1006394203&timestamp=1777250237612&signature=40075bb072483bcfd3ed584cd44366be
 
-# handout.md
+# 4-7-handout.md
 
 本讲义主要探讨了**自动化控制系统**的设计与性能评估，特别侧重于**船舶航向控制**的应用。文档通过**数学建模**展示了多种**成本函数**与**惩罚机制**，旨在优化控制器在处理轨迹偏离和舵角限制时的表现。通过对**Bode图**、**Nyquist曲线**及**根轨迹**的详细分析，研究了系统在时域与频域内的**稳定性**。此外，资料中对比了不同参数设置下的**PI与PID控制器**效能，并利用**仿真图像**直观呈现了系统在应对方波指令时的追踪能力。最终，这些内容为实现**高保真度**的航行自动化提供了理论依据与工程参数参考。
 

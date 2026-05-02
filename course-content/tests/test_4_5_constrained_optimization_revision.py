@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-5' / 'design' / 'handout.md'
+HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-5' / 'design' / '4-5-handout.md'
 DATA_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-5' / 'media' / 'raw' / 'generate_constraint_data.m'
 RENDER_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-5' / 'media' / 'raw' / 'render_constraint_figures.py'
 

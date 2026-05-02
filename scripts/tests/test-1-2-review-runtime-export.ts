@@ -18,8 +18,8 @@ const reviewDir = `${lessonDir}/review`;
 const requiredFiles = [
   `${lessonDir}/lesson.json`,
   `${lessonDir}/graph-overlay.json`,
-  `${lessonDir}/handout.md`,
-  `${reviewDir}/boppps.md`,
+  `${lessonDir}/1-2-handout.md`,
+  `${reviewDir}/1-2-boppps.md`,
   `${reviewDir}/review-report.md`,
   `${reviewDir}/knowledge-card-check.json`,
   `${reviewDir}/multimedia-check.json`,
@@ -39,7 +39,7 @@ for (const file of requiredFiles) {
 
 const lessonJson = readJson(`${lessonDir}/lesson.json`);
 assert.equal(lessonJson.lesson_id, '1-2', 'lesson.json 应标记 1-2');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/1-2/handout.md', '讲义路径应走 runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/1-2/1-2-handout.md', '讲义路径应走 runtime');
 assert.equal(
   lessonJson.review?.report_path,
   '/course-runtime/lessons/legacy/1-2/review/review-report.md',
@@ -47,11 +47,11 @@ assert.equal(
 );
 assert.equal(
   lessonJson.review?.boppps_path,
-  '/course-runtime/lessons/legacy/1-2/review/boppps.md',
+  '/course-runtime/lessons/legacy/1-2/review/1-2-boppps.md',
   'lesson.json 应暴露审查后 boppps 路径',
 );
 
-const handout = readText(`${lessonDir}/handout.md`);
+const handout = readText(`${lessonDir}/1-2-handout.md`);
 assert.equal(
   handout.includes('/course-runtime/lessons/legacy/1-2/media/sh-01-block-diagram-elements.svg'),
   true,
@@ -65,8 +65,8 @@ assert.equal(
 
 const report = readText(`${reviewDir}/review-report.md`);
 assert.equal(
-  report.includes('design/handout.md') &&
-    report.includes('design/boppps.md') &&
+  report.includes('design/1-2-handout.md') &&
+    report.includes('design/1-2-boppps.md') &&
     report.includes('knowledge-card-check') &&
     report.includes('multimedia-check'),
   true,

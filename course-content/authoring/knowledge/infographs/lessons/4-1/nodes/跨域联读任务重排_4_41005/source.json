@@ -52,8 +52,8 @@
     ],
     "card_version": "1",
     "source_docs": [
-      "authoring/lessons/4-1/design/handout.md",
-      "authoring/lessons/4-1/design/interactive-page.md"
+      "authoring/lessons/4-1/design/4-1-handout.md",
+      "authoring/lessons/4-1/design/4-1-interactive-page.md"
     ],
     "asset_refs": [
       "4-1-case-compare-summary.png",

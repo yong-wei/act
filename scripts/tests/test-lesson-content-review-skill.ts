@@ -14,15 +14,15 @@ assert.equal(fs.existsSync(reviewSkillPath), true, '应新增 lesson-content-rev
 
 const reviewSkill = fs.readFileSync(reviewSkillPath, 'utf8');
 assert.equal(
-  reviewSkill.includes('design/handout.md') &&
-    reviewSkill.includes('design/practice-guide.md') &&
-    reviewSkill.includes('design/assessment-spec.md'),
+  reviewSkill.includes('design/{unit}-handout.md') &&
+    reviewSkill.includes('design/{unit}-practice-guide.md') &&
+    reviewSkill.includes('design/{unit}-assessment-spec.md'),
   true,
   '课程审查技能应覆盖理论课 handout 与实践课任务书/评估规格审查',
 );
 
 assert.equal(
-  reviewSkill.includes('design/boppps.md') &&
+  reviewSkill.includes('design/{unit}-boppps.md') &&
     reviewSkill.includes('覆盖') &&
     reviewSkill.includes('事实'),
   true,

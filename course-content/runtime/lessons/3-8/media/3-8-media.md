@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=06977b4e772279
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=5217616197c44c9872001128c4b79d55&v=1775572493709&puid=26652392&enc=d1d76e1fb953910d72f896d5fb7e0569&wps=84b07348fc5e31173fe9bd8761af2eb4d70d687fb84ea7b5
 
-# handout.md
+# 3-8-handout.md
 
 这份讲义主要介绍了**自动化控制理论**中的核心稳定性分析工具，重点讲解了**奈奎斯特（Nyquist）稳定判据**。文中详细阐述了如何通过复变函数在复平面上的映射轨迹来确定闭环系统的**稳定性**，并给出了计算公式及判定步骤。此外，资料还涉及了**航向控制系统**的仿真分析，通过对**波特图**和根轨迹的观察来评估系统性能。最后，针对特定的设计指标，如**超调量**和**调节时间**，提出了相应的控制方案优化与参数整定建议。

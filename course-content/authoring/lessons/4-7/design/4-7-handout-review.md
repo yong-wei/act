@@ -2,8 +2,8 @@
 
 ## 审查对象
 
-- 学生讲义：`design/handout.md`
-- 教师版讲义：`design/teacher-handout.md`
+- 学生讲义：`design/4-7-handout.md`
+- 教师版讲义：`design/4-7-teacher-handout.md`
 - 高保真证据脚本：`reports/generate_destroyer_hifi_report.py`
 - 传统四联图数据脚本：`reports/generate_traditional_design_four_panel_data.m`
 - 媒体目录：`media/processed/`

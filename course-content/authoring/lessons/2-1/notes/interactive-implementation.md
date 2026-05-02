@@ -25,7 +25,7 @@
 - 在 `src/lib/course-ai-contexts.ts` 中注册 `2-1` 的步骤级 AI 上下文
 - 会话标题识别仅保留 `2-1：建模与变换语言——从真实对象到统一分析对象` 新主线
 - 旧 `1-1 / 1-2` 公开课程路由已删除，不再作为主线公开入口
-- 新增 `design/interactive-contract.yaml`，把页面布局、模块、互动类型、埋点、教师洞察与 AI context 结构化为机器可读契约
+- 新增 `design/2-1-interactive-contract.yaml`，把页面布局、模块、互动类型、埋点、教师洞察与 AI context 结构化为机器可读契约
 - 教师侧模板弹窗新增“学生页预览”入口，并明确学生演示页是默认预览口径
 
 ## 运行时真源
@@ -95,8 +95,8 @@
 设计稿与实现稿本轮已完成以下合同修正：
 
 - `src/lib/unit-2-1-course.ts` 已把 `step-05/07/13/14` 提升为正式 coverage contract。
-- `course-content/authoring/lessons/2-1/design/interactive-page.md` 已补齐上述步骤的静态公式映射。
-- `course-content/authoring/lessons/2-1/design/interactive-contract.yaml` 已作为 V2 真源补齐 16 步的布局、模块、互动、埋点与 AI/预览约束。
+- `course-content/authoring/lessons/2-1/design/2-1-interactive-page.md` 已补齐上述步骤的静态公式映射。
+- `course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml` 已作为 V2 真源补齐 16 步的布局、模块、互动、埋点与 AI/预览约束。
 - `step-14` 已明确拆成两层语义：
   - 例题一本体：`Δ=1-L_1`、`Δ_1=1`
   - 附录补充情形：仅在存在不接触该前向通路的局部回路时，才讨论 `Δ_k=1-L_1`
@@ -105,7 +105,7 @@
 
 ### 2026-04-05 契约对齐补记
 
-- `src/lib/unit-2-1-course.ts` 已把 `step-05/06/07/09/15/16` 的页面区域、教师洞察、telemetry 字段、错因标签与学生演示页预览路径重新对齐到 `design/interactive-contract.yaml`。
+- `src/lib/unit-2-1-course.ts` 已把 `step-05/06/07/09/15/16` 的页面区域、教师洞察、telemetry 字段、错因标签与学生演示页预览路径重新对齐到 `design/2-1-interactive-contract.yaml`。
 - `src/features/interactive/unit-2-1-modeling-language/step-panels.tsx` 已补齐新区域 ID 的渲染映射，避免本地平行契约回对齐后丢失静态内容。
 - 新增实现侧一致性测试脚本：
   - `scripts/tests/test-interactive-contract-implementation-alignment.mjs`

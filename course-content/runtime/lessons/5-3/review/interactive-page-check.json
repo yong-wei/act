@@ -1,8 +1,8 @@
 {
   "lesson_id": "5-3",
   "source_path": null,
-  "contract_path": "course-content/authoring/lessons/5-3/design/interactive-contract.yaml",
-  "design_acceptance_path": "course-content/authoring/lessons/5-3/design/interactive-design-acceptance.json",
+  "contract_path": "course-content/authoring/lessons/5-3/design/5-3-interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/5-3/design/5-3-interactive-design-acceptance.json",
   "implementation_acceptance_path": "course-content/authoring/lessons/5-3/notes/interactive-implementation-acceptance.json",
   "implementation_contract_source": null,
   "contract_required_fields": [
@@ -43,16 +43,16 @@
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
   "blocking_issues": [
-    "缺少 design/interactive-page.md"
+    "缺少 design/5-3-interactive-page.md"
   ],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "summary": [],
   "warnings": [],
   "missing": [
-    "缺少 design/interactive-page.md"
+    "缺少 design/5-3-interactive-page.md"
   ],
   "issues": [
-    "缺少 design/interactive-page.md"
+    "缺少 design/5-3-interactive-page.md"
   ]
 }

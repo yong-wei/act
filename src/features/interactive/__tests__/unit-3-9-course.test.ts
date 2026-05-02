@@ -113,7 +113,7 @@ describe('unit 3-9 interactive course', () => {
 
     const runtime = await loadLessonRuntimeEntry('3-9');
     const contract = parse(
-      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-9/design/interactive-contract.yaml'), 'utf8'),
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-9/design/3-9-interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,

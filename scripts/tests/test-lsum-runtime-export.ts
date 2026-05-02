@@ -7,7 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 
 const lessonJsonPath = 'course-content/runtime/lessons/legacy/L-sum/lesson.json';
 const graphOverlayPath = 'course-content/runtime/lessons/legacy/L-sum/graph-overlay.json';
-const handoutPath = 'course-content/runtime/lessons/legacy/L-sum/handout.md';
+const handoutPath = 'course-content/runtime/lessons/legacy/L-sum/L-sum-handout.md';
 const mediaPaths = [
   'course-content/runtime/lessons/legacy/L-sum/media/sh-01-feasible-region-mp.svg',
   'course-content/runtime/lessons/legacy/L-sum/media/sh-02-feasible-region-ts.svg',
@@ -31,7 +31,7 @@ for (const mediaPath of mediaPaths) {
 
 const lessonJson = JSON.parse(fs.readFileSync(path.join(root, lessonJsonPath), 'utf8'));
 assert.equal(lessonJson.lesson_id, 'L-∑', 'lesson.json 应保留课程设计中的课次标识');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-sum/handout.md', 'handout_path 应走 course-runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-sum/L-sum-handout.md', 'handout_path 应走 course-runtime');
 assert.equal(lessonJson.media_base_path, '/course-runtime/lessons/legacy/L-sum/media', 'media_base_path 应走 course-runtime');
 
 const graphOverlay = JSON.parse(fs.readFileSync(path.join(root, graphOverlayPath), 'utf8'));

@@ -13,7 +13,7 @@ tags:
   - 抗干扰
 card_version: 1
 source_docs:
-  - authoring/lessons/3-7/design/handout.md
+  - authoring/lessons/3-7/design/3-7-handout.md
 asset_refs:
   - 3-7-example2-structure.png
 ---

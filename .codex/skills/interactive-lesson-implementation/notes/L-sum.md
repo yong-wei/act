@@ -4,10 +4,10 @@
 - 课次：L-sum（设计稿课次标识为 `L-∑`）
 - 标题：设计可行域——让约束成为指南针
 - 当前设计源：
-  - `course-content/authoring/lessons/legacy/L-sum/design/interactive-page.md`
-  - `course-content/authoring/lessons/legacy/L-sum/design/boppps.md`
-  - `course-content/authoring/lessons/legacy/L-sum/design/handout.md`
-  - `course-content/authoring/lessons/legacy/L-sum/design/multimedia.md`
+  - `course-content/authoring/lessons/legacy/L-sum/design/L-sum-interactive-page.md`
+  - `course-content/authoring/lessons/legacy/L-sum/design/L-sum-boppps.md`
+  - `course-content/authoring/lessons/legacy/L-sum/design/L-sum-handout.md`
+  - `course-content/authoring/lessons/legacy/L-sum/design/L-sum-multimedia.md`
 
 ## 任务模式
 - 模式：开始新课设计
@@ -35,7 +35,7 @@
 - 已完成 runtime 导出：
   - `course-content/runtime/lessons/legacy/L-sum/lesson.json`
   - `course-content/runtime/lessons/legacy/L-sum/graph-overlay.json`
-  - `course-content/runtime/lessons/legacy/L-sum/handout.md`
+  - `course-content/runtime/lessons/legacy/L-sum/L-sum-handout.md`
   - `course-content/runtime/lessons/legacy/L-sum/media/*.svg`
 
 ## 当前实现判断

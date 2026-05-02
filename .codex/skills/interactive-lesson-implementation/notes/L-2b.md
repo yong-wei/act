@@ -125,7 +125,7 @@
   - 复制 `content/concepts/*.mdx` 到 `course-content/runtime/knowledge/cards/concepts/` 作为兼容层
   - 为 L-2b 导出 `course-content/runtime/lessons/legacy/L-2b/lesson.json`
   - 为 L-2b 导出 `course-content/runtime/lessons/legacy/L-2b/graph-overlay.json`
-  - 为 L-2b 导出 `course-content/runtime/lessons/legacy/L-2b/handout.md`，并把讲义中的相对媒体路径改写为 `/course-runtime/lessons/legacy/L-2b/media/*`
+  - 为 L-2b 导出 `course-content/runtime/lessons/legacy/L-2b/L-2b-handout.md`，并把讲义中的相对媒体路径改写为 `/course-runtime/lessons/legacy/L-2b/media/*`
 - 接口层已完成第一轮适配：
   - `src/lib/knowledge-graph-source.ts` 改为优先读取 `course-content/runtime/knowledge/graph/*`，不再读取根目录 `data/knowledge_graph.json`
   - `src/app/api/content/mdx/route.ts` 改为支持 `content/` 与 `course-content/runtime/` 下的 `.md/.mdx`
@@ -151,7 +151,7 @@
 - 已新增 `src/lib/course-runtime.ts`：
   - 统一读取 `course-content/runtime/lessons/legacy/L-2b/lesson.json`
   - 统一读取 `course-content/runtime/lessons/legacy/L-2b/graph-overlay.json`
-  - 统一读取 `course-content/runtime/lessons/legacy/L-2b/handout.md`
+  - 统一读取 `course-content/runtime/lessons/legacy/L-2b/L-2b-handout.md`
   - 从节点卡片 Markdown 中抽取“首页”段落，作为首页点击节点后的卡片正面
 - 已新增 `src/features/interactive/l2b-root-locus/entry-runtime-sections.tsx`：
   - 首页显示本课知识点网络

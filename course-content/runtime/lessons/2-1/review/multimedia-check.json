@@ -1,18 +1,18 @@
 {
   "lesson_id": "2-1",
   "expected_assets": [
-    "handout.pdf",
+    "2-1-handout.pdf",
     "2-1-media.md"
   ],
   "generated_assets": [
-    "handout.pdf",
+    "2-1-handout.pdf",
     "2-1-media.md"
   ],
   "missing_assets": [],
   "executed_scripts": [],
   "processed_dir": "course-content/authoring/lessons/2-1/media/processed",
   "media_index_path": "course-content/runtime/lessons/2-1/media/2-1-media.md",
-  "handout_pdf_source": "course-content/authoring/lessons/2-1/design/handout.pdf",
+  "handout_pdf_source": "course-content/authoring/lessons/2-1/design/2-1-handout.pdf",
   "formula_contract_issues": [],
   "formula_media": []
 }

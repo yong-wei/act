@@ -130,7 +130,7 @@ describe('unit 2-1 interactive course', () => {
 
   it('keeps the authoring interactive design aligned with the revised static formula requirements', () => {
     const designSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/2-1/design/interactive-page.md'),
+      join(repoRoot, 'course-content/authoring/lessons/2-1/design/2-1-interactive-page.md'),
       'utf8',
     );
 
@@ -154,7 +154,7 @@ describe('unit 2-1 interactive course', () => {
   it('ships a machine-readable interactive contract for 2-1 with the revised step-08 drag-match design', () => {
     const contractPath = join(
       repoRoot,
-      'course-content/authoring/lessons/2-1/design/interactive-contract.yaml',
+      'course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml',
     );
 
     expect(existsSync(contractPath)).toBe(true);
@@ -252,7 +252,7 @@ describe('unit 2-1 interactive course', () => {
   it('keeps the local page contracts aligned with the authoring interactive contract for redesigned steps', () => {
     const contract = JSON.parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/2-1/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {

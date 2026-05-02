@@ -7,7 +7,7 @@ description: Use when implementing or upgrading this repository's interactive le
 
 ## Overview
 
-按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/interactive-page.md` 与 `interactive-contract.yaml` 视为双轨设计真源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
+按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/...-interactive-page.md` 与 `interactive-contract.yaml` 视为双轨设计真源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
 
 对采用新编排链的课程，运行时真源不是课程私有 `step-panels` 或 `unit-*-course.ts` 中再写一份平行页面契约，而是 review/export 后的 `interactive-manifest.json`。共享模板注册表、模块注册表与活动注册表的职责是**兑现 manifest 合同**，不是在实现阶段二次发明页面结构、吞并模块或把课程级缺口藏进共享渲染器。
 
@@ -113,8 +113,8 @@ description: Use when implementing or upgrading this repository's interactive le
 
 若课次已建立双轨设计，作者态设计源默认包括：
 
-- `design/interactive-page.md`
-- `design/interactive-contract.yaml`
+- `design/{unit}-interactive-page.md`
+- `design/{unit}-interactive-contract.yaml`
 
 实现前必须确认：
 - 两者都存在
@@ -150,7 +150,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 全局知识卡唯一来源：`course-content/runtime/knowledge/cards/nodes/`
 - 课次局部结构来源：`course-content/runtime/lessons/.../<lesson>/graph-overlay.json`
 - 课次首页与步骤编排来源：`course-content/runtime/lessons/.../<lesson>/lesson.json`
-- 课次讲义来源：`course-content/runtime/lessons/.../<lesson>/handout.md`
+- 课次讲义来源：`course-content/runtime/lessons/.../<lesson>/<lesson>-handout.md`
 - 审查结果来源：`course-content/runtime/lessons/.../<lesson>/review/*`
 
 互动课程实现不要自创第二套知识卡路径，也不要把 lesson runtime 误写成知识卡正文存放处。
@@ -159,14 +159,14 @@ description: Use when implementing or upgrading this repository's interactive le
 
 默认需要读取：
 
-- `design/interactive-page.md`
-- `design/interactive-contract.yaml`（若存在则必读）
+- `design/{unit}-interactive-page.md`
+- `design/{unit}-interactive-contract.yaml`（若存在则必读）
 - `runtime/.../lesson.json`
 - `runtime/.../interactive-manifest.json`（新编排课次必读）
 - `runtime/.../graph-overlay.json`
-- `runtime/.../handout.md`
+- `runtime/.../<lesson>-handout.md`
 - `runtime/.../media/<lesson>-media.md`（若课程入口页、预习台或外部媒体入口存在，则必读）
-- `runtime/.../review/boppps.md`
+- `runtime/.../review/<lesson>-boppps.md`
 - `runtime/.../review/review-report.md`
 - `runtime/.../review/interactive-page-check.json`
 - `runtime/.../review/knowledge-card-check.json`
@@ -694,7 +694,7 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 
 ```bash
 python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py \
-  --contract course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml \
+  --contract course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-contract.yaml \
   --implementation src/lib/<lesson>-course.ts \
   --page-contract-const <PAGE_CONTRACT_CONST> \
   --step-const <STEP_CONST>

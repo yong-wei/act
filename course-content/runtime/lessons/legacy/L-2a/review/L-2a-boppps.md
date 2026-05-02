@@ -1,6 +1,6 @@
 # 单元 L-2a 教案（BOPPPS）
 
-**基于讲义**：`notes/lessons/L-2a/handout.md`
+**基于讲义**：`authoring/lessons/legacy/L-2a/design/L-2a-handout.md`
 **课型**：理论课 | **学时**：2h | **层次**：层0 第二轮速通首课
 **知识类型**：[X] 跨域型（直觉层）
 **编制日期**：2026-03-10
@@ -239,4 +239,4 @@ S｜Summary 总结（5 min）
 ---
 
 *版本：v1.0 | 编制日期：2026-03-10*
-*基于讲义：`notes/lessons/L-2a/handout.md` v1.0*
+*基于讲义：`authoring/lessons/legacy/L-2a/design/L-2a-handout.md` v1.0*

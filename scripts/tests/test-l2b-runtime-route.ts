@@ -31,7 +31,7 @@ assert.equal(
 );
 
 assert.equal(
-  fs.existsSync(path.join(root, 'course-content/runtime/lessons/legacy/L-2b/handout.md')),
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/legacy/L-2b/L-2b-handout.md')),
   true,
   'L-2b runtime handout.md 应存在',
 );

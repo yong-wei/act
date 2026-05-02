@@ -11,43 +11,43 @@ DEFAULT_NODE_SCRIPT = REPO_ROOT / 'scripts' / 'tests' / 'test-interactive-contra
 
 LESSON_PRESETS = {
     '2-1': {
-        'contract': 'course-content/authoring/lessons/2-1/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/2-1/design/2-1-interactive-contract.yaml',
         'implementation': 'src/lib/unit-2-1-course.ts',
         'page_contract_const': 'UNIT_2_1_PAGE_CONTRACTS',
         'step_const': 'UNIT_2_1_LESSON_STEPS',
     },
     '2-2': {
-        'contract': 'course-content/authoring/lessons/2-2/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/2-2/design/2-2-interactive-contract.yaml',
         'implementation': 'src/lib/unit-2-2-course.ts',
         'page_contract_const': 'UNIT_2_2_PAGE_CONTRACTS',
         'step_const': 'UNIT_2_2_LESSON_STEPS',
     },
     '3-2': {
-        'contract': 'course-content/authoring/lessons/3-2/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/3-2/design/3-2-interactive-contract.yaml',
         'implementation': 'src/lib/unit-3-2-course.ts',
         'page_contract_const': 'UNIT_3_2_PAGE_CONTRACTS',
         'step_const': 'UNIT_3_2_LESSON_STEPS',
     },
     '3-4': {
-        'contract': 'course-content/authoring/lessons/3-4/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/3-4/design/3-4-interactive-contract.yaml',
         'implementation': 'src/lib/unit-3-4-course.ts',
         'page_contract_const': 'UNIT_3_4_PAGE_CONTRACTS',
         'step_const': 'UNIT_3_4_LESSON_STEPS',
     },
     '3-5': {
-        'contract': 'course-content/authoring/lessons/3-5/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/3-5/design/3-5-interactive-contract.yaml',
         'implementation': 'src/lib/unit-3-5-course.ts',
         'page_contract_const': 'UNIT_3_5_PAGE_CONTRACTS',
         'step_const': 'UNIT_3_5_LESSON_STEPS',
     },
     '4-1': {
-        'contract': 'course-content/authoring/lessons/4-1/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/4-1/design/4-1-interactive-contract.yaml',
         'implementation': 'src/lib/unit-4-1-course.ts',
         'page_contract_const': 'UNIT_4_1_PAGE_CONTRACTS',
         'step_const': 'UNIT_4_1_LESSON_STEPS',
     },
     '4-4': {
-        'contract': 'course-content/authoring/lessons/4-4/design/interactive-contract.yaml',
+        'contract': 'course-content/authoring/lessons/4-4/design/4-4-interactive-contract.yaml',
         'implementation': 'src/lib/unit-4-4-course.ts',
         'page_contract_const': 'UNIT_4_4_PAGE_CONTRACTS',
         'step_const': 'UNIT_4_4_LESSON_STEPS',

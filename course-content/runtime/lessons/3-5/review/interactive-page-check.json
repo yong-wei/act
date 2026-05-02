@@ -1,7 +1,7 @@
 {
   "lesson_id": "3-5",
-  "source_path": "course-content/authoring/lessons/3-5/design/interactive-page.md",
-  "contract_path": "course-content/authoring/lessons/3-5/design/interactive-contract.yaml",
+  "source_path": "course-content/authoring/lessons/3-5/design/3-5-interactive-page.md",
+  "contract_path": "course-content/authoring/lessons/3-5/design/3-5-interactive-contract.yaml",
   "implementation_contract_source": null,
   "contract_required_fields": [
     "layout",

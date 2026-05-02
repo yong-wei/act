@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=0bded51fa5e155
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=855f03ca54c70bbbc0f83eb36c5d3869&v=1776647286764&puid=26652392&enc=45e3bfb247fa10813f1603b61330fb2e&wps=08cd56a47f4838783c1a30eb819f29ded70d687fb84ea7b5
 
-# handout.md
+# 4-3-handout.md
 
 这份讲义围绕“对象分析 -> 结构分流 -> 参数方向 -> 首轮验证 -> 问题清单”展开，说明单结构起步之后怎样真正长成第一版可运行、可解释、可继续推进的设计方案。内容既包含 `PI + 超前`、`滞后 + 超前` 和带微分滤波 `PID` 的职责分工，也用客船航向保持和横摇减摇鳍案例说明：复合结构有时来自频段分工，有时来自扰动抑制通道的重写。

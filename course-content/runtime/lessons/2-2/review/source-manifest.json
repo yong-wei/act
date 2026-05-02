@@ -3,12 +3,12 @@
   "unit_type": "理论",
   "generated_at": "2026-04-05T14:24:51.532653+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/2-2/design/handout.md",
-    "course-content/authoring/lessons/2-2/design/interactive-page.md"
+    "course-content/authoring/lessons/2-2/design/2-2-handout.md",
+    "course-content/authoring/lessons/2-2/design/2-2-interactive-page.md"
   ],
-  "interactive_page_source": "course-content/authoring/lessons/2-2/design/interactive-page.md",
-  "interactive_contract_source": "course-content/authoring/lessons/2-2/design/interactive-contract.yaml",
-  "boppps_source": "course-content/authoring/lessons/2-2/design/boppps.md",
+  "interactive_page_source": "course-content/authoring/lessons/2-2/design/2-2-interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/2-2/design/2-2-interactive-contract.yaml",
+  "boppps_source": "course-content/authoring/lessons/2-2/design/2-2-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-2/sequence.json",
   "expected_code_media": [
     {
@@ -40,8 +40,8 @@
       "output": "2-2-td-05-example-response-with-indices.svg",
       "formula_mode": "svg-mathtext",
       "page_formula_sources": [
-        "design/handout.md",
-        "design/interactive-page.md"
+        "design/2-2-handout.md",
+        "design/2-2-interactive-page.md"
       ]
     },
     {

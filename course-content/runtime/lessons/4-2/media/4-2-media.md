@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6d9a7204ca1e85
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=582e97ccf68fab3a18d1ebe3bc77efe6&v=1776580200858&puid=26652392&enc=1c8678286d48bfaf6c1f0cc771e6e3e9&wps=d6714a0e584af5fa994b5d78e43045dad70d687fb84ea7b5
 
-# handout.md
+# 4-2-handout.md
 
 本讲义核心围绕**控制系统**中的**校正设计**展开。内容重点探讨了在面对特定任务时，如何科学地选择**PI、PD、PID**或**超前与滞后校正**等不同控制结构。作者强调每种结构都服务于特定的**性能改良**目标，并非越复杂越高级。文中还详细列出了各类控制器的**传递函数**公式，并指导学生如何通过分析任务需求来确定**初始方案**。最终，这套教材旨在帮助学习者建立从**明确任务本质**到**执行参数调试**的完整工程思维体系。

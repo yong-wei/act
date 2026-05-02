@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6e3fa14f75e977
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6d59b0e44a5d4cb39db42ed0d2007fc2&v=1775530726631&puid=26652392&enc=6cf4dce44aa8db7f805e161f95690d10&wps=da68d8914938b0783ffc1776788c32d3d70d687fb84ea7b5
 
-# handout.md
+# 3-3-handout.md
 
 本讲义围绕**根轨迹分析法**组织整条判断链：先说明根轨迹研究的是参数变化下的**闭环极点迁移**，再由 `1+G(s)H(s)=0` 推到 `L(s)=-1`，建立**相角条件**与**幅值条件**的分工。资料继续以骨架法则、关键节点、出射角 / 入射角与**根之和原则**组织九项法则，并通过三道例题说明怎样从图上读出稳定性、快慢与振荡趋势。这套讲义的目标不是孤立记忆法则，而是让学生真正掌握分析**闭环系统动态性能**的根轨迹方法。

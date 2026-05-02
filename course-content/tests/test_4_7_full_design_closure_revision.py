@@ -6,7 +6,7 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-7' / 'design' / 'handout.md'
+HANDOUT_PATH = ROOT / 'authoring' / 'lessons' / '4-7' / 'design' / '4-7-handout.md'
 DATA_JSON_PATH = ROOT / 'authoring' / 'lessons' / '4-7' / 'media' / 'raw' / 'generated-data' / '4-7-design-closure-data.json'
 OCTAVE_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-7' / 'media' / 'raw' / 'generate_design_closure_data.m'
 RENDER_SCRIPT_PATH = ROOT / 'authoring' / 'lessons' / '4-7' / 'media' / 'raw' / 'render_design_closure_figures.py'

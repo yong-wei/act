@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=bb75ddc3e4cb29
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=55c9be627065106f3c688383fbe16ae9&v=1775460465998&puid=26652392&enc=9fa81b58fb162fd6731bb2741ce30d29&wps=dab62bb18827b96e36fbe35f1b2e3ca9d70d687fb84ea7b5
 
-# handout.md
+# 2-3-handout.md
 
 该资料是一份关于**控制系统频率特性分析**的教学讲义，重点探讨了系统如何响应不同频率的**正弦输入信号**。通过对比**低频指令**的高保真跟踪与**高频扰动**的有效抑制，文中详细阐释了**幅值衰减**与**相位滞后**的物理意义。内容涵盖了从**一阶惯性环节**到**二阶振荡环节**的数学推导，并利用数学公式定义了**频率特性函数** $G(j\omega)$。此外，文档还提供了丰富的 **MATLAB/Octave 仿真代码**与波形图，直观展示了方波的**谐波分解**以及典型环节的 **Bode 图**特征。这份资源旨在帮助学习者掌握如何通过**频率响应**来评估并设计线性系统的动态性能。

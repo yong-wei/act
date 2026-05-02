@@ -221,4 +221,4 @@ L-2a：极点→响应  /  L-2b：K→极点→响应  /  L-2c：频域第三张
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *课案版本：v1.0 | 创建日期：2026-03-13*
-*基于讲义：authoring/lessons/legacy/L-2c/design/handout.md*
+*基于讲义：authoring/lessons/legacy/L-2c/design/L-2c-handout.md*

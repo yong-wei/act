@@ -156,13 +156,13 @@
       "复平面可行域_4_Lsum001"
     ]
   },
-  "handout_path": "/course-runtime/lessons/2-2/handout.md",
-  "handout_source_path": "course-content/runtime/lessons/2-2/handout.md",
+  "handout_path": "/course-runtime/lessons/2-2/2-2-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/2-2/2-2-handout.md",
   "graph_overlay_path": "/course-runtime/lessons/2-2/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/2-2/media",
   "review": {
     "status": "reviewed",
-    "boppps_path": "/course-runtime/lessons/2-2/review/boppps.md",
+    "boppps_path": "/course-runtime/lessons/2-2/review/2-2-boppps.md",
     "report_path": "/course-runtime/lessons/2-2/review/review-report.md",
     "knowledge_card_check_path": "/course-runtime/lessons/2-2/review/knowledge-card-check.json",
     "interactive_page_check_path": "/course-runtime/lessons/2-2/review/interactive-page-check.json",

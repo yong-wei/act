@@ -7,7 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 
 const lessonJsonPath = 'course-content/runtime/lessons/legacy/1-1/lesson.json';
 const graphOverlayPath = 'course-content/runtime/lessons/legacy/1-1/graph-overlay.json';
-const handoutPath = 'course-content/runtime/lessons/legacy/1-1/handout.md';
+const handoutPath = 'course-content/runtime/lessons/legacy/1-1/1-1-handout.md';
 const mediaPaths = [
   'course-content/runtime/lessons/legacy/1-1/media/h-01-spring-mass-damper.svg',
   'course-content/runtime/lessons/legacy/1-1/media/h-02-laplace-transform-flow.svg',
@@ -27,7 +27,7 @@ for (const mediaPath of mediaPaths) {
 
 const lessonJson = JSON.parse(fs.readFileSync(path.join(root, lessonJsonPath), 'utf8'));
 assert.equal(lessonJson.lesson_id, '1-1', 'lesson.json 应标记当前课次');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/1-1/handout.md', 'handout_path 应走 course-runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/1-1/1-1-handout.md', 'handout_path 应走 course-runtime');
 assert.equal(lessonJson.media_base_path, '/course-runtime/lessons/legacy/1-1/media', 'media_base_path 应走 course-runtime');
 
 const graphOverlay = JSON.parse(fs.readFileSync(path.join(root, graphOverlayPath), 'utf8'));

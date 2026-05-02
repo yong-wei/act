@@ -11,7 +11,7 @@ HANDOUT_PATH = (
     / 'lessons'
     / '4-4'
     / 'design'
-    / 'handout.md'
+    / '4-4-handout.md'
 )
 
 

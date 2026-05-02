@@ -58,8 +58,8 @@ def test_export_handout_copies_markdown_and_static_pdf(tmp_path):
 
     export_runtime.export_handout(lesson_id)
 
-    assert runtime_lesson_dir.joinpath('handout.md').read_text(encoding='utf-8') == '# demo handout'
-    assert runtime_lesson_dir.joinpath('handout.pdf').read_bytes() == b'%PDF-demo'
+    assert runtime_lesson_dir.joinpath('demo-2-handout.md').read_text(encoding='utf-8') == '# demo handout'
+    assert runtime_lesson_dir.joinpath('demo-2-handout.pdf').read_bytes() == b'%PDF-demo'
 
 
 def test_generate_runtime_media_preserves_existing_media_index(tmp_path):
@@ -88,12 +88,12 @@ def test_generate_runtime_media_preserves_existing_media_index(tmp_path):
         '\n# demo-3-intro-video.mp4\n\n'
         '# demo-3-slides.pdf\n\n'
         '# demo-3-audio.m4a\n\n'
-        '# handout.md\n'
+        '# demo-3-handout.md\n'
     )
     assert processed_dir.joinpath('demo-3-media.md').read_text(encoding='utf-8') == (
         '# demo-3-course.mp4\n\nhttps://example.com/course\n'
         '\n# demo-3-intro-video.mp4\n\n'
         '# demo-3-slides.pdf\n\n'
         '# demo-3-audio.m4a\n\n'
-        '# handout.md\n'
+        '# demo-3-handout.md\n'
     )

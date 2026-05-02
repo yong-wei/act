@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=70095686fad0aa
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=ef983e222fbe1e9f351e63a3be8cab1e&v=1775535878318&puid=26652392&enc=dfc5334f364876db8464c06d428753db&wps=0857deed225a30832a6acf50f266ef02d70d687fb84ea7b5
 
-# handout.md
+# 3-6-handout.md
 
 讲义围绕同一对象依次完成时域指标翻译、`PD` 设计、测速反馈设计、超前频域设计、同指标下的 `PD` 频域设计，以及右半平面零点边界判断，形成一条从“目标 -> 结构 -> 参数 -> 验收 -> 边界”的完整设计主线。

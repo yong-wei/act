@@ -6,12 +6,12 @@
 
 | Step | 产物 | 状态 |
 |:---:|:---:|:---:|
-| Step 3 | `design/handout.md` | ✅ 已完成，含例题、思政、小结、附录速查表 |
+| Step 3 | `design/2-2-handout.md` | ✅ 已完成，含例题、思政、小结、附录速查表 |
 | Step 4 | `manifest.json` / `graph/*.jsonl` / `sequence.json` | ✅ 已完成，新增 3 个节点 |
 | Step 4 | 新增节点卡片 | ✅ 已完成，写入 `authoring/knowledge/cards/nodes/` |
-| Step 5 | `design/boppps.md` | ✅ 已完成 |
-| Step 6 | `design/interactive-page.md` | ✅ 已完成，17 步双视角蓝图 |
-| Step 7 | `design/multimedia.md` | ✅ 已完成，13 项资源规格 |
+| Step 5 | `design/2-2-boppps.md` | ✅ 已完成 |
+| Step 6 | `design/2-2-interactive-page.md` | ✅ 已完成，17 步双视角蓝图 |
+| Step 7 | `design/2-2-multimedia.md` | ✅ 已完成，13 项资源规格 |
 
 ## 本轮验证与修正
 

@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=190a89d85e7ac5
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=157afbabe50e285f6717082555562d26&v=1775486194023&puid=26652392&enc=4e6c9d07145cfdf87145c3d7ef41e572&wps=aaacadb7c307844b8be9d5be9b709037d70d687fb84ea7b5
 
-# handout.md
+# 3-1-handout.md
 
 这份资料主要探讨了**高阶系统**的动态特性。内容重点解析了**闭环极点**在复平面上的位置如何决定系统的稳定性及响应形态，包括**单调衰减**、**振荡衰减**和**持续发散**等模式。文中详细对比了**主导极点**与非主导极点的差异，通过单位阶跃响应和 **Bode 图**说明了低阶模型近似的适用条件。此外，资料还通过**卷积积分**和**模态叠加**的数值实验，深入浅出地展示了脉冲响应如何构成复杂的系统输出。为了辅助教学，文档最后附带了用于绘图和仿真的 **Octave 代码**，实现了理论与工程实践的结合。

@@ -22,6 +22,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=c7c4b6eeb645ba
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=e44e2ac037c47c096f6d533f24ad4fb2&v=1775572288027&puid=26652392&enc=c228b0ee03c51176950e8ddb2774b08f&wps=f337b45fb064a4013950759c2a752409d70d687fb84ea7b5
 
-# handout.md
+# 3-7-handout.md
 
 本讲义主要探讨了**自动控制系统**中的**稳态误差分析**与**系统补偿技术**。文中详细推导了**闭环控制系统**在不同输入信号下的误差公式，并利用**终值定理**定义了稳态误差的计算方法。通过对**系统型别**（0型、I型、II型）的分类，解释了增益系数如何影响系统对阶跃、斜坡及加速度信号的追踪精度。此外，资料通过**波特图**对比了**PI控制**、**滞后补偿**与**超前补偿**的频率特性差异。最后，文本结合具体的**二阶系统实例**，演示了如何通过调整参数来满足**超调量**和**调节时间**等性能指标。

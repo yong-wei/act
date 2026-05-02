@@ -1,8 +1,8 @@
 {
   "lesson_id": "3-8",
-  "source_path": "course-content/authoring/lessons/3-8/design/interactive-page.md",
-  "contract_path": "course-content/authoring/lessons/3-8/design/interactive-contract.yaml",
-  "design_acceptance_path": "course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json",
+  "source_path": "course-content/authoring/lessons/3-8/design/3-8-interactive-page.md",
+  "contract_path": "course-content/authoring/lessons/3-8/design/3-8-interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/3-8/design/3-8-interactive-design-acceptance.json",
   "implementation_acceptance_path": "course-content/authoring/lessons/3-8/notes/interactive-implementation-acceptance.json",
   "implementation_contract_source": null,
   "contract_required_fields": [

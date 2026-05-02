@@ -3,12 +3,12 @@
   "unit_type": "理论",
   "generated_at": "2026-04-01T12:26:45.744874+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/2-4/design/handout.md",
-    "course-content/authoring/lessons/2-4/design/interactive-page.md"
+    "course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "course-content/authoring/lessons/2-4/design/2-4-interactive-page.md"
   ],
-  "interactive_page_source": "course-content/authoring/lessons/2-4/design/interactive-page.md",
-  "interactive_contract_source": "course-content/authoring/lessons/2-4/design/interactive-contract.yaml",
-  "boppps_source": "course-content/authoring/lessons/2-4/design/boppps.md",
+  "interactive_page_source": "course-content/authoring/lessons/2-4/design/2-4-interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/2-4/design/2-4-interactive-contract.yaml",
+  "boppps_source": "course-content/authoring/lessons/2-4/design/2-4-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-4/sequence.json",
   "expected_code_media": [
     {

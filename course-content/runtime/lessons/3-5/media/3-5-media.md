@@ -23,6 +23,6 @@ https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=81efa788a2ca24
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=8073331733611aae5c34ee81a7c73268&v=1775535722839&puid=26652392&enc=824c0976a22062c744be4ea3975687bc&wps=2238ea555b52ebf6069d261c0dd0db9ed70d687fb84ea7b5
 
-# handout.md
+# 3-5-handout.md
 
 这份讲义深入比较了**PD控制**与**测速反馈**在自动化系统中的应用差异。虽然两者都能通过调节**等效阻尼**来优化系统性能，但其**根轨迹图谱**与**闭环频率特性**却显著不同。资料通过**阶跃响应对比**指出，即便阻尼系数相同，系统的**超调量**与**调节时间**仍会受零点引入的影响。此外，文中重点分析了**非最小相位系统**，探讨了**右半平面零点**如何导致时域信号出现**逆响应**现象。最后，作者归纳了动态改善的判断链条，提醒设计者在追求响应速度时需警惕**高频代价**与系统稳定性边界。

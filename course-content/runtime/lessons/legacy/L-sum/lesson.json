@@ -112,12 +112,12 @@
       "设计可行域_4_Lsum004"
     ]
   },
-  "handout_path": "/course-runtime/lessons/legacy/L-sum/handout.md",
-  "handout_source_path": "course-content/runtime/lessons/legacy/L-sum/handout.md",
+  "handout_path": "/course-runtime/lessons/legacy/L-sum/L-sum-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/legacy/L-sum/L-sum-handout.md",
   "graph_overlay_path": "/course-runtime/lessons/legacy/L-sum/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/legacy/L-sum/media",
   "review": {
     "status": "pending",
-    "boppps_path": "/course-runtime/lessons/legacy/L-sum/review/boppps.md"
+    "boppps_path": "/course-runtime/lessons/legacy/L-sum/review/L-sum-boppps.md"
   }
 }

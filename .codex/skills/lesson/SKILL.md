@@ -42,10 +42,10 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 ```
 
 **保存路径**
-- `course-content/authoring/lessons/[单元编号]/design/handout.md`
-- `course-content/authoring/lessons/[单元编号]/design/teacher-handout.md`
-- `course-content/authoring/lessons/[单元编号]/design/boppps.md`
-- `course-content/authoring/lessons/[单元编号]/design/multimedia.md`
+- `course-content/authoring/lessons/[单元编号]/design/[单元编号]-handout.md`
+- `course-content/authoring/lessons/[单元编号]/design/[单元编号]-teacher-handout.md`
+- `course-content/authoring/lessons/[单元编号]/design/[单元编号]-boppps.md`
+- `course-content/authoring/lessons/[单元编号]/design/[单元编号]-multimedia.md`
 - `course-content/authoring/lessons/[单元编号]/manifest.json`
 - `course-content/authoring/lessons/[单元编号]/graph/nodes.jsonl`
 - `course-content/authoring/lessons/[单元编号]/graph/relations.jsonl`
@@ -88,11 +88,11 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 
 2. **实践课必须显式给出 45 分钟以上训练**
    - 若 `manifest.json` 中课型为“实践”，课堂中学生亲自参与的训练累计必须不少于 45 分钟。
-   - 这 45 分钟以上的训练时间必须在 `design/boppps.md` 中可追踪。
+   - 这 45 分钟以上的训练时间必须在 `design/{unit}-boppps.md` 中可追踪。
    - 只计入学生实际操作、观察、判断、记录、对比、修正、提交等参与式活动。
 
 3. **范文只借文风，不借内容**
-   - 生成讲义前先读取 `course-content/authoring/lessons/legacy/L-2a/design/handout.md`。
+   - 生成讲义前先读取 `course-content/authoring/lessons/legacy/L-2a/design/L-2a-handout.md`。
    - 只提炼文风特征，不得照抄其结构、句子、例题或段落顺序。
 
 4. **公式统一规范**
@@ -284,7 +284,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 > - `references/step7-multimedia-ai.md`
 
 三阶段：
-1. 扫描 `design/handout.md`、`design/teacher-handout.md`、`design/boppps.md`
+1. 扫描 `design/{unit}-handout.md`、`design/{unit}-teacher-handout.md`、`design/{unit}-boppps.md`
 2. 输出资源总表与制作规格
 3. 回写媒体引用与 `[单元编号]-media.md`
 

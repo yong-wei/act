@@ -61,7 +61,7 @@ describe('unit 3-3 interactive course', () => {
 
   it('keeps the local page contracts aligned with the authoring interactive contract for all 15 steps', async () => {
     const contract = parse(
-      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-3/design/interactive-contract.yaml'), 'utf8'),
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-3/design/3-3-interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,
@@ -127,11 +127,11 @@ describe('unit 3-3 interactive course', () => {
       'utf8',
     );
     const bopppsSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-3/design/boppps.md'),
+      join(repoRoot, 'course-content/authoring/lessons/3-3/design/3-3-boppps.md'),
       'utf8',
     );
     const multimediaSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-3/design/multimedia.md'),
+      join(repoRoot, 'course-content/authoring/lessons/3-3/design/3-3-multimedia.md'),
       'utf8',
     );
     const manifestSource = readFileSync(

@@ -5,8 +5,8 @@
   "accepted_at": "2026-04-24T15:36:37+0800",
   "review_mode": "main_agent_revision",
   "source_files": {
-    "interactive_page": "course-content/authoring/lessons/4-6/design/interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/4-6/design/interactive-contract.yaml"
+    "interactive_page": "course-content/authoring/lessons/4-6/design/4-6-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/4-6/design/4-6-interactive-contract.yaml"
   },
   "checks": {
     "evidence_complete": true,

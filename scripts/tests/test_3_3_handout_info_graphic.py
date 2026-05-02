@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-HANDOUT_PATH = ROOT / 'course-content/authoring/lessons/3-3/design/handout.md'
+HANDOUT_PATH = ROOT / 'course-content/authoring/lessons/3-3/design/3-3-handout.md'
 
 
 def main() -> None:

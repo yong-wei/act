@@ -1,12 +1,12 @@
 {
   "acceptance_version": 1,
-  "lesson_id": "4-4",
+  "lesson_id": "3-4",
   "status": "accepted",
-  "accepted_at": "2026-04-22T10:58:49+0800",
+  "accepted_at": "2026-04-20T11:43:28+08:00",
   "review_mode": "subagent",
   "source_files": {
-    "interactive_page": "course-content/authoring/lessons/4-4/design/interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/4-4/design/interactive-contract.yaml"
+    "interactive_page": "course-content/authoring/lessons/3-4/design/3-4-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/3-4/design/3-4-interactive-contract.yaml"
   },
   "checks": {
     "evidence_complete": "pass",

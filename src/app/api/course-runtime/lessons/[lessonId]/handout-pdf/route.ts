@@ -16,7 +16,7 @@ export async function GET(
       lessonId: params.lessonId,
     });
     const asciiFilename = `${params.lessonId}-handout.pdf`;
-    const utf8Filename = encodeURIComponent(`${lessonTitle}-讲义.pdf`);
+    const utf8Filename = encodeURIComponent(`${params.lessonId}-${lessonTitle}-讲义.pdf`);
 
     return new NextResponse(pdf, {
       headers: {

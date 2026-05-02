@@ -13,7 +13,7 @@ tags:
   - 2-3
 card_version: 1
 source_docs:
-  - authoring/lessons/2-3/design/handout.md
+  - authoring/lessons/2-3/design/2-3-handout.md
 asset_refs:
   - 2-3-info.png
 ---

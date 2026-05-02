@@ -51,7 +51,7 @@ describe('unit 4-3 interactive course', () => {
 
   it('keeps the authoring media contract on the real runtime path instead of legacy paths', () => {
     const contractSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/4-3/design/interactive-contract.yaml'),
+      join(repoRoot, 'course-content/authoring/lessons/4-3/design/4-3-interactive-contract.yaml'),
       'utf8',
     );
 
@@ -63,7 +63,7 @@ describe('unit 4-3 interactive course', () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const contract = parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/4-3/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/4-3/design/4-3-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {

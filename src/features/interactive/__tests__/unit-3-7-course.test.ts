@@ -114,7 +114,7 @@ describe('unit 3-7 interactive course', () => {
 
   it('keeps the authoring contract on two-card pages and puts the post-assessment title card above the questions', () => {
     const contract = parse(
-      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/interactive-contract.yaml'), 'utf8'),
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/3-7-interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,
@@ -159,7 +159,7 @@ describe('unit 3-7 interactive course', () => {
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
     const contract = parse(
-      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/interactive-contract.yaml'), 'utf8'),
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/3-7-interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,

@@ -2,7 +2,7 @@
 
 ## 本轮目标
 
-- 以 `design/interactive-page.md` 与 `design/interactive-contract.yaml` 为真源，完成 `4-5` 的 13 步精品互动课本地实现。
+- 以 `design/4-5-interactive-page.md` 与 `design/4-5-interactive-contract.yaml` 为真源，完成 `4-5` 的 13 步精品互动课本地实现。
 - 严格按讲义顺序重排页面：`step-02` 为课程目标，`step-09/10/11` 分别对应讲义 `6.4/6.5/6.6-6.7`，`step-12` 为独立后测，`step-13` 为独立总结。
 - 正式页面只读取 `/course-runtime/lessons/4-5/media/...`，不回读 authoring 媒体，不引入曲线联动工作区和页内 AI 面板。
 
@@ -26,8 +26,8 @@
 
 ## 关键文件
 
-- 课程真源：`course-content/authoring/lessons/4-5/design/interactive-page.md`
-- 机读合同：`course-content/authoring/lessons/4-5/design/interactive-contract.yaml`
+- 课程真源：`course-content/authoring/lessons/4-5/design/4-5-interactive-page.md`
+- 机读合同：`course-content/authoring/lessons/4-5/design/4-5-interactive-contract.yaml`
 - runtime 课程定义：`src/lib/unit-4-5-course.ts`
 - 隐藏式页面 AI 上下文：`src/lib/unit-4-5-ai-contexts.ts`
 - 全局 AI 注册：`src/lib/course-ai-contexts.ts`

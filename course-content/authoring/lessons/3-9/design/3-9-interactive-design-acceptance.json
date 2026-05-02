@@ -5,8 +5,8 @@
   "accepted_at": "2026-04-29T15:30:00+08:00",
   "review_mode": "main_agent_componentized_runtime_alignment",
   "source_files": {
-    "interactive_page": "course-content/authoring/lessons/3-9/design/interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/3-9/design/interactive-contract.yaml"
+    "interactive_page": "course-content/authoring/lessons/3-9/design/3-9-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/3-9/design/3-9-interactive-contract.yaml"
   },
   "checks": {
     "evidence_complete": "pass",

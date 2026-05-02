@@ -158,7 +158,7 @@
     - 时域分析
   card_version: 1
   source_docs:
-    - notes/lessons/L-2a/handout.md
+    - authoring/lessons/legacy/L-2a/design/L-2a-handout.md
   asset_refs:
     - /course-media/L-2a/step-02-ship-response.png
   ---

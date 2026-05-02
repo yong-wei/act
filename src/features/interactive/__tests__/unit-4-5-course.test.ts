@@ -60,7 +60,7 @@ describe('unit 4-5 interactive course', () => {
   it('keeps the local page contracts aligned with the authoring interactive contract for all 13 steps', async () => {
     const contract = parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/4-5/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/4-5/design/4-5-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {

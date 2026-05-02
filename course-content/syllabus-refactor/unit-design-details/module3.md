@@ -512,7 +512,7 @@
 - 教案必须把教师介入点放在四处：学生是否会从主图读出窗口、是否会做增益换算、是否会把主导极点判断翻译成时域/频域后果、是否理解广义根轨迹与 `0°/180°` 根轨迹为何后移到本课。
 - 互动课程设计应优先做关键节点标注、窗口判断、原系统/近似系统对照和非增益参数预测-验证，不做无教学价值的滑块试玩。
 - 媒体清单应优先准备关键节点标注图、窗口判读图、对象对照图、船舶主图裁剪版和换算示意图。
-- 作者态起草前，必须先对齐 [authoring-brief.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/3-4/design/authoring-brief.md) 中的一句话主线、三项学生产出与资源采用级别，不再重复讨论单元属性。
+- 作者态起草前，必须先对齐 [authoring-brief.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/3-4/design/3-4-authoring-brief.md) 中的一句话主线、三项学生产出与资源采用级别，不再重复讨论单元属性。
 
 ### `3-5（理论） 零点引入与动态改善：PD、测速反馈、超前校正与非最小相的多视角审视`
 

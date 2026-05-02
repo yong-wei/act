@@ -123,17 +123,17 @@
       "模块4入口的首轮任务判断_3_39004"
     ]
   },
-  "handout_path": "/course-runtime/lessons/3-9/handout.md",
-  "handout_source_path": "course-content/runtime/lessons/3-9/handout.md",
-  "handout_pdf_path": "/course-runtime/lessons/3-9/handout.pdf",
-  "handout_pdf_source_path": "course-content/runtime/lessons/3-9/handout.pdf",
+  "handout_path": "/course-runtime/lessons/3-9/3-9-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/3-9/3-9-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/3-9/3-9-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/3-9/3-9-handout.pdf",
   "graph_overlay_path": "/course-runtime/lessons/3-9/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/3-9/media",
   "media_index_path": "/course-runtime/lessons/3-9/media/3-9-media.md",
   "media_index_source_path": "course-content/runtime/lessons/3-9/media/3-9-media.md",
   "review": {
     "status": "reviewed",
-    "boppps_path": "/course-runtime/lessons/3-9/review/boppps.md",
+    "boppps_path": "/course-runtime/lessons/3-9/review/3-9-boppps.md",
     "report_path": "/course-runtime/lessons/3-9/review/review-report.md",
     "knowledge_card_check_path": "/course-runtime/lessons/3-9/review/knowledge-card-check.json",
     "interactive_page_check_path": "/course-runtime/lessons/3-9/review/interactive-page-check.json",

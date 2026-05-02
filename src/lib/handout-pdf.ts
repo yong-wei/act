@@ -1,3 +1,5 @@
+import { buildLessonHandoutPdfFilename } from '@/lib/lesson-artifact-names';
+
 function trimTrailingSlash(value: string | undefined) {
   return (value ?? '').replace(/\/+$/, '');
 }
@@ -21,7 +23,7 @@ export function buildLessonHandoutPdfApiPath(lessonId: string) {
 }
 
 export function buildLessonHandoutPdfAssetPath(lessonId: string) {
-  return `/course-runtime/lessons/${lessonId}/handout.pdf`;
+  return `/course-runtime/lessons/${lessonId}/${buildLessonHandoutPdfFilename(lessonId)}`;
 }
 
 export function resolveHandoutAssetUrl(

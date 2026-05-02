@@ -3,13 +3,13 @@
   "unit_type": "理论",
   "generated_at": "2026-05-02T05:49:37.312850+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/5-2/design/handout.md",
-    "course-content/authoring/lessons/5-2/design/interactive-page.md"
+    "course-content/authoring/lessons/5-2/design/5-2-handout.md",
+    "course-content/authoring/lessons/5-2/design/5-2-interactive-page.md"
   ],
-  "interactive_page_source": "course-content/authoring/lessons/5-2/design/interactive-page.md",
-  "interactive_contract_source": "course-content/authoring/lessons/5-2/design/interactive-contract.yaml",
-  "handout_pdf_source": "course-content/authoring/lessons/5-2/design/handout.pdf",
-  "boppps_source": "course-content/authoring/lessons/5-2/design/boppps.md",
+  "interactive_page_source": "course-content/authoring/lessons/5-2/design/5-2-interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/5-2/design/5-2-interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/5-2/design/5-2-handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/5-2/design/5-2-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/5-2/sequence.json",
   "expected_code_media": [
     {

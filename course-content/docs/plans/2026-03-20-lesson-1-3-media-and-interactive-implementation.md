@@ -4,7 +4,7 @@
 
 **Goal:** 为 `1-3` 课次开始落地高优先级静态素材，并把互动课程设计细化到可实现粒度。
 
-**Architecture:** 以 `authoring/lessons/2-2/design/handout.md`、`interactive-page.md`、`multimedia.md` 为唯一需求源，先落地讲授主干所需的 `td-01`~`td-04` 静态 SVG，再补一份面向前端实现的互动设计说明，明确状态同步、AI 限制、组件职责与数据采集点。素材脚本统一放在 `authoring/lessons/2-2/media/raw/`，产出 SVG 放在 `authoring/lessons/2-2/media/processed/`。
+**Architecture:** 以 `authoring/lessons/2-2/design/2-2-handout.md`、`interactive-page.md`、`multimedia.md` 为唯一需求源，先落地讲授主干所需的 `td-01`~`td-04` 静态 SVG，再补一份面向前端实现的互动设计说明，明确状态同步、AI 限制、组件职责与数据采集点。素材脚本统一放在 `authoring/lessons/2-2/media/raw/`，产出 SVG 放在 `authoring/lessons/2-2/media/processed/`。
 
 **Tech Stack:** Python3, Matplotlib, Markdown, SVG.
 

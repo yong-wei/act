@@ -14,8 +14,8 @@ tags:
   - 2-1
 card_version: 1
 source_docs:
-  - authoring/lessons/2-1/design/handout.md
-  - authoring/lessons/2-3/design/handout.md
+  - authoring/lessons/2-1/design/2-1-handout.md
+  - authoring/lessons/2-3/design/2-3-handout.md
 asset_refs: []
 ---
 

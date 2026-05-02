@@ -27,9 +27,9 @@ def main() -> int:
 - 课次：{args.lesson}
 - 标题：{title}
 - 设计源：
-  - `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
+  - `course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-page.md`
   - `course-content/runtime/lessons/<lesson>/lesson.json`
-  - `course-content/runtime/lessons/<lesson>/handout.md`
+  - `course-content/runtime/lessons/<lesson>/<lesson>-handout.md`
   - `course-content/runtime/lessons/<lesson>/review/*`
 - 当前实现入口：
 - runtime：

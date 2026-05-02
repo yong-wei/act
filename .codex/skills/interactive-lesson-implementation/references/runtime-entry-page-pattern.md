@@ -88,8 +88,8 @@
 
 ## 讲义文案
 
-- 讲义卡片摘要优先读取 runtime 媒体文档中 `# handout.md` 后的说明块，并通过 `lessonRuntime.handoutSummary` 进入页面。
-- 若 runtime `media/<lesson>-media.md` 的 `# handout.md` 节为空，运行时 bundle 可回退到兜底摘要，但不要主动清空已有的人工摘要。
+- 讲义卡片摘要优先读取 runtime 媒体文档中 `# <lesson>-handout.md` 后的说明块，并通过 `lessonRuntime.handoutSummary` 进入页面。
+- 若 runtime `media/<lesson>-media.md` 的 `# <lesson>-handout.md` 节为空，运行时 bundle 可回退到兜底摘要，但不要主动清空已有的人工摘要。
 - 删除纯文本截断预览，不再把 `handoutPreview` 当作用户可见摘要区。
 
 ## 媒体容器规则
@@ -159,9 +159,9 @@
 入口页必须满足：
 
 - 媒体链接来自 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
-- 讲义摘要来自同一 runtime 媒体文档中的 `# handout.md`，并经 `lessonRuntime.handoutSummary` 提供给页面
+- 讲义摘要来自同一 runtime 媒体文档中的 `# <lesson>-handout.md`，并经 `lessonRuntime.handoutSummary` 提供给页面
 - 讲义下载来自 runtime `handout.pdf`
-- 在线讲义正文来自 runtime `handout.md`
+- 在线讲义正文来自 runtime `<lesson>-handout.md`
 
 不要：
 

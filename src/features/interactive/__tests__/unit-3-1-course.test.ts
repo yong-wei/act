@@ -55,7 +55,7 @@ describe('unit 3-1 interactive course', () => {
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
     const contract = parse(
       readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/3-1/design/interactive-contract.yaml'),
+        join(repoRoot, 'course-content/authoring/lessons/3-1/design/3-1-interactive-contract.yaml'),
         'utf8',
       ),
     ) as {
@@ -114,7 +114,7 @@ describe('unit 3-1 interactive course', () => {
 
   it('updates the authoring contract for the new interactive exploration layout and worked-example constraints', () => {
     const contractSource = readFileSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-1/design/interactive-contract.yaml'),
+      join(repoRoot, 'course-content/authoring/lessons/3-1/design/3-1-interactive-contract.yaml'),
       'utf8',
     );
     const contract = parse(
@@ -242,7 +242,7 @@ describe('unit 3-1 interactive course', () => {
       media_index_path?: string;
     };
 
-    expect(lessonJson.handout_pdf_path).toBe('/course-runtime/lessons/3-1/handout.pdf');
+    expect(lessonJson.handout_pdf_path).toBe('/course-runtime/lessons/3-1/3-1-handout.pdf');
     expect(lessonJson.media_index_path).toBe('/course-runtime/lessons/3-1/media/3-1-media.md');
   });
 

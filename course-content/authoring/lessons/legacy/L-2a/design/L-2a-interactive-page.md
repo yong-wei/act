@@ -1,7 +1,7 @@
 # L-2a 互动页面设计
 
 **单元**：L-2a 三张面孔，同一系统——时域直觉速通
-**基于讲义**：`notes/lessons/L-2a/handout.md`
+**基于讲义**：`authoring/lessons/legacy/L-2a/design/L-2a-handout.md`
 **基于教案**：`notes/lessons/L-2a/boppps.md`
 **技术栈**：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
 **编制日期**：2026-03-10
@@ -1035,5 +1035,5 @@ tₛ 随 ζ 增大并不是一直减小，而是先减后增。
 ---
 
 *版本：v1.0 | 编制日期：2026-03-10*
-*基于讲义：`notes/lessons/L-2a/handout.md` v1.0*
+*基于讲义：`authoring/lessons/legacy/L-2a/design/L-2a-handout.md` v1.0*
 *基于教案：`notes/lessons/L-2a/boppps.md` v1.0*

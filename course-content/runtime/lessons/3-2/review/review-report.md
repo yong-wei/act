@@ -2,15 +2,15 @@
 
 ## 审查范围
 - 课型：实践
-- `course-content/authoring/lessons/3-2/design/handout.md`
-- `course-content/authoring/lessons/3-2/design/interactive-page.md`
-- `course-content/authoring/lessons/3-2/design/boppps.md`
+- `course-content/authoring/lessons/3-2/design/3-2-handout.md`
+- `course-content/authoring/lessons/3-2/design/3-2-interactive-page.md`
+- `course-content/authoring/lessons/3-2/design/3-2-boppps.md`
 
 ## 文本技术审查
 - 未发现阻塞导出的公式配对问题。
 
 ## BOPPPS 对照
-- 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
+- 已将 `design/3-2-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
 - 已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。

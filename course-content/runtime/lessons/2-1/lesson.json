@@ -8,6 +8,7 @@
   "graph_version": "639+3",
   "focus_node_ids": [
     "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
     "零初值传递函数_2_21001",
     "传递函数_1_5b0faf8b",
     "典型环节对象库_2_21002",
@@ -38,6 +39,7 @@
   "card_order": [
     "微分方程_2_775c96a3",
     "拉氏变换工程动机_2_11001",
+    "船舶航向控制对象_2_21004",
     "零初值传递函数_2_21001",
     "传递函数_1_5b0faf8b",
     "典型环节对象库_2_21002",
@@ -73,7 +75,8 @@
         ],
         "node_ids": [
           "微分方程_2_775c96a3",
-          "拉氏变换工程动机_2_11001"
+          "拉氏变换工程动机_2_11001",
+          "船舶航向控制对象_2_21004"
         ]
       },
       {
@@ -134,6 +137,7 @@
     "card_order": [
       "微分方程_2_775c96a3",
       "拉氏变换工程动机_2_11001",
+      "船舶航向控制对象_2_21004",
       "零初值传递函数_2_21001",
       "传递函数_1_5b0faf8b",
       "典型环节对象库_2_21002",
@@ -152,17 +156,23 @@
       "余子式接触判定_2_21003"
     ]
   },
-  "handout_path": "/course-runtime/lessons/2-1/handout.md",
-  "handout_source_path": "course-content/runtime/lessons/2-1/handout.md",
+  "handout_path": "/course-runtime/lessons/2-1/2-1-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/2-1/2-1-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/2-1/2-1-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/2-1/2-1-handout.pdf",
   "graph_overlay_path": "/course-runtime/lessons/2-1/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/2-1/media",
+  "media_index_path": "/course-runtime/lessons/2-1/media/2-1-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/2-1/media/2-1-media.md",
   "review": {
     "status": "reviewed",
-    "boppps_path": "/course-runtime/lessons/2-1/review/boppps.md",
+    "boppps_path": "/course-runtime/lessons/2-1/review/2-1-boppps.md",
     "report_path": "/course-runtime/lessons/2-1/review/review-report.md",
     "knowledge_card_check_path": "/course-runtime/lessons/2-1/review/knowledge-card-check.json",
     "interactive_page_check_path": "/course-runtime/lessons/2-1/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/2-1/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/2-1/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/2-1/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/2-1/interactive-manifest.json"
 }

@@ -2,14 +2,14 @@
 
 ## 审查范围
 - 课型：理论
-- `course-content/authoring/lessons/legacy/1-2/design/handout.md`
-- `course-content/authoring/lessons/legacy/1-2/design/boppps.md`
+- `course-content/authoring/lessons/legacy/1-2/design/1-2-handout.md`
+- `course-content/authoring/lessons/legacy/1-2/design/1-2-boppps.md`
 
 ## 文本技术审查
 - 未发现阻塞导出的公式配对问题。
 
 ## BOPPPS 对照
-- 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
+- 已将 `design/1-2-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

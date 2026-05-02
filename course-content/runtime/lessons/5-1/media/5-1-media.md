@@ -8,7 +8,7 @@
 ## 5-1-slides.pdf
 
 状态：待外部制作回写。
-建议依据：`design/handout.md`、`design/teacher-handout.md` 与 `design/multimedia.md`。
+建议依据：`design/5-1-handout.md`、`design/5-1-teacher-handout.md` 与 `design/5-1-multimedia.md`。
 
 ## 5-1-course.mp4
 
@@ -20,10 +20,10 @@
 状态：待外部制作回写。
 建议依据：教师版讲义的课堂主线和 BOPPPS 收束语。
 
-## handout.md
+## 5-1-handout.md
 
-学生讲义源文件：`../../design/handout.md`。
-正式 PDF：`../../design/handout.pdf`。
+学生讲义源文件：`../../design/5-1-handout.md`。
+正式 PDF：`../../design/5-1-handout.pdf`。
 
 - 非线性控制系统：生存指南
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=435a8a5d3aec7b399cee0635cec79ee3&v=1777514689910&puid=26652392&enc=578f6fbddf37666ff98d3be0b0bb656f&wps=8bdd27b39df4cde58a8d5cb6ac0fd6a4d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1784534822&timestamp=1777514689910&signature=c57f5538b97e1c3e61b172aa392a52ae
@@ -41,4 +41,4 @@ https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=2d48f437cfa
 
 # 5-1-audio.m4a
 
-# handout.md
+# 5-1-handout.md

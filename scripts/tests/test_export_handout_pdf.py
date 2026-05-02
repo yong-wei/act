@@ -40,9 +40,17 @@ def test_cover_images_stay_full_width() -> None:
     )
 
 
+def test_prefixed_handout_keeps_clean_header() -> None:
+    exporter = load_exporter_module()
+
+    assert exporter.derive_right_header("4-7-handout", "4-7") == "单元 4-7 讲义"
+    assert exporter.derive_right_header("4-7-teacher-handout", "4-7") == "单元 4-7 教师课堂讲义"
+
+
 def main() -> None:
     test_regular_images_default_to_text_width()
     test_cover_images_stay_full_width()
+    test_prefixed_handout_keeps_clean_header()
     print("test_export_handout_pdf passed")
 
 

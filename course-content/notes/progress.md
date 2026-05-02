@@ -20,10 +20,10 @@
 | L-2d | 实践 | ✅（practice-guide.md + assessment-spec.md） | ✅ | ✅（14步骤，全前端绘制） | ✅（全前端绘制，无静态文件） | ✅ |
 
 **L-2c 文件路径（全套）**：
-- 讲义：`authoring/lessons/legacy/L-2c/design/handout.md`
-- 教案：`authoring/lessons/legacy/L-2c/design/boppps.md`
-- 互动页面：`authoring/lessons/legacy/L-2c/design/interactive-page.md`
-- 多模态资源文档：`authoring/lessons/legacy/L-2c/design/multimedia.md`
+- 讲义：`authoring/lessons/legacy/L-2c/design/L-2c-handout.md`
+- 教案：`authoring/lessons/legacy/L-2c/design/L-2c-boppps.md`
+- 互动页面：`authoring/lessons/legacy/L-2c/design/L-2c-interactive-page.md`
+- 多模态资源文档：`authoring/lessons/legacy/L-2c/design/L-2c-multimedia.md`
 - Python 脚本：`authoring/lessons/legacy/L-2c/media/raw/`（5个 .py + matplotlib_font.py）
 - 知识图谱节点：`authoring/lessons/legacy/L-2c/graph/nodes.jsonl`（5个新节点）
 - 知识图谱关系：`authoring/lessons/legacy/L-2c/graph/relations.jsonl`（12条关系）
@@ -31,10 +31,10 @@
 - 设计决策备忘：`authoring/lessons/legacy/L-2c/notes/design-decisions.md`
 
 **L-2d 文件路径（全套）**：
-- 实践任务书：`authoring/lessons/legacy/L-2d/design/practice-guide.md`
-- 评价量规：`authoring/lessons/legacy/L-2d/design/assessment-spec.md`
-- 教案：`authoring/lessons/legacy/L-2d/design/boppps.md`
-- 互动页面：`authoring/lessons/legacy/L-2d/design/interactive-page.md`
+- 实践任务书：`authoring/lessons/legacy/L-2d/design/L-2d-practice-guide.md`
+- 评价量规：`authoring/lessons/legacy/L-2d/design/L-2d-assessment-spec.md`
+- 教案：`authoring/lessons/legacy/L-2d/design/L-2d-boppps.md`
+- 互动页面：`authoring/lessons/legacy/L-2d/design/L-2d-interactive-page.md`
 - 课次元数据：`authoring/lessons/legacy/L-2d/manifest.json`（含 practice_config，K_cr=42）
 - 知识图谱节点：`authoring/lessons/legacy/L-2d/graph/nodes.jsonl`（2个新节点）
 - 知识图谱关系：`authoring/lessons/legacy/L-2d/graph/relations.jsonl`（7条关系）
@@ -78,7 +78,7 @@ L-2d 已完整完成（收尾验证全部通过）。层0单元 L-2a/L-2b/L-2c/L
 
 
 **文件路径（L-2a 全套）**：
-- 讲义：`notes/lessons/L-2a/handout.md`
+- 讲义：`authoring/lessons/legacy/L-2a/design/L-2a-handout.md`
 - 教案：`notes/lessons/L-2a/boppps.md`
 - 互动页面：`notes/lessons/L-2a/interactive-page.md`
 - 多模态资源：`notes/lessons/L-2a/multimedia.md`（5项资源 + Python代码 + Midjourney提示词）
@@ -136,7 +136,7 @@ L-2d 已完整完成（收尾验证全部通过）。层0单元 L-2a/L-2b/L-2c/L
 
 **阅读清单（续接时）**：
 1. 本文件（progress.md）
-2. `notes/lessons/L-2a/handout.md`（参考L-2a深度）
+2. `authoring/lessons/legacy/L-2a/design/L-2a-handout.md`（参考L-2a深度）
 3. `docs/SyllabusRefactor.md`（查看 L-2b 单元设计）
 
 ---
@@ -268,7 +268,7 @@ scripts/
 **选项 B——L-2c（频域直觉速通）**
 
 **选项 C——运行多模态资源脚本**：
-- 运行 `authoring/lessons/legacy/L-2a/design/multimedia.md` 中的 Python 代码，生成实际图片文件
+- 运行 `authoring/lessons/legacy/L-2a/design/L-2a-multimedia.md` 中的 Python 代码，生成实际图片文件
 
 ---
 
@@ -282,7 +282,7 @@ scripts/
 ### 2026-03-10 会话（上午）
 - 更新技能文件至 v1.3
 - 大纲重构至 v3.0
-- 完成 L-2a 讲义（notes/lessons/L-2a/handout.md）
+- 完成 L-2a 讲义（authoring/lessons/legacy/L-2a/design/L-2a-handout.md）
 - 完成 L-2a 教案（notes/lessons/L-2a/boppps.md）
 
 ### 2026-03-10 会话（下午）

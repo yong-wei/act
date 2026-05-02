@@ -5,9 +5,9 @@
   "accepted_at": "2026-04-30T15:29:16+08:00",
   "review_mode": "subagent",
   "source_files": {
-    "interactive_page": "course-content/authoring/lessons/5-2/design/interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/5-2/design/interactive-contract.yaml",
-    "boppps": "course-content/authoring/lessons/5-2/design/boppps.md",
+    "interactive_page": "course-content/authoring/lessons/5-2/design/5-2-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-2/design/5-2-interactive-contract.yaml",
+    "boppps": "course-content/authoring/lessons/5-2/design/5-2-boppps.md",
     "sequence": "course-content/authoring/knowledge/cards/lessons/5-2/sequence.json"
   },
   "checks": {

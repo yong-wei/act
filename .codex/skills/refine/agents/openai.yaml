@@ -1,4 +1,4 @@
 interface:
   display_name: "讲义润色"
   short_description: "把作者态 handout 润色成学生可直接阅读的讲义文本"
-  default_prompt: "Use $refine to polish a lesson handout into student-facing prose and write the result back to design/handout.md."
+  default_prompt: "Use $refine to polish a lesson handout into student-facing prose and write the result back to design/{unit}-handout.md."

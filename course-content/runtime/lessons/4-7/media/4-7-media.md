@@ -20,7 +20,7 @@ https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=cc1d09a4fe6
 
 https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=645d0888df9a09aa9f355e3fb3fb7e6a&v=1777250237612&puid=26652392&enc=9b7cbc0e2f34f09ac2e0aa85d11b2d61&wps=8b9146e5e97b78561d24cb9ecff68697d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1006394203&timestamp=1777250237612&signature=40075bb072483bcfd3ed584cd44366be
 
-# handout.md
+# 4-7-handout.md
 
 这份讲义围绕驱逐舰航向控制的高保真设计闭环展开：先用分段辨识把舵机、船体艏摇与扰动通道写成可解释的低阶模型，再用传统控制四联图和优化搜索分别确定控制器。讲义进一步把无扰动、扰动和航向传感器噪声三类边界放到同一高保真任务中比较，帮助学生判断经典控制结构在工程任务中的可用范围。
 

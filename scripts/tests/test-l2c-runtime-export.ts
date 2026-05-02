@@ -7,7 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 
 const lessonJsonPath = 'course-content/runtime/lessons/legacy/L-2c/lesson.json';
 const graphOverlayPath = 'course-content/runtime/lessons/legacy/L-2c/graph-overlay.json';
-const handoutPath = 'course-content/runtime/lessons/legacy/L-2c/handout.md';
+const handoutPath = 'course-content/runtime/lessons/legacy/L-2c/L-2c-handout.md';
 const mediaPaths = [
   'course-content/runtime/lessons/legacy/L-2c/media/h-01-bode-magnitude-regions.svg',
   'course-content/runtime/lessons/legacy/L-2c/media/h-02-phase-margin-diagram.svg',
@@ -27,7 +27,7 @@ for (const mediaPath of mediaPaths) {
 
 const lessonJson = JSON.parse(fs.readFileSync(path.join(root, lessonJsonPath), 'utf8'));
 assert.equal(lessonJson.lesson_id, 'L-2c', 'lesson.json 应标记当前课次');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-2c/handout.md', 'handout_path 应走 course-runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-2c/L-2c-handout.md', 'handout_path 应走 course-runtime');
 assert.equal(lessonJson.media_base_path, '/course-runtime/lessons/legacy/L-2c/media', 'media_base_path 应走 course-runtime');
 
 const graphOverlay = JSON.parse(fs.readFileSync(path.join(root, graphOverlayPath), 'utf8'));

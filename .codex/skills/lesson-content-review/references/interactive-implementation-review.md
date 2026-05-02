@@ -3,8 +3,8 @@
 ## 审查目标
 
 互动页专项审查不是只看 `interactive-page.md` 是否“写得完整”，而是检查三层合同是否一致：
-- 第一层：`design/interactive-page.md` 的页面蓝图与讲义映射
-- 第二层：`design/interactive-contract.yaml` 的结构化契约
+- 第一层：`design/{unit}-interactive-page.md` 的页面蓝图与讲义映射
+- 第二层：`design/{unit}-interactive-contract.yaml` 的结构化契约
 - 第三层：本地实现导出的步骤定义与页面契约
 
 只要三层中有一层漂移，就不能判定互动页审查通过。

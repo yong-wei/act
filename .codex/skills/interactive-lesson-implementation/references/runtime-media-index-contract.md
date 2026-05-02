@@ -43,7 +43,7 @@ https://example.com/slides-preview
 
 https://example.com/course-preview
 
-# handout.md
+# <lesson>-handout.md
 
 这里写讲义摘要，可为多行 Markdown。
 ```
@@ -68,7 +68,7 @@ https://example.com/course-preview
 
 ### 讲义节
 
-`# handout.md` 当前主要作为固定预留节：
+`# <lesson>-handout.md` 当前主要作为固定预留节：
 
 - 审查导出必须保留已有讲义摘要
 - 若后续人工补写摘要，解析层仍可把非空行合并为 `handoutSummary`
@@ -102,7 +102,7 @@ https://example.com/course-preview
 当新增或修改课程入口媒体时，维护顺序应是：
 
 1. 在作者态准备或确认媒体
-2. 保留 runtime 中已有标题、摘要与链接；仅对导入视频追加主题句，必要时补齐缺失的 `# handout.md`
+2. 保留 runtime 中已有标题、摘要与链接；仅对导入视频追加主题句，必要时补齐缺失的 `# <lesson>-handout.md`
 3. 前端只读取 runtime 媒体文档
 
 如果页面需要新文案，不要先改页面常量，先改 runtime 媒体文档。

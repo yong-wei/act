@@ -18,9 +18,9 @@
 - Read: `authoring/lessons/legacy/1-2/manifest.json`
 - Read: `authoring/lessons/legacy/1-2/graph/nodes.jsonl`
 - Read: `authoring/lessons/legacy/1-2/graph/relations.jsonl`
-- Read: `authoring/lessons/legacy/1-2/design/boppps.md`
-- Read: `authoring/lessons/legacy/1-2/design/interactive-page.md`
-- Read: `authoring/lessons/legacy/1-2/design/multimedia.md`
+- Read: `authoring/lessons/legacy/1-2/design/1-2-boppps.md`
+- Read: `authoring/lessons/legacy/1-2/design/1-2-interactive-page.md`
+- Read: `authoring/lessons/legacy/1-2/design/1-2-multimedia.md`
 
 **Step 1:** 提取必需字段、命名风格与文档栏目。
 **Step 2:** 记录 `1-3` 需要新增的文件清单与约束。
@@ -40,7 +40,7 @@
 ### Task 3: 产出 BOPPPS 教案
 
 **Files:**
-- Create: `authoring/lessons/2-2/design/boppps.md`
+- Create: `authoring/lessons/2-2/design/2-2-boppps.md`
 
 **Step 1:** 以讲义为母本设计 BOPPPS 七段。
 **Step 2:** 明确各阶段教师动作、学生动作、AI 融入点、板书/媒体调用。
@@ -49,7 +49,7 @@
 ### Task 4: 产出互动页面蓝图
 
 **Files:**
-- Create: `authoring/lessons/2-2/design/interactive-page.md`
+- Create: `authoring/lessons/2-2/design/2-2-interactive-page.md`
 
 **Step 1:** 先定义页面步骤框架与学习流。
 **Step 2:** 为每一步补全目标、交互、数据、AI 提示、媒体占位。
@@ -58,7 +58,7 @@
 ### Task 5: 产出多模态资源设计
 
 **Files:**
-- Create: `authoring/lessons/2-2/design/multimedia.md`
+- Create: `authoring/lessons/2-2/design/2-2-multimedia.md`
 
 **Step 1:** 扫描讲义与互动页引用，形成资源总表。
 **Step 2:** 为每个资源写清用途、规格、文件名、制作方式和插入位置。

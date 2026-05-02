@@ -21,7 +21,7 @@
 
 说明：
 
-- 本轮以 `course-content/authoring/lessons/4-1/design/interactive-page.md` 与 `interactive-contract.yaml` 为双轨真源，不接受降级实现。
+- 本轮以 `course-content/authoring/lessons/4-1/design/4-1-interactive-page.md` 与 `interactive-contract.yaml` 为双轨真源，不接受降级实现。
 - AI 继续通过 `useGlobalAI().updatePageContext(...)` 提供隐藏式页面上下文，不在页内暴露显式 AI 助手面板。
 - 曲线图步骤优先保证：页面顺序、曲线镜像排布、控件位置和默认基线状态与讲义一致；本轮实现不允许把参数联动页退回成选择题、排序题或纯说明卡。
 - `step-06`、`step-07`、`step-09`、`step-10` 已移除静态主图映射，统一改为原生矩阵 / 原生模板卡 / 原生分层图，并按契约补齐逐步揭示。

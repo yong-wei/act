@@ -55,8 +55,8 @@
 
 | 前缀 | 用途 | 引用目标文档 |
 |------|------|-------------|
-| `h`  | 讲义专用 | `design/handout.md` |
-| `ic` | 互动课专用 | `design/interactive-page.md` |
+| `h`  | 讲义专用 | `design/{unit}-handout.md` |
+| `ic` | 互动课专用 | `design/{unit}-interactive-page.md` |
 | `sh` | 讲义与互动课共用 | 两处均引用 |
 | `cd` | 卡片专用 | `authoring/knowledge/cards/nodes/<node_id>.md` |
 
@@ -104,7 +104,7 @@
   - `<unit>-course.mp4`
   - `<unit>-audio.m4a`
 
-互动前端绘制需求**不产生媒体文件**，只在 `design/interactive-page.md` 对应步骤中描述。
+互动前端绘制需求**不产生媒体文件**，只在 `design/{unit}-interactive-page.md` 对应步骤中描述。
 
 若讲义中的证据单元属于可调参数曲线图，则默认视为“互动前端绘制需求”，并额外满足以下镜像约束：
 - 互动图必须是讲义静态图的“可调镜像”，而不是另起一张新图。
@@ -119,8 +119,8 @@
 ### 1. 扫描阶段
 
 **同时**读取以下三类内容，识别所有媒体插入点：
-- `design/handout.md`（讲义）
-- `design/interactive-page.md`（互动课设计）
+- `design/{unit}-handout.md`（讲义）
+- `design/{unit}-interactive-page.md`（互动课设计）
 - `course-content/authoring/knowledge/cards/lessons/<unit>/sequence.json` 与其引用的 `course-content/authoring/knowledge/cards/nodes/<node_id>.md`（若已进入互动设计或 Step 4 已登记 `card-media-plan.md`，直接读取；若 sequence 尚未定稿，只扫描已存在的卡片草案，不把卡片顺序当作媒体引用真源）
 
 扫描结果输出为统一资源总表，与用户确认优先级。**同一图像在多处引用时只列一行，"引用于"列注明所有引用位置**：

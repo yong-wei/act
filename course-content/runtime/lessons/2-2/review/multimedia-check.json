@@ -38,8 +38,8 @@
       "output": "2-2-td-05-example-response-with-indices.svg",
       "formula_mode": "svg-mathtext",
       "page_formula_sources": [
-        "design/handout.md",
-        "design/interactive-page.md"
+        "design/2-2-handout.md",
+        "design/2-2-interactive-page.md"
       ]
     }
   ]

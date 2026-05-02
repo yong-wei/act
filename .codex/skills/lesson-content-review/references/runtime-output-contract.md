@@ -1,8 +1,8 @@
 # Runtime 输出契约
 
 lesson 级运行时产物：
-- `course-content/runtime/lessons/<lesson>/handout.md`
-- `course-content/runtime/lessons/<lesson>/handout.pdf`
+- `course-content/runtime/lessons/<lesson>/<lesson>-handout.md`
+- `course-content/runtime/lessons/<lesson>/<lesson>-handout.pdf`
 - `course-content/runtime/lessons/<lesson>/graph-overlay.json`
 - `course-content/runtime/lessons/<lesson>/lesson.json`
 - `course-content/runtime/lessons/<lesson>/media/*`

@@ -2,7 +2,7 @@
 
 ## 目标与范围
 
-本说明服务于 `authoring/lessons/2-2/design/interactive-page.md` 的前端实现准备，优先覆盖 P0 互动项：
+本说明服务于 `authoring/lessons/2-2/design/2-2-interactive-page.md` 的前端实现准备，优先覆盖 P0 互动项：
 
 - `ic-02` 一阶时间常数滑块联动
 - `ic-03` 二阶响应家族切换器

@@ -31,8 +31,8 @@
 - `course-content/syllabus-refactor/decisions.md`
 - `course-content/syllabus-refactor/module-skeletons.md`
 - `course-content/syllabus-refactor/unit-design-details/module4.md`
-- `course-content/authoring/lessons/4-4/design/handout.md`
-- `course-content/authoring/lessons/4-5/design/handout.md`
+- `course-content/authoring/lessons/4-4/design/4-4-handout.md`
+- `course-content/authoring/lessons/4-5/design/4-5-handout.md`
 - `4-4` 已存在的 `boppps / interactive-page / interactive-contract / manifest / graph` 后续需按该分工再同步
 
 ## 2026-04-20 | 模块 `4` 后半链重构为“显式带优化思想的控制器设计链”，并轻量回修 `4-1 / 4-3` 接口
@@ -140,7 +140,7 @@
 
 ### 影响范围
 
-- `course-content/authoring/lessons/4-2/design/handout.md`
+- `course-content/authoring/lessons/4-2/design/4-2-handout.md`
 - `course-content/syllabus-refactor/unit-design-details/module4.md`
 - `course-content/syllabus-refactor/main.md`
 - `course-content/syllabus-refactor/blueprint.md`
@@ -285,7 +285,7 @@
 
 ### 影响范围
 
-- `course-content/authoring/lessons/4-3/design/handout-refine.md`
+- `course-content/authoring/lessons/4-3/design/4-3-handout-refine.md`
 - `course-content/syllabus-refactor/unit-design-details/module4.md`
 - `course-content/syllabus-refactor/main.md`
 - `course-content/syllabus-refactor/blueprint.md`
@@ -590,7 +590,7 @@
 - `course-content/syllabus-refactor/decisions.md`
 - `course-content/syllabus-refactor/homework-framework.md`
 - `course-content/resource-library/indexes/syllabus-fusion-map.md`
-- `course-content/authoring/lessons/3-4/design/authoring-brief.md`
+- `course-content/authoring/lessons/3-4/design/3-4-authoring-brief.md`
 
 ### 主要理由
 
@@ -834,11 +834,11 @@
 
 - `course-content/syllabus-refactor/decisions.md`
 - `course-content/syllabus-refactor/main.md`
-- `course-content/authoring/lessons/2-4/design/handout.md`
-- `course-content/authoring/lessons/2-4/design/teacher-handout.md`
-- `course-content/authoring/lessons/2-4/design/boppps.md`
-- `course-content/authoring/lessons/2-4/design/interactive-page.md`
-- `course-content/authoring/lessons/2-4/design/multimedia.md`
+- `course-content/authoring/lessons/2-4/design/2-4-handout.md`
+- `course-content/authoring/lessons/2-4/design/2-4-teacher-handout.md`
+- `course-content/authoring/lessons/2-4/design/2-4-boppps.md`
+- `course-content/authoring/lessons/2-4/design/2-4-interactive-page.md`
+- `course-content/authoring/lessons/2-4/design/2-4-multimedia.md`
 
 ### 主要理由
 
@@ -869,11 +869,11 @@
 
 - `course-content/syllabus-refactor/main.md`
 - `course-content/syllabus-refactor/unit-design-details/module2.md`
-- `course-content/authoring/lessons/2-3/design/handout.md`
-- `course-content/authoring/lessons/2-3/design/teacher-handout.md`
-- `course-content/authoring/lessons/2-3/design/boppps.md`
-- `course-content/authoring/lessons/2-3/design/interactive-page.md`
-- `course-content/authoring/lessons/2-3/design/multimedia.md`
+- `course-content/authoring/lessons/2-3/design/2-3-handout.md`
+- `course-content/authoring/lessons/2-3/design/2-3-teacher-handout.md`
+- `course-content/authoring/lessons/2-3/design/2-3-boppps.md`
+- `course-content/authoring/lessons/2-3/design/2-3-interactive-page.md`
+- `course-content/authoring/lessons/2-3/design/2-3-multimedia.md`
 
 ### 主要理由
 
@@ -910,9 +910,9 @@
 - `course-content/syllabus-refactor/main.md`
 - `course-content/syllabus-refactor/unit-design-details/module2.md`
 - `course-content/authoring/lessons/2-2/notes/handout-framework.md`
-- `course-content/authoring/lessons/2-2/design/boppps.md`
-- `course-content/authoring/lessons/2-2/design/interactive-page.md`
-- `course-content/authoring/lessons/2-2/design/multimedia.md`
+- `course-content/authoring/lessons/2-2/design/2-2-boppps.md`
+- `course-content/authoring/lessons/2-2/design/2-2-interactive-page.md`
+- `course-content/authoring/lessons/2-2/design/2-2-multimedia.md`
 
 ### 主要理由
 

@@ -29,7 +29,7 @@
 
 ## 当前实现结论
 
-- 双轨真源以 `design/interactive-page.md` 与 `design/interactive-contract.yaml` 为准，代码已切换到 20 步新版页面流。
+- 双轨真源以 `design/3-8-interactive-page.md` 与 `design/3-8-interactive-contract.yaml` 为准，代码已切换到 20 步新版页面流。
 - 学生端与教师端已接入新版同步状态：`revealedAnswers`、`releasedActivities`、`browseEnabled`、`teacherRevealProgress`。
 - `step-14` 是唯一页内可见 AI 页面，其他步骤只保留隐藏式全局 AI 上下文。
 - 展示页不再渲染“无需提交”或空教师汇总壳层；学生总结面板改到 `step-20`。
@@ -48,7 +48,7 @@
 
 - `course-content/runtime/lessons/3-8/lesson.json`
 - `course-content/runtime/lessons/3-8/graph-overlay.json`
-- `course-content/runtime/lessons/3-8/handout.md`
-- `course-content/runtime/lessons/3-8/handout.pdf`
+- `course-content/runtime/lessons/3-8/3-8-handout.md`
+- `course-content/runtime/lessons/3-8/3-8-handout.pdf`
 - `course-content/runtime/lessons/3-8/media/3-8-media.md`
 - `course-content/runtime/lessons/3-8/review/*`

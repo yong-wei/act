@@ -4,7 +4,7 @@
 
 ## 生成前必做
 
-1. 先读取范文：`course-content/authoring/lessons/legacy/L-2a/design/handout.md`
+1. 先读取范文：`course-content/authoring/lessons/legacy/L-2a/design/L-2a-handout.md`
 2. 只提炼文风感受，不继承具体内容：
    - 叙述节奏是否平稳
    - 工程引入是否自然
@@ -175,7 +175,7 @@ Step 3 不是“读取约束后直接写讲义”。默认必须按以下三阶�
 ```bash
 python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
   --draft-mode \
-  course-content/authoring/lessons/[单元编号]/design/handout.md
+  course-content/authoring/lessons/[单元编号]/design/[单元编号]-handout.md
 ```
 
 该命令只会在临时目录生成导出占位图，并输出 `handout-draft.pdf`；不得为了让第一次导出跑通而在 `media/processed/` 下手工生成或脚本渲染假的 `cover-comic.png`。
@@ -473,7 +473,7 @@ M_p=e^{-\frac{\pi\zeta}{\sqrt{1-\zeta^2}}}\times 100\%
 
 ```bash
 python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
-  course-content/authoring/lessons/[单元编号]/design/handout.md \
+  course-content/authoring/lessons/[单元编号]/design/[单元编号]-handout.md \
   --refresh-style
 ```
 
@@ -481,7 +481,7 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 
 ```bash
 python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
-  course-content/authoring/lessons/[单元编号]/design/teacher-handout.md \
+  course-content/authoring/lessons/[单元编号]/design/[单元编号]-teacher-handout.md \
   --refresh-style
 ```
 
@@ -505,7 +505,7 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 
 ```bash
 python3 .codex/skills/lesson/scripts/render_pdf_review_pages.py \
-  course-content/authoring/lessons/[单元编号]/design/handout.pdf \
+  course-content/authoring/lessons/[单元编号]/design/[单元编号]-handout.pdf \
   --pages 1 2 5 10 \
   --format jpeg
 ```
