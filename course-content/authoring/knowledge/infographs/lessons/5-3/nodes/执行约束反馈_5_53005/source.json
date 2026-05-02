@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T14:12:27.324860Z",
+  "lesson": {
+    "lesson_id": "5-3",
+    "title": "从单回路控制到复杂自主系统链路：MASS 的感知—估计—规划—控制协同",
+    "groups": [
+      "信息、规划与执行边界"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "执行约束反馈_5_53005",
+    "name": "执行约束反馈",
+    "name_en": "Feedback of Actuation Constraints",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "执行约束反馈把执行器幅值、速率、带宽、能耗和健康状态回传给控制与规划，使参考和控制指令保持物理可实现。",
+    "examples": [
+      "舵角上限和舵速上限会改变实际航迹，因此需要反馈给规划层修正路径半径。"
+    ],
+    "formulas": [
+      "|u(t)|\\le u_{\\max},\\qquad |\\dot u(t)|\\le \\dot u_{\\max}"
+    ],
+    "keywords": [
+      "执行器",
+      "饱和",
+      "速率限制",
+      "可实现性",
+      "执行约束"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/执行约束反馈_5_53005.md",
+  "card_frontmatter": {
+    "node_id": "执行约束反馈_5_53005",
+    "name": "执行约束反馈",
+    "name_en": "Feedback of Actuation Constraints",
+    "lesson_units": [
+      "5-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-3",
+      "执行约束"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-3/design/5-3-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-3/media/processed/5-3-actuator-limits-response-track.png"
+    ]
+  },
+  "card_overview": "# 执行约束反馈\n\n核心定义：执行器幅值、速率和健康边界需要回传给控制与规划。\n\n关键公式：\n$$\n|u(t)|\\le u_{\\max},\\qquad |\\dot u(t)|\\le \\dot u_{\\max}\n$$\n\n关联节点：规划参考可实现性、链路责任诊断\n\n---",
+  "card_detail": "执行器不是理想放大器。舵角限幅会截断控制量，舵速限制会拖慢动作，能耗和热负荷也会改变持续控制能力。这些约束若不反馈给规划层，参考就可能从源头上不可执行。\n\n常见误区：把限幅看成末端保护。纠正：限幅会改变闭环响应和真实航迹。",
+  "card_plain_excerpt": "## 首页\n\n# 执行约束反馈\n\n核心定义：执行器幅值、速率和健康边界需要回传给控制与规划。\n\n关键公式：\n$$\n|u(t)|\\le u_{\\max},\\qquad |\\dot u(t)|\\le \\dot u_{\\max}\n$$\n\n关联节点：规划参考可实现性、链路责任诊断\n\n---\n\n## 详情\n\n执行器不是理想放大器。舵角限幅会截断控制量，舵速限制会拖慢动作，能耗和热负荷也会改变持续控制能力。这些约束若不反馈给规划层，参考就可能从源头上不可执行。\n\n常见误区：把限幅看成末端保护。纠正：限幅会改变闭环响应和真实航迹。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "避碰转弯半径可行域",
+      "target_id": null,
+      "target": "执行约束反馈",
+      "relation": "related",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "执行约束反馈",
+      "target_id": null,
+      "target": "规划参考可实现性",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MASS协同链路",
+      "target_id": null,
+      "target": "执行约束反馈",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "执行约束反馈",
+      "target_id": null,
+      "target": "链路责任诊断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "MASS协同链路_5_53001",
+      "source": "MASS协同链路",
+      "target_id": "执行约束反馈_5_53005",
+      "target": "执行约束反馈",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "执行约束反馈_5_53005",
+      "source": "执行约束反馈",
+      "target_id": "规划参考可实现性_5_53004",
+      "target": "规划参考可实现性",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "执行约束反馈_5_53005",
+      "source": "执行约束反馈",
+      "target_id": "链路责任诊断_5_53006",
+      "target": "链路责任诊断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "避碰转弯半径可行域_5_53007",
+      "source": "避碰转弯半径可行域",
+      "target_id": "执行约束反馈_5_53005",
+      "target": "执行约束反馈",
+      "relation": "related",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用自主船舶任务链的局部剖面解释接口、状态、参考或执行边界如何影响控制。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "执行约束反馈",
+        "执行器",
+        "饱和",
+        "速率限制",
+        "可实现性",
+        "执行约束"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "|u(t)|\\le u_{\\max},\\qquad |\\dot u(t)|\\le \\dot u_{\\max}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

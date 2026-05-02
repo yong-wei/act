@@ -480,6 +480,70 @@
       "title": "非线性边界工具选择 信息图",
       "lessonId": "5-2",
       "nodeId": "非线性边界工具选择_5_52001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+      "title": "MASS协同链路 信息图",
+      "lessonId": "5-3",
+      "nodeId": "MASS协同链路_5_53001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+      "title": "MASS自动化等级责任边界 信息图",
+      "lessonId": "5-3",
+      "nodeId": "MASS自动化等级责任边界_5_53008"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+      "title": "上游信息质量 信息图",
+      "lessonId": "5-3",
+      "nodeId": "上游信息质量_5_53003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+      "title": "执行约束反馈 信息图",
+      "lessonId": "5-3",
+      "nodeId": "执行约束反馈_5_53005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+      "title": "控制在自主系统链路中的位置 信息图",
+      "lessonId": "5-3",
+      "nodeId": "控制在自主系统链路中的位置_5_53002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+      "title": "规划参考可实现性 信息图",
+      "lessonId": "5-3",
+      "nodeId": "规划参考可实现性_5_53004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+      "title": "避碰转弯半径可行域 信息图",
+      "lessonId": "5-3",
+      "nodeId": "避碰转弯半径可行域_5_53007"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+      "title": "链路责任诊断 信息图",
+      "lessonId": "5-3",
+      "nodeId": "链路责任诊断_5_53006"
     }
   ]
 }

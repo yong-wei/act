@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:21:16.515390Z",
+  "lesson_id": "5-3",
+  "node_id": "上游信息质量_5_53003",
+  "node_name": "上游信息质量",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：区分感知、估计、反馈状态与风险边界；噪声、延迟、同步、置信度及公式锚点可读。"
+}

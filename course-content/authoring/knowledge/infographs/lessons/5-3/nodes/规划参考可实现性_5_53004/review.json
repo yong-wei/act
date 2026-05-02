@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:23:42.440947Z",
+  "lesson_id": "5-3",
+  "node_id": "规划参考可实现性_5_53004",
+  "node_name": "规划参考可实现性",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：急折线与平滑路径、航向参考、舵角约束、可行域和公式锚点语义一致，未将不可实现路径画成推荐路径。"
+}

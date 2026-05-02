@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T14:32:31.120016Z",
+  "lesson_id": "5-3",
+  "node_id": "避碰转弯半径可行域_5_53007",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019de8e8-5c54-7d13-ba30-b45ebb882817/ig_08f7a0674825e2990169f60a45de408191b70fe0c83f9a9be1.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/避碰转弯半径可行域_5_53007/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/避碰转弯半径可行域_5_53007/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/避碰转弯半径可行域_5_53007/source.json"
+}

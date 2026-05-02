@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:32:31.120798Z",
+  "lesson_id": "5-3",
+  "node_id": "避碰转弯半径可行域_5_53007",
+  "node_name": "避碰转弯半径可行域",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：海图、R=35/65/140m、可行/不可行、舵角上限与 R_min 公式关系清楚，突出规划半径吸收执行边界。"
+}

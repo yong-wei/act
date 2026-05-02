@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T14:16:49.398910Z",
+  "lesson_id": "5-3",
+  "node_id": "MASS协同链路_5_53001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019de8e8-5c54-7d13-ba30-b45ebb882817/ig_08f7a0674825e2990169f6067874ac81918ec20eddf36fce6b.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/MASS协同链路_5_53001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/MASS协同链路_5_53001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/5-3/nodes/MASS协同链路_5_53001/source.json"
+}

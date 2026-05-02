@@ -12,8 +12,7 @@
     "避碰转弯半径可行域_5_53007",
     "MASS自动化等级责任边界_5_53008"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "MASS协同链路_5_53001",
     "控制在自主系统链路中的位置_5_53002",
     "上游信息质量_5_53003",
@@ -23,56 +22,8 @@
     "避碰转弯半径可行域_5_53007",
     "MASS自动化等级责任边界_5_53008"
   ],
-  "missing_source_files": {
-    "MASS协同链路_5_53001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "控制在自主系统链路中的位置_5_53002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "上游信息质量_5_53003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "规划参考可实现性_5_53004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "执行约束反馈_5_53005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "链路责任诊断_5_53006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "避碰转弯半径可行域_5_53007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "MASS自动化等级责任边界_5_53008": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

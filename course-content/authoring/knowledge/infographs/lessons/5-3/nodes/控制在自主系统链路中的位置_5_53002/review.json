@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:19:32.568714Z",
+  "lesson_id": "5-3",
+  "node_id": "控制在自主系统链路中的位置_5_53002",
+  "node_name": "控制在自主系统链路中的位置",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：控制层位于规划参考与执行器之间，反馈状态、执行约束和公式锚点可读，未把控制层画成全系统决策中心。"
+}

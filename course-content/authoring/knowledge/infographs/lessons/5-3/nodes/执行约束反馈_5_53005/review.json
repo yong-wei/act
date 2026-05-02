@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:25:36.426227Z",
+  "lesson_id": "5-3",
+  "node_id": "执行约束反馈_5_53005",
+  "node_name": "执行约束反馈",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：执行器、理想/受限舵角、速率限制、健康状态与执行边界回传关系清楚，公式锚点语义可读。"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:36:45.532388Z",
+  "lesson_id": "5-3",
+  "node_id": "MASS自动化等级责任边界_5_53008",
+  "node_name": "MASS自动化等级责任边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：四类运行形态、责任主体、降级接管与底层链路证据并列呈现；未加入法规日期或外部进度数字。"
+}

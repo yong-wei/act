@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T14:16:49.400427Z",
+  "lesson_id": "5-3",
+  "node_id": "MASS协同链路_5_53001",
+  "node_name": "MASS协同链路",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：MASS 链路六环节、信息流/控制流/责任边界与公式锚点可读，未见提示词字段泄漏。"
+}

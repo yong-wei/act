@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T14:12:27.105585Z",
+  "lesson": {
+    "lesson_id": "5-3",
+    "title": "从单回路控制到复杂自主系统链路：MASS 的感知—估计—规划—控制协同",
+    "groups": [
+      "信息、规划与执行边界"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "上游信息质量_5_53003",
+    "name": "上游信息质量",
+    "name_en": "Upstream Information Quality",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "上游信息质量描述感知和估计提供给规划与控制的状态是否可信、及时、同步并带有合理不确定性。",
+    "examples": [
+      "传感器噪声会使反馈误差抖动，测量延迟会使控制器比较过期状态。"
+    ],
+    "formulas": [
+      "y_m(t)=y(t-\\tau)+n(t)"
+    ],
+    "keywords": [
+      "感知",
+      "估计",
+      "噪声",
+      "延迟",
+      "反馈状态",
+      "信息质量"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/上游信息质量_5_53003.md",
+  "card_frontmatter": {
+    "node_id": "上游信息质量_5_53003",
+    "name": "上游信息质量",
+    "name_en": "Upstream Information Quality",
+    "lesson_units": [
+      "5-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-3",
+      "信息质量"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-3/design/5-3-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-3/media/processed/5-3-sensor-noise-filter-chain.png",
+      "course-content/authoring/lessons/5-3/media/processed/5-3-sensor-delay-heading-track.png"
+    ]
+  },
+  "card_overview": "# 上游信息质量\n\n核心定义：感知和估计提供给控制层的状态是否可信、及时、同步。\n\n关键公式：\n$$\ny_m(t)=y(t-\\tau)+n(t)\n$$\n\n关联节点：控制在自主系统链路中的位置、链路责任诊断\n\n---",
+  "card_detail": "控制器使用的是测量或估计后的反馈量。噪声会放大误差抖动，延迟会让控制器比较过期状态，坐标和时间戳错误会直接改变误差方向或大小。\n\n常见误区：看到控制输出频繁变化就先调控制器。纠正：先检查测量噪声、滤波延迟和估计同步。",
+  "card_plain_excerpt": "## 首页\n\n# 上游信息质量\n\n核心定义：感知和估计提供给控制层的状态是否可信、及时、同步。\n\n关键公式：\n$$\ny_m(t)=y(t-\\tau)+n(t)\n$$\n\n关联节点：控制在自主系统链路中的位置、链路责任诊断\n\n---\n\n## 详情\n\n控制器使用的是测量或估计后的反馈量。噪声会放大误差抖动，延迟会让控制器比较过期状态，坐标和时间戳错误会直接改变误差方向或大小。\n\n常见误区：看到控制输出频繁变化就先调控制器。纠正：先检查测量噪声、滤波延迟和估计同步。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "上游信息质量",
+      "target_id": null,
+      "target": "链路责任诊断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MASS协同链路",
+      "target_id": null,
+      "target": "上游信息质量",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "上游信息质量",
+      "target_id": null,
+      "target": "控制在自主系统链路中的位置",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "MASS协同链路_5_53001",
+      "source": "MASS协同链路",
+      "target_id": "上游信息质量_5_53003",
+      "target": "上游信息质量",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "上游信息质量_5_53003",
+      "source": "上游信息质量",
+      "target_id": "控制在自主系统链路中的位置_5_53002",
+      "target": "控制在自主系统链路中的位置",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "上游信息质量_5_53003",
+      "source": "上游信息质量",
+      "target_id": "链路责任诊断_5_53006",
+      "target": "链路责任诊断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用自主船舶任务链的局部剖面解释接口、状态、参考或执行边界如何影响控制。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "上游信息质量",
+        "感知",
+        "估计",
+        "噪声",
+        "延迟",
+        "反馈状态",
+        "信息质量"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "y_m(t)=y(t-\\tau)+n(t)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

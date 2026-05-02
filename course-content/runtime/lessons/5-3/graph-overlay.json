@@ -255,14 +255,29 @@
           "控制",
           "监督"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "title": "MASS协同链路 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS协同链路_5_53001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/MASS协同链路_5_53001.md"
+        "course-content/runtime/knowledge/cards/nodes/MASS协同链路_5_53001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "title": "MASS协同链路 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS协同链路_5_53001"
+        }
       ],
       "tags": [
         "MASS",
@@ -310,14 +325,29 @@
           "责任主体",
           "降级接管"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+          "title": "MASS自动化等级责任边界 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS自动化等级责任边界_5_53008"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/MASS自动化等级责任边界_5_53008.md"
+        "course-content/runtime/knowledge/cards/nodes/MASS自动化等级责任边界_5_53008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
+          "title": "MASS自动化等级责任边界 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS自动化等级责任边界_5_53008"
+        }
       ],
       "tags": [
         "MASS Code",
@@ -332,8 +362,8 @@
       "name": "上游信息质量",
       "nodeType": "THEORY",
       "description": "上游信息质量描述感知和估计提供给规划与控制的状态是否可信、及时、同步并带有合理不确定性。",
-      "positionX": 108.9,
-      "positionY": -108.9,
+      "positionX": 148.8,
+      "positionY": -39.9,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -368,14 +398,29 @@
           "延迟",
           "反馈状态"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+          "title": "上游信息质量 信息图",
+          "lessonId": "5-3",
+          "nodeId": "上游信息质量_5_53003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/上游信息质量_5_53003.md"
+        "course-content/runtime/knowledge/cards/nodes/上游信息质量_5_53003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
+          "title": "上游信息质量 信息图",
+          "lessonId": "5-3",
+          "nodeId": "上游信息质量_5_53003"
+        }
       ],
       "tags": [
         "感知",
@@ -391,8 +436,8 @@
       "name": "执行约束反馈",
       "nodeType": "THEORY",
       "description": "执行约束反馈把执行器幅值、速率、带宽、能耗和健康状态回传给控制与规划，使参考和控制指令保持物理可实现。",
-      "positionX": -143.8,
-      "positionY": 83.0,
+      "positionX": -160.3,
+      "positionY": -43.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -426,14 +471,29 @@
           "速率限制",
           "可实现性"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+          "title": "执行约束反馈 信息图",
+          "lessonId": "5-3",
+          "nodeId": "执行约束反馈_5_53005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/执行约束反馈_5_53005.md"
+        "course-content/runtime/knowledge/cards/nodes/执行约束反馈_5_53005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
+          "title": "执行约束反馈 信息图",
+          "lessonId": "5-3",
+          "nodeId": "执行约束反馈_5_53005"
+        }
       ],
       "tags": [
         "执行器",
@@ -448,8 +508,8 @@
       "name": "控制在自主系统链路中的位置",
       "nodeType": "THEORY",
       "description": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
-      "positionX": -166.0,
-      "positionY": 0.0,
+      "positionX": -117.4,
+      "positionY": -117.4,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -483,14 +543,29 @@
           "参考输入",
           "反馈状态"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/控制在自主系统链路中的位置_5_53002.md"
+        "course-content/runtime/knowledge/cards/nodes/控制在自主系统链路中的位置_5_53002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        }
       ],
       "tags": [
         "控制位置",
@@ -505,8 +580,8 @@
       "name": "方法迁移前边界说明",
       "nodeType": "THEORY",
       "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
-      "positionX": -143.8,
-      "positionY": -83.0,
+      "positionX": 83.0,
+      "positionY": -143.8,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -576,8 +651,8 @@
       "name": "舵机死区饱和自振风险",
       "nodeType": "THEORY",
       "description": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
-      "positionX": -166.1,
-      "positionY": 44.5,
+      "positionX": 44.5,
+      "positionY": -166.1,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "FACTUAL",
@@ -650,8 +725,8 @@
       "name": "规划参考可实现性",
       "nodeType": "THEORY",
       "description": "规划参考可实现性要求规划层生成的路径、航向和速度参考满足控制与执行层的幅值、速率、转弯半径和安全约束。",
-      "positionX": -166.1,
-      "positionY": -44.5,
+      "positionX": 121.6,
+      "positionY": -121.6,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -685,14 +760,29 @@
           "转弯半径",
           "舵角约束"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+          "title": "规划参考可实现性 信息图",
+          "lessonId": "5-3",
+          "nodeId": "规划参考可实现性_5_53004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/规划参考可实现性_5_53004.md"
+        "course-content/runtime/knowledge/cards/nodes/规划参考可实现性_5_53004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
+          "title": "规划参考可实现性 信息图",
+          "lessonId": "5-3",
+          "nodeId": "规划参考可实现性_5_53004"
+        }
       ],
       "tags": [
         "规划参考",
@@ -707,8 +797,8 @@
       "name": "避碰转弯半径可行域",
       "nodeType": "THEORY",
       "description": "避碰转弯半径可行域用船体尺度、舵角上限和安全裕量判断规划半径是否能被控制与执行层实现。",
-      "positionX": -0.0,
-      "positionY": -172.0,
+      "positionX": 154.2,
+      "positionY": 89.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -742,14 +832,29 @@
           "舵角上限",
           "规划可行域"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+          "title": "避碰转弯半径可行域 信息图",
+          "lessonId": "5-3",
+          "nodeId": "避碰转弯半径可行域_5_53007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/避碰转弯半径可行域_5_53007.md"
+        "course-content/runtime/knowledge/cards/nodes/避碰转弯半径可行域_5_53007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
+          "title": "避碰转弯半径可行域 信息图",
+          "lessonId": "5-3",
+          "nodeId": "避碰转弯半径可行域_5_53007"
+        }
       ],
       "tags": [
         "避碰",
@@ -764,8 +869,8 @@
       "name": "链路责任诊断",
       "nodeType": "THEORY",
       "description": "链路责任诊断按感知、估计、规划、控制、执行和监督逐层定位偏差来源，避免把复杂系统问题直接压给控制器参数。",
-      "positionX": 44.5,
-      "positionY": -166.1,
+      "positionX": 125.9,
+      "positionY": 125.9,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "PROCEDURAL",
@@ -799,14 +904,29 @@
           "证据链",
           "监督"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+          "title": "链路责任诊断 信息图",
+          "lessonId": "5-3",
+          "nodeId": "链路责任诊断_5_53006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/链路责任诊断_5_53006.md"
+        "course-content/runtime/knowledge/cards/nodes/链路责任诊断_5_53006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
+          "title": "链路责任诊断 信息图",
+          "lessonId": "5-3",
+          "nodeId": "链路责任诊断_5_53006"
+        }
       ],
       "tags": [
         "故障诊断",
@@ -819,19 +939,11 @@
   ],
   "links": [
     {
-      "id": "rel-6bedf7428520fed7",
-      "sourceId": "MASS协同链路_5_53001",
-      "targetId": "控制在自主系统链路中的位置_5_53002",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-536c5c9418e28f56",
-      "sourceId": "MASS协同链路_5_53001",
-      "targetId": "上游信息质量_5_53003",
-      "relation": "contains",
-      "relationType": "contains",
+      "id": "rel-0fa61c741b7ba993",
+      "sourceId": "避碰转弯半径可行域_5_53007",
+      "targetId": "执行约束反馈_5_53005",
+      "relation": "related",
+      "relationType": "related",
       "strength": 0.9
     },
     {
@@ -843,75 +955,11 @@
       "strength": 0.9
     },
     {
-      "id": "rel-a9861fcc82e0c2ab",
-      "sourceId": "MASS协同链路_5_53001",
-      "targetId": "执行约束反馈_5_53005",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-d861bfb124a25849",
-      "sourceId": "上游信息质量_5_53003",
-      "targetId": "控制在自主系统链路中的位置_5_53002",
-      "relation": "prerequisite",
-      "relationType": "prerequisite",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-c2e520f67faf28a6",
-      "sourceId": "规划参考可实现性_5_53004",
-      "targetId": "控制在自主系统链路中的位置_5_53002",
-      "relation": "prerequisite",
-      "relationType": "prerequisite",
-      "strength": 0.86
-    },
-    {
-      "id": "rel-7f3b2392860da555",
-      "sourceId": "执行约束反馈_5_53005",
-      "targetId": "规划参考可实现性_5_53004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.92
-    },
-    {
       "id": "rel-16061ebafa386587",
       "sourceId": "上游信息质量_5_53003",
       "targetId": "链路责任诊断_5_53006",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-ba9d0f54c7e88157",
-      "sourceId": "规划参考可实现性_5_53004",
-      "targetId": "链路责任诊断_5_53006",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-f7f58cc10b6ef777",
-      "sourceId": "执行约束反馈_5_53005",
-      "targetId": "链路责任诊断_5_53006",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-79d0dfae4672b1c5",
-      "sourceId": "避碰转弯半径可行域_5_53007",
-      "targetId": "规划参考可实现性_5_53004",
-      "relation": "instance_of",
-      "relationType": "instance_of",
-      "strength": 0.92
-    },
-    {
-      "id": "rel-0fa61c741b7ba993",
-      "sourceId": "避碰转弯半径可行域_5_53007",
-      "targetId": "执行约束反馈_5_53005",
-      "relation": "related",
-      "relationType": "related",
       "strength": 0.9
     },
     {
@@ -923,6 +971,46 @@
       "strength": 0.82
     },
     {
+      "id": "rel-48498e359f566bc0",
+      "sourceId": "传统控制结构局限_4_47008",
+      "targetId": "控制在自主系统链路中的位置_5_53002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-536c5c9418e28f56",
+      "sourceId": "MASS协同链路_5_53001",
+      "targetId": "上游信息质量_5_53003",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-6bedf7428520fed7",
+      "sourceId": "MASS协同链路_5_53001",
+      "targetId": "控制在自主系统链路中的位置_5_53002",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-79d0dfae4672b1c5",
+      "sourceId": "避碰转弯半径可行域_5_53007",
+      "targetId": "规划参考可实现性_5_53004",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-7f3b2392860da555",
+      "sourceId": "执行约束反馈_5_53005",
+      "targetId": "规划参考可实现性_5_53004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
       "id": "rel-9572102c5c228f3f",
       "sourceId": "方法迁移前边界说明_5_51005",
       "targetId": "MASS协同链路_5_53001",
@@ -931,12 +1019,44 @@
       "strength": 0.85
     },
     {
-      "id": "rel-48498e359f566bc0",
-      "sourceId": "传统控制结构局限_4_47008",
+      "id": "rel-a9861fcc82e0c2ab",
+      "sourceId": "MASS协同链路_5_53001",
+      "targetId": "执行约束反馈_5_53005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ba9d0f54c7e88157",
+      "sourceId": "规划参考可实现性_5_53004",
+      "targetId": "链路责任诊断_5_53006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-c2e520f67faf28a6",
+      "sourceId": "规划参考可实现性_5_53004",
       "targetId": "控制在自主系统链路中的位置_5_53002",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.82
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-d861bfb124a25849",
+      "sourceId": "上游信息质量_5_53003",
+      "targetId": "控制在自主系统链路中的位置_5_53002",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-f7f58cc10b6ef777",
+      "sourceId": "执行约束反馈_5_53005",
+      "targetId": "链路责任诊断_5_53006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
     }
   ]
 }
