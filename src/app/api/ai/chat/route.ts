@@ -7,7 +7,7 @@
  */
 
 import { streamText, convertToCoreMessages, type Message } from 'ai';
-import { getAIModel, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { getAIModel, isAIServiceConfigured, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -15,7 +15,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
@@ -74,11 +74,11 @@ export async function POST(request: Request) {
     }
 
     // 检查 API Key 配置
-    if (!process.env.SILICONFLOW_API_KEY) {
+    if (!isAIServiceConfigured()) {
       return new Response(
         JSON.stringify({
           error: 'AI 服务未配置',
-          message: '请在环境变量中配置 SILICONFLOW_API_KEY',
+          message: '请在环境变量中配置 AI_API_KEY',
         }),
         {
           status: 503,

@@ -36,10 +36,11 @@ DATABASE_URL="postgresql://act_user:act_pass@localhost:5432/act_obe?schema=publi
 NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="your-secret-key-here"
 
-# 硅基流动 AI 配置
-SILICONFLOW_API_URL="https://api.siliconflow.cn/v1"
-SILICONFLOW_API_KEY="sk-your-api-key"
-SILICONFLOW_MODEL="deepseek-ai/DeepSeek-V4-Flash"
+# AI 配置
+AI_PROVIDER="siliconflow"
+AI_BASE_URL="https://api.siliconflow.cn/v1"
+AI_API_KEY="sk-your-api-key"
+AI_MODEL="deepseek-ai/DeepSeek-V4-Flash"
 ```
 
 ### 3. 创建数据库
@@ -250,13 +251,13 @@ npm run startup
 - **UI 组件**: shadcn/ui + Radix UI
 - **认证**: NextAuth.js
 - **数据库**: PostgreSQL + Prisma ORM
-- **AI**: 硅基流动 API + Qwen 模型
+- **AI**: 可配置供应商适配层，当前使用 SiliconFlow + deepseek-ai/DeepSeek-V4-Flash
 
 ## 💡 常见问题
 
 ### Q: 如何修改 AI 模型？
 
-编辑 `src/lib/ai-client.ts`，修改 `modelId` 参数。
+修改 `.env` 中的 `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。业务代码仍通过 `getAIModel()` 调用，不需要修改业务路由。
 
 ### Q: 如何添加新任务？
 

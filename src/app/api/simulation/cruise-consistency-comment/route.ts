@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { getAIModel } from '@/lib/ai-client';
+import { getAIModel, isAIServiceConfigured } from '@/lib/ai-client';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       result: { overshoot: number; settlingTime: number; accel: number };
     };
 
-    if (!process.env.SILICONFLOW_API_KEY) {
+    if (!isAIServiceConfigured()) {
       const fallback = score >= 80
         ? '目标与调参行为整体一致，建议围绕舒适约束做小范围参数微调。'
         : '目标与行为存在偏差，建议优先固定约束边界，再分步调整控制器参数。';

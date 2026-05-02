@@ -11,7 +11,7 @@
 ## 2. 本地安装
 
 1. 安装依赖：`npm install`。
-2. 配置 `.env`：至少包含 `DATABASE_URL`、`NEXTAUTH_SECRET`、`NEXTAUTH_URL`、`SILICONFLOW_API_KEY`。
+2. 配置 `.env`：至少包含 `DATABASE_URL`、`NEXTAUTH_SECRET`、`NEXTAUTH_URL`、`AI_PROVIDER`、`AI_API_KEY`、`AI_MODEL`。
 3. 初始化数据库：`npx prisma generate`，随后执行 Prisma 迁移。
 4. 构建 WASM 内核：`npm run wasm:build:control-engine`。
 5. 启动开发服务：`npm run dev` 或使用项目启动脚本。
@@ -33,4 +33,3 @@
 - 仿真页面能够加载 3D 场景和数值内核。
 - AI 助手在配置 API Key 后可正常响应。
 - 个人中心和教师看板能展示能力画像或降级提示。
-

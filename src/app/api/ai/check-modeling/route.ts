@@ -4,11 +4,11 @@
  * 使用 Siliconflow API 服务检查学生的微分方程建模
  */
 
-import { getAIModel } from '@/lib/ai-client';
+import { getAIModel, isAIServiceConfigured } from '@/lib/ai-client';
 import { generateText } from 'ai';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 interface CheckModelingRequest {
   equation: string;
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     // 检查 API Key 配置
-    if (!process.env.SILICONFLOW_API_KEY) {
+    if (!isAIServiceConfigured()) {
       return new Response(
         JSON.stringify({
           error: 'AI 服务未配置',

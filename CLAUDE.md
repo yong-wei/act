@@ -139,11 +139,11 @@ src/
 - 5-layer wave physics model
 - Ethics violation detection (rudder rate, roll angle, collision)
 
-**2. AI Integration** (`lib/ai-client.ts`, `api/ai/chat/`)
-- Provider: SiliconFlow (OpenAI-compatible)
-- Model: Qwen3-Omni-30B-A3B-Thinking
-- Streaming responses via Vercel AI SDK
-- Function calling: get_simulation_status, set_simulation_params, analyze_result
+**2. AI Integration** (`lib/ai-client.ts`, `src/lib/ai/`, `api/ai/chat/`)
+- Provider: configured by `AI_PROVIDER` (currently SiliconFlow, OpenAI-compatible)
+- Model: configured by `AI_MODEL` (currently `deepseek-ai/DeepSeek-V4-Flash`)
+- Business routes use `getAIModel()` and do not branch on provider
+- Function calling tools: get_simulation_status, set_simulation_params, analyze_result
 
 **3. Authentication** (`lib/auth.ts`)
 - Credentials provider (email/username/student number)
@@ -185,9 +185,10 @@ Required in `.env`:
 DATABASE_URL="postgresql://..."
 NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="..."
-SILICONFLOW_API_KEY="sk-..."
-SILICONFLOW_API_URL="https://api.siliconflow.cn/v1"
-SILICONFLOW_MODEL="deepseek-ai/DeepSeek-V4-Flash"
+AI_PROVIDER="siliconflow"
+AI_BASE_URL="https://api.siliconflow.cn/v1"
+AI_API_KEY="sk-..."
+AI_MODEL="deepseek-ai/DeepSeek-V4-Flash"
 ```
 
 ## Python 控制系统仿真工具

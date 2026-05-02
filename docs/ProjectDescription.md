@@ -170,7 +170,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **海况模拟**：5 级海况，动态风浪干扰
 
 ### 3.3 AI 虚拟总工 ✅
-- **智能对话系统**：基于硅基流动 API + deepseek-ai/DeepSeek-V4-Flash
+- **智能对话系统**：基于可配置 LLM 供应商适配层，当前默认使用 SiliconFlow + deepseek-ai/DeepSeek-V4-Flash
 - **Function Calling**：
   - `get_simulation_status` - 获取实时仿真状态
   - `set_simulation_params` - 修改 PID/环境参数
@@ -458,8 +458,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **密码加密**：bcryptjs
 
 ### 4.3 AI 技术栈
-- **LLM 服务**：硅基流动 (SiliconFlow)
-- **模型**：deepseek-ai/DeepSeek-V4-Flash
+- **LLM 服务**：通过 `AI_PROVIDER` 配置，当前支持 SiliconFlow
+- **模型**：通过 `AI_MODEL` 配置，当前默认 deepseek-ai/DeepSeek-V4-Flash
 - **SDK**：Vercel AI SDK v3.4
 - **功能**：流式对话、Function Calling、参数优化建议
 
@@ -533,7 +533,8 @@ act.just.edu.cn/
 │   ├── lib/                     # 平台工具库
 │   │   ├── auth.ts              # 认证配置
 │   │   ├── prisma.ts            # Prisma 客户端
-│   │   ├── ai-client.ts         # AI 客户端
+│   │   ├── ai-client.ts         # AI 业务门面
+│   │   ├── ai/                  # AI 供应商配置与适配层
 │   │   ├── ai-tools.ts          # AI Function 定义
 │   │   ├── user-sync.ts         # 用户同步
 │   │   ├── competency.ts        # 能力计算

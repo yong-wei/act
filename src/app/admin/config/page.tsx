@@ -17,6 +17,7 @@ interface SystemConfig {
   maintenanceMode: boolean;
   maxStudentsPerClass: number;
   defaultPassword: string;
+  aiProvider: string;
   aiModelEndpoint: string;
   aiModelName: string;
   enableNotifications: boolean;
@@ -30,6 +31,7 @@ export default function SystemConfigPage() {
     maintenanceMode: false,
     maxStudentsPerClass: 100,
     defaultPassword: '123456',
+    aiProvider: 'siliconflow',
     aiModelEndpoint: '',
     aiModelName: '',
     enableNotifications: true,
@@ -95,6 +97,7 @@ export default function SystemConfigPage() {
       maintenanceMode: false,
       maxStudentsPerClass: 100,
       defaultPassword: '123456',
+      aiProvider: 'siliconflow',
       aiModelEndpoint: '',
       aiModelName: '',
       enableNotifications: true,
@@ -245,6 +248,18 @@ export default function SystemConfigPage() {
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-300">
+                  供应商
+                </label>
+                <input
+                  type="text"
+                  value={config.aiProvider}
+                  onChange={(e) => setConfig({ ...config, aiProvider: e.target.value })}
+                  placeholder="siliconflow"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-300">
                   API 端点
                 </label>
                 <input
@@ -268,7 +283,7 @@ export default function SystemConfigPage() {
                 />
               </div>
               <p className="text-xs text-slate-500">
-                AI 模型用于智能教学助手和答疑功能。如需更改，请同步更新环境变量。
+                AI 模型用于智能教学助手和答疑功能。运行时读取 AI_PROVIDER、AI_BASE_URL、AI_API_KEY、AI_MODEL；未设置时兼容 SILICONFLOW_*。
               </p>
             </div>
           </div>

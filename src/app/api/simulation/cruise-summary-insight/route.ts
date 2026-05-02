@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { getAIModel } from '@/lib/ai-client';
+import { getAIModel, isAIServiceConfigured } from '@/lib/ai-client';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 interface TeacherInsightPayload {
   mode: 'teacher';
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    if (!process.env.SILICONFLOW_API_KEY) {
+    if (!isAIServiceConfigured()) {
       return NextResponse.json({ text: buildFallback(payload), source: 'fallback' });
     }
 

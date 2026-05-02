@@ -17,7 +17,7 @@ import type { AIContext } from '@/types/ai-context';
 import type { Message } from 'ai/react';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {

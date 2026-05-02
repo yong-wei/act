@@ -523,6 +523,18 @@ fi
 if [ -n "${NEXTAUTH_SECRET:-}" ]; then
   APP_ENV_ARGS+=(-e NEXTAUTH_SECRET="$NEXTAUTH_SECRET")
 fi
+if [ -n "${AI_PROVIDER:-}" ]; then
+  APP_ENV_ARGS+=(-e AI_PROVIDER="$AI_PROVIDER")
+fi
+if [ -n "${AI_BASE_URL:-}" ]; then
+  APP_ENV_ARGS+=(-e AI_BASE_URL="$AI_BASE_URL")
+fi
+if [ -n "${AI_API_KEY:-}" ]; then
+  APP_ENV_ARGS+=(-e AI_API_KEY="$AI_API_KEY")
+fi
+if [ -n "${AI_MODEL:-}" ]; then
+  APP_ENV_ARGS+=(-e AI_MODEL="$AI_MODEL")
+fi
 if [ -n "${SILICONFLOW_API_URL:-}" ]; then
   APP_ENV_ARGS+=(-e SILICONFLOW_API_URL="$SILICONFLOW_API_URL")
 fi
