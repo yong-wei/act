@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:09:46.732557Z",
+  "lesson": {
+    "lesson_id": "5-1",
+    "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+    "groups": [
+      "入口现象",
+      "边界判断与方法迁移"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "传统控制结构局限_4_47008",
+    "name": "传统控制结构局限",
+    "name_en": "Limits of Classical Controller Structures",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中存在表达边界，越过边界后需要更强的前沿方法。",
+    "examples": [
+      "当横荡、舵效变化、传感器噪声和大角度回转同时出现时，单一低阶航向反馈无法完整表达任务。"
+    ],
+    "formulas": [
+      "\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}"
+    ],
+    "keywords": [
+      "传统控制局限",
+      "鲁棒控制",
+      "扰动观测器",
+      "MPC",
+      "4-7",
+      "传统控制",
+      "前沿入口"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+  "card_frontmatter": {
+    "node_id": "传统控制结构局限_4_47008",
+    "name": "传统控制结构局限",
+    "name_en": "Limits of Classical Controller Structures",
+    "lesson_units": [
+      "4-7"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-7",
+      "传统控制",
+      "前沿入口"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-7/design/handout.md"
+    ],
+    "asset_refs": [
+      "4-7-real-scenario-interpretation.png"
+    ]
+  },
+  "card_overview": "# 传统控制结构局限 | Limits of Classical Controller Structures\n\n**一句话定义**：固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中存在表达边界，越过边界后需要更强的前沿方法。\n\n**核心直觉**：传统控制不是失效，而是给出可解释基线；高保真验证告诉我们什么时候必须引入更强结构。\n\n**关键公式**：\n$$\n\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}\n$$\n\n**关联**：前置 → 扰动噪声设计边界、组合结构专项验证边界判断 · 后续 → 鲁棒控制、扰动观测器、增益调度、MPC",
+  "card_detail": "### 完整解释\n\n传统结构在名义任务中很有价值，因为它能把模型、指标、参数和证据连成可解释链。但当高保真任务包含横荡、舵效变化、大角度回转、传感器噪声和执行机构饱和时，固定低阶线性反馈就难以完整表达任务。\n\n![真实场景解释对比](../../lessons/4-7/media/processed/4-7-real-scenario-interpretation.png)\n\n### 常见误区\n\n1. **误区**：前沿方法出现意味着传统控制没有价值。\n   **纠正**：传统控制提供名义基线和诊断语言，是判断是否需要前沿方法的参照。\n\n2. **误区**：只要换成优化控制器就越过传统结构边界。\n   **纠正**：若控制律仍是固定低阶反馈，它仍受固定结构和单传感器反馈限制。",
+  "card_plain_excerpt": "## 首页\n\n# 传统控制结构局限 | Limits of Classical Controller Structures\n\n**一句话定义**：固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中存在表达边界，越过边界后需要更强的前沿方法。\n\n**核心直觉**：传统控制不是失效，而是给出可解释基线；高保真验证告诉我们什么时候必须引入更强结构。\n\n**关键公式**：\n$$\n\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}\n$$\n\n**关联**：前置 → 扰动噪声设计边界、组合结构专项验证边界判断 · 后续 → 鲁棒控制、扰动观测器、增益调度、MPC\n\n## 详情\n\n### 完整解释\n\n传统结构在名义任务中很有价值，因为它能把模型、指标、参数和证据连成可解释链。但当高保真任务包含横荡、舵效变化、大角度回转、传感器噪声和执行机构饱和时，固定低阶线性反馈就难以完整表达任务。\n\n![真实场景解释对比](../../lessons/4-7/media/processed/4-7-real-scenario-interpretation.png)\n\n### 常见误区\n\n1. **误区**：前沿方法出现意味着传统控制没有价值。\n   **纠正**：传统控制提供名义基线和诊断语言，是判断是否需要前沿方法的参照。\n\n2. **误区**：只要换成优化控制器就越过传统结构边界。\n   **纠正**：若控制律仍是固定低阶反馈，它仍受固定结构和单传感器反馈限制。",
+  "core_intuition": "传统控制不是失效，而是给出可解释基线；高保真验证告诉我们什么时候必须引入更强结构。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "扰动噪声设计边界",
+      "target_id": null,
+      "target": "传统控制结构局限",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "组合结构专项验证边界判断",
+      "target_id": null,
+      "target": "传统控制结构局限",
+      "relation": "related",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传统控制结构局限",
+      "target_id": null,
+      "target": "剩余风险说明",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传统控制结构局限",
+      "target_id": null,
+      "target": "线性主干边界识别",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "传统控制结构局限_4_47008",
+      "source": "传统控制结构局限",
+      "target_id": "线性主干边界识别_5_51001",
+      "target": "线性主干边界识别",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": "4-7 已暴露固定低阶线性反馈在高保真任务中的局限，5-1 将这种局限整理为线性主干边界识别。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "传统控制结构局限",
+        "传统控制局限",
+        "鲁棒控制",
+        "扰动观测器",
+        "MPC",
+        "4-7",
+        "传统控制",
+        "前沿入口"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

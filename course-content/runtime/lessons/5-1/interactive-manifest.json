@@ -552,7 +552,7 @@
           {
             "id": "assumption-match",
             "title": "失效信号匹配",
-            "prompt": "把三条“现象 -> 默认条件”的配对按正确顺序排列：输出被压平、路径回程残差、保护逻辑介入。",
+            "prompt": "把三条现象拖入对应的线性默认条件空槽：输出被压平、路径回程残差、保护逻辑介入。",
             "response_kind": "drag_match",
             "submit_scope": "per_card",
             "layout_span": "full",
@@ -800,7 +800,7 @@
           {
             "id": "boundary-classify",
             "title": "假设破坏分类",
-            "prompt": "把七条“非线性类型 -> 主要破坏假设”的配对按表格中的判断顺序排列。",
+            "prompt": "把七类非线性环节拖入对应的主要破坏假设空槽。",
             "response_kind": "drag_match",
             "submit_scope": "per_card",
             "layout_span": "full",
@@ -917,16 +917,6 @@
           }
         },
         {
-          "id": "smooth-base-formula",
-          "title": "基本公式",
-          "region": "problem",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "base_formula"
-          }
-        },
-        {
           "id": "smooth-reveal",
           "title": "局部线性化公式链",
           "region": "reveal",
@@ -944,34 +934,28 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
-            "text": "左侧显示时域响应对比，右侧显示线性模型与原非线性系统一次谐波 Bode 对比。"
+            "text": "左侧显示小阶跃、大阶跃、正弦三类信号的时域对比，右侧显示线性模型与原非线性系统一次谐波 Bode 对比。",
+            "items": [
+              "默认模型：2dy/dt=-y+u, u=tanh(v)",
+              "线性化模型：Glin(s)=1/(2s+1)",
+              "控件位于图形下方。"
+            ]
           }
         }
       ],
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "考虑一阶对象前接一个平滑非线性执行环节，在工作点附近判断能否建立小扰动模型。"
+          "body": "考虑 $2\\\\dot y(t)=-y(t)+u(t)$，$u(t)=\\\\tanh v(t)$。在 $v_0=0,y_0=0,u_0=0$ 附近写出小扰动模型和传递函数。"
         },
         "reveal_layers": {
           "type": "reveal",
           "layers": [
-            {
-              "body": "考虑一阶对象前接一个平滑非线性执行环节：",
-              "formula": "u(t)=\\tanh v(t)"
-            },
-            {
-              "body": "在工作点 $v_0=0$ 附近取切线斜率：",
-              "formula": "\\left.\\frac{du}{dv}\\right|_{v=0}=1-\\tanh^2 0=1"
-            },
-            {
-              "body": "小扰动关系可写为：",
-              "formula": "\\Delta u(t)\\approx\\Delta v(t),\\quad 2\\Delta\\dot y(t)=-\\Delta y(t)+\\Delta v(t)"
-            },
-            {
-              "body": "因此局部线性化传递函数为：",
-              "formula": "G_{lin}(s)=\\frac{\\Delta Y(s)}{\\Delta V(s)}=\\frac{1}{2s+1}"
-            }
+            "局部线性化基本式使用一阶导数：$y\\\\approx f(x_0)+f^{\\\\prime}(x_0)(x-x_0)$。",
+            "$\\\\tanh v\\\\approx \\\\tanh 0+(1-\\\\tanh^2 0)(v-0)=v$。",
+            "$2\\\\Delta\\\\dot y(t)=-\\\\Delta y(t)+\\\\Delta v(t)$。",
+            "$G_{lin}(s)=\\\\Delta Y(s)/\\\\Delta V(s)=1/(2s+1)$。",
+            "小阶跃和小幅正弦接近；大幅输入时 $\\\\tanh v$ 等效增益下降。"
           ]
         },
         "rust_panel": {
@@ -1010,16 +994,11 @@
               "id": "input_type",
               "label": "输入类型",
               "kind": "segmented",
-              "default": "step",
+              "default": "small_step",
               "options": [
-                {
-                  "value": "step",
-                  "label": "阶跃输入"
-                },
-                {
-                  "value": "sine",
-                  "label": "正弦输入"
-                }
+                "small_step",
+                "large_step",
+                "sine"
               ]
             },
             {
@@ -1028,8 +1007,20 @@
               "kind": "slider",
               "default": 0.2,
               "min": 0.05,
-              "max": 2,
+              "max": 2.0,
               "step": 0.05
+            },
+            {
+              "id": "show_linearized",
+              "label": "显示线性化曲线",
+              "kind": "toggle",
+              "default": true
+            },
+            {
+              "id": "show_original",
+              "label": "显示原非线性曲线",
+              "kind": "toggle",
+              "default": true
             }
           ],
           "submit_fields": [
@@ -1038,13 +1029,6 @@
             "gain_bias"
           ],
           "baseline": "复现左侧三类信号时域对比与右侧 Bode 对比"
-        },
-        "base_formula": {
-          "type": "formula_list",
-          "formulas": [
-            "2\\dot y(t)=-y(t)+u(t)",
-            "u(t)=\\tanh v(t)"
-          ]
         }
       },
       "evidence_sequence": [
@@ -1182,16 +1166,6 @@
           }
         },
         {
-          "id": "relay-base-formula",
-          "title": "继电器公式",
-          "region": "problem",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "base_formula"
-          }
-        },
-        {
           "id": "relay-reveal",
           "title": "伪线性化链与反证",
           "region": "reveal",
@@ -1209,7 +1183,12 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
-            "text": "左侧显示继电器响应与伪线性响应，右侧显示伪线性 Bode 与继电器一次谐波估计。"
+            "text": "左侧显示小阶跃、大阶跃、正弦时域反证，右侧显示伪线性 Bode 与继电器一次谐波估计。",
+            "items": [
+              "默认模型：2dy/dt=-y+u, u=sgn(v)",
+              "伪模型：Gfake(s)=1/(2s+1)",
+              "右侧 Bode 标注为一次谐波近似。"
+            ]
           }
         },
         {
@@ -1226,27 +1205,16 @@
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "同一阶对象前接继电器，在零点附近考察把切换环节强行写成固定增益时的失真。"
+          "body": "同一阶对象前接继电器：$2\\\\dot y(t)=-y(t)+u(t)$，$u(t)=\\\\operatorname{sgn}v(t)$。在 $v=0$ 附近考察伪线性化的失真。"
         },
         "reveal_layers": {
           "type": "reveal",
           "layers": [
-            {
-              "body": "继电器在零点两侧直接跳变：",
-              "formula": "u=\\operatorname{sgn}(v),\\quad v>0\\Rightarrow u=1,\\quad v<0\\Rightarrow u=-1"
-            },
-            {
-              "body": "零点处不存在普通意义下的有限导数：",
-              "formula": "\\left.\\frac{du}{dv}\\right|_{v=0}\\;\\nexists"
-            },
-            {
-              "body": "强行写成固定增益只能得到形式相似的伪模型：",
-              "formula": "2\\Delta\\dot y=-\\Delta y+\\Delta v,\\quad G_{fake}(s)=\\frac{1}{2s+1}"
-            },
-            {
-              "body": "这个伪模型不能解释切换输出、阈值穿越和高次谐波，因此不是合法局部线性化。",
-              "formula": "u(t)\\in\\{-1,1\\}\\not\\approx k\\,v(t)\\quad(v\\approx0)"
-            }
+            "$\\\\operatorname{sgn}v$ 在零点不连续，没有普通意义下的有限导数。",
+            "强行写 $u\\\\approx k_fv, k_f=1$ 只能得到形式相似的伪模型。",
+            "$2\\\\Delta\\\\dot y=-\\\\Delta y+\\\\Delta v,\\\\ G_{fake}(s)=1/(2s+1)$ 不是合法局部线性化。",
+            "小阶跃已经触发继电器输出，原系统朝 $1$ 收敛，伪模型只朝 $0.2$ 收敛。",
+            "右侧 Bode 是一次谐波近似，用于暴露伪模型掩盖的切换和高次谐波。"
           ]
         },
         "rust_panel": {
@@ -1286,17 +1254,23 @@
               "kind": "slider",
               "default": 0.2,
               "min": 0.05,
-              "max": 2,
+              "max": 2.0,
               "step": 0.05
             },
             {
               "id": "relay_amplitude",
               "label": "继电器幅值",
               "kind": "slider",
-              "default": 1,
+              "default": 1.0,
               "min": 0.2,
-              "max": 2,
+              "max": 2.0,
               "step": 0.1
+            },
+            {
+              "id": "show_fake_gain",
+              "label": "显示伪线性曲线",
+              "kind": "toggle",
+              "default": true
             }
           ],
           "submit_fields": [
@@ -1339,13 +1313,6 @@
               "单一模型不足",
               "模型参数、边界环节和外部扰动共同变化"
             ]
-          ]
-        },
-        "base_formula": {
-          "type": "formula_list",
-          "formulas": [
-            "2\\dot y(t)=-y(t)+u(t)",
-            "u(t)=\\operatorname{sgn} v(t)"
           ]
         }
       },
@@ -1479,16 +1446,6 @@
           }
         },
         {
-          "id": "saturation-object-formula",
-          "title": "对象公式",
-          "region": "problem",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "object_formula"
-          }
-        },
-        {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
@@ -1506,34 +1463,27 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
-            "text": "按本页模型生成忽略非线性预测和实际非线性响应对比。"
+            "text": "按本页模型生成忽略非线性预测和实际非线性响应对比，控件位于图形下方。",
+            "items": [
+              "左侧为时域响应或控制量对比。",
+              "默认参数复现讲义基线图。",
+              "提交当前参数和风险判断。"
+            ]
           }
         }
       ],
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "航向舵机角度存在上限。比较小参考输入和大参考输入下，忽略饱和预测与实际饱和响应的差异。"
+          "body": "航向舵机角度存在上限。对象 $2\\\\dot y=-y+u$，控制律 $v=2(r-y)$。比较小阶跃 $r=0.3$ 与大阶跃 $r=1.2$。"
         },
         "reveal_layers": {
           "type": "reveal",
           "layers": [
-            {
-              "body": "忽略饱和时，把执行器当成线性比例通道：",
-              "formula": "u=v"
-            },
-            {
-              "body": "考虑舵机上限时，控制量会被裁剪：",
-              "formula": "u=\\operatorname{sat}(v),\\quad |u|\\le1.2"
-            },
-            {
-              "body": "大参考输入下初始控制量已经越界：",
-              "formula": "v(0)=2r=2.4>1.2"
-            },
-            {
-              "body": "因此线性预测高估执行器能力，实际输出前段变慢。",
-              "formula": "y_{\\mathrm{linear}}(t)>y_{\\mathrm{sat}}(t),\\quad 0<t<t_{\\mathrm{sat}}"
-            }
+            "忽略饱和时取 $u=v$。",
+            "考虑舵机上限时 $u=\\\\operatorname{sat}(v), |u|\\\\le1.2$。",
+            "小阶跃初始 $v(0)=0.6$ 未触边；大阶跃初始 $v(0)=2.4$ 已越过上限。",
+            "线性预测高估执行器能力，实际输出前段变慢。"
           ]
         },
         "baseline_media": "/course-runtime/lessons/5-1/media/5-1-saturation-response-compare.png",
@@ -1575,7 +1525,7 @@
               "kind": "slider",
               "default": 1.2,
               "min": 0.4,
-              "max": 2,
+              "max": 2.0,
               "step": 0.1
             }
           ],
@@ -1583,14 +1533,6 @@
             "reference_r",
             "boundary_touched",
             "risk_statement"
-          ]
-        },
-        "object_formula": {
-          "type": "formula_list",
-          "formulas": [
-            "2\\dot y=-y+u",
-            "v=2(r-y)",
-            "u=\\operatorname{sat}(v),\\quad |u|\\le u_{max}"
           ]
         }
       },
@@ -1720,16 +1662,6 @@
           }
         },
         {
-          "id": "deadzone-object-formula",
-          "title": "对象公式",
-          "region": "problem",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "object_formula"
-          }
-        },
-        {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
@@ -1747,34 +1679,27 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
-            "text": "按本页模型生成忽略非线性预测和实际非线性响应对比。"
+            "text": "按本页模型生成忽略非线性预测和实际非线性响应对比，控件位于图形下方。",
+            "items": [
+              "左侧为时域响应或控制量对比。",
+              "默认参数复现讲义基线图。",
+              "提交当前参数和风险判断。"
+            ]
           }
         }
       ],
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "阀控执行机构在小开度附近存在死区。比较小参考输入下，线性预测和死区实际响应的差异。"
+          "body": "阀控执行机构在小开度附近存在死区。对象 $2\\\\dot y=-y+u$，$v=2(r-y)$，小参考输入 $r=0.12$，死区宽度 $\\\\Delta=0.2$。"
         },
         "reveal_layers": {
           "type": "reveal",
           "layers": [
-            {
-              "body": "忽略死区时，闭环仍按连续比例控制计算：",
-              "formula": "u=v,\\quad 2\\dot y=-y+2(r-y)"
-            },
-            {
-              "body": "考虑死区时，小指令会被执行机构吞掉：",
-              "formula": "|v|\\le\\Delta\\Rightarrow u=0"
-            },
-            {
-              "body": "本页默认小参考输入使控制量长期靠近死区边界：",
-              "formula": "r=0.12,\\quad \\Delta=0.2"
-            },
-            {
-              "body": "主要风险是小信号连续修正失效，误差不会按线性预测快速衰减。",
-              "formula": "y_{deadzone}(t)\\ll y_{linear}(t)"
-            }
+            "忽略死区时 $u=v$，闭环为 $2\\\\dot y=-y+2(r-y)$。",
+            "考虑死区时 $|v|\\\\le\\\\Delta$ 区间内 $u=0$，死区外按 $v\\\\mp0.2$ 输出。",
+            "线性预测最终输出约 $0.08$，实际响应约 $0.013$。",
+            "主要风险是小信号连续修正被执行机构吞掉。"
           ]
         },
         "baseline_media": "/course-runtime/lessons/5-1/media/5-1-deadzone-feedback-compare.png",
@@ -1790,7 +1715,7 @@
           "default_parameters": {
             "reference_r": 0.12,
             "deadzone_delta": 0.2,
-            "outer_slope": 1
+            "outer_slope": 1.0
           },
           "curve_series": [
             "linear_response",
@@ -1813,7 +1738,7 @@
               "label": "死区宽度 Delta",
               "kind": "slider",
               "default": 0.2,
-              "min": 0,
+              "min": 0.0,
               "max": 0.4,
               "step": 0.02
             },
@@ -1821,9 +1746,9 @@
               "id": "outer_slope",
               "label": "死区外斜率",
               "kind": "slider",
-              "default": 1,
+              "default": 1.0,
               "min": 0.5,
-              "max": 2,
+              "max": 2.0,
               "step": 0.1
             }
           ],
@@ -1831,14 +1756,6 @@
             "reference_r",
             "deadzone_delta",
             "effective_action"
-          ]
-        },
-        "object_formula": {
-          "type": "formula_list",
-          "formulas": [
-            "2\\dot y=-y+u",
-            "v=2(r-y)",
-            "u=\\begin{cases}0,&|v|\\le\\Delta\\\\ v-\\Delta,&v>\\Delta\\\\ v+\\Delta,&v<-\\Delta\\end{cases}"
           ]
         }
       },
@@ -1877,7 +1794,7 @@
         "default_parameters": {
           "reference_r": 0.12,
           "deadzone_delta": 0.2,
-          "outer_slope": 1
+          "outer_slope": 1.0
         },
         "curve_series": [
           "linear_response",
@@ -2018,7 +1935,7 @@
           "default_parameters": {
             "reference_r": 0.5,
             "hysteresis_h": 0.05,
-            "relay_amplitude": 1
+            "relay_amplitude": 1.0
           },
           "curve_series": [
             "linear_response",
@@ -2032,7 +1949,7 @@
               "label": "滞环宽度 h",
               "kind": "slider",
               "default": 0.05,
-              "min": 0,
+              "min": 0.0,
               "max": 0.2,
               "step": 0.01
             },
@@ -2040,9 +1957,9 @@
               "id": "relay_amplitude",
               "label": "继电器幅值",
               "kind": "slider",
-              "default": 1,
+              "default": 1.0,
               "min": 0.2,
-              "max": 2,
+              "max": 2.0,
               "step": 0.1
             },
             {
@@ -2051,7 +1968,7 @@
               "kind": "slider",
               "default": 0.5,
               "min": 0.1,
-              "max": 1,
+              "max": 1.0,
               "step": 0.05
             }
           ],
@@ -2097,7 +2014,7 @@
         "default_parameters": {
           "reference_r": 0.5,
           "hysteresis_h": 0.05,
-          "relay_amplitude": 1
+          "relay_amplitude": 1.0
         },
         "curve_series": [
           "linear_response",
@@ -2237,7 +2154,7 @@
             "rate_limited: du/dt = sat((v-u)/Ta), |du/dt| <= rate_limit"
           ],
           "default_parameters": {
-            "reference_r": 1,
+            "reference_r": 1.0,
             "actuator_Ta": 0.2,
             "rate_limit": 0.35
           },
@@ -2270,7 +2187,7 @@
               "id": "reference_r",
               "label": "参考输入 r",
               "kind": "slider",
-              "default": 1,
+              "default": 1.0,
               "min": 0.2,
               "max": 1.5,
               "step": 0.05
@@ -2316,7 +2233,7 @@
         "layout_mirror": "response_compare",
         "baseline_media": "/course-runtime/lessons/5-1/media/5-1-rate-limit-feedback-compare.png",
         "default_parameters": {
-          "reference_r": 1,
+          "reference_r": 1.0,
           "actuator_Ta": 0.2,
           "rate_limit": 0.35
         },
@@ -2677,7 +2594,7 @@
           {
             "id": "boundary-type-match",
             "title": "边界类型匹配",
-            "prompt": "把两个“现象 -> 边界类型”的配对按正确顺序排列：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。",
+            "prompt": "把两个现象拖入对应的边界类型空槽：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。",
             "response_kind": "drag_match",
             "submit_scope": "per_card",
             "layout_span": "one_third",

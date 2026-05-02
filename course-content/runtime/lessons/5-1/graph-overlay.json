@@ -137,14 +137,29 @@
           "扰动观测器",
           "MPC"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md"
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        }
       ],
       "tags": [
         "传统控制局限",
@@ -194,14 +209,29 @@
           "航迹偏离",
           "舵速"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "title": "工程指标代价函数翻译 信息图",
+          "lessonId": "5-1",
+          "nodeId": "工程指标代价函数翻译_4_47003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md"
+        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "title": "工程指标代价函数翻译 信息图",
+          "lessonId": "5-1",
+          "nodeId": "工程指标代价函数翻译_4_47003"
+        }
       ],
       "tags": [
         "代价函数",
@@ -216,8 +246,8 @@
       "name": "典型非线性边界环节",
       "nodeType": "THEORY",
       "description": "饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模式切换和模型失配等会破坏比例、叠加、单值连续、参数稳定或结构固定假设的工程环节。",
-      "positionX": 154.5,
-      "positionY": 41.4,
+      "positionX": 80.0,
+      "positionY": 138.6,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -255,14 +285,29 @@
           "速率限制",
           "量化"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/典型非线性边界环节_5_51002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/典型非线性边界环节_5_51002.png",
+          "title": "典型非线性边界环节 信息图",
+          "lessonId": "5-1",
+          "nodeId": "典型非线性边界环节_5_51002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/典型非线性边界环节_5_51002.md"
+        "course-content/runtime/knowledge/cards/nodes/典型非线性边界环节_5_51002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/典型非线性边界环节_5_51002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/典型非线性边界环节_5_51002.png",
+          "title": "典型非线性边界环节 信息图",
+          "lessonId": "5-1",
+          "nodeId": "典型非线性边界环节_5_51002"
+        }
       ],
       "tags": [
         "饱和",
@@ -279,8 +324,8 @@
       "name": "局部线性化边界判断",
       "nodeType": "THEORY",
       "description": "在工作点附近用切线斜率近似平滑非线性，并同时说明该近似只对小扰动和邻域信号有效；对继电器等不连续环节，不能强行写成单一传递函数。",
-      "positionX": -113.1,
-      "positionY": -113.1,
+      "positionX": -0.0,
+      "positionY": -160.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -314,14 +359,29 @@
           "传递函数",
           "不连续环节"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化边界判断_5_51003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/局部线性化边界判断_5_51003.png",
+          "title": "局部线性化边界判断 信息图",
+          "lessonId": "5-1",
+          "nodeId": "局部线性化边界判断_5_51003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/局部线性化边界判断_5_51003.md"
+        "course-content/runtime/knowledge/cards/nodes/局部线性化边界判断_5_51003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/局部线性化边界判断_5_51003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/局部线性化边界判断_5_51003.png",
+          "title": "局部线性化边界判断 信息图",
+          "lessonId": "5-1",
+          "nodeId": "局部线性化边界判断_5_51003"
+        }
       ],
       "tags": [
         "局部线性化",
@@ -336,8 +396,8 @@
       "name": "方法迁移前边界说明",
       "nodeType": "THEORY",
       "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
-      "positionX": -117.4,
-      "positionY": 117.4,
+      "positionX": -143.8,
+      "positionY": -83.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -370,14 +430,29 @@
           "工程证据",
           "风险说明"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md"
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        }
       ],
       "tags": [
         "方法迁移",
@@ -392,8 +467,8 @@
       "name": "线性主干边界识别",
       "nodeType": "THEORY",
       "description": "判断线性定常单回路模型在当前对象、工作点、输入幅值和环境条件下是否仍然有效，并说明哪条线性默认条件已经被破坏。",
-      "positionX": 149.0,
-      "positionY": 86.0,
+      "positionX": -44.5,
+      "positionY": 166.1,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -427,14 +502,29 @@
           "局部有效",
           "全局失真"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
+          "title": "线性主干边界识别 信息图",
+          "lessonId": "5-1",
+          "nodeId": "线性主干边界识别_5_51001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/线性主干边界识别_5_51001.md"
+        "course-content/runtime/knowledge/cards/nodes/线性主干边界识别_5_51001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
+          "title": "线性主干边界识别 信息图",
+          "lessonId": "5-1",
+          "nodeId": "线性主干边界识别_5_51001"
+        }
       ],
       "tags": [
         "线性主干",
@@ -449,8 +539,8 @@
       "name": "线性预测失真对比",
       "nodeType": "THEORY",
       "description": "用同一对象下忽略非线性的预测响应与含非线性实际响应对比，识别线性模型会高估执行能力、低估误差、掩盖振荡或误判初段动作。",
-      "positionX": 121.6,
-      "positionY": 121.6,
+      "positionX": -86.0,
+      "positionY": 149.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -485,14 +575,29 @@
           "响应失真",
           "控制量对比"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/线性预测失真对比_5_51004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/线性预测失真对比_5_51004.png",
+          "title": "线性预测失真对比 信息图",
+          "lessonId": "5-1",
+          "nodeId": "线性预测失真对比_5_51004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/线性预测失真对比_5_51004.md"
+        "course-content/runtime/knowledge/cards/nodes/线性预测失真对比_5_51004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/线性预测失真对比_5_51004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/线性预测失真对比_5_51004.png",
+          "title": "线性预测失真对比 信息图",
+          "lessonId": "5-1",
+          "nodeId": "线性预测失真对比_5_51004"
+        }
       ],
       "tags": [
         "线性预测",

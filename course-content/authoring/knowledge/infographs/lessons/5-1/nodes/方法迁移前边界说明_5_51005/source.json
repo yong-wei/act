@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:09:46.533855Z",
+  "lesson": {
+    "lesson_id": "5-1",
+    "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+    "groups": [
+      "边界判断与方法迁移"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "方法迁移前边界说明_5_51005",
+    "name": "方法迁移前边界说明",
+    "name_en": "Boundary Statement Before Method Migration",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "在进入非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清边界证据、假设破坏、线性内处理和迁移理由。",
+    "examples": [
+      "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+      "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+    ],
+    "formulas": [
+      "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+    ],
+    "keywords": [
+      "方法迁移",
+      "边界说明",
+      "工程证据",
+      "风险说明",
+      "工程判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+  "card_frontmatter": {
+    "node_id": "方法迁移前边界说明_5_51005",
+    "name": "方法迁移前边界说明",
+    "name_en": "Boundary Statement Before Method Migration",
+    "lesson_units": [
+      "5-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-1",
+      "方法迁移",
+      "工程判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/5-1/design/handout.md"
+    ],
+    "asset_refs": [
+      "5-1-info.png"
+    ]
+  },
+  "card_overview": "# 方法迁移前边界说明 | Boundary Statement Before Method Migration\n\n**一句话定义**：在进入非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清边界证据、假设破坏、线性内处理和迁移理由。\n\n**核心直觉**：方法迁移不是追新，而是已有主干已经不能解释当前对象时的有证据转向。\n\n**关键公式**：\n$$\n\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}\n$$\n\n**关联**：前置 → 线性预测失真对比 · 后续 → 5-2 非线性最小分析入口、5-3 复杂自主系统链路",
+  "card_detail": "### 完整解释\n\n方法迁移前必须先回答四个问题：已经观察到什么异常，可能破坏了哪条线性假设，仍可在线性主干内尝试哪些处理，什么时候这些处理已经不够。\n\n例如舵机触碰限幅时，可以先限制参考输入、重新调整控制器参数或重设工作点；若大范围任务长期由限幅、死区或路径记忆主导，就需要进入非线性边界工具或系统链路视角。\n\n### 常见误区\n\n1. **误区**：方法越前沿越适合。\n   **纠正**：没有边界证据的迁移只是换名词，不是工程判断。\n\n2. **误区**：留在线性主干内处理就是保守。\n   **纠正**：只要边界没有主导响应，线性主干仍可能是最清楚、最可验证的语言。",
+  "card_plain_excerpt": "## 首页\n\n# 方法迁移前边界说明 | Boundary Statement Before Method Migration\n\n**一句话定义**：在进入非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清边界证据、假设破坏、线性内处理和迁移理由。\n\n**核心直觉**：方法迁移不是追新，而是已有主干已经不能解释当前对象时的有证据转向。\n\n**关键公式**：\n$$\n\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}\n$$\n\n**关联**：前置 → 线性预测失真对比 · 后续 → 5-2 非线性最小分析入口、5-3 复杂自主系统链路\n\n## 详情\n\n### 完整解释\n\n方法迁移前必须先回答四个问题：已经观察到什么异常，可能破坏了哪条线性假设，仍可在线性主干内尝试哪些处理，什么时候这些处理已经不够。\n\n例如舵机触碰限幅时，可以先限制参考输入、重新调整控制器参数或重设工作点；若大范围任务长期由限幅、死区或路径记忆主导，就需要进入非线性边界工具或系统链路视角。\n\n### 常见误区\n\n1. **误区**：方法越前沿越适合。\n   **纠正**：没有边界证据的迁移只是换名词，不是工程判断。\n\n2. **误区**：留在线性主干内处理就是保守。\n   **纠正**：只要边界没有主导响应，线性主干仍可能是最清楚、最可验证的语言。",
+  "core_intuition": "方法迁移不是追新，而是已有主干已经不能解释当前对象时的有证据转向。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "线性预测失真对比",
+      "target_id": null,
+      "target": "方法迁移前边界说明",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "线性预测失真对比_5_51004",
+      "source": "线性预测失真对比",
+      "target_id": "方法迁移前边界说明_5_51005",
+      "target": "方法迁移前边界说明",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "只有把预测失真说清楚，后续进入边界工具、复杂系统链路或数据驱动才有工程理由。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "方法迁移前边界说明",
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明",
+        "工程判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

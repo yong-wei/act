@@ -96,7 +96,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '把失效信号匹配到被破坏的线性默认条件。'
       activity_cards:
-        - { id: 'assumption-match', title: '失效信号匹配', prompt: '把三条“现象 -> 默认条件”的配对按正确顺序排列：输出被压平、路径回程残差、保护逻辑介入。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' }, { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' }, { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' }], reference_answer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。' }
+        - { id: 'assumption-match', title: '失效信号匹配', prompt: '把三条现象拖入对应的线性默认条件空槽：输出被压平、路径回程残差、保护逻辑介入。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' }, { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' }, { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' }], reference_answer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。' }
     teacher_controls: *quiz_controls
     student_access: *released_activity_access
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['assumption_mapping_error'] }
@@ -124,7 +124,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '把典型非线性现象归类到被破坏的线性默认条件。'
       activity_cards:
-        - { id: 'boundary-classify', title: '假设破坏分类', prompt: '把七条“非线性类型 -> 主要破坏假设”的配对按表格中的判断顺序排列。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'saturation', label: '饱和 -> 比例关系或固定增益近似' }, { value: 'deadzone', label: '死区 -> 小信号比例灵敏度' }, { value: 'hysteresis', label: '滞回 -> 单值连续关系' }, { value: 'rate_limit', label: '速率限制 -> 比例关系或动态跟随假设' }, { value: 'quantization', label: '量化 -> 单值连续关系' }, { value: 'mode_switch', label: '模式切换 -> 工作模式不突变' }, { value: 'model_mismatch', label: '模型失配 -> 模型参数稳定' }], reference_answer: '饱和和速率限制主要破坏比例或固定增益近似；死区破坏小信号灵敏度；滞回和量化破坏单值连续；模式切换破坏结构固定；模型失配破坏参数稳定。' }
+        - { id: 'boundary-classify', title: '假设破坏分类', prompt: '把七类非线性环节拖入对应的主要破坏假设空槽。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', options: [{ value: 'saturation', label: '饱和 -> 比例关系或固定增益近似' }, { value: 'deadzone', label: '死区 -> 小信号比例灵敏度' }, { value: 'hysteresis', label: '滞回 -> 单值连续关系' }, { value: 'rate_limit', label: '速率限制 -> 比例关系或动态跟随假设' }, { value: 'quantization', label: '量化 -> 单值连续关系' }, { value: 'mode_switch', label: '模式切换 -> 工作模式不突变' }, { value: 'model_mismatch', label: '模型失配 -> 模型参数稳定' }], reference_answer: '饱和和速率限制主要破坏比例或固定增益近似；死区破坏小信号灵敏度；滞回和量化破坏单值连续；模式切换破坏结构固定；模型失配破坏参数稳定。' }
     teacher_controls: *quiz_controls
     student_access: *released_activity_access
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['all_nonlinear_same', 'hysteresis_as_delay'] }
@@ -304,7 +304,7 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成 2 道客观题和 1 道主观题。'
       activity_cards:
-        - { id: 'boundary-type-match', title: '边界类型匹配', prompt: '把两个“现象 -> 边界类型”的配对按正确顺序排列：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。', response_kind: 'drag_sort', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'rudder_limit', label: '大角度舵机触碰上限 -> 饱和' }, { value: 'small_error_no_action', label: '小修正长期落在无动作区间内而误差不减 -> 死区' }], reference_answer: '大角度舵机触碰上限对应饱和；小修正落在无动作区间内对应死区。' }
+        - { id: 'boundary-type-match', title: '边界类型匹配', prompt: '把两个现象拖入对应的边界类型空槽：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'rudder_limit', label: '大角度舵机触碰上限 -> 饱和' }, { value: 'small_error_no_action', label: '小修正长期落在无动作区间内而误差不减 -> 死区' }], reference_answer: '大角度舵机触碰上限对应饱和；小修正落在无动作区间内对应死区。' }
         - { id: 'linearization-judgment', title: '局部线性化判断', prompt: '关于 $u=\\tanh v$ 与 $u=\\operatorname{sgn}v$ 的局部线性化判断，哪些说法成立？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'one_third', options: [{ value: 'a', label: '$\\tanh v$ 在 $v=0$ 附近可用切线近似。' }, { value: 'b', label: '$\\operatorname{sgn}v$ 在零点可以直接写成固定比例增益。' }, { value: 'c', label: '合理线性化必须说明工作点和扰动范围。' }], reference_answer: '选 A、C。' }
         - { id: 'boundary-note', title: '边界说明短答', prompt: '根据“海试拖尾 + 控制量频繁限幅”写不超过 150 字的边界说明，包含证据、假设破坏、线性内处理和迁移理由。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full', reference_answer: '教师查看四字段完整性：证据、假设破坏、线性内处理、迁移理由。' }
     teacher_controls: *quiz_controls

@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:09:46.631740Z",
+  "lesson": {
+    "lesson_id": "5-1",
+    "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+    "groups": [
+      "边界判断与方法迁移"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "工程指标代价函数翻译_4_47003",
+    "name": "工程指标代价函数翻译",
+    "name_en": "Engineering Metrics to Cost Function Translation",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把航向误差、航迹偏离、舵角、舵速、饱和占比和稳定裕度翻译为主目标、次目标、硬约束与罚项。",
+    "examples": [
+      "同一任务中，航向误差回答是否跟住给定，航迹偏离回答船是否真正走到位，舵角与舵速回答执行机构是否可交付。"
+    ],
+    "formulas": [
+      "J=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}"
+    ],
+    "keywords": [
+      "代价函数",
+      "硬约束",
+      "航迹偏离",
+      "舵速",
+      "4-7",
+      "工程指标"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md",
+  "card_frontmatter": {
+    "node_id": "工程指标代价函数翻译_4_47003",
+    "name": "工程指标代价函数翻译",
+    "name_en": "Engineering Metrics to Cost Function Translation",
+    "lesson_units": [
+      "4-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-7",
+      "代价函数",
+      "工程指标"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-7/design/handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 工程指标代价函数翻译 | Engineering Metrics to Cost Function Translation\n\n**一句话定义**：把航向误差、航迹偏离、舵角、舵速、饱和占比和稳定裕度翻译为主目标、次目标、硬约束与罚项。\n\n**核心直觉**：优化目标不是越多越好，而是每一项都要回答真实任务中的一个具体风险。\n\n**关键公式**：\n$$\nJ=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}\n$$\n\n**关联**：前置 → 分段辨识模型组合、参数约束翻译表 · 后续 → 传统设计四联图校正、结构参数联合搜索解码",
+  "card_detail": "### 完整解释\n\n`4-7` 的指标翻译把“航向曲线好不好看”改写成可交付判断。航向误差回答能否跟住给定，航迹偏离回答船是否真正走到位，舵角和舵速回答执行机构是否可实现，饱和占比和裕度回答方案是否靠贴边运行。\n\n罚项的作用不是把硬约束变软，而是在搜索过程中让候选尽早远离不可交付区域。\n\n### 常见误区\n\n1. **误区**：代价函数只要让误差最小就够了。\n   **纠正**：航迹、舵角、舵速和裕度都是真实任务的交付边界。\n\n2. **误区**：罚项越大越严格，因此越好。\n   **纠正**：罚项要服务边界表达，过大可能让搜索只学会避罚而忽略主目标。",
+  "card_plain_excerpt": "## 首页\n\n# 工程指标代价函数翻译 | Engineering Metrics to Cost Function Translation\n\n**一句话定义**：把航向误差、航迹偏离、舵角、舵速、饱和占比和稳定裕度翻译为主目标、次目标、硬约束与罚项。\n\n**核心直觉**：优化目标不是越多越好，而是每一项都要回答真实任务中的一个具体风险。\n\n**关键公式**：\n$$\nJ=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}\n$$\n\n**关联**：前置 → 分段辨识模型组合、参数约束翻译表 · 后续 → 传统设计四联图校正、结构参数联合搜索解码\n\n## 详情\n\n### 完整解释\n\n`4-7` 的指标翻译把“航向曲线好不好看”改写成可交付判断。航向误差回答能否跟住给定，航迹偏离回答船是否真正走到位，舵角和舵速回答执行机构是否可实现，饱和占比和裕度回答方案是否靠贴边运行。\n\n罚项的作用不是把硬约束变软，而是在搜索过程中让候选尽早远离不可交付区域。\n\n### 常见误区\n\n1. **误区**：代价函数只要让误差最小就够了。\n   **纠正**：航迹、舵角、舵速和裕度都是真实任务的交付边界。\n\n2. **误区**：罚项越大越严格，因此越好。\n   **纠正**：罚项要服务边界表达，过大可能让搜索只学会避罚而忽略主目标。",
+  "core_intuition": "优化目标不是越多越好，而是每一项都要回答真实任务中的一个具体风险。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "分段辨识模型组合",
+      "target_id": null,
+      "target": "工程指标代价函数翻译",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "工程指标代价函数翻译",
+      "target_id": null,
+      "target": "传统设计四联图校正",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数约束翻译表",
+      "target_id": null,
+      "target": "工程指标代价函数翻译",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "工程指标代价函数翻译",
+      "target_id": null,
+      "target": "结构参数联合搜索解码",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "工程指标代价函数翻译",
+      "target_id": null,
+      "target": "线性预测失真对比",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "工程指标代价函数翻译_4_47003",
+      "source": "工程指标代价函数翻译",
+      "target_id": "线性预测失真对比_5_51004",
+      "target": "线性预测失真对比",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": "4-7 中舵角、舵速和饱和占比的代价语言，在 5-1 中转化为边界响应失真的观察证据。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "工程指标代价函数翻译",
+        "代价函数",
+        "硬约束",
+        "航迹偏离",
+        "舵速",
+        "4-7",
+        "工程指标"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "J=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

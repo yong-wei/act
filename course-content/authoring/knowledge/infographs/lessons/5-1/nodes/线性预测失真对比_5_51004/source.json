@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:09:46.432840Z",
+  "lesson": {
+    "lesson_id": "5-1",
+    "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+    "groups": [
+      "局部线性化与预测对比",
+      "边界判断与方法迁移"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "线性预测失真对比_5_51004",
+    "name": "线性预测失真对比",
+    "name_en": "Comparison Between Linear Prediction and Nonlinear Response",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "把忽略非线性的线性预测与含非线性实际响应放在同一对象下对比，识别被低估的风险。",
+    "examples": [
+      "大阶跃触发饱和后，实际输出前段慢于线性预测。",
+      "死区吞掉小修正后，线性模型高估稳态附近修正能力。",
+      "滞环继电器会产生周期摆动，而比例近似只给出平滑收敛曲线。"
+    ],
+    "formulas": [
+      "2\\dot y=-y+u,\\qquad u_{\\mathrm{lin}}=v,\\qquad u_{\\mathrm{actual}}=\\phi(v)"
+    ],
+    "keywords": [
+      "线性预测",
+      "实际响应",
+      "响应失真",
+      "控制量对比",
+      "响应对比",
+      "预测失真"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/线性预测失真对比_5_51004.md",
+  "card_frontmatter": {
+    "node_id": "线性预测失真对比_5_51004",
+    "name": "线性预测失真对比",
+    "name_en": "Comparison Between Linear Prediction and Nonlinear Response",
+    "lesson_units": [
+      "5-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-1",
+      "响应对比",
+      "预测失真"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/5-1/design/handout.md"
+    ],
+    "asset_refs": [
+      "5-1-saturation-response-compare.png",
+      "5-1-deadzone-feedback-compare.png",
+      "5-1-relay-hysteresis-feedback-compare.png",
+      "5-1-rate-limit-feedback-compare.png"
+    ]
+  },
+  "card_overview": "# 线性预测失真对比 | Comparison Between Linear Prediction and Nonlinear Response\n\n**一句话定义**：把忽略非线性的线性预测与含非线性实际响应放在同一对象下对比，识别被低估的风险。\n\n**核心直觉**：同一条线性设计在小信号下可能有效，在大指令、阈值附近或速率受限时会失真。\n\n**关键公式**：\n$$\n2\\dot y=-y+u,\\qquad u_{\\mathrm{lin}}=v,\\qquad u_{\\mathrm{actual}}=\\phi(v)\n$$\n\n**关联**：前置 → 典型非线性边界环节、局部线性化边界判断 · 后续 → 方法迁移前边界说明",
+  "card_detail": "### 完整解释\n\n饱和例子说明大指令下实际执行器输出会被截断，输出前段慢于线性预测。死区例子说明小修正可能被吞掉，线性模型会高估稳态附近的修正能力。滞环继电器例子说明线性比例近似会掩盖周期摆动和开关跳变。速率限制例子说明控制量不能立即到位，初段响应会明显滞后。\n\n这些对比的价值不在于给出复杂非线性设计，而在于让学生说清楚“线性主干会低估什么风险”。\n\n### 常见误区\n\n1. **误区**：最终值接近就说明线性预测够用。\n   **纠正**：初段动作、控制量越界、切换频率和路径依赖都可能已经不可接受。\n\n2. **误区**：只要改控制器参数就能消除所有失真。\n   **纠正**：有些失真来自对象边界，必须显式纳入边界判断。",
+  "card_plain_excerpt": "## 首页\n\n# 线性预测失真对比 | Comparison Between Linear Prediction and Nonlinear Response\n\n**一句话定义**：把忽略非线性的线性预测与含非线性实际响应放在同一对象下对比，识别被低估的风险。\n\n**核心直觉**：同一条线性设计在小信号下可能有效，在大指令、阈值附近或速率受限时会失真。\n\n**关键公式**：\n$$\n2\\dot y=-y+u,\\qquad u_{\\mathrm{lin}}=v,\\qquad u_{\\mathrm{actual}}=\\phi(v)\n$$\n\n**关联**：前置 → 典型非线性边界环节、局部线性化边界判断 · 后续 → 方法迁移前边界说明\n\n## 详情\n\n### 完整解释\n\n饱和例子说明大指令下实际执行器输出会被截断，输出前段慢于线性预测。死区例子说明小修正可能被吞掉，线性模型会高估稳态附近的修正能力。滞环继电器例子说明线性比例近似会掩盖周期摆动和开关跳变。速率限制例子说明控制量不能立即到位，初段响应会明显滞后。\n\n这些对比的价值不在于给出复杂非线性设计，而在于让学生说清楚“线性主干会低估什么风险”。\n\n### 常见误区\n\n1. **误区**：最终值接近就说明线性预测够用。\n   **纠正**：初段动作、控制量越界、切换频率和路径依赖都可能已经不可接受。\n\n2. **误区**：只要改控制器参数就能消除所有失真。\n   **纠正**：有些失真来自对象边界，必须显式纳入边界判断。",
+  "core_intuition": "同一条线性设计在小信号下可能有效，在大指令、阈值附近或速率受限时会失真。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "工程指标代价函数翻译",
+      "target_id": null,
+      "target": "线性预测失真对比",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "线性预测失真对比",
+      "target_id": null,
+      "target": "方法迁移前边界说明",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型非线性边界环节",
+      "target_id": null,
+      "target": "线性预测失真对比",
+      "relation": "applies_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "局部线性化边界判断",
+      "target_id": null,
+      "target": "线性预测失真对比",
+      "relation": "supports",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "典型非线性边界环节_5_51002",
+      "source": "典型非线性边界环节",
+      "target_id": "线性预测失真对比_5_51004",
+      "target": "线性预测失真对比",
+      "relation": "applies_to",
+      "strength": 0.95,
+      "description": "饱和、死区、继电器和速率限制分别给出忽略边界与实际响应之间的差异证据。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "局部线性化边界判断_5_51003",
+      "source": "局部线性化边界判断",
+      "target_id": "线性预测失真对比_5_51004",
+      "target": "线性预测失真对比",
+      "relation": "supports",
+      "strength": 0.88,
+      "description": "合理与不合理线性化的对比说明线性预测何时仍可用、何时会掩盖关键现象。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "线性预测失真对比_5_51004",
+      "source": "线性预测失真对比",
+      "target_id": "方法迁移前边界说明_5_51005",
+      "target": "方法迁移前边界说明",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "只有把预测失真说清楚，后续进入边界工具、复杂系统链路或数据驱动才有工程理由。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "工程指标代价函数翻译_4_47003",
+      "source": "工程指标代价函数翻译",
+      "target_id": "线性预测失真对比_5_51004",
+      "target": "线性预测失真对比",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": "4-7 中舵角、舵速和饱和占比的代价语言，在 5-1 中转化为边界响应失真的观察证据。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "线性预测失真对比",
+        "线性预测",
+        "实际响应",
+        "响应失真",
+        "控制量对比",
+        "响应对比",
+        "预测失真"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "2\\dot y=-y+u,\\qquad u_{\\mathrm{lin}}=v,\\qquad u_{\\mathrm{actual}}=\\phi(v)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

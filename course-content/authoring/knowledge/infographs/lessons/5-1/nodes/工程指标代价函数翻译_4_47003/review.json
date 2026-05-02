@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T07:35:49.712052Z",
+  "lesson_id": "5-1",
+  "node_id": "工程指标代价函数翻译_4_47003",
+  "node_name": "工程指标代价函数翻译",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

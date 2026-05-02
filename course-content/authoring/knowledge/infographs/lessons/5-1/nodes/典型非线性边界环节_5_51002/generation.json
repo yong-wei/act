@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:15:25.140793Z",
+  "lesson_id": "5-1",
+  "node_id": "典型非线性边界环节_5_51002",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019ddd6f-1cbb-7592-b985-db09f898d2ba/ig_09bb519c468292d30169f5a44a169c8191912c0242aaec25c6.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/5-1/nodes/典型非线性边界环节_5_51002/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/5-1/nodes/典型非线性边界环节_5_51002/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/5-1/nodes/典型非线性边界环节_5_51002/source.json"
+}

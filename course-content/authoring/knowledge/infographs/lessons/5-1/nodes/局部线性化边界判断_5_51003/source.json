@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T07:09:46.331249Z",
+  "lesson": {
+    "lesson_id": "5-1",
+    "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+    "groups": [
+      "局部线性化与预测对比"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "局部线性化边界判断_5_51003",
+    "name": "局部线性化边界判断",
+    "name_en": "Boundary Judgment for Local Linearization",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "在工作点附近用切线斜率近似平滑非线性，同时说明该近似只对小扰动邻域有效。",
+    "examples": [
+      "执行环节 $u=\\tanh v$ 在 $v_0=0$ 附近可近似为 $u\\approx v$。",
+      "继电器 $u=\\operatorname{sgn}v$ 在零点没有有限斜率，强行线性化会掩盖切换和周期运动。"
+    ],
+    "formulas": [
+      "u=f(v)\\approx f(v_0)+f'(v_0)(v-v_0),\\qquad \\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}"
+    ],
+    "keywords": [
+      "局部线性化",
+      "工作点",
+      "传递函数",
+      "不连续环节",
+      "边界判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/局部线性化边界判断_5_51003.md",
+  "card_frontmatter": {
+    "node_id": "局部线性化边界判断_5_51003",
+    "name": "局部线性化边界判断",
+    "name_en": "Boundary Judgment for Local Linearization",
+    "lesson_units": [
+      "5-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-1",
+      "局部线性化",
+      "边界判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/5-1/design/handout.md"
+    ],
+    "asset_refs": [
+      "5-1-local-linearization-smooth-compare.png",
+      "5-1-local-linearization-relay-bad-compare.png"
+    ]
+  },
+  "card_overview": "# 局部线性化边界判断 | Boundary Judgment for Local Linearization\n\n**一句话定义**：在工作点附近用切线斜率近似平滑非线性，同时说明该近似只对小扰动邻域有效。\n\n**核心直觉**：能线性化的不是“所有非线性”，而是工作点附近足够平滑、扰动范围足够小的对象。\n\n**关键公式**：\n$$\nu=f(v)\\approx f(v_0)+f'(v_0)(v-v_0),\\qquad\n\\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}\n$$\n\n**关联**：前置 → 典型非线性边界环节 · 后续 → 线性预测失真对比",
+  "card_detail": "### 完整解释\n\n对于 $u=\\tanh v$ 这类平滑非线性，若工作点取 $v_0=0$，可用 $f'(0)=1$ 得到小信号线性近似。接在一阶对象 $2\\dot y=-y+u$ 后，可写成近似传递函数 $Y(s)/V(s)=1/(2s+1)$。\n\n对于继电器 $u=\\operatorname{sgn}v$，零点附近不存在有限斜率。把它强行写成某个比例环节，会把开关动作、阈值穿越和周期摆动全部抹掉。\n\n### 常见误区\n\n1. **误区**：只要能画出局部斜率，就可以写成传递函数。\n   **纠正**：必须同时满足平滑性和小扰动范围，且说明工作点。\n\n2. **误区**：局部线性化后的模型可以解释全范围响应。\n   **纠正**：它只解释工作点附近，小输入、大输入和扫频响应要分开验证。",
+  "card_plain_excerpt": "## 首页\n\n# 局部线性化边界判断 | Boundary Judgment for Local Linearization\n\n**一句话定义**：在工作点附近用切线斜率近似平滑非线性，同时说明该近似只对小扰动邻域有效。\n\n**核心直觉**：能线性化的不是“所有非线性”，而是工作点附近足够平滑、扰动范围足够小的对象。\n\n**关键公式**：\n$$\nu=f(v)\\approx f(v_0)+f'(v_0)(v-v_0),\\qquad\n\\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}\n$$\n\n**关联**：前置 → 典型非线性边界环节 · 后续 → 线性预测失真对比\n\n## 详情\n\n### 完整解释\n\n对于 $u=\\tanh v$ 这类平滑非线性，若工作点取 $v_0=0$，可用 $f'(0)=1$ 得到小信号线性近似。接在一阶对象 $2\\dot y=-y+u$ 后，可写成近似传递函数 $Y(s)/V(s)=1/(2s+1)$。\n\n对于继电器 $u=\\operatorname{sgn}v$，零点附近不存在有限斜率。把它强行写成某个比例环节，会把开关动作、阈值穿越和周期摆动全部抹掉。\n\n### 常见误区\n\n1. **误区**：只要能画出局部斜率，就可以写成传递函数。\n   **纠正**：必须同时满足平滑性和小扰动范围，且说明工作点。\n\n2. **误区**：局部线性化后的模型可以解释全范围响应。\n   **纠正**：它只解释工作点附近，小输入、大输入和扫频响应要分开验证。",
+  "core_intuition": "能线性化的不是“所有非线性”，而是工作点附近足够平滑、扰动范围足够小的对象。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "典型非线性边界环节",
+      "target_id": null,
+      "target": "局部线性化边界判断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "局部线性化边界判断",
+      "target_id": null,
+      "target": "线性预测失真对比",
+      "relation": "supports",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "典型非线性边界环节_5_51002",
+      "source": "典型非线性边界环节",
+      "target_id": "局部线性化边界判断_5_51003",
+      "target": "局部线性化边界判断",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "不同非线性环节决定能否在工作点附近做合理局部线性化。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "局部线性化边界判断_5_51003",
+      "source": "局部线性化边界判断",
+      "target_id": "线性预测失真对比_5_51004",
+      "target": "线性预测失真对比",
+      "relation": "supports",
+      "strength": 0.88,
+      "description": "合理与不合理线性化的对比说明线性预测何时仍可用、何时会掩盖关键现象。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "局部线性化边界判断",
+        "局部线性化",
+        "工作点",
+        "传递函数",
+        "不连续环节",
+        "边界判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "u=f(v)\\approx f(v_0)+f'(v_0)(v-v_0),\\qquad \\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}
