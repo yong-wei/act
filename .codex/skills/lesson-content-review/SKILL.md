@@ -296,16 +296,15 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 若是线框图，检查其来源是否符合真实绘图流程，而不是 ASCII 或截图占位
 - 审查标准不是“能看懂就行”，而是“是否已经达到规范、清晰、可直接进讲义或页面的出版级配图水准”
 - 审核通过后，再导出到 `course-content/runtime/lessons/<lesson>/media/`
-- 导出 runtime 时，还必须在 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md` 生成 5 项标准骨架，并同步回作者态 `media/processed/<lesson>-media.md`：
+- 导出 runtime 时，还必须确保 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md` 与作者态 `media/processed/<lesson>-media.md` 具备 5 项标准骨架；该文件只允许在不存在时初始化，不承担内容补全、摘要生成或标题整理职责：
   - `# <lesson>-intro-video.mp4`
   - `# <lesson>-audio.m4a`
   - `# <lesson>-slides.pdf`
   - `# <lesson>-course.mp4`
   - `# <lesson>-handout.md`
-- 其中导入视频节若能在作者态 `media/raw/*intro-video-prompt*.md` 中找到 `Agent 模式视频生成提示词`，应自动生成一句“视频主题文案”追加到 `# <lesson>-intro-video.mp4` 节内；若原节已有人工标题，应保留原标题并把主题句附在后面
-- `audio.m4a`、`slides.pdf`、`course.mp4` 若原文件中已有人工标题或备注，必须原样保留；不要因为生成骨架而覆盖
-- `# <lesson>-handout.md` 若原文件中已有人工录入的讲义摘要，必须原样保留；仅在缺失该节时补一个空节
-- 若该文件已存在且用户已填写链接、标题或摘要，只允许规范标题顺序、补导入视频主题句并保留既有内容，不得覆盖人工录入内容
+- 初始化新文件时，仅 `# <lesson>-intro-video.mp4` 节允许写 1 句导入视频简介；简介应来自作者态导入视频提示词的主线情节，直接描述画面对象、动作、冲突或对比结果。
+- `audio.m4a`、`slides.pdf`、`course.mp4`、`handout.md` 四节初始化时必须留空；不得写标题、摘要、占位说明、待补提示或 URL。
+- 若 `<lesson>-media.md` 已存在且已有任何人工内容，审查导出不得覆盖、追加、改写、重排、清空或规范化该文件；不得给已有导入视频节追加主题句，也不得给 handout 节自动补讲义摘要。
 
 详细规则见 `references/multimedia-review.md`。
 
@@ -401,7 +400,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 若为实践课，已确认讲义仍是主线正文，不是用 practice-guide 替代讲义
 - [ ] 若为实践课，已检查 `design/{unit}-boppps.md` 与 `design/{unit}-interactive-page.md` 中学生参与/实践训练累计不少于 45 分钟
 - [ ] 已检查关键媒体完整性：`<lesson>-cover-comic.png`、`<lesson>-info.png`、`<lesson>-slides.pdf`、`<lesson>-intro-video.mp4`、`<lesson>-course.mp4`、`<lesson>-audio.m4a`
-- [ ] 已确认 runtime 会生成并保留 `media/<lesson>-media.md` 标题骨架，不覆盖用户已填写链接
+- [ ] 已确认 runtime 只在缺失时初始化 `media/<lesson>-media.md` 空白模板；除导入视频 1 句简介外不填写任何内容，且不修改已有内容
 - [ ] 已完成外部事实的联网核验（如适用）
 - [ ] 已完成科学合理性分析
 - [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）

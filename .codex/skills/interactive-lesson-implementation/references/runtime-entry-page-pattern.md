@@ -67,13 +67,13 @@
 
 - 页面用户可见文案必须优先从 runtime 文档读取，而不是从 JSX 常量硬编码。
 - 用户可见文案只写课程内容，不写“运行态”“索引”“路径”“实现”“挂载”之类工程词。
-- 若作者态需要提供导入视频说明，应先把文案写入 runtime `media/<lesson>-media.md`，前端只消费 runtime，不跨回作者态临时取词。
+- 若作者态需要提供导入视频说明，只能在 runtime `media/<lesson>-media.md` 初始化时写入 1 句简介；文件已有内容时不追加、不改写，前端只消费 runtime，不跨回作者态临时取词。
 
 ## 视频/音频/课件文案
 
 - 视频、音频、课件卡片正文说明统一读取 `lessonRuntime.mediaResources[*].title`。
 - `title` 的来源是 runtime 媒体索引中该节第一条说明行；若说明行缺省，则回退为文件名。
-- 当前审查导出会保留已有人工标题；导入视频还可能在原标题后追加一条主题文案，但页面标题仍以第一条人工说明行为准。
+- 审查导出不得为已有媒体索引追加主题文案、补标题或改写标题；初始化新索引时，只有导入视频节可写 1 句简介，其余媒体节为空。
 
 ### 音频特例
 
@@ -89,7 +89,7 @@
 ## 讲义文案
 
 - 讲义卡片摘要优先读取 runtime 媒体文档中 `# <lesson>-handout.md` 后的说明块，并通过 `lessonRuntime.handoutSummary` 进入页面。
-- 若 runtime `media/<lesson>-media.md` 的 `# <lesson>-handout.md` 节为空，运行时 bundle 可回退到兜底摘要，但不要主动清空已有的人工摘要。
+- 若 runtime `media/<lesson>-media.md` 的 `# <lesson>-handout.md` 节为空，运行时 bundle 可回退到兜底摘要；审查导出不得自动写入讲义摘要，也不得清空或改写已有人工摘要。
 - 删除纯文本截断预览，不再把 `handoutPreview` 当作用户可见摘要区。
 
 ## 媒体容器规则

@@ -131,7 +131,7 @@ def load_sequence(lesson_id: str) -> dict[str, Any]:
 def node_group_map(sequence: dict[str, Any]) -> dict[str, list[str]]:
     groups: dict[str, list[str]] = {}
     for group in sequence.get('groups', []):
-        name = str(group.get('group_name') or '')
+        name = str(group.get('group_name') or group.get('title') or '')
         for node_id in group.get('node_ids', []):
             groups.setdefault(str(node_id), []).append(name)
     return groups
@@ -173,4 +173,3 @@ def latest_codex_image() -> Path | None:
     if not candidates:
         return None
     return max(candidates, key=lambda item: item.stat().st_mtime)
-

@@ -1,8 +1,8 @@
 # 已知部署风险
 
 状态: active
-最后更新: 2026-04-15
-摘要: 汇总那些“反复出现、且容易被误判为源码问题”的部署与发布风险；当前已知风险除旧前端资源、Prisma 迁移、会话环境漂移和 Redis OOM 后 worker 日志风暴外，还包括 2026-04-15 确认的 Podman 容器 DNS / systemd 重启链路失配问题。
+最后更新: 2026-05-02
+摘要: 汇总那些“反复出现、且容易被误判为源码问题”的部署与发布风险；当前已知风险除旧前端资源、Prisma 迁移、会话环境漂移、Redis OOM 后 worker 日志风暴、Podman 容器 DNS / systemd 重启链路失配外，还包括“未获明确部署指令时不得构建镜像”的协作边界。
 上游:
 - [30-database-and-migrations.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/30-database-and-migrations.md)
 下游:
@@ -80,3 +80,14 @@
 - 当前部署链路会在创建 `app/worker` 时通过 `--add-host` 固定数据库与 Redis 主机映射，以绕开 Node `getaddrinfo` 抖动
 - 若随后 systemd 只是 `podman start` 旧的 `app/worker` 容器，而数据库或 Redis 已获取新 IP，旧映射会立刻失效
 - 因此 `configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only`，而不是直接复用旧容器
+
+## 风险 8: 未获明确部署指令时不得构建镜像
+
+症状:
+- 用户只要求本地代码修改、配置抽取、验证或解释问题，但智能体开始执行 `scripts/build.sh`、`docker buildx build` 或创建部署用临时 worktree
+- 业务逻辑没有要求上线，但本地开始生成或覆盖 `deploy/images/act-obe.tar`
+
+解释:
+- 镜像构建是部署流程的一部分，耗时长、会产生大文件，并可能扩大当前任务边界
+- 除非用户明确要求“部署到服务器”“发布线上”“重新部署”等同义操作，否则不得构建镜像
+- 普通本地验证应停在 `npm run lint`、`npm run test`、`npm run build`、配置 smoke 或定向接口测试；只有获得明确服务器部署指令后，才进入 `docker info`、`scripts/build.sh`、`scripts/remote-deploy.sh --skip-build`
