@@ -1,0 +1,66 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-3",
+  "status": "accepted",
+  "accepted_at": "2026-05-02T20:59:36+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-3/design/5-3-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-3/design/5-3-interactive-contract.yaml",
+    "boppps": "course-content/authoring/lessons/5-3/design/5-3-boppps.md",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/5-3/sequence.json"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "mandatory_rust_panel": "pass",
+    "structured_parameter_submission": "pass",
+    "normalized_manifest_consumability": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "review_mode": "page_design_and_contract_runtime_consumability",
+    "review_records": [
+      {
+        "reviewer_agent_id": "019de8b5-439a-7800-98fc-d2e7503b41da",
+        "scope": "step-01_to_step-15_student_self_contained_design_review",
+        "initial_result": "needs_revision",
+        "final_result": "pass_after_revision",
+        "resolved_findings": [
+          "step-06_feedback_formula_and_noise_delay_explanations_completed",
+          "step-08_actuator_limit_three_part_evidence_completed",
+          "step-11_four_step_diagnostic_reveal_completed",
+          "step-11_submission_fields_structured",
+          "sequence_step_10_and_step_15_card_ownership_aligned"
+        ]
+      },
+      {
+        "reviewer_agent_id": "019de8b5-8005-7190-b9b8-e7920f708f86",
+        "scope": "interactive_contract_manifest_consumability_review",
+        "initial_result": "needs_revision",
+        "final_result": "pass_after_revision",
+        "resolved_findings": [
+          "step-11_extended_rust_panel_spec_preserved_in_normalized_manifest",
+          "step-11_structured_fields_preserved_in_normalized_activity_card"
+        ]
+      },
+      {
+        "reviewer_agent_id": "019de8c1-74eb-75e2-8a19-b573908c4607",
+        "scope": "revised_step_06_08_11_and_sequence_review",
+        "initial_result": "pass",
+        "final_result": "pass"
+      },
+      {
+        "reviewer_agent_id": "019de8c1-ab8a-7f70-9643-81641bb1c803",
+        "scope": "revised_contract_runtime_consumability_review",
+        "initial_result": "pass",
+        "final_result": "pass"
+      }
+    ],
+    "final_result": "pass"
+  },
+  "issues": []
+}

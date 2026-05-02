@@ -3,6 +3,7 @@
 ## 审查范围
 - 课型：理论
 - `course-content/authoring/lessons/5-3/design/5-3-handout.md`
+- `course-content/authoring/lessons/5-3/design/5-3-interactive-page.md`
 - `course-content/authoring/lessons/5-3/design/5-3-boppps.md`
 
 ## 文本技术审查
@@ -12,7 +13,9 @@
 - 已将 `design/5-3-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- `interactive-page.md` 已纳入审查，并满足讲义核心内容映射与步骤级“静态承载内容 / 互动升级点”基本契约。
+- 已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。
+- 已检测到 `5-3` 的 V2 互动契约，步骤字段完整。
+- 互动设计接受文件已通过校验。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

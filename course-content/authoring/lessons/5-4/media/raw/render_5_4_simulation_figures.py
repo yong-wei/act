@@ -36,6 +36,11 @@ def soften_axes(ax: plt.Axes) -> None:
         spine.set_linewidth(0.7)
 
 
+def add_upper_room(ax: plt.Axes, ratio: float = 0.18) -> None:
+    lower, upper = ax.get_ylim()
+    ax.set_ylim(lower, upper + (upper - lower) * ratio)
+
+
 def save(fig: plt.Figure, filename: str) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT_DIR / filename, dpi=220)
@@ -53,7 +58,8 @@ def plot_prediction_mismatch() -> None:
     ax.set_ylabel("航向角 / deg")
     ax.set_title("同一舵角序列下的模型预测偏差")
     ax.grid(True, color="#e5e7eb", linewidth=0.8)
-    ax.legend(loc="upper left", frameon=False, ncol=3)
+    add_upper_room(ax, 0.22)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.02), frameon=False, ncol=3)
 
     ax = axes[1]
     ax.plot(df["t"], df["err_nominal"], color="#dc2626", linewidth=1.8, linestyle="--", label="名义模型误差")
@@ -63,7 +69,8 @@ def plot_prediction_mismatch() -> None:
     ax.set_xlabel("时间 / s")
     ax.set_ylabel("预测误差 / deg")
     ax.grid(True, color="#e5e7eb", linewidth=0.8)
-    ax.legend(loc="upper left", frameon=False, ncol=3)
+    add_upper_room(ax, 0.28)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.02), frameon=False, ncol=3)
 
     fig.text(
         0.02,
@@ -95,7 +102,8 @@ def plot_model_parameter_drift() -> None:
     ax.set_title("长时模型漂移下的参数真实值与在线推断值")
     ax.set_ylabel("增益 K")
     ax.grid(True, color="#e5e7eb", linewidth=0.8)
-    ax.legend(loc="upper right", frameon=False, ncol=3)
+    add_upper_room(ax, 0.16)
+    ax.legend(loc="upper right", frameon=True, facecolor="#fffdf4", edgecolor="#d1d5db", framealpha=0.94, ncol=2)
     soften_axes(ax)
 
     ax = axes[1]
@@ -106,6 +114,7 @@ def plot_model_parameter_drift() -> None:
     ax.set_xlabel("时间 / s")
     ax.set_ylabel("时间常数 T / s")
     ax.grid(True, color="#e5e7eb", linewidth=0.8)
+    add_upper_room(ax, 0.12)
     soften_axes(ax)
 
     fig.text(
@@ -142,7 +151,16 @@ def plot_closed_loop_comparison() -> None:
     ax.set_title("模型漂移与环境信息变化下的闭环航向跟踪")
     ax.set_ylabel("航向角 / deg")
     ax.grid(True, color="#e5e7eb", linewidth=0.8)
-    ax.legend(loc="upper left", frameon=False, ncol=4)
+    add_upper_room(ax, 0.18)
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.02),
+        frameon=True,
+        facecolor="#fffdf4",
+        edgecolor="#d1d5db",
+        framealpha=0.94,
+        ncol=4,
+    )
     soften_axes(ax)
 
     ax = fig.add_subplot(gs[1, :])

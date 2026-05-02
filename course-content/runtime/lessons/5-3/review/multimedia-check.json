@@ -1,11 +1,11 @@
 {
   "lesson_id": "5-3",
   "expected_assets": [
-    "handout.pdf",
+    "5-3-handout.pdf",
     "5-3-media.md"
   ],
   "generated_assets": [
-    "handout.pdf",
+    "5-3-handout.pdf",
     "5-3-media.md"
   ],
   "missing_assets": [],

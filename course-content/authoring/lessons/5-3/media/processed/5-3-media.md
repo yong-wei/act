@@ -6,13 +6,19 @@
 
 - MASS：AI船长的控制论大冒险
 
+https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=b7dabe6f9d0fb6b4c2b2b028a28c8b96&v=1777726441616&puid=26652392&enc=c485ad9e1108a95abe767288def3573e&wps=c98da53328b65a68ef0e59c569a1f048d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=946054085&timestamp=1777726441616&signature=304faefeba6594d4fdc09041d89347ac
+
 # 5-3-course.mp4
 
 - 掌握 MASS：自主船舶工程解析
 
+https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=c51797389f5ad38c68bfb2a6e02eaa02&v=1777726406451&puid=26652392&enc=faabd1d072ddfac8f138a057ea42f9ba&wps=c98da53328b65a68c27a39e68fc5fd12d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=1293115154&timestamp=1777726406451&signature=4f923de86965650f6680c1407d2359c7
+
 # 5-3-audio.m4a
 
 - 公式撞沉万吨轮
+
+https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=53675f51f0420df868d8093cfa63cc1c&v=1777726423846&puid=26652392&enc=7c15d15b156d2c893027513d14341edc&wps=c98da53328b65a68abfd9aee8372547bd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1195354751&timestamp=1777726423846&signature=71e9a410c65e22a731bb1bb2b9975603
 
 # 5-3-handout.md
 

@@ -182,6 +182,7 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
     if not multimedia_path.exists():
         return []
 
+    lesson_dir = multimedia_path.parent.parent
     expected_by_output: dict[str, dict[str, Any]] = {}
     text = multimedia_path.read_text(encoding='utf-8')
     script_pattern = re.compile(
@@ -1149,6 +1150,9 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
     if not config:
         return None, [], []
 
+    if not contract_path.exists():
+        contract_path = resolve_lesson_artifact_path(contract_path.parent, lesson_id, 'interactive-contract.yaml')
+
     payload, contract_load_issues = load_interactive_contract(contract_path)
     if contract_load_issues:
         return config.get('source_path'), contract_load_issues, []
@@ -2084,9 +2088,19 @@ def build_review_report(
     text_review: dict[str, Any],
     knowledge_check: dict[str, Any],
     infograph_check: dict[str, Any],
-    multimedia_check: dict[str, Any],
-    interactive_page_check: dict[str, Any],
+    multimedia_check: dict[str, Any] | None = None,
+    interactive_page_check: dict[str, Any] | None = None,
 ) -> str:
+    if interactive_page_check is None:
+        interactive_page_check = multimedia_check or {}
+        multimedia_check = infograph_check
+        infograph_check = {
+            'accepted_infographs': [],
+            'missing_infographs': [],
+            'pending_review': [],
+            'broken_review_files': {},
+        }
+    multimedia_check = multimedia_check or {}
     reviewed_paths = [format_repo_path(path) for path in primary_sources]
     design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
     reviewed_paths.append(format_repo_path(resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')))

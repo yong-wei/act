@@ -1,7 +1,8 @@
 {
   "lesson_id": "5-3",
-  "status": "lesson_draft_before_interactive_design",
-  "note": "本顺序为 lesson 阶段候选卡片顺序，互动步骤与 step_ids 由 interactive-design 后续定稿。",
+  "status": "interactive_design_finalized",
+  "sequence_source": "interactive_design_finalized",
+  "note": "本顺序已按 5-3 互动页面设计定稿；step_ids 对应 design/5-3-interactive-page.md 与 design/5-3-interactive-contract.yaml。",
   "card_order": [
     "MASS协同链路_5_53001",
     "控制在自主系统链路中的位置_5_53002",
@@ -15,6 +16,11 @@
   "groups": [
     {
       "title": "MASS 链路入口",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-15"
+      ],
       "node_ids": [
         "MASS协同链路_5_53001",
         "控制在自主系统链路中的位置_5_53002"
@@ -22,6 +28,13 @@
     },
     {
       "title": "信息、规划与执行边界",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-10",
+        "step-11"
+      ],
       "node_ids": [
         "上游信息质量_5_53003",
         "规划参考可实现性_5_53004",
@@ -30,6 +43,14 @@
     },
     {
       "title": "责任诊断与工程收束",
+      "step_ids": [
+        "step-09",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15"
+      ],
       "node_ids": [
         "链路责任诊断_5_53006",
         "避碰转弯半径可行域_5_53007",

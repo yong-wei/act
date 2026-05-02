@@ -38,6 +38,11 @@
   "groups": [
     {
       "title": "MASS 链路入口",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-15"
+      ],
       "node_ids": [
         "MASS协同链路_5_53001",
         "控制在自主系统链路中的位置_5_53002"
@@ -45,6 +50,13 @@
     },
     {
       "title": "信息、规划与执行边界",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-10",
+        "step-11"
+      ],
       "node_ids": [
         "上游信息质量_5_53003",
         "规划参考可实现性_5_53004",
@@ -53,6 +65,14 @@
     },
     {
       "title": "责任诊断与工程收束",
+      "step_ids": [
+        "step-09",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15"
+      ],
       "node_ids": [
         "链路责任诊断_5_53006",
         "避碰转弯半径可行域_5_53007",
@@ -162,14 +182,29 @@
           "扰动观测器",
           "MPC"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md"
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        }
       ],
       "tags": [
         "传统控制局限",
@@ -504,14 +539,29 @@
           "工程证据",
           "风险说明"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md"
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        }
       ],
       "tags": [
         "方法迁移",
@@ -562,14 +612,29 @@
           "自振风险",
           "抗积分饱和"
         ],
-        "infograph": null,
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "title": "舵机死区饱和自振风险 信息图",
+          "lessonId": "5-2",
+          "nodeId": "舵机死区饱和自振风险_5_52005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md"
+        "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
+          "title": "舵机死区饱和自振风险 信息图",
+          "lessonId": "5-2",
+          "nodeId": "舵机死区饱和自振风险_5_52005"
+        }
       ],
       "tags": [
         "舵机",

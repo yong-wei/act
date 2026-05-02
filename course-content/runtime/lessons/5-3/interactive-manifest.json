@@ -1,0 +1,2235 @@
+{
+  "contract_version": "2.1",
+  "lesson_id": "5-3",
+  "course_title": "5-3：从单回路控制到复杂自主系统链路",
+  "course_route_segment": "unit-5-3-mass-coordination-chain",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo"
+  },
+  "media_policy": {
+    "runtime_only": true,
+    "runtime_export_required": true,
+    "runtime_media_base": "/course-runtime/lessons/5-3/media"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "复杂自主系统链路中的控制位置",
+      "layout": {
+        "template": "intro_comic_chain_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "problem",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "链路责任入口",
+            "text": "一艘自主船避碰失败，末端航迹偏离规划路径，责任是否一定在控制器参数。"
+          }
+        },
+        {
+          "id": "cover-comic",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-cover-comic.png",
+            "caption": "封面漫画：复杂自主系统链路中的控制位置"
+          }
+        },
+        {
+          "id": "entry-summary",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "text": "单回路仍在工作，但它已经嵌入更长的感知、估计、规划、控制、执行和监督链路。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "conclusion": "本课从单回路语言出发，训练沿链路寻找证据，而不是把所有偏差直接归因给控制器。"
+      },
+      "evidence_sequence": [
+        "标题问题",
+        "封面漫画",
+        "链路入口解释",
+        "收束句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "建立复杂自主系统中的控制位置与责任链问题。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "使用封面漫画提出链路责任问题。",
+        "本页不设置作答区。"
+      ]
+    },
+    "step-02": {
+      "title": "本次课程目标",
+      "layout": {
+        "template": "goal_statement_board",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "goal-list",
+          "region": "goals",
+          "kind": "goal-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "intro": "完成本次课程后，学习者能够：",
+            "goals": [
+              "解释 MASS 中感知、估计、规划、控制、执行和监督的基本信息流。",
+              "指出经典闭环控制在复杂自主系统链路中的位置。",
+              "根据图像、表格和日志证据判断偏差可能来自哪个链路环节。",
+              "计算避碰转弯半径案例中的舵角需求和最小可实现半径。",
+              "评价自动化等级描述与技术链路诊断之间的关系。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "intro": "完成本次课程后，学习者能够：",
+        "goal_cards": [
+          "解释 MASS 中感知、估计、规划、控制、执行和监督的基本信息流。",
+          "指出经典闭环控制在复杂自主系统链路中的位置。",
+          "根据图像、表格和日志证据判断偏差可能来自哪个链路环节。",
+          "计算避碰转弯半径案例中的舵角需求和最小可实现半径。",
+          "评价自动化等级描述与技术链路诊断之间的关系。"
+        ]
+      },
+      "evidence_sequence": [
+        "引导句",
+        "五项目标"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读目标。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "只呈现本次课程能力目标。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "不得提前出现链路诊断表、转弯半径公式或自动化等级图。"
+      ]
+    },
+    "step-03": {
+      "title": "前置基础快测",
+      "layout": {
+        "template": "quiz_group_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pretest-note",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "text": "这些题只检查理解本课所需的闭环控制和物理约束基础，不提前考察 MASS 链路诊断、规划可行域或自动化等级。"
+          }
+        },
+        {
+          "id": "pretest",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "note",
+            "text": "这些题只检查闭环误差、反馈质量和执行器限幅。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "note": "这些题只检查闭环误差、反馈质量和执行器限幅。"
+      },
+      "evidence_sequence": [
+        "前测说明",
+        "三题客观题组"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三题基础概念快测。",
+        "activity_cards": [
+          {
+            "id": "closed-loop-error",
+            "prompt": "闭环控制中 e(t)=r(t)-y(t) 的含义是什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "参考输入与输出反馈之间的误差",
+              "规划层给出的完整任务路径",
+              "执行器的最大舵角"
+            ],
+            "reference_answer": "参考输入与输出反馈之间的误差",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "feedback-quality",
+            "prompt": "反馈量若带有噪声或延迟，控制器接收到的误差就可能偏离真实状态。",
+            "response_kind": "binary_choice",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": "正确",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "actuator-limit",
+            "prompt": "执行器幅值上限的直接含义是什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "控制指令超过边界时，实际执行量会被截断",
+              "规划路径一定最短",
+              "传感器不会产生延迟"
+            ],
+            "reference_answer": "控制指令超过边界时，实际执行量会被截断",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "cardSubmitted"
+        ],
+        "misconception_tags": [
+          "error_signal_confusion",
+          "feedback_quality_ignored",
+          "actuator_limit_ignored"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "只诊断闭环误差、反馈质量和执行约束基础。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "前测不得考察 MASS 链路诊断、规划可行域或自动化等级。"
+      ]
+    },
+    "step-04": {
+      "title": "MASS 协同链路与责任流",
+      "layout": {
+        "template": "chain_role_match_board",
+        "regions": [
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "mass-definition",
+          "region": "concept",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "MASS 协同链路",
+            "text": "MASS 需要把环境感知、状态估计、行动规划、运动控制、执行机构和安全监督连成责任链。"
+          }
+        },
+        {
+          "id": "chain-formula",
+          "region": "concept",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "MASS链路=感知+估计+规划+控制+执行+监督"
+            ]
+          }
+        },
+        {
+          "id": "chain-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-mass-coordination-chain.png",
+            "caption": "MASS 感知、估计、规划与控制协同链"
+          }
+        },
+        {
+          "id": "role-match",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roles",
+            "text": "['感知回答系统看到了什么。', '估计把不完整观测整理为状态。', '规划形成行动意图。', '控制把行动意图转为运动指令。', '执行器和船体产生真实运动。', '监督处理风险、降级和接管。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "roles": [
+          "感知回答系统看到了什么。",
+          "估计把不完整观测整理为状态。",
+          "规划形成行动意图。",
+          "控制把行动意图转为运动指令。",
+          "执行器和船体产生真实运动。",
+          "监督处理风险、降级和接管。"
+        ]
+      },
+      "evidence_sequence": [
+        "MASS 定义",
+        "链路公式",
+        "协同链路图",
+        "六环节职责条",
+        "角色匹配题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "student_task": "把典型动作匹配到 MASS 链路环节。",
+        "activity_cards": [
+          {
+            "id": "role-match",
+            "prompt": "将目标船轮廓识别、目标船速度估计、避碰路径生成、期望航向转舵角、舵机动作、风险超限接管匹配到六个环节。",
+            "response_kind": "drag_match",
+            "options": [
+              {
+                "value": "perception",
+                "label": "目标船轮廓识别 -> 感知"
+              },
+              {
+                "value": "estimation",
+                "label": "目标船速度估计 -> 估计"
+              },
+              {
+                "value": "planning",
+                "label": "避碰路径生成 -> 规划"
+              },
+              {
+                "value": "control",
+                "label": "期望航向转舵角 -> 控制"
+              },
+              {
+                "value": "actuation",
+                "label": "舵机动作 -> 执行"
+              },
+              {
+                "value": "supervision",
+                "label": "风险超限接管 -> 监督"
+              }
+            ],
+            "reference_answer": "目标船轮廓识别->感知；目标船速度估计->估计；避碰路径生成->规划；期望航向转舵角->控制；舵机动作->执行；风险超限接管->监督。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "match_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "chain_role_confusion"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "建立感知到监督的基本信息流。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "链路图后必须有六环节职责条。",
+        "角色匹配题必须单卡提交。"
+      ]
+    },
+    "step-05": {
+      "title": "单回路控制在自主系统链路中的位置",
+      "layout": {
+        "template": "formula_chain_position_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "closed-loop-formula",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "e(t)=r(t)-y(t)",
+              "u(t)=C(e(t))",
+              "y(t)=P(u(t),d(t))"
+            ]
+          }
+        },
+        {
+          "id": "control-position-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-control-position-in-chain.png",
+            "caption": "控制在复杂自主系统链路中的位置"
+          }
+        },
+        {
+          "id": "control-position-tasks",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "symbols",
+            "text": "['r(t) 是上游给出的参考。', 'y(t) 是反馈输出。', 'u(t) 是控制输入。', 'P 表示对象与执行机构。', 'd(t) 表示扰动。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "symbols": [
+          "r(t) 是上游给出的参考。",
+          "y(t) 是反馈输出。",
+          "u(t) 是控制输入。",
+          "P 表示对象与执行机构。",
+          "d(t) 表示扰动。"
+        ],
+        "duties": [
+          "跟踪参考。",
+          "处理局部扰动和模型误差。",
+          "尊重执行器和船体约束。"
+        ]
+      },
+      "evidence_sequence": [
+        "闭环公式",
+        "符号说明",
+        "控制位置图",
+        "三类职责",
+        "两张作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "activity_cards": [
+          {
+            "id": "control-duty",
+            "prompt": "规划层给出期望航迹后，控制层最直接承担什么任务？",
+            "response_kind": "single_choice",
+            "options": [
+              "把参考转化为可反馈、可约束的运动指令",
+              "保证感知信息完整",
+              "直接裁决自动化等级"
+            ],
+            "reference_answer": "把参考转化为可反馈、可约束的运动指令",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "control-boundary",
+            "prompt": "控制层能独自保证感知信息完整和规划目标合理。",
+            "response_kind": "binary_choice",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": "错误",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "controller_as_whole_system"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定控制层在自主系统链路中的输入、输出和责任边界。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "闭环公式、符号来源和控制层职责必须同页出现。"
+      ]
+    },
+    "step-06": {
+      "title": "上游信息质量与反馈可信度",
+      "layout": {
+        "template": "evidence_compare_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "info-quality-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "columns": [
+              "上游问题",
+              "控制层接收到的表现",
+              "可能后果",
+              "优先检查对象"
+            ],
+            "rows": [
+              [
+                "传感器噪声增大",
+                "反馈量高频抖动",
+                "控制指令频繁变化",
+                "量测滤波、传感器健康、采样同步"
+              ],
+              [
+                "目标状态估计滞后",
+                "参考误差反应过慢",
+                "避碰动作滞后",
+                "目标跟踪模型、估计延迟"
+              ],
+              [
+                "环境遮挡或丢帧",
+                "状态短时缺失",
+                "保守模式或保持上一指令",
+                "感知冗余、置信度阈值"
+              ],
+              [
+                "坐标系或时间戳不一致",
+                "误差方向或大小异常",
+                "控制方向错误或响应不稳定",
+                "坐标转换、时间同步、接口协议"
+              ]
+            ]
+          }
+        },
+        {
+          "id": "feedback-measurement-formula",
+          "region": "table",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "y_m(t)=y(t-τ)+n(t)"
+            ]
+          }
+        },
+        {
+          "id": "noise-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-sensor-noise-filter-chain.png",
+            "caption": "传感器噪声在闭环链路中的传播与滤波缓解"
+          }
+        },
+        {
+          "id": "noise-figure-explanation",
+          "region": "media",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "noise_figure_explanation",
+            "title": "噪声与滤波代价"
+          }
+        },
+        {
+          "id": "delay-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-sensor-delay-heading-track.png",
+            "caption": "传感器测量延迟导致航向滞后与航迹偏移"
+          }
+        },
+        {
+          "id": "delay-figure-explanation",
+          "region": "media",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "delay_figure_explanation",
+            "title": "测量延迟诊断链"
+          }
+        },
+        {
+          "id": "info-quality-tasks",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula",
+            "text": "y_m(t)=y(t-τ)+n(t)"
+          }
+        }
+      ],
+      "content_blocks": {
+        "formula": "y_m(t)=y(t-τ)+n(t)",
+        "reading_order": [
+          "先看测量反馈。",
+          "再看误差信号和控制器输出。",
+          "最后看执行器动作是否出现高频负担。"
+        ],
+        "noise_figure_explanation": {
+          "text": "无滤波时，噪声从反馈测量进入误差信号，控制器输出和执行机构动作都出现高频负担；加入一阶滤波后，高频成分降低，但滤波会引入相位滞后，过强滤波可能降低闭环响应速度。"
+        },
+        "delay_figure_explanation": {
+          "text": "同一控制器参数保持不变，只把反馈测量换成带延迟的航向测量后，航向修正滞后、避障后横向偏差增大；这条对照证据把问题指向反馈测量时间滞后，而不是直接指向控制器增益不足。"
+        }
+      },
+      "evidence_sequence": [
+        "反馈可信度说明",
+        "信息质量表",
+        "反馈测量公式",
+        "噪声传播图",
+        "噪声滤波解释",
+        "延迟航迹图",
+        "延迟诊断解释",
+        "两张诊断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "activity_cards": [
+          {
+            "id": "noise-diagnosis",
+            "prompt": "日志显示控制输出频繁小幅抖动，同时反馈测量含高频噪声，优先检查对象是什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "传感器健康、量测滤波和采样同步",
+              "自动化等级",
+              "只提高控制增益"
+            ],
+            "reference_answer": "传感器健康、量测滤波和采样同步",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "delay-diagnosis",
+            "prompt": "同一控制器在测量延迟存在时避障后留下更大横向偏差，首要证据指向什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "反馈状态的时间滞后",
+              "障碍物半径为零",
+              "控制器已经失效"
+            ],
+            "reference_answer": "反馈状态的时间滞后",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "noise_as_gain_problem",
+          "delay_as_gain_problem"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用表格和两张固定日志图判断反馈状态是否可信。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "噪声和延迟必须分开判断。",
+        "图像不升级为参数探索面板。"
+      ]
+    },
+    "step-07": {
+      "title": "规划参考可实现性",
+      "layout": {
+        "template": "planning_reference_compare_board",
+        "regions": [
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "planning-note",
+          "region": "concept",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "text": "规划层面对任务空间，控制层拿到的是参考航迹、航向或速度剖面。"
+          }
+        },
+        {
+          "id": "planning-compare-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-planning-path-control-comparison.png",
+            "caption": "规划航迹、航向参考、控制器输出与实际舵角的对比"
+          }
+        },
+        {
+          "id": "planning-question",
+          "region": "activity",
+          "kind": "single-choice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "constraints",
+            "text": "['最大舵角 δmax。', '最大舵角速率 dδmax。', '允许横向加速度。', '最小转弯半径。', '跟踪误差上界。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "constraints": [
+          "最大舵角 δmax。",
+          "最大舵角速率 dδmax。",
+          "允许横向加速度。",
+          "最小转弯半径。",
+          "跟踪误差上界。"
+        ],
+        "reading": [
+          "最短折线路径把折点翻译成航向阶跃。",
+          "频繁重规划路径造成航向参考反复摆动。",
+          "平滑可行路径让舵角输出留有余量。"
+        ]
+      },
+      "evidence_sequence": [
+        "规划参考说明",
+        "控制可行域反馈句",
+        "三路径对比图",
+        "三行图后解释",
+        "单选题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "activity_cards": [
+          {
+            "id": "zigzag-saturation",
+            "prompt": "三类路径中哪一类最容易造成舵角在正负最大值之间频繁切换？",
+            "response_kind": "single_choice",
+            "options": [
+              "频繁重规划路径",
+              "平滑可行路径",
+              "静止障碍物本身"
+            ],
+            "reference_answer": "频繁重规划路径",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "shortest_path_as_best_reference"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把几何路径、航向参考、控制输出和实际舵角连成证据链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "本页训练读图，不训练重规划算法。"
+      ]
+    },
+    "step-08": {
+      "title": "执行约束与可实现反馈",
+      "layout": {
+        "template": "actuator_constraint_evidence_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "actuator-formula",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "|u(t)|≤u_max",
+              "|du(t)/dt|≤du_max"
+            ]
+          }
+        },
+        {
+          "id": "actuator-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-actuator-limits-response-track.png",
+            "caption": "执行器饱和与变化率限制对控制量、阶跃响应和航迹的影响"
+          }
+        },
+        {
+          "id": "actuator-figure-explanation",
+          "region": "media",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "actuator_figure_explanation",
+            "title": "幅值、舵速与航迹三联证据"
+          }
+        },
+        {
+          "id": "actuator-tasks",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "explanation",
+            "text": "幅值限制截断峰值，速率限制减慢上升和回落；这会改变阶跃响应和船体航迹。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "explanation": "幅值限制截断峰值，速率限制减慢上升和回落；这会改变阶跃响应和船体航迹。",
+        "actuator_figure_explanation": {
+          "text": "左侧曲线先把同一个理想控制量经过 ±16° 舵角边界截断，再叠加 5°/s 舵速限制；实际舵角不仅峰值被截断，上升和回落也明显变慢。中间阶跃响应显示同一控制律在执行约束下响应速度改变，右侧航迹显示船体真实路径随之偏离规划意图。"
+        }
+      },
+      "evidence_sequence": [
+        "执行约束说明",
+        "幅值和速率公式",
+        "控制量与航迹图",
+        "图后解释",
+        "两张作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "activity_cards": [
+          {
+            "id": "saturation-evidence",
+            "prompt": "若日志中实际舵角长时间贴着上限，最直接的证据类型是什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "执行器幅值约束触边",
+              "自动化等级提高",
+              "目标船完全消失"
+            ],
+            "reference_answer": "执行器幅值约束触边",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "constraint-motion",
+            "prompt": "执行约束只是控制信号显示前的后处理，不会影响真实运动路径。",
+            "response_kind": "binary_choice",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": "错误",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "actuator_limit_as_display_only"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "说明执行约束会改变真实运动并反馈给规划与控制。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "执行约束不能写成末端显示修饰。"
+      ]
+    },
+    "step-09": {
+      "title": "链路责任诊断顺序",
+      "layout": {
+        "template": "diagnostic_sequence_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "diagnostic-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "columns": [
+              "诊断层",
+              "核心问题",
+              "典型证据",
+              "可能处理方向"
+            ],
+            "rows": [
+              [
+                "感知层",
+                "原始环境与目标信息是否可靠",
+                "丢帧、误检、漏检、噪声异常",
+                "冗余感知、阈值修正、置信度输出"
+              ],
+              [
+                "估计层",
+                "状态是否可信并带有不确定性",
+                "估计滞后、轨迹跳变、协方差异常",
+                "滤波模型修正、时间同步、异常剔除"
+              ],
+              [
+                "规划层",
+                "参考是否满足规则和可实现性",
+                "轨迹过急、安全距离不足、频繁重规划",
+                "可行域约束、风险代价、路径平滑"
+              ],
+              [
+                "控制层",
+                "跟踪律是否稳定并具备鲁棒性",
+                "超调过大、振荡、稳态误差、裕度不足",
+                "参数修正、结构调整、抗扰设计"
+              ],
+              [
+                "执行层",
+                "指令是否被物理约束截断",
+                "饱和、速率限制、能耗过高、故障告警",
+                "控制分配、限幅处理、执行器健康管理"
+              ],
+              [
+                "监督层",
+                "系统是否需要降级或接管",
+                "置信度过低、规则冲突、风险超限",
+                "安全模式、远程接管、人机协同"
+              ]
+            ]
+          }
+        },
+        {
+          "id": "diagnostic-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-diagnostic-sequence-infographic.png",
+            "caption": "MASS 链路诊断顺序信息图"
+          }
+        },
+        {
+          "id": "diagnostic-sort",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diagnostic_order",
+            "text": "感知 -> 估计 -> 规划 -> 控制 -> 执行 -> 监督"
+          }
+        }
+      ],
+      "content_blocks": {
+        "diagnostic_order": "感知 -> 估计 -> 规划 -> 控制 -> 执行 -> 监督"
+      },
+      "evidence_sequence": [
+        "诊断原则",
+        "责任分层表",
+        "诊断顺序信息图",
+        "混合日志排序题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "interaction_archetype": "drag_sort",
+        "activity_cards": [
+          {
+            "id": "diagnostic-order-sort",
+            "prompt": "给出目标船丢帧、估计滞后、规划急转、舵角饱和、轨迹偏移、风险超限六条证据，按优先检查顺序排序。",
+            "response_kind": "drag_sort",
+            "options": [
+              "目标船丢帧",
+              "估计滞后",
+              "规划急转",
+              "轨迹偏移",
+              "舵角饱和",
+              "风险超限"
+            ],
+            "reference_answer": [
+              "目标船丢帧",
+              "估计滞后",
+              "规划急转",
+              "轨迹偏移",
+              "舵角饱和",
+              "风险超限"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "sort_order_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "sortOrder"
+        ],
+        "misconception_tags": [
+          "controller_first_diagnosis"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "建立从信息到监督的链路诊断顺序。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "必须给出完整诊断表和排序题。"
+      ]
+    },
+    "step-10": {
+      "title": "自主避碰中的偏差传播场景",
+      "layout": {
+        "template": "avoidance_scene_evidence_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "avoidance-problem",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "自主避碰任务书",
+            "text": "一艘自主水面船在狭窄航道保持计划航线，并遇到横穿目标船，需要完成安全避让。"
+          }
+        },
+        {
+          "id": "avoidance-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-autonomous-avoidance-scene.png",
+            "caption": "自主避碰中的感知、估计、规划与控制传播场景"
+          }
+        },
+        {
+          "id": "avoidance-figure-explanation",
+          "region": "media",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "图后解释",
+            "text": "蓝色规划路径和橙色实际航迹之间的间隔，可能由延迟、约束和控制误差共同留下。"
+          }
+        },
+        {
+          "id": "avoidance-tasks",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "chain_questions",
+            "text": "['感知是否识别目标船、岸线、浮标和禁航区域。', '估计是否给出速度、方位、风险和置信度。', '规划是否满足规则、安全距离和操纵能力。', '控制是否跟踪参考并抑制扰动。', '执行层是否有舵角、舵速和推进余量。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "chain_questions": [
+          "感知是否识别目标船、岸线、浮标和禁航区域。",
+          "估计是否给出速度、方位、风险和置信度。",
+          "规划是否满足规则、安全距离和操纵能力。",
+          "控制是否跟踪参考并抑制扰动。",
+          "执行层是否有舵角、舵速和推进余量。"
+        ]
+      },
+      "evidence_sequence": [
+        "场景任务书",
+        "五层问题链",
+        "避碰场景图",
+        "图后解释",
+        "两张作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "activity_cards": [
+          {
+            "id": "occlusion-layer",
+            "prompt": "目标船被短时遮挡后，估计层保持上一速度值，这条证据首先进入哪个诊断层？",
+            "response_kind": "single_choice",
+            "options": [
+              "感知层和估计层",
+              "执行层",
+              "自动化等级"
+            ],
+            "reference_answer": "感知层和估计层",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "path-gap-checks",
+            "prompt": "橙色航迹未贴住蓝色规划路径时，需要同步检查哪些对象？",
+            "response_kind": "multi_choice",
+            "options": [
+              "规划参考是否过急",
+              "反馈状态是否滞后",
+              "执行器是否触边",
+              "控制器是否具备足够鲁棒性",
+              "是否只需要更换术语"
+            ],
+            "reference_answer": [
+              "规划参考是否过急",
+              "反馈状态是否滞后",
+              "执行器是否触边",
+              "控制器是否具备足够鲁棒性"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "path_gap_as_controller_only"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把避碰偏差分解为信息、参考、控制和执行证据。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "场景题面、问题链和场景图必须同页常显。"
+      ]
+    },
+    "step-11": {
+      "title": "避碰转弯半径与舵角可行域分析",
+      "layout": {
+        "template": "turning_radius_rust_panel_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "turning-problem",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "避碰转弯半径题面",
+            "text": "自主船以 v=4 m/s 接近障碍物，障碍物等效半径 ro=25 m，安全裕量 m=16 m，等效船长 L=34 m，舵角边界 δmax=18°。"
+          }
+        },
+        {
+          "id": "turning-formulas",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "d_start≈sqrt((ro+m)(2R+ro+m))",
+              "δd≈arctan(L/R)",
+              "R_min≈L/tan(δmax)"
+            ]
+          }
+        },
+        {
+          "id": "turning-diagnostic-reveal",
+          "region": "formula",
+          "kind": "step-reveal-chain",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "turning_diagnostic_reveal",
+            "title": "四步链路定位显影"
+          }
+        },
+        {
+          "id": "turning-rust-panel",
+          "region": "panel",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "panel_id": "rust_turning_radius_panel",
+            "title": "规划半径、舵角饱和与安全边界联动面板"
+          }
+        },
+        {
+          "id": "turning-submit",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "symbols",
+            "text": "['R 为规划假定转弯半径。', 'd_start 为避障启动距离。', 'L 为等效船长。', 'δd 为名义舵角。', 'δmax 为舵角边界。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "symbols": [
+          "R 为规划假定转弯半径。",
+          "d_start 为避障启动距离。",
+          "L 为等效船长。",
+          "δd 为名义舵角。",
+          "δmax 为舵角边界。"
+        ],
+        "turning_diagnostic_reveal": {
+          "layers": [
+            {
+              "title": "第一步：检查上游输入",
+              "body": "感知层已经识别障碍物，估计层给出了相对位置和速度；若没有目标状态完全错误的证据，不能先把偏差归因给感知失效。"
+            },
+            {
+              "title": "第二步：检查规划参考",
+              "body": "规划层按当前半径 R 计算启动圈，船舶进入虚线圆后才开始避障；半径越小，启动圈越靠近障碍物，若该半径不可实现，系统会在过近位置才发现自己转不过去。"
+            },
+            {
+              "title": "第三步：检查控制与执行",
+              "body": "由 δd≈arctan(L/R) 可知，小半径会要求超过 18° 的名义舵角；控制器强行跟踪时，舵角被饱和截断，航向响应滞后，横向位移来得更晚。"
+            },
+            {
+              "title": "第四步：形成链路修正",
+              "body": "规划层应把最小转弯半径、最大艏向角速度、舵角限幅和安全距离纳入可行域；控制层给出的物理能力边界需要回流到规划层。"
+            }
+          ]
+        },
+        "conclusion": "规划参考需要吸收控制与执行约束，学生应使用调节出的半径和最大舵角支撑结论。"
+      },
+      "interactive_figure_spec": {
+        "kind": "rust_turning_radius_panel",
+        "required": true,
+        "fallback_allowed": false,
+        "baseline_media": "/course-runtime/lessons/5-3/media/5-3-turning-radius-saturation-comparison.png",
+        "default_state": {
+          "R_m": 140,
+          "v_mps": 4,
+          "obstacle_radius_m": 25,
+          "safety_margin_m": 16,
+          "ship_length_m": 34,
+          "delta_max_deg": 18
+        },
+        "layout": {
+          "left_panel": "heading_curves",
+          "right_panel": "avoidance_scene",
+          "controls_position": "below_figure"
+        },
+        "displayed_cases_policy": "single_current_radius_only",
+        "controls": [
+          {
+            "id": "R_m",
+            "label": "规划半径 R",
+            "min": 35,
+            "max": 160,
+            "default": 140,
+            "step": 5,
+            "unit": "m"
+          }
+        ],
+        "dynamic_outputs": [
+          "d_start_m",
+          "delta_d_deg",
+          "max_delta_deg",
+          "saturation_active",
+          "safety_constraint_satisfied"
+        ],
+        "left_panel_curves": [
+          "planned_heading",
+          "controller_expected_heading",
+          "estimated_heading",
+          "actual_heading"
+        ],
+        "right_panel_overlays": [
+          "obstacle",
+          "safety_margin_circle",
+          "dynamic_start_circle",
+          "planned_path",
+          "actual_path"
+        ],
+        "behavior_rules": [
+          "规划半径变小时，航向参考变化更急。",
+          "名义舵角超过 18° 时体现舵角饱和。",
+          "估计航向和实际航向曲线随规划半径同步更新。",
+          "右侧虚线启动圈随规划半径动态调整。"
+        ]
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "启动距离公式",
+        "舵角需求公式",
+        "最小可实现半径公式",
+        "四步链路定位显影",
+        "Rust 面板",
+        "规划半径控件",
+        "参数提交",
+        "责任结论"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "interaction_archetype": "rust_turning_radius_panel",
+        "student_task": "调节规划半径，提交满足安全约束的最新规划半径以及对应最大舵角。",
+        "activity_cards": [
+          {
+            "id": "turning-radius-submit",
+            "prompt": "提交当前选择的规划半径 R、对应最大舵角、名义舵角、是否触发舵角饱和、是否满足安全约束，以及一句链路判断。",
+            "response_kind": "fill_text",
+            "structured_fields": [
+              "R_m",
+              "max_delta_deg",
+              "delta_d_deg",
+              "saturation_active",
+              "safety_constraint_satisfied",
+              "chain_judgment"
+            ],
+            "reference_answer": "半径应不小于 R_min≈34/tan18°≈105 m，并结合右侧航迹确认未触碰障碍物安全边界。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "parameter_submission_distribution",
+          "safety_constraint_rate",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "R_m",
+          "maxDeltaDeg",
+          "deltaDdeg",
+          "safetyConstraintSatisfied",
+          "cardSubmitted"
+        ],
+        "misconception_tags": [
+          "radius_below_feasible_limit",
+          "ignores_saturation"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "通过单情形 Rust 面板判断规划半径、舵角上限和安全约束之间的联动。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "Rust 面板不可降级为静态图。",
+        "同一时刻只显示一种规划半径情形。",
+        "左侧航向曲线和右侧虚线启动圈必须随 R 动态更新。",
+        "控件只开放规划半径 R。"
+      ]
+    },
+    "step-12": {
+      "title": "MASS 自动化等级与责任边界",
+      "layout": {
+        "template": "automation_responsibility_board",
+        "regions": [
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "automation-note",
+          "region": "concept",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "text": "自动化等级描述运行形态和责任主体差异，但技术诊断仍需回到链路证据。"
+          }
+        },
+        {
+          "id": "automation-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-automation-levels-scene.png",
+            "caption": "MASS 四类自动化程度的场景对比"
+          }
+        },
+        {
+          "id": "automation-question",
+          "region": "activity",
+          "kind": "single-choice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "automation_degrees",
+            "text": "['带自动化过程和决策支持的船舶。', '船上有人但由远程位置控制的船舶。', '船上无人且由远程位置控制的船舶。', '能够自行决策并采取行动的全自主船舶。']"
+          }
+        }
+      ],
+      "content_blocks": {
+        "automation_degrees": [
+          "带自动化过程和决策支持的船舶。",
+          "船上有人但由远程位置控制的船舶。",
+          "船上无人且由远程位置控制的船舶。",
+          "能够自行决策并采取行动的全自主船舶。"
+        ],
+        "mass_code_note": "截至 2026 年 5 月 2 日，IMO 公开资料显示非强制性 MASS Code 的目标是在 2026 年 5 月定稿并通过；强制性 Code 的目标是不晚于 2030 年 7 月 1 日通过，并于 2032 年 1 月 1 日生效。"
+      },
+      "evidence_sequence": [
+        "自动化等级说明",
+        "四类场景图",
+        "责任主体对照条",
+        "MASS Code 路线图提示",
+        "单选题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "activity_cards": [
+          {
+            "id": "degree-vs-chain",
+            "prompt": "自动化等级能否替代感知、估计、规划、控制、执行和监督链路证据诊断？",
+            "response_kind": "single_choice",
+            "options": [
+              "不能，等级描述运行形态，技术判断仍要回到链路证据",
+              "能，等级越高就不需要链路诊断",
+              "能，等级已经给出控制器参数"
+            ],
+            "reference_answer": "不能，等级描述运行形态，技术判断仍要回到链路证据",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "automation_degree_as_diagnosis"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "区分自动化等级、责任主体和技术链路证据。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "自动化等级不能替代链路证据诊断。"
+      ]
+    },
+    "step-13": {
+      "title": "链路阅读的最小方法",
+      "layout": {
+        "template": "five_question_diagnostic_board",
+        "regions": [
+          {
+            "id": "method",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "five-questions",
+          "region": "method",
+          "kind": "bullet-list-card",
+          "must_be_visible": true,
+          "payload": {
+            "bullets": [
+              "任务目标是什么。",
+              "状态从哪里来。",
+              "参考怎样生成。",
+              "控制怎样落地。",
+              "责任怎样分界。"
+            ]
+          }
+        },
+        {
+          "id": "evidence-match",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "responsibility_rule",
+            "text": "若偏差来自上游状态错误，先修正感知和估计；若来自参考不可实现，先修正规划约束；若来自闭环振荡，再回到控制结构、参数和裕度；若来自执行饱和，控制分配和执行器健康管理优先进入分析；若风险超过自动系统可信范围，监督层应触发降级或接管。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "responsibility_rule": "若偏差来自上游状态错误，先修正感知和估计；若来自参考不可实现，先修正规划约束；若来自闭环振荡，再回到控制结构、参数和裕度；若来自执行饱和，控制分配和执行器健康管理优先进入分析；若风险超过自动系统可信范围，监督层应触发降级或接管。"
+      },
+      "evidence_sequence": [
+        "五问路径",
+        "证据匹配表",
+        "责任边界句",
+        "匹配题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "activity_cards": [
+          {
+            "id": "minimal-method-match",
+            "prompt": "将状态跳变、频繁重规划、舵角贴边、裕度不足、远程接管匹配到估计层、规划层、执行层、控制层、监督层。",
+            "response_kind": "drag_match",
+            "options": [
+              {
+                "value": "estimation",
+                "label": "状态跳变 -> 估计层"
+              },
+              {
+                "value": "planning",
+                "label": "频繁重规划 -> 规划层"
+              },
+              {
+                "value": "actuation",
+                "label": "舵角贴边 -> 执行层"
+              },
+              {
+                "value": "control",
+                "label": "裕度不足 -> 控制层"
+              },
+              {
+                "value": "supervision",
+                "label": "远程接管 -> 监督层"
+              }
+            ],
+            "reference_answer": "状态跳变->估计层；频繁重规划->规划层；舵角贴边->执行层；裕度不足->控制层；远程接管->监督层。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "match_distribution",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "evidence_layer_confusion"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用五问路径阅读新的复杂自主系统日志。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "五问路径和责任边界句必须常显。"
+      ]
+    },
+    "step-14": {
+      "title": "后测：链路诊断与可行性判断",
+      "layout": {
+        "template": "posttest_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "posttest-note",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "text": "本页检查是否已经形成链路诊断、可实现性判断和责任边界意识。"
+          }
+        },
+        {
+          "id": "posttest",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "note",
+            "text": "后测题目呼应目标页，不设计大段综合推导。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "note": "后测题目呼应目标页，不设计大段综合推导。"
+      },
+      "evidence_sequence": [
+        "后测说明",
+        "三题题组"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "activity_cards": [
+          {
+            "id": "posttest-order",
+            "prompt": "日志显示目标船短时遮挡、估计层保持上一速度值、规划层给出急转参考、舵角达到 18° 上限。请按优先检查顺序排列：感知、估计、规划、执行。",
+            "response_kind": "drag_sort",
+            "options": [
+              "感知",
+              "估计",
+              "规划",
+              "执行"
+            ],
+            "reference_answer": [
+              "感知",
+              "估计",
+              "规划",
+              "执行"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "posttest-feasible-reference",
+            "prompt": "若规划半径对应名义舵角超过执行器上限，最合理的链路结论是什么？",
+            "response_kind": "single_choice",
+            "options": [
+              "规划参考没有吸收控制与执行约束",
+              "自动化等级太低",
+              "只需要提高控制增益"
+            ],
+            "reference_answer": "规划参考没有吸收控制与执行约束",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "posttest-why-not-gain",
+            "prompt": "用一句话说明为什么不能先只调控制器增益。",
+            "response_kind": "fill_text",
+            "reference_answer": "因为信息质量、参考可实现性和执行触边证据尚未排除，直接增益调整不能解释完整偏差链。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "keyword_cloud",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "cardSubmitted"
+        ],
+        "misconception_tags": [
+          "controller_first_diagnosis",
+          "feasibility_ignored"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "检查链路诊断、可实现性判断和责任边界意识。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "后测不超过三题。",
+        "后测与总结必须分离。"
+      ]
+    },
+    "step-15": {
+      "title": "总结：MASS 链路责任边界",
+      "layout": {
+        "template": "summary_infograph_board",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "stats",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "info-image",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-3/media/5-3-info.png",
+            "caption": "信息图：MASS 链路责任边界"
+          }
+        },
+        {
+          "id": "summary-blocks",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "MASS 链路责任边界",
+            "text": "MASS 把经典控制问题放进感知、估计、规划、控制、执行和监督组成的链路；控制仍承担稳定、跟踪和抗扰职责，但依赖上游信息质量，也受下游执行约束限制。"
+          }
+        },
+        {
+          "id": "class-stats",
+          "region": "stats",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "课堂表现统计",
+            "text": "学生页显示已浏览页面、已提交互动、后测完成情况和关键能力达成摘要；教师页显示提交率、题目正确率、排序误判分布和目标达成概况。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "limitations": "本课只建立链路阅读和责任诊断框架，不展开感知算法、路径规划算法或完整监管制度。",
+        "key_difficulty": "偏差诊断不能只看末端轨迹；规划参考、反馈状态和执行器边界都可能改变控制层表现。",
+        "extension": "当模型对象不再只是一条稳定传递函数时，后续课程会继续讨论为什么会转向模型驱动与数据驱动的分工。"
+      },
+      "evidence_sequence": [
+        "信息图",
+        "主要内容",
+        "局限性",
+        "重点难点",
+        "拓展思考",
+        "课堂表现统计"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读总结和课堂表现统计。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "completion_summary",
+          "objective_attainment"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "收束 MASS 链路责任边界，并展示个人与班级表现统计。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-15"
+      },
+      "acceptance_checks": [
+        "总结页顶部必须使用 5-3-info.png。",
+        "总结页必须包含学生个人统计和教师班级统计口径。"
+      ]
+    }
+  }
+}

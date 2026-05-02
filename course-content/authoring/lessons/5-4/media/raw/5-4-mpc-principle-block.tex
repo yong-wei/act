@@ -1,8 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
 \usepackage{amsmath}
+\usepackage{CJKutf8}
 \usetikzlibrary{arrows.meta,positioning}
 
 \begin{document}
+\begin{CJK*}{UTF8}{gbsn}
 \begin{tikzpicture}[
   >=Stealth,
   block/.style={rectangle, draw=#1, fill=none, line width=1.2pt, minimum width=3.0cm, minimum height=1.0cm, align=center, font=\small\bfseries},
@@ -12,17 +14,17 @@
   tap/.style={circle, draw=orange!80!black, fill=none, line width=1.2pt, minimum size=4.5pt, inner sep=0pt}
 ]
 
-\node[block=blue!70!black] (measure) at (0,0) {Measure\\$x_k,\ y_k$};
-\node[block=blue!70!black] (model) at (3.9,0) {Prediction model\\$x_{i+1}=f(x_i,u_i)$};
-\node[block=blue!70!black] (predict) at (7.9,0) {Future outputs\\$\hat y_{k+1:k+N}$};
-\node[block=blue!70!black] (opt) at (11.9,0) {Constrained optimizer\\$J=\sum e_i^\top Qe_i+u_i^\top Ru_i$};
-\node[block=blue!70!black] (move) at (15.7,0) {Apply first move\\$u_k^\star$};
-\node[block=blue!70!black] (plant) at (15.7,-2.3) {Plant};
+\node[block=blue!70!black] (measure) at (0,0) {测量\\$x_k,\ y_k$};
+\node[block=blue!70!black] (model) at (3.9,0) {预测模型\\$x_{i+1}=f(x_i,u_i)$};
+\node[block=blue!70!black] (predict) at (7.9,0) {未来输出\\$\hat y_{k+1:k+N}$};
+\node[block=blue!70!black] (opt) at (11.9,0) {带约束优化器\\$J=\sum e_i^\top Qe_i+u_i^\top Ru_i$};
+\node[block=blue!70!black] (move) at (15.7,0) {只执行第一步\\$u_k^\star$};
+\node[block=blue!70!black] (plant) at (15.7,-2.3) {被控对象};
 \node[tap] (tap) at (17.6,-2.3) {};
 \node[note] (output) at (19.1,-2.3) {$y_{k+1}$};
 
-\node[note] (ref) at (7.9,1.55) {reference\\$r_{k:k+N}$};
-\node[note] (constraints) at (11.9,1.55) {constraints\\$u_{\min}\le u_i\le u_{\max}$};
+\node[note] (ref) at (7.9,1.55) {参考轨迹\\$r_{k:k+N}$};
+\node[note] (constraints) at (11.9,1.55) {输入约束\\$u_{\min}\le u_i\le u_{\max}$};
 
 \draw[signal] (measure) -- (model);
 \draw[signal] (model) -- (predict);
@@ -34,7 +36,8 @@
 \draw[signal] (ref) -- (predict);
 \draw[signal] (constraints) -- (opt);
 
-\node[note] at (11.9,-1.25) {Only $u_k^\star$ is executed; the problem is solved again at $k+1$.};
+\node[note] at (11.9,-1.25) {只执行 $u_k^\star$；到 $k+1$ 时刻重新测量、重新预测、重新优化。};
 
 \end{tikzpicture}
+\end{CJK*}
 \end{document}

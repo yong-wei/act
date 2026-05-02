@@ -373,7 +373,9 @@ def compose_runtime_media_index_content(
 
 
 def build_runtime_media_index_content(lesson_id: str, existing_markdown: str | None = None) -> str:
-    return compose_runtime_media_index_content(lesson_id, existing_markdown)
+    if existing_markdown is not None:
+        return existing_markdown
+    return build_blank_runtime_media_index_content(lesson_id)
 
 
 def ensure_runtime_media_index(
@@ -387,20 +389,17 @@ def ensure_runtime_media_index(
         if authoring_lesson_dir is not None
         else None
     )
-    authoring_existing_markdown = (
-        processed_media_index_path.read_text(encoding='utf-8')
-        if processed_media_index_path is not None and processed_media_index_path.exists()
-        else None
-    )
-    if existing_markdown is None and media_index_path.exists():
-        existing_markdown = media_index_path.read_text(encoding='utf-8')
 
-    media_index_path.parent.mkdir(parents=True, exist_ok=True)
-    source_markdown = merge_runtime_media_index_content(
-        lesson_id,
-        existing_markdown,
-        authoring_existing_markdown,
-    )
-    content = compose_runtime_media_index_content(lesson_id, source_markdown)
-    media_index_path.write_text(content, encoding='utf-8')
-    sync_runtime_media_index_to_authoring_processed(media_index_path, lesson_id, content)
+    if not media_index_path.exists():
+        media_index_path.parent.mkdir(parents=True, exist_ok=True)
+        media_index_path.write_text(
+            build_runtime_media_index_content(lesson_id, existing_markdown),
+            encoding='utf-8',
+        )
+
+    if processed_media_index_path is not None and not processed_media_index_path.exists():
+        processed_media_index_path.parent.mkdir(parents=True, exist_ok=True)
+        processed_media_index_path.write_text(
+            build_blank_runtime_media_index_content(lesson_id),
+            encoding='utf-8',
+        )

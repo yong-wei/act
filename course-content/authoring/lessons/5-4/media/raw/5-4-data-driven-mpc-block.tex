@@ -1,8 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
 \usepackage{amsmath}
+\usepackage{CJKutf8}
 \usetikzlibrary{arrows.meta,positioning}
 
 \begin{document}
+\begin{CJK*}{UTF8}{gbsn}
 \begin{tikzpicture}[
   >=Stealth,
   block/.style={rectangle, draw=blue!70!black, fill=none, line width=1.2pt, minimum width=3.1cm, minimum height=1.0cm, align=center, font=\small\bfseries},
@@ -11,19 +13,19 @@
   tap/.style={circle, draw=orange!80!black, fill=none, line width=1.2pt, minimum size=4.5pt, inner sep=0pt}
 ]
 
-\node[note] (formula) at (6.0,2.0) {$\hat T_k=\dfrac{\Delta t}{1-\hat a_k},\quad
+\node[note] (formula) at (7.0,2.15) {$\hat T_k=\dfrac{\Delta t}{1-\hat a_k},\quad
 \hat K_k=\dfrac{\hat b_k\hat T_k}{\Delta t},\quad
 \hat d_k=\dfrac{\hat c_k}{\Delta t}$};
 
-\node[block] (buffer) at (0,0) {Data buffer\\$\{r_j,\delta_j,r_{j+1}\}$};
-\node[block] (identify) at (4.0,0) {Rolling least squares\\$r_{j+1}=ar_j+b\delta_j+c$};
-\node[block] (project) at (8.2,0) {Projection + smoothing\\$\hat K,\hat T,\hat d$};
-\node[block] (model) at (12.2,0) {Updated predictor\\$\hat x_{i+1}=\hat f_k(x_i,u_i)$};
+\node[block] (buffer) at (0,0) {运行数据缓冲区\\$\{r_j,\delta_j,r_{j+1}\}$};
+\node[block] (identify) at (4.7,0) {滚动最小二乘\\$r_{j+1}=ar_j+b\delta_j+c$};
+\node[block] (project) at (9.4,0) {投影与平滑\\$\hat K,\hat T,\hat d$};
+\node[block] (model) at (14.1,0) {更新预测模型\\$\hat x_{i+1}=\hat f_k(x_i,u_i)$};
 
-\node[block] (optimizer) at (12.2,-2.3) {MPC optimizer\\$u_k^\star$};
-\node[block] (plant) at (8.2,-2.3) {Plant};
-\node[tap] (tap) at (4.0,-2.3) {};
-\node[note] (output) at (2.5,-2.3) {$r_{k+1},y_{k+1}$};
+\node[block] (optimizer) at (14.1,-2.55) {MPC 优化器\\$u_k^\star$};
+\node[block] (plant) at (9.4,-2.55) {被控对象};
+\node[tap] (tap) at (4.7,-2.55) {};
+\node[note] (output) at (3.0,-2.55) {$r_{k+1},y_{k+1}$};
 
 \draw[signal] (buffer) -- (identify);
 \draw[signal] (identify) -- (project);
@@ -33,7 +35,8 @@
 \draw[signal] (plant.west) -- (tap) -- (output);
 \draw[signal] (tap) |- ++(0,-0.85) -| (buffer.south);
 
-\node[note] at (6.1,-3.45) {The optimizer keeps the same objective and constraints; only the predictor is refreshed.};
+\node[note] at (7.0,-3.8) {目标函数和约束保持不变；随运行数据更新的是预测模型。};
 
 \end{tikzpicture}
+\end{CJK*}
 \end{document}
