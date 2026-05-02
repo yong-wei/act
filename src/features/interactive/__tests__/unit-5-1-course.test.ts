@@ -160,13 +160,31 @@ describe('unit 5-1 interactive course', () => {
       'drag_match',
       'drag_match',
     ]);
+    expect(step05Card?.options.map((option) => option.label.split(' -> ')[1])).toEqual([
+      '比例近似',
+      '固定增益近似',
+      '小信号灵敏度',
+      '单值',
+      '连续',
+      '结构固定',
+      '参数稳定',
+    ]);
+    expect(step05Card?.referenceAnswer).toContain('饱和破坏比例近似');
+    expect(step05Card?.referenceAnswer).toContain('速率限制破坏固定增益近似');
+    expect(step05Card?.referenceAnswer).toContain('量化破坏连续');
     expect(step06?.modules.map((module) => module.id)).toEqual(
-      expect.arrayContaining(['smooth-base-formula', 'smooth-reveal', 'smooth-panel']),
+      expect.arrayContaining(['smooth-problem', 'smooth-reveal', 'smooth-panel']),
     );
     expect(step07?.modules.map((module) => module.id)).toEqual(
-      expect.arrayContaining(['relay-base-formula', 'relay-reveal', 'relay-panel']),
+      expect.arrayContaining(['relay-problem', 'relay-reveal', 'relay-panel']),
     );
-    expect((step06?.contentBlocks.reveal_layers as { layers?: unknown[] })?.layers).toHaveLength(4);
+    expect((step06?.contentBlocks.reveal_layers as { layers?: unknown[] })?.layers).toHaveLength(5);
+    expect((step06?.contentBlocks.rust_panel as { controls?: Array<{ kind?: string }> })?.controls).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ kind: 'toggle' })]),
+    );
+    expect((step07?.contentBlocks.rust_panel as { controls?: Array<{ kind?: string }> })?.controls).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ kind: 'toggle' })]),
+    );
     expect(JSON.stringify(step06?.contentBlocks.rust_panel)).not.toContain('show_linearized');
     expect(JSON.stringify(step06?.contentBlocks.rust_panel)).not.toContain('show_original');
     expect(JSON.stringify(step07?.contentBlocks.rust_panel)).not.toContain('show_fake_gain');

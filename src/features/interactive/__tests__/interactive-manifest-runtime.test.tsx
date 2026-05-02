@@ -774,6 +774,18 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('当前教师显影层级：2');
   });
 
+  it('does not commit drag-match assignments before the dragged option is released', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).not.toMatch(/onDragEnter=\{[\s\S]{0,220}assignToSlot/);
+    expect(source).not.toMatch(/onMouseEnter=\{[\s\S]{0,120}assignToSlot/);
+    expect(source).toMatch(/onDrop=\{[\s\S]{0,220}assignToSlot/);
+    expect(source).toMatch(/onMouseUp=\{[\s\S]{0,180}assignToSlot/);
+  });
+
   it('caps teacher reveal controls at the number of manifest layers', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',

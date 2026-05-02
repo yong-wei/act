@@ -438,15 +438,12 @@ function DragMatchAnswerInput({
               onDragOver={(event) => event.preventDefault()}
               onDragEnter={(event) => {
                 event.preventDefault();
-                const dragged = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
-                assignToSlot(index, dragged);
               }}
               onDrop={(event) => {
                 event.preventDefault();
                 const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
                 assignToSlot(index, droppedValue);
               }}
-              onMouseEnter={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
               onMouseUp={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
               onClick={() => {
                 if (!assigned) return;
