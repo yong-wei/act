@@ -16,26 +16,26 @@ import type {
   InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import {
-  finalizeUNIT_5_2TeacherSession,
-  isUNIT_5_2StudentState,
-  isUNIT_5_2TeacherSyncState,
-  resolveUNIT_5_2TeacherSyncDraft,
-  shouldPostUNIT_5_2TeacherSync,
-  UNIT_5_2_LESSON_KEY,
-  UNIT_5_2_LESSON_STEPS,
-  UNIT_5_2_RESOURCE_KEY,
-  UNIT_5_2_SESSION_ADAPTER,
-  UNIT_5_2_STAGE_MAP,
-  type UNIT_5_2StudentCourseState,
-  type UNIT_5_2TeacherCourseSyncState,
-} from '@/lib/unit-5-2-course';
-import { UNIT_5_2CourseHeader } from './course-header';
+  finalizeUNIT_5_3TeacherSession,
+  isUNIT_5_3StudentState,
+  isUNIT_5_3TeacherSyncState,
+  resolveUNIT_5_3TeacherSyncDraft,
+  shouldPostUNIT_5_3TeacherSync,
+  UNIT_5_3_LESSON_KEY,
+  UNIT_5_3_LESSON_STEPS,
+  UNIT_5_3_RESOURCE_KEY,
+  UNIT_5_3_SESSION_ADAPTER,
+  UNIT_5_3_STAGE_MAP,
+  type UNIT_5_3StudentCourseState,
+  type UNIT_5_3TeacherCourseSyncState,
+} from '@/lib/unit-5-3-course';
+import { UNIT_5_3CourseHeader } from './course-header';
 import {
-  UNIT_5_2StepContentPanel,
-  UNIT_5_2TeacherActivitySummary,
+  UNIT_5_3StepContentPanel,
+  UNIT_5_3TeacherActivitySummary,
 } from './step-panels';
 
-type Unit52ObjectiveCard = {
+type Unit53ObjectiveCard = {
   stepId: string;
   card: InteractiveRuntimeActivityCardManifest;
   expected: string;
@@ -43,7 +43,7 @@ type Unit52ObjectiveCard = {
   misconceptionTag?: string;
 };
 
-const UNIT_5_2_MISCONCEPTION_LABELS: Record<string, string> = {
+const UNIT_5_3_MISCONCEPTION_LABELS: Record<string, string> = {
   state_point_confusion: '状态点语义误判',
   sine_parameter_confusion: '正弦参数误判',
   low_pass_confusion: '低通滤波误判',
@@ -56,7 +56,7 @@ function normalizeAnswerToken(value: string) {
   return value.trim().toLowerCase();
 }
 
-function normalizeAnswerList(value: string, comparison: Unit52ObjectiveCard['comparison']) {
+function normalizeAnswerList(value: string, comparison: Unit53ObjectiveCard['comparison']) {
   const items = value
     .split(/[|,，、]/)
     .map(normalizeAnswerToken)
@@ -92,10 +92,10 @@ function expectedObjectiveAnswer(card: InteractiveRuntimeActivityCardManifest) {
   return null;
 }
 
-function collectObjectiveCards(manifest: InteractiveRuntimeManifest | null | undefined): Unit52ObjectiveCard[] {
+function collectObjectiveCards(manifest: InteractiveRuntimeManifest | null | undefined): Unit53ObjectiveCard[] {
   if (!manifest) return [];
 
-  const cards: Unit52ObjectiveCard[] = [];
+  const cards: Unit53ObjectiveCard[] = [];
   for (const step of manifest.steps) {
     const tags = step.telemetrySpec.misconceptionTags;
     const activityCards = step.interactionSpec.activityCards ?? [];
@@ -115,7 +115,7 @@ function collectObjectiveCards(manifest: InteractiveRuntimeManifest | null | und
   return cards;
 }
 
-function isObjectiveAnswerCorrect(item: Unit52ObjectiveCard, value: string) {
+function isObjectiveAnswerCorrect(item: Unit53ObjectiveCard, value: string) {
   if (!value.trim()) return false;
   if (item.comparison === 'single') {
     return normalizeAnswerToken(value) === normalizeAnswerToken(item.expected);
@@ -124,7 +124,7 @@ function isObjectiveAnswerCorrect(item: Unit52ObjectiveCard, value: string) {
 }
 
 function misconceptionLabel(tag: string) {
-  return UNIT_5_2_MISCONCEPTION_LABELS[tag] ?? tag;
+  return UNIT_5_3_MISCONCEPTION_LABELS[tag] ?? tag;
 }
 
 function revealLayerCount(manifest: InteractiveRuntimeManifest | null | undefined, stepId: string) {
@@ -137,7 +137,7 @@ function revealLayerCount(manifest: InteractiveRuntimeManifest | null | undefine
   return 0;
 }
 
-export function UNIT_5_2TeacherPage({
+export function UNIT_5_3TeacherPage({
   sessionId,
   lessonRuntime,
 }: {
@@ -153,8 +153,8 @@ export function UNIT_5_2TeacherPage({
   const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
 
   const interactiveTracking = useInteractiveTracking({
-    resourceId: UNIT_5_2_RESOURCE_KEY,
-    resourceKey: UNIT_5_2_RESOURCE_KEY,
+    resourceId: UNIT_5_3_RESOURCE_KEY,
+    resourceKey: UNIT_5_3_RESOURCE_KEY,
     sessionId,
   });
 
@@ -172,30 +172,30 @@ export function UNIT_5_2TeacherPage({
     finishSession,
   } = useTeacherLessonSession({
     sessionId,
-    steps: [...UNIT_5_2_LESSON_STEPS],
-    adapter: UNIT_5_2_SESSION_ADAPTER,
+    steps: [...UNIT_5_3_LESSON_STEPS],
+    adapter: UNIT_5_3_SESSION_ADAPTER,
   });
 
   const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } = useCourseEventTracking({
-    resourceKey: UNIT_5_2_RESOURCE_KEY,
-    resourceId: UNIT_5_2_RESOURCE_KEY,
+    resourceKey: UNIT_5_3_RESOURCE_KEY,
+    resourceId: UNIT_5_3_RESOURCE_KEY,
     sessionId,
-    lessonKey: UNIT_5_2_LESSON_KEY,
+    lessonKey: UNIT_5_3_LESSON_KEY,
     actorRole: 'teacher',
     emit: interactiveTracking.emit,
   });
 
-  const step = UNIT_5_2_LESSON_STEPS[activeIndex];
+  const step = UNIT_5_3_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
 
   const teacherSyncState = useMemo(() => {
-    const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_5_2TeacherSyncState(record.data));
-    return (latestRecord?.data as UNIT_5_2TeacherCourseSyncState | null) ?? null;
+    const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_5_3TeacherSyncState(record.data));
+    return (latestRecord?.data as UNIT_5_3TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
   const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
-      resolveUNIT_5_2TeacherSyncDraft({
+      resolveUNIT_5_3TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
         localBrowseEnabled,
@@ -222,7 +222,7 @@ export function UNIT_5_2TeacherPage({
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
   useEffect(() => {
-    if (!shouldPostUNIT_5_2TeacherSync({ loadingSession, teacherViewHydrated })) return;
+    if (!shouldPostUNIT_5_3TeacherSync({ loadingSession, teacherViewHydrated })) return;
     const payload = {
       activeStepId: step.id,
       revealedAnswers,
@@ -248,13 +248,13 @@ export function UNIT_5_2TeacherPage({
   const studentStates = useMemo(() => {
     return courseStates
       .map((record) => {
-        if (!isUNIT_5_2StudentState(record.data)) return null;
+        if (!isUNIT_5_3StudentState(record.data)) return null;
         return {
           studentName: record.data.studentName || record.user?.name?.trim() || '未命名学生',
           state: record.data,
         };
       })
-      .filter(Boolean) as Array<{ studentName: string; state: UNIT_5_2StudentCourseState }>;
+      .filter(Boolean) as Array<{ studentName: string; state: UNIT_5_3StudentCourseState }>;
   }, [courseStates]);
 
   const joinedStudents = useMemo(() => Array.from(new Set(studentStates.map((item) => item.studentName))), [studentStates]);
@@ -266,16 +266,16 @@ export function UNIT_5_2TeacherPage({
     () => studentStates.reduce((sum, item) => sum + Object.keys(item.state.responses).length, 0),
     [studentStates],
   );
-  const parameterCoverage = useMemo(() => {
+  const turningCoverage = useMemo(() => {
     if (!studentStates.length) return 0;
     const withParameters = studentStates.filter((item) =>
-      Object.values(item.state.responses).some((response) => Boolean(response.answers.__nonlinear_parameters)),
+      Object.values(item.state.responses).some((response) => Boolean(response.answers.__turning_parameters)),
     ).length;
     return Math.round((withParameters / studentStates.length) * 100);
   }, [studentStates]);
   const postTestCompletion = useMemo(() => {
     if (!studentStates.length) return 0;
-    const completed = studentStates.filter((item) => Boolean(item.state.responses['step-17'])).length;
+    const completed = studentStates.filter((item) => Boolean(item.state.responses['step-14'])).length;
     return Math.round((completed / studentStates.length) * 100);
   }, [studentStates]);
   const objectiveCards = useMemo(() => collectObjectiveCards(runtimeManifest), [runtimeManifest]);
@@ -319,7 +319,7 @@ export function UNIT_5_2TeacherPage({
         const response = item.state.responses[step.id];
         return response ? { studentName: item.studentName, response } : null;
       })
-      .filter(Boolean) as Array<{ studentName: string; response: UNIT_5_2StudentCourseState['responses'][string] }>;
+      .filter(Boolean) as Array<{ studentName: string; response: UNIT_5_3StudentCourseState['responses'][string] }>;
   }, [step.id, studentStates]);
 
   const advanceReveal = useCallback(() => {
@@ -336,10 +336,10 @@ export function UNIT_5_2TeacherPage({
 
   const handlePatchCurrentStep = useCallback(
     async (nextIndex: number) => {
-      const nextStep = UNIT_5_2_LESSON_STEPS[nextIndex];
+      const nextStep = UNIT_5_3_LESSON_STEPS[nextIndex];
       await patchCurrentStep(nextIndex, {
         currentItemId: nextStep.id,
-        currentStage: UNIT_5_2_STAGE_MAP[nextStep.stage],
+        currentStage: UNIT_5_3_STAGE_MAP[nextStep.stage],
       });
     },
     [patchCurrentStep],
@@ -351,7 +351,7 @@ export function UNIT_5_2TeacherPage({
 
     setEndingSession(true);
     try {
-      await finalizeUNIT_5_2TeacherSession({
+      await finalizeUNIT_5_3TeacherSession({
         finishSession,
         trackSessionFinalize,
         currentStepId: step.id,
@@ -372,8 +372,8 @@ export function UNIT_5_2TeacherPage({
 
   return (
     <div className="premium-lesson-shell">
-      <UNIT_5_2CourseHeader
-        steps={UNIT_5_2_LESSON_STEPS}
+      <UNIT_5_3CourseHeader
+        steps={UNIT_5_3_LESSON_STEPS}
         activeIndex={activeIndex}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
@@ -381,7 +381,7 @@ export function UNIT_5_2TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_5_2_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={UNIT_5_3_LESSON_STEPS.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -432,7 +432,7 @@ export function UNIT_5_2TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        <UNIT_5_2StepContentPanel
+        <UNIT_5_3StepContentPanel
           step={step}
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
@@ -441,7 +441,7 @@ export function UNIT_5_2TeacherPage({
           studentCount={joinedStudents.length}
           submittedStudents={submittedStudents}
           totalResponses={totalResponses}
-          parameterCoverage={parameterCoverage}
+          turningCoverage={turningCoverage}
           objectiveAccuracy={objectiveAccuracy}
           postTestCompletion={postTestCompletion}
           misconceptionSummary={misconceptionSummary}
@@ -449,7 +449,7 @@ export function UNIT_5_2TeacherPage({
         />
 
         <div className="mt-4">
-          <UNIT_5_2TeacherActivitySummary
+          <UNIT_5_3TeacherActivitySummary
             step={step}
             manifest={runtimeManifest}
             responses={currentResponses}

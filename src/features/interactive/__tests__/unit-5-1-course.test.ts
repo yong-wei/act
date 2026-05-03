@@ -79,6 +79,8 @@ describe('unit 5-1 interactive course', () => {
     expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('onInlineReveal: onAdvanceReveal');
+    expect(stepPanelsSource).toContain('extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal }');
     expect(stepPanelsSource).toContain('Unit51NonlinearBoundaryPanel');
     expect(stepPanelsSource).toContain('5-1 runtime manifest is required for page rendering.');
     expect(stepPanelsSource).not.toContain('switch (step.id)');
@@ -91,6 +93,13 @@ describe('unit 5-1 interactive course', () => {
     expect(studentPageSource).toContain('const handleBoundaryParameterChange = useCallback');
     expect(studentPageSource).toContain('onParameterChange={handleBoundaryParameterChange}');
     expect(studentPageSource).not.toContain('AI 助手');
+  });
+
+  it('lets the teacher advance reveal layers by clicking visible content', () => {
+    const teacherPageSource = readFileSync(join(featureBase, 'teacher-page.tsx'), 'utf8');
+
+    expect(teacherPageSource).toContain('allowInlineReveal={true}');
+    expect(teacherPageSource).toContain('onAdvanceReveal={advanceReveal}');
   });
 
   it('keeps post-test and summary separated and exposes summary role statistics', async () => {

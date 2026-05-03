@@ -4,7 +4,8 @@ export type NonlinearAnalysisKind =
   | 'phase_plane'
   | 'harmonic_lowpass'
   | 'characteristic'
-  | 'negative_inverse_family';
+  | 'negative_inverse_family'
+  | 'turning_radius';
 
 export interface NonlinearTimeRangeConfig {
   start: number;
@@ -56,6 +57,25 @@ export interface NonlinearAnalysisResult {
       marks: Record<string, string>;
     }>;
   };
+  turningRadius?: {
+    dStartM: number;
+    deltaDDeg: number;
+    maxDeltaDeg: number;
+    saturationActive: boolean;
+    safetyConstraintSatisfied: boolean;
+    headingCurves: Array<{
+      id: string;
+      label: string;
+      points: NonlinearPoint[];
+    }>;
+    path: {
+      actual: NonlinearPoint[];
+      nominal: NonlinearPoint[];
+      obstacleCenter: NonlinearPoint;
+      obstacleRadius: number;
+      clearanceRadius: number;
+    };
+  };
   summary: {
     outcome: string;
     metrics: string[];
@@ -69,4 +89,6 @@ export interface NonlinearAnalysisEngineState {
   isLoading: boolean;
   error: string | null;
   isFallback: boolean;
+  requestKey: string;
+  resultRequestKey: string | null;
 }

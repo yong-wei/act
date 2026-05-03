@@ -12,23 +12,23 @@ import { useCourseEventTracking } from '@/features/interactive/session-framework
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
-import { getUnit52StepAIContext } from '@/lib/unit-5-2-ai-contexts';
+import { getUnit53StepAIContext } from '@/lib/unit-5-3-ai-contexts';
 import {
-  getUNIT_5_2PageContractFromManifest,
-  UNIT_5_2_LESSON_KEY,
-  UNIT_5_2_LESSON_STEPS,
-  UNIT_5_2_RESOURCE_KEY,
-  UNIT_5_2_SESSION_ADAPTER,
-  type UNIT_5_2StudentCourseState,
-  type UNIT_5_2StepResponse,
-} from '@/lib/unit-5-2-course';
-import { UNIT_5_2CourseHeader } from './course-header';
+  getUNIT_5_3PageContractFromManifest,
+  UNIT_5_3_LESSON_KEY,
+  UNIT_5_3_LESSON_STEPS,
+  UNIT_5_3_RESOURCE_KEY,
+  UNIT_5_3_SESSION_ADAPTER,
+  type UNIT_5_3StudentCourseState,
+  type UNIT_5_3StepResponse,
+} from '@/lib/unit-5-3-course';
+import { UNIT_5_3CourseHeader } from './course-header';
 import {
-  UNIT_5_2StepContentPanel,
-  UNIT_5_2StudentActivityForm,
+  UNIT_5_3StepContentPanel,
+  UNIT_5_3StudentActivityForm,
 } from './step-panels';
 
-export function UNIT_5_2StudentPage({
+export function UNIT_5_3StudentPage({
   sessionId,
   lessonRuntime,
 }: {
@@ -45,8 +45,8 @@ export function UNIT_5_2StudentPage({
   const currentUserId = authSession?.user?.id;
 
   const interactiveTracking = useInteractiveTracking({
-    resourceId: UNIT_5_2_RESOURCE_KEY,
-    resourceKey: UNIT_5_2_RESOURCE_KEY,
+    resourceId: UNIT_5_3_RESOURCE_KEY,
+    resourceKey: UNIT_5_3_RESOURCE_KEY,
     userId: currentUserId,
     sessionId: isDemo ? undefined : sessionId,
   });
@@ -65,8 +65,8 @@ export function UNIT_5_2StudentPage({
     setActiveIndex,
   } = useStudentLessonSession({
     sessionId,
-    steps: [...UNIT_5_2_LESSON_STEPS],
-    adapter: UNIT_5_2_SESSION_ADAPTER,
+    steps: [...UNIT_5_3_LESSON_STEPS],
+    adapter: UNIT_5_3_SESSION_ADAPTER,
     currentStudentName,
     currentUserId,
     isDemo,
@@ -74,29 +74,29 @@ export function UNIT_5_2StudentPage({
   });
 
   const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError } = useCourseEventTracking({
-    resourceKey: UNIT_5_2_RESOURCE_KEY,
-    resourceId: UNIT_5_2_RESOURCE_KEY,
+    resourceKey: UNIT_5_3_RESOURCE_KEY,
+    resourceId: UNIT_5_3_RESOURCE_KEY,
     sessionId: isDemo ? null : sessionId,
-    lessonKey: UNIT_5_2_LESSON_KEY,
+    lessonKey: UNIT_5_3_LESSON_KEY,
     actorRole: 'student',
     emit: interactiveTracking.emit,
   });
 
-  const step = UNIT_5_2_LESSON_STEPS[activeIndex];
+  const step = UNIT_5_3_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
-  const pageContract = getUNIT_5_2PageContractFromManifest(runtimeManifest, step.id);
+  const pageContract = getUNIT_5_3PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const submittedCount = useMemo(() => Object.keys(courseState.responses).length, [courseState.responses]);
   const [localViewedStepIds, setLocalViewedStepIds] = useState<string[]>([]);
   const saveQueueRef = useRef(Promise.resolve());
   const viewedStepIds = courseState.viewedStepIds?.length ? courseState.viewedStepIds : localViewedStepIds;
-  const parameterSubmissionCount = useMemo(
-    () => Object.values(courseState.responses).filter((response) => Boolean(response.answers.__nonlinear_parameters)).length,
+  const turningSubmissionCount = useMemo(
+    () => Object.values(courseState.responses).filter((response) => Boolean(response.answers.__turning_parameters)).length,
     [courseState.responses],
   );
   const prePostCompletion = useMemo(() => {
     const hasPre = Boolean(courseState.responses['step-03']);
-    const hasPost = Boolean(courseState.responses['step-17']);
+    const hasPost = Boolean(courseState.responses['step-14']);
     if (hasPre && hasPost) return '前测与后测均已提交';
     if (hasPre) return '已提交前测';
     if (hasPost) return '已提交后测';
@@ -106,14 +106,14 @@ export function UNIT_5_2StudentPage({
 
   useEffect(() => {
     if (!isDemo || !demoStepId) return;
-    const demoIndex = UNIT_5_2_LESSON_STEPS.findIndex((item) => item.id === demoStepId);
+    const demoIndex = UNIT_5_3_LESSON_STEPS.findIndex((item) => item.id === demoStepId);
     if (demoIndex >= 0 && demoIndex !== activeIndex) {
       setActiveIndex(demoIndex);
     }
   }, [activeIndex, demoStepId, isDemo, setActiveIndex]);
 
   const enqueueCourseStateSave = useCallback(
-    (updater: (prev: UNIT_5_2StudentCourseState) => UNIT_5_2StudentCourseState) => {
+    (updater: (prev: UNIT_5_3StudentCourseState) => UNIT_5_3StudentCourseState) => {
       const run = saveQueueRef.current.then(() => saveCourseState(updater));
       saveQueueRef.current = run.catch(() => undefined);
       return run;
@@ -122,7 +122,7 @@ export function UNIT_5_2StudentPage({
   );
 
   useEffect(() => {
-    const stepContext = getUnit52StepAIContext(step.id);
+    const stepContext = getUnit53StepAIContext(step.id);
     if (stepContext) updatePageContext(stepContext);
   }, [step.id, updatePageContext]);
 
@@ -173,24 +173,24 @@ export function UNIT_5_2StudentPage({
     if (error) trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
-  const handleSubmitResponse = (response: UNIT_5_2StepResponse) => {
+  const handleSubmitResponse = (response: UNIT_5_3StepResponse) => {
     const submittedAt = Date.now();
     void enqueueCourseStateSave((prev) => {
-      const parameters = localParameters[step.id] ?? prev.nonlinearParameterSnapshots?.[step.id];
-      const nextState: UNIT_5_2StudentCourseState = {
+      const parameters = localParameters[step.id] ?? prev.turningParameterSnapshots?.[step.id];
+      const nextState: UNIT_5_3StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
         updatedAt: Date.now(),
         viewedStepIds: Array.from(new Set([...(prev.viewedStepIds ?? []), ...localViewedStepIds, step.id])),
-        nonlinearParameterSnapshots: {
-          ...(prev.nonlinearParameterSnapshots ?? {}),
+        turningParameterSnapshots: {
+          ...(prev.turningParameterSnapshots ?? {}),
           ...(parameters ? { [step.id]: parameters } : {}),
         },
         responses: {
           ...prev.responses,
           [step.id]: {
             ...response,
-            answers: parameters ? { ...response.answers, __nonlinear_parameters: JSON.stringify(parameters) } : response.answers,
+            answers: parameters ? { ...response.answers, __turning_parameters: JSON.stringify(parameters) } : response.answers,
           },
         },
       };
@@ -232,8 +232,8 @@ export function UNIT_5_2StudentPage({
 
   return (
     <div className="premium-lesson-shell">
-      <UNIT_5_2CourseHeader
-        steps={UNIT_5_2_LESSON_STEPS}
+      <UNIT_5_3CourseHeader
+        steps={UNIT_5_3_LESSON_STEPS}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
           setActiveIndex(index);
@@ -243,7 +243,7 @@ export function UNIT_5_2StudentPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_5_2_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={UNIT_5_3_LESSON_STEPS.map((item) => item.id)}
             title="页面知识卡片"
           />
         )}
@@ -270,7 +270,7 @@ export function UNIT_5_2StudentPage({
           </div>
         </div>
 
-        <UNIT_5_2StepContentPanel
+        <UNIT_5_3StepContentPanel
           step={step}
           manifest={runtimeManifest}
           revealProgress={revealProgress}
@@ -280,11 +280,11 @@ export function UNIT_5_2StudentPage({
           role="student"
           submittedCount={submittedCount}
           viewedCount={viewedStepIds.length}
-          parameterSubmissionCount={parameterSubmissionCount}
+          turningSubmissionCount={turningSubmissionCount}
           prePostCompletion={prePostCompletion}
         />
 
-        <UNIT_5_2StudentActivityForm
+        <UNIT_5_3StudentActivityForm
           step={step}
           manifest={runtimeManifest}
           savedResponse={savedResponse}

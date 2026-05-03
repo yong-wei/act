@@ -95,7 +95,7 @@ describe('unit 3-8 interactive course', () => {
     const runtime = await loadLessonRuntimeEntry('3-8');
     const manifest = runtime.interactiveManifest;
     expect(manifest).toBeTruthy();
-    const interactiveSteps = new Map(courseModule.buildUNIT_3_8RuntimeSteps(manifest).map((step: { id: string }) => [step.id, step]));
+    const interactiveSteps = new Map(courseModule.buildUNIT_3_8RuntimeSteps(manifest).map((step) => [step.id, step]));
     const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
@@ -310,7 +310,7 @@ describe('unit 3-8 interactive course', () => {
         const text = manifestModule.payload?.text?.trim();
         if (text) textCounts.set(text, (textCounts.get(text) ?? 0) + 1);
       }
-      expect([...textCounts.entries()].filter(([, count]) => count > 1)).toEqual([]);
+      expect(Array.from(textCounts.entries()).filter(([, count]) => count > 1)).toEqual([]);
     }
   });
 

@@ -90,7 +90,7 @@ describe('unit 4-3 interactive course', () => {
     const courseModule = await import('@/lib/unit-4-3-course');
     const manifestSteps = new Map(runtime.interactiveManifest?.steps.map((step) => [step.id, step]) ?? []);
     const interactiveSteps = new Map(
-      courseModule.buildUNIT_4_3RuntimeSteps(runtime.interactiveManifest).map((step: { id: string }) => [step.id, step]),
+      courseModule.buildUNIT_4_3RuntimeSteps(runtime.interactiveManifest).map((step) => [step.id, step]),
     );
     const expectedStepIds = Object.keys(contract.steps);
 

@@ -56,6 +56,15 @@ function tableFromBlock(block: unknown): NativeTableData | null {
   return { columns, rows };
 }
 
+function keyValueFormulaTableFromBlock(block: unknown): NativeTableData | null {
+  const source = asRecord(block);
+  const entries = Object.entries(source)
+    .filter(([, value]) => typeof value === 'string' && value.trim())
+    .map(([key, value]) => [key, String(value)] as TableCell[]);
+  if (!entries.length) return null;
+  return { columns: ['对象', '公式'], rows: entries };
+}
+
 function normalizeMath(value: string) {
   return value
     .trim()
@@ -357,6 +366,8 @@ function tableFor(step: InteractiveRuntimeStepManifest, module: InteractiveRunti
   if (payloadTable) return payloadTable;
   const keyedTable = tableFromBlock(blockFor(step, module.payload));
   if (keyedTable) return keyedTable;
+  const keyedFormulaTable = keyValueFormulaTableFromBlock(blockFor(step, module.payload));
+  if (keyedFormulaTable) return keyedFormulaTable;
 
   const tables = Object.values(step.contentBlocks)
     .map(tableFromBlock)
@@ -394,10 +405,13 @@ function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRu
   const payload = module.payload;
   const directItems = revealItemsFromValue(payload.items);
   if (directItems.length) return directItems;
-  const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
+  const rawBlock = blockFor(step, payload) ?? blockByModuleId(step, module);
+  const rawBlockItems = revealItemsFromValue(rawBlock);
+  if (rawBlockItems.length) return rawBlockItems;
+  const block = asRecord(rawBlock);
   const items = revealItemsFromValue(block.items ?? block.steps ?? block.layers ?? block.bullets);
   if (items.length) return items;
-  const revealLayers = step.contentBlocks.reveal_layers;
+  const revealLayers = step.contentBlocks.reveal_layers ?? step.contentBlocks.reveal_steps;
   const layerItems = revealItemsFromValue(revealLayers);
   if (layerItems.length) return layerItems;
   return listFromRecordItems(revealLayers).map((body) => ({ body }));
@@ -578,7 +592,7 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
   const formulas = [block.object, block.controller, block.controller_form]
     .filter(Boolean)
     .map((item) => String(item));
-  const notes = [block.note, block.task, block.given_condition, block.explanation]
+  const notes = [block.text, block.body, block.prompt, block.note, block.task, block.given_condition, block.explanation]
     .filter(Boolean)
     .map((item) => String(item));
   const goals = asStringArray(block.goals ?? block.requirements);
@@ -687,11 +701,13 @@ function StepReveal({
   items,
   revealProgress,
   allowInlineReveal,
+  onInlineReveal,
 }: {
   title: string;
   items: RevealItem[];
   revealProgress: number;
   allowInlineReveal: boolean;
+  onInlineReveal?: () => void;
 }) {
   const teacherVisibleCount = Math.min(items.length, Math.max(1, revealProgress + 1));
   const [localVisibleCount, setLocalVisibleCount] = useState(teacherVisibleCount);
@@ -700,7 +716,9 @@ function StepReveal({
     setLocalVisibleCount(teacherVisibleCount);
   }, [teacherVisibleCount, title]);
 
-  const visibleCount = Math.min(items.length, Math.max(teacherVisibleCount, localVisibleCount));
+  const visibleCount = onInlineReveal
+    ? teacherVisibleCount
+    : Math.min(items.length, Math.max(teacherVisibleCount, localVisibleCount));
 
   return (
     <div className="premium-lesson-panel">
@@ -709,7 +727,12 @@ function StepReveal({
         {items.slice(0, visibleCount).map((item, index) => {
           const canExpand = allowInlineReveal && index === visibleCount - 1 && visibleCount < items.length;
           const showNext = () => {
-            if (canExpand) setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
+            if (!canExpand) return;
+            if (onInlineReveal) {
+              onInlineReveal?.();
+              return;
+            }
+            setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
           };
           return (
             <div
@@ -743,6 +766,7 @@ function StepReveal({
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
+  onInlineReveal?: () => void;
 }): InteractiveModuleRegistry<typeof extra> {
   return {
     'stage-map': ({ step }) => {
@@ -1019,12 +1043,12 @@ export function createManifestContentModuleRegistry(extra: {
       return <SummaryCard title={titleFromModule(module)} text={note} bullets={[...fields, ...bullets]} />;
     },
     'problem-statement': ({ step, module }) => {
-      const block = asRecord(
-        blockByKey(step, 'problem_statement')
+      const rawBlock = blockFor(step, module.payload)
+        ?? blockByKey(step, 'problem_statement')
           ?? blockByKey(step, 'fixed_problem')
           ?? blockByKey(step, 'formula_block')
-          ?? module.payload,
-      );
+          ?? module.payload;
+      const block = typeof rawBlock === 'string' ? { text: rawBlock } : asRecord(rawBlock);
       return <ProblemStatement title={titleFromModule(module)} block={block} />;
     },
     'title-card': ({ step, module }) => {
@@ -1048,6 +1072,7 @@ export function createManifestContentModuleRegistry(extra: {
           items={items}
           revealProgress={renderExtra.revealProgress}
           allowInlineReveal={renderExtra.allowInlineReveal}
+          onInlineReveal={renderExtra.onInlineReveal}
         />
       );
     },
@@ -1060,6 +1085,7 @@ export function createManifestContentModuleRegistry(extra: {
           items={items}
           revealProgress={renderExtra.revealProgress}
           allowInlineReveal={renderExtra.allowInlineReveal}
+          onInlineReveal={renderExtra.onInlineReveal}
         />
       );
     },
@@ -1072,6 +1098,7 @@ export function createManifestContentModuleRegistry(extra: {
             items={items}
             revealProgress={renderExtra.revealProgress}
             allowInlineReveal={renderExtra.allowInlineReveal}
+            onInlineReveal={renderExtra.onInlineReveal}
           />
         );
       }

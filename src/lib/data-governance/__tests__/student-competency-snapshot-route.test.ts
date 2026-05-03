@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
@@ -88,7 +89,7 @@ describe('GET /api/student/competency-snapshot', () => {
   });
 
   it('deduplicates repeated risk flags and recommendations before responding', async () => {
-    const response = await GET(new Request('http://localhost/api/student/competency-snapshot?timeRange=30d'));
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
     const body = await response.json();
 
     expect(response.status).toBe(200);

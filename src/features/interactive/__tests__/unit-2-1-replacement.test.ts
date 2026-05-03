@@ -23,16 +23,17 @@ describe('2-1 mainline replacement', () => {
   });
 
   it('exposes only the current mainline premium lessons and removes retired module 1 entries', () => {
-    expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual(['cruise-comfort-boppps']);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-1-modeling-language')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-2-time-domain-response')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-1-laplace-transfer-function')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-2-block-diagram-simplification')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2b-root-locus-fasttrack')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2c-frequency-bode-fasttrack')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2d-three-domain-linkage-practice')).toBe(false);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'lsum-design-feasible-domain')).toBe(false);
+    const lessonIds = PREMIUM_LESSONS.map((lesson) => String(lesson.id));
+    expect(lessonIds).toEqual(['cruise-comfort-boppps']);
+    expect(lessonIds).not.toContain('unit-2-1-modeling-language');
+    expect(lessonIds).not.toContain('unit-2-2-time-domain-response');
+    expect(lessonIds).not.toContain('unit-1-1-laplace-transfer-function');
+    expect(lessonIds).not.toContain('unit-1-2-block-diagram-simplification');
+    expect(lessonIds).not.toContain('l2a-time-domain-fasttrack');
+    expect(lessonIds).not.toContain('l2b-root-locus-fasttrack');
+    expect(lessonIds).not.toContain('l2c-frequency-bode-fasttrack');
+    expect(lessonIds).not.toContain('l2d-three-domain-linkage-practice');
+    expect(lessonIds).not.toContain('lsum-design-feasible-domain');
   });
 
   it('keeps only current mainline presets and removes retired module 1 presets', () => {

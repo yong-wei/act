@@ -70,7 +70,7 @@ describe('unit 3-1 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-3-1-course');
-    const interactiveSteps = new Map(courseModule.UNIT_3_1_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const interactiveSteps = new Map(courseModule.UNIT_3_1_LESSON_STEPS.map((step) => [step.id, step]));
     const expectedStepIds = [
       'step-01',
       'step-02',

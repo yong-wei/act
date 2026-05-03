@@ -334,6 +334,18 @@ export function UNIT_5_1TeacherPage({
       .filter(Boolean) as Array<{ studentName: string; response: UNIT_5_1StudentCourseState['responses'][string] }>;
   }, [step.id, studentStates]);
 
+  const advanceReveal = useCallback(() => {
+    setLocalTeacherRevealProgress((prev) => {
+      const base = prev ?? teacherSyncState?.teacherRevealProgress ?? {};
+      const layerCount = revealLayerCount(runtimeManifest, step.id);
+      const maxProgress = Math.max(0, layerCount - 1);
+      return {
+        ...base,
+        [step.id]: Math.min(maxProgress, (base[step.id] ?? 0) + 1),
+      };
+    });
+  }, [runtimeManifest, step.id, teacherSyncState?.teacherRevealProgress]);
+
   const handlePatchCurrentStep = useCallback(
     async (nextIndex: number) => {
       const nextStep = UNIT_5_1_LESSON_STEPS[nextIndex];
@@ -438,7 +450,7 @@ export function UNIT_5_1TeacherPage({
           step={step}
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
-          allowInlineReveal={false}
+          allowInlineReveal={true}
           role="teacher"
           studentCount={joinedStudents.length}
           submittedStudents={submittedStudents}
@@ -447,6 +459,7 @@ export function UNIT_5_1TeacherPage({
           objectiveAccuracy={objectiveAccuracy}
           shortAnswerCompleteness={shortAnswerCompleteness}
           misconceptionSummary={misconceptionSummary}
+          onAdvanceReveal={advanceReveal}
         />
 
         <div className="mt-4">
@@ -476,17 +489,7 @@ export function UNIT_5_1TeacherPage({
                 [step.id]: !(prev?.[step.id] ?? teacherSyncState?.revealedAnswers?.[step.id]),
               }))
             }
-            onAdvanceReveal={() =>
-              setLocalTeacherRevealProgress((prev) => {
-                const base = prev ?? teacherSyncState?.teacherRevealProgress ?? {};
-                const layerCount = revealLayerCount(runtimeManifest, step.id);
-                const maxProgress = Math.max(0, layerCount - 1);
-                return {
-                  ...base,
-                  [step.id]: Math.min(maxProgress, (base[step.id] ?? 0) + 1),
-                };
-              })
-            }
+            onAdvanceReveal={advanceReveal}
             onResetReveal={() =>
               setLocalTeacherRevealProgress((prev) => ({
                 ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),

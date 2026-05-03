@@ -21,6 +21,7 @@ import { UNIT_4_6_COURSE_TITLE, UNIT_4_6_ROUTE_SEGMENT } from '@/lib/unit-4-6-co
 import { UNIT_4_7_COURSE_TITLE, UNIT_4_7_ROUTE_SEGMENT } from '@/lib/unit-4-7-course';
 import { UNIT_5_1_COURSE_TITLE, UNIT_5_1_ROUTE_SEGMENT } from '@/lib/unit-5-1-course';
 import { UNIT_5_2_COURSE_TITLE, UNIT_5_2_ROUTE_SEGMENT } from '@/lib/unit-5-2-course';
+import { UNIT_5_3_COURSE_TITLE, UNIT_5_3_ROUTE_SEGMENT } from '@/lib/unit-5-3-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 const UNIT_4_5_ROUTE_SEGMENT = 'unit-4-5-constraint-aware-parameter-optimization';
@@ -241,6 +242,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '5-2：非线性系统的最小分析入口',
       '非线性系统的最小分析入口',
       '局部线性化、相平面与描述函数',
+    ],
+  },
+  {
+    routeSegment: UNIT_5_3_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_5_3_COURSE_TITLE,
+      '5-3：从单回路控制到复杂自主系统链路',
+      '从单回路控制到复杂自主系统链路',
+      'MASS 感知、估计、规划、控制、执行与监督链路',
     ],
   },
 ];

@@ -37,6 +37,8 @@ vi.mock('@/lib/lru-cache', () => ({
 
 import { authOptions } from '@/lib/auth';
 
+type SessionCallbackInput = Parameters<NonNullable<NonNullable<typeof authOptions.callbacks>['session']>>[0];
+
 describe('auth session resilience', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -66,14 +68,15 @@ describe('auth session resilience', () => {
       user: undefined,
       newSession: undefined,
       trigger: 'update',
-    });
+    } as unknown as SessionCallbackInput);
 
-    expect(session.user).toMatchObject({
+    const user = session.user as NonNullable<typeof session.user> & { profile?: unknown };
+    expect(user).toMatchObject({
       id: 'teacher-1',
       role: UserRole.TEACHER,
       name: '李老师',
       email: 'teacher@example.com',
     });
-    expect(session.user.profile).toBeUndefined();
+    expect(user.profile).toBeUndefined();
   });
 });

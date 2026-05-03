@@ -41,6 +41,13 @@ type RuntimeLink = {
   strength?: number;
 };
 
+type RuntimeKnowledgeGroup = {
+  group_name?: string;
+  title?: string;
+  step_ids: string[];
+  node_ids: string[];
+};
+
 type RuntimeLessonJson = {
   lesson_id: string;
   title: string;
@@ -54,7 +61,7 @@ type RuntimeLessonJson = {
   media_index_path?: string;
   media_index_source_path?: string;
   sequence?: {
-    groups?: Array<{ group_name: string; step_ids: string[]; node_ids: string[] }>;
+    groups?: RuntimeKnowledgeGroup[];
     card_order?: string[];
   };
   interactive_manifest_path?: string;
@@ -67,7 +74,7 @@ type RuntimeGraphOverlay = {
   entry_nodes?: string[];
   summary_nodes?: string[];
   card_order?: string[];
-  groups?: Array<{ group_name: string; step_ids: string[]; node_ids: string[] }>;
+  groups?: RuntimeKnowledgeGroup[];
   nodes: RuntimeNode[];
   links: RuntimeLink[];
 };
@@ -106,7 +113,7 @@ export interface RuntimeLessonEntryBundle {
     entry_nodes?: string[];
     summary_nodes?: string[];
     card_order: string[];
-    groups: Array<{ group_name: string; step_ids: string[]; node_ids: string[] }>;
+    groups: RuntimeKnowledgeGroup[];
     nodes: RuntimeLessonEntryNode[];
     links: RuntimeLink[];
   };

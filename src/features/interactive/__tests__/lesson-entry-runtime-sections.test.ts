@@ -10,10 +10,16 @@ const source = readFileSync(
 );
 
 describe('lesson entry runtime sections', () => {
-  it('opens knowledge-node infographics in a larger preview dialog from the entry page', () => {
-    expect(source).toContain('setIsInfographPreviewOpen(true)');
-    expect(source).toContain('LessonEntryInfographDialog');
-    expect(source).toContain('查看大图');
-    expect(source).toContain('aria-label={`放大查看${selectedInfographAlt}`}');
+  it('does not render a second infograph figure outside KnowledgeCard on the entry page', () => {
+    expect(source).not.toContain('LessonEntryInfographDialog');
+    expect(source).not.toContain('selectedInfographSrc');
+    expect(source).not.toContain('setIsInfographPreviewOpen');
+    expect(source).not.toContain('知识点信息图');
+  });
+
+  it('keeps the selected node resources flowing into KnowledgeCard', () => {
+    expect(source).toContain('<KnowledgeCard');
+    expect(source).toContain('resources={selectedNode.resources}');
+    expect(source).toContain("surface: 'lesson_entry'");
   });
 });

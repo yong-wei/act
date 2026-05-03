@@ -250,6 +250,10 @@ function formatAnswerValue(card: InteractiveRuntimeActivityCardManifest, value: 
 function TeacherCardOptions({ card }: { card: InteractiveRuntimeActivityCardManifest }) {
   if (!card.options.length) return null;
 
+  if (isDragMatchCard(card)) {
+    return <DragMatchPreview card={card} />;
+  }
+
   return (
     <div className="mt-3 grid gap-2 md:grid-cols-2">
       {card.options.map((option) => (
@@ -365,6 +369,88 @@ function splitMatchLabel(label: string) {
   };
 }
 
+function stableHash(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function stableShuffleOptions<T extends { value: string }>(items: T[], seed: string) {
+  const ranked = items
+    .map((item, index) => ({
+      item,
+      index,
+      rank: stableHash(`${seed}:${item.value}`),
+    }))
+    .sort((left, right) => left.rank - right.rank || left.index - right.index)
+    .map(({ item }) => item);
+
+  const unchanged = ranked.every((item, index) => item.value === items[index]?.value);
+  if (unchanged && ranked.length > 1) {
+    return [...ranked.slice(1), ranked[0]];
+  }
+  return ranked;
+}
+
+function matchOptionSeed(card: InteractiveRuntimeActivityCardManifest) {
+  return `${card.id}:${card.options.map((option) => option.value).join('|')}`;
+}
+
+function normalizeDragMatchAssignments(value: string, optionValues: string[]) {
+  const raw = value.trim() ? value.split('|') : [];
+  const padded = raw.slice(0, optionValues.length);
+  while (padded.length < optionValues.length) {
+    padded.push('');
+  }
+
+  const seen = new Set<string>();
+  return optionValues.map((_, index) => {
+    const candidate = padded[index] ?? '';
+    if (!candidate || !optionValues.includes(candidate) || seen.has(candidate)) {
+      return '';
+    }
+    seen.add(candidate);
+    return candidate;
+  });
+}
+
+function DragMatchPreview({ card }: { card: InteractiveRuntimeActivityCardManifest }) {
+  const shuffledOptions = stableShuffleOptions(card.options, matchOptionSeed(card));
+
+  return (
+    <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
+        <ManifestSectionTitle>待配对项</ManifestSectionTitle>
+        <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
+        {card.options.map((option) => (
+          <Fragment key={option.value}>
+            <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
+              {renderActivityInlineContent(splitMatchLabel(option.label).source)}
+            </div>
+            <div className="premium-lesson-muted flex min-h-[64px] items-center rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-3 text-sm leading-6">
+              待学生拖入
+            </div>
+          </Fragment>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <ManifestSectionTitle>备选项</ManifestSectionTitle>
+        {shuffledOptions.map((option) => (
+          <div
+            key={option.value}
+            className="premium-lesson-surface-elevated flex min-h-[64px] w-full items-center px-4 py-3 text-left text-sm leading-6"
+          >
+            {renderActivityInlineContent(splitMatchLabel(option.label).target)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DragMatchAnswerInput({
   card,
   value,
@@ -378,27 +464,16 @@ function DragMatchAnswerInput({
   const [draggedValue, setDraggedValue] = useState<string | null>(null);
   const draggedValueRef = useRef<string | null>(null);
   const normalizedAssignments = useMemo(() => {
-    const raw = value.split('|').filter(Boolean);
-    const normalized = raw.length === optionValues.length ? raw : [];
-    return optionValues.map((_, index) => {
-      const candidate = normalized[index];
-      return candidate && optionValues.includes(candidate) ? candidate : '';
-    });
+    return normalizeDragMatchAssignments(value, optionValues);
   }, [optionValues, value]);
-  const [localAssignments, setLocalAssignments] = useState<string[]>(normalizedAssignments);
-
-  useEffect(() => {
-    setLocalAssignments(normalizedAssignments);
-  }, [normalizedAssignments]);
-
-  const assignments = localAssignments.length === optionValues.length ? localAssignments : normalizedAssignments;
+  const assignments = normalizedAssignments;
   const assignedValues = new Set(assignments.filter(Boolean));
-  const availableOptions = card.options.filter((option) => !assignedValues.has(option.value));
+  const shuffledOptions = useMemo(() => stableShuffleOptions(card.options, matchOptionSeed(card)), [card]);
+  const availableOptions = shuffledOptions.filter((option) => !assignedValues.has(option.value));
   const labelFor = (optionValue: string) =>
     card.options.find((option) => option.value === optionValue)?.label ?? optionValue;
   const targetLabelFor = (optionValue: string) => splitMatchLabel(labelFor(optionValue)).target;
   const commitAssignments = (next: string[]) => {
-    setLocalAssignments(next);
     onChange(next.join('|'));
   };
   const assignToSlot = (slotIndex: number, optionValue: string | null) => {
@@ -430,29 +505,29 @@ function DragMatchAnswerInput({
           const assigned = assignments[index];
           return (
             <Fragment key={option.value}>
-              <div className="premium-lesson-surface-elevated min-h-[64px] px-4 py-3 text-sm leading-6">
+              <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
                 {renderActivityInlineContent(splitMatchLabel(option.label).source)}
               </div>
               <button
                 type="button"
-              onDragOver={(event) => event.preventDefault()}
-              onDragEnter={(event) => {
-                event.preventDefault();
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
-                assignToSlot(index, droppedValue);
-              }}
-              onMouseUp={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
-              onClick={() => {
-                if (!assigned) return;
+                onDragOver={(event) => event.preventDefault()}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
+                  assignToSlot(index, droppedValue);
+                }}
+                onMouseUp={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
+                onClick={() => {
+                  if (!assigned) return;
                   const next = [...assignments];
                   next[index] = '';
                   commitAssignments(next);
                 }}
-                className={`min-h-[64px] w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
-                  assigned ? 'border-cyan-200 bg-cyan-50' : 'border-dashed border-slate-300 bg-slate-50'
+                className={`flex min-h-[64px] w-full items-center rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
+                  assigned ? 'border-cyan-300/60 bg-cyan-500/10' : 'premium-lesson-muted border-dashed border-border/60 bg-background/40'
                 }`}
                 aria-label={`${splitMatchLabel(option.label).source} 的配对空槽`}
               >
@@ -823,12 +898,14 @@ function StudentCards({
 }
 
 function hasTeacherRevealControl(stepManifest: InteractiveRuntimeStepManifest) {
-  return stepManifest.teacherControls.teacherStepReveal === 'teacher_only'
-    || stepManifest.teacherControls.teacherStepReveal === 'teacher_direct';
+  const mode = String(stepManifest.teacherControls.teacherStepReveal);
+  return mode === 'teacher_only'
+    || mode === 'teacher_direct'
+    || mode === 'enabled';
 }
 
 function revealLayerCount(stepManifest: InteractiveRuntimeStepManifest) {
-  const layers = stepManifest.contentBlocks.reveal_layers;
+  const layers = stepManifest.contentBlocks.reveal_layers ?? stepManifest.contentBlocks.reveal_steps;
   if (Array.isArray(layers)) return layers.length;
   if (layers && typeof layers === 'object' && Array.isArray((layers as { layers?: unknown[] }).layers)) {
     return (layers as { layers: unknown[] }).layers.length;
@@ -1019,36 +1096,57 @@ function TeacherRevealOnlySummary({
   );
 }
 
+function renderStudentCardsActivity<TStep>(
+  props: StudentInteractiveActivityRendererProps<TStep, ManifestStepResponse>,
+) {
+  return <StudentCards {...props} />;
+}
+
+function renderNullStudentActivity<TStep>(
+  _props: StudentInteractiveActivityRendererProps<TStep, ManifestStepResponse>,
+) {
+  return null;
+}
+
 export function createManifestStudentActivityRegistry<TStep>(): StudentInteractiveActivityRegistry<TStep, ManifestStepResponse> {
+  const renderCards = renderStudentCardsActivity as StudentInteractiveActivityRegistry<
+    TStep,
+    ManifestStepResponse
+  >[string];
+  const renderNull = renderNullStudentActivity as StudentInteractiveActivityRegistry<
+    TStep,
+    ManifestStepResponse
+  >[string];
+
   return {
-    row_focus_toggle: (props) => <StudentCards {...props} />,
-    curve_compare_panel: (props) => <StudentCards {...props} />,
-    activity_cards: (props) => <StudentCards {...props} />,
-    step_reveal: (props) => <StudentCards {...props} />,
-    reason_chain: (props) => <StudentCards {...props} />,
-    matrix_choice_cards: (props) => <StudentCards {...props} />,
-    hotspot_labeling: (props) => <StudentCards {...props} />,
-    band_focus_panel: (props) => <StudentCards {...props} />,
-    goal_cards: (props) => <StudentCards {...props} />,
-    goal_cards_plus_ai: (props) => <StudentCards {...props} />,
-    evidence_mark_cards: (props) => <StudentCards {...props} />,
-    scheme_vote_cards: (props) => <StudentCards {...props} />,
-    reflection_card: (props) => <StudentCards {...props} />,
-    single_choice: (props) => <StudentCards {...props} />,
-    binary_choice: (props) => <StudentCards {...props} />,
-    card_sort: (props) => <StudentCards {...props} />,
-    triple_match: (props) => <StudentCards {...props} />,
-    drag_match: (props) => <StudentCards {...props} />,
-    structured_compare: (props) => <StudentCards {...props} />,
-    parameter_slider: (props) => <StudentCards {...props} />,
-    activity_card_set: (props) => <StudentCards {...props} />,
-    table_builder: (props) => <StudentCards {...props} />,
-    task_card_workspace: (props) => <StudentCards {...props} />,
-    quiz_group: (props) => <StudentCards {...props} />,
-    multi_select_matrix: (props) => <StudentCards {...props} />,
-    quiz_card_grid: (props) => <StudentCards {...props} />,
-    teacher_reveal_only: () => null,
-    worked_example_reveal: (props) => <StudentCards {...props} />,
+    row_focus_toggle: renderCards,
+    curve_compare_panel: renderCards,
+    activity_cards: renderCards,
+    step_reveal: renderCards,
+    reason_chain: renderCards,
+    matrix_choice_cards: renderCards,
+    hotspot_labeling: renderCards,
+    band_focus_panel: renderCards,
+    goal_cards: renderCards,
+    goal_cards_plus_ai: renderCards,
+    evidence_mark_cards: renderCards,
+    scheme_vote_cards: renderCards,
+    reflection_card: renderCards,
+    single_choice: renderCards,
+    binary_choice: renderCards,
+    card_sort: renderCards,
+    triple_match: renderCards,
+    drag_match: renderCards,
+    structured_compare: renderCards,
+    parameter_slider: renderCards,
+    activity_card_set: renderCards,
+    table_builder: renderCards,
+    task_card_workspace: renderCards,
+    quiz_group: renderCards,
+    multi_select_matrix: renderCards,
+    quiz_card_grid: renderCards,
+    teacher_reveal_only: renderNull,
+    worked_example_reveal: renderCards,
   };
 }
 

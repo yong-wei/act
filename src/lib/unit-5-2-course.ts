@@ -13,7 +13,8 @@ export type UNIT_5_2TeacherControlMode =
   | 'not_applicable'
   | 'page_load_open'
   | 'teacher_toggle'
-  | 'teacher_only';
+  | 'teacher_only'
+  | 'enabled';
 export type UNIT_5_2PageType =
   | 'display'
   | 'summary'
@@ -129,10 +130,6 @@ export const UNIT_5_2_STAGE_MAP: Record<UNIT_5_2StageCode, BopppsStage> = {
   S: 'SUMMARY',
 };
 
-function preview(stepId: string) {
-  return `/interactive-learning/courses/${UNIT_5_2_ROUTE_SEGMENT}/student/demo?step=${stepId}`;
-}
-
 function pageTypeFromInteraction(stepId: string, interactionKind: string): UNIT_5_2PageType {
   if (interactionKind === 'none') return stepId === 'step-18' ? 'summary' : 'display';
   if (
@@ -217,51 +214,6 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
     previewDemoPath: step.previewContract.demoPath,
   };
 }
-
-function fallbackManifestStep(step: UNIT_5_2StepDefinition): InteractiveRuntimeStepManifest {
-  const interactionKind = step.pageType === 'display' || step.pageType === 'summary' ? 'none' : step.pageType;
-  return {
-    id: step.id,
-    title: step.title,
-    layout: {
-      template: 'stacked_regions',
-      regions: [{ id: 'main', width: 'full', order: 1 }],
-    },
-    modules: [],
-    contentBlocks: {},
-    evidenceSequence: [],
-    interactionSpec: { interactionKind, activityCards: [] },
-    teacherControls: {
-      releaseActivity: interactionKind === 'none' || interactionKind === 'teacher_reveal_only' ? 'not_applicable' : 'teacher_toggle',
-      openBrowse: 'not_applicable',
-      teacherStepReveal: interactionKind === 'teacher_reveal_only' ? 'teacher_toggle' : 'not_applicable',
-      revealReferenceAnswer: interactionKind === 'quiz_group' || interactionKind === 'single_choice' ? 'teacher_toggle' : 'not_applicable',
-    },
-    studentAccess: {},
-    teacherInsightSpec: { widgets: [] },
-    telemetrySpec: { summaryFields: [], misconceptionTags: [] },
-    aiContextSpec: {
-      pageGoal: UNIT_5_2_AI_PAGE_GOALS[step.id] ?? step.hint,
-      deliveryMode: 'hidden_page_context',
-    },
-    interactiveFigureSpec: {},
-    previewContract: { demoPath: preview(step.id) },
-    acceptanceChecks: [],
-  };
-}
-
-export const UNIT_5_2_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
-  lessonId: '5-2',
-  courseTitle: UNIT_5_2_COURSE_TITLE,
-  courseRouteSegment: UNIT_5_2_ROUTE_SEGMENT,
-  previewMode: {},
-  mediaPolicy: {},
-  telemetryStrategy: 'runtime_externalized',
-  teacherInsightStrategy: 'runtime_externalized',
-  requiredStepFields: [],
-  stepOrder: UNIT_5_2_LESSON_STEPS.map((step) => step.id),
-  steps: UNIT_5_2_LESSON_STEPS.map(fallbackManifestStep),
-};
 
 export function getUNIT_5_2ManifestStepFromManifest(
   manifest: InteractiveRuntimeManifest | null | undefined,

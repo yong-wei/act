@@ -9,7 +9,7 @@ import {
 } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
 
 type RawGraphOverlay = {
-  groups?: Array<{ group_name: string; step_ids?: string[]; node_ids?: string[] }>;
+  groups?: RawKnowledgeGroup[];
   card_order?: string[];
   nodes: Array<{
     id: string;
@@ -21,6 +21,13 @@ type RawGraphOverlay = {
     positionZ?: number;
   }>;
   links: Array<{ id: string; sourceId: string; targetId: string; relation: string }>;
+};
+
+type RawKnowledgeGroup = {
+  group_name?: string;
+  title?: string;
+  step_ids: string[];
+  node_ids: string[];
 };
 
 const repoRoot = process.cwd();
@@ -43,8 +50,12 @@ function expectNoNodeOverlap(layout: ReturnType<typeof createLessonKnowledgeMapL
   }
 }
 
+function getGroupTitle(group: RawKnowledgeGroup | undefined, index: number) {
+  return group?.group_name ?? group?.title ?? `阶段 ${index + 1}`;
+}
+
 describe('lesson entry knowledge map layout', () => {
-  it.each(['2-2', '2-3', '4-3'])('creates stable non-overlapping roadmap positions for lesson %s', (lessonId) => {
+  it.each(['2-2', '2-3', '4-3', '5-2', '5-3'])('creates stable non-overlapping roadmap positions for lesson %s', (lessonId) => {
     const overlay = loadOverlay(lessonId);
     const layout = createLessonKnowledgeMapLayout({
       nodes: overlay.nodes,
@@ -55,7 +66,7 @@ describe('lesson entry knowledge map layout', () => {
 
     expect(layout.nodes).toHaveLength(overlay.nodes.length);
     expect(new Set(layout.nodes.map((item) => item.node.id)).size).toBe(overlay.nodes.length);
-    expect(layout.columns.map((column) => column.title)).toContain(overlay.groups?.[0]?.group_name);
+    expect(layout.columns.map((column) => column.title)).toContain(getGroupTitle(overlay.groups?.[0], 0));
     expect(layout.width).toBeGreaterThan(layout.nodeWidth * layout.columns.length);
     expect(layout.height).toBeGreaterThan(layout.nodeHeight);
     expectNoNodeOverlap(layout);
@@ -74,7 +85,7 @@ describe('lesson entry knowledge map layout', () => {
     });
 
     const firstColumn = layout.columns[0];
-    expect(firstColumn.title).toBe(firstGroup?.group_name);
+    expect(firstColumn.title).toBe(getGroupTitle(firstGroup, 0));
     expect(firstColumn.nodeIds).toEqual(
       (firstGroup?.node_ids ?? [])
         .filter((nodeId, index, source) => source.indexOf(nodeId) === index)
@@ -84,6 +95,22 @@ describe('lesson entry knowledge map layout', () => {
     for (const nodeId of firstGroup?.node_ids ?? []) {
       expect(layout.nodeById.get(nodeId)?.columnIndex).toBe(0);
     }
+  });
+
+  it('uses title-only runtime groups when group_name is absent', () => {
+    const overlay = loadOverlay('5-2');
+    expect(overlay.groups?.[0]?.group_name).toBeUndefined();
+    expect(overlay.groups?.[0]?.title).toBe('非线性边界入口');
+
+    const layout = createLessonKnowledgeMapLayout({
+      nodes: overlay.nodes,
+      links: overlay.links,
+      groups: overlay.groups ?? [],
+      cardOrder: overlay.card_order ?? [],
+    });
+
+    expect(layout.columns[0].title).toBe('非线性边界入口');
+    expect(layout.columns[0].id).toBe('1-非线性边界入口');
   });
 
   it('falls back to a related-knowledge column and filters links with missing endpoints', () => {

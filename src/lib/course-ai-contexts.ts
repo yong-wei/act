@@ -108,6 +108,11 @@ import {
   getUnit52StepQuickQuestionsLocal,
   UNIT_5_2_COURSE_META,
 } from './unit-5-2-ai-contexts';
+import {
+  getUnit53StepAIContextLocal,
+  getUnit53StepQuickQuestionsLocal,
+  UNIT_5_3_COURSE_META,
+} from './unit-5-3-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -305,6 +310,14 @@ export {
   getUnit52StepAIContextLocal,
   getUnit52StepQuickQuestionsLocal,
 } from './unit-5-2-ai-contexts';
+export {
+  UNIT_5_3_COURSE_META,
+  UNIT_5_3_STEP_AI_CONTEXTS,
+  getUnit53StepAIContext,
+  getUnit53StepQuickQuestions,
+  getUnit53StepAIContextLocal,
+  getUnit53StepQuickQuestionsLocal,
+} from './unit-5-3-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -555,6 +568,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_5_2_COURSE_META.courseId,
       courseTitle: UNIT_5_2_COURSE_META.courseTitle,
       courseDescription: UNIT_5_2_COURSE_META.courseDescription,
+    },
+  },
+
+  'unit-5-3-mass-coordination-chain-v1': {
+    getStepContext: (stepId: string) => getUnit53StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit53StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_5_3_COURSE_META.courseId,
+      courseTitle: UNIT_5_3_COURSE_META.courseTitle,
+      courseDescription: UNIT_5_3_COURSE_META.courseDescription,
     },
   },
 };

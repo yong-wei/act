@@ -81,7 +81,7 @@ describe('unit 4-6 interactive course', () => {
       >;
     };
     const courseModule = await import('@/lib/unit-4-6-course');
-    const localSteps = new Map(courseModule.UNIT_4_6_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const localSteps = new Map(courseModule.UNIT_4_6_LESSON_STEPS.map((step) => [step.id, step]));
     const runtimeManifest = normalizeInteractiveRuntimeManifest(contract);
     expect(runtimeManifest).not.toBeNull();
 

@@ -83,3 +83,40 @@ fn computes_distinct_characteristics_for_unit_5_2_tabs() {
     assert!(hysteresis["characteristic"]["curve"].as_array().unwrap().len() > 9);
     assert!(hysteresis["characteristic"]["describingFunction"]["im"].as_f64().unwrap().abs() > 0.01);
 }
+
+#[test]
+fn computes_turning_radius_constraints_for_unit_5_3() {
+    let tight = compute(json!({
+        "runtimeMode": "nonlinear_analysis",
+        "analysisKind": "turning_radius",
+        "modelId": "mass_avoidance_turn",
+        "parameters": { "R_m": 35.0 },
+        "timeRange": { "start": 0.0, "end": 82.0, "samples": 180 }
+    }));
+    let medium = compute(json!({
+        "runtimeMode": "nonlinear_analysis",
+        "analysisKind": "turning_radius",
+        "modelId": "mass_avoidance_turn",
+        "parameters": { "R_m": 65.0 },
+        "timeRange": { "start": 0.0, "end": 82.0, "samples": 180 }
+    }));
+    let wide = compute(json!({
+        "runtimeMode": "nonlinear_analysis",
+        "analysisKind": "turning_radius",
+        "modelId": "mass_avoidance_turn",
+        "parameters": { "R_m": 140.0 },
+        "timeRange": { "start": 0.0, "end": 82.0, "samples": 180 }
+    }));
+
+    assert_eq!(tight["turningRadius"]["saturationActive"].as_bool().unwrap(), true);
+    assert_eq!(wide["turningRadius"]["saturationActive"].as_bool().unwrap(), false);
+    assert!(tight["turningRadius"]["maxDeltaDeg"].as_f64().unwrap() >= 17.5);
+    assert!(wide["turningRadius"]["maxDeltaDeg"].as_f64().unwrap() < 16.0);
+    assert!(medium["turningRadius"]["dStartM"].as_f64().unwrap() > tight["turningRadius"]["dStartM"].as_f64().unwrap());
+    assert!(wide["turningRadius"]["safetyConstraintSatisfied"].as_bool().unwrap());
+    assert!(tight["turningRadius"]["headingCurves"].as_array().unwrap().len() >= 4);
+    assert!(wide["turningRadius"]["path"]["actual"].as_array().unwrap().len() >= 120);
+    assert!(wide["summary"]["metrics"].as_array().unwrap().iter().any(|item| {
+        item.as_str().unwrap_or("").contains("R=140")
+    }));
+}

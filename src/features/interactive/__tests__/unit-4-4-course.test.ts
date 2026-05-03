@@ -76,7 +76,7 @@ describe('unit 4-4 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-4-4-course');
-    const interactiveSteps = new Map(courseModule.UNIT_4_4_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const interactiveSteps = new Map(courseModule.UNIT_4_4_LESSON_STEPS.map((step) => [step.id, step]));
     const expectedStepIds = Object.keys(contract.steps);
 
     expect(expectedStepIds).toHaveLength(14);

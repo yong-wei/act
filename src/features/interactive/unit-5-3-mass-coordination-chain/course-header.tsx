@@ -7,21 +7,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
 
 import {
-  UNIT_5_2_COURSE_SUBTITLE,
-  UNIT_5_2_COURSE_TITLE,
-  UNIT_5_2_ROUTE_SEGMENT,
-  UNIT_5_2_STAGE_LABEL,
-  type UNIT_5_2StepDefinition,
-} from '@/lib/unit-5-2-course';
+  UNIT_5_3_COURSE_SUBTITLE,
+  UNIT_5_3_COURSE_TITLE,
+  UNIT_5_3_ROUTE_SEGMENT,
+  UNIT_5_3_STAGE_LABEL,
+  type UNIT_5_3StepDefinition,
+} from '@/lib/unit-5-3-course';
 
-export function UNIT_5_2CourseHeader({
+export function UNIT_5_3CourseHeader({
   steps,
   activeIndex,
   onIndexChange,
   middleNotice,
   rightSlot,
 }: {
-  steps: readonly UNIT_5_2StepDefinition[];
+  steps: readonly UNIT_5_3StepDefinition[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;
@@ -35,17 +35,17 @@ export function UNIT_5_2CourseHeader({
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
-              href={`/interactive-learning/courses/${UNIT_5_2_ROUTE_SEGMENT}`}
+              href={`/interactive-learning/courses/${UNIT_5_3_ROUTE_SEGMENT}`}
               className="premium-lesson-nav-button shrink-0"
             >
               返回
             </Link>
             <div className="min-w-0">
               <div className="premium-lesson-kicker truncate text-[10px] tracking-[0.24em]">
-                {UNIT_5_2_COURSE_SUBTITLE}
+                {UNIT_5_3_COURSE_SUBTITLE}
               </div>
               <h1 className="premium-lesson-title truncate text-sm font-semibold md:text-base">
-                {UNIT_5_2_COURSE_TITLE}
+                {UNIT_5_3_COURSE_TITLE}
               </h1>
             </div>
           </div>
@@ -53,7 +53,7 @@ export function UNIT_5_2CourseHeader({
           <div className="hidden min-w-0 flex-1 md:block">
             <div className="flex items-center justify-center gap-2">
               <span className="premium-lesson-tone-pill premium-tone-cyan px-3 py-0.5 text-[11px]">
-                {UNIT_5_2_STAGE_LABEL[currentStep.stage]}
+                {UNIT_5_3_STAGE_LABEL[currentStep.stage]}
               </span>
               <span className="premium-lesson-tone-pill premium-tone-slate px-2.5 py-0.5 text-[11px]">
                 {currentStep.duration}
@@ -69,7 +69,7 @@ export function UNIT_5_2CourseHeader({
             <label className="premium-lesson-control inline-flex items-center gap-2">
               <span>环节</span>
               <select
-                id="unit-5-2-step-select"
+                id="unit-5-3-step-select"
                 name="lessonStep"
                 aria-label="选择课程环节"
                 value={currentStep.id}

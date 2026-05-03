@@ -71,6 +71,53 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('data-template="stacked_regions"');
   });
 
+  it('keeps extended Rust figure and structured submission fields in the normalized manifest', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-11': {
+          title: 'Rust 面板字段测试',
+          layout: { template: 'stacked_regions', regions: [] },
+          modules: [],
+          content_blocks: {},
+          interactive_figure_spec: {
+            kind: 'rust_turning_radius_panel',
+            required: true,
+            fallback_allowed: false,
+            displayed_cases_policy: 'single_current_radius_only',
+            controls: [{ id: 'R_m', min: 35, max: 160, default: 140, step: 5 }],
+            dynamic_outputs: ['d_start_m', 'max_delta_deg'],
+          },
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'turning-radius-submit',
+                prompt: '提交规划半径和最大舵角。',
+                response_kind: 'fill_text',
+                structured_fields: ['R_m', 'max_delta_deg', 'safety_constraint_satisfied'],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    expect(step!.interactiveFigureSpec.kind).toBe('rust_turning_radius_panel');
+    expect(step!.interactiveFigureSpec.fallback_allowed).toBe(false);
+    expect(step!.interactiveFigureSpec.displayed_cases_policy).toBe('single_current_radius_only');
+    expect(step!.interactiveFigureSpec.controls).toEqual([
+      { id: 'R_m', min: 35, max: 160, default: 140, step: 5 },
+    ]);
+    expect(step!.interactionSpec.activityCards?.[0]?.structuredFields).toEqual([
+      'R_m',
+      'max_delta_deg',
+      'safety_constraint_satisfied',
+    ]);
+  });
+
   it('loads the reviewed 4-6 runtime manifest including teacher_reveal_only steps', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
 
@@ -232,7 +279,7 @@ describe('interactive runtime manifest', () => {
         manifest: manifest!,
         step: step!,
         moduleRegistry: {
-          'summary-card': ({ module }) => createElement('div', null, module.payload.text),
+          'summary-card': ({ module }) => createElement('div', null, String(module.payload.text ?? '')),
           'activity-card': () => createElement('div', null, '本页作答', '这个题面只能出现在活动作答区。'),
         },
         extra: undefined,
@@ -407,6 +454,195 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('备选项');
     expect(html).toContain('输出被压平');
     expect(html).toContain('饱和');
+  });
+
+  it('keeps student activity renderer references stable across registry factory calls', () => {
+    const first = createManifestStudentActivityRegistry<{ id: string }>();
+    const second = createManifestStudentActivityRegistry<{ id: string }>();
+
+    expect(second.drag_match).toBe(first.drag_match);
+    expect(second.activity_card_set).toBe(first.activity_card_set);
+    expect(second.teacher_reveal_only).toBe(first.teacher_reveal_only);
+    expect(first.drag_match).toBe(first.activity_cards);
+  });
+
+  it('keeps partial drag-match assignments instead of resetting empty slots', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-match-partial': {
+          title: '配对页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'match-a',
+                title: '边界配对',
+                prompt: '完成现象与边界类型配对。',
+                response_kind: 'drag_match',
+                options: [
+                  { value: 'sat', label: '输出被压平 -> 饱和' },
+                  { value: 'dead', label: '小信号无动作 -> 死区' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          savedResponse: {
+            stepId: step!.id,
+            submittedAt: Date.now(),
+            answers: { 'match-a': 'sat|' },
+          },
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('border-cyan-300/60');
+    expect(html).toContain('饱和');
+    expect(html).toContain('拖入对应备选项');
+    expect(html).toContain('border-border/60');
+    expect(html).not.toContain('bg-slate-50');
+  });
+
+  it('shuffles drag-match candidate options away from the correct manifest order', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-match-shuffle': {
+          title: '配对页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'match-a',
+                title: '边界配对',
+                prompt: '完成现象与边界类型配对。',
+                response_kind: 'drag_match',
+                options: [
+                  { value: 'alpha', label: '甲源 -> 甲目标' },
+                  { value: 'bravo', label: '乙源 -> 乙目标' },
+                  { value: 'charlie', label: '丙源 -> 丙目标' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          savedResponse: undefined,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+    const candidateHtml = html.slice(html.indexOf('备选项'));
+
+    expect(candidateHtml.indexOf('甲目标')).not.toBeLessThan(candidateHtml.indexOf('乙目标'));
+  });
+
+  it('renders drag-match teacher view as blank slots until reference answers are revealed', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-match-teacher': {
+          title: '配对页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'match-a',
+                title: '边界配对',
+                prompt: '完成现象与边界类型配对。',
+                response_kind: 'drag_match',
+                options: [
+                  { value: 'sat', label: '输出被压平 -> 饱和' },
+                  { value: 'dead', label: '小信号无动作 -> 死区' },
+                ],
+                reference_answer: '输出被压平对应饱和，小信号无动作对应死区。',
+              },
+            ],
+          },
+          teacher_controls: {
+            release_activity: 'teacher_toggle',
+            open_browse: 'page_load_open',
+            teacher_step_reveal: 'not_applicable',
+            reveal_reference_answer: 'teacher_toggle',
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          responses: [],
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('待配对项');
+    expect(html).toContain('配对空槽');
+    expect(html).toContain('备选项');
+    expect(html).toContain('待学生拖入');
+    expect(html).not.toContain('输出被压平 -&gt; 饱和');
+    expect(html).not.toContain('参考解释');
   });
 
   it('maps 4-7 task and identification manifest content without title-only shells or duplicate activity prompts', async () => {
@@ -772,6 +1008,32 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('推进显影');
     expect(html).toContain('重置显影');
     expect(html).toContain('当前教师显影层级：2');
+  });
+
+  it('allows shared step-reveal content to use a controlled teacher advance callback', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('onInlineReveal');
+    expect(source).toContain('onInlineReveal?.()');
+    expect(source).toContain('const visibleCount = onInlineReveal');
+    expect(source).toMatch(/onInlineReveal\s*\?\s*teacherVisibleCount/);
+    expect(source).toContain('setLocalVisibleCount(teacherVisibleCount)');
+  });
+
+  it('keeps drag-match draft answers controlled by parent runtime state', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('normalizeDragMatchAssignments(value, optionValues)');
+    expect(source).toContain("onChange(next.join('|'))");
+    expect(source).not.toContain('setLocalAssignments(normalizedAssignments)');
+    expect(source).not.toContain('bg-slate-50');
+    expect(source).toContain('items-center');
   });
 
   it('does not commit drag-match assignments before the dragged option is released', () => {

@@ -232,6 +232,36 @@ struct CharacteristicResult {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+struct TurningHeadingCurve {
+    id: String,
+    label: String,
+    points: Vec<CurvePoint>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TurningRadiusPath {
+    actual: Vec<CurvePoint>,
+    nominal: Vec<CurvePoint>,
+    obstacle_center: CurvePoint,
+    obstacle_radius: f64,
+    clearance_radius: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TurningRadiusResult {
+    d_start_m: f64,
+    delta_d_deg: f64,
+    max_delta_deg: f64,
+    saturation_active: bool,
+    safety_constraint_satisfied: bool,
+    heading_curves: Vec<TurningHeadingCurve>,
+    path: TurningRadiusPath,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct NonlinearSummary {
     outcome: String,
     metrics: Vec<String>,
@@ -248,6 +278,8 @@ struct NonlinearAnalysisResult {
     harmonic: Option<HarmonicResult>,
     #[serde(skip_serializing_if = "Option::is_none")]
     characteristic: Option<CharacteristicResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    turning_radius: Option<TurningRadiusResult>,
     summary: NonlinearSummary,
 }
 
@@ -1390,6 +1422,7 @@ fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisR
         negative_inverse: None,
         harmonic: None,
         characteristic: None,
+        turning_radius: None,
         summary: NonlinearSummary {
             outcome: outcome.to_string(),
             metrics: vec![
@@ -1554,6 +1587,7 @@ fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnal
         }),
         harmonic: None,
         characteristic: None,
+        turning_radius: None,
         summary: NonlinearSummary {
             outcome: "负倒曲线随 A 增大按表达式数值生成".to_string(),
             metrics: vec![format!("幅值范围 {:.2}..{:.2}", min_a, max_a)],
@@ -1595,6 +1629,7 @@ fn compute_harmonic(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResu
             ],
         }),
         characteristic: None,
+        turning_radius: None,
         summary: NonlinearSummary {
             outcome: "低通截止频率越低，高次谐波越被衰减".to_string(),
             metrics: vec![format!("基波衰减系数 {:.2}", attenuation)],
@@ -1646,9 +1681,131 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             sine_envelope,
             describing_function: ComplexPoint { re: n.re, im: n.im },
         }),
+        turning_radius: None,
         summary: NonlinearSummary {
             outcome: "输入输出特性与当前描述函数参数已联动".to_string(),
             metrics: vec![format!("N(A)=({:.3},{:.3})", n.re, n.im)],
+        },
+    }
+}
+
+fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
+    let samples = request.time_range.samples.max(2);
+    let start = request.time_range.start;
+    let end = request.time_range.end.max(start + 1e-6);
+    let r_m = nonlinear_param(request, "R_m", 140.0).clamp(35.0, 160.0);
+    let v = 4.0;
+    let delta_max = 18.0_f64.to_radians();
+    let length = 34.0;
+    let obstacle_x = 145.0;
+    let obstacle_y = 0.0;
+    let obstacle_radius = 25.0;
+    let safety_margin = 16.0;
+    let clearance = obstacle_radius + safety_margin;
+    let start_radius = (clearance * (2.0 * r_m + clearance)).sqrt();
+    let delta_needed = (length / r_m).atan();
+    let mut delta_cmd: f64 = 0.0;
+    let mut psi: f64 = 0.0;
+    let mut x: f64 = 0.0;
+    let mut y: f64 = 0.0;
+    let mut active = false;
+    let rate_limit = 12.0_f64.to_radians();
+    let dt = (end - start) / (samples - 1) as f64;
+
+    let mut delta_points = Vec::with_capacity(samples);
+    let mut delta_target_points = Vec::with_capacity(samples);
+    let mut psi_points = Vec::with_capacity(samples);
+    let mut distance_points = Vec::with_capacity(samples);
+    let mut actual_path = Vec::with_capacity(samples);
+    let mut nominal_path = Vec::with_capacity(samples);
+    let mut max_delta = 0.0_f64;
+    let mut min_clearance = f64::INFINITY;
+
+    for index in 0..samples {
+        let t = start + dt * index as f64;
+        if index > 0 {
+            let prev_dist = ((obstacle_x - x).powi(2) + (obstacle_y - y).powi(2)).sqrt();
+            if !active && prev_dist <= start_radius {
+                active = true;
+            }
+            let delta_target = if active && psi < 70.0_f64.to_radians() {
+                delta_needed
+            } else {
+                0.0
+            };
+            let target = delta_target.clamp(-delta_max, delta_max);
+            let step = (target - delta_cmd).clamp(-rate_limit * dt, rate_limit * dt);
+            delta_cmd += step;
+            let yaw_rate = v / length * delta_cmd.tan();
+            psi += dt * yaw_rate;
+            x += dt * v * psi.cos();
+            y += dt * v * psi.sin();
+        }
+
+        let distance = ((obstacle_x - x).powi(2) + (obstacle_y - y).powi(2)).sqrt();
+        min_clearance = min_clearance.min(distance);
+        max_delta = max_delta.max(delta_cmd.abs());
+        let progress = (psi / 70.0_f64.to_radians()).clamp(0.0, 1.0);
+        let nominal_theta = progress * 70.0_f64.to_radians();
+        let nominal_x = obstacle_x - start_radius + r_m * nominal_theta.sin();
+        let nominal_y = r_m * (1.0 - nominal_theta.cos());
+        let delta_target_deg = if active && psi < 70.0_f64.to_radians() {
+            delta_needed.to_degrees()
+        } else {
+            0.0
+        };
+
+        delta_points.push(CurvePoint { x: t, y: delta_cmd.to_degrees() });
+        delta_target_points.push(CurvePoint { x: t, y: delta_target_deg });
+        psi_points.push(CurvePoint { x: t, y: psi.to_degrees() });
+        distance_points.push(CurvePoint { x: t, y: distance });
+        actual_path.push(CurvePoint { x, y });
+        nominal_path.push(CurvePoint { x: nominal_x, y: nominal_y });
+    }
+
+    let saturation_active = delta_needed > delta_max || max_delta >= delta_max * 0.98;
+    let safety_constraint_satisfied = min_clearance >= obstacle_radius;
+    let outcome = if !safety_constraint_satisfied {
+        "当前规划半径未满足避碰安全距离"
+    } else if saturation_active {
+        "当前规划半径触发舵角饱和，需把执行约束回写给规划层"
+    } else {
+        "当前规划半径满足舵角与安全约束"
+    };
+
+    NonlinearAnalysisResult {
+        phase_plane: None,
+        negative_inverse: None,
+        harmonic: None,
+        characteristic: None,
+        turning_radius: Some(TurningRadiusResult {
+            d_start_m: start_radius,
+            delta_d_deg: delta_needed.to_degrees(),
+            max_delta_deg: max_delta.to_degrees(),
+            saturation_active,
+            safety_constraint_satisfied,
+            heading_curves: vec![
+                TurningHeadingCurve { id: "actual_delta".to_string(), label: "实际舵角".to_string(), points: delta_points },
+                TurningHeadingCurve { id: "target_delta".to_string(), label: "目标舵角".to_string(), points: delta_target_points },
+                TurningHeadingCurve { id: "heading".to_string(), label: "航向角".to_string(), points: psi_points },
+                TurningHeadingCurve { id: "distance".to_string(), label: "距障碍距离".to_string(), points: distance_points },
+            ],
+            path: TurningRadiusPath {
+                actual: actual_path,
+                nominal: nominal_path,
+                obstacle_center: CurvePoint { x: obstacle_x, y: obstacle_y },
+                obstacle_radius,
+                clearance_radius: clearance,
+            },
+        }),
+        summary: NonlinearSummary {
+            outcome: outcome.to_string(),
+            metrics: vec![
+                format!("R={:.0} m", r_m),
+                format!("d_start={:.1} m", start_radius),
+                format!("delta_d={:.2} deg", delta_needed.to_degrees()),
+                format!("min_distance={:.1} m", min_clearance),
+            ],
         },
     }
 }
@@ -1658,6 +1815,7 @@ fn compute_nonlinear_analysis_inner(request: &NonlinearAnalysisRequest) -> Nonli
         "phase_plane" => compute_phase_plane(request),
         "negative_inverse_family" => compute_negative_inverse(request),
         "harmonic_lowpass" => compute_harmonic(request),
+        "turning_radius" => compute_turning_radius(request),
         _ => compute_characteristic(request),
     }
 }

@@ -11,7 +11,7 @@ describe('AI provider settings', () => {
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
       AI_API_KEY: 'sk-test',
-    } as NodeJS.ProcessEnv);
+    } as unknown as NodeJS.ProcessEnv);
     const siliconflow = settings.providers[0];
 
     expect(settings.activeProvider).toBe('siliconflow');
@@ -57,7 +57,7 @@ describe('AI provider settings', () => {
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
       AI_API_KEY: 'sk-test',
-    } as NodeJS.ProcessEnv);
+    } as unknown as NodeJS.ProcessEnv);
 
     expect(getModelRuntimeOptions(settings, 'siliconflow', 'Qwen/Qwen3.6-35B-A3B')).toEqual({
       enableThinking: false,

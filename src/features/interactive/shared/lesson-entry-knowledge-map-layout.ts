@@ -88,6 +88,10 @@ function createColumnId(title: string, index: number) {
   return `${index + 1}-${title.replace(/\s+/g, '-') || 'stage'}`;
 }
 
+function resolveGroupTitle(group: KnowledgeMapGroup, index: number) {
+  return group.group_name ?? group.title ?? `阶段 ${index + 1}`;
+}
+
 function getLineEndpoint(
   source: KnowledgeMapPositionedNode,
   target: KnowledgeMapPositionedNode,
@@ -135,11 +139,11 @@ export function createLessonKnowledgeMapLayout({
   const compareNodeIds = compareByCardOrder(cardOrderIndex, originalIndex);
   const assigned = new Set<string>();
 
-  const columns: Array<{ title: string; nodeIds: string[] }> = groups.map((group) => {
+  const columns: Array<{ title: string; nodeIds: string[] }> = groups.map((group, index) => {
     const nodeIds = uniqueExistingNodeIds(group.node_ids ?? [], nodeById, assigned).sort(compareNodeIds);
     nodeIds.forEach((nodeId) => assigned.add(nodeId));
     return {
-      title: group.group_name,
+      title: resolveGroupTitle(group, index),
       nodeIds,
     };
   });

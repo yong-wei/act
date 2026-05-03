@@ -18,6 +18,7 @@ export type InteractiveInteractionKind =
   | 'multi_select_matrix'
   | 'quiz_card_grid'
   | 'activity_card_set'
+  | 'drag_match'
   | 'table_builder'
   | 'teacher_reveal_only'
   | 'single_choice'
@@ -68,6 +69,7 @@ export interface InteractiveRuntimeActivityCardManifest {
   submitScope: string;
   layoutSpan: string;
   options: InteractiveRuntimeChoiceOptionManifest[];
+  structuredFields?: string[];
 }
 
 export interface InteractiveRuntimeStepManifest {
@@ -105,7 +107,7 @@ export interface InteractiveRuntimeStepManifest {
     pageGoal: string;
     deliveryMode: string;
   };
-  interactiveFigureSpec: {
+  interactiveFigureSpec: Record<string, unknown> & {
     layoutMirror?: string;
     controlsPlacement?: string;
     controlsCollapsedByDefault?: boolean;
@@ -227,6 +229,7 @@ function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardMa
     submitScope: String(card.submit_scope ?? card.submitScope ?? ''),
     layoutSpan: String(card.layout_span ?? card.layoutSpan ?? ''),
     options: normalizeChoiceOptions(card.options),
+    structuredFields: asStringArray(card.structured_fields ?? card.structuredFields),
   };
 }
 
@@ -299,6 +302,7 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
       deliveryMode: String(aiContextSpec.delivery_mode ?? aiContextSpec.deliveryMode ?? ''),
     },
     interactiveFigureSpec: {
+      ...interactiveFigureSpec,
       layoutMirror: typeof interactiveFigureSpec.layout_mirror === 'string'
         ? interactiveFigureSpec.layout_mirror
         : typeof interactiveFigureSpec.layoutMirror === 'string'

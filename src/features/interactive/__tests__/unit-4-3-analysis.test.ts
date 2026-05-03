@@ -16,7 +16,9 @@ describe('unit 4-3 control analysis builder', () => {
     });
 
     expect(normalized.piPoleFrequency).toBeGreaterThan(0);
-    expect(normalized.leadZeroFrequency).toBeLessThan(normalized.leadPoleFrequency);
+    expect(normalized.leadZeroFrequency).toBeDefined();
+    expect(normalized.leadPoleFrequency).toBeDefined();
+    expect(normalized.leadZeroFrequency!).toBeLessThan(normalized.leadPoleFrequency!);
 
     const request = buildUnit43AnalysisRequest('pi_lead', normalized);
 
@@ -46,10 +48,12 @@ describe('unit 4-3 control analysis builder', () => {
       kd: 0.25,
     });
     const request = buildUnit43AnalysisRequest('pid_filtered', normalized);
+    const firstStructure = request.structures[0];
+    expect(firstStructure).toBeDefined();
 
     expect(request.caseId).toBe('unit43_pid_filtered');
     expect(Object.values(normalized).every((value) => Number.isFinite(value))).toBe(true);
-    expect(Object.values(request.structures[0]?.params ?? {}).every((value) => Number.isFinite(Number(value)))).toBe(true);
+    expect(Object.values(firstStructure!.params).every((value) => Number.isFinite(Number(value)))).toBe(true);
     expect(request.structures).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -119,7 +123,9 @@ describe('unit 4-3 control analysis builder', () => {
       leadZeroFrequency: 0.25,
       leadPoleFrequency: 0.12,
     });
-    expect(headingParams.leadZeroFrequency).toBeLessThan(headingParams.leadPoleFrequency);
+    expect(headingParams.leadZeroFrequency).toBeDefined();
+    expect(headingParams.leadPoleFrequency).toBeDefined();
+    expect(headingParams.leadZeroFrequency!).toBeLessThan(headingParams.leadPoleFrequency!);
 
     const rollParams = normalizeUnit43PanelParams('roll_boundary', {
       kp: 0.7858,

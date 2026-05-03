@@ -173,10 +173,6 @@ function buildBode(gain: number) {
   return data;
 }
 
-function showFlag(params: Record<string, number | string | boolean>, id: string, fallback = true) {
-  return typeof params[id] === 'boolean' ? Boolean(params[id]) : fallback;
-}
-
 function simulateBoundaryModel(modelId: string, params: Record<string, number | string | boolean>): ModelResult {
   if (modelId === 'smooth_tanh_first_order') {
     const inputType = String(params.input_type ?? 'small_step');
@@ -192,9 +188,9 @@ function simulateBoundaryModel(modelId: string, params: Record<string, number | 
       responseTitle: '时域响应：原非线性 / 线性化',
       auxiliaryTitle: '一次谐波幅值估计',
       response: [
-        showFlag(params, 'show_original') ? { name: '原非线性', data: original.output } : null,
-        showFlag(params, 'show_linearized') ? { name: '线性化', data: linear.output } : null,
-      ].filter((item): item is { name: string; data: ChartPoint[] } => Boolean(item)),
+        { name: '原非线性', data: original.output },
+        { name: '线性化', data: linear.output },
+      ],
       auxiliary: [
         { name: '线性化 Glin', data: buildBode(1) },
         { name: '当前幅值等效增益', data: buildBode(equivalentGain) },
@@ -213,8 +209,8 @@ function simulateBoundaryModel(modelId: string, params: Record<string, number | 
       auxiliaryTitle: '伪线性与一次谐波估计',
       response: [
         { name: '继电器输出响应', data: original.output },
-        showFlag(params, 'show_fake_gain') ? { name: '伪线性响应', data: fake.output } : null,
-      ].filter((item): item is { name: string; data: ChartPoint[] } => Boolean(item)),
+        { name: '伪线性响应', data: fake.output },
+      ],
       auxiliary: [
         { name: '伪线性 Gfake', data: buildBode(1) },
         { name: '继电器一次谐波估计', data: buildBode(4 * relayAmplitude / (Math.PI * Math.max(amplitude, 0.05))) },
@@ -578,6 +574,7 @@ export function UNIT_5_1StepContentPanel({
   shortAnswerCompleteness = 0,
   misconceptionSummary = '暂无聚合',
   onParameterChange,
+  onAdvanceReveal,
 }: {
   step: UNIT_5_1StepDefinition;
   manifest?: InteractiveRuntimeManifest | null;
@@ -596,6 +593,7 @@ export function UNIT_5_1StepContentPanel({
   shortAnswerCompleteness?: number;
   misconceptionSummary?: string;
   onParameterChange?: (stepId: string, snapshot: Unit51BoundaryParameterSnapshot) => void;
+  onAdvanceReveal?: () => void;
 }) {
   if (!manifest) {
     throw new Error('5-1 runtime manifest is required for page rendering.');
@@ -605,6 +603,7 @@ export function UNIT_5_1StepContentPanel({
   const sharedRegistry = createManifestContentModuleRegistry({
     revealProgress,
     allowInlineReveal,
+    onInlineReveal: onAdvanceReveal,
   });
   const moduleRegistry = {
     ...sharedRegistry,
@@ -654,7 +653,7 @@ export function UNIT_5_1StepContentPanel({
         manifest: activeManifest,
         step: stepManifest,
         moduleRegistry,
-        extra: { revealProgress, allowInlineReveal },
+        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
       })}
     </section>
   );

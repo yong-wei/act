@@ -162,6 +162,42 @@ export function createFallbackNonlinearAnalysisResult(request: NonlinearAnalysis
     };
   }
 
+  if (request.analysisKind === 'turning_radius') {
+    const radius = Number(request.parameters?.R_m ?? 140);
+    const samples = request.timeRange.samples;
+    const time = Array.from({ length: samples }, (_, index) => request.timeRange.start + ((request.timeRange.end - request.timeRange.start) * index) / Math.max(1, samples - 1));
+    const deltaDeg = Math.atan(34 / Math.max(radius, 1)) * 180 / Math.PI;
+    const dStart = Math.sqrt(41 * (2 * radius + 41));
+    return {
+      turningRadius: {
+        dStartM: dStart,
+        deltaDDeg: deltaDeg,
+        maxDeltaDeg: Math.min(18, deltaDeg),
+        saturationActive: deltaDeg > 18,
+        safetyConstraintSatisfied: radius >= 65,
+        headingCurves: [
+          { id: 'delta', label: '实际舵角', points: time.map((x) => ({ x, y: Math.min(18, deltaDeg) })) },
+          { id: 'delta_target', label: '目标舵角', points: time.map((x) => ({ x, y: deltaDeg })) },
+          { id: 'psi', label: '航向角', points: time.map((x) => ({ x, y: Math.min(70, x / 82 * 70) })) },
+          { id: 'distance', label: '距障碍距离', points: time.map((x) => ({ x, y: Math.max(0, 145 - x * 4) })) },
+        ],
+        path: {
+          actual: time.map((x) => ({ x: x * 2, y: radius / 3 * (1 - Math.cos(x / 82 * Math.PI / 2)) })),
+          nominal: time.map((x) => ({ x: x * 2, y: radius / 3 * (1 - Math.cos(x / 82 * Math.PI / 2)) })),
+          obstacleCenter: { x: 145, y: 0 },
+          obstacleRadius: 25,
+          clearanceRadius: 41,
+        },
+      },
+      summary: {
+        outcome: '浏览器端使用备用转弯半径曲线，等待 Rust/WASM 非线性分析引擎返回结果。',
+        metrics: [`R=${radius.toFixed(0)} m`, `delta_d=${deltaDeg.toFixed(2)} deg`],
+      },
+      isFallback: true,
+      fallbackMessage: 'Rust/WASM 非线性分析引擎暂不可用。',
+    };
+  }
+
   if (request.analysisKind === 'characteristic') {
     return fallbackCharacteristic(request);
   }
@@ -182,6 +218,8 @@ export function useNonlinearAnalysisEngine(
     isLoading: true,
     error: null,
     isFallback: Boolean(fallbackResult?.isFallback ?? true),
+    requestKey,
+    resultRequestKey: requestKey,
   });
 
   useEffect(() => {
@@ -192,6 +230,8 @@ export function useNonlinearAnalysisEngine(
         isLoading: false,
         error: null,
         isFallback: Boolean(result.isFallback),
+        requestKey,
+        resultRequestKey: requestKey,
       });
       return undefined;
     }
@@ -203,6 +243,8 @@ export function useNonlinearAnalysisEngine(
         isLoading: false,
         error: null,
         isFallback: Boolean(cached.isFallback),
+        requestKey,
+        resultRequestKey: requestKey,
       });
       return undefined;
     }
@@ -219,6 +261,8 @@ export function useNonlinearAnalysisEngine(
       isLoading: true,
       error: null,
       isFallback: Boolean(prev.result?.isFallback ?? fallbackResult?.isFallback ?? true),
+      requestKey,
+      resultRequestKey: prev.resultRequestKey,
     }));
 
     const handleMessage = (event: MessageEvent<WorkerMessage>) => {
@@ -232,6 +276,8 @@ export function useNonlinearAnalysisEngine(
           isLoading: false,
           error: null,
           isFallback: Boolean(result.isFallback),
+          requestKey,
+          resultRequestKey: requestKey,
         });
         return;
       }
@@ -242,6 +288,8 @@ export function useNonlinearAnalysisEngine(
         isLoading: false,
         error: message.error,
         isFallback: true,
+        requestKey,
+        resultRequestKey: requestKey,
       });
     };
 
@@ -252,6 +300,8 @@ export function useNonlinearAnalysisEngine(
         isLoading: false,
         error: '控制分析 Worker 加载失败。',
         isFallback: true,
+        requestKey,
+        resultRequestKey: requestKey,
       });
     };
 

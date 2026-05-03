@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   createManifestContentModuleRegistry,
@@ -13,6 +13,7 @@ import {
   type ManifestStepResponse,
 } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import {
+  type InteractiveModuleRegistry,
   renderInteractiveManifestStep,
   type InteractiveRuntimeModuleManifest,
   type InteractiveRuntimeStepManifest,
@@ -33,11 +34,18 @@ import type {
 } from '@/resources/control-system/analysis/nonlinear-analysis-types';
 
 type TeacherResponseItem = { studentName: string; response: ManifestStepResponse };
+type ContentRecord = Record<string, unknown>;
 type ParameterRecord = Record<string, number | string | boolean>;
-type CurveSeries = { id: string; label: string; color: string; points: NonlinearPoint[]; dashed?: boolean };
+type ContentRegistryExtra = {
+  revealProgress: number;
+  allowInlineReveal: boolean;
+  onInlineReveal?: () => void;
+};
+type CurveSeries = { id: string; label: string; color: string; points: NonlinearPoint[]; dashed?: boolean; marks?: Record<string, string> };
 type SliderConfig = { id: string; label: string; min: number; max: number; default: number; step: number };
 type TabConfig = { id: string; label: string; controls: SliderConfig[] };
 type CharacteristicPanelConfig = { tabs: TabConfig[] };
+type NegativeInverseFamilyConfig = { id: string; label: string; controls: SliderConfig[] };
 
 const CHARACTERISTIC_PANEL_CONFIGS: Record<string, CharacteristicPanelConfig> = {
   rust_memoryless_nonlinearity_tabs: {
@@ -126,6 +134,10 @@ function requireUnit52Manifest(manifest: InteractiveRuntimeManifest | null | und
   return manifest;
 }
 
+function asRecord(value: unknown): ContentRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as ContentRecord : {};
+}
+
 function asString(value: unknown, fallback = '') {
   return typeof value === 'string' && value.trim() ? value : fallback;
 }
@@ -146,6 +158,37 @@ function defaultTabForPanel(id: string) {
 function tabConfigForPanel(id: string, tabId: string) {
   const config = CHARACTERISTIC_PANEL_CONFIGS[id];
   return config?.tabs.find((tab) => tab.id === tabId) ?? config?.tabs[0];
+}
+
+function negativeInverseFamilies(step: InteractiveRuntimeStepManifest): NegativeInverseFamilyConfig[] {
+  const families = Array.isArray(step.interactiveFigureSpec.curve_families)
+    ? step.interactiveFigureSpec.curve_families
+    : Array.isArray(step.interactiveFigureSpec.curveFamilies)
+      ? step.interactiveFigureSpec.curveFamilies
+      : [];
+  return families
+    .map((item) => {
+      const record = asRecord(item);
+      const controls = Array.isArray(record.controls) ? record.controls : [];
+      return {
+        id: asString(record.id, ''),
+        label: asString(record.label, asString(record.id, '')),
+        controls: controls
+          .map((control) => {
+            const controlRecord = asRecord(control);
+            return {
+              id: asString(controlRecord.id, ''),
+              label: asString(controlRecord.label, asString(controlRecord.id, '')),
+              min: numeric(controlRecord.min, 0),
+              max: numeric(controlRecord.max, 1),
+              default: numeric(controlRecord.default, 0),
+              step: numeric(controlRecord.step, 0.1),
+            };
+          })
+          .filter((control) => control.id && control.label),
+      };
+    })
+    .filter((family) => family.id && family.label);
 }
 
 function requestForPanel(id: string, params: ParameterRecord): NonlinearAnalysisRequest {
@@ -173,8 +216,8 @@ function requestForPanel(id: string, params: ParameterRecord): NonlinearAnalysis
         h: numeric(params.h, 0.5),
         d: numeric(params.d, 0.5),
         b: numeric(params.b, 0.5),
-        A_min: 0.05,
-        A_max: 8,
+        A_min: numeric(params.A_min, 0.05),
+        A_max: numeric(params.A_max, 8),
       },
       timeRange: { start: 0, end: 1, samples: 100 },
     };
@@ -251,6 +294,7 @@ function chartSeries(result: NonlinearAnalysisResult | null): CurveSeries[] {
       label: curve.label,
       color: index % 2 === 0 ? '#dc2626' : '#7c3aed',
       points: curve.points.map((point) => ({ x: point.re, y: point.im })),
+      marks: curve.marks,
     }));
   }
 
@@ -258,9 +302,21 @@ function chartSeries(result: NonlinearAnalysisResult | null): CurveSeries[] {
   return [{ id: 'phase', label: '相轨迹', color: '#0f766e', points: phasePoints }];
 }
 
-function SvgCurve({ series }: { series: CurveSeries[] }) {
+function SvgCurve({
+  series,
+  vectorField = [],
+  showVectorField = false,
+  onPointSelect,
+}: {
+  series: CurveSeries[];
+  vectorField?: Array<{ x: number; y: number; dx: number; dy: number }>;
+  showVectorField?: boolean;
+  onPointSelect?: (point: NonlinearPoint) => void;
+}) {
   const allPoints = series.flatMap((item) => item.points);
-  const safePoints = allPoints.length ? allPoints : [{ x: 0, y: 0 }];
+  const vectorPoints = vectorField.flatMap((item) => [{ x: item.x, y: item.y }, { x: item.x + item.dx, y: item.y + item.dy }]);
+  const fieldPoints = showVectorField ? [...allPoints, ...vectorPoints] : allPoints;
+  const safePoints = fieldPoints.length ? fieldPoints : [{ x: 0, y: 0 }];
   const xs = safePoints.map((point) => point.x);
   const ys = safePoints.map((point) => point.y);
   const minX = Math.min(...xs);
@@ -269,26 +325,88 @@ function SvgCurve({ series }: { series: CurveSeries[] }) {
   const maxY = Math.max(...ys);
   const scaleX = (x: number) => 30 + ((x - minX) / Math.max(1e-6, maxX - minX)) * 420;
   const scaleY = (y: number) => 230 - ((y - minY) / Math.max(1e-6, maxY - minY)) * 190;
+  const invertPoint = (clientX: number, clientY: number, rect: DOMRect) => {
+    const svgX = ((clientX - rect.left) / rect.width) * 480;
+    const svgY = ((clientY - rect.top) / rect.height) * 260;
+    return {
+      x: minX + ((svgX - 30) / 420) * Math.max(1e-6, maxX - minX),
+      y: minY + ((230 - svgY) / 190) * Math.max(1e-6, maxY - minY),
+    };
+  };
 
   return (
-    <svg viewBox="0 0 480 260" className="h-64 w-full rounded-xl border border-slate-200 bg-white">
+    <svg
+      viewBox="0 0 480 260"
+      className={`h-64 w-full rounded-xl border border-slate-200 bg-white ${onPointSelect ? 'cursor-crosshair' : ''}`}
+      onPointerDown={(event) => {
+        if (!onPointSelect) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        onPointSelect(invertPoint(event.clientX, event.clientY, rect));
+      }}
+    >
+      <defs>
+        <marker id="unit52-curve-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#475569" />
+        </marker>
+      </defs>
       <line x1="30" y1="230" x2="450" y2="230" stroke="#cbd5e1" />
       <line x1="30" y1="30" x2="30" y2="230" stroke="#cbd5e1" />
+      {showVectorField ? vectorField.map((item, index) => {
+        const length = Math.hypot(item.dx, item.dy) || 1;
+        const dx = (item.dx / length) * 14;
+        const dy = (item.dy / length) * 14;
+        return (
+          <line
+            key={`${item.x}:${item.y}:${index}`}
+            x1={scaleX(item.x)}
+            y1={scaleY(item.y)}
+            x2={scaleX(item.x) + dx}
+            y2={scaleY(item.y) - dy}
+            stroke="#cbd5e1"
+            strokeWidth="1.2"
+            markerEnd="url(#unit52-curve-arrow)"
+          />
+        );
+      }) : null}
       {series.map((item) => {
         const d = item.points
           .map((point, index) => `${index === 0 ? 'M' : 'L'} ${scaleX(point.x).toFixed(1)} ${scaleY(point.y).toFixed(1)}`)
           .join(' ');
         return (
-          <path
-            key={item.id}
-            d={d}
-            fill="none"
-            stroke={item.color}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray={item.dashed ? '6 5' : undefined}
-          />
+          <g key={item.id}>
+            <path
+              d={d}
+              fill="none"
+              stroke={item.color}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray={item.dashed ? '6 5' : undefined}
+            />
+          {item.marks?.start && item.points[0] ? (
+            <circle
+              cx={scaleX(item.points[0].x)}
+              cy={scaleY(item.points[0].y)}
+              r="5"
+              fill="#fff"
+              stroke={item.color}
+              strokeWidth="2"
+              data-curve-mark={item.marks.start}
+            />
+          ) : null}
+          {item.marks?.direction && item.points.length > 3 ? (
+            <line
+              x1={scaleX(item.points[1].x)}
+              y1={scaleY(item.points[1].y)}
+              x2={scaleX(item.points[Math.min(5, item.points.length - 1)].x)}
+              y2={scaleY(item.points[Math.min(5, item.points.length - 1)].y)}
+              stroke={item.color}
+              strokeWidth="2"
+              markerEnd="url(#unit52-curve-arrow)"
+              data-curve-mark={item.marks.direction}
+            />
+          ) : null}
+          </g>
         );
       })}
       <text x="34" y="24" className="fill-slate-500 text-[11px]">状态 / 输出关系</text>
@@ -381,12 +499,14 @@ function PerturbationCurvePanel({
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [draggingPoint, setDraggingPoint] = useState<'A1' | 'A2' | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<'A1' | 'A2'>('A1');
   const [points, setPoints] = useState(PERTURBATION_BASE_POINTS);
-  const activePoint = draggingPoint ?? 'A1';
+  const activePoint = draggingPoint ?? selectedPoint;
   const status = perturbationStatus(activePoint, points[activePoint].x);
 
   const reset = () => {
     setDraggingPoint(null);
+    setSelectedPoint('A1');
     setPoints(PERTURBATION_BASE_POINTS);
     onParameterChange?.(step.id, {
       draggedPoint: 'reset',
@@ -403,6 +523,7 @@ function PerturbationCurvePanel({
     const next = { ...points, [pointId]: { ...points[pointId], x: nextX, y: nextY } };
     const nextStatus = perturbationStatus(pointId, nextX);
     setPoints(next);
+    setSelectedPoint(pointId);
     onParameterChange?.(step.id, {
       draggedPoint: pointId,
       disturbanceDirection: nextStatus.direction,
@@ -459,7 +580,7 @@ function PerturbationCurvePanel({
         {(['A1', 'A2'] as const).map((pointId) => {
           const point = points[pointId];
           return (
-            <g key={pointId}>
+          <g key={pointId}>
               <circle
                 cx={point.x}
                 cy={point.y}
@@ -470,6 +591,7 @@ function PerturbationCurvePanel({
                 data-limit-cycle-type={point.type}
                 onPointerDown={(event) => {
                   setDraggingPoint(pointId);
+                  setSelectedPoint(pointId);
                   event.currentTarget.ownerSVGElement?.setPointerCapture(event.pointerId);
                   updatePoint(pointId, event.clientX, event.clientY);
                 }}
@@ -521,17 +643,55 @@ function Unit52NonlinearEnginePanel({
     Delta: 0.5,
     M: 1,
     h: 0.5,
+    d: 0.5,
+    b: 0.5,
+    A_min: 0.05,
+    A_max: 8,
   });
+  const [showVectorField, setShowVectorField] = useState(true);
   const request = useMemo(() => requestForPanel(id, params), [id, params]);
   const fallback = useMemo(() => createFallbackNonlinearAnalysisResult(request), [request]);
-  const { result, error, isFallback } = useNonlinearAnalysisEngine(request, fallback);
-  const series = chartSeries(result);
+  const {
+    result,
+    error,
+    isFallback,
+    requestKey,
+    resultRequestKey,
+  } = useNonlinearAnalysisEngine(request, fallback);
+  const displayResult = resultRequestKey === requestKey ? result : null;
+  const series = chartSeries(displayResult);
   const activeCharacteristicTab = tabConfigForPanel(id, String(params.tab));
+  const activeNegativeFamily = useMemo(() => {
+    const families = negativeInverseFamilies(step);
+    return families.find((family) => family.id === params.nonlinearity_type) ?? families[0];
+  }, [params.nonlinearity_type, step]);
+
+  const currentSnapshot = useMemo(() => {
+    const snapshot: Record<string, string> = {
+      ...Object.fromEntries(Object.entries(params).map(([itemKey, itemValue]) => [itemKey, String(itemValue)])),
+      tab_id: String(params.tab ?? ''),
+      initial_point: `${numeric(params.x0, 0).toFixed(2)},${numeric(params.y0, 0).toFixed(2)}`,
+    };
+    if (displayResult?.summary.outcome) {
+      snapshot.trajectory_outcome = displayResult.summary.outcome;
+    }
+    return snapshot;
+  }, [displayResult?.summary.outcome, params]);
+
+  useEffect(() => {
+    onParameterChange?.(step.id, currentSnapshot);
+  }, [currentSnapshot, onParameterChange, step.id]);
 
   const updateParam = (key: string, value: number | string) => {
-    const next = { ...params, [key]: value };
-    setParams(next);
-    onParameterChange?.(step.id, Object.fromEntries(Object.entries(next).map(([itemKey, itemValue]) => [itemKey, String(itemValue)])));
+    setParams((prev) => ({ ...prev, [key]: value }));
+  };
+  const handlePhasePointSelect = (point: NonlinearPoint) => {
+    if (id !== 'rust_phase_plane_tabs') return;
+    setParams((prev) => ({
+      ...prev,
+      x0: Number(point.x.toFixed(2)),
+      y0: Number(point.y.toFixed(2)),
+    }));
   };
 
   return (
@@ -541,7 +701,12 @@ function Unit52NonlinearEnginePanel({
         <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{asString(module.payload.text, step.title)}</h3>
       </div>
       <div className="grid gap-4 lg:grid-cols-[1.4fr_0.9fr]">
-        <SvgCurve series={series} />
+          <SvgCurve
+            series={series}
+            vectorField={displayResult?.phasePlane?.vectorField ?? []}
+            showVectorField={id === 'rust_phase_plane_tabs' && showVectorField}
+            onPointSelect={id === 'rust_phase_plane_tabs' ? handlePhasePointSelect : undefined}
+          />
         <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
           {id === 'rust_phase_plane_tabs' ? (
             <div className="grid grid-cols-3 gap-2 text-xs">
@@ -556,6 +721,16 @@ function Unit52NonlinearEnginePanel({
                 </button>
               ))}
             </div>
+          ) : null}
+          {id === 'rust_phase_plane_tabs' ? (
+            <label className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              <span>显示向量场</span>
+              <input
+                type="checkbox"
+                checked={showVectorField}
+                onChange={(event) => setShowVectorField(event.target.checked)}
+              />
+            </label>
           ) : null}
           {CHARACTERISTIC_PANEL_CONFIGS[id] ? (
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -603,16 +778,27 @@ function Unit52NonlinearEnginePanel({
           ))}
           {id === 'rust_negative_inverse_family_panel' ? (
             <>
-              {sliderControl('输入幅值 A', numeric(params.A, 2), 0.05, 8, 0.05, (value) => updateParam('A', value))}
-              {sliderControl('斜率 / 增益 k', numeric(params.k, 1), 0.2, 5, 0.1, (value) => updateParam('k', value))}
-              {sliderControl('门槛参数', numeric(params.a, 1), 0.1, 5, 0.1, (value) => updateParam('a', value))}
+              {sliderControl('幅值扫描下限 A_min', numeric(params.A_min, 0.05), 0.05, Math.max(0.1, numeric(params.A_max, 8) - 0.05), 0.05, (value) => updateParam('A_min', value))}
+              {sliderControl('幅值扫描上限 A_max', numeric(params.A_max, 8), Math.min(7.95, numeric(params.A_min, 0.05) + 0.05), 8, 0.05, (value) => updateParam('A_max', value))}
+              {(activeNegativeFamily?.controls ?? []).map((control) => (
+                <div key={control.id}>
+                  {sliderControl(
+                    control.label,
+                    numeric(params[control.id], control.default),
+                    control.min,
+                    control.max,
+                    control.step,
+                    (value) => updateParam(control.id, value),
+                  )}
+                </div>
+              ))}
             </>
           ) : null}
-          {result?.harmonic?.spectrum ? <SpectrumBars spectrum={result.harmonic.spectrum} /> : null}
+          {displayResult?.harmonic?.spectrum ? <SpectrumBars spectrum={displayResult.harmonic.spectrum} /> : null}
           <div className="rounded-lg bg-white p-3 text-xs leading-6 text-slate-600">
-            <div className="font-semibold text-slate-800">{result?.summary.outcome ?? '等待计算'}</div>
-            {(result?.summary.metrics ?? []).map((item) => <div key={item}>{item}</div>)}
-            {error || isFallback ? <div className="mt-2 text-amber-700">{error ?? result?.fallbackMessage}</div> : null}
+            <div className="font-semibold text-slate-800">{displayResult?.summary.outcome ?? '等待计算'}</div>
+            {(displayResult?.summary.metrics ?? []).map((item) => <div key={item}>{item}</div>)}
+            {error || (displayResult && isFallback) ? <div className="mt-2 text-amber-700">{error ?? displayResult?.fallbackMessage}</div> : null}
           </div>
         </div>
       </div>
@@ -636,23 +822,96 @@ export function Unit52NonlinearAnalysisPanel({
   return <Unit52NonlinearEnginePanel id={id} step={step} module={module} onParameterChange={onParameterChange} />;
 }
 
-export function Unit52StudentSummaryStats({ responses }: { responses?: Record<string, ManifestStepResponse> }) {
-  const submitted = Object.keys(responses ?? {}).length;
+export function Unit52StudentSummaryStats({
+  submittedCount,
+  viewedCount,
+  parameterSubmissionCount,
+  prePostCompletion,
+}: {
+  submittedCount: number;
+  viewedCount: number;
+  parameterSubmissionCount: number;
+  prePostCompletion: string;
+}) {
+  const abilitySummary = parameterSubmissionCount >= 3 ? '已形成参数观察记录' : '继续补齐关键参数页观察';
   return (
-    <section className="premium-lesson-panel grid gap-3 sm:grid-cols-3">
-      <div><div className="premium-lesson-kicker">参数探索覆盖</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{Math.min(6, submitted)}/6</div></div>
-      <div><div className="premium-lesson-kicker">客观题正确率</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">待课堂汇总</div></div>
-      <div><div className="premium-lesson-kicker">常见误判标签</div><div className="premium-lesson-title mt-1 text-sm font-semibold">交点即稳定自振 / 全局外推</div></div>
+    <section className="premium-lesson-panel p-4" data-testid="unit-5-2-student-summary-stats">
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">个人课堂表现</div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-4">
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">已浏览页面</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{viewedCount}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">提交页面</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{submittedCount}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">参数探索提交</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{parameterSubmissionCount}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">测验完成</div>
+          <div className="premium-lesson-title mt-1 text-sm font-semibold">{prePostCompletion}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3 sm:col-span-4">
+          <div className="premium-lesson-caption text-xs">学习记录判断</div>
+          <div className="premium-lesson-title mt-1 text-sm font-semibold">{abilitySummary}</div>
+        </div>
+      </div>
     </section>
   );
 }
 
-export function Unit52TeacherSummaryStats({ responses }: { responses: TeacherResponseItem[] }) {
+export function Unit52TeacherSummaryStats({
+  studentCount,
+  submittedStudents,
+  totalResponses,
+  parameterCoverage,
+  objectiveAccuracy,
+  postTestCompletion,
+  misconceptionSummary,
+}: {
+  studentCount: number;
+  submittedStudents: number;
+  totalResponses: number;
+  parameterCoverage: number;
+  objectiveAccuracy: number;
+  postTestCompletion: number;
+  misconceptionSummary: string;
+}) {
+  const rate = studentCount ? Math.round((submittedStudents / studentCount) * 100) : 0;
   return (
-    <section className="premium-lesson-panel grid gap-3 sm:grid-cols-3">
-      <div><div className="premium-lesson-kicker">参数探索覆盖</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{responses.length}</div></div>
-      <div><div className="premium-lesson-kicker">客观题正确率</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">按题查看</div></div>
-      <div><div className="premium-lesson-kicker">常见误判标签</div><div className="premium-lesson-title mt-1 text-sm font-semibold">汇总提交后显示</div></div>
+    <section className="premium-lesson-panel p-4" data-testid="unit-5-2-teacher-summary-stats">
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">班级整体表现统计</div>
+      <div className="mt-3 grid gap-3 md:grid-cols-5">
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">参与学生</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{studentCount}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">提交覆盖</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{rate}%</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">客观题正确率</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{objectiveAccuracy}%</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">后测完成率</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{postTestCompletion}%</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3">
+          <div className="premium-lesson-caption text-xs">参数探索覆盖</div>
+          <div className="premium-lesson-title mt-1 text-2xl font-semibold">{parameterCoverage}%</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-3 py-3 md:col-span-5">
+          <div className="premium-lesson-caption text-xs">常见误判标签</div>
+          <div className="premium-lesson-title mt-1 text-sm font-semibold">
+            {misconceptionSummary} · 提交总数 {totalResponses}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
@@ -662,39 +921,90 @@ export function UNIT_5_2StepContentPanel({
   manifest,
   revealProgress,
   allowInlineReveal,
+  browseEnabled = true,
+  role,
+  submittedCount = 0,
+  viewedCount = 0,
+  studentCount = 0,
+  submittedStudents = 0,
+  totalResponses = 0,
+  parameterSubmissionCount = 0,
+  prePostCompletion = '等待提交',
+  parameterCoverage = 0,
+  objectiveAccuracy = 0,
+  postTestCompletion = 0,
+  misconceptionSummary = '暂无聚合',
   onParameterChange,
-  responses,
-  teacherMode = false,
+  onAdvanceReveal,
 }: {
   step: UNIT_5_2StepDefinition;
   manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
+  browseEnabled?: boolean;
+  role: 'student' | 'teacher';
+  submittedCount?: number;
+  viewedCount?: number;
+  studentCount?: number;
+  submittedStudents?: number;
+  totalResponses?: number;
+  parameterSubmissionCount?: number;
+  prePostCompletion?: string;
+  parameterCoverage?: number;
+  objectiveAccuracy?: number;
+  postTestCompletion?: number;
+  misconceptionSummary?: string;
   onParameterChange?: (stepId: string, values: Record<string, string>) => void;
-  responses?: Record<string, ManifestStepResponse> | TeacherResponseItem[];
-  teacherMode?: boolean;
+  onAdvanceReveal?: () => void;
 }) {
   const activeManifest = requireUnit52Manifest(manifest);
   const stepManifest = getUNIT_5_2ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({
     revealProgress,
     allowInlineReveal,
+    onInlineReveal: onAdvanceReveal,
   });
-  const moduleRegistry = {
+  const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
     ...baseRegistry,
     'interactive-figure-panel': ({ step: manifestStep, module }: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => (
       <Unit52NonlinearAnalysisPanel step={manifestStep} module={module} onParameterChange={onParameterChange} />
     ),
-    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => (
-      <div data-role-hidden-module={module.id}>
-        {teacherMode ? (
-          <Unit52TeacherSummaryStats responses={Array.isArray(responses) ? responses : []} />
-        ) : (
-          <Unit52StudentSummaryStats responses={!Array.isArray(responses) ? responses : undefined} />
-        )}
-      </div>
-    ),
+    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      const visibility = String(module.payload.role_visibility ?? '');
+      if (visibility === 'student_only' && role !== 'student') {
+        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+      }
+      if (visibility === 'teacher_only' && role !== 'teacher') {
+        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+      }
+      if (role === 'student') {
+        return (
+          <Unit52StudentSummaryStats
+            submittedCount={submittedCount}
+            viewedCount={viewedCount}
+            parameterSubmissionCount={parameterSubmissionCount}
+            prePostCompletion={prePostCompletion}
+          />
+        );
+      }
+      return (
+        <Unit52TeacherSummaryStats
+          studentCount={studentCount}
+          submittedStudents={submittedStudents}
+          totalResponses={totalResponses}
+          parameterCoverage={parameterCoverage}
+          objectiveAccuracy={objectiveAccuracy}
+          postTestCompletion={postTestCompletion}
+          misconceptionSummary={misconceptionSummary}
+        />
+      );
+    },
   };
+  if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
+    moduleRegistry['step-reveal-chain'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
+    moduleRegistry['step-reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
+    moduleRegistry['image-panel'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
+  }
 
   return (
     <section className="space-y-4">
@@ -702,7 +1012,7 @@ export function UNIT_5_2StepContentPanel({
         manifest: activeManifest,
         step: stepManifest,
         moduleRegistry,
-        extra: { revealProgress, allowInlineReveal },
+        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
       })}
     </section>
   );
