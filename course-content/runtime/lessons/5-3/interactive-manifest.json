@@ -236,16 +236,6 @@
       },
       "modules": [
         {
-          "id": "pretest-note",
-          "region": "intro",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "title": "前置知识点",
-            "text": "本页考察闭环误差、反馈质量和执行器限幅三类基础知识。"
-          }
-        },
-        {
           "id": "pretest",
           "region": "quiz",
           "kind": "quiz-group",
@@ -340,7 +330,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "只诊断闭环误差、反馈质量和执行约束基础。"
+        "page_goal": "本页考察闭环误差、反馈质量和执行器限幅三类基础知识，只诊断闭环误差、反馈质量和执行约束基础。"
       },
       "preview_contract": {
         "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-03"
@@ -450,7 +440,6 @@
             "id": "role-match",
             "prompt": "将六个典型动作分别放入感知、估计、规划、控制、执行和监督环节。",
             "response_kind": "drag_match",
-            "options": [],
             "match_items": [
               {
                 "value": "target-outline",
@@ -985,15 +974,6 @@
       },
       "modules": [
         {
-          "id": "planning-note",
-          "region": "concept",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "text": "规划层面对任务空间，控制层拿到的是参考航迹、航向或速度剖面。"
-          }
-        },
-        {
           "id": "planning-compare-image",
           "region": "media",
           "kind": "image-panel",
@@ -1090,7 +1070,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "把几何路径、航向参考、控制输出和实际舵角连成证据链。"
+        "page_goal": "规划层面对任务空间，控制层拿到的是参考航迹、航向或速度剖面；本页把几何路径、航向参考、控制输出和实际舵角连成证据链。"
       },
       "preview_contract": {
         "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-07"
@@ -1452,16 +1432,6 @@
       },
       "modules": [
         {
-          "id": "avoidance-problem",
-          "region": "problem",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "title": "自主避碰任务书",
-            "text": "一艘自主水面船在狭窄航道保持计划航线，并遇到横穿目标船，需要完成安全避让。"
-          }
-        },
-        {
           "id": "avoidance-image",
           "region": "media",
           "kind": "image-panel",
@@ -1573,7 +1543,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "把避碰偏差分解为信息、参考、控制和执行证据。"
+        "page_goal": "一艘自主水面船在狭窄航道保持计划航线，并遇到横穿目标船，需要完成安全避让；本页把避碰偏差分解为信息、参考、控制和执行证据。"
       },
       "preview_contract": {
         "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-10"
@@ -1836,7 +1806,7 @@
       "acceptance_checks": [
         "互动面板不可降级为静态图。",
         "同一时刻只显示一种规划半径情形。",
-        "左侧航向曲线和右侧虚线启动圈必须随 R 动态更新。",
+        "左侧舵角曲线和右侧虚线启动圈必须随 R 动态更新。",
         "控件只开放规划半径 R。"
       ]
     },
@@ -1864,22 +1834,14 @@
       },
       "modules": [
         {
-          "id": "automation-note",
-          "region": "concept",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "text": "自动化等级描述运行形态和责任主体差异，但技术诊断仍需回到链路证据。"
-          }
-        },
-        {
           "id": "automation-image",
           "region": "media",
           "kind": "image-panel",
           "must_be_visible": true,
           "payload": {
+            "title": "自动化程度与责任主体场景图",
             "src": "/course-runtime/lessons/5-3/media/5-3-automation-levels-scene.png",
-            "caption": "MASS 四类自动化程度的场景对比"
+            "caption": "四个场景依次对应船上辅助、船上远程、无人远程和全自主决策，读图重点是责任主体如何变化。"
           }
         },
         {
@@ -1961,7 +1923,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "区分自动化等级、责任主体和技术链路证据。"
+        "page_goal": "自动化等级描述运行形态和责任主体差异，但技术诊断仍需回到链路证据；本页区分自动化等级、责任主体和技术链路证据。"
       },
       "preview_contract": {
         "demo_path": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo?step=step-12"

@@ -11,6 +11,7 @@ import {
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type {
   InteractiveRuntimeActivityCardManifest,
+  InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
 
@@ -937,13 +938,39 @@ function hasTeacherRevealControl(stepManifest: InteractiveRuntimeStepManifest) {
     || mode === 'enabled';
 }
 
-function revealLayerCount(stepManifest: InteractiveRuntimeStepManifest) {
-  const layers = stepManifest.contentBlocks.reveal_layers ?? stepManifest.contentBlocks.reveal_steps;
-  if (Array.isArray(layers)) return layers.length;
-  if (layers && typeof layers === 'object' && Array.isArray((layers as { layers?: unknown[] }).layers)) {
-    return (layers as { layers: unknown[] }).layers.length;
+function revealLayerCountFromValue(value: unknown) {
+  if (Array.isArray(value)) return value.length;
+  if (value && typeof value === 'object') {
+    const record = value as { layers?: unknown[]; items?: unknown[]; steps?: unknown[]; bullets?: unknown[] };
+    for (const key of ['layers', 'items', 'steps', 'bullets'] as const) {
+      if (Array.isArray(record[key])) return record[key]?.length ?? 0;
+    }
   }
   return 0;
+}
+
+function revealBlockKey(module: InteractiveRuntimeModuleManifest) {
+  const key = module.payload.block_key ?? module.payload.blockKey;
+  return typeof key === 'string' && key.trim() ? key : null;
+}
+
+export function getInteractiveRevealLayerCount(stepManifest: InteractiveRuntimeStepManifest) {
+  const directCount = Math.max(
+    revealLayerCountFromValue(stepManifest.contentBlocks.reveal_layers),
+    revealLayerCountFromValue(stepManifest.contentBlocks.reveal_steps),
+  );
+  const moduleCount = stepManifest.modules.reduce((maxCount, module) => {
+    if (!module.kind.includes('reveal')) return maxCount;
+    const key = revealBlockKey(module);
+    const blockCount = key ? revealLayerCountFromValue(stepManifest.contentBlocks[key]) : 0;
+    const payloadCount = Math.max(
+      revealLayerCountFromValue(module.payload.items),
+      revealLayerCountFromValue(module.payload.layers),
+      revealLayerCountFromValue(module.payload.steps),
+    );
+    return Math.max(maxCount, blockCount, payloadCount);
+  }, 0);
+  return Math.max(directCount, moduleCount);
 }
 
 export function ManifestTeacherControls({
@@ -970,7 +997,7 @@ export function ManifestTeacherControls({
   onResetReveal: () => void;
 }) {
   const controls = stepManifest.teacherControls;
-  const layerCount = revealLayerCount(stepManifest);
+  const layerCount = getInteractiveRevealLayerCount(stepManifest);
   const maxRevealProgress = Math.max(0, layerCount - 1);
   const normalizedRevealProgress = layerCount ? Math.min(revealProgress, maxRevealProgress) : revealProgress;
   const canAdvanceReveal = !layerCount || revealProgress < maxRevealProgress;

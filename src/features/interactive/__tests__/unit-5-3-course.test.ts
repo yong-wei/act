@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
+import { getInteractiveRevealLayerCount } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 
 vi.mock('server-only', () => ({}));
 
@@ -88,11 +89,92 @@ describe('unit 5-3 interactive course', () => {
     expect(step11?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
     expect(step11?.modules.find((module) => module.id === 'turning-rust-panel')?.payload.panel_id).toBe('rust_turning_radius_panel');
     expect(stepPanelsSource).toContain("analysisKind: 'turning_radius'");
+    expect(stepPanelsSource).toContain('hasCompleteTurningRadiusResult');
     expect(stepPanelsSource).toContain('R_m');
     expect(stepPanelsSource).toContain('35');
     expect(stepPanelsSource).toContain('160');
-    expect(stepPanelsSource).toContain('fallbackMessage');
+    expect(stepPanelsSource).toContain('舵角指令');
+    expect(stepPanelsSource).toContain('避障航线');
+    expect(stepPanelsSource).toContain('估计舵角指令');
+    expect(stepPanelsSource).toContain('实际舵角信号');
+    expect(stepPanelsSource).toContain('premium-lesson-title text-base font-semibold leading-7 tracking-normal');
+    expect(stepPanelsSource).not.toContain('<h3 className="premium-lesson-title mt-1 text-2xl font-semibold">');
+    expect(stepPanelsSource).not.toContain('Rust/WASM 转弯半径联动面板');
+    expect(stepPanelsSource).not.toContain('真实计算内核');
+    expect(stepPanelsSource).toContain('min_distance_m');
+    expect(stepPanelsSource).toContain('collision_active');
+    expect(stepPanelsSource).toContain('maxX: 260');
+    expect(stepPanelsSource).toContain('maxY: 165');
+    expect(stepPanelsSource).toContain('maxY: 48');
+    expect(stepPanelsSource).toContain('避障启动距离');
+    expect(stepPanelsSource).toContain('名义舵角');
+    expect(stepPanelsSource).toContain('最大实际舵角');
+    expect(stepPanelsSource).toContain('舵角饱和');
+    expect(stepPanelsSource).toContain('安全约束');
+    expect(stepPanelsSource).not.toContain('displayResult.summary.metrics');
     expect(stepPanelsSource).not.toContain('5-3-turning-radius-saturation-comparison.png');
+  });
+
+  it('keeps corrected page text and image captions in the 5-3 runtime manifest', () => {
+    const manifest = readManifest();
+    const step01 = manifest.steps.find((step) => step.id === 'step-01');
+    const step03 = manifest.steps.find((step) => step.id === 'step-03');
+    const step04 = manifest.steps.find((step) => step.id === 'step-04');
+    const step07 = manifest.steps.find((step) => step.id === 'step-07');
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step11 = manifest.steps.find((step) => step.id === 'step-11');
+    const step12 = manifest.steps.find((step) => step.id === 'step-12');
+    const step15 = manifest.steps.find((step) => step.id === 'step-15');
+
+    expect(step01?.modules.find((module) => module.id === 'cover-comic')?.payload.caption).toBeUndefined();
+
+    const step03Text = JSON.stringify(step03);
+    expect(step03?.modules.some((module) => module.id === 'pretest-note')).toBe(false);
+    expect(step03?.aiContextSpec.pageGoal).toContain('本页考察闭环误差、反馈质量和执行器限幅三类基础知识');
+    expect(step03Text).not.toContain('要点');
+    expect(step03Text).not.toContain('不提前考察');
+    expect(step03Text).not.toContain('不考察');
+    expect(step03Text).not.toContain('不检验');
+    expect(step07?.modules.some((module) => module.id === 'planning-note')).toBe(false);
+    expect(step07?.aiContextSpec.pageGoal).toContain('规划层面对任务空间，控制层拿到的是参考航迹、航向或速度剖面');
+    expect(step10?.modules.some((module) => module.id === 'avoidance-problem')).toBe(false);
+    expect(step10?.aiContextSpec.pageGoal).toContain('一艘自主水面船在狭窄航道保持计划航线');
+    expect(step12?.modules.some((module) => module.id === 'automation-note')).toBe(false);
+    expect(step12?.aiContextSpec.pageGoal).toContain('自动化等级描述运行形态和责任主体差异');
+    const step12Caption = step12?.modules.find((module) => module.id === 'automation-image')?.payload.caption;
+    expect(step12?.modules.find((module) => module.id === 'automation-image')?.payload.title).toBe('自动化程度与责任主体场景图');
+    expect(step12Caption).toContain('责任主体如何变化');
+    expect(step12Caption).not.toBe(step12?.title);
+
+    const formula = step04?.modules.find((module) => module.id === 'chain-formula')?.payload.formulas?.[0];
+    expect(formula).toBe('\\mathrm{MASS}=\\text{感知}+\\text{估计}+\\text{规划}+\\text{控制}+\\text{执行}+\\text{监督}');
+    const roleCard = step04?.interactionSpec.activityCards?.find((card) => card.id === 'role-match');
+    expect(roleCard?.matchItems?.map((item) => item.label)).toContain('目标船轮廓识别');
+    expect(roleCard?.matchOptions?.map((item) => item.label)).toEqual(['感知', '估计', '规划', '控制', '执行', '监督']);
+    expect(roleCard?.referenceAnswer).toContain('目标船轮廓识别属于感知');
+
+    const problemText = step11?.modules.find((module) => module.id === 'turning-problem')?.payload.text;
+    expect(problemText).toContain('$v=4\\,\\mathrm{m/s}$');
+    expect(problemText).toContain('$r_o=25\\,\\mathrm{m}$');
+    expect(problemText).toContain('$m=16\\,\\mathrm{m}$');
+    expect(problemText).toContain('$L=34\\,\\mathrm{m}$');
+    expect(problemText).toContain('$\\delta_{\\max}=18^\\circ$');
+    expect(JSON.stringify(step11)).not.toContain('Rust');
+    expect(JSON.stringify(step11)).not.toContain('WASM');
+
+    const step15Caption = step15?.modules.find((module) => module.id === 'info-image')?.payload.caption;
+    expect(step15Caption).toContain('上游信息、规划可行性和执行边界');
+    expect(step15Caption).not.toBe('信息图：MASS 链路责任边界');
+  });
+
+  it('recognizes step-11 reveal layers through the manifest block key', () => {
+    const manifest = readManifest();
+    const step11 = manifest.steps.find((step) => step.id === 'step-11');
+
+    expect(step11?.modules.find((module) => module.id === 'turning-diagnostic-reveal')?.payload.block_key).toBe(
+      'turning_diagnostic_reveal',
+    );
+    expect(getInteractiveRevealLayerCount(step11!)).toBe(4);
   });
 
   it('keeps post-test and summary separated and exposes summary role statistics', async () => {

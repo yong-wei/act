@@ -9,6 +9,7 @@ import { useTeacherLessonSession } from '@/features/interactive/session-framewor
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
+import { getInteractiveRevealLayerCount } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import type {
@@ -125,16 +126,6 @@ function isObjectiveAnswerCorrect(item: Unit53ObjectiveCard, value: string) {
 
 function misconceptionLabel(tag: string) {
   return UNIT_5_3_MISCONCEPTION_LABELS[tag] ?? tag;
-}
-
-function revealLayerCount(manifest: InteractiveRuntimeManifest | null | undefined, stepId: string) {
-  const contentBlocks = manifest?.steps.find((item) => item.id === stepId)?.contentBlocks;
-  const layers = contentBlocks?.reveal_layers ?? contentBlocks?.reveal_steps;
-  if (Array.isArray(layers)) return layers.length;
-  if (layers && typeof layers === 'object' && Array.isArray((layers as { layers?: unknown[] }).layers)) {
-    return (layers as { layers: unknown[] }).layers.length;
-  }
-  return 0;
 }
 
 export function UNIT_5_3TeacherPage({
@@ -325,7 +316,8 @@ export function UNIT_5_3TeacherPage({
   const advanceReveal = useCallback(() => {
     setLocalTeacherRevealProgress((prev) => {
       const base = prev ?? teacherSyncState?.teacherRevealProgress ?? {};
-      const layerCount = revealLayerCount(runtimeManifest, step.id);
+      const stepManifest = runtimeManifest?.steps.find((item) => item.id === step.id);
+      const layerCount = stepManifest ? getInteractiveRevealLayerCount(stepManifest) : 0;
       const maxProgress = Math.max(0, layerCount - 1);
       return {
         ...base,

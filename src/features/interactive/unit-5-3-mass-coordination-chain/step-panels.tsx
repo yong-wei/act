@@ -62,6 +62,17 @@ function numeric(value: unknown, fallback: number) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function minDistanceToObstacle(turning: NonlinearAnalysisResult['turningRadius']) {
+  if (!turning) return Number.POSITIVE_INFINITY;
+  return turning.path.actual.reduce((current, point) => {
+    const distance = Math.hypot(
+      turning.path.obstacleCenter.x - point.x,
+      turning.path.obstacleCenter.y - point.y,
+    );
+    return Math.min(current, distance);
+  }, Number.POSITIVE_INFINITY);
+}
+
 function panelId(module: InteractiveRuntimeModuleManifest) {
   return asString(module.payload.panel_id ?? module.payload.panelId, module.id);
 }
@@ -76,60 +87,112 @@ function turningRadiusRequest(radius: number): NonlinearAnalysisRequest {
   };
 }
 
-function scaleSeries(series: CurveSeries[]) {
-  const points = series.flatMap((item) => item.points);
-  const safePoints = points.length ? points : [{ x: 0, y: 0 }];
-  const xs = safePoints.map((point) => point.x);
-  const ys = safePoints.map((point) => point.y);
-  const minX = Math.min(...xs, 0);
-  const maxX = Math.max(...xs, 170);
-  const minY = Math.min(...ys, -50);
-  const maxY = Math.max(...ys, 120);
+function hasCompleteTurningRadiusResult(result: NonlinearAnalysisResult | null | undefined) {
+  const turning = result?.turningRadius;
+  return Boolean(
+    turning &&
+    typeof turning.minDistanceM === 'number' &&
+    turning.path &&
+    Array.isArray(turning.path.nominal) &&
+    Array.isArray(turning.path.actual) &&
+    turning.path.obstacleCenter &&
+    typeof turning.path.obstacleRadius === 'number' &&
+    typeof turning.path.clearanceRadius === 'number',
+  );
+}
+
+function scaleSeries(
+  defaults: { minX: number; maxX: number; minY: number; maxY: number },
+) {
+  const { minX, maxX, minY, maxY } = defaults;
   const scaleX = (x: number) => 36 + ((x - minX) / Math.max(1e-6, maxX - minX)) * 568;
   const scaleY = (y: number) => 294 - ((y - minY) / Math.max(1e-6, maxY - minY)) * 238;
-  return { scaleX, scaleY };
+  const scaleRadiusX = (radius: number) => Math.abs(scaleX(minX + radius) - scaleX(minX));
+  const scaleRadiusY = (radius: number) => Math.abs(scaleY(minY + radius) - scaleY(minY));
+  return { scaleX, scaleY, scaleRadiusX, scaleRadiusY };
 }
 
 function SvgPathPanel({
+  title,
   series,
   obstacle,
+  startRadius,
 }: {
+  title: string;
   series: CurveSeries[];
   obstacle?: { center: NonlinearPoint; radius: number; clearanceRadius: number };
+  startRadius?: number;
 }) {
-  const { scaleX, scaleY } = scaleSeries(series);
+  const { scaleX, scaleY, scaleRadiusX, scaleRadiusY } = scaleSeries({ minX: 0, maxX: 260, minY: -45, maxY: 165 });
+  const xTicks = [0, 50, 100, 150, 200, 250];
+  const yTicks = [-40, 0, 40, 80, 120, 160];
   return (
-    <svg viewBox="0 0 640 340" className="h-[340px] w-full rounded-xl border border-slate-200 bg-white">
+    <svg viewBox="0 0 640 340" className="h-[340px] w-full rounded-xl border border-slate-200 bg-white" aria-label={title}>
+      <defs>
+        <clipPath id="turning-path-plot">
+          <rect x="36" y="56" width="568" height="238" />
+        </clipPath>
+      </defs>
+      <text x="36" y="28" className="fill-slate-800 text-[16px] font-semibold">{title}</text>
       <line x1="36" y1="294" x2="604" y2="294" stroke="#cbd5e1" />
       <line x1="36" y1="56" x2="36" y2="294" stroke="#cbd5e1" />
+      {xTicks.map((tick) => (
+        <g key={`x-${tick}`}>
+          <line x1={scaleX(tick)} y1="294" x2={scaleX(tick)} y2="300" stroke="#94a3b8" />
+          <text x={scaleX(tick)} y="318" textAnchor="middle" className="fill-slate-500 text-[14px]">{tick}</text>
+        </g>
+      ))}
+      {yTicks.map((tick) => (
+        <g key={`y-${tick}`}>
+          <line x1="30" y1={scaleY(tick)} x2="36" y2={scaleY(tick)} stroke="#94a3b8" />
+          <text x="24" y={scaleY(tick) + 4} textAnchor="end" className="fill-slate-500 text-[14px]">{tick}</text>
+        </g>
+      ))}
+      <text x="580" y="336" textAnchor="end" className="fill-slate-500 text-[13px]">x / m</text>
+      <text x="10" y="70" textAnchor="middle" className="fill-slate-500 text-[13px]" transform="rotate(-90 10 70)">y / m</text>
       {obstacle ? (
-        <>
-          <circle
+        <g clipPath="url(#turning-path-plot)">
+          {startRadius ? (
+            <ellipse
+              cx={scaleX(obstacle.center.x)}
+              cy={scaleY(obstacle.center.y)}
+              rx={scaleRadiusX(startRadius)}
+              ry={scaleRadiusY(startRadius)}
+              fill="none"
+              stroke="#64748b"
+              strokeDasharray="8 7"
+              strokeWidth="1.8"
+            />
+          ) : null}
+          <ellipse
             cx={scaleX(obstacle.center.x)}
             cy={scaleY(obstacle.center.y)}
-            r={Math.max(6, Math.abs(scaleX(obstacle.center.x + obstacle.radius) - scaleX(obstacle.center.x)))}
+            rx={Math.max(6, scaleRadiusX(obstacle.radius))}
+            ry={Math.max(6, scaleRadiusY(obstacle.radius))}
             fill="#fee2e2"
             stroke="#dc2626"
             strokeWidth="2"
           />
-          <circle
+          <ellipse
             cx={scaleX(obstacle.center.x)}
             cy={scaleY(obstacle.center.y)}
-            r={Math.max(8, Math.abs(scaleX(obstacle.center.x + obstacle.clearanceRadius) - scaleX(obstacle.center.x)))}
+            rx={Math.max(8, scaleRadiusX(obstacle.clearanceRadius))}
+            ry={Math.max(8, scaleRadiusY(obstacle.clearanceRadius))}
             fill="none"
             stroke="#f97316"
             strokeDasharray="6 5"
             strokeWidth="2"
           />
-        </>
+        </g>
       ) : null}
-      {series.map((item) => {
-        const d = item.points
-          .map((point, index) => `${index === 0 ? 'M' : 'L'} ${scaleX(point.x).toFixed(1)} ${scaleY(point.y).toFixed(1)}`)
-          .join(' ');
-        return (
-          <g key={item.id}>
+      <g clipPath="url(#turning-path-plot)">
+        {series.map((item) => {
+          const d = item.points
+            .map((point, index) => `${index === 0 ? 'M' : 'L'} ${scaleX(point.x).toFixed(1)} ${scaleY(point.y).toFixed(1)}`)
+            .join(' ');
+          return (
             <path
+              key={item.id}
               d={d}
               fill="none"
               stroke={item.color}
@@ -138,9 +201,9 @@ function SvgPathPanel({
               strokeLinejoin="round"
               strokeDasharray={item.dashed ? '6 5' : undefined}
             />
-          </g>
-        );
-      })}
+          );
+        })}
+      </g>
       {series.map((item, index) => (
         <g key={item.id} transform={`translate(${390}, ${32 + index * 18})`}>
           <line x1="0" y1="0" x2="24" y2="0" stroke={item.color} strokeWidth="3" strokeDasharray={item.dashed ? '6 5' : undefined} />
@@ -151,16 +214,84 @@ function SvgPathPanel({
   );
 }
 
-function TurningHeadingPanel({ result }: { result: NonlinearAnalysisResult | null }) {
+function SvgSignalPanel({ title, series }: { title: string; series: CurveSeries[] }) {
+  const { scaleX, scaleY } = scaleSeries({ minX: 0, maxX: 82, minY: -20, maxY: 48 });
+  const xTicks = [0, 20, 40, 60, 80];
+  const yTicks = [-20, 0, 18, 36, 48];
+  return (
+    <svg viewBox="0 0 640 340" className="h-[340px] w-full rounded-xl border border-slate-200 bg-white" aria-label={title}>
+      <defs>
+        <clipPath id="turning-signal-plot">
+          <rect x="36" y="56" width="568" height="238" />
+        </clipPath>
+      </defs>
+      <text x="36" y="28" className="fill-slate-800 text-[16px] font-semibold">{title}</text>
+      <line x1="36" y1="294" x2="604" y2="294" stroke="#cbd5e1" />
+      <line x1="36" y1="56" x2="36" y2="294" stroke="#cbd5e1" />
+      {xTicks.map((tick) => (
+        <g key={`x-${tick}`}>
+          <line x1={scaleX(tick)} y1="294" x2={scaleX(tick)} y2="300" stroke="#94a3b8" />
+          <text x={scaleX(tick)} y="318" textAnchor="middle" className="fill-slate-500 text-[14px]">{tick}</text>
+        </g>
+      ))}
+      {yTicks.map((tick) => (
+        <g key={`y-${tick}`}>
+          <line x1="30" y1={scaleY(tick)} x2="36" y2={scaleY(tick)} stroke="#94a3b8" />
+          <line x1="36" y1={scaleY(tick)} x2="604" y2={scaleY(tick)} stroke="#e2e8f0" strokeDasharray={tick === 0 ? undefined : '3 5'} />
+          <text x="24" y={scaleY(tick) + 4} textAnchor="end" className="fill-slate-500 text-[14px]">{tick}</text>
+        </g>
+      ))}
+      <text x="580" y="336" textAnchor="end" className="fill-slate-500 text-[13px]">t / s</text>
+      <text x="10" y="88" textAnchor="middle" className="fill-slate-500 text-[13px]" transform="rotate(-90 10 88)">舵角 / deg</text>
+      <g clipPath="url(#turning-signal-plot)">
+        {series.map((item) => {
+          const d = item.points
+            .map((point, index) => `${index === 0 ? 'M' : 'L'} ${scaleX(point.x).toFixed(1)} ${scaleY(point.y).toFixed(1)}`)
+            .join(' ');
+          return (
+            <path
+              key={item.id}
+              d={d}
+              fill="none"
+              stroke={item.color}
+              strokeWidth="2.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray={item.dashed ? '6 5' : undefined}
+            />
+          );
+        })}
+      </g>
+      {series.map((item, index) => (
+        <g key={item.id} transform={`translate(${390}, ${32 + index * 18})`}>
+          <line x1="0" y1="0" x2="24" y2="0" stroke={item.color} strokeWidth="3" strokeDasharray={item.dashed ? '6 5' : undefined} />
+          <text x="30" y="4" className="fill-slate-600 text-[11px]">{item.label}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function TurningSteeringPanel({ result }: { result: NonlinearAnalysisResult | null }) {
   const curves = result?.turningRadius?.headingCurves ?? [];
-  const timeSeries: CurveSeries[] = curves.map((curve, index) => ({
-    id: curve.id,
-    label: curve.label,
-    color: ['#2563eb', '#dc2626', '#0f766e', '#7c3aed'][index] ?? '#475569',
-    points: curve.points,
-    dashed: curve.id.includes('target'),
-  }));
-  return <SvgPathPanel series={timeSeries} />;
+  const targetCurve = curves.find((curve) => curve.id.includes('target') || curve.id.includes('delta_target'));
+  const actualCurve = curves.find((curve) => curve.id.includes('actual_delta') || curve.id === 'delta');
+  const timeSeries: CurveSeries[] = [
+    {
+      id: targetCurve?.id ?? 'estimated-rudder-command',
+      label: '估计舵角指令',
+      color: '#f97316',
+      points: targetCurve?.points ?? [],
+      dashed: true,
+    },
+    {
+      id: actualCurve?.id ?? 'actual-limited-rudder',
+      label: '实际舵角信号',
+      color: '#2563eb',
+      points: actualCurve?.points ?? [],
+    },
+  ];
+  return <SvgSignalPanel title="舵角指令" series={timeSeries} />;
 }
 
 function TurningRadiusPanel({
@@ -182,11 +313,17 @@ function TurningRadiusPanel({
     requestKey,
     resultRequestKey,
   } = useNonlinearAnalysisEngine(request, fallback);
-  const displayResult = resultRequestKey === requestKey ? result : null;
+  const needsStructureFallback = Boolean(result?.turningRadius && !hasCompleteTurningRadiusResult(result));
+  const displayResult = resultRequestKey === requestKey
+    ? needsStructureFallback
+      ? fallback
+      : result
+    : null;
   const turning = displayResult?.turningRadius;
+  const displayIsFallback = isFallback || needsStructureFallback;
   const pathSeries: CurveSeries[] = [
+    { id: 'nominal', label: '规划航迹', color: '#f97316', points: turning?.path.nominal ?? [], dashed: true },
     { id: 'actual', label: '实际航迹', color: '#2563eb', points: turning?.path.actual ?? [] },
-    { id: 'nominal', label: '名义规划圆弧', color: '#f97316', points: turning?.path.nominal ?? [], dashed: true },
   ];
   const obstacle = turning
     ? {
@@ -195,36 +332,56 @@ function TurningRadiusPanel({
       clearanceRadius: turning.path.clearanceRadius,
     }
     : undefined;
-  const metrics = [
-    ['避障启动距离', `${turning?.dStartM.toFixed(1) ?? '--'} m`],
-    ['名义舵角', `${turning?.deltaDDeg.toFixed(2) ?? '--'}°`],
-    ['最大实际舵角', `${turning?.maxDeltaDeg.toFixed(2) ?? '--'}°`],
-    ['舵角饱和', turning?.saturationActive ? '已触发' : '未触发'],
-    ['安全约束', turning?.safetyConstraintSatisfied ? '满足' : '不满足'],
-  ];
+  const calculationNotice = error
+    ? error
+    : displayResult && displayIsFallback
+      ? '当前曲线为浏览器端备用计算结果，实时计算返回后会自动替换。'
+      : null;
+  const minDistanceM = turning ? numeric(turning.minDistanceM, minDistanceToObstacle(turning)) : null;
+  const collisionActive = turning
+    ? typeof turning.collisionActive === 'boolean'
+      ? turning.collisionActive
+      : (minDistanceM ?? Number.POSITIVE_INFINITY) < turning.path.obstacleRadius
+    : false;
+  const safetyConstraintSatisfied = turning
+    ? typeof turning.safetyConstraintSatisfied === 'boolean'
+      ? turning.safetyConstraintSatisfied
+      : (minDistanceM ?? 0) >= turning.path.clearanceRadius
+    : false;
+  const statusTags = turning
+    ? [
+      ['避障启动距离', `${turning.dStartM.toFixed(1)} m`],
+      ['名义舵角', `${turning.deltaDDeg.toFixed(1)}°`],
+      ['最大实际舵角', `${turning.maxDeltaDeg.toFixed(1)}°`],
+      ['舵角饱和', turning.saturationActive ? '已触发' : '未触发'],
+      ['安全约束', safetyConstraintSatisfied && !collisionActive ? '满足' : '未满足'],
+    ]
+    : [];
 
   useEffect(() => {
     if (!turning) return;
+    const measuredMinDistanceM = minDistanceM ?? minDistanceToObstacle(turning);
     onParameterChange?.(step.id, {
       R_m: String(radius),
       d_start_m: turning.dStartM.toFixed(2),
       delta_d_deg: turning.deltaDDeg.toFixed(2),
       max_delta_deg: turning.maxDeltaDeg.toFixed(2),
       saturation_active: String(turning.saturationActive),
-      safety_constraint_satisfied: String(turning.safetyConstraintSatisfied),
+      min_distance_m: measuredMinDistanceM.toFixed(2),
+      collision_active: String(collisionActive),
+      safety_constraint_satisfied: String(safetyConstraintSatisfied),
     });
-  }, [onParameterChange, radius, step.id, turning]);
+  }, [collisionActive, minDistanceM, onParameterChange, radius, safetyConstraintSatisfied, step.id, turning]);
 
   return (
     <section className="premium-lesson-panel space-y-4" data-nonlinear-panel="rust_turning_radius_panel">
       <div>
-        <div className="premium-lesson-kicker">Rust/WASM 转弯半径联动面板</div>
-        <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{asString(module.payload.title, step.title)}</h3>
+        <h3 className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{asString(module.payload.title, step.title)}</h3>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[1.1fr_1fr]">
-        <SvgPathPanel series={pathSeries} obstacle={obstacle} />
+      <div className="grid gap-4 xl:grid-cols-2">
+        <TurningSteeringPanel result={displayResult} />
         <div className="space-y-4">
-          <TurningHeadingPanel result={displayResult} />
+          <SvgPathPanel title="避障航线" series={pathSeries} obstacle={obstacle} startRadius={turning?.dStartM} />
           <label className="block rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700">
             <span className="flex justify-between">
               <span>规划半径 R_m</span>
@@ -242,19 +399,21 @@ function TurningRadiusPanel({
           </label>
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-5">
-        {metrics.map(([label, value]) => (
-          <div key={label} className="premium-lesson-surface-elevated px-3 py-3">
-            <div className="premium-lesson-caption text-xs">{label}</div>
-            <div className="premium-lesson-title mt-1 text-base font-semibold">{value}</div>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-lg bg-white p-3 text-xs leading-6 text-slate-600">
-        <div className="font-semibold text-slate-800">{displayResult?.summary.outcome ?? '等待计算'}</div>
-        {(displayResult?.summary.metrics ?? []).map((item) => <div key={item}>{item}</div>)}
-        {error || (displayResult && isFallback) ? <div className="mt-2 text-amber-700">{error ?? displayResult?.fallbackMessage}</div> : null}
-      </div>
+      {statusTags.length ? (
+        <div className="grid gap-2 sm:grid-cols-5" data-testid="unit-5-3-turning-status-tags">
+          {statusTags.map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+              <div className="premium-lesson-caption text-xs">{label}</div>
+              <div className="premium-lesson-title mt-1 text-sm font-semibold">{value}</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {calculationNotice ? (
+        <div className="rounded-lg bg-white p-3 text-xs leading-6 text-amber-700">
+          {calculationNotice}
+        </div>
+      ) : null}
     </section>
   );
 }
