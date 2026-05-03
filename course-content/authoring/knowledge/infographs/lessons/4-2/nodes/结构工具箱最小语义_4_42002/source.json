@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:38.299560Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [
+      "入口边界与判断链",
+      "工具箱与代价链",
+      "起步卡与收束"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "结构工具箱最小语义_4_42002",
+    "name": "结构工具箱最小语义",
+    "name_en": "Minimal Semantics of the Structure Toolbox",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重组为四类最小结构语义，而不是按控制器名称平铺。",
+    "examples": [
+      "`PI` 与滞后都属于“补低频能力”的首轮起步候选，但机制和代价不同。",
+      "前馈不再和 `PI/PD` 一起平铺，而被放回“通道定向补偿”的专门语义位置。"
+    ],
+    "formulas": [
+      "L(s)=C(s)P(s)"
+    ],
+    "keywords": [
+      "结构工具箱",
+      "PI",
+      "PD",
+      "前馈",
+      "复合校正",
+      "最小语义"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/结构工具箱最小语义_4_42002.md",
+  "card_frontmatter": {
+    "node_id": "结构工具箱最小语义_4_42002",
+    "name": "结构工具箱最小语义",
+    "name_en": "Minimal Semantics of the Structure Toolbox",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "结构工具箱",
+      "最小语义"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-info.png"
+    ]
+  },
+  "card_overview": "# 结构工具箱最小语义 | Minimal Semantics of the Structure Toolbox\n\n**一句话定义**：把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重组为四类最小结构语义，而不是按控制器名称平铺。\n\n**核心直觉**：结构的价值不在名字，而在它首先改变哪一段行为、优先服务什么任务。\n\n**关键公式**：\n$$\nL(s)=C(s)P(s)\n$$\n\n**关联**：前置 → 设计任务表达卡、低频补偿稳态改善路径、目标驱动 PD / 超前校正 · 后续 → 主矛盾到频段职责映射",
+  "card_detail": "### 完整解释\n\n`4-2` 把控制结构压成四类最小语义：\n\n- `P`：建立基本闭环；\n- `PI/滞后`：补低频能力；\n- `PD/超前`：改中频动态品质；\n- 前馈：隔离给定/扰动通道。\n\n这样做的好处是，学生在面对任务时先想“当前最紧矛盾偏哪类作用”，而不是先想“我更熟悉哪种控制器名字”。`PID/复合校正` 被主动压后，是因为它属于单一结构不足后的组合结果，不该在 `4-2` 直接抢跑。\n\n### 常见误区\n\n1. **误区**：`PI` 和滞后只是“强弱不同”的同一路东西。\n   **纠正**：它们都服务低频，但机制和代价并不相同。\n\n2. **误区**：前馈和反馈只是实现位置不同，选哪个都一样。\n   **纠正**：前馈负责通道补偿，反馈负责保底，两者职责边界不同。",
+  "card_plain_excerpt": "## 首页\n\n# 结构工具箱最小语义 | Minimal Semantics of the Structure Toolbox\n\n**一句话定义**：把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重组为四类最小结构语义，而不是按控制器名称平铺。\n\n**核心直觉**：结构的价值不在名字，而在它首先改变哪一段行为、优先服务什么任务。\n\n**关键公式**：\n$$\nL(s)=C(s)P(s)\n$$\n\n**关联**：前置 → 设计任务表达卡、低频补偿稳态改善路径、目标驱动 PD / 超前校正 · 后续 → 主矛盾到频段职责映射\n\n## 详情\n\n### 完整解释\n\n`4-2` 把控制结构压成四类最小语义：\n\n- `P`：建立基本闭环；\n- `PI/滞后`：补低频能力；\n- `PD/超前`：改中频动态品质；\n- 前馈：隔离给定/扰动通道。\n\n这样做的好处是，学生在面对任务时先想“当前最紧矛盾偏哪类作用”，而不是先想“我更熟悉哪种控制器名字”。`PID/复合校正` 被主动压后，是因为它属于单一结构不足后的组合结果，不该在 `4-2` 直接抢跑。\n\n### 常见误区\n\n1. **误区**：`PI` 和滞后只是“强弱不同”的同一路东西。\n   **纠正**：它们都服务低频，但机制和代价并不相同。\n\n2. **误区**：前馈和反馈只是实现位置不同，选哪个都一样。\n   **纠正**：前馈负责通道补偿，反馈负责保底，两者职责边界不同。",
+  "core_intuition": "结构的价值不在名字，而在它首先改变哪一段行为、优先服务什么任务。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "目标驱动超前校正",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构工具箱最小语义",
+      "target_id": null,
+      "target": "主矛盾到频段职责映射",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构工具箱最小语义",
+      "target_id": null,
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构工具箱最小语义",
+      "target_id": null,
+      "target": "反馈保底与前馈补偿边界",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "目标驱动PD校正",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "设计任务表达卡_4_41001",
+      "source": "设计任务表达卡",
+      "target_id": "结构工具箱最小语义_4_42002",
+      "target": "结构工具箱最小语义",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "4-2 先把 4-1 的任务卡翻译成结构工具箱中的最小语义，而不是直接喊控制器名称。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "低频补偿稳态改善路径_3_37003",
+      "source": "低频补偿稳态改善路径",
+      "target_id": "结构工具箱最小语义_4_42002",
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "模块 3 给出的 `PI/滞后` 低频补偿线在 4-2 被重新组织为“补低频能力”的任务语义。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "目标驱动PD校正_3_36002",
+      "source": "目标驱动PD校正",
+      "target_id": "结构工具箱最小语义_4_42002",
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.89,
+      "description": "4-2 不重讲 PD 设计推导，只保留其作为“改中频动态品质”的结构语义。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "目标驱动超前校正_3_36004",
+      "source": "目标驱动超前校正",
+      "target_id": "结构工具箱最小语义_4_42002",
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": "超前在 4-2 中被压缩为“中频补相角、整理动态品质”的任务表达。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构工具箱最小语义_4_42002",
+      "source": "结构工具箱最小语义",
+      "target_id": "主矛盾到频段职责映射_4_42003",
+      "target": "主矛盾到频段职责映射",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "只有先把结构工具箱的最小语义整理清楚，才可能根据主矛盾选择合适的频段职责与通道落点。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "结构工具箱最小语义",
+        "结构工具箱",
+        "PI",
+        "PD",
+        "前馈",
+        "复合校正",
+        "最小语义"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "L(s)=C(s)P(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

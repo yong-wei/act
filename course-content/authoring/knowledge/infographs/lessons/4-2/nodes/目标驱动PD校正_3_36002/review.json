@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T06:38:09.285129Z",
+  "lesson_id": "4-2",
+  "node_id": "目标驱动PD校正_3_36002",
+  "node_name": "目标驱动PD校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: regenerated after rejecting right-half-plane design point; accepted image keeps target region and design point in left half-plane, shows PD zero/gain reverse inference, stable platform response, and readable formulas"
+}

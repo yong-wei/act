@@ -20,8 +20,7 @@
     "按扰动补偿前馈的对消条件_4_42007",
     "单结构首轮起步卡_4_42001"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "设计任务表达卡_4_41001",
     "低频补偿稳态改善路径_3_37003",
     "积分与滞后的稳态改善分工_3_39003",
@@ -39,104 +38,8 @@
     "按扰动补偿前馈的对消条件_4_42007",
     "单结构首轮起步卡_4_42001"
   ],
-  "missing_source_files": {
-    "设计任务表达卡_4_41001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "低频补偿稳态改善路径_3_37003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "积分与滞后的稳态改善分工_3_39003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "目标驱动PD校正_3_36002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "目标驱动超前校正_3_36004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "三频段闭环性能回读_3_38003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "相角裕度_5_5a74b451": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "带宽频率_5_6996a44a": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "幅值裕度_5_73af26a5": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "结构工具箱最小语义_4_42002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "主矛盾到频段职责映射_4_42003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "结构作用点与代价来源对照_4_42004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "反馈保底与前馈补偿边界_4_42005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "按输入补偿前馈的无差度提升_4_42006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "按扰动补偿前馈的对消条件_4_42007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "单结构首轮起步卡_4_42001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

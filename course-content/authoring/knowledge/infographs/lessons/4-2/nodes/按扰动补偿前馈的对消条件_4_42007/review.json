@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:50:55.218693Z",
+  "lesson_id": "4-2",
+  "node_id": "按扰动补偿前馈的对消条件_4_42007",
+  "node_name": "按扰动补偿前馈的对消条件",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: disturbance is measurable, feedforward estimates/cancels before plant entry, feedback loop remains, path matching and residual disturbance panels are clear; formula anchor is readable"
+}

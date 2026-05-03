@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:38.738393Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [
+      "前馈双路径",
+      "起步卡与收束"
+    ],
+    "card_order_index": 15
+  },
+  "node": {
+    "id": "按扰动补偿前馈的对消条件_4_42007",
+    "name": "按扰动补偿前馈的对消条件",
+    "name_en": "Disturbance-Feedforward Cancellation Condition",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
+    "examples": [
+      "若扰动通道与控制通道同形，理想前馈可直接写成等幅反向补偿。",
+      "若只做到部分补偿，反馈闭环仍可把残余扰动继续压下去，因此前馈是在减轻反馈负担，而不是替代反馈。"
+    ],
+    "formulas": [
+      "T_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}"
+    ],
+    "keywords": [
+      "扰动前馈",
+      "通道对消",
+      "抗扰",
+      "残余扰动",
+      "前馈",
+      "按扰动补偿"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/按扰动补偿前馈的对消条件_4_42007.md",
+  "card_frontmatter": {
+    "node_id": "按扰动补偿前馈的对消条件_4_42007",
+    "name": "按扰动补偿前馈的对消条件",
+    "name_en": "Disturbance-Feedforward Cancellation Condition",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "前馈",
+      "按扰动补偿"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-feedforward-block-diagram.png"
+    ]
+  },
+  "card_overview": "# 按扰动补偿前馈的对消条件 | Disturbance-Feedforward Cancellation Condition\n\n**一句话定义**：当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。\n\n**核心直觉**：扰动一测到就先抵消一部分，比等输出偏了以后再靠反馈拉回来更主动。\n\n**关键公式**：\n$$\nT_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}\n$$\n\n$$\nG_{ff}(s)=-\\frac{G_d(s)}{G(s)}\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、主矛盾到频段职责映射 · 后续 → 单结构首轮起步卡、`4-3` 中的通道主导复合结构",
+  "card_detail": "### 完整解释\n\n按扰动补偿首先解决的是“可测扰动反复从同一入口进入系统”这类任务。\n它的目标不是提升速度感，而是让扰动还没有真正拉偏输出之前，就先沿扰动通道打一部分反向控制量。\n\n只要系统满足\n\n$$\ny(s)=G(s)u(s)+G_d(s)d(s)\n$$\n\n那么加入扰动前馈以后，输出对扰动的作用会变成\n\n$$\nT_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}\n$$\n\n若希望在目标频段内尽量抵消扰动，则理想条件是\n\n$$\nG_{ff}(s)=-\\frac{G_d(s)}{G(s)}\n$$\n\n这条公式告诉我们：前馈不是“再加一个环节试试看”，而是在构造一条反作用通道。\n但它也同时告诉我们，模型不准、扰动不可测、逆系统不可实现时，理想补偿就会立刻破功，所以反馈兜底职责不会消失。\n\n### 常见误区\n\n1. **误区**：只要有扰动前馈，反馈闭环就不重要了。\n   **纠正**：前馈只能处理已知、可测、模型可写清的那部分扰动；未知扰动、模型失配和剩余偏差都要靠反馈收拾。\n\n2. **误区**：理想对消条件写得出来，就说明工程上一定能做出来。\n   **纠正**：还必须检查因果性、稳定性和高频放大风险，否则“理想前馈”可能根本无法实现。",
+  "card_plain_excerpt": "## 首页\n\n# 按扰动补偿前馈的对消条件 | Disturbance-Feedforward Cancellation Condition\n\n**一句话定义**：当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。\n\n**核心直觉**：扰动一测到就先抵消一部分，比等输出偏了以后再靠反馈拉回来更主动。\n\n**关键公式**：\n$$\nT_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}\n$$\n\n$$\nG_{ff}(s)=-\\frac{G_d(s)}{G(s)}\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、主矛盾到频段职责映射 · 后续 → 单结构首轮起步卡、`4-3` 中的通道主导复合结构\n\n## 详情\n\n### 完整解释\n\n按扰动补偿首先解决的是“可测扰动反复从同一入口进入系统”这类任务。\n它的目标不是提升速度感，而是让扰动还没有真正拉偏输出之前，就先沿扰动通道打一部分反向控制量。\n\n只要系统满足\n\n$$\ny(s)=G(s)u(s)+G_d(s)d(s)\n$$\n\n那么加入扰动前馈以后，输出对扰动的作用会变成\n\n$$\nT_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}\n$$\n\n若希望在目标频段内尽量抵消扰动，则理想条件是\n\n$$\nG_{ff}(s)=-\\frac{G_d(s)}{G(s)}\n$$\n\n这条公式告诉我们：前馈不是“再加一个环节试试看”，而是在构造一条反作用通道。\n但它也同时告诉我们，模型不准、扰动不可测、逆系统不可实现时，理想补偿就会立刻破功，所以反馈兜底职责不会消失。\n\n### 常见误区\n\n1. **误区**：只要有扰动前馈，反馈闭环就不重要了。\n   **纠正**：前馈只能处理已知、可测、模型可写清的那部分扰动；未知扰动、模型失配和剩余偏差都要靠反馈收拾。\n\n2. **误区**：理想对消条件写得出来，就说明工程上一定能做出来。\n   **纠正**：还必须检查因果性、稳定性和高频放大风险，否则“理想前馈”可能根本无法实现。",
+  "core_intuition": "扰动一测到就先抵消一部分，比等输出偏了以后再靠反馈拉回来更主动。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "按扰动补偿前馈的对消条件",
+      "target_id": null,
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.87,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": null,
+      "target": "按扰动补偿前馈的对消条件",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "反馈保底与前馈补偿边界_4_42005",
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": "按扰动补偿前馈的对消条件_4_42007",
+      "target": "按扰动补偿前馈的对消条件",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "先明确反馈仍负责兜底，才能正确理解扰动前馈只是沿通道提前对消，而不是替代闭环。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "按扰动补偿前馈的对消条件_4_42007",
+      "source": "按扰动补偿前馈的对消条件",
+      "target_id": "单结构首轮起步卡_4_42001",
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.87,
+      "description": "当前馈服务抗扰时，起步卡必须写明可测扰动入口、对消条件与残余扰动仍由反馈处理。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "process_board",
+      "name": "流程板",
+      "description": "用 4-6 个连续步骤表达从证据到判断或从目标到参数的过程。"
+    },
+    "layout_contract": "16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；每步只放一个图像动作或技术小窗；底部一条结论/边界条。",
+    "text_contract": {
+      "allowed_labels": [
+        "按扰动补偿前馈的对消条件",
+        "扰动前馈",
+        "通道对消",
+        "抗扰",
+        "残余扰动",
+        "前馈",
+        "按扰动补偿"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "T_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

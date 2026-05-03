@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:38.197590Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [],
+    "card_order_index": 9
+  },
+  "node": {
+    "id": "幅值裕度_5_73af26a5",
+    "name": "幅值裕度",
+    "name_en": "Gain Margin",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "在穿越频率 $\\omega_g$ 处，开环幅值距离 `0 dB` 还剩下的增益余量。",
+    "examples": [
+      "例5-14计算不同开环增益下的幅值裕度。"
+    ],
+    "formulas": [
+      "K_g=\\frac{1}{|G(j\\omega_g)|}"
+    ],
+    "keywords": [
+      "穿越频率",
+      "开环幅频特性",
+      "临界稳定",
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/幅值裕度_5_73af26a5.md",
+  "card_frontmatter": {
+    "node_id": "幅值裕度_5_73af26a5",
+    "name": "幅值裕度",
+    "name_en": "Gain Margin",
+    "lesson_units": [
+      "2-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/2-4/design/2-4-handout.md"
+    ],
+    "asset_refs": [
+      "2-4-fd-08-bode-nyquist-consistency-panel.svg"
+    ]
+  },
+  "card_overview": "# 幅值裕度 | Gain Margin\n\n**一句话定义**：在穿越频率 $\\omega_g$ 处，开环幅值距离 `0 dB` 还剩下的增益余量。\n\n**核心直觉**：它回答的是“当相位已经拖到危险边界时，增益还差多少才会真正碰边”。\n\n**关键公式**：\n$$\nK_g=\\frac{1}{|G(j\\omega_g)|}\n$$\n\n**关联**：前置 → 穿越频率 · 后续 → 频域综合判断、设计可行域\n\n---",
+  "card_detail": "### 完整解释\n\n幅值裕度和相角裕度构成 `2-4` 的一对核心频域指标。它的读法是：\n\n1. 先在相频图上找到到达 $-180^\\circ$ 的穿越频率 $\\omega_g$；\n2. 再回到幅频图，读取该频率下离 `0 dB` 还差多少；\n3. 这个差距就是系统在增益方向上离边界还剩多少余量。\n\n因此，幅值裕度本质上是在回答“还允许再放大多少”。本课只要求学生能在图上找到它、解释它，不要求把它直接变成完整的闭环判别结论。\n\n![幅值裕度来自穿越频率处的幅值余量](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：幅值裕度和相角裕度只是两个记号不同、意思相同的量。\n   **纠正**：两者读取锚点不同，一个从 $\\omega_c$ 出发看相位，一个从 $\\omega_g$ 出发看幅值。\n\n2. **误区**：幅值裕度必须在 Nyquist 判据里才有意义。\n   **纠正**：在 `2-4` 里它已经可以作为“离边界还有多远”的第一层图形语言使用。",
+  "card_plain_excerpt": "## 首页\n\n# 幅值裕度 | Gain Margin\n\n**一句话定义**：在穿越频率 $\\omega_g$ 处，开环幅值距离 `0 dB` 还剩下的增益余量。\n\n**核心直觉**：它回答的是“当相位已经拖到危险边界时，增益还差多少才会真正碰边”。\n\n**关键公式**：\n$$\nK_g=\\frac{1}{|G(j\\omega_g)|}\n$$\n\n**关联**：前置 → 穿越频率 · 后续 → 频域综合判断、设计可行域\n\n---\n\n## 详情\n\n### 完整解释\n\n幅值裕度和相角裕度构成 `2-4` 的一对核心频域指标。它的读法是：\n\n1. 先在相频图上找到到达 $-180^\\circ$ 的穿越频率 $\\omega_g$；\n2. 再回到幅频图，读取该频率下离 `0 dB` 还差多少；\n3. 这个差距就是系统在增益方向上离边界还剩多少余量。\n\n因此，幅值裕度本质上是在回答“还允许再放大多少”。本课只要求学生能在图上找到它、解释它，不要求把它直接变成完整的闭环判别结论。\n\n![幅值裕度来自穿越频率处的幅值余量](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：幅值裕度和相角裕度只是两个记号不同、意思相同的量。\n   **纠正**：两者读取锚点不同，一个从 $\\omega_c$ 出发看相位，一个从 $\\omega_g$ 出发看幅值。\n\n2. **误区**：幅值裕度必须在 Nyquist 判据里才有意义。\n   **纠正**：在 `2-4` 里它已经可以作为“离边界还有多远”的第一层图形语言使用。",
+  "core_intuition": "它回答的是“当相位已经拖到危险边界时，增益还差多少才会真正碰边”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "临界稳定",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹与虚轴交点",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹与虚轴的交点",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅频特性",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相频特性",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅相曲线",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型环节",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相位环节",
+      "target_id": null,
+      "target": "幅值裕度",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "幅值裕度",
+        "穿越频率",
+        "开环幅频特性",
+        "临界稳定",
+        "频域分析"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "K_g=\\frac{1}{|G(j\\omega_g)|}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

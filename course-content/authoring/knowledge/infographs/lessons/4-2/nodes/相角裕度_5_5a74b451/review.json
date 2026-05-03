@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T06:59:07.570949Z",
+  "lesson_id": "4-2",
+  "node_id": "相角裕度_5_5a74b451",
+  "node_name": "相角裕度",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: regenerated after rejecting zero-margin-looking render; accepted image has 0dB crossing, phase point above -180 degree line, margin arc to -180, formula anchor, and stability gauge"
+}

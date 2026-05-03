@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T06:41:42.474252Z",
+  "lesson_id": "4-2",
+  "node_id": "目标驱动超前校正_3_36004",
+  "node_name": "目标驱动超前校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: Bode target band, phase-margin lift, compensation angle, lead parameters, formula anchors, and time-domain validation are aligned with source; no unrelated object observed"
+}

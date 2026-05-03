@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:37.698281Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [
+      "客船案例与低频起步"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "积分与滞后的稳态改善分工_3_39003",
+    "name": "积分与滞后的稳态改善分工",
+    "name_en": "Division of Steady-State Improvement Between Integral and Lag Compensation",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "积分和滞后都能改善稳态，但积分更擅长改型别、压低误差阶次，滞后更擅长温和抬高低频能力而不直接改型别。",
+    "examples": [
+      "积分可把单位斜坡误差继续压向零，但常常更早把相位余量和超调推向紧张区。",
+      "滞后能把误差压小而不改型别，代价通常比强积分温和，但改善程度也有限。"
+    ],
+    "formulas": [
+      "C_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad C_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+    ],
+    "keywords": [
+      "积分",
+      "滞后",
+      "稳态改善",
+      "型别",
+      "低频补偿",
+      "3-9"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/积分与滞后的稳态改善分工_3_39003.md",
+  "card_frontmatter": {
+    "node_id": "积分与滞后的稳态改善分工_3_39003",
+    "name": "积分与滞后的稳态改善分工",
+    "name_en": "Division of Steady-State Improvement Between Integral and Lag Compensation",
+    "lesson_units": [
+      "3-9"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-9",
+      "积分",
+      "滞后",
+      "稳态改善"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-9/design/3-9-handout.md"
+    ],
+    "asset_refs": [
+      "3-9-integral-weak-quad.png",
+      "3-9-integral-strong-quad.png",
+      "3-9-integral-corrected-quad.png",
+      "3-9-lag-quad.png"
+    ]
+  },
+  "card_overview": "# 积分与滞后的稳态改善分工 | Division of Steady-State Improvement Between Integral and Lag Compensation\n\n**一句话定义**：积分和滞后都能改善稳态，但积分更擅长改型别、压低误差阶次，滞后更擅长温和抬高低频能力而不直接改型别。\n\n**核心直觉**：它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。\n\n**关键公式**：\n$$\nC_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1\n$$\n\n**关联**：前置 → 积分环节、低频补偿稳态改善路径、串联无源滞后校正 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断",
+  "card_detail": "### 完整解释\n\n`3-9` 把 `3-7` 的低频补偿线进一步拆成两类问题：\n\n1. **是不是必须改型别，才能把误差继续压到目标水平？**\n2. **若不想把动态代价推得太狠，能否只做温和的低频重分配？**\n\n积分线和滞后线的分工正好对应这两个问题：\n\n- **积分**：通过增加积分作用，把单位斜坡误差继续压低，甚至压向零；但慢极点、超调和相角余量的代价会更早暴露。\n- **滞后**：通过低频增益重分配把误差压小，但通常不改变型别，因此改善有上限，代价也相对温和。\n\n这也是为什么 handout 里要同时放弱积分、强积分、积分校正和滞后对照。它们不是四个孤立版本，而是在回答同一个稳态任务下，改善程度和代价分布如何分层展开。\n\n### 比较要点\n\n- **弱积分**：先看见收益，也先看见慢极点。\n- **强积分**：收益更彻底，代价也被彻底放大。\n- **积分校正**：保留积分收益，再用中频整理把动态拉回可用区。\n- **滞后对照**：提醒“稳态改善”不只有积分一路，但滞后做不到同等程度的型别改变。\n\n### 常见误区\n\n1. **误区**：滞后只是“弱一点的积分”。\n   **纠正**：滞后通常不改型别，机制逻辑与积分不同。\n\n2. **误区**：只要误差继续下降，方案就一定更好。\n   **纠正**：还要同步检查慢极点、超调、相角裕度和带宽代价。",
+  "card_plain_excerpt": "## 首页\n\n# 积分与滞后的稳态改善分工 | Division of Steady-State Improvement Between Integral and Lag Compensation\n\n**一句话定义**：积分和滞后都能改善稳态，但积分更擅长改型别、压低误差阶次，滞后更擅长温和抬高低频能力而不直接改型别。\n\n**核心直觉**：它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。\n\n**关键公式**：\n$$\nC_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1\n$$\n\n**关联**：前置 → 积分环节、低频补偿稳态改善路径、串联无源滞后校正 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断\n\n## 详情\n\n### 完整解释\n\n`3-9` 把 `3-7` 的低频补偿线进一步拆成两类问题：\n\n1. **是不是必须改型别，才能把误差继续压到目标水平？**\n2. **若不想把动态代价推得太狠，能否只做温和的低频重分配？**\n\n积分线和滞后线的分工正好对应这两个问题：\n\n- **积分**：通过增加积分作用，把单位斜坡误差继续压低，甚至压向零；但慢极点、超调和相角余量的代价会更早暴露。\n- **滞后**：通过低频增益重分配把误差压小，但通常不改变型别，因此改善有上限，代价也相对温和。\n\n这也是为什么 handout 里要同时放弱积分、强积分、积分校正和滞后对照。它们不是四个孤立版本，而是在回答同一个稳态任务下，改善程度和代价分布如何分层展开。\n\n### 比较要点\n\n- **弱积分**：先看见收益，也先看见慢极点。\n- **强积分**：收益更彻底，代价也被彻底放大。\n- **积分校正**：保留积分收益，再用中频整理把动态拉回可用区。\n- **滞后对照**：提醒“稳态改善”不只有积分一路，但滞后做不到同等程度的型别改变。\n\n### 常见误区\n\n1. **误区**：滞后只是“弱一点的积分”。\n   **纠正**：滞后通常不改型别，机制逻辑与积分不同。\n\n2. **误区**：只要误差继续下降，方案就一定更好。\n   **纠正**：还要同步检查慢极点、超调、相角裕度和带宽代价。",
+  "core_intuition": "它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分与滞后的稳态改善分工",
+      "target_id": null,
+      "target": "任务标签与机制标签匹配",
+      "relation": "supports",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "串联无源滞后校正",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用物理对象或信号通道的分层剖面解释结构如何改变稳态或动态表现。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "积分与滞后的稳态改善分工",
+        "积分",
+        "滞后",
+        "稳态改善",
+        "型别",
+        "低频补偿"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "C_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad C_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

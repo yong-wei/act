@@ -1,0 +1,46 @@
+{
+  "sample_count": 279,
+  "gain_min": 0.0,
+  "gain_max": 40.0,
+  "branch_count": 2,
+  "expected_branch_count": 2,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.121326325338,
+      "sign_switches": 0,
+      "endpoint_re": -0.5,
+      "endpoint_im": -6.304760106459
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.121326325338,
+      "sign_switches": 0,
+      "endpoint_re": -0.5,
+      "endpoint_im": 6.304760106459
+    }
+  ],
+  "views": [
+    {
+      "name": "4-2-shared-root-locus",
+      "role": "subplot",
+      "title": null,
+      "xlim": [
+        -1.18,
+        0.18
+      ],
+      "ylim": [
+        -8.574473744784239,
+        8.574473744784239
+      ],
+      "visible_branch_count": 2,
+      "visible_open_loop_pole_count": 2,
+      "visible_open_loop_zero_count": 0
+    }
+  ]
+}

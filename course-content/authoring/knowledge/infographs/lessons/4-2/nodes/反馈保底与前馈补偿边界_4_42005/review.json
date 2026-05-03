@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:37:38.868971Z",
+  "lesson_id": "4-2",
+  "node_id": "反馈保底与前馈补偿边界_4_42005",
+  "node_name": "反馈保底与前馈补偿边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: central feedback loop remains main trunk, input and disturbance feedforward branches are visible, measurable-condition/model-path checks and feedback boundary are clear; formula anchor is readable"
+}

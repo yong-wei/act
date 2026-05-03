@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:41:06.799936Z",
+  "lesson_id": "4-2",
+  "node_id": "按输入补偿前馈的无差度提升_4_42006",
+  "node_name": "按输入补偿前馈的无差度提升",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: reference input splits into feedforward and feedback channels, feedback remains as fallback, tracking/no-difference/overcompensation readback and formula anchor are clear"
+}

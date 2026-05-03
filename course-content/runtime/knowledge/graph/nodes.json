@@ -7102,7 +7102,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
         "title": "三频段闭环性能回读 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "三频段闭环性能回读_3_38003"
       },
       "createdAt": null,
@@ -7117,7 +7117,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
         "title": "三频段闭环性能回读 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "三频段闭环性能回读_3_38003"
       }
     ],
@@ -7663,7 +7663,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "title": "低频补偿稳态改善路径 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "低频补偿稳态改善路径_3_37003"
       },
       "createdAt": null,
@@ -7678,7 +7678,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "title": "低频补偿稳态改善路径 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "低频补偿稳态改善路径_3_37003"
       }
     ],
@@ -10598,14 +10598,29 @@
         "根轨迹",
         "阶跃验收"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
+        "title": "目标驱动PD校正 信息图",
+        "lessonId": "4-2",
+        "nodeId": "目标驱动PD校正_3_36002"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/目标驱动PD校正_3_36002.md"
+      "course-content/runtime/knowledge/cards/nodes/目标驱动PD校正_3_36002.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
+        "title": "目标驱动PD校正 信息图",
+        "lessonId": "4-2",
+        "nodeId": "目标驱动PD校正_3_36002"
+      }
     ],
     "tags": [
       "PD",
@@ -10723,7 +10738,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
         "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
         "title": "目标驱动超前校正 信息图",
-        "lessonId": "3-8",
+        "lessonId": "4-2",
         "nodeId": "目标驱动超前校正_3_36004"
       },
       "createdAt": null,
@@ -10738,7 +10753,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
         "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
         "title": "目标驱动超前校正 信息图",
-        "lessonId": "3-8",
+        "lessonId": "4-2",
         "nodeId": "目标驱动超前校正_3_36004"
       }
     ],
@@ -10799,7 +10814,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
         "title": "积分与滞后的稳态改善分工 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "积分与滞后的稳态改善分工_3_39003"
       },
       "createdAt": null,
@@ -10814,7 +10829,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
         "title": "积分与滞后的稳态改善分工 信息图",
-        "lessonId": "3-9",
+        "lessonId": "4-2",
         "nodeId": "积分与滞后的稳态改善分工_3_39003"
       }
     ],
@@ -13490,14 +13505,29 @@
         "三频段",
         "任务映射"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+        "title": "主矛盾到频段职责映射 信息图",
+        "lessonId": "4-2",
+        "nodeId": "主矛盾到频段职责映射_4_42003"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/主矛盾到频段职责映射_4_42003.md"
+      "course-content/runtime/knowledge/cards/nodes/主矛盾到频段职责映射_4_42003.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+        "title": "主矛盾到频段职责映射 信息图",
+        "lessonId": "4-2",
+        "nodeId": "主矛盾到频段职责映射_4_42003"
+      }
     ],
     "tags": [
       "主矛盾",
@@ -14154,14 +14184,29 @@
         "参数方向",
         "验证假设"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+        "title": "单结构首轮起步卡 信息图",
+        "lessonId": "4-2",
+        "nodeId": "单结构首轮起步卡_4_42001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/单结构首轮起步卡_4_42001.md"
+      "course-content/runtime/knowledge/cards/nodes/单结构首轮起步卡_4_42001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+        "title": "单结构首轮起步卡 信息图",
+        "lessonId": "4-2",
+        "nodeId": "单结构首轮起步卡_4_42001"
+      }
     ],
     "tags": [
       "起步卡",
@@ -14373,14 +14418,29 @@
         "扰动补偿",
         "鲁棒性"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+        "title": "反馈保底与前馈补偿边界 信息图",
+        "lessonId": "4-2",
+        "nodeId": "反馈保底与前馈补偿边界_4_42005"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/反馈保底与前馈补偿边界_4_42005.md"
+      "course-content/runtime/knowledge/cards/nodes/反馈保底与前馈补偿边界_4_42005.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+        "title": "反馈保底与前馈补偿边界 信息图",
+        "lessonId": "4-2",
+        "nodeId": "反馈保底与前馈补偿边界_4_42005"
+      }
     ],
     "tags": [
       "前馈",
@@ -15298,14 +15358,29 @@
         "抗扰",
         "残余扰动"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
+        "title": "按扰动补偿前馈的对消条件 信息图",
+        "lessonId": "4-2",
+        "nodeId": "按扰动补偿前馈的对消条件_4_42007"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/按扰动补偿前馈的对消条件_4_42007.md"
+      "course-content/runtime/knowledge/cards/nodes/按扰动补偿前馈的对消条件_4_42007.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
+        "title": "按扰动补偿前馈的对消条件 信息图",
+        "lessonId": "4-2",
+        "nodeId": "按扰动补偿前馈的对消条件_4_42007"
+      }
     ],
     "tags": [
       "扰动前馈",
@@ -15355,14 +15430,29 @@
         "跟踪",
         "过补偿"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
+        "title": "按输入补偿前馈的无差度提升 信息图",
+        "lessonId": "4-2",
+        "nodeId": "按输入补偿前馈的无差度提升_4_42006"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/按输入补偿前馈的无差度提升_4_42006.md"
+      "course-content/runtime/knowledge/cards/nodes/按输入补偿前馈的无差度提升_4_42006.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
+        "title": "按输入补偿前馈的无差度提升 信息图",
+        "lessonId": "4-2",
+        "nodeId": "按输入补偿前馈的无差度提升_4_42006"
+      }
     ],
     "tags": [
       "输入前馈",
@@ -16878,14 +16968,29 @@
         "噪声敏感性",
         "结构比较"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+        "title": "结构作用点与代价来源对照 信息图",
+        "lessonId": "4-2",
+        "nodeId": "结构作用点与代价来源对照_4_42004"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/结构作用点与代价来源对照_4_42004.md"
+      "course-content/runtime/knowledge/cards/nodes/结构作用点与代价来源对照_4_42004.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+        "title": "结构作用点与代价来源对照 信息图",
+        "lessonId": "4-2",
+        "nodeId": "结构作用点与代价来源对照_4_42004"
+      }
     ],
     "tags": [
       "收益",
@@ -16995,14 +17100,29 @@
         "前馈",
         "复合校正"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
+        "title": "结构工具箱最小语义 信息图",
+        "lessonId": "4-2",
+        "nodeId": "结构工具箱最小语义_4_42002"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/结构工具箱最小语义_4_42002.md"
+      "course-content/runtime/knowledge/cards/nodes/结构工具箱最小语义_4_42002.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
+        "title": "结构工具箱最小语义 信息图",
+        "lessonId": "4-2",
+        "nodeId": "结构工具箱最小语义_4_42002"
+      }
     ],
     "tags": [
       "结构工具箱",
@@ -17271,7 +17391,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
         "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
         "title": "设计任务表达卡 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "设计任务表达卡_4_41001"
       },
       "createdAt": null,
@@ -17286,7 +17406,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
         "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
         "title": "设计任务表达卡 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "设计任务表达卡_4_41001"
       }
     ],
@@ -20551,7 +20671,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
         "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
         "title": "带宽频率 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "带宽频率_5_6996a44a"
       },
       "createdAt": "2026-02-04T17:54:16.628615",
@@ -20566,7 +20686,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
         "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
         "title": "带宽频率 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "带宽频率_5_6996a44a"
       }
     ],
@@ -20618,7 +20738,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
         "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
         "title": "幅值裕度 信息图",
-        "lessonId": "3-8",
+        "lessonId": "4-2",
         "nodeId": "幅值裕度_5_73af26a5"
       },
       "createdAt": "2026-02-04T17:54:16.628590",
@@ -20633,7 +20753,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
         "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
         "title": "幅值裕度 信息图",
-        "lessonId": "3-8",
+        "lessonId": "4-2",
         "nodeId": "幅值裕度_5_73af26a5"
       }
     ],
@@ -22312,7 +22432,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
         "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
         "title": "相角裕度 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "相角裕度_5_5a74b451"
       },
       "createdAt": "2026-02-04T17:54:16.628585",
@@ -22327,7 +22447,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
         "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
         "title": "相角裕度 信息图",
-        "lessonId": "4-1",
+        "lessonId": "4-2",
         "nodeId": "相角裕度_5_5a74b451"
       }
     ],

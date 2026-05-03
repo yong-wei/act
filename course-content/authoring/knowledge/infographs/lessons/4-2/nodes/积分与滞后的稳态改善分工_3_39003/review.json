@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T06:30:38.268640Z",
+  "lesson_id": "4-2",
+  "node_id": "积分与滞后的稳态改善分工_3_39003",
+  "node_name": "积分与滞后的稳态改善分工",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: accepted after removing old lesson-id labels; PI and lag are separated, Bode low-frequency lift and phase/margin cost are visible, formula anchors are readable, and no unsupported case appears"
+}

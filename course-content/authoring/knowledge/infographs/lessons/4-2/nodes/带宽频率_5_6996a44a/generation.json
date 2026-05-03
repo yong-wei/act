@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:01:56.550592Z",
+  "lesson_id": "4-2",
+  "node_id": "带宽频率_5_6996a44a",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019dec64-7bd7-72f1-a432-e31ab3063bc1/ig_0235a3581a2162b70169f6f28f5ee88191b120a237f3217eed.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-2/nodes/带宽频率_5_6996a44a/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-2/nodes/带宽频率_5_6996a44a/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-2/nodes/带宽频率_5_6996a44a/source.json"
+}

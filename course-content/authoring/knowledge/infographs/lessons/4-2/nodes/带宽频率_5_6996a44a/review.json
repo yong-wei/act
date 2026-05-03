@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:01:56.551294Z",
+  "lesson_id": "4-2",
+  "node_id": "带宽频率_5_6996a44a",
+  "node_name": "带宽频率",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: closed-loop magnitude curve, -3 dB line, omega_b marker, low-frequency platform, response-speed readback, and formula anchor are correct for bandwidth frequency"
+}

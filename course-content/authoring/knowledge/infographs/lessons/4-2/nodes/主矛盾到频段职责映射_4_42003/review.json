@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:30:50.336380Z",
+  "lesson_id": "4-2",
+  "node_id": "主矛盾到频段职责映射_4_42003",
+  "node_name": "主矛盾到频段职责映射",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: regenerated after offshore-platform rejection; accepted image maps passenger ship to low-frequency steady task, stabilized device/platform control to mid-frequency dynamics, and high-frequency noise to cost before structure entry"
+}

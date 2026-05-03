@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:38.653387Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [
+      "前馈双路径",
+      "起步卡与收束"
+    ],
+    "card_order_index": 14
+  },
+  "node": {
+    "id": "按输入补偿前馈的无差度提升_4_42006",
+    "name": "按输入补偿前馈的无差度提升",
+    "name_en": "Input Feedforward and Tracking-Order Improvement",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "当给定信号的变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差，工程上通常追求“误差显著减小或等效无差度提高”，而不是机械追求全补偿。",
+    "examples": [
+      "没有输入前馈时，斜坡输入误差完全依赖反馈逐步消化。",
+      "取合适前馈参数后，可把原本的有差跟踪提升为该类输入下的无差跟踪；但参数过大又会出现过补偿。"
+    ],
+    "formulas": [
+      "u(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)"
+    ],
+    "keywords": [
+      "输入前馈",
+      "无差度",
+      "跟踪",
+      "过补偿",
+      "前馈",
+      "按输入补偿"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/按输入补偿前馈的无差度提升_4_42006.md",
+  "card_frontmatter": {
+    "node_id": "按输入补偿前馈的无差度提升_4_42006",
+    "name": "按输入补偿前馈的无差度提升",
+    "name_en": "Input Feedforward and Tracking-Order Improvement",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "前馈",
+      "按输入补偿"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-info.png"
+    ]
+  },
+  "card_overview": "# 按输入补偿前馈的无差度提升 | Input Feedforward and Tracking-Order Improvement\n\n**一句话定义**：当给定信号的变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差，工程上通常追求“误差显著减小或等效无差度提高”，而不是机械追求全补偿。\n\n**核心直觉**：前馈先沿参考通道出手，反馈再负责把模型误差和剩余偏差收回来。\n\n**关键公式**：\n$$\nu(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)\n$$\n\n$$\ne_{ss}^{(ff)}=\\frac{A(1-\\tau K_2)}{K_1K_2}\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、结构工具箱最小语义 · 后续 → 单结构首轮起步卡、`4-3` 复合结构骨架",
+  "card_detail": "### 完整解释\n\n按输入补偿关注的是：既然参考输入的变化趋势已经知道，为什么还要等误差形成以后才让控制器动作。\n因此它最适合解决“跟踪滞后”“斜坡或轨迹输入误差偏大”这类问题。\n\n在课程中，更值得记住的不是“全补偿”四个字，而是下面这组可比较关系：\n\n- 没有输入前馈时，斜坡输入的稳态误差为 $\\dfrac{A}{K_1K_2}$；\n- 加入前馈后，误差变为 $\\dfrac{A(1-\\tau K_2)}{K_1K_2}$；\n- 当 $\\tau=\\dfrac{1}{K_2}$ 时，可把原本的有差跟踪提升为对该类输入的无差跟踪；\n- 但若参数继续加大，就会出现过补偿。\n\n这说明前馈设计首先是“把误差往正确方向压下去”，而不是追求任何输入都精确复制。后者通常要求对象逆或微分项，工程上往往不稳妥。\n\n### 常见误区\n\n1. **误区**：输入前馈比反馈更高级，所以能替代反馈。\n   **纠正**：输入前馈只负责沿参考通道提前出力，稳定性、鲁棒性和模型误差下的保底仍然靠反馈闭环。\n\n2. **误区**：既然存在全补偿条件，就应该永远追求全补偿。\n   **纠正**：工程上更常见的目标是提高无差度或显著减小误差，而不是为了“全补偿”引入不可实现的逆系统或过强微分。",
+  "card_plain_excerpt": "## 首页\n\n# 按输入补偿前馈的无差度提升 | Input Feedforward and Tracking-Order Improvement\n\n**一句话定义**：当给定信号的变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差，工程上通常追求“误差显著减小或等效无差度提高”，而不是机械追求全补偿。\n\n**核心直觉**：前馈先沿参考通道出手，反馈再负责把模型误差和剩余偏差收回来。\n\n**关键公式**：\n$$\nu(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)\n$$\n\n$$\ne_{ss}^{(ff)}=\\frac{A(1-\\tau K_2)}{K_1K_2}\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、结构工具箱最小语义 · 后续 → 单结构首轮起步卡、`4-3` 复合结构骨架\n\n## 详情\n\n### 完整解释\n\n按输入补偿关注的是：既然参考输入的变化趋势已经知道，为什么还要等误差形成以后才让控制器动作。\n因此它最适合解决“跟踪滞后”“斜坡或轨迹输入误差偏大”这类问题。\n\n在课程中，更值得记住的不是“全补偿”四个字，而是下面这组可比较关系：\n\n- 没有输入前馈时，斜坡输入的稳态误差为 $\\dfrac{A}{K_1K_2}$；\n- 加入前馈后，误差变为 $\\dfrac{A(1-\\tau K_2)}{K_1K_2}$；\n- 当 $\\tau=\\dfrac{1}{K_2}$ 时，可把原本的有差跟踪提升为对该类输入的无差跟踪；\n- 但若参数继续加大，就会出现过补偿。\n\n这说明前馈设计首先是“把误差往正确方向压下去”，而不是追求任何输入都精确复制。后者通常要求对象逆或微分项，工程上往往不稳妥。\n\n### 常见误区\n\n1. **误区**：输入前馈比反馈更高级，所以能替代反馈。\n   **纠正**：输入前馈只负责沿参考通道提前出力，稳定性、鲁棒性和模型误差下的保底仍然靠反馈闭环。\n\n2. **误区**：既然存在全补偿条件，就应该永远追求全补偿。\n   **纠正**：工程上更常见的目标是提高无差度或显著减小误差，而不是为了“全补偿”引入不可实现的逆系统或过强微分。",
+  "core_intuition": "前馈先沿参考通道出手，反馈再负责把模型误差和剩余偏差收回来。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "按输入补偿前馈的无差度提升",
+      "target_id": null,
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": null,
+      "target": "按输入补偿前馈的无差度提升",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "反馈保底与前馈补偿边界_4_42005",
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": "按输入补偿前馈的无差度提升_4_42006",
+      "target": "按输入补偿前馈的无差度提升",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": "先明确反馈和前馈的职责边界，才能继续讨论按输入补偿究竟在改善哪类跟踪误差。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "按输入补偿前馈的无差度提升_4_42006",
+      "source": "按输入补偿前馈的无差度提升",
+      "target_id": "单结构首轮起步卡_4_42001",
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.86,
+      "description": "当前馈服务跟踪时，起步卡必须写明它改善的是哪类给定误差，以及为什么仍需要反馈保底。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "process_board",
+      "name": "流程板",
+      "description": "用 4-6 个连续步骤表达从证据到判断或从目标到参数的过程。"
+    },
+    "layout_contract": "16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；每步只放一个图像动作或技术小窗；底部一条结论/边界条。",
+    "text_contract": {
+      "allowed_labels": [
+        "按输入补偿前馈的无差度提升",
+        "输入前馈",
+        "无差度",
+        "跟踪",
+        "过补偿",
+        "前馈",
+        "按输入补偿"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "u(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

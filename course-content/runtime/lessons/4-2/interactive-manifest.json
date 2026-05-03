@@ -58,13 +58,25 @@
           "id": "stage-map",
           "region": "lead",
           "kind": "stage-map",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page_intro",
+            "title": "本课角色"
+          }
         },
         {
           "id": "goal-cards",
           "region": "lead",
           "kind": "goal-card-row",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goal_cards",
+            "items": [
+              "识别当前主矛盾落在低频、中频还是通道补偿。",
+              "用结构作用语义解释首选单结构，而不是先报结构名字。",
+              "写出参数起步方向、预期收益与主要代价。"
+            ]
+          }
         },
         {
           "id": "boundary-summary",
@@ -102,7 +114,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -178,7 +191,10 @@
           "id": "pretest-cards",
           "region": "question-stack",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pretest_focus"
+          }
         }
       ],
       "content_blocks": {
@@ -341,7 +357,47 @@
           "id": "judgment-chain",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "judgment_chain",
+            "columns": [
+              "顺序",
+              "判断动作",
+              "输出句式"
+            ],
+            "rows": [
+              [
+                "1",
+                "先读任务对象与最紧矛盾",
+                "当前最不能接受的后果是……"
+              ],
+              [
+                "2",
+                "判断矛盾所在频段或通道",
+                "问题主要落在低频 / 中频 / 已知通道。"
+              ],
+              [
+                "3",
+                "再说结构作用语义",
+                "需要先增强……而不是先报结构名。"
+              ],
+              [
+                "4",
+                "写参数起步方向",
+                "第一轮先增大 / 减小 / 平移……"
+              ],
+              [
+                "5",
+                "写预期收益",
+                "最先希望看到……改善。"
+              ],
+              [
+                "6",
+                "补主要代价",
+                "最先警惕……被透支。"
+              ]
+            ]
+          }
         },
         {
           "id": "direction-sentence",
@@ -404,7 +460,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -472,7 +529,60 @@
           "id": "controller-toolbox-table",
           "region": "table",
           "kind": "native-formula-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "controller_toolbox",
+            "columns": [
+              "结构",
+              "数学表达式",
+              "最小作用语义",
+              "首轮使用边界"
+            ],
+            "rows": [
+              [
+                "P",
+                "$C_P(s)=K_p$",
+                "比例放大当前误差，建立最小可用闭环。",
+                "不能单独消除稳态误差，也不能独自解释复杂任务。"
+              ],
+              [
+                "PI",
+                "$C_{PI}(s)=K_p+\\dfrac{K_i}{s}$",
+                "补低频与稳态误差，抬升低频回路增益。",
+                "适合低频保持、慢扰动抑制；代价是相位余量可能收紧。"
+              ],
+              [
+                "PD",
+                "$C_{PD}(s)=K_p+K_d s$",
+                "整理中频阻尼与速度感。",
+                "适合超调、阻尼和相位储备问题；噪声敏感。"
+              ],
+              [
+                "PID",
+                "$C_{PID}(s)=K_p+\\dfrac{K_i}{s}+K_d s$",
+                "同时补低频和中频。",
+                "只在单一结构解释不了任务时压后进入候选。"
+              ],
+              [
+                "超前",
+                "$C_{lead}(s)=K\\dfrac{Ts+1}{\\alpha Ts+1}, 0<\\alpha<1$",
+                "在中频附近提供正相位。",
+                "改善相位与动态品质；高频放大需检查。"
+              ],
+              [
+                "滞后",
+                "$C_{lag}(s)=K\\dfrac{Ts+1}{\\beta Ts+1}, \\beta>1$",
+                "克制补低频，少动中频。",
+                "低频收益更温和；速度可能下降。"
+              ],
+              [
+                "前馈",
+                "$u(s)=C(s)(r(s)-y(s))+F(s)r(s)$",
+                "沿已知给定或扰动通道提前注入控制量。",
+                "不能替代反馈保底，依赖模型与测量质量。"
+              ]
+            ]
+          }
         },
         {
           "id": "toolbox-summary",
@@ -487,7 +597,10 @@
           "id": "toolbox-matrix",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "toolbox_summary"
+          }
         }
       ],
       "content_blocks": {
@@ -715,7 +828,10 @@
           "id": "ship-case-problem",
           "region": "case",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "ship-native-panel",
@@ -736,7 +852,10 @@
           "id": "ship-entry-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         }
       ],
       "content_blocks": {
@@ -862,7 +981,10 @@
           "id": "ship-expanded-problem",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "ship-frequency-formulas",
@@ -881,7 +1003,37 @@
           "id": "ship-table5",
           "region": "comparison",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "table5",
+            "columns": [
+              "比较项",
+              "PI / 滞后",
+              "PD"
+            ],
+            "rows": [
+              [
+                "主要作用点",
+                "低频保持能力、慢扰动抑制、稳态误差来源",
+                "截止频率附近的阻尼与相位"
+              ],
+              [
+                "客船当前矛盾",
+                "直接命中“航向保持先站稳”的低频问题",
+                "没有先处理低频保持能力"
+              ],
+              [
+                "首个收益",
+                "低频支撑更强，慢扰动下误差更不容易积累",
+                "过程可能更利落，但主矛盾未必改善"
+              ],
+              [
+                "首个代价",
+                "相位余量与速度边界需要回看",
+                "噪声和高频放大风险更早出现"
+              ]
+            ]
+          }
         },
         {
           "id": "ship-reveal-chain",
@@ -896,7 +1048,17 @@
           "id": "ship-worked-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reveal_layers",
+            "items": [
+              "锁定对象：客船对象含积分环节，低频误差积累会直接变成航向保持问题。",
+              "写出基线：基线只说明对象可被闭环带住，不说明慢扰动和低频保持已经足够。",
+              "比较 PI：PI 在当前 ω_c 附近温和抬升幅值，把作用点压到低频保持与慢扰动抑制区间。",
+              "比较 PD：PD 的首轮强化更直接落在中频动态整理，并未先命中低频主矛盾。",
+              "形成起步句：表 5 的频域比较支持先写 PI/滞后，并同步检查相位余量和速度代价。"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1056,7 +1218,10 @@
           "id": "platform-case-problem",
           "region": "case",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "platform-native-panel",
@@ -1077,7 +1242,10 @@
           "id": "platform-entry-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         }
       ],
       "content_blocks": {
@@ -1203,7 +1371,10 @@
           "id": "platform-expanded-problem",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "platform-frequency-formulas",
@@ -1223,7 +1394,37 @@
           "id": "platform-compare-table",
           "region": "comparison",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "platform_compare_table",
+            "columns": [
+              "比较项",
+              "PD / 超前",
+              "PI"
+            ],
+            "rows": [
+              [
+                "主要作用点",
+                "截止频率附近的相位、阻尼与超调",
+                "低频精度和稳态误差"
+              ],
+              [
+                "平台当前矛盾",
+                "速度已建立，首轮更需要整理中频动态品质",
+                "会把问题拉回低频，偏离当前主矛盾"
+              ],
+              [
+                "首个收益",
+                "超调下降、阻尼改善、过程更利落",
+                "低频收益可能增加，但动态品质改善不直接"
+              ],
+              [
+                "首个代价",
+                "噪声、高频放大与实现滤波需要检查",
+                "相位余量可能继续收紧"
+              ]
+            ]
+          }
         },
         {
           "id": "platform-reveal-chain",
@@ -1238,7 +1439,17 @@
           "id": "platform-worked-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reveal_layers",
+            "items": [
+              "锁定对象：稳定平台速度优势已经可见，问题不应再先回到低频精度。",
+              "定位中频：若超调和阻尼仍紧，首轮目标应落到截止频率附近的相位与阻尼整理。",
+              "比较 PD：PD 在关键频段给出正相位，更直接服务阻尼、超调和中频动态品质。",
+              "比较 PI：PI 在同一频段带来额外相位滞后，不会先解决当前中频主矛盾。",
+              "形成起步句：表 7 的频域比较支持从 PD/超前起步，并检查噪声、高频放大和实现滤波。"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1454,7 +1665,14 @@
           "id": "input-ff-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "principle_reveal_layers",
+            "items": [
+              "参考通道提前出力：$u(s)=C(s)(r(s)-y(s))+F(s)r(s)$。",
+              "理想输入补偿目标：$G_f(s)G_2(s)=1$，目标是给定通道补偿，不是改写反馈主链。"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1647,7 +1865,10 @@
           "id": "disturbance-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "structure_figure"
+          }
         }
       ],
       "content_blocks": {
@@ -1794,7 +2015,18 @@
           "id": "start-card-workspace",
           "region": "workspace",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "start_card_fields",
+            "items": [
+              "当前任务",
+              "最紧矛盾",
+              "首选单结构",
+              "参数起步方向",
+              "预期收益",
+              "主要代价"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1953,7 +2185,10 @@
           "id": "posttest-cards",
           "region": "assessment",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_summary"
+          }
         }
       ],
       "content_blocks": {
@@ -2152,7 +2387,10 @@
           "id": "next-route",
           "region": "next-step",
           "kind": "route-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next_route"
+          }
         }
       ],
       "content_blocks": {
@@ -2181,7 +2419,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",

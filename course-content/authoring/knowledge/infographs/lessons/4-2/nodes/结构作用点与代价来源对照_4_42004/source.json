@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-03T07:27:38.472638Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型原理：不同控制结构为何适合不同任务",
+    "groups": [
+      "工具箱与代价链",
+      "平台案例与中频起步",
+      "起步卡与收束"
+    ],
+    "card_order_index": 12
+  },
+  "node": {
+    "id": "结构作用点与代价来源对照_4_42004",
+    "name": "结构作用点与代价来源对照",
+    "name_en": "Where a Structure Acts and Where Its Cost Emerges",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "每一类结构都先改善某一段行为，同时也会在别的位置先暴露相应代价。",
+    "examples": [
+      "`PI` 提高低频能力时，常会同时带来相位滞后和速度代价。",
+      "`PD/超前` 改善中频动态品质时，往往会把高频敏感性和实现复杂度一起抬高。"
+    ],
+    "formulas": [
+      "\\text{结构作用点} \\rightarrow \\text{收益位置} \\Rightarrow \\text{代价来源}"
+    ],
+    "keywords": [
+      "收益",
+      "代价",
+      "相角裕度",
+      "噪声敏感性",
+      "结构比较",
+      "代价链"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/结构作用点与代价来源对照_4_42004.md",
+  "card_frontmatter": {
+    "node_id": "结构作用点与代价来源对照_4_42004",
+    "name": "结构作用点与代价来源对照",
+    "name_en": "Where a Structure Acts and Where Its Cost Emerges",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "代价链",
+      "结构比较"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-info.png"
+    ]
+  },
+  "card_overview": "# 结构作用点与代价来源对照 | Where a Structure Acts and Where Its Cost Emerges\n\n**一句话定义**：每一类结构都先改善某一段行为，同时也会在别的位置先暴露相应代价。\n\n**核心直觉**：收益和代价从来不是分开的两张表，而是一条同源链。\n\n**关键公式**：\n$$\n\\text{结构作用点} \\rightarrow \\text{收益位置} \\Rightarrow \\text{代价来源}\n$$\n\n**关联**：前置 → 主矛盾到频段职责映射、相角裕度、幅值裕度、带宽频率 · 后续 → 单结构首轮起步卡",
+  "card_detail": "### 完整解释\n\n`4-2` 必须把“结构有效”翻译成更完整的一句话。例如：\n\n- `PI/滞后` 优先改善低频能力，但常会把相位滞后、速度代价和储备压力一起带出来；\n- `PD/超前` 优先整理中频动态品质，但常会把高频噪声敏感性和实现复杂度一起抬高；\n- 前馈优先改通道补偿，但模型不准时仍需要反馈兜底。\n\n因此，任何结构判断后面都必须补一句“它的代价会先从哪里冒出来”。没有这句，控制设计就会重新滑回“只报优点”的空话。\n\n### 常见误区\n\n1. **误区**：只要有效，就值得先用。\n   **纠正**：还要看代价是否刚好撞上当前底线边界。\n\n2. **误区**：`PI` 管精度、`PD` 管速度，这已经足够完整。\n   **纠正**：还必须补出储备、噪声和复杂度代价。",
+  "card_plain_excerpt": "## 首页\n\n# 结构作用点与代价来源对照 | Where a Structure Acts and Where Its Cost Emerges\n\n**一句话定义**：每一类结构都先改善某一段行为，同时也会在别的位置先暴露相应代价。\n\n**核心直觉**：收益和代价从来不是分开的两张表，而是一条同源链。\n\n**关键公式**：\n$$\n\\text{结构作用点} \\rightarrow \\text{收益位置} \\Rightarrow \\text{代价来源}\n$$\n\n**关联**：前置 → 主矛盾到频段职责映射、相角裕度、幅值裕度、带宽频率 · 后续 → 单结构首轮起步卡\n\n## 详情\n\n### 完整解释\n\n`4-2` 必须把“结构有效”翻译成更完整的一句话。例如：\n\n- `PI/滞后` 优先改善低频能力，但常会把相位滞后、速度代价和储备压力一起带出来；\n- `PD/超前` 优先整理中频动态品质，但常会把高频噪声敏感性和实现复杂度一起抬高；\n- 前馈优先改通道补偿，但模型不准时仍需要反馈兜底。\n\n因此，任何结构判断后面都必须补一句“它的代价会先从哪里冒出来”。没有这句，控制设计就会重新滑回“只报优点”的空话。\n\n### 常见误区\n\n1. **误区**：只要有效，就值得先用。\n   **纠正**：还要看代价是否刚好撞上当前底线边界。\n\n2. **误区**：`PI` 管精度、`PD` 管速度，这已经足够完整。\n   **纠正**：还必须补出储备、噪声和复杂度代价。",
+  "core_intuition": "收益和代价从来不是分开的两张表，而是一条同源链。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构作用点与代价来源对照",
+      "target_id": null,
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅值裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.83,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "主矛盾到频段职责映射",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽频率",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构作用点与代价来源对照",
+      "target_id": null,
+      "target": "单结构与复合结构分流条件",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "结构作用点与代价来源对照",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "结构作用点与代价来源对照",
+        "收益",
+        "代价",
+        "相角裕度",
+        "噪声敏感性",
+        "结构比较",
+        "代价链"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{结构作用点} \\rightarrow \\text{收益位置} \\Rightarrow \\text{代价来源}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

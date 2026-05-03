@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:11:04.982837Z",
+  "lesson_id": "4-2",
+  "node_id": "结构工具箱最小语义_4_42002",
+  "node_name": "结构工具箱最小语义",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: structure toolbox maps PI/PD/lead/lag/feedforward/composite correction to frequency responsibilities, gain-cost boundary, and closed-loop structure; uses only passenger ship and platform cases"
+}

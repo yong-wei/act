@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:56:17.100937Z",
+  "lesson_id": "4-2",
+  "node_id": "单结构首轮起步卡_4_42001",
+  "node_name": "单结构首轮起步卡",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: central first-start card shows main contradiction, priority band, single candidate structure, parameter direction, expected gain, cost, and validation metric; passenger ship and stabilized platform branches each choose one structure"
+}

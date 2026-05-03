@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-03T07:05:46.459218Z",
+  "lesson_id": "4-2",
+  "node_id": "幅值裕度_5_73af26a5",
+  "node_name": "幅值裕度",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: accepted after adding gain-margin-specific prompt; omega_g vertical line links phase -180 crossing to magnitude plot, 0dB reference and gain margin marker are clear, formula anchor is readable"
+}
