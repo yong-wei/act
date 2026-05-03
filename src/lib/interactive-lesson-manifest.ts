@@ -15,9 +15,11 @@ export type InteractiveInteractionKind =
   | 'card_sort'
   | 'structured_compare'
   | 'quiz_group'
+  | 'multi_select'
   | 'multi_select_matrix'
   | 'quiz_card_grid'
   | 'activity_card_set'
+  | 'interactive_figure_submit'
   | 'drag_match'
   | 'table_builder'
   | 'teacher_reveal_only'
@@ -60,6 +62,11 @@ export interface InteractiveRuntimeChoiceOptionManifest {
   label: string;
 }
 
+export interface InteractiveRuntimeReferenceMatchManifest {
+  item: string;
+  option: string;
+}
+
 export interface InteractiveRuntimeActivityCardManifest {
   id: string;
   title?: string;
@@ -69,6 +76,9 @@ export interface InteractiveRuntimeActivityCardManifest {
   submitScope: string;
   layoutSpan: string;
   options: InteractiveRuntimeChoiceOptionManifest[];
+  matchItems?: InteractiveRuntimeChoiceOptionManifest[];
+  matchOptions?: InteractiveRuntimeChoiceOptionManifest[];
+  referenceMatches?: InteractiveRuntimeReferenceMatchManifest[];
   structuredFields?: string[];
 }
 
@@ -214,21 +224,46 @@ function normalizeChoiceOptions(value: unknown): InteractiveRuntimeChoiceOptionM
     .filter((item): item is InteractiveRuntimeChoiceOptionManifest => Boolean(item));
 }
 
+function normalizeReferenceMatches(value: unknown): InteractiveRuntimeReferenceMatchManifest[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const match = asRecord(item);
+      const left = match.item ?? match.source ?? match.left;
+      const right = match.option ?? match.target ?? match.right;
+      if (typeof left !== 'string' || typeof right !== 'string') return null;
+      if (!left.trim() || !right.trim()) return null;
+      return { item: left, option: right };
+    })
+    .filter((item): item is InteractiveRuntimeReferenceMatchManifest => Boolean(item));
+}
+
+function normalizeReferenceAnswer(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean).join(' / ');
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  const text = String(value);
+  return text.trim() ? text : undefined;
+}
+
 function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardManifest {
   const card = asRecord(value);
   return {
     id: String(card.id ?? ''),
     title: card.title ? String(card.title) : undefined,
     prompt: String(card.prompt ?? ''),
-    referenceAnswer: card.reference_answer
-      ? String(card.reference_answer)
-      : card.referenceAnswer
-        ? String(card.referenceAnswer)
-        : undefined,
+    referenceAnswer: normalizeReferenceAnswer(card.reference_answer ?? card.referenceAnswer),
     responseKind: String(card.response_kind ?? card.responseKind ?? ''),
     submitScope: String(card.submit_scope ?? card.submitScope ?? ''),
     layoutSpan: String(card.layout_span ?? card.layoutSpan ?? ''),
     options: normalizeChoiceOptions(card.options),
+    matchItems: normalizeChoiceOptions(card.match_items ?? card.matchItems),
+    matchOptions: normalizeChoiceOptions(card.match_options ?? card.matchOptions),
+    referenceMatches: normalizeReferenceMatches(card.reference_matches ?? card.referenceMatches),
     structuredFields: asStringArray(card.structured_fields ?? card.structuredFields),
   };
 }

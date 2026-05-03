@@ -1,0 +1,4 @@
+method,max_abs_error,IAE,mean_abs_error,saturation_percent,mean_abs_error_after_environment_change,max_abs_error_after_environment_change
+traditional_fixed,25.406842,1976.450618,10.968094,46.614872,12.067174,25.406842
+nominal_model_mpc,16.391621,859.795506,4.771340,12.985572,4.976418,16.391621
+data_driven_model_mpc,12.193808,622.524941,3.454633,19.311876,3.451520,12.193808

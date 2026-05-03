@@ -1,8 +1,8 @@
 {
   "lesson_id": "5-4",
-  "status": "lesson_draft",
-  "sequence_source": "lesson_stage_draft",
-  "note": "本顺序为 lesson 阶段候选卡片顺序，尚未进入 interactive-design 定稿；不得据此冻结互动步骤或 step_ids。",
+  "status": "interactive_design_finalized",
+  "sequence_source": "interactive_design_finalized",
+  "note": "本顺序已按 5-4 互动设计定稿；groups[].step_ids 对应 interactive-page 与 interactive-contract 的步骤归属。",
   "card_order": [
     "模型依赖松动_5_54001",
     "MPC再定位_5_54002",
@@ -16,6 +16,7 @@
   "groups": [
     {
       "title": "模型依赖与 MPC 中间位置",
+      "step_ids": ["step-04", "step-05", "step-06", "step-07", "step-08"],
       "node_ids": [
         "模型依赖松动_5_54001",
         "MPC再定位_5_54002"
@@ -23,6 +24,7 @@
     },
     {
       "title": "数据驱动进入条件",
+      "step_ids": ["step-09", "step-10", "step-11", "step-12"],
       "node_ids": [
         "数据驱动控制_5_54003",
         "数据驱动进入条件_5_54004",
@@ -32,6 +34,7 @@
     },
     {
       "title": "方法比较与责任分配",
+      "step_ids": ["step-13", "step-14", "step-15", "step-16", "step-17"],
       "node_ids": [
         "模型数据责任分配_5_54007",
         "三路线控制比较_5_54008"

@@ -407,6 +407,13 @@ def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
     return copied
 
 
+def copy_generated_media_data(lesson_dir: Path, destination_dir: Path) -> None:
+    data_dir = lesson_dir / 'media' / 'raw' / 'generated-data'
+    if not data_dir.exists():
+        return
+    copy_tree_contents(data_dir, destination_dir / 'generated-data', ('.csv', '.json', '.txt'))
+
+
 def generate_runtime_media(lesson_id: str) -> None:
     lesson_dir = get_authoring_lesson_dir(lesson_id)
     raw_dir = lesson_dir / 'media' / 'raw'
@@ -418,6 +425,7 @@ def generate_runtime_media(lesson_id: str) -> None:
     processed_dir = lesson_dir / 'media' / 'processed'
     if processed_dir.exists() and any(path.is_file() for path in processed_dir.iterdir()):
         copy_media_assets(processed_dir, output_dir)
+        copy_generated_media_data(lesson_dir, output_dir)
         ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
         return
 
@@ -463,6 +471,7 @@ def generate_runtime_media(lesson_id: str) -> None:
             env=matplotlib_env,
         )
 
+    copy_generated_media_data(lesson_dir, output_dir)
     ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
 
 
@@ -558,6 +567,8 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         return normalized
 
     def block_to_payload(block_key: str, block: Any) -> dict[str, Any]:
+        if isinstance(block, list):
+            return {'block_key': block_key, 'items': block}
         if not isinstance(block, dict):
             return {'block_key': block_key, 'text': str(block)}
         payload: dict[str, Any] = {'block_key': block_key}
@@ -567,7 +578,7 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         body = block.get('body')
         if isinstance(body, str) and body:
             payload['text'] = body
-        value = block.get('value')
+        value = block.get('formula') or block.get('latex') or block.get('math') or block.get('value')
         if isinstance(value, str) and value:
             payload['formula'] = value
         items = block.get('items')

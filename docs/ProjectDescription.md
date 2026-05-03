@@ -7,8 +7,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-05-02
+📅 **最后更新**：2026-05-03
 # 近期更新
+
+🧩 **`5-4` 模型驱动到数据驱动精品互动课落地（2026-05-03）**：本轮基于 `course-content/runtime/lessons/5-4/interactive-manifest.json` 完成 `unit-5-4-data-driven-mpc-transition` 的 runtime-first 实现，新增课程入口、学生端、教师端、预置教案、课堂码路由解析、精品课程目录与隐藏式 AI 上下文注册。共享 manifest runtime 补齐 `multi_select`、`interactive_figure_submit`、显式配对题、`summary-card-grid` 与 `learning-stat-panel`，5-4 专用面板以 runtime CSV 绘制预测偏差和三路线比较 SVG 曲线，并提供路线显隐、指标高亮、误差标注和时间窗控件；实现接受文件记录子代理审查与教师/学生浏览器闭环。当前已通过 5-4 内容审查、manifest audit、strict implementation review、定向 Vitest、`npm run lint` 与 `npm run test`；按本轮协作要求暂缓 `npm run build`。
 
 🧩 **`5-3` MASS 协同链路精品互动课落地（2026-05-02）**：本轮基于 `course-content/runtime/lessons/5-3/interactive-manifest.json` 完成 `unit-5-3-mass-coordination-chain` 的 runtime-first 实现，新增课程入口、学生端、教师端、预置教案、课堂码路由解析、精品课程目录与隐藏式 AI 上下文注册。课堂内按 15 步 manifest 编排渲染，`step-11` 使用 Rust/WASM 驱动的避碰转弯半径与舵角可行域面板，开放 `R_m` 半径滑块并返回舵角饱和、安全约束、航向曲线和避碰路径结果；总结页区分学生个人课堂表现与教师班级整体统计。当前已通过 5-3 manifest audit、strict implementation review、Rust 非线性分析测试、WASM 构建、5-3 定向 Vitest、`npm run lint`、`npm run test`、`npm run build`，并完成真实教师/学生双账号课堂闭环浏览器验收。
 

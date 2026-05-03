@@ -13,7 +13,12 @@
 - 已将 `design/5-4-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 缺少 互动设计接受文件：course-content/authoring/lessons/5-4/design/5-4-interactive-design-acceptance.json
+- 已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。
+- 已检测到 `5-4` 的 V2 互动契约，步骤字段完整。
+- 已检测到 `5-4` 的本地实现契约与作者态互动契约一致。
+- manifest audit pass: 17 steps, 46 modules, 0 issues
+- 互动设计接受文件已通过校验。
+- 互动实现接受文件已通过校验。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

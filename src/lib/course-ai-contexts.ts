@@ -113,6 +113,11 @@ import {
   getUnit53StepQuickQuestionsLocal,
   UNIT_5_3_COURSE_META,
 } from './unit-5-3-ai-contexts';
+import {
+  getUnit54StepAIContextLocal,
+  getUnit54StepQuickQuestionsLocal,
+  UNIT_5_4_COURSE_META,
+} from './unit-5-4-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -318,6 +323,14 @@ export {
   getUnit53StepAIContextLocal,
   getUnit53StepQuickQuestionsLocal,
 } from './unit-5-3-ai-contexts';
+export {
+  UNIT_5_4_COURSE_META,
+  UNIT_5_4_STEP_AI_CONTEXTS,
+  getUnit54StepAIContext,
+  getUnit54StepQuickQuestions,
+  getUnit54StepAIContextLocal,
+  getUnit54StepQuickQuestionsLocal,
+} from './unit-5-4-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -578,6 +591,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_5_3_COURSE_META.courseId,
       courseTitle: UNIT_5_3_COURSE_META.courseTitle,
       courseDescription: UNIT_5_3_COURSE_META.courseDescription,
+    },
+  },
+
+  'unit-5-4-data-driven-mpc-transition-v1': {
+    getStepContext: (stepId: string) => getUnit54StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit54StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_5_4_COURSE_META.courseId,
+      courseTitle: UNIT_5_4_COURSE_META.courseTitle,
+      courseDescription: UNIT_5_4_COURSE_META.courseDescription,
     },
   },
 };

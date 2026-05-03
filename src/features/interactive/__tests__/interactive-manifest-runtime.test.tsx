@@ -118,6 +118,70 @@ describe('interactive runtime manifest', () => {
     ]);
   });
 
+  it('renders formula-card and native-table payload descriptions from the shared content registry', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-content': {
+          title: '公式表格说明测试',
+          layout: {
+            template: 'stacked_regions',
+            regions: [{ id: 'main', width: 'full', order: 1 }],
+          },
+          modules: [
+            {
+              id: 'constraint-formula',
+              region: 'main',
+              kind: 'formula-card',
+              must_be_visible: true,
+              payload: {
+                title: '执行器约束',
+                formulas: ['\\left|u(t)\\right|\\le u_{\\max}'],
+                text: '幅值边界限制控制量大小。',
+              },
+            },
+            {
+              id: 'diagnostic-table',
+              region: 'main',
+              kind: 'native-table',
+              must_be_visible: true,
+              payload: {
+                title: '诊断分层表',
+                note: '先看信息是否可信，再看参考是否可执行。',
+                columns: ['层级', '证据'],
+                rows: [['感知层', '丢帧']],
+              },
+            },
+          ],
+          content_blocks: {},
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('执行器约束');
+    expect(html).toContain('幅值边界限制控制量大小。');
+    expect(html).toContain('诊断分层表');
+    expect(html).toContain('先看信息是否可信，再看参考是否可执行。');
+    expect(html).toContain('感知层');
+  });
+
   it('loads the reviewed 4-6 runtime manifest including teacher_reveal_only steps', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
 
@@ -401,6 +465,73 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
+  it('renders summary-card-grid and learning-stat-panel content modules', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-summary-grid': {
+          title: '总结页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'boundary-cases',
+              title: '边界情况',
+              region: 'main',
+              kind: 'summary-card-grid',
+              must_be_visible: true,
+              payload: { block_key: 'boundary_cases' },
+            },
+            {
+              id: 'learning-stats',
+              title: '课堂表现统计',
+              region: 'main',
+              kind: 'learning-stat-panel',
+              must_be_visible: true,
+              payload: { block_key: 'stats' },
+            },
+          ],
+          content_blocks: {
+            boundary_cases: {
+              type: 'card_grid',
+              items: ['数据量大但覆盖不足。', '模型很粗但责任仍要保留。'],
+            },
+            stats: {
+              type: 'stat_panel',
+              student_fields: ['已浏览页面', '已提交互动'],
+              teacher_fields: ['班级提交率', '曲线观察分布'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('数据量大但覆盖不足。');
+    expect(html).toContain('学生端：已浏览页面、已提交互动');
+    expect(html).toContain('教师端：班级提交率、曲线观察分布');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
   it('renders drag-match activity cards as three-column matching slots', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
@@ -456,14 +587,85 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('饱和');
   });
 
+  it('renders explicit drag-match items and options without relying on split labels', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-match-explicit': {
+          title: '显式配对页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'drag_match',
+            activity_cards: [
+              {
+                id: 'match-explicit',
+                title: '压力来源匹配',
+                prompt: '完成完整现象与完整类别配对。',
+                response_kind: 'drag_match',
+                match_items: [
+                  { value: 'load-change', label: '满载后航向变化明显变慢。' },
+                  { value: 'rudder-boundary', label: '舵角多次超过上限。' },
+                ],
+                match_options: [
+                  { value: 'parameter-drift', label: '参数难以固定。' },
+                  { value: 'active-constraints', label: '约束不断进入闭环。' },
+                ],
+                reference_matches: [
+                  { item: 'load-change', option: 'parameter-drift' },
+                  { item: 'rudder-boundary', option: 'active-constraints' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+    expect(step?.interactionSpec.activityCards?.[0]?.matchItems?.[0]?.label).toBe('满载后航向变化明显变慢。');
+    expect(step?.interactionSpec.activityCards?.[0]?.matchOptions?.[0]?.label).toBe('参数难以固定。');
+    expect(step?.interactionSpec.activityCards?.[0]?.referenceMatches?.[0]).toEqual({
+      item: 'load-change',
+      option: 'parameter-drift',
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          savedResponse: undefined,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('满载后航向变化明显变慢。');
+    expect(html).toContain('参数难以固定。');
+    expect(html).not.toContain(' -&gt; ');
+  });
+
   it('keeps student activity renderer references stable across registry factory calls', () => {
     const first = createManifestStudentActivityRegistry<{ id: string }>();
     const second = createManifestStudentActivityRegistry<{ id: string }>();
 
     expect(second.drag_match).toBe(first.drag_match);
     expect(second.activity_card_set).toBe(first.activity_card_set);
+    expect(second.multi_select).toBe(first.multi_select);
+    expect(second.interactive_figure_submit).toBe(first.interactive_figure_submit);
     expect(second.teacher_reveal_only).toBe(first.teacher_reveal_only);
     expect(first.drag_match).toBe(first.activity_cards);
+    expect(first.multi_select).toBe(first.activity_cards);
+    expect(first.interactive_figure_submit).toBe(first.activity_cards);
   });
 
   it('keeps partial drag-match assignments instead of resetting empty slots', () => {
@@ -876,6 +1078,79 @@ describe('interactive runtime manifest', () => {
 
     expect(activitySource).toContain('card.options');
     expect(activitySource).toContain('type="radio"');
+  });
+
+  it('places activity prompts in the answer card title instead of duplicating them as card body copy', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-quiz': {
+          title: '选择题测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'quiz_group',
+            activity_cards: [
+              {
+                id: 'choice-a',
+                title: '作答1',
+                prompt: '哪一项最能解释当前失配？',
+                response_kind: 'single_choice',
+                options: ['对象模型变化', '执行器限幅'],
+                reference_answer: '对象模型变化。',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+
+    const studentHtml = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step.id },
+          stepManifest: step,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+    const teacherHtml = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step.id },
+          stepManifest: step,
+          responses: [],
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(studentHtml).toContain('作答1：哪一项最能解释当前失配？');
+    expect(teacherHtml).toContain('作答1：哪一项最能解释当前失配？');
+    expect(studentHtml.match(/哪一项最能解释当前失配？/g)).toHaveLength(1);
+    expect(teacherHtml.match(/哪一项最能解释当前失配？/g)).toHaveLength(1);
   });
 
   it('renders teacher activity aggregation by default and hides submitter names until details are opened', () => {

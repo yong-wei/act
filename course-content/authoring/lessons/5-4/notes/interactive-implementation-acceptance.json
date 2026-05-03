@@ -1,0 +1,116 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-4",
+  "status": "accepted",
+  "accepted_at": "2026-05-03T15:37:55+0800",
+  "review_mode": "subagent+browser",
+  "implementation_contract_source": "course-content/runtime/lessons/5-4/interactive-manifest.json",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/5-4/interactive-manifest.json",
+    "course-content/runtime/lessons/5-4/review/interactive-page-check.json",
+    "course-content/runtime/lessons/5-4/review/review-report.md",
+    "course-content/runtime/lessons/5-4/review/interactive-manifest-audit.json"
+  ],
+  "subagent_review": {
+    "status": "pass_with_resolved_findings",
+    "reviewer_agent_id": "019deca2-b02c-7d40-be4e-674f5c642104",
+    "resolved_findings": [
+      "step-17 summary-card now consumes section_list.sections from runtime manifest",
+      "step-06 prediction panel now exposes error_marker and max_error_reading",
+      "step-14 route comparison panel now exposes route_visibility, metric_focus, time_window, route, benefit, and cost",
+      "learning-stat-panel now names the student and teacher statistic fields required by the manifest"
+    ],
+    "residual_risk": [
+      "browser-level verification remains script-driven evidence rather than a committed Playwright spec",
+      "npm run build intentionally skipped per user instruction"
+    ]
+  },
+  "browser_acceptance": {
+    "base_url": "http://127.0.0.1:3001",
+    "route": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+    "entry_page": {
+      "status": "pass",
+      "checked_points": [
+        "entry renders runtime course title, teacher start, student demo, runtime pre-study area, knowledge graph, and knowledge cards",
+        "entry page uses runtime lesson bundle and does not leak authoring paths"
+      ]
+    },
+    "demo_page_walkthrough": {
+      "status": "pass",
+      "validated_steps": [
+        "step-05",
+        "step-06",
+        "step-10",
+        "step-14",
+        "step-17"
+      ],
+      "evidence": [
+        "step-05 renders explicit drag-match with full phenomenon/category text and per-card submission",
+        "step-06 renders data-runtime SVG curves from 5-4-model-mismatch-prediction.csv with series visibility, time window, error marker, current error reading, and submission card",
+        "step-10 renders progressive reveal content without inline AI surface",
+        "step-14 renders data-runtime SVG curves from 5-4-mpc-drift-comparison.csv with route visibility, metric focus, time window, current lowest metric, saturation cost, and submission card",
+        "step-17 renders section_list summary items for main content, limitation, key difficulty, extension thinking, plus student learning statistics"
+      ]
+    },
+    "classroom_sync_checks": {
+      "status": "pass",
+      "teacher_account": "test_teacher",
+      "student_account": "demo",
+      "session_id": "cmopgfmu2002y83czinantbii",
+      "join_code": "473210",
+      "teacher_student_flow": "teacher_login -> create_session_from_5_4_preset -> student_login -> join_by_code -> teacher_step_06 -> release_activity -> reveal_reference_answer -> student_submit_prediction_observation -> teacher_aggregate_check -> end_session",
+      "evidence": [
+        "teacher created a 5-4 classroom from the dedicated preset and received a six-digit join code",
+        "student joined the generated classroom route through the entry page join flow",
+        "teacher released step-06 activity and made the reference explanation visible",
+        "student submitted the prediction observation card and saw the submitted state",
+        "teacher page showed aggregation/submission evidence and reference answer content after reload",
+        "teacher ended the classroom"
+      ]
+    },
+    "browser_evidence": {
+      "demo_console_errors": [],
+      "demo_page_errors": [],
+      "classroom_blocking_console_errors": [],
+      "classroom_page_errors": [],
+      "benign_console_warnings": [
+        "Next Image LCP priority suggestion for /images/AI64.png during classroom flow"
+      ]
+    }
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "evidence": [
+        "5-4 uses hidden page AI context and the global assistant surface; no step body exposes standalone inline AI implementation controls."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "evidence": [
+        "all checked pages rendered from runtime interactive-manifest.json with no missing renderer, authoring path leak, or raw module id leak.",
+        "summary-card consumes section_list sections from the runtime manifest.",
+        "multi_select, explicit drag_match, interactive_figure_submit, summary-card-grid, and learning-stat-panel are rendered through manifest runtime or narrow course adapters."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-06",
+        "step-14"
+      ],
+      "evidence": [
+        "step-06 renders live SVG curves from runtime CSV data and exposes the manifest-required controls.",
+        "step-14 renders live SVG curves from runtime CSV data and exposes route visibility, metric focus, and time window controls.",
+        "static images are retained only as diagnostic fallback paths when runtime CSV data cannot load."
+      ]
+    },
+    "browser_closed_loop": {
+      "status": "pass",
+      "evidence": [
+        "browser flow covered classroom creation, student joining, activity release, student submission, teacher aggregation, reference answer visibility, and session ending."
+      ]
+    }
+  },
+  "issues": []
+}

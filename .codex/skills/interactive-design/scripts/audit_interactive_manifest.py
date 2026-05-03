@@ -274,11 +274,16 @@ def resolve_content(step: dict[str, Any], module: dict[str, Any]) -> dict[str, A
     ]
     direct_payload = {key: payload.get(key) for key in direct_fields if is_non_empty(payload.get(key))}
     if direct_payload:
+        notes_sources = []
+        if kind in {"image-panel", "native-figure", "figure", "comparison-graphic", "interactive-figure-panel", "media-card"}:
+            key = block_key(payload)
+            if key and key in EXPLANATION_KEYS and is_non_empty(blocks.get(key)):
+                notes_sources.append(key)
         return {
             "source": "module.payload",
             "type": content_type(kind),
             "value": direct_payload,
-            "notes_sources": [],
+            "notes_sources": notes_sources,
         }
 
     resolver = payload.get("resolver")

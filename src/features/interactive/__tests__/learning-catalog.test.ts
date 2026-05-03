@@ -165,7 +165,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     ]);
   });
 
-  it('exposes units 5-1 and 5-2 in module 5', () => {
+  it('exposes units 5-1 through 5-4 in module 5', () => {
     expect(INTERACTIVE_COURSE_MODULES[3]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -179,6 +179,16 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-5-2-nonlinear-analysis-entry',
         unitLabel: '5-2',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-5-3-mass-coordination-chain',
+        unitLabel: '5-3',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-5-4-data-driven-mpc-transition',
+        unitLabel: '5-4',
         legacySourceLabel: null,
       },
     ]);

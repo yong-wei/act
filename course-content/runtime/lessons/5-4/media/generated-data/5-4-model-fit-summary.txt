@@ -1,0 +1,8 @@
+K_nominal=0.180000
+T_nominal=8.000000
+K_actual=0.125000
+T_actual=11.500000
+K_fit=0.150002
+T_fit=14.645976
+max_abs_nominal_error=14.043158
+max_abs_fitted_error=5.478231

@@ -173,6 +173,23 @@ function cardTitle(card: InteractiveRuntimeActivityCardManifest, index: number) 
   return card.title?.trim() || `作答 ${index + 1}`;
 }
 
+function CardTitleWithPrompt({ card, index }: { card: InteractiveRuntimeActivityCardManifest; index: number }) {
+  const baseTitle = cardTitle(card, index);
+  const prompt = card.prompt.trim();
+
+  if (!prompt || baseTitle.includes(prompt)) {
+    return <>{renderActivityInlineContent(baseTitle)}</>;
+  }
+
+  return (
+    <>
+      {renderActivityInlineContent(baseTitle)}
+      ：
+      {renderActivityInlineContent(card.prompt)}
+    </>
+  );
+}
+
 function ManifestSectionTitle({ children }: { children: ReactNode }) {
   return <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{children}</div>;
 }
@@ -200,11 +217,7 @@ function ReferenceAnswer({
 
 function CardPrompt({ card }: { card: InteractiveRuntimeActivityCardManifest }) {
   if (card.prompt.trim()) {
-    return (
-      <p className="premium-lesson-title mt-2 text-sm leading-7">
-        {renderActivityInlineContent(card.prompt)}
-      </p>
-    );
+    return null;
   }
 
   return (
@@ -235,10 +248,11 @@ function isDragMatchCard(card: InteractiveRuntimeActivityCardManifest) {
 
 function formatAnswerValue(card: InteractiveRuntimeActivityCardManifest, value: string) {
   if (!value.trim()) return '已提交空白内容';
-  if (!card.options.length) return value;
+  const answerOptions = card.matchOptions?.length ? card.matchOptions : card.options;
+  if (!answerOptions.length) return value;
 
   const labelFor = (optionValue: string) =>
-    card.options.find((option) => option.value === optionValue)?.label ?? optionValue;
+    answerOptions.find((option) => option.value === optionValue)?.label ?? optionValue;
 
   if (value.includes('|')) {
     return value.split('|').filter(Boolean).map(labelFor).join(' / ');
@@ -302,7 +316,9 @@ function TeacherCardAnswerSummary({
 
   return (
     <div className="premium-lesson-surface-elevated px-4 py-3">
-      <ManifestSectionTitle>{cardTitle(card, index)}</ManifestSectionTitle>
+      <ManifestSectionTitle>
+        <CardTitleWithPrompt card={card} index={index} />
+      </ManifestSectionTitle>
       <CardPrompt card={card} />
       <TeacherCardOptions card={card} />
       {answerVisible ? (
@@ -369,6 +385,14 @@ function splitMatchLabel(label: string) {
   };
 }
 
+function dragMatchItems(card: InteractiveRuntimeActivityCardManifest) {
+  return card.matchItems?.length ? card.matchItems : card.options;
+}
+
+function dragMatchOptions(card: InteractiveRuntimeActivityCardManifest) {
+  return card.matchOptions?.length ? card.matchOptions : card.options;
+}
+
 function stableHash(value: string) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -418,17 +442,20 @@ function normalizeDragMatchAssignments(value: string, optionValues: string[]) {
 }
 
 function DragMatchPreview({ card }: { card: InteractiveRuntimeActivityCardManifest }) {
-  const shuffledOptions = stableShuffleOptions(card.options, matchOptionSeed(card));
+  const items = dragMatchItems(card);
+  const options = dragMatchOptions(card);
+  const explicitPairs = Boolean(card.matchItems?.length && card.matchOptions?.length);
+  const shuffledOptions = stableShuffleOptions(options, matchOptionSeed(card));
 
   return (
     <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
         <ManifestSectionTitle>待配对项</ManifestSectionTitle>
         <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
-        {card.options.map((option) => (
-          <Fragment key={option.value}>
+        {items.map((item) => (
+          <Fragment key={item.value}>
             <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
-              {renderActivityInlineContent(splitMatchLabel(option.label).source)}
+              {renderActivityInlineContent(explicitPairs ? item.label : splitMatchLabel(item.label).source)}
             </div>
             <div className="premium-lesson-muted flex min-h-[64px] items-center rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-3 text-sm leading-6">
               待学生拖入
@@ -443,7 +470,7 @@ function DragMatchPreview({ card }: { card: InteractiveRuntimeActivityCardManife
             key={option.value}
             className="premium-lesson-surface-elevated flex min-h-[64px] w-full items-center px-4 py-3 text-left text-sm leading-6"
           >
-            {renderActivityInlineContent(splitMatchLabel(option.label).target)}
+            {renderActivityInlineContent(explicitPairs ? option.label : splitMatchLabel(option.label).target)}
           </div>
         ))}
       </div>
@@ -460,7 +487,10 @@ function DragMatchAnswerInput({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const optionValues = useMemo(() => card.options.map((option) => option.value), [card.options]);
+  const items = useMemo(() => dragMatchItems(card), [card]);
+  const options = useMemo(() => dragMatchOptions(card), [card]);
+  const explicitPairs = Boolean(card.matchItems?.length && card.matchOptions?.length);
+  const optionValues = useMemo(() => options.map((option) => option.value), [options]);
   const [draggedValue, setDraggedValue] = useState<string | null>(null);
   const draggedValueRef = useRef<string | null>(null);
   const normalizedAssignments = useMemo(() => {
@@ -468,11 +498,12 @@ function DragMatchAnswerInput({
   }, [optionValues, value]);
   const assignments = normalizedAssignments;
   const assignedValues = new Set(assignments.filter(Boolean));
-  const shuffledOptions = useMemo(() => stableShuffleOptions(card.options, matchOptionSeed(card)), [card]);
+  const shuffledOptions = useMemo(() => stableShuffleOptions(options, matchOptionSeed(card)), [card, options]);
   const availableOptions = shuffledOptions.filter((option) => !assignedValues.has(option.value));
   const labelFor = (optionValue: string) =>
-    card.options.find((option) => option.value === optionValue)?.label ?? optionValue;
-  const targetLabelFor = (optionValue: string) => splitMatchLabel(labelFor(optionValue)).target;
+    options.find((option) => option.value === optionValue)?.label ?? optionValue;
+  const sourceLabelFor = (label: string) => explicitPairs ? label : splitMatchLabel(label).source;
+  const targetLabelFor = (optionValue: string) => explicitPairs ? labelFor(optionValue) : splitMatchLabel(labelFor(optionValue)).target;
   const commitAssignments = (next: string[]) => {
     onChange(next.join('|'));
   };
@@ -485,13 +516,13 @@ function DragMatchAnswerInput({
     setDraggedValue(null);
   };
 
-  if (!card.options.length) {
+  if (!items.length || !options.length) {
     return (
       <div
         className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
-        data-manifest-missing-field={`${card.id}:options`}
+        data-manifest-missing-field={`${card.id}:matchItemsOrOptions`}
       >
-        manifest 未提供本配对题选项，请在 activity_cards[].options 中补齐。
+        manifest 未提供本配对题的左侧现象或右侧类别，请在 activity_cards[].match_items / match_options 中补齐。
       </div>
     );
   }
@@ -501,12 +532,12 @@ function DragMatchAnswerInput({
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
         <ManifestSectionTitle>待配对项</ManifestSectionTitle>
         <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
-        {card.options.map((option, index) => {
+        {items.map((item, index) => {
           const assigned = assignments[index];
           return (
-            <Fragment key={option.value}>
+            <Fragment key={item.value}>
               <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
-                {renderActivityInlineContent(splitMatchLabel(option.label).source)}
+                {renderActivityInlineContent(sourceLabelFor(item.label))}
               </div>
               <button
                 type="button"
@@ -529,7 +560,7 @@ function DragMatchAnswerInput({
                 className={`flex min-h-[64px] w-full items-center rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
                   assigned ? 'border-cyan-300/60 bg-cyan-500/10' : 'premium-lesson-muted border-dashed border-border/60 bg-background/40'
                 }`}
-                aria-label={`${splitMatchLabel(option.label).source} 的配对空槽`}
+                aria-label={`${sourceLabelFor(item.label)} 的配对空槽`}
               >
                 {assigned ? renderActivityInlineContent(targetLabelFor(assigned)) : '拖入对应备选项'}
               </button>
@@ -567,7 +598,7 @@ function DragMatchAnswerInput({
             }}
             className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left text-sm leading-6 active:cursor-grabbing"
           >
-            {renderActivityInlineContent(splitMatchLabel(option.label).target)}
+            {renderActivityInlineContent(explicitPairs ? option.label : splitMatchLabel(option.label).target)}
           </button>
         ))}
         {!availableOptions.length ? (
@@ -831,7 +862,9 @@ function StudentCards({
       <div className={`grid gap-4 ${cards.every((card) => card.layoutSpan === 'half') ? 'md:grid-cols-2' : ''}`}>
         {cards.map((card, index) => (
           <div key={card.id} className="premium-lesson-panel">
-            <ManifestSectionTitle>{cardTitle(card, index)}</ManifestSectionTitle>
+            <ManifestSectionTitle>
+              <CardTitleWithPrompt card={card} index={index} />
+            </ManifestSectionTitle>
             <CardPrompt card={card} />
             <StudentCardAnswerInput
               card={card}
@@ -1133,6 +1166,8 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     scheme_vote_cards: renderCards,
     reflection_card: renderCards,
     single_choice: renderCards,
+    multi_select: renderCards,
+    interactive_figure_submit: renderCards,
     binary_choice: renderCards,
     card_sort: renderCards,
     triple_match: renderCards,
@@ -1166,6 +1201,8 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     scheme_vote_cards: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     reflection_card: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     single_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    multi_select: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    interactive_figure_submit: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     binary_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     card_sort: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     triple_match: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,

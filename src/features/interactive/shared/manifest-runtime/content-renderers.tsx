@@ -93,7 +93,8 @@ function renderFormulaContent(formula: string) {
   const inlineMatches = value.match(/\$[^$]+\$/g) ?? [];
   const nonMathText = value.replace(/\$[^$]+\$/g, '').trim();
   const isSingleMathExpression = inlineMatches.length === 1 && !nonMathText;
-  const isBareMathExpression = !inlineMatches.length && !/[\u4e00-\u9fff]/.test(value);
+  const hasLatexCommand = /\\[a-zA-Z]+/.test(value);
+  const isBareMathExpression = !inlineMatches.length && (hasLatexCommand || !/[\u4e00-\u9fff]/.test(value));
 
   if (isSingleMathExpression || isBareMathExpression) {
     return <BlockMath math={normalizeMath(value)} />;
@@ -102,10 +103,46 @@ function renderFormulaContent(formula: string) {
   return <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(value)}</p>;
 }
 
+const MODULE_KIND_TITLE: Record<string, string> = {
+  'bullet-list-card': '要点',
+  'comparison-graphic': '图示',
+  'formula-card': '公式',
+  'formula-card-row': '公式',
+  'goal-card-row': '本次课程目标',
+  'image-panel': '图示',
+  'interactive-figure-panel': '互动图形',
+  'learning-stat-panel': '课堂表现统计',
+  'native-formula-table': '公式表',
+  'native-table': '表格',
+  'problem-statement': '题面',
+  'stat-panel': '课堂表现统计',
+  'step-reveal': '推导步骤',
+  'step-reveal-chain': '推导步骤',
+  'summary-card': '要点',
+  'summary-card-grid': '要点',
+};
+
 function titleFromModule(module: InteractiveRuntimeModuleManifest) {
-  const title = module.title ?? module.payload.title;
+  const title = module.title ?? module.payload.title ?? module.payload.caption;
   if (typeof title === 'string' && title.trim()) return title;
-  return module.id.replace(/-/g, ' ');
+  return MODULE_KIND_TITLE[module.kind] ?? '学习内容';
+}
+
+function uniqueStrings(items: string[]) {
+  const result: string[] = [];
+  for (const item of items) {
+    const trimmed = item.trim();
+    if (trimmed && !result.includes(trimmed)) result.push(trimmed);
+  }
+  return result;
+}
+
+function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
+  return uniqueStrings(
+    fields
+      .map((field) => payload[field])
+      .filter((item): item is string => typeof item === 'string' && Boolean(item.trim())),
+  );
 }
 
 function ManifestContentTitle({ children }: { children: ReactNode }) {
@@ -188,8 +225,15 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   const requestedField = Object.prototype.hasOwnProperty.call(payload, 'field') ? payload.field : 'latex';
   const source = direct
     ?? valueAtField(blockFor(step, payload), requestedField)
+    ?? valueAtField(blockFor(step, payload), 'formula')
+    ?? valueAtField(blockFor(step, payload), 'latex')
+    ?? valueAtField(blockFor(step, payload), 'math')
     ?? valueAtField(moduleBlock, requestedField)
+    ?? valueAtField(moduleBlock, 'formula')
+    ?? valueAtField(moduleBlock, 'latex')
+    ?? valueAtField(moduleBlock, 'math')
     ?? valueAtField(moduleBlock, 'formulas')
+    ?? payload.text
     ?? (
       formulaModuleIndex >= 0 && keyFormulas[formulaModuleIndex] !== undefined
         ? keyFormulas[formulaModuleIndex]
@@ -207,6 +251,14 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   }
 
   return items.filter(Boolean);
+}
+
+function formulaNotes(module: InteractiveRuntimeModuleManifest) {
+  const hasExplicitFormula = Boolean(module.payload.formula ?? module.payload.formulas);
+  return textFieldsFromPayload(
+    module.payload,
+    hasExplicitFormula ? ['text', 'note', 'explanation'] : ['note', 'explanation'],
+  );
 }
 
 function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
@@ -236,7 +288,7 @@ function getImageSrc(
   module: InteractiveRuntimeModuleManifest,
 ) {
   const payload = module.payload;
-  const direct = [payload.src, payload.path, payload.runtime_media, payload.runtimeMedia]
+  const direct = [payload.src, payload.path, payload.runtime_media, payload.runtimeMedia, payload.fallback_image, payload.fallbackImage]
     .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
   if (direct?.trim()) return runtimeMediaPath(manifest, direct);
   const { index, count } = imageModulePosition(step, module);
@@ -273,7 +325,13 @@ function imageModulePosition(step: InteractiveRuntimeStepManifest, module: Inter
 }
 
 function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: ContentRecord) {
-  const items = Array.isArray(payload.items) ? payload.items : [];
+  const items = Array.isArray(payload.items)
+    ? payload.items
+    : Array.isArray(payload.fallback_images)
+      ? payload.fallback_images
+      : Array.isArray(payload.fallbackImages)
+        ? payload.fallbackImages
+        : [];
   return items
     .map((item) => {
       if (typeof item === 'string') {
@@ -441,11 +499,14 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
             ? block.lead
             : undefined;
   const recordItems = listFromRecordItems(rawBlock);
+  const sectionItems = listFromRecordItems(block.sections);
   const rawArrayItems = Array.isArray(rawBlock) ? asStringArray([...rawBlock]) : [];
   const bullets = asStringArray(payload.bullets).length
     ? asStringArray(payload.bullets)
     : recordItems.length
       ? recordItems
+    : sectionItems.length
+      ? sectionItems
     : rawArrayItems.length
       ? rawArrayItems
     : asStringArray(
@@ -503,11 +564,41 @@ function listFromKnownBlocks(step: InteractiveRuntimeStepManifest, keys: string[
   return [];
 }
 
-function FormulaCard({ title, formulas }: { title: string; formulas: string[] }) {
+function cardGridItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const rawBlock = blockFor(step, module.payload) ?? blockByModuleId(step, module);
+  const block = asRecord(rawBlock);
+  const fromItems = asStringArray(block.items);
+  if (fromItems.length) return fromItems;
+  const recordItems = listFromRecordItems(rawBlock);
+  if (recordItems.length) return recordItems;
+  const content = summaryContent(step, module);
+  return [content.text, ...content.bullets].filter((item): item is string => Boolean(item));
+}
+
+function learningStatItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+  const studentFields = asStringArray(block.student_fields ?? block.studentFields);
+  const teacherFields = asStringArray(block.teacher_fields ?? block.teacherFields);
+  const genericFields = asStringArray(block.fields);
+  const items: string[] = [];
+  if (studentFields.length) items.push(`学生端：${studentFields.join('、')}`);
+  if (teacherFields.length) items.push(`教师端：${teacherFields.join('、')}`);
+  if (!items.length) items.push(...genericFields);
+  return items;
+}
+
+function FormulaCard({ title, formulas, notes }: { title: string; formulas: string[]; notes?: string[] }) {
   if (!formulas.length) return null;
   return (
     <div className="premium-lesson-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
+      {notes?.length ? (
+        <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
+          {notes.map((note) => (
+            <p key={note}>{renderInlineContent(note)}</p>
+          ))}
+        </div>
+      ) : null}
       <div className="mt-3 space-y-2 overflow-x-auto">
         {formulas.map((formula) => (
           <Fragment key={formula}>{renderFormulaContent(formula)}</Fragment>
@@ -627,10 +718,27 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
   );
 }
 
-function NativeTable({ title, columns, rows }: { title: string; columns: string[]; rows: TableCell[][] }) {
+function NativeTable({
+  title,
+  columns,
+  rows,
+  notes,
+}: {
+  title: string;
+  columns: string[];
+  rows: TableCell[][];
+  notes?: string[];
+}) {
   return (
     <div className="premium-lesson-panel overflow-hidden">
       <ManifestContentTitle>{title}</ManifestContentTitle>
+      {notes?.length ? (
+        <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
+          {notes.map((note) => (
+            <p key={note}>{renderInlineContent(note)}</p>
+          ))}
+        </div>
+      ) : null}
       <div className="mt-3 overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
@@ -789,10 +897,10 @@ export function createManifestContentModuleRegistry(extra: {
       return <CardGrid title="问题组" items={items} />;
     },
     'formula-card': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} />
+      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(module)} />
     ),
     'formula-card-row': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} />
+      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(module)} />
     ),
     'formula-chain': ({ step, module }) => {
       const content = summaryContent(step, module);
@@ -806,6 +914,9 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-2" />;
     },
+    'summary-card-grid': ({ step, module }) => (
+      <CardGrid title={titleFromModule(module)} items={cardGridItems(step, module)} columns="md:grid-cols-2" />
+    ),
     'question-card': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
@@ -843,7 +954,7 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'comparison-table': ({ step, module }) => {
       const table = tableFor(step, module);
-      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
+      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
@@ -965,17 +1076,17 @@ export function createManifestContentModuleRegistry(extra: {
     'native-table': ({ step, module }) => {
       const table = tableFor(step, module);
       if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
+      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
     },
     'native-formula-table': ({ step, module }) => {
       const table = tableFor(step, module);
       if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
+      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
     },
     'table-card': ({ step, module }) => {
       const table = tableFor(step, module);
       if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
+      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
     },
     'template-card': ({ step, module }) => {
       const block = blockFor(step, module.payload) ?? blockByModuleId(step, module);
@@ -1042,6 +1153,9 @@ export function createManifestContentModuleRegistry(extra: {
       const note = typeof block.note === 'string' ? block.note : undefined;
       return <SummaryCard title={titleFromModule(module)} text={note} bullets={[...fields, ...bullets]} />;
     },
+    'learning-stat-panel': ({ step, module }) => (
+      <CardGrid title={titleFromModule(module)} items={learningStatItems(step, module)} columns="md:grid-cols-2" />
+    ),
     'problem-statement': ({ step, module }) => {
       const rawBlock = blockFor(step, module.payload)
         ?? blockByKey(step, 'problem_statement')

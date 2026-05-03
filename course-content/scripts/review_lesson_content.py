@@ -466,6 +466,13 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_4_7_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-7-course.ts',
     },
+    '5-4': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-5-4-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '5-4' / 'interactive-manifest.json',
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_5_4_LESSON_STEPS',
+        'source_path': 'src/lib/unit-5-4-course.ts',
+    },
     '3-6': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-6-course.ts',
         'page_contracts_const': 'UNIT_3_6_PAGE_CONTRACTS',
@@ -770,6 +777,46 @@ def page_contracts_from_runtime_manifest(manifest_path: Path) -> tuple[Any | Non
         }
 
     return contracts, []
+
+
+def lesson_steps_from_runtime_manifest(manifest_path: Path) -> tuple[Any | None, list[str]]:
+    if not manifest_path.exists():
+        return None, [f'runtime manifest 不存在：{format_repo_path(manifest_path)}']
+
+    try:
+        payload = read_json(manifest_path)
+    except json.JSONDecodeError as exc:
+        return None, [f'runtime manifest 不是合法 JSON：{exc.msg}']
+
+    steps = payload.get('steps') if isinstance(payload, dict) else None
+    if not isinstance(steps, dict):
+        return None, [f'runtime manifest 缺少 `steps` 对象：{format_repo_path(manifest_path)}']
+
+    lesson_steps: list[dict[str, Any]] = []
+    for step_id, step_payload in steps.items():
+        if not isinstance(step_payload, dict):
+            continue
+        interaction_spec = step_payload.get('interaction_spec')
+        interaction_kind = (
+            interaction_spec.get('interaction_kind')
+            if isinstance(interaction_spec, dict)
+            else 'none'
+        )
+        ai_context_spec = step_payload.get('ai_context_spec')
+        lesson_steps.append({
+            'id': step_id,
+            'title': step_payload.get('title'),
+            'pageType': 'display' if interaction_kind == 'none' else interaction_kind,
+            'aiContext': {
+                'deliveryMode': (
+                    ai_context_spec.get('delivery_mode')
+                    if isinstance(ai_context_spec, dict)
+                    else None
+                ),
+            },
+        })
+
+    return lesson_steps, []
 
 
 def compare_contract_field(
@@ -1172,10 +1219,15 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
             Path(config['course_lib_path']),
             str(config['page_contracts_const']),
         )
-    lesson_steps, lesson_steps_load_issues = load_typescript_export_value(
-        Path(config['course_lib_path']),
-        str(config['lesson_steps_const']),
-    )
+    if config.get('lesson_steps_from_runtime_manifest'):
+        lesson_steps, lesson_steps_load_issues = lesson_steps_from_runtime_manifest(
+            Path(config['runtime_manifest_path']),
+        )
+    else:
+        lesson_steps, lesson_steps_load_issues = load_typescript_export_value(
+            Path(config['course_lib_path']),
+            str(config['lesson_steps_const']),
+        )
     load_issues = page_contract_load_issues + lesson_steps_load_issues
     if load_issues:
         return config.get('source_path'), load_issues, []

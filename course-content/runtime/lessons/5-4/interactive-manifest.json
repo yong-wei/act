@@ -1,0 +1,2793 @@
+{
+  "contract_version": "2.2",
+  "lesson_id": "5-4",
+  "course_title": "5-4：从模型驱动到数据驱动",
+  "course_route_segment": "unit-5-4-data-driven-mpc-transition",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo"
+  },
+  "media_policy": {
+    "runtime_only": true,
+    "runtime_media_base": "/course-runtime/lessons/5-4/media"
+  },
+  "telemetry_strategy": "step_level_learning_evidence",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "evidence_sequence",
+    "interaction_spec",
+    "teacher_controls",
+    "student_access",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "模型预测偏离真实对象的导入场景",
+      "layout": {
+        "template": "intro_comic_problem_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "entry-problem",
+          "title": "迁移问题入口",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem"
+          }
+        },
+        {
+          "id": "cover-comic",
+          "title": "导入漫画",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-4/media/5-4-cover-comic.png",
+            "caption_key": "cover_caption"
+          }
+        },
+        {
+          "id": "entry-summary",
+          "title": "证据责任收束",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary"
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "body": "一艘自主船在近岸航道中航行，名义模型仍能解释船体运动，但载荷、海况、横流和规划参考不断变化。控制系统应继续完全相信原模型、直接交给数据驱动，还是先判断模型和数据各自承担什么责任。"
+        },
+        "cover_caption": "传统模型设计台上的预测轨迹与真实对象逐渐分离，MPC 位于模型驱动和数据驱动之间，数据样本、算力消耗、泛化风险和验证工序依次出现。",
+        "summary": {
+          "type": "plain_text",
+          "body": "本课讨论的不是模型和数据二选一，而是在同一闭环中重新分配模型、数据、优化和安全保护的证据责任。"
+        }
+      },
+      "evidence_sequence": [
+        "迁移问题句",
+        "封面漫画",
+        "证据责任收束"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读导入场景，不提交。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "从模型预测偏离真实对象的场景进入方法迁移判断。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "导入页不设置作答题；漫画必须提出模型、数据和工程责任问题。"
+      ]
+    },
+    "step-02": {
+      "title": "本次课程目标",
+      "layout": {
+        "template": "goal_statement_board",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "goal-list",
+          "title": "完成本次课程后，学习者能够",
+          "region": "goals",
+          "kind": "objective-list",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goals"
+          }
+        }
+      ],
+      "content_blocks": {
+        "goals": {
+          "type": "bullet_list",
+          "items": [
+            "解释模型驱动控制依赖对象关系、参数可信度和约束表达的原因。",
+            "比较传统固定控制、名义模型 MPC 与数据驱动模型 MPC 在预测、优化和约束处理上的差异。",
+            "判断数据驱动方法进入闭环前必须满足的数据、算力、验证和泛化条件。",
+            "评估复杂自主航行任务中哪些关系应继续由模型承担，哪些关系可以由数据补足。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "布鲁姆能力目标单列表"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读本次课程目标。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "呈现 5-4 的四项能力目标。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "目标页只出现本次课程目标。"
+      ]
+    },
+    "step-03": {
+      "title": "前置基础快测",
+      "layout": {
+        "template": "quiz_group_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pretest-note",
+          "title": "前测说明",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "note"
+          }
+        },
+        {
+          "id": "pretest-quiz",
+          "title": "预备知识题组",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "first-order-parameter",
+              "closed-loop-error",
+              "rudder-limit"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "note": {
+          "type": "plain_text",
+          "body": "这些题只检查理解本课所需的对象参数、闭环误差和执行约束基础，不提前考察本课后续要建立的方法迁移判断。"
+        }
+      },
+      "evidence_sequence": [
+        "前测说明",
+        "三道客观题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道预备知识题。",
+        "activity_cards": [
+          {
+            "id": "first-order-parameter",
+            "title": "一阶对象参数影响",
+            "prompt": "一阶对象 G(s)=K/(Ts+1) 中，若 K 变小且 T 变大，在相同阶跃输入下，输出响应最可能表现为：",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "options": [
+              "稳态变化幅度变小且响应变慢",
+              "稳态变化幅度变大且响应变快",
+              "输出不受参数变化影响"
+            ],
+            "reference_answer": "稳态变化幅度变小且响应变慢"
+          },
+          {
+            "id": "closed-loop-error",
+            "title": "闭环误差含义",
+            "prompt": "闭环跟踪问题中，e(t)=r(t)-y(t) 的含义是：",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "options": [
+              "参考输入与实际输出之间的误差",
+              "执行器允许的最大输入",
+              "对象模型的时间常数"
+            ],
+            "reference_answer": "参考输入与实际输出之间的误差"
+          },
+          {
+            "id": "rudder-limit",
+            "title": "执行限幅含义",
+            "prompt": "舵角限制 |δ|≤12° 的直接含义是：",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "options": [
+              "控制指令超过边界时实际舵角仍被限制",
+              "船舶一定没有稳态误差",
+              "模型参数不会漂移"
+            ],
+            "reference_answer": "控制指令超过边界时实际舵角仍被限制"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "quizSubmitted",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "parameter_effect_error",
+          "closed_loop_error_error",
+          "limit_meaning_error"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "quiz_completion_rate",
+          "choice_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "只检查对象参数、闭环误差和执行限幅基础。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "前测全部为客观题，不提前考察本课后续方法迁移判断。"
+      ]
+    },
+    "step-04": {
+      "title": "模型驱动控制的可解释关系",
+      "layout": {
+        "template": "formula_concept_board",
+        "regions": [
+          {
+            "id": "context",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "context",
+          "title": "复杂航行对象关系",
+          "region": "context",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "context"
+          }
+        },
+        {
+          "id": "model-formula",
+          "title": "离散对象关系",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula_block"
+          }
+        },
+        {
+          "id": "model-activity",
+          "title": "模型关系判断",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "model-advantage",
+              "model-evidence"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "context": {
+          "type": "plain_text",
+          "body": "模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。"
+        },
+        "formula_block": {
+          "type": "formula_group",
+          "formulas": [
+            "x_{k+1}=f(x_k,u_k,p_k)",
+            "y_k=h(x_k,u_k)"
+          ],
+          "symbols": [
+            {
+              "symbol": "x_k",
+              "meaning": "状态"
+            },
+            {
+              "symbol": "u_k",
+              "meaning": "控制输入"
+            },
+            {
+              "symbol": "y_k",
+              "meaning": "输出"
+            },
+            {
+              "symbol": "p_k",
+              "meaning": "影响对象行为的参数或外部条件"
+            }
+          ],
+          "explanation": "若 f 和 h 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。"
+        }
+      },
+      "evidence_sequence": [
+        "复杂对象关系说明",
+        "离散模型公式",
+        "符号说明",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "判断模型驱动控制的证据来源。",
+        "activity_cards": [
+          {
+            "id": "model-advantage",
+            "title": "模型驱动优势来源",
+            "prompt": "模型驱动控制的优势主要来自什么？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "可追溯的对象关系",
+              "页面图像数量",
+              "样本越多越安全"
+            ],
+            "reference_answer": "可追溯的对象关系"
+          },
+          {
+            "id": "model-evidence",
+            "title": "模型结构可信后的证据",
+            "prompt": "模型结构可信时，哪些判断更容易建立证据？",
+            "response_kind": "multi_select",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "稳定性",
+              "性能",
+              "约束影响",
+              "不需要验证"
+            ],
+            "reference_answer": [
+              "稳定性",
+              "性能",
+              "约束影响"
+            ]
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "model_explainability_ignored"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "choice_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "建立模型驱动控制的可解释关系。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式、符号说明和模型驱动优势必须同页出现。"
+      ]
+    },
+    "step-05": {
+      "title": "单一模型在复杂链路中的压力",
+      "layout": {
+        "template": "pressure_table_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pressure-intro",
+          "title": "模型压力说明",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "intro"
+          }
+        },
+        {
+          "id": "pressure-table",
+          "title": "单一模型压力表",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pressure_table"
+          }
+        },
+        {
+          "id": "pressure-match",
+          "title": "压力来源匹配",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "pressure-match"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "intro": {
+          "type": "plain_text",
+          "body": "模型压力来自模型独自承担的任务过重，而不是模型失去价值。"
+        },
+        "pressure_table": {
+          "type": "native_table",
+          "columns": [
+            "压力来源",
+            "表现",
+            "设计风险"
+          ],
+          "rows": [
+            [
+              "参数难以固定",
+              "同一控制律在不同载荷、速度或海况下表现差异明显",
+              "设计点附近有效，迁移到其他工况后性能下降"
+            ],
+            [
+              "约束不断进入闭环",
+              "舵角、舵速、推进器功率或安全距离约束反复生效",
+              "无约束设计给出的控制动作不可执行"
+            ],
+            [
+              "链路输入质量变化",
+              "感知误差、估计延迟和规划调整改变控制参考",
+              "控制器修正的对象不再等同于设计时的对象"
+            ]
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "压力来源总句",
+        "三类压力表",
+        "完整现象匹配题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "student_task": "把三个完整现象匹配到三类模型压力。",
+        "activity_cards": [
+          {
+            "id": "pressure-match",
+            "title": "复杂链路压力来源匹配",
+            "prompt": "将左侧完整现象匹配到右侧压力类别。",
+            "response_kind": "drag_match",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "match_items": [
+              {
+                "value": "load-change",
+                "label": "同一套控制律在空载试验中响应合适，但船舶满载后航向变化明显变慢，原设计点附近得到的参数不再代表当前工况。"
+              },
+              {
+                "value": "rudder-boundary",
+                "label": "控制器计算出的修正舵角多次超过舵角或舵速上限，实际执行器只能按边界输出，控制动作无法按无约束计算结果落地。"
+              },
+              {
+                "value": "chain-input",
+                "label": "上游感知误差、估计延迟或规划模块突然改写参考航向，使控制器接收到的参考和反馈不再等同于设计时的单一对象输入。"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "parameter-drift",
+                "label": "参数难以固定：载荷、速度、海况或对象有效参数变化，使同一模型只在局部工况内可信。"
+              },
+              {
+                "value": "active-constraints",
+                "label": "约束不断进入闭环：舵角、舵速、推进器功率或安全距离限制反复生效，使无约束设计给出的动作不可执行。"
+              },
+              {
+                "value": "chain-input-quality",
+                "label": "链路输入质量变化：感知、估计和规划环节改变控制参考或反馈质量，使控制器面对的对象不再等同于设计对象。"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "load-change",
+                "option": "parameter-drift"
+              },
+              {
+                "item": "rudder-boundary",
+                "option": "active-constraints"
+              },
+              {
+                "item": "chain-input",
+                "option": "chain-input-quality"
+              }
+            ],
+            "options": [
+              {
+                "value": "parameter-drift",
+                "label": "参数难以固定：载荷、速度、海况或对象有效参数变化，使同一模型只在局部工况内可信。"
+              },
+              {
+                "value": "active-constraints",
+                "label": "约束不断进入闭环：舵角、舵速、推进器功率或安全距离限制反复生效，使无约束设计给出的动作不可执行。"
+              },
+              {
+                "value": "chain-input-quality",
+                "label": "链路输入质量变化：感知、估计和规划环节改变控制参考或反馈质量，使控制器面对的对象不再等同于设计对象。"
+              }
+            ],
+            "reference_answer": "现象 1 -> 参数难以固定；现象 2 -> 约束不断进入闭环；现象 3 -> 链路输入质量变化。"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "pressure_source_mismatch"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "match_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "把复杂链路现象归类为模型压力来源。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "匹配题必须使用完整现象和完整类别表述。"
+      ]
+    },
+    "step-06": {
+      "title": "名义航向模型预测偏差读图",
+      "layout": {
+        "template": "prediction_error_figure_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "prediction-problem",
+          "title": "航向模型题面",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem"
+          }
+        },
+        {
+          "id": "prediction-panel",
+          "title": "预测偏差读图面板",
+          "region": "panel",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "panel_id": "rust_prediction_error_panel",
+            "fallback_image": "/course-runtime/lessons/5-4/media/5-4-model-mismatch-prediction.png",
+            "block_key": "figure_reading"
+          }
+        },
+        {
+          "id": "prediction-submit",
+          "title": "观察记录提交",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "prediction-observation"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "body": "名义模型 K_m=0.18,T_m=8.0s，真实对象 K_a=0.125,T_a=11.5s。同一舵角序列输入后，名义模型预测更快转向，真实对象转向较慢。"
+        },
+        "figure_reading": {
+          "type": "plain_text",
+          "body": "先看红色名义预测和黑色真实对象的后段分离，再读最大预测误差约 14.04°；最后看蓝色数据修正曲线把最大误差降至约 5.48°。数据修正改善了当前预测，但还不能证明后段工况一定可信。"
+        }
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "三曲线读图",
+        "误差读数",
+        "观察提交"
+      ],
+      "interactive_figure_spec": {
+        "kind": "rust_prediction_error_panel",
+        "baseline_media": "/course-runtime/lessons/5-4/media/5-4-model-mismatch-prediction.png",
+        "feasible_region_policy": "not_applicable",
+        "parameter_controls": [
+          {
+            "id": "series_visibility",
+            "label": "曲线显隐",
+            "options": [
+              "名义预测",
+              "真实对象",
+              "数据修正预测"
+            ]
+          },
+          {
+            "id": "error_marker",
+            "label": "误差标注",
+            "options": [
+              "最大误差",
+              "早段误差",
+              "后段误差"
+            ]
+          },
+          {
+            "id": "time_window",
+            "label": "观察区间",
+            "options": [
+              "早段",
+              "后段",
+              "全段"
+            ]
+          }
+        ],
+        "parameter_submit_spec": {
+          "submit_fields": [
+            "time_window",
+            "max_error_reading",
+            "observation_text"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "提交曲线观察区间、最大误差读数和一句判断。",
+        "activity_cards": [
+          {
+            "id": "prediction-observation",
+            "title": "预测偏差观察记录",
+            "prompt": "记录一个观察区间、一个最大误差读数，并说明预测误差下降说明什么、还不能说明什么。",
+            "response_kind": "observation_text",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "reference_answer": "预测误差下降说明当前数据修正能改善预测；还不能证明后段工况覆盖充分或闭环安全已经成立。"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "figureSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "prediction_improvement_overclaim"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "observation_keywords",
+          "submission_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "用三曲线读图区分预测改善和闭环安全证据。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面和三曲线含义常显；互动图形不加入可行域；不另设普通问答题。"
+      ]
+    },
+    "step-07": {
+      "title": "MPC 的滚动预测与约束优化结构",
+      "layout": {
+        "template": "mpc_formula_structure_board",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "mpc-image",
+          "title": "MPC 滚动优化原理框图",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-4/media/5-4-mpc-principle-block.png",
+            "caption_key": "caption"
+          }
+        },
+        {
+          "id": "mpc-formula",
+          "title": "目标函数与约束",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula_block"
+          }
+        },
+        {
+          "id": "mpc-activity",
+          "title": "MPC 结构判断",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "first-action",
+              "mpc-elements"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "caption": "MPC 在每个采样时刻预测未来一段时间，求解带约束优化问题，只执行当前第一步控制动作。",
+        "formula_block": {
+          "type": "formula_group",
+          "formulas": [
+            "min_{u_0,...,u_{N-1}} sum_{i=0}^{N-1}(||y_{k+i}-r_{k+i}||_Q^2+||u_{k+i}||_R^2)",
+            "x_{k+i+1}=f(x_{k+i},u_{k+i}), y_{k+i}=h(x_{k+i}), u_min<=u_{k+i}<=u_max"
+          ],
+          "symbols": [
+            {
+              "symbol": "N",
+              "meaning": "预测时域"
+            },
+            {
+              "symbol": "Q",
+              "meaning": "跟踪误差权重"
+            },
+            {
+              "symbol": "R",
+              "meaning": "控制代价权重"
+            }
+          ],
+          "explanation": "预测一段、执行一步、再预测，是 MPC 在约束下处理动态变化的关键。"
+        }
+      },
+      "evidence_sequence": [
+        "MPC 框图",
+        "目标函数",
+        "约束式",
+        "符号说明",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "判断 MPC 的滚动执行和三要素。",
+        "activity_cards": [
+          {
+            "id": "first-action",
+            "title": "滚动执行动作",
+            "prompt": "MPC 每次求得一串候选控制量后实际执行哪一部分？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "只执行当前第一步控制动作",
+              "一次性执行完整预测序列",
+              "不执行控制动作"
+            ],
+            "reference_answer": "只执行当前第一步控制动作"
+          },
+          {
+            "id": "mpc-elements",
+            "title": "MPC 三要素",
+            "prompt": "MPC 的三个核心要素是什么？",
+            "response_kind": "multi_select",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "模型预测",
+              "优化权衡",
+              "显式约束",
+              "取消模型"
+            ],
+            "reference_answer": [
+              "模型预测",
+              "优化权衡",
+              "显式约束"
+            ]
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "mpc_as_solver_only"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "解释 MPC 的模型预测、优化和约束结构。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "MPC 框图、目标函数、约束式和执行第一步说明必须同页出现。"
+      ]
+    },
+    "step-08": {
+      "title": "MPC 对模型质量和在线计算的依赖",
+      "layout": {
+        "template": "mpc_boundary_case_board",
+        "regions": [
+          {
+            "id": "case",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "mpc-boundary-case",
+          "title": "舵角约束辨析题面",
+          "region": "case",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "case_text"
+          }
+        },
+        {
+          "id": "mpc-boundary-choice",
+          "title": "MPC 双重依赖判断",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "mpc-dependency"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "case_text": {
+          "type": "plain_text",
+          "body": "未来 20s 内航向角增加 18°，舵角限制 |δ|≤12°。名义模型响应偏快，真实对象响应较慢。MPC 改善了是否考虑预测窗口和约束的问题，但没有自动解决预测对象是否仍可信的问题。"
+        }
+      },
+      "evidence_sequence": [
+        "辨析题面",
+        "模型偏差说明",
+        "在线计算说明",
+        "单选题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断 MPC 的双重依赖。",
+        "activity_cards": [
+          {
+            "id": "mpc-dependency",
+            "title": "MPC 双重依赖",
+            "prompt": "上述例子中，MPC 的双重依赖是什么？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "options": [
+              "模型预测质量与在线带约束求解",
+              "图片质量与页面刷新速度",
+              "只要有数据就不需要约束"
+            ],
+            "reference_answer": "模型预测质量与在线带约束求解"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "mpc_solves_model_mismatch"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "区分 MPC 的收益和模型/计算依赖。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面必须常显；不能把 MPC 写成自动解决模型失配。"
+      ]
+    },
+    "step-09": {
+      "title": "数据驱动控制的信息来源变化",
+      "layout": {
+        "template": "model_data_compare_board",
+        "regions": [
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "data-driven-definition",
+          "title": "数据驱动定义",
+          "region": "concept",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "definition"
+          }
+        },
+        {
+          "id": "model-data-table",
+          "title": "模型驱动与数据驱动责任差异",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "compare_table"
+          }
+        },
+        {
+          "id": "data-driven-activity",
+          "title": "信息来源判断",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "source-change",
+              "coverage-risk"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "definition": {
+          "type": "plain_text",
+          "body": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。数据驱动的驱动不等于凭数据自动生成正确控制器。"
+        },
+        "compare_table": {
+          "type": "native_table",
+          "columns": [
+            "比较维度",
+            "模型驱动",
+            "数据驱动"
+          ],
+          "rows": [
+            [
+              "主要依据",
+              "物理关系、结构方程、传递函数、状态空间模型",
+              "实验数据、运行数据、仿真数据、在线反馈"
+            ],
+            [
+              "解释路径",
+              "从对象机理推导性能和稳定性",
+              "从样本规律推断可用动作或预测关系"
+            ],
+            [
+              "优势",
+              "可解释性较高，边界明确",
+              "能吸收复杂对象和复杂环境中的经验规律"
+            ],
+            [
+              "代价",
+              "建模成本高，模型失配会削弱可靠性",
+              "数据质量、覆盖范围、泛化和验证成本更高"
+            ],
+            [
+              "风险",
+              "过度相信简化模型",
+              "过度相信样本规律"
+            ]
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "定义句",
+        "责任差异表",
+        "风险提示句",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "判断数据驱动改变了什么，以及覆盖不足的风险。",
+        "activity_cards": [
+          {
+            "id": "source-change",
+            "title": "信息来源变化",
+            "prompt": "数据驱动控制的核心变化是什么？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "从样本中补足对象规律，改变设计依据",
+              "取消控制目标和约束",
+              "只增加页面图像"
+            ],
+            "reference_answer": "从样本中补足对象规律，改变设计依据"
+          },
+          {
+            "id": "coverage-risk",
+            "title": "覆盖不足风险",
+            "prompt": "若数据只覆盖正常工况，主要风险是什么？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "关键边界处可能失效",
+              "所有边界都会自动安全",
+              "模型参数不会变化"
+            ],
+            "reference_answer": "关键边界处可能失效"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "data_as_automatic_controller"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "比较模型驱动与数据驱动的信息来源和责任差异。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "比较表必须完整承载依据、解释、优势、代价和风险。"
+      ]
+    },
+    "step-10": {
+      "title": "在线辨识与数据驱动 MPC 局部责任",
+      "layout": {
+        "template": "online_update_reveal_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "online-intro",
+          "title": "局部责任说明",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "intro"
+          }
+        },
+        {
+          "id": "online-image",
+          "title": "数据驱动 MPC 在线模型更新链路",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-4/media/5-4-data-driven-mpc-block.png",
+            "caption_key": "caption"
+          }
+        },
+        {
+          "id": "online-reveal",
+          "title": "在线模型更新显影链",
+          "region": "reveal",
+          "kind": "step-reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reveal_chain"
+          }
+        }
+      ],
+      "content_blocks": {
+        "intro": {
+          "type": "plain_text",
+          "body": "把数据驱动放入 MPC 的保守做法，是保持控制目标、舵角约束和滚动优化结构不变，只改变预测模型的来源。"
+        },
+        "caption": "数据模块从最近一段闭环数据中估计有效模型参数，再把结果交给 MPC 的预测模型；它不替代目标函数、约束和安全边界。",
+        "reveal_chain": {
+          "type": "reveal_chain",
+          "static_hint": "当前正在做什么：从闭环数据中更新预测模型，而不是重新发明控制目标。",
+          "items": [
+            {
+              "title": "离散模型",
+              "body": "使用 r_{j+1}=a r_j+bδ_j+c，其中本页的 r_j 表示航向角速度，不表示参考轨迹；δ_j 是舵角，c 吸收短时扰动偏置。"
+            },
+            {
+              "title": "参数换算",
+              "body": "估计得到 a,b,c 后，换算 T_hat=Δt/(1-a_hat)，K_hat=b_hat*T_hat/Δt，d_hat=c_hat/Δt。"
+            },
+            {
+              "title": "激励不足",
+              "body": "闭环数据的激励可能不足，估计值会受到参考变化、舵角饱和和扰动共同影响。"
+            },
+            {
+              "title": "工程保护",
+              "body": "需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。"
+            },
+            {
+              "title": "局部责任",
+              "body": "数据承担更新预测模型的局部职责，不替代 MPC 的目标函数、约束和安全边界。"
+            }
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "局部责任说明",
+        "在线更新框图",
+        "五层显影链"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "step_reveal",
+        "student_task": "按教师节奏阅读在线模型更新链。",
+        "step_reveal_policy": {
+          "default_state": "collapsed",
+          "teacher_step_reveal": true,
+          "open_browse_required": true
+        },
+        "activity_cards": [
+          {
+            "id": "step-10-activity",
+            "title": "按教师节奏阅读在线模型更新链。",
+            "prompt": "按教师节奏阅读在线模型更新链。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_controlled",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": false,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "revealedSteps",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "reveal_progress",
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "说明在线辨识在数据驱动 MPC 中只承担局部预测模型更新责任。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面、框图和静态提示常显；显影链不能省略公式和工程保护。"
+      ]
+    },
+    "step-11": {
+      "title": "数据驱动进入闭环的四项条件",
+      "layout": {
+        "template": "entry_condition_matrix_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "case",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "condition-table",
+          "title": "数据驱动进入闭环条件",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "condition_table"
+          }
+        },
+        {
+          "id": "condition-case",
+          "title": "缺项误判案例",
+          "region": "case",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "case_text"
+          }
+        },
+        {
+          "id": "condition-choice",
+          "title": "缺项证据判断",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "condition-gaps"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "condition_table": {
+          "type": "native_table",
+          "columns": [
+            "条件",
+            "需要回答的问题",
+            "缺失后的风险"
+          ],
+          "rows": [
+            [
+              "数据条件",
+              "数据是否覆盖状态、输入、扰动和约束边界",
+              "控制器只学到温和工况"
+            ],
+            [
+              "算力条件",
+              "训练、预测、优化和监控是否满足实时性",
+              "控制动作滞后"
+            ],
+            [
+              "验证条件",
+              "是否经过独立测试、边界工况和故障注入",
+              "训练集表现良好但闭环风险未知"
+            ],
+            [
+              "泛化条件",
+              "未见但合理可能出现的场景是否被评估",
+              "场景稍变，样本规律不再可靠"
+            ]
+          ]
+        },
+        "case_text": {
+          "type": "plain_text",
+          "body": "某自主船只有晴天低流速固定航道数据，准备部署到强横流、低能见度和拥挤水域。样本数量大不等于边界覆盖充分。"
+        }
+      },
+      "evidence_sequence": [
+        "四项条件表",
+        "缺项案例",
+        "多选题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "multi_select",
+        "student_task": "判断案例缺少哪些进入条件证据。",
+        "activity_cards": [
+          {
+            "id": "condition-gaps",
+            "title": "进入条件缺项判断",
+            "prompt": "该案例缺少哪些进入条件证据？",
+            "response_kind": "multi_select",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "options": [
+              "数据覆盖",
+              "验证",
+              "泛化",
+              "若障碍物数量增加导致优化时间变化，还应检查算力"
+            ],
+            "reference_answer": [
+              "数据覆盖",
+              "验证",
+              "泛化",
+              "若障碍物数量增加导致优化时间变化，还应检查算力"
+            ]
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "sample_amount_as_coverage"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "检查数据、算力、验证和泛化四项闭环进入条件。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "四项进入条件必须完整出现；多选题不能把样本数量等同于覆盖性。"
+      ]
+    },
+    "step-12": {
+      "title": "复杂航行任务中的数据驱动进入点",
+      "layout": {
+        "template": "navigation_responsibility_board",
+        "regions": [
+          {
+            "id": "task",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "relations",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "navigation-task",
+          "title": "近岸航行任务书",
+          "region": "task",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "task"
+          }
+        },
+        {
+          "id": "relation-table",
+          "title": "模型承担与数据补足关系",
+          "region": "relations",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "relation_table"
+          }
+        },
+        {
+          "id": "relation-activity",
+          "title": "局部责任判断",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "hull-dynamics",
+              "perception-error"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "task": {
+          "type": "plain_text",
+          "body": "近岸航迹保持与避碰协同任务限制舵角、舵速、推进器功率和乘坐舒适性；上游感知提供目标位置和障碍物估计，规划模块给出期望航迹。"
+        },
+        "relation_table": {
+          "type": "native_table",
+          "columns": [
+            "关系对象",
+            "优先证据责任",
+            "数据驱动可承担的局部作用"
+          ],
+          "rows": [
+            [
+              "船体低速操纵动态",
+              "模型驱动主干",
+              "更新参数或残差项"
+            ],
+            [
+              "舵机与执行器约束",
+              "显式规则或约束优化",
+              "估计触边概率但不替代约束"
+            ],
+            [
+              "风浪流扰动",
+              "模型 + 数据补偿",
+              "预测短时扰动趋势"
+            ],
+            [
+              "感知误差分布",
+              "数据统计与监控",
+              "估计不同水域密度下误差范围"
+            ]
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "复杂任务书",
+        "责任关系表",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "判断复杂航行任务中的模型与数据局部责任。",
+        "activity_cards": [
+          {
+            "id": "hull-dynamics",
+            "title": "船体动态责任",
+            "prompt": "船体低速操纵动态优先由哪类方法承担？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "模型驱动主干，数据可更新参数或残差项",
+              "完全交给样本规律",
+              "只看规划模块"
+            ],
+            "reference_answer": "模型驱动主干，数据可更新参数或残差项"
+          },
+          {
+            "id": "perception-error",
+            "title": "感知误差局部职责",
+            "prompt": "感知误差随水域密度变化明显时，数据驱动可承担什么局部职责？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "估计误差范围并转化为安全裕度或补偿项",
+              "取消安全距离规则",
+              "替代船体模型"
+            ],
+            "reference_answer": "估计误差范围并转化为安全裕度或补偿项"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "whole_system_data_switch"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "把数据驱动进入点限定为局部责任分配。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "任务书常显；模型承担关系和数据补足关系必须并列表达。"
+      ]
+    },
+    "step-13": {
+      "title": "长时漂移任务中的三路线设定",
+      "layout": {
+        "template": "three_route_problem_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "routes",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "drift-problem",
+          "title": "长时漂移任务条件",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem"
+          }
+        },
+        {
+          "id": "route-table",
+          "title": "三路线建模与控制信息",
+          "region": "routes",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "route_table"
+          }
+        },
+        {
+          "id": "route-match",
+          "title": "路线信息匹配",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "route-match"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "body": "名义模型 G_m(s)=K_m/(T_m s+1)，K_m=0.18，T_m=8.0s。真实对象从 K=0.18,T=8.0s 漂移到 K=0.065,T=18.0s；漂移从 t=28s 到 t=108s，横流扰动从 t=34s 附近进入，规划参考在 t=45s、78s、122s 和 152s 调整。"
+        },
+        "route_table": {
+          "type": "native_table",
+          "columns": [
+            "路线",
+            "控制方式",
+            "使用的模型与信息",
+            "主要局限"
+          ],
+          "rows": [
+            [
+              "传统固定控制",
+              "基于名义模型整定的固定 PI/PID 航向控制",
+              "只使用名义参数和当前误差",
+              "不能显式处理预测窗口和约束"
+            ],
+            [
+              "名义模型 MPC",
+              "滚动预测并显式限制舵角",
+              "使用名义模型预测未来",
+              "预测仍按旧对象进行"
+            ],
+            [
+              "数据驱动模型 MPC",
+              "在同一 MPC 框架中使用运行数据修正有效模型",
+              "估计有效增益、时间常数和扰动偏置",
+              "需要数据覆盖、在线更新和额外验证"
+            ]
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "任务条件",
+        "名义模型",
+        "漂移范围",
+        "三路线表",
+        "路线匹配题"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "drag_match",
+        "student_task": "把三路线匹配到其使用信息和主要局限。",
+        "activity_cards": [
+          {
+            "id": "route-match",
+            "title": "三路线匹配",
+            "prompt": "将传统固定控制、名义模型 MPC、数据驱动模型 MPC 匹配到对应信息来源和主要局限。",
+            "response_kind": "drag_match",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "fixed",
+                "label": "传统固定控制 -> 只使用名义参数和当前误差；不能显式处理预测窗口和约束"
+              },
+              {
+                "value": "nominal-mpc",
+                "label": "名义模型 MPC -> 使用名义模型预测未来；预测仍按旧对象进行"
+              },
+              {
+                "value": "data-mpc",
+                "label": "数据驱动模型 MPC -> 估计有效模型参数；需要数据覆盖、在线更新和额外验证"
+              }
+            ],
+            "reference_answer": "三路线按表格信息匹配。"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "route_name_only_judgment"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "match_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "让学生在同一任务条件下比较三条控制路线。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "任务条件和三路线表必须常显，不能只给方法名称。"
+      ]
+    },
+    "step-14": {
+      "title": "三路线仿真结果与指标比较",
+      "layout": {
+        "template": "three_route_rust_compare_board",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "route-compare-intro",
+          "title": "比较任务说明",
+          "region": "intro",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "intro"
+          }
+        },
+        {
+          "id": "route-compare-panel",
+          "title": "三路线仿真比较面板",
+          "region": "panel",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "panel_id": "rust_three_route_compare_panel",
+            "fallback_images": [
+              "/course-runtime/lessons/5-4/media/5-4-model-parameter-drift.png",
+              "/course-runtime/lessons/5-4/media/5-4-mpc-drift-comparison.png"
+            ],
+            "block_key": "metrics"
+          }
+        },
+        {
+          "id": "route-observation",
+          "title": "收益与代价观察",
+          "region": "activity",
+          "kind": "activity-card",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "route-observation"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "intro": {
+          "type": "plain_text",
+          "body": "本页比较性能收益和新增代价，不按单一指标给出方法排名。"
+        },
+        "metrics": {
+          "type": "native_table",
+          "columns": [
+            "路线",
+            "最大绝对误差",
+            "累计绝对误差 IAE",
+            "平均绝对误差",
+            "舵角触边比例",
+            "环境变化后平均绝对误差"
+          ],
+          "rows": [
+            [
+              "传统固定控制",
+              "25.41°",
+              "1976.45 deg·s",
+              "10.97°",
+              "46.61%",
+              "12.07°"
+            ],
+            [
+              "名义模型 MPC",
+              "16.39°",
+              "859.80 deg·s",
+              "4.77°",
+              "12.99%",
+              "4.98°"
+            ],
+            [
+              "数据驱动模型 MPC",
+              "12.19°",
+              "622.52 deg·s",
+              "3.45°",
+              "19.31%",
+              "3.45°"
+            ]
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "比较任务说明",
+        "参数漂移图",
+        "闭环航向图",
+        "指标表",
+        "观察提交"
+      ],
+      "interactive_figure_spec": {
+        "kind": "rust_three_route_compare_panel",
+        "baseline_media": [
+          "/course-runtime/lessons/5-4/media/5-4-model-parameter-drift.png",
+          "/course-runtime/lessons/5-4/media/5-4-mpc-drift-comparison.png"
+        ],
+        "feasible_region_policy": "not_applicable",
+        "parameter_controls": [
+          {
+            "id": "route_visibility",
+            "label": "路线显隐",
+            "options": [
+              "传统固定控制",
+              "名义模型 MPC",
+              "数据驱动模型 MPC"
+            ]
+          },
+          {
+            "id": "metric_focus",
+            "label": "指标高亮",
+            "options": [
+              "累计绝对误差 IAE",
+              "最大误差",
+              "舵角触边比例"
+            ]
+          },
+          {
+            "id": "time_window",
+            "label": "时间区间",
+            "options": [
+              "漂移前",
+              "漂移中",
+              "漂移后",
+              "全段"
+            ]
+          }
+        ],
+        "parameter_submit_spec": {
+          "submit_fields": [
+            "route",
+            "time_window",
+            "benefit",
+            "cost"
+          ]
+        }
+      },
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "提交一个性能收益和一个新增代价。",
+        "activity_cards": [
+          {
+            "id": "route-observation",
+            "title": "性能收益与新增代价",
+            "prompt": "选择一条路线和一个观察区间，写出一个性能收益和一个新增代价。",
+            "response_kind": "observation_text",
+            "submit_scope": "per_card",
+            "layout_span": "full",
+            "reference_answer": "数据驱动模型 MPC 可降低累计绝对误差 IAE，但舵角触边比例升高，需要数据覆盖、在线辨识稳定性和约束监控。"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "figureSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "single_metric_ranking"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "observation_keywords",
+          "submission_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "让学生同时报告三路线比较中的收益和代价。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "两张仿真图和指标表必须可见；不允许只按累计绝对误差 IAE 排名；不另设普通问答题。"
+      ]
+    },
+    "step-15": {
+      "title": "模型数据责任分配与边界情况",
+      "layout": {
+        "template": "responsibility_boundary_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "boundary",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "responsibility-table",
+          "title": "复杂航行任务中的方法分配",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "responsibility_table"
+          }
+        },
+        {
+          "id": "boundary-cases",
+          "title": "数据驱动控制的边界情况",
+          "region": "boundary",
+          "kind": "summary-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundary_cases"
+          }
+        },
+        {
+          "id": "responsibility-activity",
+          "title": "责任分配判断",
+          "region": "activity",
+          "kind": "activity-card-set",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "no-whole-switch",
+              "simulation-validation"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "responsibility_table": {
+          "type": "native_table",
+          "columns": [
+            "关系对象",
+            "优先方法",
+            "数据驱动的合理作用"
+          ],
+          "rows": [
+            [
+              "船体低速操纵动态",
+              "模型驱动",
+              "用数据更新参数或残差项"
+            ],
+            [
+              "舵角、舵速、功率约束",
+              "MPC / 约束优化",
+              "估计约束触碰概率，但不能替代约束本身"
+            ],
+            [
+              "风浪流扰动",
+              "模型 + 数据补偿",
+              "预测短时扰动趋势"
+            ],
+            [
+              "感知误差分布",
+              "数据统计与监控",
+              "估计不同水域密度下的误差范围"
+            ],
+            [
+              "避碰参考轨迹变化",
+              "规划与控制协同",
+              "评估轨迹变化对控制负担的影响"
+            ]
+          ]
+        },
+        "boundary_cases": {
+          "type": "card_grid",
+          "items": [
+            "数据量大但覆盖不足：优先补边界样本和故障注入测试。",
+            "模型很粗但责任仍要保留：舵角、功率和安全距离不能由学习器自行突破。",
+            "在线计算无法满足采样周期：控制动作会滞后。",
+            "仿真数据仍需真实验证：传感器、执行器和扰动分布差异必须检查。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "方法分配表",
+        "边界情况四格",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "判断模型、数据、优化和安全保护的分工。",
+        "activity_cards": [
+          {
+            "id": "no-whole-switch",
+            "title": "整体切换风险",
+            "prompt": "看到模型失配时，为什么不应整体切换到数据驱动？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "会丢失可解释性和安全边界，应先分配责任",
+              "数据越多越不需要模型",
+              "只要累计绝对误差 IAE 下降就可以部署"
+            ],
+            "reference_answer": "会丢失可解释性和安全边界，应先分配责任"
+          },
+          {
+            "id": "simulation-validation",
+            "title": "仿真数据真实验证",
+            "prompt": "仿真数据表现良好时，部署前仍需检查什么？",
+            "response_kind": "multi_select",
+            "submit_scope": "per_card",
+            "layout_span": "half",
+            "options": [
+              "真实对象差异",
+              "传感器噪声",
+              "执行器滞后",
+              "扰动分布和异常工况"
+            ],
+            "reference_answer": [
+              "真实对象差异",
+              "传感器噪声",
+              "执行器滞后",
+              "扰动分布和异常工况"
+            ]
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "model_data_binary_choice"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "choice_distribution",
+          "completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "把数据驱动放回模型、优化和安全保护的证据责任链中。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "方法分配表和边界四格必须同页出现；不能把模型与数据写成二选一。"
+      ]
+    },
+    "step-16": {
+      "title": "后测：迁移条件与责任判断",
+      "layout": {
+        "template": "posttest_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "posttest-note",
+          "title": "后测说明",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "note"
+          }
+        },
+        {
+          "id": "posttest-quiz",
+          "title": "后测题组",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": false,
+          "payload": {
+            "activity_card_ids": [
+              "error-reduction",
+              "closed-loop-evidence",
+              "local-duty"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "note": {
+          "type": "plain_text",
+          "body": "本页检查模型依赖松动、MPC 再定位、数据驱动进入条件和责任分配判断是否形成。"
+        }
+      },
+      "evidence_sequence": [
+        "后测说明",
+        "三题题组",
+        "提交反馈"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三题后测。",
+        "activity_cards": [
+          {
+            "id": "error-reduction",
+            "title": "误差降低比例",
+            "prompt": "某数据修正模型把最大预测误差从 9.6° 降到 4.8°，误差降低比例是多少？",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "options": [
+              "50%",
+              "25%",
+              "100%"
+            ],
+            "reference_answer": "50%"
+          },
+          {
+            "id": "closed-loop-evidence",
+            "title": "闭环证据补充",
+            "prompt": "误差降低后，仍需补充哪些闭环证据？",
+            "response_kind": "multi_select",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "options": [
+              "数据覆盖",
+              "闭环稳定性",
+              "约束满足",
+              "极端扰动表现",
+              "模型过期识别"
+            ],
+            "reference_answer": [
+              "数据覆盖",
+              "闭环稳定性",
+              "约束满足",
+              "极端扰动表现",
+              "模型过期识别"
+            ]
+          },
+          {
+            "id": "local-duty",
+            "title": "局部责任短答",
+            "prompt": "船体模型可靠，但感知误差随水域密度变化明显。写出一项数据驱动局部职责和一项必须保留的模型或规则职责。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "one_third",
+            "reference_answer": "数据可估计不同水域密度下的感知误差范围并转化为安全距离裕度；船体模型、执行器约束和安全保护仍需显式保留。"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "quizSubmitted",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "evidence_gap_ignored",
+          "local_duty_missing"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "quiz_completion_rate",
+          "choice_distribution",
+          "short_answer_keywords"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "检查迁移条件和责任分配判断是否形成。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "后测独立成页；题目不超过 3 题，最多一题短答。"
+      ]
+    },
+    "step-17": {
+      "title": "总结：数据驱动方法的收益与代价",
+      "layout": {
+        "template": "summary_infograph_board",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "stats",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "info-image",
+          "title": "信息图总结",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "src": "/course-runtime/lessons/5-4/media/5-4-info.png",
+            "caption_key": "caption"
+          }
+        },
+        {
+          "id": "summary-content",
+          "title": "收益、代价与边界",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary"
+          }
+        },
+        {
+          "id": "learning-stats",
+          "title": "课堂表现统计",
+          "region": "stats",
+          "kind": "learning-stat-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "stats"
+          }
+        }
+      ],
+      "content_blocks": {
+        "caption": "信息图回看模型依赖松动、MPC 中间位置、数据驱动进入条件和责任分配。",
+        "summary": {
+          "type": "section_list",
+          "sections": [
+            {
+              "title": "主要内容",
+              "body": "模型驱动的价值在于可解释对象关系、稳定性分析和约束表达；MPC 仍依赖模型，但把滚动预测和显式约束放入闭环核心；数据驱动能补足参数漂移、扰动模式和局部经验规律。"
+            },
+            {
+              "title": "局限",
+              "body": "数据驱动不能取消目标、约束、安全保护和工程验证；预测误差下降不等于闭环部署已经安全。"
+            },
+            {
+              "title": "重点难点",
+              "body": "区分模型失配和模型无用；区分数据覆盖和样本总量；区分性能收益和约束触边代价；区分局部数据补偿和整体黑箱替代。"
+            },
+            {
+              "title": "拓展思考",
+              "body": "当模型预测误差下降但边界工况尚未覆盖时，保护策略如何设置；若数据模块只负责扰动预测，哪些稳定性和约束证据仍由模型主干提供；什么条件会让方法继续从数据驱动走向策略学习。"
+            }
+          ]
+        },
+        "stats": {
+          "type": "stat_panel",
+          "student_fields": [
+            "已浏览页面",
+            "已提交互动",
+            "前后测完成情况",
+            "曲线观察提交次数",
+            "关键误判标签"
+          ],
+          "teacher_fields": [
+            "班级提交率",
+            "前后测正确率",
+            "三路线比较观察分布",
+            "数据进入条件漏选项",
+            "责任分配常见误判"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "信息图",
+        "主要内容",
+        "局限",
+        "重点难点",
+        "拓展思考",
+        "表现统计"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读总结并查看课堂表现统计。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "class_summary_stats",
+          "misconception_tags"
+        ],
+        "aggregation": "lesson_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "收束模型、数据、优化和安全保护的责任分配。"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-17",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总结页顶部必须显示信息图；后测与总结不得合并；学生端和教师端统计口径必须分开。"
+      ]
+    }
+  }
+}

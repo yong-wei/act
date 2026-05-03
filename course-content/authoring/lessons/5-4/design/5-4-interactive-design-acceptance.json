@@ -1,0 +1,49 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-4",
+  "status": "accepted",
+  "accepted_at": "2026-05-03T09:45:16+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-4/design/5-4-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-4/design/5-4-interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "review_mode": "design_contract_and_student_logic",
+    "design_reviewer_agent_id": "019deb80-442a-7683-b5b8-6eed1b0d0c05",
+    "student_logic_reviewer_agent_id": "019deb80-44d6-7363-b779-38e3c574bd2d",
+    "final_result": "pass",
+    "review_focus": [
+      "page_contract_step_alignment",
+      "handout_evidence_coverage",
+      "contract_runtime_consumability",
+      "student_single_page_self_contained",
+      "sequence_alignment"
+    ],
+    "residual_low_risks": [
+      "sequence.json uses group-level card ownership rather than one-to-one card details, but group boundaries align with steps.",
+      "step-06 and step-14 require runtime renderer support for rust_prediction_reading_panel and rust_three_route_compare_panel.",
+      "step-10 symbol reuse and step-14 IAE abbreviation were clarified after review."
+    ],
+    "post_patch_review": {
+      "reviewer_agent_id": "019deb88-3fa2-7a50-8862-5e5b1d5b30e0",
+      "review_focus": "step-03 pretest boundary and step-05 match contract completeness",
+      "final_result": "pass",
+      "reviewed_after_contract_patch": true,
+      "notes": [
+        "step-03 only checks object parameters, closed-loop error, and actuator limits.",
+        "step-05 includes complete match items, complete match options, and explicit reference matches.",
+        "match_items, match_options, and reference_matches are additive metadata and do not conflict with options."
+      ]
+    }
+  },
+  "issues": []
+}
