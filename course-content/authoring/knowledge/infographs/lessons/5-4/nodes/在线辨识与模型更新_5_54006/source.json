@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.512692Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "数据驱动进入条件"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "在线辨识与模型更新_5_54006",
+    "name": "在线辨识与模型更新",
+    "name_en": "Online Identification and Model Update",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "在线辨识用最近一段闭环数据估计当前有效模型参数或扰动偏置，再供预测或补偿使用。",
+    "examples": [
+      "用 r_{j+1}=a r_j+b\\delta_j+c 估计有效时间常数、增益和扰动偏置，再供 MPC 预测使用。"
+    ],
+    "formulas": [
+      "r_{j+1}=a r_j+b\\delta_j+c"
+    ],
+    "keywords": [
+      "在线辨识",
+      "模型更新",
+      "参数投影",
+      "保守预测",
+      "在线更新",
+      "MPC"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/在线辨识与模型更新_5_54006.md",
+  "card_frontmatter": {
+    "node_id": "在线辨识与模型更新_5_54006",
+    "name": "在线辨识与模型更新",
+    "name_en": "Online Identification and Model Update",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "在线更新",
+      "MPC"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-4/media/processed/5-4-model-parameter-drift.png"
+    ]
+  },
+  "card_overview": "# 在线辨识与模型更新\n\n**一句话定义**：在线辨识用最近一段闭环数据估计当前有效模型参数或扰动偏置，再供预测或补偿使用。\n\n**关键公式**：\n\n$$\nr_{j+1}=a r_j+b\\delta_j+c\n$$\n\n**关联节点速查**：MPC再定位、数据驱动控制、三路线控制比较\n\n---",
+  "card_detail": "5-4 的航向案例用 $r_{j+1}=a r_j+b\\delta_j+c$ 估计有效参数，并换算为 $\\hat T_k$、$\\hat K_k$ 和扰动偏置。\n\n在线更新不能把一次最小二乘结果直接塞进优化器。闭环数据可能激励不足，也可能受到参考变化、舵角饱和和扰动偏置共同影响。\n\n工程上需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。",
+  "card_plain_excerpt": "## 首页\n\n# 在线辨识与模型更新\n\n**一句话定义**：在线辨识用最近一段闭环数据估计当前有效模型参数或扰动偏置，再供预测或补偿使用。\n\n**关键公式**：\n\n$$\nr_{j+1}=a r_j+b\\delta_j+c\n$$\n\n**关联节点速查**：MPC再定位、数据驱动控制、三路线控制比较\n\n---\n\n## 详情\n\n5-4 的航向案例用 $r_{j+1}=a r_j+b\\delta_j+c$ 估计有效参数，并换算为 $\\hat T_k$、$\\hat K_k$ 和扰动偏置。\n\n在线更新不能把一次最小二乘结果直接塞进优化器。闭环数据可能激励不足，也可能受到参考变化、舵角饱和和扰动偏置共同影响。\n\n工程上需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "数据驱动控制",
+      "target_id": null,
+      "target": "在线辨识与模型更新",
+      "relation": "contains",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "在线辨识与模型更新",
+      "target_id": null,
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MPC再定位",
+      "target_id": null,
+      "target": "在线辨识与模型更新",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "数据驱动控制_5_54003",
+      "source": "数据驱动控制",
+      "target_id": "在线辨识与模型更新_5_54006",
+      "target": "在线辨识与模型更新",
+      "relation": "contains",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "MPC再定位_5_54002",
+      "source": "MPC再定位",
+      "target_id": "在线辨识与模型更新_5_54006",
+      "target": "在线辨识与模型更新",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "在线辨识与模型更新_5_54006",
+      "source": "在线辨识与模型更新",
+      "target_id": "三路线控制比较_5_54008",
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用模型主干、数据通道、参数更新和安全边界的剖面解释方法迁移机制。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "在线辨识与模型更新",
+        "在线辨识",
+        "模型更新",
+        "参数投影",
+        "保守预测",
+        "在线更新",
+        "MPC"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "r_{j+1}=a r_j+b\\delta_j+c"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

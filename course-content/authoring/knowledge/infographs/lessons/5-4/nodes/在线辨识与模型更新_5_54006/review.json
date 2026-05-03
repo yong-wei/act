@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:33:26.124921Z",
+  "lesson_id": "5-4",
+  "node_id": "在线辨识与模型更新_5_54006",
+  "node_name": "在线辨识与模型更新",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图面以闭环数据窗口、参数估计、参数投影、平滑更新与保守预测串联在线辨识机制；公式和边界提示可读，未引入超出节点事实的结论。"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:26:49.103180Z",
+  "lesson_id": "5-4",
+  "node_id": "数据驱动进入条件_5_54004",
+  "node_name": "数据驱动进入条件",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：数据、算力、验证、泛化四道闸门和未覆盖不入闭环边界清楚，强横流与拥挤水域被风险拦截。"
+}

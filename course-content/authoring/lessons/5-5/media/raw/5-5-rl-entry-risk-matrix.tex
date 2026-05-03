@@ -1,0 +1,50 @@
+\documentclass[tikz,border=7pt]{standalone}
+\usepackage{ctex}
+\usetikzlibrary{positioning,fit}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{
+    cell/.style={rectangle, draw={rgb,255:red,51;green,51;blue,51}, fill=none,
+      line width=1.0pt, minimum width=3.05cm, minimum height=0.95cm,
+      font=\scriptsize, align=center},
+    header/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      line width=1.2pt, minimum width=3.05cm, minimum height=0.95cm,
+      font=\footnotesize\bfseries, align=center},
+    title/.style={font=\small\bfseries, align=center},
+    note/.style={font=\scriptsize, align=center}
+  }
+
+  \node[header] (h0) at (0,0) {判断项};
+  \node[header] (h1) at (3.05,0) {适合进入};
+  \node[header] (h2) at (6.10,0) {需要补证据};
+  \node[header] (h3) at (9.15,0) {暂不进入};
+
+  \node[cell] (r10) at (0,-0.95) {显式控制律\\可写性};
+  \node[cell] (r11) at (3.05,-0.95) {结构难以枚举\\但目标清楚};
+  \node[cell] (r12) at (6.10,-0.95) {结构可写\\但参数漂移大};
+  \node[cell] (r13) at (9.15,-0.95) {固定结构已可靠};
+
+  \node[cell] (r20) at (0,-1.90) {样本条件};
+  \node[cell] (r21) at (3.05,-1.90) {仿真或实测\\覆盖关键边界};
+  \node[cell] (r22) at (6.10,-1.90) {只覆盖温和工况};
+  \node[cell] (r23) at (9.15,-1.90) {缺少可控样本};
+
+  \node[cell] (r30) at (0,-2.85) {安全要求};
+  \node[cell] (r31) at (3.05,-2.85) {可先离线验证\\再受限部署};
+  \node[cell] (r32) at (6.10,-2.85) {验证场景不足};
+  \node[cell] (r33) at (9.15,-2.85) {失误代价不可接受};
+
+  \node[cell] (r40) at (0,-3.80) {可解释性};
+  \node[cell] (r41) at (3.05,-3.80) {能解释目标\\约束和拒绝条件};
+  \node[cell] (r42) at (6.10,-3.80) {只能解释性能结果};
+  \node[cell] (r43) at (9.15,-3.80) {无法说明动作来源};
+
+  \node[cell] (r50) at (0,-4.75) {部署监控};
+  \node[cell] (r51) at (3.05,-4.75) {有降级、接管\\和异常检测};
+  \node[cell] (r52) at (6.10,-4.75) {监控指标未闭合};
+  \node[cell] (r53) at (9.15,-4.75) {无运行边界监控};
+
+  \node[title] at (4.58,0.82) {策略学习进入条件与风险矩阵};
+  \node[note] at (4.58,-5.55) {判断顺序：先看显式结构是否不足，再看样本、安全、解释和部署证据是否同时成立。};
+\end{tikzpicture}
+\end{document}

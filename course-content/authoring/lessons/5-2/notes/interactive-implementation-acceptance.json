@@ -1,0 +1,143 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-2",
+  "status": "accepted",
+  "accepted_at": "2026-05-02T22:20:57+0800",
+  "review_mode": "subagent+browser",
+  "implementation_contract_source": "course-content/runtime/lessons/5-2/interactive-manifest.json",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/5-2/interactive-manifest.json",
+    "course-content/runtime/lessons/5-2/review/interactive-page-check.json",
+    "course-content/runtime/lessons/5-2/review/review-report.md"
+  ],
+  "browser_acceptance": {
+    "base_url": "http://127.0.0.1:3001",
+    "route": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry",
+    "entry_page": {
+      "status": "pass",
+      "checked_points": [
+        "entry page renders teacher start, student demo, runtime handout, media, knowledge graph, and knowledge cards",
+        "teacher session creation route returns a 5-2 teacher classroom URL",
+        "session end returns teacher to the course entry page"
+      ]
+    },
+    "demo_page_walkthrough": {
+      "status": "pass",
+      "validated_steps": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "evidence": [
+        "each demo route rendered the expected manifest step id for ?step=step-01 through ?step=step-18",
+        "step-08 and step-09 rendered native formula tables from key-value formula blocks with no missing renderer message",
+        "step-13 rendered the problem statement while browse-gated reveal layers and media stayed hidden before teacher browse opening",
+        "no authoring path leak or blocking browser page error was observed after renderer fixes"
+      ]
+    },
+    "nonlinear_panel_checks": {
+      "status": "pass",
+      "validated_steps": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-11",
+        "step-12"
+      ],
+      "evidence": [
+        "step-06 rendered the Rust/WASM phase-plane panel with a vector-field toggle",
+        "step-12 rendered the Rust/WASM negative-inverse family panel with A_min and A_max controls",
+        "nonlinear parameter snapshots are emitted on initial render, parameter changes, and current-result updates",
+        "new nonlinear requests do not display stale previous-result curves while awaiting the matching result",
+        "the perturbation panel keeps the last dragged point selected after pointer release"
+      ]
+    },
+    "classroom_sync_checks": {
+      "status": "pass",
+      "teacher_account": "test_teacher",
+      "student_account": "demo",
+      "session_id": "cmoof5ya4001eologo5jaovro",
+      "join_code": "898995",
+      "teacher_student_flow": "teacher_login -> create_session_from_5_2_preset -> student_login -> join_by_code -> teacher_step_04 -> student_out_of_sync_prompt -> student_jump_to_teacher_step -> teacher_release_activity -> student_submit_two_cards -> teacher_aggregate_check -> teacher_step_13 -> browse_closed_problem_visible -> teacher_open_browse_and_advance_reveal -> student_reveal_and_media_visible -> teacher_end_session -> teacher_entry_return -> student_finished_state",
+      "evidence": [
+        "teacher page showed classroom code, QR button, end-session button, and one online student",
+        "teacher changed to step-04 and student saw an out-of-sync prompt before jumping to the teacher step",
+        "teacher released step-04 activity and student submitted two visible answer cards",
+        "teacher page showed one submitted student and 100 percent aggregation for the two step-04 objective cards",
+        "step-13 kept the problem statement visible before browse opening and hid reveal/media content",
+        "after teacher opened browse and advanced reveal, student saw the first reveal layer and media caption",
+        "teacher ended the session and returned to the course entry page; student reload showed the classroom-ended state"
+      ]
+    },
+    "browser_evidence": {
+      "demo_console_errors": [],
+      "demo_page_errors": [],
+      "classroom_blocking_console_errors": [],
+      "classroom_page_errors": [],
+      "benign_console_warnings": [
+        "Next Image LCP priority suggestions during local dev browsing"
+      ]
+    }
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "evidence": [
+        "5-2 uses hidden page AI context through the global assistant surface; no step body exposes a standalone AI implementation panel."
+      ]
+    },
+    "fallback_manifest_removed": {
+      "status": "pass",
+      "evidence": [
+        "src/lib/unit-5-2-course.ts no longer exports UNIT_5_2_RUNTIME_MANIFEST or fallbackManifestStep; rendering requires lessonRuntime.interactiveManifest."
+      ]
+    },
+    "student_shell_alignment": {
+      "status": "pass",
+      "evidence": [
+        "student page uses the shared header dropdown and prev/next controls, out-of-sync prompt, classroom-ended state, browse records, and queued course-state writes."
+      ]
+    },
+    "teacher_shell_alignment": {
+      "status": "pass",
+      "evidence": [
+        "teacher page uses the shared header, classroom code, QR dialog, end-session return, online-student section, manifest-derived aggregation, and deduplicated teacher sync writes."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "evidence": [
+        "all 18 steps rendered from runtime interactive-manifest.json with no missing renderer after key-value formula table and string problem-statement support were added."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "evidence": [
+        "step-06 through step-09 and step-12 use live Rust/WASM nonlinear panels; step-11 uses a draggable perturbation panel instead of static screenshot-only display."
+      ]
+    },
+    "browser_closed_loop": {
+      "status": "pass",
+      "evidence": [
+        "real teacher/student browser flow covered classroom creation, joining, teacher paging, student synchronization, activity release, student submission, teacher aggregation, browse opening, teacher reveal synchronization, session end, and student end state."
+      ]
+    }
+  },
+  "issues": []
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:40:55.584901Z",
+  "lesson_id": "5-4",
+  "node_id": "三路线控制比较_5_54008",
+  "node_name": "三路线控制比较",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图面用同一航向任务下固定控制、名义MPC、数据驱动MPC三列对比，包含航向轨迹、误差曲线、IAE、触边比例与风险读回，符合收益代价风险比较语义。"
+}

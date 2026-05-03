@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.598315Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "方法比较与责任分配"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "模型数据责任分配_5_54007",
+    "name": "模型数据责任分配",
+    "name_en": "Responsibility Allocation Between Model and Data",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "评价",
+    "definition": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担什么证据责任。",
+    "examples": [
+      "船体低速操纵动态由模型给出主干，风浪流扰动由数据补偿，舵角限制和安全距离由显式规则保护。"
+    ],
+    "formulas": [
+      "\\text{闭环证据}=\\text{模型结构}+\\text{数据补偿}+\\text{约束优化}+\\text{安全保护}"
+    ],
+    "keywords": [
+      "责任分配",
+      "模型主干",
+      "数据补偿",
+      "安全保护",
+      "工程责任",
+      "方法选择"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/模型数据责任分配_5_54007.md",
+  "card_frontmatter": {
+    "node_id": "模型数据责任分配_5_54007",
+    "name": "模型数据责任分配",
+    "name_en": "Responsibility Allocation Between Model and Data",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "工程责任",
+      "方法选择"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 模型数据责任分配\n\n**一句话定义**：模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担什么证据责任。\n\n**关键直觉**：可靠方案通常不是“全部模型”或“全部数据”，而是模型给结构，数据补经验，优化管目标，安全层守边界。\n\n**关联节点速查**：数据驱动进入条件、数据覆盖与泛化边界、三路线控制比较\n\n---",
+  "card_detail": "复杂自主航行任务中，船体操纵动态通常仍由模型提供解释，舵角、舵速、功率和安全距离必须由显式约束保护。\n\n数据更适合补足风浪流扰动、感知误差分布、短时轨迹偏差或参数漂移。它可以帮助模型贴近当前对象，但不能替代不可突破的工程规则。\n\n责任分配的目标是让每一部分都能被验证，而不是把复杂闭环压成一个无法解释的整体。",
+  "card_plain_excerpt": "## 首页\n\n# 模型数据责任分配\n\n**一句话定义**：模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担什么证据责任。\n\n**关键直觉**：可靠方案通常不是“全部模型”或“全部数据”，而是模型给结构，数据补经验，优化管目标，安全层守边界。\n\n**关联节点速查**：数据驱动进入条件、数据覆盖与泛化边界、三路线控制比较\n\n---\n\n## 详情\n\n复杂自主航行任务中，船体操纵动态通常仍由模型提供解释，舵角、舵速、功率和安全距离必须由显式约束保护。\n\n数据更适合补足风浪流扰动、感知误差分布、短时轨迹偏差或参数漂移。它可以帮助模型贴近当前对象，但不能替代不可突破的工程规则。\n\n责任分配的目标是让每一部分都能被验证，而不是把复杂闭环压成一个无法解释的整体。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "数据驱动进入条件",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "控制在自主系统链路中的位置",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "cross_domain",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "数据覆盖与泛化边界",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三路线控制比较",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "数据覆盖与泛化边界_5_54005",
+      "source": "数据覆盖与泛化边界",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "数据驱动进入条件_5_54004",
+      "source": "数据驱动进入条件",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三路线控制比较_5_54008",
+      "source": "三路线控制比较",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "控制在自主系统链路中的位置_5_53002",
+      "source": "控制在自主系统链路中的位置",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "cross_domain",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把覆盖证据、路线对比、收益风险和责任分配组织成工程评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "模型数据责任分配",
+        "责任分配",
+        "模型主干",
+        "数据补偿",
+        "安全保护",
+        "工程责任",
+        "方法选择"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{闭环证据}=\\text{模型结构}+\\text{数据补偿}+\\text{约束优化}+\\text{安全保护}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

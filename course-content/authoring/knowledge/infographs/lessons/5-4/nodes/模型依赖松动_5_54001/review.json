@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:08:46.856412Z",
+  "lesson_id": "5-4",
+  "node_id": "模型依赖松动_5_54001",
+  "node_name": "模型依赖松动",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：模型主干、数据补偿、约束边界和验证后再用关系清楚，未把数据驱动画成黑箱替代模型。"
+}

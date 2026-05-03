@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.341054Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "数据驱动进入条件"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "数据驱动进入条件_5_54004",
+    "name": "数据驱动进入条件",
+    "name_en": "Entry Conditions for Data-Driven Control",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "评价",
+    "definition": "数据驱动进入闭环前，应同时检查数据、算力、验证和泛化四个条件。",
+    "examples": [
+      "固定航道晴天数据很多，但未覆盖强横流和拥挤水域时，不能直接支持闭环部署。"
+    ],
+    "formulas": [
+      "\\text{进入条件}=\\text{数据}+\\text{算力}+\\text{验证}+\\text{泛化}"
+    ],
+    "keywords": [
+      "数据条件",
+      "算力条件",
+      "验证条件",
+      "泛化条件",
+      "闭环条件",
+      "工程验证"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/数据驱动进入条件_5_54004.md",
+  "card_frontmatter": {
+    "node_id": "数据驱动进入条件_5_54004",
+    "name": "数据驱动进入条件",
+    "name_en": "Entry Conditions for Data-Driven Control",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "闭环条件",
+      "工程验证"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 数据驱动进入条件\n\n**一句话定义**：数据驱动进入闭环前，应同时检查数据、算力、验证和泛化四个条件。\n\n**关键公式**：\n\n$$\n\\text{进入条件}=\\text{数据}+\\text{算力}+\\text{验证}+\\text{泛化}\n$$\n\n**关联节点速查**：数据驱动控制、数据覆盖与泛化边界、在线辨识与模型更新\n\n---",
+  "card_detail": "数据条件回答“学什么”：样本是否覆盖状态、输入、扰动和约束边界。\n\n算力条件回答“能否及时算出”：训练、预测、优化和监控是否满足采样周期或任务节奏。\n\n验证条件回答“证据是否足够”：是否经过独立测试、边界工况和故障注入。泛化条件回答“换一个合理相邻场景是否仍可信”。\n\n四项条件缺一项，数据驱动都不应被直接解释为可部署闭环控制。",
+  "card_plain_excerpt": "## 首页\n\n# 数据驱动进入条件\n\n**一句话定义**：数据驱动进入闭环前，应同时检查数据、算力、验证和泛化四个条件。\n\n**关键公式**：\n\n$$\n\\text{进入条件}=\\text{数据}+\\text{算力}+\\text{验证}+\\text{泛化}\n$$\n\n**关联节点速查**：数据驱动控制、数据覆盖与泛化边界、在线辨识与模型更新\n\n---\n\n## 详情\n\n数据条件回答“学什么”：样本是否覆盖状态、输入、扰动和约束边界。\n\n算力条件回答“能否及时算出”：训练、预测、优化和监控是否满足采样周期或任务节奏。\n\n验证条件回答“证据是否足够”：是否经过独立测试、边界工况和故障注入。泛化条件回答“换一个合理相邻场景是否仍可信”。\n\n四项条件缺一项，数据驱动都不应被直接解释为可部署闭环控制。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "数据驱动进入条件",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "数据驱动控制",
+      "target_id": null,
+      "target": "数据驱动进入条件",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "数据驱动进入条件",
+      "target_id": null,
+      "target": "数据覆盖与泛化边界",
+      "relation": "contains",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "数据驱动控制_5_54003",
+      "source": "数据驱动控制",
+      "target_id": "数据驱动进入条件_5_54004",
+      "target": "数据驱动进入条件",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "数据驱动进入条件_5_54004",
+      "source": "数据驱动进入条件",
+      "target_id": "数据覆盖与泛化边界_5_54005",
+      "target": "数据覆盖与泛化边界",
+      "relation": "contains",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "数据驱动进入条件_5_54004",
+      "source": "数据驱动进入条件",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "process_board",
+      "name": "流程板",
+      "description": "用预测、滚动优化或进入闸门表达从证据到闭环部署的条件链。"
+    },
+    "layout_contract": "16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；每步只放一个图像动作或技术小窗；底部一条结论/边界条。",
+    "text_contract": {
+      "allowed_labels": [
+        "数据驱动进入条件",
+        "数据条件",
+        "算力条件",
+        "验证条件",
+        "泛化条件",
+        "闭环条件",
+        "工程验证"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{进入条件}=\\text{数据}+\\text{算力}+\\text{验证}+\\text{泛化}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

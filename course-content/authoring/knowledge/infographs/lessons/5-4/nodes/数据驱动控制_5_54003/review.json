@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:15:30.567963Z",
+  "lesson_id": "5-4",
+  "node_id": "数据驱动控制_5_54003",
+  "node_name": "数据驱动控制",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：运行数据、样本规律、控制补偿、物理模型、舵角限制和安全检查护栏均清楚，明确不是黑箱替代。"
+}

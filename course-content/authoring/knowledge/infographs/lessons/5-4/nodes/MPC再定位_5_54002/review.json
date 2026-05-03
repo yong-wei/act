@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:12:51.644553Z",
+  "lesson_id": "5-4",
+  "node_id": "MPC再定位_5_54002",
+  "node_name": "MPC再定位",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：预测窗口、滚动优化、显式约束、执行第一步和闭环反馈清楚；MPC 中间位置未被画成纯数据驱动。"
+}

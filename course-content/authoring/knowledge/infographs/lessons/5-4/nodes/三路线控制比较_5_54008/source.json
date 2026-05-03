@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.686058Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "方法比较与责任分配"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "三路线控制比较_5_54008",
+    "name": "三路线控制比较",
+    "name_en": "Three-Route Control Comparison",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "评价",
+    "definition": "三路线控制比较把传统固定控制、名义模型 MPC 和数据驱动模型 MPC 放在同一任务中比较收益、代价和风险。",
+    "examples": [
+      "长时模型漂移下，数据驱动模型 MPC 的 IAE 低于名义 MPC，但舵角触边比例升高，需要额外约束监控。"
+    ],
+    "formulas": [
+      "\\mathrm{IAE}=\\int_0^T |e(t)|\\,dt"
+    ],
+    "keywords": [
+      "固定控制",
+      "名义MPC",
+      "数据驱动MPC",
+      "IAE",
+      "触边比例",
+      "方法比较",
+      "案例分析"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/三路线控制比较_5_54008.md",
+  "card_frontmatter": {
+    "node_id": "三路线控制比较_5_54008",
+    "name": "三路线控制比较",
+    "name_en": "Three-Route Control Comparison",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "方法比较",
+      "案例分析"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-4/media/processed/5-4-mpc-drift-comparison.png"
+    ]
+  },
+  "card_overview": "# 三路线控制比较\n\n**一句话定义**：三路线控制比较把传统固定控制、名义模型 MPC 和数据驱动模型 MPC 放在同一任务中比较收益、代价和风险。\n\n**关键公式**：\n\n$$\n\\mathrm{IAE}=\\int_0^T |e(t)|\\,dt\n$$\n\n**关联节点速查**：MPC再定位、在线辨识与模型更新、模型数据责任分配\n\n---",
+  "card_detail": "5-4 的长时漂移案例中，传统固定控制 IAE 为 $1976.45\\ \\mathrm{deg\\cdot s}$，名义模型 MPC 降至 $859.80\\ \\mathrm{deg\\cdot s}$，数据驱动模型 MPC 降至 $622.52\\ \\mathrm{deg\\cdot s}$。\n\n比较不能只看 IAE。数据驱动模型 MPC 的舵角触边比例升至 $19.31\\%$，说明更贴近对象的预测也可能更频繁把控制动作推近约束边界。\n\n三路线比较的价值在于区分：固定控制缺少未来预测和约束表达，名义 MPC 依赖旧模型，数据驱动 MPC 增加数据、算力、验证和泛化代价。",
+  "card_plain_excerpt": "## 首页\n\n# 三路线控制比较\n\n**一句话定义**：三路线控制比较把传统固定控制、名义模型 MPC 和数据驱动模型 MPC 放在同一任务中比较收益、代价和风险。\n\n**关键公式**：\n\n$$\n\\mathrm{IAE}=\\int_0^T |e(t)|\\,dt\n$$\n\n**关联节点速查**：MPC再定位、在线辨识与模型更新、模型数据责任分配\n\n---\n\n## 详情\n\n5-4 的长时漂移案例中，传统固定控制 IAE 为 $1976.45\\ \\mathrm{deg\\cdot s}$，名义模型 MPC 降至 $859.80\\ \\mathrm{deg\\cdot s}$，数据驱动模型 MPC 降至 $622.52\\ \\mathrm{deg\\cdot s}$。\n\n比较不能只看 IAE。数据驱动模型 MPC 的舵角触边比例升至 $19.31\\%$，说明更贴近对象的预测也可能更频繁把控制动作推近约束边界。\n\n三路线比较的价值在于区分：固定控制缺少未来预测和约束表达，名义 MPC 依赖旧模型，数据驱动 MPC 增加数据、算力、验证和泛化代价。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "在线辨识与模型更新",
+      "target_id": null,
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MPC再定位",
+      "target_id": null,
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传统控制结构局限",
+      "target_id": null,
+      "target": "三路线控制比较",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "船舶航向控制对象",
+      "target_id": null,
+      "target": "三路线控制比较",
+      "relation": "applies_to",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三路线控制比较",
+      "target_id": null,
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "在线辨识与模型更新_5_54006",
+      "source": "在线辨识与模型更新",
+      "target_id": "三路线控制比较_5_54008",
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "MPC再定位_5_54002",
+      "source": "MPC再定位",
+      "target_id": "三路线控制比较_5_54008",
+      "target": "三路线控制比较",
+      "relation": "leads_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三路线控制比较_5_54008",
+      "source": "三路线控制比较",
+      "target_id": "模型数据责任分配_5_54007",
+      "target": "模型数据责任分配",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "船舶航向控制对象_2_21004",
+      "source": "船舶航向控制对象",
+      "target_id": "三路线控制比较_5_54008",
+      "target": "三路线控制比较",
+      "relation": "applies_to",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "传统控制结构局限_4_47008",
+      "source": "传统控制结构局限",
+      "target_id": "三路线控制比较_5_54008",
+      "target": "三路线控制比较",
+      "relation": "cross_domain",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把覆盖证据、路线对比、收益风险和责任分配组织成工程评审台。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "三路线控制比较",
+        "固定控制",
+        "名义MPC",
+        "数据驱动MPC",
+        "IAE",
+        "触边比例",
+        "方法比较",
+        "案例分析"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\mathrm{IAE}=\\int_0^T |e(t)|\\,dt"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

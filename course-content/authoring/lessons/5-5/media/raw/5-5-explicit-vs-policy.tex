@@ -1,0 +1,57 @@
+\documentclass[tikz,border=7pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\begin{document}
+\begin{tikzpicture}[auto, >=Stealth]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=2.55cm, minimum height=0.9cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    source/.style={rectangle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
+      minimum width=2.45cm, minimum height=0.86cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    risk/.style={rectangle, draw={rgb,255:red,217;green,83;blue,79}, fill=none,
+      minimum width=2.5cm, minimum height=0.72cm, line width=1.2pt,
+      font=\scriptsize\bfseries, align=center},
+    tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none,
+      minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+    signal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}},
+    dashedsignal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}, dashed},
+    lane/.style={draw={rgb,255:red,150;green,150;blue,150}, line width=0.8pt, rounded corners=4pt, inner sep=8pt},
+    labeltext/.style={font=\scriptsize, align=center}
+  }
+
+  \node[source] (taskA) at (0,1.7) {目标与误差\\$r,y,e$};
+  \node[block] (law) at (3.35,1.7) {显式控制律\\$u=C(e,x,p)$};
+  \node[source] (plantA) at (6.85,1.7) {对象与执行器\\$P,\ u_{\max}$};
+  \node[tap] (tapA) at (8.75,1.7) {};
+  \node[labeltext] (outA) at (10.0,1.7) {输出\\$y$};
+  \draw[signal] (taskA) -- (law);
+  \draw[signal] (law) -- (plantA);
+  \draw[signal] (plantA) -- (tapA) -- (outA);
+  \draw[dashedsignal] (tapA) |- ++(0,-0.8) -| (taskA.south);
+
+  \node[source] (taskB) at (0,-1.7) {目标、约束\\状态与回报};
+  \node[block] (samples) at (3.35,-1.7) {交互样本\\状态--动作--结果};
+  \node[block] (policy) at (6.85,-1.7) {学习策略\\$u=\pi_\theta(x)$};
+  \node[tap] (tapB) at (8.75,-1.7) {};
+  \node[labeltext] (outB) at (10.0,-1.7) {输出\\$y$};
+  \draw[signal] (taskB) -- (samples);
+  \draw[signal] (samples) -- (policy);
+  \draw[signal] (policy) -- (tapB) -- (outB);
+  \draw[dashedsignal] (tapB) |- ++(0,-0.8) -| (samples.south);
+
+  \node[risk] (cost) at (3.35,-3.45) {样本代价};
+  \node[risk] (explain) at (6.85,-3.45) {可解释性};
+  \node[risk] (safe) at (8.95,-3.45) {安全验证};
+  \draw[signal] (cost) -- (samples);
+  \draw[signal] (explain) -- (policy);
+  \draw[signal] (safe) -- (policy);
+
+  \node[lane, fit=(taskA)(law)(plantA)(outA)] (explicitbox) {};
+  \node[labeltext, above=0.04cm of explicitbox] {显式控制器：结构先写出，再分析性能和边界};
+  \node[lane, fit=(taskB)(samples)(policy)(outB)(cost)(explain)(safe)] (policybox) {};
+  \node[labeltext, below=0.04cm of policybox] {策略学习：动作从交互样本中形成，验证责任同步增加};
+\end{tikzpicture}
+\end{document}

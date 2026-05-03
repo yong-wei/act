@@ -1,0 +1,1211 @@
+{
+  "lesson_id": "5-4",
+  "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+  "focus_node_ids": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "reuse_node_ids": [
+    "模型预测控制_4_f3d4a099",
+    "方法迁移前边界说明_5_51005",
+    "MASS协同链路_5_53001",
+    "控制在自主系统链路中的位置_5_53002",
+    "船舶航向控制对象_2_21004",
+    "传统控制结构局限_4_47008"
+  ],
+  "entry_nodes": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002"
+  ],
+  "summary_nodes": [
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "card_order": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "groups": [
+    {
+      "title": "模型依赖与 MPC 中间位置",
+      "node_ids": [
+        "模型依赖松动_5_54001",
+        "MPC再定位_5_54002"
+      ]
+    },
+    {
+      "title": "数据驱动进入条件",
+      "node_ids": [
+        "数据驱动控制_5_54003",
+        "数据驱动进入条件_5_54004",
+        "数据覆盖与泛化边界_5_54005",
+        "在线辨识与模型更新_5_54006"
+      ]
+    },
+    {
+      "title": "方法比较与责任分配",
+      "node_ids": [
+        "模型数据责任分配_5_54007",
+        "三路线控制比较_5_54008"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "船舶航向控制对象_2_21004",
+      "name": "船舶航向控制对象",
+      "nodeType": "THEORY",
+      "description": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+      "positionX": 56.0,
+      "positionY": 15.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+        "examples": [
+          "2-1 中，船舶航向动力学先由微分方程给出，再在零初值下转写成传递函数。",
+          "船舶航向闭环结构把控制器、舵机、船体和罗经反馈放入同一张结构图，便于后续时域、频域和设计比较。"
+        ],
+        "formulas": [
+          "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+          "G_\\theta(s)=\\frac{K}{s(Js+B)}"
+        ],
+        "prerequisites": [
+          "微分方程_2_775c96a3",
+          "拉氏变换工程动机_2_11001"
+        ],
+        "relatedConcepts": [
+          "零初值传递函数_2_21001",
+          "典型环节对象库_2_21002",
+          "结构图_2_3f312ccc"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "船舶",
+          "航向控制",
+          "工程对象",
+          "传递函数",
+          "结构图"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/船舶航向控制对象_2_21004.md"
+      ],
+      "tags": [
+        "船舶",
+        "航向控制",
+        "工程对象",
+        "传递函数",
+        "结构图",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "传统控制结构局限_4_47008",
+      "name": "传统控制结构局限",
+      "nodeType": "THEORY",
+      "description": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+      "positionX": 82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+        "examples": [
+          "当横荡、舵效变化、传感器噪声和大角度回转同时出现时，单一低阶航向反馈无法完整表达任务。"
+        ],
+        "formulas": [
+          "\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}"
+        ],
+        "prerequisites": [
+          "扰动噪声设计边界_4_47007",
+          "组合结构专项验证边界判断_4_46007"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "传统控制局限",
+          "鲁棒控制",
+          "扰动观测器",
+          "MPC"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008"
+        }
+      ],
+      "tags": [
+        "传统控制局限",
+        "鲁棒控制",
+        "扰动观测器",
+        "MPC",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "模型预测控制_4_f3d4a099",
+      "name": "模型预测控制",
+      "nodeType": "THEORY",
+      "description": "一种基于模型、滚动优化和反馈校正的先进控制策略，适用于多变量约束系统。",
+      "positionX": 90.5,
+      "positionY": -90.5,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种基于模型、滚动优化和反馈校正的先进控制策略，适用于多变量约束系统。",
+        "examples": [
+          "用于化工过程控制，在满足输入输出约束的前提下优化经济指标。"
+        ],
+        "formulas": [
+          "优化问题: \\min_u J = \\sum_{k=0}^{N-1} (x_k^TQx_k + u_k^TRu_k) + x_N^TPx_N"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "滚动优化",
+          "预测模型",
+          "约束处理",
+          "多变量"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.627085",
+        "updatedAt": "2026-02-04T17:54:16.627085",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "滚动优化",
+        "预测模型",
+        "约束处理",
+        "多变量",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "MASS协同链路_5_53001",
+      "name": "MASS协同链路",
+      "nodeType": "THEORY",
+      "description": "MASS 协同链路把复杂自主船舶任务拆分为感知、估计、规划、控制、执行和监督等相互依赖的环节，用于判断信息流、控制流和责任边界。",
+      "positionX": -77.0,
+      "positionY": -133.4,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "MASS 协同链路把复杂自主船舶任务拆分为感知、估计、规划、控制、执行和监督等相互依赖的环节，用于判断信息流、控制流和责任边界。",
+        "examples": [
+          "自主避碰中，目标船遮挡会先影响感知与估计，再影响规划路径和控制指令。"
+        ],
+        "formulas": [
+          "\\text{MASS链路}=\\text{感知}+\\text{估计}+\\text{规划}+\\text{控制}+\\text{执行}+\\text{监督}"
+        ],
+        "prerequisites": [
+          "方法迁移前边界说明"
+        ],
+        "relatedConcepts": [
+          "控制在自主系统链路中的位置",
+          "链路责任诊断"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "MASS",
+          "感知",
+          "估计",
+          "规划",
+          "控制",
+          "监督"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "title": "MASS协同链路 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS协同链路_5_53001"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/MASS协同链路_5_53001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
+          "title": "MASS协同链路 信息图",
+          "lessonId": "5-3",
+          "nodeId": "MASS协同链路_5_53001"
+        }
+      ],
+      "tags": [
+        "MASS",
+        "感知",
+        "估计",
+        "规划",
+        "控制",
+        "监督",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "MPC再定位_5_54002",
+      "name": "MPC再定位",
+      "nodeType": "THEORY",
+      "description": "MPC 再定位把模型预测控制理解为模型驱动与数据驱动之间的中间环节：它仍依赖模型预测未来，但把滚动优化和显式约束放入闭环核心。",
+      "positionX": 39.9,
+      "positionY": -148.8,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "MPC 再定位把模型预测控制理解为模型驱动与数据驱动之间的中间环节：它仍依赖模型预测未来，但把滚动优化和显式约束放入闭环核心。",
+        "examples": [
+          "航向保持任务中，名义模型 MPC 能显式限制舵角，却仍会因对象漂移留下残余误差。"
+        ],
+        "formulas": [
+          "\\min_{u_0,\\ldots,u_{N-1}}\\sum_{i=0}^{N-1}(\\|y_{k+i}-r_{k+i}\\|_Q^2+\\|u_{k+i}\\|_R^2)"
+        ],
+        "prerequisites": [
+          "模型预测控制",
+          "模型依赖松动"
+        ],
+        "relatedConcepts": [
+          "数据驱动控制",
+          "三路线控制比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "MPC",
+          "滚动优化",
+          "预测窗口",
+          "约束"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MPC再定位_5_54002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MPC再定位_5_54002.png",
+          "title": "MPC再定位 信息图",
+          "lessonId": "5-4",
+          "nodeId": "MPC再定位_5_54002"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/MPC再定位_5_54002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/MPC再定位_5_54002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/MPC再定位_5_54002.png",
+          "title": "MPC再定位 信息图",
+          "lessonId": "5-4",
+          "nodeId": "MPC再定位_5_54002"
+        }
+      ],
+      "tags": [
+        "MPC",
+        "滚动优化",
+        "预测窗口",
+        "约束",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "三路线控制比较_5_54008",
+      "name": "三路线控制比较",
+      "nodeType": "THEORY",
+      "description": "三路线控制比较把传统固定控制、名义模型 MPC 和数据驱动模型 MPC 放在同一任务中，比较预测、约束、模型更新、性能收益和新增风险。",
+      "positionX": 133.4,
+      "positionY": -77.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "三路线控制比较把传统固定控制、名义模型 MPC 和数据驱动模型 MPC 放在同一任务中，比较预测、约束、模型更新、性能收益和新增风险。",
+        "examples": [
+          "长时模型漂移下，数据驱动模型 MPC 的 IAE 低于名义 MPC，但舵角触边比例升高，需要额外约束监控。"
+        ],
+        "formulas": [
+          "\\mathrm{IAE}=\\int_0^T |e(t)|\\,dt"
+        ],
+        "prerequisites": [
+          "MPC再定位",
+          "在线辨识与模型更新"
+        ],
+        "relatedConcepts": [
+          "模型数据责任分配"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "固定控制",
+          "名义MPC",
+          "数据驱动MPC",
+          "IAE",
+          "触边比例"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
+          "title": "三路线控制比较 信息图",
+          "lessonId": "5-4",
+          "nodeId": "三路线控制比较_5_54008"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三路线控制比较_5_54008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
+          "title": "三路线控制比较 信息图",
+          "lessonId": "5-4",
+          "nodeId": "三路线控制比较_5_54008"
+        }
+      ],
+      "tags": [
+        "固定控制",
+        "名义MPC",
+        "数据驱动MPC",
+        "IAE",
+        "触边比例",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "在线辨识与模型更新_5_54006",
+      "name": "在线辨识与模型更新",
+      "nodeType": "THEORY",
+      "description": "在线辨识与模型更新利用最近一段闭环数据估计当前有效模型参数或扰动偏置，并通过投影、平滑和保守预测避免短时数据引入不合理模型跳变。",
+      "positionX": -80.0,
+      "positionY": 138.6,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在线辨识与模型更新利用最近一段闭环数据估计当前有效模型参数或扰动偏置，并通过投影、平滑和保守预测避免短时数据引入不合理模型跳变。",
+        "examples": [
+          "用 r_{j+1}=a r_j+b\\delta_j+c 估计有效时间常数、增益和扰动偏置，再供 MPC 预测使用。"
+        ],
+        "formulas": [
+          "r_{j+1}=a r_j+b\\delta_j+c",
+          "\\hat T_k=\\frac{\\Delta t}{1-\\hat a_k}",
+          "\\hat K_k=\\frac{\\hat b_k\\hat T_k}{\\Delta t}"
+        ],
+        "prerequisites": [
+          "MPC再定位",
+          "数据驱动控制"
+        ],
+        "relatedConcepts": [
+          "三路线控制比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "在线辨识",
+          "模型更新",
+          "参数投影",
+          "保守预测"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/在线辨识与模型更新_5_54006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/在线辨识与模型更新_5_54006.png",
+          "title": "在线辨识与模型更新 信息图",
+          "lessonId": "5-4",
+          "nodeId": "在线辨识与模型更新_5_54006"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/在线辨识与模型更新_5_54006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/在线辨识与模型更新_5_54006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/在线辨识与模型更新_5_54006.png",
+          "title": "在线辨识与模型更新 信息图",
+          "lessonId": "5-4",
+          "nodeId": "在线辨识与模型更新_5_54006"
+        }
+      ],
+      "tags": [
+        "在线辨识",
+        "模型更新",
+        "参数投影",
+        "保守预测",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "控制在自主系统链路中的位置_5_53002",
+      "name": "控制在自主系统链路中的位置",
+      "nodeType": "THEORY",
+      "description": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
+      "positionX": -117.4,
+      "positionY": -117.4,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
+        "examples": [
+          "规划层给出期望航迹后，控制层将航迹翻译为舵角和推进指令，同时处理风浪流扰动。"
+        ],
+        "formulas": [
+          "e(t)=r(t)-y(t),\\quad u(t)=C(e(t))"
+        ],
+        "prerequisites": [
+          "闭环控制",
+          "传统控制结构局限"
+        ],
+        "relatedConcepts": [
+          "MASS协同链路",
+          "执行约束反馈"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "控制位置",
+          "闭环控制",
+          "参考输入",
+          "反馈状态"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/控制在自主系统链路中的位置_5_53002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        }
+      ],
+      "tags": [
+        "控制位置",
+        "闭环控制",
+        "参考输入",
+        "反馈状态",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据覆盖与泛化边界_5_54005",
+      "name": "数据覆盖与泛化边界",
+      "nodeType": "THEORY",
+      "description": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+      "positionX": -43.0,
+      "positionY": -160.3,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+        "examples": [
+          "晴天低流速数据不能证明强横流、低能见度和大舵角场景下的闭环安全。"
+        ],
+        "formulas": [
+          "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件"
+        ],
+        "relatedConcepts": [
+          "模型数据责任分配"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "数据覆盖",
+          "泛化",
+          "边界工况",
+          "故障注入"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据覆盖与泛化边界_5_54005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005"
+        }
+      ],
+      "tags": [
+        "数据覆盖",
+        "泛化",
+        "边界工况",
+        "故障注入",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据驱动控制_5_54003",
+      "name": "数据驱动控制",
+      "nodeType": "THEORY",
+      "description": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+      "positionX": -0.0,
+      "positionY": -166.0,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+        "examples": [
+          "用闭环运行数据更新短时扰动补偿项，而外层控制仍保留物理模型、舵角限制和安全检查。"
+        ],
+        "formulas": [
+          "\\mathcal{D}=\\{x_k,u_k,y_k\\}_{k=1}^{M}"
+        ],
+        "prerequisites": [
+          "模型依赖松动"
+        ],
+        "relatedConcepts": [
+          "数据驱动进入条件",
+          "模型数据责任分配"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "数据驱动",
+          "运行数据",
+          "样本规律",
+          "控制补偿"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据驱动控制_5_54003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003"
+        }
+      ],
+      "tags": [
+        "数据驱动",
+        "运行数据",
+        "样本规律",
+        "控制补偿",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据驱动进入条件_5_54004",
+      "name": "数据驱动进入条件",
+      "nodeType": "THEORY",
+      "description": "数据驱动进入条件是数据、算力、验证和泛化四项检查，用来判断数据驱动模块能否进入闭环控制而不是只停留在离线分析。",
+      "positionX": 43.0,
+      "positionY": -160.3,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "数据驱动进入条件是数据、算力、验证和泛化四项检查，用来判断数据驱动模块能否进入闭环控制而不是只停留在离线分析。",
+        "examples": [
+          "固定航道晴天数据很多，但未覆盖强横流和拥挤水域时，不能直接支持闭环部署。"
+        ],
+        "formulas": [
+          "\\text{进入条件}=\\text{数据}+\\text{算力}+\\text{验证}+\\text{泛化}"
+        ],
+        "prerequisites": [
+          "数据驱动控制"
+        ],
+        "relatedConcepts": [
+          "数据覆盖与泛化边界",
+          "在线辨识与模型更新"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "数据条件",
+          "算力条件",
+          "验证条件",
+          "泛化条件"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动进入条件_5_54004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动进入条件_5_54004.png",
+          "title": "数据驱动进入条件 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动进入条件_5_54004"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据驱动进入条件_5_54004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动进入条件_5_54004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动进入条件_5_54004.png",
+          "title": "数据驱动进入条件 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动进入条件_5_54004"
+        }
+      ],
+      "tags": [
+        "数据条件",
+        "算力条件",
+        "验证条件",
+        "泛化条件",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "方法迁移前边界说明_5_51005",
+      "name": "方法迁移前边界说明",
+      "nodeType": "THEORY",
+      "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+      "positionX": 83.0,
+      "positionY": -143.8,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+        "examples": [
+          "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+          "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+        ],
+        "formulas": [
+          "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+        ],
+        "prerequisites": [
+          "线性预测失真对比_5_51004"
+        ],
+        "relatedConcepts": [
+          "局部线性化边界判断_5_51003"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "方法迁移",
+          "边界说明",
+          "工程证据",
+          "风险说明"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        }
+      ],
+      "tags": [
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "模型依赖松动_5_54001",
+      "name": "模型依赖松动",
+      "nodeType": "THEORY",
+      "description": "模型依赖松动指控制设计不再要求所有对象关系都由单一精确解析模型承担，而是在保留模型主干、约束和安全边界的同时，让数据补足参数漂移、扰动模式或局部残差。",
+      "positionX": 166.1,
+      "positionY": 44.5,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "模型依赖松动指控制设计不再要求所有对象关系都由单一精确解析模型承担，而是在保留模型主干、约束和安全边界的同时，让数据补足参数漂移、扰动模式或局部残差。",
+        "examples": [
+          "名义航向模型预测偏快时，早段运行数据可修正有效增益和时间常数，但仍需验证后段工况。"
+        ],
+        "formulas": [
+          "x_{k+1}=f(x_k,u_k,p_k)",
+          "y_k=h(x_k,u_k)"
+        ],
+        "prerequisites": [
+          "方法迁移前边界说明",
+          "MASS协同链路"
+        ],
+        "relatedConcepts": [
+          "MPC再定位",
+          "数据驱动控制"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "模型依赖",
+          "模型失配",
+          "方法迁移",
+          "参数漂移"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型依赖松动_5_54001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型依赖松动_5_54001.png",
+          "title": "模型依赖松动 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型依赖松动_5_54001"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模型依赖松动_5_54001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型依赖松动_5_54001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型依赖松动_5_54001.png",
+          "title": "模型依赖松动 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型依赖松动_5_54001"
+        }
+      ],
+      "tags": [
+        "模型依赖",
+        "模型失配",
+        "方法迁移",
+        "参数漂移",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "模型数据责任分配_5_54007",
+      "name": "模型数据责任分配",
+      "nodeType": "THEORY",
+      "description": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+      "positionX": 149.0,
+      "positionY": 86.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+        "examples": [
+          "船体低速操纵动态由模型给出主干，风浪流扰动由数据补偿，舵角限制和安全距离由显式规则保护。"
+        ],
+        "formulas": [
+          "\\text{闭环证据}=\\text{模型结构}+\\text{数据补偿}+\\text{约束优化}+\\text{安全保护}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件",
+          "数据覆盖与泛化边界"
+        ],
+        "relatedConcepts": [
+          "三路线控制比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "责任分配",
+          "模型主干",
+          "数据补偿",
+          "安全保护"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模型数据责任分配_5_54007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007"
+        }
+      ],
+      "tags": [
+        "责任分配",
+        "模型主干",
+        "数据补偿",
+        "安全保护",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-48498e359f566bc0",
+      "sourceId": "传统控制结构局限_4_47008",
+      "targetId": "控制在自主系统链路中的位置_5_53002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-6bedf7428520fed7",
+      "sourceId": "MASS协同链路_5_53001",
+      "targetId": "控制在自主系统链路中的位置_5_53002",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-9572102c5c228f3f",
+      "sourceId": "方法迁移前边界说明_5_51005",
+      "targetId": "MASS协同链路_5_53001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-011a5411c7cc8fd9",
+      "sourceId": "数据驱动控制_5_54003",
+      "targetId": "在线辨识与模型更新_5_54006",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-0b43d695420a66a7",
+      "sourceId": "数据驱动进入条件_5_54004",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-117f9b844d3d7178",
+      "sourceId": "在线辨识与模型更新_5_54006",
+      "targetId": "三路线控制比较_5_54008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-3a5d006942e3fa23",
+      "sourceId": "控制在自主系统链路中的位置_5_53002",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-433de038c2be51d9",
+      "sourceId": "数据驱动控制_5_54003",
+      "targetId": "数据驱动进入条件_5_54004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-5280a246f436445e",
+      "sourceId": "MPC再定位_5_54002",
+      "targetId": "数据驱动控制_5_54003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-530261da4c5b90b4",
+      "sourceId": "模型依赖松动_5_54001",
+      "targetId": "MPC再定位_5_54002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-594dc9861e19fb1c",
+      "sourceId": "方法迁移前边界说明_5_51005",
+      "targetId": "模型依赖松动_5_54001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-6e89b2b934535969",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-7cd46856e26018b8",
+      "sourceId": "模型预测控制_4_f3d4a099",
+      "targetId": "MPC再定位_5_54002",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-8335bfb2c7525b2c",
+      "sourceId": "MPC再定位_5_54002",
+      "targetId": "三路线控制比较_5_54008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-9035d17578c8b0bd",
+      "sourceId": "MPC再定位_5_54002",
+      "targetId": "在线辨识与模型更新_5_54006",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-aae730d69bb572b1",
+      "sourceId": "模型依赖松动_5_54001",
+      "targetId": "数据驱动控制_5_54003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-edece11c3dbf3c86",
+      "sourceId": "传统控制结构局限_4_47008",
+      "targetId": "三路线控制比较_5_54008",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-efaeeb8f76d86a26",
+      "sourceId": "船舶航向控制对象_2_21004",
+      "targetId": "三路线控制比较_5_54008",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-f1210952395c1498",
+      "sourceId": "数据驱动进入条件_5_54004",
+      "targetId": "数据覆盖与泛化边界_5_54005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-f29c251cd0d448b4",
+      "sourceId": "三路线控制比较_5_54008",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-f4d1aa5100fa8af3",
+      "sourceId": "MASS协同链路_5_53001",
+      "targetId": "模型依赖松动_5_54001",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.86
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "lesson_id": "5-4",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-4/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/5-4/nodes",
+  "card_order": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "accepted_infographs": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "missing_infographs": [],
+  "missing_source_files": {},
+  "pending_review": [],
+  "broken_review_files": {}
+}

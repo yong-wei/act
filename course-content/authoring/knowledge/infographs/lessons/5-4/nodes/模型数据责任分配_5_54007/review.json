@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:39:10.151924Z",
+  "lesson_id": "5-4",
+  "node_id": "模型数据责任分配_5_54007",
+  "node_name": "模型数据责任分配",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图面用同一船舶闭环和四个责任舱表达模型主干、数据补偿、约束优化、安全保护的证据分工；中文标签、公式锚点和黑箱边界提示可读。"
+}

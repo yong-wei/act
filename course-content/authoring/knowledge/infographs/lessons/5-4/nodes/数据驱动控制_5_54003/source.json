@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.252977Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "数据驱动进入条件"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "数据驱动控制_5_54003",
+    "name": "数据驱动控制",
+    "name_en": "Data-Driven Control",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "理解",
+    "definition": "数据驱动控制用实验数据、运行数据、仿真轨迹或在线反馈补足难以完整解析建模的对象规律。",
+    "examples": [
+      "用闭环运行数据更新短时扰动补偿项，而外层控制仍保留物理模型、舵角限制和安全检查。"
+    ],
+    "formulas": [
+      "\\mathcal{D}=\\{x_k,u_k,y_k\\}_{k=1}^{M}"
+    ],
+    "keywords": [
+      "数据驱动",
+      "运行数据",
+      "样本规律",
+      "控制补偿",
+      "前沿拓展"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/数据驱动控制_5_54003.md",
+  "card_frontmatter": {
+    "node_id": "数据驱动控制_5_54003",
+    "name": "数据驱动控制",
+    "name_en": "Data-Driven Control",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "数据驱动",
+      "前沿拓展"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-4/media/processed/5-4-data-driven-mpc-block.png"
+    ]
+  },
+  "card_overview": "# 数据驱动控制\n\n**一句话定义**：数据驱动控制用实验数据、运行数据、仿真轨迹或在线反馈补足难以完整解析建模的对象规律。\n\n**关键直觉**：数据驱动改变信息来源，不取消控制目标、约束、安全保护和部署责任。\n\n**关联节点速查**：数据驱动进入条件、在线辨识与模型更新、模型数据责任分配\n\n---",
+  "card_detail": "数据驱动控制常用于补足参数漂移、扰动模式、局部残差或难以手写的环境规律。它可以服务建模、预测、补偿或监控，也可以嵌入 MPC 的预测模型。\n\n数据驱动的风险来自样本覆盖、泛化、在线计算和验证代价。数据多不等于关键边界覆盖充分，训练误差下降也不等于闭环安全成立。\n\n在工程闭环中，数据模块更合理的角色通常是局部补偿或模型更新，而不是一次性替代全部控制设计。",
+  "card_plain_excerpt": "## 首页\n\n# 数据驱动控制\n\n**一句话定义**：数据驱动控制用实验数据、运行数据、仿真轨迹或在线反馈补足难以完整解析建模的对象规律。\n\n**关键直觉**：数据驱动改变信息来源，不取消控制目标、约束、安全保护和部署责任。\n\n**关联节点速查**：数据驱动进入条件、在线辨识与模型更新、模型数据责任分配\n\n---\n\n## 详情\n\n数据驱动控制常用于补足参数漂移、扰动模式、局部残差或难以手写的环境规律。它可以服务建模、预测、补偿或监控，也可以嵌入 MPC 的预测模型。\n\n数据驱动的风险来自样本覆盖、泛化、在线计算和验证代价。数据多不等于关键边界覆盖充分，训练误差下降也不等于闭环安全成立。\n\n在工程闭环中，数据模块更合理的角色通常是局部补偿或模型更新，而不是一次性替代全部控制设计。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "数据驱动控制",
+      "target_id": null,
+      "target": "在线辨识与模型更新",
+      "relation": "contains",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "数据驱动控制",
+      "target_id": null,
+      "target": "数据驱动进入条件",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MPC再定位",
+      "target_id": null,
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "模型依赖松动",
+      "target_id": null,
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "MPC再定位_5_54002",
+      "source": "MPC再定位",
+      "target_id": "数据驱动控制_5_54003",
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "模型依赖松动_5_54001",
+      "source": "模型依赖松动",
+      "target_id": "数据驱动控制_5_54003",
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "数据驱动控制_5_54003",
+      "source": "数据驱动控制",
+      "target_id": "数据驱动进入条件_5_54004",
+      "target": "数据驱动进入条件",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "数据驱动控制_5_54003",
+      "source": "数据驱动控制",
+      "target_id": "在线辨识与模型更新_5_54006",
+      "target": "在线辨识与模型更新",
+      "relation": "contains",
+      "strength": 0.85,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用模型主干、数据通道、参数更新和安全边界的剖面解释方法迁移机制。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "数据驱动控制",
+        "数据驱动",
+        "运行数据",
+        "样本规律",
+        "控制补偿",
+        "前沿拓展"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\mathcal{D}=\\{x_k,u_k,y_k\\}_{k=1}^{M}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

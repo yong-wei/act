@@ -1,0 +1,107 @@
+{
+  "lesson_id": "5-4",
+  "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+  "layer": "模块5",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "5-4-v1",
+  "focus_node_ids": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "reuse_node_ids": [
+    "模型预测控制_4_f3d4a099",
+    "方法迁移前边界说明_5_51005",
+    "MASS协同链路_5_53001",
+    "控制在自主系统链路中的位置_5_53002",
+    "船舶航向控制对象_2_21004",
+    "传统控制结构局限_4_47008"
+  ],
+  "entry_nodes": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002"
+  ],
+  "summary_nodes": [
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "card_order": [
+    "模型依赖松动_5_54001",
+    "MPC再定位_5_54002",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "数据覆盖与泛化边界_5_54005",
+    "在线辨识与模型更新_5_54006",
+    "模型数据责任分配_5_54007",
+    "三路线控制比较_5_54008"
+  ],
+  "preceding_lesson": "5-3",
+  "following_lesson": "5-5",
+  "refinement_units": [],
+  "ideological_point": "数据驱动方法松动的是模型依赖，不是工程责任。可靠控制仍需保留目标、约束、验证和可解释边界，在收益、代价和风险之间作出可追溯判断。",
+  "sequence": {
+    "lesson_id": "5-4",
+    "status": "lesson_draft",
+    "sequence_source": "lesson_stage_draft",
+    "note": "本顺序为 lesson 阶段候选卡片顺序，尚未进入 interactive-design 定稿；不得据此冻结互动步骤或 step_ids。",
+    "card_order": [
+      "模型依赖松动_5_54001",
+      "MPC再定位_5_54002",
+      "数据驱动控制_5_54003",
+      "数据驱动进入条件_5_54004",
+      "数据覆盖与泛化边界_5_54005",
+      "在线辨识与模型更新_5_54006",
+      "模型数据责任分配_5_54007",
+      "三路线控制比较_5_54008"
+    ],
+    "groups": [
+      {
+        "title": "模型依赖与 MPC 中间位置",
+        "node_ids": [
+          "模型依赖松动_5_54001",
+          "MPC再定位_5_54002"
+        ]
+      },
+      {
+        "title": "数据驱动进入条件",
+        "node_ids": [
+          "数据驱动控制_5_54003",
+          "数据驱动进入条件_5_54004",
+          "数据覆盖与泛化边界_5_54005",
+          "在线辨识与模型更新_5_54006"
+        ]
+      },
+      {
+        "title": "方法比较与责任分配",
+        "node_ids": [
+          "模型数据责任分配_5_54007",
+          "三路线控制比较_5_54008"
+        ]
+      }
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/5-4/5-4-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/5-4/5-4-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/5-4/5-4-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/5-4/5-4-handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/5-4/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/5-4/media",
+  "media_index_path": "/course-runtime/lessons/5-4/media/5-4-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/5-4/media/5-4-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/5-4/review/5-4-boppps.md",
+    "report_path": "/course-runtime/lessons/5-4/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/5-4/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/5-4/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/5-4/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/5-4/review/source-manifest.json"
+  }
+}

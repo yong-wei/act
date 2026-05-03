@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-02T16:03:32.079915Z",
+  "lesson": {
+    "lesson_id": "5-4",
+    "title": "从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动",
+    "groups": [
+      "模型依赖与 MPC 中间位置"
+    ],
+    "card_order_index": 1
+  },
+  "node": {
+    "id": "模型依赖松动_5_54001",
+    "name": "模型依赖松动",
+    "name_en": "Relaxation of Model Dependence",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "模型依赖松动是把模型从“独自承担全部预测”调整为“提供结构主干和安全边界，部分规律由数据补足”。",
+    "examples": [
+      "名义航向模型预测偏快时，早段运行数据可修正有效增益和时间常数，但仍需验证后段工况。"
+    ],
+    "formulas": [
+      "x_{k+1}=f(x_k,u_k,p_k)",
+      "y_k=h(x_k,u_k)"
+    ],
+    "keywords": [
+      "模型依赖",
+      "模型失配",
+      "方法迁移",
+      "参数漂移",
+      "数据驱动"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/模型依赖松动_5_54001.md",
+  "card_frontmatter": {
+    "node_id": "模型依赖松动_5_54001",
+    "name": "模型依赖松动",
+    "name_en": "Relaxation of Model Dependence",
+    "lesson_units": [
+      "5-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "5",
+    "tags": [
+      "5-4",
+      "数据驱动",
+      "方法迁移"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-4/design/5-4-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-4/media/processed/5-4-model-mismatch-prediction.png"
+    ]
+  },
+  "card_overview": "# 模型依赖松动\n\n**一句话定义**：模型依赖松动是把模型从“独自承担全部预测”调整为“提供结构主干和安全边界，部分规律由数据补足”。\n\n**关键直觉**：模型失配不等于模型无用。参数漂移、扰动变化和链路输入变化会让单一名义模型预测变差，但模型仍能承担解释、约束和验证责任。\n\n**关联节点速查**：MPC再定位、数据驱动控制、模型数据责任分配\n\n---",
+  "card_detail": "模型驱动控制的价值来自可解释关系。若对象可写为 $x_{k+1}=f(x_k,u_k,p_k)$，稳定性、性能和约束都能回到对象关系中解释。\n\n模型依赖松动发生在模型独自承担过多任务时。典型证据包括名义预测偏快、参数漂移、扰动模式变化、规划参考频繁改变和执行约束反复触边。\n\n在 5-4 的航向案例中，名义模型最大预测误差约为 $14.04^\\circ$，数据修正后降至约 $5.48^\\circ$。这个结果说明数据可以改善预测，但仍不能跳过覆盖性和闭环验证。",
+  "card_plain_excerpt": "## 首页\n\n# 模型依赖松动\n\n**一句话定义**：模型依赖松动是把模型从“独自承担全部预测”调整为“提供结构主干和安全边界，部分规律由数据补足”。\n\n**关键直觉**：模型失配不等于模型无用。参数漂移、扰动变化和链路输入变化会让单一名义模型预测变差，但模型仍能承担解释、约束和验证责任。\n\n**关联节点速查**：MPC再定位、数据驱动控制、模型数据责任分配\n\n---\n\n## 详情\n\n模型驱动控制的价值来自可解释关系。若对象可写为 $x_{k+1}=f(x_k,u_k,p_k)$，稳定性、性能和约束都能回到对象关系中解释。\n\n模型依赖松动发生在模型独自承担过多任务时。典型证据包括名义预测偏快、参数漂移、扰动模式变化、规划参考频繁改变和执行约束反复触边。\n\n在 5-4 的航向案例中，名义模型最大预测误差约为 $14.04^\\circ$，数据修正后降至约 $5.48^\\circ$。这个结果说明数据可以改善预测，但仍不能跳过覆盖性和闭环验证。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "模型依赖松动",
+      "target_id": null,
+      "target": "MPC再定位",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "方法迁移前边界说明",
+      "target_id": null,
+      "target": "模型依赖松动",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "模型依赖松动",
+      "target_id": null,
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "MASS协同链路",
+      "target_id": null,
+      "target": "模型依赖松动",
+      "relation": "prerequisite",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "方法迁移前边界说明_5_51005",
+      "source": "方法迁移前边界说明",
+      "target_id": "模型依赖松动_5_54001",
+      "target": "模型依赖松动",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "MASS协同链路_5_53001",
+      "source": "MASS协同链路",
+      "target_id": "模型依赖松动_5_54001",
+      "target": "模型依赖松动",
+      "relation": "prerequisite",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "模型依赖松动_5_54001",
+      "source": "模型依赖松动",
+      "target_id": "MPC再定位_5_54002",
+      "target": "MPC再定位",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "模型依赖松动_5_54001",
+      "source": "模型依赖松动",
+      "target_id": "数据驱动控制_5_54003",
+      "target": "数据驱动控制",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "mechanism_cutaway",
+      "name": "机制剖面图",
+      "description": "用模型主干、数据通道、参数更新和安全边界的剖面解释方法迁移机制。"
+    },
+    "layout_contract": "16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。",
+    "text_contract": {
+      "allowed_labels": [
+        "模型依赖松动",
+        "模型依赖",
+        "模型失配",
+        "方法迁移",
+        "参数漂移",
+        "数据驱动"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "x_{k+1}=f(x_k,u_k,p_k)",
+        "y_k=h(x_k,u_k)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

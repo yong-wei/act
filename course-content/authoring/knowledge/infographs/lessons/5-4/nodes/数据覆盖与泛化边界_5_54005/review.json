@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-02T16:29:30.939482Z",
+  "lesson_id": "5-4",
+  "node_id": "数据覆盖与泛化边界_5_54005",
+  "node_name": "数据覆盖与泛化边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查：训练覆盖区、关键边界、未见场景、强横流、低能见度和大舵角风险清楚；覆盖不足限制职责。"
+}

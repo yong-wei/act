@@ -362,6 +362,21 @@
       "notes": "5-4 为模块5当前主线课次，对应从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动。"
     },
     {
+      "request_ids": ["5-5"],
+      "canonical_id": "5-5",
+      "display_id": "5-5",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-5",
+      "source_group": null,
+      "authoring_lesson_dir": "5-5",
+      "authoring_cards_dir": "5-5",
+      "authoring_overlays_dir": "5-5",
+      "runtime_lesson_dir": "5-5",
+      "legacy_source_ids": [],
+      "notes": "5-5 为模块5当前主线课次，对应从显式控制器到策略学习：强化学习的进入条件、收益与风险。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",
