@@ -15,6 +15,8 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-05-03 已为互动课程 SVG 标记抽出共享草案：`src/features/interactive/shared/interactive-svg-markers.tsx` 统一管理箭头、圆点、菱形、起始点和极点叉，临时验收页为 `/review/unit-5-2-arrow-markers`。已确认的宽开口箭头采用弯钩式两段 path，并通过放大 marker `viewBox` 保留粗线宽下的圆角；下一步计划把 5-2、3-6、课程入口知识图谱和 Control Odyssey 方框图等互动课程局部 `<marker>` 迁移到共享类。后续处理互动课程 SVG 箭头或点标时，先读 [70-workflows/69-interactive-svg-marker-unification.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/69-interactive-svg-marker-unification.md)
+
 - 2026-04-20 模块4后半链已重构为“显式带优化思想的控制器设计链”：`4-4` 固定为固定结构下的优化建模，`4-5` 固定为参数约束翻译与带约束参数优化实践，`4-6` 固定为固定结构优化边界、结构编码入口与场景迁移，`4-7` 固定为完整工程设计闭环实践；同时轻量回修 `4-1`，补入 `ITSE` 与控制量代价，轻量回修 `4-3`，补入参数优化入口卡。后续制作 `4-4 / 4-5 / 4-6 / 4-7` 讲义、教案、互动课程或媒体清单时，以 [ADR-2026-04-20-module4-optimization-chain.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-20-module4-optimization-chain.md) 和 `course-content/syllabus-refactor/unit-design-details/module4.md` 为准，不再沿用“先权衡、再修正、再迁移”的旧口径。
 
 - 2026-04-20 已重做 `4-3` 作者态互动课程设计：`interactive-page.md` 与 `interactive-contract.yaml` 继续保留 14 步框架，叙事固定为“结构工具箱优先”，三类复合结构采用“一结构一任务”，并把 `PI+超前`、`滞后+超前`、带微分滤波 `PID`、客船五步参数方向显影、最小例题、三卡实践工作区与横摇通道重写边界案例全部下沉为可直接呈现给学生的页面内容载荷；`review_lesson_content.py --lesson 4-3 --skip-export --strict-implementation-contract` 已通过，`missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 与 `formula_mapping_issues` 均为空。后续实现 `unit-4-3-initial-scheme-practice-first-validation` 时应直接消费这组双轨真源，不再回读讲义临时重写页面正文。

@@ -29,7 +29,11 @@
 
 凡涉及课程结论、图上数值、指标标注的确定性结果，都应尽量由脚本直接算出，不靠手绘或拍脑袋标注。
 
+页面或讲义引用这些图片时，图片下方文案不得直接使用页面标题、模块标题、图片标题或文件名。无读图价值时不显示 caption；需要显示时，必须写成图片具体内容、可观察证据、读图顺序或基于图片的分析判断。
+
 互动课运行时的参数联动曲线不再默认走 `python3` 实时计算，而是统一复用共享 Rust/WASM 控制分析引擎、共享请求接口与固定面板工作区。当前基线以 `4-1` 的 `useControlEngine -> control-analysis.worker.ts -> compute_analysis -> ControlFigureWorkspace` 为准。
+
+运行时面板对学生呈现时只写学科内容标题和必要控件标签。标题不得暴露 Rust、WASM、三标签、对照面板、原生统一面板等工程或界面形式口径；除标题外，不再添加解释引擎、板式或实现方式的说明文案。Rust 驱动面板标题字号统一采用课堂模块标题规格 `text-base font-semibold leading-7 tracking-normal`，与“个人课堂表现”“班级整体表现统计”等模块保持一致。
 
 ### 线框图
 
@@ -125,12 +129,21 @@
 - 保证关键组件相对关系稳定
 - 布局改动后至少截图核对一次
 
+方向箭头默认从 `src/features/interactive/shared/interactive-svg-markers.tsx` 复用共享定义：
+
+- 每个 SVG 内放置 `InteractiveSvgMarkerDefs`，不要在单课组件中手写私有 `<marker>`
+- 常规方向箭头使用 `arrow-slim-concave`，通过 `InteractiveSvgMarkerRegistry.markerUrl('arrow-slim-concave', prefix)` 引用
+- `InteractiveSvgMarkerDefs` 必须传入当前线条的实际 `lineStrokeWidth`，让 marker 大小随线宽调整，不手动固定 `markerWidth` / `markerHeight`
+- 只有设计契约明确要求宽开口箭头或其他特殊箭头语义时，才使用其他共享 marker kind
+- 起点、交点、极点等点标优先使用 `InteractiveSvgPointMarker`
+
 重点检查：
 
 - 回路线是否对齐
 - 标签是否压线或漂移
 - `viewBox` 是否覆盖完整内容
 - 移动端缩放后是否可读
+- 箭头是否来自共享 marker，且随线宽同步缩放
 
 ## 与当前互动课基线对齐
 
@@ -147,6 +160,7 @@
 - [ ] 已判断资源属于运行时 Rust/WASM 曲线工作区、`python3 + control` / `Octave`、`tikz-control-draw` 或前端原生绘制
 - [ ] 原始脚本/源文件已落在 `media/raw/`
 - [ ] 处理后产物已落在 `media/processed/`
+- [ ] 前端 SVG 箭头已使用共享 `InteractiveSvgMarkerDefs`，常规方向箭头为 `arrow-slim-concave`，并传入实际 `lineStrokeWidth`
 - [ ] 已完成浏览器抽查
 - [ ] 中文文本可见
 - [ ] 无明显错位、越界、遮挡

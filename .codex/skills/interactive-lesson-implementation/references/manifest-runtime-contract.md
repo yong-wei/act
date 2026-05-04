@@ -32,7 +32,7 @@
 
 活动模块归属 activity runtime，不归 content runtime。`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等模块不得在 `content-renderers.tsx` 中渲染题面列表；它们只作为 layout 中的活动锚点和 `interaction_spec` 的结构提示，由 `activity-renderers.tsx` 渲染学生作答、教师控制与结果汇总。
 
-manifest 课堂页必须在区域内容前渲染独立页面标题模块，显示页序、步骤标题和本页主要内容描述；描述优先取 `ai_context_spec.page_goal`，其次取 `interaction_spec.student_task` 或页面介绍内容。课堂页下拉页面菜单必须显示页序与标题，默认格式为`第 03 页 · 标题`。
+manifest 课堂页必须在区域内容前渲染独立页面标题模块，显示页序、步骤标题和本页主要内容描述；描述优先取 `ai_context_spec.page_goal`，其次取 `interaction_spec.student_task` 或页面介绍内容。后测页不需要“后测说明”模块；后测标题模块文案只写本页主要检查的知识和能力点。课堂页下拉页面菜单必须显示页序与标题，默认格式为`第 03 页 · 标题`。
 
 ## 二、必显模块规则
 
@@ -90,6 +90,7 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
   - `rust-time-compare-panel`
   - `rust-bode-compare-panel`
 - Rust 链条替换后的缺口应修共享模块或其窄适配器；不要以静态图、旧图表组件或课程私有面板作为默认回退。
+- Rust 驱动面板的 `title` 必须写成学科对象或观察任务，不能写成“Rust 面板”“三标签面板”“对照面板”“原生统一面板”等工程或形式标签；面板标题之外不再追加解释运行时、四面板板式、Rust/WASM 引擎等无关文案。标题字号统一采用课堂模块标题规格 `text-base font-semibold leading-7 tracking-normal`，与“个人课堂表现”“班级整体表现统计”等模块保持一致。
 
 ## 五、Payload-first 规则
 
@@ -130,6 +131,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 - `formula-card` 使用 `content_blocks.key_formulas` 隐式消费时，公式数应与同页公式模块数匹配，或由 payload 指定索引。
 - `image-panel` 使用 `content_blocks.media` 隐式消费时，媒体数应与同页图片模块数匹配，或由 payload 指定索引。
 - `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明不得留在 `content_blocks` 中未消费；若确实不展示，契约必须显式标记允许未消费。
+- 图片下方文案不得直接使用页面标题、模块标题、图片标题或文件名。无读图价值时不显示 caption；需要显示时，必须写成图片具体内容、可观察证据、读图顺序或基于图片的分析判断。
 - 不允许只渲染模块标题而无正文、公式、表格、图片、图后说明或显影文本的壳层通过审计。
 
 ## 六、验证要求
@@ -141,11 +143,13 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
   - 同区域多模块的顺序与独立节点仍然保留
   - 标题、选项、参考答案、表格内容、图片路径、显影文本来自 manifest payload
   - 图后说明来自 manifest payload 或 `content_blocks` 并已显示
+  - 图片下方文案没有复用页面标题、模块标题、图片标题或文件名；若存在 caption，内容是具体描述或分析判断
   - activity 模块只由 activity registry 消费，正文区没有额外“本页作答”题面列表
   - 每个 `activity_cards[].prompt` 默认只出现一次
   - 教师活动汇总在释放互动后仍显示题面和选项
   - 教师活动汇总默认只显示聚合统计，未点击`查看细节`时不出现提交人姓名
   - 页面顶部存在独立标题模块，且下拉菜单选项含页序
+  - 后测页不存在独立“后测说明”模块，主要检查的知识和能力点写在标题模块文案中
   - `?step=` 预览与正式课堂页都不丢模块
   - 教师控制、逐步显影、答案揭示仍绑定到 manifest 对应步骤
   - 页面不存在 `data-manifest-render-error` 或“互动页模块渲染缺失”

@@ -58,16 +58,21 @@ description: Use when implementing or upgrading this repository's interactive le
 - 模板名不仅决定视觉顺序，也承载区域拓扑与保留规则。若步骤模板把两个模块放在同一区域，实施阶段必须保留它们的独立节点与阅读顺序，不得压成一个笼统面板或单个壳层摘要。
 - 共享模块注册表必须覆盖契约中实际出现的 `kind`；真正特殊的能力应落成窄适配器模块，而不是重新退回整门课私有 `switch (step.id)` 渲染器。
 - 共享 renderer 禁止写课程 id、step id 或 module id 特判，例如把 `4-6` 的活动标题、`4-3` 的选择题选项、某个卡片参考答案硬编码在共享层。标题、选项、参考答案、表格行列、图片路径和显影文本必须优先来自 manifest payload；缺字段时给可见诊断或回退设计补 payload。
+- manifest 驱动页面的可见质量门槛必须包含三项：学生端不得显示英文模块 id 或 `snake_case`/`kebab-case` 回退标题；列表型内容不得以 `['...']`、JSON 数组或 Python 字面量形式显示；公式型正文、表格、题面和显影步骤必须以合法 LaTeX/KaTeX 渲染，而不是把 `pi`、`sqrt`、`omega`、`Delta` 等源码字符串直接露出。
+- 前测页标题模块文案必须直接写出本页考察的主要预备知识点，例如数学基础、前序概念、读图或计算基础；不得写“不考察 / 不检验 / 不涉及 / 不展开 / 不提前”等防御性边界文案。后测页不需要“后测说明”模块；后测标题模块文案只写本页主要检查的知识和能力点。
+- 图片 caption 不得复述页面标题、模块标题、图片标题或文件名，也不得把标题直接当作图片下方文案。若图片本身已经足够清楚，可以不显示 caption；若显示 caption，必须写成图片具体内容描述、可观察证据、阅读顺序或基于图片的分析判断。
 - 处理组件缺口的顺序固定为：先补作者态 contract / runtime manifest payload，再补共享 content/activity renderer；只有能力确实不通用时，才写课程窄适配器。不得回退到课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、页面级参考答案映射或 `switch (step.id)`。
 - `content-renderers.tsx` 与 `activity-renderers.tsx` 的职责必须分离：`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等活动模块只能由 activity runtime 消费；正文 content registry 不得再渲染“本页作答”题面列表。
 - 共享教师活动汇总必须显示 `activity_cards[].prompt` 中的完整题面，并在选择题、排序题、多选题等场景同步显示选项；教师释放互动后不能只看到提交人数、学生答案或统计结果。已迁移到 manifest shared activity runtime 的新课，应通过共享 `activity-renderers.tsx` 一次满足该要求，不再逐页复制教师汇总代码。
 - 共享教师活动汇总默认只显示答案聚合统计，不显示提交人姓名；每个互动模块必须提供`查看细节`入口，教师点击后才展示该模块的提交明细与学生姓名。
 - `rust-analysis-panel`、`rust-time-compare-panel`、`rust-bode-compare-panel` 这类 Rust/WASM 共享模块属于当前正式覆盖面。三域互动的 Rust 链条替换后若出现缺口，应修共享模块或其窄适配器，不得把新课技能默认回退到旧图表实现。
+- Rust 驱动面板的标题必须使用与页面内容相关、含义明确的学科标题，例如“相平面轨迹与方向场观察”“基波近似与低通输出对比”“负倒曲线族与幅值交点”。不得使用“Rust 面板”“三标签面板”“对照面板”“原生统一面板”等只描述实现技术、界面形式或软件工程结构的标题；面板标题之外不得追加与教学对象无关的工程实现说明。标题字号统一采用课堂模块标题规格 `text-base font-semibold leading-7 tracking-normal`，与“个人课堂表现”“班级整体表现统计”等模块保持一致。
 - 设计稿若已固定证据单元顺序、主阅读顺序、曲线图镜像排布、基线参数或结构切换方式，实现阶段不得擅自改成“图先行”“卡片先行”“单选替代”或“另起一套互动图”。
 - 设计稿若已为某页写出本次课程目标或能力项，实现阶段必须保持布鲁姆动词与能力粒度，不得改写成课程编排说明、单元串联说明或泛化口号。
 - 若讲义或设计稿的顺序是“原理/公式 -> 结构图 -> 分析显影 -> 对比图”，实现必须按该顺序渲染；不得把媒体数组、hero 图或通用 `MediaPanel` 自动提前。
 - 设计稿若写明 `parameter_slider` / `parametric_sim` / 曲线联动图，实施时必须让控件直接驱动同页曲线或图示的原生重绘；禁止保留静态截图，再在截图下方附一块“滑块说明卡”假装联动。
 - 设计稿若同时给出对象框图、传函与曲线证据，页面顺序必须服从讲义与设计真源；默认先对象框图，再传函，再动态曲线区。若框图与传函同屏，可用双栏；若该段只剩框图，则框图单栏横向铺满。
+- 前端 SVG 绘图中的方向箭头默认使用 `src/features/interactive/shared/interactive-svg-markers.tsx` 的共享标记：每个 SVG 内放置 `InteractiveSvgMarkerDefs`，常规箭头使用 `arrow-slim-concave` 与 `InteractiveSvgMarkerRegistry.markerUrl(...)`，并把实际线宽传给 `lineStrokeWidth`，让箭头大小随线宽调整。除非设计契约明确要求宽开口或其他特殊箭头语义，不得在单课组件里手写私有 `<marker>` 或固定 marker 宽高。
 - 若设计稿要求例题逐步显影，默认首屏只能显示第 `1` 层；不得默认展开两层或更多。
 - 逐步显影默认禁止在底部额外渲染显式“下一步 / 显示下一步”按钮；继续展开的交互锚点固定为“点击当前已显影的最下方步骤显示下一层”。
 - 若教师端存在逐步显影控制，实现必须把显影层级接到独立的 `teacherRevealProgress` 状态；学生端在教师已放出的层级基础上，可按契约决定是否允许继续本地点击显影。
@@ -799,6 +804,7 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已判断媒体缺口应通过 `media/raw` / `media/processed` 补齐，而不是继续 ASCII 或长期占位
 - [ ] 已区分“运行时互动曲线使用 Rust/WASM 统一引擎”与“作者态静态图/离线校核使用 `python3 + control` 或 `Octave`”
 - [ ] 已对示意图使用前端原生绘制，对表格使用原生表格，对线框图使用 `tikz-control-draw`
+- [ ] 已确认前端 SVG 绘图箭头复用 `InteractiveSvgMarkerDefs` / `InteractiveSvgMarkerRegistry`，常规箭头默认使用 `arrow-slim-concave`，且 `lineStrokeWidth` 与实际线宽一致
 - [ ] 已优先复用统一 session / Redis / SSE / rate limit 能力
 - [ ] 已在课程目录、预置教案、课堂码解析和 AI 注册表中完成接线
 - [ ] 已确认课程入口采用统一资源挂载与互动埋点链路

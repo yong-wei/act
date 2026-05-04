@@ -100,6 +100,27 @@ def relation_summary(relation: dict[str, Any], node_id: str) -> dict[str, Any]:
 
 def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    stable_platform_boundary = '这里的“稳定平台”指船载/设备稳定控制对象或中频响应控制台，不是海上油气平台、钻井平台或港口设施。'
+    if '设计任务表达卡' in text:
+        return f'用任务卡主板连接客船航向控制和稳定平台两类本课案例证据，表达“先把对象、目标、约束和证据写清，再进入结构筛选”；不要引入水箱、温控、电机等源材料之外的通用案例。{stable_platform_boundary}'
+    if '结构工具箱最小语义' in text:
+        return '用结构工具箱、频段职责和代价标签表达 PI、PD、超前、滞后、前馈等结构不是名称堆叠，而是作用点和代价来源不同的工具。'
+    if '主矛盾到频段职责映射' in text:
+        return f'用低频稳态、中频动态和高频噪声三段任务面板连接客船航向控制与稳定平台案例，表达主矛盾先落到频段职责再选结构。{stable_platform_boundary}'
+    if '结构作用点与代价来源对照' in text:
+        return '用同一闭环框图上的不同结构插入点、Bode 小窗和时域读回表达每种结构改变的位置不同，收益与代价也不同。'
+    if '反馈保底与前馈补偿边界' in text:
+        return '用反馈闭环作为保底主干，前馈作为可验证补偿支路，表达前馈不能替代反馈稳定性和扰动复核。'
+    if '按输入补偿前馈' in text:
+        return '用参考输入前馈支路、误差曲线和无差度提升小窗表达按输入补偿只针对给定输入通道，仍需反馈闭环兜底。'
+    if '按扰动补偿前馈' in text:
+        return '用可测扰动前馈支路、扰动进入点和对消条件小窗表达扰动补偿依赖扰动可测和模型路径匹配。'
+    if '单结构首轮起步卡' in text:
+        return '用六字段起步卡、客船低频起步和平台中频起步两个分支表达首轮只选择一个主结构，并记录理由、代价和验证指标。'
+    if '目标驱动PD校正' in text:
+        return f'用稳定平台中频动态需求、左半平面的目标极点区域、根轨迹零点反推和阶跃验收小窗表达 PD 是围绕目标点改善动态品质的结构，不是凭经验先猜微分时间；目标区域和设计点必须位于稳定左半平面。{stable_platform_boundary}'
+    if '目标驱动超前校正' in text:
+        return f'用稳定平台目标裕度与目标频带、补角窗口、超前网络参数和时域验收链表达超前校正服务中频相位储备与动态品质。{stable_platform_boundary}'
     if 'MASS协同链路' in text:
         return '用海上自主船舶任务链表达感知、估计、规划、控制、执行、监督的依赖关系，突出信息流、控制流和责任边界。'
     if '控制在自主系统链路中的位置' in text:
@@ -185,6 +206,77 @@ def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
 
 def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    stable_platform_note = '稳定平台只能画成船载/设备稳定控制对象、姿态稳定台或中频响应控制台；不要画成海上油气平台、钻井平台、港口设施或大桥。'
+    if '设计任务表达卡' in text:
+        return (
+            '主视觉对象：一张工程任务卡放在控制设计工作台中央，卡片上只用短标签显示对象、目标、硬约束、软目标、观察指标、证据来源。\n'
+            f'工程场景：左侧小窗使用客船航向控制证据，右侧小窗使用稳定平台频带证据；不要出现水箱、温控、电机、化工管路等源材料之外的案例。{stable_platform_note}\n'
+            '核心图示：任务表达卡公式、目标-约束-优先级箭头、证据来源标签，以及通向结构工具箱最小语义的下一步小箭头。\n'
+            '构图方式：中央任务卡占主画面，左右两侧为案例证据小窗，右下角放“先写任务再筛结构”的边界面板。'
+        )
+    if '结构工具箱最小语义' in text:
+        return (
+            '主视觉对象：一个控制结构工具箱，抽屉分别标注 PI、PD、超前、滞后、前馈，每个抽屉连接到对应的作用频段或信号通道。\n'
+            f'工程场景：客船航向控制偏低频稳态，稳定平台偏中频动态；只使用这两类本课案例，不引入新的工程对象。{stable_platform_note}\n'
+            '核心图示：闭环框图、低频/中频/高频频段条、收益与代价两类短标签。\n'
+            '构图方式：左侧任务卡输入，中间工具箱主视觉，右侧结构选择边界，避免画成纯图标表格。'
+        )
+    if '主矛盾到频段职责映射' in text:
+        return (
+            f'主视觉对象：一条低频-中频-高频职责带，客船航向控制证据落在低频稳态一侧，稳定平台证据落在中频响应一侧。{stable_platform_note}\n'
+            '工程场景：Bode 幅频/相频小窗、阶跃响应小窗和任务标签共同说明主矛盾如何落到频段职责。\n'
+            '核心图示：低频稳态、中频动态、高频噪声、主矛盾、结构入口五个元素。\n'
+            '构图方式：频段职责带横贯画面，两个案例证据卡贴在对应频段，下方给“频段先行，结构随后”的判断条。'
+        )
+    if '结构作用点与代价来源对照' in text:
+        return (
+            '主视觉对象：同一个闭环控制框图上标出反馈通道、串联校正通道、前馈支路三个作用点。\n'
+            '工程场景：旁边用 Bode 裕度、阶跃响应和控制量边界三个小窗读回收益与代价。\n'
+            '核心图示：作用点、低频收益、中频储备、控制量代价、扰动复核五个短标签。\n'
+            '构图方式：闭环框图为主图，右侧三联小窗显示不同代价来源，禁止使用源材料之外的设备案例。'
+        )
+    if '反馈保底与前馈补偿边界' in text:
+        return (
+            '主视觉对象：反馈闭环作为粗实线主干，前馈支路作为细线补偿通道叠加在同一控制框图上。\n'
+            '工程场景：输入补偿和扰动补偿两个小窗并列，均回到反馈闭环保底检查。\n'
+            '核心图示：反馈保底、前馈补偿、可测条件、模型路径、稳定复核五个元素。\n'
+            '构图方式：中央闭环主图，左右分别为两类前馈路径，底部给“前馈不替代反馈”的边界面板。'
+        )
+    if '按输入补偿前馈' in text:
+        return (
+            '主视觉对象：参考输入 r(t) 分成反馈误差通道和输入前馈通道，前馈支路提前补偿给定变化。\n'
+            '工程场景：用误差曲线趋近零、给定输入通道和反馈兜底小窗表达无差度提升边界。\n'
+            '核心图示：r(t)、输入前馈、无差度提升、反馈兜底、模型匹配五个短标签。\n'
+            '构图方式：左侧参考输入，中央双通道结构框图，右侧误差读回和适用边界。'
+        )
+    if '按扰动补偿前馈' in text:
+        return (
+            '主视觉对象：可测扰动 d(t) 在进入对象前被前馈支路估计并反向抵消，闭环反馈仍保留。\n'
+            '工程场景：扰动进入点、补偿信号和残余误差曲线三联小窗表达对消条件。\n'
+            '核心图示：d(t)、扰动可测、对消条件、路径匹配、残余误差五个短标签。\n'
+            '构图方式：主图为扰动补偿框图，右侧为“可测且匹配才有效”的边界判断。'
+        )
+    if '单结构首轮起步卡' in text:
+        return (
+            '主视觉对象：六字段首轮起步卡，字段包括主矛盾、优先频段、候选结构、预期收益、主要代价、验证指标。\n'
+            f'工程场景：客船低频起步和稳定平台中频起步作为两个分支案例，均只选一个主结构。{stable_platform_note}\n'
+            '核心图示：单结构、首轮起步、收益、代价、验证指标五个短标签。\n'
+            '构图方式：中央起步卡，左下客船分支，右下平台分支，上方从任务卡进入，下方收束到验证。'
+        )
+    if '目标驱动PD校正' in text:
+        return (
+            f'主视觉对象：稳定平台的中频响应控制台，旁边显示目标极点区域和根轨迹主图。{stable_platform_note}\n'
+            '工程场景：平台案例需要改善动态品质，先在左半平面的目标区域内选稳定设计点，再由相角条件反推零点位置，由模值条件反推增益。\n'
+            '核心图示：目标区域、根轨迹、PD 零点、阶跃验收、G_PD(s)=K(1+T_d s)。\n'
+            '构图方式：左侧稳定控制对象剪影与响应曲线，中间 s 平面根轨迹，右侧公式与“先目标后参数”的边界面板；根轨迹设计点和目标区域必须画在虚轴左侧。'
+        )
+    if '目标驱动超前校正' in text:
+        return (
+            f'主视觉对象：稳定平台频域控制台，Bode 相频曲线上有目标裕度、补角窗口和目标频带。{stable_platform_note}\n'
+            '工程场景：平台案例以中频动态品质和相位储备为主，超前网络用于提供局部相位提升，再回到时域验收。\n'
+            '核心图示：目标裕度、目标频带、补角、超前参数、时域验收五步链。\n'
+            '构图方式：左侧 Bode 双图为主图，中央补角/参数小窗，右侧阶跃响应验收，不画成普通三频段装饰图。'
+        )
     if 'MASS协同链路' in text:
         return (
             '主视觉对象：一艘自主水面船在海图上航行，周围用六个链路舱位表示感知、估计、规划、控制、执行、监督。\n'
@@ -407,8 +499,15 @@ def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
         return (
             '主视觉对象：Bode 相频曲线在穿越频率处到 -180° 的角度标尺。\n'
             '工程场景：用安全余量仪表盘或临界边界指针表达“离失稳还有多远”。\n'
-            '核心图示：0 dB 穿越线、-180° 基准线、相角裕度弧形标尺。\n'
-            '构图方式：大图为 Bode 双图，右侧为稳定边界提醒。'
+            '核心图示：0 dB 穿越线、-180° 基准线、相角裕度弧形标尺；正裕度示例中相位曲线在 ω_c 处必须位于 -180° 基准线上方。\n'
+            '构图方式：大图为 Bode 双图，右侧为稳定边界提醒；裕度标尺从相位曲线在 ω_c 的读数向下量到 -180°，不要把读数点画在 -180° 线上。'
+        )
+    if '幅值裕度' in text:
+        return (
+            '主视觉对象：Bode 双图中相频曲线先读出 -180° 相位穿越频率 ω_g，再回到幅频图在同一频率处量到 0 dB 的增益余量。\n'
+            '工程场景：用安全余量仪表盘或临界边界指针表达“相位已到危险边界时，增益还差多少才碰边”。\n'
+            '核心图示：-180° 相位穿越线、ω_g 垂线、0 dB 基准线、幅值裕度竖向标尺、K_g=1/|G(jω_g)|。\n'
+            '构图方式：上方幅频图显示 0 dB 基准和裕度竖尺，下方相频图显示 -180° 穿越点，两图用同一条 ω_g 垂线连接。'
         )
     if '带宽' in text:
         return (
@@ -576,7 +675,14 @@ def layout_contract_for_archetype(archetype_id: str) -> str:
 
 
 def text_contract_for_node(node_name: str, keywords: list[str], formulas: list[str]) -> dict[str, Any]:
-    allowed_labels = [node_name, *keywords[:8]]
+    allowed_labels = [node_name]
+    for keyword in keywords:
+        value = str(keyword).strip()
+        if re.fullmatch(r'\d+-\d+', value):
+            continue
+        if re.fullmatch(r'层\d+.*', value) or '精化' in value:
+            continue
+        allowed_labels.append(value)
     return {
         'allowed_labels': allowed_labels[:10],
         'max_visible_labels': 12,
@@ -636,7 +742,6 @@ def build_prompt(source: dict[str, Any]) -> str:
         else '本节点没有公式，不要自行添加公式。'
     )
     keywords = [str(item) for item in (node.get('keywords') or [])[:8]]
-    text_allowlist = [node['name'], *keywords]
     visual_focus = visual_focus_for_node(str(node['name']), groups)
     visual_asset_brief = visual_asset_brief_for_node(str(node['name']), groups)
     visual_architecture = source.get('visual_architecture') or visual_architecture_for_node(
@@ -646,6 +751,7 @@ def build_prompt(source: dict[str, Any]) -> str:
         [str(item) for item in formulas],
     )
     text_contract = visual_architecture['text_contract']
+    text_allowlist = [str(item) for item in text_contract.get('allowed_labels') or [node['name']]]
 
     return f"""请使用 GPT Image 2 / Codex 最新图片生成能力，制作一张横版中文教学信息图。
 

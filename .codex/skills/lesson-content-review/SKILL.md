@@ -94,6 +94,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - LaTeX 公式可渲染且符号正确
   - 事实表述、例题计算、评分逻辑正确
   - 图片描述与系统结构一致
+  - 图片下方文案不得直接使用章节标题、页面标题、图片标题或文件名；要么无额外文案，要么是具体内容描述、图中证据或分析判断
   - 媒体引用路径与文件名一致
   - 讲义依赖的关键媒体是否完整落盘：
     - `[单元编号]-cover-comic.png`
@@ -211,6 +212,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
     - `key_formulas` 与同页公式模块数量或显式索引匹配
     - `media` 与同页图片模块数量或显式索引匹配
     - `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明已被消费，或契约明确允许不消费
+    - 图片 caption 没有复用页面标题、模块标题、图片标题或文件名；需要显示时已写成具体内容描述、读图证据或分析判断
     - 页面中不存在只有标题、没有正文/公式/表格/图片/说明/显影文本的空壳模块
   - 采用证据单元映射时，每一步是否写出 `主阅读顺序`，并与 `interactive-contract.yaml > steps.<step>.layout.reading_order` 一致
   - 曲线图证据单元是否在页面稿中写明“曲线互动镜像说明”，并在契约中提供 `interactive_figure_spec`
@@ -383,6 +385,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
 - [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）
 - [ ] 若为 manifest-first 课程，已运行 `.codex/skills/interactive-design/scripts/audit_interactive_manifest.py` 并完成模块消费审计：content 模块非空、activity 模块不进正文、活动题面不重复、公式/媒体/图后说明均被消费
+- [ ] 已确认图片下方文案没有直接复用章节标题、页面标题、模块标题、图片标题或文件名；需要保留时已写成具体内容描述、读图证据或分析判断
 - [ ] 已确认 `ai_context_spec` 维持隐藏式页面上下文，不默认扩展为可见 AI 区块（如适用）
 - [ ] 已确认曲线图步骤都写有“曲线互动镜像说明”，且 `interactive-contract.yaml` 提供 `interactive_figure_spec`（如适用）
 - [ ] 已确认曲线图默认态与 handout 静态图一致，`2×2` 图组镜像为 `2x2`，控件栏位于图下折叠区（如适用）
