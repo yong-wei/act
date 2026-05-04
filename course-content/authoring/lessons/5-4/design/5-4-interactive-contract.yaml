@@ -53,39 +53,35 @@ steps:
 
   step-03:
     title: '前置基础快测'
-    layout: { template: 'quiz_group_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    layout: { template: 'quiz_group_board', regions: [{ id: 'quiz', width: 'full', order: 1 }] }
     modules:
-      - { id: 'pretest-note', title: '前测说明', region: 'header', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'note' } }
       - { id: 'pretest-quiz', title: '预备知识题组', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['first-order-parameter', 'closed-loop-error', 'rudder-limit'] } }
-    content_blocks:
-      note: { type: 'plain_text', body: '这些题只检查理解本课所需的对象参数、闭环误差和执行约束基础，不提前考察本课后续要建立的方法迁移判断。' }
-    evidence_sequence: ['前测说明', '三道客观题']
+    content_blocks: {}
+    evidence_sequence: ['三道客观题']
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成三道预备知识题。'
       activity_cards:
-        - { id: 'first-order-parameter', title: '一阶对象参数影响', prompt: '一阶对象 G(s)=K/(Ts+1) 中，若 K 变小且 T 变大，在相同阶跃输入下，输出响应最可能表现为：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['稳态变化幅度变小且响应变慢', '稳态变化幅度变大且响应变快', '输出不受参数变化影响'], reference_answer: '稳态变化幅度变小且响应变慢' }
-        - { id: 'closed-loop-error', title: '闭环误差含义', prompt: '闭环跟踪问题中，e(t)=r(t)-y(t) 的含义是：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['参考输入与实际输出之间的误差', '执行器允许的最大输入', '对象模型的时间常数'], reference_answer: '参考输入与实际输出之间的误差' }
-        - { id: 'rudder-limit', title: '执行限幅含义', prompt: '舵角限制 |δ|≤12° 的直接含义是：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['控制指令超过边界时实际舵角仍被限制', '船舶一定没有稳态误差', '模型参数不会漂移'], reference_answer: '控制指令超过边界时实际舵角仍被限制' }
+        - { id: 'first-order-parameter', title: '一阶对象参数影响', prompt: '一阶对象 $G(s)=K/(Ts+1)$ 中，若 $K$ 变小且 $T$ 变大，在相同阶跃输入下，输出响应最可能表现为：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['稳态变化幅度变小且响应变慢', '稳态变化幅度变大且响应变快', '输出不受参数变化影响'], reference_answer: '稳态变化幅度变小且响应变慢' }
+        - { id: 'closed-loop-error', title: '闭环误差含义', prompt: '闭环跟踪问题中，$e(t)=r(t)-y(t)$ 的含义是：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['参考输入与实际输出之间的误差', '执行器允许的最大输入', '对象模型的时间常数'], reference_answer: '参考输入与实际输出之间的误差' }
+        - { id: 'rudder-limit', title: '执行限幅含义', prompt: '舵角限制 $|\delta|\le 12^\circ$ 的直接含义是：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['控制指令超过边界时实际舵角仍被限制', '船舶一定没有稳态误差', '模型参数不会漂移'], reference_answer: '控制指令超过边界时实际舵角仍被限制' }
     teacher_controls: &quiz_controls { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: &released_activity_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['parameter_effect_error', 'closed_loop_error_error', 'limit_meaning_error'] }
     teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution'], aggregation: 'step_level' }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '只检查对象参数、闭环误差和执行限幅基础。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '考察知识点：一阶对象 $G(s)=K/(Ts+1)$ 的参数影响、闭环误差 $e(t)=r(t)-y(t)$、执行限幅 $|\delta|\le 12^\circ$。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-03', must_match_student_page: true }
     acceptance_checks: ['前测全部为客观题，不提前考察本课后续方法迁移判断。']
 
   step-04:
     title: '模型驱动控制的可解释关系'
-    layout: { template: 'formula_concept_board', regions: [{ id: 'context', width: 'full', order: 1 }, { id: 'formula', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    layout: { template: 'formula_concept_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'context', title: '复杂航行对象关系', region: 'context', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'context' } }
       - { id: 'model-formula', title: '离散对象关系', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
       - { id: 'model-activity', title: '模型关系判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['model-advantage', 'model-evidence'] } }
     content_blocks:
-      context: { type: 'plain_text', body: '模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。' }
-      formula_block: { type: 'formula_group', formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'], symbols: [{ symbol: 'x_k', meaning: '状态' }, { symbol: 'u_k', meaning: '控制输入' }, { symbol: 'y_k', meaning: '输出' }, { symbol: 'p_k', meaning: '影响对象行为的参数或外部条件' }], explanation: '若 f 和 h 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。' }
-    evidence_sequence: ['复杂对象关系说明', '离散模型公式', '符号说明', '两张判断卡']
+      formula_block: { type: 'formula_group', formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'], symbols: [{ symbol: 'x_k', meaning: '状态' }, { symbol: 'u_k', meaning: '控制输入' }, { symbol: 'y_k', meaning: '输出' }, { symbol: 'p_k', meaning: '影响对象行为的参数或外部条件' }], explanation: '若 $f(\cdot)$ 和 $h(\cdot)$ 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。' }
+    evidence_sequence: ['离散模型公式', '符号说明', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '判断模型驱动控制的证据来源。'
@@ -96,21 +92,19 @@ steps:
     student_access: *released_activity_access
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['model_explainability_ignored'] }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'choice_distribution'], aggregation: 'step_level' }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '建立模型驱动控制的可解释关系。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-04', must_match_student_page: true }
     acceptance_checks: ['公式、符号说明和模型驱动优势必须同页出现。']
 
   step-05:
     title: '单一模型在复杂链路中的压力'
-    layout: { template: 'pressure_table_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    layout: { template: 'pressure_table_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'pressure-intro', title: '模型压力说明', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
       - { id: 'pressure-table', title: '单一模型压力表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'pressure_table' } }
       - { id: 'pressure-match', title: '压力来源匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['pressure-match'] } }
     content_blocks:
-      intro: { type: 'plain_text', body: '模型压力来自模型独自承担的任务过重，而不是模型失去价值。' }
       pressure_table: { type: 'native_table', columns: ['压力来源', '表现', '设计风险'], rows: [['参数难以固定', '同一控制律在不同载荷、速度或海况下表现差异明显', '设计点附近有效，迁移到其他工况后性能下降'], ['约束不断进入闭环', '舵角、舵速、推进器功率或安全距离约束反复生效', '无约束设计给出的控制动作不可执行'], ['链路输入质量变化', '感知误差、估计延迟和规划调整改变控制参考', '控制器修正的对象不再等同于设计时的对象']] }
-    evidence_sequence: ['压力来源总句', '三类压力表', '完整现象匹配题']
+    evidence_sequence: ['三类压力表', '完整现象匹配题']
     interaction_spec:
       interaction_kind: 'drag_match'
       student_task: '把三个完整现象匹配到三类模型压力。'
@@ -142,7 +136,7 @@ steps:
     student_access: *released_activity_access
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['pressure_source_mismatch'] }
     teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把复杂链路现象归类为模型压力来源。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '模型压力来自模型独自承担的任务过重，而不是模型失去价值。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo?step=step-05', must_match_student_page: true }
     acceptance_checks: ['匹配题必须使用完整现象和完整类别表述。']
 
@@ -154,8 +148,8 @@ steps:
       - { id: 'prediction-panel', title: '预测偏差读图面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'rust_prediction_error_panel', fallback_image: '/course-runtime/lessons/5-4/media/5-4-model-mismatch-prediction.png', block_key: 'figure_reading' } }
       - { id: 'prediction-submit', title: '观察记录提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['prediction-observation'] } }
     content_blocks:
-      problem: { type: 'plain_text', body: '名义模型 K_m=0.18,T_m=8.0s，真实对象 K_a=0.125,T_a=11.5s。同一舵角序列输入后，名义模型预测更快转向，真实对象转向较慢。' }
-      figure_reading: { type: 'plain_text', body: '先看红色名义预测和黑色真实对象的后段分离，再读最大预测误差约 14.04°；最后看蓝色数据修正曲线把最大误差降至约 5.48°。数据修正改善了当前预测，但还不能证明后段工况一定可信。' }
+      problem: { type: 'plain_text', body: '名义模型 $K_m=0.18$，$T_m=8.0\ \mathrm{s}$，真实对象 $K_a=0.125$，$T_a=11.5\ \mathrm{s}$。同一舵角序列输入后，名义模型预测更快转向，真实对象转向较慢。' }
+      figure_reading: { type: 'plain_text', body: '先看红色名义预测和黑色真实对象的后段分离，再读最大预测误差约 $14.04^\circ$；最后看蓝色数据修正曲线把最大误差降至约 $5.48^\circ$。数据修正改善了当前预测，但还不能证明后段工况一定可信。' }
     evidence_sequence: ['完整题面', '三曲线读图', '误差读数', '观察提交']
     interactive_figure_spec:
       kind: 'rust_prediction_error_panel'
@@ -258,7 +252,17 @@ steps:
     content_blocks:
       intro: { type: 'plain_text', body: '把数据驱动放入 MPC 的保守做法，是保持控制目标、舵角约束和滚动优化结构不变，只改变预测模型的来源。' }
       caption: '数据模块从最近一段闭环数据中估计有效模型参数，再把结果交给 MPC 的预测模型；它不替代目标函数、约束和安全边界。'
-      reveal_chain: { type: 'reveal_chain', static_hint: '当前正在做什么：从闭环数据中更新预测模型，而不是重新发明控制目标。', items: [{ title: '离散模型', body: '使用 r_{j+1}=a r_j+bδ_j+c，其中本页的 r_j 表示航向角速度，不表示参考轨迹；δ_j 是舵角，c 吸收短时扰动偏置。' }, { title: '参数换算', body: '估计得到 a,b,c 后，换算 T_hat=Δt/(1-a_hat)，K_hat=b_hat*T_hat/Δt，d_hat=c_hat/Δt。' }, { title: '激励不足', body: '闭环数据的激励可能不足，估计值会受到参考变化、舵角饱和和扰动共同影响。' }, { title: '工程保护', body: '需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。' }, { title: '局部责任', body: '数据承担更新预测模型的局部职责，不替代 MPC 的目标函数、约束和安全边界。' }] }
+      reveal_chain:
+        type: 'reveal_chain'
+        static_hint: '当前正在做什么：从闭环数据中更新预测模型，而不是重新发明控制目标。'
+        items:
+          - { title: '离散模型', body: '使用离散模型 $r_{j+1}=a r_j+b\delta_j+c$，其中本页的 $r_j$ 表示航向角速度，不表示参考轨迹；$\delta_j$ 是舵角，$c$ 吸收短时扰动偏置。' }
+          - title: '参数换算'
+            body: '估计得到 $\hat a_k,\hat b_k,\hat c_k$ 后，换算连续对象有效参数。'
+            formula: '\hat T_k=\frac{\Delta t}{1-\hat a_k},\qquad \hat K_k=\frac{\hat b_k\hat T_k}{\Delta t},\qquad \hat d_k=\frac{\hat c_k}{\Delta t}'
+          - { title: '激励不足', body: '闭环数据的激励可能不足，估计值会受到参考变化、舵角饱和和扰动共同影响。' }
+          - { title: '工程保护', body: '工程上需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。' }
+          - { title: '局部责任', body: '本页结论是数据承担“更新预测模型”的局部职责，不替代 MPC 的目标函数、约束和安全边界。' }
     evidence_sequence: ['局部责任说明', '在线更新框图', '五层显影链']
     interaction_spec: { interaction_kind: 'step_reveal', student_task: '按教师节奏阅读在线模型更新链。', step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }, activity_cards: [] }
     teacher_controls: &reveal_controls { release_activity: 'not_applicable', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_controlled', reveal_reference_answer: 'not_applicable' }
@@ -326,7 +330,7 @@ steps:
       - { id: 'route-table', title: '三路线建模与控制信息', region: 'routes', kind: 'native-table', must_be_visible: true, payload: { block_key: 'route_table' } }
       - { id: 'route-match', title: '路线信息匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['route-match'] } }
     content_blocks:
-      problem: { type: 'plain_text', body: '名义模型 G_m(s)=K_m/(T_m s+1)，K_m=0.18，T_m=8.0s。真实对象从 K=0.18,T=8.0s 漂移到 K=0.065,T=18.0s；漂移从 t=28s 到 t=108s，横流扰动从 t=34s 附近进入，规划参考在 t=45s、78s、122s 和 152s 调整。' }
+      problem: { type: 'plain_text', body: '名义模型 $G_m(s)=K_m/(T_m s+1)$，$K_m=0.18$，$T_m=8.0\ \mathrm{s}$。真实对象从 $K=0.18,T=8.0\ \mathrm{s}$ 漂移到 $K=0.065,T=18.0\ \mathrm{s}$；漂移从 $t=28\ \mathrm{s}$ 到 $t=108\ \mathrm{s}$，横流扰动从 $t=34\ \mathrm{s}$ 附近进入，规划参考在 $t=45\ \mathrm{s}$、$78\ \mathrm{s}$、$122\ \mathrm{s}$ 和 $152\ \mathrm{s}$ 调整。' }
       route_table: { type: 'native_table', columns: ['路线', '控制方式', '使用的模型与信息', '主要局限'], rows: [['传统固定控制', '基于名义模型整定的固定 PI/PID 航向控制', '只使用名义参数和当前误差', '不能显式处理预测窗口和约束'], ['名义模型 MPC', '滚动预测并显式限制舵角', '使用名义模型预测未来', '预测仍按旧对象进行'], ['数据驱动模型 MPC', '在同一 MPC 框架中使用运行数据修正有效模型', '估计有效增益、时间常数和扰动偏置', '需要数据覆盖、在线更新和额外验证']] }
     evidence_sequence: ['任务条件', '名义模型', '漂移范围', '三路线表', '路线匹配题']
     interaction_spec:

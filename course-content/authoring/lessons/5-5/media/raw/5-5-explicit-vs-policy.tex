@@ -12,7 +12,7 @@
       minimum width=2.45cm, minimum height=0.86cm, line width=1.2pt,
       font=\footnotesize\bfseries, align=center},
     risk/.style={rectangle, draw={rgb,255:red,217;green,83;blue,79}, fill=none,
-      minimum width=2.5cm, minimum height=0.72cm, line width=1.2pt,
+      minimum width=1.85cm, minimum height=0.72cm, line width=1.2pt,
       font=\scriptsize\bfseries, align=center},
     tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none,
       minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
@@ -42,12 +42,12 @@
   \draw[signal] (policy) -- (tapB) -- (outB);
   \draw[dashedsignal] (tapB) |- ++(0,-0.8) -| (samples.south);
 
-  \node[risk] (cost) at (3.35,-3.45) {样本代价};
-  \node[risk] (explain) at (6.85,-3.45) {可解释性};
-  \node[risk] (safe) at (8.95,-3.45) {安全验证};
+  \node[risk, minimum width=2.25cm] (cost) at (3.35,-3.45) {样本代价};
+  \node[risk] (explain) at (6.35,-3.45) {可解释性};
+  \node[risk] (safe) at (8.45,-3.45) {安全验证};
   \draw[signal] (cost) -- (samples);
   \draw[signal] (explain) -- (policy);
-  \draw[signal] (safe) -- (policy);
+  \draw[signal] (safe) -- (policy.south east);
 
   \node[lane, fit=(taskA)(law)(plantA)(outA)] (explicitbox) {};
   \node[labeltext, above=0.04cm of explicitbox] {显式控制器：结构先写出，再分析性能和边界};

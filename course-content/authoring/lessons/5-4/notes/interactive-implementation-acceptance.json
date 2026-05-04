@@ -11,6 +11,58 @@
     "course-content/runtime/lessons/5-4/review/review-report.md",
     "course-content/runtime/lessons/5-4/review/interactive-manifest-audit.json"
   ],
+  "revision_2026_05_03_p3_p14_formula_title_cleanup": {
+    "status": "accepted",
+    "updated_at": "2026-05-04T01:18:32+0800",
+    "changes": [
+      "step-03 removed the standalone pretest-note module and moved the examined knowledge points into the generated page title description.",
+      "step-04 removed the standalone complex navigation relation summary card; the page body now starts from the discrete object relation formula.",
+      "step-05 removed the standalone model pressure summary card; the page body now starts from the pressure table.",
+      "step-06, step-10, and step-13 formula-heavy strings were rewritten as KaTeX-readable text, with the step-10 parameter conversion carried by a formula field.",
+      "shared manifest title, content title, and activity title renderers now support inline LaTeX.",
+      "shared activity cards now add 作答N prefixes automatically and keep the prompt in the title instead of duplicating it in the body.",
+      "step-14 route metric keys are mapped to Chinese labels in the table, current-lowest indicator, and telemetry payload."
+    ],
+    "commands_completed": [
+      "rtk python3 course-content/scripts/review_lesson_content.py --lesson 5-4",
+      "rtk python3 course-content/scripts/review_lesson_content.py --lesson 5-4 --skip-export --strict-implementation-contract",
+      "rtk proxy npx vitest run src/features/interactive/__tests__/unit-5-4-course.test.ts src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx",
+      "rtk npm run lint"
+    ],
+    "review_result": {
+      "strict_implementation_contract": "pass",
+      "hard_gate_issue_codes": []
+    },
+    "test_result": {
+      "vitest": "2 files passed, 51 tests passed",
+      "lint": "next lint passed with no ESLint warnings or errors"
+    },
+    "browser_acceptance": {
+      "status": "pass",
+      "base_url": "http://127.0.0.1:3101",
+      "method": "temporary next dev on an isolated port, Playwright headless walkthrough, process stopped after validation",
+      "validated_steps": [
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-10",
+        "step-13",
+        "step-14"
+      ],
+      "evidence": [
+        "all seven target pages returned HTTP 200",
+        "step-03 removed the standalone pretest note, showed the examined knowledge points in the page title description, and rendered formulas with KaTeX",
+        "step-04 removed the standalone complex navigation relation card and rendered the discrete object relation formula card from content_blocks.formula_block.formulas",
+        "step-05 removed the standalone model pressure note and starts visible content from the pressure table",
+        "step-06, step-10, and step-13 rendered formula-heavy text through KaTeX with no visible raw $...$ strings",
+        "step-14 showed Chinese route labels and did not expose traditional_fixed, nominal_model_mpc, or data_driven_model_mpc",
+        "checked activity pages showed 作答1 prefixes and no duplicated prompt body"
+      ],
+      "console_errors": [],
+      "page_errors": []
+    }
+  },
   "subagent_review": {
     "status": "pass_with_resolved_findings",
     "reviewer_agent_id": "019deca2-b02c-7d40-be4e-674f5c642104",

@@ -52,14 +52,14 @@
   ],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [
-    "manifest audit pass: 17 steps, 46 modules, 0 issues"
+    "manifest audit pass: 17 steps, 43 modules, 0 issues"
   ],
   "manifest_audit_issues": [],
   "manifest_audit": {
     "status": "pass",
     "summary": {
       "steps": 17,
-      "modules": 46,
+      "modules": 43,
       "issues": 0
     },
     "implementation_sources": {
@@ -261,31 +261,11 @@
       },
       {
         "step_id": "step-03",
-        "module_id": "pretest-note",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.note",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-03",
         "module_id": "pretest-quiz",
         "kind": "quiz-group",
         "renderer_owner": "activity",
         "resolved_content_source": "interaction_spec.activity_cards",
         "resolved_content_type": "activity",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-04",
-        "module_id": "context",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.context",
-        "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       },
@@ -306,16 +286,6 @@
         "renderer_owner": "activity",
         "resolved_content_source": "interaction_spec.activity_cards",
         "resolved_content_type": "activity",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-05",
-        "module_id": "pressure-intro",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.intro",
-        "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       },
@@ -705,7 +675,7 @@
     "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `5-4` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `5-4` 的本地实现契约与作者态互动契约一致。",
-    "manifest audit pass: 17 steps, 46 modules, 0 issues",
+    "manifest audit pass: 17 steps, 43 modules, 0 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],

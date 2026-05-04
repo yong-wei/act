@@ -235,28 +235,13 @@
         "template": "quiz_group_board",
         "regions": [
           {
-            "id": "header",
-            "width": "full",
-            "order": 1
-          },
-          {
             "id": "quiz",
             "width": "full",
-            "order": 2
+            "order": 1
           }
         ]
       },
       "modules": [
-        {
-          "id": "pretest-note",
-          "title": "前测说明",
-          "region": "header",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "note"
-          }
-        },
         {
           "id": "pretest-quiz",
           "title": "预备知识题组",
@@ -272,14 +257,8 @@
           }
         }
       ],
-      "content_blocks": {
-        "note": {
-          "type": "plain_text",
-          "body": "这些题只检查理解本课所需的对象参数、闭环误差和执行约束基础，不提前考察本课后续要建立的方法迁移判断。"
-        }
-      },
+      "content_blocks": {},
       "evidence_sequence": [
-        "前测说明",
         "三道客观题"
       ],
       "interaction_spec": {
@@ -289,7 +268,7 @@
           {
             "id": "first-order-parameter",
             "title": "一阶对象参数影响",
-            "prompt": "一阶对象 G(s)=K/(Ts+1) 中，若 K 变小且 T 变大，在相同阶跃输入下，输出响应最可能表现为：",
+            "prompt": "一阶对象 $G(s)=K/(Ts+1)$ 中，若 $K$ 变小且 $T$ 变大，在相同阶跃输入下，输出响应最可能表现为：",
             "response_kind": "single_choice",
             "submit_scope": "per_card",
             "layout_span": "one_third",
@@ -303,7 +282,7 @@
           {
             "id": "closed-loop-error",
             "title": "闭环误差含义",
-            "prompt": "闭环跟踪问题中，e(t)=r(t)-y(t) 的含义是：",
+            "prompt": "闭环跟踪问题中，$e(t)=r(t)-y(t)$ 的含义是：",
             "response_kind": "single_choice",
             "submit_scope": "per_card",
             "layout_span": "one_third",
@@ -317,7 +296,7 @@
           {
             "id": "rudder-limit",
             "title": "执行限幅含义",
-            "prompt": "舵角限制 |δ|≤12° 的直接含义是：",
+            "prompt": "舵角限制 $|\\delta|\\le 12^\\circ$ 的直接含义是：",
             "response_kind": "single_choice",
             "submit_scope": "per_card",
             "layout_span": "one_third",
@@ -366,7 +345,7 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "只检查对象参数、闭环误差和执行限幅基础。"
+        "page_goal": "考察知识点：一阶对象 $G(s)=K/(Ts+1)$ 的参数影响、闭环误差 $e(t)=r(t)-y(t)$、执行限幅 $|\\delta|\\le 12^\\circ$。"
       },
       "preview_contract": {
         "route_kind": "student_demo",
@@ -383,33 +362,18 @@
         "template": "formula_concept_board",
         "regions": [
           {
-            "id": "context",
+            "id": "formula",
             "width": "full",
             "order": 1
           },
           {
-            "id": "formula",
-            "width": "full",
-            "order": 2
-          },
-          {
             "id": "activity",
             "width": "full",
-            "order": 3
+            "order": 2
           }
         ]
       },
       "modules": [
-        {
-          "id": "context",
-          "title": "复杂航行对象关系",
-          "region": "context",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "context"
-          }
-        },
         {
           "id": "model-formula",
           "title": "离散对象关系",
@@ -435,10 +399,6 @@
         }
       ],
       "content_blocks": {
-        "context": {
-          "type": "plain_text",
-          "body": "模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。"
-        },
         "formula_block": {
           "type": "formula_group",
           "formulas": [
@@ -463,11 +423,10 @@
               "meaning": "影响对象行为的参数或外部条件"
             }
           ],
-          "explanation": "若 f 和 h 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。"
+          "explanation": "若 $f(\\cdot)$ 和 $h(\\cdot)$ 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。"
         }
       },
       "evidence_sequence": [
-        "复杂对象关系说明",
         "离散模型公式",
         "符号说明",
         "两张判断卡"
@@ -544,7 +503,7 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "建立模型驱动控制的可解释关系。"
+        "page_goal": "模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。"
       },
       "preview_contract": {
         "route_kind": "student_demo",
@@ -561,33 +520,18 @@
         "template": "pressure_table_board",
         "regions": [
           {
-            "id": "intro",
+            "id": "table",
             "width": "full",
             "order": 1
           },
           {
-            "id": "table",
-            "width": "full",
-            "order": 2
-          },
-          {
             "id": "activity",
             "width": "full",
-            "order": 3
+            "order": 2
           }
         ]
       },
       "modules": [
-        {
-          "id": "pressure-intro",
-          "title": "模型压力说明",
-          "region": "intro",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "intro"
-          }
-        },
         {
           "id": "pressure-table",
           "title": "单一模型压力表",
@@ -612,10 +556,6 @@
         }
       ],
       "content_blocks": {
-        "intro": {
-          "type": "plain_text",
-          "body": "模型压力来自模型独自承担的任务过重，而不是模型失去价值。"
-        },
         "pressure_table": {
           "type": "native_table",
           "columns": [
@@ -643,7 +583,6 @@
         }
       },
       "evidence_sequence": [
-        "压力来源总句",
         "三类压力表",
         "完整现象匹配题"
       ],
@@ -751,7 +690,7 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "把复杂链路现象归类为模型压力来源。"
+        "page_goal": "模型压力来自模型独自承担的任务过重，而不是模型失去价值。"
       },
       "preview_contract": {
         "route_kind": "student_demo",
@@ -823,11 +762,11 @@
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "名义模型 K_m=0.18,T_m=8.0s，真实对象 K_a=0.125,T_a=11.5s。同一舵角序列输入后，名义模型预测更快转向，真实对象转向较慢。"
+          "body": "名义模型 $K_m=0.18$，$T_m=8.0\\ \\mathrm{s}$，真实对象 $K_a=0.125$，$T_a=11.5\\ \\mathrm{s}$。同一舵角序列输入后，名义模型预测更快转向，真实对象转向较慢。"
         },
         "figure_reading": {
           "type": "plain_text",
-          "body": "先看红色名义预测和黑色真实对象的后段分离，再读最大预测误差约 14.04°；最后看蓝色数据修正曲线把最大误差降至约 5.48°。数据修正改善了当前预测，但还不能证明后段工况一定可信。"
+          "body": "先看红色名义预测和黑色真实对象的后段分离，再读最大预测误差约 $14.04^\\circ$；最后看蓝色数据修正曲线把最大误差降至约 $5.48^\\circ$。数据修正改善了当前预测，但还不能证明后段工况一定可信。"
         }
       },
       "evidence_sequence": [
@@ -1475,11 +1414,12 @@
           "items": [
             {
               "title": "离散模型",
-              "body": "使用 r_{j+1}=a r_j+bδ_j+c，其中本页的 r_j 表示航向角速度，不表示参考轨迹；δ_j 是舵角，c 吸收短时扰动偏置。"
+              "body": "使用离散模型 $r_{j+1}=a r_j+b\\delta_j+c$，其中本页的 $r_j$ 表示航向角速度，不表示参考轨迹；$\\delta_j$ 是舵角，$c$ 吸收短时扰动偏置。"
             },
             {
               "title": "参数换算",
-              "body": "估计得到 a,b,c 后，换算 T_hat=Δt/(1-a_hat)，K_hat=b_hat*T_hat/Δt，d_hat=c_hat/Δt。"
+              "body": "估计得到 $\\hat a_k,\\hat b_k,\\hat c_k$ 后，换算连续对象有效参数。",
+              "formula": "\\hat T_k=\\frac{\\Delta t}{1-\\hat a_k},\\qquad \\hat K_k=\\frac{\\hat b_k\\hat T_k}{\\Delta t},\\qquad \\hat d_k=\\frac{\\hat c_k}{\\Delta t}"
             },
             {
               "title": "激励不足",
@@ -1487,11 +1427,11 @@
             },
             {
               "title": "工程保护",
-              "body": "需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。"
+              "body": "工程上需要参数投影、平滑和保守预测，避免短时数据让模型突然跳到不合理范围。"
             },
             {
               "title": "局部责任",
-              "body": "数据承担更新预测模型的局部职责，不替代 MPC 的目标函数、约束和安全边界。"
+              "body": "本页结论是数据承担“更新预测模型”的局部职责，不替代 MPC 的目标函数、约束和安全边界。"
             }
           ]
         }
@@ -1966,7 +1906,7 @@
       "content_blocks": {
         "problem": {
           "type": "plain_text",
-          "body": "名义模型 G_m(s)=K_m/(T_m s+1)，K_m=0.18，T_m=8.0s。真实对象从 K=0.18,T=8.0s 漂移到 K=0.065,T=18.0s；漂移从 t=28s 到 t=108s，横流扰动从 t=34s 附近进入，规划参考在 t=45s、78s、122s 和 152s 调整。"
+          "body": "名义模型 $G_m(s)=K_m/(T_m s+1)$，$K_m=0.18$，$T_m=8.0\\ \\mathrm{s}$。真实对象从 $K=0.18,T=8.0\\ \\mathrm{s}$ 漂移到 $K=0.065,T=18.0\\ \\mathrm{s}$；漂移从 $t=28\\ \\mathrm{s}$ 到 $t=108\\ \\mathrm{s}$，横流扰动从 $t=34\\ \\mathrm{s}$ 附近进入，规划参考在 $t=45\\ \\mathrm{s}$、$78\\ \\mathrm{s}$、$122\\ \\mathrm{s}$ 和 $152\\ \\mathrm{s}$ 调整。"
         },
         "route_table": {
           "type": "native_table",

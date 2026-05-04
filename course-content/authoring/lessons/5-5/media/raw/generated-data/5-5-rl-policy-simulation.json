@@ -1,0 +1,31 @@
+{
+  "seed": 5505,
+  "toy": {
+    "learned_final_abs_error": 0.030000000000000027,
+    "proportional_final_abs_error": 0.030000000000000027,
+    "random_final_abs_error": 0.08000000000000007,
+    "learned_total_reward": -5.536128000000004,
+    "proportional_total_reward": -5.536128000000004,
+    "random_total_reward": -21.962992
+  },
+  "case": {
+    "traditional_rule": {
+      "mean_cost": 0.4900146471289667,
+      "near_events": 0,
+      "mean_clearance": 0.7632925376390605,
+      "action_changes": 175
+    },
+    "learned_policy": {
+      "mean_cost": 0.46680530601129655,
+      "near_events": 0,
+      "mean_clearance": 0.6481934752158408,
+      "action_changes": 159
+    },
+    "oracle": {
+      "mean_cost": 0.4533004015751623,
+      "near_events": 0,
+      "mean_clearance": 0.657100490960415,
+      "action_changes": 159
+    }
+  }
+}
