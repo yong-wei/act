@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T02:22:14.015309Z",
+  "lesson_id": "4-3",
+  "node_id": "首轮验证最小读数逻辑_4_43004",
+  "node_name": "首轮验证最小读数逻辑",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果呈现时域、频域、控制峰值和下一轮调整优先，文本与读数逻辑可接受。"
+}

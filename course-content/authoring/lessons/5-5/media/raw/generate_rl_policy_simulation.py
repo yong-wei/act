@@ -9,6 +9,9 @@ from matplotlib import font_manager
 
 
 SEED = 5505
+DIRECT_RL_SEED = 5516
+SCHEDULER_RL_SEED = 5530
+EVALUATION_SEED = 5599
 RAW_DIR = Path(__file__).resolve().parent
 LESSON_DIR = RAW_DIR.parent.parent
 PROCESSED_DIR = LESSON_DIR / 'media' / 'processed'
@@ -117,7 +120,7 @@ def wrap_degrees(angle: float) -> float:
   return float((angle + 180.0) % 360.0 - 180.0)
 
 
-HEADING_ACTIONS = np.array([-1.5, 0.0, 1.5])
+HEADING_ACTIONS = np.array([-3.0, -1.5, 0.0, 1.5, 3.0])
 PID_GAIN_PROFILES = [
   {'name': '保守', 'kp': 0.64, 'kd': 6.80},
   {'name': '常规', 'kp': 0.90, 'kd': 4.60},
@@ -127,14 +130,39 @@ PID_GAIN_PROFILES = [
 DT = 0.5
 MAX_DELTA = 25.0
 MAX_DELTA_STEP = 1.5
+ERROR_BINS = np.array([-35.0, -24.0, -16.0, -10.0, -6.0, -3.0, -1.5, 1.5, 3.0, 6.0, 10.0, 16.0, 24.0, 35.0])
+YAW_RATE_BINS = np.array([-4.0, -2.5, -1.4, -0.7, -0.25, 0.25, 0.7, 1.4, 2.5, 4.0])
+RUDDER_BINS = np.array([-24.0, -18.0, -12.0, -7.0, -3.0, 3.0, 7.0, 12.0, 18.0, 24.0])
+DISTURBANCE_BINS = np.array([-0.35, -0.18, -0.08, 0.08, 0.18, 0.35])
 
 
 def heading_state_index(error: float, yaw_rate: float, rudder: float, disturbance: float) -> tuple[int, int, int, int]:
+  error_bin = int(np.digitize(error, ERROR_BINS))
+  rate_bin = int(np.digitize(yaw_rate, YAW_RATE_BINS))
+  rudder_bin = int(np.digitize(rudder, RUDDER_BINS))
+  disturbance_bin = int(np.digitize(disturbance, DISTURBANCE_BINS))
+  return error_bin, rate_bin, rudder_bin, disturbance_bin
+
+
+def heading_state_shape() -> tuple[int, int, int, int]:
+  return (
+    len(ERROR_BINS) + 1,
+    len(YAW_RATE_BINS) + 1,
+    len(RUDDER_BINS) + 1,
+    len(DISTURBANCE_BINS) + 1,
+  )
+
+
+def scheduler_state_index(error: float, yaw_rate: float, rudder: float, disturbance: float) -> tuple[int, int, int, int]:
   error_bin = int(np.digitize(error, [-22.0, -12.0, -5.0, 5.0, 12.0, 22.0]))
   rate_bin = int(np.digitize(yaw_rate, [-2.0, -0.6, 0.6, 2.0]))
   rudder_bin = int(np.digitize(rudder, [-12.0, -4.0, 4.0, 12.0]))
   disturbance_bin = int(np.digitize(disturbance, [-0.12, 0.12]))
   return error_bin, rate_bin, rudder_bin, disturbance_bin
+
+
+def scheduler_state_shape() -> tuple[int, int, int, int]:
+  return (7, 5, 5, 3)
 
 
 def pid_rudder(
@@ -188,14 +216,31 @@ def edge_environment(params: dict, time: float, step: int, rng: np.random.Genera
   return float(t_const), float(gain), float(disturbance)
 
 
-def heading_reward(error: float, yaw_rate: float, rudder: float, rudder_step: float, fallback: bool) -> float:
-  settled_bonus = 2.4 if abs(error) < 1.2 and abs(yaw_rate) < 0.12 and abs(rudder) < 5.0 else 0.0
+def heading_reward(
+  previous_error: float,
+  error: float,
+  yaw_rate: float,
+  rudder: float,
+  rudder_step: float,
+  fallback: bool,
+  pid_candidate: float,
+) -> float:
+  progress = abs(previous_error) - abs(error)
+  wrong_direction_penalty = 3.5 if abs(previous_error) > 5.0 and np.sign(rudder) != np.sign(previous_error) else 0.0
+  crossing_penalty = 5.0 if previous_error * error < 0.0 and abs(error) > 2.0 else 0.0
+  overdrive = max(0.0, abs(rudder) - abs(pid_candidate) - 3.0)
+  overdrive_penalty = 0.12 * overdrive**2
+  settled_bonus = 3.0 if abs(error) < 1.2 and abs(yaw_rate) < 0.12 and abs(rudder) < 6.0 else 0.0
   safety_penalty = 8.0 if fallback else 0.0
   return float(
-    -0.045 * error**2
-    -0.08 * yaw_rate**2
-    -0.008 * rudder**2
-    -0.10 * rudder_step**2
+    1.65 * progress
+    -0.044 * error**2
+    -0.075 * yaw_rate**2
+    -0.0085 * rudder**2
+    -0.075 * rudder_step**2
+    -wrong_direction_penalty
+    -crossing_penalty
+    -overdrive_penalty
     -safety_penalty
     + settled_bonus
   )
@@ -233,13 +278,15 @@ def run_heading_episode(
   params: dict | None = None,
 ) -> dict:
   if params is None:
+    turn_sign = float(rng.choice([-1.0, 1.0]))
     params = {
-      'target': float(rng.uniform(-35.0, 35.0)),
-      'heading': float(rng.uniform(-28.0, 28.0)),
-      'yaw_rate': float(rng.normal(0.0, 0.25)),
-      't_const': float(rng.uniform(8.0, 13.0)),
-      'gain': float(rng.uniform(0.10, 0.16)),
-      'disturbance': float(rng.uniform(-0.18, 0.18)),
+      'target': turn_sign * float(rng.uniform(16.0, 34.0)),
+      'heading': float(rng.uniform(-10.0, 12.0)),
+      'yaw_rate': float(rng.normal(0.0, 0.24)),
+      't_const': float(rng.uniform(8.5, 13.8)),
+      'gain': float(rng.uniform(0.09, 0.15)),
+      'disturbance': float(rng.uniform(-0.10, 0.14)),
+      'edge_scenario': True,
     }
   heading = params['heading']
   yaw_rate = params['yaw_rate']
@@ -284,7 +331,7 @@ def run_heading_episode(
       disturbance,
     )
     next_error = wrap_degrees(target - next_heading)
-    reward = heading_reward(next_error, next_yaw_rate, next_rudder, rudder_step, fallback)
+    reward = heading_reward(error, next_error, next_yaw_rate, next_rudder, rudder_step, fallback, pid_candidate)
 
     if train:
       next_state = heading_state_index(next_error, next_yaw_rate, next_rudder, disturbance)
@@ -308,14 +355,17 @@ def run_heading_episode(
 
 
 def train_heading_policy(rng: np.random.Generator) -> dict:
-  q_table = np.zeros((7, 5, 5, 3, len(HEADING_ACTIONS)))
+  q_table = np.zeros(heading_state_shape() + (len(HEADING_ACTIONS),))
   rewards: list[float] = []
   fallbacks: list[int] = []
-  for episode in range(900):
-    epsilon = max(0.04, 0.42 * (1.0 - episode / 900))
-    result = run_heading_episode(rng, q_table, epsilon, train=True, safety_shell=True)
+  for episode in range(5000):
+    epsilon = max(0.03, 0.48 * (1.0 - episode / 5000))
+    result = run_heading_episode(rng, q_table, epsilon, train=True, safety_shell=False)
     rewards.append(float(result['total_reward']))
-    fallbacks.append(int(result['fallback_count']))
+    if episode % 4 == 0:
+      shell_probe = run_heading_episode(rng, q_table, 0.0, train=False, safety_shell=True)
+      fallback_count = int(shell_probe['fallback_count'])
+    fallbacks.append(fallback_count)
   return {
     'q': q_table,
     'episode_rewards': rewards,
@@ -409,7 +459,7 @@ def run_rl_pid_episode(
     target = target_at(params, time)
     t_const, gain, disturbance = edge_environment(params, time, step, rng)
     error = wrap_degrees(target - heading)
-    state = heading_state_index(error, yaw_rate, rudder, disturbance)
+    state = scheduler_state_index(error, yaw_rate, rudder, disturbance)
     if train and rng.random() < epsilon:
       profile_idx = int(rng.integers(0, len(PID_GAIN_PROFILES)))
     else:
@@ -422,7 +472,7 @@ def run_rl_pid_episode(
     reward = scheduler_reward(next_error, next_yaw_rate, next_rudder, rudder_step, profile_idx != prev_profile_idx)
 
     if train:
-      next_state = heading_state_index(next_error, next_yaw_rate, next_rudder, disturbance)
+      next_state = scheduler_state_index(next_error, next_yaw_rate, next_rudder, disturbance)
       q_table[state + (profile_idx,)] += alpha * (
         reward + gamma * np.max(q_table[next_state]) - q_table[state + (profile_idx,)]
       )
@@ -445,10 +495,10 @@ def run_rl_pid_episode(
 
 
 def train_pid_scheduler(rng: np.random.Generator) -> dict:
-  q_table = np.zeros((7, 5, 5, 3, len(PID_GAIN_PROFILES)))
+  q_table = np.zeros(scheduler_state_shape() + (len(PID_GAIN_PROFILES),))
   rewards: list[float] = []
-  for episode in range(1400):
-    epsilon = max(0.03, 0.46 * (1.0 - episode / 1400))
+  for episode in range(2200):
+    epsilon = max(0.025, 0.46 * (1.0 - episode / 2200))
     result = run_rl_pid_episode(rng, q_table, epsilon, train=True)
     rewards.append(float(result['total_reward']))
   return {
@@ -658,17 +708,25 @@ def plot_heading_evaluation(evaluation: dict, output: Path) -> None:
 
 def main() -> None:
   configure_fonts()
-  rng = np.random.default_rng(SEED)
+  toy_rng = np.random.default_rng(SEED)
+  direct_rng = np.random.default_rng(DIRECT_RL_SEED)
+  scheduler_rng = np.random.default_rng(SCHEDULER_RL_SEED)
+  evaluation_rng = np.random.default_rng(EVALUATION_SEED)
   DATA_DIR.mkdir(parents=True, exist_ok=True)
   PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-  toy = run_toy_q_learning(rng)
-  heading_training = train_heading_policy(rng)
-  scheduler_training = train_pid_scheduler(rng)
-  heading_evaluation = evaluate_heading_controllers(rng, heading_training['q'], scheduler_training['q'])
+  toy = run_toy_q_learning(toy_rng)
+  heading_training = train_heading_policy(direct_rng)
+  scheduler_training = train_pid_scheduler(scheduler_rng)
+  heading_evaluation = evaluate_heading_controllers(evaluation_rng, heading_training['q'], scheduler_training['q'])
 
   metrics = {
-    'seed': SEED,
+    'seeds': {
+      'toy': SEED,
+      'direct_rl': DIRECT_RL_SEED,
+      'rl_pid_scheduler': SCHEDULER_RL_SEED,
+      'evaluation': EVALUATION_SEED,
+    },
     'toy': {
       'learned_final_abs_error': toy['learned_rollout']['final_abs_error'],
       'proportional_final_abs_error': toy['proportional_rollout']['final_abs_error'],

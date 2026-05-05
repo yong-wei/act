@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T02:17:40.834970Z",
+  "lesson_id": "4-3",
+  "node_id": "单结构与复合结构分流条件_4_43002",
+  "node_name": "单结构与复合结构分流条件",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果清晰呈现主矛盾、已暴露代价、通道条件到单结构/复合结构的分流判断，符合 source/prompt。"
+}

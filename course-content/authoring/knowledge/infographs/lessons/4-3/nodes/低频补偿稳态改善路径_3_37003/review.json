@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T01:40:41.880431Z",
+  "lesson_id": "4-3",
+  "node_id": "低频补偿稳态改善路径_3_37003",
+  "node_name": "低频补偿稳态改善路径",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果包含 PI/滞后两条低频补偿路径、Bode 低频增益与代价复核，符合 source/prompt。"
+}

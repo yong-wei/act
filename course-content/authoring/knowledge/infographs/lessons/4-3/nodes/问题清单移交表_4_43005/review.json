@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T02:27:09.871475Z",
+  "lesson_id": "4-3",
+  "node_id": "问题清单移交表_4_43005",
+  "node_name": "问题清单移交表",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果呈现首轮验证读数、已满足目标、已暴露代价与下一轮调整移交表，符合 source/prompt。"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T01:28:50.605727Z",
+  "lesson_id": "4-3",
+  "node_id": "结构作用点与代价来源对照_4_42004",
+  "node_name": "结构作用点与代价来源对照",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果可见中文、公式、闭环作用点与代价链均符合 source/prompt。"
+}

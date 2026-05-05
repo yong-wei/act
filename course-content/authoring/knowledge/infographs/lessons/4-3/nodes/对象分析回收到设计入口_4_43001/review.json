@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T02:15:37.184012Z",
+  "lesson_id": "4-3",
+  "node_id": "对象分析回收到设计入口_4_43001",
+  "node_name": "对象分析回收到设计入口",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果以客船控制台和对象分析到设计入口链为主，中文标签与公式锚点可接受。"
+}

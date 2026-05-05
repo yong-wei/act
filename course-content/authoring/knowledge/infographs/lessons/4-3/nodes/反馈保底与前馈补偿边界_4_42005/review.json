@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T01:33:38.316336Z",
+  "lesson_id": "4-3",
+  "node_id": "反馈保底与前馈补偿边界_4_42005",
+  "node_name": "反馈保底与前馈补偿边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "图像生成结果可见中文、公式、反馈主线和前馈扰动补偿边界符合 source/prompt。"
+}
