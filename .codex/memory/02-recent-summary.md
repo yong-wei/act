@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-04-20
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，模块 4 的 `4-2` 则已完成 13 步整改并沉淀出“KaTeX 公式字符串不要 `String.raw` + 双反斜杠、正式页媒体只读 runtime 路径”的新护栏；同时作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界。
+最后更新: 2026-05-04
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，模块 4 的 `4-2` 则已完成 13 步整改并沉淀出“KaTeX 公式字符串不要 `String.raw` + 双反斜杠、正式页媒体只读 runtime 路径”的新护栏；同时作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界；互动课程 SVG marker 已完成首轮生产迁移和守护测试。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,7 +15,7 @@
 
 ## 最近最重要的稳定变化
 
-- 2026-05-03 已为互动课程 SVG 标记抽出共享草案：`src/features/interactive/shared/interactive-svg-markers.tsx` 统一管理箭头、圆点、菱形、起始点和极点叉，临时验收页为 `/review/unit-5-2-arrow-markers`。已确认的宽开口箭头采用弯钩式两段 path，并通过放大 marker `viewBox` 保留粗线宽下的圆角；下一步计划把 5-2、3-6、课程入口知识图谱和 Control Odyssey 方框图等互动课程局部 `<marker>` 迁移到共享类。后续处理互动课程 SVG 箭头或点标时，先读 [70-workflows/69-interactive-svg-marker-unification.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/69-interactive-svg-marker-unification.md)
+- 2026-05-04 互动课程 SVG marker 已完成首轮生产迁移：`src/features/interactive/shared/interactive-svg-markers.tsx` 统一管理生产细长箭头、历史评审宽开口箭头、圆点、菱形、起始点、极点叉和 ECharts 点标 helper；4-1 入口知识图谱、4-1 共享控制图表点标、3-6 测速反馈结构图、5-2 相平面与扰动边界、Control Odyssey 方框图已迁移到共享类。新增 `interactive-svg-markers.test.ts` 守护生产路径不得手写私有 `<marker>`，生产箭头统一用 `arrow-slim-concave`。已通过定向 Vitest、4-1 strict review、lint、build 与浏览器抽查。后续处理互动课程 SVG 箭头或点标时，先读 [70-workflows/69-interactive-svg-marker-unification.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/69-interactive-svg-marker-unification.md)
 
 - 2026-04-20 模块4后半链已重构为“显式带优化思想的控制器设计链”：`4-4` 固定为固定结构下的优化建模，`4-5` 固定为参数约束翻译与带约束参数优化实践，`4-6` 固定为固定结构优化边界、结构编码入口与场景迁移，`4-7` 固定为完整工程设计闭环实践；同时轻量回修 `4-1`，补入 `ITSE` 与控制量代价，轻量回修 `4-3`，补入参数优化入口卡。后续制作 `4-4 / 4-5 / 4-6 / 4-7` 讲义、教案、互动课程或媒体清单时，以 [ADR-2026-04-20-module4-optimization-chain.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-20-module4-optimization-chain.md) 和 `course-content/syllabus-refactor/unit-design-details/module4.md` 为准，不再沿用“先权衡、再修正、再迁移”的旧口径。
 

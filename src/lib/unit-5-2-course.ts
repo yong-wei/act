@@ -147,7 +147,7 @@ function pageTypeFromInteraction(stepId: string, interactionKind: string): UNIT_
 const STEP_SOURCE = [
   ['step-01', 'B', '非线性边界现象与三种观察工具', '建立非线性边界下三种观察工具的分工。', 'none'],
   ['step-02', 'O', '本次课程目标', '只呈现本次课程能力目标。', 'none'],
-  ['step-03', 'P1', '前置基础快测', '只诊断基础概念，不提前考察本讲新知识。', 'quiz_group'],
+  ['step-03', 'P1', '前置基础快测', '检查状态变量、正弦信号和低通滤波三个基础概念。', 'quiz_group'],
   ['step-04', 'P2', '工作点附近的局部线性化', '固定工作点、小扰动和局部模型边界。', 'activity_card_set'],
   ['step-05', 'P2', '动态系统线性化与局部结论', '把动态线性化与局部结论边界绑定。', 'single_choice'],
   ['step-06', 'P2', '相平面中的状态轨迹与周期行为', '用三类二阶模型说明相平面轨迹由状态方程和初始点决定。', 'parameter_slider'],

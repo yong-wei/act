@@ -146,7 +146,11 @@ function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
 }
 
 function ManifestContentTitle({ children }: { children: ReactNode }) {
-  return <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{children}</div>;
+  return (
+    <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">
+      {typeof children === 'string' ? renderInlineContent(children) : children}
+    </div>
+  );
 }
 
 function blockFor(step: InteractiveRuntimeStepManifest, payload: ContentRecord) {
@@ -218,16 +222,18 @@ function valueAtField(source: unknown, field: unknown) {
 function getFormulaItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
   const direct = payload.formula ?? payload.formulas;
+  const keyedBlock = blockFor(step, payload);
   const fallbackBlock = asRecord(blockByKey(step, 'formula_block'));
   const moduleBlock = blockByModuleId(step, module);
   const keyFormulas = asStringArray(step.contentBlocks.key_formulas);
   const formulaModuleIndex = moduleIndexByKind(step, module, ['formula-card']);
   const requestedField = Object.prototype.hasOwnProperty.call(payload, 'field') ? payload.field : 'latex';
   const source = direct
-    ?? valueAtField(blockFor(step, payload), requestedField)
-    ?? valueAtField(blockFor(step, payload), 'formula')
-    ?? valueAtField(blockFor(step, payload), 'latex')
-    ?? valueAtField(blockFor(step, payload), 'math')
+    ?? valueAtField(keyedBlock, requestedField)
+    ?? valueAtField(keyedBlock, 'formula')
+    ?? valueAtField(keyedBlock, 'formulas')
+    ?? valueAtField(keyedBlock, 'latex')
+    ?? valueAtField(keyedBlock, 'math')
     ?? valueAtField(moduleBlock, requestedField)
     ?? valueAtField(moduleBlock, 'formula')
     ?? valueAtField(moduleBlock, 'latex')
@@ -253,12 +259,14 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   return items.filter(Boolean);
 }
 
-function formulaNotes(module: InteractiveRuntimeModuleManifest) {
+function formulaNotes(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const hasExplicitFormula = Boolean(module.payload.formula ?? module.payload.formulas);
+  const keyedBlock = asRecord(blockFor(step, module.payload));
+  const blockNotes = textFieldsFromPayload(keyedBlock, ['note', 'explanation', 'text']);
   return textFieldsFromPayload(
     module.payload,
     hasExplicitFormula ? ['text', 'note', 'explanation'] : ['note', 'explanation'],
-  );
+  ).concat(blockNotes);
 }
 
 function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
@@ -897,10 +905,10 @@ export function createManifestContentModuleRegistry(extra: {
       return <CardGrid title="问题组" items={items} />;
     },
     'formula-card': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(module)} />
+      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(step, module)} />
     ),
     'formula-card-row': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(module)} />
+      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(step, module)} />
     ),
     'formula-chain': ({ step, module }) => {
       const content = summaryContent(step, module);

@@ -170,8 +170,15 @@ function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
   return stepManifest.interactionSpec.activityCards ?? [];
 }
 
+function hasAnswerPrefix(title: string) {
+  return /^作答\s*\d+\s*[：:]/.test(title) || /^作答\s*\d+\b/.test(title);
+}
+
 function cardTitle(card: InteractiveRuntimeActivityCardManifest, index: number) {
-  return card.title?.trim() || `作答 ${index + 1}`;
+  const baseTitle = card.title?.trim() ?? '';
+  if (hasAnswerPrefix(baseTitle)) return baseTitle;
+  const prefix = `作答${index + 1}`;
+  return baseTitle ? `${prefix}：${baseTitle}` : prefix;
 }
 
 function CardTitleWithPrompt({ card, index }: { card: InteractiveRuntimeActivityCardManifest; index: number }) {

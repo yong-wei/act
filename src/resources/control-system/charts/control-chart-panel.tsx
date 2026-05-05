@@ -109,7 +109,7 @@ export function ControlChartPanel({
   return (
     <div className={`premium-lesson-tone-block premium-tone-slate ${className}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+        <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{title}</div>
         {meta ? <div className="premium-lesson-caption max-w-[72%] text-right text-[11px]">{meta}</div> : null}
         {isFallback ? <div className="premium-lesson-caption text-[11px]">fixture fallback</div> : null}
       </div>

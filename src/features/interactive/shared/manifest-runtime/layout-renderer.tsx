@@ -1,4 +1,5 @@
 import { Fragment, createElement, type ReactNode } from 'react';
+import { InlineMath } from 'react-katex';
 
 import type {
   InteractiveRuntimeManifest,
@@ -164,6 +165,24 @@ function getStepDescription(step: InteractiveRuntimeStepManifest) {
   return candidates.find((candidate) => candidate?.trim())?.trim() ?? '本页围绕当前主题组织对象、证据和判断任务。';
 }
 
+function normalizeMath(value: string) {
+  return value
+    .trim()
+    .replace(/^\$/, '')
+    .replace(/\$$/, '')
+    .replace(/\\\\/g, '\\');
+}
+
+function renderLayoutInlineContent(text: string) {
+  const parts = text.split(/(\$[^$]+\$)/g).filter(Boolean);
+  return parts.map((part, index) => {
+    if (part.startsWith('$') && part.endsWith('$')) {
+      return createElement(InlineMath, { key: `${part}-${index}`, math: normalizeMath(part) });
+    }
+    return createElement(Fragment, { key: `${part}-${index}` }, part);
+  });
+}
+
 function renderStepTitleModule({
   manifest,
   step,
@@ -185,8 +204,8 @@ function renderStepTitleModule({
     },
     [
       createElement('div', { key: 'kicker', className: 'premium-lesson-kicker' }, pageLabel),
-      createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, step.title),
-      createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, getStepDescription(step)),
+      createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, renderLayoutInlineContent(step.title)),
+      createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, renderLayoutInlineContent(getStepDescription(step))),
     ],
   );
 }

@@ -4,13 +4,21 @@ import { useMemo, useState } from 'react';
 import { Network } from 'lucide-react';
 
 import {
+  InteractiveSvgMarkerDefs,
+  InteractiveSvgMarkerRegistry,
+  INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+  type InteractiveSvgMarkerKind,
+} from '@/features/interactive/shared/interactive-svg-markers';
+import {
   createLessonKnowledgeMapLayout,
   getVisibleKnowledgeMapLinks,
   type KnowledgeMapInputNode,
 } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
 import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
 
-const ARROW_MARKER_ID = 'lesson-entry-knowledge-map-arrow';
+const ACTIVE_ARROW_MARKER_PREFIX = 'lesson-entry-knowledge-map-active';
+const MUTED_ARROW_MARKER_PREFIX = 'lesson-entry-knowledge-map-muted';
+const KNOWLEDGE_MAP_ARROW_KINDS: InteractiveSvgMarkerKind[] = [INTERACTIVE_SVG_PRODUCTION_ARROW_KIND];
 
 const NODE_TONES: Record<string, { bar: string; badge: string }> = {
   THEORY: {
@@ -119,13 +127,21 @@ export function LessonEntryKnowledgeMap({
             height={layout.height}
             viewBox={`0 0 ${layout.width} ${layout.height}`}
           >
-            <defs>
-              <marker id={ARROW_MARKER_ID} markerWidth="14" markerHeight="14" refX="12" refY="6" orient="auto">
-                <path d="M0,0 L14,6 L0,12 z" fill="hsl(var(--premium-lesson-graph-edge-active))" />
-              </marker>
-            </defs>
+            <InteractiveSvgMarkerDefs
+              prefix={ACTIVE_ARROW_MARKER_PREFIX}
+              color="hsl(var(--premium-lesson-graph-edge-active))"
+              lineStrokeWidth={2.8}
+              kinds={KNOWLEDGE_MAP_ARROW_KINDS}
+            />
+            <InteractiveSvgMarkerDefs
+              prefix={MUTED_ARROW_MARKER_PREFIX}
+              color="hsl(var(--premium-lesson-graph-edge))"
+              lineStrokeWidth={1.35}
+              kinds={KNOWLEDGE_MAP_ARROW_KINDS}
+            />
             {visibleLinks.map((link) => {
               const highlighted = selectedNodeId === link.sourceId || selectedNodeId === link.targetId;
+              const arrowPrefix = highlighted ? ACTIVE_ARROW_MARKER_PREFIX : MUTED_ARROW_MARKER_PREFIX;
               return (
                 <g key={link.id}>
                   <line
@@ -136,7 +152,7 @@ export function LessonEntryKnowledgeMap({
                     stroke={highlighted ? 'hsl(var(--premium-lesson-graph-edge-active))' : 'hsl(var(--premium-lesson-graph-edge))'}
                     strokeWidth={highlighted ? 2.8 : 1.35}
                     opacity={highlighted ? 0.95 : 0.34}
-                    markerEnd={`url(#${ARROW_MARKER_ID})`}
+                    markerEnd={InteractiveSvgMarkerRegistry.markerUrl(INTERACTIVE_SVG_PRODUCTION_ARROW_KIND, arrowPrefix)}
                   />
                   {link.relationLabel ? (
                     <g>

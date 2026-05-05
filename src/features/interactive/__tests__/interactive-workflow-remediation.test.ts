@@ -31,6 +31,14 @@ describe('interactive workflow remediation guards', () => {
     expect(implementationSkill).toContain('忠实反映契约中的内容和逻辑');
   });
 
+  it('requires Rust-driven panel titles to be disciplinary and rejects engineering-form labels', () => {
+    const implementationSkill = readRepoFile('.codex/skills/interactive-lesson-implementation/SKILL.md');
+
+    expect(implementationSkill).toContain('Rust 驱动面板的标题必须使用与页面内容相关、含义明确的学科标题');
+    expect(implementationSkill).toContain('不得使用“Rust 面板”“三标签面板”“对照面板”');
+    expect(implementationSkill).toContain('面板标题之外不得追加与教学对象无关的工程实现说明');
+  });
+
   it('teaches review and audit tools to reject stale review state, visible inline AI, insufficient content sources and static-image downgrades', () => {
     const reviewSkill = readRepoFile('.codex/skills/lesson-content-review/SKILL.md');
     const reviewScript = readRepoFile('course-content/scripts/review_lesson_content.py');

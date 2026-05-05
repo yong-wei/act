@@ -47,6 +47,10 @@ export interface NonlinearAnalysisResult {
   characteristic?: {
     curve: NonlinearPoint[];
     sineEnvelope: NonlinearPoint[];
+    signalComparison?: {
+      input: NonlinearPoint[];
+      output: NonlinearPoint[];
+    };
     describingFunction: { re: number; im: number };
   };
   negativeInverse?: {
@@ -54,6 +58,7 @@ export interface NonlinearAnalysisResult {
       id: string;
       label: string;
       points: NonlinearComplexPoint[];
+      selectedPoint?: NonlinearComplexPoint & { amplitude: number };
       marks: Record<string, string>;
     }>;
   };
@@ -62,6 +67,8 @@ export interface NonlinearAnalysisResult {
     deltaDDeg: number;
     maxDeltaDeg: number;
     saturationActive: boolean;
+    minDistanceM: number;
+    collisionActive: boolean;
     safetyConstraintSatisfied: boolean;
     headingCurves: Array<{
       id: string;

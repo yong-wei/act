@@ -17,6 +17,7 @@ import { createManifestContentModuleRegistry } from '@/features/interactive/shar
 import {
   createManifestStudentActivityRegistry,
   createManifestTeacherActivityRegistry,
+  getInteractiveRevealLayerCount,
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
   type ManifestStepResponse,
@@ -292,6 +293,155 @@ describe('interactive runtime manifest', () => {
     expect(html.indexOf('第 01 页')).toBeLessThan(html.indexOf('正文证据'));
     expect(html).toContain('页面标题测试');
     expect(html).toContain('本页描述主内容。');
+  });
+
+  it('renders inline LaTeX in manifest step titles and title descriptions', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-title-math': {
+          title: '对象 $G(s)=K/(Ts+1)$ 参数页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'summary-a',
+              region: 'main',
+              kind: 'summary-card',
+              must_be_visible: true,
+              payload: { text: '正文证据' },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            student_task: '阅读对象参数。',
+            activity_cards: [],
+          },
+          ai_context_spec: {
+            page_goal: '考察 $e(t)=r(t)-y(t)$ 与 $|\\delta|\\le 12^\\circ$。',
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step,
+        moduleRegistry: {
+          'summary-card': () => createElement('div', null, '正文证据'),
+        },
+        extra: undefined,
+      }),
+    );
+
+    expect(html).toContain('data-manifest-step-title="step-title-math"');
+    expect(html).toContain('katex');
+    expect(html).not.toContain('$G(s)=K/(Ts+1)$');
+    expect(html).not.toContain('$e(t)=r(t)-y(t)$');
+    expect(html).not.toContain('$|\\delta|\\le 12^\\circ$');
+  });
+
+  it('renders inline LaTeX in manifest content module titles', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-content-title-math': {
+          title: '正文模块标题公式测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'summary-a',
+              title: '参数 $K_m/T_m$ 说明',
+              region: 'main',
+              kind: 'summary-card',
+              must_be_visible: true,
+              payload: { text: '正文证据' },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('katex');
+    expect(html).not.toContain('$K_m/T_m$');
+    expect(html).toContain('正文证据');
+  });
+
+  it('renders formula-card content from a keyed formulas array with its explanation', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-keyed-formulas': {
+          title: '公式数组测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'model-formula',
+              title: '离散对象关系',
+              region: 'main',
+              kind: 'formula-card',
+              must_be_visible: true,
+              payload: { block_key: 'formula_block' },
+            },
+          ],
+          content_blocks: {
+            formula_block: {
+              type: 'formula_group',
+              formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'],
+              explanation: '若 $f(\\cdot)$ 和 $h(\\cdot)$ 的结构可信，就能追踪对象关系。',
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('离散对象关系');
+    expect(html).toContain('katex-display');
+    expect(html).toContain('追踪对象关系');
+    expect(html).not.toContain('$f(\\cdot)$');
   });
 
   it('keeps activity runtime modules out of the static content layout even when a content registry contains a matching renderer', () => {
@@ -1153,6 +1303,60 @@ describe('interactive runtime manifest', () => {
     expect(teacherHtml.match(/哪一项最能解释当前失配？/g)).toHaveLength(1);
   });
 
+  it('adds answer-card prefixes and renders LaTeX in activity titles without duplicating prompts in the card body', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-quiz-math-title': {
+          title: '活动标题公式测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'quiz_group',
+            activity_cards: [
+              {
+                id: 'choice-a',
+                title: '模型 $G(s)$ 判断',
+                prompt: '闭环误差 $e(t)=r(t)-y(t)$ 是什么？',
+                response_kind: 'single_choice',
+                options: ['参考输入与实际输出之间的误差', '执行限幅'],
+                reference_answer: '参考输入与实际输出之间的误差。',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step.id },
+          stepManifest: step,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('作答1：');
+    expect(html).toContain('katex');
+    expect(html).not.toContain('$G(s)$');
+    expect(html).not.toContain('$e(t)=r(t)-y(t)$');
+    expect(html.match(/闭环误差/g)).toHaveLength(1);
+    expect(html.match(/是什么？/g)).toHaveLength(1);
+  });
+
   it('renders teacher activity aggregation by default and hides submitter names until details are opened', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
@@ -1377,6 +1581,44 @@ describe('interactive runtime manifest', () => {
 
     expect(html).toContain('当前教师显影层级：2 / 2');
     expect(html).toContain('disabled=""');
+  });
+
+  it('counts reveal layers declared behind a step-reveal-chain block key', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-block-key-reveal': {
+          title: '显影 block key 测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'diagnostic-reveal',
+              region: 'main',
+              kind: 'step-reveal-chain',
+              must_be_visible: true,
+              payload: { block_key: 'diagnostic_reveal' },
+            },
+          ],
+          content_blocks: {
+            diagnostic_reveal: {
+              layers: ['第一层', '第二层', '第三层', '第四层'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'worked_example_reveal',
+            activity_cards: [],
+          },
+          teacher_controls: {
+            release_activity: 'not_applicable',
+            open_browse: 'not_applicable',
+            teacher_step_reveal: 'teacher_direct',
+            reveal_reference_answer: 'not_applicable',
+          },
+        },
+      },
+    });
+
+    expect(getInteractiveRevealLayerCount(manifest!.steps[0]!)).toBe(4);
   });
 
   it('keeps parameter slider and table builder teacher controls in the shared activity registry', () => {

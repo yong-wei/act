@@ -1,5 +1,6 @@
 import type { EChartsCoreOption } from 'echarts/core';
 
+import { getInteractiveSvgEChartsPointMarker } from '@/features/interactive/shared/interactive-svg-markers';
 import type { ControlAnalysisResult, ControlMetrics } from '../analysis/types';
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
@@ -162,8 +163,10 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
         ? [{
             name: '相角裕度交越',
             type: 'scatter',
-            symbolSize: 10,
-            itemStyle: { color: '#22d3ee' },
+            ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+              size: 10,
+              color: '#22d3ee',
+            }),
             data: [[gainCross, 0]],
           } satisfies ChartSeriesItem]
         : []),
@@ -171,8 +174,10 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
         ? [{
             name: '增益裕度交越',
             type: 'scatter',
-            symbolSize: 10,
-            itemStyle: { color: '#f97316' },
+            ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+              size: 10,
+              color: '#f97316',
+            }),
             data: [[phaseCross, -gainMargin]],
           } satisfies ChartSeriesItem]
         : []),
@@ -197,8 +202,10 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
       ? [{
           name: '相角裕度交越',
           type: 'scatter',
-          symbolSize: 10,
-          itemStyle: { color: '#22d3ee' },
+          ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+            size: 10,
+            color: '#22d3ee',
+          }),
           data: [[gainCross, phaseMargin - 180]],
         } satisfies ChartSeriesItem]
       : []),
@@ -206,8 +213,10 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
       ? [{
           name: '增益裕度交越',
           type: 'scatter',
-          symbolSize: 10,
-          itemStyle: { color: '#f97316' },
+          ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+            size: 10,
+            color: '#f97316',
+          }),
           data: [[phaseCross, -180]],
         } satisfies ChartSeriesItem]
       : []),

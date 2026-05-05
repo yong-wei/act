@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
@@ -9,6 +12,7 @@ import {
 import { applyControlChartTheme } from '@/resources/control-system/charts/control-chart-theme';
 
 const LOW_FREQUENCY_CASE_ID = 'unit37_low_frequency_bode';
+const repoRoot = process.cwd();
 
 const SAMPLE_RESULT: ControlAnalysisResult = {
   metrics: {
@@ -102,5 +106,16 @@ describe('control chart shared presets and themes', () => {
     expect(((darkOption.xAxis as Array<{ axisLabel?: { color?: string } }>)[0]).axisLabel?.color).toBe('rgba(226, 232, 240, 0.75)');
     expect(((lightOption.yAxis as Array<{ nameTextStyle?: { color?: string } }>)[0]).nameTextStyle?.color).toBe('rgba(51, 65, 85, 0.88)');
     expect(((darkOption.yAxis as Array<{ nameTextStyle?: { color?: string } }>)[0]).nameTextStyle?.color).toBe('rgba(226, 232, 240, 0.9)');
+  });
+
+  it('uses module-header title sizing for shared Rust-driven figure panels', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain('premium-lesson-title text-base font-semibold leading-7 tracking-normal');
+    expect(panelSource).not.toContain('premium-lesson-title text-lg font-semibold">{title}');
+    expect(panelSource).not.toContain('premium-lesson-title text-sm font-semibold">{title}');
   });
 });

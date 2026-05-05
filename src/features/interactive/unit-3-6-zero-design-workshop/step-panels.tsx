@@ -9,6 +9,12 @@ import { BlockMath } from 'react-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
+import {
+  InteractiveSvgMarkerDefs,
+  InteractiveSvgMarkerRegistry,
+  INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+  type InteractiveSvgMarkerKind,
+} from '@/features/interactive/shared/interactive-svg-markers';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import {
   UNIT_3_6_LESSON_STEPS,
@@ -36,6 +42,12 @@ import {
 } from './workspace';
 
 type Tone = 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'slate';
+const UNIT_3_6_RATE_FEEDBACK_ARROW_PREFIX = 'unit-3-6-rate-feedback';
+const UNIT_3_6_ARROW_KINDS: InteractiveSvgMarkerKind[] = [INTERACTIVE_SVG_PRODUCTION_ARROW_KIND];
+const UNIT_3_6_RATE_FEEDBACK_ARROW_URL = InteractiveSvgMarkerRegistry.markerUrl(
+  INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+  UNIT_3_6_RATE_FEEDBACK_ARROW_PREFIX,
+);
 
 interface StepSection {
   title: string;
@@ -705,41 +717,42 @@ function UNIT_3_6RateFeedbackStructureDiagram() {
     <div className="rounded-3xl border border-border/60 bg-background/55 px-4 py-4">
       <div className="premium-lesson-title text-sm font-medium">测速反馈原生结构图</div>
       <svg viewBox="0 0 760 250" className="mt-4 w-full overflow-visible rounded-2xl bg-background/70 p-3">
-        <defs>
-          <marker id="unit36-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-            <path d="M0 0L10 5L0 10Z" fill="currentColor" />
-          </marker>
-        </defs>
+        <InteractiveSvgMarkerDefs
+          prefix={UNIT_3_6_RATE_FEEDBACK_ARROW_PREFIX}
+          color="currentColor"
+          lineStrokeWidth={2.2}
+          kinds={UNIT_3_6_ARROW_KINDS}
+        />
 
         <circle cx="72" cy="110" r="22" fill="none" stroke="currentColor" strokeWidth="2" />
         <text x="72" y="101" textAnchor="middle" fontSize="18">+</text>
         <text x="72" y="126" textAnchor="middle" fontSize="18">−</text>
         <text x="30" y="86" fontSize="15">R(s)</text>
-        <line x1="30" y1="110" x2="50" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="30" y1="110" x2="50" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
 
-        <line x1="94" y1="110" x2="176" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="94" y1="110" x2="176" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
         <rect x="176" y="82" width="78" height="56" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
         <text x="215" y="115" textAnchor="middle" fontSize="18">K</text>
 
-        <line x1="254" y1="110" x2="338" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="254" y1="110" x2="338" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
         <circle cx="362" cy="110" r="22" fill="none" stroke="currentColor" strokeWidth="2" />
         <text x="362" y="101" textAnchor="middle" fontSize="18">+</text>
         <text x="362" y="126" textAnchor="middle" fontSize="18">−</text>
 
-        <line x1="384" y1="110" x2="470" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="384" y1="110" x2="470" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
         <rect x="470" y="82" width="110" height="56" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
         <text x="525" y="106" textAnchor="middle" fontSize="16">Gₚ(s)</text>
         <text x="525" y="126" textAnchor="middle" fontSize="15">4 / [s(s+0.8)]</text>
 
-        <line x1="580" y1="110" x2="678" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="580" y1="110" x2="678" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
         <text x="692" y="102" fontSize="15">Y(s)</text>
 
         <line x1="640" y1="110" x2="640" y2="190" stroke="currentColor" strokeWidth="2.2" />
         <rect x="500" y="172" width="88" height="42" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
         <text x="544" y="198" textAnchor="middle" fontSize="16">sKₜ</text>
-        <line x1="500" y1="193" x2="384" y2="193" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
-        <line x1="640" y1="190" x2="588" y2="190" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
-        <line x1="384" y1="193" x2="384" y2="132" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="500" y1="193" x2="384" y2="193" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
+        <line x1="640" y1="190" x2="588" y2="190" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
+        <line x1="384" y1="193" x2="384" y2="132" stroke="currentColor" strokeWidth="2.2" markerEnd={UNIT_3_6_RATE_FEEDBACK_ARROW_URL} />
       </svg>
       <div className="premium-lesson-muted mt-3 text-sm leading-7">
         关键差异不在“前向显式增零点”，而在反馈通道引入速度项，由此先改写等效特征方程中的实极点位置。

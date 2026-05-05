@@ -4,6 +4,12 @@ import React, { useEffect } from 'react';
 import { Lock, Settings2 } from 'lucide-react';
 import { useGameStore } from '../store/game-store';
 import {
+  InteractiveSvgMarkerDefs,
+  InteractiveSvgMarkerRegistry,
+  INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+  type InteractiveSvgMarkerKind,
+} from '@/features/interactive/shared/interactive-svg-markers';
+import {
   CONTROL_BASE_CONTROLLERS,
   CONTROL_MODULES,
   CONTROL_SHOP_CONFIG,
@@ -16,6 +22,10 @@ import { cn } from '@/lib/utils';
 interface TuningPanelProps {
   aiSection?: React.ReactNode;
 }
+
+const CONTROL_ODYSSEY_ACTIVE_ARROW_PREFIX = 'control-odyssey-active';
+const CONTROL_ODYSSEY_MUTED_ARROW_PREFIX = 'control-odyssey-muted';
+const CONTROL_ODYSSEY_ARROW_KINDS: InteractiveSvgMarkerKind[] = [INTERACTIVE_SVG_PRODUCTION_ARROW_KIND];
 
 export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
   const {
@@ -81,8 +91,14 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
   const moduleMutedClass = 'fill-slate-900/40 stroke-slate-700';
   const moduleTextActiveClass = 'text-amber-200';
   const moduleTextMutedClass = 'text-slate-500';
-  const markerActive = 'url(#arrow-active)';
-  const markerMuted = 'url(#arrow-muted)';
+  const markerActive = InteractiveSvgMarkerRegistry.markerUrl(
+    INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+    CONTROL_ODYSSEY_ACTIVE_ARROW_PREFIX,
+  );
+  const markerMuted = InteractiveSvgMarkerRegistry.markerUrl(
+    INTERACTIVE_SVG_PRODUCTION_ARROW_KIND,
+    CONTROL_ODYSSEY_MUTED_ARROW_PREFIX,
+  );
   const pidLineClass = pidEnabled ? lineActiveClass : lineMutedClass;
   const feedforwardLineClass = isAuto && feedforwardEnabled ? lineActiveClass : lineMutedClass;
   const speedFeedbackLineClass = isAuto && speedFeedbackEnabled ? lineActiveClass : lineMutedClass;
@@ -211,30 +227,18 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
         <div className="text-sm text-slate-300 uppercase tracking-wider">控制结构方框图</div>
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-1">
           <svg viewBox="0 -20 760 240" className="w-full h-[240px]">
-            <defs>
-              <marker
-                id="arrow-active"
-                viewBox="0 0 10 10"
-                refX="9"
-                refY="5"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto-start-reverse"
-              >
-                <path d="M 0 0 L 10 5 L 0 10 z" className="fill-cyan-300" />
-              </marker>
-              <marker
-                id="arrow-muted"
-                viewBox="0 0 10 10"
-                refX="9"
-                refY="5"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto-start-reverse"
-              >
-                <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-600" />
-              </marker>
-            </defs>
+            <InteractiveSvgMarkerDefs
+              prefix={CONTROL_ODYSSEY_ACTIVE_ARROW_PREFIX}
+              color="#67e8f9"
+              lineStrokeWidth={2}
+              kinds={CONTROL_ODYSSEY_ARROW_KINDS}
+            />
+            <InteractiveSvgMarkerDefs
+              prefix={CONTROL_ODYSSEY_MUTED_ARROW_PREFIX}
+              color="#475569"
+              lineStrokeWidth={2}
+              kinds={CONTROL_ODYSSEY_ARROW_KINDS}
+            />
             <rect x="10" y="-18" width="740" height="236" rx="12" className="fill-slate-950/60 stroke-slate-800" />
 
             {/* Signals */}

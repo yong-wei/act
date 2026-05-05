@@ -38,6 +38,14 @@ type ContentRegistryExtra = {
 };
 
 const DATA_BASE = '/course-runtime/lessons/5-4/media/generated-data';
+const ROUTE_METHOD_LABELS: Record<string, string> = {
+  traditional_fixed: '传统固定控制',
+  nominal_model_mpc: '名义模型 MPC',
+  data_driven_model_mpc: '数据驱动模型 MPC',
+  traditional: '传统固定控制',
+  nominal: '名义模型 MPC',
+  data: '数据驱动模型 MPC',
+};
 
 function requireUnit54Manifest(manifest: InteractiveRuntimeManifest | null | undefined) {
   if (!manifest) throw new Error('5-4 runtime manifest is required for page rendering.');
@@ -93,6 +101,11 @@ function useRuntimeCsv(filename: string) {
 function numeric(row: CsvRow, key: string) {
   const value = row[key];
   return typeof value === 'number' ? value : Number(value);
+}
+
+function routeMethodLabel(value: unknown) {
+  const key = String(value);
+  return ROUTE_METHOD_LABELS[key] ?? key;
 }
 
 function seriesFrom(rows: CsvRow[], xKey: string, yKey: string, label: string, color: string, dashed = false): CurveSeries {
@@ -342,13 +355,13 @@ function RouteComparePanel({
     onParameterChange?.(stepId, {
       data_source: '5-4-mpc-drift-comparison.csv',
       metrics_source: '5-4-mpc-drift-metrics.csv',
-      route: String(focused.method),
+      route: routeMethodLabel(focused.method),
       time_window: timeWindow,
-      benefit: `${focusedMetricLabel}最低路线：${String(focused.method)} (${numeric(focused, metricFocus).toFixed(1)})`,
+      benefit: `${focusedMetricLabel}最低路线：${routeMethodLabel(focused.method)} (${numeric(focused, metricFocus).toFixed(1)})`,
       cost: `触边比例：${numeric(focused, 'saturation_percent').toFixed(1)}%`,
       metric_focus: focusedMetricLabel,
-      route_visibility: Object.entries(routeVisible).filter(([, value]) => value).map(([key]) => key).join(','),
-      lowest_iae_method: String(best.method),
+      route_visibility: Object.entries(routeVisible).filter(([, value]) => value).map(([key]) => routeMethodLabel(key)).join('，'),
+      lowest_iae_method: routeMethodLabel(best.method),
       lowest_iae: numeric(best, 'IAE').toFixed(1),
     });
   }, [bestFocusedRow, focusedMetricLabel, metricFocus, metricRows, onParameterChange, routeVisible, stepId, timeWindow]);
@@ -394,7 +407,7 @@ function RouteComparePanel({
           </select>
           {bestFocusedRow ? (
             <span className="premium-lesson-muted text-xs">
-              当前最低：{String(bestFocusedRow.method)} · {numeric(bestFocusedRow, metricFocus).toFixed(1)}
+              当前最低：{routeMethodLabel(bestFocusedRow.method)} · {numeric(bestFocusedRow, metricFocus).toFixed(1)}
             </span>
           ) : null}
         </label>
@@ -421,7 +434,7 @@ function RouteComparePanel({
           <tbody>
             {metricRows.map((row) => (
               <tr key={String(row.method)} className={`border-t border-border/60 ${bestFocusedRow?.method === row.method ? 'bg-cyan-50/70' : ''}`}>
-                <td className="px-3 py-2">{String(row.method)}</td>
+                <td className="px-3 py-2">{routeMethodLabel(row.method)}</td>
                 <td className={`px-3 py-2 ${metricFocus === 'max_abs_error' ? 'font-semibold text-cyan-700' : ''}`}>{numeric(row, 'max_abs_error').toFixed(2)}°</td>
                 <td className={`px-3 py-2 ${metricFocus === 'IAE' ? 'font-semibold text-cyan-700' : ''}`}>{numeric(row, 'IAE').toFixed(1)}</td>
                 <td className={`px-3 py-2 ${metricFocus === 'saturation_percent' ? 'font-semibold text-cyan-700' : ''}`}>{numeric(row, 'saturation_percent').toFixed(1)}%</td>

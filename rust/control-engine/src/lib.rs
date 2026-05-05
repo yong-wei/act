@@ -203,6 +203,7 @@ struct NegativeInverseCurve {
     id: String,
     label: String,
     points: Vec<ComplexPoint>,
+    selected_point: Option<SelectedComplexPoint>,
     marks: HashMap<String, String>,
 }
 
@@ -210,6 +211,14 @@ struct NegativeInverseCurve {
 #[serde(rename_all = "camelCase")]
 struct NegativeInverseResult {
     curves: Vec<NegativeInverseCurve>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SelectedComplexPoint {
+    re: f64,
+    im: f64,
+    amplitude: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -227,7 +236,15 @@ struct HarmonicResult {
 struct CharacteristicResult {
     curve: Vec<CurvePoint>,
     sine_envelope: Vec<CurvePoint>,
+    signal_comparison: SignalComparisonResult,
     describing_function: ComplexPoint,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SignalComparisonResult {
+    input: Vec<CurvePoint>,
+    output: Vec<CurvePoint>,
 }
 
 #[derive(Debug, Serialize)]
@@ -255,6 +272,8 @@ struct TurningRadiusResult {
     delta_d_deg: f64,
     max_delta_deg: f64,
     saturation_active: bool,
+    min_distance_m: f64,
+    collision_active: bool,
     safety_constraint_satisfied: bool,
     heading_curves: Vec<TurningHeadingCurve>,
     path: TurningRadiusPath,
@@ -1368,10 +1387,15 @@ fn nonlinear_range(request: &NonlinearAnalysisRequest) -> Vec<f64> {
 
 fn phase_derivative(model_id: &str, x: f64, y: f64, request: &NonlinearAnalysisRequest) -> (f64, f64) {
     match model_id {
-        "double_integrator" => (y, 0.0),
-        "integral_inertia" => {
-            let t = nonlinear_param(request, "T", 1.0).max(1e-6);
-            (y, -y / t)
+        "damped_second_order" => {
+            let zeta = nonlinear_param(request, "zeta", 0.35).max(0.01);
+            let omega_n = nonlinear_param(request, "omega_n", 1.0).max(0.01);
+            (y, -2.0 * zeta * omega_n * y - omega_n * omega_n * x)
+        }
+        "stable_focus" => {
+            let alpha = nonlinear_param(request, "alpha", 0.25).max(0.01);
+            let beta = nonlinear_param(request, "beta", 1.2).max(0.01);
+            (-alpha * x - beta * y, beta * x - alpha * y)
         }
         _ => {
             let mu = nonlinear_param(request, "mu", 1.0);
@@ -1399,18 +1423,19 @@ fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisR
     }
 
     let mut vector_field = Vec::new();
-    for ix in 0..9 {
-        for iy in 0..9 {
-            let vx = -3.0 + ix as f64 * 0.75;
-            let vy = -3.0 + iy as f64 * 0.75;
+    let (field_y_min, field_y_max) = if request.model_id == "van_der_pol" { (-4.0, 4.0) } else { (-3.0, 3.0) };
+    for ix in 0..13 {
+        for iy in 0..13 {
+            let vx = -3.0 + ix as f64 * 0.5;
+            let vy = field_y_min + (field_y_max - field_y_min) * iy as f64 / 12.0;
             let (dx, dy) = phase_derivative(&request.model_id, vx, vy, request);
             vector_field.push(VectorFieldPoint { x: vx, y: vy, dx, dy });
         }
     }
 
     let outcome = match request.model_id.as_str() {
-        "double_integrator" => "速度保持并沿相平面直线漂移",
-        "integral_inertia" => "速度衰减后状态逐渐停留",
+        "damped_second_order" => "阻尼二阶轨迹逐步收敛到原点",
+        "stable_focus" => "稳定焦点轨迹螺旋收敛到原点",
         _ => "趋向闭合轨道",
     };
 
@@ -1555,9 +1580,40 @@ fn characteristic_value(model_id: &str, x: f64, request: &NonlinearAnalysisReque
     }
 }
 
+fn characteristic_signal_output(
+    model_id: &str,
+    input: f64,
+    previous_output: Option<f64>,
+    request: &NonlinearAnalysisRequest,
+) -> f64 {
+    match model_id {
+        "hysteresis_relay" => {
+            let m = nonlinear_param(request, "M", 1.0).max(0.05);
+            let h = nonlinear_param(request, "h", 0.5).max(0.0);
+            if input >= h {
+                m
+            } else if input <= -h {
+                -m
+            } else {
+                previous_output.unwrap_or_else(|| if input >= 0.0 { m } else { -m })
+            }
+        }
+        "backlash" => {
+            let k = nonlinear_param(request, "k", 1.0).max(0.05);
+            let b = nonlinear_param(request, "b", 0.5).max(0.0);
+            let previous = previous_output.unwrap_or(0.0);
+            let upper = k * (input - b);
+            let lower = k * (input + b);
+            previous.clamp(upper.min(lower), upper.max(lower))
+        }
+        _ => characteristic_value(model_id, input, request),
+    }
+}
+
 fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
     let min_a = nonlinear_param(request, "A_min", 0.05).max(0.001);
     let max_a = nonlinear_param(request, "A_max", 8.0).max(min_a + 0.01);
+    let selected_a = nonlinear_param(request, "A", 2.0).clamp(min_a, max_a);
     let samples = request.time_range.samples.max(2);
     let mut points = Vec::with_capacity(samples);
     for index in 0..samples {
@@ -1574,6 +1630,15 @@ fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnal
     let mut marks = HashMap::new();
     marks.insert("start".to_string(), "open_circle_start".to_string());
     marks.insert("direction".to_string(), "arrow_for_increasing_A".to_string());
+    let selected_point = {
+        let n = describing_function(&request.model_id, selected_a, request);
+        if n.norm() > 1e-9 {
+            let value = -Complex64::new(1.0, 0.0) / n;
+            Some(SelectedComplexPoint { re: value.re, im: value.im, amplitude: selected_a })
+        } else {
+            None
+        }
+    };
 
     NonlinearAnalysisResult {
         phase_plane: None,
@@ -1582,6 +1647,7 @@ fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnal
                 id: request.model_id.clone(),
                 label: request.model_id.replace('_', " "),
                 points,
+                selected_point,
                 marks,
             }],
         }),
@@ -1672,6 +1738,20 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
         CurvePoint { x: amplitude, y: min_y },
     ];
     let n = describing_function(&request.model_id, amplitude, request);
+    let omega = nonlinear_param(request, "omega", 1.0).max(0.05);
+    let comparison_samples = request.time_range.samples.clamp(40, 180);
+    let end = 2.0 * std::f64::consts::PI / omega;
+    let comparison_times = linspace(0.0, end, comparison_samples);
+    let mut comparison_input = Vec::with_capacity(comparison_samples);
+    let mut comparison_output = Vec::with_capacity(comparison_samples);
+    let mut previous_output = None;
+    for t in comparison_times {
+        let input = amplitude * (omega * t).sin();
+        let output = characteristic_signal_output(&request.model_id, input, previous_output, request);
+        previous_output = Some(output);
+        comparison_input.push(CurvePoint { x: t, y: input });
+        comparison_output.push(CurvePoint { x: t, y: output });
+    }
     NonlinearAnalysisResult {
         phase_plane: None,
         negative_inverse: None,
@@ -1679,6 +1759,10 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
         characteristic: Some(CharacteristicResult {
             curve,
             sine_envelope,
+            signal_comparison: SignalComparisonResult {
+                input: comparison_input,
+                output: comparison_output,
+            },
             describing_function: ComplexPoint { re: n.re, im: n.im },
         }),
         turning_radius: None,
@@ -1698,7 +1782,7 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
     let delta_max = 18.0_f64.to_radians();
     let length = 34.0;
     let obstacle_x = 145.0;
-    let obstacle_y = 0.0;
+    let obstacle_y = -5.0;
     let obstacle_radius = 25.0;
     let safety_margin = 16.0;
     let clearance = obstacle_radius + safety_margin;
@@ -1714,8 +1798,6 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
 
     let mut delta_points = Vec::with_capacity(samples);
     let mut delta_target_points = Vec::with_capacity(samples);
-    let mut psi_points = Vec::with_capacity(samples);
-    let mut distance_points = Vec::with_capacity(samples);
     let mut actual_path = Vec::with_capacity(samples);
     let mut nominal_path = Vec::with_capacity(samples);
     let mut max_delta = 0.0_f64;
@@ -1728,7 +1810,7 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             if !active && prev_dist <= start_radius {
                 active = true;
             }
-            let delta_target = if active && psi < 70.0_f64.to_radians() {
+            let delta_target = if active && psi < 45.0_f64.to_radians() {
                 delta_needed
             } else {
                 0.0
@@ -1745,11 +1827,11 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
         let distance = ((obstacle_x - x).powi(2) + (obstacle_y - y).powi(2)).sqrt();
         min_clearance = min_clearance.min(distance);
         max_delta = max_delta.max(delta_cmd.abs());
-        let progress = (psi / 70.0_f64.to_radians()).clamp(0.0, 1.0);
-        let nominal_theta = progress * 70.0_f64.to_radians();
+        let progress = (psi / 45.0_f64.to_radians()).clamp(0.0, 1.0);
+        let nominal_theta = progress * 45.0_f64.to_radians();
         let nominal_x = obstacle_x - start_radius + r_m * nominal_theta.sin();
         let nominal_y = r_m * (1.0 - nominal_theta.cos());
-        let delta_target_deg = if active && psi < 70.0_f64.to_radians() {
+        let delta_target_deg = if active && psi < 45.0_f64.to_radians() {
             delta_needed.to_degrees()
         } else {
             0.0
@@ -1757,16 +1839,17 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
 
         delta_points.push(CurvePoint { x: t, y: delta_cmd.to_degrees() });
         delta_target_points.push(CurvePoint { x: t, y: delta_target_deg });
-        psi_points.push(CurvePoint { x: t, y: psi.to_degrees() });
-        distance_points.push(CurvePoint { x: t, y: distance });
         actual_path.push(CurvePoint { x, y });
         nominal_path.push(CurvePoint { x: nominal_x, y: nominal_y });
     }
 
     let saturation_active = delta_needed > delta_max || max_delta >= delta_max * 0.98;
-    let safety_constraint_satisfied = min_clearance >= obstacle_radius;
-    let outcome = if !safety_constraint_satisfied {
-        "当前规划半径未满足避碰安全距离"
+    let collision_active = min_clearance < obstacle_radius;
+    let safety_constraint_satisfied = min_clearance >= clearance;
+    let outcome = if collision_active {
+        "当前规划半径会进入障碍物碰撞区域"
+    } else if !safety_constraint_satisfied {
+        "当前规划半径未留足安全裕量，处在贴近风险边界"
     } else if saturation_active {
         "当前规划半径触发舵角饱和，需把执行约束回写给规划层"
     } else {
@@ -1783,12 +1866,12 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             delta_d_deg: delta_needed.to_degrees(),
             max_delta_deg: max_delta.to_degrees(),
             saturation_active,
+            min_distance_m: min_clearance,
+            collision_active,
             safety_constraint_satisfied,
             heading_curves: vec![
                 TurningHeadingCurve { id: "actual_delta".to_string(), label: "实际舵角".to_string(), points: delta_points },
                 TurningHeadingCurve { id: "target_delta".to_string(), label: "目标舵角".to_string(), points: delta_target_points },
-                TurningHeadingCurve { id: "heading".to_string(), label: "航向角".to_string(), points: psi_points },
-                TurningHeadingCurve { id: "distance".to_string(), label: "距障碍距离".to_string(), points: distance_points },
             ],
             path: TurningRadiusPath {
                 actual: actual_path,
@@ -1805,6 +1888,7 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
                 format!("d_start={:.1} m", start_radius),
                 format!("delta_d={:.2} deg", delta_needed.to_degrees()),
                 format!("min_distance={:.1} m", min_clearance),
+                format!("collision={}", collision_active),
             ],
         },
     }

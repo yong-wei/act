@@ -41,7 +41,23 @@ Only export nodes whose `review.json` has `status: "accepted"`.
 
 ## Current Codex Image Generation Facts
 
-Use Codex-native image generation first.
+Infographics must be generated image assets. Use Codex-native image generation
+first.
+
+Hard constraint:
+
+- `infograph.png` must come from Codex-native image generation or an explicit
+  image-generation API such as GPT Image 2.
+- Do not satisfy an infographic request by drawing the final image with
+  deterministic code, SVG, Pillow, matplotlib, canvas, Mermaid, TikZ, or other
+  programmatic rendering.
+- Programmatic scripts may prepare `source.json`, `prompt.md`, review metadata,
+  manifests, thumbnails, or exports, but they must not create the final
+  `infograph.png`.
+- If image generation repeatedly fails, produces unacceptable Chinese text,
+  malformed formulas, prompt metadata leakage, or unsupported visual facts,
+  report the failed node and reason. Leave the node unaccepted instead of using
+  a drawn fallback.
 
 Verified local facts:
 
@@ -142,6 +158,8 @@ Use `--accept` only after visual review confirms that:
 - the image contains concrete visual evidence or a meaningful visual metaphor, not only text boxes and arrows
 - technical insets such as plots, instruments, or physical examples help explain the mechanism rather than serving as decoration
 - the graphic is readable at lesson-entry card size
+- `generation.json` records an actual image-generation path, not a
+  programmatic drawing fallback
 
 ### 5. Review And Export
 

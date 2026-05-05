@@ -58,7 +58,7 @@ const CASE_PANEL_CONFIG = {
     max: 4.4,
     step: 0.05,
     label: '客船航向保持共享增益',
-    summaryTitle: '客船原生统一面板',
+    summaryTitle: '客船低频保持能力联动观察',
   },
   platform: {
     requestCaseId: 'platform' as const,
@@ -69,7 +69,7 @@ const CASE_PANEL_CONFIG = {
     max: 10,
     step: 0.1,
     label: '稳定平台共享增益',
-    summaryTitle: '平台原生统一面板',
+    summaryTitle: '稳定平台中频动态品质联动观察',
   },
 } as const;
 
@@ -158,10 +158,7 @@ function CaseNativeWorkspace({
 
   return (
     <div className="premium-lesson-surface-elevated rounded-[28px] px-4 py-4">
-      <div className="premium-lesson-title text-sm font-semibold">{config.summaryTitle}</div>
-      <div className="premium-lesson-muted mt-2 text-sm">
-        四面板板式、底部增益控件和性能指标由同一组 Rust/WASM 分析结果驱动；本页不绘制可行域。
-      </div>
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{config.summaryTitle}</div>
       <ControlFigureWorkspace request={request} fallbackResult={fallbackResult} layout={config.layout} />
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <MetricPill label="Mp" value={formatMetric(result?.metrics.overshootPct, 2, '%')} />

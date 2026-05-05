@@ -99,6 +99,69 @@ describe('unit 5-4 interactive course', () => {
     expect(stepPanelsSource).toContain('仿真数据暂未载入');
   });
 
+  it('removes duplicated p3-p5 explanation modules and migrates their copy into title descriptions', () => {
+    const manifest = readManifest();
+    const step03 = manifest.steps.find((step) => step.id === 'step-03');
+    const step04 = manifest.steps.find((step) => step.id === 'step-04');
+    const step05 = manifest.steps.find((step) => step.id === 'step-05');
+
+    expect(step03?.modules.map((module) => module.id)).not.toContain('pretest-note');
+    expect(step03?.contentBlocks).not.toHaveProperty('note');
+    expect(step03?.aiContextSpec.pageGoal).toContain('考察知识点：一阶对象 $G(s)=K/(Ts+1)$');
+    expect(step03?.aiContextSpec.pageGoal).toContain('$e(t)=r(t)-y(t)$');
+    expect(step03?.aiContextSpec.pageGoal).toContain('$|\\delta|\\le 12^\\circ$');
+
+    expect(step04?.modules.map((module) => module.id)).not.toContain('context');
+    expect(step04?.contentBlocks).not.toHaveProperty('context');
+    expect(step04?.modules[0]).toMatchObject({ id: 'model-formula', region: 'formula' });
+    expect(step04?.aiContextSpec.pageGoal).toBe('模型驱动控制先把对象动态关系写清楚，再根据这个关系分析稳定性、性能和约束。');
+
+    expect(step05?.modules.map((module) => module.id)).not.toContain('pressure-intro');
+    expect(step05?.contentBlocks).not.toHaveProperty('intro');
+    expect(step05?.modules[0]).toMatchObject({ id: 'pressure-table', region: 'table' });
+    expect(step05?.aiContextSpec.pageGoal).toBe('模型压力来自模型独自承担的任务过重，而不是模型失去价值。');
+  });
+
+  it('keeps p6, p10, and p13 formula-heavy copy in KaTeX-readable strings', () => {
+    const manifest = readManifest();
+    const step06 = manifest.steps.find((step) => step.id === 'step-06');
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step13 = manifest.steps.find((step) => step.id === 'step-13');
+
+    expect(step06?.contentBlocks.problem).toMatchObject({
+      body: expect.stringContaining('$K_m=0.18$'),
+    });
+    expect(JSON.stringify(step06?.contentBlocks.problem)).toContain('$T_m=8.0\\\\ \\\\mathrm{s}$');
+    expect(JSON.stringify(step06?.contentBlocks.problem)).toContain('$K_a=0.125$');
+    expect(JSON.stringify(step06?.contentBlocks.problem)).toContain('$T_a=11.5\\\\ \\\\mathrm{s}$');
+
+    const revealItems = (step10?.contentBlocks.reveal_chain as { items?: Array<{ body?: string; formula?: string }> } | undefined)?.items ?? [];
+    expect(revealItems[0]?.body).toContain('$r_{j+1}=a r_j+b\\delta_j+c$');
+    expect(revealItems[0]?.body).toContain('$\\delta_j$');
+    expect(revealItems[1]?.body).toContain('$\\hat a_k,\\hat b_k,\\hat c_k$');
+    expect(revealItems[1]?.formula).toContain('\\hat T_k=\\frac{\\Delta t}{1-\\hat a_k}');
+    expect(revealItems[1]?.formula).toContain('\\hat K_k=\\frac{\\hat b_k\\hat T_k}{\\Delta t}');
+    expect(revealItems[1]?.formula).toContain('\\hat d_k=\\frac{\\hat c_k}{\\Delta t}');
+
+    const step13Problem = JSON.stringify(step13?.contentBlocks.problem);
+    expect(step13Problem).toContain('$G_m(s)=K_m/(T_m s+1)$');
+    expect(step13Problem).toContain('$K=0.18,T=8.0\\\\ \\\\mathrm{s}$');
+    expect(step13Problem).toContain('$K=0.065,T=18.0\\\\ \\\\mathrm{s}$');
+    expect(step13Problem).toContain('$t=28\\\\ \\\\mathrm{s}$');
+    expect(step13Problem).toContain('$t=108\\\\ \\\\mathrm{s}$');
+  });
+
+  it('maps p14 runtime route metric keys to Chinese labels in the route comparison adapter', () => {
+    const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
+
+    expect(stepPanelsSource).toContain("traditional_fixed: '传统固定控制'");
+    expect(stepPanelsSource).toContain("nominal_model_mpc: '名义模型 MPC'");
+    expect(stepPanelsSource).toContain("data_driven_model_mpc: '数据驱动模型 MPC'");
+    expect(stepPanelsSource).toContain('route: routeMethodLabel(focused.method)');
+    expect(stepPanelsSource).toContain('当前最低：{routeMethodLabel(bestFocusedRow.method)}');
+    expect(stepPanelsSource).toContain('<td className="px-3 py-2">{routeMethodLabel(row.method)}</td>');
+  });
+
   it('keeps post-test and summary separated and exposes summary role statistics', async () => {
     const courseModule = await import('@/lib/unit-5-4-course');
     const featureSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');

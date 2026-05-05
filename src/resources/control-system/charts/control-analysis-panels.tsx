@@ -4,6 +4,11 @@ import { useCallback, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 
+import {
+  InteractiveSvgPointMarker,
+  getInteractiveSvgEChartsPointMarker,
+  type InteractiveSvgPointMarkerKind,
+} from '@/features/interactive/shared/interactive-svg-markers';
 import type {
   ComplexPoint,
   ControlAnalysisResult,
@@ -30,9 +35,6 @@ import { ControlChartPanel } from './control-chart-panel';
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
-
-const ROOT_LOCUS_POLE_SYMBOL =
-  'path://M -0.85 -0.58 L -0.58 -0.85 L 0 -0.27 L 0.58 -0.85 L 0.85 -0.58 L 0.27 0 L 0.85 0.58 L 0.58 0.85 L 0 0.27 L -0.58 0.85 L -0.85 0.58 L -0.27 0 Z';
 
 export type RootLocusInteractiveHandle = {
   id: string;
@@ -297,26 +299,32 @@ function buildRootLocusOption(
     {
       name: '当前闭环极点',
       type: 'scatter',
-      symbol: 'circle',
-      symbolSize: 9,
-      itemStyle: { color: '#1f4e79', borderColor: '#ffffff', borderWidth: 1.2 },
+      ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+        size: 9,
+        color: '#1f4e79',
+        strokeColor: '#ffffff',
+        strokeWidth: 1.2,
+      }),
       data: currentPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环极点',
       type: 'scatter',
-      symbol: ROOT_LOCUS_POLE_SYMBOL,
-      symbolSize: 18,
-      lineStyle: { color: '#c81d25', width: 2.2 },
-      itemStyle: { color: '#c81d25' },
+      ...getInteractiveSvgEChartsPointMarker('pole-cross', {
+        size: 18,
+        color: '#c81d25',
+        strokeWidth: 2.2,
+      }),
       data: openLoopPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环零点',
       type: 'scatter',
-      symbol: 'circle',
-      symbolSize: 12,
-      itemStyle: { color: '#ffffff', borderColor: '#d97706', borderWidth: 2.2 },
+      ...getInteractiveSvgEChartsPointMarker('dot-hollow', {
+        size: 12,
+        color: '#d97706',
+        strokeWidth: 2.2,
+      }),
       data: openLoopZeros.map((zero) => [zero.re, zero.im]),
     },
   ];
@@ -409,8 +417,10 @@ function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): ECh
       {
         name: '-1+j0',
         type: 'scatter',
-        symbolSize: 10,
-        itemStyle: { color: '#ef4444' },
+        ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+          size: 10,
+          color: '#ef4444',
+        }),
         data: [[-1, 0]],
       },
     ],
@@ -447,17 +457,40 @@ function renderInteractiveHandle(
   const renderAs =
     handle.renderAs ?? (handle.kind === 'zero' ? 'open-zero' : 'open-pole');
   const isClosedPole = handle.renderAs === 'closed-pole' || renderAs === 'closed-pole';
-  const content =
-    isClosedPole ? (
-      <div className="pointer-events-none relative h-4 w-4 rounded-full border-[2px] border-white bg-[#1f4e79] shadow-[0_0_0_2px_rgba(31,78,121,0.28)]" />
-    ) : renderAs === 'open-pole' ? (
-      <div className="pointer-events-none relative h-5 w-5">
-        <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-[#c81d25]" />
-        <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-[#c81d25]" />
-      </div>
-    ) : (
-      <div className="pointer-events-none relative h-4 w-4 rounded-full border-[2.2px] border-[#d97706] bg-transparent" />
-    );
+  const markerKind: InteractiveSvgPointMarkerKind = isClosedPole
+    ? 'dot-filled'
+    : renderAs === 'open-pole'
+      ? 'pole-cross'
+      : 'dot-hollow';
+  const markerSize = renderAs === 'open-pole' ? 20 : 16;
+  const markerColor = isClosedPole ? '#1f4e79' : renderAs === 'open-pole' ? '#c81d25' : '#d97706';
+  const content = (
+    <svg
+      viewBox={`0 0 ${markerSize} ${markerSize}`}
+      className="pointer-events-none block overflow-visible"
+      style={{ width: markerSize, height: markerSize }}
+      aria-hidden="true"
+    >
+      {isClosedPole ? (
+        <InteractiveSvgPointMarker
+          kind="dot-filled"
+          x={markerSize / 2}
+          y={markerSize / 2}
+          size={markerSize + 2}
+          color="#ffffff"
+        />
+      ) : null}
+      <InteractiveSvgPointMarker
+        kind={markerKind}
+        x={markerSize / 2}
+        y={markerSize / 2}
+        size={markerSize}
+        color={markerColor}
+        strokeColor={markerColor}
+        strokeWidth={renderAs === 'open-pole' ? 2.2 : 2}
+      />
+    </svg>
+  );
 
   return (
     <div
