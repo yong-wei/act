@@ -124,14 +124,10 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         bullets: ['封面情境图给出双对象任务场景。', '课程信息图给出对象证据、指标角色、区域分层和任务表达卡的阅读顺序。'],
       },
     ],
-    prompts: [
-      '客船航向控制与稳定平台的导入问题分别指向哪些目标、约束和优先级？',
-      '课程信息图中的对象证据、指标角色、区域分层和任务表达卡之间是什么关系？',
-    ],
   },
   'step-02': {
     kicker: 'Learning Objectives',
-    intro: '本页只列出本次课程目标。',
+    intro: '',
     sections: [
       {
         title: '本次课程目标',
@@ -143,10 +139,6 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
           '撰写包含对象、目标、约束、优先级与证据来源的任务表达卡。',
         ],
       },
-    ],
-    prompts: [
-      '四项目标中的布鲁姆动词分别对应哪些学习动作？',
-      '如何把四项目标对应到本页目标列表中的证据、指标、角色和任务表达卡？',
     ],
   },
   'step-03': {
@@ -163,10 +155,6 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         tone: 'violet',
         bullets: ['稳定性判断依据。', '指标含义匹配。', '指标角色选择。'],
       },
-    ],
-    prompts: [
-      '控制系统稳定性判断需要哪些基本依据？',
-      '时域、频域和积分误差指标分别描述什么信息？',
     ],
   },
   'step-04': {
