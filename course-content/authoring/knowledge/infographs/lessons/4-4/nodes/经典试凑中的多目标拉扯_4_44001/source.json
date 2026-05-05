@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:20:11.872517Z",
+  "lesson": {
+    "lesson_id": "4-4",
+    "title": "多目标权衡与控制器优化设计",
+    "groups": [
+      "对象与冲突证据"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "经典试凑中的多目标拉扯_4_44001",
+    "name": "经典试凑中的多目标拉扯",
+    "name_en": "Multi-Objective Tension in Classical Trial-and-Error",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "当固定结构下的人工试凑同时牵动速度、拖尾、误差强度和控制动作时，设计者看到的不再是单一改进，而是一组彼此拉扯的收益与代价。",
+    "examples": [
+      "客船航向保持中，激进方案换来了更快过程，却同时显著抬高动作代价。",
+      "收回动作强度的方案避免了过猛输出，却又把前面争取到的速度收益让了回去。"
+    ],
+    "formulas": [
+      "\\text{试凑读数}=(\\text{速度收益},\\text{拖尾变化},\\text{误差强度},\\text{动作代价})"
+    ],
+    "keywords": [
+      "经典试凑",
+      "多目标拉扯",
+      "固定结构",
+      "多目标",
+      "拉扯"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/经典试凑中的多目标拉扯_4_44001.md",
+  "card_frontmatter": {
+    "node_id": "经典试凑中的多目标拉扯_4_44001",
+    "name": "经典试凑中的多目标拉扯",
+    "name_en": "Multi-Objective Tension in Classical Trial Tuning",
+    "lesson_units": [
+      "4-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-4",
+      "经典试凑",
+      "多目标",
+      "拉扯"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-4/design/4-4-handout.md",
+      "authoring/lessons/4-4/design/4-4-interactive-page.md"
+    ],
+    "asset_refs": [
+      "4-4-ship-heading-diagnosis-compare.png"
+    ]
+  },
+  "card_overview": "# 经典试凑中的多目标拉扯 | Multi-Objective Tension in Classical Trial Tuning\n\n**一句话定义**：当固定结构下的人工试凑同时牵动速度、拖尾、误差强度和控制动作时，设计者看到的不再是单一改进，而是一组彼此拉扯的收益与代价。\n\n**核心直觉**：经典试凑没有失效，真正暴露出来的是我们还缺一套统一的比较语言。\n\n**关键公式**：\n$$\n\\text{试凑读数}=(\\text{速度收益},\\text{拖尾变化},\\text{误差强度},\\text{动作代价})\n$$\n\n**关联**：前置 → 问题清单移交表、参数方向表达卡 · 后续 → 固定结构自由目标项选择、无约束加权目标表达",
+  "card_detail": "### 完整解释\n\n在 `4-4` 的主案例里，四组经典试凑已经把冲突指标摆到了台面上。想把过程拉快，控制峰值往往先抬起来；想把动作收回，前面争取到的动态收益又会部分退回去。问题不是这些调整没有意义，而是它们还没有进入同一套无量纲评价语言。\n\n因此，这张卡片承担的作用不是再给一轮经验口诀，而是提醒我们：固定结构仍然可用，但下一步必须把试凑暴露出的多目标拉扯写成可计算的自由目标。\n\n![4-4 客船航向保持首轮对比图](../../lessons/4-4/media/processed/4-4-ship-heading-diagnosis-compare.png)\n\n### 常见误区\n\n1. **误区**：既然经典试凑能看出方向，就继续多试几组参数即可。\n   **纠正**：没有统一比较语言，只会不断看到新的局部收益与代价，难以稳定做取舍。\n\n2. **误区**：多目标拉扯说明固定结构已经不适合。\n   **纠正**：本课的结论恰好相反，当前先要做的是把固定结构下的偏好写清，而不是立刻放弃结构。",
+  "card_plain_excerpt": "## 首页\n\n# 经典试凑中的多目标拉扯 | Multi-Objective Tension in Classical Trial Tuning\n\n**一句话定义**：当固定结构下的人工试凑同时牵动速度、拖尾、误差强度和控制动作时，设计者看到的不再是单一改进，而是一组彼此拉扯的收益与代价。\n\n**核心直觉**：经典试凑没有失效，真正暴露出来的是我们还缺一套统一的比较语言。\n\n**关键公式**：\n$$\n\\text{试凑读数}=(\\text{速度收益},\\text{拖尾变化},\\text{误差强度},\\text{动作代价})\n$$\n\n**关联**：前置 → 问题清单移交表、参数方向表达卡 · 后续 → 固定结构自由目标项选择、无约束加权目标表达\n\n## 详情\n\n### 完整解释\n\n在 `4-4` 的主案例里，四组经典试凑已经把冲突指标摆到了台面上。想把过程拉快，控制峰值往往先抬起来；想把动作收回，前面争取到的动态收益又会部分退回去。问题不是这些调整没有意义，而是它们还没有进入同一套无量纲评价语言。\n\n因此，这张卡片承担的作用不是再给一轮经验口诀，而是提醒我们：固定结构仍然可用，但下一步必须把试凑暴露出的多目标拉扯写成可计算的自由目标。\n\n![4-4 客船航向保持首轮对比图](../../lessons/4-4/media/processed/4-4-ship-heading-diagnosis-compare.png)\n\n### 常见误区\n\n1. **误区**：既然经典试凑能看出方向，就继续多试几组参数即可。\n   **纠正**：没有统一比较语言，只会不断看到新的局部收益与代价，难以稳定做取舍。\n\n2. **误区**：多目标拉扯说明固定结构已经不适合。\n   **纠正**：本课的结论恰好相反，当前先要做的是把固定结构下的偏好写清，而不是立刻放弃结构。",
+  "core_intuition": "经典试凑没有失效，真正暴露出来的是我们还缺一套统一的比较语言。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "related",
+      "strength": 0.87,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "超调量",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "问题清单移交表",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "问题清单移交表",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "问题清单移交表_4_43005",
+      "source": "问题清单移交表",
+      "target_id": "经典试凑中的多目标拉扯_4_44001",
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "4-3 留下的问题清单在 4-4 被并排读出后，暴露出固定结构下不同收益和代价之间的拉扯。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三频段闭环性能回读_3_38003",
+      "source": "三频段闭环性能回读",
+      "target_id": "经典试凑中的多目标拉扯_4_44001",
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "4-4 用过程、误差和动作三类证据一起说明：经典试凑的问题在于比较语言没有统一。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "经典试凑中的多目标拉扯_4_44001",
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": "固定结构自由目标项选择_4_44002",
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "正因为多类收益和代价在拉扯，4-4 才需要先选出本课的自由目标项。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "经典试凑中的多目标拉扯",
+        "经典试凑",
+        "多目标拉扯",
+        "固定结构",
+        "多目标",
+        "拉扯"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{试凑读数}=(\\text{速度收益},\\text{拖尾变化},\\text{误差强度},\\text{动作代价})"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

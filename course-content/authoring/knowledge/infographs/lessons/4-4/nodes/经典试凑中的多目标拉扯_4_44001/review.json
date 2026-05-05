@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:01:53.174988Z",
+  "lesson_id": "4-4",
+  "node_id": "经典试凑中的多目标拉扯_4_44001",
+  "node_name": "经典试凑中的多目标拉扯",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：速度收益、拖尾、误差强度、动作代价四项拉扯清楚，未写成失败叙事。"
+}

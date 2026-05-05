@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:20:11.610029Z",
+  "lesson": {
+    "lesson_id": "4-4",
+    "title": "多目标权衡与控制器优化设计",
+    "groups": [
+      "对象与冲突证据"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "问题清单移交表_4_43005",
+    "name": "问题清单移交表",
+    "name_en": "Issue List Handover Sheet",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把首轮验证结论整理成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
+    "examples": [
+      "客船航向保持的首轮问题清单会同时记录‘调节时间已进入目标附近’和‘控制峰值已贴近边界’。",
+      "若某方案静差已满足要求，但相角裕量和超调量同时偏紧，问题清单应先指向参数回收或机制重分配。"
+    ],
+    "formulas": [
+      "\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})"
+    ],
+    "keywords": [
+      "问题清单",
+      "移交",
+      "下一轮调整",
+      "4-3",
+      "移交表"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/问题清单移交表_4_43005.md",
+  "card_frontmatter": {
+    "node_id": "问题清单移交表_4_43005",
+    "name": "问题清单移交表",
+    "name_en": "Issue List Handover Sheet",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "问题清单",
+      "移交表"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-info.png"
+    ]
+  },
+  "card_overview": "# 问题清单移交表 | Issue List Handover Sheet\n\n**一句话定义**：把首轮验证结论整理成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。\n\n**核心直觉**：问题清单不是一句“效果一般”，而是一份能推动下一轮设计的证据摘要。\n\n**关键公式**：\n$$\n\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})\n$$\n\n**关联**：前置 → 首轮验证最小读数逻辑 · 后续 → 多目标权衡与控制器优化设计",
+  "card_detail": "### 完整解释\n\n首轮验证之后，我们需要把结果压成三类句子：哪些目标已经接住，哪些代价已经开始暴露，下一轮应优先从哪一项调整入手。只有这样，`4-4` 才能真正接住 `4-3` 的证据，而不是重新从头判断。\n\n客船航向保持的典型问题清单就是：调节时间已进入目标附近；超调量和控制峰值已贴近边界；下一轮应优先判断是回收总增益，还是重布超前零极点位置。\n\n![4-3 信息图总结](../../lessons/4-3/media/processed/4-3-info.png)\n\n### 常见误区\n\n1. **误区**：问题清单只写“还有待优化”。\n   **纠正**：这种写法没有说明具体证据，无法指导下一轮设计。\n\n2. **误区**：问题清单只写缺点，不写已经满足的目标。\n   **纠正**：不写已满足目标，就无法判断下一轮调整是否会破坏已有收益。",
+  "card_plain_excerpt": "## 首页\n\n# 问题清单移交表 | Issue List Handover Sheet\n\n**一句话定义**：把首轮验证结论整理成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。\n\n**核心直觉**：问题清单不是一句“效果一般”，而是一份能推动下一轮设计的证据摘要。\n\n**关键公式**：\n$$\n\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})\n$$\n\n**关联**：前置 → 首轮验证最小读数逻辑 · 后续 → 多目标权衡与控制器优化设计\n\n## 详情\n\n### 完整解释\n\n首轮验证之后，我们需要把结果压成三类句子：哪些目标已经接住，哪些代价已经开始暴露，下一轮应优先从哪一项调整入手。只有这样，`4-4` 才能真正接住 `4-3` 的证据，而不是重新从头判断。\n\n客船航向保持的典型问题清单就是：调节时间已进入目标附近；超调量和控制峰值已贴近边界；下一轮应优先判断是回收总增益，还是重布超前零极点位置。\n\n![4-3 信息图总结](../../lessons/4-3/media/processed/4-3-info.png)\n\n### 常见误区\n\n1. **误区**：问题清单只写“还有待优化”。\n   **纠正**：这种写法没有说明具体证据，无法指导下一轮设计。\n\n2. **误区**：问题清单只写缺点，不写已经满足的目标。\n   **纠正**：不写已满足目标，就无法判断下一轮调整是否会破坏已有收益。",
+  "core_intuition": "问题清单不是一句“效果一般”，而是一份能推动下一轮设计的证据摘要。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "首轮验证最小读数逻辑",
+      "target_id": null,
+      "target": "问题清单移交表",
+      "relation": "leads_to",
+      "strength": 0.98,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "问题清单移交表",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "问题清单移交表",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "问题清单移交表_4_43005",
+      "source": "问题清单移交表",
+      "target_id": "经典试凑中的多目标拉扯_4_44001",
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "4-3 留下的问题清单在 4-4 被并排读出后，暴露出固定结构下不同收益和代价之间的拉扯。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "问题清单移交表",
+        "问题清单",
+        "移交",
+        "下一轮调整",
+        "移交表"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

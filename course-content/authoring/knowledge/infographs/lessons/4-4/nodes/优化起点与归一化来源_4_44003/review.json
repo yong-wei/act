@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:07:43.731588Z",
+  "lesson_id": "4-4",
+  "node_id": "优化起点与归一化来源_4_44003",
+  "node_name": "优化起点与归一化来源",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：4-3 首轮读数、θ0 起点和归一化基准关系清楚，公式可接受。"
+}

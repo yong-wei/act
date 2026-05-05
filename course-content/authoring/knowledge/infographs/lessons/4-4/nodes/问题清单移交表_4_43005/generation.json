@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:50:42.644420Z",
+  "lesson_id": "4-4",
+  "node_id": "问题清单移交表_4_43005",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019df713-07dd-79b1-babb-d8f5e65ae0f4/ig_003d0abe38d3e0310169f9a0a203dc8191bc5c6d3fd7be8b2e.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/问题清单移交表_4_43005/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/问题清单移交表_4_43005/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/问题清单移交表_4_43005/source.json"
+}

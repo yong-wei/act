@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:27:59.347780Z",
+  "lesson_id": "4-4",
+  "node_id": "展示解与Pareto最小取舍_4_44006",
+  "node_name": "Pareto前沿与展示解取舍",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：Pareto 前沿、非支配候选、展示解与非最终答案边界清楚；公式采用短锚点，含义可接受。"
+}

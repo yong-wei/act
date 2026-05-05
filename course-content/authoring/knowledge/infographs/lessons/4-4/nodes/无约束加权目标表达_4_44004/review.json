@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:11:47.492914Z",
+  "lesson_id": "4-4",
+  "node_id": "无约束加权目标表达_4_44004",
+  "node_name": "无约束加权目标表达",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：四项归一化加权目标完整，公式和无约束候选解语义可接受。"
+}

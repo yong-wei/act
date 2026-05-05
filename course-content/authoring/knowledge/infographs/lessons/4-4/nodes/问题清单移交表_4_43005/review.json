@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T07:50:42.644942Z",
+  "lesson_id": "4-4",
+  "node_id": "问题清单移交表_4_43005",
+  "node_name": "问题清单移交表",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：三类移交项、证据位置和多目标拉扯关系清楚，无明显错字或无关案例。"
+}

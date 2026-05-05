@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:23:41.088946Z",
+  "lesson_id": "4-4",
+  "node_id": "设计任务表达卡_4_41001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019df6f0-b19b-7953-81d0-d76be94fc373/ig_05c92da6fa545e500169f99a4345548191a63520119c0655c0.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/设计任务表达卡_4_41001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/设计任务表达卡_4_41001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-4/nodes/设计任务表达卡_4_41001/source.json"
+}

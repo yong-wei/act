@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:20:12.199255Z",
+  "lesson": {
+    "lesson_id": "4-4",
+    "title": "多目标权衡与控制器优化设计",
+    "groups": [
+      "优化方法与候选比较"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "无约束加权目标表达_4_44004",
+    "name": "无约束加权目标表达",
+    "name_en": "Unconstrained Weighted Objective Expression",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把速度、拖尾、误差强度和动作代价四类偏好写成同一个可重复求值的标量目标，让搜索开始真正“按偏好行动”。",
+    "examples": [
+      "客船案例把时间、拖尾、误差强度和动作代价写成 `J_free(θ)`。",
+      "本课的目标函数先诚实表达偏好，再把结果交给下一课做边界复核。"
+    ],
+    "formulas": [
+      "J_{\\mathrm{free}}(\\theta)=w_1\\frac{t_s}{40}+w_2\\frac{\\mathrm{ITAE}}{\\mathrm{ITAE}_0}+w_3\\frac{\\mathrm{ITSE}}{\\mathrm{ITSE}_0}+w_4\\frac{E_u}{E_{u,0}}"
+    ],
+    "keywords": [
+      "目标函数",
+      "加权目标",
+      "无约束"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/无约束加权目标表达_4_44004.md",
+  "card_frontmatter": {
+    "node_id": "无约束加权目标表达_4_44004",
+    "name": "无约束加权目标表达",
+    "name_en": "Unconstrained Weighted Objective Formulation",
+    "lesson_units": [
+      "4-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-4",
+      "加权目标",
+      "无约束",
+      "目标函数"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-4/design/4-4-handout.md",
+      "authoring/lessons/4-4/design/4-4-interactive-page.md"
+    ]
+  },
+  "card_overview": "# 无约束加权目标表达 | Unconstrained Weighted Objective Formulation\n\n**一句话定义**：把速度、拖尾、误差强度和动作代价四类偏好写成同一个可重复求值的标量目标，让搜索开始真正“按偏好行动”。\n\n**核心直觉**：目标函数不是装饰性公式，它是后续每一轮更新真正要最小化的对象。\n\n**关键公式**：\n$$\nJ_{\\mathrm{free}}(\\theta)=w_1\\frac{t_s}{40}+w_2\\frac{\\mathrm{ITAE}}{\\mathrm{ITAE}_0}+w_3\\frac{\\mathrm{ITSE}}{\\mathrm{ITSE}_0}+w_4\\frac{E_u}{E_{u,0}}\n$$\n\n**关联**：前置 → 固定结构自由目标项选择、优化起点与归一化来源 · 后续 → 权重偏好与无约束候选解、展示解与 Pareto 最小取舍",
+  "card_detail": "### 完整解释\n\n这张卡的任务是把前面的分散读数收束成一个真正可计算的问题。权重 `w_1` 到 `w_4` 表示当前更愿意让搜索优先服务哪一类收益或代价；归一化项则保证不同量纲能被放到同一把尺子下比较。\n\n“无约束”在这里并不是说完全没有边界，而是说当前模型还没有把输出侧硬约束和罚函数写进目标本体。本课先让求解器在固定结构可解释范围内，按偏好给出一族候选。\n\n### 常见误区\n\n1. **误区**：写出目标函数后，最小值就是最终可用解。\n   **纠正**：本课只得到按偏好搜索出来的候选族，还没有经过工程边界复核。\n\n2. **误区**：只要权重和为 1，任何组合都没有区别。\n   **纠正**：权重变化会直接改变搜索愿意用什么代价换什么收益。",
+  "card_plain_excerpt": "## 首页\n\n# 无约束加权目标表达 | Unconstrained Weighted Objective Formulation\n\n**一句话定义**：把速度、拖尾、误差强度和动作代价四类偏好写成同一个可重复求值的标量目标，让搜索开始真正“按偏好行动”。\n\n**核心直觉**：目标函数不是装饰性公式，它是后续每一轮更新真正要最小化的对象。\n\n**关键公式**：\n$$\nJ_{\\mathrm{free}}(\\theta)=w_1\\frac{t_s}{40}+w_2\\frac{\\mathrm{ITAE}}{\\mathrm{ITAE}_0}+w_3\\frac{\\mathrm{ITSE}}{\\mathrm{ITSE}_0}+w_4\\frac{E_u}{E_{u,0}}\n$$\n\n**关联**：前置 → 固定结构自由目标项选择、优化起点与归一化来源 · 后续 → 权重偏好与无约束候选解、展示解与 Pareto 最小取舍\n\n## 详情\n\n### 完整解释\n\n这张卡的任务是把前面的分散读数收束成一个真正可计算的问题。权重 `w_1` 到 `w_4` 表示当前更愿意让搜索优先服务哪一类收益或代价；归一化项则保证不同量纲能被放到同一把尺子下比较。\n\n“无约束”在这里并不是说完全没有边界，而是说当前模型还没有把输出侧硬约束和罚函数写进目标本体。本课先让求解器在固定结构可解释范围内，按偏好给出一族候选。\n\n### 常见误区\n\n1. **误区**：写出目标函数后，最小值就是最终可用解。\n   **纠正**：本课只得到按偏好搜索出来的候选族，还没有经过工程边界复核。\n\n2. **误区**：只要权重和为 1，任何组合都没有区别。\n   **纠正**：权重变化会直接改变搜索愿意用什么代价换什么收益。",
+  "core_intuition": "目标函数不是装饰性公式，它是后续每一轮更新真正要最小化的对象。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "任务通道变化下的自由目标改写",
+      "relation": "generalizes",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "Pareto前沿与展示解取舍",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "权重偏好与无约束候选解",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "Pareto前沿与展示解取舍",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "任务通道变化下的自由目标改写",
+      "relation": "generalizes",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "无约束加权目标表达",
+      "target_id": null,
+      "target": "权重偏好与无约束候选解",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "优化起点与归一化来源_4_44003",
+      "source": "优化起点与归一化来源",
+      "target_id": "无约束加权目标表达_4_44004",
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "起点、参数范围和归一化基准一旦写清，自由目标就能顺畅落成可计算表达。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "固定结构自由目标项选择_4_44002",
+      "source": "固定结构自由目标项选择",
+      "target_id": "无约束加权目标表达_4_44004",
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "4-4 先把时间、拖尾、误差强度和动作代价写成统一自由目标。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "无约束加权目标表达",
+        "目标函数",
+        "加权目标",
+        "无约束"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "J_{\\mathrm{free}}(\\theta)=w_1\\frac{t_s}{40}+w_2\\frac{\\mathrm{ITAE}}{\\mathrm{ITAE}_0}+w_3\\frac{\\mathrm{ITSE}}{\\mathrm{ITSE}_0}+w_4\\frac{E_u}{E_{u,0}}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:14:41.997717Z",
+  "lesson_id": "4-4",
+  "node_id": "权重偏好与无约束候选解_4_44005",
+  "node_name": "权重偏好与无约束候选解",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：权重偏好到候选解映射清楚，公式与候选解差异语义可接受。"
+}

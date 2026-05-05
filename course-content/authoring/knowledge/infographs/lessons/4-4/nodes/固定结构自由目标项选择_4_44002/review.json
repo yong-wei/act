@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T08:04:44.774193Z",
+  "lesson_id": "4-4",
+  "node_id": "固定结构自由目标项选择_4_44002",
+  "node_name": "固定结构自由目标项选择",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉检查：固定结构、自由目标项和加权目标关系清楚，公式与指标项可接受。"
+}

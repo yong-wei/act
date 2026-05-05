@@ -483,6 +483,238 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "title": "三频段闭环性能回读 信息图",
+      "lessonId": "4-3",
+      "nodeId": "三频段闭环性能回读_3_38003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
+      "title": "主矛盾到频段职责映射 信息图",
+      "lessonId": "4-3",
+      "nodeId": "主矛盾到频段职责映射_4_42003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "title": "低频补偿稳态改善路径 信息图",
+      "lessonId": "4-3",
+      "nodeId": "低频补偿稳态改善路径_3_37003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/单结构与复合结构分流条件_4_43002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/单结构与复合结构分流条件_4_43002.png",
+      "title": "单结构与复合结构分流条件 信息图",
+      "lessonId": "4-3",
+      "nodeId": "单结构与复合结构分流条件_4_43002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+      "title": "单结构首轮起步卡 信息图",
+      "lessonId": "4-3",
+      "nodeId": "单结构首轮起步卡_4_42001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+      "title": "参数方向表达卡 信息图",
+      "lessonId": "4-3",
+      "nodeId": "参数方向表达卡_4_43003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
+      "title": "反馈保底与前馈补偿边界 信息图",
+      "lessonId": "4-3",
+      "nodeId": "反馈保底与前馈补偿边界_4_42005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/对象分析回收到设计入口_4_43001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/对象分析回收到设计入口_4_43001.png",
+      "title": "对象分析回收到设计入口 信息图",
+      "lessonId": "4-3",
+      "nodeId": "对象分析回收到设计入口_4_43001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+      "title": "带宽频率 信息图",
+      "lessonId": "4-3",
+      "nodeId": "带宽频率_5_6996a44a"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/扰动抑制中的通道重写边界_4_43006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/扰动抑制中的通道重写边界_4_43006.png",
+      "title": "扰动抑制中的通道重写边界 信息图",
+      "lessonId": "4-3",
+      "nodeId": "扰动抑制中的通道重写边界_4_43006"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
+      "title": "目标驱动超前校正 信息图",
+      "lessonId": "4-3",
+      "nodeId": "目标驱动超前校正_3_36004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+      "title": "相角裕度 信息图",
+      "lessonId": "4-3",
+      "nodeId": "相角裕度_5_5a74b451"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
+      "title": "结构作用点与代价来源对照 信息图",
+      "lessonId": "4-3",
+      "nodeId": "结构作用点与代价来源对照_4_42004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+      "title": "设计任务表达卡 信息图",
+      "lessonId": "4-3",
+      "nodeId": "设计任务表达卡_4_41001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+      "title": "问题清单移交表 信息图",
+      "lessonId": "4-3",
+      "nodeId": "问题清单移交表_4_43005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/首轮验证最小读数逻辑_4_43004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/首轮验证最小读数逻辑_4_43004.png",
+      "title": "首轮验证最小读数逻辑 信息图",
+      "lessonId": "4-3",
+      "nodeId": "首轮验证最小读数逻辑_4_43004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "title": "三频段闭环性能回读 信息图",
+      "lessonId": "4-4",
+      "nodeId": "三频段闭环性能回读_3_38003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+      "title": "任务通道变化下的自由目标改写 信息图",
+      "lessonId": "4-4",
+      "nodeId": "任务通道变化下的自由目标改写_4_44007"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+      "title": "优化起点与归一化来源 信息图",
+      "lessonId": "4-4",
+      "nodeId": "优化起点与归一化来源_4_44003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+      "title": "单结构首轮起步卡 信息图",
+      "lessonId": "4-4",
+      "nodeId": "单结构首轮起步卡_4_42001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+      "title": "参数方向表达卡 信息图",
+      "lessonId": "4-4",
+      "nodeId": "参数方向表达卡_4_43003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+      "title": "固定结构自由目标项选择 信息图",
+      "lessonId": "4-4",
+      "nodeId": "固定结构自由目标项选择_4_44002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+      "title": "Pareto前沿与展示解取舍 信息图",
+      "lessonId": "4-4",
+      "nodeId": "展示解与Pareto最小取舍_4_44006"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+      "title": "带宽频率 信息图",
+      "lessonId": "4-4",
+      "nodeId": "带宽频率_5_6996a44a"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+      "title": "无约束加权目标表达 信息图",
+      "lessonId": "4-4",
+      "nodeId": "无约束加权目标表达_4_44004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+      "title": "权重偏好与无约束候选解 信息图",
+      "lessonId": "4-4",
+      "nodeId": "权重偏好与无约束候选解_4_44005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+      "title": "经典试凑中的多目标拉扯 信息图",
+      "lessonId": "4-4",
+      "nodeId": "经典试凑中的多目标拉扯_4_44001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+      "title": "设计任务表达卡 信息图",
+      "lessonId": "4-4",
+      "nodeId": "设计任务表达卡_4_41001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+      "title": "问题清单移交表 信息图",
+      "lessonId": "4-4",
+      "nodeId": "问题清单移交表_4_43005"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
       "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
       "title": "传统控制结构局限 信息图",

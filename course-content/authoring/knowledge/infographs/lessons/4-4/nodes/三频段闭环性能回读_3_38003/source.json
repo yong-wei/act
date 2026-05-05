@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:20:11.697462Z",
+  "lesson": {
+    "lesson_id": "4-4",
+    "title": "多目标权衡与控制器优化设计",
+    "groups": [
+      "优化方法与候选比较"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "三频段闭环性能回读_3_38003",
+    "name": "三频段闭环性能回读",
+    "name_en": "Closed-Loop Performance Readback Across Three Frequency Bands",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "把低频、中频、高频分开看，才能把频域量正确读回为稳态精度、动态品质和高频代价。",
+    "examples": [
+      "若任务从“尽快跟踪”切换为“减小超调并减轻执行器波动”，则应优先提高中频余量并压低谐振峰值，而不是继续右推截止频率。",
+      "同样是提高带宽，最小相对象和非最小相对象读回的风险不同：后者更容易被额外相位滞后压缩裕量。"
+    ],
+    "formulas": [
+      "\\omega_b,\\qquad \\gamma,\\qquad M_r,\\qquad \\omega_r"
+    ],
+    "keywords": [
+      "三频段",
+      "带宽",
+      "谐振峰值",
+      "稳态精度",
+      "速度",
+      "高频代价",
+      "3-8",
+      "相角裕度"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/三频段闭环性能回读_3_38003.md",
+  "card_frontmatter": {
+    "node_id": "三频段闭环性能回读_3_38003",
+    "name": "三频段闭环性能回读",
+    "name_en": "Closed-Loop Performance Readback Across Three Frequency Bands",
+    "lesson_units": [
+      "3-8"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-8",
+      "三频段",
+      "带宽",
+      "相角裕度",
+      "谐振峰值"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-8/design/3-8-handout.md"
+    ],
+    "asset_refs": [
+      "3-8-three-band-overview.png"
+    ]
+  },
+  "card_overview": "# 三频段闭环性能回读 | Closed-Loop Performance Readback Across Three Frequency Bands\n\n**一句话定义**：把低频、中频、高频分开看，才能把频域量正确读回为稳态精度、动态品质和高频代价。\n\n**核心直觉**：先问“哪一段在承担任务”，再问“这个收益换来了什么代价”。\n\n**关键公式**：\n$$\n\\omega_b,\\qquad \\gamma,\\qquad M_r,\\qquad \\omega_r\n$$\n\n**关联**：前置 → 带宽、相角裕度、频率特性 · 后续 → 频域综合判断与工程读回、目标驱动超前校正",
+  "card_detail": "### 完整解释\n\n`3-8` 把频域读图固定成三频段分工：\n\n- **低频段**：主要看低频增益和误差衰减能力，对应稳态精度和抗缓变扰动；\n- **中频段**：主要看截止频率、相角裕度和增益裕度，对应速度、超调和稳定边界；\n- **高频段**：主要看衰减斜率与峰化倾向，对应噪声敏感性、执行器负担和鲁棒性。\n\n把频域量读回闭环表现时，常见锚点是：\n\n- `带宽 \\omega_b`：能有效跟踪多快的变化；\n- `相角裕度 \\gamma`：离临界状态还有多远；\n- `谐振峰值 M_r`：闭环峰化是否明显；\n- `谐振频率 \\omega_r`：风险集中在哪一段频带。\n\n所以，任务一旦变化，优先级也要变。例如从“尽快跟踪”切到“优先减小超调”，就不应再只盯着更大的截止频率，而要更重视中频余量和闭环峰化。\n\n### 工程场景\n\n三频段分工让“更快”和“更稳”不再混成一句口号，而能明确区分是低频收益、中频边界还是高频代价在起主导作用。\n\n### 常见误区\n\n1. **误区**：所有频域指标都在回答同一个问题。\n   **纠正**：不同指标分别对应精度、速度、边界和代价，不能混读。\n\n2. **误区**：带宽越大，系统就一定越优。\n   **纠正**：还要同时看相角裕度、谐振峰值和高频代价。",
+  "card_plain_excerpt": "## 首页\n\n# 三频段闭环性能回读 | Closed-Loop Performance Readback Across Three Frequency Bands\n\n**一句话定义**：把低频、中频、高频分开看，才能把频域量正确读回为稳态精度、动态品质和高频代价。\n\n**核心直觉**：先问“哪一段在承担任务”，再问“这个收益换来了什么代价”。\n\n**关键公式**：\n$$\n\\omega_b,\\qquad \\gamma,\\qquad M_r,\\qquad \\omega_r\n$$\n\n**关联**：前置 → 带宽、相角裕度、频率特性 · 后续 → 频域综合判断与工程读回、目标驱动超前校正\n\n## 详情\n\n### 完整解释\n\n`3-8` 把频域读图固定成三频段分工：\n\n- **低频段**：主要看低频增益和误差衰减能力，对应稳态精度和抗缓变扰动；\n- **中频段**：主要看截止频率、相角裕度和增益裕度，对应速度、超调和稳定边界；\n- **高频段**：主要看衰减斜率与峰化倾向，对应噪声敏感性、执行器负担和鲁棒性。\n\n把频域量读回闭环表现时，常见锚点是：\n\n- `带宽 \\omega_b`：能有效跟踪多快的变化；\n- `相角裕度 \\gamma`：离临界状态还有多远；\n- `谐振峰值 M_r`：闭环峰化是否明显；\n- `谐振频率 \\omega_r`：风险集中在哪一段频带。\n\n所以，任务一旦变化，优先级也要变。例如从“尽快跟踪”切到“优先减小超调”，就不应再只盯着更大的截止频率，而要更重视中频余量和闭环峰化。\n\n### 工程场景\n\n三频段分工让“更快”和“更稳”不再混成一句口号，而能明确区分是低频收益、中频边界还是高频代价在起主导作用。\n\n### 常见误区\n\n1. **误区**：所有频域指标都在回答同一个问题。\n   **纠正**：不同指标分别对应精度、速度、边界和代价，不能混读。\n\n2. **误区**：带宽越大，系统就一定越优。\n   **纠正**：还要同时看相角裕度、谐振峰值和高频代价。",
+  "core_intuition": "先问“哪一段在承担任务”，再问“这个收益换来了什么代价”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "频域综合判断与工程读回",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相与右半平面零点",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "奈奎斯特与 Bode 统一判稳链",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "任务标签与机制标签匹配",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "主矛盾到频段职责映射",
+      "relation": "cross_domain",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "cross_domain",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "cross_domain",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "cross_domain",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "三频段闭环性能回读_3_38003",
+      "source": "三频段闭环性能回读",
+      "target_id": "经典试凑中的多目标拉扯_4_44001",
+      "target": "经典试凑中的多目标拉扯",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "4-4 用过程、误差和动作三类证据一起说明：经典试凑的问题在于比较语言没有统一。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "三频段闭环性能回读",
+        "三频段",
+        "带宽",
+        "谐振峰值",
+        "稳态精度",
+        "速度",
+        "高频代价",
+        "相角裕度"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\omega_b,\\qquad \\gamma,\\qquad M_r,\\qquad \\omega_r"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

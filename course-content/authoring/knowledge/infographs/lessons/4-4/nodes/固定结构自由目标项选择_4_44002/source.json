@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T07:20:11.956689Z",
+  "lesson": {
+    "lesson_id": "4-4",
+    "title": "多目标权衡与控制器优化设计",
+    "groups": [
+      "前测与参数化入口"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "固定结构自由目标项选择_4_44002",
+    "name": "固定结构自由目标项选择",
+    "name_en": "Selecting Free Objective Terms in Fixed-Structure Design",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "在固定结构已经确定的前提下，先选出能够表达当前偏好的自由目标项，再决定如何把它们合成为同一个加权目标。",
+    "examples": [
+      "客船航向保持中，`t_s`、`ITAE`、`ITSE` 和控制能量一起承担自由目标角色。",
+      "这些量在 4-4 先负责表达偏好，而不是先负责裁决结果能不能交付。"
+    ],
+    "formulas": [
+      "\\Phi(\\theta)=\\bigl(t_s(\\theta),\\ \\mathrm{ITAE}(\\theta),\\ \\mathrm{ITSE}(\\theta),\\ E_u(\\theta)\\bigr)"
+    ],
+    "keywords": [
+      "自由目标",
+      "指标选择",
+      "固定结构"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/固定结构自由目标项选择_4_44002.md",
+  "card_frontmatter": {
+    "node_id": "固定结构自由目标项选择_4_44002",
+    "name": "固定结构自由目标项选择",
+    "name_en": "Free Objective Terms for a Fixed Structure",
+    "lesson_units": [
+      "4-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-4",
+      "自由目标",
+      "固定结构",
+      "指标选择"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-4/design/4-4-handout.md",
+      "authoring/lessons/4-4/design/4-4-interactive-page.md"
+    ]
+  },
+  "card_overview": "# 固定结构自由目标项选择 | Free Objective Terms for a Fixed Structure\n\n**一句话定义**：在固定结构已经确定的前提下，先选出能够表达当前偏好的自由目标项，再决定如何把它们合成为同一个加权目标。\n\n**核心直觉**：本课先比较“想让搜索更愿意服务什么”，而不是先宣布“谁绝对不能越界”。\n\n**关键公式**：\n$$\n\\Phi(\\theta)=\\bigl(t_s(\\theta),\\ \\mathrm{ITAE}(\\theta),\\ \\mathrm{ITSE}(\\theta),\\ E_u(\\theta)\\bigr)\n$$\n\n**关联**：前置 → 经典试凑中的多目标拉扯 · 后续 → 优化起点与归一化来源、无约束加权目标表达",
+  "card_detail": "### 完整解释\n\n`4-4` 先选取四类自由目标项：调节时间 `t_s`、拖尾指标 `ITAE`、误差强度指标 `ITSE` 和控制能量 `E_u`。它们之所以被放在一起，是因为当前任务既想缩短主过程，又想压低拖尾，还想避免动作代价无节制抬升。\n\n这一步的要点不是背公式，而是明白每一项都在回答一个不同的问题：是否更快、是否更干净、是否更平顺、是否更激进。只有把这些目标项先分清，后面的加权目标才不会变成一个只剩符号的公式壳。\n\n### 常见误区\n\n1. **误区**：只保留一个最重要的指标，别的都先不看。\n   **纠正**：那会把多目标拉扯重新压回单指标判断，失去本课建模意义。\n\n2. **误区**：自由目标项已经等于工程硬约束。\n   **纠正**：本课只写偏好表达，输出侧工程边界放到 `4-5` 再显化。",
+  "card_plain_excerpt": "## 首页\n\n# 固定结构自由目标项选择 | Free Objective Terms for a Fixed Structure\n\n**一句话定义**：在固定结构已经确定的前提下，先选出能够表达当前偏好的自由目标项，再决定如何把它们合成为同一个加权目标。\n\n**核心直觉**：本课先比较“想让搜索更愿意服务什么”，而不是先宣布“谁绝对不能越界”。\n\n**关键公式**：\n$$\n\\Phi(\\theta)=\\bigl(t_s(\\theta),\\ \\mathrm{ITAE}(\\theta),\\ \\mathrm{ITSE}(\\theta),\\ E_u(\\theta)\\bigr)\n$$\n\n**关联**：前置 → 经典试凑中的多目标拉扯 · 后续 → 优化起点与归一化来源、无约束加权目标表达\n\n## 详情\n\n### 完整解释\n\n`4-4` 先选取四类自由目标项：调节时间 `t_s`、拖尾指标 `ITAE`、误差强度指标 `ITSE` 和控制能量 `E_u`。它们之所以被放在一起，是因为当前任务既想缩短主过程，又想压低拖尾，还想避免动作代价无节制抬升。\n\n这一步的要点不是背公式，而是明白每一项都在回答一个不同的问题：是否更快、是否更干净、是否更平顺、是否更激进。只有把这些目标项先分清，后面的加权目标才不会变成一个只剩符号的公式壳。\n\n### 常见误区\n\n1. **误区**：只保留一个最重要的指标，别的都先不看。\n   **纠正**：那会把多目标拉扯重新压回单指标判断，失去本课建模意义。\n\n2. **误区**：自由目标项已经等于工程硬约束。\n   **纠正**：本课只写偏好表达，输出侧工程边界放到 `4-5` 再显化。",
+  "core_intuition": "本课先比较“想让搜索更愿意服务什么”，而不是先宣布“谁绝对不能越界”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "硬约束-软目标-观察指标分类",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "经典试凑中的多目标拉扯_4_44001",
+      "source": "经典试凑中的多目标拉扯",
+      "target_id": "固定结构自由目标项选择_4_44002",
+      "target": "固定结构自由目标项选择",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "正因为多类收益和代价在拉扯，4-4 才需要先选出本课的自由目标项。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "设计任务表达卡_4_41001",
+      "source": "设计任务表达卡",
+      "target_id": "固定结构自由目标项选择_4_44002",
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": "4-1 的任务表达为 4-4 选择自由目标项提供了上位任务语义。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "固定结构自由目标项选择_4_44002",
+      "source": "固定结构自由目标项选择",
+      "target_id": "优化起点与归一化来源_4_44003",
+      "target": "优化起点与归一化来源",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "只有先确定比较哪些目标项，归一化基准才会有明确来源。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "固定结构自由目标项选择",
+        "自由目标",
+        "指标选择",
+        "固定结构"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\Phi(\\theta)=\\bigl(t_s(\\theta),\\ \\mathrm{ITAE}(\\theta),\\ \\mathrm{ITSE}(\\theta),\\ E_u(\\theta)\\bigr)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

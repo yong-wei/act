@@ -159,13 +159,29 @@
           "速度",
           "高频代价"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+          "title": "三频段闭环性能回读 信息图",
+          "lessonId": "4-4",
+          "nodeId": "三频段闭环性能回读_3_38003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/三频段闭环性能回读_3_38003.md"
+        "course-content/runtime/knowledge/cards/nodes/三频段闭环性能回读_3_38003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+          "title": "三频段闭环性能回读 信息图",
+          "lessonId": "4-4",
+          "nodeId": "三频段闭环性能回读_3_38003"
+        }
       ],
       "tags": [
         "三频段",
@@ -182,8 +198,8 @@
       "name": "Pareto前沿与展示解取舍",
       "nodeType": "THEORY",
       "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
-      "positionX": -112.0,
-      "positionY": 30.0,
+      "positionX": -100.5,
+      "positionY": -58.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -218,13 +234,29 @@
           "候选族",
           "多目标取舍"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "title": "Pareto前沿与展示解取舍 信息图",
+          "lessonId": "4-4",
+          "nodeId": "展示解与Pareto最小取舍_4_44006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
+        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "title": "Pareto前沿与展示解取舍 信息图",
+          "lessonId": "4-4",
+          "nodeId": "展示解与Pareto最小取舍_4_44006"
+        }
       ],
       "tags": [
         "Pareto前沿",
@@ -240,8 +272,8 @@
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -82.0,
-      "positionY": -82.0,
+      "positionX": -0.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -274,13 +306,29 @@
           "任务通道",
           "横摇抗扰"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-4",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-4",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007"
+        }
       ],
       "tags": [
         "自由目标改写",
@@ -294,8 +342,8 @@
       "name": "优化起点与归一化来源",
       "nodeType": "THEORY",
       "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
-      "positionX": -30.0,
-      "positionY": -112.0,
+      "positionX": 58.0,
+      "positionY": -100.5,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -329,13 +377,29 @@
           "归一化",
           "参数范围"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "title": "优化起点与归一化来源 信息图",
+          "lessonId": "4-4",
+          "nodeId": "优化起点与归一化来源_4_44003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md"
+        "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "title": "优化起点与归一化来源 信息图",
+          "lessonId": "4-4",
+          "nodeId": "优化起点与归一化来源_4_44003"
+        }
       ],
       "tags": [
         "优化起点",
@@ -349,8 +413,8 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": 105.7,
-      "positionY": 61.0,
+      "positionX": 31.6,
+      "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -386,13 +450,29 @@
           "参数方向",
           "验证假设"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+          "title": "单结构首轮起步卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "单结构首轮起步卡_4_42001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/单结构首轮起步卡_4_42001.md"
+        "course-content/runtime/knowledge/cards/nodes/单结构首轮起步卡_4_42001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
+          "title": "单结构首轮起步卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "单结构首轮起步卡_4_42001"
+        }
       ],
       "tags": [
         "起步卡",
@@ -407,8 +487,8 @@
       "name": "参数方向表达卡",
       "nodeType": "THEORY",
       "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
-      "positionX": 86.3,
-      "positionY": 86.3,
+      "positionX": 0.0,
+      "positionY": 122.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -442,13 +522,29 @@
           "设计语言",
           "首轮方案"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+          "title": "参数方向表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "参数方向表达卡_4_43003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/参数方向表达卡_4_43003.md"
+        "course-content/runtime/knowledge/cards/nodes/参数方向表达卡_4_43003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数方向表达卡_4_43003.png",
+          "title": "参数方向表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "参数方向表达卡_4_43003"
+        }
       ],
       "tags": [
         "参数方向",
@@ -462,8 +558,8 @@
       "name": "固定结构自由目标项选择",
       "nodeType": "THEORY",
       "description": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
-      "positionX": -86.3,
-      "positionY": 86.3,
+      "positionX": -122.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -497,13 +593,29 @@
           "指标选择",
           "固定结构"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+          "title": "固定结构自由目标项选择 信息图",
+          "lessonId": "4-4",
+          "nodeId": "固定结构自由目标项选择_4_44002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/固定结构自由目标项选择_4_44002.md"
+        "course-content/runtime/knowledge/cards/nodes/固定结构自由目标项选择_4_44002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
+          "title": "固定结构自由目标项选择 信息图",
+          "lessonId": "4-4",
+          "nodeId": "固定结构自由目标项选择_4_44002"
+        }
       ],
       "tags": [
         "自由目标",
@@ -517,8 +629,8 @@
       "name": "无约束加权目标表达",
       "nodeType": "THEORY",
       "description": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
-      "positionX": 128.0,
-      "positionY": 0.0,
+      "positionX": 90.5,
+      "positionY": 90.5,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -551,13 +663,29 @@
           "加权目标",
           "无约束"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+          "title": "无约束加权目标表达 信息图",
+          "lessonId": "4-4",
+          "nodeId": "无约束加权目标表达_4_44004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/无约束加权目标表达_4_44004.md"
+        "course-content/runtime/knowledge/cards/nodes/无约束加权目标表达_4_44004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
+          "title": "无约束加权目标表达 信息图",
+          "lessonId": "4-4",
+          "nodeId": "无约束加权目标表达_4_44004"
+        }
       ],
       "tags": [
         "目标函数",
@@ -571,8 +699,8 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": 110.9,
-      "positionY": 64.0,
+      "positionX": 33.1,
+      "positionY": 123.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -604,13 +732,29 @@
           "偏好",
           "候选解"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-4",
+          "nodeId": "权重偏好与无约束候选解_4_44005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-4",
+          "nodeId": "权重偏好与无约束候选解_4_44005"
+        }
       ],
       "tags": [
         "权重",
@@ -624,8 +768,8 @@
       "name": "经典试凑中的多目标拉扯",
       "nodeType": "THEORY",
       "description": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
-      "positionX": 94.8,
-      "positionY": 94.8,
+      "positionX": 0.0,
+      "positionY": 134.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -658,13 +802,29 @@
           "多目标拉扯",
           "固定结构"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+          "title": "经典试凑中的多目标拉扯 信息图",
+          "lessonId": "4-4",
+          "nodeId": "经典试凑中的多目标拉扯_4_44001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/经典试凑中的多目标拉扯_4_44001.md"
+        "course-content/runtime/knowledge/cards/nodes/经典试凑中的多目标拉扯_4_44001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
+          "title": "经典试凑中的多目标拉扯 信息图",
+          "lessonId": "4-4",
+          "nodeId": "经典试凑中的多目标拉扯_4_44001"
+        }
       ],
       "tags": [
         "经典试凑",
@@ -678,8 +838,8 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -129.4,
-      "positionY": 34.7,
+      "positionX": -116.0,
+      "positionY": -67.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -715,13 +875,29 @@
           "证据来源",
           "设计输入"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "title": "设计任务表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md"
+        "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "title": "设计任务表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001"
+        }
       ],
       "tags": [
         "任务表达卡",
@@ -736,8 +912,8 @@
       "name": "问题清单移交表",
       "nodeType": "THEORY",
       "description": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
-      "positionX": 99.0,
-      "positionY": 99.0,
+      "positionX": 0.0,
+      "positionY": 140.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -769,13 +945,29 @@
           "移交",
           "下一轮调整"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+          "title": "问题清单移交表 信息图",
+          "lessonId": "4-4",
+          "nodeId": "问题清单移交表_4_43005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/问题清单移交表_4_43005.md"
+        "course-content/runtime/knowledge/cards/nodes/问题清单移交表_4_43005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
+          "title": "问题清单移交表 信息图",
+          "lessonId": "4-4",
+          "nodeId": "问题清单移交表_4_43005"
+        }
       ],
       "tags": [
         "问题清单",
@@ -789,8 +981,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": -154.5,
-      "positionY": 41.4,
+      "positionX": 166.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -821,13 +1013,29 @@
           "响应速度",
           "截止频率"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "title": "带宽频率 信息图",
+          "lessonId": "4-4",
+          "nodeId": "带宽频率_5_6996a44a"
+        },
         "createdAt": "2026-02-04T17:54:16.628615",
         "updatedAt": "2026-02-04T17:54:16.628615",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "title": "带宽频率 信息图",
+          "lessonId": "4-4",
+          "nodeId": "带宽频率_5_6996a44a"
+        }
       ],
       "tags": [
         "3dB点",

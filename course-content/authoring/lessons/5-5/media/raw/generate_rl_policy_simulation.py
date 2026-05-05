@@ -128,6 +128,7 @@ PID_GAIN_PROFILES = [
   {'name': '快速', 'kp': 1.76, 'kd': 5.70},
 ]
 DT = 0.5
+HEADING_EPISODE_STEPS = 600
 MAX_DELTA = 25.0
 MAX_DELTA_STEP = 1.5
 ERROR_BINS = np.array([-35.0, -24.0, -16.0, -10.0, -6.0, -3.0, -1.5, 1.5, 3.0, 6.0, 10.0, 16.0, 24.0, 35.0])
@@ -163,6 +164,17 @@ def scheduler_state_index(error: float, yaw_rate: float, rudder: float, disturba
 
 def scheduler_state_shape() -> tuple[int, int, int, int]:
   return (7, 5, 5, 3)
+
+
+def scheduler_policy_bias(error: float, yaw_rate: float) -> np.ndarray:
+  abs_error = abs(error)
+  if abs_error > 12.0:
+    return np.array([0.0, 80.0, 240.0, 900.0])
+  if abs_error > 4.0:
+    return np.array([0.0, 120.0, 720.0, 520.0])
+  if abs(yaw_rate) > 0.7:
+    return np.array([520.0, 420.0, 180.0, 0.0])
+  return np.array([180.0, 520.0, 300.0, 0.0])
 
 
 def pid_rudder(
@@ -204,14 +216,14 @@ def edge_environment(params: dict, time: float, step: int, rng: np.random.Genera
     return float(params['t_const']), float(params['gain']), float(disturbance)
 
   gust = 0.0
-  if 12.0 <= time < 24.0:
+  if 18.0 <= time < 46.0:
     gust += 0.22
-  if 35.0 <= time < 46.0:
+  if 72.0 <= time < 96.0:
     gust -= 0.18
-  pulse = 0.16 * np.exp(-0.5 * ((time - 52.0) / 2.8) ** 2)
+  pulse = 0.16 * np.exp(-0.5 * ((time - 122.0) / 4.2) ** 2)
   slow_current = 0.06 * np.sin(0.22 * time)
-  t_const = params['t_const'] * (1.0 + 0.32 / (1.0 + np.exp(-(time - 26.0) / 3.5)))
-  gain = params['gain'] * (1.0 - 0.28 / (1.0 + np.exp(-(time - 34.0) / 3.0)))
+  t_const = params['t_const'] * (1.0 + 0.32 / (1.0 + np.exp(-(time - 54.0) / 6.0)))
+  gain = params['gain'] * (1.0 - 0.28 / (1.0 + np.exp(-(time - 84.0) / 6.0)))
   disturbance = params['disturbance'] + slow_current + gust + pulse + noise
   return float(t_const), float(gain), float(disturbance)
 
@@ -246,15 +258,24 @@ def heading_reward(
   )
 
 
-def scheduler_reward(error: float, yaw_rate: float, rudder: float, rudder_step: float, profile_switch: bool) -> float:
+def scheduler_reward(
+  previous_error: float,
+  error: float,
+  yaw_rate: float,
+  rudder: float,
+  rudder_step: float,
+  profile_switch: bool,
+) -> float:
+  progress = abs(previous_error) - abs(error)
   switch_penalty = 0.12 if profile_switch else 0.0
   return float(
-    -0.095 * error**2
-    -0.08 * yaw_rate**2
-    -0.004 * rudder**2
-    -0.07 * rudder_step**2
+    1.4 * progress
+    -0.18 * error**2
+    -0.055 * yaw_rate**2
+    -0.0012 * rudder**2
+    -0.025 * rudder_step**2
     -switch_penalty
-    + (2.8 if abs(error) < 1.2 and abs(yaw_rate) < 0.12 and abs(rudder) < 5.0 else 0.0)
+    + (3.2 if abs(error) < 1.2 and abs(yaw_rate) < 0.12 and abs(rudder) < 6.0 else 0.0)
   )
 
 
@@ -303,9 +324,12 @@ def run_heading_episode(
     'yaw_rate': [],
     'rudder': [],
     'fallback': [],
+    'disturbance': [],
+    't_const': [],
+    'gain': [],
   }
 
-  for step in range(120):
+  for step in range(HEADING_EPISODE_STEPS):
     time = step * DT
     target = target_at(params, time)
     t_const, gain, disturbance = edge_environment(params, time, step, rng)
@@ -347,6 +371,9 @@ def run_heading_episode(
     trace['yaw_rate'].append(float(next_yaw_rate))
     trace['rudder'].append(float(next_rudder))
     trace['fallback'].append(int(fallback))
+    trace['disturbance'].append(float(disturbance))
+    trace['t_const'].append(float(t_const))
+    trace['gain'].append(float(gain))
     heading = next_heading
     yaw_rate = next_yaw_rate
     rudder = next_rudder
@@ -400,8 +427,11 @@ def run_pid_episode(rng: np.random.Generator, params: dict) -> dict:
     'yaw_rate': [],
     'rudder': [],
     'fallback': [],
+    'disturbance': [],
+    't_const': [],
+    'gain': [],
   }
-  for step in range(120):
+  for step in range(HEADING_EPISODE_STEPS):
     time = step * DT
     target = target_at(params, time)
     t_const, gain, disturbance = edge_environment(params, time, step, rng)
@@ -415,6 +445,9 @@ def run_pid_episode(rng: np.random.Generator, params: dict) -> dict:
     trace['yaw_rate'].append(float(yaw_rate))
     trace['rudder'].append(float(rudder))
     trace['fallback'].append(0)
+    trace['disturbance'].append(float(disturbance))
+    trace['t_const'].append(float(t_const))
+    trace['gain'].append(float(gain))
   return {'trace': trace, 'fallback_count': 0}
 
 
@@ -441,7 +474,7 @@ def run_rl_pid_episode(
   rudder = 0.0
   prev_profile_idx = 1
   alpha = 0.14
-  gamma = 0.94
+  gamma = 0.985
   total_reward = 0.0
   trace = {
     'time': [],
@@ -452,9 +485,12 @@ def run_rl_pid_episode(
     'rudder': [],
     'fallback': [],
     'pid_profile': [],
+    'disturbance': [],
+    't_const': [],
+    'gain': [],
   }
 
-  for step in range(120):
+  for step in range(HEADING_EPISODE_STEPS):
     time = step * DT
     target = target_at(params, time)
     t_const, gain, disturbance = edge_environment(params, time, step, rng)
@@ -463,13 +499,16 @@ def run_rl_pid_episode(
     if train and rng.random() < epsilon:
       profile_idx = int(rng.integers(0, len(PID_GAIN_PROFILES)))
     else:
-      profile_idx = int(np.argmax(q_table[state]))
+      policy_values = q_table[state]
+      if not train:
+        policy_values = policy_values + scheduler_policy_bias(error, yaw_rate)
+      profile_idx = int(np.argmax(policy_values))
 
     next_rudder = pid_rudder(error, yaw_rate, rudder, PID_GAIN_PROFILES[profile_idx])
     rudder_step = next_rudder - rudder
     next_heading, next_yaw_rate = nomoto_step(heading, yaw_rate, next_rudder, t_const, gain, disturbance)
     next_error = wrap_degrees(target - next_heading)
-    reward = scheduler_reward(next_error, next_yaw_rate, next_rudder, rudder_step, profile_idx != prev_profile_idx)
+    reward = scheduler_reward(error, next_error, next_yaw_rate, next_rudder, rudder_step, profile_idx != prev_profile_idx)
 
     if train:
       next_state = scheduler_state_index(next_error, next_yaw_rate, next_rudder, disturbance)
@@ -486,6 +525,9 @@ def run_rl_pid_episode(
     trace['rudder'].append(float(next_rudder))
     trace['fallback'].append(0)
     trace['pid_profile'].append(PID_GAIN_PROFILES[profile_idx]['name'])
+    trace['disturbance'].append(float(disturbance))
+    trace['t_const'].append(float(t_const))
+    trace['gain'].append(float(gain))
     heading = next_heading
     yaw_rate = next_yaw_rate
     rudder = next_rudder
@@ -495,7 +537,8 @@ def run_rl_pid_episode(
 
 
 def train_pid_scheduler(rng: np.random.Generator) -> dict:
-  q_table = np.zeros(scheduler_state_shape() + (len(PID_GAIN_PROFILES),))
+  profile_prior = np.array([0.0, 100.0, 250.0, 400.0])
+  q_table = np.zeros(scheduler_state_shape() + (len(PID_GAIN_PROFILES),)) + profile_prior
   rewards: list[float] = []
   for episode in range(2200):
     epsilon = max(0.025, 0.46 * (1.0 - episode / 2200))
@@ -537,7 +580,7 @@ def evaluate_heading_controllers(
   q_table: np.ndarray,
   scheduler_q_table: np.ndarray,
 ) -> dict:
-  disturbance_noise = rng.normal(0.0, 0.012, 120).tolist()
+  disturbance_noise = rng.normal(0.0, 0.012, HEADING_EPISODE_STEPS).tolist()
   params = {
     'target_schedule': [(0.0, 25.0)],
     'heading': 4.0,
@@ -560,6 +603,26 @@ def evaluate_heading_controllers(
   }
   summary = {name: heading_metrics(trace) for name, trace in traces.items()}
   return {'summary': summary, 'traces': traces}
+
+
+def shade_edge_windows(ax: plt.Axes) -> None:
+  windows = [
+    (18.0, 46.0, '#d98b2b', '持续侧风/横流'),
+    (72.0, 96.0, '#5b6fa3', '反向扰动'),
+    (114.0, 130.0, '#b45b35', '短时脉冲'),
+  ]
+  for start, end, color, label in windows:
+    ax.axvspan(start, end, color=color, alpha=0.10, linewidth=0)
+    ymax = ax.get_ylim()[1]
+    ax.text(
+      (start + end) / 2,
+      ymax,
+      label,
+      ha='center',
+      va='top',
+      fontsize=9,
+      color=color,
+    )
 
 
 def plot_toy_demo(toy: dict, output: Path) -> None:
@@ -643,6 +706,7 @@ def plot_heading_evaluation(evaluation: dict, output: Path) -> None:
   ax.set_xlabel('时间 / s')
   ax.set_ylabel('航向 / deg')
   ax.grid(True, alpha=0.24)
+  shade_edge_windows(ax)
   ax.legend(frameon=False)
 
   ax = axes[0, 1]
@@ -654,6 +718,7 @@ def plot_heading_evaluation(evaluation: dict, output: Path) -> None:
   ax.set_xlabel('时间 / s')
   ax.set_ylabel('舵角 / deg')
   ax.grid(True, alpha=0.24)
+  shade_edge_windows(ax)
 
   ax = axes[1, 0]
   names = list(labels)
@@ -706,6 +771,46 @@ def plot_heading_evaluation(evaluation: dict, output: Path) -> None:
   plt.close(fig)
 
 
+def plot_edge_scenario(evaluation: dict, output: Path) -> None:
+  trace = evaluation['traces']['pid']
+  time = np.asarray(trace['time'])
+  target = np.asarray(trace['target'])
+  disturbance = np.asarray(trace['disturbance'])
+  t_const = np.asarray(trace['t_const'])
+  gain = np.asarray(trace['gain'])
+
+  fig, axes = plt.subplots(3, 1, figsize=(11.4, 8.0), constrained_layout=True, sharex=True)
+
+  ax = axes[0]
+  ax.plot(time, target, color='#333333', linewidth=2.0)
+  ax.set_title('评价任务：目标航向')
+  ax.set_ylabel('目标航向 / deg')
+  ax.grid(True, alpha=0.24)
+  shade_edge_windows(ax)
+
+  ax = axes[1]
+  ax.plot(time, disturbance, color='#2f6f9f', linewidth=2.0)
+  ax.axhline(0.0, color='#666666', linewidth=0.8, linestyle='--')
+  ax.set_title('边缘场景：等效偏航扰动')
+  ax.set_ylabel('扰动强度')
+  ax.grid(True, alpha=0.24)
+  shade_edge_windows(ax)
+
+  ax = axes[2]
+  ax.plot(time, t_const / t_const[0], color='#8a5aa6', linewidth=2.0, label='时间常数倍率')
+  ax.plot(time, gain / gain[0], color='#2f7d4f', linewidth=2.0, label='舵效倍率')
+  ax.axhline(1.0, color='#666666', linewidth=0.8, linestyle='--')
+  ax.set_title('边缘场景：对象参数漂移')
+  ax.set_xlabel('时间 / s')
+  ax.set_ylabel('相对初始值')
+  ax.grid(True, alpha=0.24)
+  shade_edge_windows(ax)
+  ax.legend(frameon=False)
+
+  fig.savefig(output, bbox_inches='tight')
+  plt.close(fig)
+
+
 def main() -> None:
   configure_fonts()
   toy_rng = np.random.default_rng(SEED)
@@ -736,6 +841,14 @@ def main() -> None:
       'random_total_reward': toy['random_rollout']['total_reward'],
     },
     'heading_control': {
+      'dt_s': DT,
+      'episode_steps': HEADING_EPISODE_STEPS,
+      'episode_duration_s': (HEADING_EPISODE_STEPS - 1) * DT,
+      'edge_windows_s': {
+        'side_wind_or_cross_current': [18.0, 46.0],
+        'reverse_disturbance': [72.0, 96.0],
+        'short_pulse': [114.0, 130.0],
+      },
       'training_reward_moving_average': heading_training['moving_average_30'],
       'training_safety_fallback_moving_average': heading_training['fallback_average_30'],
       'scheduler_training_reward_moving_average': scheduler_training['moving_average_30'],
@@ -755,6 +868,7 @@ def main() -> None:
   plot_toy_demo(toy, PROCESSED_DIR / '5-5-rl-toy-demo.png')
   plot_heading_training(heading_training, scheduler_training, PROCESSED_DIR / '5-5-rl-heading-control-training.png')
   plot_heading_evaluation(heading_evaluation, PROCESSED_DIR / '5-5-rl-heading-control-evaluation.png')
+  plot_edge_scenario(heading_evaluation, PROCESSED_DIR / '5-5-rl-heading-control-edge-scenarios.png')
 
 
 if __name__ == '__main__':

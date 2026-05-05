@@ -17,8 +17,7 @@
     "展示解与Pareto最小取舍_4_44006",
     "任务通道变化下的自由目标改写_4_44007"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "设计任务表达卡_4_41001",
     "单结构首轮起步卡_4_42001",
     "参数方向表达卡_4_43003",
@@ -33,86 +32,8 @@
     "展示解与Pareto最小取舍_4_44006",
     "任务通道变化下的自由目标改写_4_44007"
   ],
-  "missing_source_files": {
-    "设计任务表达卡_4_41001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "单结构首轮起步卡_4_42001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "参数方向表达卡_4_43003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "问题清单移交表_4_43005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "三频段闭环性能回读_3_38003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "带宽频率_5_6996a44a": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "经典试凑中的多目标拉扯_4_44001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "固定结构自由目标项选择_4_44002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "优化起点与归一化来源_4_44003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "无约束加权目标表达_4_44004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "权重偏好与无约束候选解_4_44005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "展示解与Pareto最小取舍_4_44006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "任务通道变化下的自由目标改写_4_44007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

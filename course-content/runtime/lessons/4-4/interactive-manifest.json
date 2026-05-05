@@ -58,25 +58,41 @@
           "id": "object-card",
           "region": "object",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "object_card",
+            "title": "主案例对象",
+            "text": "P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]"
+          }
         },
         {
           "id": "tension-list",
           "region": "object",
           "kind": "bullet-list-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "tension_list",
+            "title": "当前已经同时出现的四类愿望"
+          }
         },
         {
           "id": "route-map",
           "region": "route",
           "kind": "stage-map",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "route_map"
+          }
         },
         {
           "id": "problem-focus",
           "region": "question",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_focus",
+            "title": "当前真正缺的不是更多试凑，而是统一的比较语言"
+          }
         }
       ],
       "content_blocks": {
@@ -114,7 +130,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -177,13 +194,28 @@
           "id": "goal-intro",
           "region": "header",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goal_intro"
+          }
         },
         {
           "id": "goal-cards",
           "region": "goals",
           "kind": "goal-card-row",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goal_cards",
+            "items": [
+              "说明经典试凑为何停在多目标拉扯前。",
+              "写清参数化入口与参数范围的职责。",
+              "把四类自由目标写成同一套比较语言。",
+              "理解数值优化怎样把偏好变成迭代搜索。",
+              "比较三组无约束候选的时域与频域差异。",
+              "理解 Pareto front 为什么保留一族候选。",
+              "看懂横摇边界案例为什么必须改写目标语言。"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -206,7 +238,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -277,31 +310,140 @@
           "id": "trial-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "trial_table",
+            "columns": [
+              "方案",
+              "设计意图",
+              "超调 / %",
+              "调节时间 / s",
+              "控制峰值",
+              "相角裕度 / deg",
+              "读数结论"
+            ],
+            "rows": [
+              [
+                "比例基线",
+                "先给出最小可运行起点",
+                "31.9677",
+                "83.1",
+                "2.2500",
+                "37.4347",
+                "速度慢，动态品质不够"
+              ],
+              [
+                "仅补低频",
+                "继续改善低频行为",
+                "41.2759",
+                "176.1",
+                "1.1195",
+                "30.8006",
+                "低频改善后，动态矛盾更突出"
+              ],
+              [
+                "方向过激",
+                "直接把速度拉起来",
+                "20.2410",
+                "19.6",
+                "25.0000",
+                "47.8274",
+                "速度收益显著，但动作代价骤增"
+              ],
+              [
+                "最小修正",
+                "把动作强度收回一部分",
+                "24.8740",
+                "39.1",
+                "6.0000",
+                "43.4991",
+                "动作被收回后，动态品质又开始回退"
+              ]
+            ]
+          }
         },
         {
           "id": "diagnosis-figure",
           "region": "media",
           "kind": "image-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diagnosis_figure"
+          }
         },
         {
           "id": "reading-order",
           "region": "reading",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading_order"
+          }
         },
         {
           "id": "reading-conclusion",
           "region": "reading",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading_conclusion"
+          }
         },
         {
           "id": "pre-quiz",
           "region": "quiz",
           "kind": "quiz-group",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "trial_table",
+            "columns": [
+              "方案",
+              "设计意图",
+              "超调 / %",
+              "调节时间 / s",
+              "控制峰值",
+              "相角裕度 / deg",
+              "读数结论"
+            ],
+            "rows": [
+              [
+                "比例基线",
+                "先给出最小可运行起点",
+                "31.9677",
+                "83.1",
+                "2.2500",
+                "37.4347",
+                "速度慢，动态品质不够"
+              ],
+              [
+                "仅补低频",
+                "继续改善低频行为",
+                "41.2759",
+                "176.1",
+                "1.1195",
+                "30.8006",
+                "低频改善后，动态矛盾更突出"
+              ],
+              [
+                "方向过激",
+                "直接把速度拉起来",
+                "20.2410",
+                "19.6",
+                "25.0000",
+                "47.8274",
+                "速度收益显著，但动作代价骤增"
+              ],
+              [
+                "最小修正",
+                "把动作强度收回一部分",
+                "24.8740",
+                "39.1",
+                "6.0000",
+                "43.4991",
+                "动作被收回后，动态品质又开始回退"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -493,43 +635,139 @@
           "id": "initial-controller",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "initial_controller",
+            "title": "4-3 起始方案",
+            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)"
+          }
         },
         {
           "id": "parameter-vector",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "parameter_vector",
+            "title": "本课参数化入口",
+            "text": "θ=[K,T,α]^T,  C_h(s)=K(Ts+1)/(αTs+1),  0<α<1"
+          }
         },
         {
           "id": "prior-result-figure",
           "region": "evidence",
           "kind": "image-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "prior_result_figure"
+          }
         },
         {
           "id": "prior-result-metrics",
           "region": "evidence",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "prior_result_metrics",
+            "columns": [
+              "指标",
+              "数值",
+              "上一轮结果说明"
+            ],
+            "rows": [
+              [
+                "调节时间 t_s / s",
+                "36.0",
+                "主过程偏慢"
+              ],
+              [
+                "ITAE",
+                "63.692",
+                "拖尾仍偏大"
+              ],
+              [
+                "ITSE",
+                "16.528",
+                "前中段误差强度仍需继续压低"
+              ],
+              [
+                "控制能量 E_u",
+                "125.715",
+                "动作代价已不可忽视"
+              ],
+              [
+                "截止频率 ω_c / rad/s",
+                "0.180",
+                "带宽仍偏低"
+              ],
+              [
+                "相角裕度 / deg",
+                "49.046",
+                "仍有继续调整空间"
+              ],
+              [
+                "超调 / %",
+                "18.864",
+                "前段动态形状仍不理想"
+              ],
+              [
+                "控制峰值",
+                "6.887",
+                "动作峰值已开始抬高"
+              ]
+            ]
+          }
         },
         {
           "id": "range-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "range_table",
+            "columns": [
+              "参数",
+              "取值范围",
+              "结构解释"
+            ],
+            "rows": [
+              [
+                "K",
+                "[1,6]",
+                "保持整体作用强度在当前结构可解释范围内"
+              ],
+              [
+                "T",
+                "[4,15]",
+                "让超前零点继续落在主工作频段附近"
+              ],
+              [
+                "α",
+                "[0.15,0.85]",
+                "保持在超前结构有效区间内"
+              ]
+            ]
+          }
         },
         {
           "id": "range-note",
           "region": "table",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "range_note"
+          }
         },
         {
           "id": "start-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "initial_controller",
+            "title": "4-3 起始方案",
+            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)"
+          }
         }
       ],
       "content_blocks": {
@@ -723,31 +961,100 @@
           "id": "target-cards",
           "region": "targets",
           "kind": "equation-card-row",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "target_cards",
+            "items": [
+              {
+                "title": "调节时间 t_s",
+                "note": "代表收敛速度"
+              },
+              {
+                "title": "ITAE",
+                "note": "代表误差拖尾是否被压短"
+              },
+              {
+                "title": "ITSE",
+                "note": "代表前中段强误差是否真的被压下去"
+              },
+              {
+                "title": "控制能量 E_u",
+                "note": "代表控制动作整体是否过于激进"
+              }
+            ]
+          }
         },
         {
           "id": "jfree-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "jfree_card",
+            "title": "无约束加权自由目标",
+            "text": "J_{free}(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0},  Σw_i=1"
+          }
         },
         {
           "id": "normalization-meaning-table",
           "region": "normalization",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "normalization_meaning_table",
+            "columns": [
+              "归一化项",
+              "数值",
+              "来源",
+              "这一项正在回答的问题"
+            ],
+            "rows": [
+              [
+                "t_s / 40",
+                "40",
+                "来自当前任务书中的速度期望",
+                "能否更快收住"
+              ],
+              [
+                "ITAE / ITAE_0",
+                "63.6924",
+                "4-3 起始方案的拖尾读数",
+                "拖尾是否更短"
+              ],
+              [
+                "ITSE / ITSE_0",
+                "16.5282",
+                "4-3 起始方案的误差强度读数",
+                "前中段误差强度是否被压下去"
+              ],
+              [
+                "E_u / E_{u,0}",
+                "125.7148",
+                "4-3 起始方案的控制能量读数",
+                "动作代价是否被明显抬高"
+              ]
+            ]
+          }
         },
         {
           "id": "weight-note",
           "region": "meaning",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "weight_note",
+            "title": "讲义 5.3：权重代表的是偏好，而不是客观真理"
+          }
         },
         {
           "id": "role-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "role_task",
+            "title": "收益项与代价项"
+          }
         }
       ],
       "content_blocks": {
@@ -906,19 +1213,30 @@
           "id": "optimization-problem",
           "region": "problem",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "optimization_problem",
+            "title": "当前交给数值方法的问题",
+            "text": "min_θ J_free(θ),  θ∈[1,6]×[4,15]×[0.15,0.85]"
+          }
         },
         {
           "id": "iteration-chain",
           "region": "steps",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "iteration_chain"
+          }
         },
         {
           "id": "closing-note",
           "region": "closing",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closing_note"
+          }
         }
       ],
       "content_blocks": {
@@ -946,7 +1264,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1012,25 +1331,38 @@
           "id": "page-title",
           "region": "problem",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page_title",
+            "title": "为什么搜索会沿代价面下滑"
+          }
         },
         {
           "id": "mini-problem",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "mini_problem"
+          }
         },
         {
           "id": "gradient-figure",
           "region": "figure",
           "kind": "native-figure",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "gradient_figure"
+          }
         },
         {
           "id": "gradient-reveal",
           "region": "reveal",
           "kind": "step-reveal",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "gradient_reveal"
+          }
         }
       ],
       "content_blocks": {
@@ -1065,7 +1397,19 @@
         "interaction_kind": "teacher_reveal_only",
         "student_task": "只阅读，不提交。",
         "step_reveal_policy": "steps_hidden_problem_visible",
-        "derivation_reveal_mode": "teacher_controlled"
+        "derivation_reveal_mode": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-07-activity",
+            "title": "只阅读，不提交。",
+            "prompt": "只阅读，不提交。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1139,25 +1483,115 @@
           "id": "shared-structure",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "shared_structure",
+            "title": "同一固定结构",
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+          }
         },
         {
           "id": "weight-table",
           "region": "weights",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "weight_table",
+            "columns": [
+              "权重组",
+              "w1",
+              "w2",
+              "w3",
+              "w4",
+              "偏好说明"
+            ],
+            "rows": [
+              [
+                "A",
+                "0.40",
+                "0.30",
+                "0.20",
+                "0.10",
+                "更愿意把调节时间和拖尾一起压下去"
+              ],
+              [
+                "B",
+                "0.30",
+                "0.30",
+                "0.20",
+                "0.20",
+                "更希望在速度、拖尾和动作代价之间保持平衡"
+              ],
+              [
+                "C",
+                "0.20",
+                "0.25",
+                "0.25",
+                "0.30",
+                "更愿意多保留一些控制余量"
+              ]
+            ]
+          }
         },
         {
           "id": "time-domain-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "time_domain_table",
+            "columns": [
+              "方案",
+              "控制器",
+              "调节时间 / s",
+              "ITAE",
+              "ITSE",
+              "控制能量"
+            ],
+            "rows": [
+              [
+                "起始方案",
+                "2.796(10s+1)/(4.06s+1)",
+                "36.0",
+                "63.692",
+                "16.528",
+                "125.715"
+              ],
+              [
+                "速度优先 A",
+                "2.7566(9.9829s+1)/(1.4999s+1)",
+                "15.2",
+                "16.033",
+                "7.084",
+                "293.446"
+              ],
+              [
+                "平衡权重 B",
+                "2.0644(9.9804s+1)/(2.0809s+1)",
+                "13.5",
+                "28.266",
+                "12.405",
+                "122.904"
+              ],
+              [
+                "能量优先 C",
+                "1.9318(9.9472s+1)/(2.2531s+1)",
+                "20.9",
+                "32.652",
+                "14.210",
+                "100.267"
+              ]
+            ]
+          }
         },
         {
           "id": "weight-choice",
           "region": "interaction",
           "kind": "single-choice-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "weight_choice"
+          }
         }
       ],
       "content_blocks": {
@@ -1352,25 +1786,75 @@
           "id": "comparison-figure",
           "region": "figure",
           "kind": "image-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "comparison_figure"
+          }
         },
         {
           "id": "time-reading",
           "region": "reading",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "time_reading"
+          }
         },
         {
           "id": "frequency-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "frequency_table",
+            "columns": [
+              "方案",
+              "截止频率 ω_c / rad/s",
+              "相角裕度 / deg",
+              "超调 / %",
+              "控制峰值"
+            ],
+            "rows": [
+              [
+                "起始方案",
+                "0.180",
+                "49.046",
+                "18.864",
+                "6.887"
+              ],
+              [
+                "速度优先 A",
+                "0.209",
+                "66.974",
+                "2.305",
+                "18.347"
+              ],
+              [
+                "平衡权重 B",
+                "0.156",
+                "67.748",
+                "1.996",
+                "9.901"
+              ],
+              [
+                "能量优先 C",
+                "0.146",
+                "67.762",
+                "2.054",
+                "8.528"
+              ]
+            ]
+          }
         },
         {
           "id": "comparison-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "comparison_task",
+            "title": "为什么这些读数不会朝同一个方向同步变化"
+          }
         }
       ],
       "content_blocks": {
@@ -1521,25 +2005,42 @@
           "id": "pareto-definition",
           "region": "definition",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_definition",
+            "title": "二目标设计对",
+            "text": "(ITAE(θ), E_u(θ))"
+          }
         },
         {
           "id": "pareto-figure",
           "region": "figure",
           "kind": "native-figure",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_figure"
+          }
         },
         {
           "id": "pareto-reading",
           "region": "reading",
           "kind": "stat-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_reading",
+            "title": "当前候选点统计"
+          }
         },
         {
           "id": "pareto-task",
           "region": "interaction",
           "kind": "single-choice-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_definition",
+            "title": "二目标设计对",
+            "text": "(ITAE(θ), E_u(θ))"
+          }
         }
       ],
       "content_blocks": {
@@ -1676,37 +2177,101 @@
           "id": "shared-structure",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "shared_structure",
+            "title": "同一固定结构",
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+          }
         },
         {
           "id": "pareto-point-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_point_table",
+            "columns": [
+              "前沿点",
+              "K",
+              "T",
+              "αT",
+              "ITAE",
+              "E_u",
+              "调节时间 / s",
+              "控制峰值"
+            ],
+            "rows": [
+              [
+                "快速端 P1",
+                "2.4277",
+                "10.0534",
+                "1.5889",
+                "19.117",
+                "218.322",
+                "11.6",
+                "15.361"
+              ],
+              [
+                "中间点 P2",
+                "1.5784",
+                "10.3392",
+                "2.7273",
+                "44.542",
+                "61.513",
+                "18.0",
+                "5.983"
+              ],
+              [
+                "节能端 P3",
+                "1.0099",
+                "11.0334",
+                "4.8821",
+                "106.750",
+                "19.194",
+                "28.2",
+                "2.282"
+              ]
+            ]
+          }
         },
         {
           "id": "pareto-response-figure",
           "region": "figure",
           "kind": "image-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_response_figure"
+          }
         },
         {
           "id": "pareto-response-reading",
           "region": "meaning",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pareto_response_reading"
+          }
         },
         {
           "id": "engineering-meaning",
           "region": "meaning",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "engineering_meaning"
+          }
         },
         {
           "id": "pareto-point-task",
           "region": "interaction",
           "kind": "single-choice-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "shared_structure",
+            "title": "同一固定结构",
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+          }
         }
       ],
       "content_blocks": {
@@ -1879,37 +2444,90 @@
           "id": "roll-object-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_object_card",
+            "title": "横摇对象与固定结构",
+            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5"
+          }
         },
         {
           "id": "roll-objective-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_objective_card",
+            "title": "横摇自由目标",
+            "text": "J_r(k)=0.60·RMS(φ)/RMS(φ)_0+0.25·max_ω|T_d(jω)|/max_ω|T_d(jω)|_0+0.15·RMS(u)/RMS(u)_0"
+          }
         },
         {
           "id": "roll-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_table",
+            "columns": [
+              "方案",
+              "k",
+              "RMS(φ)",
+              "横摇峰值",
+              "谐振峰值",
+              "谐振峰值 / dB",
+              "RMS(u)"
+            ],
+            "rows": [
+              [
+                "起始方案",
+                "1.0",
+                "1.172",
+                "1.838",
+                "1.839",
+                "5.294",
+                "0.352"
+              ],
+              [
+                "无约束优化结果",
+                "3.5",
+                "0.521",
+                "0.817",
+                "0.818",
+                "-1.750",
+                "0.548"
+              ]
+            ]
+          }
         },
         {
           "id": "roll-figure",
           "region": "figure",
           "kind": "image-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_figure"
+          }
         },
         {
           "id": "roll-reading",
           "region": "figure",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_reading"
+          }
         },
         {
           "id": "roll-workspace",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "roll_object_card",
+            "title": "横摇对象与固定结构",
+            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5"
+          }
         }
       ],
       "content_blocks": {
@@ -2067,19 +2685,29 @@
           "id": "posttest-title",
           "region": "header",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_title",
+            "title": "阶段判断后测"
+          }
         },
         {
           "id": "post-quiz",
           "region": "quiz",
           "kind": "quiz-group",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_note"
+          }
         },
         {
           "id": "posttest-note",
           "region": "closing",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_note"
+          }
         }
       ],
       "content_blocks": {
@@ -2203,13 +2831,19 @@
           "id": "takeaways",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "takeaways"
+          }
         },
         {
           "id": "next-step",
           "region": "next",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next_step"
+          }
         }
       ],
       "content_blocks": {
@@ -2233,7 +2867,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
