@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T00:48:23.677501Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "初始方案落地实践：从对象分析到结构组合与首轮验证",
+    "groups": [
+      "入口与对象分析"
+    ],
+    "card_order_index": 1
+  },
+  "node": {
+    "id": "设计任务表达卡_4_41001",
+    "name": "设计任务表达卡",
+    "name_en": "Design Task Expression Card",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把对象、目标、硬约束、软目标、观察指标和证据来源压成一张可交给后续课次直接使用的输入卡。",
+    "examples": [
+      "客船航向控制的任务表达卡会把“超调不可继续维持在当前水平”和“相位储备要更从容”写成硬约束，再把“进一步缩短调节时间”写成软目标。",
+      "稳定平台场景会把“保持高响应频带”提前到更高优先级，同时仍保留“不能继续压紧中频储备”的边界。"
+    ],
+    "formulas": [
+      "\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})"
+    ],
+    "keywords": [
+      "任务表达卡",
+      "目标-约束-优先级",
+      "证据来源",
+      "设计输入",
+      "4-1",
+      "任务表达",
+      "模块4入口"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/设计任务表达卡_4_41001.md",
+  "card_frontmatter": {
+    "node_id": "设计任务表达卡_4_41001",
+    "name": "设计任务表达卡",
+    "name_en": "Design Task Expression Card",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-1",
+      "任务表达",
+      "模块4入口"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/4-1-handout.md",
+      "authoring/lessons/4-1/design/4-1-interactive-page.md"
+    ],
+    "asset_refs": [
+      "4-1-task-card-template.png",
+      "4-1-case-compare-summary.png"
+    ]
+  },
+  "card_overview": "# 设计任务表达卡 | Design Task Expression Card\n\n**一句话定义**：把对象、目标、硬约束、软目标、观察指标和证据来源压成一张可交给后续课次直接使用的输入卡。\n\n**核心直觉**：`4-1` 的出口不是控制器名字，而是“我们到底要先解决什么、凭什么这样判断”的书面化表达。\n\n**关键公式**：\n$$\n\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})\n$$\n\n**关联**：前置 → 指标角色重组、硬约束-软目标-观察指标分类、跨域联读任务重排 · 后续 → `4-2` 结构筛选、`4-3` 初始方案方向",
+  "card_detail": "### 完整解释\n\n`4-1` 要求学生把已经读过的跨域证据重新压成一张统一输入卡，避免后续每一课都重新争论“到底想要什么”。这张卡至少要回答六个问题：\n\n1. 控制对象是谁；\n2. 控制目标是什么；\n3. 哪些底线绝对不能破；\n4. 守住底线后还想继续争取什么；\n5. 接下来用哪些量跟踪收益与代价；\n6. 这些判断具体来自哪张图、哪个边界或哪条任务背景。\n\n![4-1 任务表达卡模板](../../lessons/4-1/media/processed/4-1-task-card-template.png)\n\n只有把这些字段写全，`4-2` 才能根据任务排序筛结构，`4-3` 才能根据任务卡写参数方向；否则后续设计会滑回“凭经验猜控制器”的旧路。\n\n### 常见误区\n\n1. **误区**：任务表达卡只是把指标名称抄一遍。\n   **纠正**：真正的任务卡必须说明优先级与证据来源，而不是只列名词。\n\n2. **误区**：任务表达卡写完，就等于已经得到方案。\n   **纠正**：它只是后续选型和起步的共同输入，不是整定结果。",
+  "card_plain_excerpt": "## 首页\n\n# 设计任务表达卡 | Design Task Expression Card\n\n**一句话定义**：把对象、目标、硬约束、软目标、观察指标和证据来源压成一张可交给后续课次直接使用的输入卡。\n\n**核心直觉**：`4-1` 的出口不是控制器名字，而是“我们到底要先解决什么、凭什么这样判断”的书面化表达。\n\n**关键公式**：\n$$\n\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})\n$$\n\n**关联**：前置 → 指标角色重组、硬约束-软目标-观察指标分类、跨域联读任务重排 · 后续 → `4-2` 结构筛选、`4-3` 初始方案方向\n\n## 详情\n\n### 完整解释\n\n`4-1` 要求学生把已经读过的跨域证据重新压成一张统一输入卡，避免后续每一课都重新争论“到底想要什么”。这张卡至少要回答六个问题：\n\n1. 控制对象是谁；\n2. 控制目标是什么；\n3. 哪些底线绝对不能破；\n4. 守住底线后还想继续争取什么；\n5. 接下来用哪些量跟踪收益与代价；\n6. 这些判断具体来自哪张图、哪个边界或哪条任务背景。\n\n![4-1 任务表达卡模板](../../lessons/4-1/media/processed/4-1-task-card-template.png)\n\n只有把这些字段写全，`4-2` 才能根据任务排序筛结构，`4-3` 才能根据任务卡写参数方向；否则后续设计会滑回“凭经验猜控制器”的旧路。\n\n### 常见误区\n\n1. **误区**：任务表达卡只是把指标名称抄一遍。\n   **纠正**：真正的任务卡必须说明优先级与证据来源，而不是只列名词。\n\n2. **误区**：任务表达卡写完，就等于已经得到方案。\n   **纠正**：它只是后续选型和起步的共同输入，不是整定结果。",
+  "core_intuition": "`4-1` 的出口不是控制器名字，而是“我们到底要先解决什么、凭什么这样判断”的书面化表达。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "硬约束-软目标-观察指标分类",
+      "target_id": null,
+      "target": "设计任务表达卡",
+      "relation": "applies_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "跨域联读任务重排",
+      "target_id": null,
+      "target": "设计任务表达卡",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "对象分析回收到设计入口",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "设计任务表达卡",
+      "target_id": null,
+      "target": "固定结构自由目标项选择",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "设计任务表达卡_4_41001",
+      "source": "设计任务表达卡",
+      "target_id": "对象分析回收到设计入口_4_43001",
+      "target": "对象分析回收到设计入口",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "4-3 先把 4-1 写好的任务卡重新翻译成对象分析入口，明确当前最紧矛盾和首轮验证重点。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "设计任务表达卡",
+        "任务表达卡",
+        "目标-约束-优先级",
+        "证据来源",
+        "设计输入",
+        "任务表达",
+        "模块4入口"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

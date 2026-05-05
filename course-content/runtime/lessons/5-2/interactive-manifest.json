@@ -1875,15 +1875,13 @@
         "behavior_rule": "稳定自振交点的小扰动轨迹回到对应交点；非稳定自振交点的小扰动轨迹远离该交点，可能发散、衰减停止或停在下一个稳定自振点。"
       },
       "interactive_figure_spec": {
-        "kind": "rust_perturbation_boundary_panel",
+        "kind": "native_svg_perturbation_curve_panel",
         "required": true,
         "fallback_allowed": false,
         "baseline_image": "/course-runtime/lessons/5-2/media/5-2-small-perturbation-method.png",
-        "rust_analysis_kind": "perturbation_boundary",
-        "required_curves": [
-          "linear_curve",
-          "mirror_curve",
-          "negative_inverse_curve"
+        "required_svg_paths": [
+          "linear_curve_path",
+          "negative_inverse_curve_path"
         ],
         "required_regions": [
           "stable_area",
@@ -1910,11 +1908,7 @@
           "稳定区域",
           "不稳定区域",
           "A1",
-          "A2",
-          "B1",
-          "C1",
-          "B2",
-          "C2"
+          "A2"
         ],
         "submit_fields": [
           "dragged_point",

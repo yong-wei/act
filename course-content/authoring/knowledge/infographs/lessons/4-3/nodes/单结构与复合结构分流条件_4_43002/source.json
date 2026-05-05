@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T00:48:25.873857Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "初始方案落地实践：从对象分析到结构组合与首轮验证",
+    "groups": [
+      "结构分流与总览",
+      "例题与工作区"
+    ],
+    "card_order_index": 12
+  },
+  "node": {
+    "id": "单结构与复合结构分流条件_4_43002",
+    "name": "单结构与复合结构分流条件",
+    "name_en": "Decision Split Between Single and Compound Structures",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "根据当前主矛盾、单结构已暴露的代价和通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈加前馈组合。",
+    "examples": [
+      "若单结构继续增强会明显贴近控制峰值或相角裕量边界，就应考虑补入第二条机制线。",
+      "当扰动通道可测且主问题确实来自该通道时，反馈加前馈组合往往比继续强化单一反馈结构更合适。"
+    ],
+    "formulas": [
+      "\\text{主矛盾}+\\text{已暴露代价}+\\text{通道条件}\\rightarrow \\text{单结构/复合结构}"
+    ],
+    "keywords": [
+      "分流",
+      "复合结构",
+      "前馈",
+      "第二机制线",
+      "结构分流"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/单结构与复合结构分流条件_4_43002.md",
+  "card_frontmatter": {
+    "node_id": "单结构与复合结构分流条件_4_43002",
+    "name": "单结构与复合结构分流条件",
+    "name_en": "Decision Split Between Single and Compound Structures",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "结构分流",
+      "复合结构"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-pi-lead-compound-quad.png",
+      "4-3-lag-lead-compound-quad.png"
+    ]
+  },
+  "card_overview": "# 单结构与复合结构分流条件 | Decision Split Between Single and Compound Structures\n\n**一句话定义**：根据当前主矛盾、单结构已暴露的代价和通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈加前馈组合。\n\n**核心直觉**：复合结构不是名字更长，而是把原本压在一条机制线上的任务重新分配给两条机制线。\n\n**关键公式**：\n$$\n\\text{主矛盾}+\\text{已暴露代价}+\\text{通道条件}\\rightarrow \\text{单结构/复合结构}\n$$\n\n**关联**：前置 → 对象分析回收到设计入口、结构作用点与代价来源对照、反馈保底与前馈补偿边界 · 后续 → 参数方向表达卡",
+  "card_detail": "### 完整解释\n\n结构分流的判断通常来自三个信号：第一，当前最紧问题仍否可以由单结构承担；第二，继续强化单结构是否已经明显贴近相角裕度、控制峰值或噪声边界；第三，给定或扰动通道是否可测。只要其中有一项要求“第二条机制线分担职责”，就应当考虑复合结构或反馈加前馈组合。\n\n`PI + 超前` 和 `滞后 + 超前` 之所以重要，不是因为它们是固定模板，而是因为它们分别展示了“低频托举 + 中频整理”和“低频补偿 + 裕量回收”这两类典型分工。\n\n![4-3 PI 加超前复合校正图](../../lessons/4-3/media/processed/4-3-pi-lead-compound-quad.png)\n\n![4-3 滞后加超前复合校正图](../../lessons/4-3/media/processed/4-3-lag-lead-compound-quad.png)\n\n### 常见误区\n\n1. **误区**：只要任务复杂，就应该直接写成复合结构。\n   **纠正**：复合结构只有在单结构已经不足以承担职责时才有必要进入。\n\n2. **误区**：前馈进入候选后，反馈就可以退场。\n   **纠正**：前馈负责定向补偿，反馈继续负责闭环保底和鲁棒性。",
+  "card_plain_excerpt": "## 首页\n\n# 单结构与复合结构分流条件 | Decision Split Between Single and Compound Structures\n\n**一句话定义**：根据当前主矛盾、单结构已暴露的代价和通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈加前馈组合。\n\n**核心直觉**：复合结构不是名字更长，而是把原本压在一条机制线上的任务重新分配给两条机制线。\n\n**关键公式**：\n$$\n\\text{主矛盾}+\\text{已暴露代价}+\\text{通道条件}\\rightarrow \\text{单结构/复合结构}\n$$\n\n**关联**：前置 → 对象分析回收到设计入口、结构作用点与代价来源对照、反馈保底与前馈补偿边界 · 后续 → 参数方向表达卡\n\n## 详情\n\n### 完整解释\n\n结构分流的判断通常来自三个信号：第一，当前最紧问题仍否可以由单结构承担；第二，继续强化单结构是否已经明显贴近相角裕度、控制峰值或噪声边界；第三，给定或扰动通道是否可测。只要其中有一项要求“第二条机制线分担职责”，就应当考虑复合结构或反馈加前馈组合。\n\n`PI + 超前` 和 `滞后 + 超前` 之所以重要，不是因为它们是固定模板，而是因为它们分别展示了“低频托举 + 中频整理”和“低频补偿 + 裕量回收”这两类典型分工。\n\n![4-3 PI 加超前复合校正图](../../lessons/4-3/media/processed/4-3-pi-lead-compound-quad.png)\n\n![4-3 滞后加超前复合校正图](../../lessons/4-3/media/processed/4-3-lag-lead-compound-quad.png)\n\n### 常见误区\n\n1. **误区**：只要任务复杂，就应该直接写成复合结构。\n   **纠正**：复合结构只有在单结构已经不足以承担职责时才有必要进入。\n\n2. **误区**：前馈进入候选后，反馈就可以退场。\n   **纠正**：前馈负责定向补偿，反馈继续负责闭环保底和鲁棒性。",
+  "core_intuition": "复合结构不是名字更长，而是把原本压在一条机制线上的任务重新分配给两条机制线。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "单结构与复合结构分流条件",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "generalizes",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": null,
+      "target": "单结构与复合结构分流条件",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对象分析回收到设计入口",
+      "target_id": null,
+      "target": "单结构与复合结构分流条件",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单结构与复合结构分流条件",
+      "target_id": null,
+      "target": "参数方向表达卡",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构作用点与代价来源对照",
+      "target_id": null,
+      "target": "单结构与复合结构分流条件",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "对象分析回收到设计入口_4_43001",
+      "source": "对象分析回收到设计入口",
+      "target_id": "单结构与复合结构分流条件_4_43002",
+      "target": "单结构与复合结构分流条件",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "只有把对象分析写清楚，才能判断这一轮究竟继续单结构，还是补入第二条机制线。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构作用点与代价来源对照_4_42004",
+      "source": "结构作用点与代价来源对照",
+      "target_id": "单结构与复合结构分流条件_4_43002",
+      "target": "单结构与复合结构分流条件",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": "4-3 的结构分流判断，必须同时考虑单结构已经改善了什么，以及它已经开始透支什么。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "反馈保底与前馈补偿边界_4_42005",
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": "单结构与复合结构分流条件_4_43002",
+      "target": "单结构与复合结构分流条件",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": "当前馈进入 4-3 的候选结构时，分流判断必须同时保留反馈的保底职责。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "单结构与复合结构分流条件_4_43002",
+      "source": "单结构与复合结构分流条件",
+      "target_id": "参数方向表达卡_4_43003",
+      "target": "参数方向表达卡",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "一旦结构分流确定下来，下一步就要把方案写成参数方向，而不是直接跳到最后参数值。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "单结构与复合结构分流条件_4_43002",
+      "source": "单结构与复合结构分流条件",
+      "target_id": "扰动抑制中的通道重写边界_4_43006",
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "generalizes",
+      "strength": 0.84,
+      "description": "4-3 在边界案例中进一步说明，结构分流不只发生在频段职责之间，也会发生在控制通道重写层面。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "单结构与复合结构分流条件",
+        "分流",
+        "复合结构",
+        "前馈",
+        "第二机制线",
+        "结构分流"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{主矛盾}+\\text{已暴露代价}+\\text{通道条件}\\rightarrow \\text{单结构/复合结构}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

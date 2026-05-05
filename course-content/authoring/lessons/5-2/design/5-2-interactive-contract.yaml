@@ -349,18 +349,17 @@ steps:
       panel_explanation: '蓝色闭合曲线表示 G(jω) 的包围区域，红色曲线表示某一负倒描述函数示意轨迹，箭头表示 A 增大方向。'
       behavior_rule: '稳定自振交点的小扰动轨迹回到对应交点；非稳定自振交点的小扰动轨迹远离该交点，可能发散、衰减停止或停在下一个稳定自振点。'
     interactive_figure_spec:
-      kind: 'rust_perturbation_boundary_panel'
+      kind: 'native_svg_perturbation_curve_panel'
       required: true
       fallback_allowed: false
       baseline_image: '/course-runtime/lessons/5-2/media/5-2-small-perturbation-method.png'
-      rust_analysis_kind: 'perturbation_boundary'
-      required_curves: ['linear_curve', 'mirror_curve', 'negative_inverse_curve']
+      required_svg_paths: ['linear_curve_path', 'negative_inverse_curve_path']
       required_regions: ['stable_area', 'unstable_area']
       default_points:
         - { id: 'A1', type: 'unstable_limit_cycle', behavior: 'move_away_or_stop_at_next_stable' }
         - { id: 'A2', type: 'stable_limit_cycle', behavior: 'return_to_same_point' }
       drag: { enabled: true, allowed: 'red_negative_inverse_curve_only', reset_button: true }
-      labels_required: ['稳定区域', '不稳定区域', 'A1', 'A2', 'B1', 'C1', 'B2', 'C2']
+      labels_required: ['稳定区域', '不稳定区域', 'A1', 'A2']
       submit_fields: ['dragged_point', 'disturbance_direction', 'final_state']
     evidence_sequence: ['判断任务', '交互图像面板', '交点行为说明', '重置按钮', '观察提交']
     interaction_spec:

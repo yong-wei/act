@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T01:22:29.426830Z",
+  "lesson_id": "4-3",
+  "node_id": "单结构首轮起步卡_4_42001",
+  "node_name": "单结构首轮起步卡",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "用户目视确认“主矛盾”阅读无异常，登记为 4-3 节点信息图。"
+}

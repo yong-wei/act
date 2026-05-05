@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T00:48:26.228229Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "初始方案落地实践：从对象分析到结构组合与首轮验证",
+    "groups": [
+      "边界案例与收束"
+    ],
+    "card_order_index": 16
+  },
+  "node": {
+    "id": "扰动抑制中的通道重写边界_4_43006",
+    "name": "扰动抑制中的通道重写边界",
+    "name_en": "Channel-Rewriting Boundary in Disturbance Rejection",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
+    "examples": [
+      "横摇减摇鳍控制器同时组合角速度、角度和积分作用，说明复合结构可以来自扰动抑制通道重写。",
+      "若设计任务转向可测扰动对消，就不能继续只用‘低频/中频补偿’解释结构组合。"
+    ],
+    "formulas": [
+      "u(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)"
+    ],
+    "keywords": [
+      "扰动抑制",
+      "通道重写",
+      "边界案例",
+      "减摇鳍"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/扰动抑制中的通道重写边界_4_43006.md",
+  "card_frontmatter": {
+    "node_id": "扰动抑制中的通道重写边界_4_43006",
+    "name": "扰动抑制中的通道重写边界",
+    "name_en": "Channel-Rewriting Boundary in Disturbance Rejection",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "扰动抑制",
+      "通道重写"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-roll-fin-compensation-structure.png",
+      "4-3-roll-boundary-compare.png"
+    ]
+  },
+  "card_overview": "# 扰动抑制中的通道重写边界 | Channel-Rewriting Boundary in Disturbance Rejection\n\n**一句话定义**：当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。\n\n**核心直觉**：复合结构不只回答“哪个频段还要补”，还会回答“哪条通道需要重新写”。\n\n**关键公式**：\n$$\nu(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、单结构与复合结构分流条件 · 后续 → 问题清单移交表",
+  "card_detail": "### 完整解释\n\n横摇减摇鳍案例说明，复合结构有时不是“再加一个超前或再加一个滞后”，而是把角速度、角度和积分作用组合起来，共同重写扰动抑制过程。当前任务不再是追踪给定角度，而是压低波浪扰动在共振频带附近造成的横摇响应，因此解释结构时必须回到通道和物理分量本身。\n\n![4-3 横摇减摇鳍补偿结构图](../../lessons/4-3/media/processed/4-3-roll-fin-compensation-structure.png)\n\n![4-3 横摇减摇鳍边界案例图](../../lessons/4-3/media/processed/4-3-roll-boundary-compare.png)\n\n### 常见误区\n\n1. **误区**：所有复合结构都可以用“低频补偿 + 中频整理”解释。\n   **纠正**：扰动抑制任务中，结构组合有时来自通道重写，而不是频段叠加。\n\n2. **误区**：边界案例只是补充阅读，不影响设计判断。\n   **纠正**：边界案例帮助我们识别结构解释何时需要切换语言，避免把错误模板硬套到不同任务上。",
+  "card_plain_excerpt": "## 首页\n\n# 扰动抑制中的通道重写边界 | Channel-Rewriting Boundary in Disturbance Rejection\n\n**一句话定义**：当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。\n\n**核心直觉**：复合结构不只回答“哪个频段还要补”，还会回答“哪条通道需要重新写”。\n\n**关键公式**：\n$$\nu(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)\n$$\n\n**关联**：前置 → 反馈保底与前馈补偿边界、单结构与复合结构分流条件 · 后续 → 问题清单移交表\n\n## 详情\n\n### 完整解释\n\n横摇减摇鳍案例说明，复合结构有时不是“再加一个超前或再加一个滞后”，而是把角速度、角度和积分作用组合起来，共同重写扰动抑制过程。当前任务不再是追踪给定角度，而是压低波浪扰动在共振频带附近造成的横摇响应，因此解释结构时必须回到通道和物理分量本身。\n\n![4-3 横摇减摇鳍补偿结构图](../../lessons/4-3/media/processed/4-3-roll-fin-compensation-structure.png)\n\n![4-3 横摇减摇鳍边界案例图](../../lessons/4-3/media/processed/4-3-roll-boundary-compare.png)\n\n### 常见误区\n\n1. **误区**：所有复合结构都可以用“低频补偿 + 中频整理”解释。\n   **纠正**：扰动抑制任务中，结构组合有时来自通道重写，而不是频段叠加。\n\n2. **误区**：边界案例只是补充阅读，不影响设计判断。\n   **纠正**：边界案例帮助我们识别结构解释何时需要切换语言，避免把错误模板硬套到不同任务上。",
+  "core_intuition": "复合结构不只回答“哪个频段还要补”，还会回答“哪条通道需要重新写”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "单结构与复合结构分流条件",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "generalizes",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "任务通道变化下的自由目标改写",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "related",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "任务通道变化下的自由目标改写",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "related",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "反馈保底与前馈补偿边界_4_42005",
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": "扰动抑制中的通道重写边界_4_43006",
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": "当任务进入扰动抑制时，前馈和反馈的边界会进一步扩展成通道重写问题。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "单结构与复合结构分流条件_4_43002",
+      "source": "单结构与复合结构分流条件",
+      "target_id": "扰动抑制中的通道重写边界_4_43006",
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "generalizes",
+      "strength": 0.84,
+      "description": "4-3 在边界案例中进一步说明，结构分流不只发生在频段职责之间，也会发生在控制通道重写层面。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "扰动抑制中的通道重写边界",
+        "扰动抑制",
+        "通道重写",
+        "边界案例",
+        "减摇鳍"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "u(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T00:48:26.050371Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "初始方案落地实践：从对象分析到结构组合与首轮验证",
+    "groups": [
+      "客船落地与验证"
+    ],
+    "card_order_index": 14
+  },
+  "node": {
+    "id": "首轮验证最小读数逻辑_4_43004",
+    "name": "首轮验证最小读数逻辑",
+    "name_en": "Minimal Readout Logic for First-Round Validation",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。",
+    "examples": [
+      "客船航向保持首轮验证同时看调节时间、超调量、相角裕度和控制峰值，才能说明超前方案是否值得继续推进。",
+      "对低频补偿主导的对象，不能只看静差改善，还要同时看调节时间和相角裕度是否明显恶化。"
+    ],
+    "formulas": [
+      "\\text{首轮验证}= \\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}"
+    ],
+    "keywords": [
+      "首轮验证",
+      "时域",
+      "频域",
+      "控制峰值",
+      "读数逻辑"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/首轮验证最小读数逻辑_4_43004.md",
+  "card_frontmatter": {
+    "node_id": "首轮验证最小读数逻辑_4_43004",
+    "name": "首轮验证最小读数逻辑",
+    "name_en": "Minimal Readout Logic for First-Round Validation",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "首轮验证",
+      "读数逻辑"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-heading-case-quad.png"
+    ]
+  },
+  "card_overview": "# 首轮验证最小读数逻辑 | Minimal Readout Logic for First-Round Validation\n\n**一句话定义**：首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。\n\n**核心直觉**：只报一个最好看的指标，不足以说明方案真的可继续推进。\n\n**关键公式**：\n$$\n\\text{首轮验证}= \\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}\n$$\n\n**关联**：前置 → 参数方向表达卡、三频段闭环性能回读、相角裕度、带宽频率 · 后续 → 问题清单移交表",
+  "card_detail": "### 完整解释\n\n首轮验证的最小读数逻辑，是把设计意图重新投影回证据。若目标是提速，就必须同时看调节时间、超调量和相角裕度；若目标是补低频能力，就不能只看静差改善，还要同时看速度与储备是否恶化；若控制峰值或执行机构边界紧，则控制量读数也必须纳入首轮证据。\n\n客船航向保持案例正是用调节时间、超调量、相角裕度和控制峰值四个读数，说明超前初始方案已经接住主矛盾，但也开始贴近边界。\n\n![4-3 客船航向保持首轮验证图](../../lessons/4-3/media/processed/4-3-heading-case-quad.png)\n\n### 常见误区\n\n1. **误区**：首轮验证只要看到一个指标明显变好，就说明方案有效。\n   **纠正**：只报单一指标，很可能掩盖另一个更紧的代价正在冒出来。\n\n2. **误区**：首轮验证就应该证明方案已经最优。\n   **纠正**：首轮验证的目标是判断方案是否值得继续推进，并为下一轮优化提供问题清单。",
+  "card_plain_excerpt": "## 首页\n\n# 首轮验证最小读数逻辑 | Minimal Readout Logic for First-Round Validation\n\n**一句话定义**：首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。\n\n**核心直觉**：只报一个最好看的指标，不足以说明方案真的可继续推进。\n\n**关键公式**：\n$$\n\\text{首轮验证}= \\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}\n$$\n\n**关联**：前置 → 参数方向表达卡、三频段闭环性能回读、相角裕度、带宽频率 · 后续 → 问题清单移交表\n\n## 详情\n\n### 完整解释\n\n首轮验证的最小读数逻辑，是把设计意图重新投影回证据。若目标是提速，就必须同时看调节时间、超调量和相角裕度；若目标是补低频能力，就不能只看静差改善，还要同时看速度与储备是否恶化；若控制峰值或执行机构边界紧，则控制量读数也必须纳入首轮证据。\n\n客船航向保持案例正是用调节时间、超调量、相角裕度和控制峰值四个读数，说明超前初始方案已经接住主矛盾，但也开始贴近边界。\n\n![4-3 客船航向保持首轮验证图](../../lessons/4-3/media/processed/4-3-heading-case-quad.png)\n\n### 常见误区\n\n1. **误区**：首轮验证只要看到一个指标明显变好，就说明方案有效。\n   **纠正**：只报单一指标，很可能掩盖另一个更紧的代价正在冒出来。\n\n2. **误区**：首轮验证就应该证明方案已经最优。\n   **纠正**：首轮验证的目标是判断方案是否值得继续推进，并为下一轮优化提供问题清单。",
+  "core_intuition": "只报一个最好看的指标，不足以说明方案真的可继续推进。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "首轮验证最小读数逻辑",
+      "target_id": null,
+      "target": "问题清单移交表",
+      "relation": "leads_to",
+      "strength": 0.98,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "cross_domain",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽频率",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.87,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数方向表达卡",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "related",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "首轮验证最小读数逻辑",
+        "首轮验证",
+        "时域",
+        "频域",
+        "控制峰值",
+        "读数逻辑"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{首轮验证}= \\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}
