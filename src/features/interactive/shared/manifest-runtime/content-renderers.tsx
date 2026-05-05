@@ -16,6 +16,7 @@ type ContentRecord = Record<string, unknown>;
 type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
 type RevealItem = { body: string; formula?: string; title?: string };
+type FormulaSymbol = { symbol: string; meaning: string };
 
 function asRecord(value: unknown): ContentRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
@@ -267,6 +268,33 @@ function formulaNotes(step: InteractiveRuntimeStepManifest, module: InteractiveR
     module.payload,
     hasExplicitFormula ? ['text', 'note', 'explanation'] : ['note', 'explanation'],
   ).concat(blockNotes);
+}
+
+function formulaSymbolFromValue(value: unknown): FormulaSymbol | null {
+  if (typeof value === 'string' && value.trim()) return { symbol: value, meaning: '' };
+  const record = asRecord(value);
+  const symbol = [record.symbol, record.latex, record.math, record.name, record.value]
+    .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+  if (!symbol) return null;
+  const meaning = [record.meaning, record.description, record.text, record.explanation, record.note]
+    .find((item): item is string => typeof item === 'string' && Boolean(item.trim())) ?? '';
+  return { symbol, meaning };
+}
+
+function formulaSymbols(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const sources = [
+    module.payload.symbols,
+    asRecord(blockFor(step, module.payload)).symbols,
+    asRecord(blockByModuleId(step, module)).symbols,
+  ];
+  for (const source of sources) {
+    if (!Array.isArray(source)) continue;
+    const symbols = source
+      .map(formulaSymbolFromValue)
+      .filter((item): item is FormulaSymbol => Boolean(item));
+    if (symbols.length) return symbols;
+  }
+  return [];
 }
 
 function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
@@ -595,23 +623,57 @@ function learningStatItems(step: InteractiveRuntimeStepManifest, module: Interac
   return items;
 }
 
-function FormulaCard({ title, formulas, notes }: { title: string; formulas: string[]; notes?: string[] }) {
+function FormulaSymbolList({ symbols }: { symbols: FormulaSymbol[] }) {
+  if (!symbols.length) return null;
+  return (
+    <div className="mt-3 rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm leading-7">
+      <div className="premium-lesson-title font-semibold">符号说明</div>
+      <dl className="mt-2 grid gap-2 md:grid-cols-2">
+        {symbols.map((item) => (
+          <div key={`${item.symbol}-${item.meaning}`} className="flex gap-2">
+            <dt className="shrink-0">
+              <InlineMath math={normalizeMath(item.symbol)} />
+            </dt>
+            {item.meaning ? <dd className="premium-lesson-muted">{renderInlineContent(item.meaning)}</dd> : null}
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function FormulaCard({
+  title,
+  formulas,
+  notes,
+  symbols = [],
+}: {
+  title: string;
+  formulas: string[];
+  notes?: string[];
+  symbols?: FormulaSymbol[];
+}) {
   if (!formulas.length) return null;
+  const noteBlock = notes?.length ? (
+    <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
+      {notes.map((note) => (
+        <p key={note}>{renderInlineContent(note)}</p>
+      ))}
+    </div>
+  ) : null;
+  const formulaBlock = (
+    <div className="mt-3 space-y-2 overflow-x-auto">
+      {formulas.map((formula) => (
+        <Fragment key={formula}>{renderFormulaContent(formula)}</Fragment>
+      ))}
+    </div>
+  );
   return (
     <div className="premium-lesson-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
-      {notes?.length ? (
-        <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
-          {notes.map((note) => (
-            <p key={note}>{renderInlineContent(note)}</p>
-          ))}
-        </div>
-      ) : null}
-      <div className="mt-3 space-y-2 overflow-x-auto">
-        {formulas.map((formula) => (
-          <Fragment key={formula}>{renderFormulaContent(formula)}</Fragment>
-        ))}
-      </div>
+      {symbols.length ? formulaBlock : noteBlock}
+      {symbols.length ? <FormulaSymbolList symbols={symbols} /> : null}
+      {symbols.length ? noteBlock : formulaBlock}
     </div>
   );
 }
@@ -905,10 +967,20 @@ export function createManifestContentModuleRegistry(extra: {
       return <CardGrid title="问题组" items={items} />;
     },
     'formula-card': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(step, module)} />
+      <FormulaCard
+        title={titleFromModule(module)}
+        formulas={getFormulaItems(step, module)}
+        notes={formulaNotes(step, module)}
+        symbols={formulaSymbols(step, module)}
+      />
     ),
     'formula-card-row': ({ step, module }) => (
-      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} notes={formulaNotes(step, module)} />
+      <FormulaCard
+        title={titleFromModule(module)}
+        formulas={getFormulaItems(step, module)}
+        notes={formulaNotes(step, module)}
+        symbols={formulaSymbols(step, module)}
+      />
     ),
     'formula-chain': ({ step, module }) => {
       const content = summaryContent(step, module);

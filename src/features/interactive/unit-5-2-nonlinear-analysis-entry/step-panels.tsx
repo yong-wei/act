@@ -1039,10 +1039,11 @@ function PerturbationCurvePanel({
     const intersection = intersections.find((item) => item.id === pointId);
     const baseIndex = basePointPositions[pointId]?.index ?? bestIndex;
     const baseCurvePoint = pointOnCurve(negativeCurve, baseIndex);
-    const direction = baseCurvePoint && svgX < scaleX(baseCurvePoint.re) ? 'lower_amplitude' : 'higher_amplitude';
+    const direction: PerturbationPointPosition['direction'] =
+      baseCurvePoint && svgX < scaleX(baseCurvePoint.re) ? 'lower_amplitude' : 'higher_amplitude';
     const releaseTarget = releaseTargetForPerturbation(pointId, direction, basePointPositions, negativeCurve);
     const nextStatus = perturbationStatus(pointId, intersection?.type ?? 'unstable_limit_cycle', direction, releaseTarget.target);
-    const nextPosition = { index: bestIndex, direction, releaseTarget: 'drag' as const };
+    const nextPosition: PerturbationPointPosition = { index: bestIndex, direction, releaseTarget: 'drag' };
     cancelReleaseMotion(pointId);
     pointPositionsRef.current = { ...pointPositionsRef.current, [pointId]: nextPosition };
     animatedPointPositionsRef.current = { ...animatedPointPositionsRef.current, [pointId]: nextPosition };

@@ -5,6 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { getInteractiveRevealLayerCount } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
+import { createFallbackNonlinearAnalysisResult } from '@/resources/control-system/analysis/use-nonlinear-analysis-engine';
+import {
+  completePlannedPathToActualExtent,
+  polylineLength,
+} from '@/features/interactive/unit-5-3-mass-coordination-chain/turning-path-utils';
 
 vi.mock('server-only', () => ({}));
 
@@ -106,6 +111,10 @@ describe('unit 5-3 interactive course', () => {
     expect(stepPanelsSource).toContain('maxX: 260');
     expect(stepPanelsSource).toContain('maxY: 165');
     expect(stepPanelsSource).toContain('maxY: 48');
+    expect(stepPanelsSource).toContain('createEqualCoordinateScale');
+    expect(stepPanelsSource).toContain('completePlannedPathToActualExtent');
+    expect(stepPanelsSource).toContain('<circle');
+    expect(stepPanelsSource).not.toContain('<ellipse');
     expect(stepPanelsSource).toContain('避障启动距离');
     expect(stepPanelsSource).toContain('名义舵角');
     expect(stepPanelsSource).toContain('最大实际舵角');
@@ -113,6 +122,17 @@ describe('unit 5-3 interactive course', () => {
     expect(stepPanelsSource).toContain('安全约束');
     expect(stepPanelsSource).not.toContain('displayResult.summary.metrics');
     expect(stepPanelsSource).not.toContain('5-3-turning-radius-saturation-comparison.png');
+
+    const fallback = createFallbackNonlinearAnalysisResult({
+      runtimeMode: 'nonlinear_analysis',
+      analysisKind: 'turning_radius',
+      modelId: 'mass_avoidance_turn',
+      parameters: { R_m: 140 },
+      timeRange: { start: 0, end: 82, samples: 180 },
+    });
+    const turning = fallback.turningRadius!;
+    const completedPlannedPath = completePlannedPathToActualExtent(turning.path.nominal, turning.path.actual);
+    expect(polylineLength(completedPlannedPath)).toBeGreaterThanOrEqual(polylineLength(turning.path.actual) * 0.92);
   });
 
   it('keeps corrected page text and image captions in the 5-3 runtime manifest', () => {
@@ -124,6 +144,7 @@ describe('unit 5-3 interactive course', () => {
     const step10 = manifest.steps.find((step) => step.id === 'step-10');
     const step11 = manifest.steps.find((step) => step.id === 'step-11');
     const step12 = manifest.steps.find((step) => step.id === 'step-12');
+    const step14 = manifest.steps.find((step) => step.id === 'step-14');
     const step15 = manifest.steps.find((step) => step.id === 'step-15');
 
     expect(step01?.modules.find((module) => module.id === 'cover-comic')?.payload.caption).toBeUndefined();
@@ -161,6 +182,14 @@ describe('unit 5-3 interactive course', () => {
     expect(problemText).toContain('$\\delta_{\\max}=18^\\circ$');
     expect(JSON.stringify(step11)).not.toContain('Rust');
     expect(JSON.stringify(step11)).not.toContain('WASM');
+    const revealLayer = step11?.contentBlocks.turning_diagnostic_reveal as { layers?: Array<{ body: string }> };
+    const thirdRevealBody = revealLayer.layers?.[2]?.body ?? '';
+    expect(thirdRevealBody).toContain('$\\delta_d\\approx\\arctan(L/R)$');
+    expect(thirdRevealBody).not.toContain('δd≈arctan(L/R)');
+
+    expect(step14?.modules.some((module) => module.id === 'posttest-note')).toBe(false);
+    expect(step14?.aiContextSpec.pageGoal).toBe('检查链路诊断、可实现性判断和责任边界意识。');
+    expect(JSON.stringify(step14?.modules ?? [])).not.toContain('本页检查是否已经形成链路诊断、可实现性判断和责任边界意识');
 
     const step15Caption = step15?.modules.find((module) => module.id === 'info-image')?.payload.caption;
     expect(step15Caption).toContain('上游信息、规划可行性和执行边界');
@@ -171,10 +200,22 @@ describe('unit 5-3 interactive course', () => {
     const manifest = readManifest();
     const step11 = manifest.steps.find((step) => step.id === 'step-11');
 
+    expect(step11?.teacherControls.teacherStepReveal).toBe('teacher_direct');
     expect(step11?.modules.find((module) => module.id === 'turning-diagnostic-reveal')?.payload.block_key).toBe(
       'turning_diagnostic_reveal',
     );
     expect(getInteractiveRevealLayerCount(step11!)).toBe(4);
+  });
+
+  it('maps all 5-3 misconception tags to Chinese labels on the teacher page', () => {
+    const manifest = readManifest();
+    const teacherPageSource = readFileSync(join(featureBase, 'teacher-page.tsx'), 'utf8');
+    const tags = Array.from(new Set(manifest.steps.flatMap((step) => step.telemetrySpec.misconceptionTags)));
+
+    expect(tags.length).toBeGreaterThan(0);
+    for (const tag of tags) {
+      expect(teacherPageSource).toContain(`${tag}:`);
+    }
   });
 
   it('keeps post-test and summary separated and exposes summary role statistics', async () => {

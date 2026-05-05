@@ -61,6 +61,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - manifest 驱动页面的可见质量门槛必须包含三项：学生端不得显示英文模块 id 或 `snake_case`/`kebab-case` 回退标题；列表型内容不得以 `['...']`、JSON 数组或 Python 字面量形式显示；公式型正文、表格、题面和显影步骤必须以合法 LaTeX/KaTeX 渲染，而不是把 `pi`、`sqrt`、`omega`、`Delta` 等源码字符串直接露出。
 - 前测页标题模块文案必须直接写出本页考察的主要预备知识点，例如数学基础、前序概念、读图或计算基础；不得写“不考察 / 不检验 / 不涉及 / 不展开 / 不提前”等防御性边界文案。后测页不需要“后测说明”模块；后测标题模块文案只写本页主要检查的知识和能力点。
 - 图片 caption 不得复述页面标题、模块标题、图片标题或文件名，也不得把标题直接当作图片下方文案。若图片本身已经足够清楚，可以不显示 caption；若显示 caption，必须写成图片具体内容描述、可观察证据、阅读顺序或基于图片的分析判断。
+- `image-panel`、`interactive-figure-panel` 与其他互动图像面板必须使用具体学科对象标题，例如“避障航线”“相平面轨迹与方向场观察”“规划半径、舵角饱和与安全边界联动面板”；不得使用“图片面板”“互动图像”“Rust 面板”“三标签面板”等载体名、实现名或空泛标题。图下文案不得复述标题，应补充可观察证据、读图顺序或判断口径；没有新增信息时直接省略 caption。
+- 页面标题模块下的一句简短说明不得再被实现成独立“要点”“页面总览”“说明卡”“后测说明”等模块。若标题模块已经说明本页检查内容，正文区域只保留真实题组、公式、图示、表格或显影链。
 - 处理组件缺口的顺序固定为：先补作者态 contract / runtime manifest payload，再补共享 content/activity renderer；只有能力确实不通用时，才写课程窄适配器。不得回退到课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、页面级参考答案映射或 `switch (step.id)`。
 - `content-renderers.tsx` 与 `activity-renderers.tsx` 的职责必须分离：`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等活动模块只能由 activity runtime 消费；正文 content registry 不得再渲染“本页作答”题面列表。
 - 共享教师活动汇总必须显示 `activity_cards[].prompt` 中的完整题面，并在选择题、排序题、多选题等场景同步显示选项；教师释放互动后不能只看到提交人数、学生答案或统计结果。已迁移到 manifest shared activity runtime 的新课，应通过共享 `activity-renderers.tsx` 一次满足该要求，不再逐页复制教师汇总代码。

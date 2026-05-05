@@ -236,7 +236,7 @@ steps:
       - { id: 'turning-diagnostic-reveal', region: 'formula', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'turning_diagnostic_reveal', title: '四步链路定位显影' } }
       - { id: 'turning-rust-panel', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'rust_turning_radius_panel', title: '规划半径、舵角饱和与安全边界联动面板' } }
       - { id: 'turning-submit', region: 'activity', kind: 'activity-card-set', must_be_visible: true }
-    content_blocks: { symbols: ['R 为规划假定转弯半径。', 'd_start 为避障启动距离。', 'L 为等效船长。', 'δd 为名义舵角。', 'δmax 为舵角边界。'], turning_diagnostic_reveal: { layers: [{ title: '第一步：检查上游输入', body: '感知层已经识别障碍物，估计层给出了相对位置和速度；若没有目标状态完全错误的证据，不能先把偏差归因给感知失效。' }, { title: '第二步：检查规划参考', body: '规划层按当前半径 R 计算启动圈，船舶进入虚线圆后才开始避障；半径越小，启动圈越靠近障碍物，若该半径不可实现，系统会在过近位置才发现自己转不过去。' }, { title: '第三步：检查控制与执行', body: '由 δd≈arctan(L/R) 可知，小半径会要求超过 18° 的名义舵角；控制器强行跟踪时，舵角被饱和截断，航向响应滞后，横向位移来得更晚。' }, { title: '第四步：形成链路修正', body: '规划层应把最小转弯半径、最大艏向角速度、舵角限幅和安全距离纳入可行域；控制层给出的物理能力边界需要回流到规划层。' }] }, conclusion: '规划参考需要吸收控制与执行约束，学生应使用调节出的半径和最大舵角支撑结论。' }
+    content_blocks: { symbols: ['R 为规划假定转弯半径。', 'd_start 为避障启动距离。', 'L 为等效船长。', 'δd 为名义舵角。', 'δmax 为舵角边界。'], turning_diagnostic_reveal: { layers: [{ title: '第一步：检查上游输入', body: '感知层已经识别障碍物，估计层给出了相对位置和速度；若没有目标状态完全错误的证据，不能先把偏差归因给感知失效。' }, { title: '第二步：检查规划参考', body: '规划层按当前半径 R 计算启动圈，船舶进入虚线圆后才开始避障；半径越小，启动圈越靠近障碍物，若该半径不可实现，系统会在过近位置才发现自己转不过去。' }, { title: '第三步：检查控制与执行', body: '由 $\delta_d\approx\arctan(L/R)$ 可知，小半径会要求超过 $18^\circ$ 的名义舵角；控制器强行跟踪时，舵角被饱和截断，航向响应滞后，横向位移来得更晚。' }, { title: '第四步：形成链路修正', body: '规划层应把最小转弯半径、最大艏向角速度、舵角限幅和安全距离纳入可行域；控制层给出的物理能力边界需要回流到规划层。' }] }, conclusion: '规划参考需要吸收控制与执行约束，学生应使用调节出的半径和最大舵角支撑结论。' }
     interactive_figure_spec:
       kind: 'rust_turning_radius_panel'
       required: true
@@ -258,7 +258,7 @@ steps:
       student_task: '调节规划半径，提交满足安全约束的最新规划半径以及对应最大舵角。'
       activity_cards:
         - { id: 'turning-radius-submit', prompt: '提交当前选择的规划半径 R、对应最大舵角、名义舵角、是否触发舵角饱和、是否满足安全约束，以及一句链路判断。', response_kind: 'fill_text', structured_fields: ['R_m', 'max_delta_deg', 'delta_d_deg', 'saturation_active', 'safety_constraint_satisfied', 'chain_judgment'], reference_answer: '半径应不小于 R_min≈34/tan18°≈105 m，并结合右侧航迹确认未触碰障碍物安全边界。', submit_scope: 'per_card', layout_span: 'full' }
-    teacher_controls: *controls_quiz
+    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'not_applicable', teacher_step_reveal: 'teacher_direct', reveal_reference_answer: 'teacher_toggle' }
     student_access: *access_hidden
     teacher_insight_spec: { widgets: ['parameter_submission_distribution', 'safety_constraint_rate', 'completion_rate'] }
     telemetry_spec: { summary_fields: ['R_m', 'maxDeltaDeg', 'deltaDdeg', 'safetyConstraintSatisfied', 'cardSubmitted'], misconception_tags: ['radius_below_feasible_limit', 'ignores_saturation'] }
@@ -308,12 +308,11 @@ steps:
 
   step-14:
     title: '后测：链路诊断与可行性判断'
-    layout: { template: 'posttest_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    layout: { template: 'posttest_board', regions: [{ id: 'quiz', width: 'full', order: 1 }] }
     modules:
-      - { id: 'posttest-note', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { text: '本页检查是否已经形成链路诊断、可实现性判断和责任边界意识。' } }
       - { id: 'posttest', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
     content_blocks: { note: '后测题目呼应目标页，不设计大段综合推导。' }
-    evidence_sequence: ['后测说明', '三题题组']
+    evidence_sequence: ['三题题组']
     interaction_spec:
       interaction_kind: 'quiz_group'
       activity_cards:

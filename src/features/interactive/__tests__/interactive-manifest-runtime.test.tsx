@@ -411,6 +411,10 @@ describe('interactive runtime manifest', () => {
             formula_block: {
               type: 'formula_group',
               formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'],
+              symbols: [
+                { symbol: 'x_k', meaning: '状态变量' },
+                { symbol: 'u_k', meaning: '控制输入' },
+              ],
               explanation: '若 $f(\\cdot)$ 和 $h(\\cdot)$ 的结构可信，就能追踪对象关系。',
             },
           },
@@ -441,7 +445,38 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('离散对象关系');
     expect(html).toContain('katex-display');
     expect(html).toContain('追踪对象关系');
+    expect(html).toContain('符号说明');
+    expect(html).toContain('状态变量');
+    expect(html).toContain('控制输入');
     expect(html).not.toContain('$f(\\cdot)$');
+  });
+
+  it('renders 5-4 step-08 case text inline formulas through KaTeX', async () => {
+    const runtime = await loadLessonRuntimeEntry('5-4');
+    const manifest = runtime.interactiveManifest!;
+    const step = manifest.steps.find((item) => item.id === 'step-08');
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('katex');
+    expect(html).toContain('名义模型响应偏快');
+    expect(html).not.toContain('$20\\ \\mathrm{s}$');
+    expect(html).not.toContain('$18^\\circ$');
+    expect(html).not.toContain('$|\\delta|\\le 12^\\circ$');
   });
 
   it('keeps activity runtime modules out of the static content layout even when a content registry contains a matching renderer', () => {

@@ -2,7 +2,7 @@
   "status": "pass",
   "summary": {
     "steps": 15,
-    "modules": 44,
+    "modules": 43,
     "issues": 0
   },
   "implementation_sources": {
@@ -549,16 +549,6 @@
       "renderer_owner": "activity",
       "resolved_content_source": "interaction_spec.activity_cards",
       "resolved_content_type": "activity",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-14",
-      "module_id": "posttest-note",
-      "kind": "summary-card",
-      "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
-      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },

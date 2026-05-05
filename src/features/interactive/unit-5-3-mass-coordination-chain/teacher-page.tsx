@@ -45,12 +45,22 @@ type Unit53ObjectiveCard = {
 };
 
 const UNIT_5_3_MISCONCEPTION_LABELS: Record<string, string> = {
-  state_point_confusion: '状态点语义误判',
-  sine_parameter_confusion: '正弦参数误判',
-  low_pass_confusion: '低通滤波误判',
-  tool_choice_error: '分析工具选择误判',
-  formula_range_missing: '公式适用范围缺失',
-  intersection_equals_cycle: '交点即自振误判',
+  error_signal_confusion: '误差信号来源混淆',
+  feedback_quality_ignored: '忽略反馈质量',
+  actuator_limit_ignored: '忽略执行器限幅',
+  chain_role_confusion: '链路角色混淆',
+  controller_as_whole_system: '把控制器等同于全系统',
+  noise_as_gain_problem: '把噪声误判为增益问题',
+  delay_as_gain_problem: '把延迟误判为增益问题',
+  shortest_path_as_best_reference: '把最短路径等同于最佳参考',
+  actuator_limit_as_display_only: '把执行限幅当作只读显示',
+  controller_first_diagnosis: '优先归因控制器',
+  path_gap_as_controller_only: '把航迹偏差只归因控制层',
+  radius_below_feasible_limit: '规划半径低于可行下限',
+  ignores_saturation: '忽略舵角饱和',
+  automation_degree_as_diagnosis: '用自动化等级替代链路诊断',
+  evidence_layer_confusion: '证据层级混淆',
+  feasibility_ignored: '忽略可实现性约束',
 };
 
 function normalizeAnswerToken(value: string) {

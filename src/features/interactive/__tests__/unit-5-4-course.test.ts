@@ -151,6 +151,55 @@ describe('unit 5-4 interactive course', () => {
     expect(step13Problem).toContain('$t=108\\\\ \\\\mathrm{s}$');
   });
 
+  it('keeps p4, p7, and p8 formula content valid for shared KaTeX rendering', () => {
+    const manifest = readManifest();
+    const step04 = manifest.steps.find((step) => step.id === 'step-04');
+    const step07 = manifest.steps.find((step) => step.id === 'step-07');
+    const step08 = manifest.steps.find((step) => step.id === 'step-08');
+
+    const step04FormulaBlock = step04?.contentBlocks.formula_block as
+      | { formulas?: string[]; symbols?: Array<{ symbol?: string; meaning?: string }> }
+      | undefined;
+    const step07FormulaBlock = step07?.contentBlocks.formula_block as
+      | { formulas?: string[]; symbols?: Array<{ symbol?: string; meaning?: string }> }
+      | undefined;
+    const step08CaseText = step08?.contentBlocks.case_text as { body?: string } | undefined;
+
+    expect(step04FormulaBlock?.formulas).toEqual(['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)']);
+    expect(step04FormulaBlock?.symbols?.map((item) => item.symbol)).toEqual([
+      'x_k',
+      'u_k',
+      'y_k',
+      'p_k',
+      'f(\\cdot)',
+      'h(\\cdot)',
+    ]);
+
+    expect(step07FormulaBlock?.formulas).toContain(
+      '\\min_{u_0,\\ldots,u_{N-1}} \\sum_{i=0}^{N-1}\\left(\\left\\|y_{k+i}-r_{k+i}\\right\\|_Q^2+\\left\\|u_{k+i}\\right\\|_R^2\\right)',
+    );
+    expect(step07FormulaBlock?.formulas).toContain(
+      'x_{k+i+1}=f(x_{k+i},u_{k+i}),\\quad y_{k+i}=h(x_{k+i}),\\quad u_{\\min}\\le u_{k+i}\\le u_{\\max}',
+    );
+    const step07FormulaText = step07FormulaBlock?.formulas?.join('\n') ?? '';
+    expect(step07FormulaText).not.toMatch(/(^|[^\\])min_/);
+    expect(step07FormulaText).not.toMatch(/(^|[^\\])sum_/);
+    expect(step07FormulaText).not.toContain('u_min<=');
+    expect(step07FormulaBlock?.symbols?.map((item) => item.symbol)).toEqual([
+      'N',
+      'r_{k+i}',
+      'Q',
+      'R',
+      'u_{k+i}',
+      'u_{\\min}',
+      'u_{\\max}',
+    ]);
+
+    expect(step08CaseText?.body).toContain('$20\\ \\mathrm{s}$');
+    expect(step08CaseText?.body).toContain('$18^\\circ$');
+    expect(step08CaseText?.body).toContain('$|\\delta|\\le 12^\\circ$');
+  });
+
   it('maps p14 runtime route metric keys to Chinese labels in the route comparison adapter', () => {
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 

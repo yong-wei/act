@@ -32,6 +32,10 @@ import type {
   NonlinearAnalysisResult,
   NonlinearPoint,
 } from '@/resources/control-system/analysis/nonlinear-analysis-types';
+import {
+  completePlannedPathToActualExtent,
+  createEqualCoordinateScale,
+} from './turning-path-utils';
 
 type TeacherResponseItem = { studentName: string; response: ManifestStepResponse };
 type ContentRecord = Record<string, unknown>;
@@ -123,29 +127,38 @@ function SvgPathPanel({
   obstacle?: { center: NonlinearPoint; radius: number; clearanceRadius: number };
   startRadius?: number;
 }) {
-  const { scaleX, scaleY, scaleRadiusX, scaleRadiusY } = scaleSeries({ minX: 0, maxX: 260, minY: -45, maxY: 165 });
+  const { scaleX, scaleY, scaleRadius, plotLeft, plotRight, plotTop, plotBottom } = createEqualCoordinateScale({
+    minX: 0,
+    maxX: 260,
+    minY: -45,
+    maxY: 165,
+    plotX: 36,
+    plotY: 56,
+    plotWidth: 568,
+    plotHeight: 238,
+  });
   const xTicks = [0, 50, 100, 150, 200, 250];
   const yTicks = [-40, 0, 40, 80, 120, 160];
   return (
     <svg viewBox="0 0 640 340" className="h-[340px] w-full rounded-xl border border-slate-200 bg-white" aria-label={title}>
       <defs>
         <clipPath id="turning-path-plot">
-          <rect x="36" y="56" width="568" height="238" />
+          <rect x={plotLeft} y={plotTop} width={plotRight - plotLeft} height={plotBottom - plotTop} />
         </clipPath>
       </defs>
       <text x="36" y="28" className="fill-slate-800 text-[16px] font-semibold">{title}</text>
-      <line x1="36" y1="294" x2="604" y2="294" stroke="#cbd5e1" />
-      <line x1="36" y1="56" x2="36" y2="294" stroke="#cbd5e1" />
+      <line x1={plotLeft} y1={plotBottom} x2={plotRight} y2={plotBottom} stroke="#cbd5e1" />
+      <line x1={plotLeft} y1={plotTop} x2={plotLeft} y2={plotBottom} stroke="#cbd5e1" />
       {xTicks.map((tick) => (
         <g key={`x-${tick}`}>
-          <line x1={scaleX(tick)} y1="294" x2={scaleX(tick)} y2="300" stroke="#94a3b8" />
-          <text x={scaleX(tick)} y="318" textAnchor="middle" className="fill-slate-500 text-[14px]">{tick}</text>
+          <line x1={scaleX(tick)} y1={plotBottom} x2={scaleX(tick)} y2={plotBottom + 6} stroke="#94a3b8" />
+          <text x={scaleX(tick)} y={plotBottom + 24} textAnchor="middle" className="fill-slate-500 text-[14px]">{tick}</text>
         </g>
       ))}
       {yTicks.map((tick) => (
         <g key={`y-${tick}`}>
-          <line x1="30" y1={scaleY(tick)} x2="36" y2={scaleY(tick)} stroke="#94a3b8" />
-          <text x="24" y={scaleY(tick) + 4} textAnchor="end" className="fill-slate-500 text-[14px]">{tick}</text>
+          <line x1={plotLeft - 6} y1={scaleY(tick)} x2={plotLeft} y2={scaleY(tick)} stroke="#94a3b8" />
+          <text x={plotLeft - 12} y={scaleY(tick) + 4} textAnchor="end" className="fill-slate-500 text-[14px]">{tick}</text>
         </g>
       ))}
       <text x="580" y="336" textAnchor="end" className="fill-slate-500 text-[13px]">x / m</text>
@@ -153,31 +166,28 @@ function SvgPathPanel({
       {obstacle ? (
         <g clipPath="url(#turning-path-plot)">
           {startRadius ? (
-            <ellipse
+            <circle
               cx={scaleX(obstacle.center.x)}
               cy={scaleY(obstacle.center.y)}
-              rx={scaleRadiusX(startRadius)}
-              ry={scaleRadiusY(startRadius)}
+              r={scaleRadius(startRadius)}
               fill="none"
               stroke="#64748b"
               strokeDasharray="8 7"
               strokeWidth="1.8"
             />
           ) : null}
-          <ellipse
+          <circle
             cx={scaleX(obstacle.center.x)}
             cy={scaleY(obstacle.center.y)}
-            rx={Math.max(6, scaleRadiusX(obstacle.radius))}
-            ry={Math.max(6, scaleRadiusY(obstacle.radius))}
+            r={Math.max(6, scaleRadius(obstacle.radius))}
             fill="#fee2e2"
             stroke="#dc2626"
             strokeWidth="2"
           />
-          <ellipse
+          <circle
             cx={scaleX(obstacle.center.x)}
             cy={scaleY(obstacle.center.y)}
-            rx={Math.max(8, scaleRadiusX(obstacle.clearanceRadius))}
-            ry={Math.max(8, scaleRadiusY(obstacle.clearanceRadius))}
+            r={Math.max(8, scaleRadius(obstacle.clearanceRadius))}
             fill="none"
             stroke="#f97316"
             strokeDasharray="6 5"
@@ -321,9 +331,11 @@ function TurningRadiusPanel({
     : null;
   const turning = displayResult?.turningRadius;
   const displayIsFallback = isFallback || needsStructureFallback;
+  const actualPath = turning?.path.actual ?? [];
+  const plannedPath = completePlannedPathToActualExtent(turning?.path.nominal ?? [], actualPath);
   const pathSeries: CurveSeries[] = [
-    { id: 'nominal', label: '规划航迹', color: '#f97316', points: turning?.path.nominal ?? [], dashed: true },
-    { id: 'actual', label: '实际航迹', color: '#2563eb', points: turning?.path.actual ?? [] },
+    { id: 'nominal', label: '规划航迹', color: '#f97316', points: plannedPath, dashed: true },
+    { id: 'actual', label: '实际航迹', color: '#2563eb', points: actualPath },
   ];
   const obstacle = turning
     ? {

@@ -80,7 +80,7 @@ steps:
       - { id: 'model-formula', title: '离散对象关系', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
       - { id: 'model-activity', title: '模型关系判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['model-advantage', 'model-evidence'] } }
     content_blocks:
-      formula_block: { type: 'formula_group', formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'], symbols: [{ symbol: 'x_k', meaning: '状态' }, { symbol: 'u_k', meaning: '控制输入' }, { symbol: 'y_k', meaning: '输出' }, { symbol: 'p_k', meaning: '影响对象行为的参数或外部条件' }], explanation: '若 $f(\cdot)$ 和 $h(\cdot)$ 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。' }
+      formula_block: { type: 'formula_group', formulas: ['x_{k+1}=f(x_k,u_k,p_k)', 'y_k=h(x_k,u_k)'], symbols: [{ symbol: 'x_k', meaning: '状态' }, { symbol: 'u_k', meaning: '控制输入' }, { symbol: 'y_k', meaning: '输出' }, { symbol: 'p_k', meaning: '参数或外部条件' }, { symbol: 'f(\cdot)', meaning: '状态更新关系' }, { symbol: 'h(\cdot)', meaning: '输出关系' }], explanation: '若 $f(\cdot)$ 和 $h(\cdot)$ 的结构可信，就能追踪输入、状态、输出和参数变化之间的关系。' }
     evidence_sequence: ['离散模型公式', '符号说明', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
@@ -179,7 +179,7 @@ steps:
       - { id: 'mpc-activity', title: 'MPC 结构判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['first-action', 'mpc-elements'] } }
     content_blocks:
       caption: 'MPC 在每个采样时刻预测未来一段时间，求解带约束优化问题，只执行当前第一步控制动作。'
-      formula_block: { type: 'formula_group', formulas: ['min_{u_0,...,u_{N-1}} sum_{i=0}^{N-1}(||y_{k+i}-r_{k+i}||_Q^2+||u_{k+i}||_R^2)', 'x_{k+i+1}=f(x_{k+i},u_{k+i}), y_{k+i}=h(x_{k+i}), u_min<=u_{k+i}<=u_max'], symbols: [{ symbol: 'N', meaning: '预测时域' }, { symbol: 'Q', meaning: '跟踪误差权重' }, { symbol: 'R', meaning: '控制代价权重' }], explanation: '预测一段、执行一步、再预测，是 MPC 在约束下处理动态变化的关键。' }
+      formula_block: { type: 'formula_group', formulas: ['\min_{u_0,\ldots,u_{N-1}} \sum_{i=0}^{N-1}\left(\left\|y_{k+i}-r_{k+i}\right\|_Q^2+\left\|u_{k+i}\right\|_R^2\right)', 'x_{k+i+1}=f(x_{k+i},u_{k+i}),\quad y_{k+i}=h(x_{k+i}),\quad u_{\min}\le u_{k+i}\le u_{\max}'], symbols: [{ symbol: 'N', meaning: '预测时域' }, { symbol: 'r_{k+i}', meaning: '参考轨迹' }, { symbol: 'Q', meaning: '跟踪误差权重' }, { symbol: 'R', meaning: '控制代价权重' }, { symbol: 'u_{k+i}', meaning: '预测时域内第 $i$ 步控制输入' }, { symbol: 'u_{\min}', meaning: '控制输入下界' }, { symbol: 'u_{\max}', meaning: '控制输入上界' }], explanation: '预测一段、执行一步、再预测，是 MPC 在约束下处理动态变化的关键。' }
     evidence_sequence: ['MPC 框图', '目标函数', '约束式', '符号说明', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
@@ -202,7 +202,7 @@ steps:
       - { id: 'mpc-boundary-case', title: '舵角约束辨析题面', region: 'case', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'case_text' } }
       - { id: 'mpc-boundary-choice', title: 'MPC 双重依赖判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['mpc-dependency'] } }
     content_blocks:
-      case_text: { type: 'plain_text', body: '未来 20s 内航向角增加 18°，舵角限制 |δ|≤12°。名义模型响应偏快，真实对象响应较慢。MPC 改善了是否考虑预测窗口和约束的问题，但没有自动解决预测对象是否仍可信的问题。' }
+      case_text: { type: 'plain_text', body: '未来 $20\ \mathrm{s}$ 内航向角增加 $18^\circ$，舵角限制 $|\delta|\le 12^\circ$。名义模型响应偏快，真实对象响应较慢。MPC 改善了是否考虑预测窗口和约束的问题，但没有自动解决预测对象是否仍可信的问题。' }
     evidence_sequence: ['辨析题面', '模型偏差说明', '在线计算说明', '单选题']
     interaction_spec:
       interaction_kind: 'single_choice'

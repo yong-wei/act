@@ -1662,7 +1662,7 @@
             },
             {
               "title": "第三步：检查控制与执行",
-              "body": "由 δd≈arctan(L/R) 可知，小半径会要求超过 18° 的名义舵角；控制器强行跟踪时，舵角被饱和截断，航向响应滞后，横向位移来得更晚。"
+              "body": "由 $\\delta_d\\approx\\arctan(L/R)$ 可知，小半径会要求超过 $18^\\circ$ 的名义舵角；控制器强行跟踪时，舵角被饱和截断，航向响应滞后，横向位移来得更晚。"
             },
             {
               "title": "第四步：形成链路修正",
@@ -1766,7 +1766,7 @@
       "teacher_controls": {
         "release_activity": "teacher_toggle",
         "open_browse": "not_applicable",
-        "teacher_step_reveal": "not_applicable",
+        "teacher_step_reveal": "teacher_direct",
         "reveal_reference_answer": "teacher_toggle"
       },
       "student_access": {
@@ -2065,27 +2065,13 @@
         "template": "posttest_board",
         "regions": [
           {
-            "id": "intro",
-            "width": "full",
-            "order": 1
-          },
-          {
             "id": "quiz",
             "width": "full",
-            "order": 2
+            "order": 1
           }
         ]
       },
       "modules": [
-        {
-          "id": "posttest-note",
-          "region": "intro",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "text": "本页检查是否已经形成链路诊断、可实现性判断和责任边界意识。"
-          }
-        },
         {
           "id": "posttest",
           "region": "quiz",
@@ -2101,7 +2087,6 @@
         "note": "后测题目呼应目标页，不设计大段综合推导。"
       },
       "evidence_sequence": [
-        "后测说明",
         "三题题组"
       ],
       "interaction_spec": {
