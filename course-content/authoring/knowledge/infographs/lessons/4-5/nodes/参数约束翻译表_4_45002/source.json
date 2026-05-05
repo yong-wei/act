@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:44.184396Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "约束翻译与职责区分"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "参数约束翻译表_4_45002",
+    "name": "参数约束翻译表",
+    "name_en": "Constraint Translation Table",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把输出侧硬约束和参数范围分别写成求解器可消费的规则。",
+    "examples": [
+      "客船案例中，`M_p\\le 20\\%`、`u_{\\max}\\le 7` 与 `\\phi_m\\ge 45^\\circ` 应进入 `nonlcon`，而 `1\\le K\\le 6` 属于参数上下界。",
+      "若把参数范围误当成工程可交付边界，求解器仍会在结构上说得通、工程上却失真的区域里搜索。"
+    ],
+    "formulas": [
+      "c(\\theta)= \\begin{bmatrix} M_p(\\theta)-20\\\\ u_{\\max}(\\theta)-7\\\\ 45-\\phi_m(\\theta) \\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub"
+    ],
+    "keywords": [
+      "约束翻译",
+      "nonlcon",
+      "上下界",
+      "职责分工"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/参数约束翻译表_4_45002.md",
+  "card_frontmatter": {
+    "node_id": "参数约束翻译表_4_45002",
+    "name": "参数约束翻译表",
+    "name_en": "Constraint Translation Table",
+    "lesson_units": [
+      "4-5"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-5",
+      "约束翻译",
+      "nonlcon"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-5/design/4-5-handout.md",
+      "authoring/lessons/4-5/design/4-5-teacher-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 参数约束翻译表 | Constraint Translation Table\n\n**一句话定义**：把输出侧硬约束和参数范围分别写成求解器可消费的规则。\n\n**核心直觉**：不是所有不等式都在回答同一个问题。\n\n**关键公式**：\n$$\nc(\\theta)=\n\\begin{bmatrix}\nM_p(\\theta)-20\\\\\nu_{\\max}(\\theta)-7\\\\\n45-\\phi_m(\\theta)\n\\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub\n$$\n\n**关联**：前置 → 越界证据记录单、优化起点与归一化来源 · 后续 → 罚函数表达表、求解记录单",
+  "card_detail": "### 完整解释\n\n本讲最重要的翻译动作，是把“超调不能过大”“控制动作不能爆表”“相角裕度不能继续压缩”这些口头判断写成求解器必须遵守的不等式。\n\n与此同时，参数上下界还承担另一种职责：它们保证搜索仍然停留在当前超前结构的可解释区间内。两类约束都重要，但不能混写。\n\n### 常见误区\n\n1. **误区**：`1\\\\le K\\\\le 6` 和 `u_{\\\\max}\\\\le 7` 只是写法不同，本质完全一样。\n   **纠正**：前者在说明搜索区间，后者在裁决结果能否交付。\n\n2. **误区**：只要把边界写进 `nonlcon` 就足够。\n   **纠正**：若不先交代边界来源，`nonlcon` 只会变成一组看不懂的符号。",
+  "card_plain_excerpt": "## 首页\n\n# 参数约束翻译表 | Constraint Translation Table\n\n**一句话定义**：把输出侧硬约束和参数范围分别写成求解器可消费的规则。\n\n**核心直觉**：不是所有不等式都在回答同一个问题。\n\n**关键公式**：\n$$\nc(\\theta)=\n\\begin{bmatrix}\nM_p(\\theta)-20\\\\\nu_{\\max}(\\theta)-7\\\\\n45-\\phi_m(\\theta)\n\\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub\n$$\n\n**关联**：前置 → 越界证据记录单、优化起点与归一化来源 · 后续 → 罚函数表达表、求解记录单\n\n## 详情\n\n### 完整解释\n\n本讲最重要的翻译动作，是把“超调不能过大”“控制动作不能爆表”“相角裕度不能继续压缩”这些口头判断写成求解器必须遵守的不等式。\n\n与此同时，参数上下界还承担另一种职责：它们保证搜索仍然停留在当前超前结构的可解释区间内。两类约束都重要，但不能混写。\n\n### 常见误区\n\n1. **误区**：`1\\\\le K\\\\le 6` 和 `u_{\\\\max}\\\\le 7` 只是写法不同，本质完全一样。\n   **纠正**：前者在说明搜索区间，后者在裁决结果能否交付。\n\n2. **误区**：只要把边界写进 `nonlcon` 就足够。\n   **纠正**：若不先交代边界来源，`nonlcon` 只会变成一组看不懂的符号。",
+  "core_intuition": "不是所有不等式都在回答同一个问题。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "参数约束翻译表",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "越界证据记录单",
+      "target_id": null,
+      "target": "参数约束翻译表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数约束翻译表",
+      "target_id": null,
+      "target": "罚函数表达表",
+      "relation": "leads_to",
+      "strength": 0.98,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数约束翻译表",
+      "target_id": null,
+      "target": "统一结构编码与解码",
+      "relation": "related",
+      "strength": 0.83,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数约束翻译表",
+      "target_id": null,
+      "target": "工程指标代价函数翻译",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "越界证据记录单_4_45001",
+      "source": "越界证据记录单",
+      "target_id": "参数约束翻译表_4_45002",
+      "target": "参数约束翻译表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "只有先确认候选在哪些边界上失守，约束翻译才不会流于口头提醒。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "优化起点与归一化来源_4_44003",
+      "source": "优化起点与归一化来源",
+      "target_id": "参数约束翻译表_4_45002",
+      "target": "参数约束翻译表",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "参数上下界和归一化基准决定了哪些量属于参数范围，哪些量属于输出侧硬约束。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "参数约束翻译表_4_45002",
+      "source": "参数约束翻译表",
+      "target_id": "罚函数表达表_4_45003",
+      "target": "罚函数表达表",
+      "relation": "leads_to",
+      "strength": 0.98,
+      "description": "边界一旦被翻译成可计算约束，就可以继续写成显式罚项或等价约束表达。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "参数约束翻译表",
+        "约束翻译",
+        "nonlcon",
+        "上下界",
+        "职责分工"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "c(\\theta)= \\begin{bmatrix} M_p(\\theta)-20\\\\ u_{\\max}(\\theta)-7\\\\ 45-\\phi_m(\\theta) \\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_4_1TeacherSession,
   getUNIT_4_1PageContractFromManifest,
-  getUNIT_4_1MediaSrc,
   isUNIT_4_1AiPageType,
   isUNIT_4_1TeacherSyncState,
   resolveUNIT_4_1TeacherSyncDraft,
@@ -30,7 +29,6 @@ import {
 } from '@/lib/unit-4-1-course';
 import { UNIT_4_1CourseHeader } from './course-header';
 import {
-  UNIT_4_1KnowledgeMapVisual,
   UNIT_4_1StepAiAssistant,
   UNIT_4_1StepContentPanel,
   UNIT_4_1TeacherActivitySummary,
@@ -49,6 +47,8 @@ export function UNIT_4_1TeacherPage({
   const [showStudentList, setShowStudentList] = useState(false);
   const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
+  const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
+  const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_4_1_RESOURCE_KEY,
@@ -93,14 +93,16 @@ export function UNIT_4_1TeacherPage({
     return (latestRecord?.data as UNIT_4_1TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
-  const { revealedAnswers, releasedActivities } = useMemo(
+  const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
       resolveUNIT_4_1TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
+        localBrowseEnabled,
+        localTeacherRevealProgress,
         teacherSyncState,
       }),
-    [localRevealedAnswers, localReleasedActivities, teacherSyncState],
+    [localBrowseEnabled, localRevealedAnswers, localReleasedActivities, localTeacherRevealProgress, teacherSyncState],
   );
 
   const previousStepIdRef = useRef<string | null>(null);
@@ -125,8 +127,10 @@ export function UNIT_4_1TeacherPage({
       activeStepId: step.id,
       revealedAnswers,
       releasedActivities,
+      browseEnabled,
+      teacherRevealProgress,
     });
-  }, [loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherViewHydrated]);
+  }, [browseEnabled, loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherRevealProgress, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
     return courseStates
@@ -143,6 +147,19 @@ export function UNIT_4_1TeacherPage({
   }, [courseStates]);
 
   const joinedStudents = useMemo(() => Array.from(new Set(studentStates.map((item) => item.studentName))), [studentStates]);
+  const submittedStudents = useMemo(
+    () => studentStates.filter((item) => Object.keys(item.state.responses).length > 0).length,
+    [studentStates],
+  );
+  const totalResponses = useMemo(
+    () => studentStates.reduce((sum, item) => sum + Object.keys(item.state.responses).length, 0),
+    [studentStates],
+  );
+  const postTestCompletion = useMemo(() => {
+    if (!studentStates.length) return 0;
+    const completed = studentStates.filter((item) => Boolean(item.state.responses['step-12'])).length;
+    return Math.round((completed / studentStates.length) * 100);
+  }, [studentStates]);
 
   const currentResponses = useMemo(() => {
     return studentStates
@@ -165,6 +182,16 @@ export function UNIT_4_1TeacherPage({
     },
     [patchCurrentStep, step.id, trackStepLeave, trackStepView],
   );
+
+  const handleAdvanceReveal = useCallback(() => {
+    setLocalTeacherRevealProgress((prev) => {
+      const base = prev ?? teacherSyncState?.teacherRevealProgress ?? {};
+      return {
+        ...base,
+        [step.id]: (base[step.id] ?? 0) + 1,
+      };
+    });
+  }, [step.id, teacherSyncState?.teacherRevealProgress]);
 
   const handleEndSession = useCallback(async () => {
     if (!sessionInfo) return;
@@ -289,12 +316,17 @@ export function UNIT_4_1TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        {step.id === 'step-01' ? <UNIT_4_1KnowledgeMapVisual /> : null}
-
         <UNIT_4_1StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_1MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
+          revealProgress={teacherRevealProgress[step.id] ?? 0}
+          allowInlineReveal
+          role="teacher"
+          studentCount={joinedStudents.length}
+          submittedStudents={submittedStudents}
+          totalResponses={totalResponses}
+          postTestCompletion={postTestCompletion}
+          onAdvanceReveal={handleAdvanceReveal}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
@@ -307,6 +339,7 @@ export function UNIT_4_1TeacherPage({
         <div className="mt-4">
           <UNIT_4_1TeacherActivitySummary
             step={step}
+            manifest={runtimeManifest}
             responses={currentResponses}
             released={
               pageContract.teacherControls?.releaseActivity === 'page_load_open' ||
@@ -314,17 +347,37 @@ export function UNIT_4_1TeacherPage({
                 ? true
                 : Boolean(releasedActivities[step.id])
             }
+            browseEnabled={
+              pageContract.teacherControls?.openBrowse === 'page_load_open' ||
+              pageContract.teacherControls?.openBrowse === 'not_applicable'
+                ? true
+                : Boolean(browseEnabled[step.id])
+            }
             answerVisible={Boolean(revealedAnswers[step.id])}
+            revealProgress={teacherRevealProgress[step.id] ?? 0}
             onToggleRelease={() =>
               setLocalReleasedActivities((prev) => ({
                 ...(prev ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.releasedActivities ?? {}),
                 [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
               }))
             }
+            onToggleBrowse={() =>
+              setLocalBrowseEnabled((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.browseEnabled ?? {}),
+                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.browseEnabled?.[step.id]),
+              }))
+            }
             onToggleAnswerVisible={() =>
               setLocalRevealedAnswers((prev) => ({
                 ...(prev ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
                 [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
+              }))
+            }
+            onAdvanceReveal={handleAdvanceReveal}
+            onResetReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_4_1TeacherCourseSyncState | null)?.teacherRevealProgress ?? {}),
+                [step.id]: 0,
               }))
             }
           />

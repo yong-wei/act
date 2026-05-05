@@ -33,7 +33,9 @@
     "acceptance_note"
   ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [],
+  "invalid_handout_anchors": [
+    "## 二、先做“同图异读”，再回收最小指标语言"
+  ],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
@@ -48,13 +50,13 @@
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [
-    "manifest audit pass: 12 steps, 40 modules, 0 issues"
+    "manifest audit pass: 13 steps, 40 modules, 0 issues"
   ],
   "manifest_audit_issues": [],
   "manifest_audit": {
     "status": "pass",
     "summary": {
-      "steps": 12,
+      "steps": 13,
       "modules": 40,
       "issues": 0
     },
@@ -217,11 +219,21 @@
     "entries": [
       {
         "step_id": "step-01",
-        "module_id": "stage-map",
-        "kind": "stage-map",
+        "module_id": "cover-comic",
+        "kind": "image-panel",
         "renderer_owner": "content",
         "resolved_content_source": "module.payload",
-        "resolved_content_type": "summary",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "lesson-infograph",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "module.payload",
+        "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
       },
@@ -230,17 +242,7 @@
         "module_id": "core-question-card",
         "kind": "question-card",
         "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-01",
-        "module_id": "boundary-card",
-        "kind": "boundary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
+        "resolved_content_source": "content_blocks.intro_question",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -250,18 +252,8 @@
         "module_id": "goal-cards",
         "kind": "goal-card-row",
         "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
+        "resolved_content_source": "content_blocks.goals",
         "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "boundary-table",
-        "kind": "comparison-table",
-        "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
-        "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
       },
@@ -586,31 +578,41 @@
         "diagnostic": null
       },
       {
-        "step_id": "step-12",
+        "step_id": "step-13",
+        "module_id": "lesson-infograph",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "module.payload",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-13",
         "module_id": "takeaway-cards",
         "kind": "summary-card-row",
         "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
+        "resolved_content_source": "content_blocks.takeaways",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       },
       {
-        "step_id": "step-12",
-        "module_id": "output-summary",
-        "kind": "key-task-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-12",
+        "step_id": "step-13",
         "module_id": "next-step-cards",
         "kind": "next-step-card-row",
         "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
+        "resolved_content_source": "content_blocks.next_step",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "course-stat-panel",
+        "kind": "stat-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.statistics",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -629,17 +631,23 @@
   ],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [
-    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。",
+    "旧版 runtime 审查产物时间早于作者态文件，已按旧课兼容口径降为提示，请后续补齐新版接受文件与审查导出。"
   ],
   "summary": [
-    "已覆盖讲义中的核心证据单元、主阅读顺序与曲线图镜像要求。",
     "已检测到 `4-1` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `4-1` 的本地实现契约与作者态互动契约一致。",
-    "manifest audit pass: 12 steps, 40 modules, 0 issues"
+    "manifest audit pass: 13 steps, 40 modules, 0 issues"
   ],
   "warnings": [
-    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
+    "以下 handout_anchor 未在讲义标题中命中：## 二、先做“同图异读”，再回收最小指标语言",
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。",
+    "旧版 runtime 审查产物时间早于作者态文件，已按旧课兼容口径降为提示，请后续补齐新版接受文件与审查导出。"
   ],
-  "missing": [],
-  "issues": []
+  "missing": [
+    "以下 handout_anchor 未在讲义标题中命中：## 二、先做“同图异读”，再回收最小指标语言"
+  ],
+  "issues": [
+    "以下 handout_anchor 未在讲义标题中命中：## 二、先做“同图异读”，再回收最小指标语言"
+  ]
 }

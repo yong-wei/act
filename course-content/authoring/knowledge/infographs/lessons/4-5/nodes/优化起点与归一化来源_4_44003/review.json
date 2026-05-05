@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-05T13:22:15.876499Z",
+  "lesson_id": "4-5",
+  "node_id": "优化起点与归一化来源_4_44003",
+  "node_name": "优化起点与归一化来源",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

@@ -8,9 +8,10 @@ import {
 } from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
-export type UNIT_4_1StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3';
+export type UNIT_4_1StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type UNIT_4_1PageType =
   | 'display'
+  | 'summary'
   | 'binary_choice'
   | 'quiz_group'
   | 'parameter_slider'
@@ -77,6 +78,8 @@ export interface UNIT_4_1StudentCourseState {
   studentName: string;
   updatedAt: number;
   responses: Record<string, UNIT_4_1StepResponse>;
+  viewedStepIds?: string[];
+  controlParameterSnapshots?: Record<string, Record<string, string>>;
 }
 
 export interface UNIT_4_1TeacherCourseSyncState {
@@ -84,6 +87,8 @@ export interface UNIT_4_1TeacherCourseSyncState {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt: number;
 }
 
@@ -91,6 +96,8 @@ export interface UNIT_4_1TeacherSyncInput {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt?: number;
   [key: string]: unknown;
 }
@@ -124,7 +131,8 @@ export const UNIT_4_1_STAGE_LABEL: Record<UNIT_4_1StageCode, string> = {
   O: 'O · 目标',
   P1: 'P1 · 前测',
   P2: 'P2 · 参与式学习',
-  P3: 'P3 · 后测与收束',
+  P3: 'P3 · 后测',
+  S: 'S · 总结',
 };
 
 export const UNIT_4_1_STAGE_MAP: Record<UNIT_4_1StageCode, BopppsStage> = {
@@ -133,6 +141,7 @@ export const UNIT_4_1_STAGE_MAP: Record<UNIT_4_1StageCode, BopppsStage> = {
   P1: 'PRE_ASSESSMENT',
   P2: 'PARTICIPATORY',
   P3: 'POST_ASSESSMENT',
+  S: 'SUMMARY',
 };
 
 export const UNIT_4_1_PAGE_CONTRACTS: Record<string, UNIT_4_1PageContract> = {
@@ -144,7 +153,7 @@ export const UNIT_4_1_PAGE_CONTRACTS: Record<string, UNIT_4_1PageContract> = {
         { id: 'lead', width: 'full', order: 2 },
         { id: 'summary', width: 'full', order: 3 },
       ],
-      readingOrder: ['路径定位', '主问题', '本课边界'],
+      readingOrder: ['封面情境图', '课程信息图', '导入问题'],
     },
     interactionKind: 'none',
     interactionArchetype: 'entry_overview',
@@ -158,12 +167,11 @@ export const UNIT_4_1_PAGE_CONTRACTS: Record<string, UNIT_4_1PageContract> = {
       template: 'goal_boundary_slide',
       regions: [
         { id: 'goals', width: 'full', order: 1 },
-        { id: 'boundary', width: 'full', order: 2 },
       ],
-      readingOrder: ['学习目标', '本课负责', '本课不负责'],
+      readingOrder: ['本次课程目标'],
     },
     interactionKind: 'none',
-    interactionArchetype: 'boundary_alignment',
+    interactionArchetype: 'objective_alignment',
     teacherInsightWidgets: ['view_count'],
     telemetrySummaryFields: ['viewed', 'timeOnStep'],
     aiDeliveryMode: 'hidden_page_context',
@@ -176,7 +184,7 @@ export const UNIT_4_1_PAGE_CONTRACTS: Record<string, UNIT_4_1PageContract> = {
         { id: 'question-stack', width: 'full', order: 1 },
         { id: 'submit-bar', width: 'full', order: 2 },
       ],
-      readingOrder: ['场景提示', '三题预判', '误区提示'],
+      readingOrder: ['前测基本知识点', '三题预判'],
     },
     interactionKind: 'quiz_group',
     interactionArchetype: 'diagnostic_quiz',
@@ -370,16 +378,16 @@ export const UNIT_4_1_LESSON_STEPS: UNIT_4_1StepDefinition[] = [
   {
     id: 'step-01',
     stage: 'B',
-    title: '回到地图：稳定不是任务完成',
-    hint: '先把 3-9 的跨域证据接到 4-1，明确“稳定”只是任务表达的起点。',
+    title: '任务表达入口：从跨域证据写出设计任务',
+    hint: '用封面情境图、课程信息图和导入问题进入任务表达。',
     duration: '4 min',
     pageType: 'display',
   },
   {
     id: 'step-02',
     stage: 'O',
-    title: '学习目标与边界：4-1 只负责写任务书',
-    hint: '四项目标与课堂边界一次钉死，本课不进入控制结构选择、参数整定和最优搜索。',
+    title: '本次课程目标',
+    hint: '列出四项布鲁姆动词驱动的课程目标。',
     duration: '4 min',
     pageType: 'display',
   },
@@ -387,7 +395,7 @@ export const UNIT_4_1_LESSON_STEPS: UNIT_4_1StepDefinition[] = [
     id: 'step-03',
     stage: 'P1',
     title: '同图异读预判：为什么同一套证据会写出两张任务书',
-    hint: '先暴露“稳定就够了”“带宽越大越好”“把所有指标都写上就算完整”三类误判。',
+    hint: '考察稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级基础。',
     duration: '6 min',
     pageType: 'quiz_group',
   },
@@ -451,23 +459,33 @@ export const UNIT_4_1_LESSON_STEPS: UNIT_4_1StepDefinition[] = [
     id: 'step-11',
     stage: 'P2',
     title: '误判检查：稳定不等于完成，可行不等于最优',
-    hint: '在进入 4-2 之前，把“稳定就够了”“所有指标同等重要”“单图直接定结论”三类误判清干净。',
+    hint: '核对任务表达中指标排序、区域层级和证据来源的判断。',
     duration: '6 min',
     pageType: 'binary_choice',
   },
   {
     id: 'step-12',
     stage: 'P3',
-    title: '后测与收束：先写任务，再谈方法',
-    hint: '后测只检查任务表达与边界意识，小结把 4-1 平滑接到 4-2/4-3。',
-    duration: '8 min',
+    title: '后测：先写任务，再谈方法',
+    hint: '三道后测题检查任务表达、区域分层与同图异读判断。',
+    duration: '6 min',
     pageType: 'quiz_group',
+  },
+  {
+    id: 'step-13',
+    stage: 'S',
+    title: '总结：任务表达卡成为后续设计输入',
+    hint: '用信息图、四句带走和课堂表现统计完成收束。',
+    duration: '4 min',
+    pageType: 'summary',
   },
 ] as const;
 
 function pageTypeFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_1PageType {
   const kind = step.interactionSpec.interactionKind;
-  if (kind === 'none' || kind === 'display' || kind === 'summary') return 'display';
+  if (kind === 'none' || kind === 'display' || kind === 'summary') {
+    return step.id === 'step-13' ? 'summary' : 'display';
+  }
   if (
     kind === 'binary_choice' ||
     kind === 'quiz_group' ||
@@ -482,53 +500,6 @@ function pageTypeFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_
   return 'display';
 }
 
-function fallbackUNIT_4_1ManifestStep(step: UNIT_4_1StepDefinition): InteractiveRuntimeStepManifest {
-  const pageContract = UNIT_4_1_PAGE_CONTRACTS[step.id];
-  const interactionKind = step.pageType === 'display' ? 'none' : step.pageType;
-  return {
-    id: step.id,
-    title: step.title,
-    layout: {
-      template: pageContract?.layout.template ?? 'stacked_regions',
-      regions: pageContract?.layout.regions ?? [{ id: 'main', width: 'full', order: 1 }],
-    },
-    modules: [],
-    contentBlocks: {},
-    evidenceSequence: [],
-    interactionSpec: {
-      interactionKind,
-      studentTask: step.hint,
-    },
-    teacherControls: {
-      releaseActivity: step.pageType === 'display' ? 'not_applicable' : 'teacher_toggle',
-      openBrowse: 'not_applicable',
-      teacherStepReveal: 'not_applicable',
-      revealReferenceAnswer: step.pageType === 'quiz_group' ? 'teacher_toggle' : 'not_applicable',
-    },
-    studentAccess: {},
-    teacherInsightSpec: {
-      widgets: pageContract?.teacherInsightWidgets ?? [],
-    },
-    telemetrySpec: {
-      summaryFields: pageContract?.telemetrySummaryFields ?? [],
-      misconceptionTags: pageContract?.misconceptionTags ?? [],
-    },
-    aiContextSpec: {
-      pageGoal: step.hint,
-      deliveryMode: 'hidden_page_context',
-    },
-    interactiveFigureSpec: {
-      layoutMirror: pageContract?.figureLayoutMirror,
-      controlsPlacement: pageContract?.controlsPlacement,
-      controlsCollapsedByDefault: pageContract?.controlsCollapsedByDefault,
-    },
-    previewContract: {
-      demoPath: pageContract?.previewDemoPath ?? `/interactive-learning/courses/${UNIT_4_1_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
-    },
-    acceptanceChecks: [],
-  };
-}
-
 function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_1PageContract {
   const pageType = pageTypeFromManifestStep(step);
   return {
@@ -537,7 +508,7 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
       regions: step.layout.regions,
       readingOrder: [],
     },
-    interactionKind: pageType === 'display' ? 'none' : pageType,
+    interactionKind: pageType === 'display' || pageType === 'summary' ? 'none' : pageType,
     interactionArchetype: step.interactionSpec.interactionKind,
     teacherControls: step.teacherControls,
     teacherInsightWidgets: step.teacherInsightSpec.widgets,
@@ -551,25 +522,14 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
   };
 }
 
-export const UNIT_4_1_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
-  lessonId: '4-1',
-  courseTitle: UNIT_4_1_COURSE_TITLE,
-  courseRouteSegment: UNIT_4_1_ROUTE_SEGMENT,
-  previewMode: {},
-  mediaPolicy: {},
-  telemetryStrategy: 'runtime_externalized',
-  teacherInsightStrategy: 'runtime_externalized',
-  requiredStepFields: [],
-  stepOrder: UNIT_4_1_LESSON_STEPS.map((step) => step.id),
-  steps: UNIT_4_1_LESSON_STEPS.map(fallbackUNIT_4_1ManifestStep),
-};
-
 export function getUNIT_4_1ManifestStepFromManifest(
   manifest: InteractiveRuntimeManifest | null | undefined,
   stepId: string,
 ) {
-  const activeManifest = manifest ?? UNIT_4_1_RUNTIME_MANIFEST;
-  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+  if (!manifest) {
+    throw new Error('4-1 runtime manifest is required for page rendering.');
+  }
+  return manifest.steps.find((step) => step.id === stepId) ?? manifest.steps[0];
 }
 
 export function getUNIT_4_1PageContractFromManifest(
@@ -588,7 +548,7 @@ export function getUNIT_4_1PageContract(stepId: string) {
 }
 
 export function isUNIT_4_1InteractivePageType(pageType: UNIT_4_1PageType) {
-  return UNIT_4_1_INTERACTIVE_PAGE_TYPES.has(pageType);
+  return pageType !== 'display' && pageType !== 'summary' && UNIT_4_1_INTERACTIVE_PAGE_TYPES.has(pageType);
 }
 
 export function isUNIT_4_1AiPageType(_pageType: UNIT_4_1PageType) {
@@ -602,6 +562,8 @@ export function createEmptyUNIT_4_1StudentState(studentName: string): UNIT_4_1St
     studentName,
     updatedAt: Date.now(),
     responses: {},
+    viewedStepIds: [],
+    controlParameterSnapshots: {},
   };
 }
 
@@ -618,7 +580,7 @@ const UNIT_4_1_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-01': '/course-runtime/lessons/4-1/media/4-1-cover-comic.png',
   'step-04': '/course-runtime/lessons/4-1/media/4-1-ship-heading-quad.png',
   'step-05': '/course-runtime/lessons/4-1/media/4-1-platform-pitch-quad.png',
-  'step-12': '/course-runtime/lessons/4-1/media/4-1-info.png',
+  'step-13': '/course-runtime/lessons/4-1/media/4-1-info.png',
 };
 
 export function getUNIT_4_1MediaSrc(stepId: string) {
@@ -660,6 +622,8 @@ export const UNIT_4_1_SESSION_ADAPTER: LessonSessionAdapter<
       activeStepId: input.activeStepId,
       revealedAnswers: input.revealedAnswers,
       releasedActivities: input.releasedActivities,
+      browseEnabled: input.browseEnabled,
+      teacherRevealProgress: input.teacherRevealProgress,
       updatedAt: input.updatedAt ?? Date.now(),
     };
   },
@@ -672,11 +636,15 @@ export function shouldPostUNIT_4_1TeacherSync(input: UNIT_4_1TeacherSyncPostGate
 export function resolveUNIT_4_1TeacherSyncDraft(input: {
   localRevealedAnswers: Record<string, boolean> | null;
   localReleasedActivities: Record<string, boolean> | null;
+  localBrowseEnabled?: Record<string, boolean> | null;
+  localTeacherRevealProgress?: Record<string, number> | null;
   teacherSyncState: UNIT_4_1TeacherCourseSyncState | null;
 }) {
   return {
     revealedAnswers: input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {},
     releasedActivities: input.localReleasedActivities ?? input.teacherSyncState?.releasedActivities ?? {},
+    browseEnabled: input.localBrowseEnabled ?? input.teacherSyncState?.browseEnabled ?? {},
+    teacherRevealProgress: input.localTeacherRevealProgress ?? input.teacherSyncState?.teacherRevealProgress ?? {},
   };
 }
 

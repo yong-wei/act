@@ -154,6 +154,16 @@ function stringFromContentBlock(value: unknown): string {
 }
 
 function getStepDescription(step: InteractiveRuntimeStepManifest) {
+  const titleDescriptionPolicy = step.contentBlocks.title_description_policy;
+  if (
+    titleDescriptionPolicy
+    && typeof titleDescriptionPolicy === 'object'
+    && !Array.isArray(titleDescriptionPolicy)
+    && (titleDescriptionPolicy as Record<string, unknown>).hide === true
+  ) {
+    return '';
+  }
+
   const candidates = [
     step.aiContextSpec.pageGoal,
     step.interactionSpec.studentTask,
@@ -205,7 +215,9 @@ function renderStepTitleModule({
     [
       createElement('div', { key: 'kicker', className: 'premium-lesson-kicker' }, pageLabel),
       createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, renderLayoutInlineContent(step.title)),
-      createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, renderLayoutInlineContent(getStepDescription(step))),
+      getStepDescription(step)
+        ? createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, renderLayoutInlineContent(getStepDescription(step)))
+        : null,
     ],
   );
 }

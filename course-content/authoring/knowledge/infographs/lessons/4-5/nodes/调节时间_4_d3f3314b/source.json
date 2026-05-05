@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:42.918186Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "无约束候选回收"
+    ],
+    "card_order_index": 2
+  },
+  "node": {
+    "id": "调节时间_4_d3f3314b",
+    "name": "调节时间",
+    "name_en": "Settling Time",
+    "category": "程序性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "响应进入并始终保持在稳态值允许误差带内所需的最短时间。",
+    "examples": [
+      "自动焊接头控制要求调节时间小于3秒，通过配置极点实部满足要求。",
+      "例4-9中，要求调节时间不超过某个值，是设计自动驾驶仪的性能指标之一。",
+      "在车辆控制系统中，要求调节时间小于规定值以保证快速响应。"
+    ],
+    "formulas": [
+      "t_s\\approx \\frac{4}{\\zeta\\omega_n}=\\frac{4}{\\sigma}"
+    ],
+    "keywords": [
+      "稳态误差带",
+      "极点实部",
+      "响应速度",
+      "性能指标",
+      "稳态",
+      "调节时间",
+      "瞬态性能",
+      "4-1",
+      "时域指标"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/调节时间_4_d3f3314b.md",
+  "card_frontmatter": {
+    "node_id": "调节时间_4_d3f3314b",
+    "name": "调节时间",
+    "name_en": "Settling Time",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "程序性",
+    "knowledge_type": "C",
+    "chapter": "4",
+    "tags": [
+      "4-1",
+      "时域指标",
+      "响应速度"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/4-1-handout.md"
+    ],
+    "asset_refs": [
+      "4-1-case-compare-summary.png"
+    ]
+  },
+  "card_overview": "# 调节时间 | Settling Time\n\n**一句话定义**：响应进入并始终保持在稳态值允许误差带内所需的最短时间。\n\n**核心直觉**：在设计入口里，调节时间不是单纯的“越短越好”，而是要和场景允许的恢复时限绑定。\n\n**关键公式**：\n$$\nt_s\\approx \\frac{4}{\\zeta\\omega_n}=\\frac{4}{\\sigma}\n$$\n\n**关联**：前置 → 稳态误差带、闭环极点实部 · 后续 → 指标角色重组、跨域联读任务重排",
+  "card_detail": "### 完整解释\n\n`4-1` 重新使用调节时间时，重点不在推导，而在任务翻译：\n\n- 客船场景里，调节时间首先对应“恢复过程拖不拖、乘客是否还能接受”；\n- 稳定平台场景里，较短的调节时间会前移为更高优先级，但仍必须服从超调和储备边界。\n\n![4-1 双案例任务排序对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n所以，调节时间在入口课最常见的写法是“守住底线后继续争取更短”，而不是无条件压到最前的唯一目标。\n\n### 常见误区\n\n1. **误区**：调节时间一短，任务书就可以直接判优。\n   **纠正**：短只是一个方向，仍要结合超调、储备和工作频带一起看。\n\n2. **误区**：调节时间只是报告响应快慢，与设计排序无关。\n   **纠正**：模块 4 正是把它从“报告量”推进成“排序依据”的一部分。",
+  "card_plain_excerpt": "## 首页\n\n# 调节时间 | Settling Time\n\n**一句话定义**：响应进入并始终保持在稳态值允许误差带内所需的最短时间。\n\n**核心直觉**：在设计入口里，调节时间不是单纯的“越短越好”，而是要和场景允许的恢复时限绑定。\n\n**关键公式**：\n$$\nt_s\\approx \\frac{4}{\\zeta\\omega_n}=\\frac{4}{\\sigma}\n$$\n\n**关联**：前置 → 稳态误差带、闭环极点实部 · 后续 → 指标角色重组、跨域联读任务重排\n\n## 详情\n\n### 完整解释\n\n`4-1` 重新使用调节时间时，重点不在推导，而在任务翻译：\n\n- 客船场景里，调节时间首先对应“恢复过程拖不拖、乘客是否还能接受”；\n- 稳定平台场景里，较短的调节时间会前移为更高优先级，但仍必须服从超调和储备边界。\n\n![4-1 双案例任务排序对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n所以，调节时间在入口课最常见的写法是“守住底线后继续争取更短”，而不是无条件压到最前的唯一目标。\n\n### 常见误区\n\n1. **误区**：调节时间一短，任务书就可以直接判优。\n   **纠正**：短只是一个方向，仍要结合超调、储备和工作频带一起看。\n\n2. **误区**：调节时间只是报告响应快慢，与设计排序无关。\n   **纠正**：模块 4 正是把它从“报告量”推进成“排序依据”的一部分。",
+  "core_intuition": "在设计入口里，调节时间不是单纯的“越短越好”，而是要和场景允许的恢复时限绑定。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "快速性",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "快速性",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "related",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时间常数",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时间常数",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时间常数",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "系统特性计算",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "LQ/LQG最优控制",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "applies_to",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "SISO系统设计工具",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析法",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型输入信号",
+      "target_id": null,
+      "target": "调节时间",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "调节时间",
+        "稳态误差带",
+        "极点实部",
+        "响应速度",
+        "性能指标",
+        "稳态",
+        "调节时间",
+        "瞬态性能",
+        "时域指标"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "t_s\\approx \\frac{4}{\\zeta\\omega_n}=\\frac{4}{\\sigma}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

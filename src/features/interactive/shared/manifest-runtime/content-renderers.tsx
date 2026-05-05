@@ -954,8 +954,13 @@ export function createManifestContentModuleRegistry(extra: {
       const items = asStringArray(intro.path_items ?? step.contentBlocks.path_items);
       return <PathStageMap title={title} lead={lead} items={items} />;
     },
-    'goal-card-row': ({ step }) => {
-      const items = listFromKnownBlocks(step, ['goal_cards']);
+    'goal-card-row': ({ step, module }) => {
+      const payloadItems = asStringArray(module.payload.items ?? module.payload.goals ?? module.payload.requirements);
+      const rawBlock = blockFor(step, module.payload);
+      const block = asRecord(rawBlock);
+      const arrayBlockItems = Array.isArray(rawBlock) ? asStringArray([...rawBlock]) : [];
+      const blockItems = arrayBlockItems.length ? arrayBlockItems : asStringArray(block.items ?? block.goals ?? block.requirements);
+      const items = payloadItems.length ? payloadItems : blockItems.length ? blockItems : listFromKnownBlocks(step, ['goal_cards']);
       return <CourseObjectiveList items={items} />;
     },
     'goal-card-set': ({ step }) => {

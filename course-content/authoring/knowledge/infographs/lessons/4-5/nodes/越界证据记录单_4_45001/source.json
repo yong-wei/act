@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:43.956189Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "无约束候选回收"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "越界证据记录单_4_45001",
+    "name": "越界证据记录单",
+    "name_en": "Boundary Violation Evidence Sheet",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "把无约束候选重新放回统一证据中复核，确认它究竟在哪些边界上失守。",
+    "examples": [
+      "客船航向保持中，无约束候选虽然缩短了调节时间，却把控制峰值推到 `25`，同时超调超过 `20%`。",
+      "同一张记录单要求学生同时读取收益和越界代价，而不是只看一列更优指标。"
+    ],
+    "formulas": [
+      "\\mathcal{E}_{vio}=(M_p,\\ u_{\\max},\\ \\phi_m,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u)"
+    ],
+    "keywords": [
+      "越界证据",
+      "无约束候选",
+      "统一复核",
+      "工程失真",
+      "越界复核",
+      "主案例"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/越界证据记录单_4_45001.md",
+  "card_frontmatter": {
+    "node_id": "越界证据记录单_4_45001",
+    "name": "越界证据记录单",
+    "name_en": "Boundary Violation Evidence Sheet",
+    "lesson_units": [
+      "4-5"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-5",
+      "越界复核",
+      "主案例"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-5/design/4-5-handout.md",
+      "authoring/lessons/4-5/design/4-5-teacher-handout.md"
+    ],
+    "asset_refs": [
+      "4-5-ship-heading-unconstrained-failure-compare.png"
+    ]
+  },
+  "card_overview": "# 越界证据记录单 | Boundary Violation Evidence Sheet\n\n**一句话定义**：把无约束候选重新放回统一证据中复核，确认它究竟在哪些边界上失守。\n\n**核心直觉**：只看“更快、更小”的收益会误判候选质量，越界证据让代价重新可见。\n\n**关键公式**：\n$$\n\\mathcal{E}_{vio}=(M_p,\\ u_{\\max},\\ \\phi_m,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u)\n$$\n\n**关联**：前置 → 权重偏好与无约束候选解、超调量、相角裕度 · 后续 → 参数约束翻译表",
+  "card_detail": "### 完整解释\n\n`4-5` 不直接从求解器写起，而是先把 `4-4` 的无约束候选重新放回工程证据里。这样做的目的，是让学生看到“更优”与“可用”并不是同一句话。\n\n![4-5 无约束候选越界对比](../../lessons/4-5/media/processed/4-5-ship-heading-unconstrained-failure-compare.png)\n\n记录单最少要回答三件事：\n\n1. 哪些收益确实存在；\n2. 哪些边界被真实突破；\n3. 这些突破为什么不能被当作小代价忽略。\n\n### 常见误区\n\n1. **误区**：只要相角裕度没有彻底掉到危险值，方案整体就还能接受。\n   **纠正**：控制峰值和超调同样属于不可忽视的工程边界。\n\n2. **误区**：控制能量变大与控制峰值越界是一回事。\n   **纠正**：前者是代价语言，后者是执行机构硬边界。",
+  "card_plain_excerpt": "## 首页\n\n# 越界证据记录单 | Boundary Violation Evidence Sheet\n\n**一句话定义**：把无约束候选重新放回统一证据中复核，确认它究竟在哪些边界上失守。\n\n**核心直觉**：只看“更快、更小”的收益会误判候选质量，越界证据让代价重新可见。\n\n**关键公式**：\n$$\n\\mathcal{E}_{vio}=(M_p,\\ u_{\\max},\\ \\phi_m,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u)\n$$\n\n**关联**：前置 → 权重偏好与无约束候选解、超调量、相角裕度 · 后续 → 参数约束翻译表\n\n## 详情\n\n### 完整解释\n\n`4-5` 不直接从求解器写起，而是先把 `4-4` 的无约束候选重新放回工程证据里。这样做的目的，是让学生看到“更优”与“可用”并不是同一句话。\n\n![4-5 无约束候选越界对比](../../lessons/4-5/media/processed/4-5-ship-heading-unconstrained-failure-compare.png)\n\n记录单最少要回答三件事：\n\n1. 哪些收益确实存在；\n2. 哪些边界被真实突破；\n3. 这些突破为什么不能被当作小代价忽略。\n\n### 常见误区\n\n1. **误区**：只要相角裕度没有彻底掉到危险值，方案整体就还能接受。\n   **纠正**：控制峰值和超调同样属于不可忽视的工程边界。\n\n2. **误区**：控制能量变大与控制峰值越界是一回事。\n   **纠正**：前者是代价语言，后者是执行机构硬边界。",
+  "core_intuition": "只看“更快、更小”的收益会误判候选质量，越界证据让代价重新可见。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "超调量",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "越界证据记录单",
+      "target_id": null,
+      "target": "参数约束翻译表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "权重偏好与无约束候选解",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "越界证据记录单",
+      "relation": "related",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "越界证据记录单",
+        "越界证据",
+        "无约束候选",
+        "统一复核",
+        "工程失真",
+        "越界复核",
+        "主案例"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\mathcal{E}_{vio}=(M_p,\\ u_{\\max},\\ \\phi_m,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

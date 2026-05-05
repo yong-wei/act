@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit41StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_4_1PageContractFromManifest,
-  getUNIT_4_1MediaSrc,
   isUNIT_4_1AiPageType,
   isUNIT_4_1InteractivePageType,
   UNIT_4_1_LESSON_KEY,
@@ -27,11 +26,9 @@ import {
 } from '@/lib/unit-4-1-course';
 import { UNIT_4_1CourseHeader } from './course-header';
 import {
-  UNIT_4_1KnowledgeMapVisual,
   UNIT_4_1StepAiAssistant,
   UNIT_4_1StepContentPanel,
   UNIT_4_1StudentActivityForm,
-  UNIT_4_1StudentSummaryPanel,
 } from './step-panels';
 import type { WorkspaceParameterChange } from './workspace';
 
@@ -93,7 +90,25 @@ export function UNIT_4_1StudentPage({
   const runtimeManifest = lessonRuntime.interactiveManifest;
   const pageContract = getUNIT_4_1PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
+  const submittedCount = useMemo(() => Object.keys(courseState.responses).length, [courseState.responses]);
+  const [localViewedStepIds, setLocalViewedStepIds] = useState<string[]>([]);
+  const [localControlParameters, setLocalControlParameters] = useState<Record<string, Record<string, string>>>({});
+  const saveQueueRef = useRef(Promise.resolve());
+  const viewedStepIds = courseState.viewedStepIds?.length ? courseState.viewedStepIds : localViewedStepIds;
+  const parameterSubmissionCount = useMemo(
+    () => Object.values(courseState.responses).filter((response) => Boolean(response.answers.__control_parameters)).length,
+    [courseState.responses],
+  );
   const { updatePageContext } = useGlobalAI();
+
+  const enqueueCourseStateSave = useCallback(
+    (updater: (prev: UNIT_4_1StudentCourseState) => UNIT_4_1StudentCourseState) => {
+      const run = saveQueueRef.current.then(() => saveCourseState(updater));
+      saveQueueRef.current = run.catch(() => undefined);
+      return run;
+    },
+    [saveCourseState],
+  );
 
   useEffect(() => {
     const stepContext = getUnit41StepAIContext(step.id);
@@ -127,6 +142,18 @@ export function UNIT_4_1StudentPage({
       : teacherSyncState?.activeStepId === step.id
         ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
         : false;
+  const browseEnabled =
+    isDemo ||
+    pageContract.teacherControls?.openBrowse === 'not_applicable' ||
+    pageContract.teacherControls?.openBrowse === 'page_load_open'
+      ? true
+      : teacherSyncState?.activeStepId === step.id
+        ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
+        : false;
+  const revealProgress =
+    teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
+  const allowInlineReveal =
+    isDemo || (browseEnabled && pageContract.teacherControls?.teacherStepReveal === 'not_applicable');
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -136,8 +163,16 @@ export function UNIT_4_1StudentPage({
       trackStepLeave(previousStepId, { nextStepId: step.id });
     }
     trackStepView(step.id, { pageType: step.pageType, stepIndex: activeIndex });
+    setLocalViewedStepIds((prev) => Array.from(new Set([...prev, step.id])));
+    if (!isDemo) {
+      void enqueueCourseStateSave((prev) => ({
+        ...prev,
+        updatedAt: Date.now(),
+        viewedStepIds: Array.from(new Set([...(prev.viewedStepIds ?? []), step.id])),
+      }));
+    }
     previousStepIdRef.current = step.id;
-  }, [activeIndex, loadingSession, step.id, step.pageType, trackStepLeave, trackStepView]);
+  }, [activeIndex, enqueueCourseStateSave, isDemo, loadingSession, step.id, step.pageType, trackStepLeave, trackStepView]);
 
   useEffect(() => {
     if (!error) return;
@@ -159,17 +194,26 @@ export function UNIT_4_1StudentPage({
 
   const handleSubmitResponse = (response: UNIT_4_1StepResponse) => {
     const isResubmit = Boolean(savedResponse);
-    void saveCourseState((prev) => {
+    void enqueueCourseStateSave((prev) => {
+      const parameters = localControlParameters[step.id] ?? prev.controlParameterSnapshots?.[step.id];
       const nextState: UNIT_4_1StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
         updatedAt: Date.now(),
+        viewedStepIds: Array.from(new Set([...(prev.viewedStepIds ?? []), ...localViewedStepIds, step.id])),
+        controlParameterSnapshots: {
+          ...(prev.controlParameterSnapshots ?? {}),
+          ...(parameters ? { [step.id]: parameters } : {}),
+        },
         responses: {
           ...prev.responses,
-          [step.id]: response,
+          [step.id]: {
+            ...response,
+            answers: parameters ? { ...response.answers, __control_parameters: JSON.stringify(parameters) } : response.answers,
+          },
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id, parameterSubmitted: Boolean(parameters) } });
       return nextState;
     });
   };
@@ -189,6 +233,13 @@ export function UNIT_4_1StudentPage({
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
+      setLocalControlParameters((prev) => ({
+        ...prev,
+        [step.id]: {
+          ...(prev[step.id] ?? {}),
+          [change.key]: String(change.value),
+        },
+      }));
       trackWorkspaceParamChange(step.id, {
         key: change.key,
         value: change.value,
@@ -270,12 +321,16 @@ export function UNIT_4_1StudentPage({
           </div>
         </div>
 
-        {step.id === 'step-01' ? <UNIT_4_1KnowledgeMapVisual /> : null}
-
         <UNIT_4_1StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_1MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
+          revealProgress={revealProgress}
+          allowInlineReveal={allowInlineReveal}
+          role="student"
+          submittedCount={submittedCount}
+          viewedCount={viewedStepIds.length}
+          postTestCompletion={courseState.responses['step-12'] ? 100 : 0}
+          parameterSubmissionCount={parameterSubmissionCount}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
@@ -288,19 +343,15 @@ export function UNIT_4_1StudentPage({
         <div className="mt-4">
           <UNIT_4_1StudentActivityForm
             step={step}
+            manifest={runtimeManifest}
             savedResponse={savedResponse}
             released={released}
+            browseEnabled={browseEnabled}
             answerVisible={answerVisible}
+            revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />
         </div>
-
-        {step.id === 'step-12' ? (
-          <div className="mt-4">
-            <UNIT_4_1StudentSummaryPanel responses={courseState.responses} />
-          </div>
-        ) : null}
       </main>
     </div>
   );

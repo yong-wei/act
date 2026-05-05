@@ -1,0 +1,17 @@
+{
+  "lesson_id": "5-5",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-5/sequence.json",
+  "card_order": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "强化学习控制回报_5_55003",
+    "航向控制RL环境_5_55004",
+    "策略学习安全外壳_5_55005",
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

@@ -110,8 +110,8 @@
       "name": "Pareto前沿与展示解取舍",
       "nodeType": "THEORY",
       "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
-      "positionX": -112.0,
-      "positionY": 30.0,
+      "positionX": -100.5,
+      "positionY": -58.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -146,13 +146,29 @@
           "候选族",
           "多目标取舍"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "title": "Pareto前沿与展示解取舍 信息图",
+          "lessonId": "4-5",
+          "nodeId": "展示解与Pareto最小取舍_4_44006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
+        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/展示解与Pareto最小取舍_4_44006.png",
+          "title": "Pareto前沿与展示解取舍 信息图",
+          "lessonId": "4-5",
+          "nodeId": "展示解与Pareto最小取舍_4_44006"
+        }
       ],
       "tags": [
         "Pareto前沿",
@@ -168,8 +184,8 @@
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -82.0,
-      "positionY": -82.0,
+      "positionX": -0.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -202,13 +218,29 @@
           "任务通道",
           "横摇抗扰"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-5",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-5",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007"
+        }
       ],
       "tags": [
         "自由目标改写",
@@ -222,8 +254,8 @@
       "name": "优化前后证据比较表",
       "nodeType": "THEORY",
       "description": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
-      "positionX": -58.0,
-      "positionY": -100.5,
+      "positionX": 30.0,
+      "positionY": -112.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -257,13 +289,29 @@
           "可行域",
           "工程解释"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "title": "优化前后证据比较表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化前后证据比较表_4_45005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md"
+        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "title": "优化前后证据比较表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化前后证据比较表_4_45005"
+        }
       ],
       "tags": [
         "证据比较",
@@ -278,8 +326,8 @@
       "name": "优化起点与归一化来源",
       "nodeType": "THEORY",
       "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
-      "positionX": -30.0,
-      "positionY": -112.0,
+      "positionX": 58.0,
+      "positionY": -100.5,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -313,13 +361,29 @@
           "归一化",
           "参数范围"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "title": "优化起点与归一化来源 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化起点与归一化来源_4_44003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md"
+        "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化起点与归一化来源_4_44003.png",
+          "title": "优化起点与归一化来源 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化起点与归一化来源_4_44003"
+        }
       ],
       "tags": [
         "优化起点",
@@ -333,8 +397,8 @@
       "name": "剩余风险说明",
       "nodeType": "THEORY",
       "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
-      "positionX": 100.5,
-      "positionY": -58.0,
+      "positionX": 117.8,
+      "positionY": 31.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -368,13 +432,29 @@
           "结构限制",
           "移交"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006"
+        }
       ],
       "tags": [
         "剩余风险",
@@ -389,8 +469,8 @@
       "name": "参数约束翻译表",
       "nodeType": "THEORY",
       "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
-      "positionX": 31.6,
-      "positionY": 117.8,
+      "positionX": -61.0,
+      "positionY": 105.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -425,13 +505,29 @@
           "上下界",
           "职责分工"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002"
+        }
       ],
       "tags": [
         "约束翻译",
@@ -446,8 +542,8 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": 110.9,
-      "positionY": 64.0,
+      "positionX": 33.1,
+      "positionY": 123.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -479,13 +575,29 @@
           "偏好",
           "候选解"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-5",
+          "nodeId": "权重偏好与无约束候选解_4_44005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-5",
+          "nodeId": "权重偏好与无约束候选解_4_44005"
+        }
       ],
       "tags": [
         "权重",
@@ -499,8 +611,8 @@
       "name": "求解记录单",
       "nodeType": "THEORY",
       "description": "把变量、初值、参数上下界、目标函数、`nonlcon` 和最终参数解写成同一份记录单，用来保证求解过程可复核、可复现。",
-      "positionX": 64.0,
-      "positionY": -110.9,
+      "positionX": 123.6,
+      "positionY": -33.1,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -534,13 +646,29 @@
           "初值",
           "复现"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
+          "title": "求解记录单 信息图",
+          "lessonId": "4-5",
+          "nodeId": "求解记录单_4_45004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/求解记录单_4_45004.md"
+        "course-content/runtime/knowledge/cards/nodes/求解记录单_4_45004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
+          "title": "求解记录单 信息图",
+          "lessonId": "4-5",
+          "nodeId": "求解记录单_4_45004"
+        }
       ],
       "tags": [
         "求解记录",
@@ -555,8 +683,8 @@
       "name": "罚函数表达表",
       "nodeType": "THEORY",
       "description": "把越界代价显性写进总代价函数，使求解器在原有偏好不变的前提下主动远离不可交付区域。",
-      "positionX": -94.8,
-      "positionY": 94.8,
+      "positionX": -134.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -590,13 +718,29 @@
           "越界代价",
           "显性边界"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/罚函数表达表_4_45003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/罚函数表达表_4_45003.png",
+          "title": "罚函数表达表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "罚函数表达表_4_45003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/罚函数表达表_4_45003.md"
+        "course-content/runtime/knowledge/cards/nodes/罚函数表达表_4_45003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/罚函数表达表_4_45003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/罚函数表达表_4_45003.png",
+          "title": "罚函数表达表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "罚函数表达表_4_45003"
+        }
       ],
       "tags": [
         "罚函数",
@@ -611,8 +755,8 @@
       "name": "调节时间",
       "nodeType": "THEORY",
       "description": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
-      "positionX": -129.4,
-      "positionY": -34.7,
+      "positionX": -67.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -647,13 +791,29 @@
           "调节时间",
           "瞬态性能"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "title": "调节时间 信息图",
+          "lessonId": "4-5",
+          "nodeId": "调节时间_4_d3f3314b"
+        },
         "createdAt": "2026-02-04T17:54:16.628302",
         "updatedAt": "2026-02-04T17:54:16.628302",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md"
+        "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "title": "调节时间 信息图",
+          "lessonId": "4-5",
+          "nodeId": "调节时间_4_d3f3314b"
+        }
       ],
       "tags": [
         "稳态误差带",
@@ -671,8 +831,8 @@
       "name": "越界证据记录单",
       "nodeType": "THEORY",
       "description": "把无约束候选重新放回超调、控制峰值、相角裕度和控制能量等统一证据中复核，用来判断它究竟是在什么边界上失真。",
-      "positionX": -34.7,
-      "positionY": -129.4,
+      "positionX": 67.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -708,13 +868,29 @@
           "统一复核",
           "工程失真"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/越界证据记录单_4_45001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/越界证据记录单_4_45001.png",
+          "title": "越界证据记录单 信息图",
+          "lessonId": "4-5",
+          "nodeId": "越界证据记录单_4_45001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/越界证据记录单_4_45001.md"
+        "course-content/runtime/knowledge/cards/nodes/越界证据记录单_4_45001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/越界证据记录单_4_45001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/越界证据记录单_4_45001.png",
+          "title": "越界证据记录单 信息图",
+          "lessonId": "4-5",
+          "nodeId": "越界证据记录单_4_45001"
+        }
       ],
       "tags": [
         "越界证据",
@@ -729,8 +905,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": -154.5,
-      "positionY": 41.4,
+      "positionX": 143.8,
+      "positionY": 83.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -761,13 +937,29 @@
           "响应速度",
           "截止频率"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "title": "带宽频率 信息图",
+          "lessonId": "4-5",
+          "nodeId": "带宽频率_5_6996a44a"
+        },
         "createdAt": "2026-02-04T17:54:16.628615",
         "updatedAt": "2026-02-04T17:54:16.628615",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+          "title": "带宽频率 信息图",
+          "lessonId": "4-5",
+          "nodeId": "带宽频率_5_6996a44a"
+        }
       ],
       "tags": [
         "3dB点",
@@ -783,8 +975,8 @@
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "positionX": -83.0,
-      "positionY": 143.8,
+      "positionX": -149.0,
+      "positionY": 86.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -817,13 +1009,29 @@
           "稳定性",
           "开环频率特性"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "title": "相角裕度 信息图",
+          "lessonId": "4-5",
+          "nodeId": "相角裕度_5_5a74b451"
+        },
         "createdAt": "2026-02-04T17:54:16.628585",
         "updatedAt": "2026-02-04T17:54:16.628586",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "title": "相角裕度 信息图",
+          "lessonId": "4-5",
+          "nodeId": "相角裕度_5_5a74b451"
+        }
       ],
       "tags": [
         "截止频率",
@@ -839,8 +1047,8 @@
       "name": "超调量",
       "nodeType": "THEORY",
       "description": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
-      "positionX": 83.0,
-      "positionY": -143.8,
+      "positionX": -89.0,
+      "positionY": 154.2,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -868,13 +1076,29 @@
           "阻尼比",
           "动态性能"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "title": "超调量 信息图",
+          "lessonId": "4-5",
+          "nodeId": "超调量_5_3d015714"
+        },
         "createdAt": "2026-02-04T17:54:16.628685",
         "updatedAt": "2026-02-04T17:54:16.628685",
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/超调量_5_3d015714.md"
+        "course-content/runtime/knowledge/cards/nodes/超调量_5_3d015714.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "title": "超调量 信息图",
+          "lessonId": "4-5",
+          "nodeId": "超调量_5_3d015714"
+        }
       ],
       "tags": [
         "阶跃响应",
@@ -892,14 +1116,6 @@
       "relation": "related",
       "relationType": "related",
       "strength": 0.6
-    },
-    {
-      "id": "相角裕度|超调量|5",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "超调量_5_3d015714",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.7
     },
     {
       "id": "带宽频率|超调量|5",
@@ -982,14 +1198,6 @@
       "strength": 0.97
     },
     {
-      "id": "rel-8e6e872a2e144d8e",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "越界证据记录单_4_45001",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.86
-    },
-    {
       "id": "rel-bd0482107d8b97e7",
       "sourceId": "求解记录单_4_45004",
       "targetId": "优化前后证据比较表_4_45005",
@@ -1020,6 +1228,14 @@
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.98
+    },
+    {
+      "id": "rel-8e6e872a2e144d8e-13",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "越界证据记录单_4_45001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
     }
   ]
 }

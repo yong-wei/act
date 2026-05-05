@@ -37,18 +37,21 @@ describe('unit 4-1 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('设计起点');
   });
 
-  it('defines the full 12-step lesson flow', async () => {
+  it('defines the full 13-step lesson flow from the exported runtime manifest', async () => {
     const courseModule = await import('@/lib/unit-4-1-course');
     const { manifest } = readRuntimeManifest();
 
-    expect(courseModule.UNIT_4_1_RUNTIME_MANIFEST.stepOrder).toEqual(manifest.stepOrder);
-    expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(12);
+    expect(courseModule.UNIT_4_1_RUNTIME_MANIFEST).toBeUndefined();
+    expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(13);
     expect(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => step.id)).toEqual(manifest.stepOrder);
     expect(courseModule.UNIT_4_1_LESSON_STEPS[0]?.id).toBe('step-01');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[11]?.id).toBe('step-12');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[12]?.id).toBe('step-13');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[3]?.pageType).toBe('parameter_slider');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[4]?.pageType).toBe('parameter_slider');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[8]?.pageType).toBe('task_card_workspace');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[11]?.pageType).toBe('quiz_group');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[12]?.pageType).toBe('summary');
   });
 
   it('exposes AI quick questions for the task-card step', () => {
@@ -63,7 +66,8 @@ describe('unit 4-1 interactive course', () => {
 
     expect(courseModule.getUNIT_4_1MediaSrc('step-04')).toContain('4-1-ship-heading-quad');
     expect(courseModule.getUNIT_4_1MediaSrc('step-05')).toContain('4-1-platform-pitch-quad');
-    expect(courseModule.getUNIT_4_1MediaSrc('step-12')).toContain('4-1-info.png');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-12')).toBeNull();
+    expect(courseModule.getUNIT_4_1MediaSrc('step-13')).toContain('4-1-info.png');
     expect(courseModule.getUNIT_4_1MediaSrc('step-06')).toBeNull();
     expect(courseModule.getUNIT_4_1MediaSrc('step-07')).toBeNull();
     expect(courseModule.getUNIT_4_1MediaSrc('step-09')).toBeNull();
@@ -76,10 +80,10 @@ describe('unit 4-1 interactive course', () => {
 
     expect(existsSync(manifestPath)).toBe(true);
     expect(raw.steps['step-01'].content_blocks).not.toBeInstanceOf(Array);
-    expect(Object.keys(raw.steps['step-01'].content_blocks)).toEqual(['path', 'question', 'boundary']);
-    expect(manifest.steps).toHaveLength(12);
-    expect(manifest.steps[0]?.contentBlocks.question).toMatchObject({
-      title: '主问题',
+    expect(Object.keys(raw.steps['step-01'].content_blocks)).toEqual(['cover_comic', 'infograph', 'intro_question']);
+    expect(manifest.steps).toHaveLength(13);
+    expect(manifest.steps[0]?.contentBlocks.intro_question).toMatchObject({
+      title: '导入问题',
     });
 
     const step04Contract = courseModule.getUNIT_4_1PageContractFromManifest(manifest, 'step-04');
@@ -92,7 +96,7 @@ describe('unit 4-1 interactive course', () => {
     );
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for all 12 steps', async () => {
+  it('keeps runtime-derived page contracts aligned with the authoring interactive contract for all 13 steps', async () => {
     const contract = JSON.parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/4-1/design/4-1-interactive-contract.yaml'),
@@ -119,6 +123,7 @@ describe('unit 4-1 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-4-1-course');
+    const { manifest } = readRuntimeManifest();
     const interactiveSteps = new Map(
       courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string; title: string; pageType: string }) => [step.id, step]),
     );
@@ -127,19 +132,17 @@ describe('unit 4-1 interactive course', () => {
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
-      const localPageContract = courseModule.UNIT_4_1_PAGE_CONTRACTS[stepId];
+      const localPageContract = courseModule.getUNIT_4_1PageContractFromManifest(manifest, stepId);
 
       expect(localStep?.title).toBe(authoringStep.title);
       expect(localStep?.pageType).toBe(
         authoringStep.interaction_spec.interaction_kind === 'none'
-          ? 'display'
+          ? stepId === 'step-13' ? 'summary' : 'display'
           : authoringStep.interaction_spec.interaction_kind,
       );
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
-      expect(localPageContract?.layout.readingOrder).toEqual(authoringStep.layout.reading_order);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
-      expect(localPageContract?.interactionArchetype).toBe(authoringStep.interaction_spec.interaction_archetype);
       expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
       expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
       expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
@@ -270,14 +273,21 @@ describe('unit 4-1 interactive course', () => {
     expect(stepPanelsSource).toContain('4-4：用失败诊断回看任务卡。');
   });
 
-  it('does not leak internal choice values into student-facing labels', () => {
+  it('routes 4-1 submissions through the shared manifest activity runtime', () => {
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
       'utf8',
     );
+    const sharedActivitySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
 
-    expect(stepPanelsSource).toContain('const showOptionPrefix = /^[A-Z]$/.test(option.value);');
-    expect(stepPanelsSource).toContain("{showOptionPrefix ? <span className=\"font-medium\">{option.value}. </span> : null}");
+    expect(stepPanelsSource).toContain('renderStudentInteractiveActivity');
+    expect(stepPanelsSource).toContain('renderTeacherInteractiveActivity');
+    expect(stepPanelsSource).not.toContain('PRETEST_QUESTIONS');
+    expect(stepPanelsSource).not.toContain('POSTTEST_QUESTIONS');
+    expect(sharedActivitySource).toContain('renderTeacherInteractiveActivity');
   });
 
   it('parses the 4-1 runtime media index into typed pre-study resources', () => {

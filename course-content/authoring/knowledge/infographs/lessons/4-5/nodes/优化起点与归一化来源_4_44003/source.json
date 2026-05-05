@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:43.756558Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "约束翻译与职责区分"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "优化起点与归一化来源_4_44003",
+    "name": "优化起点与归一化来源",
+    "name_en": "Optimization Starting Point and Normalization Sources",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把 `4-3` 已经验证过的首轮方案当作参数起点，并把任务书读数或首轮读数当作归一化基准，让后续搜索始终回接真实证据。",
+    "examples": [
+      "客船案例把 `4-3` 的超前校正方案直接写成参数向量起点。",
+      "`ITAE_0`、`ITSE_0` 和 `E_{u,0}` 都来自起始方案读数，而不是临时手填。"
+    ],
+    "formulas": [
+      "\\theta_0=[2.796,\\ 10,\\ 0.406]^{\\mathsf T}"
+    ],
+    "keywords": [
+      "优化起点",
+      "归一化",
+      "参数范围",
+      "4-4"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md",
+  "card_frontmatter": {
+    "node_id": "优化起点与归一化来源_4_44003",
+    "name": "优化起点与归一化来源",
+    "name_en": "Optimization Start Point and Normalization Baselines",
+    "lesson_units": [
+      "4-4"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-4",
+      "优化起点",
+      "归一化",
+      "参数范围"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-4/design/4-4-handout.md",
+      "authoring/lessons/4-4/design/4-4-interactive-page.md"
+    ]
+  },
+  "card_overview": "# 优化起点与归一化来源 | Optimization Start Point and Normalization Baselines\n\n**一句话定义**：把 `4-3` 已经验证过的首轮方案当作参数起点，并把任务书读数或首轮读数当作归一化基准，让后续搜索始终回接真实证据。\n\n**核心直觉**：起点不是拍脑袋，归一化也不是随便挑常数。\n\n**关键公式**：\n$$\n\\theta_0=[2.796,\\ 10,\\ 0.406]^{\\mathsf T}\n$$\n\n**关联**：前置 → 参数方向表达卡、单结构首轮起步卡 · 后续 → 无约束加权目标表达、权重偏好与无约束候选解",
+  "card_detail": "### 完整解释\n\n本课直接接住 `4-3` 的超前起始方案，把它写成参数向量 `\\theta=[K,T,\\alpha]^{\\mathsf T}` 的初值，而不是重新随机找一组参数。这样做的意义在于：后续每一次搜索都仍然站在已有结构机理和首轮验证证据上。\n\n归一化同样要有来源。`t_s/40` 来自任务书中的速度期望，`ITAE_0`、`ITSE_0` 和 `E_{u,0}` 来自 `4-3` 起始方案的实际读数。只有这样，后面的“优于 1”或“差于 1”才有可解释对象。\n\n### 常见误区\n\n1. **误区**：归一化基准只要数量级差不多就行。\n   **纠正**：那会让后续比较脱离任务书和首轮证据，失去课堂判断依据。\n\n2. **误区**：参数范围已经等于工程复核条件。\n   **纠正**：参数范围只负责守住固定结构的可解释区间，不负责替代输出侧工程边界。",
+  "card_plain_excerpt": "## 首页\n\n# 优化起点与归一化来源 | Optimization Start Point and Normalization Baselines\n\n**一句话定义**：把 `4-3` 已经验证过的首轮方案当作参数起点，并把任务书读数或首轮读数当作归一化基准，让后续搜索始终回接真实证据。\n\n**核心直觉**：起点不是拍脑袋，归一化也不是随便挑常数。\n\n**关键公式**：\n$$\n\\theta_0=[2.796,\\ 10,\\ 0.406]^{\\mathsf T}\n$$\n\n**关联**：前置 → 参数方向表达卡、单结构首轮起步卡 · 后续 → 无约束加权目标表达、权重偏好与无约束候选解\n\n## 详情\n\n### 完整解释\n\n本课直接接住 `4-3` 的超前起始方案，把它写成参数向量 `\\theta=[K,T,\\alpha]^{\\mathsf T}` 的初值，而不是重新随机找一组参数。这样做的意义在于：后续每一次搜索都仍然站在已有结构机理和首轮验证证据上。\n\n归一化同样要有来源。`t_s/40` 来自任务书中的速度期望，`ITAE_0`、`ITSE_0` 和 `E_{u,0}` 来自 `4-3` 起始方案的实际读数。只有这样，后面的“优于 1”或“差于 1”才有可解释对象。\n\n### 常见误区\n\n1. **误区**：归一化基准只要数量级差不多就行。\n   **纠正**：那会让后续比较脱离任务书和首轮证据，失去课堂判断依据。\n\n2. **误区**：参数范围已经等于工程复核条件。\n   **纠正**：参数范围只负责守住固定结构的可解释区间，不负责替代输出侧工程边界。",
+  "core_intuition": "起点不是拍脑袋，归一化也不是随便挑常数。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数方向表达卡",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单结构首轮起步卡",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "applies_to",
+      "strength": 0.89,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "无约束加权目标表达",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "固定结构自由目标项选择",
+      "target_id": null,
+      "target": "优化起点与归一化来源",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "参数约束翻译表",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化起点与归一化来源",
+      "target_id": null,
+      "target": "求解记录单",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "优化起点与归一化来源_4_44003",
+      "source": "优化起点与归一化来源",
+      "target_id": "参数约束翻译表_4_45002",
+      "target": "参数约束翻译表",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "参数上下界和归一化基准决定了哪些量属于参数范围，哪些量属于输出侧硬约束。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "优化起点与归一化来源_4_44003",
+      "source": "优化起点与归一化来源",
+      "target_id": "求解记录单_4_45004",
+      "target": "求解记录单",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "起点、上下界和归一化来源共同决定了求解记录单中的最小输入集合。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "优化起点与归一化来源",
+        "优化起点",
+        "归一化",
+        "参数范围"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\theta_0=[2.796,\\ 10,\\ 0.406]^{\\mathsf T}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

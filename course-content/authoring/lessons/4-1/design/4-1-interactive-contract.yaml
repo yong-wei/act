@@ -25,7 +25,7 @@
   ],
   "steps": {
     "step-01": {
-      "title": "回到地图：稳定不是任务完成",
+      "title": "任务表达入口：从跨域证据写出设计任务",
       "layout": {
         "template": "map_hero_slide",
         "regions": [
@@ -46,29 +46,45 @@
           }
         ],
         "reading_order": [
-          "路径定位",
-          "主问题",
-          "本课边界"
+          "封面情境图",
+          "课程信息图",
+          "导入问题"
         ]
       },
       "modules": [
         {
-          "id": "stage-map",
+          "id": "cover-comic",
           "region": "lead",
-          "kind": "stage-map",
-          "must_be_visible": true
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "客船航向与稳定平台情境",
+            "image_key": "cover_comic",
+            "src": "/course-runtime/lessons/4-1/media/4-1-cover-comic.png",
+            "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+          }
+        },
+        {
+          "id": "lesson-infograph",
+          "region": "lead",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "任务表达课程信息图",
+            "image_key": "infograph",
+            "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
+            "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+          }
         },
         {
           "id": "core-question-card",
-          "region": "lead",
-          "kind": "question-card",
-          "must_be_visible": true
-        },
-        {
-          "id": "boundary-card",
           "region": "summary",
-          "kind": "boundary-card",
-          "must_be_visible": true
+          "kind": "question-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "intro_question",
+            "title": "导入问题"
+          }
         }
       ],
       "evidence_units": [
@@ -79,26 +95,27 @@
       ],
       "content_blocks": [
         {
-          "id": "path",
+          "id": "cover_comic",
           "type": "plain_text",
-          "title": "路径定位",
-          "body": "固定高亮 3-9 -> 4-1 -> 4-2 -> 4-3 -> 4-4，并把 4-1 标为任务表达入口。"
+          "title": "客船航向与稳定平台情境",
+          "src": "/course-runtime/lessons/4-1/media/4-1-cover-comic.png",
+          "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
         },
         {
-          "id": "question",
+          "id": "infograph",
+          "type": "plain_text",
+          "title": "任务表达课程信息图",
+          "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
+          "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+        },
+        {
+          "id": "intro_question",
           "type": "bullet_list",
-          "title": "主问题",
+          "title": "导入问题",
           "items": [
-            "系统已经稳定，为什么还不能直接谈方法？",
-            "同一套跨域证据，为什么会写出不同任务排序？",
-            "4-1 先写任务书，再谈方法。"
+            "面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？",
+            "把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？"
           ]
-        },
-        {
-          "id": "boundary",
-          "type": "plain_text",
-          "title": "本课边界",
-          "body": "本课只写任务表达，不进入结构选型、参数整定和最优搜索。"
         }
       ],
       "interaction_spec": {
@@ -107,10 +124,12 @@
         "student_task": "只阅读，不提交。",
         "answer_reveal": "none"
       },
-      "teacher_controls": [
-        "推进到下一页",
-        "高亮当前节点"
-      ],
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "viewed",
@@ -128,18 +147,17 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "标定 4-1 是模块 4 的任务表达入口。",
+        "page_goal": "用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。",
         "allowed_scope": [
-          "课程路径",
-          "分析证据与任务表达的区别"
+          "封面情境",
+          "课程信息图",
+          "导入问题"
         ],
         "forbidden_scope": [
-          "控制器推荐",
-          "参数整定"
+          "后续方法细节"
         ],
         "canonical_facts": [
-          "稳定不是任务完成。",
-          "4-1 先写任务，再谈方法。"
+          "本页用两个工程对象导入同图异读的任务表达问题。"
         ]
       },
       "preview_contract": {
@@ -148,12 +166,12 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "首屏必须同时看到路径图、主问题卡和边界卡。",
+        "首屏必须同时看到封面情境图、课程信息图和导入问题。",
         "本页无作答区。"
       ]
     },
     "step-02": {
-      "title": "学习目标与边界：4-1 只负责写任务书",
+      "title": "本次课程目标",
       "layout": {
         "template": "goal_boundary_slide",
         "regions": [
@@ -161,17 +179,10 @@
             "id": "goals",
             "width": "full",
             "order": 1
-          },
-          {
-            "id": "boundary",
-            "width": "full",
-            "order": 2
           }
         ],
         "reading_order": [
-          "学习目标",
-          "本课负责",
-          "本课不负责"
+          "本次课程目标"
         ]
       },
       "modules": [
@@ -179,13 +190,11 @@
           "id": "goal-cards",
           "region": "goals",
           "kind": "goal-card-row",
-          "must_be_visible": true
-        },
-        {
-          "id": "boundary-table",
-          "region": "boundary",
-          "kind": "comparison-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goals",
+            "title": "本次课程目标"
+          }
         }
       ],
       "evidence_units": [
@@ -196,33 +205,34 @@
       ],
       "content_blocks": [
         {
-          "id": "goals",
-          "type": "bullet_list",
-          "title": "四项目标",
-          "items": [
-            "会解释为什么同一套证据会导出不同排序。",
-            "会区分时域、频域、积分误差各自回答的问题。",
-            "会把指标改写成硬约束、软目标和观察指标。",
-            "会写出可交给 4-2/4-3/4-4 的任务表达卡。"
-          ]
+          "id": "title_description_policy",
+          "type": "plain_text",
+          "hide": true
         },
         {
-          "id": "boundary",
-          "type": "table",
-          "title": "本课边界",
-          "body": "负责双案例联读、指标角色回收、任务表达卡、区域分层与误判清单；不负责控制结构选择、参数试探与最优搜索。"
+          "id": "goals",
+          "type": "bullet_list",
+          "title": "本次课程目标",
+          "items": [
+            "解释同一套跨域证据在不同工程场景中导出不同任务排序的原因。",
+            "区分时域、频域与积分误差指标分别回答的问题。",
+            "判别指标在任务书中承担硬约束、软目标或观察指标的角色。",
+            "撰写包含对象、目标、约束、优先级与证据来源的任务表达卡。"
+          ]
         }
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "interaction_archetype": "boundary_alignment",
-        "student_task": "建立本课边界。",
+        "interaction_archetype": "objective_alignment",
+        "student_task": "阅读本次课程目标。",
         "answer_reveal": "none"
       },
-      "teacher_controls": [
-        "逐条强调目标",
-        "高亮边界表某一行"
-      ],
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "viewed",
@@ -238,18 +248,15 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "建立 4-1 与 4-2/4-3/4-4 的清晰边界。",
+        "page_goal": "呈现本次课程目标，目标全部使用可观察动作表达。",
         "allowed_scope": [
-          "目标卡",
-          "边界表"
+          "目标卡"
         ],
         "forbidden_scope": [
           "后续课次的具体方案"
         ],
         "canonical_facts": [
-          "4-1 不做选型。",
-          "4-1 不做整定。",
-          "4-1 不做最优搜索。"
+          "本页只呈现本次课程目标。"
         ]
       },
       "preview_contract": {
@@ -258,7 +265,7 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "目标卡和边界表必须同屏。",
+        "本页只呈现布鲁姆动词驱动的本次课程目标。",
         "本页无提交区。"
       ]
     },
@@ -279,9 +286,8 @@
           }
         ],
         "reading_order": [
-          "场景提示",
-          "三题预判",
-          "误区提示"
+          "前测基本知识点",
+          "三题预判"
         ]
       },
       "modules": [
@@ -314,18 +320,8 @@
         {
           "id": "case-note",
           "type": "plain_text",
-          "title": "题干口径",
-          "body": "三道题全部围绕客船航向控制与稳定平台两案，要求学生先判断优先级是否会改变。"
-        },
-        {
-          "id": "misconception-note",
-          "type": "bullet_list",
-          "title": "常见误区",
-          "items": [
-            "稳定不是任务完成。",
-            "更大带宽不是无条件更优。",
-            "没有排序的任务卡不合格。"
-          ]
+          "title": "前测基本知识点",
+          "body": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
         }
       ],
       "interaction_spec": {
@@ -333,13 +329,85 @@
         "interaction_archetype": "diagnostic_quiz",
         "student_task": "完成三道预判题。",
         "attempt_model": "允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "pretest-q1",
+            "title": "系统稳定后的任务判断",
+            "prompt": "系统已经稳定，下列哪项判断最准确？",
+            "reference_answer": "B。稳定只说明系统没有失稳，不能替代任务表达、约束判断和优先级排序。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "已经稳定就说明任务已经完成，可以直接跳过任务表达"
+              },
+              {
+                "value": "B",
+                "label": "稳定只是起点，还要把目标、约束和优先级写清楚"
+              },
+              {
+                "value": "C",
+                "label": "稳定后只需要继续提高带宽，不用再看别的指标"
+              }
+            ]
+          },
+          {
+            "id": "pretest-q2",
+            "title": "带宽指标的边界",
+            "prompt": "关于带宽，下列说法哪项更准确？",
+            "reference_answer": "B。带宽只是任务语言的一部分，要和储备、约束、场景目标一起判断。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "带宽越大越好，不需要再看储备和代价"
+              },
+              {
+                "value": "B",
+                "label": "带宽变大是否有利，要结合场景目标和储备边界一起判断"
+              },
+              {
+                "value": "C",
+                "label": "只要根轨迹稳定，带宽就不再重要"
+              }
+            ]
+          },
+          {
+            "id": "pretest-q3",
+            "title": "指标角色与优先级",
+            "prompt": "关于“所有指标都重要”，下列说法最准确的是：",
+            "reference_answer": "B。任务书的核心不是全部写上，而是把角色和优先级写清。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "只要把指标全部列出来，不分主次也算合格任务书"
+              },
+              {
+                "value": "B",
+                "label": "合格任务书必须说明哪些是硬约束、哪些是软目标、哪些只是观察指标"
+              },
+              {
+                "value": "C",
+                "label": "只有频域指标才需要排序，时域指标不用排序"
+              }
+            ]
+          }
+        ]
       },
-      "teacher_controls": [
-        "释放预判题",
-        "显示统计",
-        "显示答案"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "attemptCount",
@@ -362,7 +430,7 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "暴露同图异读的入口误区。",
+        "page_goal": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
         "allowed_scope": [
           "术语纠偏",
           "错因标签"
@@ -464,12 +532,43 @@
         "interaction_kind": "parameter_slider",
         "interaction_archetype": "parametric_sim",
         "student_task": "填写当前主要矛盾、必守边界和证据来源。",
-        "answer_reveal": "field_feedback_only"
+        "answer_reveal": "field_feedback_only",
+        "activity_cards": [
+          {
+            "id": "ship-conflict",
+            "title": "当前主要矛盾",
+            "prompt": "客船航向控制当前最紧的矛盾是什么？",
+            "reference_answer": "提速冲动与乘坐平顺、储备边界之间的矛盾。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          },
+          {
+            "id": "ship-boundary",
+            "title": "必守边界",
+            "prompt": "客船任务书中哪些边界必须先守住？",
+            "reference_answer": "超调量、调节时间与裕度边界必须先进入当前任务允许范围。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          },
+          {
+            "id": "ship-evidence",
+            "title": "证据来源",
+            "prompt": "哪些图上证据支持“平顺与储备优先，再谈提速”？",
+            "reference_answer": "对象框图、时域曲线、根轨迹、幅频与相频裕度共同支持该排序。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          }
+        ]
       },
-      "teacher_controls": [
-        "显示参考读图顺序",
-        "公布参考答案"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "fieldCompletion",
@@ -706,12 +805,43 @@
         "interaction_kind": "parameter_slider",
         "interaction_archetype": "parametric_sim",
         "student_task": "填写速度为何前移、哪条边界不能放松、当前代价来自哪类证据。",
-        "answer_reveal": "field_feedback_only"
+        "answer_reveal": "field_feedback_only",
+        "activity_cards": [
+          {
+            "id": "platform-speed",
+            "title": "速度前移原因",
+            "prompt": "稳定平台为什么可以把速度和带宽排得更前？",
+            "reference_answer": "平台场景的主任务强调快速跟踪，速度优势和工作带宽直接服务当前目标。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          },
+          {
+            "id": "platform-boundary",
+            "title": "不能放松的边界",
+            "prompt": "速度前移时仍不能放松什么边界？",
+            "reference_answer": "超调、谐振峰、相角裕度和增益裕度等储备边界仍要被守住。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          },
+          {
+            "id": "platform-evidence",
+            "title": "证据来源",
+            "prompt": "综合图中哪些证据同时说明速度优势和储备代价？",
+            "reference_answer": "主根轨迹、时域响应、幅频与相频窄图同时显示速度优势与储备压力。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          }
+        ]
       },
-      "teacher_controls": [
-        "切换到全范围根轨迹说明",
-        "公布参考答案"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "fieldCompletion",
@@ -943,12 +1073,25 @@
         "interaction_kind": "card_sort",
         "interaction_archetype": "evidence_reorder",
         "student_task": "把结论条目拖到客船排序或平台排序。",
-        "answer_reveal": "instant_feedback"
+        "answer_reveal": "instant_feedback",
+        "activity_cards": [
+          {
+            "id": "case-sort",
+            "title": "双案例任务排序",
+            "prompt": "把四条判断分别写回客船或稳定平台，并说明排序变化的证据来源。",
+            "reference_answer": "客船先保过程平顺与储备，平台让速度与带宽前移；变的是任务优先级，不是证据语言。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          }
+        ]
       },
-      "teacher_controls": [
-        "重置排序",
-        "显示参考排序"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "sortAttempted",
@@ -1095,12 +1238,53 @@
         "interaction_kind": "triple_match",
         "interaction_archetype": "concept_role_mapping",
         "student_task": "把典型指标拖到三类问题区。",
-        "answer_reveal": "instant_feedback"
+        "answer_reveal": "instant_feedback",
+        "activity_cards": [
+          {
+            "id": "metric-role-match",
+            "title": "指标角色配对",
+            "prompt": "把指标与它优先回答的问题配对。",
+            "reference_answer": "超调量 Mp -> 过程是否可接受；相角裕度 gamma -> 离风险边界还有多远；ITAE/IAE/ISE -> 全过程累计代价。",
+            "response_kind": "drag_match",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "match_items": [
+              {
+                "value": "overshoot",
+                "label": "超调量 Mp"
+              },
+              {
+                "value": "phase_margin",
+                "label": "相角裕度 γ"
+              },
+              {
+                "value": "itae",
+                "label": "ITAE / IAE / ISE"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "process",
+                "label": "过程是否可接受"
+              },
+              {
+                "value": "margin",
+                "label": "离风险边界还有多远"
+              },
+              {
+                "value": "cost",
+                "label": "全过程累计代价"
+              }
+            ]
+          }
+        ]
       },
-      "teacher_controls": [
-        "重置配对",
-        "显示常见错配"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "matchAttempted",
@@ -1240,13 +1424,25 @@
         "interaction_kind": "card_sort",
         "interaction_archetype": "role_classification",
         "student_task": "把两组场景条目拖到三类角色区。",
-        "answer_reveal": "teacher_toggle"
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "role-classification",
+            "title": "指标角色归类",
+            "prompt": "选择一个指标，说明它在当前任务中应写成硬约束、软目标还是观察指标。",
+            "reference_answer": "角色由任务决定：不能破的是硬约束，守住底线后继续争取的是软目标，用来解释后果的是观察指标。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          }
+        ]
       },
-      "teacher_controls": [
-        "释放分类题",
-        "显示统计",
-        "揭示参考分组"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "attemptCount",
@@ -1386,13 +1582,34 @@
         "interaction_kind": "task_card_workspace",
         "interaction_archetype": "task_card_workspace",
         "student_task": "选择一个案例，完整填写任务表达卡。",
-        "answer_reveal": "field_feedback_only"
+        "answer_reveal": "field_feedback_only",
+        "activity_cards": [
+          {
+            "id": "task-card-core",
+            "title": "任务表达卡核心字段",
+            "prompt": "写出对象、控制目标、最紧矛盾、硬约束和软目标。",
+            "reference_answer": "字段必须围绕具体案例填写，且不能缺少最紧矛盾与优先级。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          },
+          {
+            "id": "task-card-evidence",
+            "title": "证据来源与优先级",
+            "prompt": "补充观察指标、证据来源和任务优先级。",
+            "reference_answer": "证据来源必须点到图、表或公式；优先级必须说明为什么这样排序。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full"
+          }
+        ]
       },
-      "teacher_controls": [
-        "切换案例",
-        "查看字段完成率",
-        "公布参考任务卡"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "fieldCompletion",
@@ -1541,12 +1758,39 @@
         "interaction_kind": "binary_choice",
         "interaction_archetype": "layer_judgement",
         "student_task": "判断给定说法属于哪一层误判。",
-        "answer_reveal": "instant_feedback"
+        "answer_reveal": "instant_feedback",
+        "activity_cards": [
+          {
+            "id": "layer-judgement",
+            "title": "区域分层判断",
+            "prompt": "“当前指标都满足，所以这已经是最优解。”这句话最准确的判断是：",
+            "reference_answer": "acceptable_equals_optimal。满足当前任务边界最多说明进入可接受层，不能自动推出已经最优。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "stable_equals_acceptable",
+                "label": "把稳定或刚满足边界误当成已经可接受"
+              },
+              {
+                "value": "acceptable_equals_optimal",
+                "label": "把已经可接受误当成已经最优"
+              },
+              {
+                "value": "optimal",
+                "label": "只要指标满足就一定是最优域"
+              }
+            ]
+          }
+        ]
       },
-      "teacher_controls": [
-        "重置判断",
-        "显示错因标签"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "selectedOption",
@@ -1689,12 +1933,39 @@
         "interaction_kind": "binary_choice",
         "interaction_archetype": "misconception_diagnosis",
         "student_task": "判断给定说法属于哪一类误判。",
-        "answer_reveal": "instant_feedback"
+        "answer_reveal": "instant_feedback",
+        "activity_cards": [
+          {
+            "id": "misconception-judge",
+            "title": "误判归类",
+            "prompt": "“单看一张图就足够写结论。”这类说法最准确的归类是：",
+            "reference_answer": "single_graph_conclusion。任务表达需要多图证据、约束和排序，不能单图直接定结论。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "stable_equals_done",
+                "label": "把稳定误当成任务完成"
+              },
+              {
+                "value": "all_metrics_same_priority",
+                "label": "把所有指标看成同等重要"
+              },
+              {
+                "value": "single_graph_conclusion",
+                "label": "把单图线索误当成完整任务结论"
+              }
+            ]
+          }
+        ]
       },
-      "teacher_controls": [
-        "重置判断",
-        "显示错因标签"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "selectedOption",
@@ -1757,7 +2028,7 @@
       ]
     },
     "step-12": {
-      "title": "后测与收束：先写任务，再谈方法",
+      "title": "后测：先写任务，再谈方法",
       "layout": {
         "template": "summary_quiz_board",
         "regions": [
@@ -1765,22 +2036,10 @@
             "id": "quiz",
             "width": "full",
             "order": 1
-          },
-          {
-            "id": "summary",
-            "width": "full",
-            "order": 2
-          },
-          {
-            "id": "next-step",
-            "width": "full",
-            "order": 3
           }
         ],
         "reading_order": [
-          "后测题组",
-          "四句带走",
-          "后续去向"
+          "后测题组"
         ]
       },
       "modules": [
@@ -1788,24 +2047,6 @@
           "id": "post-quiz-group",
           "region": "quiz",
           "kind": "quiz-group",
-          "must_be_visible": true
-        },
-        {
-          "id": "takeaway-cards",
-          "region": "summary",
-          "kind": "summary-card-row",
-          "must_be_visible": true
-        },
-        {
-          "id": "output-summary",
-          "region": "summary",
-          "kind": "key-task-card",
-          "must_be_visible": true
-        },
-        {
-          "id": "next-step-cards",
-          "region": "next-step",
-          "kind": "next-step-card-row",
           "must_be_visible": true
         }
       ],
@@ -1817,37 +2058,96 @@
       ],
       "content_blocks": [
         {
-          "id": "takeaways",
-          "type": "bullet_list",
-          "title": "四句带走",
-          "items": [
-            "稳定只是设计起点，不是设计终点。",
-            "同一套跨域证据会因为工程场景不同而读出不同任务排序。",
-            "进入设计前必须先把最紧矛盾、硬约束、软目标、观察指标、证据来源写成任务表达卡。",
-            "可行域不等于满意域，满意域也不等于最优域。"
-          ]
-        },
-        {
-          "id": "next-step",
-          "type": "bullet_list",
-          "title": "后续去向",
-          "items": [
-            "4-2：解释结构。",
-            "4-3：形成起步方向。",
-            "4-4：用失败诊断回看任务卡。"
-          ]
+          "id": "post-quiz-title",
+          "type": "plain_text",
+          "title": "后测题组",
+          "body": "后测只检查任务表达、指标角色与区域分层，不新增概念。"
         }
       ],
       "interaction_spec": {
         "interaction_kind": "quiz_group",
-        "interaction_archetype": "summary_quiz",
-        "student_task": "完成后测并带走四句结论。",
-        "answer_reveal": "teacher_toggle"
+        "interaction_archetype": "post_assessment_quiz",
+        "student_task": "完成三道后测题。",
+        "attempt_model": "每题独立提交，教师端查看题面、选项、分布与明细。",
+        "answer_reveal": "teacher_toggle",
+        "activity_cards": [
+          {
+            "id": "post-q1",
+            "title": "4-1 的出口",
+            "prompt": "4-1 最先要做的动作是什么？",
+            "reference_answer": "B。4-1 的出口是任务表达卡，而不是控制器选型或参数整定。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "直接给出控制器结构"
+              },
+              {
+                "value": "B",
+                "label": "先把目标、约束、优先级和证据来源写成任务表达卡"
+              },
+              {
+                "value": "C",
+                "label": "先默认所有场景都追求更大带宽"
+              }
+            ]
+          },
+          {
+            "id": "post-q2",
+            "title": "区域分层",
+            "prompt": "关于可行域、满意域和最优域，下列哪项最准确？",
+            "reference_answer": "B。4-1 先筛边界和可接受区，不在本课里宣称最优。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "只要进入稳定域，就等于进入最优域"
+              },
+              {
+                "value": "B",
+                "label": "可行、满意、最优必须分层，4-1 只先写到可行和满意"
+              },
+              {
+                "value": "C",
+                "label": "最优域只和时域指标有关，与频域储备无关"
+              }
+            ]
+          },
+          {
+            "id": "post-q3",
+            "title": "同图异读原因",
+            "prompt": "同一套分析图会在两个案例里读出不同排序，最主要原因是什么？",
+            "reference_answer": "B。双案例共享同一套证据语言，但场景主矛盾不同，所以任务排序会重排。",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "因为两个案例的基础语言完全不同"
+              },
+              {
+                "value": "B",
+                "label": "因为场景目标不同，任务优先级会重排，但证据语言不变"
+              },
+              {
+                "value": "C",
+                "label": "因为只有客船案例才需要看储备"
+              }
+            ]
+          }
+        ]
       },
-      "teacher_controls": [
-        "显示后测统计",
-        "揭示参考答案"
-      ],
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
       "telemetry_spec": {
         "summary_fields": [
           "attemptCount",
@@ -1855,8 +2155,9 @@
           "timeOnStep"
         ],
         "misconception_tags": [
-          "stable_equals_done",
-          "missing_task_card_input"
+          "missing_task_card_input",
+          "acceptable_equals_optimal",
+          "same_sort_for_all_scenarios"
         ]
       },
       "teacher_insight_spec": {
@@ -1869,7 +2170,7 @@
       },
       "ai_context_spec": {
         "delivery_mode": "hidden_page_context",
-        "page_goal": "把本课主线收束为可带走的设计入口语言。",
+        "page_goal": "用三道后测题检查任务表达、区域分层与同图异读判断。",
         "allowed_scope": [
           "四句带走",
           "后续课次去向"
@@ -1888,8 +2189,181 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "后测题组、四句带走和去向卡必须同页完整收束。",
-        "总结页必须能独立复习。"
+        "后测页只呈现后测题组。",
+        "三题每题独立提交，教师端能看到题面、选项、分布与明细。"
+      ]
+    },
+    "step-13": {
+      "title": "总结：任务表达卡成为后续设计输入",
+      "layout": {
+        "template": "summary_quiz_board",
+        "regions": [
+          {
+            "id": "infograph",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "stats",
+            "width": "full",
+            "order": 3
+          }
+        ],
+        "reading_order": [
+          "课程信息图",
+          "四句带走",
+          "课堂表现统计"
+        ]
+      },
+      "modules": [
+        {
+          "id": "lesson-infograph",
+          "region": "infograph",
+          "kind": "image-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "任务表达信息图",
+            "image_key": "infograph",
+            "src": "/course-runtime/lessons/4-1/media/4-1-info.png"
+          }
+        },
+        {
+          "id": "takeaway-cards",
+          "region": "summary",
+          "kind": "summary-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "takeaways",
+            "title": "四句带走"
+          }
+        },
+        {
+          "id": "next-step-cards",
+          "region": "summary",
+          "kind": "next-step-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next_step",
+            "title": "后续去向"
+          }
+        },
+        {
+          "id": "course-stat-panel",
+          "region": "stats",
+          "kind": "stat-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "statistics",
+            "title": "课堂表现统计"
+          }
+        }
+      ],
+      "evidence_units": [
+        {
+          "id": "eu-11-summary-exit",
+          "kind": "summary"
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "infograph",
+          "type": "image",
+          "title": "任务表达信息图",
+          "src": "/course-runtime/lessons/4-1/media/4-1-info.png"
+        },
+        {
+          "id": "takeaways",
+          "type": "bullet_list",
+          "title": "四句带走",
+          "items": [
+            "稳定只是设计起点，不是设计终点。",
+            "同一套跨域证据会因为工程场景不同而读出不同任务排序。",
+            "进入设计前必须把最紧矛盾、硬约束、软目标、观察指标和证据来源写成任务表达卡。",
+            "可行域不等于满意域，满意域也不等于最优域。"
+          ]
+        },
+        {
+          "id": "next_step",
+          "type": "bullet_list",
+          "title": "后续去向",
+          "items": [
+            "4-2：按任务筛选可行结构。",
+            "4-3：按任务卡形成初始方案方向。",
+            "4-4：用失败诊断回看任务表达是否准确。"
+          ]
+        },
+        {
+          "id": "statistics",
+          "type": "stat_panel",
+          "title": "课堂表现统计",
+          "fields": [
+            "浏览页数",
+            "提交页数",
+            "前测与后测完成情况",
+            "控制参数探索记录"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "interaction_archetype": "lesson_summary",
+        "student_task": "阅读总结并查看个人课堂表现统计。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "summary_statistics": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "submittedPages",
+          "parameterSnapshots"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "class_summary_stats"
+        ],
+        "aggregation": "class_level"
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_goal": "收束 4-1 的四句判断，并展示个人或班级课堂表现统计。",
+        "allowed_scope": [
+          "本课总结",
+          "任务表达卡",
+          "后续课次输入"
+        ],
+        "forbidden_scope": [
+          "新增控制器设计方法"
+        ],
+        "canonical_facts": [
+          "总结页不承担后测作答。",
+          "总结页必须显示课堂表现统计。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总结页顶部显示课程信息图。",
+        "学生端显示个人课堂表现统计，教师端显示班级整体表现统计。",
+        "本页无作答区。"
       ]
     }
   }

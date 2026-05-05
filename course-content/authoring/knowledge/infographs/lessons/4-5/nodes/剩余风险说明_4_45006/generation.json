@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:51:31.389483Z",
+  "lesson_id": "4-5",
+  "node_id": "剩余风险说明_4_45006",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019df841-0c2e-7dc3-aa6c-0a81ba43a5d5/ig_0d8ed008159892610169f9f576e7cc81918da0385cd35be23b.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-5/nodes/剩余风险说明_4_45006/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-5/nodes/剩余风险说明_4_45006/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-5/nodes/剩余风险说明_4_45006/source.json"
+}

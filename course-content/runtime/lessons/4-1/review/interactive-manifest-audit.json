@@ -1,7 +1,7 @@
 {
   "status": "pass",
   "summary": {
-    "steps": 12,
+    "steps": 13,
     "modules": 40,
     "issues": 0
   },
@@ -164,11 +164,21 @@
   "entries": [
     {
       "step_id": "step-01",
-      "module_id": "stage-map",
-      "kind": "stage-map",
+      "module_id": "cover-comic",
+      "kind": "image-panel",
       "renderer_owner": "content",
       "resolved_content_source": "module.payload",
-      "resolved_content_type": "summary",
+      "resolved_content_type": "image",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-01",
+      "module_id": "lesson-infograph",
+      "kind": "image-panel",
+      "renderer_owner": "content",
+      "resolved_content_source": "module.payload",
+      "resolved_content_type": "image",
       "is_empty": false,
       "diagnostic": null
     },
@@ -177,17 +187,7 @@
       "module_id": "core-question-card",
       "kind": "question-card",
       "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
-      "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-01",
-      "module_id": "boundary-card",
-      "kind": "boundary-card",
-      "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
+      "resolved_content_source": "content_blocks.intro_question",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
@@ -197,18 +197,8 @@
       "module_id": "goal-cards",
       "kind": "goal-card-row",
       "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
+      "resolved_content_source": "content_blocks.goals",
       "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-02",
-      "module_id": "boundary-table",
-      "kind": "comparison-table",
-      "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
-      "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
     },
@@ -533,31 +523,41 @@
       "diagnostic": null
     },
     {
-      "step_id": "step-12",
+      "step_id": "step-13",
+      "module_id": "lesson-infograph",
+      "kind": "image-panel",
+      "renderer_owner": "content",
+      "resolved_content_source": "module.payload",
+      "resolved_content_type": "image",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-13",
       "module_id": "takeaway-cards",
       "kind": "summary-card-row",
       "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
+      "resolved_content_source": "content_blocks.takeaways",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
-      "step_id": "step-12",
-      "module_id": "output-summary",
-      "kind": "key-task-card",
-      "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
-      "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-12",
+      "step_id": "step-13",
       "module_id": "next-step-cards",
       "kind": "next-step-card-row",
       "renderer_owner": "content",
-      "resolved_content_source": "module.payload",
+      "resolved_content_source": "content_blocks.next_step",
+      "resolved_content_type": "summary",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-13",
+      "module_id": "course-stat-panel",
+      "kind": "stat-panel",
+      "renderer_owner": "content",
+      "resolved_content_source": "content_blocks.statistics",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null

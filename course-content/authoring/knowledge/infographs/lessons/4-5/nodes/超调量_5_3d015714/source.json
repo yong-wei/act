@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:43.255822Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "无约束候选回收"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "超调量_5_3d015714",
+    "name": "超调量",
+    "name_en": "Overshoot",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "阶跃响应中，输出峰值超出稳态目标值的百分比。",
+    "examples": [
+      "雕刻机系统：根据二阶近似模型估算超调量σ%=25%。",
+      "磁盘驱动读取系统：利用公式估算单位阶跃响应的超调量。"
+    ],
+    "formulas": [
+      "M_p=\\frac{y_{\\max}-y_{\\infty}}{y_{\\infty}}\\times 100\\%"
+    ],
+    "keywords": [
+      "阶跃响应",
+      "阻尼比",
+      "动态性能",
+      "4-1",
+      "时域指标",
+      "过程接受度"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/超调量_5_3d015714.md",
+  "card_frontmatter": {
+    "node_id": "超调量_5_3d015714",
+    "name": "超调量",
+    "name_en": "Overshoot",
+    "lesson_units": [
+      "4-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "4-1",
+      "时域指标",
+      "过程接受度"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-1/design/4-1-handout.md"
+    ],
+    "asset_refs": [
+      "4-1-case-compare-summary.png"
+    ]
+  },
+  "card_overview": "# 超调量 | Overshoot\n\n**一句话定义**：阶跃响应中，输出峰值超出稳态目标值的百分比。\n\n**核心直觉**：在设计入口里，超调量首先回答“这个过程会不会冲得让当前场景无法接受”。\n\n**关键公式**：\n$$\nM_p=\\frac{y_{\\max}-y_{\\infty}}{y_{\\infty}}\\times 100\\%\n$$\n\n**关联**：前置 → 阶跃响应、阻尼比 · 后续 → 指标角色重组、跨域联读任务重排",
+  "card_detail": "### 完整解释\n\n在 `4-1` 中，超调量不再只是一个时域读数，而被直接改写成任务书里的过程接受度语言：\n\n- 客船航向控制里，它首先对应“乘客能否接受这个过程”；\n- 稳定平台里，它仍然重要，但会和速度优势形成更紧的冲突。\n\n![4-1 双案例任务排序对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n因此，超调量在入口课最常承担的角色是硬约束或接近硬约束的底线，而不是一个可以任意牺牲的次要指标。\n\n### 常见误区\n\n1. **误区**：超调量只属于分析课，到了设计课就没必要再强调。\n   **纠正**：模块 4 恰恰要求把超调量改写成场景化底线，而不是停留在定义层面。\n\n2. **误区**：只要系统够快，超调大一些也总能接受。\n   **纠正**：不同场景对超调的容忍度不同，客船与稳定平台的排序并不一样。",
+  "card_plain_excerpt": "## 首页\n\n# 超调量 | Overshoot\n\n**一句话定义**：阶跃响应中，输出峰值超出稳态目标值的百分比。\n\n**核心直觉**：在设计入口里，超调量首先回答“这个过程会不会冲得让当前场景无法接受”。\n\n**关键公式**：\n$$\nM_p=\\frac{y_{\\max}-y_{\\infty}}{y_{\\infty}}\\times 100\\%\n$$\n\n**关联**：前置 → 阶跃响应、阻尼比 · 后续 → 指标角色重组、跨域联读任务重排\n\n## 详情\n\n### 完整解释\n\n在 `4-1` 中，超调量不再只是一个时域读数，而被直接改写成任务书里的过程接受度语言：\n\n- 客船航向控制里，它首先对应“乘客能否接受这个过程”；\n- 稳定平台里，它仍然重要，但会和速度优势形成更紧的冲突。\n\n![4-1 双案例任务排序对照](../../lessons/4-1/media/processed/4-1-case-compare-summary.png)\n\n因此，超调量在入口课最常承担的角色是硬约束或接近硬约束的底线，而不是一个可以任意牺牲的次要指标。\n\n### 常见误区\n\n1. **误区**：超调量只属于分析课，到了设计课就没必要再强调。\n   **纠正**：模块 4 恰恰要求把超调量改写成场景化底线，而不是停留在定义层面。\n\n2. **误区**：只要系统够快，超调大一些也总能接受。\n   **纠正**：不同场景对超调的容忍度不同，客船与稳定平台的排序并不一样。",
+  "core_intuition": "在设计入口里，超调量首先回答“这个过程会不会冲得让当前场景无法接受”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "测速发电机",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "测速发电机",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定性",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单位阶跃响应",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "系统特性计算",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "contains",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "LQ/LQG最优控制",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "applies_to",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "SISO系统设计工具",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "鲁棒控制",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析法",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型输入信号",
+      "target_id": null,
+      "target": "超调量",
+      "relation": "leads_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "超调量",
+        "阶跃响应",
+        "阻尼比",
+        "动态性能",
+        "时域指标",
+        "过程接受度"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "M_p=\\frac{y_{\\max}-y_{\\infty}}{y_{\\infty}}\\times 100\\%"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

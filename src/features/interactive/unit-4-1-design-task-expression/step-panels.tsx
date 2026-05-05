@@ -13,7 +13,22 @@ import 'katex/dist/katex.min.css';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
 import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
-import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
+import {
+  createManifestStudentActivityRegistry,
+  createManifestTeacherActivityRegistry,
+  renderStudentInteractiveActivity,
+  renderTeacherInteractiveActivity,
+  type ManifestStepResponse,
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
+import {
+  createManifestContentModuleRegistry,
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import {
+  type InteractiveModuleRegistry,
+  type InteractiveRuntimeModuleManifest,
+  type InteractiveRuntimeStepManifest,
+  renderInteractiveManifestStep,
+} from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import type { InteractiveConfig } from '@/features/interactive/types';
 import {
   getUnit41FallbackResult,
@@ -22,20 +37,14 @@ import { buildUnit41AnalysisRequest } from '@/resources/control-system/analysis/
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import {
   UNIT_4_1_COURSE_TITLE,
+  getUNIT_4_1ManifestStepFromManifest,
   type UNIT_4_1StepDefinition,
   type UNIT_4_1StepResponse,
 } from '@/lib/unit-4-1-course';
+import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
-  BINARY_CHOICE_PROMPTS,
   CARD_SORT_FIELDS,
-  PARAMETER_SLIDER_FIELDS,
-  POSTTEST_QUESTIONS,
-  PRETEST_QUESTIONS,
-  TASK_CARD_CASE_OPTIONS,
   TASK_CARD_EVIDENCE_BANK,
-  TASK_CARD_FIELDS,
-  TASK_CARD_PRIORITY_OPTIONS,
-  TRIPLE_MATCH_FIELDS,
   type WorkspaceParameterChange,
 } from './workspace';
 
@@ -57,14 +66,22 @@ interface StepBlueprint {
   prompts?: string[];
 }
 
-interface ChoiceOption {
-  value: string;
-  label: string;
-}
-
 export interface UNIT_4_1TeacherResponseItem {
   studentName: string;
   response: UNIT_4_1StepResponse;
+}
+
+type ManifestContentExtra = {
+  revealProgress: number;
+  allowInlineReveal: boolean;
+  onInlineReveal?: () => void;
+};
+
+function requireUnit41Manifest(manifest: InteractiveRuntimeManifest | null | undefined) {
+  if (!manifest) {
+    throw new Error('4-1 runtime manifest is required for page rendering.');
+  }
+  return manifest;
 }
 
 const MARKDOWN_COMPONENTS = {
@@ -90,67 +107,66 @@ const MARKDOWN_COMPONENTS = {
 
 const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
   'step-01': {
-    kicker: 'Module 4 Map',
-    intro: '4-1 是模块 4 的入口页。模块 3 带来的稳定、动态、稳态证据到了这里，必须先改写成“目标—约束—优先级—证据来源”的任务语言，后面两课才有输入可接。',
+    kicker: 'Entry Question',
+    intro: '封面情境图与课程信息图把客船航向控制、稳定平台和任务表达卡放到同一张证据链中。',
     sections: [
       {
-        title: '本课主问题',
+        title: '导入问题',
         tone: 'cyan',
         bullets: [
-          '系统已经稳定，为什么还不能直接谈方法？',
-          '同一组分析证据，为什么会因为场景不同而写出不同任务排序？',
+          '同一套稳定性、动态性能和频域储备证据，在两类工程对象中会形成怎样不同的目标、约束和优先级？',
+          '写成任务表达卡时，哪些指标成为底线，哪些指标成为改进方向，哪些指标用于观察后果？',
         ],
       },
       {
-        title: '本课边界',
+        title: '图像线索',
         tone: 'amber',
-        bullets: ['本课不做控制结构选择。', '本课不做参数整定。', '本课不做自动求优。'],
+        bullets: ['封面情境图给出双对象任务场景。', '课程信息图给出对象证据、指标角色、区域分层和任务表达卡的阅读顺序。'],
       },
     ],
     prompts: [
-      '为什么稳定分析已经完成，4-1 还必须单独写任务表达卡？',
-      '3-9 的综合映射结果进入 4-1 之后，最关键的翻译动作是什么？',
+      '客船航向控制与稳定平台的导入问题分别指向哪些目标、约束和优先级？',
+      '课程信息图中的对象证据、指标角色、区域分层和任务表达卡之间是什么关系？',
     ],
   },
   'step-02': {
-    kicker: 'Goals And Boundary',
-    intro: '4-1 的固定产出只有四件事：会重组指标、会分角色、会讲分层、会写任务卡。课程边界必须和 4-2/4-3 划清，否则学生很容易在这里提前越级。',
+    kicker: 'Learning Objectives',
+    intro: '本页只列出本次课程目标。',
     sections: [
       {
-        title: '四项目标',
+        title: '本次课程目标',
         tone: 'emerald',
-        bullets: ['会重组指标。', '会分角色。', '会讲分层。', '会写任务表达卡。'],
-      },
-      {
-        title: '负责 / 不负责',
-        tone: 'slate',
-        markdown:
-          '| 本课负责 | 本课不负责 |\n| --- | --- |\n| 任务语言、优先级、可行域表达、案例联读 | 控制结构选择、参数整定、最优搜索 |',
+        bullets: [
+          '解释同一套跨域证据在不同工程场景中导出不同任务排序的原因。',
+          '区分时域、频域与积分误差指标分别回答的问题。',
+          '判别指标在任务书中承担硬约束、软目标或观察指标的角色。',
+          '撰写包含对象、目标、约束、优先级与证据来源的任务表达卡。',
+        ],
       },
     ],
     prompts: [
-      '为什么 4-1 必须先停在任务表达，而不是直接进入结构筛选？',
-      '4-1 的四个固定学习目标分别对应什么动作？',
+      '四项目标中的布鲁姆动词分别对应哪些学习动作？',
+      '如何把四项目标对应到本页目标列表中的证据、指标、角色和任务表达卡？',
     ],
   },
   'step-03': {
     kicker: 'Pre-Assessment',
-    intro: '前测只负责暴露误区，不负责拉开成绩差距。这里最常见的三个偏差是：把稳定等同于完成、把带宽等同于无条件更好、把“全部都重要”误当成任务完整。',
+    intro: '本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。',
     sections: [
       {
-        title: '常见误区',
+        title: '前测基本知识点',
         tone: 'rose',
-        bullets: ['稳定不是任务完成。', '更大带宽未必无条件更好。', '没有排序的任务卡不合格。'],
+        bullets: ['控制系统稳定性判断。', '时域与频域指标含义。', '积分误差指标含义。', '指标角色与优先级基础。'],
       },
       {
         title: '教师观察点',
         tone: 'violet',
-        bullets: ['优先看错因分布。', '区分首答与重提。'],
+        bullets: ['稳定性判断依据。', '指标含义匹配。', '指标角色选择。'],
       },
     ],
     prompts: [
-      '为什么“稳定就够了”会让后续设计直接失去任务边界？',
-      '为什么“所有指标都重要”反而说明任务还没写清？',
+      '控制系统稳定性判断需要哪些基本依据？',
+      '时域、频域和积分误差指标分别描述什么信息？',
     ],
   },
   'step-04': {
@@ -614,86 +630,6 @@ function FormulaCard({ title, formula, body }: { title: string; formula: string;
       </div>
       {body ? <p className="mt-2 text-sm leading-7">{body}</p> : null}
     </div>
-  );
-}
-
-function TextInput({
-  value,
-  onChange,
-  placeholder,
-  multiline = true,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  multiline?: boolean;
-}) {
-  if (!multiline) {
-    return <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="premium-lesson-input w-full" />;
-  }
-
-  return (
-    <textarea
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      className="premium-lesson-input min-h-[96px] w-full resize-y"
-    />
-  );
-}
-
-function ChoiceGroup({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly ChoiceOption[];
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="grid gap-2">
-      {options.map((option) => (
-        (() => {
-          const showOptionPrefix = /^[A-Z]$/.test(option.value);
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onChange(option.value)}
-              className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm transition ${
-                value === option.value ? 'ring-2 ring-cyan-400' : ''
-              }`}
-            >
-              {showOptionPrefix ? <span className="font-medium">{option.value}. </span> : null}
-              {option.label}
-            </button>
-          );
-        })()
-      ))}
-    </div>
-  );
-}
-
-function SelectField({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: readonly ChoiceOption[];
-}) {
-  return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
-      <option value="">请选择</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
   );
 }
 
@@ -1221,105 +1157,6 @@ function EngineeringChecklistPanel() {
   );
 }
 
-function getDefaultDraft(step: UNIT_4_1StepDefinition, savedResponse?: UNIT_4_1StepResponse) {
-  if (savedResponse) {
-    return savedResponse.answers;
-  }
-
-  switch (step.pageType) {
-    case 'binary_choice':
-      return { choice: '' };
-    case 'quiz_group':
-      return step.id === 'step-03' ? { q1: '', q2: '', q3: '' } : { q1: '', q2: '', q3: '', q4: '' };
-    case 'parameter_slider':
-      return Object.fromEntries(
-        PARAMETER_SLIDER_FIELDS[step.id as 'step-04' | 'step-05'].map((field) => [field.key, '']),
-      );
-    case 'triple_match':
-      return Object.fromEntries(TRIPLE_MATCH_FIELDS.map((field) => [field.key, '']));
-    case 'card_sort':
-      return Object.fromEntries(CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].items.map((item) => [item.key, '']));
-    case 'task_card_workspace':
-      return Object.fromEntries([
-        ['caseId', ''],
-        ['priority', ''],
-        ...TASK_CARD_FIELDS.map((field) => [field.key, '']),
-      ]);
-    default:
-      return {};
-  }
-}
-
-function supportsAnswerReveal(step: UNIT_4_1StepDefinition) {
-  return step.pageType !== 'display';
-}
-
-function trimText(value: string, max = 72) {
-  return value.length > max ? `${value.slice(0, max)}...` : value;
-}
-
-function getDistribution(entries: string[]) {
-  const counts = new Map<string, number>();
-  for (const item of entries) {
-    counts.set(item, (counts.get(item) ?? 0) + 1);
-  }
-  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-}
-
-function getRevealMarkdown(step: UNIT_4_1StepDefinition) {
-  switch (step.id) {
-    case 'step-03':
-      return PRETEST_QUESTIONS.map((item, index) => `${index + 1}. ${item.explanation}`).join('\n\n');
-    case 'step-04':
-      return '客船案例的入口判断是：**先进入可接受区域，再谈提速；平顺与储备优先，速度后移。**';
-    case 'step-05':
-      return '平台案例的入口判断是：**速度与带宽可以前移，但储备边界不能放松。**';
-    case 'step-06':
-      return '双案例对照的关键句是：**语言相同，排序不同；变的是任务优先级，不是基础证据。**';
-    case 'step-07':
-      return '一条最稳定的记忆链是：**时域看过程可接受，频域看边界储备，积分误差看累计代价。**';
-    case 'step-08':
-      return '先分角色：**不能破的是硬约束，继续争取的是软目标，用来解释后果的是观察指标。**';
-    case 'step-09':
-      return '合格任务卡至少补齐：**对象、控制目标、最紧矛盾、硬约束、软目标、观察指标、证据来源和优先级。**';
-    case 'step-10':
-      return BINARY_CHOICE_PROMPTS['step-10'].explanation;
-    case 'step-11':
-      return BINARY_CHOICE_PROMPTS['step-11'].explanation;
-    case 'step-12':
-      return POSTTEST_QUESTIONS.map((item, index) => `${index + 1}. ${item.explanation}`).join('\n\n');
-    default:
-      return '';
-  }
-}
-
-function summarizeResponses(step: UNIT_4_1StepDefinition, responses: UNIT_4_1TeacherResponseItem[]) {
-  switch (step.pageType) {
-    case 'binary_choice':
-      return getDistribution(responses.map((item) => item.response.answers.choice || '未作答'));
-    case 'quiz_group':
-      return getDistribution(
-        responses.flatMap((item) =>
-          Object.entries(item.response.answers)
-            .filter(([, value]) => value)
-            .map(([key, value]) => `${key}:${trimText(value)}`),
-        ),
-      );
-    case 'parameter_slider':
-      return responses.map((item) => [item.studentName, trimText(Object.values(item.response.answers).join(' / '))]);
-    case 'task_card_workspace':
-      return responses.map((item) => {
-        const filled = Object.values(item.response.answers).filter(Boolean).length;
-        return [item.studentName, `已填写 ${filled} 项 / ${Object.keys(item.response.answers).length}`];
-      });
-    case 'triple_match':
-    case 'card_sort':
-      return responses.map((item) => [item.studentName, trimText(Object.values(item.response.answers).join(' / '))]);
-    default:
-      return [];
-  }
-}
-
 export function UNIT_4_1KnowledgeMapVisual() {
   return (
     <section className="premium-lesson-panel-soft mb-4 px-4 py-4">
@@ -1345,378 +1182,275 @@ export function UNIT_4_1KnowledgeMapVisual() {
 
 export function UNIT_4_1StepContentPanel({
   step,
-  mediaSrc,
+  manifest,
+  revealProgress,
+  allowInlineReveal,
+  role,
+  submittedCount = 0,
+  viewedCount = 0,
+  studentCount = 0,
+  submittedStudents = 0,
+  totalResponses = 0,
+  postTestCompletion = 0,
+  parameterSubmissionCount = 0,
+  onAdvanceReveal,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_4_1StepDefinition;
-  mediaSrc?: string | null;
-  mediaAlt?: string;
+  manifest?: InteractiveRuntimeManifest | null;
+  revealProgress: number;
+  allowInlineReveal: boolean;
+  role: 'student' | 'teacher';
+  submittedCount?: number;
+  viewedCount?: number;
+  studentCount?: number;
+  submittedStudents?: number;
+  totalResponses?: number;
+  postTestCompletion?: number;
+  parameterSubmissionCount?: number;
+  onAdvanceReveal?: () => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const blueprint = getStepBlueprint(step);
-  const extraMedia = EXTRA_MEDIA_BY_STEP[step.id] ?? [];
-  const hasNativePrimaryPanel = NATIVE_PRIMARY_PANEL_STEPS.has(step.id);
-
-  if (step.id === 'step-04' || step.id === 'step-05') {
-    const config = CASE_PARAMETER_CONFIG[step.id];
-
-    return (
-      <section className="premium-lesson-panel px-5 py-5">
-        <div className="premium-lesson-kicker">{blueprint.kicker}</div>
-        <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
-        <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
-
-        <div className={`mt-4 grid gap-4 ${extraMedia.length ? 'xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]' : ''}`}>
-          {extraMedia.length ? <MediaPanel src={extraMedia[0].src} alt={extraMedia[0].alt} /> : null}
-          <FormulaCard title="对象与开环传函" formula={config.formula} body={config.orderingSummary} />
-        </div>
-
-        <ParameterMirrorPanel stepId={step.id} onWorkspaceParameterChange={onWorkspaceParameterChange} />
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {blueprint.sections.map((section) => (
-            <InfoSection key={`${step.id}-${section.title}`} section={section} />
-          ))}
-        </div>
-
-        {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
-      </section>
-    );
-  }
+  const activeManifest = requireUnit41Manifest(manifest);
+  const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
+  const baseRegistry = createManifestContentModuleRegistry({
+    revealProgress,
+    allowInlineReveal,
+    onInlineReveal: onAdvanceReveal,
+  });
+  const hiddenModule = (moduleId: string) => <div hidden aria-hidden="true" data-role-hidden-module={moduleId} />;
+  const moduleRegistry: InteractiveModuleRegistry<ManifestContentExtra> = {
+    ...baseRegistry,
+    graphic: ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-04') {
+        return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png" alt="客船航向控制对象框图" />;
+      }
+      if (step.id === 'step-05') {
+        return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png" alt="稳定平台对象框图" />;
+      }
+      return baseRegistry.graphic?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'interactive-figure': ({ step: manifestStep }: { step: InteractiveRuntimeStepManifest }) => {
+      if (manifestStep.id === 'step-04' || manifestStep.id === 'step-05') {
+        return (
+          <ParameterMirrorPanel
+            stepId={manifestStep.id}
+            onWorkspaceParameterChange={onWorkspaceParameterChange}
+          />
+        );
+      }
+      return null;
+    },
+    'comparison-table': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-06') return <ContrastSummaryMatrixPanel />;
+      return baseRegistry['comparison-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'question-card-row': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-07') return <RoleMatrixPanel />;
+      return baseRegistry['question-card-row']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'formula-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
+      return baseRegistry['formula-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'native-table': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
+      if (step.id === 'step-11') return <EngineeringChecklistPanel />;
+      return baseRegistry['native-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'template-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-09') return <TaskCardTemplatePanel />;
+      return baseRegistry['template-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'evidence-bank': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-09') return hiddenModule(module.id);
+      return baseRegistry['evidence-bank']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'example-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-09') return hiddenModule(module.id);
+      return baseRegistry['example-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'native-figure': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (step.id === 'step-10') return <LayeredRegionPanel />;
+      return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
+    },
+    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      if (role === 'student') {
+        return (
+          <UNIT_4_1StudentSummaryPanel
+            submittedCount={submittedCount}
+            viewedCount={viewedCount}
+            postTestCompleted={postTestCompletion > 0}
+            parameterSubmissionCount={parameterSubmissionCount}
+          />
+        );
+      }
+      return (
+        <UNIT_4_1TeacherSummaryPanel
+          studentCount={studentCount}
+          submittedStudents={submittedStudents}
+          totalResponses={totalResponses}
+          postTestCompletion={postTestCompletion}
+        />
+      );
+    },
+  };
 
   return (
-    <section className="premium-lesson-panel px-5 py-5">
-      <div className="premium-lesson-kicker">{blueprint.kicker}</div>
-      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
-      <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
-
-      {mediaSrc && !extraMedia.length && !hasNativePrimaryPanel ? (
-        <div className="mt-4">
-          <MediaPanel src={mediaSrc} alt={step.title} />
-        </div>
-      ) : null}
-
-      {extraMedia.length ? (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {extraMedia.map((item) => (
-            <MediaPanel key={item.src} src={item.src} alt={item.alt} />
-          ))}
-        </div>
-      ) : null}
-
-      {step.id === 'step-06' ? (
-        <div className="mt-4">
-          <ContrastSummaryMatrixPanel />
-        </div>
-      ) : null}
-
-      {step.id === 'step-07' ? (
-        <div className="mt-4">
-          <RoleMatrixPanel />
-        </div>
-      ) : null}
-
-      {step.id === 'step-09' ? (
-        <div className="mt-4">
-          <TaskCardTemplatePanel />
-        </div>
-      ) : null}
-
-      {step.id === 'step-10' ? (
-        <div className="mt-4">
-          <LayeredRegionPanel />
-        </div>
-      ) : null}
-
-      {step.id === 'step-11' ? (
-        <div className="mt-4">
-          <EngineeringChecklistPanel />
-        </div>
-      ) : null}
-
-      {!hasNativePrimaryPanel ? (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {blueprint.sections.map((section) => (
-            <InfoSection key={`${step.id}-${section.title}`} section={section} />
-          ))}
-        </div>
-      ) : null}
-
-      {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
+    <section className="space-y-4">
+      {renderInteractiveManifestStep({
+        manifest: activeManifest,
+        step: stepManifest,
+        moduleRegistry,
+        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
+      })}
     </section>
   );
 }
 
 export function UNIT_4_1StudentActivityForm({
   step,
+  manifest,
   savedResponse,
   released,
+  browseEnabled,
   answerVisible,
+  revealProgress,
   onSubmit,
-  onWorkspaceParameterChange,
 }: {
   step: UNIT_4_1StepDefinition;
-  savedResponse?: UNIT_4_1StepResponse;
+  manifest?: InteractiveRuntimeManifest | null;
+  savedResponse?: ManifestStepResponse;
   released: boolean;
+  browseEnabled: boolean;
   answerVisible: boolean;
-  onSubmit: (response: UNIT_4_1StepResponse) => void;
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  revealProgress: number;
+  onSubmit: (response: ManifestStepResponse) => void;
 }) {
-  const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(step, savedResponse));
-
-  useEffect(() => {
-    setDraft(getDefaultDraft(step, savedResponse));
-  }, [savedResponse, step]);
-
-  const submitted = Boolean(savedResponse);
-  const locked = !released && !submitted && step.pageType !== 'display';
-  const revealMarkdown = getRevealMarkdown(step);
-
-  const updateDraft = (key: string, value: string, source = 'student') => {
-    setDraft((prev) => ({ ...prev, [key]: value }));
-    onWorkspaceParameterChange?.({ key, value, source });
-  };
-
-  const submit = (answers: Record<string, string> = draft) => {
-    onSubmit({
-      stepId: step.id,
-      submittedAt: Date.now(),
-      answers,
-    });
-  };
-
-  if (step.pageType === 'display') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以阅读、观察和教师推进为主，不需要学生提交作答。" />
-      </section>
-    );
-  }
-
+  const activeManifest = requireUnit41Manifest(manifest);
+  const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
   return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
-      <p className="premium-lesson-muted mt-2 text-sm">{locked ? '教师尚未释放本页互动，请先阅读上方静态内容。' : '先完成自己的判断，再提交到教师端汇总。'}</p>
-
-      {locked ? (
-        <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">当前互动尚未释放。</div>
-      ) : (
-        <div className="mt-4 grid gap-4">
-          {step.pageType === 'binary_choice' ? (
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{BINARY_CHOICE_PROMPTS[step.id as 'step-10' | 'step-11'].prompt}</div>
-              <div className="mt-3">
-                <ChoiceGroup
-                  options={BINARY_CHOICE_PROMPTS[step.id as 'step-10' | 'step-11'].options}
-                  value={draft.choice ?? ''}
-                  onChange={(value) => updateDraft('choice', value)}
-                />
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'quiz_group' ? (
-            (step.id === 'step-03' ? PRETEST_QUESTIONS : POSTTEST_QUESTIONS).map((question) => (
-              <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
-                <div className="mt-3">
-                  <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
-                </div>
-              </div>
-            ))
-          ) : null}
-
-          {step.pageType === 'parameter_slider' ? (
-            <div className="grid gap-4 md:grid-cols-3">
-              {PARAMETER_SLIDER_FIELDS[step.id as 'step-04' | 'step-05'].map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'triple_match' ? (
-            <div className="grid gap-4 md:grid-cols-3">
-              {TRIPLE_MATCH_FIELDS.map((field) => (
-                <label key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
-                  <span className="premium-lesson-title text-sm font-medium">{field.label}</span>
-                  <div className="mt-3">
-                    <SelectField value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value, 'select')} options={field.options} />
-                  </div>
-                </label>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'card_sort' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].items.map((item) => (
-                <label key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
-                  <span className="premium-lesson-title text-sm font-medium">{item.label}</span>
-                  <div className="mt-3">
-                    <SelectField
-                      value={draft[item.key] ?? ''}
-                      onChange={(value) => updateDraft(item.key, value, 'select')}
-                      options={CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].options}
-                    />
-                  </div>
-                </label>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'task_card_workspace' ? (
-            <>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
-                  <span className="premium-lesson-title text-sm font-medium">选择案例</span>
-                  <div className="mt-3">
-                    <SelectField value={draft.caseId ?? ''} onChange={(value) => updateDraft('caseId', value, 'select')} options={TASK_CARD_CASE_OPTIONS} />
-                  </div>
-                </label>
-                <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
-                  <span className="premium-lesson-title text-sm font-medium">优先级</span>
-                  <div className="mt-3">
-                    <SelectField value={draft.priority ?? ''} onChange={(value) => updateDraft('priority', value, 'select')} options={TASK_CARD_PRIORITY_OPTIONS} />
-                  </div>
-                </label>
-              </div>
-
-              <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">证据库</div>
-                <div className="mt-3 grid gap-2">
-                  {TASK_CARD_EVIDENCE_BANK.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => updateDraft('evidenceSource', draft.evidenceSource ? `${draft.evidenceSource}\n${item}` : item, 'preset')}
-                      className="premium-lesson-tone-block premium-tone-slate text-left text-sm"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                {TASK_CARD_FIELDS.map((field) => (
-                  <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                    <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                    <div className="mt-3">
-                      <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          <button type="button" onClick={() => submit()} className="premium-lesson-action-primary">
-            {submitted ? '重新提交本页作答' : '提交本页作答'}
-          </button>
-        </div>
-      )}
-
-      <div className="mt-4">
-        <SubmissionStatus
-          submitted={submitted}
-          submittedText="已提交本页作答，教师端将看到你的当前答案。"
-          idleText="尚未提交本页作答。"
-        />
-      </div>
-
-      {answerVisible && revealMarkdown ? (
-        <div className="premium-lesson-tone-block premium-tone-cyan mt-4">
-          <div className="premium-lesson-title text-sm font-semibold">参考答案</div>
-          <div className="mt-2">{renderMarkdown(revealMarkdown)}</div>
-        </div>
-      ) : null}
-    </section>
+    <>
+      {renderStudentInteractiveActivity({
+        registry: createManifestStudentActivityRegistry<UNIT_4_1StepDefinition>(),
+        step,
+        stepManifest,
+        savedResponse,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onSubmit,
+      })}
+    </>
   );
 }
 
 export function UNIT_4_1TeacherActivitySummary({
   step,
+  manifest,
   responses,
   released,
+  browseEnabled,
   answerVisible,
+  revealProgress,
   onToggleRelease,
+  onToggleBrowse,
   onToggleAnswerVisible,
+  onAdvanceReveal,
+  onResetReveal,
 }: {
   step: UNIT_4_1StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   responses: UNIT_4_1TeacherResponseItem[];
   released: boolean;
+  browseEnabled: boolean;
   answerVisible: boolean;
+  revealProgress: number;
   onToggleRelease: () => void;
+  onToggleBrowse: () => void;
   onToggleAnswerVisible: () => void;
+  onAdvanceReveal: () => void;
+  onResetReveal: () => void;
 }) {
-  const summary = useMemo(() => summarizeResponses(step, responses), [responses, step]);
-  const canReveal = supportsAnswerReveal(step);
+  const activeManifest = requireUnit41Manifest(manifest);
+  const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
+  return (
+    <>
+      {renderTeacherInteractiveActivity({
+        registry: createManifestTeacherActivityRegistry<UNIT_4_1StepDefinition>(),
+        step,
+        stepManifest,
+        responses,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onToggleRelease,
+        onToggleBrowse,
+        onToggleAnswerVisible,
+        onAdvanceReveal,
+        onResetReveal,
+      })}
+    </>
+  );
+}
 
+export function UNIT_4_1StudentSummaryPanel({
+  submittedCount,
+  viewedCount,
+  postTestCompleted,
+  parameterSubmissionCount,
+}: {
+  submittedCount: number;
+  viewedCount: number;
+  postTestCompleted: boolean;
+  parameterSubmissionCount: number;
+}) {
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="premium-lesson-title text-sm font-medium">教师汇总</div>
-          <div className="premium-lesson-muted mt-1 text-sm">当前收到 {responses.length} 份本页作答。</div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
-            {released ? '撤回互动' : '释放互动'}
-          </button>
-          <button
-            type="button"
-            onClick={onToggleAnswerVisible}
-            disabled={!canReveal}
-            className="premium-lesson-action-primary disabled:opacity-40"
-          >
-            {answerVisible ? '隐藏参考答案' : '显示参考答案'}
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-2">
-        {summary.length ? (
-          summary.slice(0, 12).map(([label, value]) => (
-            <div key={`${label}-${value}`} className="premium-lesson-surface-elevated flex items-center justify-between gap-3 rounded-2xl px-3 py-2 text-sm">
-              <span>{label}</span>
-              <span className="premium-lesson-caption">{typeof value === 'number' ? `${value} 人` : value}</span>
-            </div>
-          ))
-        ) : (
-          <div className="premium-lesson-muted text-sm">本页暂无学生提交。</div>
-        )}
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">个人课堂表现</div>
+      <div className="mt-4 grid gap-3 md:grid-cols-4">
+        {[
+          ['已浏览页面', `${viewedCount} 页`],
+          ['已提交作答', `${submittedCount} 项`],
+          ['后测状态', postTestCompleted ? '已完成' : '未完成'],
+          ['参数探索记录', `${parameterSubmissionCount} 次`],
+        ].map(([label, value]) => (
+          <div key={label} className="premium-lesson-surface-elevated rounded-2xl px-3 py-3 text-sm">
+            <div className="premium-lesson-caption text-xs">{label}</div>
+            <div className="premium-lesson-title mt-1 text-xl font-semibold">{value}</div>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
-export function UNIT_4_1StudentSummaryPanel({
-  responses,
+export function UNIT_4_1TeacherSummaryPanel({
+  studentCount,
+  submittedStudents,
+  totalResponses,
+  postTestCompletion,
 }: {
-  responses: Record<string, UNIT_4_1StepResponse>;
+  studentCount: number;
+  submittedStudents: number;
+  totalResponses: number;
+  postTestCompletion: number;
 }) {
-  const completed = Object.keys(responses).length;
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title text-lg font-semibold">学习收束</div>
-      <div className="premium-lesson-muted mt-2 text-sm">
-        你已经提交了 {completed} 个环节的作答。本课真正要带走的不是“我现在就会选控制器”，而是先把任务写清楚：目标、约束、优先级和证据来源都要落到卡上。
-      </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">班级整体表现统计</div>
+      <div className="mt-4 grid gap-3 md:grid-cols-4">
         {[
-          '稳定只是起点，不是终点。',
-          '语言相同，排序不同；变的是优先级，不是基础证据。',
-          '先写任务表达卡，再进入结构筛选和初始方案。',
-          '单图线索不能替代完整任务结论。',
-        ].map((item) => (
-          <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-3 py-3 text-sm">
-            {item}
+          ['加入学生', `${studentCount} 人`],
+          ['有提交学生', `${submittedStudents} 人`],
+          ['提交总数', `${totalResponses} 项`],
+          ['后测完成率', `${postTestCompletion}%`],
+        ].map(([label, value]) => (
+          <div key={label} className="premium-lesson-surface-elevated rounded-2xl px-3 py-3 text-sm">
+            <div className="premium-lesson-caption text-xs">{label}</div>
+            <div className="premium-lesson-title mt-1 text-xl font-semibold">{value}</div>
           </div>
         ))}
       </div>

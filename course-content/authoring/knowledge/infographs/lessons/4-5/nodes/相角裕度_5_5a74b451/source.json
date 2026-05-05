@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-05T13:09:43.528918Z",
+  "lesson": {
+    "lesson_id": "4-5",
+    "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+    "groups": [
+      "无约束候选回收"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "相角裕度_5_5a74b451",
+    "name": "相角裕度",
+    "name_en": "Phase Margin",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "在截止频率 $\\omega_c$ 处，开环相角距离 $-180^\\circ$ 还剩下的角度余量。",
+    "examples": [
+      "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
+      "例5-14计算不同开环增益下的相角裕度。",
+      "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
+      "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
+    ],
+    "formulas": [
+      "\\gamma=180^\\circ+\\angle G(j\\omega_c)"
+    ],
+    "keywords": [
+      "截止频率",
+      "相位滞后",
+      "临界稳定",
+      "稳定性",
+      "开环频率特性",
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+  "card_frontmatter": {
+    "node_id": "相角裕度_5_5a74b451",
+    "name": "相角裕度",
+    "name_en": "Phase Margin",
+    "lesson_units": [
+      "2-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/2-4/design/2-4-handout.md"
+    ],
+    "asset_refs": [
+      "2-4-fd-08-bode-nyquist-consistency-panel.svg"
+    ]
+  },
+  "card_overview": "# 相角裕度 | Phase Margin\n\n**一句话定义**：在截止频率 $\\omega_c$ 处，开环相角距离 $-180^\\circ$ 还剩下的角度余量。\n\n**核心直觉**：它回答的是“在增益刚好等于 1 的那个频率上，相位离危险边界还有多远”。\n\n**关键公式**：\n$$\n\\gamma=180^\\circ+\\angle G(j\\omega_c)\n$$\n\n**关联**：前置 → 截止频率 · 后续 → 频域综合判断、设计可行域\n\n---",
+  "card_detail": "### 完整解释\n\n`2-4` 第一次正式引入相角裕度，但刻意把它限制在“读图与基础计算”层面。教学重点不是让学生立刻把相角裕度翻译成完整闭环结论，而是先看懂它的读法和含义：\n\n- 先找截止频率 $\\omega_c$；\n- 再在这个频率处看相位是否已经接近 $-180^\\circ$；\n- 差得越多，说明离边界越远；差得越少，说明余量越紧。\n\n在 Bode 图上，它表现为相位曲线离 $-180^\\circ$ 的差值；在 Nyquist 直觉里，它体现为轨迹接近临界方向时还保留多少角度缓冲。\n\n![相角裕度来自截止频率处的相位余量](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：相角裕度越大，就能直接断定系统一定“更好”。\n   **纠正**：本课只把它当作相对余量语言，不把它直接升级成完整性能裁决。\n\n2. **误区**：相角裕度应该在穿越频率处读取。\n   **纠正**：相角裕度固定在截止频率 $\\omega_c$ 处读取；穿越频率服务的是幅值裕度。",
+  "card_plain_excerpt": "## 首页\n\n# 相角裕度 | Phase Margin\n\n**一句话定义**：在截止频率 $\\omega_c$ 处，开环相角距离 $-180^\\circ$ 还剩下的角度余量。\n\n**核心直觉**：它回答的是“在增益刚好等于 1 的那个频率上，相位离危险边界还有多远”。\n\n**关键公式**：\n$$\n\\gamma=180^\\circ+\\angle G(j\\omega_c)\n$$\n\n**关联**：前置 → 截止频率 · 后续 → 频域综合判断、设计可行域\n\n---\n\n## 详情\n\n### 完整解释\n\n`2-4` 第一次正式引入相角裕度，但刻意把它限制在“读图与基础计算”层面。教学重点不是让学生立刻把相角裕度翻译成完整闭环结论，而是先看懂它的读法和含义：\n\n- 先找截止频率 $\\omega_c$；\n- 再在这个频率处看相位是否已经接近 $-180^\\circ$；\n- 差得越多，说明离边界越远；差得越少，说明余量越紧。\n\n在 Bode 图上，它表现为相位曲线离 $-180^\\circ$ 的差值；在 Nyquist 直觉里，它体现为轨迹接近临界方向时还保留多少角度缓冲。\n\n![相角裕度来自截止频率处的相位余量](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：相角裕度越大，就能直接断定系统一定“更好”。\n   **纠正**：本课只把它当作相对余量语言，不把它直接升级成完整性能裁决。\n\n2. **误区**：相角裕度应该在穿越频率处读取。\n   **纠正**：相角裕度固定在截止频率 $\\omega_c$ 处读取；穿越频率服务的是幅值裕度。",
+  "core_intuition": "它回答的是“在增益刚好等于 1 的那个频率上，相位离危险边界还有多远”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "临界稳定",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹与虚轴交点",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹与虚轴的交点",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅频特性",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相频特性",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅相曲线",
+      "target_id": null,
+      "target": "相角裕度",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "相角裕度",
+        "截止频率",
+        "相位滞后",
+        "临界稳定",
+        "稳定性",
+        "开环频率特性",
+        "频域分析"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\gamma=180^\\circ+\\angle G(j\\omega_c)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -64,6 +64,7 @@
 \DeclareCaptionLabelFormat{zhtable}{表#2}
 \captionsetup[figure]{labelformat=zhfigure}
 \captionsetup[table]{labelformat=zhtable}
+\captionsetup[longtable]{labelformat=zhtable, justification=centering}
 
 \fvset{
   breaklines=true,

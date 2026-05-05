@@ -22,9 +22,9 @@
 
 | 步骤 | 标题 | 页面模板 | 主阅读顺序 | 互动主类型 | 学生页预览 |
 |------|------|----------|------------|------------|------------|
-| step-01 | 回到地图：稳定不是任务完成 | `map_hero_slide` | 路径定位 -> 主问题 -> 本课边界 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01` |
-| step-02 | 学习目标与边界：4-1 只负责写任务书 | `goal_boundary_slide` | 学习目标 -> 本课负责 -> 本课不负责 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02` |
-| step-03 | 同图异读预判：为什么同一套证据会写出两张任务书 | `question_stack` | 场景提示 -> 三题预判 -> 误区提示 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-03` |
+| step-01 | 任务表达入口：从跨域证据写出设计任务 | `map_hero_slide` | 封面情境图 -> 课程信息图 -> 导入问题 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01` |
+| step-02 | 本次课程目标 | `goal_boundary_slide` | 本次课程目标 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02` |
+| step-03 | 同图异读预判：为什么同一套证据会写出两张任务书 | `question_stack` | 前测基本知识点 -> 三题预判 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-03` |
 | step-04 | 主场景 A：客船航向控制先保什么 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parametric_sim` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04` |
 | step-05 | 对照案例 B：稳定平台为什么把速度排得更前 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parametric_sim` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-05` |
 | step-06 | 双案例对照：排序变化来自哪里 | `contrast_summary_board` | 对照矩阵 -> 排序结果 -> 一句话收束 | `evidence_board + card_sort` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-06` |
@@ -33,13 +33,14 @@
 | step-09 | 任务表达卡工作区：把后续设计输入写全 | `task_card_workspace` | 模板字段 -> 证据来源 -> 任务表达卡填写 | `task_card_workspace` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-09` |
 | step-10 | 区域分层：可行域、满意域、最优域不是一步 | `layered_region_board` | 集合关系 -> 分层图示 -> 边界判断 | `binary_choice` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-10` |
 | step-11 | 误判检查：稳定不等于完成，可行不等于最优 | `misconception_board` | 误判卡 -> 五步清单 -> 纠偏判断 | `binary_choice` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-11` |
-| step-12 | 后测与收束：先写任务，再谈方法 | `summary_quiz_board` | 后测题组 -> 四句带走 -> 后续去向 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12` |
+| step-12 | 后测：先写任务，再谈方法 | `summary_quiz_board` | 后测题组 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12` |
+| step-13 | 总结：任务表达卡成为后续设计输入 | `summary_quiz_board` | 课程信息图 -> 四句带走 -> 课堂表现统计 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-13` |
 
 ## 讲义证据单元映射
 
 | handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|---|
-| `## 一、回到地图：同一套跨域证据，为什么会写出两张不同任务书` | `eu-01-entry-question` | `concept_card` | “稳定不是任务完成”“4-1 先写任务，再谈方法”“同一套跨域证据会写出不同任务书”三条开场判断。 | `step-01` | `static` | `entry_overview` | 主问题卡 | 首屏必须同时看到路径图、主问题卡和边界卡。 |
+| `## 一、回到地图：同一套跨域证据，为什么会写出两张不同任务书` | `eu-01-entry-question` | `concept_card` | 封面情境图、课程信息图，以及围绕客船航向控制与稳定平台两案提出的导入问题。 | `step-01` | `static` | `entry_overview` | `4-1-cover-comic.png` / `4-1-info.png` / 导入问题卡 | 首屏必须同时看到封面情境图、课程信息图和导入问题。 |
 | `## 二、先做“同图异读”，再回收最小指标语言` | `eu-02-prejudge` | `diagnostic_prompt` | 三道预判题必须围绕“当前最不能接受的后果、哪类指标先前移、为何不能写成同一张任务书”。 | `step-03` | `static+interactive` | `diagnostic_quiz` | 预判题组 | 三题必须全部明文落页，不得只留按钮。 |
 | `### 2.1 主场景 A：客船航向控制为什么先保平顺与储备` | `eu-03-ship-figure` | `curve_figure` | 客船对象框图、$P_h(s)$、$L_h(s)$、客船四联图、$M_p \le 15\%$、$t_s \le 45\,\text{s}$、入口排序判断。 | `step-04` | `static+interactive` | `parametric_sim` | `4-1-ship-heading-block.png` / `4-1-ship-heading-quad.png` | 对象框图、可调四联图和读图卡必须同页可见。 |
 | `### 2.2 对照案例 B：为什么稳定平台会把速度与带宽排得更前` | `eu-04-platform-figure` | `curve_figure` | 稳定平台对象框图、$P_p(s)$、$L_p(s)$、综合图布局说明、速度优势与储备代价的入口排序。 | `step-05` | `static+interactive` | `parametric_sim` | `4-1-platform-pitch-block.png` / `4-1-platform-pitch-quad.png` | 必须保留案例 B 的特殊图组结构与短对照定位。 |
@@ -49,7 +50,8 @@
 | `### 4.1 一张合格的任务表达卡，至少要写清七项内容 / ### 4.2 主场景 A：客船航向控制的任务表达卡 / ### 4.3 对照案例 B：稳定平台的任务表达卡为什么会改写排序` | `eu-08-task-card` | `task_card` | 七字段模板、五步判断清单、主场景 A 完整示范、案例 B 短对照。 | `step-09` | `static+interactive` | `task_card_workspace` | 表 6 / 表 7 / 表 8 / `4-1-task-card-template.png` | 模板卡、证据库和填写区必须同屏。 |
 | `## 五、可行域、满意域与最优域必须分层` | `eu-09-region-layer` | `region_figure` | $\mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}$、三层区域定义、表 10 的三层差别。 | `step-10` | `static+interactive` | `layer_judgement` | 表 10 / `4-1-region-layering.png` | 分层图改为原生图示，不得退化为单张位图。 |
 | `## 六、常见误判与工程判断清单` | `eu-10-misconception` | `misconception` | 三类误判卡、四步联读顺序、表 11 的五步工程判断清单。 | `step-11` | `static+interactive` | `misconception_diagnosis` | 表 11 | 误判卡与五步清单必须同页。 |
-| `## 七、本节小结与衔接 / ### 7.4 一页带走 / ### 7.5 课后自检` | `eu-11-summary-exit` | `summary_quiz` | 四句带走、本讲产出、`4-2/4-3/4-4` 去向、五题课后自检。 | `step-12` | `static+quiz` | `summary_quiz` | 小结卡 / 去向卡 | 总结区必须能独立复习，不依赖教师补充。 |
+| `### 7.5 课后自检` | `eu-11-post-test` | `summary_quiz` | 三题后测，检查任务表达、区域分层与同图异读判断。 | `step-12` | `static+quiz` | `post_assessment_quiz` | 后测题组 | 后测与总结分开，后测只承担达成检查。 |
+| `## 七、本节小结与衔接 / ### 7.4 一页带走` | `eu-12-summary-exit` | `summary` | 课程信息图、四句带走、`4-2/4-3/4-4` 去向与课堂表现统计。 | `step-13` | `static` | `lesson_summary` | `4-1-info.png` / 小结卡 / 去向卡 | 总结页必须能独立复习，并显示个人或班级课堂表现统计。 |
 
 ## 曲线图证据单元补充合同
 
@@ -75,34 +77,33 @@
 
 ---
 
-## 步骤 01｜回到地图：稳定不是任务完成
+## 步骤 01｜任务表达入口：从跨域证据写出设计任务
 
 ### 页面骨架
 
 - 模板：`map_hero_slide`
 - 主阅读顺序：
-  - `路径定位`
-  - `主问题`
-  - `本课边界`
+  - `封面情境图`
+  - `课程信息图`
+  - `导入问题`
 - 区域：
-  - `header`：课次标题与模块定位
-  - `lead`：路径图与主问题卡
-  - `summary`：边界卡
+  - `header`：课次标题
+  - `lead`：封面情境图与课程信息图
+  - `summary`：导入问题卡
 
 ### 模块清单
 
-- `stage-map`：模块 4 路径图
-- `core-question-card`：主问题卡
-- `boundary-card`：本课边界卡
+- `cover-comic`：客船航向与稳定平台情境图
+- `lesson-infograph`：任务表达课程信息图
+- `core-question-card`：导入问题卡
 
 ### 固定内容
 
-- 路径图固定高亮 `3-9 -> 4-1 -> 4-2 -> 4-3 -> 4-4`，把 `4-1` 标为“任务表达入口”。
-- 主问题卡固定写明：
-  - 系统已经稳定，为什么还不能直接谈方法；
-  - 同一套跨域证据，为什么会写出不同任务排序；
-  - 4-1 的任务不是给方案名，而是先写任务书。
-- 边界卡固定写明：本课只写任务，不进入结构选型、参数整定和最优搜索。
+- 封面情境图使用 `4-1-cover-comic.png`，呈现客船航向控制与船载稳定平台两个工程对象。
+- 课程信息图使用 `4-1-info.png`，呈现“对象证据 -> 指标角色 -> 区域分层 -> 任务表达卡”的学习路径。
+- 导入问题卡固定写明：
+  - 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？
+  - 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？
 
 ### 互动升级点
 
@@ -117,43 +118,36 @@
 ### 预览口径
 
 - 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01`
-- 对齐要求：首屏直接出现路径图、主问题卡和边界卡，无空白互动容器。
+- 对齐要求：首屏直接出现封面情境图、课程信息图和导入问题，无空白互动容器。
 
 ---
 
-## 步骤 02｜学习目标与边界：4-1 只负责写任务书
+## 步骤 02｜本次课程目标
 
 ### 页面骨架
 
 - 模板：`goal_boundary_slide`
 - 主阅读顺序：
-  - `学习目标`
-  - `本课负责`
-  - `本课不负责`
+  - `本次课程目标`
 - 区域：
   - `goals`：四项目标卡
-  - `boundary`：负责 / 不负责边界表
 
 ### 模块清单
 
 - `goal-cards`：四项目标卡
-- `boundary-table`：边界表
 
 ### 固定内容
 
 - 四项目标卡固定写明：
-  - 会解释为什么同一套证据会导出不同排序；
-  - 会区分时域、频域、积分误差各自回答的问题；
-  - 会把指标改写成硬约束、软目标和观察指标；
-  - 会写出可交给 `4-2/4-3/4-4` 的任务表达卡。
-- 边界表固定写明：
-  - 本课负责：双案例联读、指标角色回收、任务表达卡、区域分层、误判清单；
-  - 本课不负责：控制结构选择、参数试探、最优解搜索。
+  - 解释同一套跨域证据在不同工程场景中导出不同任务排序的原因；
+  - 区分时域、频域与积分误差指标分别回答的问题；
+  - 判别指标在任务书中承担硬约束、软目标或观察指标的角色；
+  - 撰写包含对象、目标、约束、优先级与证据来源的任务表达卡。
 
 ### 互动升级点
 
 - 主类型：`none`
-- 本页纯静态承载，边界表承担全部知识表达，不添加装饰性互动。
+- 本页纯静态承载，只呈现本次课程目标，不添加提交区或装饰性互动。
 
 ### 埋点与教师数据
 
@@ -163,7 +157,7 @@
 ### 预览口径
 
 - 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02`
-- 对齐要求：目标卡与边界表必须同屏可见，不折叠成摘要。
+- 对齐要求：只呈现布鲁姆动词驱动的本次课程目标，不增加目标说明、边界说明或提交模块。
 
 ---
 
@@ -173,9 +167,8 @@
 
 - 模板：`question_stack`
 - 主阅读顺序：
-  - `场景提示`
+  - `前测基本知识点`
   - `三题预判`
-  - `误区提示`
 - 区域：
   - `question-stack`：三题纵向堆叠
   - `submit-bar`：提交与反馈条
@@ -188,11 +181,8 @@
 
 ### 固定内容
 
+- 标题模块文案只写本页考察的基本知识点：控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。
 - 三道题干全部明文落页，并明确引用“客船航向控制”“稳定平台”两个对象。
-- 误区提示固定列出：
-  - 稳定不是任务完成；
-  - 更大带宽不是无条件更优；
-  - 没有排序的任务卡不能交给后续课。
 
 ### 互动升级点
 
@@ -664,47 +654,31 @@
 
 ---
 
-## 步骤 12｜后测与收束：先写任务，再谈方法
+## 步骤 12｜后测：先写任务，再谈方法
 
 ### 页面骨架
 
 - 模板：`summary_quiz_board`
 - 主阅读顺序：
   - `后测题组`
-  - `四句带走`
-  - `后续去向`
 - 区域：
   - `quiz`：后测题组
-  - `summary`：四句带走与本讲产出
-  - `next-step`：`4-2/4-3/4-4` 去向卡
 
 ### 模块清单
 
 - `post-quiz-group`：三题后测
-- `takeaway-cards`：四句带走卡
-- `output-summary`：本讲产出卡
-- `next-step-cards`：后续去向卡
 
 ### 固定内容
 
 - 后测题组固定围绕三类判断：
-  - 为什么客船和稳定平台会对同一套证据写出不同排序；
-  - 为什么稳定不等于任务完成；
-  - 进入 `4-2` 前最先必须保留哪类输入信息。
-- 四句带走固定写明：
-  - 稳定只是设计起点，不是设计终点；
-  - 同一套跨域证据会因为工程场景不同而读出不同任务排序；
-  - 真正进入设计前，必须先把最紧矛盾、硬约束、软目标、观察指标、证据来源写成任务表达卡；
-  - 可行域不等于满意域，满意域也不等于最优域。
-- 去向卡固定说明：
-  - `4-2` 解释结构；
-  - `4-3` 形成起步方向；
-  - `4-4` 用失败诊断回看任务卡。
+  - 4-1 的出口是任务表达卡；
+  - 可行域、满意域和最优域必须分层；
+  - 同一套分析图会因工程场景不同读出不同排序。
 
 ### 互动升级点
 
 - 主类型：`quiz_group`
-- 作答模型：客观题即时判定，解释题提交后由教师揭示参考答案。
+- 作答模型：三道客观题，每题独立提交。
 - 反馈规则：后测只收束主线，不新增新概念。
 
 ### 埋点与教师数据
@@ -715,4 +689,55 @@
 ### 预览口径
 
 - 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12`
-- 对齐要求：后测题组、四句带走和去向卡必须同页完整收束；总结页必须能独立复习。
+- 对齐要求：本页只呈现后测题组；总结内容移至步骤 13。
+
+---
+
+## 步骤 13｜总结：任务表达卡成为后续设计输入
+
+### 页面骨架
+
+- 模板：`summary_quiz_board`
+- 主阅读顺序：
+  - `课程信息图`
+  - `四句带走`
+  - `课堂表现统计`
+- 区域：
+  - `infograph`：课程信息图
+  - `summary`：四句带走与后续去向
+  - `stats`：个人或班级课堂表现统计
+
+### 模块清单
+
+- `lesson-infograph`：`4-1-info.png`
+- `takeaway-cards`：四句带走卡
+- `next-step-cards`：后续去向卡
+- `course-stat-panel`：课堂表现统计
+
+### 固定内容
+
+- 课程信息图必须位于总结页顶部。
+- 四句带走固定写明：
+  - 稳定只是设计起点，不是设计终点；
+  - 同一套跨域证据会因为工程场景不同而读出不同任务排序；
+  - 进入设计前必须把最紧矛盾、硬约束、软目标、观察指标和证据来源写成任务表达卡；
+  - 可行域不等于满意域，满意域也不等于最优域。
+- 去向卡固定说明：
+  - `4-2` 按任务筛选可行结构；
+  - `4-3` 按任务卡形成初始方案方向；
+  - `4-4` 用失败诊断回看任务表达是否准确。
+
+### 互动升级点
+
+- 主类型：`none`
+- 本页不再承担后测提交；学生端显示个人浏览、提交、前后测和参数探索统计，教师端显示班级整体表现统计。
+
+### 埋点与教师数据
+
+- 埋点摘要：`viewed`、`timeOnStep`、`submittedPages`、`parameterSnapshots`
+- 教师聚合：`class_summary_stats`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-13`
+- 对齐要求：总结页顶部显示课程信息图；学生端显示个人课堂表现统计，教师端显示班级整体表现统计；本页无提交区。

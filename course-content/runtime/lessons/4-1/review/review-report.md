@@ -13,11 +13,12 @@
 - 已将 `design/4-1-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 已覆盖讲义中的核心证据单元、主阅读顺序与曲线图镜像要求。
 - 已检测到 `4-1` 的 V2 互动契约，步骤字段完整。
 - 已检测到 `4-1` 的本地实现契约与作者态互动契约一致。
-- manifest audit pass: 12 steps, 40 modules, 0 issues
+- manifest audit pass: 13 steps, 40 modules, 0 issues
+- 以下 handout_anchor 未在讲义标题中命中：## 二、先做“同图异读”，再回收最小指标语言
 - 检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。
+- 旧版 runtime 审查产物时间早于作者态文件，已按旧课兼容口径降为提示，请后续补齐新版接受文件与审查导出。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

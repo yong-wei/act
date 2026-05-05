@@ -1,0 +1,78 @@
+{
+  "lesson_id": "5-5",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-5/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/5-5/nodes",
+  "card_order": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "强化学习控制回报_5_55003",
+    "航向控制RL环境_5_55004",
+    "策略学习安全外壳_5_55005",
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "强化学习控制回报_5_55003",
+    "航向控制RL环境_5_55004",
+    "策略学习安全外壳_5_55005",
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "missing_source_files": {
+    "显式控制律与学习策略_5_55001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "策略学习进入条件_5_55002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "强化学习控制回报_5_55003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "航向控制RL环境_5_55004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "策略学习安全外壳_5_55005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "RL调度PID_5_55006": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "训练覆盖与部署验证_5_55007": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "四路线策略评价_5_55008": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

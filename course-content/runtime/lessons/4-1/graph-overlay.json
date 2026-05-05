@@ -533,7 +533,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-4",
           "nodeId": "设计任务表达卡_4_41001"
         },
         "createdAt": null,
@@ -548,7 +548,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-4",
           "nodeId": "设计任务表达卡_4_41001"
         }
       ],
@@ -681,7 +681,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
           "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
           "title": "调节时间 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "调节时间_4_d3f3314b"
         },
         "createdAt": "2026-02-04T17:54:16.628302",
@@ -696,7 +696,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
           "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
           "title": "调节时间 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "调节时间_4_d3f3314b"
         }
       ],
@@ -792,8 +792,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 113.1,
-      "positionY": -113.1,
+      "positionX": 143.8,
+      "positionY": 83.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -829,7 +829,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "带宽频率_5_6996a44a"
         },
         "createdAt": "2026-02-04T17:54:16.628615",
@@ -844,7 +844,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "带宽频率_5_6996a44a"
         }
       ],
@@ -862,8 +862,8 @@
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "positionX": 143.8,
-      "positionY": -83.0,
+      "positionX": -149.0,
+      "positionY": 86.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -901,7 +901,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "相角裕度_5_5a74b451"
         },
         "createdAt": "2026-02-04T17:54:16.628585",
@@ -916,7 +916,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "相角裕度_5_5a74b451"
         }
       ],
@@ -934,8 +934,8 @@
       "name": "谐振峰值Mr",
       "nodeType": "THEORY",
       "description": "谐振峰值Mr是闭环幅频特性曲线的最大值，用于衡量系统的相对稳定性和振荡倾向。",
-      "positionX": -121.6,
-      "positionY": -121.6,
+      "positionX": -46.1,
+      "positionY": 171.9,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -1001,8 +1001,8 @@
       "name": "超调量",
       "nodeType": "THEORY",
       "description": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
-      "positionX": -86.0,
-      "positionY": -149.0,
+      "positionX": -89.0,
+      "positionY": 154.2,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1035,7 +1035,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
           "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
           "title": "超调量 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "超调量_5_3d015714"
         },
         "createdAt": "2026-02-04T17:54:16.628685",
@@ -1050,7 +1050,7 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
           "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
           "title": "超调量 信息图",
-          "lessonId": "4-1",
+          "lessonId": "4-5",
           "nodeId": "超调量_5_3d015714"
         }
       ],
@@ -1224,7 +1224,7 @@
       "strength": 0.76
     },
     {
-      "id": "rel-0bc7975889042521-8",
+      "id": "rel-0bc7975889042521-13",
       "sourceId": "相角裕度_5_5a74b451",
       "targetId": "指标角色重组_4_41002",
       "relation": "cross_domain",
@@ -1232,7 +1232,7 @@
       "strength": 0.92
     },
     {
-      "id": "rel-ca26700522b4b63e-8",
+      "id": "rel-ca26700522b4b63e-13",
       "sourceId": "相角裕度_5_5a74b451",
       "targetId": "跨域联读任务重排_4_41005",
       "relation": "cross_domain",

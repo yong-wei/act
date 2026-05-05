@@ -1,0 +1,16 @@
+{"source_id":"数据驱动控制_5_54003","source":"数据驱动控制","target_id":"显式控制律与学习策略_5_55001","target":"显式控制律与学习策略","relation_type":"leads_to","strength":0.88,"label":"模型依赖松动之后，进一步出现显式动作结构难以完整写出的策略学习入口。"}
+{"source_id":"控制在自主系统链路中的位置_5_53002","source":"控制在自主系统链路中的位置","target_id":"显式控制律与学习策略_5_55001","target":"显式控制律与学习策略","relation_type":"prerequisite","strength":0.86,"label":"复杂自主系统链路中的控制位置是理解显式控制律与学习策略分工的前提。"}
+{"source_id":"方法迁移前边界说明_5_51005","source":"方法迁移前边界说明","target_id":"策略学习进入条件_5_55002","target":"策略学习进入条件","relation_type":"leads_to","strength":0.9,"label":"只有先写清方法迁移边界，才能判断策略学习是否有合法入口。"}
+{"source_id":"显式控制律与学习策略_5_55001","source":"显式控制律与学习策略","target_id":"策略学习进入条件_5_55002","target":"策略学习进入条件","relation_type":"leads_to","strength":0.94,"label":"动作生成机制从显式结构转向学习策略后，必须检查任务、样本、回报、验证和监控条件。"}
+{"source_id":"显式控制律与学习策略_5_55001","source":"显式控制律与学习策略","target_id":"强化学习控制回报_5_55003","target":"强化学习控制回报","relation_type":"leads_to","strength":0.9,"label":"学习策略的目标需要通过回报函数把控制目标和风险写入训练过程。"}
+{"source_id":"强化学习控制回报_5_55003","source":"强化学习控制回报","target_id":"航向控制RL环境_5_55004","target":"航向控制RL环境","relation_type":"applies_to","strength":0.9,"label":"回报函数在航向控制 RL 环境中落成误差、舵角、舵速和安全退化等训练信号。"}
+{"source_id":"船舶航向控制对象_2_21004","source":"船舶航向控制对象","target_id":"航向控制RL环境_5_55004","target":"航向控制RL环境","relation_type":"applies_to","strength":0.88,"label":"航向控制 RL 环境以船舶航向控制对象为工程载体。"}
+{"source_id":"策略学习进入条件_5_55002","source":"策略学习进入条件","target_id":"策略学习安全外壳_5_55005","target":"策略学习安全外壳","relation_type":"leads_to","strength":0.9,"label":"进入条件中的安全和监控要求引出动作限幅、降级接管与运行边界监控。"}
+{"source_id":"航向控制RL环境_5_55004","source":"航向控制RL环境","target_id":"策略学习安全外壳_5_55005","target":"策略学习安全外壳","relation_type":"leads_to","strength":0.86,"label":"航向控制环境中的舵角、舵速、误差放大和角速度边界需要安全外壳约束。"}
+{"source_id":"策略学习安全外壳_5_55005","source":"策略学习安全外壳","target_id":"RL调度PID_5_55006","target":"RL调度PID","relation_type":"leads_to","strength":0.88,"label":"安全外壳说明学习策略更适合先进入参数调度或补偿层，而不是直接取消显式控制器。"}
+{"source_id":"模型数据责任分配_5_54007","source":"模型数据责任分配","target_id":"RL调度PID_5_55006","target":"RL调度PID","relation_type":"cross_domain","strength":0.82,"label":"RL 调度 PID 是模型主干、学习策略和安全约束分担责任的一种具体结构。"}
+{"source_id":"数据覆盖与泛化边界_5_54005","source":"数据覆盖与泛化边界","target_id":"训练覆盖与部署验证_5_55007","target":"训练覆盖与部署验证","relation_type":"prerequisite","strength":0.9,"label":"策略部署前必须把数据覆盖和泛化边界转化为训练覆盖、独立测试与压力测试。"}
+{"source_id":"策略学习安全外壳_5_55005","source":"策略学习安全外壳","target_id":"训练覆盖与部署验证_5_55007","target":"训练覆盖与部署验证","relation_type":"leads_to","strength":0.9,"label":"安全外壳触发次数和退化记录是部署验证中的关键证据。"}
+{"source_id":"RL调度PID_5_55006","source":"RL调度PID","target_id":"四路线策略评价_5_55008","target":"四路线策略评价","relation_type":"leads_to","strength":0.92,"label":"RL 调度 PID 需要与 PID、直接控舵 RL 和安全外壳 RL 放在同一边缘场景中比较。"}
+{"source_id":"训练覆盖与部署验证_5_55007","source":"训练覆盖与部署验证","target_id":"四路线策略评价_5_55008","target":"四路线策略评价","relation_type":"leads_to","strength":0.9,"label":"训练覆盖和部署验证要求评价不只看误差，还要看超调、舵角、舵速和安全退化。"}
+{"source_id":"设计任务表达卡_4_41001","source":"设计任务表达卡","target_id":"策略学习进入条件_5_55002","target":"策略学习进入条件","relation_type":"cross_domain","strength":0.82,"label":"策略学习入口判断仍需回到控制目标、硬约束、软目标和证据来源。"}

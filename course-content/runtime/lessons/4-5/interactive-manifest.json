@@ -109,7 +109,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -226,7 +227,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "阅读课程目标。"
+        "student_task": "阅读课程目标。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -439,7 +441,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "对照收益与工程复核。"
+        "student_task": "对照收益与工程复核。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -512,31 +515,77 @@
           "id": "constraint-formula",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "constraint_formula"
+          }
         },
         {
           "id": "risk-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "risk_table",
+            "columns": [
+              "硬约束",
+              "挡住的风险",
+              "若不显性写出会发生什么"
+            ],
+            "rows": [
+              [
+                {
+                  "kind": "math",
+                  "value": "M_p\\le 20\\%"
+                },
+                "舒适性与修航平稳程度",
+                "把越摆当作可无限接受的提速代价"
+              ],
+              [
+                {
+                  "kind": "math",
+                  "value": "u_{\\max}\\le 7"
+                },
+                "执行机构物理能力",
+                "候选解看似更快，实际已不可实现"
+              ],
+              [
+                {
+                  "kind": "math",
+                  "value": "\\varphi_m\\ge 45^\\circ"
+                },
+                "闭环稳健性储备",
+                "只看时域变快，不看模型偏差和扰动下的脆弱性"
+              ]
+            ]
+          }
         },
         {
           "id": "delivery-conclusion",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "delivery_conclusion"
+          }
         },
         {
           "id": "constraint-role-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "constraint_formula"
+          }
         },
         {
           "id": "misread-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "constraint_formula"
+          }
         }
       ],
       "content_blocks": {
@@ -676,25 +725,67 @@
           "id": "range-formula",
           "region": "top",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "range_formula"
+          }
         },
         {
           "id": "role-summary",
           "region": "top",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "role_summary"
+          }
         },
         {
           "id": "role-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "role_table",
+            "columns": [
+              "设计对象",
+              "在模型中的角色",
+              "具体职责"
+            ],
+            "rows": [
+              [
+                {
+                  "kind": "math",
+                  "value": "K,T,\\alpha"
+                },
+                "参数范围",
+                "维持固定结构可解释区间，告诉搜索只能在这一结构语义内移动"
+              ],
+              [
+                "超调、控制峰值、相角裕度",
+                "硬约束",
+                "结果越界时进入罚函数或直接判为不可行"
+              ],
+              [
+                "调节时间、ITAE、控制能量",
+                "软目标",
+                "在守住边界后继续争取更好表现"
+              ],
+              [
+                "ITSE、截止频率、幅值裕度",
+                "复核项",
+                "求解后解释为什么当前结果可信而不是偶然数值"
+              ]
+            ]
+          }
         },
         {
           "id": "role-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "range_formula"
+          }
         }
       ],
       "content_blocks": {
@@ -826,31 +917,51 @@
           "id": "jfree-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "jfree_card"
+          }
         },
         {
           "id": "jcon-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "jcon_card"
+          }
         },
         {
           "id": "penalty-card",
           "region": "formula",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "penalty_card"
+          }
         },
         {
           "id": "explain-reveal",
           "region": "explain",
           "kind": "step-reveal",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "explain_reveal",
+            "items": [
+              "只要三条硬约束都未越界，$P(\\theta)=0$，搜索仍按原有偏好推进。",
+              "一旦某一项越界，罚项开始增大，总代价不再只奖励更快或更省。",
+              "越界越严重，罚项增长越快，搜索会被推回可交付区域。"
+            ]
+          }
         },
         {
           "id": "rule-conclusion",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "rule_conclusion"
+          }
         }
       ],
       "content_blocks": {
@@ -893,7 +1004,19 @@
         "step_reveal_policy": {
           "min_layers": 3,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-06-activity",
+            "title": "理解偏好没变，规则变了。",
+            "prompt": "理解偏好没变，规则变了。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -965,25 +1088,139 @@
           "id": "solver-input-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "solver_input_table",
+            "columns": [
+              "项目",
+              "当前写法",
+              "作用"
+            ],
+            "rows": [
+              [
+                "对象",
+                {
+                  "kind": "math",
+                  "value": "P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}"
+                },
+                "提供被控对象模型"
+              ],
+              [
+                "结构",
+                {
+                  "kind": "math",
+                  "value": "C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1}"
+                },
+                "固定参数化形式"
+              ],
+              [
+                "起点与范围",
+                {
+                  "kind": "math",
+                  "value": "x_0=[2.796,\\ 10,\\ 0.406]^\\mathsf{T},\\ lb=[1,\\ 4,\\ 0.15]^\\mathsf{T},\\ ub=[6,\\ 15,\\ 0.85]^\\mathsf{T}"
+                },
+                "告诉搜索从哪里出发、能走到哪里"
+              ],
+              [
+                "目标函数",
+                {
+                  "kind": "math",
+                  "value": "J_B(\\theta)=0.30\\dfrac{t_s(\\theta)}{40}+0.30\\dfrac{\\mathrm{ITAE}(\\theta)}{\\mathrm{ITAE}_0}+0.20\\dfrac{\\mathrm{ITSE}(\\theta)}{\\mathrm{ITSE}_0}+0.20\\dfrac{E_u(\\theta)}{E_{u,0}}"
+                },
+                "告诉求解器想把什么继续压低"
+              ],
+              [
+                "约束函数",
+                {
+                  "kind": "math",
+                  "value": "M_p\\le 20\\%,\\quad u_{\\max}\\le 7,\\quad \\varphi_m\\ge 45^\\circ"
+                },
+                "把交付边界写成可行性判定"
+              ]
+            ]
+          }
         },
         {
           "id": "solver-chain",
           "region": "chain",
           "kind": "step-reveal",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "solver_chain",
+            "items": [
+              "先给出 $x_0/lb/ub$，让搜索知道从哪里出发、能走到哪里。",
+              "再写 $objective$，把上一课保留下来的偏好继续保留下来。",
+              "再写 $nonlcon$，把三条硬约束显式交给求解器。",
+              "随后调用 $fmincon$，让它在边界内重新搜索。",
+              "求解结果先回读成 $x_\\star$，不要直接跳到“优化成功”。",
+              "最后把 $x_\\star$ 翻译成 $C_\\star(s)$，再回到控制器结构解释结果。"
+            ]
+          }
         },
         {
           "id": "solver-conclusion",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "solver_conclusion"
+          }
         },
         {
           "id": "solver-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "solver_input_table",
+            "columns": [
+              "项目",
+              "当前写法",
+              "作用"
+            ],
+            "rows": [
+              [
+                "对象",
+                {
+                  "kind": "math",
+                  "value": "P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}"
+                },
+                "提供被控对象模型"
+              ],
+              [
+                "结构",
+                {
+                  "kind": "math",
+                  "value": "C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1}"
+                },
+                "固定参数化形式"
+              ],
+              [
+                "起点与范围",
+                {
+                  "kind": "math",
+                  "value": "x_0=[2.796,\\ 10,\\ 0.406]^\\mathsf{T},\\ lb=[1,\\ 4,\\ 0.15]^\\mathsf{T},\\ ub=[6,\\ 15,\\ 0.85]^\\mathsf{T}"
+                },
+                "告诉搜索从哪里出发、能走到哪里"
+              ],
+              [
+                "目标函数",
+                {
+                  "kind": "math",
+                  "value": "J_B(\\theta)=0.30\\dfrac{t_s(\\theta)}{40}+0.30\\dfrac{\\mathrm{ITAE}(\\theta)}{\\mathrm{ITAE}_0}+0.20\\dfrac{\\mathrm{ITSE}(\\theta)}{\\mathrm{ITSE}_0}+0.20\\dfrac{E_u(\\theta)}{E_{u,0}}"
+                },
+                "告诉求解器想把什么继续压低"
+              ],
+              [
+                "约束函数",
+                {
+                  "kind": "math",
+                  "value": "M_p\\le 20\\%,\\quad u_{\\max}\\le 7,\\quad \\varphi_m\\ge 45^\\circ"
+                },
+                "把交付边界写成可行性判定"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1242,7 +1479,10 @@
           "id": "same-weight-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "same_weight_figure"
+          }
         }
       ],
       "content_blocks": {
@@ -1447,7 +1687,19 @@
         "step_reveal_policy": {
           "min_layers": 2,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-09-activity",
+            "title": "理解约束内的收益如何被权重重新分配。",
+            "prompt": "理解约束内的收益如何被权重重新分配。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1612,7 +1864,19 @@
         "step_reveal_policy": {
           "min_layers": 1,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-10-activity",
+            "title": "理解结构改变会把最优区间带向何处。",
+            "prompt": "理解结构改变会把最优区间带向何处。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1680,31 +1944,101 @@
           "id": "closure-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closure_table",
+            "columns": [
+              "指标",
+              "4-3 起始方案",
+              "越界无约束候选",
+              "4-5 带约束可用解"
+            ],
+            "rows": [
+              [
+                "超调 / %",
+                "18.8636",
+                "20.2410",
+                "1.8194"
+              ],
+              [
+                "调节时间 / s",
+                "36.0",
+                "19.6",
+                "15.4"
+              ],
+              [
+                "ITAE",
+                "63.6924",
+                "20.1632",
+                "37.7835"
+              ],
+              [
+                "ITSE",
+                "16.5282",
+                "5.3330",
+                "16.4860"
+              ],
+              [
+                "控制能量",
+                "125.7148",
+                "774.9575",
+                "79.7669"
+              ],
+              [
+                "控制峰值",
+                "6.8867",
+                "25.0000",
+                "6.9960"
+              ],
+              [
+                "相角裕度 / deg",
+                "49.0462",
+                "47.8274",
+                "67.6942"
+              ]
+            ]
+          }
         },
         {
           "id": "acceptance-criteria",
           "region": "criteria",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "acceptance_criteria"
+          }
         },
         {
           "id": "margin-warning",
           "region": "criteria",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "margin_warning"
+          }
         },
         {
           "id": "closure-summary",
           "region": "summary",
           "kind": "step-reveal",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closure_summary",
+            "items": [
+              "无约束候选把收益建立在越界代价上。",
+              "带约束可用解把优化重新拉回可用设计空间。",
+              "当前结果可接受，但固定结构边界并未解决。"
+            ]
+          }
         },
         {
           "id": "forward-link",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "forward_link"
+          }
         }
       ],
       "content_blocks": {
@@ -1796,7 +2130,19 @@
         "step_reveal_policy": {
           "min_layers": 3,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-11-activity",
+            "title": "理解当前结果为何可接受但不是终局。",
+            "prompt": "理解当前结果为何可接受但不是终局。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1864,31 +2210,46 @@
           "id": "posttest-header",
           "region": "intro",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_header"
+          }
         },
         {
           "id": "posttest-q1",
           "region": "quiz",
           "kind": "quiz-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_note"
+          }
         },
         {
           "id": "posttest-q2",
           "region": "quiz",
           "kind": "quiz-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_header"
+          }
         },
         {
           "id": "posttest-q3",
           "region": "quiz",
           "kind": "quiz-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_header"
+          }
         },
         {
           "id": "posttest-note",
           "region": "review",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "posttest_note"
+          }
         }
       ],
       "content_blocks": {
@@ -2046,7 +2407,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "阅读总结。"
+        "student_task": "阅读总结。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
