@@ -37,16 +37,24 @@ export function resolveLearningFactActionType(event: LearningEvent): string {
   return resolveCanonicalEventType(event.actionType, payload);
 }
 
-export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningFactCreateManyInput | null {
-  const actionType = resolveLearningFactActionType(event);
-  if (!isCoreEvent(actionType)) {
-    return null;
+function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
+  if (isCoreEvent(actionType)) {
+    return true;
   }
 
+  return actionType === 'workspace_param_change' && payload.sampled === true;
+}
+
+export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningFactCreateManyInput | null {
+  const actionType = resolveLearningFactActionType(event);
   const payload =
     event.payload && typeof event.payload === 'object'
       ? event.payload
       : {};
+
+  if (!shouldMaterializeLearningFact(actionType, payload)) {
+    return null;
+  }
 
   if (payload.afterSessionEnd === true && payload.countAfterSessionEnd !== true) {
     return null;
@@ -55,7 +63,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
   return {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),
-    moduleId: event.moduleId ?? readString(payload.moduleId),
+    moduleId: event.moduleId ?? readString(payload.moduleId) ?? readString(payload.stepId),
     sessionId: event.sessionId ?? readString(payload.sessionId),
     startedAt: new Date(event.occurredAt),
     finishedAt: new Date(event.occurredAt),

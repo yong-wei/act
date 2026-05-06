@@ -9,6 +9,9 @@ export interface Unit55RlTrainingRequest {
   trainingType: Unit55RlTrainingType;
   seed: number;
   trainingEpisodes: number;
+  episodeChunk?: number;
+  evaluate?: boolean;
+  trainingState?: Unit55RlTrainingState | null;
   selectedParameters: Record<string, string | number>;
 }
 
@@ -25,6 +28,8 @@ export interface Unit55ComparisonPoint {
   rl: number;
   rudderPid: number;
   rudderRl: number;
+  disturbance: number;
+  edgeScenario: number;
 }
 
 export interface Unit55RlTrainingMetrics {
@@ -37,6 +42,13 @@ export interface Unit55RlTrainingMetrics {
   cumulativeReward: number;
 }
 
+export interface Unit55RlTrainingState {
+  nextEpisode: number;
+  qTable: number[][];
+  rewardWindow: number[];
+  rewardHistory: Unit55RewardPoint[];
+}
+
 export interface Unit55RlTrainingResult {
   panelKind: string;
   trainingType: Unit55RlTrainingType;
@@ -44,9 +56,11 @@ export interface Unit55RlTrainingResult {
   selectedParameters: Record<string, string>;
   trainingEpisodes: number;
   rewardCurve: Unit55RewardPoint[];
+  rewardChunk: Unit55RewardPoint[];
   comparisonTrace: Unit55ComparisonPoint[];
   metrics: Unit55RlTrainingMetrics;
   safetyFallbackCount: number;
+  trainingState: Unit55RlTrainingState | null;
 }
 
 let initPromise: Promise<void> | null = null;

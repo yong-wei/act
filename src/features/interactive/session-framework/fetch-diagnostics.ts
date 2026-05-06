@@ -64,13 +64,42 @@ function baseTelemetry(input: Omit<FetchTelemetryInput, 'error'>): FetchFailureT
   };
 }
 
+export function resolveFetchFailureKind({
+  errorName,
+  elapsedMs,
+  timeoutMs,
+}: {
+  errorName: string | null;
+  elapsedMs: number;
+  timeoutMs?: number | null;
+}) {
+  if (errorName === 'TimeoutError') {
+    return 'timeout';
+  }
+  if (errorName === 'AbortError') {
+    return timeoutMs && elapsedMs >= timeoutMs - 100 ? 'timeout' : 'aborted';
+  }
+  if (errorName === 'TypeError') {
+    return 'network';
+  }
+  return 'unknown';
+}
+
 export function buildFetchFailureTelemetry(input: FetchTelemetryInput): FetchFailureTelemetry {
   const error = input.error instanceof Error ? input.error : null;
+  const telemetry = baseTelemetry(input);
+  const elapsedMs = typeof telemetry.elapsedMs === 'number' ? telemetry.elapsedMs : 0;
+  const failureKind = resolveFetchFailureKind({
+    errorName: error?.name ?? null,
+    elapsedMs,
+    timeoutMs: input.timeoutMs ?? null,
+  });
   return {
-    ...baseTelemetry(input),
+    ...telemetry,
     errorName: error?.name ?? typeof input.error,
     errorMessage: error?.message ?? 'Unknown fetch failure',
-    timedOut: error?.name === 'AbortError',
+    failureKind,
+    timedOut: failureKind === 'timeout',
   };
 }
 

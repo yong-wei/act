@@ -221,27 +221,25 @@ steps:
 
   step-10:
     title: '进入条件与风险矩阵'
-    layout: { template: 'risk_matrix_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'tables', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    layout: { template: 'risk_matrix_board', regions: [{ id: 'tables', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'risk-matrix-figure', title: '策略学习进入风险矩阵', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-rl-entry-risk-matrix.png', block_key: 'figure_reading', caption_key: 'figure_reading' } }
       - { id: 'risk-matrix-table', title: '判断矩阵与收益代价', region: 'tables', kind: 'native-table', must_be_visible: true, payload: { block_key: 'matrix_table' } }
       - { id: 'risk-match', title: '风险矩阵归类', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['risk-match'] } }
     content_blocks:
-      figure_reading: '先看显式控制律可写性，再看样本、安全、可解释性和部署监控是否闭合。'
       matrix_table: { type: 'native_table', columns: ['证据项', '适合进入', '需要补证据', '暂不进入'], rows: [['显式控制律可写性', '结构难以枚举但目标清楚', '部分环节难以表达', '固定结构已可靠'], ['样本条件', '边界样本覆盖充分', '只覆盖温和工况', '关键状态缺失'], ['安全要求', '保护层闭合', '安全项或接管不完整', '执行约束未写入'], ['可解释性', '可给出输入输出和拒绝逻辑', '只解释部分动作', '无法说明危险动作来源'], ['部署监控', '异常检测和接管机制清楚', '监控指标未闭合', '没有监控和退化路径']] }
-    evidence_sequence: ['风险矩阵图', '判断矩阵表', '收益代价表', '匹配题']
+    evidence_sequence: ['原生风险矩阵表', '收益代价表', '匹配题']
     interaction_spec:
       interaction_kind: 'drag_match'
       student_task: '把四种条件状态归入矩阵判断。'
       activity_cards:
-        - { id: 'risk-match', title: '进入风险归类', prompt: '把四种条件状态分别匹配到暂不进入、需要补证据或适合进入。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'fixed-reliable', label: '固定结构已可靠' }, { value: 'mild-only', label: '只覆盖温和工况' }, { value: 'monitor-open', label: '监控指标未闭合' }, { value: 'hard-enumerate', label: '结构难以枚举但目标清楚' }], match_options: [{ value: 'not-enter', label: '暂不进入' }, { value: 'need-evidence', label: '需要补证据' }, { value: 'fit-entry', label: '适合进入' }], reference_matches: [{ item: 'fixed-reliable', option: 'not-enter' }, { item: 'mild-only', option: 'need-evidence' }, { item: 'monitor-open', option: 'need-evidence' }, { item: 'hard-enumerate', option: 'fit-entry' }], options: ['暂不进入', '需要补证据', '适合进入'], reference_answer: '固定结构已可靠 -> 暂不进入；只覆盖温和工况、监控指标未闭合 -> 需要补证据；结构难以枚举但目标清楚 -> 适合进入。' }
+        - { id: 'risk-match', title: '进入风险归类', prompt: '把四种条件状态分别匹配到暂不进入、需要补证据或适合进入。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'fixed-reliable', label: '固定结构已可靠' }, { value: 'mild-only', label: '只覆盖温和工况' }, { value: 'monitor-open', label: '监控指标未闭合' }, { value: 'hard-enumerate', label: '结构难以枚举但目标清楚' }], match_options: [{ value: 'not-enter', label: '暂不进入' }, { value: 'need-evidence-sample', label: '需要补证据：补边缘样本' }, { value: 'need-evidence-monitor', label: '需要补证据：闭合监控' }, { value: 'fit-entry', label: '适合进入' }], reference_matches: [{ item: 'fixed-reliable', option: 'not-enter' }, { item: 'mild-only', option: 'need-evidence-sample' }, { item: 'monitor-open', option: 'need-evidence-monitor' }, { item: 'hard-enumerate', option: 'fit-entry' }], options: ['暂不进入', '需要补证据：补边缘样本', '需要补证据：闭合监控', '适合进入'], reference_answer: '固定结构已可靠 -> 暂不进入；只覆盖温和工况 -> 需要补边缘样本；监控指标未闭合 -> 需要闭合监控；结构难以枚举但目标清楚 -> 适合进入。' }
     teacher_controls: *quiz_controls
     student_access: *released_activity_access
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['frontier_preference_over_evidence'] }
     teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
     ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把是否进入 RL 表述成证据矩阵判断，而不是方法偏好。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-10', must_match_student_page: true }
-    acceptance_checks: ['风险矩阵图片和表格必须常显；匹配题必须区分适合进入、需要补证据和暂不进入。']
+    acceptance_checks: ['风险矩阵必须使用原生表格常显；匹配题必须提供四个可分配备选项，区分适合进入、需要补证据和暂不进入。']
 
   step-11:
     title: '航向控制中的三类 RL 进入结构'
@@ -298,7 +296,7 @@ steps:
       - { id: 'reward-reveal-chain', title: '奖励项与 Q-learning 更新显影链', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
     content_blocks:
       reward_formula: { type: 'formula_group', formulas: ['r_k=-w_e e_{\\psi,k}^2-w_r r_k^2-w_\\delta \\delta_k^2-w_{\\Delta\\delta}(\\delta_k-\\delta_{k-1})^2-w_s I_{\\mathrm{safety},k}+r_{\\mathrm{settle},k}'], symbols: [{ symbol: 'w_e', meaning: '惩罚航向误差' }, { symbol: 'w_r', meaning: '惩罚过大偏航角速度' }, { symbol: 'w_\\delta', meaning: '惩罚大舵角' }, { symbol: 'w_{\\Delta\\delta}', meaning: '惩罚频繁打舵' }, { symbol: 'I_{\\mathrm{safety},k}', meaning: '安全边界或接管事件' }, { symbol: 'r_{\\mathrm{settle},k}', meaning: '稳定保持奖励' }], explanation: '奖励函数把好舵手的标准写成可训练目标，但错误奖励会诱发危险捷径。' }
-      reveal_layers: { type: 'reveal_chain', static_hint: '奖励总式和符号常显，奖励分析和 Q-learning 更新式按教师节奏显影。', items: [{ title: '误差项和角速度项', body: '误差项和角速度项约束准和稳，防止策略只追求到达目标而忽略转动过程。' }, { title: '舵角项和舵角变化项', body: '舵角项和舵角变化项约束执行器代价，防止策略用大舵角或高频动作换取短时误差下降。' }, { title: '安全项', body: '安全项把越界、接管或不可信状态写成训练惩罚，避免训练回报掩盖危险行为。' }, { title: 'Q-learning 更新式', body: 'Q(s_k,a_k)\\leftarrow Q(s_k,a_k)+\\alpha\\left[r_k+\\gamma\\max_a Q(s_{k+1},a)-Q(s_k,a_k)\\right]，表示当前估计向即时回报和未来最优估计修正。' }, { title: '工程收束', body: '奖励设计不是算法装饰，而是工程目标、执行器约束和安全责任进入策略学习的入口。' }] }
+      reveal_layers: { type: 'reveal_chain', static_hint: '奖励总式和符号常显，奖励分析和 Q-learning 更新式按教师节奏显影。', items: [{ title: '误差项和角速度项', body: '误差项和角速度项约束准和稳，防止策略只追求到达目标而忽略转动过程。' }, { title: '舵角项和舵角变化项', body: '舵角项和舵角变化项约束执行器代价，防止策略用大舵角或高频动作换取短时误差下降。' }, { title: '安全项', body: '安全项把越界、接管或不可信状态写成训练惩罚，避免训练回报掩盖危险行为。' }, { title: 'Q-learning 更新式', formula: 'Q(s_k,a_k)\\leftarrow Q(s_k,a_k)+\\alpha\\left[r_k+\\gamma\\max_a Q(s_{k+1},a)-Q(s_k,a_k)\\right]', body: '当前估计向即时回报和未来最优估计修正。' }, { title: '工程收束', body: '奖励设计不是算法装饰，而是工程目标、执行器约束和安全责任进入策略学习的入口。' }] }
     evidence_sequence: ['奖励设计目标', '奖励总式', '符号说明', '五层显影链', '收束句']
     interaction_spec: { interaction_kind: 'step_reveal', student_task: '按教师节奏阅读奖励项和 Q-learning 更新式。', step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }, activity_cards: [] }
     teacher_controls: &reveal_controls { release_activity: 'not_applicable', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_controlled', reveal_reference_answer: 'not_applicable' }

@@ -18,6 +18,32 @@ import {
   getCompetencyLabel,
 } from './competency-model';
 
+export interface EvidenceQuestionSummary {
+  questionId?: string;
+  prompt?: string;
+  studentAnswer?: string | null;
+  referenceAnswer?: string;
+  isCorrect?: boolean;
+}
+
+export interface EvidenceDetail {
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: EvidenceQuestionSummary[];
+}
+
+export interface CompetencyEvidenceSummaryItem {
+  factType: string;
+  outcome: string;
+  score?: number;
+  moduleId?: string | null;
+  lessonId?: string | null;
+  sourceLogId?: string | null;
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: EvidenceQuestionSummary[];
+}
+
 // Time windows for calculations
 export type TimeWindow = '2w' | '1m' | '3m' | 'all';
 
@@ -227,21 +253,31 @@ export function calculateTrendVector(
  */
 export function generateEvidenceSummary(
   facts: LearningFact[],
-  topN: number = 3
-): Record<CompetencyDimension, Array<{ factType: string; outcome: string; score?: number }>> {
+  topN: number = 3,
+  evidenceDetails: Record<string, EvidenceDetail> = {},
+): Record<CompetencyDimension, CompetencyEvidenceSummaryItem[]> {
   const grouped = groupFactsByCompetency(facts);
-  const summary = {} as Record<CompetencyDimension, Array<{ factType: string; outcome: string; score?: number }>>;
+  const summary = {} as Record<CompetencyDimension, CompetencyEvidenceSummaryItem[]>;
 
   for (const dimension of COMPETENCY_DIMENSIONS) {
     const dimensionFacts = grouped[dimension] || [];
     summary[dimension] = dimensionFacts
       .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, topN)
-      .map(f => ({
-        factType: f.factType,
-        outcome: f.outcome,
-        score: f.score || undefined,
-      }));
+      .map(f => {
+        const detail = f.sourceLogId ? evidenceDetails[f.sourceLogId] : undefined;
+        return {
+          factType: f.factType,
+          outcome: f.outcome,
+          score: f.score || undefined,
+          moduleId: f.moduleId,
+          lessonId: f.lessonId,
+          sourceLogId: f.sourceLogId,
+          evidenceTitle: detail?.evidenceTitle,
+          stepId: detail?.stepId,
+          questionSummaries: detail?.questionSummaries,
+        };
+      });
   }
 
   return summary;

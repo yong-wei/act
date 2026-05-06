@@ -1494,35 +1494,18 @@
         "template": "risk_matrix_board",
         "regions": [
           {
-            "id": "media",
+            "id": "tables",
             "width": "full",
             "order": 1
           },
           {
-            "id": "tables",
-            "width": "full",
-            "order": 2
-          },
-          {
             "id": "activity",
             "width": "full",
-            "order": 3
+            "order": 2
           }
         ]
       },
       "modules": [
-        {
-          "id": "risk-matrix-figure",
-          "title": "策略学习进入风险矩阵",
-          "region": "media",
-          "kind": "image-panel",
-          "must_be_visible": true,
-          "payload": {
-            "src": "/course-runtime/lessons/5-5/media/5-5-rl-entry-risk-matrix.png",
-            "block_key": "figure_reading",
-            "caption_key": "figure_reading"
-          }
-        },
         {
           "id": "risk-matrix-table",
           "title": "判断矩阵与收益代价",
@@ -1547,7 +1530,6 @@
         }
       ],
       "content_blocks": {
-        "figure_reading": "先看显式控制律可写性，再看样本、安全、可解释性和部署监控是否闭合。",
         "matrix_table": {
           "type": "native_table",
           "columns": [
@@ -1591,8 +1573,7 @@
         }
       },
       "evidence_sequence": [
-        "风险矩阵图",
-        "判断矩阵表",
+        "原生风险矩阵表",
         "收益代价表",
         "匹配题"
       ],
@@ -1631,8 +1612,12 @@
                 "label": "暂不进入"
               },
               {
-                "value": "need-evidence",
-                "label": "需要补证据"
+                "value": "need-evidence-sample",
+                "label": "需要补证据：补边缘样本"
+              },
+              {
+                "value": "need-evidence-monitor",
+                "label": "需要补证据：闭合监控"
               },
               {
                 "value": "fit-entry",
@@ -1646,11 +1631,11 @@
               },
               {
                 "item": "mild-only",
-                "option": "need-evidence"
+                "option": "need-evidence-sample"
               },
               {
                 "item": "monitor-open",
-                "option": "need-evidence"
+                "option": "need-evidence-monitor"
               },
               {
                 "item": "hard-enumerate",
@@ -1659,10 +1644,11 @@
             ],
             "options": [
               "暂不进入",
-              "需要补证据",
+              "需要补证据：补边缘样本",
+              "需要补证据：闭合监控",
               "适合进入"
             ],
-            "reference_answer": "固定结构已可靠 -> 暂不进入；只覆盖温和工况、监控指标未闭合 -> 需要补证据；结构难以枚举但目标清楚 -> 适合进入。"
+            "reference_answer": "固定结构已可靠 -> 暂不进入；只覆盖温和工况 -> 需要补边缘样本；监控指标未闭合 -> 需要闭合监控；结构难以枚举但目标清楚 -> 适合进入。"
           }
         ]
       },
@@ -1707,7 +1693,7 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "风险矩阵图片和表格必须常显；匹配题必须区分适合进入、需要补证据和暂不进入。"
+        "风险矩阵必须使用原生表格常显；匹配题必须提供四个可分配备选项，区分适合进入、需要补证据和暂不进入。"
       ]
     },
     "step-11": {
@@ -2149,7 +2135,8 @@
             },
             {
               "title": "Q-learning 更新式",
-              "body": "Q(s_k,a_k)\\\\leftarrow Q(s_k,a_k)+\\\\alpha\\\\left[r_k+\\\\gamma\\\\max_a Q(s_{k+1},a)-Q(s_k,a_k)\\\\right]，表示当前估计向即时回报和未来最优估计修正。"
+              "formula": "Q(s_k,a_k)\\\\leftarrow Q(s_k,a_k)+\\\\alpha\\\\left[r_k+\\\\gamma\\\\max_a Q(s_{k+1},a)-Q(s_k,a_k)\\\\right]",
+              "body": "当前估计向即时回报和未来最优估计修正。"
             },
             {
               "title": "工程收束",

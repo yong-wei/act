@@ -18,6 +18,24 @@ import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 export const dynamic = 'force-dynamic';
 
+interface EvidenceSummaryItem {
+  factType: string;
+  outcome: string;
+  score?: number;
+  moduleId?: string | null;
+  lessonId?: string | null;
+  sourceLogId?: string | null;
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: Array<{
+    questionId?: string;
+    prompt?: string;
+    studentAnswer?: string | null;
+    referenceAnswer?: string;
+    isCorrect?: boolean;
+  }>;
+}
+
 export interface StudentSnapshotResponse {
   currentSnapshot: {
     vector: CompetencyVector;
@@ -29,7 +47,7 @@ export interface StudentSnapshotResponse {
     snapshotAt: string;
   } | null;
   trendVector: TrendVector;
-  evidenceSummary: Record<string, Array<{ factType: string; outcome: string; score?: number }>>;
+  evidenceSummary: Record<string, EvidenceSummaryItem[]>;
   riskFlags: RiskFlag[];
   recommendations: Array<{
     type: 'immediate' | 'weekly' | 'challenge';
@@ -78,10 +96,7 @@ export async function GET(_request: NextRequest) {
     });
 
     // Get evidence summary from current snapshot
-    const evidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<
-      string,
-      Array<{ factType: string; outcome: string; score?: number }>
-    >) || {};
+    const evidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {};
 
     // Get risk flags
     const rawRiskFlags = await prisma.studentRiskFlag.findMany({
@@ -151,7 +166,7 @@ export async function GET(_request: NextRequest) {
 function generateSnapshotRecommendations(
   vector: CompetencyVector,
   riskFlags: RiskFlag[],
-  _evidenceSummary: Record<string, Array<{ factType: string; outcome: string; score?: number }>>
+  _evidenceSummary: Record<string, EvidenceSummaryItem[]>
 ): StudentSnapshotResponse['recommendations'] {
   const recommendations: StudentSnapshotResponse['recommendations'] = [];
 

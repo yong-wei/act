@@ -14,6 +14,7 @@ const trackingPath = 'src/features/interactive/hooks/useInteractiveTracking.ts';
 const providerPath = 'src/features/interactive/InteractiveProvider.tsx';
 const aiHookPath = 'src/features/interactive/hooks/useInteractiveAI.ts';
 const courseTrackingPath = 'src/features/interactive/session-framework/use-course-event-tracking.ts';
+const workspaceTelemetryPath = 'src/features/interactive/session-framework/workspace-parameter-telemetry.ts';
 
 assert.equal(
   fs.existsSync(path.join(root, taxonomyPath)),
@@ -33,12 +34,21 @@ assert.equal(
   '应新增 use-course-event-tracking.ts'
 );
 
+assert.equal(
+  fs.existsSync(path.join(root, workspaceTelemetryPath)),
+  true,
+  '应新增共享 workspace-parameter-telemetry.ts，参数滑块埋点不得散落在各课次'
+);
+
 const taxonomy = read(taxonomyPath);
 const buildEvent = read(buildEventPath);
 const tracking = read(trackingPath);
 const provider = read(providerPath);
 const aiHook = read(aiHookPath);
 const courseTracking = read(courseTrackingPath);
+const workspaceTelemetry = fs.existsSync(path.join(root, workspaceTelemetryPath))
+  ? read(workspaceTelemetryPath)
+  : '';
 
 for (const eventName of [
   'lesson_step_view',
@@ -81,7 +91,8 @@ assert.equal(
 
 assert.equal(
   tracking.includes('resourceKey ?? resourceId') ||
-    tracking.includes('resourceKey || resourceId'),
+    tracking.includes('resourceKey || resourceId') ||
+    tracking.includes('resolveTrackingResourceIdentity'),
   true,
   'useInteractiveTracking 应兼容旧链路，仅传 resourceId 时仍能工作'
 );
@@ -113,6 +124,23 @@ assert.equal(
     courseTracking.includes('trackSessionFinalize'),
   true,
   '课程页事件适配层应复用 buildCourseEvent，并补齐高频 helper'
+);
+
+assert.equal(
+  workspaceTelemetry.includes('createWorkspaceParameterTelemetryBuffer') &&
+    workspaceTelemetry.includes('flushReason') &&
+    workspaceTelemetry.includes('changeCount') &&
+    workspaceTelemetry.includes('WORKSPACE_PARAM_IDLE_FLUSH_MS'),
+  true,
+  '参数滑块埋点应由共享缓冲器合并、标注 flushReason/changeCount，并按空闲窗口消化'
+);
+
+assert.equal(
+  courseTracking.includes('createWorkspaceParameterTelemetryBuffer') &&
+    courseTracking.includes('flushWorkspaceParamChanges') &&
+    courseTracking.includes('collectDueWorkspaceParamChanges'),
+  true,
+  'useCourseEventTracking 应复用共享参数埋点缓冲器，并在 step leave/submit/finalize 前 flush'
 );
 
 assert.equal(

@@ -8,7 +8,7 @@ import type {
   TeacherLessonSessionResult,
 } from './session-contract';
 import { getFetchFailureTelemetry } from './fetch-diagnostics';
-import { useSessionProgressChannel } from './use-session-progress-channel';
+import { shouldPollSessionStatus, useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 
 interface UseTeacherLessonSessionOptions<
@@ -65,6 +65,10 @@ export function useTeacherLessonSession<
       return;
     }
 
+    if (!shouldPollSessionStatus(sessionInfo?.status)) {
+      return;
+    }
+
     isSyncingStatesRef.current = true;
     try {
       await fetchTeacherViewStates();
@@ -76,19 +80,23 @@ export function useTeacherLessonSession<
     } finally {
       isSyncingStatesRef.current = false;
     }
-  }, [fetchTeacherViewStates]);
+  }, [fetchTeacherViewStates, sessionInfo?.status]);
 
   useEffect(() => {
     void syncStates();
   }, [syncStates]);
 
   useEffect(() => {
+    if (!shouldPollSessionStatus(sessionInfo?.status)) {
+      return;
+    }
+
     const timer = window.setInterval(() => {
       void syncStates();
     }, pollIntervalMs ?? 5000);
 
     return () => window.clearInterval(timer);
-  }, [pollIntervalMs, syncStates]);
+  }, [pollIntervalMs, sessionInfo?.status, syncStates]);
 
   const patchCurrentStep = useCallback(
     async (nextIndex: number, patch: Record<string, unknown>) => {

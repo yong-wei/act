@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveDemoStepSyncUpdate } from '../session-framework/use-session-progress-channel';
+import {
+  resolveDemoStepSyncUpdate,
+  shouldPollSessionStatus,
+} from '../session-framework/use-session-progress-channel';
 import { shouldRunHiddenAwarePoll } from '../session-framework/polling-visibility';
 
 describe('resolveDemoStepSyncUpdate', () => {
@@ -77,5 +80,12 @@ describe('resolveDemoStepSyncUpdate', () => {
       shouldRun: true,
       lastHiddenPollAt: 41_000,
     });
+  });
+
+  it('stops classroom progress polling once the session is finished', () => {
+    expect(shouldPollSessionStatus(null)).toBe(true);
+    expect(shouldPollSessionStatus('ACTIVE')).toBe(true);
+    expect(shouldPollSessionStatus('PAUSED')).toBe(true);
+    expect(shouldPollSessionStatus('FINISHED')).toBe(false);
   });
 });

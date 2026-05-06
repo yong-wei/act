@@ -58,6 +58,10 @@ export function resolveDemoStepSyncUpdate({
   };
 }
 
+export function shouldPollSessionStatus(status: SessionInfo['status'] | null | undefined) {
+  return status !== 'FINISHED';
+}
+
 export function useSessionProgressChannel({
   sessionId,
   stepIds,
@@ -105,6 +109,10 @@ export function useSessionProgressChannel({
 
   const syncSession = useCallback(async () => {
     if (isDemo) {
+      return;
+    }
+
+    if (!shouldPollSessionStatus(sessionInfo?.status)) {
       return;
     }
 
@@ -242,7 +250,7 @@ export function useSessionProgressChannel({
       timeout?.clear();
       isSyncingRef.current = false;
     }
-  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stableStepIds]);
+  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, sessionInfo?.status, stableStepIds]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
@@ -375,7 +383,8 @@ export function useSessionProgressChannel({
 
   const finishSession = useCallback(async () => {
     try {
-      await patchSession({ status: 'FINISHED' });
+      const data = await patchSession({ status: 'FINISHED' });
+      setSessionInfo(data as SessionInfo);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '结束课堂失败');
       setErrorTelemetry(getFetchFailureTelemetry(requestError));
@@ -417,6 +426,10 @@ export function useSessionProgressChannel({
       return;
     }
 
+    if (!shouldPollSessionStatus(sessionInfo?.status)) {
+      return;
+    }
+
     const timer = window.setInterval(() => {
       // 如果暂停或错误退避中，跳过本次轮询
       if (isPausedRef.current) {
@@ -434,7 +447,7 @@ export function useSessionProgressChannel({
     }, pollIntervalMs);
 
     return () => window.clearInterval(timer);
-  }, [isDemo, pollIntervalMs, syncSession]);
+  }, [isDemo, pollIntervalMs, sessionInfo?.status, syncSession]);
 
   useEffect(() => {
     if (isDemo || typeof document === 'undefined') {
@@ -442,7 +455,7 @@ export function useSessionProgressChannel({
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState !== 'visible') {
+      if (document.visibilityState !== 'visible' || !shouldPollSessionStatus(sessionInfo?.status)) {
         return;
       }
       lastHiddenPollAtRef.current = 0;
@@ -451,7 +464,7 @@ export function useSessionProgressChannel({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isDemo, syncSession]);
+  }, [isDemo, sessionInfo?.status, syncSession]);
 
   return useMemo(
     () => ({

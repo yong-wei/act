@@ -7,7 +7,7 @@ import type {
   LessonStepLite,
   StudentLessonSessionResult,
 } from './session-contract';
-import { useSessionProgressChannel } from './use-session-progress-channel';
+import { shouldPollSessionStatus, useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 import { useSessionSSE } from './use-session-sse';
 import { getFetchFailureTelemetry } from './fetch-diagnostics';
@@ -127,6 +127,10 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       return;
     }
 
+    if (!shouldPollSessionStatus(sessionInfo?.status)) {
+      return;
+    }
+
     isSyncingStatesRef.current = true;
     try {
       await fetchStudentViewStates();
@@ -138,18 +142,18 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     } finally {
       isSyncingStatesRef.current = false;
     }
-  }, [fetchStudentViewStates]);
+  }, [fetchStudentViewStates, sessionInfo?.status]);
 
   useEffect(() => {
-    if (isDemo) {
+    if (isDemo || !shouldPollSessionStatus(sessionInfo?.status)) {
       return;
     }
 
     void syncStates();
-  }, [isDemo, syncStates]);
+  }, [isDemo, sessionInfo?.status, syncStates]);
 
   useEffect(() => {
-    if (isDemo) {
+    if (isDemo || !shouldPollSessionStatus(sessionInfo?.status)) {
       return;
     }
 
@@ -166,7 +170,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     }, pollIntervalMs ?? 5000);
 
     return () => window.clearInterval(timer);
-  }, [isDemo, pollIntervalMs, syncStates]);
+  }, [isDemo, pollIntervalMs, sessionInfo?.status, syncStates]);
 
   useEffect(() => {
     if (isDemo || typeof document === 'undefined') {
@@ -174,7 +178,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState !== 'visible') {
+      if (document.visibilityState !== 'visible' || !shouldPollSessionStatus(sessionInfo?.status)) {
         return;
       }
       lastHiddenStatePollAtRef.current = 0;
@@ -183,7 +187,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isDemo, syncStates]);
+  }, [isDemo, sessionInfo?.status, syncStates]);
 
   const selfState = useMemo(() => {
     if (!currentUserId) {

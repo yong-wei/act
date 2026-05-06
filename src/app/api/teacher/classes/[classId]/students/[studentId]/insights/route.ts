@@ -48,6 +48,24 @@ type TeacherStudentRecommendationItem = {
   tags: string[];
 };
 
+type TeacherStudentEvidenceItem = {
+  factType: string;
+  outcome: string;
+  score?: number;
+  moduleId?: string | null;
+  lessonId?: string | null;
+  sourceLogId?: string | null;
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: Array<{
+    questionId?: string;
+    prompt?: string;
+    studentAnswer?: string | null;
+    referenceAnswer?: string;
+    isCorrect?: boolean;
+  }>;
+};
+
 export interface TeacherStudentInsightsPayload {
   student: {
     id: string;
@@ -98,7 +116,7 @@ export interface TeacherStudentInsightsPayload {
   evidenceSummary: Array<{
     dimension: string;
     label: string;
-    items: Array<{ factType: string; outcome: string; score?: number }>;
+    items: TeacherStudentEvidenceItem[];
   }>;
 }
 
@@ -205,10 +223,7 @@ export async function GET(
         null
     );
     const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, { mean?: number }>;
-    const evidenceSummary = (currentSnapshot?.evidenceSummary ?? {}) as Record<
-      string,
-      Array<{ factType: string; outcome: string; score?: number }>
-    >;
+    const evidenceSummary = (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>;
 
     const payload: TeacherStudentInsightsPayload = {
       student: {

@@ -337,11 +337,20 @@ export default function TeacherStudentInsightsPage() {
                   {group.items.length > 0 ? (
                     group.items.slice(0, 3).map((item, index) => (
                       <div key={`${group.dimension}-${index}`} className="rounded-xl border border-border/70 bg-card/80 p-3">
-                        <p className="text-sm font-medium text-foreground">{item.factType}</p>
-                        <p className="mt-1 text-sm text-subtle">{item.outcome}</p>
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-medium text-foreground">{formatEvidenceTitle(item)}</p>
+                          <span className={getOutcomeBadgeClass(item.outcome)}>{formatOutcome(item.outcome)}</span>
+                        </div>
                         {typeof item.score === 'number' && (
                           <p className="mt-2 text-xs text-subtle">评分 {item.score}</p>
                         )}
+                        {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
+                          <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
+                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
+                            {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
+                          </p>
+                        ))}
                       </div>
                     ))
                   ) : (
@@ -373,4 +382,31 @@ function MetricCard({
       <p className="mt-2 text-xs text-subtle">{detail}</p>
     </div>
   );
+}
+
+type EvidenceSummaryItem = TeacherStudentInsightsPayload['evidenceSummary'][number]['items'][number];
+
+function formatEvidenceTitle(item: EvidenceSummaryItem): string {
+  if (item.evidenceTitle) {
+    return item.evidenceTitle;
+  }
+  if (item.factType === 'simulation') return '仿真操作证据';
+  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
+  if (item.factType === 'ai_intervention') return 'AI 交互证据';
+  if (item.factType === 'ethical') return '工程伦理证据';
+  return item.factType;
+}
+
+function formatOutcome(outcome: string): string {
+  if (outcome === 'success') return '成功';
+  if (outcome === 'failure') return '失败';
+  if (outcome === 'partial') return '部分';
+  return '进行中';
+}
+
+function getOutcomeBadgeClass(outcome: string): string {
+  const base = 'shrink-0 rounded px-2 py-0.5 text-xs';
+  if (outcome === 'success') return `${base} bg-emerald-500/20 text-emerald-500`;
+  if (outcome === 'failure') return `${base} bg-red-500/20 text-red-500`;
+  return `${base} bg-amber-500/20 text-amber-500`;
 }

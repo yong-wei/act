@@ -127,6 +127,7 @@ describe('PATCH /api/session/[sessionId]', () => {
     const routeSource = readFileSync(join(process.cwd(), 'src/app/api/session/[sessionId]/route.ts'), 'utf8');
 
     expect(routeSource).toContain('enqueueSessionFinalizationSnapshots');
+    expect(routeSource).toContain('enqueueSessionFinalizationEventIngestion');
     expect(routeSource).toContain("status === 'FINISHED'");
   });
 });

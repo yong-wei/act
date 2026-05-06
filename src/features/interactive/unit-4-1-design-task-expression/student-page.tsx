@@ -13,6 +13,7 @@ import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledg
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit41StepAIContext } from '@/lib/course-ai-contexts';
+import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry';
 import {
   getUNIT_4_1PageContractFromManifest,
   isUNIT_4_1AiPageType,
@@ -213,7 +214,15 @@ export function UNIT_4_1StudentPage({
           },
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id, parameterSubmitted: Boolean(parameters) } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: {
+          stepId: step.id,
+          parameterSubmitted: Boolean(parameters),
+          ...buildUNIT41SubmissionTelemetry(nextState.responses[step.id]),
+        },
+      });
       return nextState;
     });
   };

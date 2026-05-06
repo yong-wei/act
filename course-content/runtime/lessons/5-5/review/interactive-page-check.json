@@ -52,14 +52,14 @@
   ],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [
-    "manifest audit pass: 17 steps, 45 modules, 0 issues"
+    "manifest audit pass: 17 steps, 44 modules, 0 issues"
   ],
   "manifest_audit_issues": [],
   "manifest_audit": {
     "status": "pass",
     "summary": {
       "steps": 17,
-      "modules": 45,
+      "modules": 44,
       "issues": 0
     },
     "implementation_sources": {
@@ -458,19 +458,6 @@
       },
       {
         "step_id": "step-10",
-        "module_id": "risk-matrix-figure",
-        "kind": "image-panel",
-        "renderer_owner": "content",
-        "resolved_content_source": "module.payload",
-        "resolved_content_type": "image",
-        "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_reading"
-        ]
-      },
-      {
-        "step_id": "step-10",
         "module_id": "risk-matrix-table",
         "kind": "native-table",
         "renderer_owner": "content",
@@ -707,7 +694,7 @@
     "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `5-5` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `5-5` 的本地实现契约与作者态互动契约一致。",
-    "manifest audit pass: 17 steps, 45 modules, 0 issues",
+    "manifest audit pass: 17 steps, 44 modules, 0 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],

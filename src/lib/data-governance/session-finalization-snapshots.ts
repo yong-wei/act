@@ -13,6 +13,10 @@ interface ClassSnapshotJob {
   coordinator?: boolean;
 }
 
+interface EventIngestionJob {
+  coordinator?: boolean;
+}
+
 export interface SessionFinalizationSnapshotResult {
   studentSnapshotJobs: number;
   classSnapshotJobs: number;
@@ -25,6 +29,52 @@ const JOB_HISTORY_OPTIONS = {
 } as const;
 
 const CLASS_SNAPSHOT_DELAY_MS = 60_000;
+const EVENT_INGESTION_DELAY_MS = 5_000;
+
+export async function enqueueSessionFinalizationEventIngestion(
+  sessionId: string,
+): Promise<{ eventIngestionJobs: number; skipped: boolean }> {
+  const emptyResult = {
+    eventIngestionJobs: 0,
+    skipped: true,
+  };
+
+  try {
+    if (!redisClient.isReady()) {
+      return emptyResult;
+    }
+
+    const connection = redisClient.getClient();
+    if (!connection) {
+      return emptyResult;
+    }
+
+    const eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection });
+    try {
+      await eventQueue.add(
+        'event-ingestion-coordinator',
+        { coordinator: true },
+        {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          delay: EVENT_INGESTION_DELAY_MS,
+          jobId: `event-ingestion-session-finalize-${sessionId}`,
+          ...JOB_HISTORY_OPTIONS,
+        },
+      );
+    } finally {
+      await eventQueue.close();
+    }
+
+    return {
+      eventIngestionJobs: 1,
+      skipped: false,
+    };
+  } catch (error) {
+    console.error('[SessionFinalizationEventIngestion] Failed to enqueue event ingestion:', error);
+    return emptyResult;
+  }
+}
 
 export async function enqueueSessionFinalizationSnapshots(
   sessionId: string,

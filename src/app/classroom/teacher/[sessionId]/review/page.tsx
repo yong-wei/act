@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
 import { getServerAuthSession } from '@/lib/auth'
 import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
+import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
 import { prisma } from '@/lib/prisma'
 
@@ -232,6 +233,81 @@ function parseCourseReviewState(input: {
     delta: deltaHasData ? deltaFromData : computedDelta,
     reinforcementPaths: parseReinforcementPaths(payload.reinforcementPaths),
     recommendedQuestions: parseRecommendedQuestions(payload.recommendedQuestions),
+  }
+}
+
+function parseUnit41ReviewState(input: {
+  user: {
+    id: string
+    name: string | null
+    profile: {
+      studentNumber: string | null
+    } | null
+  }
+  data: unknown
+}): CourseReviewRecord | null {
+  const payload = asObject(input.data)
+  if (payload.kind !== 'unit41_student_state') {
+    return null
+  }
+
+  const responses = asObject(payload.responses)
+  const preResponse = asObject(responses['step-03'])
+  const postResponse = asObject(responses['step-12'])
+  const preAnswers = asObject(preResponse.answers) as Record<string, string>
+  const postAnswers = asObject(postResponse.answers) as Record<string, string>
+  const preTelemetry = Object.keys(preAnswers).length > 0
+    ? buildUNIT41SubmissionTelemetry({
+      stepId: 'step-03',
+      submittedAt: toNumber(preResponse.submittedAt) ?? Date.now(),
+      answers: preAnswers,
+    })
+    : null
+  const postTelemetry = Object.keys(postAnswers).length > 0
+    ? buildUNIT41SubmissionTelemetry({
+      stepId: 'step-12',
+      submittedAt: toNumber(postResponse.submittedAt) ?? Date.now(),
+      answers: postAnswers,
+    })
+    : null
+
+  if (!preTelemetry && !postTelemetry) {
+    return null
+  }
+
+  const preScore = preTelemetry?.score ?? 0
+  const postScore = postTelemetry?.score ?? preScore
+  const pre = {
+    computational: Math.round(preScore * 0.35),
+    crossDomain: Math.round(preScore * 0.55),
+    designTradeoff: preScore,
+    poleTimeMapping: 0,
+    frequencyStability: 0,
+  }
+  const post = {
+    computational: Math.round(postScore * 0.35),
+    crossDomain: Math.round(postScore * 0.65),
+    designTradeoff: postScore,
+    poleTimeMapping: 0,
+    frequencyStability: 0,
+  }
+
+  return {
+    userId: input.user.id,
+    userName: input.user.name || '未命名学生',
+    studentNumber: input.user.profile?.studentNumber || '-',
+    spotlight: postScore < 60 || postScore - preScore >= 30,
+    weakTag: postScore < 60 ? 'design-tradeoff' : 'cross-domain-mapping',
+    focusDimensions: ['designTradeoff', 'crossDomain'],
+    pre,
+    post,
+    delta: diffVector(post, pre),
+    reinforcementPaths: [{
+      title: '补写任务表达证据链',
+      description: '围绕目标、硬约束、软目标和证据来源重写一张任务表达卡。',
+      estimatedTime: 12,
+    }],
+    recommendedQuestions: [],
   }
 }
 
@@ -500,7 +576,13 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     .map(parseCourseReviewState)
     .filter((item): item is CourseReviewRecord => Boolean(item))
 
-  let reviewRecords = originalReviewRecords
+  const unit41ReviewRecords = originalReviewRecords.length === 0
+    ? session.studentStates
+      .map(parseUnit41ReviewState)
+      .filter((item): item is CourseReviewRecord => Boolean(item))
+    : []
+
+  let reviewRecords = originalReviewRecords.length > 0 ? originalReviewRecords : unit41ReviewRecords
 
   if (session.plan.title.includes('柔性之海')) {
     const analytics = await getClassExtracurricularAnalytics(classContext.class.id)

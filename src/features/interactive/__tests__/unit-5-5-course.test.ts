@@ -106,9 +106,46 @@ describe('unit 5-5 interactive course', () => {
     expect(stepPanelsSource).toContain('rl_result:${activeTab}');
     expect(stepPanelsSource).toContain('collectTrainingResults');
     expect(stepPanelsSource).toContain('pendingResults');
-    expect(stepPanelsSource).toContain('训练中，停止后生成评价曲线');
+    expect(stepPanelsSource).toContain('训练中，第 ${episodeCount} 轮');
     expect(stepPanelsSource).toContain('RMS 合并排名');
     expect(stepPanelsSource).toContain('safetyFallbackCount');
+  });
+
+  it('keeps unit 5-5 fixes aligned with the reviewed runtime manifest and panel source', () => {
+    const manifest = readManifest();
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step13 = manifest.steps.find((step) => step.id === 'step-13');
+    const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
+    const runtimeSource = readFileSync(join(featureBase, 'rl-training-runtime.ts'), 'utf8');
+
+    expect(step10?.modules.find((module) => module.id === 'risk-matrix-figure')).toBeUndefined();
+    expect(step10?.modules.find((module) => module.id === 'risk-matrix-table')).toMatchObject({
+      kind: 'native-table',
+      mustBeVisible: true,
+    });
+    expect(step10?.interactionSpec.activityCards[0]?.matchOptions).toHaveLength(
+      step10?.interactionSpec.activityCards[0]?.matchItems.length,
+    );
+    expect(step10?.acceptanceChecks.join('')).toContain('原生表格');
+
+    const revealItems = step13?.contentBlocks.reveal_layers as { items?: Array<Record<string, unknown>> } | undefined;
+    expect(revealItems?.items?.[3]).toMatchObject({
+      title: 'Q-learning 更新式',
+    });
+    expect(String(revealItems?.items?.[3]?.formula)).toContain('Q(s_k,a_k)');
+    expect(String(revealItems?.items?.[3]?.formula)).toContain('leftarrow');
+
+    expect(runtimeSource).toContain('episodeChunk');
+    expect(runtimeSource).toContain('trainingState');
+    expect(runtimeSource).toContain('rewardChunk');
+    expect(stepPanelsSource).toContain('evaluate: false');
+    expect(stepPanelsSource).toContain('episodeChunk: 0');
+    expect(runtimeSource).toContain('disturbance');
+    expect(stepPanelsSource).toContain('useEffect');
+    expect(stepPanelsSource).toContain('setTimeout');
+    expect(stepPanelsSource).toContain('renderOverlays');
+    expect(stepPanelsSource).toContain('grid gap-4 xl:grid-cols-2');
+    expect(stepPanelsSource).not.toContain('训练轮数档位');
   });
 
   it('renders all three submitted heading training tags in the teacher RMS ranking', () => {

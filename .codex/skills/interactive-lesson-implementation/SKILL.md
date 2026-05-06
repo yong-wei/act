@@ -636,6 +636,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 非曲线教学图若被实现为原生组件，契约中至少应能看出 `upgrade_mode`、`reveal_sequence`、`same_screen_with` 与 `fallback_static_reason`；若这些字段缺失，应先补契约，不得靠实现者自行猜测。
 - 推导型页面若使用公式卡、公式栈或渐进揭示组件，必须让组件顺序直接对齐设计稿；若当前组件无法表达推导链，应先扩展组件或拆分步骤，而不是退回“一次性平铺全部公式”。
 - 页面埋点必须优先复用统一互动采集框架；课堂内事件走 `useCourseEventTracking / useInteractiveTracking`，课堂外资源事件走 `useResourceInteractionTracking`，不得把两套语义混写。
+- 参数滑块、参数联动曲线和工作区调参事件必须走共享 `workspace-parameter-telemetry` 缓冲器，由 `useCourseEventTracking.trackWorkspaceParamChange` 统一合并、空闲消化，并在 `step_leave`、`lesson_submit`、`lesson_resubmit`、`session_finalize` 前刷新；不得在单课组件里对每一次拖动直接发送 `workspace_param_change`。
 - 若实现偏离设计稿，必须在课程笔记中写清楚：来自哪份设计稿、偏离原因、为何更适合平台。
 
 ## 闭环验证

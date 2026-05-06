@@ -22,6 +22,7 @@ import {
   identifyStrengths,
   identifyWeaknesses,
 } from '@/lib/data-governance/competency-engine';
+import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
 import {
   eventToLearningFactInput,
@@ -461,6 +462,56 @@ function resolveBatchDate(batchDate?: string, now = new Date()): string {
   return now.toISOString().split('T')[0];
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function readQuestionSummaries(value: unknown) {
+  return Array.isArray(value)
+    ? value
+        .filter((item) => item && typeof item === 'object' && !Array.isArray(item))
+        .map((item) => item as Record<string, unknown>)
+    : undefined;
+}
+
+async function loadEvidenceDetails(
+  db: PrismaClient,
+  facts: Array<{ sourceLogId: string | null }>,
+) {
+  const sourceLogIds = Array.from(new Set(
+    facts
+      .map((fact) => fact.sourceLogId)
+      .filter((value): value is string => typeof value === 'string' && value.length > 0),
+  ));
+  if (sourceLogIds.length === 0) {
+    return {};
+  }
+
+  const logs = await db.interactionLog.findMany({
+    where: { id: { in: sourceLogIds } },
+    select: {
+      id: true,
+      stepId: true,
+      eventData: true,
+    },
+  });
+
+  return Object.fromEntries(logs.map((log) => {
+    const eventData = readRecord(log.eventData);
+    return [log.id, {
+      evidenceTitle: readString(eventData.evidenceTitle),
+      stepId: log.stepId ?? readString(eventData.stepId),
+      questionSummaries: readQuestionSummaries(eventData.questionSummaries),
+    }];
+  }));
+}
+
 async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (job.data.coordinator) {
     const activeStudentIds = await getActiveStudentIds();
@@ -500,12 +551,35 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     orderBy: { startedAt: 'desc' },
   });
 
-  const competencyVector = calculateCompetencyVector(facts, '1m');
-
   const previousSnapshot = await db.studentCompetencySnapshot.findFirst({
     where: { userId },
     orderBy: { snapshotAt: 'desc' },
   });
+  const latestFactCreatedAt = facts.reduce<Date | null>((latest, fact) => {
+    if (!latest || fact.createdAt.getTime() > latest.getTime()) {
+      return fact.createdAt;
+    }
+    return latest;
+  }, null);
+
+  if (facts.length === 0) {
+    logWithThrottle(`student-snapshot:${userId}:no-facts`, 'info', `[StudentSnapshot] Skip ${userId}: no learning facts in current window`);
+    return { skipped: true, reason: 'no_facts', userId };
+  }
+
+  if (
+    previousSnapshot &&
+    previousSnapshot.factCount === facts.length &&
+    latestFactCreatedAt &&
+    latestFactCreatedAt.getTime() <= previousSnapshot.snapshotAt.getTime()
+  ) {
+    logWithThrottle(`student-snapshot:${userId}:unchanged`, 'info', `[StudentSnapshot] Skip ${userId}: no new facts since latest snapshot`);
+    return { skipped: true, reason: 'unchanged_facts', userId };
+  }
+
+  const evidenceDetails = await loadEvidenceDetails(db, facts);
+
+  const competencyVector = calculateCompetencyVector(facts, '1m');
 
   if (previousSnapshot) {
     const previousVector = previousSnapshot.competencyVector as unknown as CompetencyVector;
@@ -529,13 +603,23 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       userId,
       snapshotAt,
       competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
-      evidenceSummary: generateEvidenceSummary(facts) as unknown as Prisma.InputJsonValue,
+      evidenceSummary: generateEvidenceSummary(facts, 3, evidenceDetails) as unknown as Prisma.InputJsonValue,
       riskFlags: risks.map((risk) => risk.type),
       factCount: facts.length,
     },
   });
 
   await updateProfileSummary(userId, competencyVector, risks, facts);
+  await refreshStudentGrowthEvaluation(db, {
+    snapshot: {
+      id: snapshot.id,
+      userId,
+      snapshotAt,
+      factCount: facts.length,
+      competencyVector,
+      evidenceSummary: snapshot.evidenceSummary,
+    },
+  });
 
   await db.studentRiskFlag.updateMany({
     where: {
@@ -692,7 +776,7 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     ),
   );
 
-  const validSnapshots = snapshots.filter(Boolean);
+  const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0);
   if (validSnapshots.length === 0) {
     return { studentCount: 0, snapshotId: null };
   }
@@ -700,6 +784,19 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   const aggregate = calculateClassAggregate(validSnapshots as Array<{ competencyVector: unknown }>);
   const distribution = calculateLevelDistribution(validSnapshots as Array<{ competencyVector: unknown }>);
   const riskSummary = calculateRiskSummary(validSnapshots as Array<{ riskFlags: unknown }>);
+  const previousClassSnapshot = await db.classCompetencySnapshot.findFirst({
+    where: { classId },
+    orderBy: { snapshotAt: 'desc' },
+  });
+  if (previousClassSnapshot && isSameClassAggregate(aggregate, previousClassSnapshot.aggregateJson)) {
+    return {
+      snapshotId: previousClassSnapshot.id,
+      studentCount: validSnapshots.length,
+      skipped: true,
+      reason: 'unchanged_aggregate',
+    };
+  }
+  const trend = calculateClassTrend(aggregate, previousClassSnapshot?.aggregateJson);
 
   const snapshot = await db.classCompetencySnapshot.create({
     data: {
@@ -707,7 +804,7 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
       snapshotAt: new Date(),
       aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
       distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: {} as Prisma.InputJsonValue,
+      trendJson: trend as Prisma.InputJsonValue,
       riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
       levelDistribution: distribution as unknown as Prisma.InputJsonValue,
       activeStudentCount: validSnapshots.length,
@@ -766,6 +863,35 @@ function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
   }
 
   return summary;
+}
+
+function calculateClassTrend(
+  current: Record<string, { mean: number; stdDev: number }>,
+  previous: unknown,
+) {
+  const previousAggregate = readRecord(previous);
+  return Object.fromEntries(Object.entries(current).map(([dimension, value]) => {
+    const previousValue = readRecord(previousAggregate[dimension]);
+    const previousMean = typeof previousValue.mean === 'number' ? previousValue.mean : value.mean;
+    const delta = Math.round((value.mean - previousMean) * 10) / 10;
+    return [dimension, {
+      previousMean,
+      currentMean: value.mean,
+      delta,
+      direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
+    }];
+  }));
+}
+
+function isSameClassAggregate(
+  current: Record<string, { mean: number; stdDev: number }>,
+  previous: unknown,
+) {
+  const previousAggregate = readRecord(previous);
+  return Object.entries(current).every(([dimension, value]) => {
+    const previousValue = readRecord(previousAggregate[dimension]);
+    return previousValue.mean === value.mean && previousValue.stdDev === value.stdDev;
+  });
 }
 
 async function startWorkers() {

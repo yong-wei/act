@@ -18,6 +18,51 @@ export const runtime = 'nodejs';
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
+function sanitizeAIErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/Bearer\s+\S+/g, 'Bearer ***').slice(0, 500);
+}
+
+function isExternalAIProviderError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message;
+  return /SiliconFlow|DeepSeek|curl|fetch failed|ECONN|ETIMEDOUT|ENOTFOUND|AI SDK/i.test(message);
+}
+
+function summarizeAIChatError(error: unknown) {
+  return {
+    name: error instanceof Error ? error.name : typeof error,
+    message: sanitizeAIErrorMessage(error),
+    providerFailure: isExternalAIProviderError(error),
+  };
+}
+
+function buildAIChatErrorResponse(error: unknown) {
+  const providerFailure = isExternalAIProviderError(error);
+
+  return new Response(
+    JSON.stringify({
+      error: providerFailure ? 'AI_SERVICE_UNAVAILABLE' : '服务器错误',
+      message: providerFailure
+        ? '智能助手暂时无法连接外部模型，请稍后再试。'
+        : '智能助手暂时无法完成请求，请稍后再试。',
+    }),
+    {
+      status: providerFailure ? 503 : 500,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+}
+
+function getAIStreamErrorMessage(error: unknown) {
+  return isExternalAIProviderError(error)
+    ? '智能助手暂时无法连接外部模型，请稍后再试。'
+    : '智能助手暂时无法完成请求，请稍后再试。';
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -100,19 +145,12 @@ export async function POST(request: Request) {
     });
 
     // 返回流式响应
-    return result.toDataStreamResponse();
+    return result.toDataStreamResponse({
+      getErrorMessage: getAIStreamErrorMessage,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    console.error('AI Chat API 错误:', error);
-    return new Response(
-      JSON.stringify({
-        error: '服务器错误',
-        message: error instanceof Error ? error.message : '未知错误',
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    console.error('AI Chat API 错误:', summarizeAIChatError(error));
+    return buildAIChatErrorResponse(error);
   }
 }

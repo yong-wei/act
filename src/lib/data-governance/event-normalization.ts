@@ -41,6 +41,7 @@ export function mapActionTypeToFactType(actionType: string): string {
     assessment_complete: 'question',
     lesson_submit: 'question',
     lesson_resubmit: 'question',
+    workspace_param_change: 'simulation',
     resource_complete: 'resource',
     simulation_finish: 'simulation',
     ai_intervention_complete: 'ai_intervention',
@@ -118,6 +119,10 @@ export function deriveFactOutcome(
       return 'partial';
     }
 
+    return 'success';
+  }
+
+  if (actionType === 'workspace_param_change' && payload.sampled === true) {
     return 'success';
   }
 

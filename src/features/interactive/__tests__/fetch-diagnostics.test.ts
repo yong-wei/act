@@ -65,8 +65,32 @@ describe('buildFetchFailureTelemetry', () => {
     expect(telemetry).toMatchObject({
       source: 'session_progress_get',
       errorName: 'AbortError',
+      failureKind: 'timeout',
       timedOut: true,
       elapsedMs: 20_000,
+      timeoutMs: 20_000,
+    });
+  });
+
+  it('classifies short aborted fetches as aborts instead of timeouts', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_776_307_905_000);
+
+    const abortError = new DOMException('The operation was aborted.', 'AbortError');
+    const telemetry = buildFetchFailureTelemetry({
+      source: 'student_state_get',
+      url: '/api/session/session-001/state?scope=student-view',
+      method: 'GET',
+      startedAt: 1_776_307_900_000,
+      error: abortError,
+      timeoutMs: 20_000,
+    });
+
+    expect(telemetry).toMatchObject({
+      source: 'student_state_get',
+      errorName: 'AbortError',
+      failureKind: 'aborted',
+      timedOut: false,
+      elapsedMs: 5_000,
       timeoutMs: 20_000,
     });
   });

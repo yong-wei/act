@@ -164,24 +164,44 @@ def render_three_route_comparison(summary: pd.DataFrame) -> None:
     subset = summary[summary['scenario'] == scenario].set_index('method').loc[list(METHOD_LABELS.keys())]
     x = np.arange(len(subset))
     ax = axes[1, 0]
-    ax.bar(x - 0.18, subset['recovery_min'], width=0.36, color='#b64f5c', label='恢复时间')
+    recovery_bars = ax.bar(x - 0.18, subset['recovery_min'], width=0.36, color='#b64f5c', label='恢复时间')
+    for bar, value in zip(recovery_bars, subset['recovery_min']):
+        if value == 0:
+            y0 = max(ax.get_ylim()[1] * 0.015, 0.35)
+            ax.plot(
+                [bar.get_x() + 0.04, bar.get_x() + bar.get_width() - 0.04],
+                [y0, y0],
+                color='#b64f5c',
+                lw=2.0,
+            )
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                y0 + 0.55,
+                '0 min',
+                ha='center',
+                va='bottom',
+                fontsize=8.5,
+                color='#8f3342',
+            )
     ax2 = ax.twinx()
-    ax2.bar(x + 0.18, subset['energy_norm_h'], width=0.36, color='#2f5d7c', label='能耗')
+    energy_bars = ax2.bar(x + 0.18, subset['energy_norm_h'], width=0.36, color='#2f5d7c', label='能耗')
     ax.set_xticks(x, [METHOD_LABELS[m] for m in subset.index], rotation=15, ha='right')
     ax.set_ylabel('恢复时间 / min')
     ax2.set_ylabel('归一化能耗 / h')
     ax.set_title('恢复收益与能耗代价同时出现')
     ax.grid(True, axis='y', alpha=0.22)
+    handles = [recovery_bars[0], energy_bars[0]]
+    labels = ['恢复时间', '能耗']
+    ax.legend(handles, labels, frameon=False, fontsize=9, loc='upper center', ncol=2)
 
     ax = axes[1, 1]
-    width = 0.28
-    ax.bar(x - width, subset['compressor_switches'], width=width, color='#527a9a', label='压缩机切换')
-    ax.bar(x, subset['alarms'], width=width, color='#c97942', label='告警次数')
+    width = 0.34
+    ax.bar(x - width / 2.0, subset['compressor_switches'], width=width, color='#527a9a', label='压缩机切换')
     verify_score = subset['verify_load'].map({'低': 1, '中': 2, '高': 3})
-    ax.bar(x + width, verify_score, width=width, color='#77718a', label='验证负担')
+    ax.bar(x + width / 2.0, verify_score, width=width, color='#77718a', label='路线验证负担')
     ax.set_xticks(x, [METHOD_LABELS[m] for m in subset.index], rotation=15, ha='right')
-    ax.set_ylabel('计数或等级')
-    ax.set_title('运行代价与审查代价')
+    ax.set_ylabel('切换次数或等级')
+    ax.set_title('压缩机切换与路线验证负担')
     ax.grid(True, axis='y', alpha=0.22)
     ax.legend(frameon=False, fontsize=9)
 
@@ -206,12 +226,12 @@ def render_risk_verification_matrix(summary: pd.DataFrame) -> None:
     im = ax.imshow(values, cmap='YlOrRd', vmin=1, vmax=4)
     ax.set_xticks(np.arange(len(risks)), risks)
     ax.set_yticks(np.arange(len(methods)), [METHOD_LABELS[m] for m in methods])
-    ax.set_title('风险-验证矩阵：越前沿，越需要额外证明责任')
+    ax.set_title('路线证据要求矩阵：越依赖数据和策略，越需要额外证明')
     for i in range(values.shape[0]):
         for j in range(values.shape[1]):
             ax.text(j, i, f'{int(values[i, j])}', ha='center', va='center', color='#17212b', fontsize=13, fontweight='bold')
     cbar = fig.colorbar(im, ax=ax, shrink=0.82)
-    cbar.set_label('验证负担等级')
+    cbar.set_label('证据要求等级')
 
     e3 = summary[summary['scenario'] == 'E3'].set_index('method')
     note = (

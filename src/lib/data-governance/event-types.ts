@@ -346,6 +346,10 @@ export const SECONDARY_EVENTS: EventTypeMetadata[] = [
     category: 'interaction',
     priority: 'secondary',
     description: '课堂工作区参数变化',
+    competencyMapping: {
+      controlModeling: 0.1,
+      selfDirectedLearning: 0.1,
+    },
   },
   {
     eventType: 'ai_panel_open',

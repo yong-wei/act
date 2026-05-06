@@ -29,6 +29,21 @@ import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
+interface EvidenceSummaryItem {
+  factType: string;
+  outcome: string;
+  score?: number;
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: Array<{
+    questionId?: string;
+    prompt?: string;
+    studentAnswer?: string | null;
+    referenceAnswer?: string;
+    isCorrect?: boolean;
+  }>;
+}
+
 interface StudentDiagnosisData {
   student: {
     id: string;
@@ -49,7 +64,7 @@ interface StudentDiagnosisData {
     score: number;
     activity: string;
   }>;
-  evidenceSummary: Record<string, Array<{ factType: string; outcome: string; score?: number }>>;
+  evidenceSummary: Record<string, EvidenceSummaryItem[]>;
   recommendations: Array<{
     type: string;
     title: string;
@@ -420,35 +435,21 @@ export default function StudentDiagnosisPage() {
                   <p className="font-medium text-foreground">{getCompetencyLabel(dimension as never)}</p>
                   <div className="mt-3 space-y-2">
                     {evidence.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-subtle">
-                          {item.factType === 'simulation'
-                            ? '仿真'
-                            : item.factType === 'question'
-                            ? '测试'
-                            : item.factType === 'ai_intervention'
-                            ? 'AI交互'
-                            : item.factType === 'ethical'
-                            ? '伦理'
-                            : item.factType}
-                        </span>
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs ${
-                            item.outcome === 'success'
-                              ? 'bg-emerald-500/20 text-emerald-500'
-                              : item.outcome === 'failure'
-                              ? 'bg-red-500/20 text-red-500'
-                              : 'bg-amber-500/20 text-amber-500'
-                          }`}
-                        >
-                          {item.outcome === 'success'
-                            ? '成功'
-                            : item.outcome === 'failure'
-                            ? '失败'
-                            : item.outcome === 'partial'
-                            ? '部分'
-                            : '进行中'}
-                        </span>
+                      <div key={idx} className="rounded-lg border border-border/60 bg-card/70 p-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="font-medium text-foreground">{formatEvidenceTitle(item)}</span>
+                          <span className={getOutcomeBadgeClass(item.outcome)}>{formatOutcome(item.outcome)}</span>
+                        </div>
+                        {typeof item.score === 'number' && (
+                          <p className="mt-1 text-xs text-subtle">评分 {item.score}</p>
+                        )}
+                        {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
+                          <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
+                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
+                            {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
+                          </p>
+                        ))}
                       </div>
                     ))}
                   </div>
@@ -545,4 +546,29 @@ export default function StudentDiagnosisPage() {
       </main>
     </div>
   );
+}
+
+function formatEvidenceTitle(item: EvidenceSummaryItem): string {
+  if (item.evidenceTitle) {
+    return item.evidenceTitle;
+  }
+  if (item.factType === 'simulation') return '仿真操作证据';
+  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
+  if (item.factType === 'ai_intervention') return 'AI 交互证据';
+  if (item.factType === 'ethical') return '工程伦理证据';
+  return item.factType;
+}
+
+function formatOutcome(outcome: string): string {
+  if (outcome === 'success') return '成功';
+  if (outcome === 'failure') return '失败';
+  if (outcome === 'partial') return '部分';
+  return '进行中';
+}
+
+function getOutcomeBadgeClass(outcome: string): string {
+  const base = 'shrink-0 rounded px-2 py-0.5 text-xs';
+  if (outcome === 'success') return `${base} bg-emerald-500/20 text-emerald-500`;
+  if (outcome === 'failure') return `${base} bg-red-500/20 text-red-500`;
+  return `${base} bg-amber-500/20 text-amber-500`;
 }

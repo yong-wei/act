@@ -11,7 +11,13 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export type GrowthRecordType = 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement';
+export type GrowthRecordType =
+  | 'milestone'
+  | 'simulation'
+  | 'risk_resolved'
+  | 'excellent_design'
+  | 'achievement'
+  | 'competency_evaluation';
 
 export interface GrowthRecord {
   id: string;
@@ -102,6 +108,7 @@ function getIconForType(type: GrowthRecordType): string {
     risk_resolved: 'ShieldCheck',
     excellent_design: 'Award',
     achievement: 'Trophy',
+    competency_evaluation: 'Sparkles',
   };
   return icons[type] || 'Star';
 }

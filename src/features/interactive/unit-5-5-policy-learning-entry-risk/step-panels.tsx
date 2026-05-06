@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
@@ -26,6 +26,7 @@ import {
   type Unit55ComparisonPoint,
   type Unit55RewardPoint,
   type Unit55RlTrainingResult,
+  type Unit55RlTrainingState,
   type Unit55RlTrainingType,
 } from './rl-training-runtime';
 
@@ -36,6 +37,7 @@ type ContentRegistryExtra = {
   onInlineReveal?: () => void;
 };
 type TrainingPhase = 'idle' | 'training' | 'stopped';
+type ChartOverlay = { from: number; to: number; label: string; color: string };
 
 const TRAINING_LABELS: Record<Unit55RlTrainingType, string> = {
   toy_rl: '学习策略',
@@ -105,7 +107,7 @@ function headingTabSpecsFromManifest(figureSpec: Record<string, unknown> | undef
 
 function controlsForHeadingTab(tab: Exclude<Unit55RlTrainingType, 'toy_rl'>, specs: HeadingTabSpec[]) {
   const defaults = HEADING_PARAMETER_CONTROLS[tab];
-  const manifestLabels = specs.find((item) => item.id === tab)?.parameterControls.filter((label) => label !== '训练轮数档位') ?? [];
+  const manifestLabels = specs.find((item) => item.id === tab)?.parameterControls.filter((label) => !label.includes('训练轮数')) ?? [];
   if (!manifestLabels.length) return defaults;
   const byLabel = new Map(defaults.map((control) => [control.label, control]));
   return manifestLabels.map((label) => byLabel.get(label)).filter((item): item is NumericParameterControl => Boolean(item));
@@ -135,44 +137,106 @@ function pathFrom(points: Array<{ x: number; y: number }>, scale: (point: { x: n
   }).join(' ');
 }
 
+function tickValues(min: number, max: number, count = 5) {
+  if (count <= 1) return [min];
+  return Array.from({ length: count }, (_, index) => min + ((max - min) * index) / (count - 1));
+}
+
+function formatTick(value: number) {
+  if (Math.abs(value) >= 100) return value.toFixed(0);
+  if (Math.abs(value) >= 10) return value.toFixed(1).replace(/\.0$/, '');
+  return value.toFixed(2).replace(/0$/, '').replace(/\.0$/, '');
+}
+
+function renderOverlays({
+  overlays,
+  scaleX,
+  plotTop,
+  plotBottom,
+}: {
+  overlays: ChartOverlay[];
+  scaleX: (value: number) => number;
+  plotTop: number;
+  plotBottom: number;
+}) {
+  return overlays.map((overlay) => {
+    const x1 = scaleX(overlay.from);
+    const x2 = scaleX(overlay.to);
+    return (
+      <g key={`${overlay.label}-${overlay.from}-${overlay.to}`}>
+        <rect x={x1} y={plotTop} width={Math.max(1, x2 - x1)} height={plotBottom - plotTop} fill={overlay.color} opacity="0.12" />
+        <text x={x1 + 4} y={plotTop + 14} className="fill-slate-500 text-[9px]">{overlay.label}</text>
+      </g>
+    );
+  });
+}
+
 function SimpleLineChart({
   title,
   series,
   yDomain,
   xLabel,
   yLabel,
+  overlays = [],
 }: {
   title: string;
   series: Array<{ id: string; label: string; color: string; points: Array<{ x: number; y: number }>; dashed?: boolean }>;
   yDomain: [number, number];
   xLabel: string;
   yLabel: string;
+  overlays?: ChartOverlay[];
 }) {
   const allPoints = series.flatMap((item) => item.points);
   const maxX = Math.max(1, ...allPoints.map((point) => point.x));
+  const minX = Math.min(0, ...allPoints.map((point) => point.x));
   const [minY, maxY] = yDomain;
+  const plotLeft = 54;
+  const plotRight = 616;
+  const plotTop = 48;
+  const plotBottom = 286;
+  const scaleX = (value: number) => plotLeft + ((value - minX) / Math.max(1e-6, maxX - minX)) * (plotRight - plotLeft);
+  const scaleY = (value: number) => plotBottom - ((value - minY) / Math.max(1e-6, maxY - minY)) * (plotBottom - plotTop);
   const scale = (point: { x: number; y: number }) => ({
-    x: 48 + (point.x / maxX) * 560,
-    y: 300 - ((point.y - minY) / Math.max(1e-6, maxY - minY)) * 230,
+    x: scaleX(point.x),
+    y: scaleY(point.y),
   });
+  const xTicks = tickValues(minX, maxX, 5);
+  const yTicks = tickValues(minY, maxY, 5);
 
   return (
-    <svg viewBox="0 0 640 350" className="h-[350px] w-full rounded-xl border border-border/70 bg-white" aria-label={title}>
-      <text x="48" y="30" className="fill-slate-800 text-[15px] font-semibold">{title}</text>
-      <line x1="48" y1="300" x2="608" y2="300" stroke="#cbd5e1" />
-      <line x1="48" y1="70" x2="48" y2="300" stroke="#cbd5e1" />
-      <text x="604" y="326" textAnchor="end" className="fill-slate-500 text-[10px]">{xLabel}</text>
-      <text x="16" y="96" textAnchor="middle" className="fill-slate-500 text-[10px]" transform="rotate(-90 16 96)">{yLabel}</text>
-      {series.map((item) => (
-        <path key={item.id} d={pathFrom(item.points, scale)} fill="none" stroke={item.color} strokeWidth="2.5" strokeDasharray={item.dashed ? '6 5' : undefined} />
-      ))}
-      {series.map((item, index) => (
-        <g key={item.id} transform={`translate(380, ${34 + index * 18})`}>
-          <line x1="0" y1="0" x2="24" y2="0" stroke={item.color} strokeWidth="3" strokeDasharray={item.dashed ? '6 5' : undefined} />
-          <text x="30" y="4" className="fill-slate-600 text-[11px]">{item.label}</text>
-        </g>
-      ))}
-    </svg>
+    <div className="rounded-xl border border-border/70 bg-white px-3 pb-3 pt-2" aria-label={title}>
+      <svg viewBox="0 0 640 330" className="h-[330px] w-full">
+        <text x={plotLeft} y="28" className="fill-slate-800 text-[15px] font-semibold">{title}</text>
+        {renderOverlays({ overlays, scaleX, plotTop, plotBottom })}
+        {yTicks.map((tick) => (
+          <g key={`y-${tick}`}>
+            <line x1={plotLeft} y1={scaleY(tick)} x2={plotRight} y2={scaleY(tick)} stroke="#e2e8f0" />
+            <text x={plotLeft - 8} y={scaleY(tick) + 3} textAnchor="end" className="fill-slate-500 text-[10px]">{formatTick(tick)}</text>
+          </g>
+        ))}
+        {xTicks.map((tick) => (
+          <g key={`x-${tick}`}>
+            <line x1={scaleX(tick)} y1={plotTop} x2={scaleX(tick)} y2={plotBottom} stroke="#f1f5f9" />
+            <text x={scaleX(tick)} y={plotBottom + 17} textAnchor="middle" className="fill-slate-500 text-[10px]">{formatTick(tick)}</text>
+          </g>
+        ))}
+        <line x1={plotLeft} y1={plotBottom} x2={plotRight} y2={plotBottom} stroke="#94a3b8" />
+        <line x1={plotLeft} y1={plotTop} x2={plotLeft} y2={plotBottom} stroke="#94a3b8" />
+        <text x={plotRight} y="324" textAnchor="end" className="fill-slate-500 text-[10px]">{xLabel}</text>
+        <text x="16" y={plotTop + 38} textAnchor="middle" className="fill-slate-500 text-[10px]" transform={`rotate(-90 16 ${plotTop + 38})`}>{yLabel}</text>
+        {series.map((item) => (
+          <path key={item.id} d={pathFrom(item.points, scale)} fill="none" stroke={item.color} strokeWidth="2.5" strokeDasharray={item.dashed ? '6 5' : undefined} />
+        ))}
+      </svg>
+      <div className="flex flex-wrap justify-end gap-x-4 gap-y-1 border-t border-slate-100 pt-2">
+        {series.map((item) => (
+          <div key={item.id} className="inline-flex items-center gap-2 text-[11px] text-slate-600">
+            <span className="h-[3px] w-6 rounded-full" style={{ backgroundColor: item.color, opacity: item.dashed ? 0.75 : 1 }} />
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -182,6 +246,29 @@ function rewardSeries(points: Unit55RewardPoint[], visibleCount?: number) {
     { id: 'reward', label: '累计回报', color: '#0891b2', points: sliced.map((point) => ({ x: point.episode, y: point.reward })) },
     { id: 'average', label: '20 轮移动平均', color: '#f59e0b', points: sliced.map((point) => ({ x: point.episode, y: point.movingAverage })), dashed: true },
   ];
+}
+
+function rewardHistoryWithMovingAverage(points: Unit55RewardPoint[]) {
+  return points.map((point, index) => {
+    const window = points.slice(Math.max(0, index - 19), index + 1);
+    return {
+      ...point,
+      movingAverage: window.reduce((sum, item) => sum + item.reward, 0) / window.length,
+    };
+  });
+}
+
+function resultWithRewardHistory(result: Unit55RlTrainingResult, history: Unit55RewardPoint[]) {
+  const rewardCurve = rewardHistoryWithMovingAverage(history);
+  const cumulativeReward = rewardCurve.at(-1)?.movingAverage ?? result.metrics.cumulativeReward;
+  return {
+    ...result,
+    rewardCurve,
+    metrics: {
+      ...result.metrics,
+      cumulativeReward,
+    },
+  };
 }
 
 function headingSeries(trace: Unit55ComparisonPoint[]) {
@@ -199,56 +286,140 @@ function rudderSeries(trace: Unit55ComparisonPoint[]) {
   ];
 }
 
+function overlayRanges(trace: Unit55ComparisonPoint[]): ChartOverlay[] {
+  const ranges: ChartOverlay[] = [];
+  const appendRange = (from: number, to: number, label: string, color: string) => {
+    if (to <= from) return;
+    const previous = ranges[ranges.length - 1];
+    if (previous?.label === label && Math.abs(previous.to - from) < 1e-6) {
+      previous.to = to;
+      return;
+    }
+    ranges.push({ from, to, label, color });
+  };
+
+  for (let index = 0; index < trace.length; index += 1) {
+    const current = trace[index];
+    const next = trace[index + 1] ?? current;
+    if (Math.abs(current.disturbance ?? 0) > 0.01) {
+      appendRange(current.t, next.t, '扰动作用', '#f97316');
+    }
+    if ((current.edgeScenario ?? 0) > 0.5) {
+      appendRange(current.t, next.t, '边缘场景', '#7c3aed');
+    }
+  }
+
+  return ranges;
+}
+
 function MetricGrid({ result }: { result: Unit55RlTrainingResult | null }) {
   const metrics = result?.metrics;
+  const rows = [
+    ['RMS 航向误差', metrics ? `${metrics.rmsHeadingError.toFixed(2)}°` : '-'],
+    ['最大超调', metrics ? `${metrics.maxOvershoot.toFixed(2)}°` : '-'],
+    ['调节时间', metrics ? `${metrics.settlingTime.toFixed(0)} s` : '-'],
+    ['平均舵角', metrics ? `${metrics.averageRudder.toFixed(2)}°` : '-'],
+    ['平均舵速', metrics ? `${metrics.averageRudderRate.toFixed(2)}°/s` : '-'],
+    ['末端误差', metrics ? `${metrics.finalError.toFixed(2)}°` : '-'],
+    ['移动平均回报', metrics ? metrics.cumulativeReward.toFixed(2) : '-'],
+    ['安全退化次数', result ? String(result.safetyFallbackCount) : '-'],
+  ];
   return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">RMS 航向误差</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{metrics ? `${metrics.rmsHeadingError.toFixed(2)}°` : '-'}</div></div>
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">最大超调</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{metrics ? `${metrics.maxOvershoot.toFixed(2)}°` : '-'}</div></div>
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">调节时间</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{metrics ? `${metrics.settlingTime.toFixed(0)} s` : '-'}</div></div>
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">平均舵角</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{metrics ? `${metrics.averageRudder.toFixed(2)}°` : '-'}</div></div>
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">平均舵速</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{metrics ? `${metrics.averageRudderRate.toFixed(2)}°/s` : '-'}</div></div>
-      <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">安全退化次数</div><div className="premium-lesson-title mt-1 text-2xl font-semibold">{result ? result.safetyFallbackCount : '-'}</div></div>
+    <div className="premium-lesson-surface-elevated h-full px-4 py-3">
+      <div className="premium-lesson-title text-base font-semibold leading-7">数据面板</div>
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+        {rows.map(([label, value]) => (
+          <div key={label} className="border-b border-slate-100 pb-1">
+            <div className="premium-lesson-caption text-[11px]">{label}</div>
+            <div className="premium-lesson-title text-base font-semibold">{value}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function ToyTrainingPanel({ onPanelSubmit }: { onPanelSubmit?: (response: ManifestStepResponse) => void }) {
   const [phase, setPhase] = useState<TrainingPhase>('idle');
-  const [visibleCount, setVisibleCount] = useState(0);
+  const [episodeCount, setEpisodeCount] = useState(0);
+  const [seed, setSeed] = useState(5505);
+  const [trainingState, setTrainingState] = useState<Unit55RlTrainingState | null>(null);
+  const [rewardHistory, setRewardHistory] = useState<Unit55RewardPoint[]>([]);
   const [pendingResult, setPendingResult] = useState<Unit55RlTrainingResult | null>(null);
   const [result, setResult] = useState<Unit55RlTrainingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const chunkSize = 4;
+
+  useEffect(() => {
+    if (phase !== 'training') return undefined;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      const nextEpisode = episodeCount + chunkSize;
+      void computeUnit55RlTraining({
+        panelKind: 'rust_toy_training_panel',
+        trainingType: 'toy_rl',
+        seed,
+        trainingEpisodes: nextEpisode,
+        episodeChunk: chunkSize,
+        evaluate: false,
+        trainingState,
+        selectedParameters: { actionCost: 0.04, boundaryPenalty: 1.0 },
+      }).then((next) => {
+        if (cancelled) return;
+        setTrainingState(next.trainingState);
+        setRewardHistory((previous) => {
+          const mergedHistory = rewardHistoryWithMovingAverage([...previous, ...next.rewardChunk]);
+          setPendingResult(resultWithRewardHistory(next, mergedHistory));
+          setEpisodeCount(mergedHistory.length);
+          return mergedHistory;
+        });
+      }).catch((reason) => {
+        if (cancelled) return;
+        setError(reason instanceof Error ? reason.message : String(reason));
+        setPhase('idle');
+      });
+    }, episodeCount === 0 ? 0 : 180);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [episodeCount, phase, seed, trainingState]);
+
   const startTraining = async () => {
+    setSeed(Date.now() % 100000);
     setPhase('training');
-    setVisibleCount(0);
+    setEpisodeCount(0);
+    setTrainingState(null);
+    setRewardHistory([]);
     setPendingResult(null);
     setResult(null);
     setError(null);
+  };
+  const stopTraining = async () => {
+    if (!pendingResult || !trainingState) return;
+    setPhase('stopped');
     try {
-      const next = await computeUnit55RlTraining({
+      const finalResult = await computeUnit55RlTraining({
         panelKind: 'rust_toy_training_panel',
         trainingType: 'toy_rl',
-        seed: Date.now() % 100000,
-        trainingEpisodes: 80,
+        seed,
+        trainingEpisodes: episodeCount,
+        episodeChunk: 0,
+        evaluate: true,
+        trainingState,
         selectedParameters: { actionCost: 0.04, boundaryPenalty: 1.0 },
       });
-      setPendingResult(next);
-      setVisibleCount(next.rewardCurve.length);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
-      setPhase('idle');
-    }
-  };
-  const stopTraining = () => {
-    if (pendingResult) {
-      setResult(pendingResult);
+      const completedResult = resultWithRewardHistory(finalResult, rewardHistory);
+      setTrainingState(finalResult.trainingState);
+      setResult(completedResult);
       onPanelSubmit?.({
         stepId: 'step-08',
         submittedAt: Date.now(),
-        answers: { __rl_training_result: JSON.stringify(pendingResult) },
+        answers: { __rl_training_result: JSON.stringify(completedResult) },
       });
-      setPhase('stopped');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+      setPhase('idle');
     }
   };
   const rewardResult = phase === 'training' ? pendingResult : result;
@@ -259,13 +430,13 @@ function ToyTrainingPanel({ onPanelSubmit }: { onPanelSubmit?: (response: Manife
       <div><div className="premium-lesson-kicker">实时训练面板</div><h3 className="premium-lesson-title mt-1 text-lg font-semibold">横向误差修正实时训练</h3></div>
       {error ? <div className="premium-lesson-tone-block premium-tone-rose text-sm">{error}</div> : null}
       <div className="grid gap-4 xl:grid-cols-2">
-        <SimpleLineChart title="训练动态回报曲线" series={rewardSeries(rewardResult?.rewardCurve ?? [], visibleCount)} yDomain={[-24, -3]} xLabel="训练轮次" yLabel="回报" />
+        <SimpleLineChart title="训练动态回报曲线" series={rewardSeries(rewardResult?.rewardCurve ?? [], episodeCount)} yDomain={[-24, -3]} xLabel="训练轮次" yLabel="回报" />
         <SimpleLineChart title="同一起点误差收敛对比" series={evaluationResult ? headingSeries(evaluationResult.comparisonTrace) : []} yDomain={[-0.2, 1.4]} xLabel="步数" yLabel="横向误差" />
       </div>
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => void startTraining()} className="premium-lesson-action-tone premium-tone-cyan">开始训练</button>
-        <button type="button" onClick={stopTraining} disabled={!pendingResult || phase !== 'training'} className="premium-lesson-action-tone premium-tone-amber disabled:opacity-40">停止训练</button>
-        <span className="premium-lesson-caption self-center text-xs">状态：{phase === 'idle' ? '未训练' : phase === 'training' ? '训练中，停止后生成评价曲线' : '已停止并记录结果'}</span>
+        <button type="button" onClick={() => void startTraining()} disabled={phase === 'training'} className="premium-lesson-action-tone premium-tone-cyan disabled:opacity-40">开始训练</button>
+        <button type="button" onClick={() => void stopTraining()} disabled={!pendingResult || !trainingState || phase !== 'training'} className="premium-lesson-action-tone premium-tone-amber disabled:opacity-40">停止训练</button>
+        <span className="premium-lesson-caption self-center text-xs">状态：{phase === 'idle' ? '未训练' : phase === 'training' ? `训练中，第 ${episodeCount} 轮` : '已停止并记录结果'}</span>
       </div>
       <div className="overflow-x-auto rounded-xl border border-border/70">
         <table className="min-w-full text-left text-sm">
@@ -296,9 +467,12 @@ function HeadingRlTrainingPanel({
     : ['direct_rl', 'safe_shell_rl', 'rl_pid_schedule'];
   const [activeTab, setActiveTab] = useState<Exclude<Unit55RlTrainingType, 'toy_rl'>>('direct_rl');
   const [phaseByTab, setPhaseByTab] = useState<Record<string, TrainingPhase>>({});
+  const [episodeCountByTab, setEpisodeCountByTab] = useState<Record<string, number>>({});
+  const [seedByTab, setSeedByTab] = useState<Record<string, number>>({});
+  const [trainingStateByTab, setTrainingStateByTab] = useState<Partial<Record<Unit55RlTrainingType, Unit55RlTrainingState>>>({});
+  const [rewardHistoryByTab, setRewardHistoryByTab] = useState<Partial<Record<Unit55RlTrainingType, Unit55RewardPoint[]>>>({});
   const [pendingResults, setPendingResults] = useState<Partial<Record<Unit55RlTrainingType, Unit55RlTrainingResult>>>({});
   const [results, setResults] = useState<Partial<Record<Unit55RlTrainingType, Unit55RlTrainingResult>>>({});
-  const [episodes, setEpisodes] = useState(140);
   const [parametersByTab, setParametersByTab] = useState<Record<Exclude<Unit55RlTrainingType, 'toy_rl'>, Record<string, number>>>({
     direct_rl: defaultHeadingParameters('direct_rl'),
     safe_shell_rl: defaultHeadingParameters('safe_shell_rl'),
@@ -311,30 +485,81 @@ function HeadingRlTrainingPanel({
   const selectedParameters = parametersByTab[activeTab];
   const activeControls = controlsForHeadingTab(activeTab, manifestTabs);
   const tabLabel = manifestTabs.find((tab) => tab.id === activeTab)?.label ?? TRAINING_LABELS[activeTab];
+  const episodeCount = episodeCountByTab[activeTab] ?? 0;
+  const activeSeed = seedByTab[activeTab] ?? 5515;
+  const trainingState = trainingStateByTab[activeTab] ?? null;
+  const rewardHistory = rewardHistoryByTab[activeTab] ?? [];
+  const chunkSize = 3;
+
+  useEffect(() => {
+    if (!released || phase !== 'training') return undefined;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      const nextEpisode = episodeCount + chunkSize;
+      void computeUnit55RlTraining({
+        panelKind: 'rust_heading_rl_training_panel',
+        trainingType: activeTab,
+        seed: activeSeed,
+        trainingEpisodes: nextEpisode,
+        episodeChunk: chunkSize,
+        evaluate: false,
+        trainingState,
+        selectedParameters,
+      }).then((next) => {
+        if (cancelled) return;
+        setTrainingStateByTab((prev) => ({ ...prev, [activeTab]: next.trainingState ?? undefined }));
+        setRewardHistoryByTab((previousByTab) => {
+          const previousHistory = previousByTab[activeTab] ?? [];
+          const mergedHistory = rewardHistoryWithMovingAverage([...previousHistory, ...next.rewardChunk]);
+          setPendingResults((prev) => ({ ...prev, [activeTab]: resultWithRewardHistory(next, mergedHistory) }));
+          setEpisodeCountByTab((prev) => ({ ...prev, [activeTab]: mergedHistory.length }));
+          return { ...previousByTab, [activeTab]: mergedHistory };
+        });
+      }).catch((reason) => {
+        if (cancelled) return;
+        setError(reason instanceof Error ? reason.message : String(reason));
+        setPhaseByTab((prev) => ({ ...prev, [activeTab]: 'idle' }));
+      });
+    }, episodeCount === 0 ? 0 : 220);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [activeSeed, activeTab, episodeCount, phase, released, selectedParameters, trainingState]);
+
   const startTraining = async () => {
     if (!released) return;
+    const nextSeed = Date.now() % 100000;
+    setSeedByTab((prev) => ({ ...prev, [activeTab]: nextSeed }));
+    setEpisodeCountByTab((prev) => ({ ...prev, [activeTab]: 0 }));
+    setTrainingStateByTab((prev) => ({ ...prev, [activeTab]: undefined }));
+    setRewardHistoryByTab((prev) => ({ ...prev, [activeTab]: [] }));
     setPhaseByTab((prev) => ({ ...prev, [activeTab]: 'training' }));
     setPendingResults((prev) => ({ ...prev, [activeTab]: undefined }));
     setResults((prev) => ({ ...prev, [activeTab]: undefined }));
     setError(null);
+  };
+  const stopTraining = async () => {
+    if (!pendingResult || !trainingState) return;
+    setPhaseByTab((prev) => ({ ...prev, [activeTab]: 'stopped' }));
     try {
-      const next = await computeUnit55RlTraining({
+      const finalResult = await computeUnit55RlTraining({
         panelKind: 'rust_heading_rl_training_panel',
         trainingType: activeTab,
-        seed: Date.now() % 100000,
-        trainingEpisodes: episodes,
+        seed: activeSeed,
+        trainingEpisodes: episodeCount,
+        episodeChunk: 0,
+        evaluate: true,
+        trainingState,
         selectedParameters,
       });
-      setPendingResults((prev) => ({ ...prev, [activeTab]: next }));
+      const completedResult = resultWithRewardHistory(finalResult, rewardHistory);
+      setTrainingStateByTab((prev) => ({ ...prev, [activeTab]: finalResult.trainingState ?? undefined }));
+      setResults((prev) => ({ ...prev, [activeTab]: completedResult }));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
       setPhaseByTab((prev) => ({ ...prev, [activeTab]: 'idle' }));
     }
-  };
-  const stopTraining = () => {
-    if (!pendingResult) return;
-    setResults((prev) => ({ ...prev, [activeTab]: pendingResult }));
-    setPhaseByTab((prev) => ({ ...prev, [activeTab]: 'stopped' }));
   };
   const submitResult = () => {
     if (!result) return;
@@ -357,51 +582,48 @@ function HeadingRlTrainingPanel({
   };
   const rewardResult = phase === 'training' ? pendingResult : result;
   const evaluationResult = phase === 'stopped' ? result : null;
+  const overlays = evaluationResult ? overlayRanges(evaluationResult.comparisonTrace) : [];
 
   return (
     <section className="premium-lesson-panel space-y-4" data-testid="unit-5-5-heading-rl-training-panel">
       <div><div className="premium-lesson-kicker">三类航向策略训练</div><h3 className="premium-lesson-title mt-1 text-lg font-semibold">三类 RL 策略训练与 PID 基准评价</h3></div>
       {!released ? <div className="premium-lesson-tone-block premium-tone-amber text-sm">教师尚未发放训练与提交控制，当前可先阅读任务和评价口径。</div> : null}
       {error ? <div className="premium-lesson-tone-block premium-tone-rose text-sm">{error}</div> : null}
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`premium-lesson-action-tone ${activeTab === tab ? 'premium-tone-cyan' : 'premium-tone-slate'}`}>{manifestTabs.find((item) => item.id === tab)?.label ?? TRAINING_LABELS[tab]}</button>
-        ))}
+      <div className="grid gap-4 xl:grid-cols-2">
+        <SimpleLineChart title="动态回报曲线" series={rewardSeries(rewardResult?.rewardCurve ?? [])} yDomain={[-240, -20]} xLabel="训练轮次" yLabel="回报" />
+        <SimpleLineChart title="航向响应对比" series={evaluationResult ? headingSeries(evaluationResult.comparisonTrace) : []} yDomain={[-12, 18]} xLabel="时间 / s" yLabel="航向角 / deg" overlays={overlays} />
+        <SimpleLineChart title="舵角输出对比" series={evaluationResult ? rudderSeries(evaluationResult.comparisonTrace) : []} yDomain={[-16, 16]} xLabel="时间 / s" yLabel="舵角 / deg" overlays={overlays} />
+        <MetricGrid result={evaluationResult} />
       </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        <label className="premium-lesson-control flex flex-col gap-2 px-4 py-3"><span>训练轮数档位</span><input type="range" min="80" max="240" step="20" value={episodes} onChange={(event) => setEpisodes(Number(event.target.value))} disabled={!released} /><span className="premium-lesson-caption text-xs">{episodes} 轮</span></label>
-        <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">当前标签</div><div className="premium-lesson-title mt-1 text-lg font-semibold">{tabLabel}</div></div>
-        <div className="premium-lesson-surface-elevated px-4 py-3"><div className="premium-lesson-caption text-xs">训练状态</div><div className="premium-lesson-title mt-1 text-lg font-semibold">{phase === 'idle' ? '未训练' : phase === 'training' ? '训练中' : '已停止'}</div></div>
-      </div>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {activeControls.map((control) => (
-          <label key={control.id} className="premium-lesson-control flex flex-col gap-2 px-4 py-3">
-            <span>{control.label}</span>
-            <input
-              type="range"
-              min={control.min}
-              max={control.max}
-              step={control.step}
-              value={selectedParameters[control.id] ?? control.defaultValue}
-              onChange={(event) => updateActiveParameter(control.id, Number(event.target.value))}
-              disabled={!released || phase === 'training'}
-            />
-            <span className="premium-lesson-caption text-xs">
-              {(selectedParameters[control.id] ?? control.defaultValue).toFixed(control.step < 1 ? 2 : 0)}{control.unit ?? ''}
-            </span>
-          </label>
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <SimpleLineChart title="动态回报曲线" series={rewardSeries(rewardResult?.rewardCurve ?? [])} yDomain={[-26, -8]} xLabel="训练轮次" yLabel="回报" />
-        <SimpleLineChart title="航向响应对比" series={evaluationResult ? headingSeries(evaluationResult.comparisonTrace) : []} yDomain={[-12, 18]} xLabel="时间 / s" yLabel="航向角 / deg" />
-        <SimpleLineChart title="舵角输出对比" series={evaluationResult ? rudderSeries(evaluationResult.comparisonTrace) : []} yDomain={[-16, 16]} xLabel="时间 / s" yLabel="舵角 / deg" />
-      </div>
-      <MetricGrid result={evaluationResult} />
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => void startTraining()} disabled={!released || phase === 'training'} className="premium-lesson-action-tone premium-tone-cyan disabled:opacity-40">开始训练</button>
-        <button type="button" onClick={stopTraining} disabled={!released || phase !== 'training' || !pendingResult} className="premium-lesson-action-tone premium-tone-amber disabled:opacity-40">停止训练</button>
-        <button type="button" onClick={submitResult} disabled={!released || phase !== 'stopped' || !result} className="premium-lesson-action-primary disabled:opacity-40">提交结果</button>
+      <div className="premium-lesson-surface-elevated space-y-3 px-3 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {tabs.map((tab) => (
+            <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`premium-lesson-action-tone px-3 py-1.5 text-sm ${activeTab === tab ? 'premium-tone-cyan' : 'premium-tone-slate'}`}>{manifestTabs.find((item) => item.id === tab)?.label ?? TRAINING_LABELS[tab]}</button>
+          ))}
+          <span className="premium-lesson-caption text-xs">当前：{tabLabel} · {phase === 'idle' ? '未训练' : phase === 'training' ? `训练中，第 ${episodeCount} 轮` : '已停止'}</span>
+          <button type="button" onClick={() => void startTraining()} disabled={!released || phase === 'training'} className="premium-lesson-action-tone premium-tone-cyan px-3 py-1.5 text-sm disabled:opacity-40">开始训练</button>
+          <button type="button" onClick={() => void stopTraining()} disabled={!released || phase !== 'training' || !pendingResult || !trainingState} className="premium-lesson-action-tone premium-tone-amber px-3 py-1.5 text-sm disabled:opacity-40">停止训练</button>
+          <button type="button" onClick={submitResult} disabled={!released || phase !== 'stopped' || !result} className="premium-lesson-action-primary px-3 py-1.5 text-sm disabled:opacity-40">提交结果</button>
+        </div>
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {activeControls.map((control) => (
+            <label key={control.id} className="premium-lesson-control flex flex-col gap-1 px-3 py-2 text-sm">
+              <span>{control.label}</span>
+              <input
+                type="range"
+                min={control.min}
+                max={control.max}
+                step={control.step}
+                value={selectedParameters[control.id] ?? control.defaultValue}
+                onChange={(event) => updateActiveParameter(control.id, Number(event.target.value))}
+                disabled={!released || phase === 'training'}
+              />
+              <span className="premium-lesson-caption text-xs">
+                {(selectedParameters[control.id] ?? control.defaultValue).toFixed(control.step < 1 ? 2 : 0)}{control.unit ?? ''}
+              </span>
+            </label>
+          ))}
+        </div>
       </div>
     </section>
   );

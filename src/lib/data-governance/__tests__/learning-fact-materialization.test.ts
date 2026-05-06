@@ -53,6 +53,53 @@ describe('eventToLearningFactInput', () => {
     expect(fact).toBeNull();
   });
 
+  it('materializes sampled parameter exploration as a low-weight simulation fact', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'workspace-param-sampled-001',
+      actionType: 'param_change',
+      payload: {
+        eventType: 'workspace_param_change',
+        stepId: 'step-04',
+        lessonKey: 'unit-4-1-design-task-expression-v1',
+        sampled: true,
+        changeCount: 8,
+        flushReason: 'step_leave',
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'workspace-param-sampled-001',
+      factType: 'simulation',
+      lessonId: 'unit-4-1-design-task-expression-v1',
+      outcome: 'success',
+    });
+    expect(fact?.competencyContribution).toMatchObject({
+      controlModeling: 0.1,
+      selfDirectedLearning: 0.1,
+    });
+  });
+
+  it('does not materialize raw parameter ticks or sync errors', () => {
+    const rawTick = eventToLearningFactInput(createEvent({
+      actionType: 'param_change',
+      payload: {
+        eventType: 'workspace_param_change',
+        stepId: 'step-04',
+        sampled: false,
+      },
+    }));
+    const syncError = eventToLearningFactInput(createEvent({
+      actionType: 'error',
+      payload: {
+        eventType: 'sync_error',
+        stepId: 'step-04',
+      },
+    }));
+
+    expect(rawTick).toBeNull();
+    expect(syncError).toBeNull();
+  });
+
   it('marks unfinished session finalization as partial instead of success', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'client-event-finalize-001',

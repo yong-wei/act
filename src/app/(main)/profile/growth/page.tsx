@@ -32,6 +32,21 @@ import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
+interface EvidenceSummaryItem {
+  factType: string;
+  outcome: string;
+  score?: number;
+  evidenceTitle?: string;
+  stepId?: string;
+  questionSummaries?: Array<{
+    questionId?: string;
+    prompt?: string;
+    studentAnswer?: string | null;
+    referenceAnswer?: string;
+    isCorrect?: boolean;
+  }>;
+}
+
 interface GrowthSnapshotData {
   currentSnapshot: {
     vector: CompetencyVector;
@@ -43,7 +58,7 @@ interface GrowthSnapshotData {
     snapshotAt: string;
   } | null;
   trendVector: TrendVector;
-  evidenceSummary: Record<string, Array<{ factType: string; outcome: string; score?: number }>>;
+  evidenceSummary: Record<string, EvidenceSummaryItem[]>;
   riskFlags: RiskFlag[];
   recommendations: Array<{
     type: 'immediate' | 'weekly' | 'challenge';
@@ -56,7 +71,7 @@ interface GrowthSnapshotData {
 
 interface GrowthRecord {
   id: string;
-  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement';
+  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation';
   title: string;
   description: string;
   date: string;
@@ -552,6 +567,11 @@ export default function GrowthPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       )}
+                      {record.type === 'competency_evaluation' && (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4.5l1.5 3.5 3.5 1.5-3.5 1.5L11 14.5 9.5 11 6 9.5 9.5 8 11 4.5zM17.5 13l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1zM5.5 15l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7.7-1.6z" />
+                        </svg>
+                      )}
                     </div>
                     {index < growthRecords.length - 1 && (
                       <div className="mt-2 h-full w-px bg-accent" />
@@ -586,35 +606,21 @@ export default function GrowthPage() {
                   <p className="font-medium text-foreground">{getCompetencyLabel(dimension as never)}</p>
                   <div className="mt-2 space-y-2">
                     {evidence.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-subtle">
-                          {item.factType === 'simulation'
-                            ? '仿真'
-                            : item.factType === 'question'
-                            ? '测试'
-                            : item.factType === 'ai_intervention'
-                            ? 'AI交互'
-                            : item.factType === 'ethical'
-                            ? '伦理'
-                            : item.factType}
-                        </span>
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs ${
-                            item.outcome === 'success'
-                              ? 'bg-emerald-500/20 text-emerald-500'
-                              : item.outcome === 'failure'
-                              ? 'bg-red-500/20 text-red-500'
-                              : 'bg-amber-500/20 text-amber-500'
-                          }`}
-                        >
-                          {item.outcome === 'success'
-                            ? '成功'
-                            : item.outcome === 'failure'
-                            ? '失败'
-                            : item.outcome === 'partial'
-                            ? '部分'
-                            : '进行中'}
-                        </span>
+                      <div key={idx} className="rounded-lg border border-border/60 bg-card/70 p-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="font-medium text-foreground">{formatEvidenceTitle(item)}</span>
+                          <span className={getOutcomeBadgeClass(item.outcome)}>{formatOutcome(item.outcome)}</span>
+                        </div>
+                        {typeof item.score === 'number' && (
+                          <p className="mt-1 text-xs text-subtle">评分 {item.score}</p>
+                        )}
+                        {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
+                          <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
+                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
+                            {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
+                          </p>
+                        ))}
                       </div>
                     ))}
                   </div>
@@ -639,4 +645,29 @@ function formatRelativeDate(dateStr: string): string {
   if (diffDays < 7) return `${diffDays}天前`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
   return `${Math.floor(diffDays / 30)}月前`;
+}
+
+function formatEvidenceTitle(item: EvidenceSummaryItem): string {
+  if (item.evidenceTitle) {
+    return item.evidenceTitle;
+  }
+  if (item.factType === 'simulation') return '仿真操作证据';
+  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
+  if (item.factType === 'ai_intervention') return 'AI 交互证据';
+  if (item.factType === 'ethical') return '工程伦理证据';
+  return item.factType;
+}
+
+function formatOutcome(outcome: string): string {
+  if (outcome === 'success') return '成功';
+  if (outcome === 'failure') return '失败';
+  if (outcome === 'partial') return '部分';
+  return '进行中';
+}
+
+function getOutcomeBadgeClass(outcome: string): string {
+  const base = 'shrink-0 rounded px-2 py-0.5 text-xs';
+  if (outcome === 'success') return `${base} bg-emerald-500/20 text-emerald-500`;
+  if (outcome === 'failure') return `${base} bg-red-500/20 text-red-500`;
+  return `${base} bg-amber-500/20 text-amber-500`;
 }
