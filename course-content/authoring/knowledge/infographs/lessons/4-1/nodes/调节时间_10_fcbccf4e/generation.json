@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-30T01:08:41.547829Z",
+  "lesson_id": "4-1",
+  "node_id": "调节时间_10_fcbccf4e",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019ddbe5-4cb1-7830-84ab-14e29aaac163/ig_0cff3ec146cc35ba0169f2ab558f548197b78901e2c32c364d.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-1/nodes/调节时间_10_fcbccf4e/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-1/nodes/调节时间_10_fcbccf4e/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-1/nodes/调节时间_10_fcbccf4e/source.json"
+}

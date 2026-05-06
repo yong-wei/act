@@ -53,13 +53,26 @@
           "id": "stage-map",
           "region": "lead",
           "kind": "stage-map",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page_intro",
+            "title": "本课角色"
+          }
         },
         {
           "id": "goal-cards",
           "region": "lead",
           "kind": "goal-card-row",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goal_cards",
+            "items": [
+              "对象分析：把模型、任务和约束改写成设计入口。",
+              "结构分流：判断继续单结构、进入复合结构还是改写通道。",
+              "参数方向：写清先改哪段行为、预期改善什么、最可能先透支什么。",
+              "首轮验证与问题清单：确认这一版是否值得继续推进。"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -85,7 +98,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -147,13 +161,26 @@
           "id": "analysis-four-questions",
           "region": "prompt",
           "kind": "question-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question_cards",
+            "items": [
+              "当前最紧矛盾在哪里。",
+              "原有单结构还能否继续推。",
+              "新机制应当补到哪里。",
+              "首轮验证先盯什么。"
+            ]
+          }
         },
         {
           "id": "analysis-record-card",
           "region": "workspace",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "record_template",
+            "title": "对象分析记录单"
+          }
         }
       ],
       "content_blocks": {
@@ -258,13 +285,46 @@
           "id": "branching-table",
           "region": "table",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "table_1",
+            "columns": [
+              "当前观察",
+              "更合适的起步方向",
+              "设计含义"
+            ],
+            "rows": [
+              [
+                "低频精度不足，但动态品质尚可",
+                "继续 PI/滞后 单结构",
+                "先把低频能力补上，再验证是否带来过大动态代价"
+              ],
+              [
+                "超调、相角裕度或阻尼更紧",
+                "继续 PD/超前 单结构",
+                "先整理中频动态品质，再看速度与高频代价"
+              ],
+              [
+                "单结构已经改善一项，却明显透支另一项",
+                "进入复合结构",
+                "第二条机制线用来分担职责，而不是把第一条机制线越推越激进"
+              ],
+              [
+                "给定或扰动通道可测且主问题确实来自该通道",
+                "反馈 + 前馈组合",
+                "让前馈定向补偿通道，反馈继续保底"
+              ]
+            ]
+          }
         },
         {
           "id": "branch-choice",
           "region": "interaction",
           "kind": "single-choice-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "branch_summary"
+          }
         }
       ],
       "content_blocks": {
@@ -390,7 +450,36 @@
           "id": "compound-overview-table",
           "region": "formula",
           "kind": "native-formula-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "table_2",
+            "columns": [
+              "形式",
+              "一般表达式",
+              "更适合解决的问题",
+              "结构分工"
+            ],
+            "rows": [
+              [
+                "PI + 超前",
+                "$C(s)=K(1+1/(T_i s))(T_\\alpha s+1)/(\\alpha T_\\alpha s+1)$",
+                "既要压低静差，又要把中频相位和阻尼拉回可接受范围",
+                "PI 负责低频托举，超前负责中频整理"
+              ],
+              [
+                "滞后 + 超前",
+                "$C(s)=K(T_\\ell s+1)/(\\beta T_\\ell s+1)(T_\\alpha s+1)/(\\alpha T_\\alpha s+1)$",
+                "速度尚可但低频增益不够，同时又不希望明显牺牲相位裕量",
+                "滞后补低频，超前补相位"
+              ],
+              [
+                "带微分滤波 PID",
+                "$C(s)=K(1+1/(T_i s)+T_d s/(T_f s+1))$",
+                "需要零静差，又希望提前整理动态品质，同时控制高频放大",
+                "积分补低频，微分改善中频，滤波限制高频代价"
+              ]
+            ]
+          }
         },
         {
           "id": "responsibility-summary",
@@ -443,7 +532,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -523,7 +613,10 @@
           "id": "pi-lead-summary",
           "region": "problem",
           "kind": "table-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula_block"
+          }
         },
         {
           "id": "pi-lead-native-panel",
@@ -542,7 +635,48 @@
           "id": "pi-lead-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "result_summary",
+            "columns": [
+              "指标",
+              "校正前",
+              "校正后",
+              "说明"
+            ],
+            "rows": [
+              [
+                "超调量",
+                "1.93%",
+                "12.30%",
+                "动态更积极，超调仍处在可接受范围"
+              ],
+              [
+                "调节时间",
+                "1.63 s",
+                "3.35 s",
+                "引入积分后，系统愿意为零静差付出时间代价"
+              ],
+              [
+                "稳态误差",
+                "0.50",
+                "约 0",
+                "低频保持能力显著提高"
+              ],
+              [
+                "相角裕度",
+                "无代表值",
+                "49.36°",
+                "超前环节把中频相位重新托住"
+              ],
+              [
+                "截止频率",
+                "无代表值",
+                "7.60 rad/s",
+                "响应速度提高，同时控制作用更强"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -710,7 +844,10 @@
           "id": "lag-lead-summary",
           "region": "problem",
           "kind": "table-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula_block"
+          }
         },
         {
           "id": "lag-lead-native-panel",
@@ -729,7 +866,48 @@
           "id": "lag-lead-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "result_summary",
+            "columns": [
+              "指标",
+              "校正前",
+              "校正后",
+              "说明"
+            ],
+            "rows": [
+              [
+                "超调量",
+                "4.75%",
+                "0%",
+                "动态明显变得更保守"
+              ],
+              [
+                "调节时间",
+                "3.14 s",
+                "17.28 s",
+                "为换取高储备，速度付出了显著代价"
+              ],
+              [
+                "稳态误差",
+                "0.50",
+                "0.146",
+                "低频能力得到改善，但仍不是零静差"
+              ],
+              [
+                "相角裕度",
+                "无代表值",
+                "108.70°",
+                "首轮设计明显偏保守"
+              ],
+              [
+                "截止频率",
+                "无代表值",
+                "1.52 rad/s",
+                "速度下降，说明这一版更偏稳健"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -898,7 +1076,10 @@
           "id": "pid-filter-summary",
           "region": "problem",
           "kind": "table-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula_block"
+          }
         },
         {
           "id": "pid-filter-native-panel",
@@ -917,7 +1098,48 @@
           "id": "pid-filter-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "result_summary",
+            "columns": [
+              "指标",
+              "校正前",
+              "校正后",
+              "说明"
+            ],
+            "rows": [
+              [
+                "超调量",
+                "0.43%",
+                "0%",
+                "动态保持平稳"
+              ],
+              [
+                "调节时间",
+                "2.52 s",
+                "3.34 s",
+                "速度略有下降，但稳态和储备更完整"
+              ],
+              [
+                "稳态误差",
+                "0.667",
+                "约 0",
+                "积分项决定了低频保持能力"
+              ],
+              [
+                "相角裕度",
+                "无代表值",
+                "84.63°",
+                "微分补偿改善了中频相位"
+              ],
+              [
+                "截止频率",
+                "无代表值",
+                "1.21 rad/s",
+                "整体更偏稳健而非激进提速"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1066,19 +1288,33 @@
           "id": "heading-problem",
           "region": "case",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "heading-targets",
           "region": "case",
           "kind": "goal-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "target_constraints",
+            "items": [
+              "超调量不超过 20%。",
+              "调节时间压到 40 s 左右。",
+              "控制峰值不超过 7。"
+            ]
+          }
         },
         {
           "id": "heading-judge",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "why_lead_first"
+          }
         }
       ],
       "content_blocks": {
@@ -1179,7 +1415,10 @@
           "id": "heading-problem-fixed",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "fixed_problem"
+          }
         },
         {
           "id": "heading-derivation",
@@ -1243,7 +1482,19 @@
         "step_reveal_policy": {
           "min_layers": 5,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-09-activity",
+            "title": "按五步读取超前初始方案的形成过程。",
+            "prompt": "按五步读取超前初始方案的形成过程。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1311,7 +1562,60 @@
           "id": "heading-validation-table",
           "region": "validation",
           "kind": "native-table",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "table_6",
+            "columns": [
+              "指标",
+              "校正前",
+              "校正后",
+              "结果解释"
+            ],
+            "rows": [
+              [
+                "超调量",
+                "13.50%",
+                "18.86%",
+                "仍满足 20% 约束，但已接近上限"
+              ],
+              [
+                "峰值时间",
+                "42.16 s",
+                "15.72 s",
+                "修航过程显著加快"
+              ],
+              [
+                "调节时间",
+                "65.48 s",
+                "36.02 s",
+                "已达到约 40 s 的目标"
+              ],
+              [
+                "稳态误差",
+                "1.96×10^-4",
+                "约 0",
+                "对象原有积分特性已保证良好低频保持"
+              ],
+              [
+                "控制峰值",
+                "1.00",
+                "6.89",
+                "接近约束上限，控制力度已较强"
+              ],
+              [
+                "相角裕度",
+                "54.57°",
+                "49.05°",
+                "超前校正把裕度压到目标附近"
+              ],
+              [
+                "截止频率",
+                "无代表值",
+                "0.18 rad/s",
+                "与参数方向设定一致"
+              ]
+            ]
+          }
         },
         {
           "id": "heading-validation-panel",
@@ -1330,7 +1634,15 @@
           "id": "issue-handover-cards",
           "region": "interaction",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "panel_controls",
+            "items": [
+              "总增益 K",
+              "超前零点频率 ω_z",
+              "超前极点频率 ω_p"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1492,7 +1804,10 @@
           "id": "mini-problem",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "mini-reveal",
@@ -1551,7 +1866,19 @@
         "step_reveal_policy": {
           "min_layers": 4,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-11-activity",
+            "title": "跟随最小例题判断何时从单结构转向复合结构。",
+            "prompt": "跟随最小例题判断何时从单结构转向复合结构。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1649,7 +1976,10 @@
           "id": "workspace-cards",
           "region": "workspace",
           "kind": "activity-card-set",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "template_cards"
+          }
         }
       ],
       "content_blocks": {
@@ -1777,7 +2107,10 @@
           "id": "roll-problem",
           "region": "problem",
           "kind": "problem-statement",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem_statement"
+          }
         },
         {
           "id": "roll-structure-note",
@@ -1819,7 +2152,36 @@
           "id": "roll-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "table_7",
+            "columns": [
+              "指标",
+              "原系统",
+              "校正后",
+              "含义"
+            ],
+            "rows": [
+              [
+                "共振峰值",
+                "11.32 dB",
+                "1.77 dB",
+                "横摇共振被显著压低"
+              ],
+              [
+                "共振频率",
+                "0.687 rad/s",
+                "0.687 rad/s",
+                "主要改的是峰值高度，而不是移动共振点"
+              ],
+              [
+                "振幅比",
+                "1",
+                "0.333",
+                "共振处横摇响应约降为原来的三分之一"
+              ]
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1958,25 +2320,42 @@
           "id": "post-quiz-title",
           "region": "assessment_region",
           "kind": "title-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "post_quiz_title"
+          }
         },
         {
           "id": "post-quiz",
           "region": "assessment_region",
           "kind": "quiz-group",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "takeaways",
+            "items": [
+              "第一版方案必须包含对象分析、结构分流、参数方向、首轮验证与问题清单。",
+              "复合结构的意义在于职责分配，而不是公式长度。",
+              "首轮验证的价值在于形成下一轮入口。"
+            ]
+          }
         },
         {
           "id": "takeaways",
           "region": "summary_region",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next_route"
+          }
         },
         {
           "id": "next-route",
           "region": "summary_region",
           "kind": "route-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next_route"
+          }
         }
       ],
       "content_blocks": {

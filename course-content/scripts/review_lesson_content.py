@@ -33,6 +33,7 @@ from lesson_artifacts import (  # noqa: E402
     resolve_lesson_artifact_path,
     with_lesson_prefix,
 )
+from canonical_nodes import load_canonical_index  # noqa: E402
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 
@@ -2016,8 +2017,9 @@ def build_runtime_asset_check(lesson_id: str, lesson_dir: Path) -> dict[str, Any
 
 
 def check_knowledge_cards(lesson_id: str) -> dict[str, Any]:
+    canonical_index = load_canonical_index()
     sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
-    sequence = read_json(sequence_path)
+    sequence = canonical_index.canonicalize_sequence(read_json(sequence_path))
     card_dir = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes'
 
     node_ids = list(dict.fromkeys(
@@ -2063,8 +2065,9 @@ def check_knowledge_cards(lesson_id: str) -> dict[str, Any]:
 
 
 def check_infographs(lesson_id: str) -> dict[str, Any]:
+    canonical_index = load_canonical_index()
     sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
-    sequence = read_json(sequence_path)
+    sequence = canonical_index.canonicalize_sequence(read_json(sequence_path))
     infograph_root = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons' / lesson_id / 'nodes'
     node_ids = list(dict.fromkeys(sequence.get('card_order', [])))
 
@@ -2076,7 +2079,11 @@ def check_infographs(lesson_id: str) -> dict[str, Any]:
 
     for node_id in node_ids:
         node_id = str(node_id)
-        node_dir = infograph_root / node_id
+        selected = canonical_index.selected_infograph(node_id)
+        if selected:
+            node_dir = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons' / selected['lesson_id'] / 'nodes' / selected['node_id']
+        else:
+            node_dir = infograph_root / node_id
         image_path = node_dir / 'infograph.png'
         source_path = node_dir / 'source.json'
         prompt_path = node_dir / 'prompt.md'

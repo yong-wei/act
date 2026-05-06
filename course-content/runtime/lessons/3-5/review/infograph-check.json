@@ -1,0 +1,89 @@
+{
+  "lesson_id": "3-5",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-5/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/3-5/nodes",
+  "card_order": [
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3",
+    "闭环极点_3_f9432bf3",
+    "主导极点_3_4c4c6bbd",
+    "零点引入与根轨迹重排_3_35001",
+    "左半平面零点的动态改善机理_3_35002",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "相角裕度_5_5a74b451",
+    "带宽_5_6730fda4",
+    "PD与超前的频域整形差异_3_35004",
+    "非最小相与右半平面零点_3_35005"
+  ],
+  "accepted_infographs": [
+    "主导极点_3_4c4c6bbd",
+    "左半平面零点的动态改善机理_3_35002",
+    "相角裕度_5_5a74b451",
+    "带宽_5_6730fda4",
+    "非最小相与右半平面零点_3_35005"
+  ],
+  "missing_infographs": [
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3",
+    "闭环极点_3_f9432bf3",
+    "零点引入与根轨迹重排_3_35001",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "PD与超前的频域整形差异_3_35004"
+  ],
+  "missing_source_files": {
+    "根轨迹法_2_e3f6c0c1": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "根轨迹绘制规则_3_2f9e8cb3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "闭环极点_3_f9432bf3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "零点引入与根轨迹重排_3_35001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "阻尼比_3_b849784e": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "自然频率_10_51a8b7d0": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "PD与测速反馈的等效阻尼对比_3_35003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "PD与超前的频域整形差异_3_35004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

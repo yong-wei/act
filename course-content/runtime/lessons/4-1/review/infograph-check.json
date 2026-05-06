@@ -3,8 +3,8 @@
   "sequence_path": "course-content/authoring/knowledge/cards/lessons/4-1/sequence.json",
   "infograph_root": "course-content/authoring/knowledge/infographs/lessons/4-1/nodes",
   "card_order": [
-    "超调量_5_3d015714",
-    "调节时间_4_d3f3314b",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
     "相角裕度_5_5a74b451",
     "带宽频率_5_6996a44a",
     "谐振峰值Mr_5_b3a87785",
@@ -18,8 +18,8 @@
     "设计任务表达卡_4_41001"
   ],
   "accepted_infographs": [
-    "超调量_5_3d015714",
-    "调节时间_4_d3f3314b",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
     "相角裕度_5_5a74b451",
     "带宽频率_5_6996a44a",
     "谐振峰值Mr_5_b3a87785",

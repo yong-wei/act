@@ -19,6 +19,17 @@ Use this skill for requests like:
 
 ## Storage Contract
 
+Canonical node table:
+
+```text
+course-content/authoring/knowledge/canonical-nodes.json
+```
+
+Use this table as the source of truth before preparing or registering an
+infographic. If the requested node id is an alias, resolve it to
+`canonical_node_id`. If the canonical entry already has an accepted
+`selected_infograph`, do not regenerate the node; reuse the recorded asset.
+
 Authoring node infographic directory:
 
 ```text
@@ -36,6 +47,10 @@ Runtime export target:
 course-content/runtime/knowledge/infographs/nodes/<node_id>.png
 course-content/runtime/knowledge/infographs/manifest.json
 ```
+
+The runtime `<node_id>` is always the canonical node id. Lesson-scoped
+authoring directories may remain under the unit where the asset was produced,
+but runtime export must mount only one selected asset per canonical node.
 
 Only export nodes whose `review.json` has `status: "accepted"`.
 

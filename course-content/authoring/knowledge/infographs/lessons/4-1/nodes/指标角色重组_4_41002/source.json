@@ -133,7 +133,7 @@
       "direction_for_node": "by_name"
     },
     {
-      "source_id": "超调量_5_3d015714",
+      "source_id": "超调量_3_fc3f5b17",
       "source": "超调量",
       "target_id": "指标角色重组_4_41002",
       "target": "指标角色重组",
@@ -143,7 +143,7 @@
       "direction_for_node": "incoming"
     },
     {
-      "source_id": "调节时间_4_d3f3314b",
+      "source_id": "调节时间_10_fcbccf4e",
       "source": "调节时间",
       "target_id": "指标角色重组_4_41002",
       "target": "指标角色重组",

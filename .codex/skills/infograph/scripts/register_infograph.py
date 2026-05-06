@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 
 from infograph_utils import (
+    canonical_node_id,
     copy_image,
     latest_codex_image,
     node_infograph_dir,
@@ -12,6 +13,7 @@ from infograph_utils import (
     now_iso,
     read_json,
     repo_path,
+    selected_infograph_ref,
     write_json,
 )
 
@@ -29,7 +31,24 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    output_dir = node_infograph_dir(args.lesson, args.node)
+    requested_node_id = args.node
+    node_id = canonical_node_id(requested_node_id)
+    selected = selected_infograph_ref(node_id)
+    if selected:
+        selected_dir = node_infograph_dir(selected['lesson_id'], selected['node_id'])
+        review_path = selected_dir / 'review.json'
+        image_path = selected_dir / 'infograph.png'
+        if image_path.exists() and review_path.exists():
+            try:
+                review = read_json(review_path)
+            except Exception:
+                review = {}
+            if str(review.get('status') or '').strip().lower() == 'accepted':
+                print(f'canonical infograph already accepted: {repo_path(image_path)}')
+                print(f'requested node {requested_node_id} maps to canonical node {node_id}')
+                return
+
+    output_dir = node_infograph_dir(args.lesson, node_id)
     source_path = output_dir / 'source.json'
     prompt_path = output_dir / 'prompt.md'
     if not source_path.exists() or not prompt_path.exists():
@@ -47,7 +66,7 @@ def main() -> None:
     if not image_path.exists():
         raise SystemExit(f'Image not found: {image_path}')
 
-    target = node_infograph_path(args.lesson, args.node)
+    target = node_infograph_path(args.lesson, node_id)
     copy_image(image_path, target)
     source = read_json(source_path)
 
@@ -55,7 +74,8 @@ def main() -> None:
         'schema_version': 1,
         'created_at': now_iso(),
         'lesson_id': args.lesson,
-        'node_id': args.node,
+        'node_id': node_id,
+        'requested_node_id': requested_node_id,
         'generation_path': 'codex-native-image-generation',
         'model': 'gpt-image-2',
         'tool_contract': 'Codex built-in image_gen prompt-only tool',
@@ -76,7 +96,8 @@ def main() -> None:
         'schema_version': 1,
         'updated_at': now_iso(),
         'lesson_id': args.lesson,
-        'node_id': args.node,
+        'node_id': node_id,
+        'requested_node_id': requested_node_id,
         'node_name': source.get('node', {}).get('name'),
         'status': 'accepted' if args.accept else 'needs_review',
         'checks': {
@@ -96,4 +117,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-

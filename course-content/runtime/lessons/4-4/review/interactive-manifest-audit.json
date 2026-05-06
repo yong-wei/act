@@ -100,6 +100,8 @@
       "reason_chain",
       "reflection_card",
       "row_focus_toggle",
+      "rust_heading_rl_training_panel",
+      "rust_toy_training_panel",
       "scheme_vote_cards",
       "single_choice",
       "step_reveal",
@@ -132,6 +134,8 @@
       "reason_chain",
       "reflection_card",
       "row_focus_toggle",
+      "rust_heading_rl_training_panel",
+      "rust_toy_training_panel",
       "scheme_vote_cards",
       "single_choice",
       "step_reveal",
@@ -167,7 +171,7 @@
       "module_id": "object-card",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.object_card",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -217,7 +221,7 @@
       "module_id": "goal-cards",
       "kind": "goal-card-row",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.goal_cards",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
@@ -227,7 +231,7 @@
       "module_id": "trial-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.trial_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -277,7 +281,7 @@
       "module_id": "initial-controller",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.initial_controller",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -287,7 +291,7 @@
       "module_id": "parameter-vector",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.parameter_vector",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -307,7 +311,7 @@
       "module_id": "prior-result-metrics",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.prior_result_metrics",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -317,7 +321,7 @@
       "module_id": "range-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.range_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -347,7 +351,7 @@
       "module_id": "target-cards",
       "kind": "equation-card-row",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.target_cards",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -357,7 +361,7 @@
       "module_id": "jfree-card",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.jfree_card",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -367,7 +371,7 @@
       "module_id": "normalization-meaning-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.normalization_meaning_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -397,7 +401,7 @@
       "module_id": "optimization-problem",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.optimization_problem",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -467,7 +471,7 @@
       "module_id": "shared-structure",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.shared_structure",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -477,7 +481,7 @@
       "module_id": "weight-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.weight_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -487,7 +491,7 @@
       "module_id": "time-domain-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.time_domain_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -527,7 +531,7 @@
       "module_id": "frequency-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.frequency_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -547,7 +551,7 @@
       "module_id": "pareto-definition",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.pareto_definition",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -587,7 +591,7 @@
       "module_id": "shared-structure",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.shared_structure",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -597,7 +601,7 @@
       "module_id": "pareto-point-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.pareto_point_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null
@@ -647,7 +651,7 @@
       "module_id": "roll-object-card",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.roll_object_card",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -657,7 +661,7 @@
       "module_id": "roll-objective-card",
       "kind": "formula-card",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.roll_objective_card",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "formula",
       "is_empty": false,
       "diagnostic": null
@@ -667,7 +671,7 @@
       "module_id": "roll-table",
       "kind": "native-table",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.roll_table",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "table",
       "is_empty": false,
       "diagnostic": null

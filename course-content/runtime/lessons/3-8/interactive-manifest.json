@@ -1630,18 +1630,7 @@
         "step_reveal_policy": {
           "mode": "teacher_or_browse_release"
         },
-        "activity_cards": [
-          {
-            "id": "step-10-activity",
-            "title": "按显影链阅读 2.3.1 与 2.3.2 的推导，不提交答案。",
-            "prompt": "按显影链阅读 2.3.1 与 2.3.2 的推导，不提交答案。",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",

@@ -1,0 +1,17 @@
+{
+  "views": [
+    {
+      "name": "effects-zero-new",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -4.6,
+        0.45
+      ],
+      "ylim": [
+        -3.2,
+        3.2
+      ]
+    }
+  ]
+}

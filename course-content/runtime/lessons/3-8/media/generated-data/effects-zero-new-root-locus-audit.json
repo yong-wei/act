@@ -1,0 +1,63 @@
+{
+  "sample_count": 1320,
+  "gain_min": 0.0,
+  "gain_max": 96.0,
+  "branch_count": 3,
+  "expected_branch_count": 3,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 0,
+        "zero_re": -1.2,
+        "zero_im": 0.0,
+        "endpoint_re": -1.204143375271,
+        "endpoint_im": 0.0,
+        "distance": 0.00414337527100006
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.007309252480999895,
+      "sign_switches": 0,
+      "endpoint_re": -1.204143375271,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.045315461684837674,
+      "sign_switches": 0,
+      "endpoint_re": -1.547928312365,
+      "endpoint_im": 8.836066019124
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.04815967488396748,
+      "sign_switches": 0,
+      "endpoint_re": -1.547928312365,
+      "endpoint_im": -8.836066019124
+    }
+  ],
+  "views": [
+    {
+      "name": "effects-zero-new",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -4.6,
+        0.45
+      ],
+      "ylim": [
+        -3.2,
+        3.2
+      ],
+      "visible_branch_count": 3,
+      "visible_open_loop_pole_count": 3,
+      "visible_open_loop_zero_count": 1
+    }
+  ]
+}

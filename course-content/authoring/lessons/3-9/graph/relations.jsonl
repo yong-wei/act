@@ -9,5 +9,5 @@
 {"source_id":"积分与滞后的稳态改善分工_3_39003","source_name":"积分与滞后的稳态改善分工","target_id":"任务标签与机制标签匹配_3_39002","target_name":"任务标签与机制标签匹配","relation":"supports","strength":0.91,"description":"积分与滞后路线的分工差异，为“更准”这一任务标签提供更细的机制判断。","run_id":"3-9"}
 {"source_id":"三频段闭环性能回读_3_38003","source_name":"三频段闭环性能回读","target_id":"任务标签与机制标签匹配_3_39002","target_name":"任务标签与机制标签匹配","relation":"cross_domain","strength":0.9,"description":"任务标签不是口头偏好，而是要用三频段分工去核对收益落点和代价暴露点。","run_id":"3-9"}
 {"source_id":"任务标签与机制标签匹配_3_39002","source_name":"任务标签与机制标签匹配","target_id":"模块4入口的首轮任务判断_3_39004","target_name":"模块4入口的首轮任务判断","relation":"leads_to","strength":0.96,"description":"当任务标签与机制标签对齐后，学生才能带着正确问题进入模块4，而不是直接越级给参数答案。","run_id":"3-9"}
-{"source_id":"相角裕度_5_0a9c6e90","source_name":"相角裕度","target_id":"模块4入口的首轮任务判断_3_39004","target_name":"模块4入口的首轮任务判断","relation":"cross_domain","strength":0.88,"description":"模块4入口判断要先问动态改善是否会过早吃掉中频余量。","run_id":"3-9"}
+{"source_id":"相角裕度_5_5a74b451","source_name":"相角裕度","target_id":"模块4入口的首轮任务判断_3_39004","target_name":"模块4入口的首轮任务判断","relation":"cross_domain","strength":0.88,"description":"模块4入口判断要先问动态改善是否会过早吃掉中频余量。","run_id":"3-9"}
 {"source_id":"带宽_5_6730fda4","source_name":"带宽","target_id":"模块4入口的首轮任务判断_3_39004","target_name":"模块4入口的首轮任务判断","relation":"cross_domain","strength":0.88,"description":"模块4入口判断不能把带宽右移简单等同于“更优”，必须连同代价一起看。","run_id":"3-9"}

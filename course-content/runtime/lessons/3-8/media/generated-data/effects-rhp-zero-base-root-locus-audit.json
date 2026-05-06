@@ -1,0 +1,53 @@
+{
+  "sample_count": 320,
+  "gain_min": 0.0,
+  "gain_max": 12.0,
+  "branch_count": 3,
+  "expected_branch_count": 3,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.006924420213000104,
+      "sign_switches": 0,
+      "endpoint_re": -4.049495249639,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.12726011610622665,
+      "sign_switches": 0,
+      "endpoint_re": -0.125252375181,
+      "endpoint_im": 1.780419626355
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.12192392352845587,
+      "sign_switches": 0,
+      "endpoint_re": -0.125252375181,
+      "endpoint_im": -1.780419626355
+    }
+  ],
+  "views": [
+    {
+      "name": "effects-rhp-zero-base",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -6.4,
+        1.65
+      ],
+      "ylim": [
+        -2.2,
+        2.2
+      ],
+      "visible_branch_count": 3,
+      "visible_open_loop_pole_count": 3,
+      "visible_open_loop_zero_count": 0
+    }
+  ]
+}

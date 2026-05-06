@@ -11,5 +11,5 @@
 {"source_id":"低频补偿稳态改善路径_3_37003","source_name":"低频补偿稳态改善路径","target_id":"比例-积分控制器_3_2d540516","target_name":"比例-积分控制器","relation":"contains","strength":0.95,"description":"PI 是通过提高型别进行稳态改善的代表路径。","run_id":"3-7"}
 {"source_id":"低频补偿稳态改善路径_3_37003","source_name":"低频补偿稳态改善路径","target_id":"串联无源滞后校正_6_2a52e865","target_name":"串联无源滞后校正","relation":"contains","strength":0.92,"description":"滞后校正是不改型别而重分配低频增益的代表路径。","run_id":"3-7"}
 {"source_id":"频率特性_5_404adfdd","source_name":"频率特性","target_id":"低频补偿稳态改善路径_3_37003","target_name":"低频补偿稳态改善路径","relation":"cross_domain","strength":0.9,"description":"3-7 末段把 PI 与滞后的稳态改善收益翻译成低频主导的频域语言。","run_id":"3-7"}
-{"source_id":"相角裕度_5_0a9c6e90","source_name":"相角裕度","target_id":"低频补偿稳态改善路径_3_37003","target_name":"低频补偿稳态改善路径","relation":"cross_domain","strength":0.88,"description":"低频补偿并非没有代价，它会通过相位损失重新挤压中频附近的裕量。","run_id":"3-7"}
+{"source_id":"相角裕度_5_5a74b451","source_name":"相角裕度","target_id":"低频补偿稳态改善路径_3_37003","target_name":"低频补偿稳态改善路径","relation":"cross_domain","strength":0.88,"description":"低频补偿并非没有代价，它会通过相位损失重新挤压中频附近的裕量。","run_id":"3-7"}
 {"source_id":"带宽_5_6730fda4","source_name":"带宽","target_id":"低频补偿稳态改善路径_3_37003","target_name":"低频补偿稳态改善路径","relation":"cross_domain","strength":0.88,"description":"PI 与滞后的收益落在低频，而代价常表现为带宽下降和速度受限。","run_id":"3-7"}

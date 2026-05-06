@@ -2,6 +2,8 @@
   "lesson_id": "3-6",
   "source_path": "course-content/authoring/lessons/3-6/design/3-6-interactive-page.md",
   "contract_path": "course-content/authoring/lessons/3-6/design/3-6-interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/3-6/design/3-6-interactive-design-acceptance.json",
+  "implementation_acceptance_path": "course-content/authoring/lessons/3-6/notes/interactive-implementation-acceptance.json",
   "implementation_contract_source": "src/lib/unit-3-6-course.ts",
   "contract_required_fields": [
     "layout",
@@ -49,16 +51,32 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
+  "design_acceptance_summary": [],
+  "design_acceptance_issues": [],
+  "implementation_acceptance_summary": [],
+  "implementation_acceptance_issues": [],
+  "manifest_audit_summary": [],
+  "manifest_audit_issues": [],
+  "manifest_audit": null,
+  "reviewed_runtime_artifacts": [],
+  "runtime_review_stale_issues": [],
+  "hard_gate_issues": [],
+  "hard_gate_issue_codes": [],
+  "blocking_issues": [],
   "implementation_contract_summary": [
     "已检测到 `3-6` 的本地实现契约与作者态互动契约一致。"
   ],
   "implementation_contract_issues": [],
+  "legacy_acceptance_notes": [
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
+  ],
   "summary": [
     "已检测到 `3-6` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `3-6` 的本地实现契约与作者态互动契约一致。"
   ],
   "warnings": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
   ],
   "missing": [
     "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"

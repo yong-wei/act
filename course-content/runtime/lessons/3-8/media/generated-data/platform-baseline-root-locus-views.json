@@ -1,0 +1,17 @@
+{
+  "views": [
+    {
+      "name": "platform-baseline",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -1100.0,
+        120.0
+      ],
+      "ylim": [
+        -120.0,
+        120.0
+      ]
+    }
+  ]
+}

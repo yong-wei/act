@@ -14,7 +14,7 @@
     "穿越频率_5_c4c2b93c",
     "幅值裕度_5_73af26a5",
     "频率特性_5_404adfdd",
-    "相角裕度_5_0a9c6e90",
+    "相角裕度_5_5a74b451",
     "带宽_5_6730fda4",
     "左半平面零点的动态改善机理_3_35002",
     "低频补偿稳态改善路径_3_37003",
@@ -41,7 +41,7 @@
     "幅值裕度_5_73af26a5",
     "奈奎斯特与Bode统一判稳链_3_38002",
     "频率特性_5_404adfdd",
-    "相角裕度_5_0a9c6e90",
+    "相角裕度_5_5a74b451",
     "带宽_5_6730fda4",
     "三频段闭环性能回读_3_38003",
     "目标驱动超前校正_3_36004",
@@ -89,7 +89,7 @@
       ],
       "node_ids": [
         "频率特性_5_404adfdd",
-        "相角裕度_5_0a9c6e90",
+        "相角裕度_5_5a74b451",
         "带宽_5_6730fda4",
         "三频段闭环性能回读_3_38003",
         "目标驱动超前校正_3_36004",
@@ -138,7 +138,7 @@
         ],
         "prerequisites": [
           "奈奎斯特与Bode统一判稳链_3_38002",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4",
           "非最小相与右半平面零点_3_35005"
         ],
@@ -162,7 +162,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "title": "三频段闭环性能回读 信息图",
           "lessonId": "3-9",
-          "nodeId": "三频段闭环性能回读_3_38003"
+          "nodeId": "三频段闭环性能回读_3_38003",
+          "sourceNodeId": "三频段闭环性能回读_3_38003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -177,7 +178,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "title": "三频段闭环性能回读 信息图",
           "lessonId": "3-9",
-          "nodeId": "三频段闭环性能回读_3_38003"
+          "nodeId": "三频段闭环性能回读_3_38003",
+          "sourceNodeId": "三频段闭环性能回读_3_38003"
         }
       ],
       "tags": [
@@ -224,7 +226,7 @@
         ],
         "relatedConcepts": [
           "频率特性_5_404adfdd",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4"
         ],
         "difficulty": 4,
@@ -242,8 +244,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "title": "低频补偿稳态改善路径 信息图",
-          "lessonId": "3-9",
-          "nodeId": "低频补偿稳态改善路径_3_37003"
+          "lessonId": "4-3",
+          "nodeId": "低频补偿稳态改善路径_3_37003",
+          "sourceNodeId": "低频补偿稳态改善路径_3_37003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -257,8 +260,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "title": "低频补偿稳态改善路径 信息图",
-          "lessonId": "3-9",
-          "nodeId": "低频补偿稳态改善路径_3_37003"
+          "lessonId": "4-3",
+          "nodeId": "低频补偿稳态改善路径_3_37003",
+          "sourceNodeId": "低频补偿稳态改善路径_3_37003"
         }
       ],
       "tags": [
@@ -328,7 +332,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特与Bode统一判稳链_3_38002.png",
           "title": "奈奎斯特与 Bode 统一判稳链 信息图",
           "lessonId": "3-8",
-          "nodeId": "奈奎斯特与Bode统一判稳链_3_38002"
+          "nodeId": "奈奎斯特与Bode统一判稳链_3_38002",
+          "sourceNodeId": "奈奎斯特与Bode统一判稳链_3_38002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -343,7 +348,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特与Bode统一判稳链_3_38002.png",
           "title": "奈奎斯特与 Bode 统一判稳链 信息图",
           "lessonId": "3-8",
-          "nodeId": "奈奎斯特与Bode统一判稳链_3_38002"
+          "nodeId": "奈奎斯特与Bode统一判稳链_3_38002",
+          "sourceNodeId": "奈奎斯特与Bode统一判稳链_3_38002"
         }
       ],
       "tags": [
@@ -405,8 +411,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
           "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
           "title": "左半平面零点的动态改善机理 信息图",
-          "lessonId": "3-9",
-          "nodeId": "左半平面零点的动态改善机理_3_35002"
+          "lessonId": "3-8",
+          "nodeId": "左半平面零点的动态改善机理_3_35002",
+          "sourceNodeId": "左半平面零点的动态改善机理_3_35002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -420,8 +427,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
           "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
           "title": "左半平面零点的动态改善机理 信息图",
-          "lessonId": "3-9",
-          "nodeId": "左半平面零点的动态改善机理_3_35002"
+          "lessonId": "3-8",
+          "nodeId": "左半平面零点的动态改善机理_3_35002",
+          "sourceNodeId": "左半平面零点的动态改善机理_3_35002"
         }
       ],
       "tags": [
@@ -462,7 +470,7 @@
         ],
         "prerequisites": [
           "PD与超前的频域整形差异_3_35004",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4"
         ],
         "relatedConcepts": [
@@ -482,8 +490,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "title": "目标驱动超前校正 信息图",
-          "lessonId": "3-8",
-          "nodeId": "目标驱动超前校正_3_36004"
+          "lessonId": "4-2",
+          "nodeId": "目标驱动超前校正_3_36004",
+          "sourceNodeId": "目标驱动超前校正_3_36004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -497,8 +506,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "title": "目标驱动超前校正 信息图",
-          "lessonId": "3-8",
-          "nodeId": "目标驱动超前校正_3_36004"
+          "lessonId": "4-2",
+          "nodeId": "目标驱动超前校正_3_36004",
+          "sourceNodeId": "目标驱动超前校正_3_36004"
         }
       ],
       "tags": [
@@ -562,7 +572,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
           "title": "结构变化的频域指纹 信息图",
           "lessonId": "3-9",
-          "nodeId": "结构变化的频域指纹_3_38001"
+          "nodeId": "结构变化的频域指纹_3_38001",
+          "sourceNodeId": "结构变化的频域指纹_3_38001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -577,7 +588,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
           "title": "结构变化的频域指纹 信息图",
           "lessonId": "3-9",
-          "nodeId": "结构变化的频域指纹_3_38001"
+          "nodeId": "结构变化的频域指纹_3_38001",
+          "sourceNodeId": "结构变化的频域指纹_3_38001"
         }
       ],
       "tags": [
@@ -595,8 +607,8 @@
       "name": "非最小相与右半平面零点",
       "nodeType": "THEORY",
       "description": "稳定对象只要含有右半平面零点，就属于非最小相系统。与对应的左半平面零点对象相比，它在相同幅频趋势下会带来额外相位滞后，时域上可能出现逆响应，因此动态改善存在更严格的速度上限。",
-      "positionX": -51.0,
-      "positionY": 88.3,
+      "positionX": -26.4,
+      "positionY": 98.5,
       "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -619,7 +631,7 @@
         "prerequisites": [
           "零点引入与根轨迹重排_3_35001",
           "左半平面零点的动态改善机理_3_35002",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4"
         ],
         "relatedConcepts": [
@@ -640,7 +652,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非最小相与右半平面零点_3_35005.png",
           "title": "非最小相与右半平面零点 信息图",
           "lessonId": "3-8",
-          "nodeId": "非最小相与右半平面零点_3_35005"
+          "nodeId": "非最小相与右半平面零点_3_35005",
+          "sourceNodeId": "非最小相与右半平面零点_3_35005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -655,7 +668,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非最小相与右半平面零点_3_35005.png",
           "title": "非最小相与右半平面零点 信息图",
           "lessonId": "3-8",
-          "nodeId": "非最小相与右半平面零点_3_35005"
+          "nodeId": "非最小相与右半平面零点_3_35005",
+          "sourceNodeId": "非最小相与右半平面零点_3_35005"
         }
       ],
       "tags": [
@@ -672,8 +686,8 @@
       "name": "频域综合判断与工程读回",
       "nodeType": "THEORY",
       "description": "在同一工程对象上，用“频域指纹 -> 判稳余量 -> 三频段任务 -> 闭环读回”的顺序比较基线方案与校正方案，判断应优先改写哪一段频率，哪些收益值得保留，哪些代价必须控制。",
-      "positionX": -72.1,
-      "positionY": 72.1,
+      "positionX": -51.0,
+      "positionY": 88.3,
       "positionZ": 3,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "方法性",
@@ -716,7 +730,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
           "title": "频域综合判断与工程读回 信息图",
           "lessonId": "3-9",
-          "nodeId": "频域综合判断与工程读回_3_38004"
+          "nodeId": "频域综合判断与工程读回_3_38004",
+          "sourceNodeId": "频域综合判断与工程读回_3_38004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -731,7 +746,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
           "title": "频域综合判断与工程读回 信息图",
           "lessonId": "3-9",
-          "nodeId": "频域综合判断与工程读回_3_38004"
+          "nodeId": "频域综合判断与工程读回_3_38004",
+          "sourceNodeId": "频域综合判断与工程读回_3_38004"
         }
       ],
       "tags": [
@@ -749,8 +765,8 @@
       "name": "奈奎斯特稳定判据",
       "nodeType": "THEORY",
       "description": "根据开环幅相特性曲线（奈奎斯特图）环绕(-1, j0)点的情况，判断闭环系统稳定性的方法。",
-      "positionX": 113.1,
-      "positionY": 113.1,
+      "positionX": -154.5,
+      "positionY": 41.4,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -788,7 +804,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特稳定判据_5_a1b34560.png",
           "title": "奈奎斯特稳定判据 信息图",
           "lessonId": "3-8",
-          "nodeId": "奈奎斯特稳定判据_5_a1b34560"
+          "nodeId": "奈奎斯特稳定判据_5_a1b34560",
+          "sourceNodeId": "奈奎斯特稳定判据_5_a1b34560"
         },
         "createdAt": "2026-02-04T17:54:16.628543",
         "updatedAt": "2026-02-04T17:54:16.628544",
@@ -803,7 +820,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特稳定判据_5_a1b34560.png",
           "title": "奈奎斯特稳定判据 信息图",
           "lessonId": "3-8",
-          "nodeId": "奈奎斯特稳定判据_5_a1b34560"
+          "nodeId": "奈奎斯特稳定判据_5_a1b34560",
+          "sourceNodeId": "奈奎斯特稳定判据_5_a1b34560"
         }
       ],
       "tags": [
@@ -821,8 +839,8 @@
       "name": "带宽",
       "nodeType": "THEORY",
       "description": "闭环幅频特性下降到低频值的 $\\dfrac{1}{\\sqrt{2}}$，也就是 `-3 dB` 时对应的频率范围入口。",
-      "positionX": -138.6,
-      "positionY": -80.0,
+      "positionX": 166.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -832,14 +850,14 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": null,
+        "bloom_level": "理解",
         "definition": "闭环幅频特性下降到低频值的 $\\dfrac{1}{\\sqrt{2}}$，也就是 `-3 dB` 时对应的频率范围入口。",
         "examples": [],
         "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": null,
-        "importance": null,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
           "3-5",
           "频域分析",
@@ -851,7 +869,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
           "title": "带宽 信息图",
           "lessonId": "3-9",
-          "nodeId": "带宽_5_6730fda4"
+          "nodeId": "带宽_5_6730fda4",
+          "sourceNodeId": "带宽_5_6730fda4"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -866,7 +885,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
           "title": "带宽 信息图",
           "lessonId": "3-9",
-          "nodeId": "带宽_5_6730fda4"
+          "nodeId": "带宽_5_6730fda4",
+          "sourceNodeId": "带宽_5_6730fda4"
         }
       ],
       "tags": [
@@ -881,8 +901,8 @@
       "name": "幅值裕度",
       "nodeType": "THEORY",
       "description": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
-      "positionX": -80.0,
-      "positionY": -138.6,
+      "positionX": 143.8,
+      "positionY": 83.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -915,8 +935,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "title": "幅值裕度 信息图",
-          "lessonId": "3-8",
-          "nodeId": "幅值裕度_5_73af26a5"
+          "lessonId": "4-2",
+          "nodeId": "幅值裕度_5_73af26a5",
+          "sourceNodeId": "幅值裕度_5_73af26a5"
         },
         "createdAt": "2026-02-04T17:54:16.628590",
         "updatedAt": "2026-02-04T17:54:16.628591",
@@ -930,8 +951,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "title": "幅值裕度 信息图",
-          "lessonId": "3-8",
-          "nodeId": "幅值裕度_5_73af26a5"
+          "lessonId": "4-2",
+          "nodeId": "幅值裕度_5_73af26a5",
+          "sourceNodeId": "幅值裕度_5_73af26a5"
         }
       ],
       "tags": [
@@ -946,8 +968,8 @@
       "name": "幅角原理",
       "nodeType": "THEORY",
       "description": "复变函数理论中的一个原理，描述了闭合曲线映射前后包围原点圈数与曲线内函数零极点数的关系。",
-      "positionX": 41.4,
-      "positionY": -154.5,
+      "positionX": 43.0,
+      "positionY": 160.3,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -980,7 +1002,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/幅角原理_5_f843970e.png",
           "title": "幅角原理 信息图",
           "lessonId": "3-8",
-          "nodeId": "幅角原理_5_f843970e"
+          "nodeId": "幅角原理_5_f843970e",
+          "sourceNodeId": "幅角原理_5_f843970e"
         },
         "createdAt": "2026-02-04T17:54:16.628520",
         "updatedAt": "2026-02-04T17:54:16.628521",
@@ -995,7 +1018,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/幅角原理_5_f843970e.png",
           "title": "幅角原理 信息图",
           "lessonId": "3-8",
-          "nodeId": "幅角原理_5_f843970e"
+          "nodeId": "幅角原理_5_f843970e",
+          "sourceNodeId": "幅角原理_5_f843970e"
         }
       ],
       "tags": [
@@ -1010,8 +1034,8 @@
       "name": "截止频率",
       "nodeType": "THEORY",
       "description": "开环对数幅频特性曲线穿越0dB线时的频率，记为ω_c，是计算相角裕度的关键频率。",
-      "positionX": 160.3,
-      "positionY": 43.0,
+      "positionX": -166.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1045,7 +1069,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
           "title": "截止频率 信息图",
           "lessonId": "3-8",
-          "nodeId": "截止频率_5_c7d09ff7"
+          "nodeId": "截止频率_5_c7d09ff7",
+          "sourceNodeId": "截止频率_5_c7d09ff7"
         },
         "createdAt": "2026-02-04T17:54:16.628599",
         "updatedAt": "2026-02-04T17:54:16.628600",
@@ -1060,7 +1085,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
           "title": "截止频率 信息图",
           "lessonId": "3-8",
-          "nodeId": "截止频率_5_c7d09ff7"
+          "nodeId": "截止频率_5_c7d09ff7",
+          "sourceNodeId": "截止频率_5_c7d09ff7"
         }
       ],
       "tags": [
@@ -1070,12 +1096,12 @@
       ]
     },
     {
-      "id": "相角裕度_5_0a9c6e90",
+      "id": "相角裕度_5_5a74b451",
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
-      "positionX": -160.3,
-      "positionY": -43.0,
+      "positionX": -121.6,
+      "positionY": 121.6,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -1085,14 +1111,14 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": null,
+        "bloom_level": "理解",
         "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
         "examples": [],
         "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": null,
-        "importance": null,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
           "3-5",
           "频域分析",
@@ -1100,11 +1126,12 @@
         ],
         "infograph": {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "3-9",
-          "nodeId": "相角裕度_5_0a9c6e90"
+          "lessonId": "4-2",
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -1112,14 +1139,15 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_0a9c6e90.md",
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
         {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "3-9",
-          "nodeId": "相角裕度_5_0a9c6e90"
+          "lessonId": "4-2",
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         }
       ],
       "tags": [
@@ -1134,8 +1162,8 @@
       "name": "穿越频率",
       "nodeType": "THEORY",
       "description": "开环相频特性曲线穿越-180°线时的频率，记为ω_g，是计算幅值裕度的关键频率。",
-      "positionX": -0.0,
-      "positionY": -166.0,
+      "positionX": -149.0,
+      "positionY": -86.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1167,7 +1195,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
           "title": "穿越频率 信息图",
           "lessonId": "3-8",
-          "nodeId": "穿越频率_5_c4c2b93c"
+          "nodeId": "穿越频率_5_c4c2b93c",
+          "sourceNodeId": "穿越频率_5_c4c2b93c"
         },
         "createdAt": "2026-02-04T17:54:16.628605",
         "updatedAt": "2026-02-04T17:54:16.628605",
@@ -1182,7 +1211,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
           "title": "穿越频率 信息图",
           "lessonId": "3-8",
-          "nodeId": "穿越频率_5_c4c2b93c"
+          "nodeId": "穿越频率_5_c4c2b93c",
+          "sourceNodeId": "穿越频率_5_c4c2b93c"
         }
       ],
       "tags": [
@@ -1196,8 +1226,8 @@
       "name": "频率特性",
       "nodeType": "THEORY",
       "description": "线性系统在正弦信号作用下，输出稳态分量与输入信号的幅值比和相位差随频率变化的特性。",
-      "positionX": -121.6,
-      "positionY": -121.6,
+      "positionX": 171.9,
+      "positionY": -46.1,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -1230,7 +1260,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",
           "title": "频率特性 信息图",
           "lessonId": "3-8",
-          "nodeId": "频率特性_5_404adfdd"
+          "nodeId": "频率特性_5_404adfdd",
+          "sourceNodeId": "频率特性_5_404adfdd"
         },
         "createdAt": "2026-02-04T17:54:16.628386",
         "updatedAt": "2026-02-04T17:54:16.628386",
@@ -1245,7 +1276,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",
           "title": "频率特性 信息图",
           "lessonId": "3-8",
-          "nodeId": "频率特性_5_404adfdd"
+          "nodeId": "频率特性_5_404adfdd",
+          "sourceNodeId": "频率特性_5_404adfdd"
         }
       ],
       "tags": [
@@ -1276,7 +1308,7 @@
     {
       "id": "频率特性|相角裕度|5",
       "sourceId": "频率特性_5_404adfdd",
-      "targetId": "相角裕度_5_0a9c6e90",
+      "targetId": "相角裕度_5_5a74b451",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.9
@@ -1324,7 +1356,7 @@
     {
       "id": "幅角原理|相角裕度|5",
       "sourceId": "幅角原理_5_f843970e",
-      "targetId": "相角裕度_5_0a9c6e90",
+      "targetId": "相角裕度_5_5a74b451",
       "relation": "related",
       "relationType": "related",
       "strength": 0.3
@@ -1340,7 +1372,7 @@
     {
       "id": "奈奎斯特稳定判据|相角裕度|5",
       "sourceId": "奈奎斯特稳定判据_5_a1b34560",
-      "targetId": "相角裕度_5_0a9c6e90",
+      "targetId": "相角裕度_5_5a74b451",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.8
@@ -1371,7 +1403,7 @@
     },
     {
       "id": "相角裕度|幅值裕度|5",
-      "sourceId": "相角裕度_5_0a9c6e90",
+      "sourceId": "相角裕度_5_5a74b451",
       "targetId": "幅值裕度_5_73af26a5",
       "relation": "related",
       "relationType": "related",
@@ -1379,7 +1411,7 @@
     },
     {
       "id": "相角裕度|截止频率|5",
-      "sourceId": "相角裕度_5_0a9c6e90",
+      "sourceId": "相角裕度_5_5a74b451",
       "targetId": "截止频率_5_c7d09ff7",
       "relation": "applies_to",
       "relationType": "applies_to",
@@ -1387,7 +1419,7 @@
     },
     {
       "id": "相角裕度|穿越频率|5",
-      "sourceId": "相角裕度_5_0a9c6e90",
+      "sourceId": "相角裕度_5_5a74b451",
       "targetId": "穿越频率_5_c4c2b93c",
       "relation": "related",
       "relationType": "related",
@@ -1554,12 +1586,12 @@
       "strength": 0.95
     },
     {
-      "id": "rel-735fd098d4bc1c0f",
-      "sourceId": "相角裕度_5_0a9c6e90",
-      "targetId": "非最小相与右半平面零点_3_35005",
+      "id": "rel-0e1154b9ea361887",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "低频补偿稳态改善路径_3_37003",
       "relation": "cross_domain",
       "relationType": "cross_domain",
-      "strength": 0.96
+      "strength": 0.88
     },
     {
       "id": "rel-0f9aa386ddc2fd18",
@@ -1570,12 +1602,28 @@
       "strength": 0.92
     },
     {
-      "id": "rel-aed1891cf0ca74ef",
-      "sourceId": "相角裕度_5_0a9c6e90",
-      "targetId": "目标驱动超前校正_3_36004",
-      "relation": "prerequisite",
-      "relationType": "prerequisite",
-      "strength": 0.97
+      "id": "rel-430931b72ef954fc",
+      "sourceId": "带宽_5_6730fda4",
+      "targetId": "三频段闭环性能回读_3_38003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-6474fcaeb9bc2d9c",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "三频段闭环性能回读_3_38003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-735fd098d4bc1c0f",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "非最小相与右半平面零点_3_35005",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.96
     },
     {
       "id": "rel-9f233420819b993b",
@@ -1586,12 +1634,12 @@
       "strength": 0.94
     },
     {
-      "id": "rel-0e1154b9ea361887",
-      "sourceId": "相角裕度_5_0a9c6e90",
-      "targetId": "低频补偿稳态改善路径_3_37003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.88
+      "id": "rel-aed1891cf0ca74ef",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "目标驱动超前校正_3_36004",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.97
     },
     {
       "id": "rel-bafa4c350ba40112",
@@ -1600,22 +1648,6 @@
       "relation": "cross_domain",
       "relationType": "cross_domain",
       "strength": 0.88
-    },
-    {
-      "id": "rel-6474fcaeb9bc2d9c",
-      "sourceId": "相角裕度_5_0a9c6e90",
-      "targetId": "三频段闭环性能回读_3_38003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.93
-    },
-    {
-      "id": "rel-430931b72ef954fc",
-      "sourceId": "带宽_5_6730fda4",
-      "targetId": "三频段闭环性能回读_3_38003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.92
     }
   ]
 }

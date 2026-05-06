@@ -1,5 +1,5 @@
-{"source_id":"超调量_5_3d015714","source_name":"超调量","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"applies_to","strength":0.95,"description":"4-1 把超调量从单纯的时域读数推进为“过程是否可接受”的任务语言。","run_id":"4-1"}
-{"source_id":"调节时间_4_d3f3314b","source_name":"调节时间","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"applies_to","strength":0.95,"description":"调节时间在 4-1 中不再只是报告快慢，而要与场景允许的恢复时限绑定。","run_id":"4-1"}
+{"source_id":"超调量_3_fc3f5b17","source_name":"超调量","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"applies_to","strength":0.95,"description":"4-1 把超调量从单纯的时域读数推进为“过程是否可接受”的任务语言。","run_id":"4-1"}
+{"source_id":"调节时间_10_fcbccf4e","source_name":"调节时间","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"applies_to","strength":0.95,"description":"调节时间在 4-1 中不再只是报告快慢，而要与场景允许的恢复时限绑定。","run_id":"4-1"}
 {"source_id":"相角裕度_5_5a74b451","source_name":"相角裕度","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"cross_domain","strength":0.92,"description":"相角裕度把“离风险边界还有多远”写进任务表达，而不是停留在频域定义。","run_id":"4-1"}
 {"source_id":"带宽频率_5_6996a44a","source_name":"带宽频率","target_id":"指标角色重组_4_41002","target_name":"指标角色重组","relation":"cross_domain","strength":0.9,"description":"带宽频率在入口课中被重新解释为任务对工作频带和响应范围的要求。","run_id":"4-1"}
 {"source_id":"指标角色重组_4_41002","source_name":"指标角色重组","target_id":"硬约束-软目标-观察指标分类_4_41003","target_name":"硬约束-软目标-观察指标分类","relation":"leads_to","strength":0.97,"description":"先回答每类指标在描述什么，后面才可能区分哪些是底线、哪些是优化方向、哪些只是证据。","run_id":"4-1"}

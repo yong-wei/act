@@ -5,7 +5,7 @@
 {"source_id":"PD与测速反馈的等效阻尼对比_3_35003","source_name":"PD与测速反馈的等效阻尼对比","target_id":"目标驱动测速反馈校正_3_36003","target_name":"目标驱动测速反馈校正","relation":"leads_to","strength":0.96,"description":"上一课给出的结构差异在 3-6 中被推进为不同的设计抓手。","run_id":"3-6"}
 {"source_id":"目标驱动PD校正_3_36002","source_name":"目标驱动PD校正","target_id":"目标驱动测速反馈校正_3_36003","target_name":"目标驱动测速反馈校正","relation":"related","strength":0.84,"description":"两者都服务时域目标，但前者抓零点位置，后者抓闭环分母系数。","run_id":"3-6"}
 {"source_id":"PD与超前的频域整形差异_3_35004","source_name":"PD与超前的频域整形差异","target_id":"目标驱动超前校正_3_36004","target_name":"目标驱动超前校正","relation":"leads_to","strength":0.95,"description":"3-6 把上一课的频域整形差异推进为真正的超前设计步骤。","run_id":"3-6"}
-{"source_id":"相角裕度_5_0a9c6e90","source_name":"相角裕度","target_id":"目标驱动超前校正_3_36004","target_name":"目标驱动超前校正","relation":"prerequisite","strength":0.97,"description":"频域目标驱动设计必须先会把目标相角裕度翻译成补角任务。","run_id":"3-6"}
+{"source_id":"相角裕度_5_5a74b451","source_name":"相角裕度","target_id":"目标驱动超前校正_3_36004","target_name":"目标驱动超前校正","relation":"prerequisite","strength":0.97,"description":"频域目标驱动设计必须先会把目标相角裕度翻译成补角任务。","run_id":"3-6"}
 {"source_id":"带宽_5_6730fda4","source_name":"带宽","target_id":"目标驱动超前校正_3_36004","target_name":"目标驱动超前校正","relation":"prerequisite","strength":0.94,"description":"超前校正需要同时控制新截止频率和补角分布。","run_id":"3-6"}
 {"source_id":"目标驱动超前校正_3_36004","source_name":"目标驱动超前校正","target_id":"右半平面零点可行性边界_3_36005","target_name":"右半平面零点可行性边界","relation":"leads_to","strength":0.9,"description":"当学生掌握了左半平面零点下的目标驱动设计后，才更容易理解右半平面零点为什么要求先审查可行性。","run_id":"3-6"}
 {"source_id":"非最小相与右半平面零点_3_35005","source_name":"非最小相与右半平面零点","target_id":"右半平面零点可行性边界_3_36005","target_name":"右半平面零点可行性边界","relation":"leads_to","strength":0.97,"description":"3-6 把上一课的非最小相风险压缩成“目标是否仍然可行”的边界判断。","run_id":"3-6"}

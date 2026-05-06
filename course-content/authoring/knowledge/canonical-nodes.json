@@ -1,0 +1,1935 @@
+{
+  "schema_version": 1,
+  "description": "Canonical knowledge-node table. Authoring may stay lesson-scoped, but runtime export canonicalizes cards, relations, lesson overlays, and infographics through this table.",
+  "nodes": [
+    {
+      "canonical_node_id": "Bode首轮骨架_5_1e07d9da",
+      "canonical_name": "Bode首轮骨架",
+      "aliases": [],
+      "selected_card_node_id": "Bode首轮骨架_5_1e07d9da",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "MASS协同链路_5_53001",
+      "canonical_name": "MASS协同链路",
+      "aliases": [],
+      "selected_card_node_id": "MASS协同链路_5_53001",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "MASS协同链路_5_53001"
+      }
+    },
+    {
+      "canonical_node_id": "MASS自动化等级责任边界_5_53008",
+      "canonical_name": "MASS自动化等级责任边界",
+      "aliases": [],
+      "selected_card_node_id": "MASS自动化等级责任边界_5_53008",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "MASS自动化等级责任边界_5_53008"
+      }
+    },
+    {
+      "canonical_node_id": "MPC再定位_5_54002",
+      "canonical_name": "MPC再定位",
+      "aliases": [],
+      "selected_card_node_id": "MPC再定位_5_54002",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "MPC再定位_5_54002"
+      }
+    },
+    {
+      "canonical_node_id": "PD与测速反馈的等效阻尼对比_3_35003",
+      "canonical_name": "PD与测速反馈的等效阻尼对比",
+      "aliases": [],
+      "selected_card_node_id": "PD与测速反馈的等效阻尼对比_3_35003",
+      "owner_lesson": "3-5"
+    },
+    {
+      "canonical_node_id": "PD与超前的频域整形差异_3_35004",
+      "canonical_name": "PD与超前的频域整形差异",
+      "aliases": [],
+      "selected_card_node_id": "PD与超前的频域整形差异_3_35004",
+      "owner_lesson": "3-5"
+    },
+    {
+      "canonical_node_id": "RL调度PID_5_55006",
+      "canonical_name": "RL调度PID",
+      "aliases": [],
+      "selected_card_node_id": "RL调度PID_5_55006",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "一阶系统_3_4f3b29ce",
+      "canonical_name": "一阶系统",
+      "aliases": [],
+      "selected_card_node_id": "一阶系统_3_4f3b29ce",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "三域直觉联动_5_L2c005",
+      "canonical_name": "三域直觉联动",
+      "aliases": [],
+      "selected_card_node_id": "三域直觉联动_5_L2c005",
+      "owner_lesson": "L-2c"
+    },
+    {
+      "canonical_node_id": "三域联动操作体验_5_L2d001",
+      "canonical_name": "三域联动操作体验",
+      "aliases": [],
+      "selected_card_node_id": "三域联动操作体验_5_L2d001",
+      "owner_lesson": "L-2d"
+    },
+    {
+      "canonical_node_id": "三路线控制比较_5_54008",
+      "canonical_name": "三路线控制比较",
+      "aliases": [],
+      "selected_card_node_id": "三路线控制比较_5_54008",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "三路线控制比较_5_54008"
+      }
+    },
+    {
+      "canonical_node_id": "三频段闭环性能回读_3_38003",
+      "canonical_name": "三频段闭环性能回读",
+      "aliases": [],
+      "selected_card_node_id": "三频段闭环性能回读_3_38003",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "三频段闭环性能回读_3_38003"
+      }
+    },
+    {
+      "canonical_node_id": "上升时间_3_6fa0ec00",
+      "canonical_name": "上升时间",
+      "aliases": [],
+      "selected_card_node_id": "上升时间_3_6fa0ec00",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "上游信息质量_5_53003",
+      "canonical_name": "上游信息质量",
+      "aliases": [],
+      "selected_card_node_id": "上游信息质量_5_53003",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "上游信息质量_5_53003"
+      }
+    },
+    {
+      "canonical_node_id": "串联无源滞后校正_6_2a52e865",
+      "canonical_name": "串联无源滞后校正",
+      "aliases": [],
+      "selected_card_node_id": "串联无源滞后校正_6_2a52e865",
+      "owner_lesson": "3-7",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "串联无源滞后校正_6_2a52e865"
+      }
+    },
+    {
+      "canonical_node_id": "串联连接_2_98ee18bc",
+      "canonical_name": "串联连接",
+      "aliases": [],
+      "selected_card_node_id": "串联连接_2_98ee18bc",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "临界增益体验_5_L2d002",
+      "canonical_name": "临界增益体验",
+      "aliases": [],
+      "selected_card_node_id": "临界增益体验_5_L2d002",
+      "owner_lesson": "L-2d"
+    },
+    {
+      "canonical_node_id": "临界阻尼响应_3_5839e0e4",
+      "canonical_name": "临界阻尼响应",
+      "aliases": [],
+      "selected_card_node_id": "临界阻尼响应_3_5839e0e4",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "主导极点_3_4c4c6bbd",
+      "canonical_name": "主导极点",
+      "aliases": [],
+      "selected_card_node_id": "主导极点_3_4c4c6bbd",
+      "owner_lesson": "3-1",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "主导极点_3_4c4c6bbd"
+      }
+    },
+    {
+      "canonical_node_id": "主矛盾到频段职责映射_4_42003",
+      "canonical_name": "主矛盾到频段职责映射",
+      "aliases": [],
+      "selected_card_node_id": "主矛盾到频段职责映射_4_42003",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "主矛盾到频段职责映射_4_42003"
+      }
+    },
+    {
+      "canonical_node_id": "二阶系统标准型_3_L2a",
+      "canonical_name": "二阶系统标准型",
+      "aliases": [],
+      "selected_card_node_id": "二阶系统标准型_3_L2a",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "交接频率_转折频率__5_8bca814b",
+      "canonical_name": "交接频率（转折频率）",
+      "aliases": [],
+      "selected_card_node_id": "交接频率_转折频率__5_8bca814b",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "任务标签与机制标签匹配_3_39002",
+      "canonical_name": "任务标签与机制标签匹配",
+      "aliases": [],
+      "selected_card_node_id": "任务标签与机制标签匹配_3_39002",
+      "owner_lesson": "3-9",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "任务标签与机制标签匹配_3_39002"
+      }
+    },
+    {
+      "canonical_node_id": "任务通道变化下的自由目标改写_4_44007",
+      "canonical_name": "任务通道变化下的自由目标改写",
+      "aliases": [],
+      "selected_card_node_id": "任务通道变化下的自由目标改写_4_44007",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "任务通道变化下的自由目标改写_4_44007"
+      }
+    },
+    {
+      "canonical_node_id": "优化前后证据比较表_4_45005",
+      "canonical_name": "优化前后证据比较表",
+      "aliases": [],
+      "selected_card_node_id": "优化前后证据比较表_4_45005",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "优化前后证据比较表_4_45005"
+      }
+    },
+    {
+      "canonical_node_id": "优化起点与归一化来源_4_44003",
+      "canonical_name": "优化起点与归一化来源",
+      "aliases": [],
+      "selected_card_node_id": "优化起点与归一化来源_4_44003",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "优化起点与归一化来源_4_44003"
+      }
+    },
+    {
+      "canonical_node_id": "传统控制结构局限_4_47008",
+      "canonical_name": "传统控制结构局限",
+      "aliases": [],
+      "selected_card_node_id": "传统控制结构局限_4_47008",
+      "owner_lesson": "4-7",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "传统控制结构局限_4_47008"
+      }
+    },
+    {
+      "canonical_node_id": "传统设计四联图校正_4_47004",
+      "canonical_name": "传统设计四联图校正",
+      "aliases": [],
+      "selected_card_node_id": "传统设计四联图校正_4_47004",
+      "owner_lesson": "4-7"
+    },
+    {
+      "canonical_node_id": "传递函数_1_5b0faf8b",
+      "canonical_name": "传递函数",
+      "aliases": [],
+      "selected_card_node_id": "传递函数_1_5b0faf8b",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "伯德图_6_1a069614",
+      "canonical_name": "伯德图",
+      "aliases": [],
+      "selected_card_node_id": "伯德图_6_1a069614",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "低频补偿稳态改善路径_3_37003",
+      "canonical_name": "低频补偿稳态改善路径",
+      "aliases": [],
+      "selected_card_node_id": "低频补偿稳态改善路径_3_37003",
+      "owner_lesson": "3-7",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "低频补偿稳态改善路径_3_37003"
+      }
+    },
+    {
+      "canonical_node_id": "余因子式_2_1da0d7e8",
+      "canonical_name": "余因子式",
+      "aliases": [],
+      "selected_card_node_id": "余因子式_2_1da0d7e8",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "余子式接触判定_2_21003",
+      "canonical_name": "余子式接触判定",
+      "aliases": [],
+      "selected_card_node_id": "余子式接触判定_2_21003",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "信号流图_2_372d4084",
+      "canonical_name": "信号流图",
+      "aliases": [],
+      "selected_card_node_id": "信号流图_2_372d4084",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "关键节点读图_3_8b2f0d12",
+      "canonical_name": "关键节点读图",
+      "aliases": [],
+      "selected_card_node_id": "关键节点读图_3_8b2f0d12",
+      "owner_lesson": "3-4"
+    },
+    {
+      "canonical_node_id": "典型环节对象库_2_21002",
+      "canonical_name": "典型环节对象库",
+      "aliases": [],
+      "selected_card_node_id": "典型环节对象库_2_21002",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "典型非线性边界环节_5_51002",
+      "canonical_name": "典型非线性边界环节",
+      "aliases": [],
+      "selected_card_node_id": "典型非线性边界环节_5_51002",
+      "owner_lesson": "5-1",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "典型非线性边界环节_5_51002"
+      }
+    },
+    {
+      "canonical_node_id": "分段辨识模型组合_4_47002",
+      "canonical_name": "分段辨识模型组合",
+      "aliases": [],
+      "selected_card_node_id": "分段辨识模型组合_4_47002",
+      "owner_lesson": "4-7"
+    },
+    {
+      "canonical_node_id": "前向通路_1_7d1c792e",
+      "canonical_name": "前向通路",
+      "aliases": [],
+      "selected_card_node_id": "前向通路_1_7d1c792e",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "剩余风险说明_4_45006",
+      "canonical_name": "剩余风险说明",
+      "aliases": [],
+      "selected_card_node_id": "剩余风险说明_4_45006",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "剩余风险说明_4_45006"
+      }
+    },
+    {
+      "canonical_node_id": "动态性能指标_3_a10733c1",
+      "canonical_name": "动态性能指标",
+      "aliases": [],
+      "selected_card_node_id": "动态性能指标_3_a10733c1",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "劳斯判据_3_e3500ac9",
+      "canonical_name": "劳斯判据",
+      "aliases": [],
+      "selected_card_node_id": "劳斯判据_3_e3500ac9",
+      "owner_lesson": "3-2"
+    },
+    {
+      "canonical_node_id": "劳斯表特殊情况_3_f787433f",
+      "canonical_name": "劳斯表特殊情况",
+      "aliases": [],
+      "selected_card_node_id": "劳斯表特殊情况_3_f787433f",
+      "owner_lesson": "3-2"
+    },
+    {
+      "canonical_node_id": "单位阶跃响应_2_6a2a83b9",
+      "canonical_name": "单位阶跃响应",
+      "aliases": [],
+      "selected_card_node_id": "单位阶跃响应_2_6a2a83b9",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "单结构与复合结构分流条件_4_43002",
+      "canonical_name": "单结构与复合结构分流条件",
+      "aliases": [],
+      "selected_card_node_id": "单结构与复合结构分流条件_4_43002",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "单结构与复合结构分流条件_4_43002"
+      }
+    },
+    {
+      "canonical_node_id": "单结构首轮起步卡_4_42001",
+      "canonical_name": "单结构首轮起步卡",
+      "aliases": [],
+      "selected_card_node_id": "单结构首轮起步卡_4_42001",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "单结构首轮起步卡_4_42001"
+      }
+    },
+    {
+      "canonical_node_id": "参数方向表达卡_4_43003",
+      "canonical_name": "参数方向表达卡",
+      "aliases": [],
+      "selected_card_node_id": "参数方向表达卡_4_43003",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "参数方向表达卡_4_43003"
+      }
+    },
+    {
+      "canonical_node_id": "参数窗口判断_3_7c3e318f",
+      "canonical_name": "参数窗口判断",
+      "aliases": [],
+      "selected_card_node_id": "参数窗口判断_3_7c3e318f",
+      "owner_lesson": "3-4"
+    },
+    {
+      "canonical_node_id": "参数约束翻译表_4_45002",
+      "canonical_name": "参数约束翻译表",
+      "aliases": [],
+      "selected_card_node_id": "参数约束翻译表_4_45002",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "参数约束翻译表_4_45002"
+      }
+    },
+    {
+      "canonical_node_id": "反馈保底与前馈补偿边界_4_42005",
+      "canonical_name": "反馈保底与前馈补偿边界",
+      "aliases": [],
+      "selected_card_node_id": "反馈保底与前馈补偿边界_4_42005",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "反馈保底与前馈补偿边界_4_42005"
+      }
+    },
+    {
+      "canonical_node_id": "反馈连接_2_40a881cb",
+      "canonical_name": "反馈连接",
+      "aliases": [],
+      "selected_card_node_id": "反馈连接_2_40a881cb",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "变量平移判稳_3_38e76ca0",
+      "canonical_name": "变量平移判稳",
+      "aliases": [],
+      "selected_card_node_id": "变量平移判稳_3_38e76ca0",
+      "owner_lesson": "3-2"
+    },
+    {
+      "canonical_node_id": "可行域-满意域-最优域分层_4_41004",
+      "canonical_name": "可行域-满意域-最优域分层",
+      "aliases": [],
+      "selected_card_node_id": "可行域-满意域-最优域分层_4_41004",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "可行域-满意域-最优域分层_4_41004"
+      }
+    },
+    {
+      "canonical_node_id": "右半平面零点可行性边界_3_36005",
+      "canonical_name": "右半平面零点可行性边界",
+      "aliases": [],
+      "selected_card_node_id": "右半平面零点可行性边界_3_36005",
+      "owner_lesson": "3-6"
+    },
+    {
+      "canonical_node_id": "周期信号频谱_5_2d1b006d",
+      "canonical_name": "周期信号频谱",
+      "aliases": [],
+      "selected_card_node_id": "周期信号频谱_5_2d1b006d",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "四种响应家族_3_L2a",
+      "canonical_name": "四种响应家族",
+      "aliases": [],
+      "selected_card_node_id": "四种响应家族_3_L2a",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "四类方案比较矩阵_4_46006",
+      "canonical_name": "四类方案比较矩阵",
+      "aliases": [],
+      "selected_card_node_id": "四类方案比较矩阵_4_46006",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "四路线策略评价_5_55008",
+      "canonical_name": "四路线策略评价",
+      "aliases": [],
+      "selected_card_node_id": "四路线策略评价_5_55008",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "回路_2_e1adbdfa",
+      "canonical_name": "回路",
+      "aliases": [],
+      "selected_card_node_id": "回路_2_e1adbdfa",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "固定结构自由目标项选择_4_44002",
+      "canonical_name": "固定结构自由目标项选择",
+      "aliases": [],
+      "selected_card_node_id": "固定结构自由目标项选择_4_44002",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "固定结构自由目标项选择_4_44002"
+      }
+    },
+    {
+      "canonical_node_id": "固定结构迁移失配信号_4_46002",
+      "canonical_name": "固定结构迁移失配信号",
+      "aliases": [],
+      "selected_card_node_id": "固定结构迁移失配信号_4_46002",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "在线辨识与模型更新_5_54006",
+      "canonical_name": "在线辨识与模型更新",
+      "aliases": [],
+      "selected_card_node_id": "在线辨识与模型更新_5_54006",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "在线辨识与模型更新_5_54006"
+      }
+    },
+    {
+      "canonical_node_id": "复平面可行域_4_Lsum001",
+      "canonical_name": "复平面可行域",
+      "aliases": [],
+      "selected_card_node_id": "复平面可行域_4_Lsum001",
+      "owner_lesson": "L-∑",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "复平面可行域_4_Lsum001"
+      }
+    },
+    {
+      "canonical_node_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "canonical_name": "奈奎斯特与Bode统一判稳链",
+      "aliases": [],
+      "selected_card_node_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "奈奎斯特与Bode统一判稳链_3_38002"
+      }
+    },
+    {
+      "canonical_node_id": "奈奎斯特稳定判据_5_a1b34560",
+      "canonical_name": "奈奎斯特稳定判据",
+      "aliases": [],
+      "selected_card_node_id": "奈奎斯特稳定判据_5_a1b34560",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "奈奎斯特稳定判据_5_a1b34560"
+      }
+    },
+    {
+      "canonical_node_id": "对数幅频曲线_5_f86ba11b",
+      "canonical_name": "对数幅频曲线",
+      "aliases": [],
+      "selected_card_node_id": "对数幅频曲线_5_f86ba11b",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "对数频率坐标_5_5e366881",
+      "canonical_name": "对数频率坐标",
+      "aliases": [],
+      "selected_card_node_id": "对数频率坐标_5_5e366881",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "对数频率特性曲线_5_75c6945f",
+      "canonical_name": "对数频率特性曲线",
+      "aliases": [],
+      "selected_card_node_id": "对数频率特性曲线_5_75c6945f",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "对象分析回收到设计入口_4_43001",
+      "canonical_name": "对象分析回收到设计入口",
+      "aliases": [],
+      "selected_card_node_id": "对象分析回收到设计入口_4_43001",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "对象分析回收到设计入口_4_43001"
+      }
+    },
+    {
+      "canonical_node_id": "对象化三域验证_3_56cb3a4e",
+      "canonical_name": "对象化三域验证",
+      "aliases": [],
+      "selected_card_node_id": "对象化三域验证_3_56cb3a4e",
+      "owner_lesson": "3-4"
+    },
+    {
+      "canonical_node_id": "局部线性化工作点_5_52002",
+      "canonical_name": "局部线性化工作点",
+      "aliases": [],
+      "selected_card_node_id": "局部线性化工作点_5_52002",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "局部线性化工作点_5_52002"
+      }
+    },
+    {
+      "canonical_node_id": "局部线性化边界判断_5_51003",
+      "canonical_name": "局部线性化边界判断",
+      "aliases": [],
+      "selected_card_node_id": "局部线性化边界判断_5_51003",
+      "owner_lesson": "5-1",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "局部线性化边界判断_5_51003"
+      }
+    },
+    {
+      "canonical_node_id": "展示解与Pareto最小取舍_4_44006",
+      "canonical_name": "Pareto前沿与展示解取舍",
+      "aliases": [],
+      "selected_card_node_id": "展示解与Pareto最小取舍_4_44006",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "展示解与Pareto最小取舍_4_44006"
+      }
+    },
+    {
+      "canonical_node_id": "峰值时间_3_adc7ea95",
+      "canonical_name": "峰值时间",
+      "aliases": [],
+      "selected_card_node_id": "峰值时间_3_adc7ea95",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "工程指标代价函数翻译_4_47003",
+      "canonical_name": "工程指标代价函数翻译",
+      "aliases": [],
+      "selected_card_node_id": "工程指标代价函数翻译_4_47003",
+      "owner_lesson": "4-7",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "工程指标代价函数翻译_4_47003"
+      }
+    },
+    {
+      "canonical_node_id": "左半平面零点的动态改善机理_3_35002",
+      "canonical_name": "左半平面零点的动态改善机理",
+      "aliases": [],
+      "selected_card_node_id": "左半平面零点的动态改善机理_3_35002",
+      "owner_lesson": "3-5",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "左半平面零点的动态改善机理_3_35002"
+      }
+    },
+    {
+      "canonical_node_id": "带宽_5_6730fda4",
+      "canonical_name": "带宽",
+      "aliases": [],
+      "selected_card_node_id": "带宽_5_6730fda4",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "带宽_5_6730fda4"
+      }
+    },
+    {
+      "canonical_node_id": "带宽频率_5_6996a44a",
+      "canonical_name": "带宽频率",
+      "aliases": [],
+      "selected_card_node_id": "带宽频率_5_6996a44a",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "带宽频率_5_6996a44a"
+      }
+    },
+    {
+      "canonical_node_id": "幅值条件_3_2d5b92ac",
+      "canonical_name": "幅值条件",
+      "aliases": [],
+      "selected_card_node_id": "幅值条件_3_2d5b92ac",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "幅值裕度_5_73af26a5",
+      "canonical_name": "幅值裕度",
+      "aliases": [],
+      "selected_card_node_id": "幅值裕度_5_73af26a5",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "幅值裕度_5_73af26a5"
+      }
+    },
+    {
+      "canonical_node_id": "幅值裕度直觉_5_L2c004",
+      "canonical_name": "幅值裕度直觉",
+      "aliases": [],
+      "selected_card_node_id": "幅值裕度直觉_5_L2c004",
+      "owner_lesson": "L-2c"
+    },
+    {
+      "canonical_node_id": "幅角原理_5_f843970e",
+      "canonical_name": "幅角原理",
+      "aliases": [],
+      "selected_card_node_id": "幅角原理_5_f843970e",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "幅角原理_5_f843970e"
+      }
+    },
+    {
+      "canonical_node_id": "幅频特性_5_4e8408d2",
+      "canonical_name": "幅频特性",
+      "aliases": [],
+      "selected_card_node_id": "幅频特性_5_4e8408d2",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "并联连接_2_0e5f1ec2",
+      "canonical_name": "并联连接",
+      "aliases": [],
+      "selected_card_node_id": "并联连接_2_0e5f1ec2",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "广义根轨迹_4_30f5ea13",
+      "canonical_name": "广义根轨迹",
+      "aliases": [],
+      "selected_card_node_id": "广义根轨迹_4_30f5ea13",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "开环传递函数定义_2_12002",
+      "canonical_name": "开环传递函数（精化）",
+      "aliases": [],
+      "selected_card_node_id": "开环传递函数定义_2_12002",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "开环幅相特性曲线_5_fd86e289",
+      "canonical_name": "开环幅相特性曲线",
+      "aliases": [],
+      "selected_card_node_id": "开环幅相特性曲线_5_fd86e289",
+      "owner_lesson": "2-4"
+    },
+    {
+      "canonical_node_id": "强化学习控制回报_5_55003",
+      "canonical_name": "强化学习控制回报",
+      "aliases": [],
+      "selected_card_node_id": "强化学习控制回报_5_55003",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "微分方程_2_775c96a3",
+      "canonical_name": "微分方程",
+      "aliases": [],
+      "selected_card_node_id": "微分方程_2_775c96a3",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "微分环节_2_11006",
+      "canonical_name": "微分环节",
+      "aliases": [],
+      "selected_card_node_id": "微分环节_2_11006",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "惯性环节_2_11007",
+      "canonical_name": "惯性环节",
+      "aliases": [],
+      "selected_card_node_id": "惯性环节_2_11007",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "截止频率_5_c7d09ff7",
+      "canonical_name": "截止频率",
+      "aliases": [],
+      "selected_card_node_id": "截止频率_5_c7d09ff7",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "截止频率_5_c7d09ff7"
+      }
+    },
+    {
+      "canonical_node_id": "截止频率直觉_5_L2c002",
+      "canonical_name": "截止频率直觉",
+      "aliases": [],
+      "selected_card_node_id": "截止频率直觉_5_L2c002",
+      "owner_lesson": "L-2c"
+    },
+    {
+      "canonical_node_id": "执行约束反馈_5_53005",
+      "canonical_name": "执行约束反馈",
+      "aliases": [],
+      "selected_card_node_id": "执行约束反馈_5_53005",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "执行约束反馈_5_53005"
+      }
+    },
+    {
+      "canonical_node_id": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "canonical_name": "扰动作用下的稳态误差",
+      "aliases": [],
+      "selected_card_node_id": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "扰动噪声设计边界_4_47007",
+      "canonical_name": "扰动噪声设计边界",
+      "aliases": [],
+      "selected_card_node_id": "扰动噪声设计边界_4_47007",
+      "owner_lesson": "4-7"
+    },
+    {
+      "canonical_node_id": "扰动抑制中的通道重写边界_4_43006",
+      "canonical_name": "扰动抑制中的通道重写边界",
+      "aliases": [],
+      "selected_card_node_id": "扰动抑制中的通道重写边界_4_43006",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "扰动抑制中的通道重写边界_4_43006"
+      }
+    },
+    {
+      "canonical_node_id": "拉氏变换工程动机_2_11001",
+      "canonical_name": "拉氏变换工程动机",
+      "aliases": [],
+      "selected_card_node_id": "拉氏变换工程动机_2_11001",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "指标角色重组_4_41002",
+      "canonical_name": "指标角色重组",
+      "aliases": [],
+      "selected_card_node_id": "指标角色重组_4_41002",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "指标角色重组_4_41002"
+      }
+    },
+    {
+      "canonical_node_id": "按扰动补偿前馈的对消条件_4_42007",
+      "canonical_name": "按扰动补偿前馈的对消条件",
+      "aliases": [],
+      "selected_card_node_id": "按扰动补偿前馈的对消条件_4_42007",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "按扰动补偿前馈的对消条件_4_42007"
+      }
+    },
+    {
+      "canonical_node_id": "按输入补偿前馈的无差度提升_4_42006",
+      "canonical_name": "按输入补偿前馈的无差度提升",
+      "aliases": [],
+      "selected_card_node_id": "按输入补偿前馈的无差度提升_4_42006",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "按输入补偿前馈的无差度提升_4_42006"
+      }
+    },
+    {
+      "canonical_node_id": "振荡环节_5_d677d1e6",
+      "canonical_name": "振荡环节",
+      "aliases": [],
+      "selected_card_node_id": "振荡环节_5_d677d1e6",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "控制在自主系统链路中的位置_5_53002",
+      "canonical_name": "控制在自主系统链路中的位置",
+      "aliases": [],
+      "selected_card_node_id": "控制在自主系统链路中的位置_5_53002",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "控制在自主系统链路中的位置_5_53002"
+      }
+    },
+    {
+      "canonical_node_id": "描述函数法_8_849fa8a1",
+      "canonical_name": "描述函数法",
+      "aliases": [],
+      "selected_card_node_id": "描述函数法_8_849fa8a1",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "描述函数法_8_849fa8a1"
+      }
+    },
+    {
+      "canonical_node_id": "描述函数适用条件_5_52003",
+      "canonical_name": "描述函数适用条件",
+      "aliases": [],
+      "selected_card_node_id": "描述函数适用条件_5_52003",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "描述函数适用条件_5_52003"
+      }
+    },
+    {
+      "canonical_node_id": "数据覆盖与泛化边界_5_54005",
+      "canonical_name": "数据覆盖与泛化边界",
+      "aliases": [],
+      "selected_card_node_id": "数据覆盖与泛化边界_5_54005",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "数据覆盖与泛化边界_5_54005"
+      }
+    },
+    {
+      "canonical_node_id": "数据驱动控制_5_54003",
+      "canonical_name": "数据驱动控制",
+      "aliases": [],
+      "selected_card_node_id": "数据驱动控制_5_54003",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "数据驱动控制_5_54003"
+      }
+    },
+    {
+      "canonical_node_id": "数据驱动进入条件_5_54004",
+      "canonical_name": "数据驱动进入条件",
+      "aliases": [],
+      "selected_card_node_id": "数据驱动进入条件_5_54004",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "数据驱动进入条件_5_54004"
+      }
+    },
+    {
+      "canonical_node_id": "方法迁移前边界说明_5_51005",
+      "canonical_name": "方法迁移前边界说明",
+      "aliases": [],
+      "selected_card_node_id": "方法迁移前边界说明_5_51005",
+      "owner_lesson": "5-1",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "方法迁移前边界说明_5_51005"
+      }
+    },
+    {
+      "canonical_node_id": "无约束加权目标表达_4_44004",
+      "canonical_name": "无约束加权目标表达",
+      "aliases": [],
+      "selected_card_node_id": "无约束加权目标表达_4_44004",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "无约束加权目标表达_4_44004"
+      }
+    },
+    {
+      "canonical_node_id": "无阻尼自然频率_3_13001",
+      "canonical_name": "无阻尼自然频率",
+      "aliases": [],
+      "selected_card_node_id": "无阻尼自然频率_3_13001",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "时域分析_2_1874cdb9",
+      "canonical_name": "时域分析",
+      "aliases": [],
+      "selected_card_node_id": "时域分析_2_1874cdb9",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "时域响应包络_3_Lsum002",
+      "canonical_name": "时域响应包络",
+      "aliases": [],
+      "selected_card_node_id": "时域响应包络_3_Lsum002",
+      "owner_lesson": "L-∑"
+    },
+    {
+      "canonical_node_id": "时域指标到极点参数映射_3_13003",
+      "canonical_name": "时域指标到极点参数映射",
+      "aliases": [],
+      "selected_card_node_id": "时域指标到极点参数映射_3_13003",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "时域指标到目标极点区域_3_36001",
+      "canonical_name": "时域指标到目标极点区域",
+      "aliases": [],
+      "selected_card_node_id": "时域指标到目标极点区域_3_36001",
+      "owner_lesson": "3-6"
+    },
+    {
+      "canonical_node_id": "时间常数_2_68356eae",
+      "canonical_name": "时间常数",
+      "aliases": [],
+      "selected_card_node_id": "时间常数_2_68356eae",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "显式控制律与学习策略_5_55001",
+      "canonical_name": "显式控制律与学习策略",
+      "aliases": [],
+      "selected_card_node_id": "显式控制律与学习策略_5_55001",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "最佳阻尼比_3_L2b002",
+      "canonical_name": "最佳阻尼比",
+      "aliases": [],
+      "selected_card_node_id": "最佳阻尼比_3_L2b002",
+      "owner_lesson": "L-2b"
+    },
+    {
+      "canonical_node_id": "权重偏好与无约束候选解_4_44005",
+      "canonical_name": "权重偏好与无约束候选解",
+      "aliases": [],
+      "selected_card_node_id": "权重偏好与无约束候选解_4_44005",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "权重偏好与无约束候选解_4_44005"
+      }
+    },
+    {
+      "canonical_node_id": "极点迁移_4_L2b001",
+      "canonical_name": "极点迁移",
+      "aliases": [],
+      "selected_card_node_id": "极点迁移_4_L2b001",
+      "owner_lesson": "L-2b"
+    },
+    {
+      "canonical_node_id": "根轨迹_4_c19f8854",
+      "canonical_name": "根轨迹",
+      "aliases": [],
+      "selected_card_node_id": "根轨迹_4_c19f8854",
+      "owner_lesson": "3-3",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "根轨迹_4_c19f8854"
+      }
+    },
+    {
+      "canonical_node_id": "根轨迹增益换算_3_4b1d9e6c",
+      "canonical_name": "根轨迹增益换算",
+      "aliases": [],
+      "selected_card_node_id": "根轨迹增益换算_3_4b1d9e6c",
+      "owner_lesson": "3-4"
+    },
+    {
+      "canonical_node_id": "根轨迹完整法则_3_0f2e7b11",
+      "canonical_name": "根轨迹完整法则",
+      "aliases": [],
+      "selected_card_node_id": "根轨迹完整法则_3_0f2e7b11",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "根轨迹法_2_e3f6c0c1",
+      "canonical_name": "根轨迹法",
+      "aliases": [],
+      "selected_card_node_id": "根轨迹法_2_e3f6c0c1",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "根轨迹绘制规则_3_2f9e8cb3",
+      "canonical_name": "根轨迹绘制规则",
+      "aliases": [],
+      "selected_card_node_id": "根轨迹绘制规则_3_2f9e8cb3",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "梅森增益公式_2_419eab0c",
+      "canonical_name": "梅森增益公式",
+      "aliases": [],
+      "selected_card_node_id": "梅森增益公式_2_419eab0c",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "模块4入口的首轮任务判断_3_39004",
+      "canonical_name": "模块4入口的首轮任务判断",
+      "aliases": [],
+      "selected_card_node_id": "模块4入口的首轮任务判断_3_39004",
+      "owner_lesson": "3-9",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "模块4入口的首轮任务判断_3_39004"
+      }
+    },
+    {
+      "canonical_node_id": "模型依赖松动_5_54001",
+      "canonical_name": "模型依赖松动",
+      "aliases": [],
+      "selected_card_node_id": "模型依赖松动_5_54001",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "模型依赖松动_5_54001"
+      }
+    },
+    {
+      "canonical_node_id": "模型数据责任分配_5_54007",
+      "canonical_name": "模型数据责任分配",
+      "aliases": [],
+      "selected_card_node_id": "模型数据责任分配_5_54007",
+      "owner_lesson": "5-4",
+      "selected_infograph": {
+        "lesson_id": "5-4",
+        "node_id": "模型数据责任分配_5_54007"
+      }
+    },
+    {
+      "canonical_node_id": "模态_2_d586e1e6",
+      "canonical_name": "模态",
+      "aliases": [],
+      "selected_card_node_id": "模态_2_d586e1e6",
+      "owner_lesson": "3-1"
+    },
+    {
+      "canonical_node_id": "欠阻尼响应_3_c2d57b37",
+      "canonical_name": "欠阻尼响应",
+      "aliases": [],
+      "selected_card_node_id": "欠阻尼响应_3_c2d57b37",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "正弦函数_1_98499ac0",
+      "canonical_name": "正弦函数",
+      "aliases": [],
+      "selected_card_node_id": "正弦函数_1_98499ac0",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "正弦稳态响应_5_b6dc1100",
+      "canonical_name": "正弦稳态响应",
+      "aliases": [],
+      "selected_card_node_id": "正弦稳态响应_5_b6dc1100",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "比例-积分控制器_3_2d540516",
+      "canonical_name": "比例-积分控制器",
+      "aliases": [],
+      "selected_card_node_id": "比例-积分控制器_3_2d540516",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "比例环节_2_11004",
+      "canonical_name": "比例环节",
+      "aliases": [],
+      "selected_card_node_id": "比例环节_2_11004",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "求解记录单_4_45004",
+      "canonical_name": "求解记录单",
+      "aliases": [],
+      "selected_card_node_id": "求解记录单_4_45004",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "求解记录单_4_45004"
+      }
+    },
+    {
+      "canonical_node_id": "目标驱动PD校正_3_36002",
+      "canonical_name": "目标驱动PD校正",
+      "aliases": [],
+      "selected_card_node_id": "目标驱动PD校正_3_36002",
+      "owner_lesson": "3-6",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "目标驱动PD校正_3_36002"
+      }
+    },
+    {
+      "canonical_node_id": "目标驱动测速反馈校正_3_36003",
+      "canonical_name": "目标驱动测速反馈校正",
+      "aliases": [],
+      "selected_card_node_id": "目标驱动测速反馈校正_3_36003",
+      "owner_lesson": "3-6"
+    },
+    {
+      "canonical_node_id": "目标驱动超前校正_3_36004",
+      "canonical_name": "目标驱动超前校正",
+      "aliases": [],
+      "selected_card_node_id": "目标驱动超前校正_3_36004",
+      "owner_lesson": "3-6",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "目标驱动超前校正_3_36004"
+      }
+    },
+    {
+      "canonical_node_id": "相位裕度直觉_5_L2c003",
+      "canonical_name": "相位裕度直觉",
+      "aliases": [],
+      "selected_card_node_id": "相位裕度直觉_5_L2c003",
+      "owner_lesson": "L-2c"
+    },
+    {
+      "canonical_node_id": "相平面图_8_bd606f51",
+      "canonical_name": "相平面图",
+      "aliases": [],
+      "selected_card_node_id": "相平面图_8_bd606f51",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "相平面图_8_bd606f51"
+      }
+    },
+    {
+      "canonical_node_id": "相角条件_4_597a8cf7",
+      "canonical_name": "相角条件",
+      "aliases": [],
+      "selected_card_node_id": "相角条件_4_597a8cf7",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "相角裕度_5_5a74b451",
+      "canonical_name": "相角裕度",
+      "aliases": [
+        "相角裕度_5_0a9c6e90"
+      ],
+      "selected_card_node_id": "相角裕度_5_5a74b451",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "相角裕度_5_5a74b451"
+      },
+      "duplicate_resolution": "同名卡片本质重复；保留 2-4 基础读图定义并合并后续设计语境，信息图保留 4-2 版本。"
+    },
+    {
+      "canonical_node_id": "相频特性_5_abda14da",
+      "canonical_name": "相频特性",
+      "aliases": [],
+      "selected_card_node_id": "相频特性_5_abda14da",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "硬约束-软目标-观察指标分类_4_41003",
+      "canonical_name": "硬约束-软目标-观察指标分类",
+      "aliases": [],
+      "selected_card_node_id": "硬约束-软目标-观察指标分类_4_41003",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "硬约束-软目标-观察指标分类_4_41003"
+      }
+    },
+    {
+      "canonical_node_id": "积分与滞后的稳态改善分工_3_39003",
+      "canonical_name": "积分与滞后的稳态改善分工",
+      "aliases": [],
+      "selected_card_node_id": "积分与滞后的稳态改善分工_3_39003",
+      "owner_lesson": "3-9",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "积分与滞后的稳态改善分工_3_39003"
+      }
+    },
+    {
+      "canonical_node_id": "积分环节_2_11005",
+      "canonical_name": "积分环节",
+      "aliases": [],
+      "selected_card_node_id": "积分环节_2_11005",
+      "owner_lesson": "2-1",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "积分环节_2_11005"
+      }
+    },
+    {
+      "canonical_node_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "canonical_name": "统一对象多版本综合映射框架",
+      "aliases": [],
+      "selected_card_node_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "owner_lesson": "3-9",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "稳定_动态_稳态综合映射框架_3_39001"
+      }
+    },
+    {
+      "canonical_node_id": "稳定可行域_3_7eed0929",
+      "canonical_name": "稳定可行域",
+      "aliases": [],
+      "selected_card_node_id": "稳定可行域_3_7eed0929",
+      "owner_lesson": "3-2",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "稳定可行域_3_7eed0929"
+      }
+    },
+    {
+      "canonical_node_id": "稳定性_3_72d04fbd",
+      "canonical_name": "稳定性",
+      "aliases": [],
+      "selected_card_node_id": "稳定性_3_72d04fbd",
+      "owner_lesson": "3-1"
+    },
+    {
+      "canonical_node_id": "稳态误差双路径判断_3_37002",
+      "canonical_name": "稳态误差双路径判断",
+      "aliases": [],
+      "selected_card_node_id": "稳态误差双路径判断_3_37002",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "穿越频率_5_c4c2b93c",
+      "canonical_name": "穿越频率",
+      "aliases": [],
+      "selected_card_node_id": "穿越频率_5_c4c2b93c",
+      "owner_lesson": "2-4",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "穿越频率_5_c4c2b93c"
+      }
+    },
+    {
+      "canonical_node_id": "策略学习安全外壳_5_55005",
+      "canonical_name": "策略学习安全外壳",
+      "aliases": [],
+      "selected_card_node_id": "策略学习安全外壳_5_55005",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "策略学习进入条件_5_55002",
+      "canonical_name": "策略学习进入条件",
+      "aliases": [],
+      "selected_card_node_id": "策略学习进入条件_5_55002",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "系统型别_3_5573c2c3",
+      "canonical_name": "系统型别",
+      "aliases": [],
+      "selected_card_node_id": "系统型别_3_5573c2c3",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "系统结构图_2_5d3751f8",
+      "canonical_name": "系统结构图",
+      "aliases": [],
+      "selected_card_node_id": "系统结构图_2_5d3751f8",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "线性主干边界识别_5_51001",
+      "canonical_name": "线性主干边界识别",
+      "aliases": [],
+      "selected_card_node_id": "线性主干边界识别_5_51001",
+      "owner_lesson": "5-1",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "线性主干边界识别_5_51001"
+      }
+    },
+    {
+      "canonical_node_id": "线性预测失真对比_5_51004",
+      "canonical_name": "线性预测失真对比",
+      "aliases": [],
+      "selected_card_node_id": "线性预测失真对比_5_51004",
+      "owner_lesson": "5-1",
+      "selected_infograph": {
+        "lesson_id": "5-1",
+        "node_id": "线性预测失真对比_5_51004"
+      }
+    },
+    {
+      "canonical_node_id": "组合结构专项验证边界判断_4_46007",
+      "canonical_name": "组合结构专项验证边界判断",
+      "aliases": [],
+      "selected_card_node_id": "组合结构专项验证边界判断_4_46007",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "终值定理_3_be8fe1ad",
+      "canonical_name": "终值定理",
+      "aliases": [],
+      "selected_card_node_id": "终值定理_3_be8fe1ad",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "经典试凑中的多目标拉扯_4_44001",
+      "canonical_name": "经典试凑中的多目标拉扯",
+      "aliases": [],
+      "selected_card_node_id": "经典试凑中的多目标拉扯_4_44001",
+      "owner_lesson": "4-4",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "经典试凑中的多目标拉扯_4_44001"
+      }
+    },
+    {
+      "canonical_node_id": "结构作用点与代价来源对照_4_42004",
+      "canonical_name": "结构作用点与代价来源对照",
+      "aliases": [],
+      "selected_card_node_id": "结构作用点与代价来源对照_4_42004",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "结构作用点与代价来源对照_4_42004"
+      }
+    },
+    {
+      "canonical_node_id": "结构参数联合搜索解码_4_47005",
+      "canonical_name": "结构参数联合搜索解码",
+      "aliases": [],
+      "selected_card_node_id": "结构参数联合搜索解码_4_47005",
+      "owner_lesson": "4-7"
+    },
+    {
+      "canonical_node_id": "结构变化的频域指纹_3_38001",
+      "canonical_name": "结构变化的频域指纹",
+      "aliases": [],
+      "selected_card_node_id": "结构变化的频域指纹_3_38001",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "结构变化的频域指纹_3_38001"
+      }
+    },
+    {
+      "canonical_node_id": "结构图_2_3f312ccc",
+      "canonical_name": "结构图",
+      "aliases": [],
+      "selected_card_node_id": "结构图_2_3f312ccc",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "结构图等效变换_2_12001",
+      "canonical_name": "结构图等效变换",
+      "aliases": [],
+      "selected_card_node_id": "结构图等效变换_2_12001",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "结构图简化_2_6d86a775",
+      "canonical_name": "结构图简化",
+      "aliases": [],
+      "selected_card_node_id": "结构图简化_2_6d86a775",
+      "owner_lesson": "1-2"
+    },
+    {
+      "canonical_node_id": "结构工具箱最小语义_4_42002",
+      "canonical_name": "结构工具箱最小语义",
+      "aliases": [],
+      "selected_card_node_id": "结构工具箱最小语义_4_42002",
+      "owner_lesson": "4-2",
+      "selected_infograph": {
+        "lesson_id": "4-2",
+        "node_id": "结构工具箱最小语义_4_42002"
+      }
+    },
+    {
+      "canonical_node_id": "结构搜索引入条件_4_46004",
+      "canonical_name": "结构搜索引入条件",
+      "aliases": [],
+      "selected_card_node_id": "结构搜索引入条件_4_46004",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "给定-扰动双通道误差分析_3_37001",
+      "canonical_name": "给定-扰动双通道误差分析",
+      "aliases": [],
+      "selected_card_node_id": "给定-扰动双通道误差分析_3_37001",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "统一结构编码与解码_4_46005",
+      "canonical_name": "统一结构编码与解码",
+      "aliases": [],
+      "selected_card_node_id": "统一结构编码与解码_4_46005",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "罚函数表达表_4_45003",
+      "canonical_name": "罚函数表达表",
+      "aliases": [],
+      "selected_card_node_id": "罚函数表达表_4_45003",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "罚函数表达表_4_45003"
+      }
+    },
+    {
+      "canonical_node_id": "自振微小扰动判断_5_52004",
+      "canonical_name": "自振微小扰动判断",
+      "aliases": [],
+      "selected_card_node_id": "自振微小扰动判断_5_52004",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "自振微小扰动判断_5_52004"
+      }
+    },
+    {
+      "canonical_node_id": "自然频率_10_51a8b7d0",
+      "canonical_name": "自然频率",
+      "aliases": [],
+      "selected_card_node_id": "自然频率_10_51a8b7d0",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "航向控制RL环境_5_55004",
+      "canonical_name": "航向控制RL环境",
+      "aliases": [],
+      "selected_card_node_id": "航向控制RL环境_5_55004",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "舵机死区饱和自振风险_5_52005",
+      "canonical_name": "舵机死区饱和自振风险",
+      "aliases": [],
+      "selected_card_node_id": "舵机死区饱和自振风险_5_52005",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "舵机死区饱和自振风险_5_52005"
+      }
+    },
+    {
+      "canonical_node_id": "船舶航向控制对象_2_21004",
+      "canonical_name": "船舶航向控制对象",
+      "aliases": [],
+      "selected_card_node_id": "船舶航向控制对象_2_21004",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "规划参考可实现性_5_53004",
+      "canonical_name": "规划参考可实现性",
+      "aliases": [],
+      "selected_card_node_id": "规划参考可实现性_5_53004",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "规划参考可实现性_5_53004"
+      }
+    },
+    {
+      "canonical_node_id": "训练覆盖与部署验证_5_55007",
+      "canonical_name": "训练覆盖与部署验证",
+      "aliases": [],
+      "selected_card_node_id": "训练覆盖与部署验证_5_55007",
+      "owner_lesson": "5-5"
+    },
+    {
+      "canonical_node_id": "设计任务表达卡_4_41001",
+      "canonical_name": "设计任务表达卡",
+      "aliases": [],
+      "selected_card_node_id": "设计任务表达卡_4_41001",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "设计任务表达卡_4_41001"
+      }
+    },
+    {
+      "canonical_node_id": "设计可行域_4_Lsum004",
+      "canonical_name": "设计可行域",
+      "aliases": [],
+      "selected_card_node_id": "设计可行域_4_Lsum004",
+      "owner_lesson": "L-∑",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "设计可行域_4_Lsum004"
+      }
+    },
+    {
+      "canonical_node_id": "误差传递函数_2_1d55824d",
+      "canonical_name": "误差传递函数",
+      "aliases": [],
+      "selected_card_node_id": "误差传递函数_2_1d55824d",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "调节时间_10_fcbccf4e",
+      "canonical_name": "调节时间",
+      "aliases": [
+        "调节时间_4_d3f3314b"
+      ],
+      "selected_card_node_id": "调节时间_10_fcbccf4e",
+      "owner_lesson": "L-2a",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "调节时间_10_fcbccf4e"
+      },
+      "duplicate_resolution": "同名卡片本质重复；保留 2-2 基础定义并合并 4-1/4-5 设计排序语境，信息图保留 4-1 版本并改挂 canonical id。"
+    },
+    {
+      "canonical_node_id": "谐振峰值Mr_5_b3a87785",
+      "canonical_name": "谐振峰值Mr",
+      "aliases": [],
+      "selected_card_node_id": "谐振峰值Mr_5_b3a87785",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "谐振峰值Mr_5_b3a87785"
+      }
+    },
+    {
+      "canonical_node_id": "负倒描述函数_8_159ff256",
+      "canonical_name": "负倒描述函数",
+      "aliases": [],
+      "selected_card_node_id": "负倒描述函数_8_159ff256",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "负倒描述函数_8_159ff256"
+      }
+    },
+    {
+      "canonical_node_id": "超调量_3_fc3f5b17",
+      "canonical_name": "超调量",
+      "aliases": [
+        "超调量_5_3d015714"
+      ],
+      "selected_card_node_id": "超调量_3_fc3f5b17",
+      "owner_lesson": "L-2a",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "超调量_3_fc3f5b17"
+      },
+      "duplicate_resolution": "同名卡片本质重复；保留 2-2 基础定义并合并设计约束语境，信息图保留 4-5 版本并改挂 canonical id。"
+    },
+    {
+      "canonical_node_id": "越界证据记录单_4_45001",
+      "canonical_name": "越界证据记录单",
+      "aliases": [],
+      "selected_card_node_id": "越界证据记录单_4_45001",
+      "owner_lesson": "4-5",
+      "selected_infograph": {
+        "lesson_id": "4-5",
+        "node_id": "越界证据记录单_4_45001"
+      }
+    },
+    {
+      "canonical_node_id": "跨域联读任务重排_4_41005",
+      "canonical_name": "跨域联读任务重排",
+      "aliases": [],
+      "selected_card_node_id": "跨域联读任务重排_4_41005",
+      "owner_lesson": "4-1",
+      "selected_infograph": {
+        "lesson_id": "4-1",
+        "node_id": "跨域联读任务重排_4_41005"
+      }
+    },
+    {
+      "canonical_node_id": "跨模型验证比较_4_47006",
+      "canonical_name": "跨模型验证比较",
+      "aliases": [],
+      "selected_card_node_id": "跨模型验证比较_4_47006",
+      "owner_lesson": "4-7"
+    },
+    {
+      "canonical_node_id": "辅助方程_3_ed86f1f0",
+      "canonical_name": "辅助方程",
+      "aliases": [],
+      "selected_card_node_id": "辅助方程_3_ed86f1f0",
+      "owner_lesson": "3-2"
+    },
+    {
+      "canonical_node_id": "迁移场景任务重排_4_46001",
+      "canonical_name": "迁移场景任务重排",
+      "aliases": [],
+      "selected_card_node_id": "迁移场景任务重排_4_46001",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "过阻尼响应_3_adf3867e",
+      "canonical_name": "过阻尼响应",
+      "aliases": [],
+      "selected_card_node_id": "过阻尼响应_3_adf3867e",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "避碰转弯半径可行域_5_53007",
+      "canonical_name": "避碰转弯半径可行域",
+      "aliases": [],
+      "selected_card_node_id": "避碰转弯半径可行域_5_53007",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "避碰转弯半径可行域_5_53007"
+      }
+    },
+    {
+      "canonical_node_id": "链路责任诊断_5_53006",
+      "canonical_name": "链路责任诊断",
+      "aliases": [],
+      "selected_card_node_id": "链路责任诊断_5_53006",
+      "owner_lesson": "5-3",
+      "selected_infograph": {
+        "lesson_id": "5-3",
+        "node_id": "链路责任诊断_5_53006"
+      }
+    },
+    {
+      "canonical_node_id": "闭环主导极点_3_de941720",
+      "canonical_name": "闭环主导极点",
+      "aliases": [],
+      "selected_card_node_id": "闭环主导极点_3_de941720",
+      "owner_lesson": "3-1"
+    },
+    {
+      "canonical_node_id": "闭环传递函数_2_5399c369",
+      "canonical_name": "闭环传递函数",
+      "aliases": [],
+      "selected_card_node_id": "闭环传递函数_2_5399c369",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "闭环极点_3_f9432bf3",
+      "canonical_name": "闭环极点",
+      "aliases": [],
+      "selected_card_node_id": "闭环极点_3_f9432bf3",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "闭环特征方程_3_87c88e19",
+      "canonical_name": "闭环特征方程",
+      "aliases": [],
+      "selected_card_node_id": "闭环特征方程_3_87c88e19",
+      "owner_lesson": "3-1"
+    },
+    {
+      "canonical_node_id": "问题清单移交表_4_43005",
+      "canonical_name": "问题清单移交表",
+      "aliases": [],
+      "selected_card_node_id": "问题清单移交表_4_43005",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-4",
+        "node_id": "问题清单移交表_4_43005"
+      }
+    },
+    {
+      "canonical_node_id": "阶跃响应_10_47ad4df2",
+      "canonical_name": "阶跃响应",
+      "aliases": [],
+      "selected_card_node_id": "阶跃响应_10_47ad4df2",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "阻尼振荡频率_3_13002",
+      "canonical_name": "阻尼振荡频率",
+      "aliases": [],
+      "selected_card_node_id": "阻尼振荡频率_3_13002",
+      "owner_lesson": "2-2"
+    },
+    {
+      "canonical_node_id": "阻尼比_3_b849784e",
+      "canonical_name": "阻尼比",
+      "aliases": [],
+      "selected_card_node_id": "阻尼比_3_b849784e",
+      "owner_lesson": "L-2a"
+    },
+    {
+      "canonical_node_id": "零初值传递函数_2_21001",
+      "canonical_name": "零初值传递函数",
+      "aliases": [],
+      "selected_card_node_id": "零初值传递函数_2_21001",
+      "owner_lesson": "2-1"
+    },
+    {
+      "canonical_node_id": "零度与一百八十度根轨迹_3_c1bb7dbe",
+      "canonical_name": "零度与一百八十度根轨迹",
+      "aliases": [],
+      "selected_card_node_id": "零度与一百八十度根轨迹_3_c1bb7dbe",
+      "owner_lesson": "3-3"
+    },
+    {
+      "canonical_node_id": "零点引入与根轨迹重排_3_35001",
+      "canonical_name": "零点引入与根轨迹重排",
+      "aliases": [],
+      "selected_card_node_id": "零点引入与根轨迹重排_3_35001",
+      "owner_lesson": "3-5"
+    },
+    {
+      "canonical_node_id": "静态误差系数_3_7080d9f8",
+      "canonical_name": "静态误差系数",
+      "aliases": [],
+      "selected_card_node_id": "静态误差系数_3_7080d9f8",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "静态速度误差系数_3_ba8e28bb",
+      "canonical_name": "静态速度误差系数",
+      "aliases": [],
+      "selected_card_node_id": "静态速度误差系数_3_ba8e28bb",
+      "owner_lesson": "3-7"
+    },
+    {
+      "canonical_node_id": "非周期信号频谱_5_e2fff926",
+      "canonical_name": "非周期信号频谱",
+      "aliases": [],
+      "selected_card_node_id": "非周期信号频谱_5_e2fff926",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "非最小相与右半平面零点_3_35005",
+      "canonical_name": "非最小相与右半平面零点",
+      "aliases": [],
+      "selected_card_node_id": "非最小相与右半平面零点_3_35005",
+      "owner_lesson": "3-5",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "非最小相与右半平面零点_3_35005"
+      }
+    },
+    {
+      "canonical_node_id": "非线性微分方程的线性化_2_caa86ba6",
+      "canonical_name": "非线性微分方程的线性化",
+      "aliases": [],
+      "selected_card_node_id": "非线性微分方程的线性化_2_caa86ba6",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "非线性微分方程的线性化_2_caa86ba6"
+      }
+    },
+    {
+      "canonical_node_id": "非线性边界工具选择_5_52001",
+      "canonical_name": "非线性边界工具选择",
+      "aliases": [],
+      "selected_card_node_id": "非线性边界工具选择_5_52001",
+      "owner_lesson": "5-2",
+      "selected_infograph": {
+        "lesson_id": "5-2",
+        "node_id": "非线性边界工具选择_5_52001"
+      }
+    },
+    {
+      "canonical_node_id": "频域分析_2_2e257d89",
+      "canonical_name": "频域分析",
+      "aliases": [],
+      "selected_card_node_id": "频域分析_2_2e257d89",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "频域可行带_5_Lsum003",
+      "canonical_name": "频域可行带",
+      "aliases": [],
+      "selected_card_node_id": "频域可行带_5_Lsum003",
+      "owner_lesson": "L-∑"
+    },
+    {
+      "canonical_node_id": "频域综合判断与工程读回_3_38004",
+      "canonical_name": "频域综合判断与工程读回",
+      "aliases": [],
+      "selected_card_node_id": "频域综合判断与工程读回_3_38004",
+      "owner_lesson": "3-8",
+      "selected_infograph": {
+        "lesson_id": "3-9",
+        "node_id": "频域综合判断与工程读回_3_38004"
+      }
+    },
+    {
+      "canonical_node_id": "频率分量重构_5_42082c97",
+      "canonical_name": "频率分量重构",
+      "aliases": [],
+      "selected_card_node_id": "频率分量重构_5_42082c97",
+      "owner_lesson": "2-3"
+    },
+    {
+      "canonical_node_id": "频率响应直觉_5_L2c001",
+      "canonical_name": "频率响应直觉",
+      "aliases": [],
+      "selected_card_node_id": "频率响应直觉_5_L2c001",
+      "owner_lesson": "L-2c"
+    },
+    {
+      "canonical_node_id": "频率特性_5_404adfdd",
+      "canonical_name": "频率特性",
+      "aliases": [],
+      "selected_card_node_id": "频率特性_5_404adfdd",
+      "owner_lesson": "2-3",
+      "selected_infograph": {
+        "lesson_id": "3-8",
+        "node_id": "频率特性_5_404adfdd"
+      }
+    },
+    {
+      "canonical_node_id": "首轮验证最小读数逻辑_4_43004",
+      "canonical_name": "首轮验证最小读数逻辑",
+      "aliases": [],
+      "selected_card_node_id": "首轮验证最小读数逻辑_4_43004",
+      "owner_lesson": "4-3",
+      "selected_infograph": {
+        "lesson_id": "4-3",
+        "node_id": "首轮验证最小读数逻辑_4_43004"
+      }
+    },
+    {
+      "canonical_node_id": "驱逐舰专用代价函数改写_4_46003",
+      "canonical_name": "驱逐舰专用代价函数改写",
+      "aliases": [],
+      "selected_card_node_id": "驱逐舰专用代价函数改写_4_46003",
+      "owner_lesson": "4-6"
+    },
+    {
+      "canonical_node_id": "高保真任务降阶辨识_4_47001",
+      "canonical_name": "高保真任务降阶辨识",
+      "aliases": [],
+      "selected_card_node_id": "高保真任务降阶辨识_4_47001",
+      "owner_lesson": "4-7"
+    }
+  ]
+}

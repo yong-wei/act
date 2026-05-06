@@ -20,7 +20,7 @@
     "主导极点_3_4c4c6bbd",
     "阻尼比_3_b849784e",
     "自然频率_10_51a8b7d0",
-    "相角裕度_5_0a9c6e90",
+    "相角裕度_5_5a74b451",
     "带宽_5_6730fda4"
   ],
   "entry_nodes": [
@@ -40,7 +40,7 @@
     "阻尼比_3_b849784e",
     "自然频率_10_51a8b7d0",
     "PD与测速反馈的等效阻尼对比_3_35003",
-    "相角裕度_5_0a9c6e90",
+    "相角裕度_5_5a74b451",
     "带宽_5_6730fda4",
     "PD与超前的频域整形差异_3_35004",
     "非最小相与右半平面零点_3_35005"
@@ -99,7 +99,7 @@
           "step-12"
         ],
         "node_ids": [
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4",
           "PD与超前的频域整形差异_3_35004"
         ]
@@ -126,7 +126,7 @@
       "阻尼比_3_b849784e",
       "自然频率_10_51a8b7d0",
       "PD与测速反馈的等效阻尼对比_3_35003",
-      "相角裕度_5_0a9c6e90",
+      "相角裕度_5_5a74b451",
       "带宽_5_6730fda4",
       "PD与超前的频域整形差异_3_35004",
       "非最小相与右半平面零点_3_35005"
@@ -148,5 +148,7 @@
     "interactive_page_check_path": "/course-runtime/lessons/3-5/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/3-5/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/3-5/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/3-5/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/3-5/interactive-manifest.json"
 }

@@ -158,7 +158,7 @@
         ],
         "prerequisites": [
           "奈奎斯特与Bode统一判稳链_3_38002",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4",
           "非最小相与右半平面零点_3_35005"
         ],
@@ -181,8 +181,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "title": "三频段闭环性能回读 信息图",
-          "lessonId": "4-2",
-          "nodeId": "三频段闭环性能回读_3_38003"
+          "lessonId": "3-9",
+          "nodeId": "三频段闭环性能回读_3_38003",
+          "sourceNodeId": "三频段闭环性能回读_3_38003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -196,8 +197,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
           "title": "三频段闭环性能回读 信息图",
-          "lessonId": "4-2",
-          "nodeId": "三频段闭环性能回读_3_38003"
+          "lessonId": "3-9",
+          "nodeId": "三频段闭环性能回读_3_38003",
+          "sourceNodeId": "三频段闭环性能回读_3_38003"
         }
       ],
       "tags": [
@@ -244,7 +246,7 @@
         ],
         "relatedConcepts": [
           "频率特性_5_404adfdd",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4"
         ],
         "difficulty": 4,
@@ -262,8 +264,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "title": "低频补偿稳态改善路径 信息图",
-          "lessonId": "4-2",
-          "nodeId": "低频补偿稳态改善路径_3_37003"
+          "lessonId": "4-3",
+          "nodeId": "低频补偿稳态改善路径_3_37003",
+          "sourceNodeId": "低频补偿稳态改善路径_3_37003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -277,8 +280,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
           "title": "低频补偿稳态改善路径 信息图",
-          "lessonId": "4-2",
-          "nodeId": "低频补偿稳态改善路径_3_37003"
+          "lessonId": "4-3",
+          "nodeId": "低频补偿稳态改善路径_3_37003",
+          "sourceNodeId": "低频补偿稳态改善路径_3_37003"
         }
       ],
       "tags": [
@@ -338,7 +342,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
           "title": "目标驱动PD校正 信息图",
           "lessonId": "4-2",
-          "nodeId": "目标驱动PD校正_3_36002"
+          "nodeId": "目标驱动PD校正_3_36002",
+          "sourceNodeId": "目标驱动PD校正_3_36002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -353,7 +358,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动PD校正_3_36002.png",
           "title": "目标驱动PD校正 信息图",
           "lessonId": "4-2",
-          "nodeId": "目标驱动PD校正_3_36002"
+          "nodeId": "目标驱动PD校正_3_36002",
+          "sourceNodeId": "目标驱动PD校正_3_36002"
         }
       ],
       "tags": [
@@ -393,7 +399,7 @@
         ],
         "prerequisites": [
           "PD与超前的频域整形差异_3_35004",
-          "相角裕度_5_0a9c6e90",
+          "相角裕度_5_5a74b451",
           "带宽_5_6730fda4"
         ],
         "relatedConcepts": [
@@ -414,7 +420,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "title": "目标驱动超前校正 信息图",
           "lessonId": "4-2",
-          "nodeId": "目标驱动超前校正_3_36004"
+          "nodeId": "目标驱动超前校正_3_36004",
+          "sourceNodeId": "目标驱动超前校正_3_36004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -429,7 +436,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
           "title": "目标驱动超前校正 信息图",
           "lessonId": "4-2",
-          "nodeId": "目标驱动超前校正_3_36004"
+          "nodeId": "目标驱动超前校正_3_36004",
+          "sourceNodeId": "目标驱动超前校正_3_36004"
         }
       ],
       "tags": [
@@ -490,7 +498,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
           "title": "积分与滞后的稳态改善分工 信息图",
           "lessonId": "4-2",
-          "nodeId": "积分与滞后的稳态改善分工_3_39003"
+          "nodeId": "积分与滞后的稳态改善分工_3_39003",
+          "sourceNodeId": "积分与滞后的稳态改善分工_3_39003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -505,7 +514,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
           "title": "积分与滞后的稳态改善分工 信息图",
           "lessonId": "4-2",
-          "nodeId": "积分与滞后的稳态改善分工_3_39003"
+          "nodeId": "积分与滞后的稳态改善分工_3_39003",
+          "sourceNodeId": "积分与滞后的稳态改善分工_3_39003"
         }
       ],
       "tags": [
@@ -522,8 +532,8 @@
       "name": "主矛盾到频段职责映射",
       "nodeType": "THEORY",
       "description": "按照“先识别主矛盾，再判断它主要落在低频、中频、高频还是给定/扰动通道”的顺序，把任务表达卡转成结构筛选的输入。",
-      "positionX": -30.0,
-      "positionY": -112.0,
+      "positionX": -58.0,
+      "positionY": -100.5,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -566,7 +576,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
           "title": "主矛盾到频段职责映射 信息图",
           "lessonId": "4-2",
-          "nodeId": "主矛盾到频段职责映射_4_42003"
+          "nodeId": "主矛盾到频段职责映射_4_42003",
+          "sourceNodeId": "主矛盾到频段职责映射_4_42003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -581,7 +592,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/主矛盾到频段职责映射_4_42003.png",
           "title": "主矛盾到频段职责映射 信息图",
           "lessonId": "4-2",
-          "nodeId": "主矛盾到频段职责映射_4_42003"
+          "nodeId": "主矛盾到频段职责映射_4_42003",
+          "sourceNodeId": "主矛盾到频段职责映射_4_42003"
         }
       ],
       "tags": [
@@ -598,8 +610,8 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": 31.6,
-      "positionY": 117.8,
+      "positionX": 61.0,
+      "positionY": 105.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -640,8 +652,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
           "title": "单结构首轮起步卡 信息图",
-          "lessonId": "4-2",
-          "nodeId": "单结构首轮起步卡_4_42001"
+          "lessonId": "4-3",
+          "nodeId": "单结构首轮起步卡_4_42001",
+          "sourceNodeId": "单结构首轮起步卡_4_42001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -655,8 +668,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
           "title": "单结构首轮起步卡 信息图",
-          "lessonId": "4-2",
-          "nodeId": "单结构首轮起步卡_4_42001"
+          "lessonId": "4-3",
+          "nodeId": "单结构首轮起步卡_4_42001",
+          "sourceNodeId": "单结构首轮起步卡_4_42001"
         }
       ],
       "tags": [
@@ -672,8 +686,8 @@
       "name": "反馈保底与前馈补偿边界",
       "nodeType": "THEORY",
       "description": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
-      "positionX": -86.3,
-      "positionY": 86.3,
+      "positionX": -61.0,
+      "positionY": 105.7,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -712,8 +726,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
           "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
           "title": "反馈保底与前馈补偿边界 信息图",
-          "lessonId": "4-2",
-          "nodeId": "反馈保底与前馈补偿边界_4_42005"
+          "lessonId": "4-3",
+          "nodeId": "反馈保底与前馈补偿边界_4_42005",
+          "sourceNodeId": "反馈保底与前馈补偿边界_4_42005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -727,8 +742,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
           "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
           "title": "反馈保底与前馈补偿边界 信息图",
-          "lessonId": "4-2",
-          "nodeId": "反馈保底与前馈补偿边界_4_42005"
+          "lessonId": "4-3",
+          "nodeId": "反馈保底与前馈补偿边界_4_42005",
+          "sourceNodeId": "反馈保底与前馈补偿边界_4_42005"
         }
       ],
       "tags": [
@@ -744,8 +760,8 @@
       "name": "按扰动补偿前馈的对消条件",
       "nodeType": "THEORY",
       "description": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
-      "positionX": 123.6,
-      "positionY": 33.1,
+      "positionX": 128.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -786,7 +802,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
           "title": "按扰动补偿前馈的对消条件 信息图",
           "lessonId": "4-2",
-          "nodeId": "按扰动补偿前馈的对消条件_4_42007"
+          "nodeId": "按扰动补偿前馈的对消条件_4_42007",
+          "sourceNodeId": "按扰动补偿前馈的对消条件_4_42007"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -801,7 +818,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/按扰动补偿前馈的对消条件_4_42007.png",
           "title": "按扰动补偿前馈的对消条件 信息图",
           "lessonId": "4-2",
-          "nodeId": "按扰动补偿前馈的对消条件_4_42007"
+          "nodeId": "按扰动补偿前馈的对消条件_4_42007",
+          "sourceNodeId": "按扰动补偿前馈的对消条件_4_42007"
         }
       ],
       "tags": [
@@ -817,8 +835,8 @@
       "name": "按输入补偿前馈的无差度提升",
       "nodeType": "THEORY",
       "description": "当给定变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差或提高等效无差度；工程上更常追求误差显著减小，而不是机械追求全补偿。",
-      "positionX": 110.9,
-      "positionY": 64.0,
+      "positionX": 123.6,
+      "positionY": 33.1,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -858,7 +876,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
           "title": "按输入补偿前馈的无差度提升 信息图",
           "lessonId": "4-2",
-          "nodeId": "按输入补偿前馈的无差度提升_4_42006"
+          "nodeId": "按输入补偿前馈的无差度提升_4_42006",
+          "sourceNodeId": "按输入补偿前馈的无差度提升_4_42006"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -873,7 +892,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/按输入补偿前馈的无差度提升_4_42006.png",
           "title": "按输入补偿前馈的无差度提升 信息图",
           "lessonId": "4-2",
-          "nodeId": "按输入补偿前馈的无差度提升_4_42006"
+          "nodeId": "按输入补偿前馈的无差度提升_4_42006",
+          "sourceNodeId": "按输入补偿前馈的无差度提升_4_42006"
         }
       ],
       "tags": [
@@ -889,8 +909,8 @@
       "name": "结构作用点与代价来源对照",
       "nodeType": "THEORY",
       "description": "说明每一类单结构为什么会优先改善某一段行为，以及这种改善为什么必然在储备、速度、噪声或复杂度上暴露相应代价。",
-      "positionX": -34.7,
-      "positionY": 129.4,
+      "positionX": 0.0,
+      "positionY": 134.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -933,8 +953,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
           "url": "/course-runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
           "title": "结构作用点与代价来源对照 信息图",
-          "lessonId": "4-2",
-          "nodeId": "结构作用点与代价来源对照_4_42004"
+          "lessonId": "4-3",
+          "nodeId": "结构作用点与代价来源对照_4_42004",
+          "sourceNodeId": "结构作用点与代价来源对照_4_42004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -948,8 +969,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
           "url": "/course-runtime/knowledge/infographs/nodes/结构作用点与代价来源对照_4_42004.png",
           "title": "结构作用点与代价来源对照 信息图",
-          "lessonId": "4-2",
-          "nodeId": "结构作用点与代价来源对照_4_42004"
+          "lessonId": "4-3",
+          "nodeId": "结构作用点与代价来源对照_4_42004",
+          "sourceNodeId": "结构作用点与代价来源对照_4_42004"
         }
       ],
       "tags": [
@@ -966,8 +988,8 @@
       "name": "结构工具箱最小语义",
       "nodeType": "THEORY",
       "description": "把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重新组织为“建立基本闭环、补低频能力、改中频动态品质、隔离给定/扰动通道”四类最小结构语义。",
-      "positionX": -94.8,
-      "positionY": 94.8,
+      "positionX": -67.0,
+      "positionY": 116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -1010,7 +1032,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
           "title": "结构工具箱最小语义 信息图",
           "lessonId": "4-2",
-          "nodeId": "结构工具箱最小语义_4_42002"
+          "nodeId": "结构工具箱最小语义_4_42002",
+          "sourceNodeId": "结构工具箱最小语义_4_42002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -1025,7 +1048,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/结构工具箱最小语义_4_42002.png",
           "title": "结构工具箱最小语义 信息图",
           "lessonId": "4-2",
-          "nodeId": "结构工具箱最小语义_4_42002"
+          "nodeId": "结构工具箱最小语义_4_42002",
+          "sourceNodeId": "结构工具箱最小语义_4_42002"
         }
       ],
       "tags": [
@@ -1042,8 +1066,8 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -116.0,
-      "positionY": -67.0,
+      "positionX": -129.4,
+      "positionY": -34.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -1084,8 +1108,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
-          "lessonId": "4-2",
-          "nodeId": "设计任务表达卡_4_41001"
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001",
+          "sourceNodeId": "设计任务表达卡_4_41001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -1099,8 +1124,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
-          "lessonId": "4-2",
-          "nodeId": "设计任务表达卡_4_41001"
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001",
+          "sourceNodeId": "设计任务表达卡_4_41001"
         }
       ],
       "tags": [
@@ -1116,8 +1142,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 166.0,
-      "positionY": 0.0,
+      "positionX": 160.3,
+      "positionY": 43.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1153,8 +1179,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
-          "lessonId": "4-2",
-          "nodeId": "带宽频率_5_6996a44a"
+          "lessonId": "4-5",
+          "nodeId": "带宽频率_5_6996a44a",
+          "sourceNodeId": "带宽频率_5_6996a44a"
         },
         "createdAt": "2026-02-04T17:54:16.628615",
         "updatedAt": "2026-02-04T17:54:16.628615",
@@ -1168,8 +1195,9 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
-          "lessonId": "4-2",
-          "nodeId": "带宽频率_5_6996a44a"
+          "lessonId": "4-5",
+          "nodeId": "带宽频率_5_6996a44a",
+          "sourceNodeId": "带宽频率_5_6996a44a"
         }
       ],
       "tags": [
@@ -1186,8 +1214,8 @@
       "name": "幅值裕度",
       "nodeType": "THEORY",
       "description": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
-      "positionX": 160.3,
-      "positionY": 43.0,
+      "positionX": 143.8,
+      "positionY": 83.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1221,7 +1249,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "title": "幅值裕度 信息图",
           "lessonId": "4-2",
-          "nodeId": "幅值裕度_5_73af26a5"
+          "nodeId": "幅值裕度_5_73af26a5",
+          "sourceNodeId": "幅值裕度_5_73af26a5"
         },
         "createdAt": "2026-02-04T17:54:16.628590",
         "updatedAt": "2026-02-04T17:54:16.628591",
@@ -1236,7 +1265,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
           "title": "幅值裕度 信息图",
           "lessonId": "4-2",
-          "nodeId": "幅值裕度_5_73af26a5"
+          "nodeId": "幅值裕度_5_73af26a5",
+          "sourceNodeId": "幅值裕度_5_73af26a5"
         }
       ],
       "tags": [
@@ -1250,11 +1280,11 @@
       "id": "相角裕度_5_5a74b451",
       "name": "相角裕度",
       "nodeType": "THEORY",
-      "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "positionX": 0.0,
-      "positionY": 172.0,
+      "description": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+      "positionX": -121.6,
+      "positionY": 121.6,
       "positionZ": 5,
-      "bloomLevel": "APPLY",
+      "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
       "chapter": 5,
       "chapterName": "频域分析",
@@ -1262,28 +1292,18 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": "应用",
-        "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-        "examples": [
-          "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
-          "例5-14计算不同开环增益下的相角裕度。",
-          "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
-          "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
-        ],
-        "formulas": [
-          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
-          "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
-        ],
+        "bloom_level": "理解",
+        "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+        "examples": [],
+        "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": 4,
-        "importance": 5,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
-          "截止频率",
-          "相位滞后",
-          "临界稳定",
-          "稳定性",
-          "开环频率特性"
+          "3-5",
+          "频域分析",
+          "相角裕度"
         ],
         "infograph": {
           "type": "infograph",
@@ -1291,10 +1311,11 @@
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
           "lessonId": "4-2",
-          "nodeId": "相角裕度_5_5a74b451"
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         },
-        "createdAt": "2026-02-04T17:54:16.628585",
-        "updatedAt": "2026-02-04T17:54:16.628586",
+        "createdAt": null,
+        "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
@@ -1306,20 +1327,27 @@
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
           "lessonId": "4-2",
-          "nodeId": "相角裕度_5_5a74b451"
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         }
       ],
       "tags": [
-        "截止频率",
-        "相位滞后",
-        "临界稳定",
-        "稳定性",
-        "开环频率特性",
+        "3-5",
+        "频域分析",
+        "相角裕度",
         "chapter-5"
       ]
     }
   ],
   "links": [
+    {
+      "id": "相角裕度|幅值裕度|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
     {
       "id": "幅值裕度|带宽频率|5",
       "sourceId": "幅值裕度_5_73af26a5",
@@ -1353,6 +1381,14 @@
       "strength": 0.92
     },
     {
+      "id": "rel-2439edc7b65f3dda",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
       "id": "rel-321fa6b256a8c7cc",
       "sourceId": "目标驱动超前校正_3_36004",
       "targetId": "结构工具箱最小语义_4_42002",
@@ -1367,6 +1403,14 @@
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.95
+    },
+    {
+      "id": "rel-52840748131e83f2",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
     },
     {
       "id": "rel-533f0df90b438d5d",
@@ -1489,20 +1533,28 @@
       "strength": 0.93
     },
     {
-      "id": "rel-2439edc7b65f3dda-10",
+      "id": "rel-0e1154b9ea361887",
       "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "低频补偿稳态改善路径_3_37003",
       "relation": "cross_domain",
       "relationType": "cross_domain",
-      "strength": 0.9
+      "strength": 0.88
     },
     {
-      "id": "rel-52840748131e83f2-10",
+      "id": "rel-6474fcaeb9bc2d9c",
       "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "结构作用点与代价来源对照_4_42004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.88
+      "targetId": "三频段闭环性能回读_3_38003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-aed1891cf0ca74ef",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "目标驱动超前校正_3_36004",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.97
     }
   ]
 }

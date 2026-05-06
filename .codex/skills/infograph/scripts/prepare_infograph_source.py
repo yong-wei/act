@@ -6,6 +6,8 @@ import re
 from typing import Any
 
 from infograph_utils import (
+    canonical_node_id,
+    canonical_sequence,
     extract_section,
     lesson_manifest_path,
     load_all_authoring_nodes,
@@ -18,6 +20,7 @@ from infograph_utils import (
     parse_frontmatter,
     read_json,
     repo_path,
+    selected_infograph_ref,
     strip_frontmatter,
     write_json,
     write_text,
@@ -809,24 +812,41 @@ negative_constraints:
 
 def main() -> None:
     args = parse_args()
-    sequence = load_sequence(args.lesson)
+    requested_node_id = args.node
+    node_id = canonical_node_id(requested_node_id)
+    selected = selected_infograph_ref(node_id)
+    if selected:
+        selected_dir = node_infograph_dir(selected['lesson_id'], selected['node_id'])
+        review_path = selected_dir / 'review.json'
+        image_path = selected_dir / 'infograph.png'
+        if image_path.exists() and review_path.exists():
+            try:
+                review = read_json(review_path)
+            except Exception:
+                review = {}
+            if str(review.get('status') or '').strip().lower() == 'accepted':
+                print(f'canonical infograph already accepted: {repo_path(image_path)}')
+                print(f'requested node {requested_node_id} maps to canonical node {node_id}')
+                return
+
+    sequence = canonical_sequence(load_sequence(args.lesson))
     card_order = [str(item) for item in sequence.get('card_order', [])]
-    if args.node not in card_order:
-        raise SystemExit(f'Node {args.node} is not in {args.lesson} card_order')
+    if node_id not in card_order:
+        raise SystemExit(f'Node {requested_node_id} maps to {node_id}, which is not in {args.lesson} card_order')
 
     manifest = read_json(lesson_manifest_path(args.lesson)) if lesson_manifest_path(args.lesson).exists() else {}
-    groups = node_group_map(sequence).get(args.node, [])
-    card_path = node_card_path(args.node)
+    groups = node_group_map(sequence).get(node_id, [])
+    card_path = node_card_path(node_id)
     card_markdown = card_path.read_text(encoding='utf-8') if card_path.exists() else ''
     frontmatter = parse_frontmatter(card_markdown)
     nodes = load_all_authoring_nodes(args.lesson)
-    node = nodes.get(args.node)
+    node = nodes.get(node_id)
     if not node:
         if not card_path.exists():
-            raise SystemExit(f'Missing node data and card for {args.node}')
+            raise SystemExit(f'Missing node data and card for {node_id}')
         node = {
-            'id': args.node,
-            'name': frontmatter.get('name') or args.node,
+            'id': node_id,
+            'name': frontmatter.get('name') or node_id,
             'name_en': frontmatter.get('name_en'),
             'category': frontmatter.get('category'),
             'knowledge_type': frontmatter.get('knowledge_type'),
@@ -843,7 +863,7 @@ def main() -> None:
     core_intuition = extract_bold_field(overview, '核心直觉')
     card_formula = extract_first_display_formula(overview)
 
-    node_name = str(node.get('name') or frontmatter.get('name') or args.node)
+    node_name = str(node.get('name') or frontmatter.get('name') or node_id)
     node_formulas = formula_anchors(card_formula, node.get('formulas') or frontmatter.get('formulas') or [])
     node_keywords = unique_strings(
         list(node.get('keywords') or [])
@@ -854,9 +874,9 @@ def main() -> None:
         ]
     )
     related_relations = [
-        relation_summary(relation, args.node)
+        relation_summary(relation, node_id)
         for relation in load_authoring_relations(args.lesson)
-        if relation_mentions_node(relation, args.node, node_name)
+        if relation_mentions_node(relation, node_id, node_name)
     ][:12]
 
     source = {
@@ -866,10 +886,10 @@ def main() -> None:
             'lesson_id': args.lesson,
             'title': manifest.get('title'),
             'groups': groups,
-            'card_order_index': card_order.index(args.node) + 1,
+            'card_order_index': card_order.index(node_id) + 1,
         },
         'node': {
-            'id': args.node,
+            'id': node_id,
             'name': node_name,
             'name_en': node.get('name_en') or frontmatter.get('name_en'),
             'category': node.get('category') or frontmatter.get('category'),
@@ -901,7 +921,7 @@ def main() -> None:
         },
     }
 
-    output_dir = node_infograph_dir(args.lesson, args.node)
+    output_dir = node_infograph_dir(args.lesson, node_id)
     write_json(output_dir / 'source.json', source)
     write_text(output_dir / 'prompt.md', build_prompt(source))
     print(repo_path(output_dir / 'source.json'))

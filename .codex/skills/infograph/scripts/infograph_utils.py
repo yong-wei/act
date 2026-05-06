@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,9 @@ AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
 INFOGRAPH_AUTHORING_ROOT = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons'
 INFOGRAPH_RUNTIME_ROOT = RUNTIME_ROOT / 'knowledge' / 'infographs'
+
+sys.path.insert(0, str(COURSE_ROOT / 'scripts'))
+from canonical_nodes import load_canonical_index  # noqa: E402
 
 
 def read_json(path: Path) -> Any:
@@ -79,6 +83,18 @@ def node_infograph_dir(lesson_id: str, node_id: str) -> Path:
 
 def node_infograph_path(lesson_id: str, node_id: str) -> Path:
     return node_infograph_dir(lesson_id, node_id) / 'infograph.png'
+
+
+def canonical_node_id(node_id: str) -> str:
+    return load_canonical_index().canonicalize(node_id)
+
+
+def canonical_sequence(sequence: dict[str, Any]) -> dict[str, Any]:
+    return load_canonical_index().canonicalize_sequence(sequence)
+
+
+def selected_infograph_ref(node_id: str) -> dict[str, str] | None:
+    return load_canonical_index().selected_infograph(node_id)
 
 
 def parse_frontmatter(markdown: str) -> dict[str, Any]:

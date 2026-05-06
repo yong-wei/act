@@ -38,6 +38,7 @@ from lesson_artifacts import (  # noqa: E402
     resolve_lesson_artifact_path,
     with_lesson_prefix,
 )
+from canonical_nodes import load_canonical_index  # noqa: E402
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 CHAPTER_NAME_BY_NUMBER = {
@@ -742,6 +743,9 @@ def build_graph_overlay(
     runtime_nodes: list[dict[str, Any]],
     runtime_relations: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    canonical_index = load_canonical_index()
+    manifest = canonical_index.canonicalize_manifest(manifest)
+    sequence = canonical_index.canonicalize_sequence(sequence)
     node_ids = list(
         dict.fromkeys(
             list(manifest.get('focus_node_ids', []))
@@ -783,8 +787,9 @@ def export_lesson_runtime(
     runtime_nodes: list[dict[str, Any]],
     runtime_relations: list[dict[str, Any]],
 ) -> None:
-    manifest = load_manifest(lesson_id)
-    sequence = load_sequence(lesson_id)
+    canonical_index = load_canonical_index()
+    manifest = canonical_index.canonicalize_manifest(load_manifest(lesson_id))
+    sequence = canonical_index.canonicalize_sequence(load_sequence(lesson_id))
     runtime_dir = get_runtime_lesson_dir(lesson_id)
     runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
     graph_lesson_id = get_mapped_target_id(lesson_id) or str(manifest.get('lesson_id') or lesson_id)
@@ -829,6 +834,8 @@ def export_lesson_runtime(
 
 
 def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
+    canonical_index = load_canonical_index()
+
     def normalize_authoring_node(node: dict[str, Any]) -> dict[str, Any]:
         normalized = dict(node)
         chapter = normalized.get('chapter')
@@ -882,12 +889,28 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
             'source': str(card_path.relative_to(REPO_ROOT)).replace('\\', '/'),
         })
 
+    def store_node(nodes_by_id: dict[str, dict[str, Any]], source_node_id: str, node: dict[str, Any]) -> None:
+        canonical_id = canonical_index.canonicalize(source_node_id)
+        selected_card_id = canonical_index.selected_card_node_id(canonical_id)
+        normalized = normalize_authoring_node(node)
+        normalized['id'] = canonical_id
+        normalized['__source_node_id'] = source_node_id
+        existing = nodes_by_id.get(canonical_id)
+        if existing is None:
+            nodes_by_id[canonical_id] = normalized
+            return
+        existing_source_id = str(existing.get('__source_node_id') or canonical_id)
+        if source_node_id == selected_card_id or existing_source_id != selected_card_id and source_node_id == canonical_id:
+            nodes_by_id[canonical_id] = normalized
+
     base_graph = read_json(AUTHORING_ROOT / 'knowledge' / 'base' / 'knowledge_graph.json')
-    nodes_by_id = {
-        node_id: normalize_authoring_node(node)
-        for node_id, node in dict(base_graph.get('nodes', {})).items()
-    }
-    relation_records = read_jsonl(AUTHORING_ROOT / 'knowledge' / 'base' / 'relations.jsonl')
+    nodes_by_id: dict[str, dict[str, Any]] = {}
+    for node_id, node in dict(base_graph.get('nodes', {})).items():
+        store_node(nodes_by_id, str(node_id), node)
+    relation_records = [
+        canonical_index.canonicalize_relation_record(record)
+        for record in read_jsonl(AUTHORING_ROOT / 'knowledge' / 'base' / 'relations.jsonl')
+    ]
 
     lesson_root = AUTHORING_ROOT / 'lessons'
     lesson_dirs = []
@@ -902,8 +925,11 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
     for lesson_dir in lesson_dirs:
         for node in read_jsonl(lesson_dir / 'graph' / 'nodes.jsonl'):
             node_id = str(node['id'])
-            nodes_by_id[node_id] = normalize_authoring_node(node)
-        relation_records.extend(read_jsonl(lesson_dir / 'graph' / 'relations.jsonl'))
+            store_node(nodes_by_id, node_id, node)
+        relation_records.extend(
+            canonical_index.canonicalize_relation_record(record)
+            for record in read_jsonl(lesson_dir / 'graph' / 'relations.jsonl')
+        )
 
     sequence_root = AUTHORING_ROOT / 'knowledge' / 'cards' / 'lessons'
     if sequence_root.exists():
@@ -911,12 +937,14 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
             sequence = read_json(sequence_path)
             for node_id_value in sequence.get('card_order', []):
                 node_id = str(node_id_value)
-                if node_id in nodes_by_id:
+                if canonical_index.canonicalize(node_id) in nodes_by_id:
                     continue
                 card_only_node = build_card_only_node(node_id)
                 if card_only_node:
-                    nodes_by_id[node_id] = card_only_node
+                    store_node(nodes_by_id, node_id, card_only_node)
 
+    for node in nodes_by_id.values():
+        node.pop('__source_node_id', None)
     return nodes_by_id, relation_records
 
 
@@ -964,12 +992,29 @@ def copy_concepts_cards(nodes_by_id: dict[str, dict[str, Any]]) -> dict[str, str
     return concept_resource_by_node_id
 
 
+def copy_canonical_node_cards(nodes_by_id: dict[str, dict[str, Any]]) -> None:
+    canonical_index = load_canonical_index()
+    source_root = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes'
+    runtime_cards_nodes = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
+
+    for canonical_id in sorted(nodes_by_id):
+        selected_card_id = canonical_index.selected_card_node_id(canonical_id)
+        source_path = source_root / f'{selected_card_id}.md'
+        if not source_path.exists():
+            source_path = source_root / f'{canonical_id}.md'
+        if not source_path.exists():
+            continue
+        shutil.copy2(source_path, runtime_cards_nodes / f'{canonical_id}.md')
+
+
 def copy_reviewed_infographs() -> dict[str, dict[str, str]]:
+    canonical_index = load_canonical_index()
     authoring_root = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons'
     runtime_root = RUNTIME_ROOT / 'knowledge' / 'infographs'
     runtime_nodes_root = runtime_root / 'nodes'
     resource_by_node_id: dict[str, dict[str, str]] = {}
     manifest_items: list[dict[str, str]] = []
+    candidates_by_node_id: dict[str, list[dict[str, Any]]] = {}
 
     reset_directory(runtime_nodes_root)
     runtime_root.mkdir(parents=True, exist_ok=True)
@@ -997,20 +1042,63 @@ def copy_reviewed_infographs() -> dict[str, dict[str, str]]:
             if str(review.get('status') or '').strip().lower() != 'accepted':
                 continue
 
-            destination = runtime_nodes_root / f'{node_id}.png'
-            shutil.copy2(image_path, destination)
-            path_value = str(destination.relative_to(REPO_ROOT)).replace('\\', '/')
-            url_value = f'/course-runtime/knowledge/infographs/nodes/{node_id}.png'
-            resource = {
-                'type': 'infograph',
-                'path': path_value,
-                'url': url_value,
-                'title': f"{review.get('node_name') or node_id} 信息图",
-                'lessonId': lesson_dir.name,
-                'nodeId': node_id,
-            }
-            resource_by_node_id[node_id] = resource
-            manifest_items.append(resource)
+            canonical_id = canonical_index.canonicalize(node_id)
+            candidates_by_node_id.setdefault(canonical_id, []).append({
+                'lesson_id': lesson_dir.name,
+                'node_id': node_id,
+                'review': review,
+                'image_path': image_path,
+                'sha1': hashlib.sha1(image_path.read_bytes()).hexdigest(),
+            })
+
+    for canonical_id, candidates in sorted(candidates_by_node_id.items()):
+        selected_ref = canonical_index.selected_infograph(canonical_id)
+        selected: dict[str, Any] | None = None
+        if selected_ref:
+            selected = next(
+                (
+                    candidate
+                    for candidate in candidates
+                    if candidate['lesson_id'] == selected_ref['lesson_id']
+                    and candidate['node_id'] == selected_ref['node_id']
+                ),
+                None,
+            )
+            if selected is None:
+                raise SystemExit(
+                    f"Canonical infograph selection is missing for {canonical_id}: "
+                    f"{selected_ref['lesson_id']}/{selected_ref['node_id']}"
+                )
+        elif len(candidates) == 1:
+            selected = candidates[0]
+        elif len({candidate['sha1'] for candidate in candidates}) == 1:
+            selected = sorted(candidates, key=lambda item: (item['lesson_id'], item['node_id']))[0]
+        else:
+            candidate_labels = ', '.join(
+                f"{candidate['lesson_id']}/{candidate['node_id']}"
+                for candidate in candidates
+            )
+            raise SystemExit(
+                f'Multiple accepted infographs for canonical node {canonical_id}; '
+                f'choose selected_infograph in canonical-nodes.json: {candidate_labels}'
+            )
+
+        destination = runtime_nodes_root / f'{canonical_id}.png'
+        shutil.copy2(selected['image_path'], destination)
+        review = selected['review']
+        path_value = str(destination.relative_to(REPO_ROOT)).replace('\\', '/')
+        url_value = f'/course-runtime/knowledge/infographs/nodes/{canonical_id}.png'
+        resource = {
+            'type': 'infograph',
+            'path': path_value,
+            'url': url_value,
+            'title': f"{review.get('node_name') or canonical_id} 信息图",
+            'lessonId': selected['lesson_id'],
+            'nodeId': canonical_id,
+            'sourceNodeId': selected['node_id'],
+        }
+        resource_by_node_id[canonical_id] = resource
+        manifest_items.append(resource)
 
     write_json(runtime_root / 'manifest.json', {
         'schema_version': 1,
@@ -1026,7 +1114,7 @@ def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]
 
     reset_directory(runtime_cards_nodes)
     reset_directory(runtime_cards_concepts)
-    copy_tree_contents(AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes', runtime_cards_nodes, ('.md', '.mdx'))
+    copy_canonical_node_cards(nodes_by_id)
     concept_resource_by_node_id = copy_concepts_cards(nodes_by_id)
     infograph_resource_by_node_id = copy_reviewed_infographs()
     runtime_relations = build_runtime_relations(nodes_by_id, relation_records)

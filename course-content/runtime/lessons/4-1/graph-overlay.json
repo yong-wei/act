@@ -9,8 +9,8 @@
     "跨域联读任务重排_4_41005"
   ],
   "reuse_node_ids": [
-    "超调量_5_3d015714",
-    "调节时间_4_d3f3314b",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
     "相角裕度_5_5a74b451",
     "带宽频率_5_6996a44a",
     "谐振峰值Mr_5_b3a87785",
@@ -27,8 +27,8 @@
     "跨域联读任务重排_4_41005"
   ],
   "card_order": [
-    "超调量_5_3d015714",
-    "调节时间_4_d3f3314b",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
     "相角裕度_5_5a74b451",
     "带宽频率_5_6996a44a",
     "谐振峰值Mr_5_b3a87785",
@@ -51,8 +51,8 @@
         "step-04"
       ],
       "node_ids": [
-        "超调量_5_3d015714",
-        "调节时间_4_d3f3314b",
+        "超调量_3_fc3f5b17",
+        "调节时间_10_fcbccf4e",
         "相角裕度_5_5a74b451",
         "带宽频率_5_6996a44a",
         "指标角色重组_4_41002"
@@ -78,8 +78,8 @@
         "step-07"
       ],
       "node_ids": [
-        "超调量_5_3d015714",
-        "调节时间_4_d3f3314b",
+        "超调量_3_fc3f5b17",
+        "调节时间_10_fcbccf4e",
         "相角裕度_5_5a74b451",
         "带宽频率_5_6996a44a",
         "跨域联读任务重排_4_41005"
@@ -163,7 +163,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
           "title": "稳定可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "稳定可行域_3_7eed0929"
+          "nodeId": "稳定可行域_3_7eed0929",
+          "sourceNodeId": "稳定可行域_3_7eed0929"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -178,7 +179,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
           "title": "稳定可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "稳定可行域_3_7eed0929"
+          "nodeId": "稳定可行域_3_7eed0929",
+          "sourceNodeId": "稳定可行域_3_7eed0929"
         }
       ],
       "tags": [
@@ -194,8 +196,8 @@
       "name": "可行域-满意域-最优域分层",
       "nodeType": "THEORY",
       "description": "把设计区域分成“先排除不能做的可行域筛选、再保留当前可接受的满意域、最后才比较更优解的最优域”三层结构，以防入口课把筛边界和求最优混成一步。",
-      "positionX": -105.7,
-      "positionY": 61.0,
+      "positionX": -86.3,
+      "positionY": 86.3,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -237,7 +239,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
           "title": "可行域-满意域-最优域分层 信息图",
           "lessonId": "4-1",
-          "nodeId": "可行域-满意域-最优域分层_4_41004"
+          "nodeId": "可行域-满意域-最优域分层_4_41004",
+          "sourceNodeId": "可行域-满意域-最优域分层_4_41004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -252,7 +255,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
           "title": "可行域-满意域-最优域分层 信息图",
           "lessonId": "4-1",
-          "nodeId": "可行域-满意域-最优域分层_4_41004"
+          "nodeId": "可行域-满意域-最优域分层_4_41004",
+          "sourceNodeId": "可行域-满意域-最优域分层_4_41004"
         }
       ],
       "tags": [
@@ -268,8 +272,8 @@
       "name": "复平面可行域",
       "nodeType": "THEORY",
       "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
-      "positionX": -105.7,
-      "positionY": -61.0,
+      "positionX": -117.8,
+      "positionY": -31.6,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -311,7 +315,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
           "title": "复平面可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "复平面可行域_4_Lsum001"
+          "nodeId": "复平面可行域_4_Lsum001",
+          "sourceNodeId": "复平面可行域_4_Lsum001"
         },
         "createdAt": "2026-03-14T00:44:08.244152+00:00",
         "updatedAt": "2026-03-14T00:44:08.244152+00:00",
@@ -326,7 +331,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
           "title": "复平面可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "复平面可行域_4_Lsum001"
+          "nodeId": "复平面可行域_4_Lsum001",
+          "sourceNodeId": "复平面可行域_4_Lsum001"
         }
       ],
       "tags": [
@@ -343,8 +349,8 @@
       "name": "指标角色重组",
       "nodeType": "THEORY",
       "description": "把时域指标、频域指标和积分误差类指标从“描述系统当前怎样”重组为“分别回答过程接受度、储备边界和累计代价”的设计语言。",
-      "positionX": 128.0,
-      "positionY": 0.0,
+      "positionX": 117.8,
+      "positionY": -31.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -366,8 +372,8 @@
           "J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty}t|e(t)|\\,\\mathrm{d}t"
         ],
         "prerequisites": [
-          "超调量_5_3d015714",
-          "调节时间_4_d3f3314b",
+          "超调量_3_fc3f5b17",
+          "调节时间_10_fcbccf4e",
           "相角裕度_5_5a74b451",
           "带宽频率_5_6996a44a"
         ],
@@ -388,7 +394,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
           "title": "指标角色重组 信息图",
           "lessonId": "4-1",
-          "nodeId": "指标角色重组_4_41002"
+          "nodeId": "指标角色重组_4_41002",
+          "sourceNodeId": "指标角色重组_4_41002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -403,7 +410,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
           "title": "指标角色重组 信息图",
           "lessonId": "4-1",
-          "nodeId": "指标角色重组_4_41002"
+          "nodeId": "指标角色重组_4_41002",
+          "sourceNodeId": "指标角色重组_4_41002"
         }
       ],
       "tags": [
@@ -419,8 +427,8 @@
       "name": "硬约束-软目标-观察指标分类",
       "nodeType": "THEORY",
       "description": "将性能指标按照“不能违反的底线、守住底线后继续争取的方向、用于解释方案后果的证据”三类进行分类的设计判断框架。",
-      "positionX": 116.0,
-      "positionY": 67.0,
+      "positionX": 129.4,
+      "positionY": 34.7,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -460,7 +468,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
           "title": "硬约束-软目标-观察指标分类 信息图",
           "lessonId": "4-1",
-          "nodeId": "硬约束-软目标-观察指标分类_4_41003"
+          "nodeId": "硬约束-软目标-观察指标分类_4_41003",
+          "sourceNodeId": "硬约束-软目标-观察指标分类_4_41003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -475,7 +484,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
           "title": "硬约束-软目标-观察指标分类 信息图",
           "lessonId": "4-1",
-          "nodeId": "硬约束-软目标-观察指标分类_4_41003"
+          "nodeId": "硬约束-软目标-观察指标分类_4_41003",
+          "sourceNodeId": "硬约束-软目标-观察指标分类_4_41003"
         }
       ],
       "tags": [
@@ -491,8 +501,8 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -116.0,
-      "positionY": -67.0,
+      "positionX": -129.4,
+      "positionY": -34.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -534,7 +544,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
           "lessonId": "4-4",
-          "nodeId": "设计任务表达卡_4_41001"
+          "nodeId": "设计任务表达卡_4_41001",
+          "sourceNodeId": "设计任务表达卡_4_41001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -549,7 +560,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
           "title": "设计任务表达卡 信息图",
           "lessonId": "4-4",
-          "nodeId": "设计任务表达卡_4_41001"
+          "nodeId": "设计任务表达卡_4_41001",
+          "sourceNodeId": "设计任务表达卡_4_41001"
         }
       ],
       "tags": [
@@ -565,8 +577,8 @@
       "name": "设计可行域",
       "nodeType": "THEORY",
       "description": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
-      "positionX": -94.8,
-      "positionY": -94.8,
+      "positionX": -116.0,
+      "positionY": -67.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -608,7 +620,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
           "title": "设计可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "设计可行域_4_Lsum004"
+          "nodeId": "设计可行域_4_Lsum004",
+          "sourceNodeId": "设计可行域_4_Lsum004"
         },
         "createdAt": "2026-03-14T00:44:08.253171+00:00",
         "updatedAt": "2026-03-14T00:44:08.253171+00:00",
@@ -623,7 +636,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
           "title": "设计可行域 信息图",
           "lessonId": "4-1",
-          "nodeId": "设计可行域_4_Lsum004"
+          "nodeId": "设计可行域_4_Lsum004",
+          "sourceNodeId": "设计可行域_4_Lsum004"
         }
       ],
       "tags": [
@@ -636,12 +650,12 @@
       ]
     },
     {
-      "id": "调节时间_4_d3f3314b",
+      "id": "调节时间_10_fcbccf4e",
       "name": "调节时间",
       "nodeType": "THEORY",
       "description": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
-      "positionX": -67.0,
-      "positionY": -116.0,
+      "positionX": -94.8,
+      "positionY": -94.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -678,11 +692,12 @@
         ],
         "infograph": {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_10_fcbccf4e.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_10_fcbccf4e.png",
           "title": "调节时间 信息图",
-          "lessonId": "4-5",
-          "nodeId": "调节时间_4_d3f3314b"
+          "lessonId": "4-1",
+          "nodeId": "调节时间_10_fcbccf4e",
+          "sourceNodeId": "调节时间_10_fcbccf4e"
         },
         "createdAt": "2026-02-04T17:54:16.628302",
         "updatedAt": "2026-02-04T17:54:16.628302",
@@ -690,14 +705,15 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md",
+        "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md",
         {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_10_fcbccf4e.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/调节时间_10_fcbccf4e.png",
           "title": "调节时间 信息图",
-          "lessonId": "4-5",
-          "nodeId": "调节时间_4_d3f3314b"
+          "lessonId": "4-1",
+          "nodeId": "调节时间_10_fcbccf4e",
+          "sourceNodeId": "调节时间_10_fcbccf4e"
         }
       ],
       "tags": [
@@ -716,8 +732,8 @@
       "name": "跨域联读任务重排",
       "nodeType": "THEORY",
       "description": "按照“先看时域暴露的主要矛盾，再看根轨迹中的可行域位置，再看 Bode 幅频中的工作频带，最后看相频与裕度代价”的顺序联读同一对象的跨域证据，并据此重排任务优先级。",
-      "positionX": 94.8,
-      "positionY": -94.8,
+      "positionX": 67.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -737,8 +753,8 @@
           "\\text{读图顺序}=\\text{时域响应}\\rightarrow\\text{根轨迹/可行域}\\rightarrow\\text{Bode 幅频}\\rightarrow\\text{相频/裕度}"
         ],
         "prerequisites": [
-          "超调量_5_3d015714",
-          "调节时间_4_d3f3314b",
+          "超调量_3_fc3f5b17",
+          "调节时间_10_fcbccf4e",
           "相角裕度_5_5a74b451",
           "带宽频率_5_6996a44a",
           "谐振峰值Mr_5_b3a87785",
@@ -761,7 +777,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
           "title": "跨域联读任务重排 信息图",
           "lessonId": "4-1",
-          "nodeId": "跨域联读任务重排_4_41005"
+          "nodeId": "跨域联读任务重排_4_41005",
+          "sourceNodeId": "跨域联读任务重排_4_41005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -776,7 +793,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
           "title": "跨域联读任务重排 信息图",
           "lessonId": "4-1",
-          "nodeId": "跨域联读任务重排_4_41005"
+          "nodeId": "跨域联读任务重排_4_41005",
+          "sourceNodeId": "跨域联读任务重排_4_41005"
         }
       ],
       "tags": [
@@ -792,8 +810,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 143.8,
-      "positionY": 83.0,
+      "positionX": 160.3,
+      "positionY": 43.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -830,7 +848,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
           "lessonId": "4-5",
-          "nodeId": "带宽频率_5_6996a44a"
+          "nodeId": "带宽频率_5_6996a44a",
+          "sourceNodeId": "带宽频率_5_6996a44a"
         },
         "createdAt": "2026-02-04T17:54:16.628615",
         "updatedAt": "2026-02-04T17:54:16.628615",
@@ -845,7 +864,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
           "title": "带宽频率 信息图",
           "lessonId": "4-5",
-          "nodeId": "带宽频率_5_6996a44a"
+          "nodeId": "带宽频率_5_6996a44a",
+          "sourceNodeId": "带宽频率_5_6996a44a"
         }
       ],
       "tags": [
@@ -861,11 +881,11 @@
       "id": "相角裕度_5_5a74b451",
       "name": "相角裕度",
       "nodeType": "THEORY",
-      "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "positionX": -149.0,
-      "positionY": 86.0,
+      "description": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+      "positionX": -121.6,
+      "positionY": 121.6,
       "positionZ": 5,
-      "bloomLevel": "APPLY",
+      "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
       "chapter": 5,
       "chapterName": "频域分析",
@@ -873,39 +893,30 @@
         "chapter": 5,
         "chapterName": "频域分析",
         "category": "概念性",
-        "bloom_level": "应用",
-        "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-        "examples": [
-          "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
-          "例5-14计算不同开环增益下的相角裕度。",
-          "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
-          "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
-        ],
-        "formulas": [
-          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
-          "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
-        ],
+        "bloom_level": "理解",
+        "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+        "examples": [],
+        "formulas": [],
         "prerequisites": [],
         "relatedConcepts": [],
-        "difficulty": 4,
-        "importance": 5,
+        "difficulty": 3,
+        "importance": 3,
         "keywords": [
-          "截止频率",
-          "相位滞后",
-          "临界稳定",
-          "稳定性",
-          "开环频率特性"
+          "3-5",
+          "频域分析",
+          "相角裕度"
         ],
         "infograph": {
           "type": "infograph",
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "4-5",
-          "nodeId": "相角裕度_5_5a74b451"
+          "lessonId": "4-2",
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         },
-        "createdAt": "2026-02-04T17:54:16.628585",
-        "updatedAt": "2026-02-04T17:54:16.628586",
+        "createdAt": null,
+        "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
@@ -916,16 +927,15 @@
           "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
           "title": "相角裕度 信息图",
-          "lessonId": "4-5",
-          "nodeId": "相角裕度_5_5a74b451"
+          "lessonId": "4-2",
+          "nodeId": "相角裕度_5_5a74b451",
+          "sourceNodeId": "相角裕度_5_5a74b451"
         }
       ],
       "tags": [
-        "截止频率",
-        "相位滞后",
-        "临界稳定",
-        "稳定性",
-        "开环频率特性",
+        "3-5",
+        "频域分析",
+        "相角裕度",
         "chapter-5"
       ]
     },
@@ -934,7 +944,7 @@
       "name": "谐振峰值Mr",
       "nodeType": "THEORY",
       "description": "谐振峰值Mr是闭环幅频特性曲线的最大值，用于衡量系统的相对稳定性和振荡倾向。",
-      "positionX": -46.1,
+      "positionX": 46.1,
       "positionY": 171.9,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
@@ -970,7 +980,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
           "title": "谐振峰值Mr 信息图",
           "lessonId": "4-1",
-          "nodeId": "谐振峰值Mr_5_b3a87785"
+          "nodeId": "谐振峰值Mr_5_b3a87785",
+          "sourceNodeId": "谐振峰值Mr_5_b3a87785"
         },
         "createdAt": "2026-02-04T17:54:16.628642",
         "updatedAt": "2026-02-04T17:54:16.628642",
@@ -985,7 +996,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
           "title": "谐振峰值Mr 信息图",
           "lessonId": "4-1",
-          "nodeId": "谐振峰值Mr_5_b3a87785"
+          "nodeId": "谐振峰值Mr_5_b3a87785",
+          "sourceNodeId": "谐振峰值Mr_5_b3a87785"
         }
       ],
       "tags": [
@@ -997,12 +1009,12 @@
       ]
     },
     {
-      "id": "超调量_5_3d015714",
+      "id": "超调量_3_fc3f5b17",
       "name": "超调量",
       "nodeType": "THEORY",
       "description": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
-      "positionX": -89.0,
-      "positionY": 154.2,
+      "positionX": 0.0,
+      "positionY": 178.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1032,11 +1044,12 @@
         ],
         "infograph": {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_3_fc3f5b17.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/超调量_3_fc3f5b17.png",
           "title": "超调量 信息图",
           "lessonId": "4-5",
-          "nodeId": "超调量_5_3d015714"
+          "nodeId": "超调量_3_fc3f5b17",
+          "sourceNodeId": "超调量_3_fc3f5b17"
         },
         "createdAt": "2026-02-04T17:54:16.628685",
         "updatedAt": "2026-02-04T17:54:16.628685",
@@ -1044,14 +1057,15 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/超调量_5_3d015714.md",
+        "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md",
         {
           "type": "infograph",
-          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
-          "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+          "path": "course-content/runtime/knowledge/infographs/nodes/超调量_3_fc3f5b17.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/超调量_3_fc3f5b17.png",
           "title": "超调量 信息图",
           "lessonId": "4-5",
-          "nodeId": "超调量_5_3d015714"
+          "nodeId": "超调量_3_fc3f5b17",
+          "sourceNodeId": "超调量_3_fc3f5b17"
         }
       ],
       "tags": [
@@ -1065,11 +1079,27 @@
   "links": [
     {
       "id": "调节时间|带宽频率|4-5",
-      "sourceId": "调节时间_4_d3f3314b",
+      "sourceId": "调节时间_10_fcbccf4e",
       "targetId": "带宽频率_5_6996a44a",
       "relation": "related",
       "relationType": "related",
       "strength": 0.6
+    },
+    {
+      "id": "相角裕度|谐振峰值Mr|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "谐振峰值Mr_5_b3a87785",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "相角裕度|超调量|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
     },
     {
       "id": "带宽频率|谐振峰值Mr|5",
@@ -1082,7 +1112,7 @@
     {
       "id": "带宽频率|超调量|5",
       "sourceId": "带宽频率_5_6996a44a",
-      "targetId": "超调量_5_3d015714",
+      "targetId": "超调量_3_fc3f5b17",
       "relation": "related",
       "relationType": "related",
       "strength": 0.6
@@ -1090,7 +1120,7 @@
     {
       "id": "谐振峰值Mr|超调量|5",
       "sourceId": "谐振峰值Mr_5_b3a87785",
-      "targetId": "超调量_5_3d015714",
+      "targetId": "超调量_3_fc3f5b17",
       "relation": "related",
       "relationType": "related",
       "strength": 0.7
@@ -1120,6 +1150,14 @@
       "strength": 0.88
     },
     {
+      "id": "rel-0bc7975889042521",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "指标角色重组_4_41002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
       "id": "rel-17c4e272fb543cdf",
       "sourceId": "可行域-满意域-最优域分层_4_41004",
       "targetId": "跨域联读任务重排_4_41005",
@@ -1129,7 +1167,7 @@
     },
     {
       "id": "rel-1b563bd88a0fccc8",
-      "sourceId": "超调量_5_3d015714",
+      "sourceId": "超调量_3_fc3f5b17",
       "targetId": "指标角色重组_4_41002",
       "relation": "applies_to",
       "relationType": "applies_to",
@@ -1184,6 +1222,14 @@
       "strength": 0.88
     },
     {
+      "id": "rel-ca26700522b4b63e",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "跨域联读任务重排_4_41005",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.91
+    },
+    {
       "id": "rel-cdfb5c4290461cc4",
       "sourceId": "复平面可行域_4_Lsum001",
       "targetId": "可行域-满意域-最优域分层_4_41004",
@@ -1209,7 +1255,7 @@
     },
     {
       "id": "rel-efb7585642af3c14",
-      "sourceId": "调节时间_4_d3f3314b",
+      "sourceId": "调节时间_10_fcbccf4e",
       "targetId": "指标角色重组_4_41002",
       "relation": "applies_to",
       "relationType": "applies_to",
@@ -1224,20 +1270,12 @@
       "strength": 0.76
     },
     {
-      "id": "rel-0bc7975889042521-13",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "指标角色重组_4_41002",
+      "id": "调节时间|复平面可行域|new",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "复平面可行域_4_Lsum001",
       "relation": "cross_domain",
       "relationType": "cross_domain",
       "strength": 0.92
-    },
-    {
-      "id": "rel-ca26700522b4b63e-13",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "跨域联读任务重排_4_41005",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.91
     }
   ]
 }

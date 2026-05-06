@@ -16,9 +16,14 @@
 - 已检测到 `3-6` 的 V2 互动契约，步骤字段完整。
 - 已检测到 `3-6` 的本地实现契约与作者态互动契约一致。
 - 讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks
+- 检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
+
+## infograph-check
+- 已接受 7 张知识点信息图。
+- 尚缺信息图：零点引入与根轨迹重排_3_35001, 时域指标到目标极点区域_3_36001, PD与测速反馈的等效阻尼对比_3_35003, 目标驱动测速反馈校正_3_36003, PD与超前的频域整形差异_3_35004, 右半平面零点可行性边界_3_36005
 
 ## multimedia-check
 - 已识别并确认存在 2 项正式媒体，未发现缺失。

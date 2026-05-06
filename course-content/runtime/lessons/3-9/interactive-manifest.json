@@ -654,18 +654,7 @@
         "interaction_kind": "parameter_slider",
         "student_task": "超前校正的动态改善调节",
         "answer_reveal": "none",
-        "activity_cards": [
-          {
-            "id": "step-06-activity",
-            "title": "超前校正的动态改善调节",
-            "prompt": "超前校正的动态改善调节",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "teacher_toggle",
@@ -748,18 +737,7 @@
         "interaction_kind": "parameter_slider",
         "student_task": "积分校正的稳态误差调节",
         "answer_reveal": "none",
-        "activity_cards": [
-          {
-            "id": "step-07-activity",
-            "title": "积分校正的稳态误差调节",
-            "prompt": "积分校正的稳态误差调节",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "teacher_toggle",
@@ -852,18 +830,7 @@
         "interaction_kind": "parameter_slider",
         "student_task": "积分补偿后的中频相位整理",
         "answer_reveal": "none",
-        "activity_cards": [
-          {
-            "id": "step-08-activity",
-            "title": "积分补偿后的中频相位整理",
-            "prompt": "积分补偿后的中频相位整理",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "teacher_toggle",
@@ -944,18 +911,7 @@
         "interaction_kind": "parameter_slider",
         "student_task": "滞后校正的低频收益调节",
         "answer_reveal": "none",
-        "activity_cards": [
-          {
-            "id": "step-09-activity",
-            "title": "滞后校正的低频收益调节",
-            "prompt": "滞后校正的低频收益调节",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "teacher_toggle",
@@ -1145,18 +1101,7 @@
         "interaction_kind": "summary",
         "student_task": "总结：从读图比较走向设计任务表达",
         "answer_reveal": "none",
-        "activity_cards": [
-          {
-            "id": "step-11-activity",
-            "title": "总结：从读图比较走向设计任务表达",
-            "prompt": "总结：从读图比较走向设计任务表达",
-            "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
-            "submit_scope": "card",
-            "layout_span": "full",
-            "options": []
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",

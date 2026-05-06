@@ -5,6 +5,8 @@ name_en: Settling Time
 lesson_units:
   - L-2a
   - 2-2
+  - 4-1
+  - 4-5
 category: 概念性
 knowledge_type: C
 chapter: 3
@@ -12,13 +14,19 @@ tags:
   - 层0速通
   - 层1精化
   - 动态性能指标
+  - 4-1
+  - 4-5
+  - 设计排序
 card_version: "2.0"
 source_docs:
   - authoring/lessons/legacy/L-2a/design/L-2a-handout.md
   - authoring/lessons/2-2/design/2-2-handout.md
+  - authoring/lessons/4-1/design/4-1-handout.md
+  - authoring/lessons/4-5/design/4-5-handout.md
 asset_refs:
   - td-04-time-domain-indices-annotated.svg
   - td-06-time-spec-to-pole-region.svg
+  - 4-1-case-compare-summary.png
 ---
 
 ## 首页
@@ -44,6 +52,13 @@ t_s\approx \frac{4}{\zeta\omega_n}=\frac{4}{\sigma}
 $$
 
 其中 $\sigma=\zeta\omega_n$ 可理解为极点实部的绝对值。因此极点越靠左，衰减越快，$t_s$ 越短。
+
+进入设计任务表达后，调节时间不再只是报告响应快慢的读数，而会被改写成场景允许的恢复时限：
+
+- 客船航向保持中，它对应恢复过程是否拖长、乘客是否还能接受；
+- 稳定平台场景中，较短调节时间会前移为更高优先级，但仍需服从超调、相角裕度和控制量边界。
+
+所以，设计课中更常见的判断是“守住底线后继续争取更短”，而不是把调节时间单独压成唯一目标。
 
 ### 常见误区
 

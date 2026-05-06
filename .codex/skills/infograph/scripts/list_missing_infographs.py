@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 
 from infograph_utils import (
+    canonical_sequence,
     node_card_path,
     node_group_map,
     node_infograph_dir,
@@ -12,6 +13,7 @@ from infograph_utils import (
     load_sequence,
     read_json,
     repo_path,
+    selected_infograph_ref,
 )
 
 
@@ -23,8 +25,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def status_for_node(lesson_id: str, node_id: str) -> str:
-    image_path = node_infograph_path(lesson_id, node_id)
-    review_path = node_infograph_dir(lesson_id, node_id) / 'review.json'
+    selected = selected_infograph_ref(node_id)
+    source_lesson_id = selected['lesson_id'] if selected else lesson_id
+    source_node_id = selected['node_id'] if selected else node_id
+    image_path = node_infograph_path(source_lesson_id, source_node_id)
+    review_path = node_infograph_dir(source_lesson_id, source_node_id) / 'review.json'
     if not image_path.exists():
         return 'missing'
     if not review_path.exists():
@@ -41,7 +46,7 @@ def status_for_node(lesson_id: str, node_id: str) -> str:
 
 def main() -> None:
     args = parse_args()
-    sequence = load_sequence(args.lesson)
+    sequence = canonical_sequence(load_sequence(args.lesson))
     nodes = load_all_authoring_nodes(args.lesson)
     groups_by_node = node_group_map(sequence)
 
@@ -63,4 +68,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
