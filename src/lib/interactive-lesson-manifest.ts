@@ -40,7 +40,9 @@ export type InteractiveInteractionKind =
   | 'evidence_mark_cards'
   | 'structured_compare'
   | 'scheme_vote_cards'
-  | 'reflection_card';
+  | 'reflection_card'
+  | 'rust_toy_training_panel'
+  | 'rust_heading_rl_training_panel';
 
 export interface InteractiveRuntimeLayoutRegion {
   id: string;

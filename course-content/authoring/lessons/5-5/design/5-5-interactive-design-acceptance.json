@@ -1,0 +1,48 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-5",
+  "status": "accepted",
+  "accepted_at": "2026-05-06T10:53:18+0800",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-5/design/5-5-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-5/design/5-5-interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "runtime_manifest_audit": "pass",
+    "training_panels_not_downgraded": "pass",
+    "posttest_summary_separated": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "review_mode": "student_logic_and_contract_runtime_alignment",
+    "student_logic_reviewer_agent_id": "019dfb2d-15a3-75c0-9889-c6ed60e48580",
+    "contract_runtime_reviewer_agent_id": "019dfb2d-174a-7042-ade4-0953d2f90f7d",
+    "final_result": "pass",
+    "review_focus": [
+      "student_page_self_contained",
+      "step_08_step_15_student_visible_language",
+      "step_15_student_route_evaluation_summary",
+      "drag_match_alignment",
+      "runtime_manifest_audit",
+      "training_panel_activity_card_suppression",
+      "shared_activity_registry_alignment",
+      "implementation_contract_alignment"
+    ],
+    "evidence": [
+      "student reviewer verdict pass: no blocking issues.",
+      "contract/runtime reviewer verdict pass: audit 17 steps, 45 modules, 0 issues.",
+      "step-08 and step-15 runtime activity_cards are empty, so ordinary text answer cards are not synthesized.",
+      "step-15 layout summary region, heading-summary module, and summary content block are aligned."
+    ],
+    "residual_low_risks": [
+      "The contract keeps internal rust_* identifiers for renderer selection; student-visible wording uses learning and training language instead of implementation language.",
+      "Review artifact before this acceptance file only retained a compatibility warning for missing acceptance, not a blocking issue."
+    ]
+  },
+  "issues": []
+}

@@ -1,0 +1,414 @@
+contract_version: '2.2'
+lesson_id: '5-5'
+course_title: '5-5：从显式控制器到策略学习'
+course_route_segment: 'unit-5-5-policy-learning-entry-risk'
+preview_mode: { default_entry: 'student_demo', student_demo_base_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo' }
+media_policy: { runtime_only: true, runtime_media_base: '/course-runtime/lessons/5-5/media' }
+telemetry_strategy: 'step_level_learning_evidence'
+teacher_insight_strategy: 'step_level_aggregation_only'
+required_step_fields: [layout, modules, content_blocks, evidence_sequence, interaction_spec, teacher_controls, student_access, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks]
+
+steps:
+  step-01:
+    title: '策略学习进入控制问题的导入场景'
+    layout: { template: 'intro_comic_problem_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'entry-problem', title: '复杂航行中的策略学习入口', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'cover-comic', title: '显式控制律与策略学习导入漫画', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-cover-comic.png', caption_key: 'cover_caption' } }
+      - { id: 'entry-summary', title: '控制责任收束', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+    content_blocks:
+      problem: { type: 'plain_text', body: '一艘自主船在静水中靠 PID 能保持航向，但在侧风、横流、对象参数漂移和传感器噪声下需要频繁重新整定。此时应让策略学习直接接管舵机，还是先判断它能承担哪一层职责。' }
+      cover_caption: '显式控制律面对越来越复杂的航行任务，策略学习路径出现，同时样本代价、可解释性、安全验证和部署风险一起点亮。'
+      summary: { type: 'plain_text', body: '本课讨论强化学习的合法入口，不讨论用前沿方法绕开控制目标、执行约束和工程责任。' }
+    evidence_sequence: ['问题句', '封面漫画', '责任收束句']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读导入场景，不提交。', activity_cards: [] }
+    teacher_controls: &no_controls { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: &visible_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['view_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '从复杂航行情境进入策略学习的入口条件和工程责任判断。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-01', must_match_student_page: true }
+    acceptance_checks: ['导入页必须使用封面漫画提出策略学习入口问题；不得做成课程目录页。']
+
+  step-02:
+    title: '本次课程目标'
+    layout: { template: 'goal_statement_board', regions: [{ id: 'goals', width: 'full', order: 1 }] }
+    modules:
+      - { id: 'goal-list', title: '完成本次课程后，学习者能够', region: 'goals', kind: 'goal-card-row', must_be_visible: true, payload: { block_key: 'goals' } }
+    content_blocks:
+      goals: { type: 'bullet_list', items: ['解释显式控制律与学习策略在信息来源、动作生成和验证方式上的差异。', '判断强化学习进入控制问题前需要满足的任务复杂度、样本、安全和可解释性条件。', '用状态、动作和回报说明一个简化策略学习闭环。', '按航向保持任务说明强化学习控制器的结构、环境、状态、动作、奖励、训练、泛化、安全保护和部署验证路线。', '比较 PID、RL直接、RL安全外壳与RL调度PID在复杂边缘场景中的响应、舵角使用和部署边界差异。'] }
+    evidence_sequence: ['布鲁姆能力目标单列表']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读本次课程目标。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['view_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '呈现显式控制律、策略学习入口、强化学习闭环和航向控制路线评价目标。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-02', must_match_student_page: true }
+    acceptance_checks: ['目标页只出现本次课程目标，不展示训练曲线或四路线指标表。']
+
+  step-03:
+    title: '前置基础快测'
+    layout: { template: 'quiz_group_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'pretest-intro', title: '预备基础范围', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
+      - { id: 'pretest-quiz', title: '闭环误差、执行约束与覆盖基础', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['pre-error', 'pre-actuator', 'pre-coverage'] } }
+    content_blocks:
+      intro: { type: 'plain_text', body: '本页只检查进入本课所需的闭环误差、执行器约束和样本覆盖基础，不提前考察强化学习新概念。' }
+    evidence_sequence: ['预备基础范围', '三道客观题']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道预备知识题。'
+      activity_cards:
+        - { id: 'pre-error', title: '闭环误差含义', prompt: '闭环跟踪中 $e(t)=r(t)-y(t)$ 的含义是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['参考输入与实际输出之间的误差', '执行器允许的最大舵角', '训练回报的折扣因子'], reference_answer: '参考输入与实际输出之间的误差' }
+        - { id: 'pre-actuator', title: '执行器约束判断', prompt: '舵角限幅和舵速限制意味着控制器输出的动作必须经过可执行性检查。', response_kind: 'binary_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['正确', '错误'], reference_answer: '正确' }
+        - { id: 'pre-coverage', title: '样本覆盖判断', prompt: '评价一个控制策略是否可靠时，训练样本数量很大是否足以替代边界工况覆盖？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['足以', '不足以，还要看关键状态、扰动、执行器边界和测试场景覆盖', '只要回报高即可'], reference_answer: '不足以，还要看关键状态、扰动、执行器边界和测试场景覆盖' }
+    teacher_controls: &quiz_controls { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
+    student_access: &released_activity_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['closed_loop_error_error', 'actuator_constraint_ignored', 'sample_amount_as_coverage'] }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '前测只考察闭环误差、执行器约束和样本覆盖基础。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-03', must_match_student_page: true }
+    acceptance_checks: ['前测全部为客观题；不得提前考察强化学习算法或本课核心路线判断。']
+
+  step-04:
+    title: '显式控制律的结构证据'
+    layout: { template: 'formula_concept_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'explicit-formula', title: '显式控制律公式与符号', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'explicit-activity', title: '结构证据判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['explicit-evidence', 'actuator-risk'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['u(t)=C(e(t),x(t),p)', 'e(t)=r(t)-y(t)'], symbols: [{ symbol: 'u(t)', meaning: '舵角或推进指令' }, { symbol: 'e(t)', meaning: '参考与输出之间的误差' }, { symbol: 'x(t)', meaning: '对象状态' }, { symbol: 'p', meaning: '对象参数' }, { symbol: 'C(\\cdot)', meaning: '人工可说明的控制结构' }], explanation: '显式控制律的价值在于能说明误差怎样进入控制器、参数怎样影响动作、执行器约束怎样限制输出。' }
+    evidence_sequence: ['控制律公式', '符号说明表', '结构证据句', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断显式控制律能提供的证据。'
+      activity_cards:
+        - { id: 'explicit-evidence', title: '显式控制律证据', prompt: '显式控制律最容易提供哪类证据？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['动作来源、参数影响和边界分析证据', '训练回报单调上升证据', '神经网络层数足够证据'], reference_answer: '动作来源、参数影响和边界分析证据' }
+        - { id: 'actuator-risk', title: '执行边界风险', prompt: '若舵机限幅没有写入控制结构或保护层，最直接的风险是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['计算出的动作可能不可执行', '误差定义自动消失', '样本覆盖自动充分'], reference_answer: '计算出的动作可能不可执行' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['explicit_evidence_ignored', 'actuator_limit_ignored'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用显式控制律公式说明动作来源、参数影响和执行边界证据。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-04', must_match_student_page: true }
+    acceptance_checks: ['公式、符号说明和结构证据句必须常显；题卡不重复正文公式。']
+
+  step-05:
+    title: '复杂自主系统中的动作选择压力'
+    layout: { template: 'pressure_table_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'pressure-table', title: '动作选择压力表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'pressure_table' } }
+      - { id: 'pressure-match', title: '压力来源匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['pressure-match'] } }
+    content_blocks:
+      pressure_table: { type: 'native_table', columns: ['压力来源', '典型表现', '对控制设计的影响'], rows: [['状态空间变大', '周围船舶、障碍物、航道边界、环境扰动和内部状态同时变化', '控制输入不再只由少量误差量决定'], ['动作后果依赖场景', '同样舵角在不同水域、速度和交通密度下产生不同风险', '固定规则难以覆盖所有组合'], ['目标权衡复杂', '跟踪、安全、能耗、舒适性、规则遵守和任务效率同时出现', '单一性能指标难以表达完整任务']] }
+    evidence_sequence: ['压力说明', '三类压力表', '匹配题']
+    interaction_spec:
+      interaction_kind: 'drag_match'
+      student_task: '把三类压力匹配到对应设计影响。'
+      activity_cards:
+        - { id: 'pressure-match', title: '动作选择压力匹配', prompt: '将左侧压力来源匹配到右侧设计影响。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'state-space', label: '状态空间变大' }, { value: 'scene-dependent', label: '动作后果依赖场景' }, { value: 'goal-tradeoff', label: '目标权衡复杂' }], match_options: [{ value: 'few-errors-insufficient', label: '控制输入不再只由少量误差量决定' }, { value: 'rules-hard-cover', label: '固定规则难以覆盖所有组合' }, { value: 'single-index-insufficient', label: '单一性能指标难以表达完整任务' }], reference_matches: [{ item: 'state-space', option: 'few-errors-insufficient' }, { item: 'scene-dependent', option: 'rules-hard-cover' }, { item: 'goal-tradeoff', option: 'single-index-insufficient' }], options: ['控制输入不再只由少量误差量决定', '固定规则难以覆盖所有组合', '单一性能指标难以表达完整任务'], reference_answer: '状态空间变大 -> 少量误差量不足；动作后果依赖场景 -> 固定规则难以覆盖；目标权衡复杂 -> 单一性能指标不足。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['complexity_means_must_rl'] }
+    teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '说明迁移压力来自动作选择空间和目标权衡扩大，而不是显式控制器失效。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-05', must_match_student_page: true }
+    acceptance_checks: ['压力表必须常显；匹配题不能把复杂场景直接等同于必须使用 RL。']
+
+  step-06:
+    title: '显式控制律与学习策略的证明责任'
+    layout: { template: 'compare_matrix_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
+    modules:
+      - { id: 'policy-formula', title: '学习策略动作公式', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'policy-figure', title: '显式控制律与学习策略证据差异', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-explicit-vs-policy.png', block_key: 'figure_reading', caption_key: 'figure_reading' } }
+      - { id: 'proof-table', title: '两类证据责任比较', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'proof_table' } }
+      - { id: 'proof-activity', title: '证明责任判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['policy-evidence', 'policy-not'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['u=\\pi_\\theta(x)'], symbols: [{ symbol: 'x', meaning: '策略观测到的状态或特征' }, { symbol: '\\pi_\\theta', meaning: '由参数 \\theta 表示的学习策略' }, { symbol: 'u', meaning: '策略输出的控制动作' }], explanation: '学习策略仍是动作生成机制，只是证据来源从结构证明转向样本、回报和独立验证。' }
+      figure_reading: '左侧结构证明强调控制律、参数和边界；右侧策略验证强调交互样本、训练目标、测试覆盖和部署监控。'
+      proof_table: { type: 'native_table', columns: ['比较维度', '显式控制律', '学习策略'], rows: [['动作来源', '误差、状态、参数和结构关系', '样本训练得到的状态到动作映射'], ['优势', '结构可读、边界易分析', '可吸收高维场景和长期后果'], ['主要代价', '规则枚举和模型假设压力', '数据、回报、验证和监控成本'], ['典型风险', '过度相信简化结构', '过度相信训练回报'], ['工程责任', '写清结构和边界', '写清样本、目标、安全和接管逻辑']] }
+    evidence_sequence: ['策略公式', '证据差异图', '责任比较表', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '区分学习策略的证据来源和责任边界。'
+      activity_cards:
+        - { id: 'policy-evidence', title: '学习策略证据来源', prompt: '学习策略的核心证据主要来自哪里？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['交互样本、回报定义和独立验证', '公式符号数量', '取消安全边界'], reference_answer: '交互样本、回报定义和独立验证' }
+        - { id: 'policy-not', title: '学习策略误解辨析', prompt: '学习策略不能被理解成什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['没有控制器或没有安全责任', '一种动作生成机制', '需要部署监控的方法'], reference_answer: '没有控制器或没有安全责任' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['policy_as_no_controller', 'validation_responsibility_ignored'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较显式控制律和学习策略的证据来源，强调工程责任没有减少。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-06', must_match_student_page: true }
+    acceptance_checks: ['策略公式、图后说明和责任表必须按顺序出现；学习策略不能被写成无控制器。']
+
+  step-07:
+    title: '强化学习的序贯决策与长期回报'
+    layout: { template: 'formula_reward_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'rl-reward-formula', title: '状态动作回报闭环', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'reward_block' } }
+      - { id: 'reward-activity', title: '回报设计判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['reward-omission', 'long-return-role'] } }
+    content_blocks:
+      reward_block: { type: 'formula_group', formulas: ['J(\\pi)=\\mathbb{E}_{\\pi}\\left[\\sum_{k=0}^{\\infty}\\gamma^k r_k\\right]', 'r_k=-w_e e_k^2-w_u u_k^2-w_{\\Delta u}(u_k-u_{k-1})^2-w_c I_{\\mathrm{collision}}-w_b I_{\\mathrm{boundary}}'], symbols: [{ symbol: 's_k', meaning: '状态' }, { symbol: 'a_k', meaning: '动作' }, { symbol: 'r_k', meaning: '即时回报' }, { symbol: '\\gamma', meaning: '折扣因子' }, { symbol: 'I_{\\mathrm{collision}}, I_{\\mathrm{boundary}}', meaning: '碰撞或越界风险事件' }], explanation: '强化学习把控制问题写成状态、动作、环境转移、回报和策略更新的闭环。' }
+    evidence_sequence: ['序贯决策定义', '长期回报公式', '简化奖励式', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断奖励项缺失和长期回报的含义。'
+      activity_cards:
+        - { id: 'reward-omission', title: '奖励缺项风险', prompt: '若奖励只惩罚跟踪误差而不惩罚舵角和舵角变化，可能诱发什么行为？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['过激打舵或高频动作', '样本覆盖自动充分', '控制目标自动变简单'], reference_answer: '过激打舵或高频动作' }
+        - { id: 'long-return-role', title: '长期回报作用', prompt: '长期回报公式在本课中的作用是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['说明当前动作会影响未来风险', '要求展开具体算法推导', '替代闭环评价'], reference_answer: '说明当前动作会影响未来风险' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['reward_ignores_actuator_cost', 'return_as_algorithm_detail'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '建立强化学习控制中的状态、动作、回报、策略和长期回报最小闭环。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-07', must_match_student_page: true }
+    acceptance_checks: ['长期回报和奖励式必须同页出现；本页不展开算法流派。']
+
+  step-08:
+    title: '横向误差修正实时训练'
+    layout: { template: 'toy_rl_training_panel_board', regions: [{ id: 'task', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] }
+    modules:
+      - { id: 'toy-task', title: '横向误差修正任务', region: 'task', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'task' } }
+      - { id: 'toy-training-panel', title: '横向误差修正实时训练面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'rust_toy_rl_training_panel', spec_key: 'toy_training_panel' } }
+      - { id: 'toy-stats', title: '表 3 动态统计信息', region: 'stats', kind: 'native-table', must_be_visible: true, payload: { block_key: 'baseline_stats' } }
+      - { id: 'toy-summary', title: '简单误差修正的边界结论', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+    content_blocks:
+      task: { type: 'plain_text', body: '移动体存在横向误差 $y_k$，每一步只能选择向左修正、保持、向右修正；回报奖励误差减小，同时惩罚过大动作和越界风险。小仿真只说明状态、动作和回报怎样形成策略，不证明 RL 在简单误差修正中优于显式控制。' }
+      baseline_stats: { type: 'native_table', columns: ['方法', '末端绝对误差', '累计回报', '说明'], rows: [['随机动作', '0.08', '-21.96', '不利用误差结构，作为低质量基线'], ['显式比例修正', '0.03', '-5.54', '直接利用误差符号和比例关系'], ['学习策略', '0.03', '-5.54', '默认复现讲义表 3，停止训练后由最新模型更新']] }
+      summary: { type: 'plain_text', body: '当对象简单、误差结构清楚时，显式比例修正已经足够；学习策略达到类似结果，但付出训练和验证成本。' }
+    evidence_sequence: ['仿真任务', '动作集合说明', 'Rust训练面板', '动态统计表', '边界结论']
+    interactive_figure_spec:
+      kind: 'rust_toy_training_panel'
+      panel_id: 'rust_toy_rl_training_panel'
+      layout_mirror: { left_panel: '实时回报曲线，显示当前轮次累计回报和 20 轮移动平均', right_panel: '停止训练后显示同一起点横向误差收敛曲线，并与随机动作、显式比例修正比较', controls_position: 'below_figures' }
+      training_spec: { default_seed: 5505, state_grid: [-2.0, 2.0], actions: ['left_correction', 'hold', 'right_correction'], reward_terms: ['error_reduction', 'action_cost', 'boundary_penalty'], fresh_start_policy: 'start_clears_q_table_reward_curve_policy_curve_and_stats' }
+      controls: [{ id: 'start_training', label: '开始训练', behavior: 'start_fresh_training' }, { id: 'stop_training', label: '停止训练', behavior: 'freeze_model_and_generate_policy_comparison' }]
+      dynamic_table: { block_key: 'baseline_stats', updated_rows: ['学习策略'], fixed_or_recomputed_baselines: ['随机动作', '显式比例修正'] }
+    interaction_spec: { interaction_kind: 'rust_toy_training_panel', student_task: '启动训练、停止训练，并根据最新曲线和动态统计表观察策略形成范围。', activity_cards: [], ordinary_answer_deleted: true }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: { summary_fields: ['trainingStarted', 'trainingStopped', 'latestReward', 'latestFinalError', 'seed', 'timeOnStep'], result_policy: 'panel_state_only' }
+    teacher_insight_spec: { widgets: ['training_attempt_count', 'latest_policy_metric_distribution'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用小型 Q-learning 训练面板说明学习策略由回报形成，同时限定其证明范围。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-08', must_match_student_page: true }
+    acceptance_checks: ['本页不得保留普通学生作答题；开始训练必须重置为全新训练；停止训练后右侧必须显示学习策略、随机动作和显式比例修正对比曲线；统计表必须根据最新训练结果更新。']
+
+  step-09:
+    title: '策略学习进入控制任务的五项条件'
+    layout: { template: 'entry_condition_matrix_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'entry-formula', title: '策略学习进入条件表达', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'entry_formula' } }
+      - { id: 'entry-condition-table', title: '五项进入条件', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'condition_table' } }
+      - { id: 'entry-condition-choice', title: '进入前证据补齐', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['entry-evidence'] } }
+    content_blocks:
+      entry_formula: { type: 'formula_group', formulas: ['\\text{进入条件}=\\text{任务}+\\text{样本}+\\text{回报}+\\text{验证}+\\text{监控}'], explanation: '策略学习适合进入控制任务，必须同时检查任务、样本、回报、验证和监控条件。' }
+      condition_table: { type: 'native_table', columns: ['条件', '需要回答的问题', '不满足时的主要风险'], rows: [['任务条件', '显式规则是否难以覆盖状态组合和长期后果', '为简单问题引入不必要训练成本'], ['样本条件', '关键状态、扰动和边界是否覆盖', '策略只学到温和工况'], ['回报条件', '安全、动作代价和任务目标是否进入奖励', '策略学到危险捷径'], ['验证条件', '独立测试、压力测试和故障注入是否完成', '训练回报掩盖闭环风险'], ['监控条件', '异常检测、拒绝输出和接管机制是否存在', '部署后无法判断策略何时不可信']] }
+    evidence_sequence: ['进入条件公式句', '五项条件表', '缺项风险说明', '多选题']
+    interaction_spec:
+      interaction_kind: 'multi_select'
+      student_task: '选择强扰动航向保持中引入策略学习前必须补齐的证据。'
+      activity_cards:
+        - { id: 'entry-evidence', title: '进入前证据补齐', prompt: '某团队要在强扰动航向保持中引入策略学习，进入前必须补齐哪些证据？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'full', options: ['关键边界样本覆盖', '包含安全和动作代价的回报', '独立测试与压力测试', '异常检测和接管机制', '神经网络层数足够', '训练回报单调上升即可'], reference_answer: ['关键边界样本覆盖', '包含安全和动作代价的回报', '独立测试与压力测试', '异常检测和接管机制'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['training_reward_as_deployment_evidence', 'model_size_as_entry_condition'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用任务、样本、回报、验证和监控五项条件判断策略学习是否具备控制任务入口。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-09', must_match_student_page: true }
+    acceptance_checks: ['五项条件必须完整出现；正确项必须覆盖样本、安全回报、独立验证和监控接管。']
+
+  step-10:
+    title: '进入条件与风险矩阵'
+    layout: { template: 'risk_matrix_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'tables', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'risk-matrix-figure', title: '策略学习进入风险矩阵', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-rl-entry-risk-matrix.png', block_key: 'figure_reading', caption_key: 'figure_reading' } }
+      - { id: 'risk-matrix-table', title: '判断矩阵与收益代价', region: 'tables', kind: 'native-table', must_be_visible: true, payload: { block_key: 'matrix_table' } }
+      - { id: 'risk-match', title: '风险矩阵归类', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['risk-match'] } }
+    content_blocks:
+      figure_reading: '先看显式控制律可写性，再看样本、安全、可解释性和部署监控是否闭合。'
+      matrix_table: { type: 'native_table', columns: ['证据项', '适合进入', '需要补证据', '暂不进入'], rows: [['显式控制律可写性', '结构难以枚举但目标清楚', '部分环节难以表达', '固定结构已可靠'], ['样本条件', '边界样本覆盖充分', '只覆盖温和工况', '关键状态缺失'], ['安全要求', '保护层闭合', '安全项或接管不完整', '执行约束未写入'], ['可解释性', '可给出输入输出和拒绝逻辑', '只解释部分动作', '无法说明危险动作来源'], ['部署监控', '异常检测和接管机制清楚', '监控指标未闭合', '没有监控和退化路径']] }
+    evidence_sequence: ['风险矩阵图', '判断矩阵表', '收益代价表', '匹配题']
+    interaction_spec:
+      interaction_kind: 'drag_match'
+      student_task: '把四种条件状态归入矩阵判断。'
+      activity_cards:
+        - { id: 'risk-match', title: '进入风险归类', prompt: '把四种条件状态分别匹配到暂不进入、需要补证据或适合进入。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'fixed-reliable', label: '固定结构已可靠' }, { value: 'mild-only', label: '只覆盖温和工况' }, { value: 'monitor-open', label: '监控指标未闭合' }, { value: 'hard-enumerate', label: '结构难以枚举但目标清楚' }], match_options: [{ value: 'not-enter', label: '暂不进入' }, { value: 'need-evidence', label: '需要补证据' }, { value: 'fit-entry', label: '适合进入' }], reference_matches: [{ item: 'fixed-reliable', option: 'not-enter' }, { item: 'mild-only', option: 'need-evidence' }, { item: 'monitor-open', option: 'need-evidence' }, { item: 'hard-enumerate', option: 'fit-entry' }], options: ['暂不进入', '需要补证据', '适合进入'], reference_answer: '固定结构已可靠 -> 暂不进入；只覆盖温和工况、监控指标未闭合 -> 需要补证据；结构难以枚举但目标清楚 -> 适合进入。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['frontier_preference_over_evidence'] }
+    teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把是否进入 RL 表述成证据矩阵判断，而不是方法偏好。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-10', must_match_student_page: true }
+    acceptance_checks: ['风险矩阵图片和表格必须常显；匹配题必须区分适合进入、需要补证据和暂不进入。']
+
+  step-11:
+    title: '航向控制中的三类 RL 进入结构'
+    layout: { template: 'heading_structure_compare_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'heading-error-formula', title: '航向误差定义', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'heading_error' } }
+      - { id: 'heading-route-table', title: '三类 RL 进入结构', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'route_table' } }
+      - { id: 'heading-route-choice', title: '工程起步路线判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['route-choice'] } }
+    content_blocks:
+      heading_error: { type: 'formula_group', formulas: ['e_{\\psi,k}=\\mathrm{wrap}(\\psi_d-\\psi_k)'], symbols: [{ symbol: '\\psi_d', meaning: '期望航向' }, { symbol: '\\psi_k', meaning: '当前航向' }, { symbol: 'e_{\\psi,k}', meaning: '包角后的航向误差' }], explanation: '航向控制中，RL 越靠近舵机输出，越需要可解释、可限制和可降级。' }
+      route_table: { type: 'native_table', columns: ['结构', 'RL 输出', '显式控制器职责', '工程判断'], rows: [['直接控舵', '舵角或舵角增量', '只剩限幅、舵速和接管保护', '验证难度最高，不能默认推荐'], ['参考航向生成', '参考航向或航迹修正', '传统自动舵继续控舵', '适合作为受限入口'], ['PID 参数调度或补偿调整', '参数档位、扰动补偿或权重', 'PID/MPC 仍承担底层稳定控制', '更稳妥的工程起步路线']] }
+    evidence_sequence: ['航向保持任务', '航向误差公式', '三类进入结构表', '工程起步结论', '单题']
+    interaction_spec:
+      interaction_kind: 'single_choice'
+      student_task: '选择更稳妥的 RL 起步方案。'
+      activity_cards:
+        - { id: 'route-choice', title: '航向 RL 起步方案', prompt: '传统自动舵在强扰动下需要频繁重整定，最稳妥的 RL 起步方案是哪一类？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'full', options: ['未加保护的直接控舵', 'PID 参数调度或参考航向修正', '取消执行器约束'], reference_answer: 'PID 参数调度或参考航向修正' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['direct_rl_default_recommendation'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '比较直接控舵、参考航向生成和 PID 参数调度三类 RL 进入结构。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-11', must_match_student_page: true }
+    acceptance_checks: ['三类进入结构必须完整并列；直接控舵不得被默认写成推荐路线。']
+
+  step-12:
+    title: 'Nomoto 航向环境的状态与动作设计'
+    layout: { template: 'heading_environment_formula_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'nomoto-formulas', title: 'Nomoto 模型、状态与动作', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'environment_block' } }
+      - { id: 'environment-activity', title: '状态动作工程含义', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['state-rudder-history', 'action-limit'] } }
+    content_blocks:
+      environment_block: { type: 'formula_group', formulas: ['T\\dot r+r=K\\delta+d_r', '\\dot\\psi=r', 's_k=\\begin{bmatrix}e_{\\psi,k} & r_k & \\delta_{k-1} & \\hat d_{r,k}\\end{bmatrix}^{\\mathsf T}', 'a_k\\in\\{-1,0,1\\},\\quad \\delta_k=\\mathrm{sat}_{\\delta_{\\max}}\\left(\\delta_{k-1}+a_k\\Delta\\delta\\right)', '|\\delta_k-\\delta_{k-1}|\\leq \\dot\\delta_{\\max}\\Delta t'], symbols: [{ symbol: 'r', meaning: '偏航角速度' }, { symbol: '\\delta', meaning: '舵角' }, { symbol: 'T', meaning: '响应时间常数' }, { symbol: 'K', meaning: '舵效增益' }, { symbol: 'd_r', meaning: '等效偏航扰动' }, { symbol: '\\hat d_{r,k}', meaning: '扰动估计或分档信息' }], explanation: '训练环境先把航向对象、状态观测、动作集合和执行器约束写清楚。' }
+    evidence_sequence: ['环境说明', 'Nomoto模型', '符号说明', '状态向量', '动作集合', '舵角和舵速约束', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断状态和动作约束的工程含义。'
+      activity_cards:
+        - { id: 'state-rudder-history', title: '上一时刻舵角作用', prompt: '状态中保留上一时刻舵角的主要作用是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['让策略知道执行器历史，避免忽略舵角变化代价', '让训练样本数量减少为零', '取消航向误差定义'], reference_answer: '让策略知道执行器历史，避免忽略舵角变化代价' }
+        - { id: 'action-limit', title: '离散动作与舵速限制', prompt: '离散动作和舵速限制共同表达什么工程事实？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['真实舵机不能瞬间跳变，控制动作必须可执行', '控制器可以任意跳变', '奖励函数不需要动作代价'], reference_answer: '真实舵机不能瞬间跳变，控制动作必须可执行' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['state_without_actuator_history', 'discrete_action_without_limit'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '说明航向 RL 环境包含对象模型、状态、动作和执行器边界。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-12', must_match_student_page: true }
+    acceptance_checks: ['Nomoto 模型、状态向量、动作集合和舵角舵速约束必须同页出现。']
+
+  step-13:
+    title: '航向保持奖励与 Q-learning 更新'
+    layout: { template: 'reward_reveal_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'heading-reward-formula', title: '航向保持奖励总式', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'reward_formula' } }
+      - { id: 'reward-reveal-chain', title: '奖励项与 Q-learning 更新显影链', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+    content_blocks:
+      reward_formula: { type: 'formula_group', formulas: ['r_k=-w_e e_{\\psi,k}^2-w_r r_k^2-w_\\delta \\delta_k^2-w_{\\Delta\\delta}(\\delta_k-\\delta_{k-1})^2-w_s I_{\\mathrm{safety},k}+r_{\\mathrm{settle},k}'], symbols: [{ symbol: 'w_e', meaning: '惩罚航向误差' }, { symbol: 'w_r', meaning: '惩罚过大偏航角速度' }, { symbol: 'w_\\delta', meaning: '惩罚大舵角' }, { symbol: 'w_{\\Delta\\delta}', meaning: '惩罚频繁打舵' }, { symbol: 'I_{\\mathrm{safety},k}', meaning: '安全边界或接管事件' }, { symbol: 'r_{\\mathrm{settle},k}', meaning: '稳定保持奖励' }], explanation: '奖励函数把好舵手的标准写成可训练目标，但错误奖励会诱发危险捷径。' }
+      reveal_layers: { type: 'reveal_chain', static_hint: '奖励总式和符号常显，奖励分析和 Q-learning 更新式按教师节奏显影。', items: [{ title: '误差项和角速度项', body: '误差项和角速度项约束准和稳，防止策略只追求到达目标而忽略转动过程。' }, { title: '舵角项和舵角变化项', body: '舵角项和舵角变化项约束执行器代价，防止策略用大舵角或高频动作换取短时误差下降。' }, { title: '安全项', body: '安全项把越界、接管或不可信状态写成训练惩罚，避免训练回报掩盖危险行为。' }, { title: 'Q-learning 更新式', body: 'Q(s_k,a_k)\\leftarrow Q(s_k,a_k)+\\alpha\\left[r_k+\\gamma\\max_a Q(s_{k+1},a)-Q(s_k,a_k)\\right]，表示当前估计向即时回报和未来最优估计修正。' }, { title: '工程收束', body: '奖励设计不是算法装饰，而是工程目标、执行器约束和安全责任进入策略学习的入口。' }] }
+    evidence_sequence: ['奖励设计目标', '奖励总式', '符号说明', '五层显影链', '收束句']
+    interaction_spec: { interaction_kind: 'step_reveal', student_task: '按教师节奏阅读奖励项和 Q-learning 更新式。', step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }, activity_cards: [] }
+    teacher_controls: &reveal_controls { release_activity: 'not_applicable', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_controlled', reveal_reference_answer: 'not_applicable' }
+    student_access: &reveal_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: true, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
+    telemetry_spec: { summary_fields: ['revealedSteps', 'timeOnStep'], result_policy: 'no_submission', misconception_tags: ['reward_without_safety', 'q_learning_as_algorithm_deep_dive'] }
+    teacher_insight_spec: { widgets: ['reveal_progress', 'view_count'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '逐层说明奖励项如何表达跟踪、平稳、执行器保护和安全边界。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-13', must_match_student_page: true }
+    acceptance_checks: ['题面、奖励总式和符号说明常显；显影链必须保留 Q-learning 更新式。']
+
+  step-14:
+    title: '训练覆盖、安全外壳与部署验证'
+    layout: { template: 'training_safety_deploy_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'tables', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'training-figure', title: '航向 RL 训练曲线读图', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-rl-heading-control-training.png', block_key: 'figure_reading', caption_key: 'figure_reading' } }
+      - { id: 'safety-table', title: '泛化训练、安全外壳与部署路径', region: 'tables', kind: 'native-table', must_be_visible: true, payload: { block_key: 'safety_table' } }
+      - { id: 'safety-activity', title: '训练证据与安全外壳判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['reward-not-enough', 'fallback-frequent'] } }
+    content_blocks:
+      figure_reading: '先看直接控舵训练回报是否改善，再看安全外壳触发次数和 RL 调度 PID 的训练难度，不用回报单独判断成功。'
+      safety_table: { type: 'native_table', columns: ['证据链环节', '必须覆盖的内容'], rows: [['泛化训练维度', '目标与初始状态、船体参数、环境扰动、执行器约束'], ['动作层保护', '舵角限幅和舵速约束'], ['状态层保护', '监控航向误差、偏航角速度和舵角边界'], ['结构层保护', '保留 PID/MPC 或传统自动舵接管'], ['部署路径', '离线训练和压力测试 -> 历史数据回放 -> 硬件在环 -> 受限水域观察模式 -> 小范围受限接入']] }
+    evidence_sequence: ['训练过程说明', '训练图', '泛化训练表', '安全外壳三层保护', '部署验证路径', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断训练回报和安全外壳证据的边界。'
+      activity_cards:
+        - { id: 'reward-not-enough', title: '训练回报边界', prompt: '训练回报上升还不能证明什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['训练外工况、执行器退化和部署边界下可靠', '训练过程已经发生', '策略有一个回报函数'], reference_answer: '训练外工况、执行器退化和部署边界下可靠' }
+        - { id: 'fallback-frequent', title: '安全外壳触发含义', prompt: '安全外壳触发频繁说明什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['底层策略仍常接近或越过边界，需要独立记录和回修', '安全外壳已经自动修好底层策略', '可以取消传统控制器接管'], reference_answer: '底层策略仍常接近或越过边界，需要独立记录和回修' }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['reward_curve_as_success', 'safety_shell_fixes_policy'] }
+    teacher_insight_spec: { widgets: ['choice_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把训练覆盖、安全保护和部署验证作为策略学习进入控制系统的必要证据链。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-14', must_match_student_page: true }
+    acceptance_checks: ['训练图只作读解证据；必须同时出现泛化维度、安全外壳和部署路径。']
+
+  step-15:
+    title: '三类航向 RL 策略训练与评价'
+    layout: { template: 'heading_rl_training_tabs_board', regions: [{ id: 'task', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'ranking', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] }
+    modules:
+      - { id: 'heading-training-task', title: '同一边缘场景评价任务', region: 'task', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'task' } }
+      - { id: 'heading-rl-training-panel', title: '三类航向 RL 策略训练面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'rust_heading_rl_training_panel', spec_key: 'heading_rl_training_panel' } }
+      - { id: 'heading-ranking', title: '路线评价口径', region: 'ranking', kind: 'native-table', must_be_visible: true, payload: { block_key: 'ranking_schema' } }
+      - { id: 'heading-summary', title: '三类策略路线的边界结论', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+    content_blocks:
+      task: { type: 'plain_text', body: '评价场景包含目标航向变化、持续侧风或横流、反向扰动、短时脉冲、船体时间常数增大和舵效下降。三类 RL 路线必须在同一场景中训练，并与同一 PID 基准比较，不能只看训练回报。' }
+      ranking_schema: { type: 'native_table', columns: ['评价字段', '学生判断含义'], rows: [['RMS 航向误差', '主要评价指标，用于比较同一边缘场景下的航向跟踪质量'], ['最大超调与调节时间', '检查闭环响应是否只是降低 RMS，却带来更差过渡过程'], ['平均舵角与平均舵速', '检查策略是否把误差改善转嫁为执行器负担'], ['安全退化次数', '说明安全外壳或退化接管是否频繁介入，不能被简单视为策略本身优秀']] }
+      summary: { type: 'plain_text', body: '同一边缘场景下，训练回报只能说明策略在训练目标上改善；是否适合进入控制系统，还必须同时看闭环误差、舵角代价、安全退化和与 PID 基准的对照。直接 RL 适合说明策略学习能力，安全外壳和 PID 调度更接近工程入口。' }
+    evidence_sequence: ['边缘场景任务说明', '三类训练标签', '关键参数选择区', '动态回报曲线', '停止后的航向响应与舵角输出对比', '指标提交', '路线评价口径', '边界结论']
+    interactive_figure_spec:
+      kind: 'rust_heading_rl_training_panel'
+      panel_id: 'rust_heading_rl_training_panel'
+      baseline_metrics: { pid_rms_deg: 4.43, direct_rl_rms_deg: 4.05, safe_shell_rms_deg: 3.72, rl_pid_schedule_rms_deg: 3.35 }
+      tabs:
+        - { id: 'direct_rl', label: 'RL直接', parameter_controls: ['训练轮数档位', '探索率衰减速度', '动作步长', '误差惩罚权重', '舵角变化惩罚权重'] }
+        - { id: 'safe_shell_rl', label: 'RL安全外壳', parameter_controls: ['安全误差阈值', '角速度阈值', '舵速阈值', '安全惩罚权重', '退化接管灵敏度'] }
+        - { id: 'rl_pid_schedule', label: 'RL调度PID', parameter_controls: ['参数档位集合', '切换惩罚权重', '抗扰档位偏置', '快速档位使用限制', '误差区间分档'] }
+      chart_layout: { during_training: ['动态回报曲线'], after_stop: ['航向响应对比', '舵角输出对比'], compare_with: 'PID baseline in the same edge scenario' }
+      controls: [{ id: 'start_training', label: '开始训练', behavior: 'clear_current_tab_model_curves_metrics_and_start' }, { id: 'stop_training', label: '停止训练', behavior: 'freeze_latest_model_and_evaluate_against_pid' }, { id: 'submit_result', label: '提交结果', behavior: 'record_current_tab_parameters_seed_episodes_and_metrics' }]
+      submission_metrics: ['training_type', 'selected_parameters', 'seed', 'training_episodes', 'rms_heading_error', 'max_overshoot', 'settling_time', 'average_rudder', 'average_rudder_rate', 'safety_fallback_count']
+      teacher_ranking: { sort_by: 'rms_heading_error', group_policy: 'all_three_rl_types_together', display_fields: ['rank', 'student', 'training_type', 'rms_heading_error', 'parameter_summary', 'safety_fallback_count'] }
+    interaction_spec: { interaction_kind: 'rust_heading_rl_training_panel', student_task: '在三类 RL 标签下选择关键参数、训练、停止并提交评价指标。', activity_cards: [], submit_rule: 'latest_result_per_tab_overwrites_previous_student_record' }
+    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
+    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+    telemetry_spec: { summary_fields: ['trainingStarted', 'trainingStopped', 'resultSubmitted', 'trainingType', 'rmsHeadingError', 'safetyFallbackCount', 'seed'], misconception_tags: ['reward_over_response', 'rms_only_ranking', 'direct_rl_overtrusted'] }
+    teacher_insight_spec: { widgets: ['rms_dynamic_ranking', 'training_type_distribution', 'parameter_summary_table', 'safety_fallback_distribution'], aggregation: 'class_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '在同一航向边缘场景中训练并比较 RL直接、RL安全外壳和RL调度PID，所有结果都与 PID 基准比较。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-15', must_match_student_page: true }
+    acceptance_checks: ['三个标签训练状态彼此独立；训练中只刷新动态回报曲线；停止后必须生成航向响应和舵角输出的 PID 对比；提交结果必须记录训练类型、参数、种子、轮次和评价指标；教师端必须按 RMS 对三类 RL 合并排名并注明训练类型。']
+
+  step-16:
+    title: '后测：策略学习入口与责任判断'
+    layout: { template: 'posttest_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'posttest-title', title: '策略学习入口与责任判断后测', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
+      - { id: 'posttest-quiz', title: '目标达成题组', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['post-reward-vs-response', 'post-limited-entry', 'post-design-short'] } }
+    content_blocks:
+      intro: { type: 'plain_text', body: '本页检查能否把策略学习入口、奖励安全项和四路线评价迁移到新判断中。' }
+    evidence_sequence: ['后测标题卡', '三道目标达成题', '即时反馈']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道后测题。'
+      activity_cards:
+        - { id: 'post-reward-vs-response', title: '训练回报与闭环评价', prompt: '某 RL 直接控舵策略训练回报很高，但独立评价中最大超调达到 $58.04^\\circ$，平均舵速达到 $2.90^\\circ/\\mathrm{s}$。这最直接说明什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['训练回报不能替代闭环评价', '策略已可部署', '舵速越大越好'], reference_answer: '训练回报不能替代闭环评价' }
+        - { id: 'post-limited-entry', title: '受限 RL 进入方式', prompt: '受限 RL 进入传统自动舵升级时，哪些做法更合理？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'one_third', options: ['PID 参数调度', '参考航向修正', '扰动补偿', '安全外壳和传统控制器接管', '取消舵角限幅', '只看训练回报', '让策略在真船上在线试错'], reference_answer: ['PID 参数调度', '参考航向修正', '扰动补偿', '安全外壳和传统控制器接管'] }
+        - { id: 'post-design-short', title: '受限 RL 航向控制要点', prompt: '写出一个受限 RL 航向控制方案中的状态、动作、奖励和安全保护要点。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'one_third', reference_answer: '状态包含航向误差、偏航角速度、上一时刻舵角和扰动估计；动作先选择 PID 参数档位、参考航向修正或扰动补偿；奖励惩罚误差、大舵角、舵角变化率和安全退化；输出经过舵角限幅、舵速限制和传统自动舵接管。', teacher_keywords: ['状态', '动作', '奖励', '安全保护', '部署验证'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_activity_access
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['reward_curve_as_success', 'unsafe_online_trial', 'missing_safety_protection'] }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution', 'short_answer_keywords'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '检查学生是否能迁移策略学习入口、奖励安全项和四路线评价责任。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-16', must_match_student_page: true }
+    acceptance_checks: ['后测独立成页；总题数不超过三题；最多一题为短答题。']
+
+  step-17:
+    title: '总结：策略学习的收益、代价与边界'
+    layout: { template: 'summary_infograph_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'summary-infograph', title: '策略学习收益、代价与边界信息图', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-5/media/5-5-info.png', block_key: 'figure_reading', caption_key: 'figure_reading' } }
+      - { id: 'summary-points', title: '主要内容、局限与拓展思考', region: 'summary', kind: 'summary-card-grid', must_be_visible: true, payload: { block_key: 'summary_grid' } }
+      - { id: 'learning-stats', title: '课堂表现统计', region: 'stats', kind: 'learning-stat-panel', must_be_visible: true, payload: { block_key: 'stats_contract' } }
+    content_blocks:
+      figure_reading: '信息图用于回收显式控制律、策略学习入口条件、航向控制路线、安全外壳和评价指标之间的关系。'
+      summary_grid: { type: 'summary_grid', items: [{ title: '主要内容', body: '显式控制律优势来自结构清楚和边界可分析；学习策略优势来自复杂场景中的样本化动作形成；RL 进入控制问题前必须检查任务、样本、回报、验证和监控。' }, { title: '局限性', body: '本课只讨论策略学习进入条件和工程评价，不讲 RL 算法推导、神经网络结构和训练技巧。' }, { title: '重点难点', body: '训练回报不能替代闭环评价；安全外壳不能自动修好底层策略；四路线评价不能只按 RMS 排名。' }, { title: '拓展思考', body: '若后续把 RL调度PID 部署到受限水域观察模式，运行日志中至少应记录哪些异常、接管和策略拒绝证据。' }] }
+      stats_contract: { type: 'learning_stat_panel', student_fields: ['已浏览页面', '已提交互动', '前后测完成情况', '关键能力达成摘要'], teacher_fields: ['班级提交率', '前后测正确率', '四路线入口选择分布', '常见误判标签', '目标达成概况'] }
+    evidence_sequence: ['信息图', '主要内容', '局限性', '重点难点', '拓展思考', '学生个人统计或教师班级统计']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读总结并查看课堂表现统计。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep', 'studentStatsViewed'], result_policy: 'no_submission' }
+    teacher_insight_spec: { widgets: ['class_completion_summary', 'misconception_tags', 'goal_attainment_overview'], aggregation: 'class_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '总结策略学习的收益、代价与边界，并回收学生个人和班级整体学习证据。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-17', must_match_student_page: true }
+    acceptance_checks: ['总结页顶部必须是课程信息图；必须包含学生个人统计和教师班级统计字段；不设置作答壳层。']

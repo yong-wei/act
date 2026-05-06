@@ -194,7 +194,12 @@ fn matrix_vec_mul(a: &[Vec<f64>], x: &[f64]) -> Vec<f64> {
 fn vec_matrix_mul(x: &[f64], a: &[Vec<f64>]) -> Vec<f64> {
     let cols = a.first().map(|row| row.len()).unwrap_or(0);
     (0..cols)
-        .map(|col| x.iter().enumerate().map(|(row, value)| value * a[row][col]).sum())
+        .map(|col| {
+            x.iter()
+                .enumerate()
+                .map(|(row, value)| value * a[row][col])
+                .sum()
+        })
         .collect()
 }
 
@@ -333,7 +338,9 @@ fn response_metrics(values: &[f64], times: &[f64], target: f64) -> Value {
     let rise_start = values.iter().position(|value| *value >= target * 0.1);
     let rise_end = values.iter().position(|value| *value >= target * 0.9);
     let rise_time = match (rise_start, rise_end) {
-        (Some(start), Some(end)) => times.get(end).unwrap_or(&0.0) - times.get(start).unwrap_or(&0.0),
+        (Some(start), Some(end)) => {
+            times.get(end).unwrap_or(&0.0) - times.get(start).unwrap_or(&0.0)
+        }
         _ => 0.0,
     };
     let band = target.abs() * 0.05;
@@ -524,7 +531,10 @@ fn compute_second_order_step_response(request: &Value) -> Result<String, String>
     let duration = num(request, "duration", 6.0);
     let mut cloned = request.as_object().cloned().unwrap_or_default();
     cloned.insert("numerator".to_string(), json!([omega * omega]));
-    cloned.insert("denominator".to_string(), json!([omega * omega, 2.0 * zeta * omega, 1.0]));
+    cloned.insert(
+        "denominator".to_string(),
+        json!([omega * omega, 2.0 * zeta * omega, 1.0]),
+    );
     cloned.insert("dt".to_string(), json!(dt));
     cloned.insert("duration".to_string(), json!(duration));
     cloned.insert("signal".to_string(), json!("step"));
@@ -621,9 +631,9 @@ fn compute_champagne_tower_step(request: &Value) -> Result<String, String> {
     let lateral_accel = num(request, "lateralAccel", 0.0);
     let ship_roll = deg_to_rad(num(request, "shipRollDeg", 0.0));
     let external_force = (lateral_accel * 9.81) / height + ship_roll * 0.5;
-    let angular_accel =
-        -2.0 * damping_ratio * natural_freq * angular_velocity - natural_freq * natural_freq * angle
-            + external_force;
+    let angular_accel = -2.0 * damping_ratio * natural_freq * angular_velocity
+        - natural_freq * natural_freq * angle
+        + external_force;
     let new_velocity = angular_velocity + angular_accel * dt;
     let new_angle = angle + new_velocity * dt;
     let is_falling = new_angle.abs() > fall_threshold;

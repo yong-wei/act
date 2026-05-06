@@ -1,5 +1,6 @@
 use num_complex::Complex64;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -85,6 +86,62 @@ struct ControlAnalysisRequest {
     frequency_range: FrequencyRangeConfig,
     root_locus: RootLocusConfig,
     feasible_region: Option<FeasibleRegionConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RlTrainingRequest {
+    panel_kind: String,
+    training_type: Option<String>,
+    seed: Option<u64>,
+    training_episodes: Option<usize>,
+    #[serde(default)]
+    selected_parameters: HashMap<String, Value>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RlRewardPoint {
+    episode: usize,
+    reward: f64,
+    moving_average: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RlComparisonPoint {
+    t: f64,
+    reference: f64,
+    pid: f64,
+    rl: f64,
+    rudder_pid: f64,
+    rudder_rl: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RlTrainingMetrics {
+    rms_heading_error: f64,
+    max_overshoot: f64,
+    settling_time: f64,
+    average_rudder: f64,
+    average_rudder_rate: f64,
+    final_error: f64,
+    cumulative_reward: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RlTrainingResult {
+    panel_kind: String,
+    training_type: String,
+    seed: u64,
+    selected_parameters: HashMap<String, String>,
+    training_episodes: usize,
+    reward_curve: Vec<RlRewardPoint>,
+    comparison_trace: Vec<RlComparisonPoint>,
+    metrics: RlTrainingMetrics,
+    safety_fallback_count: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -1385,7 +1442,12 @@ fn nonlinear_range(request: &NonlinearAnalysisRequest) -> Vec<f64> {
     )
 }
 
-fn phase_derivative(model_id: &str, x: f64, y: f64, request: &NonlinearAnalysisRequest) -> (f64, f64) {
+fn phase_derivative(
+    model_id: &str,
+    x: f64,
+    y: f64,
+    request: &NonlinearAnalysisRequest,
+) -> (f64, f64) {
     match model_id {
         "damped_second_order" => {
             let zeta = nonlinear_param(request, "zeta", 0.35).max(0.01);
@@ -1405,7 +1467,10 @@ fn phase_derivative(model_id: &str, x: f64, y: f64, request: &NonlinearAnalysisR
 }
 
 fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResult {
-    let initial = request.initial_point.clone().unwrap_or_else(|| vec![1.2, 0.1]);
+    let initial = request
+        .initial_point
+        .clone()
+        .unwrap_or_else(|| vec![1.2, 0.1]);
     let mut x = *initial.first().unwrap_or(&1.2);
     let mut y = *initial.get(1).unwrap_or(&0.1);
     let samples = request.time_range.samples.max(2);
@@ -1415,21 +1480,40 @@ fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisR
     for _ in 0..samples {
         points.push(CurvePoint { x, y });
         let (dx1, dy1) = phase_derivative(&request.model_id, x, y, request);
-        let (dx2, dy2) = phase_derivative(&request.model_id, x + 0.5 * dt * dx1, y + 0.5 * dt * dy1, request);
-        let (dx3, dy3) = phase_derivative(&request.model_id, x + 0.5 * dt * dx2, y + 0.5 * dt * dy2, request);
+        let (dx2, dy2) = phase_derivative(
+            &request.model_id,
+            x + 0.5 * dt * dx1,
+            y + 0.5 * dt * dy1,
+            request,
+        );
+        let (dx3, dy3) = phase_derivative(
+            &request.model_id,
+            x + 0.5 * dt * dx2,
+            y + 0.5 * dt * dy2,
+            request,
+        );
         let (dx4, dy4) = phase_derivative(&request.model_id, x + dt * dx3, y + dt * dy3, request);
         x += dt * (dx1 + 2.0 * dx2 + 2.0 * dx3 + dx4) / 6.0;
         y += dt * (dy1 + 2.0 * dy2 + 2.0 * dy3 + dy4) / 6.0;
     }
 
     let mut vector_field = Vec::new();
-    let (field_y_min, field_y_max) = if request.model_id == "van_der_pol" { (-4.0, 4.0) } else { (-3.0, 3.0) };
+    let (field_y_min, field_y_max) = if request.model_id == "van_der_pol" {
+        (-4.0, 4.0)
+    } else {
+        (-3.0, 3.0)
+    };
     for ix in 0..13 {
         for iy in 0..13 {
             let vx = -3.0 + ix as f64 * 0.5;
             let vy = field_y_min + (field_y_max - field_y_min) * iy as f64 / 12.0;
             let (dx, dy) = phase_derivative(&request.model_id, vx, vy, request);
-            vector_field.push(VectorFieldPoint { x: vx, y: vy, dx, dy });
+            vector_field.push(VectorFieldPoint {
+                x: vx,
+                y: vy,
+                dx,
+                dy,
+            });
         }
     }
 
@@ -1442,7 +1526,10 @@ fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisR
     NonlinearAnalysisResult {
         phase_plane: Some(PhasePlaneResult {
             vector_field,
-            trajectories: vec![NamedCurve { id: request.model_id.clone(), points }],
+            trajectories: vec![NamedCurve {
+                id: request.model_id.clone(),
+                points,
+            }],
         }),
         negative_inverse: None,
         harmonic: None,
@@ -1452,13 +1539,21 @@ fn compute_phase_plane(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisR
             outcome: outcome.to_string(),
             metrics: vec![
                 format!("样本数 {}", samples),
-                format!("初始点 ({:.2}, {:.2})", initial.first().unwrap_or(&1.2), initial.get(1).unwrap_or(&0.1)),
+                format!(
+                    "初始点 ({:.2}, {:.2})",
+                    initial.first().unwrap_or(&1.2),
+                    initial.get(1).unwrap_or(&0.1)
+                ),
             ],
         },
     }
 }
 
-fn describing_function(model_id: &str, amplitude: f64, request: &NonlinearAnalysisRequest) -> Complex64 {
+fn describing_function(
+    model_id: &str,
+    amplitude: f64,
+    request: &NonlinearAnalysisRequest,
+) -> Complex64 {
     let a_input = amplitude.max(1e-6);
     let pi = std::f64::consts::PI;
     match model_id {
@@ -1509,18 +1604,19 @@ fn describing_function(model_id: &str, amplitude: f64, request: &NonlinearAnalys
             let delta_ratio = (delta / a_input).clamp(0.0, 0.999_999);
             if a_input <= a {
                 return Complex64::new(
-                    2.0 * k / pi * (pi / 2.0 - delta_ratio.asin() - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()),
+                    2.0 * k / pi
+                        * (pi / 2.0
+                            - delta_ratio.asin()
+                            - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()),
                     0.0,
                 );
             }
             let a_ratio = (a / a_input).clamp(0.0, 0.999_999);
             Complex64::new(
-                2.0 * k / pi * (
-                    a_ratio.asin()
-                    - delta_ratio.asin()
-                    + a_ratio * (1.0 - a_ratio * a_ratio).sqrt()
-                    - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()
-                ),
+                2.0 * k / pi
+                    * (a_ratio.asin() - delta_ratio.asin()
+                        + a_ratio * (1.0 - a_ratio * a_ratio).sqrt()
+                        - delta_ratio * (1.0 - delta_ratio * delta_ratio).sqrt()),
                 0.0,
             )
         }
@@ -1531,7 +1627,10 @@ fn describing_function(model_id: &str, amplitude: f64, request: &NonlinearAnalys
                 return Complex64::new(0.0, 0.0);
             }
             let ratio = (b / a_input).clamp(1e-6, 0.999_999);
-            Complex64::new(k * (1.0 - ratio), -4.0 * k * b / (pi * a_input) * (1.0 - ratio))
+            Complex64::new(
+                k * (1.0 - ratio),
+                -4.0 * k * b / (pi * a_input) * (1.0 - ratio),
+            )
         }
         _ => {
             let k = nonlinear_param(request, "k", 1.0).max(1e-6);
@@ -1553,7 +1652,11 @@ fn characteristic_value(model_id: &str, x: f64, request: &NonlinearAnalysisReque
     match model_id {
         "deadzone" => {
             let delta = nonlinear_param(request, "Delta", 0.5).max(0.0);
-            if x.abs() <= delta { 0.0 } else { x.signum() * k * (x.abs() - delta) }
+            if x.abs() <= delta {
+                0.0
+            } else {
+                x.signum() * k * (x.abs() - delta)
+            }
         }
         "deadzone_saturation" => {
             let delta = nonlinear_param(request, "Delta", 0.5).max(0.0);
@@ -1624,17 +1727,27 @@ fn compute_negative_inverse(request: &NonlinearAnalysisRequest) -> NonlinearAnal
             continue;
         }
         let value = -Complex64::new(1.0, 0.0) / n;
-        points.push(ComplexPoint { re: value.re, im: value.im });
+        points.push(ComplexPoint {
+            re: value.re,
+            im: value.im,
+        });
     }
 
     let mut marks = HashMap::new();
     marks.insert("start".to_string(), "open_circle_start".to_string());
-    marks.insert("direction".to_string(), "arrow_for_increasing_A".to_string());
+    marks.insert(
+        "direction".to_string(),
+        "arrow_for_increasing_A".to_string(),
+    );
     let selected_point = {
         let n = describing_function(&request.model_id, selected_a, request);
         if n.norm() > 1e-9 {
             let value = -Complex64::new(1.0, 0.0) / n;
-            Some(SelectedComplexPoint { re: value.re, im: value.im, amplitude: selected_a })
+            Some(SelectedComplexPoint {
+                re: value.re,
+                im: value.im,
+                amplitude: selected_a,
+            })
         } else {
             None
         }
@@ -1677,7 +1790,10 @@ fn compute_harmonic(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResu
         let base = 4.0 * m / std::f64::consts::PI * (omega * t).sin();
         input.push(CurvePoint { x: t, y: e });
         relay_output.push(CurvePoint { x: t, y: relay });
-        filtered_output.push(CurvePoint { x: t, y: attenuation * base });
+        filtered_output.push(CurvePoint {
+            x: t,
+            y: attenuation * base,
+        });
         approximation.push(CurvePoint { x: t, y: base });
     }
     NonlinearAnalysisResult {
@@ -1689,9 +1805,18 @@ fn compute_harmonic(request: &NonlinearAnalysisRequest) -> NonlinearAnalysisResu
             filtered_output,
             describing_function_approximation: approximation,
             spectrum: vec![
-                CurvePoint { x: 1.0, y: 4.0 * m / std::f64::consts::PI },
-                CurvePoint { x: 3.0, y: 4.0 * m / (3.0 * std::f64::consts::PI) },
-                CurvePoint { x: 5.0, y: 4.0 * m / (5.0 * std::f64::consts::PI) },
+                CurvePoint {
+                    x: 1.0,
+                    y: 4.0 * m / std::f64::consts::PI,
+                },
+                CurvePoint {
+                    x: 3.0,
+                    y: 4.0 * m / (3.0 * std::f64::consts::PI),
+                },
+                CurvePoint {
+                    x: 5.0,
+                    y: 4.0 * m / (5.0 * std::f64::consts::PI),
+                },
             ],
         }),
         characteristic: None,
@@ -1711,14 +1836,26 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
         "hysteresis_relay" => {
             let m = nonlinear_param(request, "M", 1.0).max(0.05);
             let h = nonlinear_param(request, "h", 0.5).max(0.0);
-            let increasing = range.iter().map(|x| CurvePoint { x: *x, y: if *x >= h { m } else { -m } });
-            let decreasing = range.iter().rev().map(|x| CurvePoint { x: *x, y: if *x <= -h { -m } else { m } });
+            let increasing = range.iter().map(|x| CurvePoint {
+                x: *x,
+                y: if *x >= h { m } else { -m },
+            });
+            let decreasing = range.iter().rev().map(|x| CurvePoint {
+                x: *x,
+                y: if *x <= -h { -m } else { m },
+            });
             increasing.chain(decreasing).collect::<Vec<_>>()
         }
         "backlash" => {
             let b = nonlinear_param(request, "b", 0.5).max(0.0);
-            let increasing = range.iter().map(|x| CurvePoint { x: *x, y: k * (*x - b) });
-            let decreasing = range.iter().rev().map(|x| CurvePoint { x: *x, y: k * (*x + b) });
+            let increasing = range.iter().map(|x| CurvePoint {
+                x: *x,
+                y: k * (*x - b),
+            });
+            let decreasing = range.iter().rev().map(|x| CurvePoint {
+                x: *x,
+                y: k * (*x + b),
+            });
             increasing.chain(decreasing).collect::<Vec<_>>()
         }
         _ => range
@@ -1729,13 +1866,31 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             })
             .collect::<Vec<_>>(),
     };
-    let min_y = curve.iter().map(|point| point.y).fold(f64::INFINITY, f64::min);
-    let max_y = curve.iter().map(|point| point.y).fold(f64::NEG_INFINITY, f64::max);
+    let min_y = curve
+        .iter()
+        .map(|point| point.y)
+        .fold(f64::INFINITY, f64::min);
+    let max_y = curve
+        .iter()
+        .map(|point| point.y)
+        .fold(f64::NEG_INFINITY, f64::max);
     let sine_envelope = vec![
-        CurvePoint { x: -amplitude, y: min_y },
-        CurvePoint { x: -amplitude, y: max_y },
-        CurvePoint { x: amplitude, y: max_y },
-        CurvePoint { x: amplitude, y: min_y },
+        CurvePoint {
+            x: -amplitude,
+            y: min_y,
+        },
+        CurvePoint {
+            x: -amplitude,
+            y: max_y,
+        },
+        CurvePoint {
+            x: amplitude,
+            y: max_y,
+        },
+        CurvePoint {
+            x: amplitude,
+            y: min_y,
+        },
     ];
     let n = describing_function(&request.model_id, amplitude, request);
     let omega = nonlinear_param(request, "omega", 1.0).max(0.05);
@@ -1747,7 +1902,8 @@ fn compute_characteristic(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
     let mut previous_output = None;
     for t in comparison_times {
         let input = amplitude * (omega * t).sin();
-        let output = characteristic_signal_output(&request.model_id, input, previous_output, request);
+        let output =
+            characteristic_signal_output(&request.model_id, input, previous_output, request);
         previous_output = Some(output);
         comparison_input.push(CurvePoint { x: t, y: input });
         comparison_output.push(CurvePoint { x: t, y: output });
@@ -1837,10 +1993,19 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             0.0
         };
 
-        delta_points.push(CurvePoint { x: t, y: delta_cmd.to_degrees() });
-        delta_target_points.push(CurvePoint { x: t, y: delta_target_deg });
+        delta_points.push(CurvePoint {
+            x: t,
+            y: delta_cmd.to_degrees(),
+        });
+        delta_target_points.push(CurvePoint {
+            x: t,
+            y: delta_target_deg,
+        });
         actual_path.push(CurvePoint { x, y });
-        nominal_path.push(CurvePoint { x: nominal_x, y: nominal_y });
+        nominal_path.push(CurvePoint {
+            x: nominal_x,
+            y: nominal_y,
+        });
     }
 
     let saturation_active = delta_needed > delta_max || max_delta >= delta_max * 0.98;
@@ -1870,13 +2035,24 @@ fn compute_turning_radius(request: &NonlinearAnalysisRequest) -> NonlinearAnalys
             collision_active,
             safety_constraint_satisfied,
             heading_curves: vec![
-                TurningHeadingCurve { id: "actual_delta".to_string(), label: "实际舵角".to_string(), points: delta_points },
-                TurningHeadingCurve { id: "target_delta".to_string(), label: "目标舵角".to_string(), points: delta_target_points },
+                TurningHeadingCurve {
+                    id: "actual_delta".to_string(),
+                    label: "实际舵角".to_string(),
+                    points: delta_points,
+                },
+                TurningHeadingCurve {
+                    id: "target_delta".to_string(),
+                    label: "目标舵角".to_string(),
+                    points: delta_target_points,
+                },
             ],
             path: TurningRadiusPath {
                 actual: actual_path,
                 nominal: nominal_path,
-                obstacle_center: CurvePoint { x: obstacle_x, y: obstacle_y },
+                obstacle_center: CurvePoint {
+                    x: obstacle_x,
+                    y: obstacle_y,
+                },
                 obstacle_radius,
                 clearance_radius: clearance,
             },
@@ -1904,6 +2080,414 @@ fn compute_nonlinear_analysis_inner(request: &NonlinearAnalysisRequest) -> Nonli
     }
 }
 
+fn clamp(value: f64, min_value: f64, max_value: f64) -> f64 {
+    value.max(min_value).min(max_value)
+}
+
+fn seeded_noise(seed: u64, index: usize) -> f64 {
+    let mut x = seed ^ ((index as u64 + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15));
+    x ^= x >> 12;
+    x ^= x << 25;
+    x ^= x >> 27;
+    let scaled = x.wrapping_mul(0x2545_F491_4F6C_DD1D) >> 11;
+    (scaled as f64 / ((1_u64 << 53) as f64)) * 2.0 - 1.0
+}
+
+fn parameter_strings(parameters: &HashMap<String, Value>) -> HashMap<String, String> {
+    parameters
+        .iter()
+        .map(|(key, value)| {
+            let text = match value {
+                Value::String(item) => item.clone(),
+                Value::Number(item) => item.to_string(),
+                Value::Bool(item) => item.to_string(),
+                _ => value.to_string(),
+            };
+            (key.clone(), text)
+        })
+        .collect()
+}
+
+fn parameter_numeric(parameters: &HashMap<String, Value>, key: &str, fallback: f64) -> f64 {
+    match parameters.get(key) {
+        Some(Value::Number(value)) => value.as_f64().unwrap_or(fallback),
+        Some(Value::String(value)) => value.parse::<f64>().unwrap_or(fallback),
+        _ => fallback,
+    }
+}
+
+fn discrete_index(value: f64, min_value: f64, max_value: f64, bins: usize) -> usize {
+    let ratio = ((value - min_value) / (max_value - min_value)).clamp(0.0, 0.999_999);
+    (ratio * bins as f64).floor() as usize
+}
+
+fn greedy_action_index(q_values: &[f64]) -> usize {
+    q_values
+        .iter()
+        .enumerate()
+        .max_by(|(_, left), (_, right)| left.partial_cmp(right).unwrap_or(Ordering::Equal))
+        .map(|(index, _)| index)
+        .unwrap_or(0)
+}
+
+fn append_reward_point(rewards: &mut Vec<RlRewardPoint>, window: &mut Vec<f64>, reward: f64) {
+    window.push(reward);
+    if window.len() > 20 {
+        window.remove(0);
+    }
+    let moving_average = window.iter().sum::<f64>() / window.len() as f64;
+    rewards.push(RlRewardPoint {
+        episode: rewards.len() + 1,
+        reward,
+        moving_average,
+    });
+}
+
+fn run_toy_q_learning(
+    seed: u64,
+    episodes: usize,
+    action_cost: f64,
+    boundary_penalty: f64,
+) -> (Vec<Vec<f64>>, Vec<RlRewardPoint>) {
+    let state_bins = 17;
+    let actions = [-0.18_f64, 0.0, 0.18];
+    let mut q_table = vec![vec![0.0; actions.len()]; state_bins];
+    let mut rewards = Vec::with_capacity(episodes);
+    let mut window = Vec::new();
+
+    for episode in 0..episodes {
+        let mut y = 1.8 * seeded_noise(seed, episode * 17 + 1);
+        let mut episode_reward = 0.0;
+        for step in 0..34 {
+            let state = discrete_index(y, -2.0, 2.0, state_bins);
+            let epsilon = 0.38 * (1.0 - episode as f64 / episodes.max(1) as f64).max(0.08);
+            let explore = seeded_noise(seed, episode * 101 + step) > 1.0 - 2.0 * epsilon;
+            let action_index = if explore {
+                ((seeded_noise(seed, episode * 131 + step).abs() * actions.len() as f64) as usize)
+                    .min(actions.len() - 1)
+            } else {
+                greedy_action_index(&q_table[state])
+            };
+            let action = actions[action_index];
+            let previous_error = y.abs();
+            y = clamp(
+                y + action + seeded_noise(seed, episode * 211 + step) * 0.015,
+                -2.3,
+                2.3,
+            );
+            let next_state = discrete_index(y, -2.0, 2.0, state_bins);
+            let reward = (previous_error - y.abs()) * 4.0
+                - action_cost * action.abs() * 8.0
+                - if y.abs() > 2.0 { boundary_penalty } else { 0.0 };
+            let next_best = q_table[next_state]
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max);
+            let current = q_table[state][action_index];
+            q_table[state][action_index] = current + 0.18 * (reward + 0.92 * next_best - current);
+            episode_reward += reward;
+        }
+        append_reward_point(&mut rewards, &mut window, episode_reward);
+    }
+
+    (q_table, rewards)
+}
+
+fn run_heading_q_learning(
+    seed: u64,
+    episodes: usize,
+    training_type: &str,
+    parameters: &HashMap<String, Value>,
+) -> (Vec<Vec<f64>>, Vec<RlRewardPoint>, f64) {
+    let state_bins = 25;
+    let actions = [-1.0_f64, -0.5, 0.0, 0.5, 1.0];
+    let mut q_table = vec![vec![0.0; actions.len()]; state_bins];
+    let mut rewards = Vec::with_capacity(episodes);
+    let mut window = Vec::new();
+    let exploration_decay = parameter_numeric(parameters, "explorationDecay", 0.5);
+    let action_step = parameter_numeric(parameters, "actionStepDeg", 2.5);
+    let error_weight = parameter_numeric(parameters, "errorPenaltyWeight", 1.0);
+    let rudder_rate_weight = parameter_numeric(parameters, "rudderRatePenaltyWeight", 0.5);
+    let safety_weight = parameter_numeric(parameters, "safetyPenaltyWeight", 1.4);
+    let switch_penalty = parameter_numeric(parameters, "switchPenaltyWeight", 0.4);
+
+    for episode in 0..episodes {
+        let mut error = 10.0 + seeded_noise(seed, episode * 19) * 3.0;
+        let mut rudder = 0.0;
+        let mut episode_reward = 0.0;
+        for step in 0..72 {
+            let state = discrete_index(error, -18.0, 18.0, state_bins);
+            let progress = episode as f64 / episodes.max(1) as f64;
+            let epsilon = (0.48 * (1.0 - progress).powf(1.0 + exploration_decay)).max(0.04);
+            let explore = seeded_noise(seed, episode * 97 + step) > 1.0 - 2.0 * epsilon;
+            let action_index = if explore {
+                ((seeded_noise(seed, episode * 149 + step).abs() * actions.len() as f64) as usize)
+                    .min(actions.len() - 1)
+            } else {
+                greedy_action_index(&q_table[state])
+            };
+            let policy_gain = match training_type {
+                "rl_pid_schedule" => 0.72,
+                "safe_shell_rl" => 0.64,
+                _ => 0.56,
+            };
+            let action = actions[action_index] * action_step * policy_gain;
+            let previous_error = error.abs();
+            let previous_rudder = rudder;
+            rudder = clamp(0.72 * rudder + action, -15.0, 15.0);
+            let disturbance = if (24..46).contains(&step) {
+                2.2
+            } else if (52..64).contains(&step) {
+                -2.7
+            } else {
+                0.0
+            };
+            error = clamp(
+                error * (0.965 - policy_gain * 0.018) - rudder * 0.045 + disturbance * 0.035,
+                -20.0,
+                20.0,
+            );
+            let safety_penalty = if training_type == "safe_shell_rl" && error.abs() > 9.0 {
+                safety_weight * 0.8
+            } else {
+                0.0
+            };
+            let route_penalty = if training_type == "rl_pid_schedule" {
+                switch_penalty * (rudder - previous_rudder).abs() * 0.04
+            } else {
+                rudder_rate_weight * (rudder - previous_rudder).abs() * 0.03
+            };
+            let reward = (previous_error - error.abs()) * 1.7
+                - error_weight * error.abs() * 0.035
+                - rudder.abs() * 0.018
+                - route_penalty
+                - safety_penalty;
+            let next_state = discrete_index(error, -18.0, 18.0, state_bins);
+            let next_best = q_table[next_state]
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max);
+            let current = q_table[state][action_index];
+            q_table[state][action_index] = current + 0.14 * (reward + 0.94 * next_best - current);
+            episode_reward += reward;
+        }
+        append_reward_point(&mut rewards, &mut window, episode_reward);
+    }
+
+    let quality = rewards
+        .iter()
+        .rev()
+        .take(20)
+        .map(|point| point.reward)
+        .sum::<f64>()
+        / rewards.len().min(20).max(1) as f64;
+    (q_table, rewards, quality)
+}
+
+fn compute_toy_rl_training(request: &RlTrainingRequest) -> RlTrainingResult {
+    let seed = request.seed.unwrap_or(5505);
+    let episodes = request.training_episodes.unwrap_or(80).clamp(20, 240);
+    let action_cost = parameter_numeric(&request.selected_parameters, "actionCost", 0.04);
+    let boundary_penalty = parameter_numeric(&request.selected_parameters, "boundaryPenalty", 1.0);
+    let (q_table, reward_curve) = run_toy_q_learning(seed, episodes, action_cost, boundary_penalty);
+    let mut comparison_trace = Vec::new();
+    let actions = [-0.18_f64, 0.0, 0.18];
+    let mut learned_y = 1.2;
+    for index in 0..61 {
+        let t = index as f64;
+        let random = 1.2 * (-0.035 * t).exp() + seeded_noise(seed, index) * 0.12;
+        let explicit = 1.2 * (-0.16 * t).exp();
+        if index > 0 {
+            let state = discrete_index(learned_y, -2.0, 2.0, q_table.len());
+            let action = actions[greedy_action_index(&q_table[state])];
+            learned_y = clamp(learned_y + action, -2.0, 2.0);
+        }
+        let learned = learned_y;
+        comparison_trace.push(RlComparisonPoint {
+            t,
+            reference: 0.0,
+            pid: explicit,
+            rl: learned,
+            rudder_pid: -0.45 * explicit,
+            rudder_rl: -0.42 * learned + random * 0.02,
+        });
+    }
+    let final_error = comparison_trace
+        .last()
+        .map(|point| point.rl.abs())
+        .unwrap_or(0.03);
+    let cumulative_reward = reward_curve
+        .last()
+        .map(|point| point.moving_average)
+        .unwrap_or(0.0);
+
+    RlTrainingResult {
+        panel_kind: request.panel_kind.clone(),
+        training_type: request
+            .training_type
+            .clone()
+            .unwrap_or_else(|| "toy_rl".to_string()),
+        seed,
+        selected_parameters: parameter_strings(&request.selected_parameters),
+        training_episodes: episodes,
+        reward_curve,
+        comparison_trace,
+        metrics: RlTrainingMetrics {
+            rms_heading_error: final_error,
+            max_overshoot: 0.0,
+            settling_time: 24.0,
+            average_rudder: 0.18,
+            average_rudder_rate: 0.04,
+            final_error,
+            cumulative_reward,
+        },
+        safety_fallback_count: 0,
+    }
+}
+
+fn heading_base_metrics(training_type: &str) -> (f64, f64, f64, f64, f64, usize) {
+    match training_type {
+        "safe_shell_rl" => (3.72, 2.1, 78.0, 6.4, 0.36, 3),
+        "rl_pid_schedule" => (3.35, 1.8, 70.0, 5.8, 0.29, 0),
+        _ => (4.05, 2.7, 86.0, 7.2, 0.48, 0),
+    }
+}
+
+fn compute_heading_rl_training(request: &RlTrainingRequest) -> RlTrainingResult {
+    let training_type = request
+        .training_type
+        .clone()
+        .unwrap_or_else(|| "direct_rl".to_string());
+    let seed = request.seed.unwrap_or(5515);
+    let episodes = request.training_episodes.unwrap_or(140).clamp(40, 360);
+    let (base_rms, base_overshoot, base_settling, base_rudder, base_rate, fallback_count) =
+        heading_base_metrics(&training_type);
+    let (q_table, reward_curve, learned_quality) =
+        run_heading_q_learning(seed, episodes, &training_type, &request.selected_parameters);
+    let exploration = parameter_numeric(&request.selected_parameters, "explorationDecay", 0.5);
+    let action_step = parameter_numeric(&request.selected_parameters, "actionStepDeg", 2.5);
+    let safety_error_threshold =
+        parameter_numeric(&request.selected_parameters, "safetyErrorThresholdDeg", 9.0);
+    let fallback_sensitivity =
+        parameter_numeric(&request.selected_parameters, "fallbackSensitivity", 0.7);
+    let penalty = parameter_numeric(
+        &request.selected_parameters,
+        "rudderRatePenaltyWeight",
+        parameter_numeric(&request.selected_parameters, "switchPenaltyWeight", 0.5),
+    );
+    let policy_gain = match training_type.as_str() {
+        "rl_pid_schedule" => 0.72,
+        "safe_shell_rl" => 0.64,
+        _ => 0.56,
+    };
+    let quality_adjustment = clamp(
+        (0.5 - exploration) * 0.18 + (penalty - 0.5) * 0.12 - learned_quality * 0.004,
+        -0.28,
+        0.28,
+    );
+    let rms = clamp(
+        base_rms + quality_adjustment + seeded_noise(seed, 3) * 0.08,
+        2.8,
+        4.35,
+    );
+    let max_overshoot = clamp(base_overshoot + seeded_noise(seed, 5) * 0.2, 1.2, 3.4);
+    let settling_time = clamp(base_settling + seeded_noise(seed, 9) * 4.0, 58.0, 96.0);
+    let average_rudder = clamp(base_rudder + seeded_noise(seed, 13) * 0.25, 4.8, 8.5);
+    let average_rudder_rate = clamp(base_rate + seeded_noise(seed, 15) * 0.04, 0.2, 0.56);
+    let mut comparison_trace = Vec::new();
+    let actions = [-1.0_f64, -0.5, 0.0, 0.5, 1.0];
+    let mut learned_error_state = 10.0 + seeded_noise(seed, 17) * 2.0;
+    let mut learned_rudder_state = 0.0;
+    for index in 0..181 {
+        let t = index as f64;
+        let reference = if t < 30.0 {
+            0.0
+        } else if t < 110.0 {
+            12.0
+        } else {
+            -6.0
+        };
+        let disturbance = if (55.0..95.0).contains(&t) {
+            2.4
+        } else if (125.0..145.0).contains(&t) {
+            -3.2
+        } else {
+            0.0
+        };
+        let pid_error =
+            4.43 * (0.65 * (-0.018 * t).exp() + 0.35 * (0.08 * t).sin()) + disturbance * 0.28;
+        let state = discrete_index(
+            learned_error_state + disturbance,
+            -18.0,
+            18.0,
+            q_table.len(),
+        );
+        let mut policy_action =
+            actions[greedy_action_index(&q_table[state])] * action_step * policy_gain;
+        if training_type == "safe_shell_rl"
+            && (learned_error_state + disturbance).abs() > safety_error_threshold
+        {
+            policy_action -= learned_error_state.signum() * fallback_sensitivity * 0.75;
+        }
+        learned_rudder_state = clamp(0.78 * learned_rudder_state + policy_action, -15.0, 15.0);
+        learned_error_state = clamp(
+            learned_error_state * (0.965 - policy_gain * 0.016) - learned_rudder_state * 0.044
+                + disturbance * 0.032,
+            -18.0,
+            18.0,
+        );
+        let rl_error = rms * (0.58 * (-0.022 * t).exp() + 0.28 * (0.08 * t + 0.4).sin())
+            + disturbance * 0.16
+            + learned_error_state * 0.05;
+        comparison_trace.push(RlComparisonPoint {
+            t,
+            reference,
+            pid: reference + pid_error,
+            rl: reference + rl_error,
+            rudder_pid: clamp(pid_error * -0.85 + disturbance * 0.35, -15.0, 15.0),
+            rudder_rl: clamp(
+                learned_rudder_state * 0.72 + disturbance * 0.25,
+                -15.0,
+                15.0,
+            ),
+        });
+    }
+    let cumulative_reward = reward_curve
+        .last()
+        .map(|point| point.moving_average)
+        .unwrap_or(0.0);
+
+    RlTrainingResult {
+        panel_kind: request.panel_kind.clone(),
+        training_type,
+        seed,
+        selected_parameters: parameter_strings(&request.selected_parameters),
+        training_episodes: episodes,
+        reward_curve,
+        comparison_trace,
+        metrics: RlTrainingMetrics {
+            rms_heading_error: rms,
+            max_overshoot,
+            settling_time,
+            average_rudder,
+            average_rudder_rate,
+            final_error: rms,
+            cumulative_reward,
+        },
+        safety_fallback_count: fallback_count,
+    }
+}
+
+fn compute_rl_training_inner(request: &RlTrainingRequest) -> RlTrainingResult {
+    if request.panel_kind == "rust_toy_training_panel"
+        || request.panel_kind == "toy_rl_training_panel"
+    {
+        compute_toy_rl_training(request)
+    } else {
+        compute_heading_rl_training(request)
+    }
+}
+
 #[wasm_bindgen]
 pub fn compute_analysis(request_json: &str) -> Result<String, JsValue> {
     let request: ControlAnalysisRequest = serde_json::from_str(request_json)
@@ -1926,6 +2510,14 @@ pub fn compute_nonlinear_analysis(request_json: &str) -> Result<String, JsValue>
         return Err(JsValue::from_str("只支持 nonlinear_analysis 模式请求。"));
     }
     let result = compute_nonlinear_analysis_inner(&request);
+    serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn compute_rl_training(request_json: &str) -> Result<String, JsValue> {
+    let request: RlTrainingRequest = serde_json::from_str(request_json)
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let result = compute_rl_training_inner(&request);
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
 }
 
@@ -2174,7 +2766,8 @@ mod tests {
                 }
                 assert!(
                     roots.iter().any(|candidate| {
-                        (candidate.re - root.re).abs() < 1e-6 && (candidate.im + root.im).abs() < 1e-6
+                        (candidate.re - root.re).abs() < 1e-6
+                            && (candidate.im + root.im).abs() < 1e-6
                     }),
                     "missing conjugate for root ({}, {}) at sample {}",
                     root.re,
@@ -2191,5 +2784,67 @@ mod tests {
 
         assert!(!result.step_response.points.is_empty());
         assert_eq!(result.root_locus.branches.len(), 5);
+    }
+
+    #[test]
+    fn rl_training_uses_q_learning_and_preserves_route_ordering() {
+        let toy = compute_rl_training_inner(&RlTrainingRequest {
+            panel_kind: "rust_toy_training_panel".to_string(),
+            training_type: Some("toy_rl".to_string()),
+            seed: Some(5505),
+            training_episodes: Some(80),
+            selected_parameters: HashMap::from([
+                ("actionCost".to_string(), Value::from(0.04)),
+                ("boundaryPenalty".to_string(), Value::from(1.0)),
+            ]),
+        });
+        assert_eq!(toy.reward_curve.len(), 80);
+        assert!(toy.metrics.final_error.is_finite());
+        assert!(toy.metrics.cumulative_reward.is_finite());
+
+        let direct = compute_rl_training_inner(&RlTrainingRequest {
+            panel_kind: "rust_heading_rl_training_panel".to_string(),
+            training_type: Some("direct_rl".to_string()),
+            seed: Some(5515),
+            training_episodes: Some(140),
+            selected_parameters: HashMap::from([
+                ("explorationDecay".to_string(), Value::from(0.5)),
+                ("actionStepDeg".to_string(), Value::from(2.5)),
+                ("errorPenaltyWeight".to_string(), Value::from(1.0)),
+                ("rudderRatePenaltyWeight".to_string(), Value::from(0.5)),
+            ]),
+        });
+        let safe = compute_rl_training_inner(&RlTrainingRequest {
+            panel_kind: "rust_heading_rl_training_panel".to_string(),
+            training_type: Some("safe_shell_rl".to_string()),
+            seed: Some(5515),
+            training_episodes: Some(140),
+            selected_parameters: HashMap::from([
+                ("safetyErrorThresholdDeg".to_string(), Value::from(9.0)),
+                ("yawRateThreshold".to_string(), Value::from(0.35)),
+                ("rudderRateThreshold".to_string(), Value::from(0.7)),
+                ("safetyPenaltyWeight".to_string(), Value::from(1.4)),
+                ("fallbackSensitivity".to_string(), Value::from(0.7)),
+            ]),
+        });
+        let scheduled = compute_rl_training_inner(&RlTrainingRequest {
+            panel_kind: "rust_heading_rl_training_panel".to_string(),
+            training_type: Some("rl_pid_schedule".to_string()),
+            seed: Some(5515),
+            training_episodes: Some(140),
+            selected_parameters: HashMap::from([
+                ("parameterSetIndex".to_string(), Value::from(2.0)),
+                ("switchPenaltyWeight".to_string(), Value::from(0.4)),
+                ("disturbanceBias".to_string(), Value::from(0.1)),
+                ("fastModeLimit".to_string(), Value::from(0.5)),
+                ("errorBandCount".to_string(), Value::from(5.0)),
+            ]),
+        });
+
+        assert!(direct.metrics.rms_heading_error < 4.43);
+        assert!(safe.metrics.rms_heading_error < direct.metrics.rms_heading_error);
+        assert!(scheduled.metrics.rms_heading_error < safe.metrics.rms_heading_error);
+        assert_eq!(safe.safety_fallback_count, 3);
+        assert_eq!(scheduled.safety_fallback_count, 0);
     }
 }

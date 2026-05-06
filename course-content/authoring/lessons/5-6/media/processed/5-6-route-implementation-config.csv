@@ -7,11 +7,16 @@ classic,I_min,-0.35,integral lower clamp
 classic,I_max,0.70,integral upper clamp
 data,forecast_horizon,60,minutes of future door/load/ambient signals summarized
 data,forecast_formula,0.16*sum(qdoor)+0.09*sum(qload)+0.35*max(0,mean(Tamb)-22),dimensionless heat-load score
+data,parameter_source,E1_E2_offline_calibration,transparent linear weights calibrated on normal and receiving-peak development logs
+data,input_qdoor,door switch logs or receiving work plan,simulated as minute-level door heat load
+data,input_qload,batch receiving records and product initial heat,simulated as receiving heat-load profile
+data,input_Tamb,ambient sensor and short-term forecast,simulated as 60-minute mean ambient temperature
 data,precool_threshold,7.8,forecast score triggering precooling
 data,precool_setpoint,4.25,air-temperature setpoint in C during predicted load
 data,feedforward_formula,clip(0.030*forecast+0.020*max(0,Tamb-23),0,0.52),compressor-duty feedforward term
 data,Kp_Ki_Kd,0.48/0.011/0.08,PID gains after adding prediction compensation
-policy,state_vector,T_measured/T_product/forecast/T_ambient/sensor_bias,supervisor inputs used by threshold policy
+policy,state_vector,T_measured/T_product/forecast/T_ambient,observable supervisor inputs used by threshold policy
+policy,hidden_fault_sensor_bias,sensor_bias,simulation-only hidden fault used for E3 evaluation and not available to supervisor
 policy,training_scope,E1_and_E2_only,thresholds are calibrated on normal and receiving-peak scenarios
 policy,held_out_scope,E3,door-seal degradation sensor bias and cooling-capacity loss are not used for calibration
 policy,conservative_recovery,if T_measured>6.7 or T_product>6.3 then T_set=4.10 Kp=0.58 Ki=0.014 Kd=0.10 uff=0.22,mode 4

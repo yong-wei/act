@@ -1215,6 +1215,8 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     multi_select_matrix: renderCards,
     quiz_card_grid: renderCards,
     teacher_reveal_only: renderNull,
+    rust_toy_training_panel: renderNull,
+    rust_heading_rl_training_panel: renderNull,
     worked_example_reveal: renderCards,
   };
 }
@@ -1250,6 +1252,8 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     multi_select_matrix: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_card_grid: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     teacher_reveal_only: (props) => <TeacherRevealOnlySummary {...props} />,
+    rust_toy_training_panel: (props) => <TeacherRevealOnlySummary {...props} />,
+    rust_heading_rl_training_panel: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     worked_example_reveal: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
   };
 }

@@ -34,6 +34,7 @@ import { UNIT_5_1_PREMIUM_LESSON_CARD } from '@/lib/unit-5-1-course';
 import { UNIT_5_2_PREMIUM_LESSON_CARD } from '@/lib/unit-5-2-course';
 import { UNIT_5_3_PREMIUM_LESSON_CARD } from '@/lib/unit-5-3-course';
 import { UNIT_5_4_PREMIUM_LESSON_CARD } from '@/lib/unit-5-4-course';
+import { UNIT_5_5_PREMIUM_LESSON_CARD } from '@/lib/unit-5-5-course';
 
 const UNIT_4_5_PREMIUM_LESSON_CARD = {
   id: 'unit-4-5-constraint-aware-parameter-optimization',
@@ -175,6 +176,7 @@ export const FEATURED_LESSONS = [
   UNIT_5_2_PREMIUM_LESSON_CARD,
   UNIT_5_3_PREMIUM_LESSON_CARD,
   UNIT_5_4_PREMIUM_LESSON_CARD,
+  UNIT_5_5_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -352,7 +354,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-5-1-linear-backbone-boundaries' &&
     lesson.id !== 'unit-5-2-nonlinear-analysis-entry' &&
     lesson.id !== 'unit-5-3-mass-coordination-chain' &&
-    lesson.id !== 'unit-5-4-data-driven-mpc-transition'
+    lesson.id !== 'unit-5-4-data-driven-mpc-transition' &&
+    lesson.id !== 'unit-5-5-policy-learning-entry-risk'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -428,13 +431,14 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-5',
     title: '模块5',
     description:
-      '模块5 当前开放 5-1、5-2、5-3、5-4 四个新主线单元，从线性主干边界识别推进到非线性最小分析入口、MASS 复杂链路责任诊断，再进入模型驱动到数据驱动的 MPC 迁移判断。',
+      '模块5 当前开放 5-1、5-2、5-3、5-4、5-5 五个新主线单元，从线性主干边界识别推进到非线性最小分析入口、MASS 复杂链路责任诊断、模型驱动到数据驱动迁移，再进入策略学习入口与风险判断。',
     chipLabel: '非线性与自主系统链路',
     lessons: [
       createModuleLesson('unit-5-1-linear-backbone-boundaries', '5-1'),
       createModuleLesson('unit-5-2-nonlinear-analysis-entry', '5-2'),
       createModuleLesson('unit-5-3-mass-coordination-chain', '5-3'),
       createModuleLesson('unit-5-4-data-driven-mpc-transition', '5-4'),
+      createModuleLesson('unit-5-5-policy-learning-entry-risk', '5-5'),
     ],
   },
 ] as const;

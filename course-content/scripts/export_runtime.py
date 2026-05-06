@@ -667,7 +667,7 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         if not isinstance(interaction_spec, dict):
             return []
         existing = interaction_spec.get('activity_cards')
-        if isinstance(existing, list) and existing:
+        if isinstance(existing, list):
             return existing
         interaction_kind = str(interaction_spec.get('interaction_kind', 'none'))
         if interaction_kind == 'none':

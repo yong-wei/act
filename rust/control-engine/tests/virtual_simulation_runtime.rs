@@ -26,7 +26,12 @@ fn interactive_linear_runtimes_return_finite_series() {
     .unwrap();
     assert!(pid_result["times"].as_array().unwrap().len() > 10);
     assert!(pid_result["response"][0].as_f64().unwrap().is_finite());
-    assert!(pid_result["metrics"]["finalValue"].as_f64().unwrap().is_finite());
+    assert!(
+        pid_result["metrics"]["finalValue"]
+            .as_f64()
+            .unwrap()
+            .is_finite()
+    );
 
     let step_request = json!({
         "modelId": "second_order_step_response",
@@ -40,7 +45,12 @@ fn interactive_linear_runtimes_return_finite_series() {
     )
     .unwrap();
     assert!(step_result["values"].as_array().unwrap().len() > 100);
-    assert!(step_result["metrics"]["overshoot"].as_f64().unwrap().is_finite());
+    assert!(
+        step_result["metrics"]["overshoot"]
+            .as_f64()
+            .unwrap()
+            .is_finite()
+    );
 
     let response_request = json!({
         "modelId": "transfer_function_response",
@@ -78,7 +88,10 @@ fn interactive_cruise_and_champagne_steps_return_finite_state() {
         &compute_virtual_simulation_step_json(&cruise_request.to_string()).unwrap(),
     )
     .unwrap();
-    assert_finite_fields(&cruise_result, &["time", "heading", "rollAngle", "yawRate", "lateralAccel"]);
+    assert_finite_fields(
+        &cruise_result,
+        &["time", "heading", "rollAngle", "yawRate", "lateralAccel"],
+    );
 
     let tower_request = json!({
         "modelId": "champagne_tower_step",
@@ -92,7 +105,10 @@ fn interactive_cruise_and_champagne_steps_return_finite_state() {
         &compute_virtual_simulation_step_json(&tower_request.to_string()).unwrap(),
     )
     .unwrap();
-    assert_finite_fields(&tower_result, &["angle", "angularVelocity", "stability", "lateralAccel"]);
+    assert_finite_fields(
+        &tower_result,
+        &["angle", "angularVelocity", "stability", "lateralAccel"],
+    );
 }
 
 #[test]

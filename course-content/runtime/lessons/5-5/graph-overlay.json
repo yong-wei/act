@@ -1,0 +1,1193 @@
+{
+  "lesson_id": "5-5",
+  "title": "从显式控制器到策略学习：强化学习的进入条件、收益与风险",
+  "focus_node_ids": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "强化学习控制回报_5_55003",
+    "航向控制RL环境_5_55004",
+    "策略学习安全外壳_5_55005",
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "reuse_node_ids": [
+    "方法迁移前边界说明_5_51005",
+    "控制在自主系统链路中的位置_5_53002",
+    "数据驱动控制_5_54003",
+    "数据覆盖与泛化边界_5_54005",
+    "模型数据责任分配_5_54007",
+    "船舶航向控制对象_2_21004",
+    "设计任务表达卡_4_41001"
+  ],
+  "entry_nodes": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002"
+  ],
+  "summary_nodes": [
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "card_order": [
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "强化学习控制回报_5_55003",
+    "航向控制RL环境_5_55004",
+    "策略学习安全外壳_5_55005",
+    "RL调度PID_5_55006",
+    "训练覆盖与部署验证_5_55007",
+    "四路线策略评价_5_55008"
+  ],
+  "groups": [
+    {
+      "title": "显式结构与策略入口",
+      "step_ids": [
+        "step-04",
+        "step-06",
+        "step-09",
+        "step-10",
+        "step-16",
+        "step-17"
+      ],
+      "node_ids": [
+        "显式控制律与学习策略_5_55001",
+        "策略学习进入条件_5_55002"
+      ]
+    },
+    {
+      "title": "强化学习控制闭环",
+      "step_ids": [
+        "step-07",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-17"
+      ],
+      "node_ids": [
+        "强化学习控制回报_5_55003",
+        "航向控制RL环境_5_55004",
+        "策略学习安全外壳_5_55005"
+      ]
+    },
+    {
+      "title": "航向控制工程评价",
+      "step_ids": [
+        "step-11",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17"
+      ],
+      "node_ids": [
+        "RL调度PID_5_55006",
+        "训练覆盖与部署验证_5_55007",
+        "四路线策略评价_5_55008"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "船舶航向控制对象_2_21004",
+      "name": "船舶航向控制对象",
+      "nodeType": "THEORY",
+      "description": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+      "positionX": 56.0,
+      "positionY": 15.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以舵角或等效控制作用为输入、以偏航角速度或航向角为输出的典型工程对象，用来说明真实系统怎样从物理方程、典型环节和反馈结构转化为可分析的控制对象。",
+        "examples": [
+          "2-1 中，船舶航向动力学先由微分方程给出，再在零初值下转写成传递函数。",
+          "船舶航向闭环结构把控制器、舵机、船体和罗经反馈放入同一张结构图，便于后续时域、频域和设计比较。"
+        ],
+        "formulas": [
+          "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+          "G_\\theta(s)=\\frac{K}{s(Js+B)}"
+        ],
+        "prerequisites": [
+          "微分方程_2_775c96a3",
+          "拉氏变换工程动机_2_11001"
+        ],
+        "relatedConcepts": [
+          "零初值传递函数_2_21001",
+          "典型环节对象库_2_21002",
+          "结构图_2_3f312ccc"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "船舶",
+          "航向控制",
+          "工程对象",
+          "传递函数",
+          "结构图"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/船舶航向控制对象_2_21004.md"
+      ],
+      "tags": [
+        "船舶",
+        "航向控制",
+        "工程对象",
+        "传递函数",
+        "结构图",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "设计任务表达卡_4_41001",
+      "name": "设计任务表达卡",
+      "nodeType": "THEORY",
+      "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
+      "positionX": -116.0,
+      "positionY": -67.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
+        "examples": [
+          "客船航向控制的任务表达卡会把“超调不可继续维持在当前水平”和“相位储备要更从容”写成硬约束，再把“进一步缩短调节时间”写成软目标。",
+          "稳定平台场景会把“保持高响应频带”提前到更高优先级，同时仍保留“不能继续压紧中频储备”的边界。"
+        ],
+        "formulas": [
+          "\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})"
+        ],
+        "prerequisites": [
+          "指标角色重组_4_41002",
+          "硬约束-软目标-观察指标分类_4_41003",
+          "可行域-满意域-最优域分层_4_41004",
+          "跨域联读任务重排_4_41005"
+        ],
+        "relatedConcepts": [
+          "设计可行域_4_Lsum004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "任务表达卡",
+          "目标-约束-优先级",
+          "证据来源",
+          "设计输入"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "title": "设计任务表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+          "title": "设计任务表达卡 信息图",
+          "lessonId": "4-4",
+          "nodeId": "设计任务表达卡_4_41001"
+        }
+      ],
+      "tags": [
+        "任务表达卡",
+        "目标-约束-优先级",
+        "证据来源",
+        "设计输入",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "RL调度PID_5_55006",
+      "name": "RL调度PID",
+      "nodeType": "THEORY",
+      "description": "RL 调度 PID 让策略学习选择 PID 参数档位或修正量，实际控舵仍由带限幅和舵速约束的 PID 完成，是比直接控舵更稳妥的工程入口。",
+      "positionX": 77.0,
+      "positionY": -133.4,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "RL 调度 PID 让策略学习选择 PID 参数档位或修正量，实际控舵仍由带限幅和舵速约束的 PID 完成，是比直接控舵更稳妥的工程入口。",
+        "examples": [
+          "复杂边缘场景中，RL 在保守、常规、抗扰和快速四组 PID 参数之间选择，保留可解释控制结构和执行器边界。"
+        ],
+        "formulas": [
+          "\\delta_k=\\mathrm{PID}_{m_k}(e_{\\psi,k},r_k),\\quad m_k=\\pi_\\theta(s_k)"
+        ],
+        "prerequisites": [
+          "策略学习安全外壳",
+          "航向控制RL环境"
+        ],
+        "relatedConcepts": [
+          "四路线策略评价",
+          "模型数据责任分配"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "参数调度",
+          "PID",
+          "混合策略",
+          "工程入口"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/RL调度PID_5_55006.md"
+      ],
+      "tags": [
+        "参数调度",
+        "PID",
+        "混合策略",
+        "工程入口",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "四路线策略评价_5_55008",
+      "name": "四路线策略评价",
+      "nodeType": "THEORY",
+      "description": "四路线策略评价把 PID、直接控舵 RL、安全外壳 RL 和 RL 调度 PID 放入同一边缘场景中，比较响应误差、超调、调节时间、舵角使用、舵速和安全退化。",
+      "positionX": -113.1,
+      "positionY": 113.1,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "四路线策略评价把 PID、直接控舵 RL、安全外壳 RL 和 RL 调度 PID 放入同一边缘场景中，比较响应误差、超调、调节时间、舵角使用、舵速和安全退化。",
+        "examples": [
+          "5-5 航向仿真中，RL 调度 PID 的 RMS 误差为 4.20°，接近固定 PID 且保留显式控舵结构；直接控舵 RL 最大超调达到 58.04°。"
+        ],
+        "formulas": [
+          "e_{\\mathrm{RMS}}=\\sqrt{\\frac{1}{N}\\sum_{k=1}^{N}e_k^2}",
+          "\\mathrm{settling\\ time}=\\min\\{t: |e(\\tau)|\\leq \\varepsilon,\\forall \\tau\\geq t\\}"
+        ],
+        "prerequisites": [
+          "RL调度PID",
+          "训练覆盖与部署验证"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "船舶航向控制对象"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "PID",
+          "直接控舵RL",
+          "安全外壳",
+          "RL调度PID",
+          "评价指标"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/四路线策略评价_5_55008.md"
+      ],
+      "tags": [
+        "PID",
+        "直接控舵RL",
+        "安全外壳",
+        "RL调度PID",
+        "评价指标",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "强化学习控制回报_5_55003",
+      "name": "强化学习控制回报",
+      "nodeType": "THEORY",
+      "description": "强化学习控制回报把跟踪、安全、能耗、动作平滑和规则约束写成可训练目标，用来决定策略优化的方向。",
+      "positionX": -166.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "强化学习控制回报把跟踪、安全、能耗、动作平滑和规则约束写成可训练目标，用来决定策略优化的方向。",
+        "examples": [
+          "航向保持奖励同时惩罚航向误差、偏航角速度、大舵角、舵角变化率和安全退化，而不是只奖励误差变小。"
+        ],
+        "formulas": [
+          "J(\\pi)=\\mathbb{E}_{\\pi}\\left[\\sum_{k=0}^{\\infty}\\gamma^k r_k\\right]",
+          "r_k=-w_e e_k^2-w_u u_k^2-w_{\\Delta u}(u_k-u_{k-1})^2-w_s I_{\\mathrm{safety},k}"
+        ],
+        "prerequisites": [
+          "显式控制律与学习策略"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "航向控制RL环境"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "回报函数",
+          "长期回报",
+          "安全惩罚",
+          "动作平滑"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/强化学习控制回报_5_55003.md"
+      ],
+      "tags": [
+        "回报函数",
+        "长期回报",
+        "安全惩罚",
+        "动作平滑",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "控制在自主系统链路中的位置_5_53002",
+      "name": "控制在自主系统链路中的位置",
+      "nodeType": "THEORY",
+      "description": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
+      "positionX": -0.0,
+      "positionY": -166.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
+        "examples": [
+          "规划层给出期望航迹后，控制层将航迹翻译为舵角和推进指令，同时处理风浪流扰动。"
+        ],
+        "formulas": [
+          "e(t)=r(t)-y(t),\\quad u(t)=C(e(t))"
+        ],
+        "prerequisites": [
+          "闭环控制",
+          "传统控制结构局限"
+        ],
+        "relatedConcepts": [
+          "MASS协同链路",
+          "执行约束反馈"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "控制位置",
+          "闭环控制",
+          "参考输入",
+          "反馈状态"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/控制在自主系统链路中的位置_5_53002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
+          "title": "控制在自主系统链路中的位置 信息图",
+          "lessonId": "5-3",
+          "nodeId": "控制在自主系统链路中的位置_5_53002"
+        }
+      ],
+      "tags": [
+        "控制位置",
+        "闭环控制",
+        "参考输入",
+        "反馈状态",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据覆盖与泛化边界_5_54005",
+      "name": "数据覆盖与泛化边界",
+      "nodeType": "THEORY",
+      "description": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+      "positionX": 83.0,
+      "positionY": -143.8,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+        "examples": [
+          "晴天低流速数据不能证明强横流、低能见度和大舵角场景下的闭环安全。"
+        ],
+        "formulas": [
+          "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件"
+        ],
+        "relatedConcepts": [
+          "模型数据责任分配"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "数据覆盖",
+          "泛化",
+          "边界工况",
+          "故障注入"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据覆盖与泛化边界_5_54005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005"
+        }
+      ],
+      "tags": [
+        "数据覆盖",
+        "泛化",
+        "边界工况",
+        "故障注入",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据驱动控制_5_54003",
+      "name": "数据驱动控制",
+      "nodeType": "THEORY",
+      "description": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+      "positionX": 117.4,
+      "positionY": -117.4,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+        "examples": [
+          "用闭环运行数据更新短时扰动补偿项，而外层控制仍保留物理模型、舵角限制和安全检查。"
+        ],
+        "formulas": [
+          "\\mathcal{D}=\\{x_k,u_k,y_k\\}_{k=1}^{M}"
+        ],
+        "prerequisites": [
+          "模型依赖松动"
+        ],
+        "relatedConcepts": [
+          "数据驱动进入条件",
+          "模型数据责任分配"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "数据驱动",
+          "运行数据",
+          "样本规律",
+          "控制补偿"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据驱动控制_5_54003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003"
+        }
+      ],
+      "tags": [
+        "数据驱动",
+        "运行数据",
+        "样本规律",
+        "控制补偿",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "方法迁移前边界说明_5_51005",
+      "name": "方法迁移前边界说明",
+      "nodeType": "THEORY",
+      "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+      "positionX": 160.3,
+      "positionY": -43.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+        "examples": [
+          "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+          "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+        ],
+        "formulas": [
+          "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+        ],
+        "prerequisites": [
+          "线性预测失真对比_5_51004"
+        ],
+        "relatedConcepts": [
+          "局部线性化边界判断_5_51003"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "方法迁移",
+          "边界说明",
+          "工程证据",
+          "风险说明"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005"
+        }
+      ],
+      "tags": [
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "显式控制律与学习策略_5_55001",
+      "name": "显式控制律与学习策略",
+      "nodeType": "THEORY",
+      "description": "显式控制律把动作生成机制写成可读结构，学习策略则通过状态、样本和回报训练出动作生成函数；二者的核心差别在证据来源和验证方式。",
+      "positionX": 172.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "显式控制律把动作生成机制写成可读结构，学习策略则通过状态、样本和回报训练出动作生成函数；二者的核心差别在证据来源和验证方式。",
+        "examples": [
+          "航向保持中，PID 直接按误差和偏航角速度计算舵角；学习策略则根据训练形成的参数从状态向量输出动作或参数档位。"
+        ],
+        "formulas": [
+          "u(t)=C(e(t),x(t),p)",
+          "u=\\pi_\\theta(x)"
+        ],
+        "prerequisites": [
+          "控制在自主系统链路中的位置",
+          "数据驱动控制"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "强化学习控制回报"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "显式控制律",
+          "学习策略",
+          "动作生成",
+          "验证责任"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/显式控制律与学习策略_5_55001.md"
+      ],
+      "tags": [
+        "显式控制律",
+        "学习策略",
+        "动作生成",
+        "验证责任",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "模型数据责任分配_5_54007",
+      "name": "模型数据责任分配",
+      "nodeType": "THEORY",
+      "description": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+      "positionX": 0.0,
+      "positionY": 172.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+        "examples": [
+          "船体低速操纵动态由模型给出主干，风浪流扰动由数据补偿，舵角限制和安全距离由显式规则保护。"
+        ],
+        "formulas": [
+          "\\text{闭环证据}=\\text{模型结构}+\\text{数据补偿}+\\text{约束优化}+\\text{安全保护}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件",
+          "数据覆盖与泛化边界"
+        ],
+        "relatedConcepts": [
+          "三路线控制比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "责任分配",
+          "模型主干",
+          "数据补偿",
+          "安全保护"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模型数据责任分配_5_54007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007"
+        }
+      ],
+      "tags": [
+        "责任分配",
+        "模型主干",
+        "数据补偿",
+        "安全保护",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "策略学习安全外壳_5_55005",
+      "name": "策略学习安全外壳",
+      "nodeType": "THEORY",
+      "description": "策略学习安全外壳在学习策略输出动作后执行限幅、舵速约束、状态监控、退化记录和传统控制器接管，防止策略越过可执行和安全边界。",
+      "positionX": -44.5,
+      "positionY": -166.1,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "策略学习安全外壳在学习策略输出动作后执行限幅、舵速约束、状态监控、退化记录和传统控制器接管，防止策略越过可执行和安全边界。",
+        "examples": [
+          "当策略建议导致舵角越界、舵速越界、误差继续放大或角速度过高时，控制量退回到限幅 PID 输出并记录安全退化。"
+        ],
+        "formulas": [
+          "|\\delta_k-\\delta_{k-1}|\\leq \\dot\\delta_{\\max}\\Delta t",
+          "\\delta_k\\in[-\\delta_{\\max},\\delta_{\\max}]"
+        ],
+        "prerequisites": [
+          "策略学习进入条件",
+          "航向控制RL环境"
+        ],
+        "relatedConcepts": [
+          "RL调度PID",
+          "训练覆盖与部署验证"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "安全外壳",
+          "动作限幅",
+          "降级接管",
+          "安全退化"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/策略学习安全外壳_5_55005.md"
+      ],
+      "tags": [
+        "安全外壳",
+        "动作限幅",
+        "降级接管",
+        "安全退化",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "策略学习进入条件_5_55002",
+      "name": "策略学习进入条件",
+      "nodeType": "THEORY",
+      "description": "策略学习进入条件用任务、样本、回报、验证和监控五项检查判断强化学习是否具备进入控制任务的依据。",
+      "positionX": -0.0,
+      "positionY": -172.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "策略学习进入条件用任务、样本、回报、验证和监控五项检查判断强化学习是否具备进入控制任务的依据。",
+        "examples": [
+          "固定仓库移动平台已有可靠 MPC 时，不宜整体替代控制器；强扰动航向保持可先考虑参数调度或扰动补偿。"
+        ],
+        "formulas": [
+          "\\text{进入条件}=\\text{任务}+\\text{样本}+\\text{回报}+\\text{验证}+\\text{监控}"
+        ],
+        "prerequisites": [
+          "显式控制律与学习策略",
+          "方法迁移前边界说明"
+        ],
+        "relatedConcepts": [
+          "训练覆盖与部署验证",
+          "策略学习安全外壳"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "进入条件",
+          "样本条件",
+          "回报条件",
+          "部署监控"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/策略学习进入条件_5_55002.md"
+      ],
+      "tags": [
+        "进入条件",
+        "样本条件",
+        "回报条件",
+        "部署监控",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "航向控制RL环境_5_55004",
+      "name": "航向控制RL环境",
+      "nodeType": "THEORY",
+      "description": "航向控制 RL 环境把 Nomoto 船舶航向模型、目标航向、扰动、执行器限制、状态观测和动作集合组织成可训练闭环。",
+      "positionX": 171.9,
+      "positionY": 46.1,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "航向控制 RL 环境把 Nomoto 船舶航向模型、目标航向、扰动、执行器限制、状态观测和动作集合组织成可训练闭环。",
+        "examples": [
+          "训练场景随机化时间常数、舵效增益、扰动、初始航向和目标航向，用于观察策略是否只记住单一工况。"
+        ],
+        "formulas": [
+          "T\\dot r+r=K\\delta+d_r",
+          "\\dot\\psi=r",
+          "s_k=[e_{\\psi,k},r_k,\\delta_{k-1},\\hat d_{r,k}]^{\\mathsf T}"
+        ],
+        "prerequisites": [
+          "船舶航向控制对象",
+          "强化学习控制回报"
+        ],
+        "relatedConcepts": [
+          "策略学习安全外壳",
+          "四路线策略评价"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "Nomoto模型",
+          "航向控制",
+          "状态设计",
+          "动作设计"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/航向控制RL环境_5_55004.md"
+      ],
+      "tags": [
+        "Nomoto模型",
+        "航向控制",
+        "状态设计",
+        "动作设计",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "训练覆盖与部署验证_5_55007",
+      "name": "训练覆盖与部署验证",
+      "nodeType": "THEORY",
+      "description": "训练覆盖与部署验证要求策略在参数随机化、扰动、执行器边界、传感器噪声和训练外工况中通过独立测试，再以观察模式、受限接入和接管机制逐步部署。",
+      "positionX": 46.1,
+      "positionY": 171.9,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "训练覆盖与部署验证要求策略在参数随机化、扰动、执行器边界、传感器噪声和训练外工况中通过独立测试，再以观察模式、受限接入和接管机制逐步部署。",
+        "examples": [
+          "航向策略先在 Nomoto 或三自由度模型中训练，再做历史数据回放、硬件在环、受限水域观察模式和小范围接入。"
+        ],
+        "formulas": [
+          "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}",
+          "\\text{部署证据}=\\text{训练覆盖}+\\text{独立测试}+\\text{安全外壳}+\\text{运行监控}"
+        ],
+        "prerequisites": [
+          "数据覆盖与泛化边界",
+          "策略学习安全外壳"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "四路线策略评价"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "训练覆盖",
+          "独立测试",
+          "压力测试",
+          "部署监控"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/训练覆盖与部署验证_5_55007.md"
+      ],
+      "tags": [
+        "训练覆盖",
+        "独立测试",
+        "压力测试",
+        "部署监控",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-3a5d006942e3fa23",
+      "sourceId": "控制在自主系统链路中的位置_5_53002",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-6e89b2b934535969",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-e6bb876f7044a77d",
+      "sourceId": "数据驱动控制_5_54003",
+      "targetId": "显式控制律与学习策略_5_55001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-9a1f7c4983a08c2c",
+      "sourceId": "控制在自主系统链路中的位置_5_53002",
+      "targetId": "显式控制律与学习策略_5_55001",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-21dd8eac1acd85bf",
+      "sourceId": "方法迁移前边界说明_5_51005",
+      "targetId": "策略学习进入条件_5_55002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-b6908f2f1cf91287",
+      "sourceId": "显式控制律与学习策略_5_55001",
+      "targetId": "策略学习进入条件_5_55002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-82f2509048789ff4",
+      "sourceId": "显式控制律与学习策略_5_55001",
+      "targetId": "强化学习控制回报_5_55003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-bfd9d07ab8a04ed3",
+      "sourceId": "强化学习控制回报_5_55003",
+      "targetId": "航向控制RL环境_5_55004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-45af9fbb2f0797a8",
+      "sourceId": "船舶航向控制对象_2_21004",
+      "targetId": "航向控制RL环境_5_55004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-a8c85af91214ad75",
+      "sourceId": "策略学习进入条件_5_55002",
+      "targetId": "策略学习安全外壳_5_55005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-0887816466ebc4e9",
+      "sourceId": "航向控制RL环境_5_55004",
+      "targetId": "策略学习安全外壳_5_55005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-ce38fb3856e68f81",
+      "sourceId": "策略学习安全外壳_5_55005",
+      "targetId": "RL调度PID_5_55006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-171fa83918b87d4e",
+      "sourceId": "模型数据责任分配_5_54007",
+      "targetId": "RL调度PID_5_55006",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-39b1032bd46950b3",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "训练覆盖与部署验证_5_55007",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ded04fcbad18f45f",
+      "sourceId": "策略学习安全外壳_5_55005",
+      "targetId": "训练覆盖与部署验证_5_55007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-1660cbd1cfaa0e11",
+      "sourceId": "RL调度PID_5_55006",
+      "targetId": "四路线策略评价_5_55008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-b1baf61c5b902f4e",
+      "sourceId": "训练覆盖与部署验证_5_55007",
+      "targetId": "四路线策略评价_5_55008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-c50d970cfc5fa5a4",
+      "sourceId": "设计任务表达卡_4_41001",
+      "targetId": "策略学习进入条件_5_55002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    }
+  ]
+}

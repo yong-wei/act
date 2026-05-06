@@ -112,7 +112,13 @@ fn level_models() -> Vec<(&'static str, Value)> {
     ]
 }
 
-fn level_request(model: &Value, controller: Value, state: Value, dt: f64, disturbance: f64) -> String {
+fn level_request(
+    model: &Value,
+    controller: Value,
+    state: Value,
+    dt: f64,
+    disturbance: f64,
+) -> String {
     request(
         json!({
             "type": "transferFunction",
@@ -133,7 +139,12 @@ fn reference_y(tier: &str, x: f64) -> f64 {
     }
     let events: &[(f64, f64)] = match tier {
         "bronze" => &[(700.0, 60.0)],
-        _ => &[(650.0, 70.0), (1050.0, -80.0), (1550.0, 60.0), (2250.0, -50.0)],
+        _ => &[
+            (650.0, 70.0),
+            (1050.0, -80.0),
+            (1550.0, 60.0),
+            (2250.0, -50.0),
+        ],
     };
     200.0
         + events
@@ -147,11 +158,15 @@ fn disturbance_y(tier: &str, x: f64) -> f64 {
     if tier != "gold" {
         return 0.0;
     }
-    [(900.0, 24.0, 140.0), (1700.0, -30.0, 160.0), (2400.0, 20.0, 120.0)]
-        .iter()
-        .filter(|(at, _, duration)| x >= *at && x <= *at + *duration)
-        .map(|(_, amplitude, _)| amplitude)
-        .sum()
+    [
+        (900.0, 24.0, 140.0),
+        (1700.0, -30.0, 160.0),
+        (2400.0, 20.0, 120.0),
+    ]
+    .iter()
+    .filter(|(at, _, duration)| x >= *at && x <= *at + *duration)
+    .map(|(_, amplitude, _)| amplitude)
+    .sum()
 }
 
 fn pd_controller() -> Value {
@@ -314,13 +329,8 @@ fn all_levels_remain_finite_under_pd_and_assisted_pid_runs() {
                     let alpha = (dt / (0.6 + dt)).min(1.0);
                     filtered_disturbance += (raw_disturbance - filtered_disturbance) * alpha;
 
-                    let json = level_request(
-                        &model,
-                        controller.clone(),
-                        state,
-                        dt,
-                        filtered_disturbance,
-                    );
+                    let json =
+                        level_request(&model, controller.clone(), state, dt, filtered_disturbance);
                     let result: Value =
                         serde_json::from_str(&compute_simulation_step_json(&json).unwrap())
                             .unwrap();

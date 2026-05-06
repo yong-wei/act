@@ -1,0 +1,134 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-5",
+  "status": "accepted",
+  "accepted_at": "2026-05-06T11:50:37+08:00",
+  "review_mode": "subagent+browser",
+  "implementation_contract_source": "src/lib/unit-5-5-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/5-5/review/review-report.md",
+    "course-content/runtime/lessons/5-5/review/interactive-page-check.json",
+    "course-content/runtime/lessons/5-5/interactive-manifest.json"
+  ],
+  "subagent_review": {
+    "code_runtime_review": {
+      "agent_id": "019dfb62-bbde-7ef0-99d2-8825f20f2893",
+      "status": "pass",
+      "scope": "code registration Rust WASM tests",
+      "evidence": [
+        "step-15 teacher summary reads all rl_result:* answers and ranks them together by RMS heading error.",
+        "step-08 and step-15 runtime manifest activity_cards are empty, so the Rust training panels do not fall back to ordinary answer cards.",
+        "compute_rl_training is exported from Rust/WASM, Q-learning updates q_table, and heading evaluation uses the trained q_table to generate the stopped policy response.",
+        "App Router, learning catalog, preset lesson, AI context registry, classroom route resolver, and strict implementation registry are wired for unit-5-5-policy-learning-entry-risk."
+      ]
+    },
+    "student_teacher_experience_review": {
+      "agent_id": "019dfb4f-a480-7ef1-91dd-a2274bbbf37d",
+      "status": "pass",
+      "scope": "student demo teacher aggregation browser route behavior",
+      "evidence": [
+        "step-08 shows reward training while training and only shows evaluation after stop.",
+        "step-15 direct_rl, safe_shell_rl, and rl_pid_schedule can train, stop, and submit independently.",
+        "student submissions preserve multiple rl_result:* entries for the same step.",
+        "teacher ranking displays training type, parameter summary, RMS heading error, and safety fallback count."
+      ]
+    }
+  },
+  "browser_acceptance": {
+    "status": "pass_with_demo_scope",
+    "routes_checked": [
+      "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk",
+      "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-08",
+      "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo?step=step-15",
+      "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/teacher/demo"
+    ],
+    "evidence": [
+      "Entry page renders the 5-5 course title.",
+      "step-08 demo can start training, stop training, and show the stopped state.",
+      "step-15 demo can train, stop, and submit all three strategy tags.",
+      "Teacher demo renders the teacher classroom surface."
+    ],
+    "limitations": [
+      "Demo validation did not create an authenticated classroom session.",
+      "Unauthenticated demo requests still report expected 401 or 404 responses for session/event APIs; these are not counted as a real classroom loop pass."
+    ]
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-08",
+        "step-15",
+        "step-17"
+      ],
+      "evidence": [
+        "src/lib/unit-5-5-ai-contexts.ts registers hidden page contexts from manifest page goals.",
+        "src/lib/course-ai-contexts.ts registers unit-5-5-policy-learning-entry-risk-v1 without adding visible AI cards inside the student page.",
+        "student-page.tsx consumes page context through the shared AI context path; step panels render manifest content and training widgets only."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-08",
+        "step-15",
+        "step-17"
+      ],
+      "evidence": [
+        "course-content/runtime/lessons/5-5/interactive-manifest.json is the page composition source for all 17 steps.",
+        "src/lib/unit-5-5-course.ts derives step order, titles, interaction kinds, teacher controls, preview paths, and page goals from the normalized runtime manifest.",
+        "step-panels.tsx only adds narrow renderers for the two Rust training panels and learning-stat-panel; the rest of the page structure is rendered through the shared manifest runtime."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-08",
+        "step-15"
+      ],
+      "evidence": [
+        "step-08 uses computeUnit55RlTraining and the Rust/WASM compute_rl_training export to produce reward and evaluation curves.",
+        "step-15 uses the Rust/WASM training result for reward curves, PID comparison traces, metrics, and safety fallback count.",
+        "Neither step-08 nor step-15 is implemented as a static image, static table, or ordinary quiz replacement."
+      ]
+    },
+    "rust_wasm_training": {
+      "status": "pass",
+      "step_ids": [
+        "step-08",
+        "step-15"
+      ],
+      "evidence": [
+        "rust/control-engine/src/lib.rs exports compute_rl_training(request_json).",
+        "run_toy_q_learning and run_heading_q_learning update q_table through temporal-difference updates.",
+        "compute_heading_rl_training uses the trained q_table to choose policy actions for the stopped evaluation response."
+      ]
+    },
+    "browser_demo_training": {
+      "status": "pass",
+      "step_ids": [
+        "step-08",
+        "step-15"
+      ],
+      "evidence": [
+        "Student demo for step-08 exposes start and stop controls and reports the stopped recorded state.",
+        "Student demo for step-15 exposes direct_rl, safe_shell_rl, and rl_pid_schedule training tags and supports train, stop, submit for each tag.",
+        "Teacher demo route renders the 5-5 teacher classroom page."
+      ]
+    },
+    "teacher_multi_tag_ranking": {
+      "status": "pass",
+      "step_ids": [
+        "step-15"
+      ],
+      "evidence": [
+        "HeadingRlTeacherRanking collects every answer whose key starts with rl_result:.",
+        "The ranking sorts all submitted training types together by metrics.rmsHeadingError.",
+        "The table displays rank, student, training type, RMS, selected parameter summary, and safetyFallbackCount."
+      ]
+    }
+  },
+  "issues": []
+}

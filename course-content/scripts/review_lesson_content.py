@@ -473,6 +473,13 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_5_4_LESSON_STEPS',
         'source_path': 'src/lib/unit-5-4-course.ts',
     },
+    '5-5': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-5-5-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '5-5' / 'interactive-manifest.json',
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_5_5_LESSON_STEPS',
+        'source_path': 'src/lib/unit-5-5-course.ts',
+    },
     '3-6': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-6-course.ts',
         'page_contracts_const': 'UNIT_3_6_PAGE_CONTRACTS',

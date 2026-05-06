@@ -1,8 +1,8 @@
 {
   "lesson_id": "5-5",
-  "status": "lesson_candidate",
-  "sequence_source": "lesson_stage_candidate",
-  "note": "本顺序仅为 lesson 阶段知识卡片候选分组，未冻结互动步骤；后续由 interactive-design 依据页面步骤和契约定稿。",
+  "status": "interactive_design_finalized",
+  "sequence_source": "interactive_design_contract",
+  "note": "本顺序已按 5-5 interactive-page 与 interactive-contract 的 17 步互动设计定稿，供后续 runtime 导出和课堂页挂载使用。",
   "card_order": [
     "显式控制律与学习策略_5_55001",
     "策略学习进入条件_5_55002",
@@ -16,6 +16,14 @@
   "groups": [
     {
       "title": "显式结构与策略入口",
+      "step_ids": [
+        "step-04",
+        "step-06",
+        "step-09",
+        "step-10",
+        "step-16",
+        "step-17"
+      ],
       "node_ids": [
         "显式控制律与学习策略_5_55001",
         "策略学习进入条件_5_55002"
@@ -23,6 +31,14 @@
     },
     {
       "title": "强化学习控制闭环",
+      "step_ids": [
+        "step-07",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-17"
+      ],
       "node_ids": [
         "强化学习控制回报_5_55003",
         "航向控制RL环境_5_55004",
@@ -31,6 +47,13 @@
     },
     {
       "title": "航向控制工程评价",
+      "step_ids": [
+        "step-11",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17"
+      ],
       "node_ids": [
         "RL调度PID_5_55006",
         "训练覆盖与部署验证_5_55007",

@@ -1,13 +1,14 @@
 {
   "lesson_id": "5-5",
   "unit_type": "理论",
-  "generated_at": "2026-05-05T12:39:53.312215+00:00",
+  "generated_at": "2026-05-06T03:57:07.107634+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/5-5/design/5-5-handout.md"
+    "course-content/authoring/lessons/5-5/design/5-5-handout.md",
+    "course-content/authoring/lessons/5-5/design/5-5-interactive-page.md"
   ],
-  "interactive_page_source": null,
+  "interactive_page_source": "course-content/authoring/lessons/5-5/design/5-5-interactive-page.md",
   "interactive_contract_source": "course-content/authoring/lessons/5-5/design/5-5-interactive-contract.yaml",
-  "handout_pdf_source": null,
+  "handout_pdf_source": "course-content/authoring/lessons/5-5/design/5-5-handout.pdf",
   "boppps_source": "course-content/authoring/lessons/5-5/design/5-5-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/5-5/sequence.json",
   "expected_code_media": [
