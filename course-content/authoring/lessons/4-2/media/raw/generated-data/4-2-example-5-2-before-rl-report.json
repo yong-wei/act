@@ -1,7 +1,7 @@
 {
-  "sample_count": 261,
+  "sample_count": 166,
   "gain_min": 0.0,
-  "gain_max": 1000.0,
+  "gain_max": 165.0,
   "branch_count": 2,
   "expected_branch_count": 2,
   "finite_zero_coverage": {
@@ -12,17 +12,17 @@
   "jump_metrics": [
     {
       "branch_index": 0,
-      "max_jump": 0.8743083862999939,
+      "max_jump": 0.027061027480000055,
       "sign_switches": 0,
       "endpoint_re": -0.466307658155,
-      "endpoint_im": 33.2138596994
+      "endpoint_im": -1.39892297446
     },
     {
       "branch_index": 1,
-      "max_jump": 0.8743083862999939,
+      "max_jump": 0.027061027480000055,
       "sign_switches": 0,
       "endpoint_re": -0.466307658155,
-      "endpoint_im": -33.2138596994
+      "endpoint_im": 1.39892297446
     }
   ],
   "views": []
