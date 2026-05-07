@@ -1,0 +1,100 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-6",
+  "status": "accepted",
+  "accepted_at": "2026-05-07T14:32:40+08:00",
+  "review_mode": "implementation+targeted-tests+browser-acceptance",
+  "implementation_contract_source": "src/lib/unit-5-6-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/5-6/review/review-report.md",
+    "course-content/runtime/lessons/5-6/review/interactive-page-check.json",
+    "course-content/runtime/lessons/5-6/interactive-manifest.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-11",
+        "step-18"
+      ],
+      "evidence": [
+        "src/lib/unit-5-6-ai-contexts.ts registers hidden page contexts from manifest page goals.",
+        "src/lib/course-ai-contexts.ts registers unit-5-6-method-comparison-cold-chain-v1 without adding visible AI cards inside the student page.",
+        "student-page.tsx updates the shared global AI page context and renders manifest content plus the cold-chain panel only."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-11",
+        "step-18"
+      ],
+      "evidence": [
+        "course-content/runtime/lessons/5-6/interactive-manifest.json is the page composition source for all 18 steps.",
+        "src/lib/unit-5-6-course.ts aligns step order, titles, interaction kinds, teacher controls, preview paths, and page goals with the normalized runtime manifest.",
+        "step-panels.tsx only adds the step-11 cold-chain route comparison panel and learning-stat-panel; remaining modules use the shared manifest runtime."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-11"
+      ],
+      "evidence": [
+        "step-11 reads CSV and JSON from /course-runtime/lessons/5-6/media/generated-data instead of authoring media paths.",
+        "ColdChainRouteComparePanel renders SVG curves for classic, data, and policy routes, with temperature channel and metric controls.",
+        "The static three-route PNG is used only as a diagnostic fallback when runtime data is missing or invalid."
+      ]
+    },
+    "runtime_data_panel": {
+      "status": "pass",
+      "step_ids": [
+        "step-11"
+      ],
+      "evidence": [
+        "Runtime generated-data includes E2 classic/data/policy trace CSV files and cold-chain summary JSON.",
+        "Student payload includes route, recovery_time, benefit_judgment, and boundary_judgment.",
+        "Teacher summary aggregates structured cold_chain_route_observation payloads."
+      ]
+    }
+  },
+  "browser_acceptance": {
+    "status": "pass",
+    "checked_at": "2026-05-07T14:32:40+08:00",
+    "entry_page": {
+      "url": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain",
+      "status": "pass",
+      "evidence": [
+        "Entry page renders the 5-6 premium course shell, lecture materials, knowledge cards, and classroom entry controls."
+      ]
+    },
+    "student_step_11": {
+      "url": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-11",
+      "status": "pass",
+      "evidence": [
+        "data-testid unit-5-6-cold-chain-route-compare-panel is present.",
+        "SVG curve paths are rendered from runtime data.",
+        "Route visibility, temperature channel, metric view, and route-observation submission controls are interactive."
+      ]
+    },
+    "teacher_demo_step_11": {
+      "url": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/teacher/demo",
+      "status": "pass",
+      "evidence": [
+        "Teacher demo uses local demo state and does not require authenticated classroom sync.",
+        "The step selector can switch to step-11.",
+        "The route-observation aggregation panel and teacher controls are visible."
+      ]
+    },
+    "console_errors": {
+      "status": "pass",
+      "evidence": [
+        "Student step-11 and teacher demo step-11 reported no page exceptions through agent-browser errors.",
+        "Console output after the final checks contained only the React DevTools development hint."
+      ]
+    }
+  },
+  "issues": []
+}

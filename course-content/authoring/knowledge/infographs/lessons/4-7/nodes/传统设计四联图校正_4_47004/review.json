@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T04:40:51.973464Z",
+  "lesson_id": "4-7",
+  "node_id": "传统设计四联图校正_4_47004",
+  "requested_node_id": "传统设计四联图校正_4_47004",
+  "node_name": "传统设计四联图校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉复核通过：时域、根轨迹、Bode、Nyquist 四类证据齐全，PI+超前结构与频域参数计算一致。"
+}

@@ -29,6 +29,10 @@ Use this table as the source of truth before preparing or registering an
 infographic. If the requested node id is an alias, resolve it to
 `canonical_node_id`. If the canonical entry already has an accepted
 `selected_infograph`, do not regenerate the node; reuse the recorded asset.
+If the canonical entry has no `selected_infograph` but its `owner_lesson`
+already contains an accepted infographic for the canonical node id, do not
+generate a lesson-local duplicate. Reuse the owner asset and add an explicit
+`selected_infograph` entry when export needs an unambiguous canonical choice.
 
 Authoring node infographic directory:
 

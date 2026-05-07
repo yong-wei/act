@@ -53,18 +53,24 @@
   ],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [
-    "manifest audit pass: 12 steps, 71 modules, 0 issues"
+    "manifest audit fail: 12 steps, 71 modules, 4 issues"
   ],
-  "manifest_audit_issues": [],
+  "manifest_audit_issues": [
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_requirements\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_reading\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"formula_explanation\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_explanations\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-12\"}"
+  ],
   "manifest_audit": {
-    "status": "pass",
+    "status": "fail",
     "summary": {
       "steps": 12,
       "modules": 71,
-      "issues": 0
+      "issues": 4
     },
     "implementation_sources": {
       "content_renderer": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+      "activity_renderer": "src/features/interactive/shared/manifest-runtime/activity-renderers.tsx",
       "layout_renderer": "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
       "content_renderer_kinds": [
         "ai-compare-workspace",
@@ -80,6 +86,7 @@
         "equation-card-row",
         "evidence-bank",
         "example-card",
+        "figure",
         "figure-note",
         "formula-card",
         "formula-card-row",
@@ -91,6 +98,7 @@
         "interactive-figure",
         "interactive-figure-panel",
         "key-task-card",
+        "learning-stat-panel",
         "media-card",
         "metric-strip",
         "native-figure",
@@ -124,6 +132,7 @@
         "step-reveal-column",
         "structured-compare",
         "summary-card",
+        "summary-card-grid",
         "summary-card-row",
         "tab-selector",
         "table-card",
@@ -131,6 +140,74 @@
         "template-card",
         "title-card",
         "worked-example-card"
+      ],
+      "student_activity_kinds": [
+        "activity_card_set",
+        "activity_cards",
+        "band_focus_panel",
+        "binary_choice",
+        "card_sort",
+        "curve_compare_panel",
+        "drag_match",
+        "evidence_mark_cards",
+        "goal_cards",
+        "goal_cards_plus_ai",
+        "hotspot_labeling",
+        "interactive_figure_submit",
+        "matrix_choice_cards",
+        "multi_select",
+        "multi_select_matrix",
+        "parameter_slider",
+        "quiz_card_grid",
+        "quiz_group",
+        "reason_chain",
+        "reflection_card",
+        "row_focus_toggle",
+        "rust_heading_rl_training_panel",
+        "rust_toy_training_panel",
+        "scheme_vote_cards",
+        "single_choice",
+        "step_reveal",
+        "structured_compare",
+        "table_builder",
+        "task_card_workspace",
+        "teacher_reveal_only",
+        "triple_match",
+        "worked_example_reveal"
+      ],
+      "teacher_activity_kinds": [
+        "activity_card_set",
+        "activity_cards",
+        "band_focus_panel",
+        "binary_choice",
+        "card_sort",
+        "curve_compare_panel",
+        "drag_match",
+        "evidence_mark_cards",
+        "goal_cards",
+        "goal_cards_plus_ai",
+        "hotspot_labeling",
+        "interactive_figure_submit",
+        "matrix_choice_cards",
+        "multi_select",
+        "multi_select_matrix",
+        "parameter_slider",
+        "quiz_card_grid",
+        "quiz_group",
+        "reason_chain",
+        "reflection_card",
+        "row_focus_toggle",
+        "rust_heading_rl_training_panel",
+        "rust_toy_training_panel",
+        "scheme_vote_cards",
+        "single_choice",
+        "step_reveal",
+        "structured_compare",
+        "table_builder",
+        "task_card_workspace",
+        "teacher_reveal_only",
+        "triple_match",
+        "worked_example_reveal"
       ],
       "activity_module_kinds": [
         "activity-card",
@@ -145,6 +222,7 @@
         "quiz-group",
         "reason-chain",
         "single-choice-card",
+        "table-builder",
         "task-card-workspace",
         "teacher-reveal-only",
         "triple-match"
@@ -166,7 +244,7 @@
         "module_id": "boundary-questions",
         "kind": "question-card-set",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.question_cards",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -176,7 +254,7 @@
         "module_id": "bridge-conclusion",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.conclusion",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -186,7 +264,7 @@
         "module_id": "pretest-header",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.header",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -236,7 +314,7 @@
         "module_id": "route-task-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.route_task_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -246,7 +324,7 @@
         "module_id": "speed-condition",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -256,7 +334,7 @@
         "module_id": "nominal-chain",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -266,7 +344,7 @@
         "module_id": "rudder-model",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -276,7 +354,7 @@
         "module_id": "hull-model",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -286,7 +364,7 @@
         "module_id": "disturbance-model",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -296,7 +374,7 @@
         "module_id": "segmented-block",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -306,7 +384,7 @@
         "module_id": "rudder-identification-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -316,7 +394,7 @@
         "module_id": "hull-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -326,7 +404,7 @@
         "module_id": "disturbance-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -336,7 +414,7 @@
         "module_id": "model-boundary-reveal",
         "kind": "step-reveal",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "reveal",
         "is_empty": false,
         "diagnostic": null
@@ -346,7 +424,7 @@
         "module_id": "final-model",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -356,7 +434,7 @@
         "module_id": "metric-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.metric_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -406,7 +484,7 @@
         "module_id": "plant-model",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -416,7 +494,7 @@
         "module_id": "diagnosis-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -426,7 +504,7 @@
         "module_id": "structure-choice-reveal",
         "kind": "step-reveal",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_source": "content_blocks.media",
         "resolved_content_type": "reveal",
         "is_empty": false,
         "diagnostic": null
@@ -456,46 +534,37 @@
         "module_id": "corrected-four-panel",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_requirements"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-06",
         "module_id": "traditional-zigzag",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_requirements"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-06",
         "module_id": "traditional-turning",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_requirements"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-06",
         "module_id": "parameter-reveal",
         "kind": "step-reveal",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "reveal",
         "is_empty": false,
         "diagnostic": null
@@ -505,7 +574,7 @@
         "module_id": "structure-family",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.structures",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -515,7 +584,7 @@
         "module_id": "search-settings",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.search_settings",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -525,7 +594,7 @@
         "module_id": "identified-convergence",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -535,7 +604,7 @@
         "module_id": "hifi-convergence",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
@@ -565,7 +634,7 @@
         "module_id": "controller-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -595,7 +664,7 @@
         "module_id": "comparison-criteria",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.criteria",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -605,20 +674,17 @@
         "module_id": "optimized-zigzag",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_reading"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-08",
         "module_id": "optimized-turning",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null,
@@ -631,7 +697,7 @@
         "module_id": "cross-model-reveal",
         "kind": "step-reveal",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "reveal",
         "is_empty": false,
         "diagnostic": null
@@ -641,7 +707,7 @@
         "module_id": "disturbance-mechanism",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.disturbance_mechanism",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -651,7 +717,7 @@
         "module_id": "disturbance-level-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.level_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -661,7 +727,7 @@
         "module_id": "control-symbols",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.control_symbols",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -671,7 +737,7 @@
         "module_id": "disturbance-controller-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -681,7 +747,7 @@
         "module_id": "disturbed-zigzag",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null,
@@ -694,13 +760,10 @@
         "module_id": "disturbed-turning",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_reading"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-09",
@@ -727,7 +790,7 @@
         "module_id": "noise-equation",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -747,7 +810,7 @@
         "module_id": "noise-controller-table",
         "kind": "native-table",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "table",
         "is_empty": false,
         "diagnostic": null
@@ -757,28 +820,20 @@
         "module_id": "noise-zigzag",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_reading",
-          "formula_explanation"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-10",
         "module_id": "noise-turning",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_reading",
-          "formula_explanation"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-10",
@@ -805,7 +860,7 @@
         "module_id": "posttest-header",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.header",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -855,7 +910,7 @@
         "module_id": "limitation-cards",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.limitations",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
@@ -865,39 +920,54 @@
         "module_id": "real-scenario-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_explanations"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-12",
         "module_id": "info-figure",
         "kind": "image-panel",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "image",
         "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_explanations"
-        ]
+        "diagnostic": null
       },
       {
         "step_id": "step-12",
         "module_id": "frontier-methods",
         "kind": "summary-card",
         "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.frontier_methods",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       }
     ],
-    "issues": [],
+    "issues": [
+      {
+        "step_id": "step-06",
+        "issue": "image_explanation_not_consumed",
+        "content_block": "figure_requirements"
+      },
+      {
+        "step_id": "step-10",
+        "issue": "image_explanation_not_consumed",
+        "content_block": "figure_reading"
+      },
+      {
+        "step_id": "step-10",
+        "issue": "image_explanation_not_consumed",
+        "content_block": "formula_explanation"
+      },
+      {
+        "step_id": "step-12",
+        "issue": "image_explanation_not_consumed",
+        "content_block": "figure_explanations"
+      }
+    ],
     "manifest_path": "course-content/runtime/lessons/4-7/interactive-manifest.json"
   },
   "reviewed_runtime_artifacts": [
@@ -908,7 +978,12 @@
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [],
+  "blocking_issues": [
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_requirements\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_reading\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"formula_explanation\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_explanations\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-12\"}"
+  ],
   "implementation_contract_summary": [
     "已检测到 `4-7` 的本地实现契约与作者态互动契约一致。"
   ],
@@ -917,17 +992,29 @@
   "summary": [
     "已检测到 `4-7` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `4-7` 的本地实现契约与作者态互动契约一致。",
-    "manifest audit pass: 12 steps, 71 modules, 0 issues",
+    "manifest audit fail: 12 steps, 71 modules, 4 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],
   "warnings": [
-    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_requirements\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_reading\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"formula_explanation\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_explanations\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-12\"}"
   ],
   "missing": [
-    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_requirements\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_reading\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"formula_explanation\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_explanations\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-12\"}"
   ],
   "issues": [
-    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_requirements\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_reading\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"formula_explanation\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"content_block\": \"figure_explanations\", \"issue\": \"image_explanation_not_consumed\", \"step_id\": \"step-12\"}"
   ]
 }

@@ -94,8 +94,8 @@
       "name": "传统控制结构局限",
       "nodeType": "THEORY",
       "description": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
-      "positionX": -0.0,
-      "positionY": -116.0,
+      "positionX": 58.0,
+      "positionY": -100.5,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -128,13 +128,31 @@
           "扰动观测器",
           "MPC"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008",
+          "sourceNodeId": "传统控制结构局限_4_47008"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md"
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
+          "title": "传统控制结构局限 信息图",
+          "lessonId": "5-1",
+          "nodeId": "传统控制结构局限_4_47008",
+          "sourceNodeId": "传统控制结构局限_4_47008"
+        }
       ],
       "tags": [
         "传统控制局限",
@@ -149,8 +167,8 @@
       "name": "传统设计四联图校正",
       "nodeType": "THEORY",
       "description": "用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正辨识模型，再选择 $PI+\\text{超前}$ 结构并按频域指标计算参数。",
-      "positionX": 30.0,
-      "positionY": -112.0,
+      "positionX": 82.0,
+      "positionY": -82.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -182,13 +200,31 @@
           "Bode",
           "根轨迹"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+          "title": "传统设计四联图校正 信息图",
+          "lessonId": "4-7",
+          "nodeId": "传统设计四联图校正_4_47004",
+          "sourceNodeId": "传统设计四联图校正_4_47004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/传统设计四联图校正_4_47004.md"
+        "course-content/runtime/knowledge/cards/nodes/传统设计四联图校正_4_47004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+          "title": "传统设计四联图校正 信息图",
+          "lessonId": "4-7",
+          "nodeId": "传统设计四联图校正_4_47004",
+          "sourceNodeId": "传统设计四联图校正_4_47004"
+        }
       ],
       "tags": [
         "四联图",
@@ -203,8 +239,8 @@
       "name": "分段辨识模型组合",
       "nodeType": "THEORY",
       "description": "分别辨识舵机惯性、船体艏摇惯性和扰动等效惯性，再把可信的舵机段与船体段组合为名义航向模型，并把扰动段作为边界观察入口。",
-      "positionX": 82.0,
-      "positionY": -82.0,
+      "positionX": 112.0,
+      "positionY": -30.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -238,13 +274,31 @@
           "船体惯性",
           "扰动等效"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+          "title": "分段辨识模型组合 信息图",
+          "lessonId": "4-7",
+          "nodeId": "分段辨识模型组合_4_47002",
+          "sourceNodeId": "分段辨识模型组合_4_47002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/分段辨识模型组合_4_47002.md"
+        "course-content/runtime/knowledge/cards/nodes/分段辨识模型组合_4_47002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+          "title": "分段辨识模型组合 信息图",
+          "lessonId": "4-7",
+          "nodeId": "分段辨识模型组合_4_47002",
+          "sourceNodeId": "分段辨识模型组合_4_47002"
+        }
       ],
       "tags": [
         "分段辨识",
@@ -259,8 +313,8 @@
       "name": "剩余风险说明",
       "nodeType": "THEORY",
       "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
-      "positionX": 100.5,
-      "positionY": -58.0,
+      "positionX": 122.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -294,13 +348,31 @@
           "结构限制",
           "移交"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006",
+          "sourceNodeId": "剩余风险说明_4_45006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006",
+          "sourceNodeId": "剩余风险说明_4_45006"
+        }
       ],
       "tags": [
         "剩余风险",
@@ -315,7 +387,7 @@
       "name": "参数约束翻译表",
       "nodeType": "THEORY",
       "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
-      "positionX": 31.6,
+      "positionX": -31.6,
       "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
@@ -351,13 +423,31 @@
           "上下界",
           "职责分工"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002",
+          "sourceNodeId": "参数约束翻译表_4_45002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002",
+          "sourceNodeId": "参数约束翻译表_4_45002"
+        }
       ],
       "tags": [
         "约束翻译",
@@ -372,8 +462,8 @@
       "name": "四类方案比较矩阵",
       "nodeType": "THEORY",
       "description": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
-      "positionX": -61.0,
-      "positionY": 105.7,
+      "positionX": -105.7,
+      "positionY": 61.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -406,13 +496,31 @@
           "目标错位",
           "结构边界"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "title": "四类方案比较矩阵 信息图",
+          "lessonId": "4-6",
+          "nodeId": "四类方案比较矩阵_4_46006",
+          "sourceNodeId": "四类方案比较矩阵_4_46006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md"
+        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "title": "四类方案比较矩阵 信息图",
+          "lessonId": "4-6",
+          "nodeId": "四类方案比较矩阵_4_46006",
+          "sourceNodeId": "四类方案比较矩阵_4_46006"
+        }
       ],
       "tags": [
         "四类方案",
@@ -427,8 +535,8 @@
       "name": "工程指标代价函数翻译",
       "nodeType": "THEORY",
       "description": "把航向误差、航迹偏离、舵角、舵速、饱和占比、控制能量和稳定裕度写成主目标、次目标、硬约束和罚项。",
-      "positionX": -105.7,
-      "positionY": -61.0,
+      "positionX": -61.0,
+      "positionY": -105.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -462,13 +570,31 @@
           "航迹偏离",
           "舵速"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "title": "工程指标代价函数翻译 信息图",
+          "lessonId": "5-1",
+          "nodeId": "工程指标代价函数翻译_4_47003",
+          "sourceNodeId": "工程指标代价函数翻译_4_47003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md"
+        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/工程指标代价函数翻译_4_47003.png",
+          "title": "工程指标代价函数翻译 信息图",
+          "lessonId": "5-1",
+          "nodeId": "工程指标代价函数翻译_4_47003",
+          "sourceNodeId": "工程指标代价函数翻译_4_47003"
+        }
       ],
       "tags": [
         "代价函数",
@@ -483,8 +609,8 @@
       "name": "扰动噪声设计边界",
       "nodeType": "THEORY",
       "description": "把外部扰动与航向传感器噪声作为独立边界处理，分别比较抗扰优化、测量低通、微分滤波和噪声下目标函数对设计结论的影响。",
-      "positionX": 31.6,
-      "positionY": -117.8,
+      "positionX": 86.3,
+      "positionY": -86.3,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -516,13 +642,31 @@
           "抗扰优化",
           "抗噪设计"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+          "title": "扰动噪声设计边界 信息图",
+          "lessonId": "4-7",
+          "nodeId": "扰动噪声设计边界_4_47007",
+          "sourceNodeId": "扰动噪声设计边界_4_47007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/扰动噪声设计边界_4_47007.md"
+        "course-content/runtime/knowledge/cards/nodes/扰动噪声设计边界_4_47007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+          "title": "扰动噪声设计边界 信息图",
+          "lessonId": "4-7",
+          "nodeId": "扰动噪声设计边界_4_47007",
+          "sourceNodeId": "扰动噪声设计边界_4_47007"
+        }
       ],
       "tags": [
         "扰动边界",
@@ -537,8 +681,8 @@
       "name": "组合结构专项验证边界判断",
       "nodeType": "THEORY",
       "description": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
-      "positionX": 116.0,
-      "positionY": 67.0,
+      "positionX": 67.0,
+      "positionY": 116.0,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -570,13 +714,31 @@
           "硬约束",
           "边界判断"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "title": "组合结构专项验证边界判断 信息图",
+          "lessonId": "4-6",
+          "nodeId": "组合结构专项验证边界判断_4_46007",
+          "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md"
+        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "title": "组合结构专项验证边界判断 信息图",
+          "lessonId": "4-6",
+          "nodeId": "组合结构专项验证边界判断_4_46007",
+          "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+        }
       ],
       "tags": [
         "组合结构",
@@ -591,7 +753,7 @@
       "name": "结构参数联合搜索解码",
       "nodeType": "THEORY",
       "description": "把结构编号与连续控制参数统一编码，用固定随机种子的全局粗搜和局部精修得到候选控制器，再解码回经典控制结构与参数职责。",
-      "positionX": 34.7,
+      "positionX": -34.7,
       "positionY": 129.4,
       "positionZ": 4,
       "bloomLevel": "APPLY",
@@ -625,13 +787,31 @@
           "解码",
           "遗传算法"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+          "title": "结构参数联合搜索解码 信息图",
+          "lessonId": "4-7",
+          "nodeId": "结构参数联合搜索解码_4_47005",
+          "sourceNodeId": "结构参数联合搜索解码_4_47005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/结构参数联合搜索解码_4_47005.md"
+        "course-content/runtime/knowledge/cards/nodes/结构参数联合搜索解码_4_47005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+          "title": "结构参数联合搜索解码 信息图",
+          "lessonId": "4-7",
+          "nodeId": "结构参数联合搜索解码_4_47005",
+          "sourceNodeId": "结构参数联合搜索解码_4_47005"
+        }
       ],
       "tags": [
         "结构编码",
@@ -646,8 +826,8 @@
       "name": "统一结构编码与解码",
       "nodeType": "THEORY",
       "description": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
-      "positionX": -67.0,
-      "positionY": 116.0,
+      "positionX": -116.0,
+      "positionY": 67.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -680,13 +860,31 @@
           "有效槽位",
           "逐槽映射"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "title": "统一结构编码与解码 信息图",
+          "lessonId": "4-6",
+          "nodeId": "统一结构编码与解码_4_46005",
+          "sourceNodeId": "统一结构编码与解码_4_46005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md"
+        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "title": "统一结构编码与解码 信息图",
+          "lessonId": "4-6",
+          "nodeId": "统一结构编码与解码_4_46005",
+          "sourceNodeId": "统一结构编码与解码_4_46005"
+        }
       ],
       "tags": [
         "统一编码",
@@ -701,8 +899,8 @@
       "name": "跨模型验证比较",
       "nodeType": "THEORY",
       "description": "把传统设计、辨识模型优化和高保真模型优化放到统一方波与回转任务中比较，判断名义模型上的好结果是否能转化为真实任务可用。",
-      "positionX": 34.7,
-      "positionY": -129.4,
+      "positionX": 94.8,
+      "positionY": -94.8,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "PROCEDURAL",
@@ -735,13 +933,31 @@
           "方波任务",
           "回转任务"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+          "title": "跨模型验证比较 信息图",
+          "lessonId": "4-7",
+          "nodeId": "跨模型验证比较_4_47006",
+          "sourceNodeId": "跨模型验证比较_4_47006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/跨模型验证比较_4_47006.md"
+        "course-content/runtime/knowledge/cards/nodes/跨模型验证比较_4_47006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+          "title": "跨模型验证比较 信息图",
+          "lessonId": "4-7",
+          "nodeId": "跨模型验证比较_4_47006",
+          "sourceNodeId": "跨模型验证比较_4_47006"
+        }
       ],
       "tags": [
         "跨模型验证",
@@ -756,8 +972,8 @@
       "name": "高保真任务降阶辨识",
       "nodeType": "THEORY",
       "description": "把高保真航向任务中的舵机、船体艏摇、航向积分和航迹响应分解为可解释的低阶主通道，用于经典控制器设计与后续高保真验证。",
-      "positionX": -121.2,
-      "positionY": 70.0,
+      "positionX": -140.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -788,13 +1004,31 @@
           "降阶辨识",
           "驱逐舰航向"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+          "title": "高保真任务降阶辨识 信息图",
+          "lessonId": "4-7",
+          "nodeId": "高保真任务降阶辨识_4_47001",
+          "sourceNodeId": "高保真任务降阶辨识_4_47001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/高保真任务降阶辨识_4_47001.md"
+        "course-content/runtime/knowledge/cards/nodes/高保真任务降阶辨识_4_47001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+          "title": "高保真任务降阶辨识 信息图",
+          "lessonId": "4-7",
+          "nodeId": "高保真任务降阶辨识_4_47001",
+          "sourceNodeId": "高保真任务降阶辨识_4_47001"
+        }
       ],
       "tags": [
         "高保真模型",

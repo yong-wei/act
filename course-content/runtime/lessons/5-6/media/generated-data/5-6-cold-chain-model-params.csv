@@ -1,0 +1,9 @@
+parameter,value,unit,note
+dt,1,min,sampling period
+T_set,5,C,nominal setpoint
+T_low,2,C,storage lower bound
+T_high,8,C,storage upper bound
+tau_ambient,420,min,air to ambient thermal time
+tau_air_product,92,min,air to product core exchange
+tau_product,250,min,product core inertia
+cooling_gain,0.080,C_per_min,max compressor cooling coefficient

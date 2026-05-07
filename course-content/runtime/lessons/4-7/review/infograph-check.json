@@ -14,8 +14,7 @@
     "扰动噪声设计边界_4_47007",
     "传统控制结构局限_4_47008"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "剩余风险说明_4_45006",
     "统一结构编码与解码_4_46005",
     "高保真任务降阶辨识_4_47001",
@@ -27,68 +26,8 @@
     "扰动噪声设计边界_4_47007",
     "传统控制结构局限_4_47008"
   ],
-  "missing_source_files": {
-    "剩余风险说明_4_45006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "统一结构编码与解码_4_46005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "高保真任务降阶辨识_4_47001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "分段辨识模型组合_4_47002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "工程指标代价函数翻译_4_47003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "传统设计四联图校正_4_47004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "结构参数联合搜索解码_4_47005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "跨模型验证比较_4_47006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "扰动噪声设计边界_4_47007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "传统控制结构局限_4_47008": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

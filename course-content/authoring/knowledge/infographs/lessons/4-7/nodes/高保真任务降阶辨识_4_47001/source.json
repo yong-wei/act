@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T04:30:34.928388Z",
+  "lesson": {
+    "lesson_id": "4-7",
+    "title": "综合工程场景对比设计：完整控制器优化设计闭环",
+    "groups": [
+      "真实任务与分段辨识"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "高保真任务降阶辨识_4_47001",
+    "name": "高保真任务降阶辨识",
+    "name_en": "High-Fidelity Task Reduction Identification",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "把高保真舰船航向任务拆成舵机、船体艏摇、航向积分和航迹响应这些可解释主通道，用于经典设计与高保真验证之间的连接。",
+    "examples": [
+      "驱逐舰 zig-zag 与回转任务先保留高保真航迹证据，再把舵令到航向的主通道降阶为三阶航向模型。"
+    ],
+    "formulas": [
+      "P_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}"
+    ],
+    "keywords": [
+      "高保真模型",
+      "降阶辨识",
+      "驱逐舰航向"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/高保真任务降阶辨识_4_47001.md",
+  "card_frontmatter": {
+    "node_id": "高保真任务降阶辨识_4_47001",
+    "name": "高保真任务降阶辨识",
+    "name_en": "High-Fidelity Task Reduction Identification",
+    "lesson_units": [
+      "4-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-7",
+      "高保真模型",
+      "降阶辨识"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-7/design/4-7-handout.md"
+    ],
+    "asset_refs": [
+      "4-7-segmented-identification-block.png"
+    ]
+  },
+  "card_overview": "# 高保真任务降阶辨识 | High-Fidelity Task Reduction Identification\n\n**一句话定义**：把高保真舰船航向任务拆成舵机、船体艏摇、航向积分和航迹响应这些可解释主通道，用于经典设计与高保真验证之间的连接。\n\n**核心直觉**：降阶不是把高保真模型“变简单就算完”，而是提取能解释控制器职责的主链条。\n\n**关键公式**：\n$$\nP_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}\n$$\n\n**关联**：前置 → 统一结构编码与解码 · 后续 → 分段辨识模型组合",
+  "card_detail": "### 完整解释\n\n`4-7` 的高保真模型包含舵角、纵横速度、艏摇角速度、位置和航向。经典控制器不能直接在这组状态上设计，所以必须先提取一条主通道：舵令到实际舵角、实际舵角到艏摇角速度、艏摇角速度积分为航向角。\n\n这张卡片强调两个判断：第一，低阶模型服务于设计解释，不取代高保真验证；第二，航迹任务不能只看航向响应，航向误差会积累成位置偏离。\n\n![分段辨识传递函数结构](../../lessons/4-7/media/processed/4-7-segmented-identification-block.png)\n\n### 常见误区\n\n1. **误区**：降阶模型越贴合一条曲线就越可靠。\n   **纠正**：控制设计还要检查积分后的航向和航迹后果。\n\n2. **误区**：低阶模型通过验证后就可以替代高保真模型。\n   **纠正**：它只提供名义设计入口，最终仍要回到高保真任务。",
+  "card_plain_excerpt": "## 首页\n\n# 高保真任务降阶辨识 | High-Fidelity Task Reduction Identification\n\n**一句话定义**：把高保真舰船航向任务拆成舵机、船体艏摇、航向积分和航迹响应这些可解释主通道，用于经典设计与高保真验证之间的连接。\n\n**核心直觉**：降阶不是把高保真模型“变简单就算完”，而是提取能解释控制器职责的主链条。\n\n**关键公式**：\n$$\nP_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}\n$$\n\n**关联**：前置 → 统一结构编码与解码 · 后续 → 分段辨识模型组合\n\n## 详情\n\n### 完整解释\n\n`4-7` 的高保真模型包含舵角、纵横速度、艏摇角速度、位置和航向。经典控制器不能直接在这组状态上设计，所以必须先提取一条主通道：舵令到实际舵角、实际舵角到艏摇角速度、艏摇角速度积分为航向角。\n\n这张卡片强调两个判断：第一，低阶模型服务于设计解释，不取代高保真验证；第二，航迹任务不能只看航向响应，航向误差会积累成位置偏离。\n\n![分段辨识传递函数结构](../../lessons/4-7/media/processed/4-7-segmented-identification-block.png)\n\n### 常见误区\n\n1. **误区**：降阶模型越贴合一条曲线就越可靠。\n   **纠正**：控制设计还要检查积分后的航向和航迹后果。\n\n2. **误区**：低阶模型通过验证后就可以替代高保真模型。\n   **纠正**：它只提供名义设计入口，最终仍要回到高保真任务。",
+  "core_intuition": "降阶不是把高保真模型“变简单就算完”，而是提取能解释控制器职责的主链条。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "统一结构编码与解码",
+      "target_id": null,
+      "target": "高保真任务降阶辨识",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "高保真任务降阶辨识",
+      "target_id": null,
+      "target": "分段辨识模型组合",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "统一结构编码与解码_4_46005",
+      "source": "统一结构编码与解码",
+      "target_id": "高保真任务降阶辨识_4_47001",
+      "target": "高保真任务降阶辨识",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "4-6 建立结构编码入口后，4-7 需要把编码搜索放回高保真任务与可解释辨识模型之间。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "高保真任务降阶辨识_4_47001",
+      "source": "高保真任务降阶辨识",
+      "target_id": "分段辨识模型组合_4_47002",
+      "target": "分段辨识模型组合",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "高保真任务需要先拆成舵机、船体和扰动段，才能组合出可用于经典设计的名义模型。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "高保真任务降阶辨识",
+        "高保真模型",
+        "降阶辨识",
+        "驱逐舰航向"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "P_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

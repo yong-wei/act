@@ -15,6 +15,7 @@ from infograph_utils import (
     repo_path,
     selected_infograph_ref,
 )
+from canonical_nodes import load_canonical_index
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,6 +29,19 @@ def status_for_node(lesson_id: str, node_id: str) -> str:
     selected = selected_infograph_ref(node_id)
     source_lesson_id = selected['lesson_id'] if selected else lesson_id
     source_node_id = selected['node_id'] if selected else node_id
+    if not selected:
+        canonical_entry = load_canonical_index().entry_for(node_id) or {}
+        owner_lesson = str(canonical_entry.get('owner_lesson') or '').strip()
+        if owner_lesson and owner_lesson != lesson_id:
+            owner_review_path = node_infograph_dir(owner_lesson, node_id) / 'review.json'
+            owner_image_path = node_infograph_path(owner_lesson, node_id)
+            if owner_image_path.exists() and owner_review_path.exists():
+                try:
+                    owner_review = read_json(owner_review_path)
+                except Exception:
+                    owner_review = {}
+                if str(owner_review.get('status') or '').strip().lower() == 'accepted':
+                    return 'accepted'
     image_path = node_infograph_path(source_lesson_id, source_node_id)
     review_path = node_infograph_dir(source_lesson_id, source_node_id) / 'review.json'
     if not image_path.exists():

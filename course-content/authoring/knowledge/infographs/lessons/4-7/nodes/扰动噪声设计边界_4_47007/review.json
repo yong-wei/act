@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T04:49:40.432006Z",
+  "lesson_id": "4-7",
+  "node_id": "扰动噪声设计边界_4_47007",
+  "requested_node_id": "扰动噪声设计边界_4_47007",
+  "node_name": "扰动噪声设计边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉复核通过：扰动边界与航向传感器噪声分开呈现，抗扰优化、抗噪设计与公式一致。"
+}

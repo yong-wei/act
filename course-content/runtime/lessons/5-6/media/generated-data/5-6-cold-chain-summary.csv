@@ -1,0 +1,10 @@
+scenario,scenario_label,method,method_label,out_of_range_min,max_air_C,max_product_C,recovery_min,energy_norm_h,compressor_switches,alarms,verify_load
+E1,E1 常规日,classic,经典 PI/PID,0,5.46,5.15,0,23.97,0,0,低
+E1,E1 常规日,data,数据驱动预测补偿,0,5.43,5.13,0,23.97,0,0,中
+E1,E1 常规日,policy,策略学习监督层,0,5.47,5.20,0,23.53,0,0,高
+E2,E2 入库高峰,classic,经典 PI/PID,0,6.93,7.44,22,29.78,8,0,低
+E2,E2 入库高峰,data,数据驱动预测补偿,0,6.77,7.27,0,29.85,6,0,中
+E2,E2 入库高峰,policy,策略学习监督层,0,6.94,7.45,17,29.51,8,0,高
+E3,E3 未见扰动,classic,经典 PI/PID,0,7.32,6.94,0,38.50,5,0,低
+E3,E3 未见扰动,data,数据驱动预测补偿,0,7.13,6.78,0,38.89,7,0,中
+E3,E3 未见扰动,policy,策略学习监督层,0,7.31,6.94,0,38.78,9,0,高

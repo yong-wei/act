@@ -1,0 +1,22 @@
+{
+  "sample_count": 261,
+  "gain_min": 0.0,
+  "gain_max": 1000.0,
+  "branch_count": 1,
+  "expected_branch_count": 1,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 467.4962804099996,
+      "sign_switches": 0,
+      "endpoint_re": -9001.0,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": []
+}

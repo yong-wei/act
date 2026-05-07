@@ -1496,7 +1496,11 @@
       "canonical_name": "统一结构编码与解码",
       "aliases": [],
       "selected_card_node_id": "统一结构编码与解码_4_46005",
-      "owner_lesson": "4-6"
+      "owner_lesson": "4-6",
+      "selected_infograph": {
+        "lesson_id": "4-6",
+        "node_id": "统一结构编码与解码_4_46005"
+      }
     },
     {
       "canonical_node_id": "罚函数表达表_4_45003",

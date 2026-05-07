@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T04:37:02.666496Z",
+  "lesson_id": "4-7",
+  "node_id": "高保真任务降阶辨识_4_47001",
+  "requested_node_id": "高保真任务降阶辨识_4_47001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019e00b1-8214-71e3-9fb8-6d1651c319d2/ig_0af5d72b5aefcd820169fc16a3582c819baf2bf4cd2657d797.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-7/nodes/高保真任务降阶辨识_4_47001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-7/nodes/高保真任务降阶辨识_4_47001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-7/nodes/高保真任务降阶辨识_4_47001/source.json"
+}

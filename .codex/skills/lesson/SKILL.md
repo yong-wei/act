@@ -106,7 +106,8 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
    - 主要数值曲线统一采用“两段式流程”：`Octave` 导出数据，`Python/matplotlib` 最终排版。
    - 3-6 单元的数值图风格为统一基线。
    - 默认优先使用 `step()`、`bode()`、`nyquist()`、`rlocus()`、`lsim()`、`margin()` 等高层函数。
-   - 根轨迹若转为 `Python/matplotlib` 复绘，必须调用 `.codex/skills/lesson/scripts/root_locus_branch_match.py` 做分支连续匹配与审计。
+   - 凡涉及根轨迹出图，必须使用 `Octave` 的 `rlocus(sys)` 自动采样结果作为根轨迹数据源，禁止自行给出固定增益采样点、固定根轨迹采样表或用 `logspace/linspace` 手工扫增益后连线。
+   - 根轨迹若转为 `Python/matplotlib` 复绘，必须调用 `.codex/skills/lesson/scripts/root_locus_branch_match.py` 做分支连续匹配与审计；匹配输入仍必须来自 `rlocus(sys)` 自动采样结果。
    - 讲义中给出的参考代码默认必须是 `MATLAB/Octave` 形式。
 
 6. **线框图必须走专用技能**

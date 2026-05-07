@@ -24,6 +24,7 @@ import { UNIT_5_2_COURSE_TITLE, UNIT_5_2_ROUTE_SEGMENT } from '@/lib/unit-5-2-co
 import { UNIT_5_3_COURSE_TITLE, UNIT_5_3_ROUTE_SEGMENT } from '@/lib/unit-5-3-course';
 import { UNIT_5_4_COURSE_TITLE, UNIT_5_4_ROUTE_SEGMENT } from '@/lib/unit-5-4-course';
 import { UNIT_5_5_COURSE_TITLE, UNIT_5_5_ROUTE_SEGMENT } from '@/lib/unit-5-5-course';
+import { UNIT_5_6_COURSE_TITLE, UNIT_5_6_ROUTE_SEGMENT } from '@/lib/unit-5-6-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 const UNIT_4_5_ROUTE_SEGMENT = 'unit-4-5-constraint-aware-parameter-optimization';
@@ -271,6 +272,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '5-5：从显式控制器到策略学习',
       '从显式控制器到策略学习',
       '策略学习入口、强化学习训练与航向控制安全边界',
+    ],
+  },
+  {
+    routeSegment: UNIT_5_6_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_5_6_COURSE_TITLE,
+      '5-6：方法迁移与前沿比较',
+      '方法迁移与前沿比较',
+      '冷链温控同题任务、预测补偿与策略监督层比较',
     ],
   },
 ];

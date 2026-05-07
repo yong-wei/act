@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T04:42:47.930848Z",
+  "lesson_id": "4-7",
+  "node_id": "结构参数联合搜索解码_4_47005",
+  "requested_node_id": "结构参数联合搜索解码_4_47005",
+  "node_name": "结构参数联合搜索解码",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉复核通过：结构编码、参数搜索、解码和候选控制器读回关系清晰，公式未观察到明显语义改写。"
+}

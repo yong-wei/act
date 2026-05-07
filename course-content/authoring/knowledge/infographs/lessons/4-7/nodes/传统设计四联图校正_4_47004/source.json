@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T04:30:35.133276Z",
+  "lesson": {
+    "lesson_id": "4-7",
+    "title": "综合工程场景对比设计：完整控制器优化设计闭环",
+    "groups": [
+      "指标翻译与传统设计"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "传统设计四联图校正_4_47004",
+    "name": "传统设计四联图校正",
+    "name_en": "Classical Four-Panel Compensation Design",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正模型，再选择 $PI+\\text{超前}$ 并按频域指标计算参数。",
+    "examples": [
+      "未校正模型速度慢且中频相位不足，传统设计把积分零点放在船体慢极点附近，并用超前环节补偿相位。"
+    ],
+    "formulas": [
+      "C_{trad}(s)=23.11\\left(\\frac{42.00s+1}{42.00s}\\right)\\left(\\frac{48.02s+1}{13.01s+1}\\right)"
+    ],
+    "keywords": [
+      "四联图",
+      "PI超前",
+      "Bode",
+      "根轨迹"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/传统设计四联图校正_4_47004.md",
+  "card_frontmatter": {
+    "node_id": "传统设计四联图校正_4_47004",
+    "name": "传统设计四联图校正",
+    "name_en": "Classical Four-Panel Compensation Design",
+    "lesson_units": [
+      "4-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-7",
+      "四联图",
+      "PI超前"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-7/design/4-7-handout.md"
+    ],
+    "asset_refs": [
+      "4-7-traditional-diagnosis-four-panel.png",
+      "4-7-traditional-design-four-panel.png"
+    ]
+  },
+  "card_overview": "# 传统设计四联图校正 | Classical Four-Panel Compensation Design\n\n**一句话定义**：用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正模型，再选择 $PI+\\text{超前}$ 并按频域指标计算参数。\n\n**核心直觉**：传统设计不是凭经验套结构，而是从三域证据看清当前对象的问题后再定型。\n\n**关键公式**：\n$$\nC_{trad}(s)=23.11\\left(\\frac{42.00s+1}{42.00s}\\right)\\left(\\frac{48.02s+1}{13.01s+1}\\right)\n$$\n\n**关联**：前置 → 工程指标代价函数翻译 · 后续 → 跨模型验证比较",
+  "card_detail": "### 完整解释\n\n四联图先暴露未校正对象的速度慢、相位不足和执行边界风险。积分支路处理低频误差，超前支路补中频相位，总增益由穿越频率处幅值条件确定。\n\n![传统设计诊断四联图](../../lessons/4-7/media/processed/4-7-traditional-diagnosis-four-panel.png)\n\n![传统设计校正四联图](../../lessons/4-7/media/processed/4-7-traditional-design-four-panel.png)\n\n### 常见误区\n\n1. **误区**：四联图只是把几张图拼在一起。\n   **纠正**：它服务于结构选型和参数计算，每张图都要回答一个设计判断。\n\n2. **误区**：传统设计完成后只需在辨识模型上验证。\n   **纠正**：4-7 必须把传统控制器放回高保真模型。",
+  "card_plain_excerpt": "## 首页\n\n# 传统设计四联图校正 | Classical Four-Panel Compensation Design\n\n**一句话定义**：用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正模型，再选择 $PI+\\text{超前}$ 并按频域指标计算参数。\n\n**核心直觉**：传统设计不是凭经验套结构，而是从三域证据看清当前对象的问题后再定型。\n\n**关键公式**：\n$$\nC_{trad}(s)=23.11\\left(\\frac{42.00s+1}{42.00s}\\right)\\left(\\frac{48.02s+1}{13.01s+1}\\right)\n$$\n\n**关联**：前置 → 工程指标代价函数翻译 · 后续 → 跨模型验证比较\n\n## 详情\n\n### 完整解释\n\n四联图先暴露未校正对象的速度慢、相位不足和执行边界风险。积分支路处理低频误差，超前支路补中频相位，总增益由穿越频率处幅值条件确定。\n\n![传统设计诊断四联图](../../lessons/4-7/media/processed/4-7-traditional-diagnosis-four-panel.png)\n\n![传统设计校正四联图](../../lessons/4-7/media/processed/4-7-traditional-design-four-panel.png)\n\n### 常见误区\n\n1. **误区**：四联图只是把几张图拼在一起。\n   **纠正**：它服务于结构选型和参数计算，每张图都要回答一个设计判断。\n\n2. **误区**：传统设计完成后只需在辨识模型上验证。\n   **纠正**：4-7 必须把传统控制器放回高保真模型。",
+  "core_intuition": "传统设计不是凭经验套结构，而是从三域证据看清当前对象的问题后再定型。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "工程指标代价函数翻译",
+      "target_id": null,
+      "target": "传统设计四联图校正",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传统设计四联图校正",
+      "target_id": null,
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "工程指标代价函数翻译_4_47003",
+      "source": "工程指标代价函数翻译",
+      "target_id": "传统设计四联图校正_4_47004",
+      "target": "传统设计四联图校正",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "目标和约束明确后，传统设计才能从三域诊断中选择结构并计算参数。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "传统设计四联图校正_4_47004",
+      "source": "传统设计四联图校正",
+      "target_id": "跨模型验证比较_4_47006",
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": "传统设计得到的名义控制器必须同时接受辨识模型和高保真模型验证。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "传统设计四联图校正",
+        "四联图",
+        "PI超前",
+        "Bode",
+        "根轨迹"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "C_{trad}(s)=23.11\\left(\\frac{42.00s+1}{42.00s}\\right)\\left(\\frac{48.02s+1}{13.01s+1}\\right)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

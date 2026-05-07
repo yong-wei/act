@@ -147,6 +147,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/传统设计四联图校正_4_47004.png",
+      "title": "传统设计四联图校正 信息图",
+      "lessonId": "4-7",
+      "nodeId": "传统设计四联图校正_4_47004",
+      "sourceNodeId": "传统设计四联图校正_4_47004"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
       "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
       "title": "低频补偿稳态改善路径 信息图",
@@ -171,6 +180,15 @@
       "lessonId": "5-6",
       "nodeId": "冷链温控同题任务_5_56001",
       "sourceNodeId": "冷链温控同题任务_5_56001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/分段辨识模型组合_4_47002.png",
+      "title": "分段辨识模型组合 信息图",
+      "lessonId": "4-7",
+      "nodeId": "分段辨识模型组合_4_47002",
+      "sourceNodeId": "分段辨识模型组合_4_47002"
     },
     {
       "type": "infograph",
@@ -405,6 +423,15 @@
       "lessonId": "5-3",
       "nodeId": "执行约束反馈_5_53005",
       "sourceNodeId": "执行约束反馈_5_53005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
+      "title": "扰动噪声设计边界 信息图",
+      "lessonId": "4-7",
+      "nodeId": "扰动噪声设计边界_4_47007",
+      "sourceNodeId": "扰动噪声设计边界_4_47007"
     },
     {
       "type": "infograph",
@@ -741,6 +768,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构参数联合搜索解码_4_47005.png",
+      "title": "结构参数联合搜索解码 信息图",
+      "lessonId": "4-7",
+      "nodeId": "结构参数联合搜索解码_4_47005",
+      "sourceNodeId": "结构参数联合搜索解码_4_47005"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
       "title": "结构变化的频域指纹 信息图",
@@ -894,6 +930,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/跨模型验证比较_4_47006.png",
+      "title": "跨模型验证比较 信息图",
+      "lessonId": "4-7",
+      "nodeId": "跨模型验证比较_4_47006",
+      "sourceNodeId": "跨模型验证比较_4_47006"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
       "title": "迁移场景任务重排 信息图",
@@ -990,6 +1035,15 @@
       "lessonId": "4-6",
       "nodeId": "驱逐舰专用代价函数改写_4_46003",
       "sourceNodeId": "驱逐舰专用代价函数改写_4_46003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/高保真任务降阶辨识_4_47001.png",
+      "title": "高保真任务降阶辨识 信息图",
+      "lessonId": "4-7",
+      "nodeId": "高保真任务降阶辨识_4_47001",
+      "sourceNodeId": "高保真任务降阶辨识_4_47001"
     }
   ]
 }

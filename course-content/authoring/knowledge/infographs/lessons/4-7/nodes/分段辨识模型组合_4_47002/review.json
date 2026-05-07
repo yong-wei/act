@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T04:38:56.560797Z",
+  "lesson_id": "4-7",
+  "node_id": "分段辨识模型组合_4_47002",
+  "requested_node_id": "分段辨识模型组合_4_47002",
+  "node_name": "分段辨识模型组合",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉复核通过：舵机惯性、船体惯性、扰动等效与组合航向模型对应清晰，公式未观察到明显错误。"
+}

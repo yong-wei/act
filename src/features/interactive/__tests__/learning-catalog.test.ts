@@ -165,7 +165,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     ]);
   });
 
-  it('exposes units 5-1 through 5-4 in module 5', () => {
+  it('exposes units 5-1 through 5-6 in module 5', () => {
     expect(INTERACTIVE_COURSE_MODULES[3]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -189,6 +189,16 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-5-4-data-driven-mpc-transition',
         unitLabel: '5-4',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-5-5-policy-learning-entry-risk',
+        unitLabel: '5-5',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-5-6-method-comparison-cold-chain',
+        unitLabel: '5-6',
         legacySourceLabel: null,
       },
     ]);

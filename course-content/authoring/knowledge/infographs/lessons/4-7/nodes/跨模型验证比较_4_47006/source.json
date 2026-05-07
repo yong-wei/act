@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T04:30:49.834713Z",
+  "lesson": {
+    "lesson_id": "4-7",
+    "title": "综合工程场景对比设计：完整控制器优化设计闭环",
+    "groups": [
+      "优化设计与跨模型验证"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "跨模型验证比较_4_47006",
+    "name": "跨模型验证比较",
+    "name_en": "Cross-Model Validation Comparison",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "把传统设计、辨识模型优化和高保真模型优化放进同一方波与回转任务，判断名义模型上的好结果能否转化为真实任务可用。",
+    "examples": [
+      "传统控制器先在辨识模型上验证，再放入高保真模型；优化控制器也必须分别检查辨识模型表现和高保真验证表现。"
+    ],
+    "formulas": [
+      "\\text{可交付判断}=\\text{名义模型证据}+\\text{高保真验证证据}+\\text{边界检查}"
+    ],
+    "keywords": [
+      "跨模型验证",
+      "高保真验证",
+      "方波任务",
+      "回转任务",
+      "跨模型比较"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/跨模型验证比较_4_47006.md",
+  "card_frontmatter": {
+    "node_id": "跨模型验证比较_4_47006",
+    "name": "跨模型验证比较",
+    "name_en": "Cross-Model Validation Comparison",
+    "lesson_units": [
+      "4-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-7",
+      "高保真验证",
+      "跨模型比较"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-7/design/4-7-handout.md"
+    ],
+    "asset_refs": [
+      "4-7-nominal-traditional-zigzag45.png",
+      "4-7-nominal-optimized-zigzag45.png"
+    ]
+  },
+  "card_overview": "# 跨模型验证比较 | Cross-Model Validation Comparison\n\n**一句话定义**：把传统设计、辨识模型优化和高保真模型优化放进同一方波与回转任务，判断名义模型上的好结果能否转化为真实任务可用。\n\n**核心直觉**：设计结果必须同时回答“模型上成立”和“任务中可交付”两个问题。\n\n**关键公式**：\n$$\n\\text{可交付判断}=\\text{名义模型证据}+\\text{高保真验证证据}+\\text{边界检查}\n$$\n\n**关联**：前置 → 传统设计四联图校正、结构参数联合搜索解码 · 后续 → 扰动噪声设计边界",
+  "card_detail": "### 完整解释\n\n传统控制器先在辨识模型上验证，再放入高保真模型。优化控制器也要分别检查辨识模型优化、跨模型验证和高保真模型优化三类结果。方波任务使用 $+45^\\circ/-45^\\circ$，回转任务从 $60\\,\\mathrm{s}$ 开始单调到 $360^\\circ$，航速统一为 $15.0\\,\\mathrm{m/s}\\approx29.2\\,\\mathrm{kn}$。\n\n![传统控制器方波任务跨模型结果](../../lessons/4-7/media/processed/4-7-nominal-traditional-zigzag45.png)\n\n### 常见误区\n\n1. **误区**：辨识模型上代价最小就能作为最终方案。\n   **纠正**：高保真模型可能暴露航迹偏离、舵速和扰动耦合。\n\n2. **误区**：只看航向响应即可。\n   **纠正**：航迹图同样是设计结果的一部分。",
+  "card_plain_excerpt": "## 首页\n\n# 跨模型验证比较 | Cross-Model Validation Comparison\n\n**一句话定义**：把传统设计、辨识模型优化和高保真模型优化放进同一方波与回转任务，判断名义模型上的好结果能否转化为真实任务可用。\n\n**核心直觉**：设计结果必须同时回答“模型上成立”和“任务中可交付”两个问题。\n\n**关键公式**：\n$$\n\\text{可交付判断}=\\text{名义模型证据}+\\text{高保真验证证据}+\\text{边界检查}\n$$\n\n**关联**：前置 → 传统设计四联图校正、结构参数联合搜索解码 · 后续 → 扰动噪声设计边界\n\n## 详情\n\n### 完整解释\n\n传统控制器先在辨识模型上验证，再放入高保真模型。优化控制器也要分别检查辨识模型优化、跨模型验证和高保真模型优化三类结果。方波任务使用 $+45^\\circ/-45^\\circ$，回转任务从 $60\\,\\mathrm{s}$ 开始单调到 $360^\\circ$，航速统一为 $15.0\\,\\mathrm{m/s}\\approx29.2\\,\\mathrm{kn}$。\n\n![传统控制器方波任务跨模型结果](../../lessons/4-7/media/processed/4-7-nominal-traditional-zigzag45.png)\n\n### 常见误区\n\n1. **误区**：辨识模型上代价最小就能作为最终方案。\n   **纠正**：高保真模型可能暴露航迹偏离、舵速和扰动耦合。\n\n2. **误区**：只看航向响应即可。\n   **纠正**：航迹图同样是设计结果的一部分。",
+  "core_intuition": "设计结果必须同时回答“模型上成立”和“任务中可交付”两个问题。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "结构参数联合搜索解码",
+      "target_id": null,
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传统设计四联图校正",
+      "target_id": null,
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "跨模型验证比较",
+      "target_id": null,
+      "target": "扰动噪声设计边界",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "传统设计四联图校正_4_47004",
+      "source": "传统设计四联图校正",
+      "target_id": "跨模型验证比较_4_47006",
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": "传统设计得到的名义控制器必须同时接受辨识模型和高保真模型验证。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构参数联合搜索解码_4_47005",
+      "source": "结构参数联合搜索解码",
+      "target_id": "跨模型验证比较_4_47006",
+      "target": "跨模型验证比较",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "搜索得到的优化控制器只有经过跨模型验证，才能从算法结果变成工程设计结论。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "跨模型验证比较_4_47006",
+      "source": "跨模型验证比较",
+      "target_id": "扰动噪声设计边界_4_47007",
+      "target": "扰动噪声设计边界",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "名义任务验证之后，还必须检查扰动与测量噪声是否改变设计可交付性。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "跨模型验证比较",
+        "跨模型验证",
+        "高保真验证",
+        "方波任务",
+        "回转任务",
+        "跨模型比较"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{可交付判断}=\\text{名义模型证据}+\\text{高保真验证证据}+\\text{边界检查}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

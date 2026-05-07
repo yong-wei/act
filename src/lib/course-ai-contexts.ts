@@ -123,6 +123,11 @@ import {
   getUnit55StepQuickQuestionsLocal,
   UNIT_5_5_COURSE_META,
 } from './unit-5-5-ai-contexts';
+import {
+  getUnit56StepAIContextLocal,
+  getUnit56StepQuickQuestionsLocal,
+  UNIT_5_6_COURSE_META,
+} from './unit-5-6-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -344,6 +349,14 @@ export {
   getUnit55StepAIContextLocal,
   getUnit55StepQuickQuestionsLocal,
 } from './unit-5-5-ai-contexts';
+export {
+  UNIT_5_6_COURSE_META,
+  UNIT_5_6_STEP_AI_CONTEXTS,
+  getUnit56StepAIContext,
+  getUnit56StepQuickQuestions,
+  getUnit56StepAIContextLocal,
+  getUnit56StepQuickQuestionsLocal,
+} from './unit-5-6-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -624,6 +637,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_5_5_COURSE_META.courseId,
       courseTitle: UNIT_5_5_COURSE_META.courseTitle,
       courseDescription: UNIT_5_5_COURSE_META.courseDescription,
+    },
+  },
+
+  'unit-5-6-method-comparison-cold-chain-v1': {
+    getStepContext: (stepId: string) => getUnit56StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit56StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_5_6_COURSE_META.courseId,
+      courseTitle: UNIT_5_6_COURSE_META.courseTitle,
+      courseDescription: UNIT_5_6_COURSE_META.courseDescription,
     },
   },
 };

@@ -1,0 +1,15 @@
+name,param,value
+lag,beta,2.5
+lag,wz,0.012
+lag,wp,0.0048
+pi,Kp,1.1635371
+pi,Ti,106.66667
+lead,Kc,1.5758939
+lead,alpha,0.34833794
+lead,T,13.033356
+lead_lag,Kc,1.3377469
+lead_lag,alpha,0.42717742
+lead_lag,Tlead,13.909233
+lead_lag,beta,1.8
+lead_lag,wz_lag,0.0091666667
+lead_lag,wp_lag,0.0050925926

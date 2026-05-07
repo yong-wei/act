@@ -15,17 +15,20 @@
 ## 互动页覆盖审查
 - 已检测到 `4-7` 的 V2 互动契约，步骤字段完整。
 - 已检测到 `4-7` 的本地实现契约与作者态互动契约一致。
-- manifest audit pass: 12 steps, 71 modules, 0 issues
+- manifest audit fail: 12 steps, 71 modules, 4 issues
 - 互动设计接受文件已通过校验。
 - 互动实现接受文件已通过校验。
 - 以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾
+- manifest 模块消费审计失败：{"content_block": "figure_requirements", "issue": "image_explanation_not_consumed", "step_id": "step-06"}
+- manifest 模块消费审计失败：{"content_block": "figure_reading", "issue": "image_explanation_not_consumed", "step_id": "step-10"}
+- manifest 模块消费审计失败：{"content_block": "formula_explanation", "issue": "image_explanation_not_consumed", "step_id": "step-10"}
+- manifest 模块消费审计失败：{"content_block": "figure_explanations", "issue": "image_explanation_not_consumed", "step_id": "step-12"}
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
 
 ## infograph-check
-- 当前尚无已接受的知识点信息图。
-- 尚缺信息图：剩余风险说明_4_45006, 统一结构编码与解码_4_46005, 高保真任务降阶辨识_4_47001, 分段辨识模型组合_4_47002, 工程指标代价函数翻译_4_47003, 传统设计四联图校正_4_47004, 结构参数联合搜索解码_4_47005, 跨模型验证比较_4_47006, 扰动噪声设计边界_4_47007, 传统控制结构局限_4_47008
+- 已接受 10 张知识点信息图。
 
 ## multimedia-check
 - 已识别并确认存在 2 项正式媒体，未发现缺失。
