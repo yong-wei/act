@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T01:00:32.396345Z",
+  "lesson_id": "5-6",
+  "node_id": "冷链温控同题任务_5_56001",
+  "requested_node_id": "冷链温控同题任务_5_56001",
+  "node_name": "冷链温控同题任务",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T00:57:26.468018Z",
+  "lesson": {
+    "lesson_id": "5-6",
+    "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+    "groups": [
+      "三条路线实现与指标读解"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "三场景同题比较_5_56006",
+    "name": "三场景同题比较",
+    "name_en": "Three-Scenario Same-Task Comparison",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "三场景同题比较用常规日、入库高峰和未见扰动检验三条路线的性能收益、能耗、切换、恢复和验证责任。",
+    "examples": [
+      "E1 支持经典 PI/PID 优先；E2 支持预测补偿混合路线；E3 暴露策略监督层训练覆盖不足。"
+    ],
+    "formulas": [
+      "E=\\sum_k u(k)/60"
+    ],
+    "keywords": [
+      "常规日",
+      "入库高峰",
+      "未见扰动",
+      "恢复时间",
+      "指标读解",
+      "方法比较"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/三场景同题比较_5_56006.md",
+  "card_frontmatter": {
+    "node_id": "三场景同题比较_5_56006",
+    "name": "三场景同题比较",
+    "name_en": "Three-Scenario Same-Task Comparison",
+    "lesson_units": [
+      "5-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "5",
+    "tags": [
+      "5-6",
+      "指标读解",
+      "方法比较"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-6/design/5-6-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-6/media/processed/5-6-three-route-comparison.png"
+    ]
+  },
+  "card_overview": "# 三场景同题比较\n\n**一句话定义**：三场景同题比较用常规日、入库高峰和未见扰动检验三条路线的性能收益、能耗、切换、恢复和验证责任。\n\n**关键公式**：\n\n$$\nE=\\sum_k u(k)/60\n$$\n\n**关联节点速查**：经典 PI/PID 冷链基线、热负荷预测补偿、证据要求等级\n\n---",
+  "card_detail": "三组实验使用同一热模型、同一扰动日志生成逻辑和同一评价指标。E1 常规日检查经典控制是否已经足够；E2 入库高峰检查预测补偿是否带来恢复速度收益；E3 未见扰动检查策略监督层离开开发覆盖后的风险。\n\n指标包括越界分钟数、空气峰值、货品核心峰值、恢复时间、能耗、压缩机切换次数和路线验证负担。路线验证负担不是温度轨迹直接计算值，而是方法选择时还需补充多少证据。\n\n本课结论是：E1 优先经典 PI/PID；E2 可采用“PI/PID + 数据驱动预测预冷 + 前馈补偿”的混合路线；E3 中策略监督层没有足够证据进入主闭环。",
+  "card_plain_excerpt": "## 首页\n\n# 三场景同题比较\n\n**一句话定义**：三场景同题比较用常规日、入库高峰和未见扰动检验三条路线的性能收益、能耗、切换、恢复和验证责任。\n\n**关键公式**：\n\n$$\nE=\\sum_k u(k)/60\n$$\n\n**关联节点速查**：经典 PI/PID 冷链基线、热负荷预测补偿、证据要求等级\n\n---\n\n## 详情\n\n三组实验使用同一热模型、同一扰动日志生成逻辑和同一评价指标。E1 常规日检查经典控制是否已经足够；E2 入库高峰检查预测补偿是否带来恢复速度收益；E3 未见扰动检查策略监督层离开开发覆盖后的风险。\n\n指标包括越界分钟数、空气峰值、货品核心峰值、恢复时间、能耗、压缩机切换次数和路线验证负担。路线验证负担不是温度轨迹直接计算值，而是方法选择时还需补充多少证据。\n\n本课结论是：E1 优先经典 PI/PID；E2 可采用“PI/PID + 数据驱动预测预冷 + 前馈补偿”的混合路线；E3 中策略监督层没有足够证据进入主闭环。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": "经典PID冷链基线_5_56003",
+      "source": "经典 PI/PID 冷链基线",
+      "target_id": "三场景同题比较_5_56006",
+      "target": "三场景同题比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "热负荷预测补偿_5_56004",
+      "source": "热负荷预测补偿",
+      "target_id": "三场景同题比较_5_56006",
+      "target": "三场景同题比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "策略监督层调度_5_56005",
+      "source": "策略监督层调度",
+      "target_id": "三场景同题比较_5_56006",
+      "target": "三场景同题比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三场景同题比较_5_56006",
+      "source": "三场景同题比较",
+      "target_id": "证据要求等级_5_56007",
+      "target": "证据要求等级",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "三场景同题比较_5_56006",
+      "source": "三场景同题比较",
+      "target_id": "方法选择说明卡_5_56008",
+      "target": "方法选择说明卡",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "三场景同题比较",
+        "常规日",
+        "入库高峰",
+        "未见扰动",
+        "恢复时间",
+        "指标读解",
+        "方法比较"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "E=\\sum_k u(k)/60"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

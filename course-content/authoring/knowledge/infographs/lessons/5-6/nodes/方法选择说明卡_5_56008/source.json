@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T00:57:26.667697Z",
+  "lesson": {
+    "lesson_id": "5-6",
+    "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+    "groups": [
+      "证据责任与方法选择"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "方法选择说明卡_5_56008",
+    "name": "方法选择说明卡",
+    "name_en": "Method Selection Justification Card",
+    "category": "实践性",
+    "knowledge_type": "D",
+    "bloom_level": "创造",
+    "definition": "方法选择说明卡把推荐路线、收益、风险、验证路径和暂不采用其他路线的依据写成可审查的工程判断。",
+    "examples": [
+      "入库高峰中可推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿，同时说明策略学习因训练覆盖和安全壳证据不足暂不进入主闭环。"
+    ],
+    "formulas": [
+      "\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}"
+    ],
+    "keywords": [
+      "说明卡",
+      "路线选择",
+      "验证路径",
+      "暂不采用",
+      "实践产出",
+      "方法迁移"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/方法选择说明卡_5_56008.md",
+  "card_frontmatter": {
+    "node_id": "方法选择说明卡_5_56008",
+    "name": "方法选择说明卡",
+    "name_en": "Method Selection Justification Card",
+    "lesson_units": [
+      "5-6"
+    ],
+    "category": "实践性",
+    "knowledge_type": "D",
+    "chapter": "5",
+    "tags": [
+      "5-6",
+      "实践产出",
+      "方法迁移"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-6/design/5-6-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 方法选择说明卡\n\n**一句话定义**：方法选择说明卡把推荐路线、收益、风险、验证路径和暂不采用其他路线的依据写成可审查的工程判断。\n\n**关键公式**：\n\n$$\n\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}\n$$\n\n**关联节点速查**：三场景同题比较、证据要求等级、模型数据责任分配\n\n---",
+  "card_detail": "说明卡至少包含任务对象、主要证据、推荐路线、选择理由、主要收益、关键风险、验证路径和暂不采用其他路线。只写方法名称，不能构成方法迁移结论。\n\n对本案例，常规日采用经典 PI/PID 作为主路线；入库高峰可采用“PI/PID + 数据驱动预测预冷 + 前馈补偿”的混合路线；策略学习只保留为监督层候选。\n\n一张合格说明卡必须同时解释收益和代价：预测补偿缩短恢复时间，但需要数据覆盖、预测误差、漂移监控和异常回退证据；策略学习若缺少训练覆盖、安全壳和部署监控，就不能直接进入主控制闭环。",
+  "card_plain_excerpt": "## 首页\n\n# 方法选择说明卡\n\n**一句话定义**：方法选择说明卡把推荐路线、收益、风险、验证路径和暂不采用其他路线的依据写成可审查的工程判断。\n\n**关键公式**：\n\n$$\n\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}\n$$\n\n**关联节点速查**：三场景同题比较、证据要求等级、模型数据责任分配\n\n---\n\n## 详情\n\n说明卡至少包含任务对象、主要证据、推荐路线、选择理由、主要收益、关键风险、验证路径和暂不采用其他路线。只写方法名称，不能构成方法迁移结论。\n\n对本案例，常规日采用经典 PI/PID 作为主路线；入库高峰可采用“PI/PID + 数据驱动预测预冷 + 前馈补偿”的混合路线；策略学习只保留为监督层候选。\n\n一张合格说明卡必须同时解释收益和代价：预测补偿缩短恢复时间，但需要数据覆盖、预测误差、漂移监控和异常回退证据；策略学习若缺少训练覆盖、安全壳和部署监控，就不能直接进入主控制闭环。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": "证据要求等级_5_56007",
+      "source": "证据要求等级",
+      "target_id": "方法选择说明卡_5_56008",
+      "target": "方法选择说明卡",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三场景同题比较_5_56006",
+      "source": "三场景同题比较",
+      "target_id": "方法选择说明卡_5_56008",
+      "target": "方法选择说明卡",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "模型数据责任分配_5_54007",
+      "source": "模型数据责任分配",
+      "target_id": "方法选择说明卡_5_56008",
+      "target": "方法选择说明卡",
+      "relation": "cross_domain",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "方法选择说明卡",
+        "说明卡",
+        "路线选择",
+        "验证路径",
+        "暂不采用",
+        "实践产出",
+        "方法迁移"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

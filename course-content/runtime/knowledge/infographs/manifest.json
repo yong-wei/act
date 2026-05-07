@@ -30,6 +30,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/三场景同题比较_5_56006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/三场景同题比较_5_56006.png",
+      "title": "三场景同题比较 信息图",
+      "lessonId": "5-6",
+      "nodeId": "三场景同题比较_5_56006",
+      "sourceNodeId": "三场景同题比较_5_56006"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
       "url": "/course-runtime/knowledge/infographs/nodes/三路线控制比较_5_54008.png",
       "title": "三路线控制比较 信息图",
@@ -81,6 +90,15 @@
       "lessonId": "4-2",
       "nodeId": "主矛盾到频段职责映射_4_42003",
       "sourceNodeId": "主矛盾到频段职责映射_4_42003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/二状态冷链热模型_5_56002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/二状态冷链热模型_5_56002.png",
+      "title": "二状态冷链热模型 信息图",
+      "lessonId": "5-6",
+      "nodeId": "二状态冷链热模型_5_56002",
+      "sourceNodeId": "二状态冷链热模型_5_56002"
     },
     {
       "type": "infograph",
@@ -144,6 +162,15 @@
       "lessonId": "5-1",
       "nodeId": "典型非线性边界环节_5_51002",
       "sourceNodeId": "典型非线性边界环节_5_51002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/冷链温控同题任务_5_56001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/冷链温控同题任务_5_56001.png",
+      "title": "冷链温控同题任务 信息图",
+      "lessonId": "5-6",
+      "nodeId": "冷链温控同题任务_5_56001",
+      "sourceNodeId": "冷链温控同题任务_5_56001"
     },
     {
       "type": "infograph",
@@ -480,6 +507,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/方法选择说明卡_5_56008.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/方法选择说明卡_5_56008.png",
+      "title": "方法选择说明卡 信息图",
+      "lessonId": "5-6",
+      "nodeId": "方法选择说明卡_5_56008",
+      "sourceNodeId": "方法选择说明卡_5_56008"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
       "url": "/course-runtime/knowledge/infographs/nodes/无约束加权目标表达_4_44004.png",
       "title": "无约束加权目标表达 信息图",
@@ -540,6 +576,15 @@
       "lessonId": "4-5",
       "nodeId": "求解记录单_4_45004",
       "sourceNodeId": "求解记录单_4_45004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/热负荷预测补偿_5_56004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/热负荷预测补偿_5_56004.png",
+      "title": "热负荷预测补偿 信息图",
+      "lessonId": "5-6",
+      "nodeId": "热负荷预测补偿_5_56004",
+      "sourceNodeId": "热负荷预测补偿_5_56004"
     },
     {
       "type": "infograph",
@@ -633,6 +678,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/策略监督层调度_5_56005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/策略监督层调度_5_56005.png",
+      "title": "策略监督层调度 信息图",
+      "lessonId": "5-6",
+      "nodeId": "策略监督层调度_5_56005",
+      "sourceNodeId": "策略监督层调度_5_56005"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/线性主干边界识别_5_51001.png",
       "title": "线性主干边界识别 信息图",
@@ -657,6 +711,15 @@
       "lessonId": "4-6",
       "nodeId": "组合结构专项验证边界判断_4_46007",
       "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/经典PID冷链基线_5_56003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/经典PID冷链基线_5_56003.png",
+      "title": "经典 PI/PID 冷链基线 信息图",
+      "lessonId": "5-6",
+      "nodeId": "经典PID冷链基线_5_56003",
+      "sourceNodeId": "经典PID冷链基线_5_56003"
     },
     {
       "type": "infograph",
@@ -765,6 +828,15 @@
       "lessonId": "4-1",
       "nodeId": "设计可行域_4_Lsum004",
       "sourceNodeId": "设计可行域_4_Lsum004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/证据要求等级_5_56007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/证据要求等级_5_56007.png",
+      "title": "证据要求等级 信息图",
+      "lessonId": "5-6",
+      "nodeId": "证据要求等级_5_56007",
+      "sourceNodeId": "证据要求等级_5_56007"
     },
     {
       "type": "infograph",

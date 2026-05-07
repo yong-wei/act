@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T01:06:31.027686Z",
+  "lesson_id": "5-6",
+  "node_id": "热负荷预测补偿_5_56004",
+  "requested_node_id": "热负荷预测补偿_5_56004",
+  "node_name": "热负荷预测补偿",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

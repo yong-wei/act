@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T00:57:26.355031Z",
+  "lesson": {
+    "lesson_id": "5-6",
+    "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+    "groups": [
+      "三条路线实现与指标读解"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "策略监督层调度_5_56005",
+    "name": "策略监督层调度",
+    "name_en": "Policy Supervisory Scheduling",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "策略监督层调度只在预冷、正常、节能和保守恢复四种模式间选择，不直接输出压缩机占空比。",
+    "examples": [
+      "E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。"
+    ],
+    "formulas": [
+      "x(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{\\mathrm{amb}}(k)]^T,\\qquad m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}"
+    ],
+    "keywords": [
+      "策略监督层",
+      "模式调度",
+      "安全壳",
+      "回退",
+      "策略学习",
+      "安全边界"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/策略监督层调度_5_56005.md",
+  "card_frontmatter": {
+    "node_id": "策略监督层调度_5_56005",
+    "name": "策略监督层调度",
+    "name_en": "Policy Supervisory Scheduling",
+    "lesson_units": [
+      "5-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "5",
+    "tags": [
+      "5-6",
+      "策略学习",
+      "安全边界"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-6/design/5-6-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 策略监督层调度\n\n**一句话定义**：策略监督层调度只在预冷、正常、节能和保守恢复四种模式间选择，不直接输出压缩机占空比。\n\n**关键公式**：\n\n$$\nx(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{\\mathrm{amb}}(k)]^T,\\qquad m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}\n$$\n\n**关联节点速查**：策略学习安全外壳、训练覆盖与部署验证、三场景同题比较\n\n---",
+  "card_detail": "策略监督层的输出是模式，不是连续压缩机动作。底层仍然要经过 PI/PID、限幅、回退和温区检查。这样做的理由是安全关键系统需要可限制、可拒绝、可降级的动作边界。\n\n本课中的四种模式分别对应保守恢复、预冷、节能和正常。它们可以改变设定点和控制参数，但不能绕过温区监测，也不能省略拒绝条件和运行审计。\n\nE3 未见扰动包含门封退化、传感器偏置和制冷能力下降。由于这些风险不在开发覆盖内，策略监督层不能仅凭训练场景表现进入主闭环，只能作为受限候选。",
+  "card_plain_excerpt": "## 首页\n\n# 策略监督层调度\n\n**一句话定义**：策略监督层调度只在预冷、正常、节能和保守恢复四种模式间选择，不直接输出压缩机占空比。\n\n**关键公式**：\n\n$$\nx(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{\\mathrm{amb}}(k)]^T,\\qquad m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}\n$$\n\n**关联节点速查**：策略学习安全外壳、训练覆盖与部署验证、三场景同题比较\n\n---\n\n## 详情\n\n策略监督层的输出是模式，不是连续压缩机动作。底层仍然要经过 PI/PID、限幅、回退和温区检查。这样做的理由是安全关键系统需要可限制、可拒绝、可降级的动作边界。\n\n本课中的四种模式分别对应保守恢复、预冷、节能和正常。它们可以改变设定点和控制参数，但不能绕过温区监测，也不能省略拒绝条件和运行审计。\n\nE3 未见扰动包含门封退化、传感器偏置和制冷能力下降。由于这些风险不在开发覆盖内，策略监督层不能仅凭训练场景表现进入主闭环，只能作为受限候选。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": "显式控制律与学习策略_5_55001",
+      "source": "显式控制律与学习策略",
+      "target_id": "策略监督层调度_5_56005",
+      "target": "策略监督层调度",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "策略学习进入条件_5_55002",
+      "source": "策略学习进入条件",
+      "target_id": "策略监督层调度_5_56005",
+      "target": "策略监督层调度",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "策略学习安全外壳_5_55005",
+      "source": "策略学习安全外壳",
+      "target_id": "策略监督层调度_5_56005",
+      "target": "策略监督层调度",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "策略监督层调度_5_56005",
+      "source": "策略监督层调度",
+      "target_id": "三场景同题比较_5_56006",
+      "target": "三场景同题比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "策略监督层调度",
+        "策略监督层",
+        "模式调度",
+        "安全壳",
+        "回退",
+        "策略学习",
+        "安全边界"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "x(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{\\mathrm{amb}}(k)]^T,\\qquad m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

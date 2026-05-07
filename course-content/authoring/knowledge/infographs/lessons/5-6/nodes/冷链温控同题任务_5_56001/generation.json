@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T01:00:32.395840Z",
+  "lesson_id": "5-6",
+  "node_id": "冷链温控同题任务_5_56001",
+  "requested_node_id": "冷链温控同题任务_5_56001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019dffd1-a428-7533-88fc-21ca5cbc20f0/ig_067af0473531dc810169fbe388a13c819a8a77b95e329988d3.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/5-6/nodes/冷链温控同题任务_5_56001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/5-6/nodes/冷链温控同题任务_5_56001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/5-6/nodes/冷链温控同题任务_5_56001/source.json"
+}

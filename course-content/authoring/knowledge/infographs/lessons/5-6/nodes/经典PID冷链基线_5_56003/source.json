@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T00:57:26.130858Z",
+  "lesson": {
+    "lesson_id": "5-6",
+    "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+    "groups": [
+      "三条路线实现与指标读解"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "经典PID冷链基线_5_56003",
+    "name": "经典 PI/PID 冷链基线",
+    "name_en": "Classic PI/PID Cold Chain Baseline",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和和压缩机限幅形成可解释主闭环。",
+    "examples": [
+      "E1 常规日中，经典 PI/PID 已把空气温度峰值控制在 5.46°C、货品核心峰值控制在 5.15°C，不需要引入更复杂路线。"
+    ],
+    "formulas": [
+      "T_m(k)=T_a(k)+b(k),\\qquad e(k)=T_m(k)-T_{\\mathrm{set}},\\qquad u(k)=\\mathrm{clip}(u^\\star(k),0,1)"
+    ],
+    "keywords": [
+      "PI/PID",
+      "抗饱和",
+      "限幅",
+      "安全退路",
+      "经典控制"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/经典PID冷链基线_5_56003.md",
+  "card_frontmatter": {
+    "node_id": "经典PID冷链基线_5_56003",
+    "name": "经典 PI/PID 冷链基线",
+    "name_en": "Classic PI/PID Cold Chain Baseline",
+    "lesson_units": [
+      "5-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "5",
+    "tags": [
+      "5-6",
+      "经典控制",
+      "安全退路"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-6/design/5-6-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 经典 PI/PID 冷链基线\n\n**一句话定义**：经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和和压缩机限幅形成可解释主闭环。\n\n**关键公式**：\n\n$$\nT_m(k)=T_a(k)+b(k),\\qquad e(k)=T_m(k)-T_{\\mathrm{set}},\\qquad u(k)=\\mathrm{clip}(u^\\star(k),0,1)\n$$\n\n**关联节点速查**：二状态冷链热模型、热负荷预测补偿、三场景同题比较\n\n---",
+  "card_detail": "经典路线的优势是结构清楚、参数可解释、验证路径成熟。误差来自测得空气温度与设定点的差，压缩机占空比经过 $0$ 到 $1$ 的限幅，积分项通过抗饱和规则避免控制器在边界处继续累积错误方向的动作。\n\n在 E1 常规日中，经典 PI/PID 已把空气温度峰值控制在 $5.46^\\circ\\mathrm{C}$，货品核心峰值控制在 $5.15^\\circ\\mathrm{C}$，没有越界和恢复压力。因此常规日没有充分理由迁移到更复杂路线。\n\n经典 PI/PID 还应作为其他路线的安全退路。任何数据驱动或策略学习方案，都要证明自己不会破坏温区责任，并能在异常或证据不足时退回可解释闭环。",
+  "card_plain_excerpt": "## 首页\n\n# 经典 PI/PID 冷链基线\n\n**一句话定义**：经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和和压缩机限幅形成可解释主闭环。\n\n**关键公式**：\n\n$$\nT_m(k)=T_a(k)+b(k),\\qquad e(k)=T_m(k)-T_{\\mathrm{set}},\\qquad u(k)=\\mathrm{clip}(u^\\star(k),0,1)\n$$\n\n**关联节点速查**：二状态冷链热模型、热负荷预测补偿、三场景同题比较\n\n---\n\n## 详情\n\n经典路线的优势是结构清楚、参数可解释、验证路径成熟。误差来自测得空气温度与设定点的差，压缩机占空比经过 $0$ 到 $1$ 的限幅，积分项通过抗饱和规则避免控制器在边界处继续累积错误方向的动作。\n\n在 E1 常规日中，经典 PI/PID 已把空气温度峰值控制在 $5.46^\\circ\\mathrm{C}$，货品核心峰值控制在 $5.15^\\circ\\mathrm{C}$，没有越界和恢复压力。因此常规日没有充分理由迁移到更复杂路线。\n\n经典 PI/PID 还应作为其他路线的安全退路。任何数据驱动或策略学习方案，都要证明自己不会破坏温区责任，并能在异常或证据不足时退回可解释闭环。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": "二状态冷链热模型_5_56002",
+      "source": "二状态冷链热模型",
+      "target_id": "经典PID冷链基线_5_56003",
+      "target": "经典 PI/PID 冷链基线",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "经典PID冷链基线_5_56003",
+      "source": "经典 PI/PID 冷链基线",
+      "target_id": "热负荷预测补偿_5_56004",
+      "target": "热负荷预测补偿",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "经典PID冷链基线_5_56003",
+      "source": "经典 PI/PID 冷链基线",
+      "target_id": "三场景同题比较_5_56006",
+      "target": "三场景同题比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "经典 PI/PID 冷链基线",
+        "PI/PID",
+        "抗饱和",
+        "限幅",
+        "安全退路",
+        "经典控制"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "T_m(k)=T_a(k)+b(k),\\qquad e(k)=T_m(k)-T_{\\mathrm{set}},\\qquad u(k)=\\mathrm{clip}(u^\\star(k),0,1)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

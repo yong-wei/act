@@ -6,8 +6,8 @@
 ## 文档职责
 
 - 本文件是 `5-6` 作者态互动页面蓝图，负责把讲义中的冷链温控同题任务、二状态热模型、经典 PI/PID、数据驱动预测补偿、策略学习监督层、三场景指标比较、证据要求等级和方法选择说明卡转化为学生脱离讲稿也能独立阅读的页面内容。
-- 本文件已进入机读契约草案阶段，`5-6-interactive-contract.yaml` 与本页面蓝图同步维护；通过子代理验证前不得写入接受记录。
-- `sequence.json` 当前状态为 `interactive_design_contract_draft`，已按本页面蓝图与机读契约草案校准；子代理验证通过后再升级为 `interactive_design_finalized`。
+- 本文件已通过子代理复审并进入接受状态，`5-6-interactive-contract.yaml` 与本页面蓝图同步维护。
+- `sequence.json` 当前状态为 `interactive_design_finalized`，已按本页面蓝图与机读契约校准。
 
 ## 表述规则
 

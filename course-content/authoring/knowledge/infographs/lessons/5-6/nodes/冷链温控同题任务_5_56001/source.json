@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T00:57:25.916321Z",
+  "lesson": {
+    "lesson_id": "5-6",
+    "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+    "groups": [
+      "冷链对象与模型边界"
+    ],
+    "card_order_index": 1
+  },
+  "node": {
+    "id": "冷链温控同题任务_5_56001",
+    "name": "冷链温控同题任务",
+    "name_en": "Same-Task Cold Chain Temperature Control",
+    "category": "场景性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "冷链温控同题任务把同一冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较。",
+    "examples": [
+      "同一个 48 小时冷链仓库日志同时用于经典 PI/PID、数据驱动预测补偿和策略学习监督层，而不是给每条路线构造不同难度的案例。"
+    ],
+    "formulas": [
+      "2\\leq T_a(k)\\leq 8,\\qquad 2\\leq T_p(k)\\leq 8,\\qquad 0\\leq u(k)\\leq 1"
+    ],
+    "keywords": [
+      "冷链温控",
+      "同题比较",
+      "温区约束",
+      "方法迁移",
+      "方法比较"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/冷链温控同题任务_5_56001.md",
+  "card_frontmatter": {
+    "node_id": "冷链温控同题任务_5_56001",
+    "name": "冷链温控同题任务",
+    "name_en": "Same-Task Cold Chain Temperature Control",
+    "lesson_units": [
+      "5-6"
+    ],
+    "category": "场景性",
+    "knowledge_type": "D",
+    "chapter": "5",
+    "tags": [
+      "5-6",
+      "方法比较",
+      "冷链温控"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "course-content/authoring/lessons/5-6/design/5-6-handout.md"
+    ],
+    "asset_refs": [
+      "course-content/authoring/lessons/5-6/media/processed/5-6-temperature-log.png"
+    ]
+  },
+  "card_overview": "# 冷链温控同题任务\n\n**一句话定义**：冷链温控同题任务把同一冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较。\n\n**关键公式**：\n\n$$\n2\\leq T_a(k)\\leq 8,\\qquad 2\\leq T_p(k)\\leq 8,\\qquad 0\\leq u(k)\\leq 1\n$$\n\n**关联节点速查**：二状态冷链热模型、三场景同题比较\n\n---",
+  "card_detail": "本课中的单温区冷藏仓以 $5^\\circ\\mathrm{C}$ 为设定点，同时关注空气温度 $T_a$ 和货品核心温度 $T_p$。压缩机占空比 $u(k)$ 是底层执行量，外界温度、开门热负荷和入库货品热负荷构成主要扰动。\n\n同题比较的核心要求是：经典 PI/PID、数据驱动预测补偿和策略学习监督层必须面对同一个 48 小时运行日志，使用同一组评价指标。若每条路线使用不同对象或不同扰动，比较结果就不能支撑方法迁移判断。\n\n路线选择不按算法新旧排序，而看当前失效来源能否被解释和验证。常规日优先保留经典控制；入库热负荷可提前观察时，预测补偿有进入依据；训练覆盖和安全壳不足时，策略学习只能作为受限监督层候选。",
+  "card_plain_excerpt": "## 首页\n\n# 冷链温控同题任务\n\n**一句话定义**：冷链温控同题任务把同一冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较。\n\n**关键公式**：\n\n$$\n2\\leq T_a(k)\\leq 8,\\qquad 2\\leq T_p(k)\\leq 8,\\qquad 0\\leq u(k)\\leq 1\n$$\n\n**关联节点速查**：二状态冷链热模型、三场景同题比较\n\n---\n\n## 详情\n\n本课中的单温区冷藏仓以 $5^\\circ\\mathrm{C}$ 为设定点，同时关注空气温度 $T_a$ 和货品核心温度 $T_p$。压缩机占空比 $u(k)$ 是底层执行量，外界温度、开门热负荷和入库货品热负荷构成主要扰动。\n\n同题比较的核心要求是：经典 PI/PID、数据驱动预测补偿和策略学习监督层必须面对同一个 48 小时运行日志，使用同一组评价指标。若每条路线使用不同对象或不同扰动，比较结果就不能支撑方法迁移判断。\n\n路线选择不按算法新旧排序，而看当前失效来源能否被解释和验证。常规日优先保留经典控制；入库热负荷可提前观察时，预测补偿有进入依据；训练覆盖和安全壳不足时，策略学习只能作为受限监督层候选。",
+  "core_intuition": "",
+  "relations": [
+    {
+      "source_id": "方法迁移前边界说明_5_51005",
+      "source": "方法迁移前边界说明",
+      "target_id": "冷链温控同题任务_5_56001",
+      "target": "冷链温控同题任务",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "冷链温控同题任务_5_56001",
+      "source": "冷链温控同题任务",
+      "target_id": "二状态冷链热模型_5_56002",
+      "target": "二状态冷链热模型",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "冷链温控同题任务",
+        "冷链温控",
+        "同题比较",
+        "温区约束",
+        "方法迁移",
+        "方法比较"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "2\\leq T_a(k)\\leq 8,\\qquad 2\\leq T_p(k)\\leq 8,\\qquad 0\\leq u(k)\\leq 1"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}
