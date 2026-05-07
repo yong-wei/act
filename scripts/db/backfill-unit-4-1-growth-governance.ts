@@ -12,27 +12,11 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
 import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry';
+import { parseUnit41BackfillOptions } from './backfill-unit-4-1-growth-options';
 
 const prisma = new PrismaClient();
-const DEFAULT_SESSION_ID = 'cmotfl8jz000ulndce351rym9';
 const LESSON_KEY = 'unit-4-1-design-task-expression-v1';
-const isDryRun = process.argv.includes('--dry-run');
-const forceSnapshots = process.argv.includes('--force-snapshots');
-
-function getArgValue(name: string): string | null {
-  const prefix = `${name}=`;
-  const inline = process.argv.find((item) => item.startsWith(prefix));
-  if (inline) {
-    return inline.slice(prefix.length);
-  }
-
-  const index = process.argv.indexOf(name);
-  if (index >= 0) {
-    return process.argv[index + 1] ?? null;
-  }
-
-  return null;
-}
+const options = parseUnit41BackfillOptions();
 
 function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -114,7 +98,7 @@ async function refreshStudentSnapshot(userId: string, evidenceDetails: ReturnTyp
   }
 
   if (
-    !forceSnapshots &&
+    !options.forceSnapshots &&
     previousSnapshot &&
     previousSnapshot.factCount === facts.length &&
     latestFactCreatedAt &&
@@ -133,7 +117,7 @@ async function refreshStudentSnapshot(userId: string, evidenceDetails: ReturnTyp
     }
   }
 
-  if (isDryRun) {
+  if (options.dryRun) {
     return { snapshotId: null, factCount: facts.length, skipped: null };
   }
 
@@ -149,18 +133,25 @@ async function refreshStudentSnapshot(userId: string, evidenceDetails: ReturnTyp
     },
   });
 
-  await refreshStudentGrowthEvaluation(prisma, {
-    snapshot: {
-      id: snapshot.id,
-      userId,
-      snapshotAt,
-      factCount: facts.length,
-      competencyVector,
-      evidenceSummary: snapshot.evidenceSummary,
-    },
-  });
+  if (!options.skipGrowthEvaluations) {
+    await refreshStudentGrowthEvaluation(prisma, {
+      snapshot: {
+        id: snapshot.id,
+        userId,
+        snapshotAt,
+        factCount: facts.length,
+        competencyVector,
+        evidenceSummary: snapshot.evidenceSummary,
+      },
+    });
+  }
 
-  return { snapshotId: snapshot.id, factCount: facts.length, skipped: null };
+  return {
+    snapshotId: snapshot.id,
+    factCount: facts.length,
+    skipped: null,
+    growthEvaluationSkipped: options.skipGrowthEvaluations,
+  };
 }
 
 function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>) {
@@ -230,7 +221,7 @@ async function refreshClassSnapshot(classId: string, userIds: string[]) {
     }),
   ));
   const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0) as Array<{ competencyVector: unknown; riskFlags: unknown }>;
-  if (validSnapshots.length === 0 || isDryRun) {
+  if (validSnapshots.length === 0 || options.dryRun) {
     return { snapshotId: null, studentCount: validSnapshots.length };
   }
 
@@ -260,7 +251,7 @@ async function refreshClassSnapshot(classId: string, userIds: string[]) {
 }
 
 async function main() {
-  const sessionId = getArgValue('--session-id') ?? DEFAULT_SESSION_ID;
+  const sessionId = options.sessionId;
   const session = await prisma.classSession.findUnique({
     where: { id: sessionId },
     select: { id: true, classId: true },
@@ -335,7 +326,7 @@ async function main() {
 
       logsToUpdate += 1;
       missingFactsToDowngrade += 1;
-      if (isDryRun) {
+      if (options.dryRun) {
         continue;
       }
 
@@ -387,7 +378,7 @@ async function main() {
       factsToCreate += 1;
     }
 
-    if (isDryRun) {
+    if (options.dryRun) {
       continue;
     }
 
@@ -427,10 +418,14 @@ async function main() {
   let snapshotsCreated = 0;
   let snapshotsSkippedNoFacts = 0;
   let snapshotsSkippedUnchanged = 0;
+  let growthEvaluationsSkipped = 0;
   for (const userId of userIds) {
     const result = await refreshStudentSnapshot(userId, evidenceDetails);
     if (result.snapshotId) {
       snapshotsCreated += 1;
+      if (result.growthEvaluationSkipped) {
+        growthEvaluationsSkipped += 1;
+      }
     } else if (result.skipped === 'no_facts') {
       snapshotsSkippedNoFacts += 1;
     } else if (result.skipped === 'unchanged_facts') {
@@ -443,7 +438,8 @@ async function main() {
 
   console.log(JSON.stringify({
     sessionId,
-    dryRun: isDryRun,
+    dryRun: options.dryRun,
+    skipGrowthEvaluations: options.skipGrowthEvaluations,
     students: userIds.length,
     logs: logs.length,
     logsToUpdate,
@@ -454,6 +450,7 @@ async function main() {
     snapshotsCreated,
     snapshotsSkippedNoFacts,
     snapshotsSkippedUnchanged,
+    growthEvaluationsSkipped,
     classSnapshot,
   }, null, 2));
 }

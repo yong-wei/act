@@ -1,0 +1,38 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-6",
+  "status": "accepted",
+  "accepted_at": "2026-05-06T22:45:58+08:00",
+  "review_mode": "subagent",
+  "reviewer_agent_id": "019dfdb4-9827-78f1-874a-98ffef696e7a",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-6/design/5-6-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-6/design/5-6-interactive-contract.yaml",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/5-6/sequence.json"
+  },
+  "checks": {
+    "pretest_prerequisite_only": "pass",
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "manifest_audit": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "verdict": "pass",
+    "acceptance_readiness": "accepted",
+    "summary": "复审确认上一轮 5 个问题已修复：前测只考基础知识，sequence 步骤顺序一致，contract 内容载荷补齐，总结统计拆分，作者态状态说明已更新。"
+  },
+  "verification": {
+    "lesson_review": "review_lesson_content.py --lesson 5-6",
+    "manifest_audit": "audit_interactive_manifest.py --lesson 5-6 --write-review",
+    "manifest_audit_summary": {
+      "steps": 18,
+      "modules": 55,
+      "issues": 0
+    }
+  },
+  "issues": []
+}

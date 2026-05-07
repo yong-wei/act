@@ -1,0 +1,371 @@
+{
+  "assignment_title": "自动控制原理 作业6：约束、迁移与高保真验证下的方案修正",
+  "question_id": "T6-2",
+  "question_type": "X",
+  "question_score": 20,
+  "title": "迁移与跨模型验证下的排序变化解释",
+  "figure_required": false,
+  "figures": [],
+  "stem": "### 题目：迁移与跨模型验证下的排序变化解释（20分）\n\n某企业从产线 A 迁移到产线 B，控制对象从原有小负载工况转入更高惯量与更强干扰环境。已知候选控制结构共3个，均采用固定结构模板：\n\n候选方案：\n1. S1: `P1 = [PI + 积分抗饱和 + 反积分项]`\n2. S2: `P2 = [PID + 限幅防风up + 速度前馈]`\n3. S3: `P3 = [PI + 低通滤波 + 位置前馈]`\n\n**迁移工况信息**\n- 迁移前（工况 O）：\n  - 负载惯量 `J=1.0`，摩擦系数 `f=0.05`，通信延迟 `0.02 s`，测量噪声标准差 `σ=0.002`。\n- 迁移后（工况 M）：\n  - 负载惯量 `J=2.2`，摩擦系数 `f=0.12`，通信延迟 `0.12 s`，测量噪声标准差 `σ=0.010`。\n\n**结构编码片段**\n- `S1`：`id[1, 1] = PI, AW=true, FF=false`\n- `S2`：`id[2, 1] = PID, AW=true, FF=velocity`\n- `S3`：`id[3, 1] = PI, AW=true, LPF=1.5Hz`\n\n**辨识模型（Identification）验证结果**\n\n| 方案 | 目标代价 J_id （越小越好） | 上升沿延迟 t_r (s) | 稳态误差 e_ss (%) | 超调 M_p (%) |\n|---|---:|---:|---:|---:|\n| S1 | 41 | 0.39 | 0.8 | 8.5 |\n| S2 | 52 | 0.46 | 1.1 | 6.2 |\n| S3 | 58 | 0.52 | 1.4 | 7.1 |\n\n在辨识模型下约束要求：`M_p < 9%` 且 `t_r < 0.6 s`。\n\n**高保真模型（High-Fidelity）验证结果**\n\n| 方案 | 目标代价 J_hf （越小越好） | 上升沿延迟 t_r (s) | 稳态误差 e_ss (%) | 超调 M_p (%) | 控制量峰值 u_max（%） | 饱和上限 u_sat（%） |\n|---|---:|---:|---:|---:|---:|---:|\n| S1 | 49 | 0.54 | 0.7 | 12.4 | 19.0 | 15 |\n| S2 | 55 | 0.48 | 0.9 | 8.1 | 13.5 | 15 |\n| S3 | 57 | 0.45 | 1.0 | 7.8 | 12.1 | 15 |\n\n高保真约束要求：`M_p < 10%`, `t_r < 0.6 s`, `|u| <= u_sat`。\n\n请回答以下问题：\n1) 在迁移到工况 M 后，比较 S1、S2、S3 在辨识模型与高保真模型中的排序变化并给出排序结果（5分）。\n2) 说明 S1 为何在高保真模型中失效，给出固定结构层面的证据（5分）。\n3) 说明结构参数或边界如何限定“可迁移性”：哪些工况下该方案可直接移植，哪些工况下不建议直接沿用（10分）。",
+  "answer": "1. 排序变化应分两层看：辨识模型中三组方案均满足 $M_p<9\\%$ 与 $t_r<0.6\\,\\mathrm{s}$，因此可按 $J_{id}$ 从小到大排序，结果为 S1 第一、S2 第二、S3 第三。高保真模型中，如果只看 $J_{hf}$，S1 仍最低；但高保真验收必须先过硬约束，S1 出现 $M_p=12.4\\%>10\\%$ 且 $u_{max}=19\\%>u_{sat}=15\\%$，应剔除。因此高保真可交付排序为 S2 第一、S3 第二，S1 不可直接迁移。（5分）\n\n2. S1 的失效证据来自固定结构与迁移条件共同作用。迁移后惯量从 $J=1.0$ 增至 $2.2$，摩擦从 $0.05$ 增至 $0.12$，通信延迟从 $0.02\\,\\mathrm{s}$ 增至 $0.12\\,\\mathrm{s}$，噪声标准差从 $0.002$ 增至 $0.010$。S1 的结构编码为 `PI, AW=true, FF=false`，没有速度前馈，也没有低通滤波或更主动的延迟补偿通道。辨识模型低估了饱和和超调风险；高保真模型把输入饱和与延迟影响显化后，S1 同时违反超调和控制量约束。这说明 S1 的问题不是只差一次参数微调，而是固定结构在迁移工况下暴露出可交付性不足。（5分）\n\n3. 可迁移边界应以高保真约束为准。若迁移后仍满足 $M_p<10\\%$、$t_r<0.6\\,\\mathrm{s}$、$|u|\\le u_{sat}$，且惯量、摩擦、延迟、噪声没有明显放大，可先用辨识模型排序作为初筛，再做高保真复核。当前工况 M 下，S2 的 $M_p=8.1\\%$、$t_r=0.48\\,\\mathrm{s}$、$u_{max}=13.5\\%<15\\%$，可作为优先可迁移方案；S3 的 $M_p=7.8\\%$、$t_r=0.45\\,\\mathrm{s}$、$u_{max}=12.1\\%<15\\%$，也可迁移但 $J_{hf}=57$ 高于 S2，作为备选。S1 在高保真下违反硬约束，不建议直接沿用；若要保留 S1，必须先重整定或改结构，再重新通过高保真验证。结构编码层面的边界是：`FF=false` 的 PI 类方案在高惯量、高延迟、高噪声下不应只靠辨识模型排序决策；带速度前馈的 S2 对迁移工况更稳健，带低通滤波的 S3 对噪声更友好但综合代价略高。（10分）",
+  "answer_summary": {
+    "identification_ranking": [
+      "S1",
+      "S2",
+      "S3"
+    ],
+    "high_fidelity_deliverable_ranking": [
+      "S2",
+      "S3"
+    ],
+    "excluded_in_high_fidelity": [
+      "S1"
+    ],
+    "core_failure_evidence": [
+      "S1 M_p=12.4% > 10%",
+      "S1 u_max=19% > u_sat=15%"
+    ],
+    "second_round_used": false,
+    "replacement_solver_used": true
+  },
+  "inline_score_points": [
+    {
+      "points": 5,
+      "criterion": "给出辨识模型排序、高保真约束过滤后的可交付排序，并指出 S1 从辨识第一变为不可直接迁移。",
+      "inline_example": "高保真可交付排序为 S2 第一、S3 第二，S1 不可直接迁移。（5分）"
+    },
+    {
+      "points": 5,
+      "criterion": "用迁移条件、结构编码和高保真越界数据解释 S1 固定结构失效。",
+      "inline_example": "S1 同时违反超调和控制量约束，且缺少前馈/滤波/延迟补偿通道。（5分）"
+    },
+    {
+      "points": 10,
+      "criterion": "说明可迁移与不宜直接迁移的边界，给出 S2/S3/S1 的迁移建议。",
+      "inline_example": "S2 优先迁移，S3 备选，S1 需重整定或改结构后重验。（10分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "排序变化判定",
+      "points": 5,
+      "criteria": "辨识模型排序为 S1、S2、S3；高保真可交付排序为 S2、S3，S1 因硬约束失效剔除。"
+    },
+    {
+      "step": "失效证据解释",
+      "points": 5,
+      "criteria": "能指出 S1 在高保真下超调与控制饱和越界，并结合 PI、无前馈、迁移后惯量/延迟/噪声增大解释固定结构失效。"
+    },
+    {
+      "step": "迁移边界说明",
+      "points": 10,
+      "criteria": "能说明以高保真约束为迁移门槛，区分 S2 优先、S3 备选、S1 不宜直接沿用，并解释结构编码与参数迁移边界。"
+    }
+  ],
+  "judge_record": {
+    "selected_draft_id": "T6-2-draft-2",
+    "selection_reason": "T6-2-draft-2 在题面条件与评分口径上完整一致：题干包含迁移场景、有限候选方案、结构编码与双模型对比约束；评分项在 answer、inline_score_points、rubric 中均闭合且无重复累计；figures 为空满足 figure_required=false。相较于 draft-1 有可判定的排序一致性问题，draft-2 与 package 的要求匹配更高。",
+    "rejected": [
+      {
+        "draft_id": "T6-2-draft-1",
+        "reason": "评分口径虽闭合，但高保真排序解释与表内数据不一致（S2 与 S3 关系相反），会影响判分一致性与可判定性。"
+      }
+    ],
+    "needs_redraft": false,
+    "post_judge_revision": "最终包保留 draft-2 题面与核心结论，将标准答案和 rubric 调整为题面明确写出的 5+5+10 分值结构。"
+  },
+  "consistency_record": {
+    "round_1": {
+      "consistent": true,
+      "solver_results": [
+        {
+          "solver_id": "solver-1",
+          "ranking_decisions": {
+            "identification_order": {
+              "ranking": [
+                {
+                  "scheme": "S1",
+                  "J_id": 41,
+                  "t_r": 0.39,
+                  "M_p": 8.5,
+                  "e_ss": 0.8,
+                  "status": "feasible"
+                },
+                {
+                  "scheme": "S2",
+                  "J_id": 52,
+                  "t_r": 0.46,
+                  "M_p": 6.2,
+                  "e_ss": 1.1,
+                  "status": "feasible"
+                },
+                {
+                  "scheme": "S3",
+                  "J_id": 58,
+                  "t_r": 0.52,
+                  "M_p": 7.1,
+                  "e_ss": 1.4,
+                  "status": "feasible"
+                }
+              ],
+              "order": "S1 > S2 > S3",
+              "note": "辨识模型按目标代价最小化且均满足 M_p<9%, t_r<0.6s。"
+            },
+            "high_fidelity_order": {
+              "ranking": [
+                {
+                  "scheme": "S2",
+                  "J_hf": 55,
+                  "t_r": 0.48,
+                  "M_p": 8.1,
+                  "e_ss": 0.9,
+                  "u_max": 13.5,
+                  "u_sat": 15,
+                  "status": "feasible"
+                },
+                {
+                  "scheme": "S3",
+                  "J_hf": 57,
+                  "t_r": 0.45,
+                  "M_p": 7.8,
+                  "e_ss": 1.0,
+                  "u_max": 12.1,
+                  "u_sat": 15,
+                  "status": "feasible"
+                },
+                {
+                  "scheme": "S1",
+                  "J_hf": 49,
+                  "t_r": 0.54,
+                  "M_p": 12.4,
+                  "e_ss": 0.7,
+                  "u_max": 19.0,
+                  "u_sat": 15,
+                  "status": "infeasible"
+                }
+              ],
+              "order": "S2 > S3 > S1 (infeasible)",
+              "note": "高保真模型先满足约束 M_p<10%, t_r<0.6, |u|<=u_sat，再按 J_hf 比较。"
+            },
+            "cross_domain_consistency": "迁移后排序变化为失效剔除导致下降：S1 从辨识第一降为高保真失效，S2 与 S3 保持次序且均可用。"
+          },
+          "failure_evidence": {
+            "scheme": "S1",
+            "hf_violations": [
+              {
+                "metric": "M_p",
+                "value": 12.4,
+                "limit": 10.0,
+                "result": "violate"
+              },
+              {
+                "metric": "u_max",
+                "value": 19.0,
+                "limit": 15.0,
+                "result": "violate"
+              }
+            ],
+            "fixed_structure_reason": "S1 固定 PI + anti-windup + 反积分项，在更大惯量与更大通信延迟下缺乏前馈/前置补偿和滤波抑制；在高负载下积分主导导致瞬态放大，超调上升且输入出现饱和截断，无法满足高保真约束。",
+            "control_implication": "该结构对参数漂移敏感，不适合直接沿用到 M 工况。"
+          },
+          "transfer_boundary": {
+            "can_transfer_if": [
+              "高保真模型仍满足 M_p < 10%, t_r < 0.6s, |u|<=u_sat。",
+              "扰动未明显放大（J 与 f、延迟提升在可控范围且噪声仍可被结构吸收）。"
+            ],
+            "not_recommended_now": [
+              "当前工况 M 下 S1 不满足高保真约束，属于直接不可迁移。",
+              "当惯量抬升与延迟显著增大导致饱和与超调再次出现时，同类 PI 结构不建议直接沿用。"
+            ],
+            "migration_recommendation": "当前应优先选用 S2，S3 作为备选，并将 S1 仅用于重标定后重新验证。"
+          }
+        },
+        {
+          "solver_id": "solver-2",
+          "ranking_decisions": {
+            "identification_model": {
+              "order": [
+                "S1",
+                "S2",
+                "S3"
+              ],
+              "metrics": {
+                "S1": {
+                  "J_id": 41,
+                  "t_r": 0.39,
+                  "e_ss": 0.8,
+                  "M_p": 8.5
+                },
+                "S2": {
+                  "J_id": 52,
+                  "t_r": 0.46,
+                  "e_ss": 1.1,
+                  "M_p": 6.2
+                },
+                "S3": {
+                  "J_id": 58,
+                  "t_r": 0.52,
+                  "e_ss": 1.4,
+                  "M_p": 7.1
+                }
+              },
+              "constraints": {
+                "M_p_max": 9.0,
+                "t_r_max": 0.6
+              },
+              "feasible": [
+                "S1",
+                "S2",
+                "S3"
+              ],
+              "comment": "三者均满足辨识模型约束，故以目标代价 J_id 排名无变化。"
+            },
+            "high_fidelity_model_before_constraint_filter": {
+              "order_raw": [
+                "S1",
+                "S2",
+                "S3"
+              ],
+              "metrics": {
+                "S1": {
+                  "J_hf": 49,
+                  "t_r": 0.54,
+                  "e_ss": 0.7,
+                  "M_p": 12.4,
+                  "u_max": 19.0,
+                  "u_sat": 15
+                },
+                "S2": {
+                  "J_hf": 55,
+                  "t_r": 0.48,
+                  "e_ss": 0.9,
+                  "M_p": 8.1,
+                  "u_max": 13.5,
+                  "u_sat": 15
+                },
+                "S3": {
+                  "J_hf": 57,
+                  "t_r": 0.45,
+                  "e_ss": 1.0,
+                  "M_p": 7.8,
+                  "u_max": 12.1,
+                  "u_sat": 15
+                }
+              }
+            },
+            "high_fidelity_model_after_constraints": {
+              "order": [
+                "S2",
+                "S3",
+                "S1"
+              ],
+              "feasible": [
+                "S2",
+                "S3"
+              ],
+              "infeasible": [
+                "S1"
+              ],
+              "constraints": {
+                "M_p_max": 10.0,
+                "t_r_max": 0.6,
+                "u_max_le": "u_sat"
+              },
+              "comment": "S1 在高保真下 M_p、t_r 可接受，但发生 u_max 超界，不能作为可直接迁移解。"
+            }
+          },
+          "failure_evidence": {
+            "S1": [
+              "高保真下 u_max=19.0% > u_sat=15%，违反 |u|<=u_sat 硬约束，属于结构层面失效。",
+              "迁移后高惯量、高摩擦、较大通信延迟与噪声放大下，PI 回路缺少速度前馈/微分补偿，等效滞后加重，控制努力显著上升。",
+              "同一结构下 M_p 从 8.5% 提升到 12.4%，说明动态裕量进一步不足。"
+            ],
+            "S2": [
+              "PID + 速度前馈可对惯量上升和延迟扩展提供更直接的动态补偿，HF 下未触发饱和且约束可满足。"
+            ],
+            "S3": [
+              "PI + 低通滤波 + 位置前馈在抑制噪声上有优势，但无速度前馈使其对迁移后滞后敏感，代价和动态性能较 S2 弱。"
+            ]
+          },
+          "transfer_boundary": {
+            "可直接迁移": [
+              "高保真验收通过（M_p<10%、t_r<0.6 s 且 u_max≤u_sat）。对本题，S2/S3 在工况 M 可直接迁移，S2为优先选项。",
+              "在迁移幅度较小（惯量、摩擦、通信延迟、噪声均未显著恶化）时，可先尝试沿用原控制结构，但仍需复核饱和余量。"
+            ],
+            "不建议直接沿用": [
+              "S1 在 M 工况（J=2.2、f=0.12、delay=0.12 s、σ=0.010）因 u_max>u_sat 出现硬约束失效，不建议直接沿用。",
+              "当惯量和摩擦持续高于现有工况且时延、噪声增幅显著时，PI 类结构不建议直接复用，需先进行结构增强（如速度前馈/抗饱和重整定或加权限幅）。"
+            ]
+          }
+        },
+        {
+          "solver_id": "solver-3",
+          "ranking_decisions": {
+            "identification_model": {
+              "ranking": [
+                "S1",
+                "S2",
+                "S3"
+              ],
+              "constraints_ok": {
+                "S1": true,
+                "S2": true,
+                "S3": true
+              },
+              "ranking_basis": "按 J_id 升序（越小越好）；三者均满足 M_p<9%、t_r<0.6"
+            },
+            "high_fidelity_model_raw_cost": [
+              "S1",
+              "S2",
+              "S3"
+            ],
+            "high_fidelity_model_feasible": {
+              "ranking": [
+                "S2",
+                "S3",
+                "S1(不可行)"
+              ],
+              "constraints_ok": {
+                "S1": false,
+                "S2": true,
+                "S3": true
+              },
+              "ranking_basis": "先按约束筛除不可行解，再比较 J_hf；S2 u_max=13.5<SAT15且 M_p=8.1%<10%，S3 u_max=12.1<SAT15且 M_p=7.8%<10%；S1 同时违反 u 上限与超调"
+            },
+            "cross_model_change": {
+              "delta_ranking": "S1 从顶位降为高保真下不可行，S2 与 S3 相对顺序未变，主排序从 [S1,S2,S3] 变为 [S2,S3]（S1 剔除）"
+            }
+          },
+          "failure_evidence": {
+            "scheme": "S1",
+            "id_vs_hf_gap": [
+              "辨识模型下 S1 的 J_id=41 且满足约束",
+              "高保真模型下 J_hf=49，虽然更低，但出现 u_max=19.0% > u_sat=15%",
+              "高保真模型下 M_p=12.4%，超过高保真约束 10%"
+            ],
+            "fixed_structure_evidence": [
+              "S1 仅为 PI+AW，缺少速度前馈/更主动抑制环节，面对更大惯量与更强摩擦下抗扰动能力不足",
+              "迁移后延迟和噪声显著上升(0.12s, σ=0.010)，PI 型在此类高惯量、滞后、噪声环境下更易放大稳态偏差修正导致饱和累积",
+              "结构固定约束下缺少额外相位提前与抗滞后补偿手段，使闭环更易在高保真模型触发执行器限幅与超调增加"
+            ]
+          },
+          "transfer_boundary": {
+            "direct_migration_advisable": {
+              "S2": "在当前 M 条件可直接采用，但需保留限幅裕量监控；迁移工况若仍满足低于约束：t_r<0.6、M_p<10%、u_max<15%，并且 actuator 未长期接近饱和边界",
+              "S3": "可作为备选直接迁移：LPF 对测量噪声更友好、M_p 与 u_max 均较 S2 小于约束值；但动态响应慢，需核对上升沿速度目标是否可接受"
+            },
+            "do_not_directly_port": {
+              "S1": "不建议直接沿用到迁移工况 M：该点已触发 u 饱和且超调超限，说明在高惯量/高摩擦/高延迟/高噪声组合下失稳裕度下降",
+              "general": "当工况导致任何方案出现：u_max>=u_sat、M_p>=10%、t_r>=0.6 或噪声/延迟进一步加重时，应重新整定或改用新结构再评估"
+            },
+            "boundary_principle": "迁移性由‘高保真约束可满足性’决定，必须以高保真工况为准；仅满足辨识模型而不满足高保真约束的方案不应直接移植"
+          }
+        }
+      ],
+      "conclusion": "三份独立作答均判定辨识模型排序为 S1、S2、S3；高保真约束过滤后 S1 不可直接迁移，有效可交付排序为 S2、S3。"
+    },
+    "second_round_used": false,
+    "replacement_solver_used": true,
+    "replacement_reason": "原 solver-1 因上下文窗口耗尽失败，已关闭并以同一隔离题面重新启动替代 solver-1。"
+  }
+}

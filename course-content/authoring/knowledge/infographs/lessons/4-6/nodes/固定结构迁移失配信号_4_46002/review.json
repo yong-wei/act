@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-06T14:08:56.851893Z",
+  "lesson_id": "4-6",
+  "node_id": "固定结构迁移失配信号_4_46002",
+  "requested_node_id": "固定结构迁移失配信号_4_46002",
+  "node_name": "固定结构迁移失配信号",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

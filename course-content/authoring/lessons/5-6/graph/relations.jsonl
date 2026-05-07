@@ -1,0 +1,17 @@
+{"source_id":"方法迁移前边界说明_5_51005","source":"方法迁移前边界说明","target_id":"冷链温控同题任务_5_56001","target":"冷链温控同题任务","relation_type":"leads_to","strength":0.9,"label":"只有先明确方法迁移边界，才能把冷链任务组织成同题比较而非算法排行榜。"}
+{"source_id":"冷链温控同题任务_5_56001","source":"冷链温控同题任务","target_id":"二状态冷链热模型_5_56002","target":"二状态冷链热模型","relation_type":"leads_to","strength":0.94,"label":"冷链任务中的空气读数和货品本体风险需要通过二状态热模型分开表达。"}
+{"source_id":"二状态冷链热模型_5_56002","source":"二状态冷链热模型","target_id":"经典PID冷链基线_5_56003","target":"经典 PI/PID 冷链基线","relation_type":"applies_to","strength":0.9,"label":"经典 PI/PID 以二状态模型中的测得空气温度为误差来源，并保留货品核心温度作为风险检查对象。"}
+{"source_id":"数据驱动控制_5_54003","source":"数据驱动控制","target_id":"热负荷预测补偿_5_56004","target":"热负荷预测补偿","relation_type":"applies_to","strength":0.9,"label":"数据驱动控制在本任务中落成热负荷预测、预冷设定点和受限前馈补偿。"}
+{"source_id":"经典PID冷链基线_5_56003","source":"经典 PI/PID 冷链基线","target_id":"热负荷预测补偿_5_56004","target":"热负荷预测补偿","relation_type":"leads_to","strength":0.88,"label":"预测补偿不取消经典 PI/PID，而是在主闭环外补足可提前观察的热负荷。"}
+{"source_id":"数据覆盖与泛化边界_5_54005","source":"数据覆盖与泛化边界","target_id":"热负荷预测补偿_5_56004","target":"热负荷预测补偿","relation_type":"prerequisite","strength":0.86,"label":"热负荷预测补偿的可用性取决于开门、入库、外温和故障场景是否被数据覆盖。"}
+{"source_id":"显式控制律与学习策略_5_55001","source":"显式控制律与学习策略","target_id":"策略监督层调度_5_56005","target":"策略监督层调度","relation_type":"leads_to","strength":0.88,"label":"学习策略在冷链任务中被限制为上层模式调度，而不是直接替代显式控制律。"}
+{"source_id":"策略学习进入条件_5_55002","source":"策略学习进入条件","target_id":"策略监督层调度_5_56005","target":"策略监督层调度","relation_type":"prerequisite","strength":0.9,"label":"策略监督层进入前必须检查任务、样本、验证、安全和监控条件。"}
+{"source_id":"策略学习安全外壳_5_55005","source":"策略学习安全外壳","target_id":"策略监督层调度_5_56005","target":"策略监督层调度","relation_type":"applies_to","strength":0.9,"label":"策略监督层必须保留限幅、拒绝条件、回退经典控制和运行审计。"}
+{"source_id":"经典PID冷链基线_5_56003","source":"经典 PI/PID 冷链基线","target_id":"三场景同题比较_5_56006","target":"三场景同题比较","relation_type":"applies_to","strength":0.9,"label":"经典路线作为 E1、E2、E3 三场景比较中的基线和安全退路。"}
+{"source_id":"热负荷预测补偿_5_56004","source":"热负荷预测补偿","target_id":"三场景同题比较_5_56006","target":"三场景同题比较","relation_type":"applies_to","strength":0.9,"label":"预测补偿在入库高峰场景中接受恢复时间、峰值温度、能耗和切换次数检验。"}
+{"source_id":"策略监督层调度_5_56005","source":"策略监督层调度","target_id":"三场景同题比较_5_56006","target":"三场景同题比较","relation_type":"applies_to","strength":0.9,"label":"策略监督层在未见扰动场景中接受训练覆盖和安全边界检验。"}
+{"source_id":"三场景同题比较_5_56006","source":"三场景同题比较","target_id":"证据要求等级_5_56007","target":"证据要求等级","relation_type":"leads_to","strength":0.9,"label":"同题比较的结论必须同时报告性能指标和路线所需补充证据。"}
+{"source_id":"训练覆盖与部署验证_5_55007","source":"训练覆盖与部署验证","target_id":"证据要求等级_5_56007","target":"证据要求等级","relation_type":"cross_domain","strength":0.88,"label":"证据要求等级继承训练覆盖、独立测试、安全壳和部署监控的验证思想。"}
+{"source_id":"证据要求等级_5_56007","source":"证据要求等级","target_id":"方法选择说明卡_5_56008","target":"方法选择说明卡","relation_type":"leads_to","strength":0.92,"label":"方法选择说明卡必须把验证负担和证据要求写入推荐路线。"}
+{"source_id":"三场景同题比较_5_56006","source":"三场景同题比较","target_id":"方法选择说明卡_5_56008","target":"方法选择说明卡","relation_type":"leads_to","strength":0.94,"label":"说明卡中的推荐路线、收益和暂不采用理由应来自三场景同题比较。"}
+{"source_id":"模型数据责任分配_5_54007","source":"模型数据责任分配","target_id":"方法选择说明卡_5_56008","target":"方法选择说明卡","relation_type":"cross_domain","strength":0.84,"label":"方法选择说明卡把模型主干、数据模块和策略监督层的责任分配写成可审查判断。"}

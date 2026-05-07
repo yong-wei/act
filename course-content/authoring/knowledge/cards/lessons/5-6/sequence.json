@@ -1,0 +1,138 @@
+{
+  "lesson_id": "5-6",
+  "status": "interactive_design_finalized",
+  "sequence_source": "interactive_design_finalized",
+  "note": "本顺序已按 5-6 作者态互动页面与机读契约校准，并经子代理复审通过。",
+  "card_order": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "groups": [
+    {
+      "title": "冷链对象与模型边界",
+      "step_ids": [
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "冷链温控同题任务_5_56001",
+        "二状态冷链热模型_5_56002"
+      ]
+    },
+    {
+      "title": "三条路线实现与指标读解",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12"
+      ],
+      "node_ids": [
+        "经典PID冷链基线_5_56003",
+        "热负荷预测补偿_5_56004",
+        "策略监督层调度_5_56005",
+        "三场景同题比较_5_56006"
+      ]
+    },
+    {
+      "title": "证据责任与方法选择",
+      "step_ids": [
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "node_ids": [
+        "证据要求等级_5_56007",
+        "方法选择说明卡_5_56008"
+      ]
+    }
+  ],
+  "card_targets": {
+    "冷链温控同题任务_5_56001": {
+      "primary_steps": [
+        "step-04"
+      ],
+      "review_steps": [
+        "step-18"
+      ],
+      "presentation": "常显卡片 / 总结回看"
+    },
+    "二状态冷链热模型_5_56002": {
+      "primary_steps": [
+        "step-05"
+      ],
+      "presentation": "常显卡片"
+    },
+    "经典PID冷链基线_5_56003": {
+      "primary_steps": [
+        "step-06"
+      ],
+      "review_steps": [
+        "step-10"
+      ],
+      "presentation": "显影卡片 / E1 回看"
+    },
+    "热负荷预测补偿_5_56004": {
+      "primary_steps": [
+        "step-07"
+      ],
+      "review_steps": [
+        "step-11"
+      ],
+      "presentation": "常显卡片 / E2 比较回看"
+    },
+    "策略监督层调度_5_56005": {
+      "primary_steps": [
+        "step-08"
+      ],
+      "review_steps": [
+        "step-12"
+      ],
+      "presentation": "匹配前置 / E3 回看"
+    },
+    "三场景同题比较_5_56006": {
+      "primary_steps": [
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12"
+      ],
+      "review_steps": [
+        "step-17"
+      ],
+      "presentation": "指标读解 / 后测回看"
+    },
+    "证据要求等级_5_56007": {
+      "primary_steps": [
+        "step-13",
+        "step-16"
+      ],
+      "review_steps": [
+        "step-18"
+      ],
+      "presentation": "风险矩阵 / 误判回看 / 总结回看"
+    },
+    "方法选择说明卡_5_56008": {
+      "primary_steps": [
+        "step-14",
+        "step-15"
+      ],
+      "review_steps": [
+        "step-17"
+      ],
+      "presentation": "工作区 / 评审结构 / 后测回看"
+    }
+  }
+}

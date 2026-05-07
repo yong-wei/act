@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-06T14:06:39.796717Z",
+  "lesson_id": "4-6",
+  "node_id": "迁移场景任务重排_4_46001",
+  "requested_node_id": "迁移场景任务重排_4_46001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019dfd98-7ab0-79f0-bc41-c10b03912352/ig_0f7652a5a6c141870169fb4a78f4748191b76e4bf0cb3be318.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-6/nodes/迁移场景任务重排_4_46001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-6/nodes/迁移场景任务重排_4_46001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-6/nodes/迁移场景任务重排_4_46001/source.json"
+}

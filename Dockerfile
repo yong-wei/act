@@ -67,6 +67,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/scripts/db ./scripts/db
 COPY --from=builder /app/scripts/workers ./scripts/workers
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 

@@ -170,7 +170,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。"
+        "student_task": "只阅读，不提交。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -282,7 +283,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "阅读课程目标。"
+        "student_task": "阅读课程目标。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -414,13 +416,20 @@
           "id": "task-change-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "migration_formula",
+            "formula": "$\\\\text{迁移判断}=\\\\text{对象变化}+\\\\text{任务变化}+\\\\text{筛选线重排}$"
+          }
         },
         {
           "id": "boundary-split-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "scenario_reorder_note"
+          }
         }
       ],
       "content_blocks": {
@@ -644,7 +653,19 @@
         "step_reveal_policy": {
           "min_layers": 3,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-04-activity",
+            "title": "理解三类失配信号如何共同指向旧问题写法失效。",
+            "prompt": "理解三类失配信号如何共同指向旧问题写法失效。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -748,13 +769,58 @@
           "id": "trajectory-duty-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "destroyer_objective",
+            "formula": "$J_d(\\\\theta)=\\\\lambda_1\\\\bar E_{\\\\mathrm{trans}}+\\\\lambda_2\\\\bar E_{\\\\psi}+\\\\lambda_3\\\\bar E_{\\\\mathrm{traj}}+\\\\lambda_4\\\\bar u_{\\\\mathrm{peak}}+\\\\lambda_5\\\\bar E_u$"
+          }
         },
         {
           "id": "action-duty-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "metric_duty_table",
+            "columns": [
+              "职责",
+              "符号",
+              "计算方法",
+              "含义"
+            ],
+            "rows": [
+              [
+                "切换段误差",
+                "$\\\\bar E_{\\\\mathrm{trans}}$",
+                "$E_{\\\\mathrm{trans}}(\\\\theta)/E_{\\\\mathrm{trans},0}$",
+                "统计方波切换后短时间窗口内的误差面积，衡量变向后能否尽快跟上。"
+              ],
+              [
+                "全程跟踪误差",
+                "$\\\\bar E_{\\\\psi}$",
+                "$E_{\\\\psi}(\\\\theta)/E_{\\\\psi,0}$",
+                "覆盖整个 120s 机动过程，防止只把少数切换段做好。"
+              ],
+              [
+                "航迹偏离",
+                "$\\\\bar E_{\\\\mathrm{traj}}$",
+                "$E_{\\\\mathrm{traj}}(\\\\theta)/E_{\\\\mathrm{traj},0}$",
+                "将期望航向与实际航向按固定航速积分成平面轨迹后累计偏差，回答船是否真正走到位。"
+              ],
+              [
+                "峰值动作",
+                "$\\\\bar u_{\\\\mathrm{peak}}$",
+                "$u_{\\\\mathrm{peak}}(\\\\theta)/u_{\\\\mathrm{lim}}$",
+                "检查执行机构瞬时最大操纵量是否越界。"
+              ],
+              [
+                "控制能量",
+                "$\\\\bar E_u$",
+                "$E_u(\\\\theta)/E_{u,\\\\mathrm{lim}}$",
+                "统计全程控制量平方积分，检查持续动作代价。"
+              ]
+            ]
+          }
         },
         {
           "id": "objective-summary",
@@ -1030,7 +1096,19 @@
         "step_reveal_policy": {
           "min_layers": 3,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-06-activity",
+            "title": "理解结构搜索是在什么条件下才成为合理入口。",
+            "prompt": "理解结构搜索是在什么条件下才成为合理入口。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1175,13 +1253,32 @@
           "id": "structure-first-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "encoding_formula"
+          }
         },
         {
           "id": "active-slots-card",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "codebook_table",
+            "columns": [
+              "结构",
+              "有效槽位",
+              "忽略槽位",
+              "参数允许范围"
+            ],
+            "rows": [
+              "PI",
+              "超前",
+              "PI + 超前",
+              "滞后 + 超前",
+              "带微分滤波的 PID"
+            ]
+          }
         }
       ],
       "content_blocks": {
@@ -1430,7 +1527,19 @@
         "step_reveal_policy": {
           "min_layers": 3,
           "local_click_to_continue": true
-        }
+        },
+        "activity_cards": [
+          {
+            "id": "step-08-activity",
+            "title": "理解四类方案为什么能把目标与结构拆成独立判断。",
+            "prompt": "理解四类方案为什么能把目标与结构拆成独立判断。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
@@ -1562,7 +1671,10 @@
           "id": "boundary-task",
           "region": "interaction",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "convergence_figure"
+          }
         }
       ],
       "content_blocks": {
@@ -1688,19 +1800,28 @@
           "id": "posttest-q1",
           "region": "quiz",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "posttest_header"
+          }
         },
         {
           "id": "posttest-q2",
           "region": "quiz",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "posttest_note"
+          }
         },
         {
           "id": "posttest-q3",
           "region": "quiz",
           "kind": "activity-card",
-          "must_be_visible": false
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "posttest_header"
+          }
         },
         {
           "id": "posttest-note",
@@ -1890,7 +2011,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "阅读总结并进入下一课。"
+        "student_task": "阅读总结并进入下一课。",
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",

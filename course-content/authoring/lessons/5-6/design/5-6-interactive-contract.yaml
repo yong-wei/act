@@ -1,0 +1,464 @@
+contract_version: '2.2'
+lesson_id: '5-6'
+course_title: '5-6：方法迁移与前沿比较'
+course_route_segment: 'unit-5-6-method-comparison-cold-chain'
+preview_mode: { default_entry: 'student_demo', student_demo_base_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo' }
+media_policy: { runtime_only: true, runtime_media_base: '/course-runtime/lessons/5-6/media' }
+telemetry_strategy: 'step_level_learning_evidence'
+teacher_insight_strategy: 'step_level_aggregation_only'
+required_step_fields: [layout, modules, content_blocks, evidence_sequence, interaction_spec, teacher_controls, student_access, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks]
+
+x_controls:
+  no_controls: &no_controls { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+  quiz_controls: &quiz_controls { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
+  reveal_controls: &reveal_controls { release_activity: 'not_applicable', open_browse: 'teacher_toggle', teacher_step_reveal: 'enabled', reveal_reference_answer: 'teacher_toggle' }
+x_access:
+  visible_access: &visible_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+  released_access: &released_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+  reveal_access: &reveal_access { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: true, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
+x_specs:
+  view_telemetry: &view_telemetry { summary_fields: ['viewed', 'timeOnStep'], result_policy: 'no_submission' }
+  card_telemetry: &card_telemetry { summary_fields: ['cardSubmitted', 'timeOnStep'], result_policy: 'card_submission' }
+  view_insight: &view_insight { widgets: ['view_count'], aggregation: 'step_level' }
+  card_insight: &card_insight { widgets: ['completion_rate', 'choice_distribution'], aggregation: 'step_level' }
+
+steps:
+  step-01:
+    title: '冷链方法选择压力的导入场景'
+    layout: { template: 'intro_comic_problem_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'entry-problem', title: '冷链仓库路线选择问题', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'cover-comic', title: '冷链方法选择导入漫画', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-6/media/5-6-cover-comic.png', block_key: 'figure_reading' } }
+      - { id: 'entry-summary', title: '同题比较收束', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+    content_blocks:
+      problem: { type: 'plain_text', body: '同一个生物制剂冷藏仓常规日稳定，但集中入库后货品核心温度恢复较慢。控制系统应继续使用经典 PI/PID、加入预测补偿，还是让策略学习接管。' }
+      figure_reading: { type: 'plain_text', body: '冷链仓库、运行日志、三张路线卡和工程评审桌共同构成同题比较场景。' }
+      summary: { type: 'plain_text', body: '本课判断的不是方法新旧，而是同一任务中哪条路线的收益、风险和验证路径能够闭合。' }
+    evidence_sequence: ['问题句', '封面漫画', '同题比较收束']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读导入场景。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: *view_telemetry
+    teacher_insight_spec: *view_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '从冷链仓库同题比较进入方法迁移判断。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-01', must_match_student_page: true }
+    acceptance_checks: ['导入页必须使用封面漫画提出三路线选择压力，不得做成课程目录。']
+
+  step-02:
+    title: '本次课程目标'
+    layout: { template: 'goal_statement_board', regions: [{ id: 'goals', width: 'full', order: 1 }] }
+    modules:
+      - { id: 'goal-list', title: '完成本次课程后，学习者能够', region: 'goals', kind: 'goal-card-row', must_be_visible: true, payload: { block_key: 'goals' } }
+    content_blocks:
+      goals: { type: 'bullet_list', items: ['提取冷链温控任务中的模型可信度、数据覆盖、扰动来源、动作边界和安全后果证据。', '解释二状态热模型中空气温度与货品核心温度的不同时间尺度。', '比较经典 PI/PID、数据驱动预测补偿和策略学习监督层的实现位置与验证责任。', '根据 E1、E2、E3 指标表判断推荐路线。', '撰写方法选择说明卡，说明收益、风险、验证路径和暂不采用其他路线的依据。'] }
+    evidence_sequence: ['布鲁姆能力目标单列表']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读本次课程目标。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: *view_telemetry
+    teacher_insight_spec: *view_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '呈现 5-6 的同题比较与方法选择能力目标。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-02', must_match_student_page: true }
+    acceptance_checks: ['目标页只出现本次课程目标，不展示路线结论。']
+
+  step-03:
+    title: '前置基础快测'
+    layout: { template: 'quiz_group_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'pretest-intro', title: '前测基础范围', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
+      - { id: 'pretest-quiz', title: '快慢状态、执行限幅与指标表读法', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['pre-slow-state', 'pre-actuator-limit', 'pre-metric-reading'] } }
+    content_blocks:
+      intro: { type: 'plain_text', body: '本页只检查进入本课所需的快慢状态、执行限幅和指标表读法基础，不提前考察三路线、预测补偿或策略监督层结论。' }
+    evidence_sequence: ['前测范围说明', '三道客观题']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道预备知识题。'
+      activity_cards:
+        - { id: 'pre-slow-state', title: '快慢状态判断', prompt: '一个系统包含快速传感器读数和慢速对象状态。若快速读数已经回到设定值附近，慢速状态的风险是否必然解除？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['必然解除', '不必然，慢速状态可能仍在上升或缓慢恢复', '只要执行器满输出就必然解除'], reference_answer: '不必然，慢速状态可能仍在上升或缓慢恢复' }
+        - { id: 'pre-actuator-limit', title: '执行限幅判断', prompt: '执行器输出被限制在 $0\\leq u(k)\\leq 1$ 时，控制器计算出的候选动作仍必须经过执行边界限制。', response_kind: 'binary_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['正确', '错误'], reference_answer: '正确' }
+        - { id: 'pre-metric-reading', title: '指标表读法', prompt: '比较多个方案的指标表时，若各方案都没有触发硬约束越界，下一步最应该继续比较什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['只按没有越界结束判断', '峰值、恢复时间、能耗和切换次数等指标', '只看名称最新的方法'], reference_answer: '峰值、恢复时间、能耗和切换次数等指标' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['slow_state_ignored', 'actuator_limit_ignored', 'metric_reading_too_single'] }
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '前测只考察快慢状态、执行限幅和指标表读法基础。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-03', must_match_student_page: true }
+    acceptance_checks: ['前测全部为客观题；不得提前考察三路线、预测补偿、策略监督层或本课核心结论。']
+
+  step-04:
+    title: '冷链温控同题任务与约束证据'
+    layout: { template: 'constraint_problem_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'task-constraint', title: '温区、执行器和扰动约束', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'candidate-routes', title: '三条候选路线', region: 'formula', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'route_list' } }
+      - { id: 'temperature-log', title: '48 小时冷链仓库运行日志', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-6/media/5-6-temperature-log.png', block_key: 'figure_reading' } }
+      - { id: 'task-activity', title: '同题任务证据判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['same-task-fixed', 'slow-core-risk'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['2\\leq T_a(k)\\leq 8', '2\\leq T_p(k)\\leq 8', '0\\leq u(k)\\leq 1'], symbols: [{ symbol: 'T_a', meaning: '仓内空气温度，响应快' }, { symbol: 'T_p', meaning: '货品核心温度，变化慢' }, { symbol: 'u(k)', meaning: '压缩机占空比' }], explanation: '同一任务同时固定温区、对象、执行器、扰动日志和评价指标。' }
+      route_list: { type: 'bullet_list', items: ['经典 PI/PID 温控：用固定设定点、误差积分、抗积分饱和和压缩机限幅守住温区。', '数据驱动预测补偿：保留 PI/PID 主结构，用开门、入库和外温信号预测热负荷并提前预冷。', '策略学习监督层：不直接输出压缩机动作，只在预冷、正常、节能和保守恢复四种模式之间选择。'] }
+      figure_reading: { type: 'plain_text', body: '先看空气温度的快速波动，再看货品核心温度的缓慢变化，最后把开门、入库和外界温度作为路线选择证据。' }
+    evidence_sequence: ['温区约束', '两类温度', '执行器和扰动', '三条候选路线', '48 小时日志', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断同题任务中必须固定的证据。'
+      activity_cards:
+        - { id: 'same-task-fixed', title: '同题比较固定条件', prompt: '同题比较中不能改变哪一类条件？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['对象、扰动日志和评价指标', '每条路线的名称', '图表颜色'], reference_answer: '对象、扰动日志和评价指标' }
+        - { id: 'slow-core-risk', title: '核心温度慢热风险', prompt: '只看空气温度会遗漏哪类风险？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['货品核心温度慢热风险', '执行器单位换算', '页面加载速度'], reference_answer: '货品核心温度慢热风险' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '固定冷链同题比较的对象、温区、执行器、扰动和日志证据。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-04', must_match_student_page: true }
+    acceptance_checks: ['公式和日志图必须按讲义顺序出现；作答区默认隐藏。']
+
+  step-05:
+    title: '二状态热模型与实验场景'
+    layout: { template: 'thermal_model_scenario_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
+    modules:
+      - { id: 'thermal-formula', title: '二状态热模型方程', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'thermal-model-image', title: '二状态热模型与控制作用', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-6/media/5-6-two-state-thermal-model.png', block_key: 'figure_reading' } }
+      - { id: 'scenario-table', title: '三个实验场景', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'scenario_table' } }
+      - { id: 'thermal-activity', title: '模型与场景判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['compressor-state', 'e3-pressure'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['T_a(k+1)=T_a(k)+\\frac{T_{amb}(k)-T_a(k)}{420}+\\frac{T_p(k)-T_a(k)}{92}+0.040q_{door}(k)+0.030q_{load}(k)-0.080c(k)u(k)', 'T_p(k+1)=T_p(k)+\\frac{T_a(k)-T_p(k)}{250}+0.0062q_{load}(k)'], symbols: [{ symbol: 'q_{door}', meaning: '开门热负荷' }, { symbol: 'q_{load}', meaning: '入库货品热负荷' }, { symbol: 'c(k)', meaning: '制冷能力系数' }], explanation: '压缩机只直接作用在空气温度上，货品核心温度通过空气-货品换热间接下降。' }
+      figure_reading: { type: 'plain_text', body: '图中空气状态连接外界、货品、开门热负荷和压缩机制冷；货品核心状态变化更慢。' }
+      scenario_table: { type: 'native_table', columns: ['场景', '扰动描述', '方法比较重点'], rows: [['E1 常规日', '少量开门，外界温度平稳，货品热负荷小', '经典控制是否已经足够'], ['E2 入库高峰', '连续开门，温热货品集中入库，热负荷可提前观察', '预测预冷是否带来实际收益'], ['E3 未见扰动', '门封退化、传感器偏置和制冷能力下降', '训练覆盖之外的验证压力']] }
+    evidence_sequence: ['状态方程', '符号说明', '模型图', '三场景表', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断模型作用路径和场景压力。'
+      activity_cards:
+        - { id: 'compressor-state', title: '压缩机直接作用状态', prompt: '压缩机项直接作用在哪个状态？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['空气温度 $T_a$', '货品核心温度 $T_p$', '外界温度'], reference_answer: '空气温度 $T_a$' }
+        - { id: 'e3-pressure', title: 'E3 场景压力', prompt: 'E3 的比较重点是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['训练覆盖之外的验证压力', '常规日是否已经足够', '图像颜色是否清楚'], reference_answer: '训练覆盖之外的验证压力' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用二状态热模型和三场景表建立同题比较对象。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-05', must_match_student_page: true }
+    acceptance_checks: ['两条模型方程、符号、模型图和三场景表必须同页出现。']
+
+  step-06:
+    title: '经典 PI/PID 冷链基线'
+    layout: { template: 'pid_formula_reveal_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'pid-formula', title: '测量误差与压缩机限幅', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'pid-reveal', title: '抗积分饱和显影链', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
+      - { id: 'pid-params', title: '经典 PI/PID 参数表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'param_table' } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['T_m(k)=T_a(k)+b(k)', 'e(k)=T_m(k)-T_{set}', 'u^*(k)=K_p e(k)+I(k)+K_d[e(k)-e(k-1)]+u_{ff}(k)', 'u(k)=clip(u^*(k),0,1)'], explanation: '经典路线用测得空气温度误差驱动压缩机占空比，并保留限幅和抗积分饱和。' }
+      reveal_layers: [{ title: '临时积分项', body: '$\\tilde I(k+1)=clip(I(k)+K_i e(k),I_{min},I_{max})$。' }, { title: '饱和方向判断', body: '未饱和或朝离开饱和方向变化时采用临时积分项。' }, { title: '防止加深饱和', body: '若继续积分会让压缩机更深地贴住 0 或 1，则保持 $I(k+1)=I(k)$。' }, { title: '基线地位', body: '经典路线没有前馈补偿，参数冻结，是三路线比较的基线和安全退路。' }]
+      param_table: { type: 'native_table', columns: ['参数', '数值', '作用'], rows: [['$K_p$', '0.42', '温度偏高时立即增加制冷'], ['$K_i$', '0.010', '决定积分随误差变化速度'], ['$K_d$', '0.08', '抑制开门扰动后的快速变化'], ['$I_{min},I_{max}$', '-0.35, 0.70', '抗积分饱和边界']] }
+    evidence_sequence: ['测量温度', '误差', '候选输出', '限幅', '抗饱和显影', '参数表']
+    interaction_spec: { interaction_kind: 'teacher_reveal_only', student_task: '跟随教师逐层查看抗积分饱和链。', activity_cards: [] }
+    teacher_controls: *reveal_controls
+    student_access: *reveal_access
+    telemetry_spec: { summary_fields: ['viewed', 'revealProgress', 'timeOnStep'], result_policy: 'teacher_reveal' }
+    teacher_insight_spec: { widgets: ['reveal_progress'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '展开经典 PI/PID 的误差、限幅和抗饱和证据。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-06', must_match_student_page: true }
+    acceptance_checks: ['逐步显影只隐藏抗饱和步骤，不隐藏公式起点和参数表。']
+
+  step-07:
+    title: '热负荷预测补偿路线'
+    layout: { template: 'prediction_compensation_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'prediction-formula', title: '热负荷预测与前馈补偿', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'prediction-fit', title: 'E2 入库高峰适用性', region: 'formula', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'e2_fit' } }
+      - { id: 'input-table', title: '预测输入来源', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'input_table' } }
+      - { id: 'prediction-params', title: '预测补偿 PI/PID 参数表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'param_table' } }
+      - { id: 'prediction-activity', title: '预测补偿责任判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['e2-evidence', 'retained-responsibility'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['\\hat H_{60}=0.16\\sum q_{door}+0.09\\sum q_{load}+0.35\\max(0,\\bar T_{amb,60}-22)', '\\hat H_{60}>7.8 \\Rightarrow T_{set}=4.25', 'u_{ff}=clip(0.030\\hat H_{60}+0.020\\max(0,T_{amb}-23),0,0.52)'], explanation: '数据模块预测未来一小时热负荷等级，再用于预冷设定点和受限前馈；它不直接预测压缩机占空比。' }
+      e2_fit: { type: 'plain_text', body: '这条路线适合 E2 的原因是入库高峰并非随机噪声，开门、入库和外温信号可以提前观察；它解决的是热量进入仓库后再追赶会慢的问题。' }
+      input_table: { type: 'native_table', columns: ['输入量', '获取方式', '作用'], rows: [['开门记录', '仓门开关或入库计划', '短时热空气冲击'], ['入库热负荷', '入库批次和货品初温折算', '温热货品慢释放'], ['未来一小时平均外温', '温度传感器和短时天气预报', '仓体换热背景']] }
+      param_table: { type: 'native_table', columns: ['参数', '数值'], rows: [['$K_p$', '0.48'], ['$K_i$', '0.011'], ['$K_d$', '0.08']] }
+    evidence_sequence: ['预测公式', '输入来源表', '预冷阈值', '前馈公式', '参数表', 'E2 适用性句', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断预测补偿的适用证据和保留责任。'
+      activity_cards:
+        - { id: 'e2-evidence', title: 'E2 适用证据', prompt: '预测补偿适合 E2 的关键证据是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['开门、入库和外温信号可提前观察', '策略名称更新', '告警次数为 0'], reference_answer: '开门、入库和外温信号可提前观察' }
+        - { id: 'retained-responsibility', title: '保留责任', prompt: '这条路线必须保留哪些显式责任？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'half', options: ['PI/PID 主结构', '限幅', '温区检查', '异常回退', '直接学习占空比'], reference_answer: ['PI/PID 主结构', '限幅', '温区检查', '异常回退'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '说明预测补偿只补足热负荷预判，不替代底层控制责任。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-07', must_match_student_page: true }
+    acceptance_checks: ['不得把数据驱动写成直接预测压缩机动作。']
+
+  step-08:
+    title: '策略学习监督层调度边界'
+    layout: { template: 'policy_supervision_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'policy-state', title: '监督层状态向量', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'mode-table', title: '四模式监督策略', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'mode_table' } }
+      - { id: 'mode-match', title: '模式与边界匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['mode-match'] } }
+    content_blocks:
+      formula_block: { type: 'formula_group', formulas: ['x(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{amb}(k)]^T'], explanation: '策略监督层只能读取可观测量并选择模式，不直接输出压缩机占空比。' }
+      mode_table: { type: 'native_table', columns: ['模式', '触发条件', '输出边界'], rows: [['保守恢复', '$T_m>6.7$ 或 $T_p>6.3$', '降低设定点并加强 PI/PID'], ['预冷', '$\\hat H_{60}>9.0$', '提前降低设定点并加入受限前馈'], ['节能', '$\\hat H_{60}<1.2$ 且温度余量充足', '减少制冷但保留温区监测'], ['正常', '其他情况', '回到经典 PI/PID 参数']] }
+    evidence_sequence: ['状态向量', '四模式表', '开发覆盖说明', '模式匹配']
+    interaction_spec:
+      interaction_kind: 'drag_match'
+      student_task: '把监督模式匹配到触发条件与输出边界。'
+      activity_cards:
+        - { id: 'mode-match', title: '监督模式匹配', prompt: '将监督模式匹配到对应边界。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'recover', label: '保守恢复' }, { value: 'precool', label: '预冷' }, { value: 'energy', label: '节能' }, { value: 'normal', label: '正常' }], match_options: [{ value: 'high-temp', label: '温度偏高时快速恢复并可回退经典控制' }, { value: 'future-load', label: '热负荷到来前提前降低设定点' }, { value: 'low-risk', label: '热风险低时减少制冷动作但保留监测' }, { value: 'pid-base', label: '回到经典 PI/PID 参数' }], reference_matches: [{ item: 'recover', option: 'high-temp' }, { item: 'precool', option: 'future-load' }, { item: 'energy', option: 'low-risk' }, { item: 'normal', option: 'pid-base' }], reference_answer: '保守恢复 -> 温度偏高快速恢复；预冷 -> 热负荷到来前降低设定点；节能 -> 低风险减少制冷；正常 -> 经典 PI/PID。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '限定策略学习为上层模式调度，保留底层 PI/PID 和安全壳。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-08', must_match_student_page: true }
+    acceptance_checks: ['策略学习不能被写成直接控机；模式表和安全边界必须常显。']
+
+  step-09:
+    title: '同题实验数据与指标口径'
+    layout: { template: 'experiment_metric_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'formula', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'experiment-flow', title: '同题实验执行顺序', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'flow' } }
+      - { id: 'metric-formula', title: '恢复时间与能耗指标', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula_block' } }
+      - { id: 'metric-activity', title: '指标口径判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['alarm-zero', 'burden-meaning'] } }
+    content_blocks:
+      flow: { type: 'plain_text', body: '先生成 48 小时扰动日志，再让三条路线分别在同一扰动日志上闭环运行，最后从轨迹中计算越界分钟、峰值温度、恢复时间、能耗、切换次数和验证负担。' }
+      formula_block: { type: 'formula_group', formulas: ['E=\\sum_k u(k)/60', 't_{rec}: T_a 与 T_p 在主要热负荷结束后同时回到 5.8^\\circ C 以下所需时间'], explanation: '路线验证负担不是温度轨迹直接计算值，而是方法选择还需补充多少证据。' }
+    evidence_sequence: ['仿真顺序', '轨迹字段', '恢复时间定义', '能耗公式', '验证负担说明', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断指标口径。'
+      activity_cards:
+        - { id: 'alarm-zero', title: '告警次数读法', prompt: '告警次数本轮全为 0 时应如何处理？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['不作为主要差异证据', '证明三条路线完全等价', '证明最复杂路线最好'], reference_answer: '不作为主要差异证据' }
+        - { id: 'burden-meaning', title: '验证负担含义', prompt: '路线验证负担是否由温度轨迹直接计算？', response_kind: 'binary_choice', submit_scope: 'per_card', layout_span: 'half', options: ['是', '否'], reference_answer: '否' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '固定三路线同题实验的指标口径，避免只看单一结果。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-09', must_match_student_page: true }
+    acceptance_checks: ['恢复时间、能耗和验证负担定义必须常显。']
+
+  step-10:
+    title: '常规日与经典控制优先判断'
+    layout: { template: 'scenario_metric_reading_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'e1-table', title: 'E1 常规日指标表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'e1_table' } }
+      - { id: 'e1-choice', title: '常规日优先路线判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['e1-route'] } }
+    content_blocks:
+      e1_table: { type: 'native_table', columns: ['路线', '越界/min', '空气峰值/°C', '核心峰值/°C', '恢复/min', '能耗', '切换', '负担'], rows: [['经典', '0', '5.46', '5.15', '0', '23.97', '0', '低'], ['预测补偿', '0', '5.43', '5.13', '0', '23.97', '0', '中'], ['策略监督', '0', '5.47', '5.20', '0', '23.53', '0', '高']] }
+    evidence_sequence: ['E1 场景句', 'E1 指标表', '读表口令', '单选题']
+    interaction_spec:
+      interaction_kind: 'single_choice'
+      student_task: '判断常规日优先路线。'
+      activity_cards:
+        - { id: 'e1-route', title: 'E1 优先路线', prompt: 'E1 常规日的优先路线是：', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'full', options: ['经典 PI/PID', '数据驱动预测补偿', '策略监督层主闭环'], reference_answer: '经典 PI/PID' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用 E1 指标表判断经典控制已经足够。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-10', must_match_student_page: true }
+    acceptance_checks: ['必须同时比较性能差异和验证负担，不能按方法新旧排序。']
+
+  step-11:
+    title: '入库高峰与预测补偿收益判断'
+    layout: { template: 'three_route_rust_compare_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'e2-table', title: 'E2 入库高峰指标表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'e2_table' } }
+      - { id: 'route-panel', title: '入库高峰三路线比较面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'rust_cold_chain_route_compare_panel', src: '/course-runtime/lessons/5-6/media/5-6-three-route-comparison.png', block_key: 'figure_reading' } }
+      - { id: 'route-observation', title: '路线比较观察提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['e2-observation'] } }
+    content_blocks:
+      e2_table: { type: 'native_table', columns: ['路线', '越界/min', '空气峰值/°C', '核心峰值/°C', '恢复/min', '能耗', '切换', '负担'], rows: [['经典', '0', '6.93', '7.44', '22', '29.78', '8', '低'], ['预测补偿', '0', '6.77', '7.27', '0', '29.85', '6', '中'], ['策略监督', '0', '6.94', '7.45', '17', '29.51', '8', '高']] }
+      figure_reading: { type: 'plain_text', body: '先比较恢复时间从 22 min 到 0 min，再看空气峰值和核心峰值略降，最后检查能耗和验证负担是否同步增加。' }
+    evidence_sequence: ['E2 指标表', '三路线比较图', '图后读图口令', '观察提交']
+    interactive_figure_spec:
+      kind: 'rust_cold_chain_route_compare_panel'
+      baseline_media: '/course-runtime/lessons/5-6/media/5-6-three-route-comparison.png'
+      feasible_region_policy: 'not_applicable'
+      controls_position: 'below_figures'
+      parameter_controls: [{ id: 'route_visibility', label: '路线曲线', options: ['经典', '预测补偿', '策略监督'] }, { id: 'temperature_channel', label: '温度通道', options: ['空气温度', '货品核心温度'] }, { id: 'metric_view', label: '指标视图', options: ['恢复时间', '能耗', '切换次数', '验证负担'] }]
+      parameter_submit_spec: { submit_fields: ['route', 'recovery_time', 'benefit_judgment', 'boundary_judgment'] }
+    interaction_spec:
+      interaction_kind: 'interactive_figure_submit'
+      student_task: '提交路线、恢复时间读数、收益判断和证据边界判断。'
+      activity_cards:
+        - { id: 'e2-observation', title: '入库高峰观察记录', prompt: '记录一条路线、恢复时间读数、一个收益判断和一个证据边界判断。', response_kind: 'observation_text', submit_scope: 'per_card', layout_span: 'full', reference_answer: '预测补偿组合路线在 E2 中缩短恢复时间并略降峰值，但不能单独证明某一个机制贡献全部改善，也不能证明未见扰动可部署。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: { summary_fields: ['figureSubmitted', 'timeOnStep'], result_policy: 'figure_observation' }
+    teacher_insight_spec: { widgets: ['observation_keywords', 'submission_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '读 E2 三路线图，判断预测补偿组合路线的收益与边界。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-11', must_match_student_page: true }
+    acceptance_checks: ['互动图形默认状态复现讲义图；控件在图形下方；本页不另设普通问答题。']
+
+  step-12:
+    title: '未见扰动与覆盖风险判断'
+    layout: { template: 'scenario_metric_reading_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'e3-table', title: 'E3 未见扰动指标表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'e3_table' } }
+      - { id: 'e3-summary', title: '覆盖风险说明', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'e3-activity', title: '覆盖风险判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['policy-risk', 'verification-needed'] } }
+    content_blocks:
+      e3_table: { type: 'native_table', columns: ['路线', '越界/min', '空气峰值/°C', '核心峰值/°C', '恢复/min', '能耗', '切换', '负担'], rows: [['经典', '0', '7.32', '6.94', '0', '38.50', '5', '低'], ['预测补偿', '0', '7.13', '6.78', '0', '38.89', '7', '中'], ['策略监督', '0', '7.31', '6.94', '0', '38.78', '9', '高']] }
+      summary: { type: 'plain_text', body: '三条路线都没有越界，不等于策略学习监督层可以进入主闭环；E3 检查的是开发覆盖之外的风险。' }
+    evidence_sequence: ['E3 场景句', 'E3 指标表', '覆盖风险说明', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断 E3 中的覆盖风险。'
+      activity_cards:
+        - { id: 'policy-risk', title: '策略监督层风险', prompt: 'E3 中策略监督层不能进入主闭环的主要理由是什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: ['未覆盖门封退化、传感器偏置和制冷能力下降', '名称不够前沿', '告警次数不是 1'], reference_answer: '未覆盖门封退化、传感器偏置和制冷能力下降' }
+        - { id: 'verification-needed', title: '追加验证证据', prompt: 'E3 中应追加哪些验证证据？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'half', options: ['故障注入', '独立日志', '安全壳', '拒绝条件', '运行监控', '更换图表配色'], reference_answer: ['故障注入', '独立日志', '安全壳', '拒绝条件', '运行监控'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用 E3 指标表说明没有越界不等于可部署。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-12', must_match_student_page: true }
+    acceptance_checks: ['E3 的结论必须指向训练覆盖和部署验证，不得只停留在温度指标。']
+
+  step-13:
+    title: '路线选择的证据结构'
+    layout: { template: 'evidence_structure_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'evidence-summary', title: '三类路线证据责任', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'risk-matrix', title: '风险验证矩阵', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-6/media/5-6-risk-verification-matrix.png', block_key: 'figure_reading' } }
+      - { id: 'evidence-activity', title: '证据责任判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['data-responsibility', 'policy-responsibility'] } }
+    content_blocks:
+      summary: { type: 'plain_text', body: '经典控制说明模型和边界；数据驱动还要说明数据来源、覆盖、误差和漂移；策略学习还要说明状态动作标签、训练覆盖、安全壳和部署审计。' }
+      figure_reading: { type: 'plain_text', body: '证据要求等级用于比较方法迁移代价，不是标准控制性能指标。' }
+    evidence_sequence: ['三类路线证据', '风险验证矩阵', '双题']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '判断数据驱动和策略学习新增证据责任。'
+      activity_cards:
+        - { id: 'data-responsibility', title: '数据驱动证据责任', prompt: '数据驱动路线新增的证据责任包括什么？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'half', options: ['数据来源', '覆盖范围', '预测误差', '漂移监控', '异常回退', '取消 PI/PID'], reference_answer: ['数据来源', '覆盖范围', '预测误差', '漂移监控', '异常回退'] }
+        - { id: 'policy-responsibility', title: '策略监督层证据责任', prompt: '策略监督层新增的证据责任包括什么？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'half', options: ['状态-动作标签', '训练覆盖', '故障注入', '安全壳', '部署审计', '只看回报曲线'], reference_answer: ['状态-动作标签', '训练覆盖', '故障注入', '安全壳', '部署审计'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: *card_insight
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把路线选择放回性能、验证负担和责任边界。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-13', must_match_student_page: true }
+    acceptance_checks: ['风险矩阵图下说明不能复述标题，必须解释证据等级含义。']
+
+  step-14:
+    title: '方法选择说明卡工作区'
+    layout: { template: 'method_card_workspace', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'case', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'method-fields', title: '方法选择说明卡字段', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'field_table' } }
+      - { id: 'method-case', title: '集中入库冷链案例任务书', region: 'case', kind: 'problem-statement', must_be_visible: true, payload: { block_key: 'case_text' } }
+      - { id: 'method-workspace', title: '说明卡填写区', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['object-evidence', 'route-reason', 'benefit-risk', 'verification-reject'] } }
+    content_blocks:
+      field_table: { type: 'native_table', columns: ['栏位', '需要填写的内容'], rows: [['任务对象', '冷藏对象、温区要求、采样周期、执行器、扰动来源和安全后果'], ['主要证据', '模型可信度、数据覆盖、热负荷来源、故障迹象、动作边界'], ['推荐路线', '经典控制 / 数据驱动预测补偿 / 策略学习监督层候选 / 混合路线'], ['选择理由', '为什么这条路线最匹配当前证据'], ['主要收益', '解决了哪个具体缺口，例如入库热负荷预判或恢复时间缩短'], ['关键风险', '新增的数据覆盖、泛化、安全壳、解释和部署监控负担'], ['验证路径', '本地仿真、压力工况、独立日志、故障注入、上线前监控'], ['暂不采用其他路线', '其他路线缺少什么条件，或为什么代价超过收益']] }
+      case_text: { type: 'plain_text', body: '某生物制剂冷藏仓每天上午集中入库，当前 PI/PID 在常规日稳定，但入库高峰后货品核心温度接近 7.6°C，恢复较慢。仓库已有两个月开门记录、入库批次和环境温度日志，没有系统记录门封退化、传感器偏置和压缩机故障。' }
+    evidence_sequence: ['字段表', '案例任务书', '四张填写卡']
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      student_task: '填写方法选择说明卡。'
+      activity_cards:
+        - { id: 'object-evidence', title: '任务对象与主要证据', prompt: '写出任务对象和主要证据。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '对象为生物制剂冷藏仓；证据包括温区、入库热负荷、开门记录、环境温度、恢复慢和缺少故障覆盖。' }
+        - { id: 'route-reason', title: '推荐路线与选择理由', prompt: '写出推荐路线和选择理由。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿，因为入库热负荷可提前观察，经典基线仍保留安全责任。' }
+        - { id: 'benefit-risk', title: '主要收益与关键风险', prompt: '写出主要收益和关键风险。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '收益是缩短恢复时间和降低峰值；风险是数据覆盖、能耗、冻伤风险和故障覆盖不足。' }
+        - { id: 'verification-reject', title: '验证路径与暂不采用理由', prompt: '写出验证路径和暂不采用其他路线的原因。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '验证路径包括压力工况、独立日志、故障注入和上线监控；策略学习因训练覆盖和安全壳不足暂不进入主闭环。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'textKeywords', 'timeOnStep'], result_policy: 'text_workspace' }
+    teacher_insight_spec: { widgets: ['keyword_cloud', 'submission_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把路线选择写成可审查的工程说明卡。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-14', must_match_student_page: true }
+    acceptance_checks: ['字段表和案例任务书常显；填写区默认隐藏；四卡单独提交。']
+
+  step-15:
+    title: '分层实践与评审陈述'
+    layout: { template: 'practice_review_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'practice-summary', title: '实践任务与评审结构', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'review-sort', title: '三分钟评审陈述排序', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['review-order'] } }
+    content_blocks:
+      summary: { type: 'plain_text', body: '实践任务从证据辨析、定量判断、说明卡复核进入三分钟评审陈述。陈述应先说关键控制风险，再说经典 PI/PID 解决范围、数据驱动补足缺口、策略学习进入层级，最后给出推荐路线和最小验证路径。' }
+    evidence_sequence: ['实践目标', '证据辨析', '定量判断', '评审结构', '排序题']
+    interaction_spec:
+      interaction_kind: 'card_sort'
+      student_task: '排列三分钟评审陈述顺序。'
+      activity_cards:
+        - { id: 'review-order', title: '评审陈述顺序', prompt: '将评审陈述结构排序。', response_kind: 'card_sort', submit_scope: 'per_card', layout_span: 'full', options: ['关键控制风险', '经典 PI/PID 解决范围', '数据驱动补足缺口', '策略学习进入层级', '推荐路线和最小验证路径'], reference_answer: ['关键控制风险', '经典 PI/PID 解决范围', '数据驱动补足缺口', '策略学习进入层级', '推荐路线和最小验证路径'] }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: { widgets: ['sort_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把说明卡压缩成可陈述的证据链。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-15', must_match_student_page: true }
+    acceptance_checks: ['排序题不得替代说明卡工作区，只训练评审表达顺序。']
+
+  step-16:
+    title: '边界情况与常见误判'
+    layout: { template: 'misjudgment_boundary_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'misjudgment-summary', title: '四类常见误判', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'misjudgment-match', title: '误判与证据要求匹配', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['misjudgment-match'] } }
+    content_blocks:
+      summary: { type: 'plain_text', body: '常见误判包括只看温度曲线更低、把数据量大当作覆盖充分、认为策略学习更前沿所以优先、用更复杂路线替代说明责任。每一类误判都需要追加对应证据。' }
+    evidence_sequence: ['四类误判', '证据缺口', '匹配题']
+    interaction_spec:
+      interaction_kind: 'drag_match'
+      student_task: '把误判匹配到应追加的证据要求。'
+      activity_cards:
+        - { id: 'misjudgment-match', title: '误判证据匹配', prompt: '将四类误判匹配到对应证据要求。', response_kind: 'drag_match', submit_scope: 'per_card', layout_span: 'full', match_items: [{ value: 'lower-temp', label: '温度曲线更低' }, { value: 'more-data', label: '数据量更大' }, { value: 'newer-policy', label: '策略学习更前沿' }, { value: 'complex-route', label: '路线更复杂' }], match_options: [{ value: 'frost-energy', label: '检查冻伤风险、能耗和恢复条件' }, { value: 'coverage', label: '检查集中入库、故障和边界工况覆盖' }, { value: 'safety-shell', label: '检查训练覆盖、安全壳和回退路线' }, { value: 'responsibility', label: '说明新增解释、监控和部署责任' }], reference_matches: [{ item: 'lower-temp', option: 'frost-energy' }, { item: 'more-data', option: 'coverage' }, { item: 'newer-policy', option: 'safety-shell' }, { item: 'complex-route', option: 'responsibility' }], reference_answer: '温度更低 -> 冻伤与能耗；数据量更大 -> 覆盖；策略更前沿 -> 安全壳；路线更复杂 -> 说明责任。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: *card_telemetry
+    teacher_insight_spec: { widgets: ['match_distribution', 'completion_rate'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把常见误判转化为追加证据要求。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-16', must_match_student_page: true }
+    acceptance_checks: ['误判页面必须落到证据要求，不写成边界管理口号。']
+
+  step-17:
+    title: '后测：方法迁移与证据责任判断'
+    layout: { template: 'posttest_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'posttest-title', title: '后测任务', region: 'intro', kind: 'title-card', must_be_visible: true, payload: { block_key: 'post_quiz_title' } }
+      - { id: 'posttest-quiz', title: '方法迁移后测题组', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['post-e2-meaning', 'post-policy-evidence', 'post-route-card'] } }
+    content_blocks:
+      post_quiz_title: { type: 'plain_text', body: '本页检查同题比较、路线推荐和证据责任判断。' }
+    evidence_sequence: ['后测标题卡', '三题后测']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成后测题组。'
+      activity_cards:
+        - { id: 'post-e2-meaning', title: 'E2 结论边界', prompt: 'E2 中预测补偿恢复时间从 22 min 降到 0 min，最稳妥说明什么？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'one_third', options: ['当前组合实现更适合该入库高峰', '任何数据驱动方法都可部署', '策略学习已经可直接控机'], reference_answer: '当前组合实现更适合该入库高峰' }
+        - { id: 'post-policy-evidence', title: '策略监督层进入证据', prompt: '策略监督层进入真实冷链前至少需要哪些证据？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'one_third', options: ['训练覆盖', '故障注入', '安全壳', '拒绝条件', '回退控制', '运行监控', '只看训练回报'], reference_answer: ['训练覆盖', '故障注入', '安全壳', '拒绝条件', '回退控制', '运行监控'] }
+        - { id: 'post-route-card', title: '推荐路线短答', prompt: '给出一个集中入库冷链仓的推荐路线，并同时写出一个收益、一个关键风险和一个验证路径。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'one_third', reference_answer: '推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿；收益是缩短恢复时间；风险是覆盖不足或冻伤/能耗；验证路径包括压力工况、故障注入和监控。' }
+    teacher_controls: *quiz_controls
+    student_access: *released_access
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'textKeywords', 'timeOnStep'], result_policy: 'posttest' }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution', 'keyword_cloud'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '检查方法迁移判断、策略证据责任和说明卡表达。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-17', must_match_student_page: true }
+    acceptance_checks: ['后测不超过三题；最多一题短答；不得并入总结页。']
+
+  step-18:
+    title: '总结：同题比较的方法选择证据'
+    layout: { template: 'summary_infograph_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }] }
+    modules:
+      - { id: 'info-graphic', title: '方法选择证据信息图', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/5-6/media/5-6-info.png', block_key: 'figure_reading' } }
+      - { id: 'summary-content', title: '主要内容与边界', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary' } }
+      - { id: 'limitation-content', title: '局限性', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'limitations' } }
+      - { id: 'difficulty-content', title: '重点难点', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'difficulties' } }
+      - { id: 'extension-content', title: '拓展思考', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'extensions' } }
+      - { id: 'student-stats', title: '学生个人课堂表现统计', region: 'stats', kind: 'learning-stat-panel', must_be_visible: true, payload: { items: ['已浏览页面', '已提交互动', '前测完成情况', '后测完成情况', '说明卡提交状态'] } }
+      - { id: 'teacher-stats', title: '班级整体表现统计', region: 'stats', kind: 'learning-stat-panel', must_be_visible: true, payload: { items: ['班级提交率', '题目正确率', '说明卡关键词分布', '常见误判标签', '目标达成概况'] } }
+    content_blocks:
+      figure_reading: { type: 'plain_text', body: '信息图回收经典控制、预测补偿、策略监督层和方法选择说明卡之间的证据关系。' }
+      summary: { type: 'bullet_list', items: ['常规日优先经典 PI/PID，并作为安全退路。', '入库高峰中，预测补偿的价值来自可提前观察的热负荷信号。', '策略学习更适合作为监督层候选，训练覆盖、安全壳和独立测试不足时不进入主闭环。', '方法选择必须同时报告收益、风险和验证路径。', '本课仿真参数只用于同题比较，不代表真实药品仓库设计参数。'] }
+      limitations: { type: 'plain_text', body: '本课仿真参数只用于同题比较，不代表真实药品仓库设计参数；外部资料只支撑温区与责任背景。' }
+      difficulties: { type: 'plain_text', body: '重点难点是区分性能改善、部署可用和责任可审查，不能用单一指标替代路线选择。' }
+      extensions: { type: 'bullet_list', items: ['若预冷降低核心温度峰值却提高能耗，应如何重写说明卡。', '若传感器偏置导致测得空气温度偏低，三条路线分别会暴露什么风险。', '若策略监督层没有测试门封退化，它能否进入真实仓库运行控制。'] }
+    evidence_sequence: ['信息图', '四条核心结论', '局限性', '重点难点', '拓展思考', '学生个人统计', '教师班级统计']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读总结并查看课堂表现统计。', activity_cards: [] }
+    teacher_controls: *no_controls
+    student_access: *visible_access
+    telemetry_spec: *view_telemetry
+    teacher_insight_spec: { widgets: ['view_count', 'summary_stats'], aggregation: 'step_level' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '收束同题比较的方法选择证据、局限和课堂表现。' }
+    preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-18', must_match_student_page: true }
+    acceptance_checks: ['总结页顶部必须是信息图；学生统计和教师统计必须分离呈现。']

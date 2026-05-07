@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-06T14:04:15.504737Z",
+  "lesson": {
+    "lesson_id": "4-6",
+    "title": "场景迁移与方案比较：固定结构优化边界与结构编码入口",
+    "groups": [
+      "四类方案比较"
+    ],
+    "card_order_index": 11
+  },
+  "node": {
+    "id": "四类方案比较矩阵_4_46006",
+    "name": "四类方案比较矩阵",
+    "name_en": "Four-Scheme Comparison Matrix",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "把旧目标/新目标与旧结构/变结构交叉组合，才能分清“目标错位”和“结构边界”。",
+    "examples": [
+      "驱逐舰采用客船代价函数但变结构搜索，说明放开结构并不能自动修正错误目标；驱逐舰采用专用代价函数但固定结构，则进一步说明结构边界还在。"
+    ],
+    "formulas": [
+      "\\{\\text{旧目标},\\text{新目标}\\}\\times\\{\\text{旧结构},\\text{变结构}\\}"
+    ],
+    "keywords": [
+      "四类方案",
+      "比较矩阵",
+      "目标错位",
+      "结构边界"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md",
+  "card_frontmatter": {
+    "node_id": "四类方案比较矩阵_4_46006",
+    "name": "四类方案比较矩阵",
+    "name_en": "Four-Scheme Comparison Matrix",
+    "lesson_units": [
+      "4-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-6",
+      "四类方案",
+      "比较矩阵"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-6/design/4-6-handout.md"
+    ],
+    "asset_refs": [
+      "4-6-ship-heading-hybrid-search-comparison.png",
+      "4-6-ship-heading-hybrid-search-convergence.png"
+    ]
+  },
+  "card_overview": "# 四类方案比较矩阵 | Four-Scheme Comparison Matrix\n\n**一句话定义**：把旧目标/新目标与旧结构/变结构交叉组合，才能分清“目标错位”和“结构边界”。\n\n**核心直觉**：四类方案不是为了凑图，而是为了把两道判断拆开。\n\n**关联**：前置 → 统一结构编码与解码、优化前后证据比较表 · 后续 → 组合结构专项验证边界判断",
+  "card_detail": "### 完整解释\n\n![4-6 四类方案比较](../../lessons/4-6/media/processed/4-6-ship-heading-hybrid-search-comparison.png)\n\n前两类方案只改变“结构是否可变”，因此回答目标是否仍对题；后两类方案改用驱逐舰专用代价函数，再继续比较固定结构与变结构搜索。这样才能看清：结构放开本身不能替代正确目标。\n\n### 常见误区\n\n1. **误区**：只看最后一类方案即可。\n   **纠正**：没有前三类对照，就无法知道它到底改对了哪一层问题。\n\n2. **误区**：四类方案是在比较算法优劣。\n   **纠正**：真正被比较的是目标语言与结构边界。",
+  "card_plain_excerpt": "## 首页\n\n# 四类方案比较矩阵 | Four-Scheme Comparison Matrix\n\n**一句话定义**：把旧目标/新目标与旧结构/变结构交叉组合，才能分清“目标错位”和“结构边界”。\n\n**核心直觉**：四类方案不是为了凑图，而是为了把两道判断拆开。\n\n**关联**：前置 → 统一结构编码与解码、优化前后证据比较表 · 后续 → 组合结构专项验证边界判断\n\n## 详情\n\n### 完整解释\n\n![4-6 四类方案比较](../../lessons/4-6/media/processed/4-6-ship-heading-hybrid-search-comparison.png)\n\n前两类方案只改变“结构是否可变”，因此回答目标是否仍对题；后两类方案改用驱逐舰专用代价函数，再继续比较固定结构与变结构搜索。这样才能看清：结构放开本身不能替代正确目标。\n\n### 常见误区\n\n1. **误区**：只看最后一类方案即可。\n   **纠正**：没有前三类对照，就无法知道它到底改对了哪一层问题。\n\n2. **误区**：四类方案是在比较算法优劣。\n   **纠正**：真正被比较的是目标语言与结构边界。",
+  "core_intuition": "四类方案不是为了凑图，而是为了把两道判断拆开。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "四类方案比较矩阵",
+      "target_id": null,
+      "target": "组合结构专项验证边界判断",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "优化前后证据比较表",
+      "target_id": null,
+      "target": "四类方案比较矩阵",
+      "relation": "related",
+      "strength": 0.87,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "统一结构编码与解码",
+      "target_id": null,
+      "target": "四类方案比较矩阵",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "统一结构编码与解码_4_46005",
+      "source": "统一结构编码与解码",
+      "target_id": "四类方案比较矩阵_4_46006",
+      "target": "四类方案比较矩阵",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "只有把结构和参数放进统一编码，四类方案中的变结构结果才可被稳定比较。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "优化前后证据比较表_4_45005",
+      "source": "优化前后证据比较表",
+      "target_id": "四类方案比较矩阵_4_46006",
+      "target": "四类方案比较矩阵",
+      "relation": "related",
+      "strength": 0.87,
+      "description": "四类方案比较延续了统一证据框架，只是把比较对象扩展到目标语言与结构边界。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "四类方案比较矩阵_4_46006",
+      "source": "四类方案比较矩阵",
+      "target_id": "组合结构专项验证边界判断_4_46007",
+      "target": "组合结构专项验证边界判断",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "主比较链确认变结构确有意义后，才有必要进一步查看组合结构候选的边界性质。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "四类方案比较矩阵",
+        "四类方案",
+        "比较矩阵",
+        "目标错位",
+        "结构边界"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\{\\text{旧目标},\\text{新目标}\\}\\times\\{\\text{旧结构},\\text{变结构}\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

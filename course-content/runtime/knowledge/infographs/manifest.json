@@ -210,12 +210,30 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+      "title": "四类方案比较矩阵 信息图",
+      "lessonId": "4-6",
+      "nodeId": "四类方案比较矩阵_4_46006",
+      "sourceNodeId": "四类方案比较矩阵_4_46006"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
       "url": "/course-runtime/knowledge/infographs/nodes/固定结构自由目标项选择_4_44002.png",
       "title": "固定结构自由目标项选择 信息图",
       "lessonId": "4-4",
       "nodeId": "固定结构自由目标项选择_4_44002",
       "sourceNodeId": "固定结构自由目标项选择_4_44002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+      "title": "固定结构迁移失配信号 信息图",
+      "lessonId": "4-6",
+      "nodeId": "固定结构迁移失配信号_4_46002",
+      "sourceNodeId": "固定结构迁移失配信号_4_46002"
     },
     {
       "type": "infograph",
@@ -633,6 +651,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+      "title": "组合结构专项验证边界判断 信息图",
+      "lessonId": "4-6",
+      "nodeId": "组合结构专项验证边界判断_4_46007",
+      "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/经典试凑中的多目标拉扯_4_44001.png",
       "title": "经典试凑中的多目标拉扯 信息图",
@@ -666,6 +693,24 @@
       "lessonId": "4-2",
       "nodeId": "结构工具箱最小语义_4_42002",
       "sourceNodeId": "结构工具箱最小语义_4_42002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+      "title": "结构搜索引入条件 信息图",
+      "lessonId": "4-6",
+      "nodeId": "结构搜索引入条件_4_46004",
+      "sourceNodeId": "结构搜索引入条件_4_46004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+      "title": "统一结构编码与解码 信息图",
+      "lessonId": "4-6",
+      "nodeId": "统一结构编码与解码_4_46005",
+      "sourceNodeId": "统一结构编码与解码_4_46005"
     },
     {
       "type": "infograph",
@@ -777,6 +822,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+      "title": "迁移场景任务重排 信息图",
+      "lessonId": "4-6",
+      "nodeId": "迁移场景任务重排_4_46001",
+      "sourceNodeId": "迁移场景任务重排_4_46001"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
       "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
       "title": "避碰转弯半径可行域 信息图",
@@ -855,6 +909,15 @@
       "lessonId": "4-3",
       "nodeId": "首轮验证最小读数逻辑_4_43004",
       "sourceNodeId": "首轮验证最小读数逻辑_4_43004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+      "title": "驱逐舰专用代价函数改写 信息图",
+      "lessonId": "4-6",
+      "nodeId": "驱逐舰专用代价函数改写_4_46003",
+      "sourceNodeId": "驱逐舰专用代价函数改写_4_46003"
     }
   ]
 }

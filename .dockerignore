@@ -28,6 +28,8 @@ scripts/
 scripts/*
 !scripts/wasm/
 !scripts/wasm/**
+!scripts/db/
+!scripts/db/**
 !scripts/workers/
 !scripts/workers/**
 *.tsbuildinfo

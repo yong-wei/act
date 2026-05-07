@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-06T14:04:15.542233Z",
+  "lesson": {
+    "lesson_id": "4-6",
+    "title": "场景迁移与方案比较：固定结构优化边界与结构编码入口",
+    "groups": [
+      "专项验证与闭环移交"
+    ],
+    "card_order_index": 12
+  },
+  "node": {
+    "id": "组合结构专项验证边界判断_4_46007",
+    "name": "组合结构专项验证边界判断",
+    "name_en": "Boundary Judgment in Composite-Structure Probe",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "组合结构候选即使总代价更低，也不自动意味着所有筛选线都已被守住。",
+    "examples": [
+      "`PI + 超前 + lead_ff + filtered_rate` 在编码上看似更复杂，但前馈和测速反馈最终收缩成零增益，实际仍等价于反馈主通道的重排。"
+    ],
+    "formulas": [
+      "\\text{总代价更低}\\neq\\text{筛选线自动成立}"
+    ],
+    "keywords": [
+      "组合结构",
+      "专项验证",
+      "硬约束",
+      "边界判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md",
+  "card_frontmatter": {
+    "node_id": "组合结构专项验证边界判断_4_46007",
+    "name": "组合结构专项验证边界判断",
+    "name_en": "Boundary Judgment in Composite-Structure Probe",
+    "lesson_units": [
+      "4-6"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-6",
+      "组合结构",
+      "边界判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-6/design/4-6-handout.md"
+    ],
+    "asset_refs": [
+      "4-6-ship-heading-combo-probe.png",
+      "4-6-ship-heading-combo-control-effects.png"
+    ]
+  },
+  "card_overview": "# 组合结构专项验证边界判断 | Boundary Judgment in Composite-Structure Probe\n\n**一句话定义**：组合结构候选即使总代价更低，也不自动意味着所有筛选线都已被守住。\n\n**核心直觉**：优化器会沿总代价允许的方向继续下降，除非边界被写成真正的硬约束。\n\n**关联**：前置 → 四类方案比较矩阵 · 后续 → 剩余风险说明",
+  "card_detail": "### 完整解释\n\n![4-6 组合结构专项验证](../../lessons/4-6/media/processed/4-6-ship-heading-combo-probe.png)\n\n组合结构候选在编码上属于 `PI + 超前 + lead_ff + filtered_rate`，但最终前馈与测速反馈都收缩成零增益，实际仍等价于反馈主通道的重排。它能继续压低总代价和航迹误差，却也说明：只要尾段误差等筛选项没有被写成硬约束，优化器就会继续接受“局部越线换总体收益”的结果。\n\n### 常见误区\n\n1. **误区**：总代价更低就应直接替代主比较链。\n   **纠正**：它只能作为边界解释的补充证据。\n\n2. **误区**：结构更复杂就说明分工一定更合理。\n   **纠正**：真正起作用的支路必须回到参数和曲线证据里复核。",
+  "card_plain_excerpt": "## 首页\n\n# 组合结构专项验证边界判断 | Boundary Judgment in Composite-Structure Probe\n\n**一句话定义**：组合结构候选即使总代价更低，也不自动意味着所有筛选线都已被守住。\n\n**核心直觉**：优化器会沿总代价允许的方向继续下降，除非边界被写成真正的硬约束。\n\n**关联**：前置 → 四类方案比较矩阵 · 后续 → 剩余风险说明\n\n## 详情\n\n### 完整解释\n\n![4-6 组合结构专项验证](../../lessons/4-6/media/processed/4-6-ship-heading-combo-probe.png)\n\n组合结构候选在编码上属于 `PI + 超前 + lead_ff + filtered_rate`，但最终前馈与测速反馈都收缩成零增益，实际仍等价于反馈主通道的重排。它能继续压低总代价和航迹误差，却也说明：只要尾段误差等筛选项没有被写成硬约束，优化器就会继续接受“局部越线换总体收益”的结果。\n\n### 常见误区\n\n1. **误区**：总代价更低就应直接替代主比较链。\n   **纠正**：它只能作为边界解释的补充证据。\n\n2. **误区**：结构更复杂就说明分工一定更合理。\n   **纠正**：真正起作用的支路必须回到参数和曲线证据里复核。",
+  "core_intuition": "优化器会沿总代价允许的方向继续下降，除非边界被写成真正的硬约束。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "组合结构专项验证边界判断",
+      "target_id": null,
+      "target": "剩余风险说明",
+      "relation": "related",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "四类方案比较矩阵",
+      "target_id": null,
+      "target": "组合结构专项验证边界判断",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "组合结构专项验证边界判断",
+      "target_id": null,
+      "target": "传统控制结构局限",
+      "relation": "related",
+      "strength": 0.82,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "四类方案比较矩阵_4_46006",
+      "source": "四类方案比较矩阵",
+      "target_id": "组合结构专项验证边界判断_4_46007",
+      "target": "组合结构专项验证边界判断",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "主比较链确认变结构确有意义后，才有必要进一步查看组合结构候选的边界性质。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "组合结构专项验证边界判断_4_46007",
+      "source": "组合结构专项验证边界判断",
+      "target_id": "剩余风险说明_4_45006",
+      "target": "剩余风险说明",
+      "relation": "related",
+      "strength": 0.84,
+      "description": "专项验证说明结构放开以后仍会留下新的边界问题，需要继续以剩余风险的方式移交后续设计。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "组合结构专项验证边界判断",
+        "组合结构",
+        "专项验证",
+        "硬约束",
+        "边界判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{总代价更低}\\neq\\text{筛选线自动成立}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

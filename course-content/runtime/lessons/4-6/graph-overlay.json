@@ -105,8 +105,8 @@
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -82.0,
-      "positionY": -82.0,
+      "positionX": -30.0,
+      "positionY": -112.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -139,13 +139,31 @@
           "任务通道",
           "横摇抗扰"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-5",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007",
+          "sourceNodeId": "任务通道变化下的自由目标改写_4_44007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/任务通道变化下的自由目标改写_4_44007.png",
+          "title": "任务通道变化下的自由目标改写 信息图",
+          "lessonId": "4-5",
+          "nodeId": "任务通道变化下的自由目标改写_4_44007",
+          "sourceNodeId": "任务通道变化下的自由目标改写_4_44007"
+        }
       ],
       "tags": [
         "自由目标改写",
@@ -159,8 +177,8 @@
       "name": "优化前后证据比较表",
       "nodeType": "THEORY",
       "description": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
-      "positionX": -58.0,
-      "positionY": -100.5,
+      "positionX": -0.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -194,13 +212,31 @@
           "可行域",
           "工程解释"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "title": "优化前后证据比较表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化前后证据比较表_4_45005",
+          "sourceNodeId": "优化前后证据比较表_4_45005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md"
+        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/优化前后证据比较表_4_45005.png",
+          "title": "优化前后证据比较表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "优化前后证据比较表_4_45005",
+          "sourceNodeId": "优化前后证据比较表_4_45005"
+        }
       ],
       "tags": [
         "证据比较",
@@ -215,8 +251,8 @@
       "name": "剩余风险说明",
       "nodeType": "THEORY",
       "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
-      "positionX": 100.5,
-      "positionY": -58.0,
+      "positionX": 122.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -250,13 +286,31 @@
           "结构限制",
           "移交"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006",
+          "sourceNodeId": "剩余风险说明_4_45006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/剩余风险说明_4_45006.png",
+          "title": "剩余风险说明 信息图",
+          "lessonId": "4-5",
+          "nodeId": "剩余风险说明_4_45006",
+          "sourceNodeId": "剩余风险说明_4_45006"
+        }
       ],
       "tags": [
         "剩余风险",
@@ -271,7 +325,7 @@
       "name": "参数约束翻译表",
       "nodeType": "THEORY",
       "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
-      "positionX": 31.6,
+      "positionX": -31.6,
       "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
@@ -307,13 +361,31 @@
           "上下界",
           "职责分工"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002",
+          "sourceNodeId": "参数约束翻译表_4_45002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/参数约束翻译表_4_45002.png",
+          "title": "参数约束翻译表 信息图",
+          "lessonId": "4-5",
+          "nodeId": "参数约束翻译表_4_45002",
+          "sourceNodeId": "参数约束翻译表_4_45002"
+        }
       ],
       "tags": [
         "约束翻译",
@@ -328,8 +400,8 @@
       "name": "四类方案比较矩阵",
       "nodeType": "THEORY",
       "description": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
-      "positionX": -61.0,
-      "positionY": 105.7,
+      "positionX": -105.7,
+      "positionY": 61.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -362,13 +434,31 @@
           "目标错位",
           "结构边界"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "title": "四类方案比较矩阵 信息图",
+          "lessonId": "4-6",
+          "nodeId": "四类方案比较矩阵_4_46006",
+          "sourceNodeId": "四类方案比较矩阵_4_46006"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md"
+        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/四类方案比较矩阵_4_46006.png",
+          "title": "四类方案比较矩阵 信息图",
+          "lessonId": "4-6",
+          "nodeId": "四类方案比较矩阵_4_46006",
+          "sourceNodeId": "四类方案比较矩阵_4_46006"
+        }
       ],
       "tags": [
         "四类方案",
@@ -383,8 +473,8 @@
       "name": "固定结构迁移失配信号",
       "nodeType": "THEORY",
       "description": "把原有固定结构和旧代价函数迁移到新任务后，若出现持续拖尾、航迹偏离放大和参数职责互相挤占，就说明问题已经不再适合写成单纯的参数微调。",
-      "positionX": -105.7,
-      "positionY": 61.0,
+      "positionX": -122.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -417,13 +507,31 @@
           "拖尾",
           "航迹偏离"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+          "title": "固定结构迁移失配信号 信息图",
+          "lessonId": "4-6",
+          "nodeId": "固定结构迁移失配信号_4_46002",
+          "sourceNodeId": "固定结构迁移失配信号_4_46002"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/固定结构迁移失配信号_4_46002.md"
+        "course-content/runtime/knowledge/cards/nodes/固定结构迁移失配信号_4_46002.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/固定结构迁移失配信号_4_46002.png",
+          "title": "固定结构迁移失配信号 信息图",
+          "lessonId": "4-6",
+          "nodeId": "固定结构迁移失配信号_4_46002",
+          "sourceNodeId": "固定结构迁移失配信号_4_46002"
+        }
       ],
       "tags": [
         "失配信号",
@@ -438,8 +546,8 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": 110.9,
-      "positionY": 64.0,
+      "positionX": 64.0,
+      "positionY": 110.9,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -471,13 +579,31 @@
           "偏好",
           "候选解"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-5",
+          "nodeId": "权重偏好与无约束候选解_4_44005",
+          "sourceNodeId": "权重偏好与无约束候选解_4_44005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
+          "title": "权重偏好与无约束候选解 信息图",
+          "lessonId": "4-5",
+          "nodeId": "权重偏好与无约束候选解_4_44005",
+          "sourceNodeId": "权重偏好与无约束候选解_4_44005"
+        }
       ],
       "tags": [
         "权重",
@@ -491,8 +617,8 @@
       "name": "组合结构专项验证边界判断",
       "nodeType": "THEORY",
       "description": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
-      "positionX": 116.0,
-      "positionY": 67.0,
+      "positionX": 67.0,
+      "positionY": 116.0,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -524,13 +650,31 @@
           "硬约束",
           "边界判断"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "title": "组合结构专项验证边界判断 信息图",
+          "lessonId": "4-6",
+          "nodeId": "组合结构专项验证边界判断_4_46007",
+          "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md"
+        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/组合结构专项验证边界判断_4_46007.png",
+          "title": "组合结构专项验证边界判断 信息图",
+          "lessonId": "4-6",
+          "nodeId": "组合结构专项验证边界判断_4_46007",
+          "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+        }
       ],
       "tags": [
         "组合结构",
@@ -545,8 +689,8 @@
       "name": "结构搜索引入条件",
       "nodeType": "THEORY",
       "description": "只有当固定结构已经无法同时解释速度收益、动作边界和稳健性余量，并且继续调参只会在同一小块可用域内交换代价时，结构搜索才构成合理入口。",
-      "positionX": -34.7,
-      "positionY": 129.4,
+      "positionX": -94.8,
+      "positionY": 94.8,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -577,13 +721,31 @@
           "引入条件",
           "可用域"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+          "title": "结构搜索引入条件 信息图",
+          "lessonId": "4-6",
+          "nodeId": "结构搜索引入条件_4_46004",
+          "sourceNodeId": "结构搜索引入条件_4_46004"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/结构搜索引入条件_4_46004.md"
+        "course-content/runtime/knowledge/cards/nodes/结构搜索引入条件_4_46004.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构搜索引入条件_4_46004.png",
+          "title": "结构搜索引入条件 信息图",
+          "lessonId": "4-6",
+          "nodeId": "结构搜索引入条件_4_46004",
+          "sourceNodeId": "结构搜索引入条件_4_46004"
+        }
       ],
       "tags": [
         "结构搜索",
@@ -597,8 +759,8 @@
       "name": "统一结构编码与解码",
       "nodeType": "THEORY",
       "description": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
-      "positionX": -67.0,
-      "positionY": 116.0,
+      "positionX": -116.0,
+      "positionY": 67.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -631,13 +793,31 @@
           "有效槽位",
           "逐槽映射"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "title": "统一结构编码与解码 信息图",
+          "lessonId": "4-6",
+          "nodeId": "统一结构编码与解码_4_46005",
+          "sourceNodeId": "统一结构编码与解码_4_46005"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md"
+        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/统一结构编码与解码_4_46005.png",
+          "title": "统一结构编码与解码 信息图",
+          "lessonId": "4-6",
+          "nodeId": "统一结构编码与解码_4_46005",
+          "sourceNodeId": "统一结构编码与解码_4_46005"
+        }
       ],
       "tags": [
         "统一编码",
@@ -652,8 +832,8 @@
       "name": "迁移场景任务重排",
       "nodeType": "SCENARIO",
       "description": "当对象参数、参考轨迹和筛选线一起变化时，原有方案中的收益与代价排序会随之改写，这种改写决定了后续判断是否仍沿用原来的设计语言。",
-      "positionX": 67.0,
-      "positionY": -116.0,
+      "positionX": 116.0,
+      "positionY": -67.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -684,13 +864,31 @@
           "场景迁移",
           "筛选线"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+          "title": "迁移场景任务重排 信息图",
+          "lessonId": "4-6",
+          "nodeId": "迁移场景任务重排_4_46001",
+          "sourceNodeId": "迁移场景任务重排_4_46001"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/迁移场景任务重排_4_46001.md"
+        "course-content/runtime/knowledge/cards/nodes/迁移场景任务重排_4_46001.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/迁移场景任务重排_4_46001.png",
+          "title": "迁移场景任务重排 信息图",
+          "lessonId": "4-6",
+          "nodeId": "迁移场景任务重排_4_46001",
+          "sourceNodeId": "迁移场景任务重排_4_46001"
+        }
       ],
       "tags": [
         "任务重排",
@@ -704,8 +902,8 @@
       "name": "驱逐舰专用代价函数改写",
       "nodeType": "THEORY",
       "description": "当任务从单次保持切到持续机动时，比较对象必须从客船场景中的收敛时间与综合误差，改写为切换段误差、全程跟踪误差、航迹偏离、峰值动作和控制能量。",
-      "positionX": -99.0,
-      "positionY": 99.0,
+      "positionX": -135.2,
+      "positionY": 36.2,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -738,13 +936,31 @@
           "航迹偏离",
           "峰值动作"
         ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+          "title": "驱逐舰专用代价函数改写 信息图",
+          "lessonId": "4-6",
+          "nodeId": "驱逐舰专用代价函数改写_4_46003",
+          "sourceNodeId": "驱逐舰专用代价函数改写_4_46003"
+        },
         "createdAt": null,
         "updatedAt": null,
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/nodes/驱逐舰专用代价函数改写_4_46003.md"
+        "course-content/runtime/knowledge/cards/nodes/驱逐舰专用代价函数改写_4_46003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/驱逐舰专用代价函数改写_4_46003.png",
+          "title": "驱逐舰专用代价函数改写 信息图",
+          "lessonId": "4-6",
+          "nodeId": "驱逐舰专用代价函数改写_4_46003",
+          "sourceNodeId": "驱逐舰专用代价函数改写_4_46003"
+        }
       ],
       "tags": [
         "代价函数改写",

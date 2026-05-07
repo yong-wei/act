@@ -6,6 +6,10 @@
 
 ## 5-5-slides.pdf
 
+- 控制局漫游指南：当传统控制遇上强化学习
+
+https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=48dd1dc6d2d8e965b1da77e31a06a062&v=1778069328343&puid=26652392&enc=b5943b494a28df975e295b320197b2a3&wps=c35accf4420624b6e91c4544c93b79f5d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=1340530783&timestamp=1778069328343&signature=d5fc2febe95a5ad02b7d75a7eede5129
+
 ## 5-5-course.mp4
 
 - 船舶自动驾驶：经典控制 vs 现代AI

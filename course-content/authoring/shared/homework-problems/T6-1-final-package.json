@@ -1,0 +1,262 @@
+{
+  "assignment_title": "自动控制原理 作业6：约束、迁移与高保真验证下的方案修正",
+  "question_id": "T6-1",
+  "question_type": "C",
+  "question_score": 20,
+  "title": "无约束与带约束优化指标比较",
+  "figure_required": false,
+  "figures": [],
+  "stem": "### 作业题（单选/问答混合，20分）\n\n某单位在做 PID 参数再优化时，得到三组候选结果如下：\n\n| 候选方案 | 目标函数值 J(越小越好) | 超调 Mp(%) | 调节时间 Ts(s) | 稳态误差 e_ss(%) | 控制量峰值 u_max | 控制能量 E |\n|---|---:|---:|---:|---:|---:|---:|\n| 无约束候选 U | 7.5 | 22.0 | 1.4 | 0.8 | 1.20 | 4.5 |\n| 带约束候选 C1 | 8.9 | 16.0 | 1.7 | 1.2 | 0.85 | 5.5 |\n| 带约束候选 C2 | 8.4 | 19.0 | 2.1 | 1.1 | 0.88 | 5.8 |\n\n硬约束要求：\n- Mp ≤ 18%\n- Ts ≤ 1.8 s\n- e_ss ≤ 1.5%\n- u_max ≤ 0.9\n- E ≤ 6\n\n请按以下要求作答：\n1. 写出无约束与带约束方案的硬约束判定表（可行/不可行）；\n2. 比较三组方案指标变化，指出无约束方案与带约束方案的差异；\n3. 判断哪一个是可交付方案，并说明原因；\n4. 用一段话说明主要收益与代价。",
+  "answer": "1. 硬约束判定表如下：\n\n| 方案 | $M_p\\le18\\%$ | $T_s\\le1.8\\,\\mathrm{s}$ | $e_{ss}\\le1.5\\%$ | $u_{max}\\le0.9$ | $E\\le6$ | 可行性 |\n|---|---|---|---|---|---|---|\n| U | $22\\%>18\\%$，不达标 | $1.4\\le1.8$，达标 | $0.8\\le1.5$，达标 | $1.20>0.9$，不达标 | $4.5\\le6$，达标 | 不可行 |\n| C1 | $16\\%\\le18\\%$，达标 | $1.7\\le1.8$，达标 | $1.2\\le1.5$，达标 | $0.85\\le0.9$，达标 | $5.5\\le6$，达标 | 可行 |\n| C2 | $19\\%>18\\%$，不达标 | $2.1>1.8$，不达标 | $1.1\\le1.5$，达标 | $0.88\\le0.9$，达标 | $5.8\\le6$，达标 | 不可行 |\n\n据此，U 违反超调和控制峰值约束，C2 违反超调和调节时间约束，只有 C1 满足全部硬约束。（8分）\n\n2. 指标比较：U 的目标函数值最低，$J_U=7.5$，但它不可交付；C2 的 $J=8.4$ 低于 C1 的 $J=8.9$，但 C2 仍违反硬约束，也不能交付。与 U 相比，C1 的目标函数代价增加为\n\n$$\n\\Delta J=\\frac{8.9-7.5}{7.5}\\approx18.7\\%.\n$$\n\nC1 的主要变化是：超调由 $22\\%$ 降至 $16\\%$，控制峰值由 $1.20$ 降至 $0.85$，但调节时间由 $1.4\\,\\mathrm{s}$ 增至 $1.7\\,\\mathrm{s}$，控制能量由 $4.5$ 增至 $5.5$。（6分）\n\n3. 可交付方案应选 C1。理由是 C1 是唯一满足全部硬约束的候选；工程交付先看硬约束可行性，再在可行集合内比较目标函数值。（3分）\n\n4. 主要收益是超调和控制峰值被压回允许范围，执行器饱和和振荡风险降低；主要代价是 $J$、$T_s$ 和 $E$ 上升，说明带约束方案牺牲了一部分无约束意义下的最优指标，以换取工程可行性。（3分）",
+  "answer_summary": {
+    "feasibility": {
+      "U": false,
+      "C1": true,
+      "C2": false
+    },
+    "chosen_deliverable": "C1",
+    "delta_J_C1_vs_U_percent": 18.7,
+    "second_round_used": false
+  },
+  "inline_score_points": [
+    {
+      "points": 8,
+      "criterion": "逐项核验五项硬约束并给出 U、C1、C2 的可行性结论",
+      "inline_example": "只有 C1 满足全部硬约束。（8分）"
+    },
+    {
+      "points": 6,
+      "criterion": "比较无约束与带约束候选的 J、超调、调节时间、控制峰值和能量变化",
+      "inline_example": "C1 相对 U 的目标函数代价增加约 18.7%。（6分）"
+    },
+    {
+      "points": 3,
+      "criterion": "选择可交付方案并说明硬约束优先原则",
+      "inline_example": "可交付方案应选 C1。（3分）"
+    },
+    {
+      "points": 3,
+      "criterion": "说明带约束方案的主要收益与代价",
+      "inline_example": "牺牲部分无约束最优指标以换取工程可行性。（3分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "硬约束核验",
+      "points": 8,
+      "criteria": "完整列出并逐项判断 $M_p$、$T_s$、$e_{ss}$、$u_{max}$、$E$，三组方案可行性结论正确。"
+    },
+    {
+      "step": "指标比较",
+      "points": 6,
+      "criteria": "正确比较无约束与带约束候选，识别 $J$ 最小不等于可交付，并量化 C1 相对 U 的主要代价。"
+    },
+    {
+      "step": "可交付选择",
+      "points": 3,
+      "criteria": "明确选择 C1，并说明硬约束优先于目标函数值。"
+    },
+    {
+      "step": "收益与代价",
+      "points": 3,
+      "criteria": "说明超调和控制峰值改善，以及 $J$、调节时间、能量上升的代价。"
+    }
+  ],
+  "judge_record": {
+    "selected_draft_id": "T6-1-draft-1",
+    "selection_reason": "草稿1在题面约束、可判分结构与 20 分一致性上最完整，且各项评分与 rubric 自洽，未出现未闭合的评分歧义。",
+    "rejected": [
+      {
+        "draft_id": "T6-1-draft-2",
+        "reason": "answer 内含分值标注重复层级，存在同一题项重复加分歧义；未给出明确的 per-item inline 分值可追溯结构。"
+      },
+      {
+        "draft_id": "T6-1-draft-3",
+        "reason": "answer 内含分值标注重复层级导致重复累加风险；与 20 分一致性存在可判分歧义。"
+      }
+    ],
+    "needs_redraft": false,
+    "post_judge_revision": "最终包保留 draft-1 题面，仅整理标准答案分值标注，避免标题分值和细项分值重复累计。"
+  },
+  "consistency_record": {
+    "round_1": {
+      "consistent": true,
+      "solver_results": [
+        {
+          "solver_id": "solver-1",
+          "feasibility": [
+            {
+              "candidate": "U",
+              "feasible": false,
+              "violations": [
+                "Mp=22.0% > 18%",
+                "u_max=1.20 > 0.9"
+              ],
+              "judgment": "不可行"
+            },
+            {
+              "candidate": "C1",
+              "feasible": true,
+              "violations": [],
+              "judgment": "可行"
+            },
+            {
+              "candidate": "C2",
+              "feasible": false,
+              "violations": [
+                "Mp=19.0% > 18%",
+                "Ts=2.1 s > 1.8 s"
+              ],
+              "judgment": "不可行"
+            }
+          ],
+          "chosen_deliverable": "C1"
+        },
+        {
+          "solver_id": "solver-2",
+          "feasibility": {
+            "U": {
+              "Mp": {
+                "value": 22.0,
+                "constraint": "<= 18",
+                "status": "不可行",
+                "note": "超调过大"
+              },
+              "Ts": {
+                "value": 1.4,
+                "constraint": "<= 1.8",
+                "status": "可行",
+                "note": "满足"
+              },
+              "e_ss": {
+                "value": 0.8,
+                "constraint": "<= 1.5",
+                "status": "可行",
+                "note": "满足"
+              },
+              "u_max": {
+                "value": 1.2,
+                "constraint": "<= 0.9",
+                "status": "不可行",
+                "note": "控制峰值超限"
+              },
+              "E": {
+                "value": 4.5,
+                "constraint": "<= 6",
+                "status": "可行",
+                "note": "满足"
+              },
+              "overall": "不可行"
+            },
+            "C1": {
+              "Mp": {
+                "value": 16.0,
+                "constraint": "<= 18",
+                "status": "可行",
+                "note": "满足"
+              },
+              "Ts": {
+                "value": 1.7,
+                "constraint": "<= 1.8",
+                "status": "可行",
+                "note": "满足"
+              },
+              "e_ss": {
+                "value": 1.2,
+                "constraint": "<= 1.5",
+                "status": "可行",
+                "note": "满足"
+              },
+              "u_max": {
+                "value": 0.85,
+                "constraint": "<= 0.9",
+                "status": "可行",
+                "note": "满足"
+              },
+              "E": {
+                "value": 5.5,
+                "constraint": "<= 6",
+                "status": "可行",
+                "note": "满足"
+              },
+              "overall": "可行"
+            },
+            "C2": {
+              "Mp": {
+                "value": 19.0,
+                "constraint": "<= 18",
+                "status": "不可行",
+                "note": "超调轻微超限"
+              },
+              "Ts": {
+                "value": 2.1,
+                "constraint": "<= 1.8",
+                "status": "不可行",
+                "status_detail": "Ts 超标",
+                "note": "超出上界"
+              },
+              "e_ss": {
+                "value": 1.1,
+                "constraint": "<= 1.5",
+                "status": "可行",
+                "note": "满足"
+              },
+              "u_max": {
+                "value": 0.88,
+                "constraint": "<= 0.9",
+                "status": "可行",
+                "note": "满足"
+              },
+              "E": {
+                "value": 5.8,
+                "constraint": "<= 6",
+                "status": "可行",
+                "note": "满足"
+              },
+              "overall": "不可行"
+            }
+          },
+          "chosen_deliverable": {
+            "selected": "C1",
+            "reason": "C1 是唯一满足全部硬约束的方案，尽管目标函数略高于 U 和 C2，但工程上必须服从约束优先原则。"
+          }
+        },
+        {
+          "solver_id": "solver-3",
+          "feasibility": {
+            "无约束候选_U": {
+              "Mp<=18": false,
+              "Ts<=1.8": true,
+              "ess<=1.5": true,
+              "u_max<=0.9": false,
+              "E<=6": true,
+              "feasible": false
+            },
+            "C1": {
+              "Mp<=18": true,
+              "Ts<=1.8": true,
+              "ess<=1.5": true,
+              "u_max<=0.9": true,
+              "E<=6": true,
+              "feasible": true
+            },
+            "C2": {
+              "Mp<=18": false,
+              "Ts<=1.8": false,
+              "ess<=1.5": true,
+              "u_max<=0.9": true,
+              "E<=6": true,
+              "feasible": false
+            }
+          },
+          "chosen_deliverable": {
+            "方案": "C1",
+            "原因": "C1 同时满足全部硬约束 Mp、Ts、e_ss、u_max、E；U 与 C2 均因关键指标越界而不可交付。"
+          }
+        }
+      ],
+      "conclusion": "三份独立作答均判定 U 不可行、C1 可行、C2 不可行，并选择 C1 作为可交付方案。"
+    },
+    "second_round_used": false
+  }
+}

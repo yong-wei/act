@@ -377,6 +377,21 @@
       "notes": "5-5 为模块5当前主线课次，对应从显式控制器到策略学习：强化学习的进入条件、收益与风险。"
     },
     {
+      "request_ids": ["5-6"],
+      "canonical_id": "5-6",
+      "display_id": "5-6",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-6",
+      "source_group": null,
+      "authoring_lesson_dir": "5-6",
+      "authoring_cards_dir": "5-6",
+      "authoring_overlays_dir": "5-6",
+      "runtime_lesson_dir": "5-6",
+      "legacy_source_ids": [],
+      "notes": "5-6 为模块5当前主线实践课次，对应方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",

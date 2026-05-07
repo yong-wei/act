@@ -45,6 +45,12 @@ function main() {
 
   assert.match(
     dockerfile,
+    /COPY --from=builder \/app\/scripts\/db \.\/scripts\/db/,
+    'Dockerfile 必须把生产数据回填脚本复制到运行镜像'
+  );
+
+  assert.match(
+    dockerfile,
     /COPY --from=builder \/app\/src \.\/src/,
     'Dockerfile 必须把 worker 所需源码复制到运行镜像'
   );
@@ -95,6 +101,12 @@ function main() {
     '.dockerignore 必须保留 scripts/wasm 构建脚本进入镜像构建上下文'
   );
 
+  assert.match(
+    dockerignore,
+    /!scripts\/db\//,
+    '.dockerignore 必须保留 scripts/db 回填脚本进入镜像构建上下文'
+  );
+
   const entrypointPath = path.join(root, 'docker-entrypoint.sh');
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
 
@@ -129,6 +141,12 @@ function main() {
     buildScript,
     /RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT/,
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
+  );
+
+  assert.match(
+    buildScript,
+    /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
+    '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
   );
 
   for (const tableName of [

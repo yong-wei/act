@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-06T14:04:15.509317Z",
+  "lesson": {
+    "lesson_id": "4-6",
+    "title": "场景迁移与方案比较：固定结构优化边界与结构编码入口",
+    "groups": [
+      "结构编码入口"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "统一结构编码与解码_4_46005",
+    "name": "统一结构编码与解码",
+    "name_en": "Unified Structural Encoding and Decoding",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "六维归一化编码先决定结构编号，再按当前结构解释有效参数槽位和忽略槽位。",
+    "examples": [
+      "同一组六维向量在 `PI + 超前` 与 `超前` 结构下，会对应完全不同的有效参数集合，因此必须先判结构再解释参数。"
+    ],
+    "formulas": [
+      "[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)"
+    ],
+    "keywords": [
+      "统一编码",
+      "解码",
+      "有效槽位",
+      "逐槽映射"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/统一结构编码与解码_4_46005.md",
+  "card_frontmatter": {
+    "node_id": "统一结构编码与解码_4_46005",
+    "name": "统一结构编码与解码",
+    "name_en": "Unified Structural Encoding and Decoding",
+    "lesson_units": [
+      "4-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-6",
+      "统一编码",
+      "解码"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-6/design/4-6-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 统一结构编码与解码 | Unified Structural Encoding and Decoding\n\n**一句话定义**：六维归一化编码先决定结构编号，再按当前结构解释有效参数槽位和忽略槽位。\n\n**核心直觉**：同一个向量只有先判定结构，才能被正确翻译回工程参数。\n\n**关键公式**：\n$$\n[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)\n$$\n\n**关联**：前置 → 结构搜索引入条件、参数约束翻译表 · 后续 → 四类方案比较矩阵",
+  "card_detail": "### 完整解释\n\n`z_0` 只负责决定结构编号，`z_1` 到 `z_5` 再按当前结构解释为有效参数槽位。无效槽位必须显式忽略，否则编码结果就无法稳定回到 `PI`、超前、`PI + 超前` 等控制器表达式上。\n\n### 常见误区\n\n1. **误区**：六个槽位永远都是六个连续参数。\n   **纠正**：不同结构下有效槽位数量不同。\n\n2. **误区**：编码比直接写参数更抽象，所以更难解释。\n   **纠正**：编码的目的正是为了保证不同结构可以进入同一比较框架。",
+  "card_plain_excerpt": "## 首页\n\n# 统一结构编码与解码 | Unified Structural Encoding and Decoding\n\n**一句话定义**：六维归一化编码先决定结构编号，再按当前结构解释有效参数槽位和忽略槽位。\n\n**核心直觉**：同一个向量只有先判定结构，才能被正确翻译回工程参数。\n\n**关键公式**：\n$$\n[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)\n$$\n\n**关联**：前置 → 结构搜索引入条件、参数约束翻译表 · 后续 → 四类方案比较矩阵\n\n## 详情\n\n### 完整解释\n\n`z_0` 只负责决定结构编号，`z_1` 到 `z_5` 再按当前结构解释为有效参数槽位。无效槽位必须显式忽略，否则编码结果就无法稳定回到 `PI`、超前、`PI + 超前` 等控制器表达式上。\n\n### 常见误区\n\n1. **误区**：六个槽位永远都是六个连续参数。\n   **纠正**：不同结构下有效槽位数量不同。\n\n2. **误区**：编码比直接写参数更抽象，所以更难解释。\n   **纠正**：编码的目的正是为了保证不同结构可以进入同一比较框架。",
+  "core_intuition": "同一个向量只有先判定结构，才能被正确翻译回工程参数。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "参数约束翻译表",
+      "target_id": null,
+      "target": "统一结构编码与解码",
+      "relation": "related",
+      "strength": 0.83,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "统一结构编码与解码",
+      "target_id": null,
+      "target": "四类方案比较矩阵",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构搜索引入条件",
+      "target_id": null,
+      "target": "统一结构编码与解码",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "统一结构编码与解码",
+      "target_id": null,
+      "target": "高保真任务降阶辨识",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "结构搜索引入条件_4_46004",
+      "source": "结构搜索引入条件",
+      "target_id": "统一结构编码与解码_4_46005",
+      "target": "统一结构编码与解码",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "当结构选择正式进入问题本身，就需要统一的编码与解码机制来承载结构和参数。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "参数约束翻译表_4_45002",
+      "source": "参数约束翻译表",
+      "target_id": "统一结构编码与解码_4_46005",
+      "target": "统一结构编码与解码",
+      "relation": "related",
+      "strength": 0.83,
+      "description": "编码后的参数槽位仍需落回可解释范围，因而与参数边界和槽位职责紧密相关。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "统一结构编码与解码_4_46005",
+      "source": "统一结构编码与解码",
+      "target_id": "四类方案比较矩阵_4_46006",
+      "target": "四类方案比较矩阵",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "只有把结构和参数放进统一编码，四类方案中的变结构结果才可被稳定比较。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "engineering_review_board",
+      "name": "工程评审板",
+      "description": "把多个证据窗口组织成评审台，强调证据对照、任务匹配和结论读回。"
+    },
+    "layout_contract": "16:9 横版；采用工程评审台或证据墙布局；3-4 个证据窗口按当前节点的曲线、轨迹、交点、微扰或工程波形组织；右下角给边界判断。",
+    "text_contract": {
+      "allowed_labels": [
+        "统一结构编码与解码",
+        "统一编码",
+        "解码",
+        "有效槽位",
+        "逐槽映射"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

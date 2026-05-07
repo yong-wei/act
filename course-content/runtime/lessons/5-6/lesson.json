@@ -1,0 +1,209 @@
+{
+  "lesson_id": "5-6",
+  "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+  "layer": "模块5",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "D",
+  "graph_version": "5-6-v1",
+  "focus_node_ids": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "reuse_node_ids": [
+    "方法迁移前边界说明_5_51005",
+    "数据驱动控制_5_54003",
+    "数据覆盖与泛化边界_5_54005",
+    "模型数据责任分配_5_54007",
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "策略学习安全外壳_5_55005",
+    "训练覆盖与部署验证_5_55007"
+  ],
+  "entry_nodes": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002"
+  ],
+  "summary_nodes": [
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "card_order": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "preceding_lesson": "5-5",
+  "following_lesson": null,
+  "refinement_units": [],
+  "ideological_point": "工程方法选择不能由算法新旧决定。更复杂、更前沿的方法只有在收益、风险、验证路径和安全责任同时清楚时，才有进入系统的依据。",
+  "sequence": {
+    "lesson_id": "5-6",
+    "status": "interactive_design_finalized",
+    "sequence_source": "interactive_design_finalized",
+    "note": "本顺序已按 5-6 作者态互动页面与机读契约校准，并经子代理复审通过。",
+    "card_order": [
+      "冷链温控同题任务_5_56001",
+      "二状态冷链热模型_5_56002",
+      "经典PID冷链基线_5_56003",
+      "热负荷预测补偿_5_56004",
+      "策略监督层调度_5_56005",
+      "三场景同题比较_5_56006",
+      "证据要求等级_5_56007",
+      "方法选择说明卡_5_56008"
+    ],
+    "groups": [
+      {
+        "title": "冷链对象与模型边界",
+        "step_ids": [
+          "step-04",
+          "step-05"
+        ],
+        "node_ids": [
+          "冷链温控同题任务_5_56001",
+          "二状态冷链热模型_5_56002"
+        ]
+      },
+      {
+        "title": "三条路线实现与指标读解",
+        "step_ids": [
+          "step-06",
+          "step-07",
+          "step-08",
+          "step-09",
+          "step-10",
+          "step-11",
+          "step-12"
+        ],
+        "node_ids": [
+          "经典PID冷链基线_5_56003",
+          "热负荷预测补偿_5_56004",
+          "策略监督层调度_5_56005",
+          "三场景同题比较_5_56006"
+        ]
+      },
+      {
+        "title": "证据责任与方法选择",
+        "step_ids": [
+          "step-13",
+          "step-14",
+          "step-15",
+          "step-16",
+          "step-17",
+          "step-18"
+        ],
+        "node_ids": [
+          "证据要求等级_5_56007",
+          "方法选择说明卡_5_56008"
+        ]
+      }
+    ],
+    "card_targets": {
+      "冷链温控同题任务_5_56001": {
+        "primary_steps": [
+          "step-04"
+        ],
+        "review_steps": [
+          "step-18"
+        ],
+        "presentation": "常显卡片 / 总结回看"
+      },
+      "二状态冷链热模型_5_56002": {
+        "primary_steps": [
+          "step-05"
+        ],
+        "presentation": "常显卡片"
+      },
+      "经典PID冷链基线_5_56003": {
+        "primary_steps": [
+          "step-06"
+        ],
+        "review_steps": [
+          "step-10"
+        ],
+        "presentation": "显影卡片 / E1 回看"
+      },
+      "热负荷预测补偿_5_56004": {
+        "primary_steps": [
+          "step-07"
+        ],
+        "review_steps": [
+          "step-11"
+        ],
+        "presentation": "常显卡片 / E2 比较回看"
+      },
+      "策略监督层调度_5_56005": {
+        "primary_steps": [
+          "step-08"
+        ],
+        "review_steps": [
+          "step-12"
+        ],
+        "presentation": "匹配前置 / E3 回看"
+      },
+      "三场景同题比较_5_56006": {
+        "primary_steps": [
+          "step-09",
+          "step-10",
+          "step-11",
+          "step-12"
+        ],
+        "review_steps": [
+          "step-17"
+        ],
+        "presentation": "指标读解 / 后测回看"
+      },
+      "证据要求等级_5_56007": {
+        "primary_steps": [
+          "step-13",
+          "step-16"
+        ],
+        "review_steps": [
+          "step-18"
+        ],
+        "presentation": "风险矩阵 / 误判回看 / 总结回看"
+      },
+      "方法选择说明卡_5_56008": {
+        "primary_steps": [
+          "step-14",
+          "step-15"
+        ],
+        "review_steps": [
+          "step-17"
+        ],
+        "presentation": "工作区 / 评审结构 / 后测回看"
+      }
+    }
+  },
+  "handout_path": "/course-runtime/lessons/5-6/5-6-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/5-6/5-6-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/5-6/5-6-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/5-6/5-6-handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/5-6/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/5-6/media",
+  "media_index_path": "/course-runtime/lessons/5-6/media/5-6-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/5-6/media/5-6-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/5-6/review/5-6-boppps.md",
+    "report_path": "/course-runtime/lessons/5-6/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/5-6/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/5-6/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/5-6/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/5-6/review/source-manifest.json"
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/5-6/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/5-6/interactive-manifest.json"
+}

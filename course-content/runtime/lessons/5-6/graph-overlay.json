@@ -1,0 +1,1251 @@
+{
+  "lesson_id": "5-6",
+  "title": "方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较",
+  "focus_node_ids": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "reuse_node_ids": [
+    "方法迁移前边界说明_5_51005",
+    "数据驱动控制_5_54003",
+    "数据覆盖与泛化边界_5_54005",
+    "模型数据责任分配_5_54007",
+    "显式控制律与学习策略_5_55001",
+    "策略学习进入条件_5_55002",
+    "策略学习安全外壳_5_55005",
+    "训练覆盖与部署验证_5_55007"
+  ],
+  "entry_nodes": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002"
+  ],
+  "summary_nodes": [
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "card_order": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "groups": [
+    {
+      "title": "冷链对象与模型边界",
+      "step_ids": [
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "冷链温控同题任务_5_56001",
+        "二状态冷链热模型_5_56002"
+      ]
+    },
+    {
+      "title": "三条路线实现与指标读解",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12"
+      ],
+      "node_ids": [
+        "经典PID冷链基线_5_56003",
+        "热负荷预测补偿_5_56004",
+        "策略监督层调度_5_56005",
+        "三场景同题比较_5_56006"
+      ]
+    },
+    {
+      "title": "证据责任与方法选择",
+      "step_ids": [
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "node_ids": [
+        "证据要求等级_5_56007",
+        "方法选择说明卡_5_56008"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "三场景同题比较_5_56006",
+      "name": "三场景同题比较",
+      "nodeType": "SCENARIO",
+      "description": "三场景同题比较用常规日、入库高峰和未见扰动三组压力测试检验不同路线在性能收益、能耗、切换、恢复和验证责任上的差异。",
+      "positionX": 77.0,
+      "positionY": -133.4,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "三场景同题比较用常规日、入库高峰和未见扰动三组压力测试检验不同路线在性能收益、能耗、切换、恢复和验证责任上的差异。",
+        "examples": [
+          "E1 支持经典 PI/PID 优先；E2 支持预测补偿混合路线；E3 暴露策略监督层训练覆盖不足。"
+        ],
+        "formulas": [
+          "t_{rec}=\\min\\{t-t_e:T_a(t)\\leq 5.8,T_p(t)\\leq 5.8\\}",
+          "E=\\sum_k u(k)/60"
+        ],
+        "prerequisites": [
+          "经典PID冷链基线",
+          "热负荷预测补偿",
+          "策略监督层调度"
+        ],
+        "relatedConcepts": [
+          "证据要求等级",
+          "方法选择说明卡"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "常规日",
+          "入库高峰",
+          "未见扰动",
+          "恢复时间"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "常规日",
+        "入库高峰",
+        "未见扰动",
+        "恢复时间",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "二状态冷链热模型_5_56002",
+      "name": "二状态冷链热模型",
+      "nodeType": "THEORY",
+      "description": "二状态冷链热模型用空气温度和货品核心温度两个状态描述仓内热过程，区分传感器快速读数和货品本体慢热风险。",
+      "positionX": 113.1,
+      "positionY": 113.1,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "模型性",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "模型性",
+        "bloom_level": "理解",
+        "definition": "二状态冷链热模型用空气温度和货品核心温度两个状态描述仓内热过程，区分传感器快速读数和货品本体慢热风险。",
+        "examples": [
+          "开门后空气温度较快下降，但货品核心温度可能仍然上升，因此只看空气温度会低估入库热负荷影响。"
+        ],
+        "formulas": [
+          "T_a(k+1)=T_a(k)+\\frac{T_{amb}(k)-T_a(k)}{420}+\\frac{T_p(k)-T_a(k)}{92}+0.040q_{door}(k)+0.030q_{load}(k)-0.080c(k)u(k)",
+          "T_p(k+1)=T_p(k)+\\frac{T_a(k)-T_p(k)}{250}+0.0062q_{load}(k)"
+        ],
+        "prerequisites": [
+          "冷链温控同题任务"
+        ],
+        "relatedConcepts": [
+          "经典PID冷链基线",
+          "热负荷预测补偿"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "空气温度",
+          "货品核心温度",
+          "热模型",
+          "时间尺度"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "空气温度",
+        "货品核心温度",
+        "热模型",
+        "时间尺度",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "冷链温控同题任务_5_56001",
+      "name": "冷链温控同题任务",
+      "nodeType": "SCENARIO",
+      "description": "冷链温控同题任务把同一生物制剂冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较，用来判断方法迁移是否有依据。",
+      "positionX": -113.1,
+      "positionY": 113.1,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "场景性",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "场景性",
+        "bloom_level": "分析",
+        "definition": "冷链温控同题任务把同一生物制剂冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较，用来判断方法迁移是否有依据。",
+        "examples": [
+          "同一个 48 小时冷链仓库日志同时用于经典 PI/PID、数据驱动预测补偿和策略学习监督层，而不是给每条路线构造不同难度的案例。"
+        ],
+        "formulas": [
+          "2\\leq T_a(k)\\leq 8,\\quad 2\\leq T_p(k)\\leq 8",
+          "0\\leq u(k)\\leq 1"
+        ],
+        "prerequisites": [
+          "方法迁移前边界说明"
+        ],
+        "relatedConcepts": [
+          "二状态冷链热模型",
+          "三场景同题比较"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "冷链温控",
+          "同题比较",
+          "温区约束",
+          "方法迁移"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "冷链温控",
+        "同题比较",
+        "温区约束",
+        "方法迁移",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据覆盖与泛化边界_5_54005",
+      "name": "数据覆盖与泛化边界",
+      "nodeType": "THEORY",
+      "description": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+      "positionX": 143.8,
+      "positionY": -83.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "数据覆盖与泛化边界描述样本是否覆盖状态、输入、扰动和约束边界，以及模型在未见但合理可能出现的相邻场景中是否仍可信。",
+        "examples": [
+          "晴天低流速数据不能证明强横流、低能见度和大舵角场景下的闭环安全。"
+        ],
+        "formulas": [
+          "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件"
+        ],
+        "relatedConcepts": [
+          "模型数据责任分配"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "数据覆盖",
+          "泛化",
+          "边界工况",
+          "故障注入"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005",
+          "sourceNodeId": "数据覆盖与泛化边界_5_54005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据覆盖与泛化边界_5_54005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据覆盖与泛化边界_5_54005.png",
+          "title": "数据覆盖与泛化边界 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据覆盖与泛化边界_5_54005",
+          "sourceNodeId": "数据覆盖与泛化边界_5_54005"
+        }
+      ],
+      "tags": [
+        "数据覆盖",
+        "泛化",
+        "边界工况",
+        "故障注入",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "数据驱动控制_5_54003",
+      "name": "数据驱动控制",
+      "nodeType": "THEORY",
+      "description": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+      "positionX": 160.3,
+      "positionY": -43.0,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "数据驱动控制把实验数据、运行数据、仿真轨迹或在线反馈作为重要设计依据，用样本规律补足难以完整解析建模的对象关系。",
+        "examples": [
+          "用闭环运行数据更新短时扰动补偿项，而外层控制仍保留物理模型、舵角限制和安全检查。"
+        ],
+        "formulas": [
+          "\\mathcal{D}=\\{x_k,u_k,y_k\\}_{k=1}^{M}"
+        ],
+        "prerequisites": [
+          "模型依赖松动"
+        ],
+        "relatedConcepts": [
+          "数据驱动进入条件",
+          "模型数据责任分配"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "数据驱动",
+          "运行数据",
+          "样本规律",
+          "控制补偿"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003",
+          "sourceNodeId": "数据驱动控制_5_54003"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据驱动控制_5_54003.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/数据驱动控制_5_54003.png",
+          "title": "数据驱动控制 信息图",
+          "lessonId": "5-4",
+          "nodeId": "数据驱动控制_5_54003",
+          "sourceNodeId": "数据驱动控制_5_54003"
+        }
+      ],
+      "tags": [
+        "数据驱动",
+        "运行数据",
+        "样本规律",
+        "控制补偿",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "方法迁移前边界说明_5_51005",
+      "name": "方法迁移前边界说明",
+      "nodeType": "THEORY",
+      "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+      "positionX": 166.1,
+      "positionY": 44.5,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+        "examples": [
+          "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+          "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+        ],
+        "formulas": [
+          "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+        ],
+        "prerequisites": [
+          "线性预测失真对比_5_51004"
+        ],
+        "relatedConcepts": [
+          "局部线性化边界判断_5_51003"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "方法迁移",
+          "边界说明",
+          "工程证据",
+          "风险说明"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005",
+          "sourceNodeId": "方法迁移前边界说明_5_51005"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
+          "title": "方法迁移前边界说明 信息图",
+          "lessonId": "5-1",
+          "nodeId": "方法迁移前边界说明_5_51005",
+          "sourceNodeId": "方法迁移前边界说明_5_51005"
+        }
+      ],
+      "tags": [
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "方法选择说明卡_5_56008",
+      "name": "方法选择说明卡",
+      "nodeType": "THEORY",
+      "description": "方法选择说明卡把任务对象、主要证据、推荐路线、选择理由、主要收益、关键风险、验证路径和暂不采用其他路线的依据组织成可审查的工程判断。",
+      "positionX": 149.0,
+      "positionY": 86.0,
+      "positionZ": 5,
+      "bloomLevel": "CREATE",
+      "knowledgeDim": "实践性",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "实践性",
+        "bloom_level": "创造",
+        "definition": "方法选择说明卡把任务对象、主要证据、推荐路线、选择理由、主要收益、关键风险、验证路径和暂不采用其他路线的依据组织成可审查的工程判断。",
+        "examples": [
+          "入库高峰中可推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿，同时说明策略学习因训练覆盖和安全壳证据不足暂不进入主闭环。"
+        ],
+        "formulas": [
+          "\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}"
+        ],
+        "prerequisites": [
+          "三场景同题比较",
+          "证据要求等级"
+        ],
+        "relatedConcepts": [
+          "模型数据责任分配",
+          "策略学习进入条件"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "说明卡",
+          "路线选择",
+          "验证路径",
+          "暂不采用"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "说明卡",
+        "路线选择",
+        "验证路径",
+        "暂不采用",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "显式控制律与学习策略_5_55001",
+      "name": "显式控制律与学习策略",
+      "nodeType": "THEORY",
+      "description": "显式控制律把动作生成机制写成可读结构，学习策略则通过状态、样本和回报训练出动作生成函数；二者的核心差别在证据来源和验证方式。",
+      "positionX": 121.6,
+      "positionY": 121.6,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "显式控制律把动作生成机制写成可读结构，学习策略则通过状态、样本和回报训练出动作生成函数；二者的核心差别在证据来源和验证方式。",
+        "examples": [
+          "航向保持中，PID 直接按误差和偏航角速度计算舵角；学习策略则根据训练形成的参数从状态向量输出动作或参数档位。"
+        ],
+        "formulas": [
+          "u(t)=C(e(t),x(t),p)",
+          "u=\\pi_\\theta(x)"
+        ],
+        "prerequisites": [
+          "控制在自主系统链路中的位置",
+          "数据驱动控制"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "强化学习控制回报"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "显式控制律",
+          "学习策略",
+          "动作生成",
+          "验证责任"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/显式控制律与学习策略_5_55001.md"
+      ],
+      "tags": [
+        "显式控制律",
+        "学习策略",
+        "动作生成",
+        "验证责任",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "模型数据责任分配_5_54007",
+      "name": "模型数据责任分配",
+      "nodeType": "THEORY",
+      "description": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+      "positionX": -121.6,
+      "positionY": 121.6,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "模型数据责任分配是在同一闭环中明确模型、数据、优化和安全保护各自承担的证据责任，避免把所有关系整体交给模型或整体交给数据。",
+        "examples": [
+          "船体低速操纵动态由模型给出主干，风浪流扰动由数据补偿，舵角限制和安全距离由显式规则保护。"
+        ],
+        "formulas": [
+          "\\text{闭环证据}=\\text{模型结构}+\\text{数据补偿}+\\text{约束优化}+\\text{安全保护}"
+        ],
+        "prerequisites": [
+          "数据驱动进入条件",
+          "数据覆盖与泛化边界"
+        ],
+        "relatedConcepts": [
+          "三路线控制比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "责任分配",
+          "模型主干",
+          "数据补偿",
+          "安全保护"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007",
+          "sourceNodeId": "模型数据责任分配_5_54007"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模型数据责任分配_5_54007.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/模型数据责任分配_5_54007.png",
+          "title": "模型数据责任分配 信息图",
+          "lessonId": "5-4",
+          "nodeId": "模型数据责任分配_5_54007",
+          "sourceNodeId": "模型数据责任分配_5_54007"
+        }
+      ],
+      "tags": [
+        "责任分配",
+        "模型主干",
+        "数据补偿",
+        "安全保护",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "热负荷预测补偿_5_56004",
+      "name": "热负荷预测补偿",
+      "nodeType": "THEORY",
+      "description": "热负荷预测补偿保留 PI/PID 主闭环，只预测未来一小时热负荷等级，并把该预测用于预冷设定点和受限压缩机前馈。",
+      "positionX": -172.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "热负荷预测补偿保留 PI/PID 主闭环，只预测未来一小时热负荷等级，并把该预测用于预冷设定点和受限压缩机前馈。",
+        "examples": [
+          "E2 入库高峰中，开门记录、入库批次和外界温度可以提前观察，因此预测预冷把恢复时间从 22 min 降到 0 min。"
+        ],
+        "formulas": [
+          "\\hat H_{60}(k)=0.16\\sum q_{door}+0.09\\sum q_{load}+0.35\\max(0,\\overline T_{amb,60}-22)",
+          "u_{ff}(k)=\\mathrm{clip}(0.030\\hat H_{60}(k)+0.020\\max(0,T_{amb}(k)-23),0,0.52)"
+        ],
+        "prerequisites": [
+          "数据驱动控制",
+          "经典PID冷链基线"
+        ],
+        "relatedConcepts": [
+          "数据覆盖与泛化边界",
+          "三场景同题比较"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "热负荷预测",
+          "预冷",
+          "前馈补偿",
+          "数据驱动"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "热负荷预测",
+        "预冷",
+        "前馈补偿",
+        "数据驱动",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "策略学习安全外壳_5_55005",
+      "name": "策略学习安全外壳",
+      "nodeType": "THEORY",
+      "description": "策略学习安全外壳在学习策略输出动作后执行限幅、舵速约束、状态监控、退化记录和传统控制器接管，防止策略越过可执行和安全边界。",
+      "positionX": 86.0,
+      "positionY": -149.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "策略学习安全外壳在学习策略输出动作后执行限幅、舵速约束、状态监控、退化记录和传统控制器接管，防止策略越过可执行和安全边界。",
+        "examples": [
+          "当策略建议导致舵角越界、舵速越界、误差继续放大或角速度过高时，控制量退回到限幅 PID 输出并记录安全退化。"
+        ],
+        "formulas": [
+          "|\\delta_k-\\delta_{k-1}|\\leq \\dot\\delta_{\\max}\\Delta t",
+          "\\delta_k\\in[-\\delta_{\\max},\\delta_{\\max}]"
+        ],
+        "prerequisites": [
+          "策略学习进入条件",
+          "航向控制RL环境"
+        ],
+        "relatedConcepts": [
+          "RL调度PID",
+          "训练覆盖与部署验证"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "安全外壳",
+          "动作限幅",
+          "降级接管",
+          "安全退化"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/策略学习安全外壳_5_55005.md"
+      ],
+      "tags": [
+        "安全外壳",
+        "动作限幅",
+        "降级接管",
+        "安全退化",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "策略学习进入条件_5_55002",
+      "name": "策略学习进入条件",
+      "nodeType": "THEORY",
+      "description": "策略学习进入条件用任务、样本、回报、验证和监控五项检查判断强化学习是否具备进入控制任务的依据。",
+      "positionX": 121.6,
+      "positionY": -121.6,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "策略学习进入条件用任务、样本、回报、验证和监控五项检查判断强化学习是否具备进入控制任务的依据。",
+        "examples": [
+          "固定仓库移动平台已有可靠 MPC 时，不宜整体替代控制器；强扰动航向保持可先考虑参数调度或扰动补偿。"
+        ],
+        "formulas": [
+          "\\text{进入条件}=\\text{任务}+\\text{样本}+\\text{回报}+\\text{验证}+\\text{监控}"
+        ],
+        "prerequisites": [
+          "显式控制律与学习策略",
+          "方法迁移前边界说明"
+        ],
+        "relatedConcepts": [
+          "训练覆盖与部署验证",
+          "策略学习安全外壳"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "进入条件",
+          "样本条件",
+          "回报条件",
+          "部署监控"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/策略学习进入条件_5_55002.md"
+      ],
+      "tags": [
+        "进入条件",
+        "样本条件",
+        "回报条件",
+        "部署监控",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "策略监督层调度_5_56005",
+      "name": "策略监督层调度",
+      "nodeType": "THEORY",
+      "description": "策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "positionX": 149.0,
+      "positionY": -86.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+        "examples": [
+          "E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。"
+        ],
+        "formulas": [
+          "x(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{amb}(k)]^T",
+          "m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}"
+        ],
+        "prerequisites": [
+          "显式控制律与学习策略",
+          "策略学习进入条件"
+        ],
+        "relatedConcepts": [
+          "策略学习安全外壳",
+          "训练覆盖与部署验证"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "策略监督层",
+          "模式调度",
+          "安全壳",
+          "回退"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "策略监督层",
+        "模式调度",
+        "安全壳",
+        "回退",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "经典PID冷链基线_5_56003",
+      "name": "经典 PI/PID 冷链基线",
+      "nodeType": "THEORY",
+      "description": "经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和、微分抑制和压缩机限幅形成可解释主闭环，是冷链方法比较中的基准和安全退路。",
+      "positionX": 125.9,
+      "positionY": 125.9,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和、微分抑制和压缩机限幅形成可解释主闭环，是冷链方法比较中的基准和安全退路。",
+        "examples": [
+          "E1 常规日中，经典 PI/PID 已把空气温度峰值控制在 5.46°C、货品核心峰值控制在 5.15°C，不需要引入更复杂路线。"
+        ],
+        "formulas": [
+          "T_m(k)=T_a(k)+b(k)",
+          "e(k)=T_m(k)-T_{set}",
+          "u(k)=\\mathrm{clip}(u^\\star(k),0,1)"
+        ],
+        "prerequisites": [
+          "二状态冷链热模型"
+        ],
+        "relatedConcepts": [
+          "热负荷预测补偿",
+          "策略监督层调度"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "PI/PID",
+          "抗饱和",
+          "限幅",
+          "安全退路"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "PI/PID",
+        "抗饱和",
+        "限幅",
+        "安全退路",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "训练覆盖与部署验证_5_55007",
+      "name": "训练覆盖与部署验证",
+      "nodeType": "THEORY",
+      "description": "训练覆盖与部署验证要求策略在参数随机化、扰动、执行器边界、传感器噪声和训练外工况中通过独立测试，再以观察模式、受限接入和接管机制逐步部署。",
+      "positionX": -154.2,
+      "positionY": 89.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "训练覆盖与部署验证要求策略在参数随机化、扰动、执行器边界、传感器噪声和训练外工况中通过独立测试，再以观察模式、受限接入和接管机制逐步部署。",
+        "examples": [
+          "航向策略先在 Nomoto 或三自由度模型中训练，再做历史数据回放、硬件在环、受限水域观察模式和小范围接入。"
+        ],
+        "formulas": [
+          "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}",
+          "\\text{部署证据}=\\text{训练覆盖}+\\text{独立测试}+\\text{安全外壳}+\\text{运行监控}"
+        ],
+        "prerequisites": [
+          "数据覆盖与泛化边界",
+          "策略学习安全外壳"
+        ],
+        "relatedConcepts": [
+          "策略学习进入条件",
+          "四路线策略评价"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "训练覆盖",
+          "独立测试",
+          "压力测试",
+          "部署监控"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/训练覆盖与部署验证_5_55007.md"
+      ],
+      "tags": [
+        "训练覆盖",
+        "独立测试",
+        "压力测试",
+        "部署监控",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "证据要求等级_5_56007",
+      "name": "证据要求等级",
+      "nodeType": "THEORY",
+      "description": "证据要求等级是本案例用于比较方法迁移代价的工程证据维度，表示路线选择还需要补充多少模型、数据、压力测试、安全壳和运行监控证据；它不是标准控制性能指标。",
+      "positionX": -171.9,
+      "positionY": 46.1,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "评价性",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "评价性",
+        "bloom_level": "评价",
+        "definition": "证据要求等级是本案例用于比较方法迁移代价的工程证据维度，表示路线选择还需要补充多少模型、数据、压力测试、安全壳和运行监控证据；它不是标准控制性能指标。",
+        "examples": [
+          "策略监督层的证据要求高，因为需要说明状态动作标签、训练覆盖、故障注入、拒绝条件、安全壳和运行审计。"
+        ],
+        "formulas": [
+          "\\text{证据要求}=\\text{模型说明}+\\text{数据覆盖}+\\text{压力测试}+\\text{安全壳}+\\text{部署监控}"
+        ],
+        "prerequisites": [
+          "三场景同题比较"
+        ],
+        "relatedConcepts": [
+          "训练覆盖与部署验证",
+          "方法选择说明卡"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "验证负担",
+          "证据要求",
+          "安全壳",
+          "部署监控"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "验证负担",
+        "证据要求",
+        "安全壳",
+        "部署监控",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-6e89b2b934535969",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "模型数据责任分配_5_54007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-e6bb876f7044a77d",
+      "sourceId": "数据驱动控制_5_54003",
+      "targetId": "显式控制律与学习策略_5_55001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-21dd8eac1acd85bf",
+      "sourceId": "方法迁移前边界说明_5_51005",
+      "targetId": "策略学习进入条件_5_55002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-b6908f2f1cf91287",
+      "sourceId": "显式控制律与学习策略_5_55001",
+      "targetId": "策略学习进入条件_5_55002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-a8c85af91214ad75",
+      "sourceId": "策略学习进入条件_5_55002",
+      "targetId": "策略学习安全外壳_5_55005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-39b1032bd46950b3",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "训练覆盖与部署验证_5_55007",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ded04fcbad18f45f",
+      "sourceId": "策略学习安全外壳_5_55005",
+      "targetId": "训练覆盖与部署验证_5_55007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-d7e33654b448dccf",
+      "sourceId": "方法迁移前边界说明_5_51005",
+      "targetId": "冷链温控同题任务_5_56001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-cff9c54b7c4fe467",
+      "sourceId": "冷链温控同题任务_5_56001",
+      "targetId": "二状态冷链热模型_5_56002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-54ddf65becc61561",
+      "sourceId": "二状态冷链热模型_5_56002",
+      "targetId": "经典PID冷链基线_5_56003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-0214c9ee47b51699",
+      "sourceId": "数据驱动控制_5_54003",
+      "targetId": "热负荷预测补偿_5_56004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ebe57e19704d474e",
+      "sourceId": "经典PID冷链基线_5_56003",
+      "targetId": "热负荷预测补偿_5_56004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-19c1bfe2205ac03b",
+      "sourceId": "数据覆盖与泛化边界_5_54005",
+      "targetId": "热负荷预测补偿_5_56004",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-1dca6b722b22f060",
+      "sourceId": "显式控制律与学习策略_5_55001",
+      "targetId": "策略监督层调度_5_56005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-e0ae953274f86d64",
+      "sourceId": "策略学习进入条件_5_55002",
+      "targetId": "策略监督层调度_5_56005",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-897edd0c9410175f",
+      "sourceId": "策略学习安全外壳_5_55005",
+      "targetId": "策略监督层调度_5_56005",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-fed98d46459492aa",
+      "sourceId": "经典PID冷链基线_5_56003",
+      "targetId": "三场景同题比较_5_56006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-8c0dc199c7a669d5",
+      "sourceId": "热负荷预测补偿_5_56004",
+      "targetId": "三场景同题比较_5_56006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-2bc1e08d26734795",
+      "sourceId": "策略监督层调度_5_56005",
+      "targetId": "三场景同题比较_5_56006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-78f0dc778a429da1",
+      "sourceId": "三场景同题比较_5_56006",
+      "targetId": "证据要求等级_5_56007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-87d8a51d3b2f26f3",
+      "sourceId": "训练覆盖与部署验证_5_55007",
+      "targetId": "证据要求等级_5_56007",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-e51dc9f823b851ec",
+      "sourceId": "证据要求等级_5_56007",
+      "targetId": "方法选择说明卡_5_56008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-ff40d62633d1d597",
+      "sourceId": "三场景同题比较_5_56006",
+      "targetId": "方法选择说明卡_5_56008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-7b91e408f1fa4dd8",
+      "sourceId": "模型数据责任分配_5_54007",
+      "targetId": "方法选择说明卡_5_56008",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.84
+    }
+  ]
+}

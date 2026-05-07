@@ -16,8 +16,7 @@
     "四类方案比较矩阵_4_46006",
     "组合结构专项验证边界判断_4_46007"
   ],
-  "accepted_infographs": [],
-  "missing_infographs": [
+  "accepted_infographs": [
     "剩余风险说明_4_45006",
     "权重偏好与无约束候选解_4_44005",
     "优化前后证据比较表_4_45005",
@@ -31,80 +30,8 @@
     "四类方案比较矩阵_4_46006",
     "组合结构专项验证边界判断_4_46007"
   ],
-  "missing_source_files": {
-    "剩余风险说明_4_45006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "权重偏好与无约束候选解_4_44005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "优化前后证据比较表_4_45005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "参数约束翻译表_4_45002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "任务通道变化下的自由目标改写_4_44007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "迁移场景任务重排_4_46001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "固定结构迁移失配信号_4_46002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "驱逐舰专用代价函数改写_4_46003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "结构搜索引入条件_4_46004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "统一结构编码与解码_4_46005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "四类方案比较矩阵_4_46006": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "组合结构专项验证边界判断_4_46007": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

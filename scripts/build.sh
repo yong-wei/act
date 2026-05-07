@@ -22,6 +22,7 @@ if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
 fi
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
+rm -rf "${ROOT_DIR}/.next"
 npm run build
 
 mkdir -p "$(dirname "${OUTPUT_TAR}")"

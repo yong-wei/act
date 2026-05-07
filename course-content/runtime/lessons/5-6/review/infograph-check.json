@@ -1,0 +1,78 @@
+{
+  "lesson_id": "5-6",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-6/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/5-6/nodes",
+  "card_order": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "冷链温控同题任务_5_56001",
+    "二状态冷链热模型_5_56002",
+    "经典PID冷链基线_5_56003",
+    "热负荷预测补偿_5_56004",
+    "策略监督层调度_5_56005",
+    "三场景同题比较_5_56006",
+    "证据要求等级_5_56007",
+    "方法选择说明卡_5_56008"
+  ],
+  "missing_source_files": {
+    "冷链温控同题任务_5_56001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "二状态冷链热模型_5_56002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "经典PID冷链基线_5_56003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "热负荷预测补偿_5_56004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "策略监督层调度_5_56005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "三场景同题比较_5_56006": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "证据要求等级_5_56007": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "方法选择说明卡_5_56008": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}
