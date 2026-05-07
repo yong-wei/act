@@ -118,6 +118,16 @@ function write_example_pair(data_dir, lesson_id, G, C_before, C_after, time_befo
   write_root_locus(fullfile(data_dir, [lesson_id, "-after"]), C_after * G);
 endfunction
 
+function write_example_time_bode(data_dir, lesson_id, time_before, time_after, bode_before, bode_after, t, w)
+  [tb, yb] = step_table(time_before, t);
+  [ta, ya] = step_table(time_after, t);
+  write_matrix(fullfile(data_dir, [lesson_id, "-time.csv"]), "t,before,after", [tb(:), yb(:), ya(:)]);
+  b_before = bode_table(bode_before, w);
+  b_after = bode_table(bode_after, w);
+  write_matrix(fullfile(data_dir, [lesson_id, "-bode.csv"]), "w,mag_before,phase_before,mag_after,phase_after", ...
+    [w(:), b_before(:, 2), b_before(:, 3), b_after(:, 2), b_after(:, 3)]);
+endfunction
+
 s = tf("s");
 w = logspace(-3, 2, 520);
 
@@ -186,7 +196,7 @@ F5_before = 0;
 F5_after = -0.32;
 T5_before = (G5 * F5_before + Gd5) / (1 + C5_feedback * G5);
 T5_after = (G5 * F5_after + Gd5) / (1 + C5_feedback * G5);
-write_example_pair(data_dir, "4-2-example-5-5", G5, C5_feedback, C5_feedback, T5_before, T5_after, T5_before, T5_after, linspace(0, 32, 420), w_ex);
+write_example_time_bode(data_dir, "4-2-example-5-5", T5_before, T5_after, T5_before, T5_after, linspace(0, 32, 420), w_ex);
 
 G_ship = 0.01715 / (s * (s + 0.1) * (s + 2.14375));
 C_base = 2.25;

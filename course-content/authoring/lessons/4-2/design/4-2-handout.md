@@ -237,28 +237,28 @@ $$
 $$
 G_1(s)=\frac{1}{s+1}
 $$
-希望在 $\omega_c=0.5\,\text{rad/s}$ 附近形成闭环，并消除阶跃稳态误差。取 PI 零点 $\omega_z=\omega_c/5=0.1\,\text{rad/s}$，于是
+希望在 $\omega_c=0.8\,\text{rad/s}$ 附近形成闭环，并消除阶跃稳态误差。取 PI 零点 $\omega_z=\omega_c/4=0.2\,\text{rad/s}$，于是
 $$
-T_i=\frac{1}{\omega_z}=10\,\text{s}
+T_i=\frac{1}{\omega_z}=5\,\text{s}
 $$
 对象在 $\omega_c$ 处的幅值为
 $$
-|G_1(j0.5)|=\frac{1}{\sqrt{1+0.5^2}}=0.894
+|G_1(j0.8)|=\frac{1}{\sqrt{1+0.8^2}}=0.781
 $$
 PI 形状项幅值为
 $$
 \left|1+\frac{1}{j\omega_cT_i}\right|
-=\sqrt{1+\left(\frac{1}{0.5\times10}\right)^2}=1.020
+=\sqrt{1+\left(\frac{1}{0.8\times5}\right)^2}=1.031
 $$
 所以
 $$
-K_p=\frac{1}{0.894\times1.020}=1.096
+K_p=\frac{1}{0.781\times1.031}=1.242
 $$
 进一步得到
 $$
-K_i=\frac{K_p}{T_i}=0.1096
+K_i=\frac{K_p}{T_i}=0.248
 $$
-这组参数的含义是：积分用于消除静差，比例增益按目标截止频率确定。若相角裕度偏低，应把 $\omega_z$ 再下移或降低 $\omega_c$。
+这组参数的含义是：积分用于消除静差，比例增益按目标截止频率确定。与更低的 $\omega_c$ 和更弱的积分相比，这组参数在时域图中更清楚地体现了稳态误差被消除的过程。若相角裕度偏低，应把 $\omega_z$ 再下移或降低 $\omega_c$。
 
 ![例题 5.1 频域 PI 校正前后对比](../media/processed/4-2-example-5-1-correction-quadrants.png)
 
@@ -378,7 +378,7 @@ F_d(s)=-0.32
 $$
 若扰动后输出仍同向偏移，可继续增大补偿；若输出反向偏移或控制量峰值过大，应减小前馈增益并加入限幅。
 
-![例题 5.5 扰动前馈补偿前后对比](../media/processed/4-2-example-5-5-correction-quadrants.png)
+![例题 5.5 扰动前馈补偿前后对比](../media/processed/4-2-example-5-5-feedforward-comparison.png)
 
 ## 六、客船航向控制的候选结构整定
 
