@@ -10,11 +10,11 @@
       {
         "zero_index": 0,
         "branch_index": 1,
-        "zero_re": -0.2,
+        "zero_re": -0.25,
         "zero_im": 0.0,
-        "endpoint_re": -0.146666666667,
+        "endpoint_re": -0.181818181818,
         "endpoint_im": 0.0,
-        "distance": 0.053333333333
+        "distance": 0.068181818182
       }
     ],
     "all_matched_within_tolerance": false
@@ -22,16 +22,16 @@
   "jump_metrics": [
     {
       "branch_index": 0,
-      "max_jump": 0.019874209520000186,
+      "max_jump": 0.01835074385000013,
       "sign_switches": 0,
-      "endpoint_re": -3.2,
+      "endpoint_re": -3.0,
       "endpoint_im": 0.0
     },
     {
       "branch_index": 1,
-      "max_jump": 0.00398128668317,
+      "max_jump": 0.00463648473859,
       "sign_switches": 0,
-      "endpoint_re": -0.146666666667,
+      "endpoint_re": -0.181818181818,
       "endpoint_im": 0.0
     }
   ],

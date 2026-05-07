@@ -53,26 +53,10 @@
   "manifest_audit_issues": [],
   "manifest_audit": null,
   "reviewed_runtime_artifacts": [],
-  "runtime_review_stale_issues": [
-    {
-      "code": "runtime_review_stale",
-      "message": "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。",
-      "source_path": "course-content/authoring/lessons/4-2/design/4-2-handout.md"
-    }
-  ],
-  "hard_gate_issues": [
-    {
-      "code": "runtime_review_stale",
-      "message": "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。",
-      "source_path": "course-content/authoring/lessons/4-2/design/4-2-handout.md"
-    }
-  ],
-  "hard_gate_issue_codes": [
-    "runtime_review_stale"
-  ],
-  "blocking_issues": [
-    "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。"
-  ],
+  "runtime_review_stale_issues": [],
+  "hard_gate_issues": [],
+  "hard_gate_issue_codes": [],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
@@ -82,17 +66,14 @@
   ],
   "warnings": [
     "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。"
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
   ],
   "missing": [
     "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。"
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
   ],
   "issues": [
     "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。"
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
   ]
 }

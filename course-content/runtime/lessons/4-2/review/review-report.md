@@ -17,7 +17,6 @@
 - 互动设计接受文件已通过校验。
 - 缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节
 - 讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
-- 作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：`course-content/authoring/lessons/4-2/design/4-2-handout.md` 更新于 2026-05-07T13:28:26.858621+00:00，晚于 `course-content/runtime/lessons/4-2/review/interactive-page-check.json` 的 2026-05-07T08:34:54.110894+00:00。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

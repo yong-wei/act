@@ -156,12 +156,12 @@ w_ex = logspace(-3, 2, 420);
 
 G1 = 1 / (s + 1);
 C1_before = tf(1, 1);
-wc_pi_example = 0.8;
+wc_pi_example = 1.0;
 wz_pi_example = wc_pi_example / 4;
 Ti_pi_example = 1 / wz_pi_example;
 Kp_pi_example = 1 / ((1 / sqrt(1 + wc_pi_example^2)) * sqrt(1 + (1 / (wc_pi_example * Ti_pi_example))^2));
 C1_after = Kp_pi_example * (1 + 1 / (Ti_pi_example * s));
-write_example_pair(data_dir, "4-2-example-5-1", G1, C1_before, C1_after, feedback(C1_before * G1, 1), feedback(C1_after * G1, 1), C1_before * G1, C1_after * G1, linspace(0, 35, 500), w_ex);
+write_example_pair(data_dir, "4-2-example-5-1", G1, C1_before, C1_after, feedback(C1_before * G1, 1), feedback(C1_after * G1, 1), C1_before * G1, C1_after * G1, linspace(0, 45, 600), w_ex);
 
 T2_obj = tan(65 * pi / 180) / 2;
 K2_obj = 0.25 * 2 * sqrt(1 + (2 * T2_obj)^2);

@@ -237,26 +237,26 @@ $$
 $$
 G_1(s)=\frac{1}{s+1}
 $$
-希望在 $\omega_c=0.8\,\text{rad/s}$ 附近形成闭环，并消除阶跃稳态误差。取 PI 零点 $\omega_z=\omega_c/4=0.2\,\text{rad/s}$，于是
+希望在 $\omega_c=1.0\,\text{rad/s}$ 附近形成闭环，并消除阶跃稳态误差。取 PI 零点 $\omega_z=\omega_c/4=0.25\,\text{rad/s}$，于是
 $$
-T_i=\frac{1}{\omega_z}=5\,\text{s}
+T_i=\frac{1}{\omega_z}=4\,\text{s}
 $$
 对象在 $\omega_c$ 处的幅值为
 $$
-|G_1(j0.8)|=\frac{1}{\sqrt{1+0.8^2}}=0.781
+|G_1(j1)|=\frac{1}{\sqrt{1+1^2}}=0.707
 $$
 PI 形状项幅值为
 $$
 \left|1+\frac{1}{j\omega_cT_i}\right|
-=\sqrt{1+\left(\frac{1}{0.8\times5}\right)^2}=1.031
+=\sqrt{1+\left(\frac{1}{1\times4}\right)^2}=1.031
 $$
 所以
 $$
-K_p=\frac{1}{0.781\times1.031}=1.242
+K_p=\frac{1}{0.707\times1.031}=1.372
 $$
 进一步得到
 $$
-K_i=\frac{K_p}{T_i}=0.248
+K_i=\frac{K_p}{T_i}=0.343
 $$
 这组参数的含义是：积分用于消除静差，比例增益按目标截止频率确定。与更低的 $\omega_c$ 和更弱的积分相比，这组参数在时域图中更清楚地体现了稳态误差被消除的过程。若相角裕度偏低，应把 $\omega_z$ 再下移或降低 $\omega_c$。
 
