@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T14:22:44.012232Z",
+  "lesson_id": "3-7",
+  "node_id": "给定-扰动双通道误差分析_3_37001",
+  "requested_node_id": "给定-扰动双通道误差分析_3_37001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019e02c2-fe20-7912-be70-9e9503ea789b/ig_0041be43e0e0ced00169fc9fe38530819a9ba712e1ed2a1d12.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/3-7/nodes/给定-扰动双通道误差分析_3_37001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/3-7/nodes/给定-扰动双通道误差分析_3_37001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/3-7/nodes/给定-扰动双通道误差分析_3_37001/source.json"
+}

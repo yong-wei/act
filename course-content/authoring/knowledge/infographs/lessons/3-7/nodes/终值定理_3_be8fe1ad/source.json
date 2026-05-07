@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T14:17:23.517671Z",
+  "lesson": {
+    "lesson_id": "3-7",
+    "title": "型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理",
+    "groups": [
+      "直接求与快速判"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "终值定理_3_be8fe1ad",
+    "name": "终值定理",
+    "name_en": "Final Value Theorem",
+    "category": "程序性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "通过象函数直接求原函数最终极限值的工具，是稳态误差直接求法的统一出口。",
+    "examples": [
+      "计算稳态误差的基本工具"
+    ],
+    "formulas": [
+      "\\lim_{t\\to\\infty}e(t)=\\lim_{s\\to0}sE(s)"
+    ],
+    "keywords": [
+      "终值",
+      "拉普拉斯变换",
+      "极限",
+      "终值定理",
+      "直接求"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/终值定理_3_be8fe1ad.md",
+  "card_frontmatter": {
+    "node_id": "终值定理_3_be8fe1ad",
+    "name": "终值定理",
+    "name_en": "Final Value Theorem",
+    "lesson_units": [
+      "3-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "C",
+    "chapter": "3",
+    "tags": [
+      "3-7",
+      "终值定理",
+      "直接求"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-7/design/3-7-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 终值定理 | Final Value Theorem\n\n**一句话定义**：通过象函数直接求原函数最终极限值的工具，是稳态误差直接求法的统一出口。\n\n**核心直觉**：先把误差函数写对，终值定理才有意义。\n\n**关键公式**：\n$$\n\\lim_{t\\to\\infty}e(t)=\\lim_{s\\to0}sE(s)\n$$\n\n**关联**：前置 → 拉普拉斯变换、误差传递函数 · 后续 → 稳态误差双路径判断",
+  "card_detail": "### 完整解释\n\n`3-7` 用终值定理压住一件事：稳态误差的通用求法必须先判系统稳定、再写误差表达、最后做极限。它不是“背下来就自动能算”，而是整条列式链的出口。\n\n在例题 1 中，终值定理是主线；在型别快判出现之后，它仍然保留着“校验来源”和“处理复杂通道问题”的地位。\n\n### 常见误区\n\n1. **误区**：知道终值定理公式，就可以不看系统稳定性。\n   **纠正**：不先判稳定，终值结论就没有保障。\n\n2. **误区**：终值定理只服务给定输入。\n   **纠正**：它同样适用于扰动问题，关键是先把误差通道写对。",
+  "card_plain_excerpt": "## 首页\n\n# 终值定理 | Final Value Theorem\n\n**一句话定义**：通过象函数直接求原函数最终极限值的工具，是稳态误差直接求法的统一出口。\n\n**核心直觉**：先把误差函数写对，终值定理才有意义。\n\n**关键公式**：\n$$\n\\lim_{t\\to\\infty}e(t)=\\lim_{s\\to0}sE(s)\n$$\n\n**关联**：前置 → 拉普拉斯变换、误差传递函数 · 后续 → 稳态误差双路径判断\n\n## 详情\n\n### 完整解释\n\n`3-7` 用终值定理压住一件事：稳态误差的通用求法必须先判系统稳定、再写误差表达、最后做极限。它不是“背下来就自动能算”，而是整条列式链的出口。\n\n在例题 1 中，终值定理是主线；在型别快判出现之后，它仍然保留着“校验来源”和“处理复杂通道问题”的地位。\n\n### 常见误区\n\n1. **误区**：知道终值定理公式，就可以不看系统稳定性。\n   **纠正**：不先判稳定，终值结论就没有保障。\n\n2. **误区**：终值定理只服务给定输入。\n   **纠正**：它同样适用于扰动问题，关键是先把误差通道写对。",
+  "core_intuition": "先把误差函数写对，终值定理才有意义。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "准确性",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传递函数",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "系统特性计算",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "LQ/LQG最优控制",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "SISO系统设计工具",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析法",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型输入信号",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单位阶跃函数",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "动态过程",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳态过程",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "动态性能指标",
+      "target_id": null,
+      "target": "终值定理",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "终值定理",
+        "终值",
+        "拉普拉斯变换",
+        "极限",
+        "终值定理",
+        "直接求"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\lim_{t\\to\\infty}e(t)=\\lim_{s\\to0}sE(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -426,6 +426,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/扰动作用下的稳态误差_3_5c9fcfe1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/扰动作用下的稳态误差_3_5c9fcfe1.png",
+      "title": "扰动作用下的稳态误差 信息图",
+      "lessonId": "3-7",
+      "nodeId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "sourceNodeId": "扰动作用下的稳态误差_3_5c9fcfe1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
       "url": "/course-runtime/knowledge/infographs/nodes/扰动噪声设计边界_4_47007.png",
       "title": "扰动噪声设计边界 信息图",
@@ -597,6 +606,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/比例-积分控制器_3_2d540516.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/比例-积分控制器_3_2d540516.png",
+      "title": "比例-积分控制器 信息图",
+      "lessonId": "3-7",
+      "nodeId": "比例-积分控制器_3_2d540516",
+      "sourceNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
       "url": "/course-runtime/knowledge/infographs/nodes/求解记录单_4_45004.png",
       "title": "求解记录单 信息图",
@@ -696,6 +714,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/稳态误差双路径判断_3_37002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/稳态误差双路径判断_3_37002.png",
+      "title": "稳态误差双路径判断 信息图",
+      "lessonId": "3-7",
+      "nodeId": "稳态误差双路径判断_3_37002",
+      "sourceNodeId": "稳态误差双路径判断_3_37002"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
       "url": "/course-runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
       "title": "穿越频率 信息图",
@@ -711,6 +738,15 @@
       "lessonId": "5-6",
       "nodeId": "策略监督层调度_5_56005",
       "sourceNodeId": "策略监督层调度_5_56005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/系统型别_3_5573c2c3.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/系统型别_3_5573c2c3.png",
+      "title": "系统型别 信息图",
+      "lessonId": "3-7",
+      "nodeId": "系统型别_3_5573c2c3",
+      "sourceNodeId": "系统型别_3_5573c2c3"
     },
     {
       "type": "infograph",
@@ -738,6 +774,15 @@
       "lessonId": "4-6",
       "nodeId": "组合结构专项验证边界判断_4_46007",
       "sourceNodeId": "组合结构专项验证边界判断_4_46007"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/终值定理_3_be8fe1ad.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/终值定理_3_be8fe1ad.png",
+      "title": "终值定理 信息图",
+      "lessonId": "3-7",
+      "nodeId": "终值定理_3_be8fe1ad",
+      "sourceNodeId": "终值定理_3_be8fe1ad"
     },
     {
       "type": "infograph",
@@ -801,6 +846,15 @@
       "lessonId": "4-6",
       "nodeId": "结构搜索引入条件_4_46004",
       "sourceNodeId": "结构搜索引入条件_4_46004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/给定-扰动双通道误差分析_3_37001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/给定-扰动双通道误差分析_3_37001.png",
+      "title": "给定-扰动双通道误差分析 信息图",
+      "lessonId": "3-7",
+      "nodeId": "给定-扰动双通道误差分析_3_37001",
+      "sourceNodeId": "给定-扰动双通道误差分析_3_37001"
     },
     {
       "type": "infograph",
@@ -873,6 +927,15 @@
       "lessonId": "5-6",
       "nodeId": "证据要求等级_5_56007",
       "sourceNodeId": "证据要求等级_5_56007"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/误差传递函数_2_1d55824d.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/误差传递函数_2_1d55824d.png",
+      "title": "误差传递函数 信息图",
+      "lessonId": "3-7",
+      "nodeId": "误差传递函数_2_1d55824d",
+      "sourceNodeId": "误差传递函数_2_1d55824d"
     },
     {
       "type": "infograph",
@@ -972,6 +1035,24 @@
       "lessonId": "4-4",
       "nodeId": "问题清单移交表_4_43005",
       "sourceNodeId": "问题清单移交表_4_43005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/静态误差系数_3_7080d9f8.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/静态误差系数_3_7080d9f8.png",
+      "title": "静态误差系数 信息图",
+      "lessonId": "3-7",
+      "nodeId": "静态误差系数_3_7080d9f8",
+      "sourceNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/静态速度误差系数_3_ba8e28bb.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/静态速度误差系数_3_ba8e28bb.png",
+      "title": "静态速度误差系数 信息图",
+      "lessonId": "3-7",
+      "nodeId": "静态速度误差系数_3_ba8e28bb",
+      "sourceNodeId": "静态速度误差系数_3_ba8e28bb"
     },
     {
       "type": "infograph",

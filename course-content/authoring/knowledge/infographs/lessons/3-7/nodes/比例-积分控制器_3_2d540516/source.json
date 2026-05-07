@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T14:17:24.054540Z",
+  "lesson": {
+    "lesson_id": "3-7",
+    "title": "型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理",
+    "groups": [
+      "低频补偿与稳态改善路径",
+      "频域设计与速度优先方案"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "比例-积分控制器_3_2d540516",
+    "name": "比例-积分控制器",
+    "name_en": "Proportional-Integral Controller",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "通过比例作用配合积分作用，既保留可调增益，又能通过提高型别改善稳态精度的控制器。",
+    "examples": [
+      "例3-17中用于控制系统，消除阶跃转矩扰动下的稳态误差。"
+    ],
+    "formulas": [
+      "G_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)"
+    ],
+    "keywords": [
+      "PI控制器",
+      "稳态误差",
+      "积分控制",
+      "PI",
+      "低频补偿"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md",
+  "card_frontmatter": {
+    "node_id": "比例-积分控制器_3_2d540516",
+    "name": "比例-积分控制器",
+    "name_en": "Proportional-Integral Controller",
+    "lesson_units": [
+      "3-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-7",
+      "PI",
+      "低频补偿"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-7/design/3-7-handout.md"
+    ],
+    "asset_refs": [
+      "3-7-pi-time-domain-design.png",
+      "3-7-pi-frequency-design.png"
+    ]
+  },
+  "card_overview": "# 比例-积分控制器 | Proportional-Integral Controller\n\n**一句话定义**：通过比例作用配合积分作用，既保留可调增益，又能通过提高型别改善稳态精度的控制器。\n\n**核心直觉**：`PI` 的价值不是“多了一个参数”，而是“把系统型别真的改了”。\n\n**关键公式**：\n$$\nG_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)\n$$\n\n**关联**：前置 → 积分环节、系统型别 · 后续 → 低频补偿稳态改善路径",
+  "card_detail": "### 完整解释\n\n`3-7` 分别从时域和频域两侧讲了 `PI`：\n\n- 时域上，先证明纯增益不能让 I 型系统的斜坡误差变成 0，再引入 `PI` 提高型别；\n- 频域上，先说明纯增益无法同时兼顾 `K_v` 与相位裕度，再把 `PI` 作为低频补偿方案放进去。\n\n![3-7 PI 时域设计图](../../lessons/3-7/media/processed/3-7-pi-time-domain-design.png)\n\n### 常见误区\n\n1. **误区**：`PI` 只是“精度更高的比例控制”。\n   **纠正**：`PI` 的本质是通过积分改变低频结构。\n\n2. **误区**：`PI` 只增益精度，不会带来动态代价。\n   **纠正**：`PI` 会引入额外相位滞后和速度代价。",
+  "card_plain_excerpt": "## 首页\n\n# 比例-积分控制器 | Proportional-Integral Controller\n\n**一句话定义**：通过比例作用配合积分作用，既保留可调增益，又能通过提高型别改善稳态精度的控制器。\n\n**核心直觉**：`PI` 的价值不是“多了一个参数”，而是“把系统型别真的改了”。\n\n**关键公式**：\n$$\nG_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)\n$$\n\n**关联**：前置 → 积分环节、系统型别 · 后续 → 低频补偿稳态改善路径\n\n## 详情\n\n### 完整解释\n\n`3-7` 分别从时域和频域两侧讲了 `PI`：\n\n- 时域上，先证明纯增益不能让 I 型系统的斜坡误差变成 0，再引入 `PI` 提高型别；\n- 频域上，先说明纯增益无法同时兼顾 `K_v` 与相位裕度，再把 `PI` 作为低频补偿方案放进去。\n\n![3-7 PI 时域设计图](../../lessons/3-7/media/processed/3-7-pi-time-domain-design.png)\n\n### 常见误区\n\n1. **误区**：`PI` 只是“精度更高的比例控制”。\n   **纠正**：`PI` 的本质是通过积分改变低频结构。\n\n2. **误区**：`PI` 只增益精度，不会带来动态代价。\n   **纠正**：`PI` 会引入额外相位滞后和速度代价。",
+  "core_intuition": "`PI` 的价值不是“多了一个参数”，而是“把系统型别真的改了”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "系统特性计算",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "LQ/LQG最优控制",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "SISO系统设计工具",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "鲁棒控制",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "applies_to",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域分析法",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型输入信号",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单位阶跃函数",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.1,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "动态过程",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳态过程",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "动态性能指标",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "上升时间",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "process_board",
+      "name": "流程板",
+      "description": "用 4-6 个连续步骤表达从证据到判断或从目标到参数的过程。"
+    },
+    "layout_contract": "16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；每步只放一个图像动作或技术小窗；底部一条结论/边界条。",
+    "text_contract": {
+      "allowed_labels": [
+        "比例-积分控制器",
+        "PI控制器",
+        "稳态误差",
+        "积分控制",
+        "PI",
+        "低频补偿"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

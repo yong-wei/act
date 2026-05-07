@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-07T14:17:23.429409Z",
+  "lesson": {
+    "lesson_id": "3-7",
+    "title": "型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理",
+    "groups": [
+      "从动态改善切到误差通道"
+    ],
+    "card_order_index": 2
+  },
+  "node": {
+    "id": "给定-扰动双通道误差分析_3_37001",
+    "name": "给定-扰动双通道误差分析",
+    "name_en": "Reference-Disturbance Dual-Channel Error Analysis",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "把给定输入和扰动分别沿闭环通道列式，再用总输出与总误差统一处理稳态问题的分析框架。",
+    "examples": [
+      "例题 2 中，单位阶跃给定和对象入口常值扰动同时存在时，必须先写出 \\Phi_r(s)、\\Phi_d(s) 与总误差 E(s)，再做终值极限。",
+      "同一闭环结构下，四类传递函数分母相同但分子不同，说明结构不变而通道不同。"
+    ],
+    "formulas": [
+      "C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)"
+    ],
+    "keywords": [
+      "给定输入",
+      "扰动通道",
+      "总输出",
+      "总误差",
+      "分母相同",
+      "误差通道",
+      "稳态改善"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/给定-扰动双通道误差分析_3_37001.md",
+  "card_frontmatter": {
+    "node_id": "给定-扰动双通道误差分析_3_37001",
+    "name": "给定-扰动双通道误差分析",
+    "name_en": "Reference-Disturbance Dual-Channel Error Analysis",
+    "lesson_units": [
+      "3-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-7",
+      "误差通道",
+      "稳态改善"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-7/design/3-7-handout.md"
+    ],
+    "asset_refs": [
+      "3-7-error-dual-channel.png"
+    ]
+  },
+  "card_overview": "# 给定-扰动双通道误差分析 | Reference-Disturbance Dual-Channel Error Analysis\n\n**一句话定义**：把给定输入和扰动分别沿闭环通道列式，再用总输出与总误差统一处理稳态问题的分析框架。\n\n**核心直觉**：先问“信号从哪里进来”，再问“误差最后停在哪”。\n\n**关键公式**：\n$$\nC(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)\n$$\n\n**关联**：前置 → 误差传递函数、扰动作用下的稳态误差 · 后续 → 稳态误差双路径判断",
+  "card_detail": "### 完整解释\n\n`3-7` 的第一件事不是套公式，而是把通道写对。给定输入和扰动虽然都会影响输出，但进入闭环的位置不同，所以对应的闭环与误差表达也不同。\n\n![3-7 双通道结构图](../../lessons/3-7/media/processed/3-7-error-dual-channel.png)\n\n真正稳妥的顺序是：\n\n1. 先写给定作用下的闭环与误差通道；\n2. 再写扰动作用下的闭环与误差通道；\n3. 最后再把总输出和总误差叠加起来。\n\n这也是为什么“扰动不是另一种输入型别”。如果把扰动直接并进输入类型表，后面的稳态误差判断一定会乱。\n\n### 常见误区\n\n1. **误区**：扰动就是另一种输入，直接换个 `r(t)` 就行。\n   **纠正**：扰动的关键不在波形，而在它进入闭环的位置不同。\n\n2. **误区**：只要写出 `E/R`，其他通道可以口头补。\n   **纠正**：显式扰动问题必须把 `E/D` 和总误差一起写出来。",
+  "card_plain_excerpt": "## 首页\n\n# 给定-扰动双通道误差分析 | Reference-Disturbance Dual-Channel Error Analysis\n\n**一句话定义**：把给定输入和扰动分别沿闭环通道列式，再用总输出与总误差统一处理稳态问题的分析框架。\n\n**核心直觉**：先问“信号从哪里进来”，再问“误差最后停在哪”。\n\n**关键公式**：\n$$\nC(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)\n$$\n\n**关联**：前置 → 误差传递函数、扰动作用下的稳态误差 · 后续 → 稳态误差双路径判断\n\n## 详情\n\n### 完整解释\n\n`3-7` 的第一件事不是套公式，而是把通道写对。给定输入和扰动虽然都会影响输出，但进入闭环的位置不同，所以对应的闭环与误差表达也不同。\n\n![3-7 双通道结构图](../../lessons/3-7/media/processed/3-7-error-dual-channel.png)\n\n真正稳妥的顺序是：\n\n1. 先写给定作用下的闭环与误差通道；\n2. 再写扰动作用下的闭环与误差通道；\n3. 最后再把总输出和总误差叠加起来。\n\n这也是为什么“扰动不是另一种输入型别”。如果把扰动直接并进输入类型表，后面的稳态误差判断一定会乱。\n\n### 常见误区\n\n1. **误区**：扰动就是另一种输入，直接换个 `r(t)` 就行。\n   **纠正**：扰动的关键不在波形，而在它进入闭环的位置不同。\n\n2. **误区**：只要写出 `E/R`，其他通道可以口头补。\n   **纠正**：显式扰动问题必须把 `E/D` 和总误差一起写出来。",
+  "core_intuition": "先问“信号从哪里进来”，再问“误差最后停在哪”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "误差传递函数",
+      "target_id": null,
+      "target": "给定-扰动双通道误差分析",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "给定-扰动双通道误差分析",
+      "target_id": null,
+      "target": "稳态误差双路径判断",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "扰动作用下的稳态误差",
+      "target_id": null,
+      "target": "给定-扰动双通道误差分析",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "误差传递函数_2_1d55824d",
+      "source": "误差传递函数",
+      "target_id": "给定-扰动双通道误差分析_3_37001",
+      "target": "给定-扰动双通道误差分析",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "3-7 把已有的误差传函概念推进为给定/扰动并列列式的双通道分析框架。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "source": "扰动作用下的稳态误差",
+      "target_id": "给定-扰动双通道误差分析_3_37001",
+      "target": "给定-扰动双通道误差分析",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "只有把扰动看成独立通道进入闭环，抗扰稳态误差才不会被误当成另一种输入型别。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "给定-扰动双通道误差分析_3_37001",
+      "source": "给定-扰动双通道误差分析",
+      "target_id": "稳态误差双路径判断_3_37002",
+      "target": "稳态误差双路径判断",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "先把通道写对，后面才有资格在“直接求”和“快速判”之间选路径。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "给定-扰动双通道误差分析",
+        "给定输入",
+        "扰动通道",
+        "总输出",
+        "总误差",
+        "分母相同",
+        "误差通道",
+        "稳态改善"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

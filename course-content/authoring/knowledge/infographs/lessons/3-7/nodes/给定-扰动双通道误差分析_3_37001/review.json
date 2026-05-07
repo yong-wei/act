@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-07T14:22:44.012600Z",
+  "lesson_id": "3-7",
+  "node_id": "给定-扰动双通道误差分析_3_37001",
+  "requested_node_id": "给定-扰动双通道误差分析_3_37001",
+  "node_name": "给定-扰动双通道误差分析",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": ""
+}

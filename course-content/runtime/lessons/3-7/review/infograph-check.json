@@ -20,14 +20,6 @@
     "带宽_5_6730fda4"
   ],
   "accepted_infographs": [
-    "积分环节_2_11005",
-    "串联无源滞后校正_6_2a52e865",
-    "低频补偿稳态改善路径_3_37003",
-    "频率特性_5_404adfdd",
-    "相角裕度_5_5a74b451",
-    "带宽_5_6730fda4"
-  ],
-  "missing_infographs": [
     "误差传递函数_2_1d55824d",
     "给定-扰动双通道误差分析_3_37001",
     "终值定理_3_be8fe1ad",
@@ -36,64 +28,16 @@
     "静态误差系数_3_7080d9f8",
     "静态速度误差系数_3_ba8e28bb",
     "稳态误差双路径判断_3_37002",
-    "比例-积分控制器_3_2d540516"
+    "积分环节_2_11005",
+    "比例-积分控制器_3_2d540516",
+    "串联无源滞后校正_6_2a52e865",
+    "低频补偿稳态改善路径_3_37003",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_5a74b451",
+    "带宽_5_6730fda4"
   ],
-  "missing_source_files": {
-    "误差传递函数_2_1d55824d": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "给定-扰动双通道误差分析_3_37001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "终值定理_3_be8fe1ad": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "扰动作用下的稳态误差_3_5c9fcfe1": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "系统型别_3_5573c2c3": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "静态误差系数_3_7080d9f8": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "静态速度误差系数_3_ba8e28bb": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "稳态误差双路径判断_3_37002": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "比例-积分控制器_3_2d540516": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }
