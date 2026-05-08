@@ -44,6 +44,11 @@ export interface FrequencyRangeConfig {
   samples: number;
 }
 
+export interface NyquistConfig {
+  mode?: 'full' | 'half';
+  samplingMode?: 'adaptive' | 'fixed';
+}
+
 export interface RootLocusConfig {
   minGain: number;
   maxGain: number;
@@ -86,6 +91,7 @@ export interface ControlAnalysisRequest {
   responseType?: 'step' | 'impulse' | 'ramp';
   timeRange: TimeRangeConfig;
   frequencyRange: FrequencyRangeConfig;
+  nyquist?: NyquistConfig;
   rootLocus: RootLocusConfig;
   feasibleRegion?: FeasibleRegionConfig;
   delay?: number;
@@ -132,8 +138,33 @@ export interface BodeAxisData {
   points: CurvePoint[];
 }
 
+export interface NyquistClosureSegment {
+  points: ComplexPoint[];
+  lineStyle: 'dashed';
+}
+
+export interface NyquistKeyPoint {
+  kind: 'real_axis_crossing' | 'imaginary_axis_crossing' | 'unit_circle_crossing' | string;
+  point: ComplexPoint;
+  frequency: number;
+}
+
+export interface NyquistAsymptote {
+  end: 'low_frequency' | 'high_frequency' | string;
+  kind: 'infinite' | 'zero' | string;
+  angleDeg?: number;
+  point?: ComplexPoint;
+}
+
 export interface NyquistData {
   points: ComplexPoint[];
+  mode?: 'full' | 'half';
+  positivePoints?: ComplexPoint[];
+  negativePoints?: ComplexPoint[];
+  infinityClosure?: NyquistClosureSegment;
+  keyPoints?: NyquistKeyPoint[];
+  asymptotes?: NyquistAsymptote[];
+  encirclements?: number;
 }
 
 export interface RealAxisSegment {

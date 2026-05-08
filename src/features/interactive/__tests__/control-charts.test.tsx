@@ -9,6 +9,10 @@ import {
   buildBodePanelOption,
   getControlAxisPreset,
 } from '@/resources/control-system/charts/control-bode-options';
+import {
+  buildNyquistOption,
+  buildRootLocusOption,
+} from '@/resources/control-system/charts/control-analysis-panels';
 import { applyControlChartTheme } from '@/resources/control-system/charts/control-chart-theme';
 
 const LOW_FREQUENCY_CASE_ID = 'unit37_low_frequency_bode';
@@ -48,6 +52,40 @@ const SAMPLE_RESULT: ControlAnalysisResult = {
     currentPoles: [],
     openLoopPoles: [],
     openLoopZeros: [],
+  },
+};
+
+const MARGIN_RESULT: ControlAnalysisResult = {
+  ...SAMPLE_RESULT,
+  metrics: {
+    ...SAMPLE_RESULT.metrics,
+    phaseMarginDeg: 48,
+    gainMarginDb: 12,
+    gainCrossoverRadPerSec: 2,
+    phaseCrossoverRadPerSec: 8,
+  },
+  nyquist: {
+    mode: 'full',
+    points: [{ re: 0, im: 0 }, { re: -1.2, im: 0.3 }],
+    positivePoints: [{ re: 0, im: 0 }, { re: -1.2, im: 0.3 }],
+    negativePoints: [{ re: -1.2, im: -0.3 }, { re: 0, im: 0 }],
+    infinityClosure: {
+      points: [{ re: -1.2, im: 0.3 }, { re: -1.2, im: -0.3 }],
+      lineStyle: 'dashed',
+    },
+    keyPoints: [{ kind: 'unit_circle_crossing', point: { re: -0.9, im: 0.1 }, frequency: 2 }],
+    asymptotes: [{ end: 'high_frequency', kind: 'zero', angleDeg: -90, point: { re: 0, im: 0 } }],
+    encirclements: 0,
+  },
+  rootLocus: {
+    branches: [[{ re: -1, im: 0, gain: 1 }, { re: -2, im: 0, gain: 2 }]],
+    currentPoles: [{ re: -1.2, im: 0 }],
+    openLoopPoles: [{ re: -1, im: 0 }],
+    openLoopZeros: [{ re: -3, im: 0 }],
+    realAxisSegments: [{ start: -3, end: -1 }],
+    stationaryPoints: [{ re: -1.8, im: 0, gain: 1.7 }],
+    imaginaryAxisCrossings: [{ re: 0, im: 1.4, gain: 4 }],
+    asymptotes: [{ centroid: -2, angleDeg: 90 }],
   },
 };
 
@@ -106,6 +144,77 @@ describe('control chart shared presets and themes', () => {
     expect(((darkOption.xAxis as Array<{ axisLabel?: { color?: string } }>)[0]).axisLabel?.color).toBe('rgba(226, 232, 240, 0.75)');
     expect(((lightOption.yAxis as Array<{ nameTextStyle?: { color?: string } }>)[0]).nameTextStyle?.color).toBe('rgba(51, 65, 85, 0.88)');
     expect(((darkOption.yAxis as Array<{ nameTextStyle?: { color?: string } }>)[0]).nameTextStyle?.color).toBe('rgba(226, 232, 240, 0.9)');
+  });
+
+  it('builds linked Bode subplots with margin annotations on a shared frequency range', () => {
+    const option = buildBodePanelOption(MARGIN_RESULT, LOW_FREQUENCY_CASE_ID);
+    const xAxes = option.xAxis as Array<{ min?: number; max?: number }>;
+    const series = option.series as Array<{ name?: string; label?: { formatter?: string }; data?: unknown[] }>;
+
+    expect(option.axisPointer).toEqual({ link: [{ xAxisIndex: [0, 1] }] });
+    expect(xAxes[0]).toMatchObject({ min: 1e-2, max: 1e2 });
+    expect(xAxes[1]).toMatchObject({ min: 1e-2, max: 1e2 });
+    expect(series.some((item) => item.name === 'ωc 截止频率' && item.label?.formatter?.includes('ωc'))).toBe(true);
+    expect(series.some((item) => item.name === 'PM 相角裕度' && item.label?.formatter?.includes('PM'))).toBe(true);
+    expect(series.some((item) => item.name === 'ωg 穿越频率' && item.label?.formatter?.includes('GM'))).toBe(true);
+  });
+
+  it('does not draw an invalid gain-margin point when GM is infinite', () => {
+    const option = buildBodePanelOption({
+      ...MARGIN_RESULT,
+      metrics: { ...MARGIN_RESULT.metrics, gainMarginDb: Number.POSITIVE_INFINITY },
+    });
+    const series = option.series as Array<{ name?: string; data?: unknown[]; label?: { formatter?: string } }>;
+
+    expect(series.some((item) => item.name === 'ωg 穿越频率' && item.data?.some((value) => {
+      const point = value as number[];
+      return !Number.isFinite(point[1]);
+    }))).toBe(false);
+    expect(series.some((item) => item.label?.formatter === 'GM ∞')).toBe(true);
+  });
+
+  it('renders root-locus analysis metadata from the shared Rust result', () => {
+    const option = buildRootLocusOption(MARGIN_RESULT.rootLocus, undefined, 'full');
+    const series = option.series as Array<{ name?: string; lineStyle?: { type?: string }; data?: unknown[] }>;
+
+    expect(series.some((item) => item.name === '实轴根轨迹段')).toBe(true);
+    expect(series.some((item) => item.name === '根轨迹渐近线')).toBe(true);
+    expect(series.some((item) => item.lineStyle?.type === 'dashed' || item.lineStyle?.type === 'dotted' || item.lineStyle?.type === 'dashdot')).toBe(false);
+    expect(series.some((item) => item.name === '分离/会合点')).toBe(true);
+    expect(series.some((item) => item.name === '虚轴交点')).toBe(true);
+    expect(series[series.length - 1]?.name).toBe('当前闭环极点');
+  });
+
+  it('renders full Nyquist branches, key points, axes, critical point, and asymptotes', () => {
+    const option = buildNyquistOption(MARGIN_RESULT);
+    const series = option.series as Array<{ name?: string; lineStyle?: { type?: string }; label?: { formatter?: string } }>;
+
+    expect(series.some((item) => item.name === '实轴')).toBe(true);
+    expect(series.some((item) => item.name === '虚轴')).toBe(true);
+    expect(series.some((item) => item.name === 'Nyquist 正频率支')).toBe(true);
+    expect(series.some((item) => item.name === 'Nyquist 负频率支')).toBe(true);
+    expect(series.some((item) => item.name === '无穷远闭合段' && item.lineStyle?.type !== 'dashed')).toBe(true);
+    expect(series.some((item) => item.name === 'Nyquist 关键点')).toBe(true);
+    expect(series.some((item) => item.name === 'Nyquist 渐近方向' && item.lineStyle?.type === 'dashed')).toBe(true);
+    expect(series.some((item) => item.name === '-1+j0' && item.label?.formatter === '-1+j0')).toBe(true);
+  });
+
+  it('synthesizes a Nyquist closure segment when the engine only returns positive and negative branches', () => {
+    const option = buildNyquistOption({
+      ...MARGIN_RESULT,
+      nyquist: {
+        ...MARGIN_RESULT.nyquist,
+        infinityClosure: undefined,
+      },
+    });
+    const closure = (option.series as Array<{ name?: string; data?: unknown[] }>).find(
+      (item) => item.name === '无穷远闭合段',
+    );
+
+    expect(closure?.data).toEqual([
+      [-1.2, 0.3],
+      [-1.2, -0.3],
+    ]);
   });
 
   it('uses module-header title sizing for shared Rust-driven figure panels', () => {

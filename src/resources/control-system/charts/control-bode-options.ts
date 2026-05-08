@@ -143,6 +143,7 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
   const phaseCross = metrics.phaseCrossoverRadPerSec;
   const phaseMargin = metrics.phaseMarginDeg;
   const gainMargin = metrics.gainMarginDb;
+  const finiteGainMargin = gainMargin != null && Number.isFinite(gainMargin);
 
   if (mode === 'magnitude') {
     return [
@@ -161,23 +162,25 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
       },
       ...(gainCross != null
         ? [{
-            name: '相角裕度交越',
+            name: 'ωc 截止频率',
             type: 'scatter',
             ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
               size: 10,
               color: '#22d3ee',
             }),
+            label: { show: true, formatter: `ωc ${formatFixed(gainCross)}`, position: 'top' },
             data: [[gainCross, 0]],
           } satisfies ChartSeriesItem]
         : []),
-      ...(phaseCross != null && gainMargin != null
+      ...(phaseCross != null && finiteGainMargin
         ? [{
-            name: '增益裕度交越',
+            name: 'ωg 穿越频率',
             type: 'scatter',
             ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
               size: 10,
               color: '#f97316',
             }),
+            label: { show: true, formatter: `GM ${formatFixed(gainMargin, ' dB')}`, position: 'bottom' },
             data: [[phaseCross, -gainMargin]],
           } satisfies ChartSeriesItem]
         : []),
@@ -200,40 +203,55 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
     },
     ...(gainCross != null && phaseMargin != null
       ? [{
-          name: '相角裕度交越',
+          name: 'PM 相角裕度',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
             size: 10,
             color: '#22d3ee',
           }),
+          label: { show: true, formatter: `PM ${formatFixed(phaseMargin, '°')}`, position: 'top' },
           data: [[gainCross, phaseMargin - 180]],
         } satisfies ChartSeriesItem]
       : []),
     ...(phaseCross != null
       ? [{
-          name: '增益裕度交越',
+          name: 'ωg 穿越频率',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
             size: 10,
             color: '#f97316',
           }),
+          label: {
+            show: true,
+            formatter: finiteGainMargin ? `ωg ${formatFixed(phaseCross)}` : 'GM ∞',
+            position: 'bottom',
+          },
           data: [[phaseCross, -180]],
         } satisfies ChartSeriesItem]
       : []),
   ];
 }
 
-export function buildBodePanelOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
+export function buildBodePanelOption(
+  result: ControlAnalysisResult,
+  caseId?: string,
+  showMargins = true,
+): EChartsCoreOption {
   const magnitudeAxis = getControlAxisPreset(caseId, 'magnitude');
   const phaseAxis = getControlAxisPreset(caseId, 'phase');
-  const magnitudeMarginSeries = buildMarginSeries(result.metrics, 'magnitude');
-  const phaseMarginSeries = buildMarginSeries(result.metrics, 'phase');
+  const frequencyMin = magnitudeAxis?.x[0] ?? phaseAxis?.x[0];
+  const frequencyMax = magnitudeAxis?.x[1] ?? phaseAxis?.x[1];
+  const magnitudeMarginSeries = showMargins ? buildMarginSeries(result.metrics, 'magnitude') : [];
+  const phaseMarginSeries = showMargins ? buildMarginSeries(result.metrics, 'phase') : [];
 
   return {
     animation: false,
     tooltip: {
       trigger: 'axis',
       formatter: axisTooltipFormatter,
+    },
+    axisPointer: {
+      link: [{ xAxisIndex: [0, 1] }],
     },
     grid: [
       { top: 18, right: 18, bottom: '56%', left: 62 },
@@ -242,8 +260,8 @@ export function buildBodePanelOption(result: ControlAnalysisResult, caseId?: str
     xAxis: [
       {
         type: 'log',
-        min: magnitudeAxis?.x[0],
-        max: magnitudeAxis?.x[1],
+        min: frequencyMin,
+        max: frequencyMax,
         axisLabel: {
           formatter: formatAxisValue,
         },
@@ -251,8 +269,8 @@ export function buildBodePanelOption(result: ControlAnalysisResult, caseId?: str
       },
       {
         type: 'log',
-        min: phaseAxis?.x[0],
-        max: phaseAxis?.x[1],
+        min: frequencyMin,
+        max: frequencyMax,
         gridIndex: 1,
         name: 'ω / rad/s',
         nameLocation: 'middle',

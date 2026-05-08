@@ -54,6 +54,7 @@ export function buildUnit41AnalysisRequest(
     responseType: 'step',
     timeRange: config.timeRange,
     frequencyRange: config.frequencyRange,
+    nyquist: { mode: 'full', samplingMode: 'adaptive' },
     rootLocus: {
       ...config.rootLocus,
       currentGain: input.gain,

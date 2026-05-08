@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 
@@ -60,6 +60,13 @@ function formatFixed(value: number | null | undefined, suffix = ''): string {
   return `${value.toFixed(2)}${suffix}`;
 }
 
+function formatGainMargin(value: number | null | undefined): string {
+  if (value === Number.POSITIVE_INFINITY) {
+    return 'GM ∞';
+  }
+  return `GM ${formatFixed(value, ' dB')}`;
+}
+
 function formatComplex(point: ComplexPoint): string {
   const imagAbs = Math.abs(point.im);
   const imag = `${point.im >= 0 ? '+' : '-'}j${imagAbs.toFixed(2)}`;
@@ -87,7 +94,7 @@ function buildMetricText(metrics: ControlMetrics): ReactNode {
 function buildMarginText(metrics: ControlMetrics): ReactNode {
   return [
     `PM ${formatFixed(metrics.phaseMarginDeg, '°')}`,
-    `GM ${formatFixed(metrics.gainMarginDb, ' dB')}`,
+    formatGainMargin(metrics.gainMarginDb),
     `ωc ${formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')}`,
     `ωg ${formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')}`,
   ].join(' | ');
@@ -204,21 +211,21 @@ function buildFeasibleRegionSeries(
       name: 'σ 边界',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#2563eb', type: 'dotted', width: 1.5 },
+      lineStyle: { color: '#2563eb', width: 1.5 },
       data: [[sigmaBoundary, yMin], [sigmaBoundary, yMax]],
     },
     {
       name: 'ζ 边界',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#2563eb', type: 'dashdot', width: 1.5 },
+      lineStyle: { color: '#2563eb', width: 1.5 },
       data: [[0, 0], [xLimit, yLimit]],
     },
     {
       name: '',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#2563eb', type: 'dashdot', width: 1.5 },
+      lineStyle: { color: '#2563eb', width: 1.5 },
       data: [[0, 0], [xLimit, -yLimit]],
     },
   ];
@@ -249,7 +256,75 @@ function normalizeConjugatePointSet<T extends ComplexPoint>(points: T[]): T[] {
   return [...normalized, ...additions];
 }
 
-function buildRootLocusOption(
+function buildClosedNyquistClosure(
+  positivePoints: ComplexPoint[],
+  negativePoints: ComplexPoint[],
+  explicitClosurePoints: ComplexPoint[],
+): ComplexPoint[] {
+  if (positivePoints.length === 0 || negativePoints.length === 0) {
+    return [];
+  }
+  const positiveStart = positivePoints[0];
+  const positiveEnd = positivePoints[positivePoints.length - 1];
+  const negativeStart = negativePoints[0];
+  const negativeEnd = negativePoints[negativePoints.length - 1];
+  if (!positiveStart || !positiveEnd || !negativeStart || !negativeEnd) {
+    return [];
+  }
+
+  const isSamePoint = (lhs: ComplexPoint, rhs: ComplexPoint) =>
+    Math.abs(lhs.re - rhs.re) < 1e-9 && Math.abs(lhs.im - rhs.im) < 1e-9;
+
+  if (!isSamePoint(positiveStart, negativeEnd)) {
+    return [positiveStart, negativeEnd];
+  }
+
+  if (explicitClosurePoints.length > 1) {
+    const first = explicitClosurePoints[0];
+    const last = explicitClosurePoints[explicitClosurePoints.length - 1];
+    if (first && last && !isSamePoint(first, last)) {
+      return explicitClosurePoints;
+    }
+  }
+
+  return isSamePoint(positiveEnd, negativeStart) ? [] : [positiveEnd, negativeStart];
+}
+
+function findClosestRootLocusPoint(
+  branches: RootLocusSamplePoint[][],
+  target: ComplexPoint,
+): RootLocusSamplePoint | null {
+  let closest: RootLocusSamplePoint | null = null;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (const branch of branches) {
+    for (const point of branch) {
+      const distance = Math.hypot(point.re - target.re, point.im - target.im);
+      if (distance < closestDistance) {
+        closest = point;
+        closestDistance = distance;
+      }
+    }
+  }
+  return closest;
+}
+
+function findRootLocusSnapshot(branches: RootLocusSamplePoint[][], gain: number): ComplexPoint[] {
+  return branches
+    .map((branch) => {
+      if (branch.length === 0) {
+        return null;
+      }
+      return branch.reduce((best, point) => {
+        const bestDistance = Math.abs((best.gain ?? 0) - gain);
+        const pointDistance = Math.abs((point.gain ?? 0) - gain);
+        return pointDistance < bestDistance ? point : best;
+      }, branch[0]);
+    })
+    .filter((point): point is RootLocusSamplePoint => Boolean(point))
+    .map((point) => ({ re: point.re, im: point.im }));
+}
+
+export function buildRootLocusOption(
   rootLocus: RootLocusData,
   caseId?: string,
   mode: RootLocusMode = 'default',
@@ -262,8 +337,38 @@ function buildRootLocusOption(
   const currentPoles = normalizeConjugatePointSet(rootLocus.currentPoles);
   const openLoopPoles = normalizeConjugatePointSet(rootLocus.openLoopPoles);
   const openLoopZeros = normalizeConjugatePointSet(rootLocus.openLoopZeros);
+  const xMin = axisPreset?.x[0] ?? -8;
+  const xMax = axisPreset?.x[1] ?? 2;
+  const yMin = axisPreset?.y[0] ?? -6;
+  const yMax = axisPreset?.y[1] ?? 6;
+  const xSpan = Math.max(1, xMax - xMin);
+  const ySpan = Math.max(1, yMax - yMin);
+  const asymptoteLength = Math.max(xSpan, ySpan) * 1.3;
   const series: ChartSeriesArray = [
+    {
+      name: '实轴',
+      type: 'line',
+      silent: true,
+      showSymbol: false,
+      lineStyle: { color: 'rgba(148, 163, 184, 0.42)', width: 1 },
+      data: [[xMin, 0], [xMax, 0]],
+    },
+    {
+      name: '虚轴',
+      type: 'line',
+      silent: true,
+      showSymbol: false,
+      lineStyle: { color: 'rgba(148, 163, 184, 0.42)', width: 1 },
+      data: [[0, yMin], [0, yMax]],
+    },
     ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
+    ...(rootLocus.realAxisSegments ?? []).map((segment) => ({
+      name: '实轴根轨迹段',
+      type: 'line',
+      showSymbol: false,
+      lineStyle: { color: '#0f766e', width: 2.4 },
+      data: [[segment.start ?? xMin, 0], [segment.end ?? xMax, 0]],
+    } satisfies ChartSeriesItem)),
     ...locusBranches.map((branch, index) => ({
       name: index === 0 ? '根轨迹' : '',
       type: 'line',
@@ -271,17 +376,46 @@ function buildRootLocusOption(
       lineStyle: { color: '#4c78a8', width: 1.7 },
       data: branch.map((point) => [point.re, point.im, point.gain ?? null]),
     })),
-    {
-      name: '当前闭环极点',
-      type: 'scatter',
-      ...getInteractiveSvgEChartsPointMarker('dot-filled', {
-        size: 9,
-        color: '#1f4e79',
-        strokeColor: '#ffffff',
-        strokeWidth: 1.2,
-      }),
-      data: currentPoles.map((pole) => [pole.re, pole.im]),
-    },
+    ...(rootLocus.asymptotes ?? []).map((asymptote, index) => {
+      const rad = (asymptote.angleDeg * Math.PI) / 180;
+      const dx = Math.cos(rad) * asymptoteLength;
+      const dy = Math.sin(rad) * asymptoteLength;
+      return {
+        name: index === 0 ? '根轨迹渐近线' : '',
+        type: 'line',
+        silent: true,
+        showSymbol: false,
+        lineStyle: { color: 'rgba(15, 118, 110, 0.5)', width: 1.4 },
+        data: [
+          [asymptote.centroid - dx, -dy],
+          [asymptote.centroid + dx, dy],
+        ],
+      } satisfies ChartSeriesItem;
+    }),
+    ...((rootLocus.stationaryPoints?.length ?? 0) > 0
+      ? [{
+          name: '分离/会合点',
+          type: 'scatter',
+          ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+            size: 9,
+            color: '#14b8a6',
+          }),
+          data: rootLocus.stationaryPoints?.map((point) => [point.re, point.im, point.gain ?? null]) ?? [],
+        } satisfies ChartSeriesItem]
+      : []),
+    ...((rootLocus.imaginaryAxisCrossings?.length ?? 0) > 0
+      ? [{
+          name: '虚轴交点',
+          type: 'scatter',
+          ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+            size: 8,
+            color: '#f97316',
+            strokeColor: '#ffffff',
+            strokeWidth: 1,
+          }),
+          data: rootLocus.imaginaryAxisCrossings?.map((point) => [point.re, point.im, point.gain ?? null]) ?? [],
+        } satisfies ChartSeriesItem]
+      : []),
     {
       name: '开环极点',
       type: 'scatter',
@@ -302,13 +436,35 @@ function buildRootLocusOption(
       }),
       data: openLoopZeros.map((zero) => [zero.re, zero.im]),
     },
+    {
+      id: 'currentClosedLoopPoles',
+      name: '当前闭环极点',
+      type: 'scatter',
+      ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+        size: 15,
+        color: '#f97316',
+        strokeColor: '#ffffff',
+        strokeWidth: 2,
+      }),
+      z: 10,
+      data: currentPoles.map((pole) => [pole.re, pole.im]),
+    },
   ];
+  const legendData = Array.from(new Set(
+    series
+      .map((item) => (item as { name?: string }).name)
+      .filter((name): name is string =>
+        typeof name === 'string'
+        && name.length > 0
+        && !['实轴', '虚轴', '可行域参考', 'σ 边界', 'ζ 边界'].includes(name)
+      ),
+  ));
 
   return {
     animation: false,
     legend: {
       show: true,
-      data: ['根轨迹', '当前闭环极点', '开环极点', '开环零点'],
+      data: legendData,
       top: 0,
       right: 8,
       textStyle: { fontSize: 10 },
@@ -344,12 +500,29 @@ function buildRootLocusOption(
       },
       splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
     },
+    dataZoom: [
+      { type: 'inside', xAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: true, moveOnMouseMove: true },
+      { type: 'inside', yAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: true, moveOnMouseMove: true },
+    ],
     series,
   };
 }
 
-function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
+export function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
   const axisPreset = getControlAxisPreset(caseId, 'nyquist');
+  const positivePoints = result.nyquist.positivePoints ?? result.nyquist.points;
+  const negativePoints = result.nyquist.negativePoints ?? [];
+  const closurePoints = buildClosedNyquistClosure(
+    positivePoints,
+    negativePoints,
+    result.nyquist.infinityClosure?.points ?? [],
+  );
+  const keyPoints = result.nyquist.keyPoints ?? [];
+  const xMin = axisPreset?.x[0] ?? -2;
+  const xMax = axisPreset?.x[1] ?? 2;
+  const yMin = axisPreset?.y[0] ?? -2;
+  const yMax = axisPreset?.y[1] ?? 2;
+  const span = Math.max(1, xMax - xMin, yMax - yMin);
   return {
     animation: false,
     grid: { top: 18, right: 18, bottom: 42, left: 58 },
@@ -383,12 +556,80 @@ function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): ECh
     },
     series: [
       {
-        name: 'Nyquist 轨迹',
+        name: '实轴',
+        type: 'line',
+        silent: true,
+        showSymbol: false,
+        lineStyle: { color: 'rgba(148, 163, 184, 0.42)', width: 1 },
+        data: [[xMin, 0], [xMax, 0]],
+      },
+      {
+        name: '虚轴',
+        type: 'line',
+        silent: true,
+        showSymbol: false,
+        lineStyle: { color: 'rgba(148, 163, 184, 0.42)', width: 1 },
+        data: [[0, yMin], [0, yMax]],
+      },
+      {
+        name: 'Nyquist 正频率支',
         type: 'line',
         showSymbol: false,
         lineStyle: { color: '#22d3ee', width: 2.5 },
-        data: result.nyquist.points.map((point) => [point.re, point.im]),
+        data: positivePoints.map((point) => [point.re, point.im]),
       },
+      ...(negativePoints.length > 0
+        ? [
+            {
+              name: 'Nyquist 负频率支',
+              type: 'line',
+              showSymbol: false,
+              lineStyle: { color: '#22d3ee', width: 2.5 },
+              data: negativePoints.map((point) => [point.re, point.im]),
+            } as ChartSeriesItem,
+          ]
+        : []),
+      ...(closurePoints.length > 1
+        ? [
+            {
+              name: '无穷远闭合段',
+              type: 'line',
+              showSymbol: false,
+              lineStyle: { color: '#22d3ee', width: 1.6, opacity: 0.72 },
+              data: closurePoints.map((point) => [point.re, point.im]),
+            } as ChartSeriesItem,
+          ]
+        : []),
+      ...(keyPoints.length > 0
+        ? [
+            {
+              name: 'Nyquist 关键点',
+              type: 'scatter',
+              ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+                size: 7,
+                color: '#f59e0b',
+                strokeColor: '#ffffff',
+                strokeWidth: 1,
+              }),
+              data: keyPoints.map((point) => [point.point.re, point.point.im, point.frequency]),
+            } as ChartSeriesItem,
+          ]
+        : []),
+      ...(result.nyquist.asymptotes ?? []).map((asymptote, index) => {
+        const rad = ((asymptote.angleDeg ?? (asymptote.end === 'low_frequency' ? 180 : 0)) * Math.PI) / 180;
+        const origin = asymptote.point ?? { re: 0, im: 0 };
+        return {
+          name: index === 0 ? 'Nyquist 渐近方向' : '',
+          type: 'line',
+          silent: true,
+          showSymbol: false,
+          lineStyle: { color: 'rgba(249, 115, 22, 0.55)', type: 'dashed', width: 1.4 },
+          data: [
+            [origin.re, origin.im],
+            [origin.re + Math.cos(rad) * span, origin.im + Math.sin(rad) * span],
+          ],
+        } as ChartSeriesItem;
+      }),
       {
         name: '-1+j0',
         type: 'scatter',
@@ -396,6 +637,7 @@ function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): ECh
           size: 10,
           color: '#ef4444',
         }),
+        label: { show: true, formatter: '-1+j0', position: 'top' },
         data: [[-1, 0]],
       },
     ],
@@ -511,6 +753,10 @@ export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisR
   );
 }
 
+export function TimeDomainPanel(props: { result: ControlAnalysisResult; caseId?: string }) {
+  return <StepResponsePanel {...props} />;
+}
+
 export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
   const option = buildLineOption(result.magnitude.points, '#a78bfa', 'ω / rad/s', '幅值 / dB', {
     xAxisType: 'log',
@@ -566,6 +812,7 @@ export function RootLocusPanel({
   onHandlePointerDown,
   interactiveLayerRef,
   onChartReady,
+  onClosedLoopGainCommit,
   className,
   chartClassName,
   axisPresetOverride,
@@ -578,6 +825,7 @@ export function RootLocusPanel({
   onHandlePointerDown?: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
   interactiveLayerRef?: Ref<HTMLDivElement>;
   onChartReady?: (chart: ECharts, container: HTMLDivElement) => void;
+  onClosedLoopGainCommit?: (gain: number) => void;
   className?: string;
   chartClassName?: string;
   axisPresetOverride?: AxisPreset;
@@ -591,6 +839,93 @@ export function RootLocusPanel({
     setOverlayVersion((version) => version + 1);
     onChartReady?.(chart, container);
   }, [onChartReady]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart || !onClosedLoopGainCommit) {
+      return undefined;
+    }
+
+    const branches = (mode === 'full' && result.rootLocus.fullBranches
+      ? result.rootLocus.fullBranches
+      : result.rootLocus.branches).map((branch) => branch.map(snapRootPoint));
+    let dragging = false;
+    let nextGain: number | null = null;
+
+    const previewGain = (gain: number) => {
+      const snapshot = findRootLocusSnapshot(branches, gain);
+      if (snapshot.length === 0) {
+        return;
+      }
+      chart.setOption({
+        series: [{
+          id: 'currentClosedLoopPoles',
+          data: snapshot.map((pole) => [pole.re, pole.im]),
+        }],
+      }, { notMerge: false, lazyUpdate: true });
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!dragging) {
+        return;
+      }
+      event.preventDefault();
+      const dom = chart.getDom();
+      const rect = dom.getBoundingClientRect();
+      const value = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+      ]);
+      if (!Array.isArray(value) || value.length < 2) {
+        return;
+      }
+      const target = { re: Number(value[0]), im: Number(value[1]) };
+      if (!Number.isFinite(target.re) || !Number.isFinite(target.im)) {
+        return;
+      }
+      const closest = findClosestRootLocusPoint(branches, target);
+      if (!closest || closest.gain == null || !Number.isFinite(closest.gain)) {
+        return;
+      }
+      nextGain = closest.gain;
+      previewGain(nextGain);
+    };
+
+    const handlePointerUp = () => {
+      if (!dragging) {
+        return;
+      }
+      dragging = false;
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      if (nextGain != null) {
+        onClosedLoopGainCommit(nextGain);
+      }
+    };
+
+    const handleChartMouseDown = (params: { seriesName?: string; event?: { event?: MouseEvent } }) => {
+      if (params.seriesName !== '当前闭环极点') {
+        return;
+      }
+      const sourceEvent = params.event?.event;
+      sourceEvent?.preventDefault();
+      sourceEvent?.stopPropagation();
+      dragging = true;
+      nextGain = null;
+      document.body.style.userSelect = 'none';
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp, { once: true });
+    };
+
+    chart.on('mousedown', handleChartMouseDown as never);
+    return () => {
+      chart.off('mousedown', handleChartMouseDown as never);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      document.body.style.userSelect = '';
+    };
+  }, [mode, onClosedLoopGainCommit, overlayVersion, result.rootLocus]);
 
   const interactiveOverlay = interactiveHandles && interactiveHandles.length > 0 ? (
     <div
@@ -628,14 +963,50 @@ export function RootLocusPanel({
   );
 }
 
-export function BodePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
+export function BodePanel({
+  result,
+  caseId,
+  showMargins = true,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  showMargins?: boolean;
+}) {
   return (
     <ControlChartPanel
       title="组合 Bode 图"
       meta={buildMarginText(result.metrics)}
-      option={buildBodePanelOption(result, caseId)}
+      option={buildBodePanelOption(result, caseId, showMargins)}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
     />
+  );
+}
+
+export function ControlPerformanceBar({ result }: { result: ControlAnalysisResult }) {
+  const metrics = result.metrics;
+  const items = [
+    ['Mp', formatFixed(metrics.overshootPct, '%')],
+    ['tr', formatFixed(metrics.riseTimeSec, ' s')],
+    ['ts', formatFixed(metrics.settlingTimeSec, ' s')],
+    ['ess', formatFixed(Math.abs(1 - metrics.finalValue))],
+    ['PM', formatFixed(metrics.phaseMarginDeg, '°')],
+    ['GM', metrics.gainMarginDb === Number.POSITIVE_INFINITY ? '∞' : formatFixed(metrics.gainMarginDb, ' dB')],
+    ['ωc', formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')],
+    ['ωg', formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')],
+    ['闭环稳定性', result.rootLocus.currentPoles.every((pole) => pole.re < 0) ? '稳定' : '不稳定'],
+  ];
+
+  return (
+    <div className="premium-lesson-tone-block premium-tone-cyan grid gap-3 sm:grid-cols-3 xl:grid-cols-9">
+      {items.map(([label, value]) => (
+        <div key={label} className="min-w-0" data-testid={`metric-${label}`}>
+          <div className="premium-lesson-caption text-[11px]">{label}</div>
+          <div className="premium-lesson-title mt-1 truncate text-sm font-semibold" title={value}>
+            {value}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

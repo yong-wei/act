@@ -26,6 +26,7 @@ describe('control analysis core foundation', () => {
     expect(request).toHaveProperty('referenceProfile');
     expect(request).toHaveProperty('disturbanceProfile');
     expect(request).toHaveProperty('responseType');
+    expect(request).toHaveProperty('nyquist');
   });
 
   it('declares a chart panel shell with overlay slot and fixture fallback support', () => {
@@ -87,6 +88,13 @@ describe('control analysis core foundation', () => {
     expect(typeSource).toContain("samplingMode?: 'adaptive' | 'fixed';");
     expect(typeSource).toContain('increment?: number;');
     expect(typeSource).toContain("responseType?: 'step' | 'impulse' | 'ramp';");
+    expect(typeSource).toContain('export interface NyquistConfig');
+    expect(typeSource).toContain("mode?: 'full' | 'half';");
+    expect(typeSource).toContain('positivePoints?: ComplexPoint[];');
+    expect(typeSource).toContain('negativePoints?: ComplexPoint[];');
+    expect(typeSource).toContain('infinityClosure?: NyquistClosureSegment;');
+    expect(typeSource).toContain('keyPoints?: NyquistKeyPoint[];');
+    expect(typeSource).toContain('encirclements?: number;');
     expect(typeSource).toContain('branches: RootLocusSamplePoint[][];');
     expect(typeSource).toContain('fullBranches?: RootLocusSamplePoint[][];');
     expect(typeSource).toContain('gains?: number[];');
@@ -94,6 +102,8 @@ describe('control analysis core foundation', () => {
     expect(typeSource).toContain('realAxisSegments?: RealAxisSegment[];');
     expect(typeSource).toContain('asymptotes?: RootLocusAsymptote[];');
     expect(panelSource).toContain('point.gain');
+    expect(panelSource).toContain('无穷远闭合段');
+    expect(panelSource).toContain("type: 'dashed'");
     expect(panelSource).toContain('Gain K');
     expect(panelSource).not.toContain('normalizeConjugateBranches');
   });

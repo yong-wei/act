@@ -42,6 +42,7 @@ function makeAnalysisResult(overrides: Partial<ControlAnalysisResult> = {}): Con
       ],
     },
     nyquist: {
+      mode: 'full',
       points: [
         { re: -0.2, im: 0.4 },
         { re: -0.9, im: 0.15 },
@@ -49,6 +50,28 @@ function makeAnalysisResult(overrides: Partial<ControlAnalysisResult> = {}): Con
         { re: -0.9, im: -0.15 },
         { re: -0.2, im: -0.4 },
       ],
+      positivePoints: [
+        { re: -0.2, im: 0.4 },
+        { re: -0.9, im: 0.15 },
+        { re: -1.4, im: -0.05 },
+      ],
+      negativePoints: [
+        { re: -1.4, im: 0.05 },
+        { re: -0.9, im: -0.15 },
+        { re: -0.2, im: -0.4 },
+      ],
+      infinityClosure: {
+        points: [
+          { re: -1.4, im: -0.05 },
+          { re: -1.4, im: 0.05 },
+        ],
+        lineStyle: 'dashed',
+      },
+      keyPoints: [
+        { kind: 'unit_circle_crossing', point: { re: -0.95, im: 0.1 }, frequency: 2.1 },
+      ],
+      asymptotes: [{ end: 'high_frequency', kind: 'zero', angleDeg: -90 }],
+      encirclements: 0,
     },
     rootLocus: {
       branches: [
@@ -94,6 +117,7 @@ describe('multi representation linkage analysis adapter', () => {
     expect(request.structures).toEqual([
       { kind: 'gain', enabled: true, params: { k: 0 }, label: 'K' },
     ]);
+    expect(request.nyquist).toEqual({ mode: 'full', samplingMode: 'adaptive' });
     expect(request.rootLocus.currentGain).toBe(0);
   });
 
@@ -123,6 +147,8 @@ describe('multi representation linkage analysis adapter', () => {
     });
     expect(adapted.frequencyDomain.marginPoints.gainCrossover?.frequency).toBe(2);
     expect(adapted.frequencyDomain.marginPoints.phaseCrossover?.frequency).toBe(4);
+    expect(adapted.frequencyDomain.nyquistKeyPoints[0].kind).toBe('unit_circle_crossing');
+    expect(adapted.frequencyDomain.nyquistEncirclements).toBe(0);
     expect(adapted.stability.isStable).toBe(true);
     expect(adapted.stability.rootLocus.branches[0][1].gain).toBe(2);
     expect(adapted.stability.hints.length).toBeGreaterThan(0);

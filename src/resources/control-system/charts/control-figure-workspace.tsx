@@ -4,11 +4,13 @@ import { useControlEngine } from '../analysis/use-control-engine';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '../analysis/types';
 import {
   BodePanel,
+  ControlPerformanceBar,
   MagnitudePanel,
   NyquistPanel,
   PhasePanel,
   RootLocusPanel,
   StepResponsePanel,
+  TimeDomainPanel,
 } from './control-analysis-panels';
 
 export function ControlFigureWorkspace({
@@ -18,7 +20,7 @@ export function ControlFigureWorkspace({
 }: {
   request: ControlAnalysisRequest;
   fallbackResult?: ControlAnalysisResult;
-  layout: 'quad' | 'platform';
+  layout: 'quad' | 'platform' | 'standard-quad';
 }) {
   const { result, error } = useControlEngine(request, fallbackResult);
 
@@ -38,7 +40,17 @@ export function ControlFigureWorkspace({
         </div>
       ) : null}
 
-      {layout === 'quad' ? (
+      {layout === 'standard-quad' ? (
+        <div className="grid gap-4">
+          <ControlPerformanceBar result={result} />
+          <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
+            <TimeDomainPanel result={result} caseId={request.caseId} />
+            <BodePanel result={result} caseId={request.caseId} />
+            <RootLocusPanel result={result} caseId={request.caseId} mode="full" />
+            <NyquistPanel result={result} caseId={request.caseId} />
+          </div>
+        </div>
+      ) : layout === 'quad' ? (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)]">
           <div className="grid gap-4">
             <StepResponsePanel result={result} caseId={request.caseId} />
@@ -63,9 +75,11 @@ export function ControlFigureWorkspace({
 
 export const CONTROL_ANALYSIS_PANELS = {
   StepResponsePanel,
+  TimeDomainPanel,
   RootLocusPanel,
   MagnitudePanel,
   PhasePanel,
   NyquistPanel,
   BodePanel,
+  ControlPerformanceBar,
 };

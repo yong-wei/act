@@ -67,6 +67,7 @@ export function ControlChartPanel({
         components.TooltipComponent,
         components.LegendComponent,
         components.MarkLineComponent,
+        components.DataZoomComponent,
         charts.LineChart,
         charts.ScatterChart,
         charts.CustomChart,

@@ -25,6 +25,8 @@ export interface LinkageNyquistSample extends ComplexPoint {
 export interface LinkageFrequencyDomainResponse {
   samples: Array<{ frequency: number; magnitudeDb: number; phaseDeg: number }>;
   nyquistSamples: LinkageNyquistSample[];
+  nyquistKeyPoints: NonNullable<ControlAnalysisResult['nyquist']['keyPoints']>;
+  nyquistEncirclements: number;
   stabilityMargins: {
     gainMargin: { value: number; frequency: number; isInfinite?: boolean };
     phaseMargin: { value: number; frequency: number };
@@ -234,6 +236,10 @@ export function buildLinkageAnalysisRequest(
     responseType: input.responseType,
     timeRange: DEFAULT_TIME_RANGE,
     frequencyRange: DEFAULT_FREQUENCY_RANGE,
+    nyquist: {
+      mode: 'full',
+      samplingMode: 'adaptive',
+    },
     rootLocus: {
       minGain: 0,
       maxGain,
@@ -250,15 +256,16 @@ export function buildLinkageAnalysisRequest(
 
 export function adaptLinkageAnalysisResult(result: ControlAnalysisResult): LinkageAnalysisViewModel {
   const frequencySamples = mergeBodeSamples(result.magnitude.points, result.phase.points);
+  const positiveNyquistPoints = result.nyquist.positivePoints ?? result.nyquist.points;
   const positiveNyquistCount = Math.min(
-    Math.max(Math.ceil((result.nyquist.points.length + 1) / 2), 0),
+    positiveNyquistPoints.length,
     frequencySamples.length,
   );
   const nyquistSamples: LinkageNyquistSample[] = frequencySamples
     .slice(0, positiveNyquistCount)
     .map((sample, index) => ({
-      re: result.nyquist.points[index]?.re ?? 0,
-      im: result.nyquist.points[index]?.im ?? 0,
+      re: positiveNyquistPoints[index]?.re ?? 0,
+      im: positiveNyquistPoints[index]?.im ?? 0,
       frequency: sample.frequency,
       magnitudeDb: sample.magnitudeDb,
       phaseDeg: sample.phaseDeg,
@@ -298,6 +305,8 @@ export function adaptLinkageAnalysisResult(result: ControlAnalysisResult): Linka
     frequencyDomain: {
       samples: frequencySamples,
       nyquistSamples,
+      nyquistKeyPoints: result.nyquist.keyPoints ?? [],
+      nyquistEncirclements: result.nyquist.encirclements ?? 0,
       stabilityMargins,
       marginPoints: {
         gainCrossover: findClosestNyquistSample(nyquistSamples, result.metrics.gainCrossoverRadPerSec),
