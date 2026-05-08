@@ -27,6 +27,10 @@ function pageTypeFromManifest(stepId: string, interactionKind: string) {
   return interactionKind;
 }
 
+function normalizeLatexSource(value: string | undefined) {
+  return (value ?? '').replace(/\\\\/g, '\\');
+}
+
 describe('unit 5-6 interactive course', () => {
   it('defines the 18-step lesson flow from the runtime manifest', async () => {
     const manifest = readManifest();
@@ -80,6 +84,55 @@ describe('unit 5-6 interactive course', () => {
     expect(stepPanelsSource).not.toContain('switch (step.id)');
     expect(teacherPageSource).toContain('currentItemId: nextStep.id');
     expect(teacherPageSource).toContain('currentStage: UNIT_5_6_STAGE_MAP[nextStep.stage]');
+    expect(teacherPageSource).toContain('onInlineReveal={advanceReveal}');
+  });
+
+  it('keeps the pretest page limited to prerequisite skills without a separate range module', () => {
+    const manifest = readManifest();
+    const step03 = manifest.steps.find((step) => step.id === 'step-03');
+
+    expect(step03?.modules.map((module) => module.id)).toEqual(['pretest-quiz']);
+    expect(step03?.modules.some((module) => module.kind === 'summary-card')).toBe(false);
+    expect(step03?.contentBlocks.intro).toBeUndefined();
+    expect(step03?.aiContextSpec.pageGoal).toContain('快慢状态判断');
+    expect(step03?.aiContextSpec.pageGoal).toContain('执行限幅理解');
+    expect(step03?.aiContextSpec.pageGoal).toContain('多指标读表能力');
+    expect(step03?.aiContextSpec.pageGoal).not.toContain('不提前');
+    expect(JSON.stringify(step03)).not.toContain('三路线');
+    expect(JSON.stringify(step03)).not.toContain('策略监督层结论');
+  });
+
+  it('uses upright math operators and explicit metric symbols in the 5-6 manifest formulas', () => {
+    const manifest = readManifest();
+    const step06 = manifest.steps.find((step) => step.id === 'step-06');
+    const step07 = manifest.steps.find((step) => step.id === 'step-07');
+    const step09 = manifest.steps.find((step) => step.id === 'step-09');
+    const step06FormulaBlock = step06?.contentBlocks.formula_block as { formulas?: string[] } | undefined;
+    const step06RevealLayers = step06?.contentBlocks.reveal_layers as Array<{ body?: string }> | undefined;
+    const step06ParamTable = step06?.contentBlocks.param_table as { rows?: unknown[][] } | undefined;
+    const step07FormulaBlock = step07?.contentBlocks.formula_block as { formulas?: string[] } | undefined;
+    const step09FormulaBlock = step09?.contentBlocks.formula_block as { formulas?: string[]; symbols?: Array<{ symbol: string; meaning: string }> } | undefined;
+
+    expect(normalizeLatexSource(step06FormulaBlock?.formulas?.join('\n'))).toContain('\\mathrm{clip}');
+    expect(normalizeLatexSource(step06RevealLayers?.[0]?.body)).toContain('\\mathrm{clip}');
+    expect(normalizeLatexSource(step06RevealLayers?.[0]?.body)).toContain('I_{\\mathrm{min}}');
+    expect(normalizeLatexSource(step06RevealLayers?.[0]?.body)).toContain('I_{\\mathrm{max}}');
+    expect(normalizeLatexSource(String(step06ParamTable?.rows?.[3]?.[0]))).toBe('$I_{\\mathrm{min}},I_{\\mathrm{max}}$');
+    expect(normalizeLatexSource(step07FormulaBlock?.formulas?.join('\n'))).toContain('\\mathrm{clip}');
+    expect(normalizeLatexSource(step07FormulaBlock?.formulas?.join('\n'))).toContain('\\mathrm{max}');
+    expect(normalizeLatexSource(step09FormulaBlock?.formulas?.join('\n'))).toContain('t_{\\mathrm{rec}}=');
+    const step09Symbols = step09FormulaBlock?.symbols?.map((item) => ({
+      symbol: normalizeLatexSource(item.symbol),
+      meaning: item.meaning,
+    }));
+    expect(step09Symbols).toContainEqual({
+      symbol: 'E',
+      meaning: '归一化能耗，按 48 小时内压缩机占空比累加并换算为小时量。',
+    });
+    expect(step09Symbols).toContainEqual({
+      symbol: 't_{\\mathrm{rec}}',
+      meaning: '主要热负荷结束后，空气温度与货品核心温度同时回到恢复阈值以下所需时间。',
+    });
   });
 
   it('keeps step-11 as a runtime-data SVG route comparison panel with required submit fields', async () => {
@@ -164,5 +217,25 @@ describe('unit 5-6 interactive course', () => {
     expect(featureSource).toContain('班级课堂表现');
     expect(featureSource).toContain('路线观察提交');
     expect(featureSource).toContain('后测完成率');
+  });
+
+  it('renders the post-test title-card body from its manifest block key', async () => {
+    const manifest = readManifest();
+    const { UNIT_5_6_LESSON_STEPS } = await import('@/lib/unit-5-6-course');
+    const { UNIT_5_6StepContentPanel } = await import('@/features/interactive/unit-5-6-method-comparison-cold-chain/step-panels');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_5_6StepContentPanel, {
+        step: UNIT_5_6_LESSON_STEPS[16],
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+        mode: 'student',
+      }),
+    );
+
+    expect(html).toContain('后测任务');
+    expect(html).toContain('本页检查同题比较、路线推荐和证据责任判断。');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 });

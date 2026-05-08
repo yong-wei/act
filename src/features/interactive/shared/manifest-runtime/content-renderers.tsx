@@ -582,7 +582,7 @@ function listFromRecordItems(value: unknown) {
 function stringFromKnownBlocks(step: InteractiveRuntimeStepManifest, keys: string[]) {
   for (const key of keys) {
     const block = asRecord(blockByKey(step, key));
-    const value = block.text ?? block.lead ?? block.note ?? block.task ?? block.explanation;
+    const value = block.text ?? block.lead ?? block.note ?? block.task ?? block.explanation ?? block.body;
     if (typeof value === 'string' && value.trim()) return value;
   }
   return undefined;

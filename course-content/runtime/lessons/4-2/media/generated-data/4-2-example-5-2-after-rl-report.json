@@ -1,0 +1,46 @@
+{
+  "sample_count": 192,
+  "gain_min": 0.0,
+  "gain_max": 191.0,
+  "branch_count": 3,
+  "expected_branch_count": 3,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 2,
+        "zero_re": -0.975609756098,
+        "zero_im": 0.0,
+        "endpoint_re": -0.97890976126,
+        "endpoint_im": 0.0,
+        "distance": 0.0033000051619999082
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.10899746542699865,
+      "sign_switches": 0,
+      "endpoint_re": -2.02603310539,
+      "endpoint_im": -6.21203327632
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.11216845730000014,
+      "sign_switches": 0,
+      "endpoint_re": -2.02603310539,
+      "endpoint_im": 6.21203327632
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.11236192703199999,
+      "sign_switches": 0,
+      "endpoint_re": -0.97890976126,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": []
+}

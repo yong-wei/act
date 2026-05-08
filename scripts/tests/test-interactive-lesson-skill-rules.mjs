@@ -13,6 +13,7 @@ function exists(relativePath) {
 }
 
 const skillPath = '.codex/skills/interactive-lesson-implementation/SKILL.md';
+const designSkillPath = '.codex/skills/interactive-design/SKILL.md';
 const teacherSpecPath =
   '.codex/skills/interactive-lesson-implementation/references/browser-validation-teacher-subagent.md';
 const studentSpecPath =
@@ -23,6 +24,7 @@ const mediaIndexContractPath =
   '.codex/skills/interactive-lesson-implementation/references/runtime-media-index-contract.md';
 
 const skill = read(skillPath);
+const designSkill = read(designSkillPath);
 
 assert.equal(
   skill.includes('课程实现后，必须在互动课程总入口页注册精品课程入口'),
@@ -104,6 +106,21 @@ assert.equal(
     mediaIndexContract.includes('页面真值必须是 runtime `media/<lesson>-media.md`'),
   true,
   'runtime 媒体索引契约参考文件应明确文档格式、标题解析和 runtime-first 真值规则',
+);
+
+assert.equal(
+  designSkill.includes('前测不得考察本单元知识') &&
+    designSkill.includes('只考察进入本单元学习所需的基础能力'),
+  true,
+  'interactive-design 技能应明确前测只考察基础能力，禁止考察本单元知识',
+);
+
+assert.equal(
+  skill.includes('前测页面不设置单独的前测内容模块或范围模块') &&
+    skill.includes('标题模块文案中注明考察内容') &&
+    skill.includes('标题模块后直接进入教师控制、作答题组或其他真实互动模块'),
+  true,
+  'interactive-lesson-implementation 技能应明确前测页不设置单独范围模块',
 );
 
 console.log('interactive lesson skill rules test passed');

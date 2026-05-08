@@ -2,7 +2,7 @@
   "acceptance_version": 1,
   "lesson_id": "5-6",
   "status": "accepted",
-  "accepted_at": "2026-05-07T14:32:40+08:00",
+  "accepted_at": "2026-05-08T13:09:24+08:00",
   "review_mode": "implementation+targeted-tests+browser-acceptance",
   "implementation_contract_source": "src/lib/unit-5-6-course.ts",
   "reviewed_runtime_artifacts": [
@@ -58,6 +58,26 @@
         "Student payload includes route, recovery_time, benefit_judgment, and boundary_judgment.",
         "Teacher summary aggregates structured cold_chain_route_observation payloads."
       ]
+    },
+    "requested_remediation_2026_05_08": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-06",
+        "step-07",
+        "step-09",
+        "step-17"
+      ],
+      "evidence": [
+        "step-03 removes the separate pretest range module and keeps prerequisite scope in the title description.",
+        "step-04 title description now states the cold-chain object, disturbances, dual-temperature risk, fixed comparison conditions, and three candidate routes.",
+        "step-06 and step-07 formulas use upright function names and upright min/max subscripts where applicable.",
+        "Teacher inline reveal now calls the same teacherRevealProgress advance handler used by the teacher control panel.",
+        "step-09 defines E and t_rec in both formula and symbol explanations.",
+        "Shared title-card rendering reads body fields, so step-17 posttest-title no longer returns empty content.",
+        "export_runtime.py copies processed CSV/JSON/TXT data into runtime media/generated-data so step-11 remains runtime-only after export."
+      ]
     }
   },
   "browser_acceptance": {
@@ -93,6 +113,17 @@
       "evidence": [
         "Student step-11 and teacher demo step-11 reported no page exceptions through agent-browser errors.",
         "Console output after the final checks contained only the React DevTools development hint."
+      ]
+    },
+    "remediation_2026_05_08": {
+      "status": "pass",
+      "evidence": [
+        "Student step-03 shows only the title description and the pretest quiz group.",
+        "Student step-04 title description includes the expanded cold-chain problem statement.",
+        "Student step-06 and step-07 KaTeX annotations include upright clip/max and upright min/max subscripts.",
+        "Student step-09 shows E and t_rec formulas plus symbol explanations.",
+        "Student step-17 shows the post-test title card body without renderer-missing diagnostics.",
+        "Teacher step-06 inline reveal, advance reveal, and reset reveal share the same visible reveal progress."
       ]
     }
   },

@@ -2,7 +2,7 @@
   "status": "pass",
   "summary": {
     "steps": 18,
-    "modules": 55,
+    "modules": 54,
     "issues": 0
   },
   "implementation_sources": {
@@ -205,16 +205,6 @@
       "kind": "goal-card-row",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.goals",
-      "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-03",
-      "module_id": "pretest-intro",
-      "kind": "summary-card",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.intro",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null

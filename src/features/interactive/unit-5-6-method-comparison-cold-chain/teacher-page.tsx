@@ -375,6 +375,7 @@ function UNIT_5_6LiveTeacherPage({
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal={true}
+          onInlineReveal={advanceReveal}
           mode="teacher"
           totalStudents={joinedStudents.length}
           submittedStudents={submittedStudents}
@@ -499,6 +500,7 @@ function UNIT_5_6TeacherDemoPage({ lessonRuntime }: { lessonRuntime: RuntimeLess
           manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={true}
+          onInlineReveal={advanceReveal}
           mode="teacher"
           totalStudents={0}
           submittedStudents={0}

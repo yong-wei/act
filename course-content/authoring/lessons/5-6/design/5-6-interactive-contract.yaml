@@ -63,13 +63,11 @@ steps:
 
   step-03:
     title: '前置基础快测'
-    layout: { template: 'quiz_group_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    layout: { template: 'quiz_group_board', regions: [{ id: 'quiz', width: 'full', order: 1 }] }
     modules:
-      - { id: 'pretest-intro', title: '前测基础范围', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
       - { id: 'pretest-quiz', title: '快慢状态、执行限幅与指标表读法', region: 'quiz', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['pre-slow-state', 'pre-actuator-limit', 'pre-metric-reading'] } }
-    content_blocks:
-      intro: { type: 'plain_text', body: '本页只检查进入本课所需的快慢状态、执行限幅和指标表读法基础，不提前考察三路线、预测补偿或策略监督层结论。' }
-    evidence_sequence: ['前测范围说明', '三道客观题']
+    content_blocks: {}
+    evidence_sequence: ['三道基础能力客观题']
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成三道预备知识题。'
@@ -81,9 +79,9 @@ steps:
     student_access: *released_access
     telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['slow_state_ignored', 'actuator_limit_ignored', 'metric_reading_too_single'] }
     teacher_insight_spec: *card_insight
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '前测只考察快慢状态、执行限幅和指标表读法基础。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '本页考察快慢状态判断、执行限幅理解和多指标读表能力。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-03', must_match_student_page: true }
-    acceptance_checks: ['前测全部为客观题；不得提前考察三路线、预测补偿、策略监督层或本课核心结论。']
+    acceptance_checks: ['前测全部为客观题；题目只检查快慢状态判断、执行限幅理解和多指标读表能力。']
 
   step-04:
     title: '冷链温控同题任务与约束证据'
@@ -108,7 +106,7 @@ steps:
     student_access: *released_access
     telemetry_spec: *card_telemetry
     teacher_insight_spec: *card_insight
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '固定冷链同题比较的对象、温区、执行器、扰动和日志证据。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '生物制剂冷藏仓在集中入库和开门扰动下同时存在空气温度快速波动与货品核心温度慢热风险。本页固定同一个对象、温区、压缩机执行边界、扰动日志和评价指标，再把经典 PI/PID、预测补偿和策略监督层放入同一任务中比较。' }
     preview_contract: { route_kind: 'student_demo', demo_path: '/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo?step=step-04', must_match_student_page: true }
     acceptance_checks: ['公式和日志图必须按讲义顺序出现；作答区默认隐藏。']
 
@@ -147,9 +145,9 @@ steps:
       - { id: 'pid-reveal', title: '抗积分饱和显影链', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
       - { id: 'pid-params', title: '经典 PI/PID 参数表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'param_table' } }
     content_blocks:
-      formula_block: { type: 'formula_group', formulas: ['T_m(k)=T_a(k)+b(k)', 'e(k)=T_m(k)-T_{set}', 'u^*(k)=K_p e(k)+I(k)+K_d[e(k)-e(k-1)]+u_{ff}(k)', 'u(k)=clip(u^*(k),0,1)'], explanation: '经典路线用测得空气温度误差驱动压缩机占空比，并保留限幅和抗积分饱和。' }
-      reveal_layers: [{ title: '临时积分项', body: '$\\tilde I(k+1)=clip(I(k)+K_i e(k),I_{min},I_{max})$。' }, { title: '饱和方向判断', body: '未饱和或朝离开饱和方向变化时采用临时积分项。' }, { title: '防止加深饱和', body: '若继续积分会让压缩机更深地贴住 0 或 1，则保持 $I(k+1)=I(k)$。' }, { title: '基线地位', body: '经典路线没有前馈补偿，参数冻结，是三路线比较的基线和安全退路。' }]
-      param_table: { type: 'native_table', columns: ['参数', '数值', '作用'], rows: [['$K_p$', '0.42', '温度偏高时立即增加制冷'], ['$K_i$', '0.010', '决定积分随误差变化速度'], ['$K_d$', '0.08', '抑制开门扰动后的快速变化'], ['$I_{min},I_{max}$', '-0.35, 0.70', '抗积分饱和边界']] }
+      formula_block: { type: 'formula_group', formulas: ['T_m(k)=T_a(k)+b(k)', 'e(k)=T_m(k)-T_{\\mathrm{set}}', 'u^*(k)=K_p e(k)+I(k)+K_d[e(k)-e(k-1)]+u_{\\mathrm{ff}}(k)', 'u(k)=\\mathrm{clip}(u^*(k),0,1)'], explanation: '经典路线用测得空气温度误差驱动压缩机占空比，并保留限幅和抗积分饱和。' }
+      reveal_layers: [{ title: '临时积分项', body: '$\\tilde I(k+1)=\\mathrm{clip}(I(k)+K_i e(k),I_{\\mathrm{min}},I_{\\mathrm{max}})$。' }, { title: '饱和方向判断', body: '未饱和或朝离开饱和方向变化时采用临时积分项。' }, { title: '防止加深饱和', body: '若继续积分会让压缩机更深地贴住 0 或 1，则保持 $I(k+1)=I(k)$。' }, { title: '基线地位', body: '经典路线没有前馈补偿，参数冻结，是三路线比较的基线和安全退路。' }]
+      param_table: { type: 'native_table', columns: ['参数', '数值', '作用'], rows: [['$K_p$', '0.42', '温度偏高时立即增加制冷'], ['$K_i$', '0.010', '决定积分随误差变化速度'], ['$K_d$', '0.08', '抑制开门扰动后的快速变化'], ['$I_{\\mathrm{min}},I_{\\mathrm{max}}$', '-0.35, 0.70', '抗积分饱和边界']] }
     evidence_sequence: ['测量温度', '误差', '候选输出', '限幅', '抗饱和显影', '参数表']
     interaction_spec: { interaction_kind: 'teacher_reveal_only', student_task: '跟随教师逐层查看抗积分饱和链。', activity_cards: [] }
     teacher_controls: *reveal_controls
@@ -170,7 +168,7 @@ steps:
       - { id: 'prediction-params', title: '预测补偿 PI/PID 参数表', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'param_table' } }
       - { id: 'prediction-activity', title: '预测补偿责任判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['e2-evidence', 'retained-responsibility'] } }
     content_blocks:
-      formula_block: { type: 'formula_group', formulas: ['\\hat H_{60}=0.16\\sum q_{door}+0.09\\sum q_{load}+0.35\\max(0,\\bar T_{amb,60}-22)', '\\hat H_{60}>7.8 \\Rightarrow T_{set}=4.25', 'u_{ff}=clip(0.030\\hat H_{60}+0.020\\max(0,T_{amb}-23),0,0.52)'], explanation: '数据模块预测未来一小时热负荷等级，再用于预冷设定点和受限前馈；它不直接预测压缩机占空比。' }
+      formula_block: { type: 'formula_group', formulas: ['\\hat H_{60}=0.16\\sum q_{\\mathrm{door}}+0.09\\sum q_{\\mathrm{load}}+0.35\\mathrm{max}(0,\\bar T_{\\mathrm{amb},60}-22)', '\\hat H_{60}>7.8 \\Rightarrow T_{\\mathrm{set}}=4.25', 'u_{\\mathrm{ff}}=\\mathrm{clip}(0.030\\hat H_{60}+0.020\\mathrm{max}(0,T_{\\mathrm{amb}}-23),0,0.52)'], explanation: '数据模块预测未来一小时热负荷等级，再用于预冷设定点和受限前馈；它不直接预测压缩机占空比。' }
       e2_fit: { type: 'plain_text', body: '这条路线适合 E2 的原因是入库高峰并非随机噪声，开门、入库和外温信号可以提前观察；它解决的是热量进入仓库后再追赶会慢的问题。' }
       input_table: { type: 'native_table', columns: ['输入量', '获取方式', '作用'], rows: [['开门记录', '仓门开关或入库计划', '短时热空气冲击'], ['入库热负荷', '入库批次和货品初温折算', '温热货品慢释放'], ['未来一小时平均外温', '温度传感器和短时天气预报', '仓体换热背景']] }
       param_table: { type: 'native_table', columns: ['参数', '数值'], rows: [['$K_p$', '0.48'], ['$K_i$', '0.011'], ['$K_d$', '0.08']] }
@@ -222,7 +220,7 @@ steps:
       - { id: 'metric-activity', title: '指标口径判断', region: 'activity', kind: 'activity-card-set', must_be_visible: false, payload: { activity_card_ids: ['alarm-zero', 'burden-meaning'] } }
     content_blocks:
       flow: { type: 'plain_text', body: '先生成 48 小时扰动日志，再让三条路线分别在同一扰动日志上闭环运行，最后从轨迹中计算越界分钟、峰值温度、恢复时间、能耗、切换次数和验证负担。' }
-      formula_block: { type: 'formula_group', formulas: ['E=\\sum_k u(k)/60', 't_{rec}: T_a 与 T_p 在主要热负荷结束后同时回到 5.8^\\circ C 以下所需时间'], explanation: '路线验证负担不是温度轨迹直接计算值，而是方法选择还需补充多少证据。' }
+      formula_block: { type: 'formula_group', formulas: ['E=\\sum_k u(k)/60', 't_{\\mathrm{rec}}=\\min\\{t-t_e:T_a(t)\\leq 5.8^\\circ C,\\ T_p(t)\\leq 5.8^\\circ C\\}'], symbols: [{ symbol: 'E', meaning: '归一化能耗，按 48 小时内压缩机占空比累加并换算为小时量。' }, { symbol: 't_{\\mathrm{rec}}', meaning: '主要热负荷结束后，空气温度与货品核心温度同时回到恢复阈值以下所需时间。' }, { symbol: 't_e', meaning: '主要热负荷结束时刻。' }], explanation: '路线验证负担不是温度轨迹直接计算值，而是方法选择还需补充多少证据。' }
     evidence_sequence: ['仿真顺序', '轨迹字段', '恢复时间定义', '能耗公式', '验证负担说明', '双题']
     interaction_spec:
       interaction_kind: 'activity_card_set'

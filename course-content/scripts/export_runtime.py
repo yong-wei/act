@@ -409,10 +409,20 @@ def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
 
 
 def copy_generated_media_data(lesson_dir: Path, destination_dir: Path) -> None:
-    data_dir = lesson_dir / 'media' / 'raw' / 'generated-data'
-    if not data_dir.exists():
+    raw_data_dir = lesson_dir / 'media' / 'raw' / 'generated-data'
+    target_dir = destination_dir / 'generated-data'
+    if raw_data_dir.exists():
+        copy_tree_contents(raw_data_dir, target_dir, ('.csv', '.json', '.txt'))
+
+    processed_dir = lesson_dir / 'media' / 'processed'
+    if not processed_dir.exists():
         return
-    copy_tree_contents(data_dir, destination_dir / 'generated-data', ('.csv', '.json', '.txt'))
+    data_assets = [item for item in sorted(processed_dir.iterdir()) if item.is_file() and item.suffix.lower() in {'.csv', '.json', '.txt'}]
+    if not data_assets:
+        return
+    target_dir.mkdir(parents=True, exist_ok=True)
+    for asset in data_assets:
+        shutil.copy2(asset, target_dir / asset.name)
 
 
 def generate_runtime_media(lesson_id: str) -> None:
