@@ -48,6 +48,15 @@ struct RootLocusConfig {
     max_gain: f64,
     samples: usize,
     current_gain: f64,
+    increment: Option<f64>,
+    sampling_mode: Option<SamplingMode>,
+}
+
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+enum SamplingMode {
+    Adaptive,
+    Fixed,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -180,6 +189,33 @@ struct RootLocusSamplePoint {
     re: f64,
     im: f64,
     gain: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch_id: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sample_index: Option<usize>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RealAxisSegment {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    start: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    end: Option<f64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusAsymptote {
+    centroid: f64,
+    angle_deg: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusAngle {
+    point: ComplexPoint,
+    angle_deg: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -219,6 +255,19 @@ struct NyquistData {
 #[serde(rename_all = "camelCase")]
 struct RootLocusData {
     branches: Vec<Vec<RootLocusSamplePoint>>,
+    gains: Vec<f64>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    real_axis_segments: Vec<RealAxisSegment>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    stationary_points: Vec<RootLocusSamplePoint>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    asymptotes: Vec<RootLocusAsymptote>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    imaginary_axis_crossings: Vec<RootLocusSamplePoint>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    departure_angles: Vec<RootLocusAngle>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    arrival_angles: Vec<RootLocusAngle>,
     current_poles: Vec<ComplexPoint>,
     open_loop_poles: Vec<ComplexPoint>,
     open_loop_zeros: Vec<ComplexPoint>,
@@ -423,6 +472,25 @@ fn poly_add(a: &[f64], b: &[f64]) -> Vec<f64> {
             0.0
         };
         output[i] = ai + bi;
+    }
+    trim_leading(output)
+}
+
+fn poly_sub(a: &[f64], b: &[f64]) -> Vec<f64> {
+    let width = a.len().max(b.len());
+    let mut output = vec![0.0; width];
+    for i in 0..width {
+        let ai = if i >= width - a.len() {
+            a[i - (width - a.len())]
+        } else {
+            0.0
+        };
+        let bi = if i >= width - b.len() {
+            b[i - (width - b.len())]
+        } else {
+            0.0
+        };
+        output[i] = ai - bi;
     }
     trim_leading(output)
 }
@@ -1304,7 +1372,7 @@ fn should_refine_root_segment(
         .fold(0.0_f64, f64::max);
     let min_spacing = min_pairwise_distance(&left.roots).min(min_pairwise_distance(&right.roots));
 
-    max_delta > 0.18 * scale || min_spacing < 0.08 * scale
+    max_delta > 0.12 * scale || (min_spacing < 0.03 * scale && max_delta > 0.01 * scale)
 }
 
 fn append_root_locus_segment(
@@ -1314,17 +1382,38 @@ fn append_root_locus_segment(
     depth: usize,
     max_depth: usize,
     output: &mut Vec<RootLocusSample>,
+    max_samples: usize,
 ) {
     let right = sample_root_locus(loop_tf, right_gain, Some(&left.roots));
+    if output.len() + 1 >= max_samples {
+        output.push(right);
+        return;
+    }
     if should_refine_root_segment(left, &right, depth, max_depth) {
         let mid_gain = 0.5 * (left.gain + right.gain);
         if (mid_gain - left.gain).abs() < 1e-9 || (right.gain - mid_gain).abs() < 1e-9 {
             output.push(right);
             return;
         }
-        append_root_locus_segment(loop_tf, left, mid_gain, depth + 1, max_depth, output);
+        append_root_locus_segment(
+            loop_tf,
+            left,
+            mid_gain,
+            depth + 1,
+            max_depth,
+            output,
+            max_samples,
+        );
         if let Some(midpoint) = output.last().cloned() {
-            append_root_locus_segment(loop_tf, &midpoint, right.gain, depth + 1, max_depth, output);
+            append_root_locus_segment(
+                loop_tf,
+                &midpoint,
+                right.gain,
+                depth + 1,
+                max_depth,
+                output,
+                max_samples,
+            );
         } else {
             output.push(right);
         }
@@ -1333,32 +1422,403 @@ fn append_root_locus_segment(
     }
 }
 
+fn rounded_gain(value: f64) -> f64 {
+    if !value.is_finite() {
+        return value;
+    }
+    (value * 1_000_000_000_000.0).round() / 1_000_000_000_000.0
+}
+
+fn sorted_unique_gains(mut gains: Vec<f64>) -> Vec<f64> {
+    gains.retain(|gain| gain.is_finite() && *gain >= 0.0);
+    gains.sort_by(|left, right| compare_f64(*left, *right));
+    let mut output = Vec::new();
+    for gain in gains {
+        let rounded = rounded_gain(gain);
+        if output
+            .last()
+            .map(|previous: &f64| (rounded - *previous).abs() > 1e-9)
+            .unwrap_or(true)
+        {
+            output.push(rounded);
+        }
+    }
+    output
+}
+
+fn gain_at_real_point(loop_tf: &TransferFunction, point: f64) -> Option<f64> {
+    let s = Complex64::new(point, 0.0);
+    let numerator = eval_poly_complex(&loop_tf.numerator, s).re;
+    if numerator.abs() < 1e-10 {
+        return None;
+    }
+    let denominator = eval_poly_complex(&loop_tf.denominator, s).re;
+    let gain = -denominator / numerator;
+    if gain.is_finite() && gain >= -1e-9 {
+        Some(gain.max(0.0))
+    } else {
+        None
+    }
+}
+
+fn real_roots(points: &[Complex64]) -> Vec<f64> {
+    let mut values: Vec<f64> = points
+        .iter()
+        .filter(|point| point.im.abs() <= 1e-7 * point.norm().max(1.0))
+        .map(|point| point.re)
+        .collect();
+    values.sort_by(|left, right| compare_f64(*left, *right));
+    let mut output = Vec::new();
+    for value in values {
+        if output
+            .last()
+            .map(|previous: &f64| (value - *previous).abs() > 1e-6)
+            .unwrap_or(true)
+        {
+            output.push(value);
+        }
+    }
+    output
+}
+
+fn is_on_real_axis_locus(
+    point: f64,
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> bool {
+    let right_count = open_loop_poles
+        .iter()
+        .chain(open_loop_zeros.iter())
+        .filter(|root| root.im.abs() < 1e-7 && root.re > point + 1e-7)
+        .count();
+    right_count % 2 == 1
+}
+
+fn stationary_points(
+    loop_tf: &TransferFunction,
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RootLocusSamplePoint> {
+    if loop_tf.numerator.iter().all(|value| value.abs() < 1e-12) {
+        return Vec::new();
+    }
+    let denominator_derivative = poly_derivative(&loop_tf.denominator);
+    let numerator_derivative = poly_derivative(&loop_tf.numerator);
+    let candidates = durand_kerner(&poly_sub(
+        &convolve(&denominator_derivative, &loop_tf.numerator),
+        &convolve(&loop_tf.denominator, &numerator_derivative),
+    ));
+
+    let mut points = Vec::new();
+    for candidate in candidates {
+        let scale = candidate.norm().max(1.0);
+        if candidate.im.abs() > 1e-7 * scale {
+            continue;
+        }
+        let re = candidate.re;
+        if !is_on_real_axis_locus(re, open_loop_poles, open_loop_zeros) {
+            continue;
+        }
+        if let Some(gain) = gain_at_real_point(loop_tf, re) {
+            points.push(RootLocusSamplePoint {
+                re,
+                im: 0.0,
+                gain: rounded_gain(gain),
+                branch_id: None,
+                sample_index: None,
+            });
+        }
+    }
+    points.sort_by(|left, right| compare_f64(left.gain, right.gain));
+    points
+}
+
+fn root_locus_gain_sequence(
+    config: &RootLocusConfig,
+    stationary: &[RootLocusSamplePoint],
+) -> Vec<f64> {
+    let min_gain = config.min_gain.max(0.0);
+    let mut gains = Vec::new();
+    match config.sampling_mode.unwrap_or(SamplingMode::Adaptive) {
+        SamplingMode::Fixed => {
+            let max_gain = config.max_gain.max(min_gain);
+            if let Some(increment) = config
+                .increment
+                .filter(|value| value.is_finite() && *value > 0.0)
+            {
+                let mut gain = min_gain;
+                while gain <= max_gain + 1e-9 {
+                    gains.push(gain);
+                    gain += increment;
+                }
+                if gains
+                    .last()
+                    .map(|last| (max_gain - *last).abs() > 1e-8)
+                    .unwrap_or(true)
+                {
+                    gains.push(max_gain);
+                }
+            } else {
+                gains.extend(linspace(min_gain, max_gain, config.samples.max(2)));
+            }
+            gains.extend(
+                stationary
+                    .iter()
+                    .map(|point| point.gain)
+                    .filter(|gain| *gain >= min_gain - 1e-9 && *gain <= max_gain + 1e-9),
+            );
+        }
+        SamplingMode::Adaptive => {
+            let max_gain = config.max_gain.max(min_gain).max(config.current_gain).max(
+                stationary
+                    .iter()
+                    .map(|point| point.gain)
+                    .fold(0.0_f64, f64::max),
+            );
+            gains.extend(linspace(min_gain, max_gain, config.samples.max(30)));
+            gains.push(config.current_gain);
+            gains.extend(
+                stationary
+                    .iter()
+                    .map(|point| point.gain)
+                    .filter(|gain| *gain >= min_gain - 1e-9 && *gain <= max_gain + 1e-9),
+            );
+        }
+    }
+    sorted_unique_gains(gains)
+}
+
+fn real_axis_segments(
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RealAxisSegment> {
+    let mut singularities = real_roots(open_loop_poles);
+    singularities.extend(real_roots(open_loop_zeros));
+    singularities.sort_by(|left, right| compare_f64(*left, *right));
+    let mut unique = Vec::new();
+    for value in singularities {
+        if unique
+            .last()
+            .map(|previous: &f64| (value - *previous).abs() > 1e-6)
+            .unwrap_or(true)
+        {
+            unique.push(value);
+        }
+    }
+    if unique.is_empty() {
+        return Vec::new();
+    }
+
+    let mut segments = Vec::new();
+    for index in 0..=unique.len() {
+        let start = if index == 0 {
+            None
+        } else {
+            Some(unique[index - 1])
+        };
+        let end = if index == unique.len() {
+            None
+        } else {
+            Some(unique[index])
+        };
+        let probe = match (start, end) {
+            (Some(left), Some(right)) => 0.5 * (left + right),
+            (None, Some(right)) => right - 1.0,
+            (Some(left), None) => left + 1.0,
+            (None, None) => 0.0,
+        };
+        if is_on_real_axis_locus(probe, open_loop_poles, open_loop_zeros) {
+            segments.push(RealAxisSegment { start, end });
+        }
+    }
+    segments
+}
+
+fn normalize_angle_deg(angle: f64) -> f64 {
+    let mut normalized = angle % 360.0;
+    if normalized > 180.0 {
+        normalized -= 360.0;
+    }
+    if normalized <= -180.0 {
+        normalized += 360.0;
+    }
+    normalized
+}
+
+fn angle_between(origin: Complex64, target: Complex64) -> f64 {
+    (target.im - origin.im)
+        .atan2(target.re - origin.re)
+        .to_degrees()
+}
+
+fn root_locus_asymptotes(
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RootLocusAsymptote> {
+    let excess = open_loop_poles.len().saturating_sub(open_loop_zeros.len());
+    if excess == 0 {
+        return Vec::new();
+    }
+    let pole_sum: f64 = open_loop_poles.iter().map(|pole| pole.re).sum();
+    let zero_sum: f64 = open_loop_zeros.iter().map(|zero| zero.re).sum();
+    let centroid = (pole_sum - zero_sum) / excess as f64;
+    (0..excess)
+        .map(|index| RootLocusAsymptote {
+            centroid,
+            angle_deg: (2 * index + 1) as f64 * 180.0 / excess as f64,
+        })
+        .collect()
+}
+
+fn departure_angles(
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RootLocusAngle> {
+    open_loop_poles
+        .iter()
+        .filter(|pole| pole.im.abs() > 1e-7)
+        .map(|pole| {
+            let zero_angles: f64 = open_loop_zeros
+                .iter()
+                .map(|zero| angle_between(*pole, *zero))
+                .sum();
+            let pole_angles: f64 = open_loop_poles
+                .iter()
+                .filter(|candidate| (**candidate - *pole).norm() > 1e-8)
+                .map(|candidate| angle_between(*pole, *candidate))
+                .sum();
+            RootLocusAngle {
+                point: ComplexPoint {
+                    re: pole.re,
+                    im: pole.im,
+                },
+                angle_deg: normalize_angle_deg(180.0 + zero_angles - pole_angles),
+            }
+        })
+        .collect()
+}
+
+fn arrival_angles(
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RootLocusAngle> {
+    open_loop_zeros
+        .iter()
+        .filter(|zero| zero.im.abs() > 1e-7)
+        .map(|zero| {
+            let pole_angles: f64 = open_loop_poles
+                .iter()
+                .map(|pole| angle_between(*zero, *pole))
+                .sum();
+            let zero_angles: f64 = open_loop_zeros
+                .iter()
+                .filter(|candidate| (**candidate - *zero).norm() > 1e-8)
+                .map(|candidate| angle_between(*zero, *candidate))
+                .sum();
+            RootLocusAngle {
+                point: ComplexPoint {
+                    re: zero.re,
+                    im: zero.im,
+                },
+                angle_deg: normalize_angle_deg(180.0 - pole_angles + zero_angles),
+            }
+        })
+        .collect()
+}
+
+fn imaginary_axis_crossings(branches: &[Vec<RootLocusSamplePoint>]) -> Vec<RootLocusSamplePoint> {
+    let mut crossings = Vec::new();
+    for (branch_id, branch) in branches.iter().enumerate() {
+        for (sample_index, pair) in branch.windows(2).enumerate() {
+            let left = &pair[0];
+            let right = &pair[1];
+            if left.re.abs() < 1e-8 && left.im.abs() > 1e-8 {
+                crossings.push(RootLocusSamplePoint {
+                    re: 0.0,
+                    im: left.im,
+                    gain: left.gain,
+                    branch_id: Some(branch_id),
+                    sample_index: Some(sample_index),
+                });
+                continue;
+            }
+            if left.re.signum() == right.re.signum() {
+                continue;
+            }
+            let ratio = left.re.abs() / (left.re.abs() + right.re.abs()).max(1e-12);
+            let im = left.im + (right.im - left.im) * ratio;
+            if im.abs() <= 1e-8 {
+                continue;
+            }
+            crossings.push(RootLocusSamplePoint {
+                re: 0.0,
+                im,
+                gain: rounded_gain(left.gain + (right.gain - left.gain) * ratio),
+                branch_id: Some(branch_id),
+                sample_index: Some(sample_index),
+            });
+        }
+    }
+    crossings
+}
+
 fn root_locus(
     loop_tf: &TransferFunction,
     config: &RootLocusConfig,
     feasible_region: Option<FeasibleRegionConfig>,
 ) -> RootLocusData {
-    let gains = linspace(config.min_gain, config.max_gain, config.samples.max(8));
     let degree = loop_tf.denominator.len().max(loop_tf.numerator.len()) - 1;
+    let open_loop_poles_raw = durand_kerner(&loop_tf.denominator);
+    let open_loop_zeros_raw = if loop_tf.numerator.len() > 1
+        && loop_tf.numerator.iter().any(|value| value.abs() > 1e-12)
+    {
+        durand_kerner(&loop_tf.numerator)
+    } else {
+        Vec::new()
+    };
+    let stationary_points = stationary_points(loop_tf, &open_loop_poles_raw, &open_loop_zeros_raw);
+    let gains = root_locus_gain_sequence(config, &stationary_points);
     let mut branches: Vec<Vec<RootLocusSamplePoint>> = vec![Vec::new(); degree];
     let max_depth = 5;
+    let max_samples = 1000;
     let mut samples = Vec::new();
     let initial_gain = gains.first().copied().unwrap_or(config.min_gain);
     samples.push(sample_root_locus(loop_tf, initial_gain, None));
     for next_gain in gains.into_iter().skip(1) {
+        if samples.len() >= max_samples {
+            break;
+        }
         let left = samples.last().cloned();
         if let Some(left_sample) = left {
-            append_root_locus_segment(loop_tf, &left_sample, next_gain, 0, max_depth, &mut samples);
+            if config.sampling_mode.unwrap_or(SamplingMode::Adaptive) == SamplingMode::Fixed {
+                samples.push(sample_root_locus(
+                    loop_tf,
+                    next_gain,
+                    Some(&left_sample.roots),
+                ));
+            } else {
+                append_root_locus_segment(
+                    loop_tf,
+                    &left_sample,
+                    next_gain,
+                    0,
+                    max_depth,
+                    &mut samples,
+                    max_samples,
+                );
+            }
         }
     }
 
-    for sample in &samples {
-        for (index, root) in sample.roots.iter().enumerate() {
-            if let Some(branch) = branches.get_mut(index) {
+    for (sample_index, sample) in samples.iter().enumerate() {
+        for (branch_id, root) in sample.roots.iter().enumerate() {
+            if let Some(branch) = branches.get_mut(branch_id) {
                 branch.push(RootLocusSamplePoint {
                     re: root.re,
                     im: root.im,
                     gain: sample.gain,
+                    branch_id: Some(branch_id),
+                    sample_index: Some(sample_index),
                 });
             }
         }
@@ -1371,29 +1831,35 @@ fn root_locus(
             im: root.im,
         })
         .collect();
-    let open_loop_poles = durand_kerner(&loop_tf.denominator)
-        .into_iter()
+    let open_loop_poles = open_loop_poles_raw
+        .iter()
         .map(|root| ComplexPoint {
             re: root.re,
             im: root.im,
         })
         .collect();
-    let open_loop_zeros = if loop_tf.numerator.len() > 1
-        && loop_tf.numerator.iter().any(|value| value.abs() > 1e-12)
-    {
-        durand_kerner(&loop_tf.numerator)
-            .into_iter()
-            .map(|root| ComplexPoint {
-                re: root.re,
-                im: root.im,
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
+    let open_loop_zeros = open_loop_zeros_raw
+        .iter()
+        .map(|root| ComplexPoint {
+            re: root.re,
+            im: root.im,
+        })
+        .collect();
+    let gains = samples
+        .iter()
+        .map(|sample| rounded_gain(sample.gain))
+        .collect();
+    let imaginary_axis_crossings = imaginary_axis_crossings(&branches);
 
     RootLocusData {
         branches,
+        gains,
+        real_axis_segments: real_axis_segments(&open_loop_poles_raw, &open_loop_zeros_raw),
+        stationary_points,
+        asymptotes: root_locus_asymptotes(&open_loop_poles_raw, &open_loop_zeros_raw),
+        imaginary_axis_crossings,
+        departure_angles: departure_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
+        arrival_angles: arrival_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
         current_poles,
         open_loop_poles,
         open_loop_zeros,
@@ -2920,6 +3386,8 @@ mod tests {
                 max_gain: 2.0,
                 samples: 16,
                 current_gain: 1.0,
+                increment: None,
+                sampling_mode: None,
             },
             feasible_region: None,
         };
@@ -2967,6 +3435,8 @@ mod tests {
                 max_gain: 12.0,
                 samples: 96,
                 current_gain: gain,
+                increment: None,
+                sampling_mode: None,
             },
             feasible_region: Some(FeasibleRegionConfig {
                 zeta_min: 0.5169308662051556,
@@ -3021,6 +3491,8 @@ mod tests {
                 max_gain: 24.0,
                 samples: 120,
                 current_gain: gain,
+                increment: None,
+                sampling_mode: None,
             },
             feasible_region: Some(FeasibleRegionConfig {
                 zeta_min: 0.5911550337988976,
@@ -3029,6 +3501,165 @@ mod tests {
                 settling_time: Some(0.2),
             }),
         }
+    }
+
+    fn unit_3_3_step_05_request(gain: f64) -> ControlAnalysisRequest {
+        ControlAnalysisRequest {
+            runtime_mode: "analysis".to_string(),
+            _case_id: Some("unit-3-3-step-05-condition-workspace".to_string()),
+            plant: TransferFunctionSpec {
+                numerator: vec![1.0, 3.5],
+                denominator: vec![1.0, 2.9, 0.78],
+            },
+            structures: vec![StructureSpec {
+                kind: "gain".to_string(),
+                enabled: true,
+                params: HashMap::from([(String::from("k"), gain)]),
+            }],
+            outputs: vec!["root_locus".to_string()],
+            response_type: ResponseType::Step,
+            time_range: TimeRangeConfig {
+                start: 0.0,
+                end: 8.0,
+                samples: 240,
+            },
+            frequency_range: FrequencyRangeConfig {
+                min: 1e-2,
+                max: 1e2,
+                samples: 240,
+            },
+            root_locus: RootLocusConfig {
+                min_gain: 0.0,
+                max_gain: 20.0,
+                samples: 30,
+                current_gain: gain,
+                increment: None,
+                sampling_mode: None,
+            },
+            feasible_region: None,
+        }
+    }
+
+    #[test]
+    fn unit_3_3_step_05_root_locus_keeps_valid_stationary_points() {
+        let result = compute_analysis_inner(&unit_3_3_step_05_request(2.0));
+        let stationary = &result.root_locus.stationary_points;
+
+        assert_eq!(stationary.len(), 2);
+        assert!(stationary.iter().any(|point| {
+            (point.re + 1.8029).abs() < 2e-3
+                && point.im.abs() < 1e-8
+                && (point.gain - 0.7059).abs() < 2e-3
+        }));
+        assert!(stationary.iter().any(|point| {
+            (point.re + 5.1971).abs() < 2e-3
+                && point.im.abs() < 1e-8
+                && (point.gain - 7.4941).abs() < 2e-3
+        }));
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 0.7059).abs() < 2e-3)
+        );
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 7.4941).abs() < 2e-3)
+        );
+    }
+
+    #[test]
+    fn unit_3_3_step_05_root_locus_sorts_branches_without_crossing_complex_halves() {
+        let result = compute_analysis_inner(&unit_3_3_step_05_request(2.0));
+
+        assert_eq!(result.root_locus.branches.len(), 2);
+        assert!(
+            result
+                .root_locus
+                .branches
+                .iter()
+                .all(|branch| branch.len() > 30)
+        );
+        for branch in &result.root_locus.branches {
+            let complex_signs: Vec<i32> = branch
+                .iter()
+                .filter(|point| point.im.abs() > 1e-5)
+                .map(|point| point.im.signum() as i32)
+                .collect();
+            if let Some(first) = complex_signs.first() {
+                assert!(
+                    complex_signs.iter().all(|sign| sign == first),
+                    "complex branch changed imaginary sign: {:?}",
+                    complex_signs
+                );
+            }
+            assert!(branch.iter().all(|point| point.branch_id.is_some()));
+            assert!(branch.iter().all(|point| point.sample_index.is_some()));
+        }
+    }
+
+    #[test]
+    fn fixed_root_locus_sampling_keeps_explicit_increment_and_range() {
+        let mut request = unit_3_3_step_05_request(2.0);
+        request.root_locus.min_gain = 0.0;
+        request.root_locus.max_gain = 4.0;
+        request.root_locus.samples = 99;
+        request.root_locus.increment = Some(1.0);
+        request.root_locus.sampling_mode = Some(SamplingMode::Fixed);
+
+        let result = compute_analysis_inner(&request);
+
+        assert_eq!(result.root_locus.gains.len(), 6);
+        assert_eq!(result.root_locus.gains.first().copied(), Some(0.0));
+        assert_eq!(result.root_locus.gains.last().copied(), Some(4.0));
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 0.7059).abs() < 2e-3)
+        );
+        assert!(result.root_locus.gains.iter().all(|gain| *gain <= 4.0));
+        assert!(
+            result
+                .root_locus
+                .branches
+                .iter()
+                .all(|branch| branch.len() == 6)
+        );
+    }
+
+    #[test]
+    fn root_locus_returns_auxiliary_rule_data() {
+        let result = compute_analysis_inner(&ship_heading_request(1.0));
+
+        assert!(!result.root_locus.real_axis_segments.is_empty());
+        assert!(!result.root_locus.asymptotes.is_empty());
+        assert!(
+            result
+                .root_locus
+                .departure_angles
+                .iter()
+                .all(|angle| angle.angle_deg.is_finite())
+        );
+        assert!(
+            result
+                .root_locus
+                .arrival_angles
+                .iter()
+                .all(|angle| angle.angle_deg.is_finite())
+        );
+        assert!(
+            result
+                .root_locus
+                .imaginary_axis_crossings
+                .iter()
+                .all(|point| point.gain.is_finite() && point.gain >= 0.0)
+        );
     }
 
     #[test]

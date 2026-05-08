@@ -30,6 +30,24 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+      "title": "PD与测速反馈的等效阻尼对比 信息图",
+      "lessonId": "3-6",
+      "nodeId": "PD与测速反馈的等效阻尼对比_3_35003",
+      "sourceNodeId": "PD与测速反馈的等效阻尼对比_3_35003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+      "title": "PD与超前的频域整形差异 信息图",
+      "lessonId": "3-6",
+      "nodeId": "PD与超前的频域整形差异_3_35004",
+      "sourceNodeId": "PD与超前的频域整形差异_3_35004"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/三场景同题比较_5_56006.png",
       "url": "/course-runtime/knowledge/infographs/nodes/三场景同题比较_5_56006.png",
       "title": "三场景同题比较 信息图",
@@ -252,6 +270,15 @@
       "lessonId": "4-1",
       "nodeId": "可行域-满意域-最优域分层_4_41004",
       "sourceNodeId": "可行域-满意域-最优域分层_4_41004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+      "title": "右半平面零点可行性边界 信息图",
+      "lessonId": "3-6",
+      "nodeId": "右半平面零点可行性边界_3_36005",
+      "sourceNodeId": "右半平面零点可行性边界_3_36005"
     },
     {
       "type": "infograph",
@@ -561,6 +588,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+      "title": "时域指标到目标极点区域 信息图",
+      "lessonId": "3-6",
+      "nodeId": "时域指标到目标极点区域_3_36001",
+      "sourceNodeId": "时域指标到目标极点区域_3_36001"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
       "url": "/course-runtime/knowledge/infographs/nodes/权重偏好与无约束候选解_4_44005.png",
       "title": "权重偏好与无约束候选解 信息图",
@@ -639,6 +675,15 @@
       "lessonId": "4-2",
       "nodeId": "目标驱动PD校正_3_36002",
       "sourceNodeId": "目标驱动PD校正_3_36002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+      "title": "目标驱动测速反馈校正 信息图",
+      "lessonId": "3-6",
+      "nodeId": "目标驱动测速反馈校正_3_36003",
+      "sourceNodeId": "目标驱动测速反馈校正_3_36003"
     },
     {
       "type": "infograph",
@@ -1035,6 +1080,15 @@
       "lessonId": "4-4",
       "nodeId": "问题清单移交表_4_43005",
       "sourceNodeId": "问题清单移交表_4_43005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+      "title": "零点引入与根轨迹重排 信息图",
+      "lessonId": "3-6",
+      "nodeId": "零点引入与根轨迹重排_3_35001",
+      "sourceNodeId": "零点引入与根轨迹重排_3_35001"
     },
     {
       "type": "infograph",

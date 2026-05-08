@@ -249,32 +249,6 @@ function normalizeConjugatePointSet<T extends ComplexPoint>(points: T[]): T[] {
   return [...normalized, ...additions];
 }
 
-function branchHasMirror(branches: RootLocusSamplePoint[][], branch: RootLocusSamplePoint[]) {
-  const firstComplex = branch.find((point) => Math.abs(point.im) > 1e-8);
-  if (!firstComplex) return true;
-  const lastComplex = [...branch].reverse().find((point) => Math.abs(point.im) > 1e-8) ?? firstComplex;
-  return branches.some((candidate) => {
-    if (candidate === branch) return false;
-    const candidateFirst = candidate.find((point) => Math.abs(point.im) > 1e-8);
-    const candidateLast = [...candidate].reverse().find((point) => Math.abs(point.im) > 1e-8) ?? candidateFirst;
-    if (!candidateFirst || !candidateLast) return false;
-    return hasConjugatePoint([candidateFirst], firstComplex) && hasConjugatePoint([candidateLast], lastComplex);
-  });
-}
-
-function normalizeConjugateBranches(branches: RootLocusSamplePoint[][]) {
-  const normalized = branches.map((branch) => branch.map(snapRootPoint));
-  const additions: RootLocusSamplePoint[][] = [];
-  for (const branch of normalized) {
-    const hasComplexPoint = branch.some((point) => point.im !== 0);
-    if (!hasComplexPoint || branchHasMirror(normalized, branch) || branchHasMirror(additions, branch)) {
-      continue;
-    }
-    additions.push(branch.map((point) => ({ ...point, im: -point.im })));
-  }
-  return [...normalized, ...additions];
-}
-
 function buildRootLocusOption(
   rootLocus: RootLocusData,
   caseId?: string,
@@ -283,7 +257,8 @@ function buildRootLocusOption(
 ): EChartsCoreOption {
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
   const showFeasible = mode !== 'full';
-  const locusBranches = normalizeConjugateBranches(mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches);
+  const locusBranches = (mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches)
+    .map((branch) => branch.map(snapRootPoint));
   const currentPoles = normalizeConjugatePointSet(rootLocus.currentPoles);
   const openLoopPoles = normalizeConjugatePointSet(rootLocus.openLoopPoles);
   const openLoopZeros = normalizeConjugatePointSet(rootLocus.openLoopZeros);

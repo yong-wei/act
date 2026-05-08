@@ -27,7 +27,7 @@ export function buildUnit33AnalysisRequest(
         outputs: ['root_locus'],
         timeRange: { start: 0, end: 8, samples: 240 },
         frequencyRange: { min: 1e-2, max: 1e2, samples: 240 },
-        rootLocus: { minGain: 0, maxGain: 20, samples: 320, currentGain },
+        rootLocus: { minGain: 0, maxGain: 20, samples: 320, currentGain, samplingMode: 'adaptive' },
       };
     case 'step-06':
       return {
@@ -43,7 +43,7 @@ export function buildUnit33AnalysisRequest(
         outputs: ['root_locus'],
         timeRange: { start: 0, end: 8, samples: 240 },
         frequencyRange: { min: 1e-2, max: 1e2, samples: 240 },
-        rootLocus: { minGain: 0, maxGain: 80, samples: 320, currentGain },
+        rootLocus: { minGain: 0, maxGain: 80, samples: 320, currentGain, samplingMode: 'adaptive' },
       };
   }
 }

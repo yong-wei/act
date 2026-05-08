@@ -429,11 +429,32 @@ def materialize_draft_placeholders(markdown_path: Path, markdown: str) -> tuple[
     return rewritten, (placeholder_dir if used_placeholders else None), used_placeholders
 
 
-def create_preprocessed_markdown(markdown_path: Path, draft_mode: bool = False) -> tuple[Path | None, list[Path], list[str]]:
+def remove_course_summary_assets(markdown: str) -> str:
+    kept_lines: list[str] = []
+    for line in markdown.splitlines():
+        match = MARKDOWN_IMAGE_LINE_RE.match(line)
+        if match and is_course_summary_asset(match.group("src"), match.group("alt")):
+            continue
+        kept_lines.append(line)
+
+    rewritten = "\n".join(kept_lines)
+    if markdown.endswith("\n"):
+        rewritten += "\n"
+    return rewritten
+
+
+def create_preprocessed_markdown(
+    markdown_path: Path,
+    draft_mode: bool = False,
+    skip_course_summary_assets: bool = False,
+) -> tuple[Path | None, list[Path], list[str]]:
     original = markdown_path.read_text(encoding="utf-8")
     normalized = preprocess_markdown_for_pdf(original)
     extra_paths: list[Path] = []
     used_placeholders: list[str] = []
+
+    if skip_course_summary_assets:
+        normalized = remove_course_summary_assets(normalized)
 
     if draft_mode:
         normalized, placeholder_dir, used_placeholders = materialize_draft_placeholders(markdown_path, normalized)
@@ -898,6 +919,11 @@ def main() -> int:
         action="store_true",
         help="草稿导出模式：允许封面漫画与信息图缺失，并仅在临时目录生成占位图；输出文件名为 *-draft.pdf",
     )
+    parser.add_argument(
+        "--skip-course-summary-assets",
+        action="store_true",
+        help="导出时移除封面漫画和封底信息图，不生成占位图。",
+    )
     args = parser.parse_args()
 
     markdown_path = Path(args.markdown).resolve()
@@ -926,6 +952,7 @@ def main() -> int:
     preprocessed_markdown_path, extra_cleanup_paths, used_placeholders = create_preprocessed_markdown(
         markdown_path,
         draft_mode=args.draft_mode,
+        skip_course_summary_assets=args.skip_course_summary_assets,
     )
     markdown_input_path = preprocessed_markdown_path or markdown_path
     width_overrides = collect_markdown_width_overrides(

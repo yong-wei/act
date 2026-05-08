@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-08T04:19:46.499803Z",
+  "lesson_id": "3-6",
+  "node_id": "右半平面零点可行性边界_3_36005",
+  "requested_node_id": "右半平面零点可行性边界_3_36005",
+  "node_name": "右半平面零点可行性边界",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review: right-half-plane zero, constrained feasible region, inverse-response inset, boundary judgment, and formulas are readable; no unsupported source facts observed"
+}

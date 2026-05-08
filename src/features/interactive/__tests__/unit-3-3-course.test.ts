@@ -255,11 +255,14 @@ describe('unit 3-3 interactive course', () => {
     expect(requestBuilderSource).toContain("case 'step-05'");
     expect(requestBuilderSource).toContain("case 'step-06'");
     expect(requestBuilderSource).toContain('currentGain');
+    expect(requestBuilderSource).toContain("samplingMode: 'adaptive'");
     expect(requestBuilderSource).toContain('numerator: [1, 3.5]');
     expect(requestBuilderSource).toContain('denominator: [1, 2.9, 0.78]');
     expect(requestBuilderSource).toContain('G(s)H(s)=K/[s(s+2)(s+4)]');
 
     expect(fixtureSource).toContain('gain:');
+    expect(fixtureSource).toContain('branchId');
+    expect(fixtureSource).toContain('sampleIndex');
     expect(fixtureSource).toContain('openLoopPoles: [pole(-2.6), pole(-0.3)]');
     expect(fixtureSource).toContain('openLoopZeros: [pole(-3.5)]');
     expect(fixtureSource).toContain('3-3 讲义基线结果');
@@ -291,10 +294,12 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('开环极点 p2');
     expect(axisPresetSource).toContain('unit-3-3-step-05-condition-workspace');
     expect(axisPresetSource).toContain('x: [-8, 1]');
-    expect(fixtureSource).toContain('point(-1.42, 1.12, 3.1)');
-    expect(fixtureSource).toContain('point(-1.42, -1.12, 3.1)');
-    expect(fixtureSource).toContain('point(-1.26, 0.18, 1.95)');
-    expect(fixtureSource).toContain('point(-1.26, -0.18, 1.95)');
+    expect(fixtureSource).toContain('point(-1.8029, 0, 0.7059');
+    expect(fixtureSource).toContain('point(-5.1971, 0, 7.4941');
+    expect(fixtureSource).not.toContain('point(-1.42, 1.12, 3.1)');
+    expect(fixtureSource).not.toContain('point(-1.42, -1.12, 3.1)');
+    expect(fixtureSource).not.toContain('point(-1.26, 0.18, 1.95)');
+    expect(fixtureSource).not.toContain('point(-1.26, -0.18, 1.95)');
   });
 
   it('keeps step-06 on one fixed workspace and shows poles plus complex asymptotes progressively', () => {

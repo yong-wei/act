@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T04:04:22.454608Z",
+  "lesson": {
+    "lesson_id": "3-6",
+    "title": "零点作用与动态改善实验——从性能目标到校正设计",
+    "groups": [
+      "从 3-5 机理切到目标翻译"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "时域指标到目标极点区域_3_36001",
+    "name": "时域指标到目标极点区域",
+    "name_en": "Translating Time-Domain Specs into a Target Pole Region",
+    "category": "程序性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "把超调量和调节时间这类时域指标，压成阻尼比、衰减速度和主导极点可行域，后续 `PD` 与测速反馈设计都从这里起步。",
+    "examples": [
+      "对任务 M_p<=20%, t_s<=4s，先用二阶近似关系写出对 \\zeta 和 \\omega_n 的要求，再画出目标极点区域。",
+      "在 PD 设计前先检查原系统根轨迹能否进入目标区域，不能直接跳到调参。"
+    ],
+    "formulas": [
+      "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%, \\qquad t_s \\approx \\frac{4}{\\zeta\\omega_n}"
+    ],
+    "keywords": [
+      "超调量",
+      "调节时间",
+      "阻尼比",
+      "目标极点区域",
+      "时域设计",
+      "目标翻译"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md",
+  "card_frontmatter": {
+    "node_id": "时域指标到目标极点区域_3_36001",
+    "name": "时域指标到目标极点区域",
+    "name_en": "Translating Time-Domain Specs into a Target Pole Region",
+    "lesson_units": [
+      "3-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "C",
+    "chapter": "3",
+    "tags": [
+      "3-6",
+      "时域设计",
+      "目标翻译"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-6/design/3-6-handout.md"
+    ],
+    "asset_refs": [
+      "3-6-design-map.png",
+      "3-6-pd-design.png"
+    ]
+  },
+  "card_overview": "# 时域指标到目标极点区域 | Translating Time-Domain Specs into a Target Pole Region\n\n**一句话定义**：把超调量和调节时间这类时域指标，压成阻尼比、衰减速度和主导极点可行域，后续 `PD` 与测速反馈设计都从这里起步。\n\n**核心直觉**：先把“更快、更稳”翻译成复平面上的区域约束，再讨论结构和参数。\n\n**关键公式**：\n$$\nM_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%,\n\\qquad\nt_s \\approx \\frac{4}{\\zeta\\omega_n}\n$$\n\n**关联**：前置 → 主导极点 · 后续 → 目标驱动 PD 校正、目标驱动测速反馈校正",
+  "card_detail": "### 完整解释\n\n`3-6` 的第一步不是直接挑控制器，而是把题目给出的时域指标翻译成设计区域。对\n$$\nM_p \\le 20\\%,\\qquad t_s \\le 4\\text{ s}\n$$\n先得到\n$$\n\\zeta \\ge 0.456,\\qquad \\zeta\\omega_n \\ge 1.\n$$\n对于主导极点近似成立的闭环系统，这进一步转成复平面约束\n$$\n\\operatorname{Re}(s)\\le -1\n$$\n以及对应的等阻尼比边界。\n\n![3-6 目标翻译与设计地图](../../lessons/3-6/media/processed/3-6-design-map.png)\n\n一旦区域写清，纯增益方案能否进入该区域就可以直接判断。对\n$$\nL_0(s)=\\frac{4K}{s(s+0.8)}\n$$\n其复根实部恒停在 `-0.4`，因此单靠增益无法满足本课的目标区域要求，必须继续引入结构性校正。\n\n### 工程场景\n\n在工程设计里，设计目标通常先以“超调量”“调节时间”这样的指标出现。若不把它们翻译成主导极点区域，后续调参就会退化成试错，无法解释“为什么这个结构值得选、为什么另一个结构根本不可能达标”。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 主导极点 | 目标区域建立在主导极点近似之上 |\n| 输出 | 目标驱动 PD 校正 | 先定设计点，再反推零点位置与增益 |\n| 输出 | 目标驱动测速反馈校正 | 先定设计点，再反推等效极点位置 |\n\n### 常见误区\n\n1. **误区**：时域目标只需记住一个超调量数字。**纠正**：真正用于设计的是阻尼比边界和复平面可行域。\n2. **误区**：既然纯增益也能改变响应，就可以先调 `K` 再说。**纠正**：若根轨迹整体进不了可行域，继续调 `K` 也只会在错误区域内徘徊。",
+  "card_plain_excerpt": "## 首页\n\n# 时域指标到目标极点区域 | Translating Time-Domain Specs into a Target Pole Region\n\n**一句话定义**：把超调量和调节时间这类时域指标，压成阻尼比、衰减速度和主导极点可行域，后续 `PD` 与测速反馈设计都从这里起步。\n\n**核心直觉**：先把“更快、更稳”翻译成复平面上的区域约束，再讨论结构和参数。\n\n**关键公式**：\n$$\nM_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%,\n\\qquad\nt_s \\approx \\frac{4}{\\zeta\\omega_n}\n$$\n\n**关联**：前置 → 主导极点 · 后续 → 目标驱动 PD 校正、目标驱动测速反馈校正\n\n## 详情\n\n### 完整解释\n\n`3-6` 的第一步不是直接挑控制器，而是把题目给出的时域指标翻译成设计区域。对\n$$\nM_p \\le 20\\%,\\qquad t_s \\le 4\\text{ s}\n$$\n先得到\n$$\n\\zeta \\ge 0.456,\\qquad \\zeta\\omega_n \\ge 1.\n$$\n对于主导极点近似成立的闭环系统，这进一步转成复平面约束\n$$\n\\operatorname{Re}(s)\\le -1\n$$\n以及对应的等阻尼比边界。\n\n![3-6 目标翻译与设计地图](../../lessons/3-6/media/processed/3-6-design-map.png)\n\n一旦区域写清，纯增益方案能否进入该区域就可以直接判断。对\n$$\nL_0(s)=\\frac{4K}{s(s+0.8)}\n$$\n其复根实部恒停在 `-0.4`，因此单靠增益无法满足本课的目标区域要求，必须继续引入结构性校正。\n\n### 工程场景\n\n在工程设计里，设计目标通常先以“超调量”“调节时间”这样的指标出现。若不把它们翻译成主导极点区域，后续调参就会退化成试错，无法解释“为什么这个结构值得选、为什么另一个结构根本不可能达标”。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 主导极点 | 目标区域建立在主导极点近似之上 |\n| 输出 | 目标驱动 PD 校正 | 先定设计点，再反推零点位置与增益 |\n| 输出 | 目标驱动测速反馈校正 | 先定设计点，再反推等效极点位置 |\n\n### 常见误区\n\n1. **误区**：时域目标只需记住一个超调量数字。**纠正**：真正用于设计的是阻尼比边界和复平面可行域。\n2. **误区**：既然纯增益也能改变响应，就可以先调 `K` 再说。**纠正**：若根轨迹整体进不了可行域，继续调 `K` 也只会在错误区域内徘徊。",
+  "core_intuition": "先把“更快、更稳”翻译成复平面上的区域约束，再讨论结构和参数。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "时域指标到目标极点区域",
+      "target_id": null,
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "时域指标到目标极点区域",
+      "target_id": null,
+      "target": "目标驱动PD校正",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "主导极点",
+      "target_id": null,
+      "target": "时域指标到目标极点区域",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "主导极点_3_4c4c6bbd",
+      "source": "主导极点",
+      "target_id": "时域指标到目标极点区域_3_36001",
+      "target": "时域指标到目标极点区域",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "3-6 先把时域指标翻译成目标主导极点区域，再进入具体校正设计。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "时域指标到目标极点区域_3_36001",
+      "source": "时域指标到目标极点区域",
+      "target_id": "目标驱动PD校正_3_36002",
+      "target": "目标驱动PD校正",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "PD 设计必须先建立目标区域，再通过零点位置和增益让根轨迹进入该区域。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "时域指标到目标极点区域_3_36001",
+      "source": "时域指标到目标极点区域",
+      "target_id": "目标驱动测速反馈校正_3_36003",
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "测速反馈虽然不显式增零点，但同样要围绕时域指标建立设计目标。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "s_plane_mechanism_board",
+      "name": "s 平面机理板",
+      "description": "以 s 平面主图为核心，辅以响应曲线或阻尼区域小窗解释动态机理。"
+    },
+    "layout_contract": "16:9 横版；左侧 55%-65% 为 s 平面或根轨迹主图；右侧上方为响应曲线小窗；右侧下方为判断边界或公式；极点/零点标签贴近图形。",
+    "text_contract": {
+      "allowed_labels": [
+        "时域指标到目标极点区域",
+        "超调量",
+        "调节时间",
+        "阻尼比",
+        "目标极点区域",
+        "时域设计",
+        "目标翻译"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%, \\qquad t_s \\approx \\frac{4}{\\zeta\\omega_n}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

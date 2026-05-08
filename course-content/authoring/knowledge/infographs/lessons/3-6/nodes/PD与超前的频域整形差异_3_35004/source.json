@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T04:04:34.540072Z",
+  "lesson": {
+    "lesson_id": "3-6",
+    "title": "零点作用与动态改善实验——从性能目标到校正设计",
+    "groups": [
+      "从 3-5 机理切到目标翻译",
+      "任务 C / D：频域目标驱动设计"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "PD与超前的频域整形差异_3_35004",
+    "name": "PD与超前的频域整形差异",
+    "name_en": "Frequency-Shaping Difference Between PD and Lead Compensation",
+    "category": "方法性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "`PD` 与超前网络都可利用左半平面零点改善动态，但超前网络额外引入更靠左的极点，把相位与幅值改善限制在指定频带内。",
+    "examples": [
+      "PD 的幅值会在拐点后持续抬升，更容易推动交叉频率右移。",
+      "超前网络通过相位峰提高相角裕度，同时把高频放大量限制在有限范围内。"
+    ],
+    "formulas": [
+      "|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2},\\qquad \\phi_{PD}(\\omega)=\\arctan(\\omega T_d)"
+    ],
+    "keywords": [
+      "超前校正",
+      "PD",
+      "相角裕度",
+      "带宽",
+      "相位峰",
+      "3-5",
+      "频域"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/PD与超前的频域整形差异_3_35004.md",
+  "card_frontmatter": {
+    "node_id": "PD与超前的频域整形差异_3_35004",
+    "name": "PD与超前的频域整形差异",
+    "name_en": "Frequency-Shaping Difference Between PD and Lead Compensation",
+    "lesson_units": [
+      "3-5"
+    ],
+    "category": "方法性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-5",
+      "PD",
+      "超前校正",
+      "频域"
+    ],
+    "card_version": "2",
+    "source_docs": [
+      "authoring/lessons/3-5/design/3-5-handout.md"
+    ],
+    "asset_refs": [
+      "3-5-rl-04-pd-lead-compare.png"
+    ]
+  },
+  "card_overview": "# PD 与超前的频域整形差异 | Frequency-Shaping Difference Between PD and Lead Compensation\n\n**一句话定义**：`PD` 与超前网络都可利用左半平面零点改善动态，但超前网络额外引入更靠左的极点，把相位与幅值改善限制在指定频带内。\n\n**核心直觉**：`PD` 更像持续抬高中高频；超前更像在关键频带主动补相角。\n\n**关键公式**：\n$$\n|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2},\\qquad\n\\phi_{PD}(\\omega)=\\arctan(\\omega T_d)\n$$\n\n**关联**：前置 → PD 与测速反馈的等效阻尼对比、相角裕度、带宽 · 后续 → 非最小相与右半平面零点",
+  "card_detail": "### 完整解释\n\n`3-5` 先从频域原理区分 `PD` 与超前，而不是只看它们是否有相近零点位置：\n\n- `PD` 的幅值会在拐点后继续按 `+20 dB/dec` 抬升，更容易推动交叉频率右移；\n- 超前网络因为额外极点存在，幅值提升只集中在一段有限频带内；\n- 因此超前更适合被描述成“在截止频率附近补相角、提高相角裕度”。\n\n这一比较的重点不在“谁更强”，而在“改善主要落在哪段频带、代价如何分布”。\n\n这也是为什么不能把超前说成“更强的 `PD`”。\n\n### 常见误区\n\n1. **误区**：只要零点位置差不多，`PD` 和超前就可以视为同一种装置。\n   **纠正**：是否额外引入极点，会直接决定相位峰分布和高频代价。\n\n2. **误区**：超前的目标是把高频一路抬上去。\n   **纠正**：它更强调在目标频带补相角，并把高频放大控制在有限范围。",
+  "card_plain_excerpt": "## 首页\n\n# PD 与超前的频域整形差异 | Frequency-Shaping Difference Between PD and Lead Compensation\n\n**一句话定义**：`PD` 与超前网络都可利用左半平面零点改善动态，但超前网络额外引入更靠左的极点，把相位与幅值改善限制在指定频带内。\n\n**核心直觉**：`PD` 更像持续抬高中高频；超前更像在关键频带主动补相角。\n\n**关键公式**：\n$$\n|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2},\\qquad\n\\phi_{PD}(\\omega)=\\arctan(\\omega T_d)\n$$\n\n**关联**：前置 → PD 与测速反馈的等效阻尼对比、相角裕度、带宽 · 后续 → 非最小相与右半平面零点\n\n## 详情\n\n### 完整解释\n\n`3-5` 先从频域原理区分 `PD` 与超前，而不是只看它们是否有相近零点位置：\n\n- `PD` 的幅值会在拐点后继续按 `+20 dB/dec` 抬升，更容易推动交叉频率右移；\n- 超前网络因为额外极点存在，幅值提升只集中在一段有限频带内；\n- 因此超前更适合被描述成“在截止频率附近补相角、提高相角裕度”。\n\n这一比较的重点不在“谁更强”，而在“改善主要落在哪段频带、代价如何分布”。\n\n这也是为什么不能把超前说成“更强的 `PD`”。\n\n### 常见误区\n\n1. **误区**：只要零点位置差不多，`PD` 和超前就可以视为同一种装置。\n   **纠正**：是否额外引入极点，会直接决定相位峰分布和高频代价。\n\n2. **误区**：超前的目标是把高频一路抬上去。\n   **纠正**：它更强调在目标频带补相角，并把高频放大控制在有限范围。",
+  "core_intuition": "`PD` 更像持续抬高中高频；超前更像在关键频带主动补相角。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "PD与超前的频域整形差异",
+      "target_id": null,
+      "target": "非最小相与右半平面零点",
+      "relation": "leads_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": null,
+      "target": "PD与超前的频域整形差异",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "PD与超前的频域整形差异",
+      "target_id": null,
+      "target": "目标驱动超前校正",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽",
+      "target_id": null,
+      "target": "PD与超前的频域整形差异",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "PD与超前的频域整形差异",
+      "relation": "cross_domain",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "PD与超前的频域整形差异_3_35004",
+      "source": "PD与超前的频域整形差异",
+      "target_id": "目标驱动超前校正_3_36004",
+      "target": "目标驱动超前校正",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "3-6 把上一课的频域整形差异推进为真正的超前设计步骤。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "PD与超前的频域整形差异",
+        "超前校正",
+        "PD",
+        "相角裕度",
+        "带宽",
+        "相位峰",
+        "频域"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2},\\qquad \\phi_{PD}(\\omega)=\\arctan(\\omega T_d)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

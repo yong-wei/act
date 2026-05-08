@@ -6885,14 +6885,31 @@
         "等效阻尼",
         "前向零点"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+        "title": "PD与测速反馈的等效阻尼对比 信息图",
+        "lessonId": "3-6",
+        "nodeId": "PD与测速反馈的等效阻尼对比_3_35003",
+        "sourceNodeId": "PD与测速反馈的等效阻尼对比_3_35003"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PD与测速反馈的等效阻尼对比_3_35003.md"
+      "course-content/runtime/knowledge/cards/nodes/PD与测速反馈的等效阻尼对比_3_35003.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/PD与测速反馈的等效阻尼对比_3_35003.png",
+        "title": "PD与测速反馈的等效阻尼对比 信息图",
+        "lessonId": "3-6",
+        "nodeId": "PD与测速反馈的等效阻尼对比_3_35003",
+        "sourceNodeId": "PD与测速反馈的等效阻尼对比_3_35003"
+      }
     ],
     "tags": [
       "PD",
@@ -6950,14 +6967,31 @@
         "带宽",
         "相位峰"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+        "title": "PD与超前的频域整形差异 信息图",
+        "lessonId": "3-6",
+        "nodeId": "PD与超前的频域整形差异_3_35004",
+        "sourceNodeId": "PD与超前的频域整形差异_3_35004"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/PD与超前的频域整形差异_3_35004.md"
+      "course-content/runtime/knowledge/cards/nodes/PD与超前的频域整形差异_3_35004.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/PD与超前的频域整形差异_3_35004.png",
+        "title": "PD与超前的频域整形差异 信息图",
+        "lessonId": "3-6",
+        "nodeId": "PD与超前的频域整形差异_3_35004",
+        "sourceNodeId": "PD与超前的频域整形差异_3_35004"
+      }
     ],
     "tags": [
       "超前校正",
@@ -8760,14 +8794,31 @@
         "逆响应",
         "边界审查"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+        "title": "右半平面零点可行性边界 信息图",
+        "lessonId": "3-6",
+        "nodeId": "右半平面零点可行性边界_3_36005",
+        "sourceNodeId": "右半平面零点可行性边界_3_36005"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/右半平面零点可行性边界_3_36005.md"
+      "course-content/runtime/knowledge/cards/nodes/右半平面零点可行性边界_3_36005.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/右半平面零点可行性边界_3_36005.png",
+        "title": "右半平面零点可行性边界 信息图",
+        "lessonId": "3-6",
+        "nodeId": "右半平面零点可行性边界_3_36005",
+        "sourceNodeId": "右半平面零点可行性边界_3_36005"
+      }
     ],
     "tags": [
       "右半平面零点",
@@ -9704,14 +9755,31 @@
         "阻尼比",
         "目标极点区域"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+        "title": "时域指标到目标极点区域 信息图",
+        "lessonId": "3-6",
+        "nodeId": "时域指标到目标极点区域_3_36001",
+        "sourceNodeId": "时域指标到目标极点区域_3_36001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md"
+      "course-content/runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
+        "title": "时域指标到目标极点区域 信息图",
+        "lessonId": "3-6",
+        "nodeId": "时域指标到目标极点区域_3_36001",
+        "sourceNodeId": "时域指标到目标极点区域_3_36001"
+      }
     ],
     "tags": [
       "超调量",
@@ -10743,14 +10811,31 @@
         "闭环分母",
         "阻尼设计"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+        "title": "目标驱动测速反馈校正 信息图",
+        "lessonId": "3-6",
+        "nodeId": "目标驱动测速反馈校正_3_36003",
+        "sourceNodeId": "目标驱动测速反馈校正_3_36003"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/目标驱动测速反馈校正_3_36003.md"
+      "course-content/runtime/knowledge/cards/nodes/目标驱动测速反馈校正_3_36003.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/目标驱动测速反馈校正_3_36003.png",
+        "title": "目标驱动测速反馈校正 信息图",
+        "lessonId": "3-6",
+        "nodeId": "目标驱动测速反馈校正_3_36003",
+        "sourceNodeId": "目标驱动测速反馈校正_3_36003"
+      }
     ],
     "tags": [
       "测速反馈",
@@ -12815,14 +12900,31 @@
         "终点分配",
         "主导分支"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+        "title": "零点引入与根轨迹重排 信息图",
+        "lessonId": "3-6",
+        "nodeId": "零点引入与根轨迹重排_3_35001",
+        "sourceNodeId": "零点引入与根轨迹重排_3_35001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/零点引入与根轨迹重排_3_35001.md"
+      "course-content/runtime/knowledge/cards/nodes/零点引入与根轨迹重排_3_35001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/零点引入与根轨迹重排_3_35001.png",
+        "title": "零点引入与根轨迹重排 信息图",
+        "lessonId": "3-6",
+        "nodeId": "零点引入与根轨迹重排_3_35001",
+        "sourceNodeId": "零点引入与根轨迹重排_3_35001"
+      }
     ],
     "tags": [
       "零点",

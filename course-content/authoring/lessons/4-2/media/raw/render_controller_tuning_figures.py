@@ -42,6 +42,11 @@ LABELS = {
   'lead_lag': '超前-滞后',
 }
 
+ROOT_LOCUS_VIEW_OVERRIDES = {
+  ('4-2-example-5-2', 'after'): ((-5.0, 1.0), (-3.0, 3.0)),
+  ('4-2-example-5-4', 'after'): ((-2.5, 0.5), (-1.5, 1.5)),
+}
+
 
 def load_csv(name: str) -> np.ndarray:
   return np.genfromtxt(DATA_DIR / name, delimiter=',', names=True)
@@ -174,12 +179,17 @@ def plot_root_locus_panel(ax: plt.Axes, prefix: str, side: str, title: str) -> N
     ax.scatter(zeros['re'], zeros['im'], marker='o', s=34, facecolor='white', edgecolor='#2f855a', linewidth=1.5, label='零点', zorder=4)
     xs.extend(zeros['re'].tolist())
     ys.extend(zeros['im'].tolist())
+  view_override = ROOT_LOCUS_VIEW_OVERRIDES.get((prefix, side))
   ax.axhline(0, color='#9aa5b1', linewidth=0.8)
   ax.axvline(0, color='#9aa5b1', linewidth=0.8, linestyle='--')
   style_linear_axis(ax)
   ax.set_title(title, fontsize=11)
   ax.set_xlabel('实部')
   ax.set_ylabel('虚部')
+  if view_override is not None:
+    ax.set_xlim(*view_override[0])
+    ax.set_ylim(*view_override[1])
+    return
   anchor_x: list[float] = []
   anchor_y: list[float] = []
   if len(poles):
@@ -194,8 +204,14 @@ def plot_root_locus_panel(ax: plt.Axes, prefix: str, side: str, title: str) -> N
     y_min = min(anchor_y) if anchor_y else 0.0
     y_max = max(anchor_y) if anchor_y else 0.0
     x_span = max(0.5, x_max - x_min)
+    x_lower = x_min - 0.2 * x_span
+    x_upper = x_max + 0.2 * x_span
+    visible_y = [y for x, y in zip(xs, ys) if x_lower <= x <= x_upper]
+    if visible_y:
+      y_min = min(y_min, min(visible_y))
+      y_max = max(y_max, max(visible_y))
     y_span = max(0.5, y_max - y_min)
-    ax.set_xlim(x_min - 0.2 * x_span, x_max + 0.2 * x_span)
+    ax.set_xlim(x_lower, x_upper)
     ax.set_ylim(y_min - 0.2 * y_span, y_max + 0.2 * y_span)
   elif xs and ys:
     x_min, x_max = np.percentile(xs, [10, 90])

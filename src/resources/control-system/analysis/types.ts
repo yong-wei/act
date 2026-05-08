@@ -49,6 +49,8 @@ export interface RootLocusConfig {
   maxGain: number;
   samples: number;
   currentGain: number;
+  increment?: number;
+  samplingMode?: 'adaptive' | 'fixed';
 }
 
 export interface FeasibleRegionConfig {
@@ -118,6 +120,8 @@ export interface ComplexPoint {
 
 export interface RootLocusSamplePoint extends ComplexPoint {
   gain?: number;
+  branchId?: number;
+  sampleIndex?: number;
 }
 
 export interface StepResponseData {
@@ -132,9 +136,31 @@ export interface NyquistData {
   points: ComplexPoint[];
 }
 
+export interface RealAxisSegment {
+  start?: number;
+  end?: number;
+}
+
+export interface RootLocusAsymptote {
+  centroid: number;
+  angleDeg: number;
+}
+
+export interface RootLocusAngle {
+  point: ComplexPoint;
+  angleDeg: number;
+}
+
 export interface RootLocusData {
   branches: RootLocusSamplePoint[][];
   fullBranches?: RootLocusSamplePoint[][];
+  gains?: number[];
+  realAxisSegments?: RealAxisSegment[];
+  stationaryPoints?: RootLocusSamplePoint[];
+  asymptotes?: RootLocusAsymptote[];
+  imaginaryAxisCrossings?: RootLocusSamplePoint[];
+  departureAngles?: RootLocusAngle[];
+  arrivalAngles?: RootLocusAngle[];
   currentPoles: ComplexPoint[];
   openLoopPoles: ComplexPoint[];
   openLoopZeros: ComplexPoint[];

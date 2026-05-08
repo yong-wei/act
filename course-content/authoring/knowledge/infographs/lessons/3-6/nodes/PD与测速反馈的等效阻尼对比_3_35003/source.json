@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T04:04:22.682276Z",
+  "lesson": {
+    "lesson_id": "3-6",
+    "title": "零点作用与动态改善实验——从性能目标到校正设计",
+    "groups": [
+      "从 3-5 机理切到目标翻译",
+      "任务 A / B：时域目标驱动设计"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "PD与测速反馈的等效阻尼对比_3_35003",
+    "name": "PD与测速反馈的等效阻尼对比",
+    "name_en": "Equivalent-Damping Comparison Between PD and Rate Feedback",
+    "category": "方法性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "`PD` 校正和测速反馈都能通过微分比例系数提高二阶系统等效阻尼，但 `PD` 会显式在前向通道引入零点，测速反馈不会。",
+    "examples": [
+      "对于 G_p(s)=4/[s(s+0.8)]，当 K_d=K_t=0.3 时，二者都把阻尼比从 0.2 提升到 0.5，但 PD 的输入通道零点会让前段响应更积极。",
+      "测速反馈的根轨迹仍由实开环极点主导，不会像 PD 那样额外出现前向零点终点。"
+    ],
+    "formulas": [
+      "\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad \\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n"
+    ],
+    "keywords": [
+      "PD",
+      "测速反馈",
+      "输出微分反馈",
+      "等效阻尼",
+      "前向零点",
+      "3-5",
+      "阻尼"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/PD与测速反馈的等效阻尼对比_3_35003.md",
+  "card_frontmatter": {
+    "node_id": "PD与测速反馈的等效阻尼对比_3_35003",
+    "name": "PD与测速反馈的等效阻尼对比",
+    "name_en": "Equivalent-Damping Comparison Between PD and Rate Feedback",
+    "lesson_units": [
+      "3-5"
+    ],
+    "category": "方法性",
+    "knowledge_type": "C",
+    "chapter": "3",
+    "tags": [
+      "3-5",
+      "PD",
+      "测速反馈",
+      "阻尼"
+    ],
+    "card_version": "2",
+    "source_docs": [
+      "authoring/lessons/3-5/design/3-5-handout.md"
+    ],
+    "asset_refs": [
+      "3-5-md-01-pd-rate-structure.png",
+      "3-5-rl-03-pd-rate-compare.png"
+    ]
+  },
+  "card_overview": "# PD 与测速反馈的等效阻尼对比 | Equivalent-Damping Comparison Between PD and Rate Feedback\n\n**一句话定义**：`PD` 校正和测速反馈都能通过微分比例系数提高二阶系统等效阻尼，但 `PD` 会显式在前向通道引入零点，测速反馈不会。\n\n**核心直觉**：阻尼结果可以相似，结构来源与零点位置不能混同。\n\n**关键公式**：\n$$\n\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad\n\\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n\n$$\n\n**关联**：前置 → 左半平面零点的动态改善机理、阻尼比、自然频率 · 后续 → PD 与超前的频域整形差异",
+  "card_detail": "### 完整解释\n\n对 `3-5` 的比较对象\n$$\nG_p(s)=\\frac{4}{s(s+0.8)}\n$$\n当目标阻尼比从 $\\zeta=0.2$ 提高到 $\\zeta^\\star=0.5$ 时，`PD` 与测速反馈都可以通过\n$$\nK_d=K_t=\\frac{2(\\zeta^\\star-\\zeta)}{\\omega_n}=0.3\n$$\n达到相同的等效阻尼结果。\n\n但二者的闭环传递函数并不相同：`PD` 在参考输入通道显式引入零点，因此前段响应更积极；测速反馈则保持“单位负反馈外环 + 局部速度反馈”的结构，不额外增加前向零点。于是它们虽然都能把阻尼提上去，却仍会在根轨迹、时域前段和闭环频率特性上留下不同后果。\n\n### 常见误区\n\n1. **误区**：`PD` 和测速反馈都能减小振荡，所以只是名字不同。\n   **纠正**：它们的阻尼结果可能接近，但零点进入的位置和根轨迹骨架并不一样。\n\n2. **误区**：测速反馈等于“在前向通道里也放了一个微分器”。\n   **纠正**：测速反馈的关键是输出速度项反馈，而不是显式前向零点。",
+  "card_plain_excerpt": "## 首页\n\n# PD 与测速反馈的等效阻尼对比 | Equivalent-Damping Comparison Between PD and Rate Feedback\n\n**一句话定义**：`PD` 校正和测速反馈都能通过微分比例系数提高二阶系统等效阻尼，但 `PD` 会显式在前向通道引入零点，测速反馈不会。\n\n**核心直觉**：阻尼结果可以相似，结构来源与零点位置不能混同。\n\n**关键公式**：\n$$\n\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad\n\\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n\n$$\n\n**关联**：前置 → 左半平面零点的动态改善机理、阻尼比、自然频率 · 后续 → PD 与超前的频域整形差异\n\n## 详情\n\n### 完整解释\n\n对 `3-5` 的比较对象\n$$\nG_p(s)=\\frac{4}{s(s+0.8)}\n$$\n当目标阻尼比从 $\\zeta=0.2$ 提高到 $\\zeta^\\star=0.5$ 时，`PD` 与测速反馈都可以通过\n$$\nK_d=K_t=\\frac{2(\\zeta^\\star-\\zeta)}{\\omega_n}=0.3\n$$\n达到相同的等效阻尼结果。\n\n但二者的闭环传递函数并不相同：`PD` 在参考输入通道显式引入零点，因此前段响应更积极；测速反馈则保持“单位负反馈外环 + 局部速度反馈”的结构，不额外增加前向零点。于是它们虽然都能把阻尼提上去，却仍会在根轨迹、时域前段和闭环频率特性上留下不同后果。\n\n### 常见误区\n\n1. **误区**：`PD` 和测速反馈都能减小振荡，所以只是名字不同。\n   **纠正**：它们的阻尼结果可能接近，但零点进入的位置和根轨迹骨架并不一样。\n\n2. **误区**：测速反馈等于“在前向通道里也放了一个微分器”。\n   **纠正**：测速反馈的关键是输出速度项反馈，而不是显式前向零点。",
+  "core_intuition": "阻尼结果可以相似，结构来源与零点位置不能混同。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "PD与测速反馈的等效阻尼对比",
+      "relation": "contains",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "阻尼比",
+      "target_id": null,
+      "target": "PD与测速反馈的等效阻尼对比",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": null,
+      "target": "PD与超前的频域整形差异",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "自然频率",
+      "target_id": null,
+      "target": "PD与测速反馈的等效阻尼对比",
+      "relation": "leads_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": null,
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "PD与测速反馈的等效阻尼对比_3_35003",
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": "目标驱动测速反馈校正_3_36003",
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "上一课给出的结构差异在 3-6 中被推进为不同的设计抓手。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "PD与测速反馈的等效阻尼对比",
+        "PD",
+        "测速反馈",
+        "输出微分反馈",
+        "等效阻尼",
+        "前向零点",
+        "阻尼"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad \\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

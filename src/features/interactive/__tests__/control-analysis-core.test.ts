@@ -82,11 +82,20 @@ describe('control analysis core foundation', () => {
 
     expect(typeSource).toContain('export interface RootLocusSamplePoint extends ComplexPoint');
     expect(typeSource).toContain('gain?: number;');
+    expect(typeSource).toContain('branchId?: number;');
+    expect(typeSource).toContain('sampleIndex?: number;');
+    expect(typeSource).toContain("samplingMode?: 'adaptive' | 'fixed';");
+    expect(typeSource).toContain('increment?: number;');
     expect(typeSource).toContain("responseType?: 'step' | 'impulse' | 'ramp';");
     expect(typeSource).toContain('branches: RootLocusSamplePoint[][];');
     expect(typeSource).toContain('fullBranches?: RootLocusSamplePoint[][];');
+    expect(typeSource).toContain('gains?: number[];');
+    expect(typeSource).toContain('stationaryPoints?: RootLocusSamplePoint[];');
+    expect(typeSource).toContain('realAxisSegments?: RealAxisSegment[];');
+    expect(typeSource).toContain('asymptotes?: RootLocusAsymptote[];');
     expect(panelSource).toContain('point.gain');
     expect(panelSource).toContain('Gain K');
+    expect(panelSource).not.toContain('normalizeConjugateBranches');
   });
 
   it('supports a dedicated closed-pole handle variant for draggable closed-loop markers', () => {

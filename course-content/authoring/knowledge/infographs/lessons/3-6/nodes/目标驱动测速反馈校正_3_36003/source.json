@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T04:04:22.689084Z",
+  "lesson": {
+    "lesson_id": "3-6",
+    "title": "零点作用与动态改善实验——从性能目标到校正设计",
+    "groups": [
+      "任务 A / B：时域目标驱动设计"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "目标驱动测速反馈校正_3_36003",
+    "name": "目标驱动测速反馈校正",
+    "name_en": "Target-Driven Rate-Feedback Compensation",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "先把测速反馈写成拉普拉斯域控制量表达式，再通过等效开环极点位置和增益，把闭环主导极点推到目标区域。",
+    "examples": [
+      "先用 K_t 改变闭环分母一次项以改善阻尼，再调 K 调整速度，最后用阶跃响应验收。",
+      "即使达到与 PD 相近的超调目标，也不能把测速反馈写成“显式增零点”的结构。"
+    ],
+    "formulas": [
+      "U(s)=K E(s)-K_t sY(s), \\qquad T_v(s)=\\frac{4K}{s^2+(0.8+4K_t)s+4K}"
+    ],
+    "keywords": [
+      "测速反馈",
+      "拉普拉斯域",
+      "闭环分母",
+      "阻尼设计",
+      "时域设计"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/目标驱动测速反馈校正_3_36003.md",
+  "card_frontmatter": {
+    "node_id": "目标驱动测速反馈校正_3_36003",
+    "name": "目标驱动测速反馈校正",
+    "name_en": "Target-Driven Rate-Feedback Compensation",
+    "lesson_units": [
+      "3-6"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-6",
+      "测速反馈",
+      "时域设计"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-6/design/3-6-handout.md"
+    ],
+    "asset_refs": [
+      "3-6-pd-rate-structure.png",
+      "3-6-rate-feedback-design.png"
+    ]
+  },
+  "card_overview": "# 目标驱动测速反馈校正 | Target-Driven Rate-Feedback Compensation\n\n**一句话定义**：先把测速反馈写成拉普拉斯域控制量表达式，再通过等效开环极点位置和增益，把闭环主导极点推到目标区域。\n\n**核心直觉**：测速反馈的设计抓手是闭环分母与等效极点，不是前向零点位置。\n\n**关键公式**：\n$$\nU(s)=K E(s)-K_t sY(s),\n\\qquad\nT_v(s)=\\frac{4K}{s^2+(0.8+4K_t)s+4K}\n$$\n\n**关联**：前置 → 时域指标到目标极点区域、PD 与测速反馈的等效阻尼对比 · 后续 → 右半平面零点下的保守结构选择",
+  "card_detail": "### 完整解释\n\n测速反馈在 `3-6` 里先被改写成广义根轨迹问题：\n$$\n1+\\frac{4K}{s(s+0.8+4K_t)}=0.\n$$\n这一步把设计动作压缩成两个参数角色：\n\n- `K_t` 决定等效极点从 `-0.8` 往左移多少；\n- `K` 决定在该根轨迹骨架上选取哪个闭环点。\n\n![3-6 PD 与测速反馈结构对比](../../lessons/3-6/media/processed/3-6-pd-rate-structure.png)\n\n若继续沿用任务 A 的设计点\n$$\ns_d=-1.1\\pm j1.67,\n$$\n则需要先让闭环分母一次项达到 `2.2`，从而得到\n$$\nK_t=0.35.\n$$\n再在设计点处由模值条件求出\n$$\nK=1.00.\n$$\n\n![3-6 测速反馈时域设计图](../../lessons/3-6/media/processed/3-6-rate-feedback-design.png)\n\n最终验收显示，它能在不显式引入前向零点的情况下，同样完成时域指标达标。\n\n### 工程场景\n\n当设计重点是增加阻尼、减弱振荡或在局部反馈结构内完成动态改善时，测速反馈往往比直接在前向通道增零点更容易与原系统结构兼容。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 时域指标到目标极点区域 | 目标区域决定等效极点应移到哪里 |\n| 前置 | PD 与测速反馈的等效阻尼对比 | 说明它与 PD 的共同点和差异 |\n| 输出 | 目标驱动超前校正 | 下一步从时域设计转入频域设计 |\n\n### 常见误区\n\n1. **误区**：测速反馈只是把 `PD` 挪到另一条支路上。**纠正**：测速反馈的主作用是改变闭环分母一次项，并不在前向通道显式增加零点。\n2. **误区**：先调 `K` 再调 `K_t` 更直观。**纠正**：先定等效极点位置，才能让根轨迹骨架具备进入目标区域的可能。",
+  "card_plain_excerpt": "## 首页\n\n# 目标驱动测速反馈校正 | Target-Driven Rate-Feedback Compensation\n\n**一句话定义**：先把测速反馈写成拉普拉斯域控制量表达式，再通过等效开环极点位置和增益，把闭环主导极点推到目标区域。\n\n**核心直觉**：测速反馈的设计抓手是闭环分母与等效极点，不是前向零点位置。\n\n**关键公式**：\n$$\nU(s)=K E(s)-K_t sY(s),\n\\qquad\nT_v(s)=\\frac{4K}{s^2+(0.8+4K_t)s+4K}\n$$\n\n**关联**：前置 → 时域指标到目标极点区域、PD 与测速反馈的等效阻尼对比 · 后续 → 右半平面零点下的保守结构选择\n\n## 详情\n\n### 完整解释\n\n测速反馈在 `3-6` 里先被改写成广义根轨迹问题：\n$$\n1+\\frac{4K}{s(s+0.8+4K_t)}=0.\n$$\n这一步把设计动作压缩成两个参数角色：\n\n- `K_t` 决定等效极点从 `-0.8` 往左移多少；\n- `K` 决定在该根轨迹骨架上选取哪个闭环点。\n\n![3-6 PD 与测速反馈结构对比](../../lessons/3-6/media/processed/3-6-pd-rate-structure.png)\n\n若继续沿用任务 A 的设计点\n$$\ns_d=-1.1\\pm j1.67,\n$$\n则需要先让闭环分母一次项达到 `2.2`，从而得到\n$$\nK_t=0.35.\n$$\n再在设计点处由模值条件求出\n$$\nK=1.00.\n$$\n\n![3-6 测速反馈时域设计图](../../lessons/3-6/media/processed/3-6-rate-feedback-design.png)\n\n最终验收显示，它能在不显式引入前向零点的情况下，同样完成时域指标达标。\n\n### 工程场景\n\n当设计重点是增加阻尼、减弱振荡或在局部反馈结构内完成动态改善时，测速反馈往往比直接在前向通道增零点更容易与原系统结构兼容。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 时域指标到目标极点区域 | 目标区域决定等效极点应移到哪里 |\n| 前置 | PD 与测速反馈的等效阻尼对比 | 说明它与 PD 的共同点和差异 |\n| 输出 | 目标驱动超前校正 | 下一步从时域设计转入频域设计 |\n\n### 常见误区\n\n1. **误区**：测速反馈只是把 `PD` 挪到另一条支路上。**纠正**：测速反馈的主作用是改变闭环分母一次项，并不在前向通道显式增加零点。\n2. **误区**：先调 `K` 再调 `K_t` 更直观。**纠正**：先定等效极点位置，才能让根轨迹骨架具备进入目标区域的可能。",
+  "core_intuition": "测速反馈的设计抓手是闭环分母与等效极点，不是前向零点位置。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "时域指标到目标极点区域",
+      "target_id": null,
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "目标驱动PD校正",
+      "target_id": null,
+      "target": "目标驱动测速反馈校正",
+      "relation": "related",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": null,
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "时域指标到目标极点区域_3_36001",
+      "source": "时域指标到目标极点区域",
+      "target_id": "目标驱动测速反馈校正_3_36003",
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "测速反馈虽然不显式增零点，但同样要围绕时域指标建立设计目标。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "PD与测速反馈的等效阻尼对比_3_35003",
+      "source": "PD与测速反馈的等效阻尼对比",
+      "target_id": "目标驱动测速反馈校正_3_36003",
+      "target": "目标驱动测速反馈校正",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "上一课给出的结构差异在 3-6 中被推进为不同的设计抓手。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "目标驱动PD校正_3_36002",
+      "source": "目标驱动PD校正",
+      "target_id": "目标驱动测速反馈校正_3_36003",
+      "target": "目标驱动测速反馈校正",
+      "relation": "related",
+      "strength": 0.84,
+      "description": "两者都服务时域目标，但前者抓零点位置，后者抓闭环分母系数。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "目标驱动测速反馈校正",
+        "测速反馈",
+        "拉普拉斯域",
+        "闭环分母",
+        "阻尼设计",
+        "时域设计"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "U(s)=K E(s)-K_t sY(s), \\qquad T_v(s)=\\frac{4K}{s^2+(0.8+4K_t)s+4K}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

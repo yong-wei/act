@@ -18,60 +18,22 @@
     "右半平面零点可行性边界_3_36005"
   ],
   "accepted_infographs": [
+    "零点引入与根轨迹重排_3_35001",
     "左半平面零点的动态改善机理_3_35002",
     "主导极点_3_4c4c6bbd",
-    "目标驱动PD校正_3_36002",
-    "相角裕度_5_5a74b451",
-    "带宽_5_6730fda4",
-    "目标驱动超前校正_3_36004",
-    "非最小相与右半平面零点_3_35005"
-  ],
-  "missing_infographs": [
-    "零点引入与根轨迹重排_3_35001",
     "时域指标到目标极点区域_3_36001",
+    "目标驱动PD校正_3_36002",
     "PD与测速反馈的等效阻尼对比_3_35003",
     "目标驱动测速反馈校正_3_36003",
     "PD与超前的频域整形差异_3_35004",
+    "相角裕度_5_5a74b451",
+    "带宽_5_6730fda4",
+    "目标驱动超前校正_3_36004",
+    "非最小相与右半平面零点_3_35005",
     "右半平面零点可行性边界_3_36005"
   ],
-  "missing_source_files": {
-    "零点引入与根轨迹重排_3_35001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "时域指标到目标极点区域_3_36001": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "PD与测速反馈的等效阻尼对比_3_35003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "目标驱动测速反馈校正_3_36003": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "PD与超前的频域整形差异_3_35004": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ],
-    "右半平面零点可行性边界_3_36005": [
-      "source.json",
-      "prompt.md",
-      "generation.json",
-      "review.json"
-    ]
-  },
+  "missing_infographs": [],
+  "missing_source_files": {},
   "pending_review": [],
   "broken_review_files": {}
 }

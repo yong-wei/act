@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T04:07:56.019523Z",
+  "lesson_id": "3-6",
+  "node_id": "零点引入与根轨迹重排_3_35001",
+  "requested_node_id": "零点引入与根轨迹重排_3_35001",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019e05c0-663b-7393-b250-2e55ea81bf30/ig_0591af661378c7da0169fd60e7f7d88199a0f6d438cc7e6567.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/3-6/nodes/零点引入与根轨迹重排_3_35001/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/3-6/nodes/零点引入与根轨迹重排_3_35001/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/3-6/nodes/零点引入与根轨迹重排_3_35001/source.json"
+}
