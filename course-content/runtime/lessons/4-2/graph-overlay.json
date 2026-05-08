@@ -1,14 +1,16 @@
 {
   "lesson_id": "4-2",
-  "title": "控制器选型原理：不同控制结构为何适合不同任务",
+  "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
   "focus_node_ids": [
-    "单结构首轮起步卡_4_42001",
-    "结构工具箱最小语义_4_42002",
-    "主矛盾到频段职责映射_4_42003",
-    "结构作用点与代价来源对照_4_42004",
+    "控制器频域特性矩阵_4_42008",
+    "结构选型决策树_4_42009",
+    "频域PI与滞后整定_4_42010",
+    "频域PD与超前整定_4_42011",
+    "临界比例PID整定_4_42012",
+    "IMC_SIMC与模型匹配整定_4_42013",
     "反馈保底与前馈补偿边界_4_42005",
-    "按输入补偿前馈的无差度提升_4_42006",
-    "按扰动补偿前馈的对消条件_4_42007"
+    "客船候选结构整定比较_4_42014",
+    "单结构整定四类复核量_4_42015"
   ],
   "reuse_node_ids": [
     "设计任务表达卡_4_41001",
@@ -19,39 +21,43 @@
     "三频段闭环性能回读_3_38003",
     "相角裕度_5_5a74b451",
     "带宽频率_5_6996a44a",
-    "幅值裕度_5_73af26a5"
-  ],
-  "entry_nodes": [
-    "结构工具箱最小语义_4_42002",
-    "主矛盾到频段职责映射_4_42003"
-  ],
-  "summary_nodes": [
-    "单结构首轮起步卡_4_42001",
-    "反馈保底与前馈补偿边界_4_42005",
-    "按输入补偿前馈的无差度提升_4_42006",
-    "按扰动补偿前馈的对消条件_4_42007"
-  ],
-  "card_order": [
-    "设计任务表达卡_4_41001",
-    "低频补偿稳态改善路径_3_37003",
-    "积分与滞后的稳态改善分工_3_39003",
-    "目标驱动PD校正_3_36002",
-    "目标驱动超前校正_3_36004",
-    "三频段闭环性能回读_3_38003",
-    "相角裕度_5_5a74b451",
-    "带宽频率_5_6996a44a",
     "幅值裕度_5_73af26a5",
+    "单结构首轮起步卡_4_42001",
     "结构工具箱最小语义_4_42002",
     "主矛盾到频段职责映射_4_42003",
     "结构作用点与代价来源对照_4_42004",
+    "按输入补偿前馈的无差度提升_4_42006",
+    "按扰动补偿前馈的对消条件_4_42007"
+  ],
+  "entry_nodes": [
+    "控制器频域特性矩阵_4_42008",
+    "结构选型决策树_4_42009"
+  ],
+  "summary_nodes": [
+    "客船候选结构整定比较_4_42014",
+    "单结构整定四类复核量_4_42015",
+    "反馈保底与前馈补偿边界_4_42005"
+  ],
+  "card_order": [
+    "设计任务表达卡_4_41001",
+    "控制器频域特性矩阵_4_42008",
+    "结构工具箱最小语义_4_42002",
+    "主矛盾到频段职责映射_4_42003",
+    "结构选型决策树_4_42009",
+    "频域PI与滞后整定_4_42010",
+    "频域PD与超前整定_4_42011",
+    "临界比例PID整定_4_42012",
+    "IMC_SIMC与模型匹配整定_4_42013",
     "反馈保底与前馈补偿边界_4_42005",
     "按输入补偿前馈的无差度提升_4_42006",
     "按扰动补偿前馈的对消条件_4_42007",
+    "客船候选结构整定比较_4_42014",
+    "单结构整定四类复核量_4_42015",
     "单结构首轮起步卡_4_42001"
   ],
   "groups": [
     {
-      "group_name": "入口边界与判断链",
+      "group_name": "入口目标与前置基础",
       "step_ids": [
         "step-01",
         "step-02",
@@ -59,73 +65,68 @@
       ],
       "node_ids": [
         "设计任务表达卡_4_41001",
-        "结构工具箱最小语义_4_42002"
-      ]
-    },
-    {
-      "group_name": "工具箱与代价链",
-      "step_ids": [
-        "step-04",
-        "step-05"
-      ],
-      "node_ids": [
-        "结构工具箱最小语义_4_42002",
-        "主矛盾到频段职责映射_4_42003",
-        "结构作用点与代价来源对照_4_42004"
-      ]
-    },
-    {
-      "group_name": "客船案例与低频起步",
-      "step_ids": [
-        "step-06",
-        "step-07"
-      ],
-      "node_ids": [
-        "低频补偿稳态改善路径_3_37003",
-        "积分与滞后的稳态改善分工_3_39003",
         "主矛盾到频段职责映射_4_42003"
       ]
     },
     {
-      "group_name": "平台案例与中频起步",
+      "group_name": "结构选型与整定方法",
       "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
         "step-08",
-        "step-09"
+        "step-09",
+        "step-10"
       ],
       "node_ids": [
-        "目标驱动PD校正_3_36002",
-        "目标驱动超前校正_3_36004",
-        "主矛盾到频段职责映射_4_42003",
-        "结构作用点与代价来源对照_4_42004"
+        "控制器频域特性矩阵_4_42008",
+        "结构工具箱最小语义_4_42002",
+        "结构作用点与代价来源对照_4_42004",
+        "结构选型决策树_4_42009",
+        "IMC_SIMC与模型匹配整定_4_42013",
+        "按输入补偿前馈的无差度提升_4_42006"
       ]
     },
     {
-      "group_name": "前馈双路径",
+      "group_name": "分结构整定例题",
       "step_ids": [
-        "step-10",
-        "step-11"
-      ],
-      "node_ids": [
-        "反馈保底与前馈补偿边界_4_42005",
-        "按输入补偿前馈的无差度提升_4_42006",
-        "按扰动补偿前馈的对消条件_4_42007"
-      ]
-    },
-    {
-      "group_name": "起步卡与收束",
-      "step_ids": [
+        "step-11",
         "step-12",
         "step-13",
-        "step-14"
+        "step-14",
+        "step-15"
       ],
       "node_ids": [
-        "结构工具箱最小语义_4_42002",
-        "主矛盾到频段职责映射_4_42003",
-        "结构作用点与代价来源对照_4_42004",
-        "反馈保底与前馈补偿边界_4_42005",
-        "按输入补偿前馈的无差度提升_4_42006",
+        "频域PI与滞后整定_4_42010",
+        "频域PD与超前整定_4_42011",
+        "临界比例PID整定_4_42012",
         "按扰动补偿前馈的对消条件_4_42007",
+        "反馈保底与前馈补偿边界_4_42005"
+      ]
+    },
+    {
+      "group_name": "客船整定比较与起步卡",
+      "step_ids": [
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "node_ids": [
+        "客船候选结构整定比较_4_42014",
+        "单结构整定四类复核量_4_42015",
         "单结构首轮起步卡_4_42001"
+      ]
+    },
+    {
+      "group_name": "后测与总结",
+      "step_ids": [
+        "step-19",
+        "step-20"
+      ],
+      "node_ids": [
+        "单结构整定四类复核量_4_42015",
+        "结构作用点与代价来源对照_4_42004"
       ]
     }
   ],
@@ -528,12 +529,162 @@
       ]
     },
     {
+      "id": "IMC_SIMC与模型匹配整定_4_42013",
+      "name": "IMC/SIMC 与模型匹配整定",
+      "nodeType": "THEORY",
+      "description": "当对象模型足够清楚时，用目标闭环极点、IMC/SIMC 闭环时间常数或逆模型思想给出控制器参数初值。",
+      "positionX": -112.0,
+      "positionY": 30.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "当对象模型足够清楚时，用目标闭环极点、IMC/SIMC 闭环时间常数或逆模型思想给出控制器参数初值。",
+        "examples": [
+          "一阶惯性加纯滞后对象可用 \\(K_p=\\tau/[K(\\lambda+L)]\\)、\\(T_i=\\min\\{\\tau,4(\\lambda+L)\\}\\) 得到 PI 初值。"
+        ],
+        "formulas": [
+          "K_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}"
+        ],
+        "prerequisites": [
+          "传递函数_1_5b0faf8b",
+          "控制器频域特性矩阵_4_42008"
+        ],
+        "relatedConcepts": [
+          "频域PI与滞后整定_4_42010",
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "IMC",
+          "SIMC",
+          "模型匹配",
+          "极点配置",
+          "闭环时间常数"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+          "title": "IMC/SIMC 与模型匹配整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "IMC_SIMC与模型匹配整定_4_42013",
+          "sourceNodeId": "IMC_SIMC与模型匹配整定_4_42013"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/IMC_SIMC与模型匹配整定_4_42013.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+          "title": "IMC/SIMC 与模型匹配整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "IMC_SIMC与模型匹配整定_4_42013",
+          "sourceNodeId": "IMC_SIMC与模型匹配整定_4_42013"
+        }
+      ],
+      "tags": [
+        "IMC",
+        "SIMC",
+        "模型匹配",
+        "极点配置",
+        "闭环时间常数",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "临界比例PID整定_4_42012",
+      "name": "临界比例 PID 整定",
+      "nodeType": "THEORY",
+      "description": "通过比例控制下的等幅振荡试验获得临界增益 \\(K_u\\) 和临界周期 \\(P_u\\)，再按 Ziegler-Nichols 等表格给出 `P/PI/PID` 参数初值。",
+      "positionX": -58.0,
+      "positionY": -100.5,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "通过比例控制下的等幅振荡试验获得临界增益 \\(K_u\\) 和临界周期 \\(P_u\\)，再按 Ziegler-Nichols 等表格给出 `P/PI/PID` 参数初值。",
+        "examples": [
+          "若试验得到 \\(K_u=8\\)、\\(P_u=4s\\)，Ziegler-Nichols PID 给出 \\(K_p=4.8\\)、\\(T_i=2s\\)、\\(T_d=0.5s\\)。"
+        ],
+        "formulas": [
+          "K_p=0.6K_u,\\quad T_i=\\frac{P_u}{2},\\quad T_d=\\frac{P_u}{8}"
+        ],
+        "prerequisites": [
+          "控制器频域特性矩阵_4_42008"
+        ],
+        "relatedConcepts": [
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "Ziegler-Nichols",
+          "PID",
+          "临界增益",
+          "临界周期",
+          "整定表"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+          "title": "临界比例 PID 整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "临界比例PID整定_4_42012",
+          "sourceNodeId": "临界比例PID整定_4_42012"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/临界比例PID整定_4_42012.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+          "title": "临界比例 PID 整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "临界比例PID整定_4_42012",
+          "sourceNodeId": "临界比例PID整定_4_42012"
+        }
+      ],
+      "tags": [
+        "Ziegler-Nichols",
+        "PID",
+        "临界增益",
+        "临界周期",
+        "整定表",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "主矛盾到频段职责映射_4_42003",
       "name": "主矛盾到频段职责映射",
       "nodeType": "THEORY",
       "description": "按照“先识别主矛盾，再判断它主要落在低频、中频、高频还是给定/扰动通道”的顺序，把任务表达卡转成结构筛选的输入。",
-      "positionX": -58.0,
-      "positionY": -100.5,
+      "positionX": -0.0,
+      "positionY": -116.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -606,12 +757,89 @@
       ]
     },
     {
+      "id": "单结构整定四类复核量_4_42015",
+      "name": "单结构整定四类复核量",
+      "nodeType": "THEORY",
+      "description": "单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量，避免只凭一个指标宣布结构有效。",
+      "positionX": 0.0,
+      "positionY": 122.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量，避免只凭一个指标宣布结构有效。",
+        "examples": [
+          "客船案例中超前降低超调最明显，但仍要复核低频灵敏度和控制量峰值；滞后改善低频灵敏度，却牺牲动态品质。"
+        ],
+        "formulas": [
+          "\\text{复核}=(\\text{step},\\text{disturbance},PM,u_{peak})"
+        ],
+        "prerequisites": [
+          "结构选型决策树_4_42009",
+          "相角裕度_5_5a74b451",
+          "幅值裕度_5_73af26a5"
+        ],
+        "relatedConcepts": [
+          "单结构首轮起步卡_4_42001",
+          "客船候选结构整定比较_4_42014"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "复核",
+          "阶跃响应",
+          "扰动响应",
+          "相角裕度",
+          "控制量"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+          "title": "单结构整定四类复核量 信息图",
+          "lessonId": "4-2",
+          "nodeId": "单结构整定四类复核量_4_42015",
+          "sourceNodeId": "单结构整定四类复核量_4_42015"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/单结构整定四类复核量_4_42015.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+          "title": "单结构整定四类复核量 信息图",
+          "lessonId": "4-2",
+          "nodeId": "单结构整定四类复核量_4_42015",
+          "sourceNodeId": "单结构整定四类复核量_4_42015"
+        }
+      ],
+      "tags": [
+        "复核",
+        "阶跃响应",
+        "扰动响应",
+        "相角裕度",
+        "控制量",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "单结构首轮起步卡_4_42001",
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": 61.0,
-      "positionY": 105.7,
+      "positionX": -31.6,
+      "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -686,8 +914,8 @@
       "name": "反馈保底与前馈补偿边界",
       "nodeType": "THEORY",
       "description": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
-      "positionX": -61.0,
-      "positionY": 105.7,
+      "positionX": -117.8,
+      "positionY": 31.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -756,12 +984,88 @@
       ]
     },
     {
+      "id": "客船候选结构整定比较_4_42014",
+      "name": "客船候选结构整定比较",
+      "nodeType": "THEORY",
+      "description": "以客船航向控制对象为案例，比较基准 `P`、滞后、`PI`、超前和超前-滞后的 Bode、阶跃响应、扰动响应、低频灵敏度和控制量。",
+      "positionX": -0.0,
+      "positionY": -122.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "FACTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "事实性",
+        "bloom_level": "评价",
+        "definition": "以客船航向控制对象为案例，比较基准 `P`、滞后、`PI`、超前和超前-滞后的 Bode、阶跃响应、扰动响应、低频灵敏度和控制量。",
+        "examples": [
+          "超前显著降低超调并提高相角裕度，但控制量峰值和低频抗扰需复核；滞后改善低频灵敏度，却让超调和调节时间变差。"
+        ],
+        "formulas": [
+          "G_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}"
+        ],
+        "prerequisites": [
+          "结构选型决策树_4_42009",
+          "频域PI与滞后整定_4_42010",
+          "频域PD与超前整定_4_42011"
+        ],
+        "relatedConcepts": [
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "客船航向控制",
+          "候选结构",
+          "Bode",
+          "扰动响应",
+          "控制量"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+          "title": "客船候选结构整定比较 信息图",
+          "lessonId": "4-2",
+          "nodeId": "客船候选结构整定比较_4_42014",
+          "sourceNodeId": "客船候选结构整定比较_4_42014"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/客船候选结构整定比较_4_42014.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+          "title": "客船候选结构整定比较 信息图",
+          "lessonId": "4-2",
+          "nodeId": "客船候选结构整定比较_4_42014",
+          "sourceNodeId": "客船候选结构整定比较_4_42014"
+        }
+      ],
+      "tags": [
+        "客船航向控制",
+        "候选结构",
+        "Bode",
+        "扰动响应",
+        "控制量",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "按扰动补偿前馈的对消条件_4_42007",
       "name": "按扰动补偿前馈的对消条件",
       "nodeType": "THEORY",
       "description": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
-      "positionX": 128.0,
-      "positionY": 0.0,
+      "positionX": 64.0,
+      "positionY": 110.9,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -835,8 +1139,8 @@
       "name": "按输入补偿前馈的无差度提升",
       "nodeType": "THEORY",
       "description": "当给定变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差或提高等效无差度；工程上更常追求误差显著减小，而不是机械追求全补偿。",
-      "positionX": 123.6,
-      "positionY": 33.1,
+      "positionX": 33.1,
+      "positionY": 123.6,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -905,12 +1209,88 @@
       ]
     },
     {
+      "id": "控制器频域特性矩阵_4_42008",
+      "name": "控制器频域特性矩阵",
+      "nodeType": "THEORY",
+      "description": "把 `PI/PD/PID/超前/滞后/超前-滞后` 放在同一 Bode 坐标中比较，说明每类结构首先改变低频增益、中频相位、截止频率还是高频增益。",
+      "positionX": 0.0,
+      "positionY": 128.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把 `PI/PD/PID/超前/滞后/超前-滞后` 放在同一 Bode 坐标中比较，说明每类结构首先改变低频增益、中频相位、截止频率还是高频增益。",
+        "examples": [
+          "`PI` 在低频端抬升幅值，服务静差和慢扰动；超前在目标频段附近提供正相位，服务相角裕度和超调。"
+        ],
+        "formulas": [
+          "L(s)=C(s)G(s)"
+        ],
+        "prerequisites": [
+          "设计任务表达卡_4_41001",
+          "三频段闭环性能回读_3_38003"
+        ],
+        "relatedConcepts": [
+          "结构工具箱最小语义_4_42002",
+          "结构作用点与代价来源对照_4_42004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "Bode",
+          "频域特性",
+          "控制结构",
+          "相位",
+          "幅值"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+          "title": "控制器频域特性矩阵 信息图",
+          "lessonId": "4-2",
+          "nodeId": "控制器频域特性矩阵_4_42008",
+          "sourceNodeId": "控制器频域特性矩阵_4_42008"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/控制器频域特性矩阵_4_42008.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+          "title": "控制器频域特性矩阵 信息图",
+          "lessonId": "4-2",
+          "nodeId": "控制器频域特性矩阵_4_42008",
+          "sourceNodeId": "控制器频域特性矩阵_4_42008"
+        }
+      ],
+      "tags": [
+        "Bode",
+        "频域特性",
+        "控制结构",
+        "相位",
+        "幅值",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "结构作用点与代价来源对照_4_42004",
       "name": "结构作用点与代价来源对照",
       "nodeType": "THEORY",
       "description": "说明每一类单结构为什么会优先改善某一段行为，以及这种改善为什么必然在储备、速度、噪声或复杂度上暴露相应代价。",
-      "positionX": 0.0,
-      "positionY": 134.0,
+      "positionX": -129.4,
+      "positionY": 34.7,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -988,8 +1368,8 @@
       "name": "结构工具箱最小语义",
       "nodeType": "THEORY",
       "description": "把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重新组织为“建立基本闭环、补低频能力、改中频动态品质、隔离给定/扰动通道”四类最小结构语义。",
-      "positionX": -67.0,
-      "positionY": 116.0,
+      "positionX": -129.4,
+      "positionY": -34.7,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -1062,12 +1442,85 @@
       ]
     },
     {
+      "id": "结构选型决策树_4_42009",
+      "name": "结构选型决策树",
+      "nodeType": "THEORY",
+      "description": "按照“任务证据 -> 低频/中频/通道/边界 -> 候选结构 -> 整定入口 -> 复核量”的顺序，把控制器选择变成可追踪的设计动作。",
+      "positionX": -94.8,
+      "positionY": -94.8,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "按照“任务证据 -> 低频/中频/通道/边界 -> 候选结构 -> 整定入口 -> 复核量”的顺序，把控制器选择变成可追踪的设计动作。",
+        "examples": [
+          "稳态误差和慢扰动优先检查 `PI` 或滞后；相角裕度不足优先检查 `PD`、测速反馈或超前；扰动可测时前馈作为补偿通道加入。"
+        ],
+        "formulas": [
+          "\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}\\rightarrow\\text{整定入口}"
+        ],
+        "prerequisites": [
+          "控制器频域特性矩阵_4_42008",
+          "主矛盾到频段职责映射_4_42003"
+        ],
+        "relatedConcepts": [
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "决策树",
+          "选型",
+          "任务证据",
+          "候选结构"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+          "title": "结构选型决策树 信息图",
+          "lessonId": "4-2",
+          "nodeId": "结构选型决策树_4_42009",
+          "sourceNodeId": "结构选型决策树_4_42009"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构选型决策树_4_42009.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+          "title": "结构选型决策树 信息图",
+          "lessonId": "4-2",
+          "nodeId": "结构选型决策树_4_42009",
+          "sourceNodeId": "结构选型决策树_4_42009"
+        }
+      ],
+      "tags": [
+        "决策树",
+        "选型",
+        "任务证据",
+        "候选结构",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "设计任务表达卡_4_41001",
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -129.4,
-      "positionY": -34.7,
+      "positionX": 34.7,
+      "positionY": -129.4,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -1138,12 +1591,166 @@
       ]
     },
     {
+      "id": "频域PD与超前整定_4_42011",
+      "name": "频域 PD 与超前整定",
+      "nodeType": "THEORY",
+      "description": "围绕相角裕度、阻尼和超调问题，把 `PD` 或超前校正的相位补偿需求转成 \\(T_d\\) 或 \\(\\alpha,T,K_c\\) 的初算步骤。",
+      "positionX": -70.0,
+      "positionY": -121.2,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "围绕相角裕度、阻尼和超调问题，把 `PD` 或超前校正的相位补偿需求转成 \\(T_d\\) 或 \\(\\alpha,T,K_c\\) 的初算步骤。",
+        "examples": [
+          "超前校正先由目标相角裕度计算所需补偿，再用 \\(\\alpha=(1-\\sin\\phi_{max})/(1+\\sin\\phi_{max})\\) 和 \\(T=1/(\\omega_c\\sqrt{\\alpha})\\) 放置最大相位超前点。"
+        ],
+        "formulas": [
+          "C_{PD}(s)=K_p\\left(1+\\frac{T_d s}{1+\\frac{T_d}{N}s}\\right)",
+          "C_{lead}(s)=K_c\\frac{Ts+1}{\\alpha Ts+1}"
+        ],
+        "prerequisites": [
+          "目标驱动PD校正_3_36002",
+          "目标驱动超前校正_3_36004",
+          "相角裕度_5_5a74b451"
+        ],
+        "relatedConcepts": [
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "PD",
+          "超前",
+          "相角裕度",
+          "相位补偿",
+          "高频噪声"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+          "title": "频域 PD 与超前整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "频域PD与超前整定_4_42011",
+          "sourceNodeId": "频域PD与超前整定_4_42011"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频域PD与超前整定_4_42011.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+          "title": "频域 PD 与超前整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "频域PD与超前整定_4_42011",
+          "sourceNodeId": "频域PD与超前整定_4_42011"
+        }
+      ],
+      "tags": [
+        "PD",
+        "超前",
+        "相角裕度",
+        "相位补偿",
+        "高频噪声",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "频域PI与滞后整定_4_42010",
+      "name": "频域 PI 与滞后整定",
+      "nodeType": "THEORY",
+      "description": "围绕低频能力不足，把 `PI` 零点、滞后零极点、目标截止频率和稳态误差改善倍数转成参数初算步骤。",
+      "positionX": -36.2,
+      "positionY": -135.2,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "围绕低频能力不足，把 `PI` 零点、滞后零极点、目标截止频率和稳态误差改善倍数转成参数初算步骤。",
+        "examples": [
+          "频域 `PI` 可先取 \\(\\omega_z=\\omega_c/5\\sim\\omega_c/10\\)，再由 \\(|C_{PI}(j\\omega_c)G(j\\omega_c)|=1\\) 求 \\(K_p\\)。"
+        ],
+        "formulas": [
+          "C_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right)",
+          "C_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}"
+        ],
+        "prerequisites": [
+          "低频补偿稳态改善路径_3_37003",
+          "积分与滞后的稳态改善分工_3_39003",
+          "控制器频域特性矩阵_4_42008"
+        ],
+        "relatedConcepts": [
+          "单结构整定四类复核量_4_42015"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "PI",
+          "滞后",
+          "低频增益",
+          "稳态误差",
+          "截止频率"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+          "title": "频域 PI 与滞后整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "频域PI与滞后整定_4_42010",
+          "sourceNodeId": "频域PI与滞后整定_4_42010"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频域PI与滞后整定_4_42010.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+          "title": "频域 PI 与滞后整定 信息图",
+          "lessonId": "4-2",
+          "nodeId": "频域PI与滞后整定_4_42010",
+          "sourceNodeId": "频域PI与滞后整定_4_42010"
+        }
+      ],
+      "tags": [
+        "PI",
+        "滞后",
+        "低频增益",
+        "稳态误差",
+        "截止频率",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "带宽频率_5_6996a44a",
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 83.0,
-      "positionY": 143.8,
+      "positionX": -166.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1214,8 +1821,8 @@
       "name": "幅值裕度",
       "nodeType": "THEORY",
       "description": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
-      "positionX": 43.0,
-      "positionY": 160.3,
+      "positionX": -160.3,
+      "positionY": -43.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1281,7 +1888,7 @@
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
-      "positionX": -149.0,
+      "positionX": 149.0,
       "positionY": -86.0,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
@@ -1555,6 +2162,190 @@
       "relation": "prerequisite",
       "relationType": "prerequisite",
       "strength": 0.97
+    },
+    {
+      "id": "rel-b07eb6ecfb151711",
+      "sourceId": "设计任务表达卡_4_41001",
+      "targetId": "控制器频域特性矩阵_4_42008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-f853360a57d0685d",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "控制器频域特性矩阵_4_42008",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-80b03a3380fabdd3",
+      "sourceId": "控制器频域特性矩阵_4_42008",
+      "targetId": "结构工具箱最小语义_4_42002",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-c0d4ce4265b149be",
+      "sourceId": "控制器频域特性矩阵_4_42008",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-7fed8ae63db93280",
+      "sourceId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "结构选型决策树_4_42009",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-f60ad592aa9651df",
+      "sourceId": "控制器频域特性矩阵_4_42008",
+      "targetId": "结构选型决策树_4_42009",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-faec7fbda080c9a7",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "频域PI与滞后整定_4_42010",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-1977d75aac52e2de",
+      "sourceId": "积分与滞后的稳态改善分工_3_39003",
+      "targetId": "频域PI与滞后整定_4_42010",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-781b5d504b4fbbd4",
+      "sourceId": "结构选型决策树_4_42009",
+      "targetId": "频域PI与滞后整定_4_42010",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.91
+    },
+    {
+      "id": "rel-69067dba4c7cb82e",
+      "sourceId": "目标驱动PD校正_3_36002",
+      "targetId": "频域PD与超前整定_4_42011",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-7d7c42a6a64bd86e",
+      "sourceId": "目标驱动超前校正_3_36004",
+      "targetId": "频域PD与超前整定_4_42011",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-342a53230cee07d4",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "频域PD与超前整定_4_42011",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-2cbe789fa932fbf5",
+      "sourceId": "结构选型决策树_4_42009",
+      "targetId": "频域PD与超前整定_4_42011",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-4b93e231d3407787",
+      "sourceId": "控制器频域特性矩阵_4_42008",
+      "targetId": "临界比例PID整定_4_42012",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-f992a25014c47dc3",
+      "sourceId": "结构选型决策树_4_42009",
+      "targetId": "临界比例PID整定_4_42012",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-47b75a226dbb8659",
+      "sourceId": "频域PI与滞后整定_4_42010",
+      "targetId": "IMC_SIMC与模型匹配整定_4_42013",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-396f115419afa69c",
+      "sourceId": "频域PI与滞后整定_4_42010",
+      "targetId": "客船候选结构整定比较_4_42014",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-69b64b76bad1eaf5",
+      "sourceId": "频域PD与超前整定_4_42011",
+      "targetId": "客船候选结构整定比较_4_42014",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-4a245e50b901aeb7",
+      "sourceId": "结构选型决策树_4_42009",
+      "targetId": "客船候选结构整定比较_4_42014",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.91
+    },
+    {
+      "id": "rel-86524f53e9811775",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "单结构整定四类复核量_4_42015",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-54c490b04c78a36b",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "单结构整定四类复核量_4_42015",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-69cecc605e57df38",
+      "sourceId": "客船候选结构整定比较_4_42014",
+      "targetId": "单结构整定四类复核量_4_42015",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-4196a15a875a4c42",
+      "sourceId": "单结构整定四类复核量_4_42015",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
     }
   ]
 }

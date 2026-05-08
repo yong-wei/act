@@ -3,6 +3,15 @@
   "items": [
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
+      "title": "IMC/SIMC 与模型匹配整定 信息图",
+      "lessonId": "4-2",
+      "nodeId": "IMC_SIMC与模型匹配整定_4_42013",
+      "sourceNodeId": "IMC_SIMC与模型匹配整定_4_42013"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
       "title": "MASS协同链路 信息图",
@@ -90,6 +99,15 @@
       "lessonId": "3-9",
       "nodeId": "串联无源滞后校正_6_2a52e865",
       "sourceNodeId": "串联无源滞后校正_6_2a52e865"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/临界比例PID整定_4_42012.png",
+      "title": "临界比例 PID 整定 信息图",
+      "lessonId": "4-2",
+      "nodeId": "临界比例PID整定_4_42012",
+      "sourceNodeId": "临界比例PID整定_4_42012"
     },
     {
       "type": "infograph",
@@ -228,6 +246,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/单结构整定四类复核量_4_42015.png",
+      "title": "单结构整定四类复核量 信息图",
+      "lessonId": "4-2",
+      "nodeId": "单结构整定四类复核量_4_42015",
+      "sourceNodeId": "单结构整定四类复核量_4_42015"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/单结构首轮起步卡_4_42001.png",
       "title": "单结构首轮起步卡 信息图",
@@ -342,6 +369,15 @@
       "lessonId": "3-8",
       "nodeId": "奈奎斯特稳定判据_5_a1b34560",
       "sourceNodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/客船候选结构整定比较_4_42014.png",
+      "title": "客船候选结构整定比较 信息图",
+      "lessonId": "4-2",
+      "nodeId": "客船候选结构整定比较_4_42014",
+      "sourceNodeId": "客船候选结构整定比较_4_42014"
     },
     {
       "type": "infograph",
@@ -504,6 +540,15 @@
       "lessonId": "4-2",
       "nodeId": "按输入补偿前馈的无差度提升_4_42006",
       "sourceNodeId": "按输入补偿前馈的无差度提升_4_42006"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/控制器频域特性矩阵_4_42008.png",
+      "title": "控制器频域特性矩阵 信息图",
+      "lessonId": "4-2",
+      "nodeId": "控制器频域特性矩阵_4_42008",
+      "sourceNodeId": "控制器频域特性矩阵_4_42008"
     },
     {
       "type": "infograph",
@@ -894,6 +939,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构选型决策树_4_42009.png",
+      "title": "结构选型决策树 信息图",
+      "lessonId": "4-2",
+      "nodeId": "结构选型决策树_4_42009",
+      "sourceNodeId": "结构选型决策树_4_42009"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/给定-扰动双通道误差分析_3_37001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/给定-扰动双通道误差分析_3_37001.png",
       "title": "给定-扰动双通道误差分析 信息图",
@@ -1134,6 +1188,24 @@
       "lessonId": "5-2",
       "nodeId": "非线性边界工具选择_5_52001",
       "sourceNodeId": "非线性边界工具选择_5_52001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频域PD与超前整定_4_42011.png",
+      "title": "频域 PD 与超前整定 信息图",
+      "lessonId": "4-2",
+      "nodeId": "频域PD与超前整定_4_42011",
+      "sourceNodeId": "频域PD与超前整定_4_42011"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频域PI与滞后整定_4_42010.png",
+      "title": "频域 PI 与滞后整定 信息图",
+      "lessonId": "4-2",
+      "nodeId": "频域PI与滞后整定_4_42010",
+      "sourceNodeId": "频域PI与滞后整定_4_42010"
     },
     {
       "type": "infograph",

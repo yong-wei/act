@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T07:22:14.026001Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "客船整定比较与复核"
+    ],
+    "card_order_index": 13
+  },
+  "node": {
+    "id": "客船候选结构整定比较_4_42014",
+    "name": "客船候选结构整定比较",
+    "name_en": "Candidate-Structure Tuning Comparison for Ship Heading Control",
+    "category": "事实性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "在客船航向控制对象上比较基准 `P`、滞后、`PI`、超前和超前-滞后的多指标表现。",
+    "examples": [
+      "超前显著降低超调并提高相角裕度，但控制量峰值和低频抗扰需复核；滞后改善低频灵敏度，却让超调和调节时间变差。"
+    ],
+    "formulas": [
+      "G_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}"
+    ],
+    "keywords": [
+      "客船航向控制",
+      "候选结构",
+      "Bode",
+      "扰动响应",
+      "控制量",
+      "船舶案例",
+      "候选比较"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/客船候选结构整定比较_4_42014.md",
+  "card_frontmatter": {
+    "node_id": "客船候选结构整定比较_4_42014",
+    "name": "客船候选结构整定比较",
+    "name_en": "Candidate-Structure Tuning Comparison for Ship Heading Control",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "事实性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "船舶案例",
+      "候选比较"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-ship-controller-candidates-bode.png",
+      "4-2-ship-controller-candidates-step-disturbance.png",
+      "4-2-ship-controller-candidates-summary.png"
+    ]
+  },
+  "card_overview": "# 客船候选结构整定比较 | Candidate-Structure Tuning Comparison for Ship Heading Control\n\n**一句话定义**：在客船航向控制对象上比较基准 `P`、滞后、`PI`、超前和超前-滞后的多指标表现。\n\n**核心直觉**：一个结构改善某个指标，并不等于它已经满足全部工程约束。\n\n**关键公式**：\n$$\nG_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}\n$$\n\n**关联**：前置 -> 结构选型决策树 · 后续 -> 单结构整定四类复核量",
+  "card_detail": "基准比例控制可稳定运行，但相角裕度和平顺性不足。滞后改善低频灵敏度，却使动态变差；`PI` 的保守频域初算没有自动改善抗扰；超前显著降低超调并提高相角裕度，但提高控制量峰值；超前-滞后具备综合潜力，但仍需继续调参。\n\n### 常见误区\n\n1. **误区**：超调最低的结构就是最终答案。  \n   **纠正**：还要看扰动峰值、低频灵敏度和控制量。\n\n2. **误区**：低频指标改善就说明结构更适合客船。  \n   **纠正**：航向控制同时关心平顺性、裕度和执行器负担。",
+  "card_plain_excerpt": "## 首页\n\n# 客船候选结构整定比较 | Candidate-Structure Tuning Comparison for Ship Heading Control\n\n**一句话定义**：在客船航向控制对象上比较基准 `P`、滞后、`PI`、超前和超前-滞后的多指标表现。\n\n**核心直觉**：一个结构改善某个指标，并不等于它已经满足全部工程约束。\n\n**关键公式**：\n$$\nG_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}\n$$\n\n**关联**：前置 -> 结构选型决策树 · 后续 -> 单结构整定四类复核量\n\n## 详情\n\n基准比例控制可稳定运行，但相角裕度和平顺性不足。滞后改善低频灵敏度，却使动态变差；`PI` 的保守频域初算没有自动改善抗扰；超前显著降低超调并提高相角裕度，但提高控制量峰值；超前-滞后具备综合潜力，但仍需继续调参。\n\n### 常见误区\n\n1. **误区**：超调最低的结构就是最终答案。  \n   **纠正**：还要看扰动峰值、低频灵敏度和控制量。\n\n2. **误区**：低频指标改善就说明结构更适合客船。  \n   **纠正**：航向控制同时关心平顺性、裕度和执行器负担。",
+  "core_intuition": "一个结构改善某个指标，并不等于它已经满足全部工程约束。",
+  "relations": [
+    {
+      "source_id": "频域PI与滞后整定_4_42010",
+      "source": "频域 PI 与滞后整定",
+      "target_id": "客船候选结构整定比较_4_42014",
+      "target": "客船候选结构整定比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "客船案例中的滞后和 PI 候选来自低频整定分支。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "频域PD与超前整定_4_42011",
+      "source": "频域 PD 与超前整定",
+      "target_id": "客船候选结构整定比较_4_42014",
+      "target": "客船候选结构整定比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "客船案例中的超前和超前-滞后候选来自中频相位补偿分支。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "客船候选结构整定比较_4_42014",
+      "target": "客船候选结构整定比较",
+      "relation": "instance_of",
+      "strength": 0.91,
+      "description": "客船候选比较是结构选型决策树在工程对象上的实例化。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "客船候选结构整定比较_4_42014",
+      "source": "客船候选结构整定比较",
+      "target_id": "单结构整定四类复核量_4_42015",
+      "target": "单结构整定四类复核量",
+      "relation": "supports",
+      "strength": 0.95,
+      "description": "客船候选结果证明单结构初算后必须同时复核动态、扰动、裕度和控制量。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "客船候选结构整定比较",
+        "客船航向控制",
+        "候选结构",
+        "Bode",
+        "扰动响应",
+        "控制量",
+        "船舶案例",
+        "候选比较"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

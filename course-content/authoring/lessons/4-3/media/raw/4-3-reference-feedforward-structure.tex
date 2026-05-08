@@ -1,0 +1,63 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{signalgray}{HTML}{333333}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, minimum width=2.25cm, minimum height=0.82cm, align=center, line width=1.2pt, font=\scriptsize\bfseries},
+  wideblock/.style={block, minimum width=2.95cm},
+  sum/.style={circle, draw=sumgreen, fill=none, minimum size=6.3mm, inner sep=0pt, line width=1.2pt,
+    path picture={\draw[sumgreen,line width=1.0pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+    \draw[sumgreen,line width=1.0pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+  tap/.style={circle, draw=taporange, fill=none, minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+  signal/.style={-{Stealth[length=2.7mm,width=1.9mm]}, draw=signalgray, line width=1.2pt},
+  label/.style={font=\scriptsize, align=center},
+  smalllabel/.style={font=\tiny, align=center}
+}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{
+    sum/.style={circle, draw=sumgreen, fill=none, minimum size=3.15mm, inner sep=0pt, line width=0.9pt,
+      path picture={\draw[sumgreen,line width=0.7pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[sumgreen,line width=0.7pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+    tap/.style={circle, draw=taporange, fill=none, minimum size=3.4pt, inner sep=0pt, line width=1.0pt}
+  }
+  \node[label] (r) at (0,0) {$r$};
+  \node[tap] (rtap) at (0.85,0) {};
+  \node[sum] (se) at (2.0,0) {};
+  \node[wideblock, minimum width=2.15cm] (cb) at (3.95,0) {$C_b(s)$};
+  \node[sum] (su) at (5.85,0) {};
+  \node[block, minimum width=1.65cm] (ga) at (7.65,0) {$G_a(s)$};
+  \node[sum] (sd) at (9.25,0) {};
+  \node[block, minimum width=1.65cm] (gp) at (10.85,0) {$G_p(s)$};
+  \node[tap] (ytap) at (12.0,0) {};
+  \node[label] (y) at (12.7,0) {$y$};
+  \node[block, minimum width=1.8cm] (fr) at (2.7,1.5) {参考前馈\\$F_r(s)$};
+  \node[label] (d) at (9.25,2.55) {$d$};
+  \node[tap] (dtap) at (9.25,1.42) {};
+  \node[block, minimum width=1.65cm] (fd) at (7.25,1.42) {$F_d(s)$};
+  \draw[signal] (r) -- (rtap) -- (se);
+  \draw[signal] (rtap) |- (fr.west);
+  \draw[signal] (fr.east) -- (5.1,1.5) -- (su.145);
+  \draw[signal] (se) -- (cb);
+  \draw[signal] (cb) -- (su);
+  \draw[signal] (su) -- (ga);
+  \draw[signal] (ga) -- (sd);
+  \draw[signal] (sd) -- (gp);
+  \draw[signal] (gp) -- (ytap) -- (y);
+  \draw[signal] (d) -- (dtap) -- (sd.north);
+  \draw[signal] (dtap) -- (fd.east);
+  \draw[signal] (fd.west) -- (6.35,1.42) -- (su.35);
+  \draw[signal] (ytap) |- ($(se)+(0,-1.25)$) -| (se.south);
+  \node[smalllabel] at ($(se)+(-0.25,0.28)$) {$+$};
+  \node[smalllabel] at ($(se)+(0.25,-0.28)$) {$-$};
+  \node[smalllabel] at ($(su)+(-0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(su)+(0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(sd)+(-0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(sd)+(0.28,0.28)$) {$+$};
+\end{tikzpicture}
+\end{document}

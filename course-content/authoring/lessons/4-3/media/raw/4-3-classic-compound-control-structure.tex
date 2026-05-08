@@ -1,0 +1,73 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{signalgray}{HTML}{333333}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, minimum width=2.25cm, minimum height=0.82cm, align=center, line width=1.2pt, font=\scriptsize\bfseries},
+  wideblock/.style={block, minimum width=2.95cm},
+  sum/.style={circle, draw=sumgreen, fill=none, minimum size=6.3mm, inner sep=0pt, line width=1.2pt,
+    path picture={\draw[sumgreen,line width=1.0pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+    \draw[sumgreen,line width=1.0pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+  tap/.style={circle, draw=taporange, fill=none, minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+  signal/.style={-{Stealth[length=2.7mm,width=1.9mm]}, draw=signalgray, line width=1.2pt},
+  label/.style={font=\scriptsize, align=center},
+  smalllabel/.style={font=\tiny, align=center}
+}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{
+    sum/.style={circle, draw=sumgreen, fill=none, minimum size=4.75mm, inner sep=0pt, line width=1.0pt,
+      path picture={\draw[sumgreen,line width=0.8pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[sumgreen,line width=0.8pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+    tap/.style={circle, draw=taporange, fill=none, minimum size=3.8pt, inner sep=0pt, line width=1.1pt},
+    siglabel/.style={font=\tiny, fill=white, inner sep=1pt, align=center, yshift=2.2pt}
+  }
+  \node[label] (r) at (0,0) {参考\\$r$};
+  \node[tap] (rtap) at (0.9,0) {};
+  \node[block, minimum width=1.85cm] (qf) at (2.35,0) {给定滤波\\$Q_f(s)$};
+  \node[sum] (se) at (4.15,0) {};
+  \node[wideblock, minimum width=1.95cm] (cb) at (6.0,0) {串联校正\\$C_b(s)$};
+  \node[sum] (su) at (7.85,0) {};
+  \node[wideblock, minimum width=2.15cm] (sat) at (9.85,0) {限幅/斜率限制\\$\operatorname{sat},\dot u_{\max}$};
+  \node[block, minimum width=1.75cm] (ga) at (12.45,0) {执行器\\$G_a(s)$};
+  \node[sum] (sd) at (14.15,0) {};
+  \node[block, minimum width=1.75cm] (gp) at (15.75,0) {对象\\$G_p(s)$};
+  \node[tap] (ytap) at (16.95,0) {};
+  \node[label] (y) at (18.05,0) {输出\\$y$};
+  \node[block, minimum width=1.85cm] (fr) at (4.15,1.68) {参考前馈\\$F_r(s)$};
+  \node[block, minimum width=1.85cm] (fd) at (11.05,1.68) {扰动前馈\\$F_d(s)$};
+  \node[label] (d) at (12.65,3.35) {扰动\\$d$};
+  \coordinate (frbend) at (6.95,1.68);
+  \coordinate (fdbend) at (8.78,1.68);
+  \node[tap] (dtap) at (12.65,1.68) {};
+  \coordinate (dinbend) at (14.15,1.68);
+
+  \draw[signal] (r) -- (rtap) -- (qf);
+  \draw[signal] (qf) -- node[siglabel, above, pos=0.38] {$r_f$} (se);
+  \draw[signal] (se) -- node[siglabel, above, pos=0.62] {$e$} (cb);
+  \draw[signal] (cb) -- node[siglabel, above, pos=0.42] {$u_b$} (su);
+  \draw[signal] (su) -- node[siglabel, above, pos=0.48] {$u_c$} (sat);
+  \draw[signal] (sat) -- node[siglabel, above, pos=0.5] {$u_{\mathrm{lim}}$} (ga);
+  \draw[signal] (ga) -- node[siglabel, above, pos=0.48] {$u_a$} (sd);
+  \draw[signal] (sd) -- node[siglabel, above, pos=0.48] {$v$} (gp);
+  \draw[signal] (gp) -- (ytap) -- (y);
+  \draw[signal] (rtap) |- (fr.west);
+  \draw[signal] (fr.east) -- node[siglabel, above] {$u_r$} (frbend) -- (su.145);
+  \draw[signal] (d) -- (dtap) -- node[siglabel, above] {$d$} (dinbend) -- (sd.north);
+  \draw[signal] (dtap) -- node[siglabel, above] {$d$} (fd.east);
+  \draw[signal] (fd.west) -- node[siglabel, above] {$u_d$} (fdbend) -- (su.35);
+  \draw[signal] (ytap) |- node[siglabel, near start, right] {$y$} ($(se)+(0,-1.32)$) -| (se.south);
+  \node[smalllabel] at ($(se)+(-0.22,0.24)$) {$+$};
+  \node[smalllabel] at ($(se)+(0.22,-0.24)$) {$-$};
+  \node[smalllabel] at ($(su)+(-0.22,0.24)$) {$+$};
+  \node[smalllabel] at ($(su)+(0.0,0.27)$) {$+$};
+  \node[smalllabel] at ($(su)+(0.22,0.20)$) {$+$};
+  \node[smalllabel] at ($(sd)+(-0.22,0.24)$) {$+$};
+  \node[smalllabel] at ($(sd)+(0.22,0.24)$) {$+$};
+\end{tikzpicture}
+\end{document}

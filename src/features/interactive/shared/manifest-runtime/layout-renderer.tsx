@@ -43,6 +43,7 @@ const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
   'activity-card-set',
   'binary-choice',
   'card-sort',
+  'drag-match',
   'hotspot-labeling',
   'reason-chain',
   'multi-select-matrix',

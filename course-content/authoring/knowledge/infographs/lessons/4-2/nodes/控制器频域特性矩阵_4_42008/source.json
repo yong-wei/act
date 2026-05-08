@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T06:56:14.688347Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "入口边界与频域证据"
+    ],
+    "card_order_index": 2
+  },
+  "node": {
+    "id": "控制器频域特性矩阵_4_42008",
+    "name": "控制器频域特性矩阵",
+    "name_en": "Frequency-Response Matrix of Controller Structures",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "把典型控制结构放在同一 Bode 坐标中比较，说明它们首先改变低频增益、中频相位、截止频率还是高频增益。",
+    "examples": [
+      "`PI` 在低频端抬升幅值，服务静差和慢扰动；超前在目标频段附近提供正相位，服务相角裕度和超调。"
+    ],
+    "formulas": [
+      "L(s)=C(s)G(s)"
+    ],
+    "keywords": [
+      "Bode",
+      "频域特性",
+      "控制结构",
+      "相位",
+      "幅值",
+      "频域证据"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/控制器频域特性矩阵_4_42008.md",
+  "card_frontmatter": {
+    "node_id": "控制器频域特性矩阵_4_42008",
+    "name": "控制器频域特性矩阵",
+    "name_en": "Frequency-Response Matrix of Controller Structures",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "频域证据",
+      "控制结构"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-controller-frequency-characteristics.png"
+    ]
+  },
+  "card_overview": "# 控制器频域特性矩阵 | Frequency-Response Matrix of Controller Structures\n\n**一句话定义**：把典型控制结构放在同一 Bode 坐标中比较，说明它们首先改变低频增益、中频相位、截止频率还是高频增益。\n\n**核心直觉**：结构选择先看它动了哪一段频率证据，再看它带来什么代价。\n\n**关键公式**：\n$$\nL(s)=C(s)G(s)\n$$\n\n**关联**：前置 -> 三频段闭环性能回读 · 后续 -> 结构选型决策树",
+  "card_detail": "`PI` 和 `PID` 会抬升低频幅值，适合处理静差与慢扰动；`PD`、超前和超前-滞后在中频附近提供正相位，适合处理相角裕度、阻尼和超调；滞后尽量少动交越频率附近，主要补低频；比例环节只做全频增益平移，不改变曲线形状。\n\n### 常见误区\n\n1. **误区**：控制器功能越多越适合首轮使用。  \n   **纠正**：功能越多通常意味着参数耦合和代价来源更多，首轮仍要先看主矛盾。\n\n2. **误区**：只看幅值曲线即可完成选型。  \n   **纠正**：相位、截止频率和高频增益同样决定裕度、噪声与控制量。",
+  "card_plain_excerpt": "## 首页\n\n# 控制器频域特性矩阵 | Frequency-Response Matrix of Controller Structures\n\n**一句话定义**：把典型控制结构放在同一 Bode 坐标中比较，说明它们首先改变低频增益、中频相位、截止频率还是高频增益。\n\n**核心直觉**：结构选择先看它动了哪一段频率证据，再看它带来什么代价。\n\n**关键公式**：\n$$\nL(s)=C(s)G(s)\n$$\n\n**关联**：前置 -> 三频段闭环性能回读 · 后续 -> 结构选型决策树\n\n## 详情\n\n`PI` 和 `PID` 会抬升低频幅值，适合处理静差与慢扰动；`PD`、超前和超前-滞后在中频附近提供正相位，适合处理相角裕度、阻尼和超调；滞后尽量少动交越频率附近，主要补低频；比例环节只做全频增益平移，不改变曲线形状。\n\n### 常见误区\n\n1. **误区**：控制器功能越多越适合首轮使用。  \n   **纠正**：功能越多通常意味着参数耦合和代价来源更多，首轮仍要先看主矛盾。\n\n2. **误区**：只看幅值曲线即可完成选型。  \n   **纠正**：相位、截止频率和高频增益同样决定裕度、噪声与控制量。",
+  "core_intuition": "结构选择先看它动了哪一段频率证据，再看它带来什么代价。",
+  "relations": [
+    {
+      "source_id": "设计任务表达卡_4_41001",
+      "source": "设计任务表达卡",
+      "target_id": "控制器频域特性矩阵_4_42008",
+      "target": "控制器频域特性矩阵",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "任务表达卡给出性能与约束证据，4-2 再用频域特性矩阵判断控制结构首先改变哪一段行为。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "三频段闭环性能回读_3_38003",
+      "source": "三频段闭环性能回读",
+      "target_id": "控制器频域特性矩阵_4_42008",
+      "target": "控制器频域特性矩阵",
+      "relation": "cross_domain",
+      "strength": 0.92,
+      "description": "低频、中频和高频职责是阅读控制器 Bode 特性矩阵的前置语言。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "结构工具箱最小语义_4_42002",
+      "target": "结构工具箱最小语义",
+      "relation": "supports",
+      "strength": 0.94,
+      "description": "频域特性矩阵为结构工具箱的四类最小语义提供可视化证据。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "结构作用点与代价来源对照_4_42004",
+      "target": "结构作用点与代价来源对照",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "只有看清控制器改变的频段，才能说明收益位置和代价来源。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "结构选型决策树_4_42009",
+      "target": "结构选型决策树",
+      "relation": "supports",
+      "strength": 0.94,
+      "description": "决策树中的结构候选来自控制器频域特性的比较结果。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "临界比例PID整定_4_42012",
+      "target": "临界比例 PID 整定",
+      "relation": "related",
+      "strength": 0.82,
+      "description": "PID 同时影响低频积分和中频微分，临界比例法为其给出可试验的参数初值。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "控制器频域特性矩阵",
+        "Bode",
+        "频域特性",
+        "控制结构",
+        "相位",
+        "幅值",
+        "频域证据"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "L(s)=C(s)G(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

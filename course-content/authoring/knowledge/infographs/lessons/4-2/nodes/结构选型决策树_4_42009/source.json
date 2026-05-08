@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T06:56:14.807119Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "结构选型与参数入口"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "结构选型决策树_4_42009",
+    "name": "结构选型决策树",
+    "name_en": "Controller-Structure Selection Decision Tree",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "按照“任务证据 -> 频段/通道 -> 候选结构 -> 整定入口 -> 复核量”的顺序选择控制结构。",
+    "examples": [
+      "稳态误差和慢扰动优先检查 `PI` 或滞后；相角裕度不足优先检查 `PD`、测速反馈或超前；扰动可测时前馈作为补偿通道加入。"
+    ],
+    "formulas": [
+      "\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}"
+    ],
+    "keywords": [
+      "决策树",
+      "选型",
+      "任务证据",
+      "候选结构"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/结构选型决策树_4_42009.md",
+  "card_frontmatter": {
+    "node_id": "结构选型决策树_4_42009",
+    "name": "结构选型决策树",
+    "name_en": "Controller-Structure Selection Decision Tree",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "选型",
+      "决策树"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-controller-selection-decision-tree.png"
+    ]
+  },
+  "card_overview": "# 结构选型决策树 | Controller-Structure Selection Decision Tree\n\n**一句话定义**：按照“任务证据 -> 频段/通道 -> 候选结构 -> 整定入口 -> 复核量”的顺序选择控制结构。\n\n**核心直觉**：决策树不是答案表，而是把选型理由显性化的证据流。\n\n**关键公式**：\n$$\n\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}\n$$\n\n**关联**：前置 -> 控制器频域特性矩阵 · 后续 -> 单结构整定四类复核量",
+  "card_detail": "稳态误差和慢扰动优先检查 `PI` 或滞后；超调、振荡和相角裕度不足优先检查 `PD`、测速反馈或超前；稳态和动态同时不满足时，`PID` 或超前-滞后进入候选；参考轨迹已知或扰动可测时，前馈作为补偿通道加入。\n\n### 常见误区\n\n1. **误区**：决策树上出现的结构就是最终方案。  \n   **纠正**：它只给出候选和整定入口，最终还要复核响应、扰动、裕度和控制量。\n\n2. **误区**：前馈在决策树中出现就说明反馈可以退出。  \n   **纠正**：前馈处理可测通道，反馈仍负责稳定性和鲁棒性。",
+  "card_plain_excerpt": "## 首页\n\n# 结构选型决策树 | Controller-Structure Selection Decision Tree\n\n**一句话定义**：按照“任务证据 -> 频段/通道 -> 候选结构 -> 整定入口 -> 复核量”的顺序选择控制结构。\n\n**核心直觉**：决策树不是答案表，而是把选型理由显性化的证据流。\n\n**关键公式**：\n$$\n\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}\n$$\n\n**关联**：前置 -> 控制器频域特性矩阵 · 后续 -> 单结构整定四类复核量\n\n## 详情\n\n稳态误差和慢扰动优先检查 `PI` 或滞后；超调、振荡和相角裕度不足优先检查 `PD`、测速反馈或超前；稳态和动态同时不满足时，`PID` 或超前-滞后进入候选；参考轨迹已知或扰动可测时，前馈作为补偿通道加入。\n\n### 常见误区\n\n1. **误区**：决策树上出现的结构就是最终方案。  \n   **纠正**：它只给出候选和整定入口，最终还要复核响应、扰动、裕度和控制量。\n\n2. **误区**：前馈在决策树中出现就说明反馈可以退出。  \n   **纠正**：前馈处理可测通道，反馈仍负责稳定性和鲁棒性。",
+  "core_intuition": "决策树不是答案表，而是把选型理由显性化的证据流。",
+  "relations": [
+    {
+      "source_id": "主矛盾到频段职责映射_4_42003",
+      "source": "主矛盾到频段职责映射",
+      "target_id": "结构选型决策树_4_42009",
+      "target": "结构选型决策树",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "决策树以主矛盾所在频段或通道作为第一分流依据。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "结构选型决策树_4_42009",
+      "target": "结构选型决策树",
+      "relation": "supports",
+      "strength": 0.94,
+      "description": "决策树中的结构候选来自控制器频域特性的比较结果。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "频域PI与滞后整定_4_42010",
+      "target": "频域 PI 与滞后整定",
+      "relation": "leads_to",
+      "strength": 0.91,
+      "description": "当决策树把任务导向低频能力不足时，进入 PI 或滞后整定分支。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "频域PD与超前整定_4_42011",
+      "target": "频域 PD 与超前整定",
+      "relation": "leads_to",
+      "strength": 0.92,
+      "description": "当决策树把任务导向中频动态品质或相角裕度不足时，进入 PD 或超前整定分支。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "临界比例PID整定_4_42012",
+      "target": "临界比例 PID 整定",
+      "relation": "leads_to",
+      "strength": 0.84,
+      "description": "稳态和动态同时不满足且允许试验时，决策树可以把 PID 临界比例整定作为候选入口。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "客船候选结构整定比较_4_42014",
+      "target": "客船候选结构整定比较",
+      "relation": "instance_of",
+      "strength": 0.91,
+      "description": "客船候选比较是结构选型决策树在工程对象上的实例化。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "结构选型决策树",
+        "决策树",
+        "选型",
+        "任务证据",
+        "候选结构"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

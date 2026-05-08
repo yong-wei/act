@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T06:56:14.933885Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "结构选型与参数入口"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "频域PI与滞后整定_4_42010",
+    "name": "频域 PI 与滞后整定",
+    "name_en": "Frequency-Domain PI and Lag Tuning",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "低频能力不足时，用目标截止频率、零极点位置和稳态误差改善倍数给出 `PI` 或滞后的参数初值。",
+    "examples": [
+      "频域 `PI` 可先取 \\(\\omega_z=\\omega_c/5\\sim\\omega_c/10\\)，再由 \\(|C_{PI}(j\\omega_c)G(j\\omega_c)|=1\\) 求 \\(K_p\\)。"
+    ],
+    "formulas": [
+      "C_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right),\\qquad C_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}"
+    ],
+    "keywords": [
+      "PI",
+      "滞后",
+      "低频增益",
+      "稳态误差",
+      "截止频率"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/频域PI与滞后整定_4_42010.md",
+  "card_frontmatter": {
+    "node_id": "频域PI与滞后整定_4_42010",
+    "name": "频域 PI 与滞后整定",
+    "name_en": "Frequency-Domain PI and Lag Tuning",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "PI",
+      "滞后"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-example-5-1-correction-quadrants.png",
+      "4-2-example-5-3-correction-quadrants.png"
+    ]
+  },
+  "card_overview": "# 频域 PI 与滞后整定 | Frequency-Domain PI and Lag Tuning\n\n**一句话定义**：低频能力不足时，用目标截止频率、零极点位置和稳态误差改善倍数给出 `PI` 或滞后的参数初值。\n\n**核心直觉**：低频补偿必须和相位裕度、响应速度一起看，不能只看静差。\n\n**关键公式**：\n$$\nC_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}\n$$\n\n**关联**：前置 -> 低频补偿稳态改善路径 · 后续 -> 客船候选结构整定比较",
+  "card_detail": "频域 `PI` 通常先选目标截止频率 $\\omega_c$，再把零点放在 $\\omega_c/5\\sim\\omega_c/10$ 以下，并由幅值条件求 $K_p$。滞后校正常由稳态误差改善倍数初取 $\\beta$，再把零点和极点放到截止频率以下，使低频增益提高而尽量少动交越频率附近。\n\n### 常见误区\n\n1. **误区**：积分越强越好。  \n   **纠正**：积分会带来相位滞后、超调和饱和风险。\n\n2. **误区**：滞后只改善低频，没有动态代价。  \n   **纠正**：滞后仍可能降低相角裕度并拖慢响应。",
+  "card_plain_excerpt": "## 首页\n\n# 频域 PI 与滞后整定 | Frequency-Domain PI and Lag Tuning\n\n**一句话定义**：低频能力不足时，用目标截止频率、零极点位置和稳态误差改善倍数给出 `PI` 或滞后的参数初值。\n\n**核心直觉**：低频补偿必须和相位裕度、响应速度一起看，不能只看静差。\n\n**关键公式**：\n$$\nC_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}\n$$\n\n**关联**：前置 -> 低频补偿稳态改善路径 · 后续 -> 客船候选结构整定比较\n\n## 详情\n\n频域 `PI` 通常先选目标截止频率 $\\omega_c$，再把零点放在 $\\omega_c/5\\sim\\omega_c/10$ 以下，并由幅值条件求 $K_p$。滞后校正常由稳态误差改善倍数初取 $\\beta$，再把零点和极点放到截止频率以下，使低频增益提高而尽量少动交越频率附近。\n\n### 常见误区\n\n1. **误区**：积分越强越好。  \n   **纠正**：积分会带来相位滞后、超调和饱和风险。\n\n2. **误区**：滞后只改善低频，没有动态代价。  \n   **纠正**：滞后仍可能降低相角裕度并拖慢响应。",
+  "core_intuition": "低频补偿必须和相位裕度、响应速度一起看，不能只看静差。",
+  "relations": [
+    {
+      "source_id": "低频补偿稳态改善路径_3_37003",
+      "source": "低频补偿稳态改善路径",
+      "target_id": "频域PI与滞后整定_4_42010",
+      "target": "频域 PI 与滞后整定",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "低频补偿机制在 4-2 转化为 PI 与滞后的参数初算步骤。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "积分与滞后的稳态改善分工_3_39003",
+      "source": "积分与滞后的稳态改善分工",
+      "target_id": "频域PI与滞后整定_4_42010",
+      "target": "频域 PI 与滞后整定",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "积分和滞后的分工决定 PI 与滞后整定时关注的低频增益、相位和动态代价。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "频域PI与滞后整定_4_42010",
+      "target": "频域 PI 与滞后整定",
+      "relation": "leads_to",
+      "strength": 0.91,
+      "description": "当决策树把任务导向低频能力不足时，进入 PI 或滞后整定分支。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "频域PI与滞后整定_4_42010",
+      "source": "频域 PI 与滞后整定",
+      "target_id": "IMC_SIMC与模型匹配整定_4_42013",
+      "target": "IMC/SIMC 与模型匹配整定",
+      "relation": "related",
+      "strength": 0.82,
+      "description": "IMC/SIMC 经常为过程对象给出 PI 参数初值，是频域 PI 整定的模型驱动补充。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "频域PI与滞后整定_4_42010",
+      "source": "频域 PI 与滞后整定",
+      "target_id": "客船候选结构整定比较_4_42014",
+      "target": "客船候选结构整定比较",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "客船案例中的滞后和 PI 候选来自低频整定分支。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "frequency_dashboard",
+      "name": "频域仪表盘",
+      "description": "以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。"
+    },
+    "layout_contract": "16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；用细线连接读图位置和判断面板。",
+    "text_contract": {
+      "allowed_labels": [
+        "频域 PI 与滞后整定",
+        "PI",
+        "滞后",
+        "低频增益",
+        "稳态误差",
+        "截止频率"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "C_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right),\\qquad C_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

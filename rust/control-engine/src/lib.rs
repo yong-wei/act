@@ -41,6 +41,20 @@ struct FrequencyRangeConfig {
     samples: usize,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+enum NyquistPlotMode {
+    Full,
+    Half,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct NyquistConfig {
+    mode: Option<NyquistPlotMode>,
+    sampling_mode: Option<SamplingMode>,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RootLocusConfig {
@@ -93,6 +107,7 @@ struct ControlAnalysisRequest {
     response_type: ResponseType,
     time_range: TimeRangeConfig,
     frequency_range: FrequencyRangeConfig,
+    nyquist: Option<NyquistConfig>,
     root_locus: RootLocusConfig,
     feasible_region: Option<FeasibleRegionConfig>,
 }
@@ -247,8 +262,39 @@ struct BodeAxisData {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct NyquistData {
+struct NyquistClosureSegment {
     points: Vec<ComplexPoint>,
+    line_style: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NyquistKeyPoint {
+    kind: String,
+    point: ComplexPoint,
+    frequency: f64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NyquistAsymptote {
+    end: String,
+    kind: String,
+    angle_deg: Option<f64>,
+    point: Option<ComplexPoint>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NyquistData {
+    mode: NyquistPlotMode,
+    points: Vec<ComplexPoint>,
+    positive_points: Vec<ComplexPoint>,
+    negative_points: Vec<ComplexPoint>,
+    infinity_closure: NyquistClosureSegment,
+    key_points: Vec<NyquistKeyPoint>,
+    asymptotes: Vec<NyquistAsymptote>,
+    encirclements: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -1006,20 +1052,402 @@ fn step_response(
     (points, metrics)
 }
 
+#[derive(Debug, Clone)]
+struct NyquistFrequencySample {
+    omega: f64,
+    value: Complex64,
+}
+
+fn eval_transfer_function(loop_tf: &TransferFunction, omega: f64) -> Complex64 {
+    let s = Complex64::new(0.0, omega);
+    let denominator = eval_poly_complex(&loop_tf.denominator, s);
+    if denominator.norm() < 1e-18 {
+        let numerator = eval_poly_complex(&loop_tf.numerator, s);
+        let angle = numerator.arg();
+        return Complex64::from_polar(1e12, angle);
+    }
+    eval_poly_complex(&loop_tf.numerator, s) / denominator
+}
+
+fn is_finite_complex(value: Complex64) -> bool {
+    value.re.is_finite() && value.im.is_finite()
+}
+
+fn complex_to_point(value: Complex64) -> ComplexPoint {
+    ComplexPoint {
+        re: value.re,
+        im: value.im,
+    }
+}
+
+fn distance_to_segment(point: Complex64, start: Complex64, end: Complex64) -> f64 {
+    let segment = end - start;
+    let length_sq = segment.norm_sqr();
+    if length_sq < 1e-24 {
+        return (point - start).norm();
+    }
+    let projection =
+        (((point - start).re * segment.re) + ((point - start).im * segment.im)) / length_sq;
+    let clamped = projection.clamp(0.0, 1.0);
+    let nearest = start + segment * clamped;
+    (point - nearest).norm()
+}
+
+fn angle_delta_rad(left: f64, right: f64) -> f64 {
+    let mut delta = right - left;
+    while delta > std::f64::consts::PI {
+        delta -= 2.0 * std::f64::consts::PI;
+    }
+    while delta <= -std::f64::consts::PI {
+        delta += 2.0 * std::f64::consts::PI;
+    }
+    delta
+}
+
+fn nyquist_should_refine(
+    left: &NyquistFrequencySample,
+    middle: &NyquistFrequencySample,
+    right: &NyquistFrequencySample,
+) -> bool {
+    if !is_finite_complex(left.value)
+        || !is_finite_complex(middle.value)
+        || !is_finite_complex(right.value)
+    {
+        return false;
+    }
+    let scale = left
+        .value
+        .norm()
+        .max(middle.value.norm())
+        .max(right.value.norm())
+        .max(1.0);
+    let geometric_error = distance_to_segment(middle.value, left.value, right.value) / scale;
+    let angle_change = angle_delta_rad(left.value.arg(), middle.value.arg()).abs()
+        + angle_delta_rad(middle.value.arg(), right.value.arg()).abs();
+    let critical = Complex64::new(-1.0, 0.0);
+    let near_critical = (left.value - critical)
+        .norm()
+        .min((right.value - critical).norm())
+        < 0.45;
+    geometric_error > 0.012 || angle_change > 0.18 || (near_critical && geometric_error > 0.004)
+}
+
+fn append_adaptive_nyquist_segment(
+    loop_tf: &TransferFunction,
+    left: NyquistFrequencySample,
+    right: NyquistFrequencySample,
+    depth: usize,
+    max_depth: usize,
+    output: &mut Vec<NyquistFrequencySample>,
+    max_samples: usize,
+) {
+    if output.len() >= max_samples {
+        output.push(right);
+        return;
+    }
+    let middle_omega = (left.omega * right.omega).sqrt();
+    if !middle_omega.is_finite() || middle_omega <= left.omega || middle_omega >= right.omega {
+        output.push(right);
+        return;
+    }
+    let middle = NyquistFrequencySample {
+        omega: middle_omega,
+        value: eval_transfer_function(loop_tf, middle_omega),
+    };
+    if depth >= max_depth || !nyquist_should_refine(&left, &middle, &right) {
+        output.push(right);
+        return;
+    }
+    append_adaptive_nyquist_segment(
+        loop_tf,
+        left,
+        middle.clone(),
+        depth + 1,
+        max_depth,
+        output,
+        max_samples,
+    );
+    append_adaptive_nyquist_segment(
+        loop_tf,
+        middle,
+        right,
+        depth + 1,
+        max_depth,
+        output,
+        max_samples,
+    );
+}
+
+fn nyquist_frequency_samples(
+    loop_tf: &TransferFunction,
+    config: &FrequencyRangeConfig,
+    sampling_mode: SamplingMode,
+) -> Vec<NyquistFrequencySample> {
+    let min = config.min.max(1e-9);
+    let max = config.max.max(min * 1.0001);
+    let base = logspace(min, max, config.samples.max(24));
+    let mut samples = Vec::new();
+    let mut base_samples = base.into_iter().map(|omega| NyquistFrequencySample {
+        omega,
+        value: eval_transfer_function(loop_tf, omega),
+    });
+    if let Some(first) = base_samples.next() {
+        samples.push(first.clone());
+        let mut previous = first;
+        for next in base_samples {
+            if sampling_mode == SamplingMode::Adaptive {
+                append_adaptive_nyquist_segment(
+                    loop_tf,
+                    previous,
+                    next.clone(),
+                    0,
+                    7,
+                    &mut samples,
+                    config.samples.max(24) * 8,
+                );
+            } else {
+                samples.push(next.clone());
+            }
+            previous = next;
+        }
+    }
+    samples
+}
+
+fn interpolate_nyquist_sample(
+    left: &NyquistFrequencySample,
+    right: &NyquistFrequencySample,
+    left_offset: f64,
+    right_offset: f64,
+) -> Option<(f64, Complex64)> {
+    if left_offset == 0.0 {
+        return Some((left.omega, left.value));
+    }
+    if left_offset.signum() == right_offset.signum() {
+        return None;
+    }
+    let ratio = left_offset.abs() / (left_offset.abs() + right_offset.abs()).max(1e-12);
+    let omega = left.omega + (right.omega - left.omega) * ratio;
+    let value = left.value + (right.value - left.value) * ratio;
+    Some((omega, value))
+}
+
+fn push_unique_nyquist_key_point(
+    points: &mut Vec<NyquistKeyPoint>,
+    kind: &str,
+    frequency: f64,
+    value: Complex64,
+) {
+    if !frequency.is_finite() || !is_finite_complex(value) {
+        return;
+    }
+    let duplicate = points.iter().any(|point| {
+        point.kind == kind && (point.frequency - frequency).abs() <= 1e-6 * frequency.abs().max(1.0)
+    });
+    if duplicate {
+        return;
+    }
+    points.push(NyquistKeyPoint {
+        kind: kind.to_string(),
+        point: complex_to_point(value),
+        frequency,
+    });
+}
+
+fn nyquist_key_points(samples: &[NyquistFrequencySample]) -> Vec<NyquistKeyPoint> {
+    let mut points = Vec::new();
+    for window in samples.windows(2) {
+        let left = &window[0];
+        let right = &window[1];
+        if let Some((frequency, value)) =
+            interpolate_nyquist_sample(left, right, left.value.im, right.value.im)
+        {
+            push_unique_nyquist_key_point(&mut points, "real_axis_crossing", frequency, value);
+        }
+        if let Some((frequency, value)) =
+            interpolate_nyquist_sample(left, right, left.value.re, right.value.re)
+        {
+            push_unique_nyquist_key_point(&mut points, "imaginary_axis_crossing", frequency, value);
+        }
+        if let Some((frequency, value)) = interpolate_nyquist_sample(
+            left,
+            right,
+            left.value.norm() - 1.0,
+            right.value.norm() - 1.0,
+        ) {
+            push_unique_nyquist_key_point(&mut points, "unit_circle_crossing", frequency, value);
+        }
+    }
+    points
+}
+
+fn trailing_zero_order(coeffs: &[f64]) -> usize {
+    coeffs
+        .iter()
+        .rev()
+        .take_while(|value| value.abs() < 1e-12)
+        .count()
+}
+
+fn coefficient_for_origin_order(coeffs: &[f64], order: usize) -> f64 {
+    coeffs
+        .get(coeffs.len().saturating_sub(order + 1))
+        .copied()
+        .unwrap_or(0.0)
+}
+
+fn asymptote_angle_deg(coeff: f64, power: isize) -> f64 {
+    let coeff_angle = if coeff < 0.0 { 180.0 } else { 0.0 };
+    normalize_angle_deg(coeff_angle + 90.0 * power as f64)
+}
+
+fn nyquist_asymptotes(loop_tf: &TransferFunction) -> Vec<NyquistAsymptote> {
+    let mut asymptotes = Vec::new();
+    let numerator_degree = loop_tf.numerator.len().saturating_sub(1) as isize;
+    let denominator_degree = loop_tf.denominator.len().saturating_sub(1) as isize;
+    let high_power = numerator_degree - denominator_degree;
+    let high_coeff = loop_tf.numerator.first().copied().unwrap_or(0.0)
+        / loop_tf.denominator.first().copied().unwrap_or(1.0);
+    if high_power != 0 {
+        asymptotes.push(NyquistAsymptote {
+            end: "high_frequency".to_string(),
+            kind: if high_power > 0 { "infinite" } else { "zero" }.to_string(),
+            angle_deg: Some(asymptote_angle_deg(high_coeff, high_power)),
+            point: None,
+        });
+    }
+
+    let numerator_origin_order = trailing_zero_order(&loop_tf.numerator);
+    let denominator_origin_order = trailing_zero_order(&loop_tf.denominator);
+    let low_power = numerator_origin_order as isize - denominator_origin_order as isize;
+    let denominator_coeff =
+        coefficient_for_origin_order(&loop_tf.denominator, denominator_origin_order);
+    let low_coeff = coefficient_for_origin_order(&loop_tf.numerator, numerator_origin_order)
+        / if denominator_coeff.abs() < 1e-12 {
+            1e-12
+        } else {
+            denominator_coeff
+        };
+    if low_power != 0 {
+        asymptotes.push(NyquistAsymptote {
+            end: "low_frequency".to_string(),
+            kind: if low_power > 0 { "zero" } else { "infinite" }.to_string(),
+            angle_deg: Some(asymptote_angle_deg(low_coeff, low_power)),
+            point: None,
+        });
+    }
+    asymptotes
+}
+
+fn winding_number(points: &[ComplexPoint], critical: Complex64) -> f64 {
+    if points.len() < 2 {
+        return 0.0;
+    }
+    let mut total = 0.0;
+    for window in points.windows(2) {
+        let left = Complex64::new(window[0].re - critical.re, window[0].im - critical.im);
+        let right = Complex64::new(window[1].re - critical.re, window[1].im - critical.im);
+        if left.norm() < 1e-12 || right.norm() < 1e-12 {
+            continue;
+        }
+        total += angle_delta_rad(left.arg(), right.arg());
+    }
+    if let (Some(first), Some(last)) = (points.first(), points.last()) {
+        let left = Complex64::new(last.re - critical.re, last.im - critical.im);
+        let right = Complex64::new(first.re - critical.re, first.im - critical.im);
+        if left.norm() >= 1e-12 && right.norm() >= 1e-12 {
+            total += angle_delta_rad(left.arg(), right.arg());
+        }
+    }
+    (total / (2.0 * std::f64::consts::PI)).round()
+}
+
+fn build_nyquist_data(
+    loop_tf: &TransferFunction,
+    samples: &[NyquistFrequencySample],
+    mode: NyquistPlotMode,
+) -> NyquistData {
+    let positive_points: Vec<ComplexPoint> = samples
+        .iter()
+        .map(|sample| complex_to_point(sample.value))
+        .collect();
+    let negative_points: Vec<ComplexPoint> = if mode == NyquistPlotMode::Full {
+        positive_points
+            .iter()
+            .rev()
+            .map(|point| ComplexPoint {
+                re: point.re,
+                im: -point.im,
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let points = if mode == NyquistPlotMode::Full {
+        let mut full = positive_points.clone();
+        full.extend(negative_points.clone());
+        full
+    } else {
+        positive_points.clone()
+    };
+    let infinity_closure = if mode == NyquistPlotMode::Full {
+        match (positive_points.last(), negative_points.first()) {
+            (Some(start), Some(end)) => NyquistClosureSegment {
+                points: vec![start.clone(), end.clone()],
+                line_style: "dashed".to_string(),
+            },
+            _ => NyquistClosureSegment {
+                points: Vec::new(),
+                line_style: "dashed".to_string(),
+            },
+        }
+    } else {
+        NyquistClosureSegment {
+            points: Vec::new(),
+            line_style: "dashed".to_string(),
+        }
+    };
+    let mut contour_points = negative_points.clone();
+    contour_points.extend(positive_points.clone());
+    if let Some(start) = contour_points.first().cloned() {
+        contour_points.push(start);
+    }
+
+    NyquistData {
+        mode,
+        points,
+        positive_points,
+        negative_points,
+        infinity_closure,
+        key_points: nyquist_key_points(samples),
+        asymptotes: nyquist_asymptotes(loop_tf),
+        encirclements: if mode == NyquistPlotMode::Full {
+            winding_number(&contour_points, Complex64::new(-1.0, 0.0))
+        } else {
+            0.0
+        },
+    }
+}
+
 fn frequency_response(
     loop_tf: &TransferFunction,
     config: &FrequencyRangeConfig,
-) -> (Vec<CurvePoint>, Vec<CurvePoint>, Vec<ComplexPoint>) {
+    nyquist_config: Option<&NyquistConfig>,
+) -> (Vec<CurvePoint>, Vec<CurvePoint>, NyquistData) {
     let loop_tf = normalize_tf(loop_tf.clone());
-    let omegas = logspace(config.min, config.max, config.samples.max(8));
-    let mut magnitude = Vec::with_capacity(omegas.len());
-    let mut phase = Vec::with_capacity(omegas.len());
-    let mut nyquist_positive = Vec::with_capacity(omegas.len());
+    let mode = nyquist_config
+        .and_then(|item| item.mode)
+        .unwrap_or(NyquistPlotMode::Full);
+    let sampling_mode = nyquist_config
+        .and_then(|item| item.sampling_mode)
+        .unwrap_or(SamplingMode::Adaptive);
+    let samples = nyquist_frequency_samples(&loop_tf, config, sampling_mode);
+    let mut magnitude = Vec::with_capacity(samples.len());
+    let mut phase = Vec::with_capacity(samples.len());
     let mut last_phase: Option<f64> = None;
-    for omega in omegas {
-        let s = Complex64::new(0.0, omega);
-        let value =
-            eval_poly_complex(&loop_tf.numerator, s) / eval_poly_complex(&loop_tf.denominator, s);
+    for sample in &samples {
+        let omega = sample.omega;
+        let value = sample.value;
         let norm = value.norm();
         let mut phase_deg = if norm < 1e-12 {
             0.0
@@ -1044,18 +1472,8 @@ fn frequency_response(
             x: omega,
             y: phase_deg,
         });
-        nyquist_positive.push(ComplexPoint {
-            re: value.re,
-            im: value.im,
-        });
     }
-    let mut nyquist = nyquist_positive.clone();
-    for point in nyquist_positive.iter().rev().skip(1) {
-        nyquist.push(ComplexPoint {
-            re: point.re,
-            im: -point.im,
-        });
-    }
+    let nyquist = build_nyquist_data(&loop_tf, &samples, mode);
     (magnitude, phase, nyquist)
 }
 
@@ -1872,7 +2290,8 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
     let closed_tf = tf_unity_feedback(&loop_tf);
     let (step_points, mut metrics) =
         step_response(&closed_tf, &request.time_range, request.response_type);
-    let (magnitude, phase, nyquist) = frequency_response(&loop_tf, &request.frequency_range);
+    let (magnitude, phase, nyquist) =
+        frequency_response(&loop_tf, &request.frequency_range, request.nyquist.as_ref());
     let (phase_margin_deg, gain_margin_db, gain_cross, phase_cross, bandwidth) =
         margins(&magnitude, &phase);
     metrics.phase_margin_deg = phase_margin_deg;
@@ -1901,7 +2320,7 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
         },
         magnitude: BodeAxisData { points: magnitude },
         phase: BodeAxisData { points: phase },
-        nyquist: NyquistData { points: nyquist },
+        nyquist,
         root_locus: root_locus_data,
     }
 }
@@ -2151,12 +2570,20 @@ fn characteristic_value(model_id: &str, x: f64, request: &NonlinearAnalysisReque
         }
         "relay" => {
             let m = nonlinear_param(request, "M", 1.0).max(0.05);
-            if x >= 0.0 { m } else { -m }
+            if x >= 0.0 {
+                m
+            } else {
+                -m
+            }
         }
         "deadzone_relay" => {
             let m = nonlinear_param(request, "M", 1.0).max(0.05);
             let d = nonlinear_param(request, "d", 0.5).max(0.0);
-            if x.abs() <= d { 0.0 } else { x.signum() * m }
+            if x.abs() <= d {
+                0.0
+            } else {
+                x.signum() * m
+            }
         }
         _ => {
             let limit = nonlinear_param(request, "a", 1.0).max(0.05);
@@ -3381,6 +3808,7 @@ mod tests {
                 max: 10.0,
                 samples: 64,
             },
+            nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
                 max_gain: 2.0,
@@ -3430,6 +3858,7 @@ mod tests {
                 max: 1e1,
                 samples: 360,
             },
+            nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
                 max_gain: 12.0,
@@ -3486,6 +3915,7 @@ mod tests {
                 max: 1e4,
                 samples: 420,
             },
+            nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
                 max_gain: 24.0,
@@ -3528,6 +3958,7 @@ mod tests {
                 max: 1e2,
                 samples: 240,
             },
+            nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
                 max_gain: 20.0,
@@ -3556,20 +3987,16 @@ mod tests {
                 && point.im.abs() < 1e-8
                 && (point.gain - 7.4941).abs() < 2e-3
         }));
-        assert!(
-            result
-                .root_locus
-                .gains
-                .iter()
-                .any(|gain| (gain - 0.7059).abs() < 2e-3)
-        );
-        assert!(
-            result
-                .root_locus
-                .gains
-                .iter()
-                .any(|gain| (gain - 7.4941).abs() < 2e-3)
-        );
+        assert!(result
+            .root_locus
+            .gains
+            .iter()
+            .any(|gain| (gain - 0.7059).abs() < 2e-3));
+        assert!(result
+            .root_locus
+            .gains
+            .iter()
+            .any(|gain| (gain - 7.4941).abs() < 2e-3));
     }
 
     #[test]
@@ -3577,13 +4004,11 @@ mod tests {
         let result = compute_analysis_inner(&unit_3_3_step_05_request(2.0));
 
         assert_eq!(result.root_locus.branches.len(), 2);
-        assert!(
-            result
-                .root_locus
-                .branches
-                .iter()
-                .all(|branch| branch.len() > 30)
-        );
+        assert!(result
+            .root_locus
+            .branches
+            .iter()
+            .all(|branch| branch.len() > 30));
         for branch in &result.root_locus.branches {
             let complex_signs: Vec<i32> = branch
                 .iter()
@@ -3616,21 +4041,17 @@ mod tests {
         assert_eq!(result.root_locus.gains.len(), 6);
         assert_eq!(result.root_locus.gains.first().copied(), Some(0.0));
         assert_eq!(result.root_locus.gains.last().copied(), Some(4.0));
-        assert!(
-            result
-                .root_locus
-                .gains
-                .iter()
-                .any(|gain| (gain - 0.7059).abs() < 2e-3)
-        );
+        assert!(result
+            .root_locus
+            .gains
+            .iter()
+            .any(|gain| (gain - 0.7059).abs() < 2e-3));
         assert!(result.root_locus.gains.iter().all(|gain| *gain <= 4.0));
-        assert!(
-            result
-                .root_locus
-                .branches
-                .iter()
-                .all(|branch| branch.len() == 6)
-        );
+        assert!(result
+            .root_locus
+            .branches
+            .iter()
+            .all(|branch| branch.len() == 6));
     }
 
     #[test]
@@ -3639,54 +4060,98 @@ mod tests {
 
         assert!(!result.root_locus.real_axis_segments.is_empty());
         assert!(!result.root_locus.asymptotes.is_empty());
-        assert!(
-            result
-                .root_locus
-                .departure_angles
-                .iter()
-                .all(|angle| angle.angle_deg.is_finite())
-        );
-        assert!(
-            result
-                .root_locus
-                .arrival_angles
-                .iter()
-                .all(|angle| angle.angle_deg.is_finite())
-        );
-        assert!(
-            result
-                .root_locus
-                .imaginary_axis_crossings
-                .iter()
-                .all(|point| point.gain.is_finite() && point.gain >= 0.0)
-        );
+        assert!(result
+            .root_locus
+            .departure_angles
+            .iter()
+            .all(|angle| angle.angle_deg.is_finite()));
+        assert!(result
+            .root_locus
+            .arrival_angles
+            .iter()
+            .all(|angle| angle.angle_deg.is_finite()));
+        assert!(result
+            .root_locus
+            .imaginary_axis_crossings
+            .iter()
+            .all(|point| point.gain.is_finite() && point.gain >= 0.0));
     }
 
     #[test]
     fn ship_heading_zero_gain_keeps_all_outputs_finite() {
         let result = compute_analysis_inner(&ship_heading_request(0.0));
 
-        assert!(
-            result
-                .magnitude
-                .points
-                .iter()
-                .all(|point| point.x.is_finite() && point.y.is_finite())
+        assert!(result
+            .magnitude
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(result
+            .phase
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(result
+            .nyquist
+            .points
+            .iter()
+            .all(|point| point.re.is_finite() && point.im.is_finite()));
+    }
+
+    #[test]
+    fn nyquist_returns_full_contour_metadata_and_key_points() {
+        let mut request = ship_heading_request(1.0);
+        request.nyquist = Some(NyquistConfig {
+            mode: Some(NyquistPlotMode::Full),
+            sampling_mode: Some(SamplingMode::Adaptive),
+        });
+
+        let result = compute_analysis_inner(&request);
+
+        assert_eq!(result.nyquist.mode, NyquistPlotMode::Full);
+        assert!(!result.nyquist.positive_points.is_empty());
+        assert_eq!(
+            result.nyquist.positive_points.len(),
+            result.nyquist.negative_points.len()
         );
-        assert!(
-            result
-                .phase
-                .points
-                .iter()
-                .all(|point| point.x.is_finite() && point.y.is_finite())
+        assert!(result.nyquist.points.len() >= result.nyquist.positive_points.len() * 2);
+        assert_eq!(result.nyquist.infinity_closure.line_style, "dashed");
+        assert!(result.nyquist.infinity_closure.points.len() >= 2);
+        assert!(result
+            .nyquist
+            .key_points
+            .iter()
+            .any(|point| point.kind == "real_axis_crossing"));
+        assert!(result
+            .nyquist
+            .key_points
+            .iter()
+            .any(|point| point.kind == "unit_circle_crossing"));
+        assert!(result
+            .nyquist
+            .key_points
+            .iter()
+            .all(|point| point.frequency.is_finite()));
+        assert!(result.nyquist.encirclements.is_finite());
+    }
+
+    #[test]
+    fn nyquist_half_mode_returns_positive_branch_only() {
+        let mut request = ship_heading_request(1.0);
+        request.nyquist = Some(NyquistConfig {
+            mode: Some(NyquistPlotMode::Half),
+            sampling_mode: Some(SamplingMode::Adaptive),
+        });
+
+        let result = compute_analysis_inner(&request);
+
+        assert_eq!(result.nyquist.mode, NyquistPlotMode::Half);
+        assert_eq!(
+            result.nyquist.points.len(),
+            result.nyquist.positive_points.len()
         );
-        assert!(
-            result
-                .nyquist
-                .points
-                .iter()
-                .all(|point| point.re.is_finite() && point.im.is_finite())
-        );
+        assert!(result.nyquist.negative_points.is_empty());
+        assert!(result.nyquist.infinity_closure.points.is_empty());
     }
 
     #[test]
@@ -3695,20 +4160,16 @@ mod tests {
         impulse_request.response_type = ResponseType::Impulse;
         let impulse = compute_analysis_inner(&impulse_request);
         assert!(!impulse.step_response.points.is_empty());
-        assert!(
-            impulse
-                .step_response
-                .points
-                .iter()
-                .all(|point| point.x.is_finite() && point.y.is_finite())
-        );
-        assert!(
-            impulse
-                .step_response
-                .points
-                .iter()
-                .any(|point| point.y.abs() > 1e-6)
-        );
+        assert!(impulse
+            .step_response
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(impulse
+            .step_response
+            .points
+            .iter()
+            .any(|point| point.y.abs() > 1e-6));
 
         let mut ramp_request = ship_heading_request(1.0);
         ramp_request.response_type = ResponseType::Ramp;

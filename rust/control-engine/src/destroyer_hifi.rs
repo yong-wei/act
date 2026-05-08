@@ -962,7 +962,11 @@ fn target_heading(scenario_id: &str, t: f64) -> f64 {
     match scenario_id {
         "zigzag45" => {
             let phase = ((t / 300.0).floor() as i32) % 2;
-            if phase == 0 { 45.0 * DEG } else { -45.0 * DEG }
+            if phase == 0 {
+                45.0 * DEG
+            } else {
+                -45.0 * DEG
+            }
         }
         "turning_ramp" => {
             if t < 60.0 {

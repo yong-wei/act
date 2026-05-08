@@ -4,178 +4,261 @@ export const UNIT_4_2_COURSE_META = {
   courseId: 'unit-4-2-controller-selection-first-start-v1',
   courseTitle: '4-2：控制器选型原理：不同控制结构为何适合不同任务',
   courseDescription:
-    '围绕结构工具箱、双案例首轮起步与前馈补偿边界，把任务表达卡推进成单结构首轮起步卡。',
-  keyConcepts: ['结构工具箱', '主矛盾', '低频补偿', '中频动态品质', '前馈补偿', '首轮起步卡'],
+    '围绕频域证据、结构选型决策树、分结构整定例题和客船候选结构复核，把任务证据推进成单结构首轮起步卡。',
+  keyConcepts: ['频域作用点', '结构选型决策树', '参数初算', '多指标复核', '单结构起步卡'],
 } as const;
 
-function context(
-  stepId: string,
-  topic: string,
-  pageType: AIContextConfig['pageType'],
-  learningObjectives: string[],
-  quickQuestions: Array<{ label: string; question: string }>,
-  systemPromptExtension: string,
-): AIContextConfig {
+type Unit42AiSource = {
+  stepId: string;
+  topic: string;
+  pageType: AIContextConfig['pageType'];
+  objectives: string[];
+  quickQuestions: Array<{ label: string; question: string }>;
+  systemPrompt: string;
+};
+
+function context(source: Unit42AiSource): AIContextConfig {
   return {
     enabled: true,
     courseId: UNIT_4_2_COURSE_META.courseId,
     courseTitle: UNIT_4_2_COURSE_META.courseTitle,
-    pageType,
-    stepId,
-    topic,
-    learningObjectives,
+    pageType: source.pageType,
+    stepId: source.stepId,
+    topic: source.topic,
+    learningObjectives: source.objectives,
     knowledgeType: 'D',
     tools: ['explain_concept', 'provide_guidance', 'check_answer'],
-    quickQuestions,
-    systemPromptExtension,
+    quickQuestions: source.quickQuestions,
+    systemPromptExtension: source.systemPrompt,
   };
 }
 
-export const UNIT_4_2_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = {
-  'step-01': context(
-    'step-01',
-    '课程定位：4-2 只做单结构首轮起步判断',
-    'theory',
-    ['明确 4-2 的角色是结构首轮起步判断', '守住不越级到 4-3 的边界'],
-    [
-      { label: '为什么不能直接 PID', question: '为什么 4-1 的任务表达卡到了 4-2，仍不能直接把 PID 当成默认答案？' },
-      { label: '4-2 负责什么', question: '4-2 的输出为什么只是单结构首轮起步卡，而不是完整方案？' },
+const STEP_AI_SOURCE: Unit42AiSource[] = [
+  {
+    stepId: 'step-01',
+    topic: '控制器选型与整定任务的导入场景',
+    pageType: 'theory',
+    objectives: ['说明为什么不能把 PID 当成默认首轮答案', '把任务证据转回频域作用点和复核链'],
+    quickQuestions: [
+      { label: '为什么不能直接 PID', question: '为什么客船航向控制已有任务证据后，首轮仍不能直接写 PID？' },
+      { label: '先看什么证据', question: '结构选型前最先要判断哪些频域或通道证据？' },
     ],
-    '当前页面只解释课程路径和边界，不给出任何完整结构组合方案。',
-  ),
-  'step-02': context(
-    'step-02',
-    '前测：结构名字不是答案',
-    'quiz',
-    ['识别 PID 默认化、前馈万能化和更快即更适合三类误判', '把选型问题重新拉回任务矛盾'],
-    [
-      { label: 'PID 误判', question: '为什么“PID 看起来最全，所以默认先用 PID”是一个错误起点？' },
-      { label: '前馈误判', question: '为什么前馈不能被理解成“比反馈更高级”的主方案？' },
+    systemPrompt: '只围绕导入场景解释结构选型问题，不提前给出后续例题答案。',
+  },
+  {
+    stepId: 'step-02',
+    topic: '本次课程目标',
+    pageType: 'theory',
+    objectives: ['解释本课能力目标', '区分结构候选、参数初算和复核证据'],
+    quickQuestions: [
+      { label: '本课产出', question: '本课最终产出为什么是单结构起步卡，而不是完整复合方案？' },
+      { label: '目标怎么读', question: '结构候选、参数初算和复核证据之间是什么关系？' },
     ],
-    '只做错因归类与术语纠偏，不替学生直接作答。',
-  ),
-  'step-03': context(
-    'step-03',
-    '六步判断链：先看主矛盾，再说结构名字',
-    'theory',
-    ['阅读并理解六步判断链', '理解参数方向句式为什么必须从主矛盾出发'],
-    [
-      { label: '主矛盾在哪', question: '面对一个任务时，怎样判断主矛盾首先落在低频、中频还是通道补偿？' },
-      { label: '方向怎么写', question: '“参数先朝哪个方向起”这句话，为什么必须先依附于主矛盾而不是结构名字？' },
+    systemPrompt: '只解释本课目标和学习路径，不展开课程管理口径。',
+  },
+  {
+    stepId: 'step-03',
+    topic: '前置基础快测',
+    pageType: 'quiz',
+    objectives: ['检查相角裕度读图', '检查低频增益和反馈前馈边界'],
+    quickQuestions: [
+      { label: '裕度怎么读', question: 'Bode 图中的相角裕度应从哪个频率点读取？' },
+      { label: '前馈边界', question: '为什么前馈加入后反馈仍然需要承担稳定性？' },
     ],
-    '当前页面只做判断链与句式解释，不再发放学生作答。',
-  ),
-  'step-04': context(
-    'step-04',
-    '结构工具箱：先按作用机制分组',
-    'practice',
-    ['按语义重组 P/PI/PD/PID/超前/滞后/前馈', '基于表 3 前三列完成多选判断'],
-    [
-      { label: '为什么先选语义', question: '为什么控制结构应该先按“补低频 / 改中频 / 通道补偿”等语义重组，而不是按名字平铺？' },
-      { label: 'PID 何时进入', question: '哪些条件同时成立时，PID 或复合结构才值得进入首轮候选？' },
+    systemPrompt: '只做前置概念解释和错因提示，不替学生直接作答。',
+  },
+  {
+    stepId: 'step-04',
+    topic: '单结构整定的四类复核量',
+    pageType: 'practice',
+    objectives: ['用低频增益、截止频率、相角裕度和高频增益复核结构', '说明收益和代价必须同时出现'],
+    quickQuestions: [
+      { label: '四类复核量', question: '为什么低频增益、截止频率、相角裕度和高频增益要一起看？' },
+      { label: '不能只增益', question: '相角裕度不足时为什么不能只增大比例增益？' },
     ],
-    '只帮助学生重组工具箱，不提前代写起步卡。',
-  ),
-  'step-05': context(
-    'step-05',
-    '客船案例入口：低频保持能力优先',
-    'practice',
-    ['用客船跨域图识别低频主矛盾', '把慢扰动抑制和保持能力写成起步证据'],
-    [
-      { label: '为什么先补低频', question: '客船航向保持里，为什么第一步更自然地落在低频补偿，而不是先抢更快响应？' },
-      { label: '代价从哪来', question: '若首轮用 PI 或滞后起步，最先要警惕的代价是什么？' },
+    systemPrompt: '帮助学生回到四类复核量，不把结构名称当答案。',
+  },
+  {
+    stepId: 'step-05',
+    topic: '典型控制结构的频域特性矩阵',
+    pageType: 'practice',
+    objectives: ['把控制结构映射到频域作用点', '识别低频、中频、高频和通道补偿职责'],
+    quickQuestions: [
+      { label: '结构作用点', question: 'PI、超前、滞后和前馈分别首先改变哪类证据？' },
+      { label: '为什么先频域', question: '为什么结构选型要先看开环频率特性？' },
     ],
-    '只帮助学生把客船证据压回低频优先判断，不直接代写完整起步卡。',
-  ),
-  'step-06': context(
-    'step-06',
-    '客船展开：PI/滞后为何先于 PD',
-    'practice',
-    ['比较 PI 与 PD 对客船主矛盾的针对性', '按讲义显影链解释滞后候选的工程意义'],
-    [
-      { label: '为什么不是 PD', question: '客船案例里，为什么 PD 不能作为首轮主线，而 PI/滞后更合适？' },
-      { label: '滞后像什么', question: '滞后在客船案例里承担的“更克制的低频补偿”含义是什么？' },
+    systemPrompt: '解释结构频域语义，不替学生完成多选矩阵。',
+  },
+  {
+    stepId: 'step-06',
+    topic: '控制器结构选型决策树',
+    pageType: 'practice',
+    objectives: ['把任务证据映射到频段或通道', '沿决策树筛出候选结构和复核量'],
+    quickQuestions: [
+      { label: '决策树怎么走', question: '从稳态误差、裕度不足或可测扰动出发，决策树分别会走向哪里？' },
+      { label: '复核量怎么列', question: '选出候选结构后为什么还必须列复核量？' },
     ],
-    '只帮助学生核对客船比较链，不直接生成完整参数方案。',
-  ),
-  'step-07': context(
-    'step-07',
-    '平台案例入口：中频动态品质与储备',
-    'practice',
-    ['识别速度已建立但阻尼仍紧的中频问题', '把平台证据压回储备与动态品质判断'],
-    [
-      { label: '为什么不先补 PI', question: '平台案例里，为什么速度已经建立后，第一步不应先回到 PI 的低频补偿逻辑？' },
-      { label: '储备怎么看', question: '平台案例里，中频动态品质和储备边界为什么要一起看？' },
+    systemPrompt: '只帮助学生理解证据匹配逻辑，不直接给拖动题答案。',
+  },
+  {
+    stepId: 'step-07',
+    topic: '经验整定与临界比例整定步骤',
+    pageType: 'theory',
+    objectives: ['解释经验整定初值', '说明 ZN 中 Ku 和 Pu 的来源'],
+    quickQuestions: [
+      { label: 'Ku 来源', question: '临界比例法中的 Ku 和 Pu 分别来自什么实验现象？' },
+      { label: 'ZN 边界', question: '为什么 ZN 结果只能作为 PID 初值？' },
     ],
-    '只帮助学生把证据整理成平台主矛盾，不直接代写完整起步卡。',
-  ),
-  'step-08': context(
-    'step-08',
-    '平台展开：PD/超前为何先于 PI',
-    'practice',
-    ['比较 PD 与 PI 对平台主矛盾的作用点', '按讲义显影链理解超前是 PD 的工程化写法'],
-    [
-      { label: '为什么先改中频', question: '稳定平台为什么要先整理中频相位与阻尼，而不是先补低频精度？' },
-      { label: '超前像什么', question: '为什么可以把超前理解成更工程化的 PD 写法？' },
+    systemPrompt: '按显影步骤解释参数来源，不跳到例题答案。',
+  },
+  {
+    stepId: 'step-08',
+    topic: '频域 PI 与滞后整定步骤',
+    pageType: 'theory',
+    objectives: ['说明 PI 参数来源', '说明滞后参数来源和复核边界'],
+    quickQuestions: [
+      { label: 'PI 参数链', question: 'PI 的零点、Ti、Kp 和 Ki 分别怎样确定？' },
+      { label: '滞后代价', question: '滞后提高低频能力时最容易牺牲什么？' },
     ],
-    '允许解释比较表和显影链，不跳到下一课的复合结构。',
-  ),
-  'step-09': context(
-    'step-09',
-    '输入前馈：参考通道补偿不等于 PD 改名',
-    'practice',
-    ['区分输入前馈与 PD 的作用通道', '理解根轨迹近似重合背后的原因'],
-    [
-      { label: '为什么不是 PD', question: '输入前馈为什么不是把 PD 改了一个名字，而是真正改动了参考通道？' },
-      { label: '先验证什么', question: '在输入前馈的首轮判断里，最先该验证什么现象改变了？' },
+    systemPrompt: '解释 PI 与滞后参数链，不替学生提交后续例题参数。',
+  },
+  {
+    stepId: 'step-09',
+    topic: '频域 PD、超前与超前-滞后整定步骤',
+    pageType: 'theory',
+    objectives: ['说明超前参数链', '识别中频相位收益与高频代价'],
+    quickQuestions: [
+      { label: '超前怎么算', question: '超前校正中的 alpha、T 和 Kc 分别来自哪一步？' },
+      { label: '高频代价', question: '为什么强超前不能只看相位收益？' },
     ],
-    '只帮助学生理解结构图区别和验证目标，不代写完整补偿器。',
-  ),
-  'step-10': context(
-    'step-10',
-    '扰动前馈：补偿候选但不替代反馈保底',
-    'practice',
-    ['区分反馈保底与前馈补偿的职责', '识别模型与测量质量带来的风险'],
-    [
-      { label: '为什么仍要反馈', question: '即使已经加入扰动前馈，为什么反馈仍必须承担稳定与鲁棒性的保底职责？' },
-      { label: '风险是什么', question: '扰动前馈最容易被低估的三类工程风险分别是什么？' },
+    systemPrompt: '解释中频相位补偿和代价，不替学生完成例题。',
+  },
+  {
+    stepId: 'step-10',
+    topic: '模型匹配、IMC/SIMC 与前馈整定步骤',
+    pageType: 'practice',
+    objectives: ['说明模型匹配和 IMC/SIMC 参数含义', '区分前馈补偿与反馈保底'],
+    quickQuestions: [
+      { label: 'lambda 含义', question: 'IMC/SIMC 中 lambda 变大时响应速度和鲁棒性通常怎样变化？' },
+      { label: '前馈职责', question: '前馈整定为什么不能替代反馈闭环？' },
     ],
-    '只做边界澄清和风险核对，不把前馈讲成万能方案。',
-  ),
-  'step-11': context(
-    'step-11',
-    '单结构首轮起步卡工作区',
-    'practice',
-    ['把结构、参数方向、收益与代价写成六字段最小起步卡', '让起步卡能够直接交给 4-3'],
-    [
-      { label: '起步卡缺什么', question: '一张最小起步卡如果没有写参数方向和主要代价，会让后续 4-3 缺什么输入？' },
-      { label: '起步卡怎么写', question: '写六字段最小起步卡时，怎样同时把结构理由、参数方向、收益和代价写完整？' },
+    systemPrompt: '帮助学生判断适用前提和边界，不把前馈讲成万能方案。',
+  },
+  {
+    stepId: 'step-11',
+    topic: '例题 5.1 频域 PI 参数计算',
+    pageType: 'practice',
+    objectives: ['复核 PI 求解步骤', '用时域和频域二连图检查 Ti、Kp、Ki'],
+    quickQuestions: [
+      { label: 'PI 复核', question: 'Ti、Kp、Ki 改动后应同时观察哪些时域和频域证据？' },
+      { label: '裕度不足', question: '如果 PI 后相角裕度偏低，应先考虑怎样调整？' },
     ],
-    '只允许做字段完整性和证据对应检查，不替学生直接生成完整方案。',
-  ),
-  'step-12': context(
-    'step-12',
-    '后测：先看主矛盾，再选结构',
-    'quiz',
-    ['检查是否形成结构首轮判断链', '检查是否仍把结构名字当答案'],
-    [
-      { label: '链条还差什么', question: '如果一个人还能说出结构名字，却说不清主矛盾和代价，说明他缺了哪一段判断链？' },
-      { label: '前馈边界', question: '为什么后测里仍要反复检查“前馈进入候选但不能替代反馈”这条边界？' },
+    systemPrompt: '可以解释参数含义和曲线变化，不直接代填提交字段。',
+  },
+  {
+    stepId: 'step-12',
+    topic: '例题 5.2 频域超前参数计算',
+    pageType: 'practice',
+    objectives: ['复核超前求解步骤', '识别高频增益和控制量代价'],
+    quickQuestions: [
+      { label: 'alpha 含义', question: 'alpha 变小时相位补偿和高频代价通常怎样变化？' },
+      { label: '超前复核', question: '超前参数提交前必须检查哪些曲线证据？' },
     ],
-    '只做判断链核对，不替学生直接作答。',
-  ),
-  'step-13': context(
-    'step-13',
-    '收束：4-2 的出口交给 4-3',
-    'theory',
-    ['把五句带走固定下来', '把 4-2 与 4-3 的边界重新钉死'],
-    [
-      { label: '五句带走', question: '4-2 结束时，最该带走的五句判断分别是什么？' },
-      { label: '为什么交给 4-3', question: '为什么 4-2 只产出单结构首轮起步卡，复合结构骨架必须交给 4-3？' },
+    systemPrompt: '解释超前参数与曲线变化，不替学生直接提交。',
+  },
+  {
+    stepId: 'step-13',
+    topic: '例题 5.3 滞后校正参数计算',
+    pageType: 'practice',
+    objectives: ['复核滞后参数链', '检查低频改善和相角裕度代价'],
+    quickQuestions: [
+      { label: 'beta 怎么来', question: '滞后校正中的 beta 为什么来自误差改善倍数？' },
+      { label: '滞后复核', question: '为什么滞后后必须复核响应速度和裕度？' },
     ],
-    '当前页面只做总结与去向说明，不提前展开复合结构方案。',
-  ),
-};
+    systemPrompt: '解释滞后参数来源和复核口径，不直接生成答案。',
+  },
+  {
+    stepId: 'step-14',
+    topic: '例题 5.4 Ziegler-Nichols PID 参数计算',
+    pageType: 'practice',
+    objectives: ['复核 ZN PID 参数换算', '识别 ZN 初值的超调风险'],
+    quickQuestions: [
+      { label: 'ZN 参数', question: 'Kp、Ti、Td、Ki、Kd 是怎样由 Ku 和 Pu 得到的？' },
+      { label: '为什么要复核', question: 'ZN PID 为什么不能直接作为最终参数？' },
+    ],
+    systemPrompt: '围绕 ZN 初值和二连图复核提供解释，不替学生提交参数。',
+  },
+  {
+    stepId: 'step-15',
+    topic: '扰动前馈例题的补偿计算',
+    pageType: 'practice',
+    objectives: ['解释扰动对消公式', '说明工程折减和反馈边界'],
+    quickQuestions: [
+      { label: '对消公式', question: '为什么扰动前馈理论值满足 Fd=-Gd/G？' },
+      { label: '工程折减', question: '为什么理论前馈值通常还要做工程折减？' },
+    ],
+    systemPrompt: '解释扰动前馈计算和边界，不替代学生判断。',
+  },
+  {
+    stepId: 'step-16',
+    topic: '客船航向控制对象与候选参数初算',
+    pageType: 'practice',
+    objectives: ['固定客船对象和基准指标', '说明候选结构参数来源'],
+    quickQuestions: [
+      { label: '基准问题', question: '客船基准对象最明显的问题证据是什么？' },
+      { label: '分支来源', question: '滞后、PI、超前和超前-滞后分别来自哪类整定分支？' },
+    ],
+    systemPrompt: '帮助学生整理客船对象证据和参数来源，不提前定最终结构。',
+  },
+  {
+    stepId: 'step-17',
+    topic: '客船候选结构的 Bode 与时域复核',
+    pageType: 'practice',
+    objectives: ['比较候选结构的 Bode 和时域证据', '形成多指标复核判断'],
+    quickQuestions: [
+      { label: '候选怎么比', question: '比较客船候选结构时为什么不能只看超调？' },
+      { label: '复核量', question: 'Bode、阶跃、扰动、灵敏度和控制量各自回答什么问题？' },
+    ],
+    systemPrompt: '解释候选结构比较证据，不把某个候选直接宣布为最终答案。',
+  },
+  {
+    stepId: 'step-18',
+    topic: '分层练习与单结构起步卡工作区',
+    pageType: 'practice',
+    objectives: ['把练习任务转成单结构起步卡', '补齐结构、整定入口、收益、代价和复核证据'],
+    quickQuestions: [
+      { label: '起步卡字段', question: '八字段起步卡中哪些字段最容易漏掉？' },
+      { label: '证据怎么写', question: '四类复核证据怎样写得可检查？' },
+    ],
+    systemPrompt: '只做字段完整性和证据对应检查，不替学生写完整方案。',
+  },
+  {
+    stepId: 'step-19',
+    topic: '后测：结构选型与整定复核判断',
+    pageType: 'quiz',
+    objectives: ['检查结构作用点判断', '检查整定步骤和复核边界'],
+    quickQuestions: [
+      { label: '后测重点', question: '后测主要检查结构名字、参数步骤还是复核边界？' },
+      { label: '错因定位', question: '如果只选出结构却说不清代价，说明缺了哪一步？' },
+    ],
+    systemPrompt: '只提供概念澄清和错因提示，不替学生作答。',
+  },
+  {
+    stepId: 'step-20',
+    topic: '总结：频域证据到首轮候选结构',
+    pageType: 'theory',
+    objectives: ['收束频域证据到结构候选', '查看个人与班级表现统计'],
+    quickQuestions: [
+      { label: '五句带走', question: '本课结束时最该保留的结构选型判断链是什么？' },
+      { label: '下一步关系', question: '为什么本课只到单结构首轮候选，后续还要进入复合结构和优化？' },
+    ],
+    systemPrompt: '只做总结和迁移提醒，不展开新的复合结构设计。',
+  },
+];
+
+export const UNIT_4_2_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = Object.fromEntries(
+  STEP_AI_SOURCE.map((source) => [source.stepId, context(source)]),
+);
 
 export function getUnit42StepAIContext(stepId: string): AIContextConfig | null {
   return UNIT_4_2_STEP_AI_CONTEXTS[stepId] ?? null;

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-08T07:04:09.120812Z",
+  "lesson_id": "4-2",
+  "node_id": "频域PI与滞后整定_4_42010",
+  "requested_node_id": "频域PI与滞后整定_4_42010",
+  "node_name": "频域 PI 与滞后整定",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review passed: PI and lag branches remain distinct; low-frequency gain, cutoff, and phase-cost checks are visible"
+}

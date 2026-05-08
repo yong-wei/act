@@ -14,7 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit42StepAIContext } from '@/lib/course-ai-contexts';
 import {
-  getUNIT_4_2PageContract,
+  getUNIT_4_2PageContractFromManifest,
   getUNIT_4_2MediaSrc,
   isUNIT_4_2AiPageType,
   isUNIT_4_2InteractivePageType,
@@ -91,7 +91,7 @@ export function UNIT_4_2StudentPage({
 
   const step = UNIT_4_2_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
-  const pageContract = getUNIT_4_2PageContract(step.id);
+  const pageContract = getUNIT_4_2PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -131,8 +131,7 @@ export function UNIT_4_2StudentPage({
         ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
         : false;
   const revealProgress = teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
-  const allowInlineReveal =
-    isDemo || (browseEnabled && pageContract.teacherControls.teacherStepReveal === 'not_applicable');
+  const allowInlineReveal = isDemo || browseEnabled;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -308,7 +307,7 @@ export function UNIT_4_2StudentPage({
           />
         </div>
 
-        {step.id === 'step-13' ? (
+        {step.id === 'step-20' ? (
           <div className="mt-4">
             <UNIT_4_2StudentSummaryPanel responses={courseState.responses} />
           </div>

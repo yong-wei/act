@@ -98,6 +98,7 @@ export interface InteractiveRuntimeStepManifest {
     interactionKind: InteractiveInteractionKind;
     studentTask?: string;
     activityCards?: InteractiveRuntimeActivityCardManifest[];
+    submitFields?: string[];
     stepRevealPolicy?: Record<string, unknown>;
     answerReveal?: string;
   };
@@ -301,6 +302,7 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
       activityCards: Array.isArray(interactionSpec.activity_cards)
         ? interactionSpec.activity_cards.map(normalizeActivityCard)
         : undefined,
+      submitFields: asStringArray(interactionSpec.submit_fields ?? interactionSpec.submitFields),
       stepRevealPolicy: interactionSpec.step_reveal_policy
         ? asRecord(interactionSpec.step_reveal_policy)
         : undefined,

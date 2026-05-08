@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T07:09:42.423266Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "结构选型与参数入口"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "临界比例PID整定_4_42012",
+    "name": "临界比例 PID 整定",
+    "name_en": "Ultimate-Gain PID Tuning",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "通过比例控制下的等幅振荡试验获得 $K_u$ 和 $P_u$，再用整定表给出 `P/PI/PID` 参数初值。",
+    "examples": [
+      "若试验得到 \\(K_u=8\\)、\\(P_u=4s\\)，Ziegler-Nichols PID 给出 \\(K_p=4.8\\)、\\(T_i=2s\\)、\\(T_d=0.5s\\)。"
+    ],
+    "formulas": [
+      "K_p=0.6K_u,\\qquad T_i=\\frac{P_u}{2},\\qquad T_d=\\frac{P_u}{8}"
+    ],
+    "keywords": [
+      "Ziegler-Nichols",
+      "PID",
+      "临界增益",
+      "临界周期",
+      "整定表"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/临界比例PID整定_4_42012.md",
+  "card_frontmatter": {
+    "node_id": "临界比例PID整定_4_42012",
+    "name": "临界比例 PID 整定",
+    "name_en": "Ultimate-Gain PID Tuning",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "PID",
+      "Ziegler-Nichols"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-example-5-4-zn-steps.png",
+      "4-2-example-5-4-correction-quadrants.png"
+    ]
+  },
+  "card_overview": "# 临界比例 PID 整定 | Ultimate-Gain PID Tuning\n\n**一句话定义**：通过比例控制下的等幅振荡试验获得 $K_u$ 和 $P_u$，再用整定表给出 `P/PI/PID` 参数初值。\n\n**核心直觉**：临界比例法给的是可试验初值，不是可以直接交付的最终参数。\n\n**关键公式**：\n$$\nK_p=0.6K_u,\\qquad T_i=\\frac{P_u}{2},\\qquad T_d=\\frac{P_u}{8}\n$$\n\n**关联**：前置 -> 控制器频域特性矩阵 · 后续 -> 单结构整定四类复核量",
+  "card_detail": "Ziegler-Nichols 临界比例法先关闭积分和微分，只增大比例增益，直到系统出现近似等幅振荡。记录临界增益 $K_u$ 与临界周期 $P_u$ 后，再查表得到控制器参数。该方法常使响应偏快、超调偏大，适合做起点，不适合不经复核直接交付。\n\n### 常见误区\n\n1. **误区**：整定表算出的 PID 参数就是最终答案。  \n   **纠正**：必须继续检查超调、调节时间、裕度和控制量。\n\n2. **误区**：所有对象都适合做临界振荡试验。  \n   **纠正**：不允许接近振荡边界的设备不应采用这一路径。",
+  "card_plain_excerpt": "## 首页\n\n# 临界比例 PID 整定 | Ultimate-Gain PID Tuning\n\n**一句话定义**：通过比例控制下的等幅振荡试验获得 $K_u$ 和 $P_u$，再用整定表给出 `P/PI/PID` 参数初值。\n\n**核心直觉**：临界比例法给的是可试验初值，不是可以直接交付的最终参数。\n\n**关键公式**：\n$$\nK_p=0.6K_u,\\qquad T_i=\\frac{P_u}{2},\\qquad T_d=\\frac{P_u}{8}\n$$\n\n**关联**：前置 -> 控制器频域特性矩阵 · 后续 -> 单结构整定四类复核量\n\n## 详情\n\nZiegler-Nichols 临界比例法先关闭积分和微分，只增大比例增益，直到系统出现近似等幅振荡。记录临界增益 $K_u$ 与临界周期 $P_u$ 后，再查表得到控制器参数。该方法常使响应偏快、超调偏大，适合做起点，不适合不经复核直接交付。\n\n### 常见误区\n\n1. **误区**：整定表算出的 PID 参数就是最终答案。  \n   **纠正**：必须继续检查超调、调节时间、裕度和控制量。\n\n2. **误区**：所有对象都适合做临界振荡试验。  \n   **纠正**：不允许接近振荡边界的设备不应采用这一路径。",
+  "core_intuition": "临界比例法给的是可试验初值，不是可以直接交付的最终参数。",
+  "relations": [
+    {
+      "source_id": "控制器频域特性矩阵_4_42008",
+      "source": "控制器频域特性矩阵",
+      "target_id": "临界比例PID整定_4_42012",
+      "target": "临界比例 PID 整定",
+      "relation": "related",
+      "strength": 0.82,
+      "description": "PID 同时影响低频积分和中频微分，临界比例法为其给出可试验的参数初值。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "结构选型决策树_4_42009",
+      "source": "结构选型决策树",
+      "target_id": "临界比例PID整定_4_42012",
+      "target": "临界比例 PID 整定",
+      "relation": "leads_to",
+      "strength": 0.84,
+      "description": "稳态和动态同时不满足且允许试验时，决策树可以把 PID 临界比例整定作为候选入口。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "临界比例 PID 整定",
+        "Ziegler-Nichols",
+        "PID",
+        "临界增益",
+        "临界周期"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "K_p=0.6K_u,\\qquad T_i=\\frac{P_u}{2},\\qquad T_d=\\frac{P_u}{8}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

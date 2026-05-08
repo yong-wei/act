@@ -158,6 +158,12 @@ def interaction_cards(step: dict[str, Any]) -> list[dict[str, Any]]:
     return [as_record(item) for item in as_list(spec.get("activity_cards", spec.get("activityCards")))]
 
 
+def interaction_submit_fields(step: dict[str, Any]) -> list[str]:
+    spec = as_record(step.get("interaction_spec", step.get("interactionSpec", {})))
+    fields = spec.get("submit_fields", spec.get("submitFields"))
+    return [str(item).strip() for item in as_list(fields) if str(item).strip()]
+
+
 def must_be_visible(module: dict[str, Any]) -> bool:
     return bool(module.get("must_be_visible", module.get("mustBeVisible", False)))
 
@@ -463,6 +469,7 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
         step_modules = modules(step)
         blocks = content_blocks(step)
         cards = interaction_cards(step)
+        submit_fields = interaction_submit_fields(step)
         interaction_spec = as_record(step.get("interaction_spec", step.get("interactionSpec", {})))
         interaction_kind = str(interaction_spec.get("interaction_kind", interaction_spec.get("interactionKind", "none")))
         if interaction_kind not in {"none", "display", "summary"}:
@@ -483,6 +490,7 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
             for card in cards
             if str(card.get("prompt", "")).strip()
         ]
+        activity_payload_present = bool(prompts or submit_fields)
         content_payload_text = "\n".join(
             text
             for module in step_modules
@@ -517,12 +525,14 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
                     "module_id": module_id,
                     "kind": kind,
                     "renderer_owner": "activity",
-                    "resolved_content_source": "interaction_spec.activity_cards",
+                    "resolved_content_source": "interaction_spec.activity_cards"
+                    if prompts
+                    else "interaction_spec.submit_fields",
                     "resolved_content_type": "activity",
-                    "is_empty": not bool(prompts),
+                    "is_empty": not activity_payload_present,
                     "diagnostic": None,
                 }
-                if required and not prompts:
+                if required and not activity_payload_present:
                     entry["diagnostic"] = "activity_module_without_activity_cards"
                     issues.append({**entry, "issue": entry["diagnostic"]})
                 entries.append(entry)

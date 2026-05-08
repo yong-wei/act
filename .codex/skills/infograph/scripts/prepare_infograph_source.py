@@ -118,6 +118,22 @@ def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
         return '用参考输入前馈支路、误差曲线和无差度提升小窗表达按输入补偿只针对给定输入通道，仍需反馈闭环兜底。'
     if '按扰动补偿前馈' in text:
         return '用可测扰动前馈支路、扰动进入点和对消条件小窗表达扰动补偿依赖扰动可测和模型路径匹配。'
+    if '控制器频域特性矩阵' in text:
+        return '用同一 Bode 坐标中的 PI、PD、PID、超前、滞后曲线对照低频增益、中频相位、截止频率和高频增益，表达结构先按频段影响读证据。'
+    if '结构选型决策树' in text:
+        return '用“任务证据 -> 频段/通道/边界 -> 候选结构 -> 整定入口 -> 复核量”的工程决策树表达选型不是名称偏好，而是证据分流。'
+    if '频域 PI 与滞后整定' in text or '频域PI与滞后整定' in text:
+        return '用低频 Bode 放大窗、PI 零点、滞后零极点和截止频率校准步骤表达低频能力不足如何转成参数初算。'
+    if '频域 PD 与超前整定' in text or '频域PD与超前整定' in text:
+        return '用目标相角裕度、补偿相位窗口、PD/超前参数小窗和阶跃验收表达中频动态不足如何转成相位补偿。'
+    if '临界比例 PID 整定' in text or '临界比例PID整定' in text:
+        return '用比例控制下的等幅振荡试验、临界增益 Ku、临界周期 Pu 和三条 PID 初值公式表达经验整定入口；不要画 P/PI/PID 三行表格或未给出的 P/PI 参数。'
+    if 'IMC/SIMC' in text or 'IMC_SIMC' in text:
+        return '用一阶惯性加纯滞后对象模型、目标闭环时间常数 lambda、IMC/SIMC 参数小窗和模型匹配边界表达模型清楚时的整定入口。'
+    if '客船候选结构整定比较' in text:
+        return '用客船航向控制对象和 P、滞后、PI、超前、超前-滞后五条候选结构的 Bode、时域响应、扰动、控制量小窗表达候选比较；图面统一写“时域响应”。'
+    if '单结构整定四类复核量' in text:
+        return '用同一单结构参数初算结果同时进入时域响应、扰动响应、相角裕度和控制量四个复核仪表，表达不能凭单指标宣布有效；图面用“时域响应”而不是“阶跃响应”。'
     if '单结构首轮起步卡' in text:
         return '用六字段起步卡、客船低频起步和平台中频起步两个分支表达首轮只选择一个主结构，并记录理由、代价和验证指标。'
     if '目标驱动PD校正' in text:
@@ -258,6 +274,62 @@ def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
             '工程场景：扰动进入点、补偿信号和残余误差曲线三联小窗表达对消条件。\n'
             '核心图示：d(t)、扰动可测、对消条件、路径匹配、残余误差五个短标签。\n'
             '构图方式：主图为扰动补偿框图，右侧为“可测且匹配才有效”的边界判断。'
+        )
+    if '控制器频域特性矩阵' in text:
+        return (
+            '主视觉对象：同一张 Bode 幅频/相频坐标中叠放 PI、PD、PID、超前、滞后、超前-滞后六类控制器的简化影响曲线。\n'
+            '工程场景：低频、中频、高频三段职责条横贯主图，用短标签标出低频增益、中频相位、截止频率、高频增益。\n'
+            '核心图示：L(s)=C(s)G(s)、Bode 主图、结构候选标签、收益/代价边界。\n'
+            '构图方式：左侧大 Bode 主图，右侧四格矩阵说明结构首先改变哪一段证据；不要画成软件截图或纯文字表格。'
+        )
+    if '结构选型决策树' in text:
+        return (
+            '主视觉对象：一棵从任务证据出发的工程决策树，第一层分为低频、中频、通道补偿和边界复核。\n'
+            '工程场景：稳态误差、相角裕度不足、扰动可测和控制量约束分别进入不同分支。\n'
+            '核心图示：任务证据、候选结构、整定入口、复核量四个节点层级；公式只保留流程箭头锚点。\n'
+            '构图方式：左侧任务证据卡，中央树状分流，右侧连接 PI/滞后、PD/超前、前馈、PID/IMC 等入口。'
+        )
+    if '频域 PI 与滞后整定' in text or '频域PI与滞后整定' in text:
+        return (
+            '主视觉对象：低频 Bode 放大窗，PI 零点和滞后零极点贴在频率轴上，显示低频增益被抬升。\n'
+            '工程场景：稳态误差不足的任务标签进入 PI/滞后两个整定分支，再回到截止频率和相位代价检查。\n'
+            '核心图示：C_PI(s)、C_lag(s)、低频增益、目标截止频率、相位代价。\n'
+            '构图方式：左侧低频问题，中央 PI 与滞后双路径，右侧复核小窗；不要把两种结构画成同一种。'
+        )
+    if '频域 PD 与超前整定' in text or '频域PD与超前整定' in text:
+        return (
+            '主视觉对象：Bode 相频曲线上的目标相角裕度缺口和补偿相位窗口，旁边放 PD 与超前两个参数小窗。\n'
+            '工程场景：中频动态品质和超调问题通过相位补偿进入 PD/超前整定，再用阶跃响应验收。\n'
+            '核心图示：C_PD(s)、C_lead(s)、相角裕度、补角、阶跃验收。\n'
+            '构图方式：左侧 Bode 双图为主图，右侧参数计算和时域验收；用红色小标提示高频噪声代价。'
+        )
+    if '临界比例 PID 整定' in text or '临界比例PID整定' in text:
+        return (
+            '主视觉对象：比例增益逐步升高的试验仪表，响应曲线从衰减振荡过渡到等幅振荡，并标出 Ku 与 Pu。\n'
+            '工程场景：由临界振荡读数进入 PID 三项初值卡，随后指向复核而不是直接定稿；不要渲染 P/PI/PID 三行整定表，也不要补写未给出的 P 或 PI 参数。\n'
+            '核心图示：Ku、Pu、Kp=0.6Ku、Ti=Pu/2、Td=Pu/8。\n'
+            '构图方式：左侧试验曲线，中央读数仪表，右侧三条公式卡和复核箭头；避免画成泛泛 PID 方块图。'
+        )
+    if 'IMC/SIMC' in text or 'IMC_SIMC' in text:
+        return (
+            '主视觉对象：一阶惯性加纯滞后对象模型框图，模型参数 K、tau、L 进入 IMC/SIMC 整定器。\n'
+            '工程场景：目标闭环时间常数 lambda 控制快慢取舍，模型清楚时给出 PI 参数初值。\n'
+            '核心图示：Kp=tau/[K(lambda+L)]、Ti=min{tau,4(lambda+L)}、模型匹配、闭环时间常数。\n'
+            '构图方式：左侧对象模型，中间 IMC/SIMC 参数计算，右侧响应快慢与鲁棒边界；不要渲染成 AI 数据流。'
+        )
+    if '客船候选结构整定比较' in text:
+        return (
+            '主视觉对象：客船航向控制对象 G_h(s) 位于中央，五条候选结构 P、滞后、PI、超前、超前-滞后围绕比较。\n'
+            '工程场景：每个候选用小窗显示 Bode、时域响应、扰动响应或控制量中的关键读数，突出收益和代价不同。\n'
+            '核心图示：G_h(s)、Bode、时域响应、扰动响应、控制量、候选结构；图面不要出现“阶跃响应”或“阶跌响应”字样，统一用“时域响应”。\n'
+            '构图方式：中央船舶航向闭环，周围五格候选比较，右侧用短标签收束“不能只看超调”。'
+        )
+    if '单结构整定四类复核量' in text:
+        return (
+            '主视觉对象：一个单结构参数初算结果同时流入四个复核仪表：时域响应、扰动响应、相角裕度、控制量峰值。\n'
+            '工程场景：客船案例中超前、PI、滞后等候选都要过同一四项复核台，避免单指标通过。\n'
+            '核心图示：step、disturbance、PM、u_peak、复核四联表；可见中文标签统一写“时域响应”，不要写“阶跃响应”或“阶跌响应”。\n'
+            '构图方式：中央参数卡，四周四个仪表小窗，底部用红色边界提示“单项好不等于有效”。'
         )
     if '单结构首轮起步卡' in text:
         return (
@@ -685,6 +757,10 @@ def text_contract_for_node(node_name: str, keywords: list[str], formulas: list[s
             continue
         if re.fullmatch(r'层\d+.*', value) or '精化' in value:
             continue
+        if ('临界比例 PID 整定' in node_name or '临界比例PID整定' in node_name) and value == '整定表':
+            continue
+        if '单结构整定四类复核量' in node_name and value == '阶跃响应':
+            value = '时域响应'
         allowed_labels.append(value)
     return {
         'allowed_labels': allowed_labels[:10],
@@ -865,6 +941,8 @@ def main() -> None:
 
     node_name = str(node.get('name') or frontmatter.get('name') or node_id)
     node_formulas = formula_anchors(card_formula, node.get('formulas') or frontmatter.get('formulas') or [])
+    if '单结构整定四类复核量' in node_name:
+        node_formulas = [r'\text{复核}=(step,disturbance,PM,u_{peak})']
     node_keywords = unique_strings(
         list(node.get('keywords') or [])
         + [

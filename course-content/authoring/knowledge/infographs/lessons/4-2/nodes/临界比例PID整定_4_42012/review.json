@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-08T07:11:55.766056Z",
+  "lesson_id": "4-2",
+  "node_id": "临界比例PID整定_4_42012",
+  "requested_node_id": "临界比例PID整定_4_42012",
+  "node_name": "临界比例 PID 整定",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "visual review passed after regeneration: no unsupported P/PI table, only Ku/Pu and PID initial-value formulas are shown"
+}

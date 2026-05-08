@@ -1,0 +1,70 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{signalgray}{HTML}{333333}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, minimum width=2.25cm, minimum height=0.82cm, align=center, line width=1.2pt, font=\scriptsize\bfseries},
+  wideblock/.style={block, minimum width=2.95cm},
+  sum/.style={circle, draw=sumgreen, fill=none, minimum size=6.3mm, inner sep=0pt, line width=1.2pt,
+    path picture={\draw[sumgreen,line width=1.0pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+    \draw[sumgreen,line width=1.0pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+  tap/.style={circle, draw=taporange, fill=none, minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+  signal/.style={-{Stealth[length=2.7mm,width=1.9mm]}, draw=signalgray, line width=1.2pt},
+  label/.style={font=\scriptsize, align=center},
+  smalllabel/.style={font=\tiny, align=center}
+}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{
+    sum/.style={circle, draw=sumgreen, fill=none, minimum size=3.15mm, inner sep=0pt, line width=0.9pt,
+      path picture={\draw[sumgreen,line width=0.7pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[sumgreen,line width=0.7pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+    tap/.style={circle, draw=taporange, fill=none, minimum size=3.4pt, inner sep=0pt, line width=1.0pt}
+  }
+  \node[label] (r) at (0,0) {$r$};
+  \node[tap] (rtap) at (1.1,0) {};
+  \node[block, minimum width=1.45cm] (qf) at (2.45,0) {$Q_f(s)$};
+  \node[sum] (se) at (4.0,0) {};
+  \node[wideblock, minimum width=2.25cm] (pid) at (5.95,0) {带滤波 PID\\$C_{\mathrm{PIDf}}$};
+  \node[sum] (su) at (8.0,0) {};
+  \node[wideblock, minimum width=2.35cm] (sat) at (10.25,0) {限幅 + 斜率限制};
+  \node[block, minimum width=1.45cm] (ga) at (12.65,0) {$G_a(s)$};
+  \node[sum] (sd) at (14.2,0) {};
+  \node[block, minimum width=1.45cm] (gp) at (15.75,0) {$G_p(s)$};
+  \node[tap] (ytap) at (16.95,0) {};
+  \node[label] (y) at (17.75,0) {$y$};
+  \node[block, minimum width=1.65cm] (fr) at (3.05,1.45) {$F_r(s)$};
+  \node[label] (d) at (14.2,2.7) {$d$};
+  \node[tap] (dtap) at (14.2,1.45) {};
+  \node[block, minimum width=1.65cm] (fd) at (12.15,1.45) {$F_d(s)$};
+  \node[wideblock, minimum width=3.2cm] (aw) at (7.45,-1.62) {抗积分饱和\\$\dot x_i=e+\dfrac{u_{act}-u_{raw}}{T_{aw}}$};
+  \draw[signal] (r) -- (rtap) -- (qf);
+  \draw[signal] (qf) -- (se);
+  \draw[signal] (rtap) |- (fr);
+  \draw[signal] (fr.east) -- (7.2,1.45) -- (su.145);
+  \draw[signal] (se) -- (pid);
+  \draw[signal] (pid) -- (su);
+  \draw[signal] (su) -- (sat);
+  \draw[signal] (sat) -- (ga);
+  \draw[signal] (ga) -- (sd);
+  \draw[signal] (sd) -- (gp);
+  \draw[signal] (gp) -- (ytap) -- (y);
+  \draw[signal] (d) -- (dtap) -- (sd.north);
+  \draw[signal] (dtap) -- (fd.east);
+  \draw[signal] (fd.west) -- (9.05,1.45) -- (su.35);
+  \draw[signal] (sat.south) -- (10.25,-1.0) -| (aw.east);
+  \draw[signal] (aw.west) -| (pid.south);
+  \draw[signal] (ytap) |- ($(se)+(0,-2.55)$) -| (se.south);
+  \node[smalllabel] at ($(se)+(-0.25,0.28)$) {$+$};
+  \node[smalllabel] at ($(se)+(0.25,-0.28)$) {$-$};
+  \node[smalllabel] at ($(su)+(-0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(su)+(0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(sd)+(-0.28,0.28)$) {$+$};
+  \node[smalllabel] at ($(sd)+(0.28,0.28)$) {$+$};
+\end{tikzpicture}
+\end{document}

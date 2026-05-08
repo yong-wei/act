@@ -20,19 +20,19 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
-  "mapping_contract_mode": "core_items",
-  "has_core_mapping_section": false,
-  "mapping_columns_present": [],
-  "missing_mapping_columns": [
+  "mapping_contract_mode": "upgrade_table",
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "evidence_unit_id",
+    "evidence_kind",
     "handout_anchor",
-    "core_item_type",
-    "must_appear_content",
-    "target_step",
-    "page_mode",
-    "interaction_upgrade",
-    "media_or_table_ref",
-    "acceptance_note"
+    "target_steps",
+    "upgrade_mode",
+    "keep_elements",
+    "non_reducible",
+    "acceptance_checks"
   ],
+  "missing_mapping_columns": [],
   "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
@@ -61,19 +61,11 @@
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
+    "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `4-2` 的 V2 互动契约，步骤字段完整。",
     "互动设计接受文件已通过校验。"
   ],
-  "warnings": [
-    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
-  ],
-  "missing": [
-    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
-  ],
-  "issues": [
-    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
-  ]
+  "warnings": [],
+  "missing": [],
+  "issues": []
 }

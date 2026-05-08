@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T07:28:38.883612Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "客船整定比较与复核"
+    ],
+    "card_order_index": 14
+  },
+  "node": {
+    "id": "单结构整定四类复核量_4_42015",
+    "name": "单结构整定四类复核量",
+    "name_en": "Four Verification Quantities for Single-Structure Tuning",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量。",
+    "examples": [
+      "客船案例中超前降低超调最明显，但仍要复核低频灵敏度和控制量峰值；滞后改善低频灵敏度，却牺牲动态品质。"
+    ],
+    "formulas": [
+      "\\text{复核}=(step,disturbance,PM,u_{peak})"
+    ],
+    "keywords": [
+      "复核",
+      "阶跃响应",
+      "扰动响应",
+      "相角裕度",
+      "控制量",
+      "设计判断"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/单结构整定四类复核量_4_42015.md",
+  "card_frontmatter": {
+    "node_id": "单结构整定四类复核量_4_42015",
+    "name": "单结构整定四类复核量",
+    "name_en": "Four Verification Quantities for Single-Structure Tuning",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "复核",
+      "设计判断"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": [
+      "4-2-ship-controller-candidates-summary.png"
+    ]
+  },
+  "card_overview": "# 单结构整定四类复核量 | Four Verification Quantities for Single-Structure Tuning\n\n**一句话定义**：单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量。\n\n**核心直觉**：单一指标改善只说明结构有作用，不说明它已经适合交付。\n\n**关键公式**：\n$$\n\\text{复核}=(\\text{阶跃响应},\\text{扰动响应},PM,u_{peak})\n$$\n\n**关联**：前置 -> 结构选型决策树 · 后续 -> 单结构首轮起步卡",
+  "card_detail": "阶跃响应反映给定跟踪动态，扰动响应反映抗扰能力，相角裕度反映中频储备，控制量反映执行器和高频代价。四类量必须同时出现，才能避免“一个图好看，整体不可用”的错误判断。\n\n### 常见误区\n\n1. **误区**：有一项指标显著改善就可以确认结构。  \n   **纠正**：结构选择必须接受多指标共同约束。\n\n2. **误区**：控制量只在实现阶段才需要看。  \n   **纠正**：控制量峰值和饱和风险会反过来否定过激整定。",
+  "card_plain_excerpt": "## 首页\n\n# 单结构整定四类复核量 | Four Verification Quantities for Single-Structure Tuning\n\n**一句话定义**：单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量。\n\n**核心直觉**：单一指标改善只说明结构有作用，不说明它已经适合交付。\n\n**关键公式**：\n$$\n\\text{复核}=(\\text{阶跃响应},\\text{扰动响应},PM,u_{peak})\n$$\n\n**关联**：前置 -> 结构选型决策树 · 后续 -> 单结构首轮起步卡\n\n## 详情\n\n阶跃响应反映给定跟踪动态，扰动响应反映抗扰能力，相角裕度反映中频储备，控制量反映执行器和高频代价。四类量必须同时出现，才能避免“一个图好看，整体不可用”的错误判断。\n\n### 常见误区\n\n1. **误区**：有一项指标显著改善就可以确认结构。  \n   **纠正**：结构选择必须接受多指标共同约束。\n\n2. **误区**：控制量只在实现阶段才需要看。  \n   **纠正**：控制量峰值和饱和风险会反过来否定过激整定。",
+  "core_intuition": "单一指标改善只说明结构有作用，不说明它已经适合交付。",
+  "relations": [
+    {
+      "source_id": "相角裕度_5_5a74b451",
+      "source": "相角裕度",
+      "target_id": "单结构整定四类复核量_4_42015",
+      "target": "单结构整定四类复核量",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "相角裕度是参数初算后必须复核的频域储备量。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "幅值裕度_5_73af26a5",
+      "source": "幅值裕度",
+      "target_id": "单结构整定四类复核量_4_42015",
+      "target": "单结构整定四类复核量",
+      "relation": "related",
+      "strength": 0.84,
+      "description": "幅值裕度帮助补充判断系统离不稳定边界还有多远。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "客船候选结构整定比较_4_42014",
+      "source": "客船候选结构整定比较",
+      "target_id": "单结构整定四类复核量_4_42015",
+      "target": "单结构整定四类复核量",
+      "relation": "supports",
+      "strength": 0.95,
+      "description": "客船候选结果证明单结构初算后必须同时复核动态、扰动、裕度和控制量。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "单结构整定四类复核量_4_42015",
+      "source": "单结构整定四类复核量",
+      "target_id": "单结构首轮起步卡_4_42001",
+      "target": "单结构首轮起步卡",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "起步卡在新版讲义中不仅记录理由，还应记录参数初算后要复核的证据。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "单结构整定四类复核量",
+        "复核",
+        "时域响应",
+        "扰动响应",
+        "相角裕度",
+        "控制量",
+        "设计判断"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{复核}=(step,disturbance,PM,u_{peak})"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

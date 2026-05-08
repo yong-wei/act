@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 vi.mock('server-only', () => ({}));
 
@@ -26,23 +27,24 @@ describe('unit 4-2 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('控制器选型原理');
   });
 
-  it('defines the full 13-step lesson flow after removing the old summary-infographic step', async () => {
+  it('defines the full 20-step lesson flow from the refreshed interactive design', async () => {
     const courseModule = await import('@/lib/unit-4-2-course');
 
-    expect(courseModule.UNIT_4_2_LESSON_STEPS).toHaveLength(13);
+    expect(courseModule.UNIT_4_2_LESSON_STEPS).toHaveLength(20);
     expect(courseModule.UNIT_4_2_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[12]?.id).toBe('step-13');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[2]?.pageType).toBe('display');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[3]?.pageType).toBe('multi_select_matrix');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[4]?.pageType).toBe('activity_card_set');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[5]?.pageType).toBe('worked_example_reveal');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[10]?.pageType).toBe('task_card_workspace');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[11]?.pageType).toBe('quiz_card_grid');
-    expect(courseModule.UNIT_4_2_LESSON_STEPS[12]?.pageType).toBe('display');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[19]?.id).toBe('step-20');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[2]?.pageType).toBe('quiz_group');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[5]?.pageType).toBe('drag_match');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[6]?.pageType).toBe('step_reveal');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[10]?.pageType).toBe('interactive_figure_submit');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[13]?.pageType).toBe('interactive_figure_submit');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[17]?.pageType).toBe('task_card_workspace');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[18]?.pageType).toBe('quiz_group');
+    expect(courseModule.UNIT_4_2_LESSON_STEPS[19]?.pageType).toBe('display');
   });
 
   it('exposes AI quick questions for the simplified start-card workspace step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-4-2-controller-selection-first-start-v1', 'step-11');
+    const quickQuestions = getStepQuickQuestions('unit-4-2-controller-selection-first-start-v1', 'step-18');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('起步卡');
@@ -52,14 +54,14 @@ describe('unit 4-2 interactive course', () => {
     const courseModule = await import('@/lib/unit-4-2-course');
 
     expect(courseModule.getUNIT_4_2MediaSrc('step-01')).toContain('4-2-cover-comic.png');
-    expect(courseModule.getUNIT_4_2MediaSrc('step-05')).toBeNull();
-    expect(courseModule.getUNIT_4_2MediaSrc('step-07')).toBeNull();
-    expect(courseModule.getUNIT_4_2MediaSrc('step-09')).toContain('4-2-input-feedforward-quad.png');
-    expect(courseModule.getUNIT_4_2MediaSrc('step-10')).toContain('4-2-disturbance-feedforward-quad.png');
-    expect(courseModule.getUNIT_4_2MediaSrc('step-13')).toContain('4-2-info.png');
+    expect(courseModule.getUNIT_4_2MediaSrc('step-11')).toBeNull();
+    expect(courseModule.getUNIT_4_2MediaSrc('step-17')).toBeNull();
+    expect(courseModule.getUNIT_4_2MediaSrc('step-09')).toBeNull();
+    expect(courseModule.getUNIT_4_2MediaSrc('step-10')).toBeNull();
+    expect(courseModule.getUNIT_4_2MediaSrc('step-20')).toContain('4-2-info.png');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for all 13 steps', async () => {
+  it('keeps the runtime page contracts aligned with the authoring interactive contract for all 20 steps', async () => {
     const contract = parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/4-2/design/4-2-interactive-contract.yaml'),
@@ -87,15 +89,22 @@ describe('unit 4-2 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-4-2-course');
+    const runtimeManifest = normalizeInteractiveRuntimeManifest(JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    ));
     const interactiveSteps = new Map(courseModule.UNIT_4_2_LESSON_STEPS.map((step) => [step.id, step]));
     const expectedStepIds = Object.keys(contract.steps);
 
-    expect(expectedStepIds).toHaveLength(13);
+    expect(runtimeManifest).not.toBeNull();
+    expect(expectedStepIds).toHaveLength(20);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
-      const localPageContract = courseModule.UNIT_4_2_PAGE_CONTRACTS[stepId];
+      const localPageContract = courseModule.getUNIT_4_2PageContractFromManifest(runtimeManifest, stepId);
 
       expect(localStep?.title).toBe(authoringStep.title);
       expect(localStep?.pageType).toBe(
@@ -127,19 +136,26 @@ describe('unit 4-2 interactive course', () => {
     ) as {
       steps: Record<string, {
         modules?: Array<{ id: string; kind: string; must_be_visible?: boolean }>;
-        interaction_spec?: { activity_cards?: unknown[] };
+        interaction_spec?: { activity_cards?: unknown[]; submit_fields?: string[] };
       }>;
     };
 
     const stepEntries = Object.entries(manifest.steps);
 
-    expect(stepEntries).toHaveLength(13);
+    expect(stepEntries).toHaveLength(20);
     expect(stepEntries.every(([, step]) => (step.modules ?? []).length > 0)).toBe(true);
     expect(
       stepEntries.flatMap(([, step]) => step.modules ?? []).filter((module) => module.must_be_visible).length,
-    ).toBeGreaterThanOrEqual(47);
-    expect(manifest.steps['step-04']?.interaction_spec?.activity_cards).toHaveLength(3);
-    expect(manifest.steps['step-12']?.interaction_spec?.activity_cards).toHaveLength(4);
+    ).toBeGreaterThanOrEqual(53);
+    expect(manifest.steps['step-03']?.interaction_spec?.activity_cards).toHaveLength(3);
+    expect(manifest.steps['step-11']?.interaction_spec?.submit_fields).toEqual([
+      'Ti',
+      'Kp',
+      'Ki',
+      'time_observation',
+      'frequency_review',
+    ]);
+    expect(manifest.steps['step-19']?.interaction_spec?.activity_cards).toHaveLength(3);
   });
 
   it('renders 4-2 through the shared manifest runtime with only narrow Rust adapters', () => {
@@ -196,44 +212,51 @@ describe('unit 4-2 interactive course', () => {
     expect(stepPanelsSource).not.toContain('String.raw`P_h(s)=');
     expect(stepPanelsSource).not.toContain('String.raw`P_p(s)=');
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-2/media/processed/');
-    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-input-feedforward-vs-pd-structure.png');
-    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-disturbance-feedforward-structure-compare.png');
+    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-controller-frequency-characteristics.png');
+    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-controller-selection-decision-tree.png');
+    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-ship-controller-candidates-bode.png');
     expect(stepPanelsSource).toContain('ControlFigureWorkspace');
-    expect(manifestText).toContain('表 5 的频域比较');
-    expect(manifestText).toContain('工具箱总表');
+    expect(stepPanelsSource).toContain('Unit42ExampleTuningPanel');
+    expect(stepPanelsSource).toContain('Unit42ShipCandidateComparePanel');
+    expect(manifestText).toContain('典型控制结构的频域特性矩阵');
+    expect(manifestText).toContain('控制器结构选型决策树');
     expect(manifestText).toContain('当前任务');
     expect(manifestText).toContain('主要代价');
+    expect(manifestText).toContain('四类复核证据');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
     expect(stepPanelsSource).not.toContain('本页无需提交');
   });
 
-  it('keeps the simplified workspace to six core start-card fields', () => {
+  it('keeps the start-card workspace to the eight refreshed design fields', () => {
     const manifest = JSON.parse(
       readFileSync(
         join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
         'utf8',
       ),
-    ) as { steps: Record<string, { content_blocks?: { start_card_fields?: string[] } }> };
-    const fields = manifest.steps['step-11']?.content_blocks?.start_card_fields ?? [];
+    ) as { steps: Record<string, { interaction_spec?: { activity_cards?: Array<{ title?: string; prompt?: string }> } }> };
+    const fields = manifest.steps['step-18']?.interaction_spec?.activity_cards?.map((card) => card.title ?? card.prompt) ?? [];
 
-    expect(fields).toEqual(['当前任务', '最紧矛盾', '首选单结构', '参数起步方向', '预期收益', '主要代价']);
+    expect(fields).toEqual(['当前任务', '最紧矛盾', '首选单结构', '整定入口', '关键参数', '预期收益', '主要代价', '四类复核证据']);
     expect(fields).not.toContain('留给 4-3 的问题');
   });
 
-  it('renders full mathematical expressions for the step-04 controller toolbox instead of only semantic labels', () => {
+  it('renders full mathematical expressions for the controller toolbox and tuning methods', () => {
     const manifestText = readFileSync(
       join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
       'utf8',
     );
 
-    expect(manifestText).toContain('C_{PI}(s)=K_p+\\\\dfrac{K_i}{s}');
-    expect(manifestText).toContain('C_{PD}(s)=K_p+K_d s');
-    expect(manifestText).toContain('C_{lead}(s)=K\\\\dfrac{Ts+1}{\\\\alpha Ts+1}');
-    expect(manifestText).toContain('C_{lag}(s)=K\\\\dfrac{Ts+1}{\\\\beta Ts+1}');
+    expect(manifestText).toContain('L(s)=C(s)G(s)');
+    expect(manifestText).toContain('1+C(s)G(s)=0');
+    expect(manifestText).toContain('omega_z=omega_c/3 sim omega_c/10');
+    expect(manifestText).toContain('beta=e_ss/e_ss^star');
+    expect(manifestText).toContain('alpha=(1-sin phi_max)/(1+sin phi_max)');
+    expect(manifestText).toContain('K_c=sqrt(alpha)/|G(j omega_c)|');
+    expect(manifestText).toContain('F_d(s)=-G_d(s)/G(s)');
   });
 
-  it('keeps step-06 and step-08 frequency-domain evidence complete instead of collapsing them into one-line comparisons', () => {
+  it('keeps frequency-domain evidence and worked examples complete instead of collapsing them into one-line comparisons', () => {
     const manifestText = readFileSync(
       join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
       'utf8',
@@ -243,51 +266,58 @@ describe('unit 4-2 interactive course', () => {
       'utf8',
     );
 
-    expect(interactivePageSource).toContain('频域公式链');
-    expect(interactivePageSource).toContain('截止频率附近的幅值、相位比较');
-    expect(interactivePageSource).toContain('PD / 超前 与 PI 的频域公式比较');
+    expect(interactivePageSource).toContain('频域图 + 原生工具箱表 + 多选矩阵');
+    expect(interactivePageSource).toContain('例题 5.1');
+    expect(interactivePageSource).toContain('例题 5.4');
+    expect(interactivePageSource).toContain('控件放在图形下方');
 
-    expect(manifestText).toContain('C_{PI}(j\\\\omega_c)');
-    expect(manifestText).toContain('C_{PD}(j\\\\omega_c)');
-    expect(manifestText).toContain('1.414');
-    expect(manifestText).toContain('45^\\\\circ');
-    expect(manifestText).toContain('\\\\omega_i=5\\\\,\\\\text{rad/s}');
-    expect(manifestText).toContain('表 5 的频域比较');
-    expect(manifestText).toContain('表 7 的频域比较');
+    expect(manifestText).toContain('G_1(s)=1/(s+1)');
+    expect(manifestText).toContain('K_p=1/(0.707*1.031)=1.372');
+    expect(manifestText).toContain('C_lead(s)=1.95(1.025s+1)/(0.244s+1)');
+    expect(manifestText).toContain('C_lag(s)=2.5(10s+1)/(25s+1)');
+    expect(manifestText).toContain('C_PID(s)=2.4(s+1)^2/s');
+    expect(manifestText).toContain('unit42_example_pid_zn');
   });
 
-  it('keeps step-09 and step-10 in handout order: principle/formulas before structure figure and comparison figure after analysis', () => {
+  it('keeps worked-example figure panels and reveal behavior aligned with the refreshed design', () => {
     const manifest = JSON.parse(
       readFileSync(
         join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
         'utf8',
       ),
-    ) as { steps: Record<string, { modules?: Array<{ id: string }> }> };
+    ) as { steps: Record<string, { modules?: Array<{ id: string; kind: string; payload?: { panel_id?: string } }> }> };
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/student-page.tsx'),
       'utf8',
     );
 
-    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('const allowInlineReveal = isDemo || browseEnabled');
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
 
-    expect(manifest.steps['step-09']?.modules?.map((module) => module.id)).toEqual([
-      'input-ff-principle',
-      'input-ff-structure',
-      'input-ff-closed-loop-formulas',
-      'input-ff-analysis',
-      'input-ff-quad',
-      'input-ff-cards',
+    expect(manifest.steps['step-11']?.modules?.map((module) => module.kind)).toEqual([
+      'worked-example-card',
+      'interactive-figure-panel',
+      'activity-card-set',
     ]);
-    expect(manifest.steps['step-10']?.modules?.map((module) => module.id)).toEqual([
-      'disturbance-formulas',
-      'disturbance-structure',
-      'disturbance-analysis',
-      'disturbance-boundary',
-      'disturbance-quad',
-      'disturbance-cards',
+    expect(manifest.steps['step-14']?.modules?.map((module) => module.kind)).toEqual([
+      'worked-example-card',
+      'image-panel',
+      'interactive-figure-panel',
+      'activity-card-set',
     ]);
+    expect(manifest.steps['step-17']?.modules?.map((module) => module.kind)).toEqual([
+      'image-panel',
+      'image-panel',
+      'image-panel',
+      'table-card',
+      'interactive-figure-panel',
+    ]);
+    expect(manifest.steps['step-11']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pi')).toBe(true);
+    expect(manifest.steps['step-12']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lead')).toBe(true);
+    expect(manifest.steps['step-13']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lag')).toBe(true);
+    expect(manifest.steps['step-14']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pid_zn')).toBe(true);
+    expect(manifest.steps['step-17']?.modules?.some((module) => module.payload?.panel_id === 'unit42_ship_candidate_compare')).toBe(true);
   });
 
   it('lets worked-example reveal maintain local click-to-continue state instead of relying only on teacher progress', () => {

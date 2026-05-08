@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T06:56:15.251962Z",
+  "lesson": {
+    "lesson_id": "4-2",
+    "title": "控制器选型与单结构整定：频域证据、方法步骤与客船校正",
+    "groups": [
+      "结构选型与参数入口"
+    ],
+    "card_order_index": 9
+  },
+  "node": {
+    "id": "IMC_SIMC与模型匹配整定_4_42013",
+    "name": "IMC/SIMC 与模型匹配整定",
+    "name_en": "IMC/SIMC and Model-Matching Tuning",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "当对象模型清楚时，用目标闭环极点、闭环时间常数或逆模型思想给出控制器参数初值。",
+    "examples": [
+      "一阶惯性加纯滞后对象可用 \\(K_p=\\tau/[K(\\lambda+L)]\\)、\\(T_i=\\min\\{\\tau,4(\\lambda+L)\\}\\) 得到 PI 初值。"
+    ],
+    "formulas": [
+      "K_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}"
+    ],
+    "keywords": [
+      "IMC",
+      "SIMC",
+      "模型匹配",
+      "极点配置",
+      "闭环时间常数"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/IMC_SIMC与模型匹配整定_4_42013.md",
+  "card_frontmatter": {
+    "node_id": "IMC_SIMC与模型匹配整定_4_42013",
+    "name": "IMC/SIMC 与模型匹配整定",
+    "name_en": "IMC/SIMC and Model-Matching Tuning",
+    "lesson_units": [
+      "4-2"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-2",
+      "IMC",
+      "模型匹配"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-2/design/4-2-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# IMC/SIMC 与模型匹配整定 | IMC/SIMC and Model-Matching Tuning\n\n**一句话定义**：当对象模型清楚时，用目标闭环极点、闭环时间常数或逆模型思想给出控制器参数初值。\n\n**核心直觉**：模型越清楚，整定就越能从“试参数”转向“按目标闭环反推参数”。\n\n**关键公式**：\n$$\nK_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}\n$$\n\n**关联**：前置 -> 传递函数 · 后续 -> 单结构整定四类复核量",
+  "card_detail": "模型匹配把目标闭环多项式和实际闭环特征方程对齐。IMC/SIMC 常用于近似过程对象，其中 $\\lambda$ 表示期望闭环时间常数；$\\lambda$ 越小响应越快，$\\lambda$ 越大鲁棒性越强。\n\n### 常见误区\n\n1. **误区**：模型法比经验法天然更可靠。  \n   **纠正**：模型误差、纯滞后和未建模动态会直接影响参数有效性。\n\n2. **误区**：$\\lambda$ 只决定响应速度。  \n   **纠正**：它同时改变鲁棒性和对模型误差的敏感性。",
+  "card_plain_excerpt": "## 首页\n\n# IMC/SIMC 与模型匹配整定 | IMC/SIMC and Model-Matching Tuning\n\n**一句话定义**：当对象模型清楚时，用目标闭环极点、闭环时间常数或逆模型思想给出控制器参数初值。\n\n**核心直觉**：模型越清楚，整定就越能从“试参数”转向“按目标闭环反推参数”。\n\n**关键公式**：\n$$\nK_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}\n$$\n\n**关联**：前置 -> 传递函数 · 后续 -> 单结构整定四类复核量\n\n## 详情\n\n模型匹配把目标闭环多项式和实际闭环特征方程对齐。IMC/SIMC 常用于近似过程对象，其中 $\\lambda$ 表示期望闭环时间常数；$\\lambda$ 越小响应越快，$\\lambda$ 越大鲁棒性越强。\n\n### 常见误区\n\n1. **误区**：模型法比经验法天然更可靠。  \n   **纠正**：模型误差、纯滞后和未建模动态会直接影响参数有效性。\n\n2. **误区**：$\\lambda$ 只决定响应速度。  \n   **纠正**：它同时改变鲁棒性和对模型误差的敏感性。",
+  "core_intuition": "模型越清楚，整定就越能从“试参数”转向“按目标闭环反推参数”。",
+  "relations": [
+    {
+      "source_id": "传递函数_1_5b0faf8b",
+      "source": "传递函数",
+      "target_id": "IMC_SIMC与模型匹配整定_4_42013",
+      "target": "IMC/SIMC 与模型匹配整定",
+      "relation": "prerequisite",
+      "strength": 0.88,
+      "description": "模型匹配和 IMC/SIMC 整定以对象传递函数为前提。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "频域PI与滞后整定_4_42010",
+      "source": "频域 PI 与滞后整定",
+      "target_id": "IMC_SIMC与模型匹配整定_4_42013",
+      "target": "IMC/SIMC 与模型匹配整定",
+      "relation": "related",
+      "strength": 0.82,
+      "description": "IMC/SIMC 经常为过程对象给出 PI 参数初值，是频域 PI 整定的模型驱动补充。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "IMC/SIMC 与模型匹配整定",
+        "IMC",
+        "SIMC",
+        "模型匹配",
+        "极点配置",
+        "闭环时间常数"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "K_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

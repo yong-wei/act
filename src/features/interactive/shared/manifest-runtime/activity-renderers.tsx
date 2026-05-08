@@ -167,7 +167,18 @@ function renderActivityInlineContent(text: string) {
 }
 
 function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
-  return stepManifest.interactionSpec.activityCards ?? [];
+  const activityCards = stepManifest.interactionSpec.activityCards ?? [];
+  if (activityCards.length) return activityCards;
+
+  return (stepManifest.interactionSpec.submitFields ?? []).map((field) => ({
+    id: field,
+    title: field,
+    prompt: `提交${field}。`,
+    responseKind: 'fill_text',
+    submitScope: 'per_card',
+    layoutSpan: 'half',
+    options: [],
+  }));
 }
 
 function hasAnswerPrefix(title: string) {

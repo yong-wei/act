@@ -1,7 +1,7 @@
 {
   "lesson_id": "4-2",
   "unit_type": "理论",
-  "generated_at": "2026-05-08T05:52:12.391719+00:00",
+  "generated_at": "2026-05-08T09:32:32.840915+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/4-2/design/4-2-handout.md",
     "course-content/authoring/lessons/4-2/design/4-2-interactive-page.md"
@@ -18,12 +18,82 @@
       "page_formula_sources": []
     },
     {
+      "output": "4-2-controller-frequency-characteristics.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-controller-selection-decision-tree.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-1-correction-quadrants.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-2-correction-quadrants.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-3-correction-quadrants.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-4-zn-steps.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-4-correction-quadrants.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-example-5-5-feedforward-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-ship-controller-candidates-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-ship-controller-candidates-step-disturbance.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-ship-controller-candidates-summary.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
       "output": "4-2-feedforward-block-diagram.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
+      "output": "4-2-input-feedforward-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-disturbance-feedforward-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
       "output": "4-2-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-2-intro-video.mp4",
       "formula_mode": "none",
       "page_formula_sources": []
     },
@@ -39,21 +109,6 @@
     },
     {
       "output": "4-2-audio.m4a",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
-      "output": "4-2-intro-video.mp4",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
-      "output": "4-2-start-card-template.png",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
-      "output": "4-2-toolbox-summary.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },

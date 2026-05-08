@@ -113,6 +113,7 @@ const MODULE_KIND_TITLE: Record<string, string> = {
   'image-panel': '图示',
   'interactive-figure-panel': '互动图形',
   'learning-stat-panel': '课堂表现统计',
+  'performance-summary': '课堂表现统计',
   'native-formula-table': '公式表',
   'native-table': '表格',
   'problem-statement': '题面',
@@ -615,10 +616,14 @@ function learningStatItems(step: InteractiveRuntimeStepManifest, module: Interac
   const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
   const studentFields = asStringArray(block.student_fields ?? block.studentFields);
   const teacherFields = asStringArray(block.teacher_fields ?? block.teacherFields);
+  const studentItems = asStringArray(block.student);
+  const teacherItems = asStringArray(block.teacher);
   const genericFields = asStringArray(block.fields);
   const items: string[] = [];
   if (studentFields.length) items.push(`学生端：${studentFields.join('、')}`);
   if (teacherFields.length) items.push(`教师端：${teacherFields.join('、')}`);
+  if (studentItems.length) items.push(`学生端：${studentItems.join('、')}`);
+  if (teacherItems.length) items.push(`教师端：${teacherItems.join('、')}`);
   if (!items.length) items.push(...genericFields);
   return items;
 }
@@ -1239,6 +1244,9 @@ export function createManifestContentModuleRegistry(extra: {
       return <SummaryCard title={titleFromModule(module)} text={note} bullets={[...fields, ...bullets]} />;
     },
     'learning-stat-panel': ({ step, module }) => (
+      <CardGrid title={titleFromModule(module)} items={learningStatItems(step, module)} columns="md:grid-cols-2" />
+    ),
+    'performance-summary': ({ step, module }) => (
       <CardGrid title={titleFromModule(module)} items={learningStatItems(step, module)} columns="md:grid-cols-2" />
     ),
     'problem-statement': ({ step, module }) => {
