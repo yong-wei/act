@@ -7,8 +7,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-05-03
+📅 **最后更新**：2026-05-08
 # 近期更新
+
+🧩 **`4-3` 初始方案落地实践精品互动课更新（2026-05-08）**：本轮基于最新 19 步互动课程设计与 runtime manifest 更新 `unit-4-3-initial-scheme-practice-first-validation`，课程端改为完整消费 `course-content/runtime/lessons/4-3/interactive-manifest.json`，学生端和教师端同步 19 步页面、隐藏式 AI 上下文、总结统计与知识卡片入口。共享 manifest runtime 补齐 `formula_set.items/body` 公式正文渲染、`parameter_set` 结构化参数提交与教师端中文标签汇总，4-3 专用面板使用 runtime JSON 曲线数据绘制扰动前馈、参考前馈、给定滤波和抗饱和四类复合控制动态对比，并移除旧 14 步 Rust 分支包袱。实现完成后由子代理审核页面完整性、单页自洽性与教师端题目显示，修复必显公式、结构化参数重提和扰动前馈零点范围问题；当前已通过 strict implementation review、manifest audit、定向 Vitest、`npm run lint`、`npm run test`、部署脚本自检与 `npm run build`。
 
 🧩 **`5-4` 模型驱动到数据驱动精品互动课落地（2026-05-03）**：本轮基于 `course-content/runtime/lessons/5-4/interactive-manifest.json` 完成 `unit-5-4-data-driven-mpc-transition` 的 runtime-first 实现，新增课程入口、学生端、教师端、预置教案、课堂码路由解析、精品课程目录与隐藏式 AI 上下文注册。共享 manifest runtime 补齐 `multi_select`、`interactive_figure_submit`、显式配对题、`summary-card-grid` 与 `learning-stat-panel`，5-4 专用面板以 runtime CSV 绘制预测偏差和三路线比较 SVG 曲线，并提供路线显隐、指标高亮、误差标注和时间窗控件；实现接受文件记录子代理审查与教师/学生浏览器闭环。当前已通过 5-4 内容审查、manifest audit、strict implementation review、定向 Vitest、`npm run lint` 与 `npm run test`；按本轮协作要求暂缓 `npm run build`。
 

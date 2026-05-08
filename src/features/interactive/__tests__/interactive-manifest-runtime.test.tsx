@@ -41,10 +41,10 @@ describe('interactive runtime manifest', () => {
 
     expect(runtime.interactiveManifest).toBeDefined();
     expect(runtime.interactiveManifest?.lessonId).toBe('4-3');
-    expect(runtime.interactiveManifest?.steps).toHaveLength(14);
+    expect(runtime.interactiveManifest?.steps).toHaveLength(19);
     expect(runtime.interactiveManifest?.steps[0]?.modules.map((module) => module.kind)).toEqual([
-      'stage-map',
-      'goal-card-row',
+      'image-panel',
+      'summary-card',
     ]);
   });
 
@@ -426,20 +426,26 @@ describe('interactive runtime manifest', () => {
       },
     });
     const step = manifest!.steps[0]!;
+    const formulaModule = step.modules[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
 
     const html = renderToStaticMarkup(
-      renderInteractiveManifestStep({
-        manifest: manifest!,
-        step,
-        moduleRegistry: createManifestContentModuleRegistry({
-          revealProgress: 0,
-          allowInlineReveal: false,
+      createElement(
+        'div',
+        null,
+        registry['formula-card']?.({
+          manifest: manifest!,
+          step,
+          module: formulaModule,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
         }),
-        extra: {
-          revealProgress: 0,
-          allowInlineReveal: false,
-        },
-      }),
+      ),
     );
 
     expect(html).toContain('离散对象关系');
@@ -449,6 +455,66 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('状态变量');
     expect(html).toContain('控制输入');
     expect(html).not.toContain('$f(\\cdot)$');
+  });
+
+  it('renders formula_set items and body text from runtime content blocks', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-formula-set': {
+          title: '公式集合测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'formula-set-card',
+              title: '扰动前馈表达',
+              region: 'main',
+              kind: 'formula-card',
+              must_be_visible: true,
+              payload: { block_key: 'formula' },
+            },
+          ],
+          content_blocks: {
+            formula: {
+              type: 'formula_set',
+              items: ['$F_d^\\ast(s)=-(s+2.14375)/0.01715$', '$F_d(s)=\\lambda_dk_z(s+z_d)/(s+p_d)$'],
+              body: '扰动前馈零点来自执行器逆近似。',
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const formulaModule = step.modules[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        registry['formula-card']?.({
+          manifest: manifest!,
+          step,
+          module: formulaModule,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
+        }),
+      ),
+    );
+
+    expect(html).toContain('扰动前馈表达');
+    expect(html).toContain('katex-display');
+    expect(html).toContain('扰动前馈零点来自执行器逆近似');
+    expect(html).not.toContain('data-manifest-render-error');
   });
 
   it('renders 5-4 step-08 case text inline formulas through KaTeX', async () => {
@@ -1472,6 +1538,130 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('参考解释');
   });
 
+  it('renders parameter_set cards with structured parameter fields and teacher-readable labels', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-parameter-submit': {
+          title: '参数提交测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interactive_figure_spec: {
+            parameter_controls: [
+              { id: 'feedforward_zero', label: '扰动前馈零点', range: [0.02, 4.0], unit: 'rad/s' },
+              { id: 'lowpass_cutoff', label: '一阶低通截止频率', range: [0.02, 1.0], unit: 'rad/s' },
+              { id: 'feedforward_strength', label: '前馈强度', range: [0, 200], unit: '%' },
+            ],
+            parameter_submit_spec: {
+              submit_fields: ['feedforward_zero', 'lowpass_cutoff', 'feedforward_strength'],
+            },
+          },
+          interaction_spec: {
+            interaction_kind: 'interactive_figure_submit',
+            activity_cards: [
+              {
+                id: 'disturbance-params',
+                title: '扰动前馈参数记录',
+                prompt: '提交当前扰动前馈零点、低通截止频率和前馈强度。',
+                response_kind: 'parameter_set',
+                reference_answer: '关注扰动偏移是否下降。',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const studentHtml = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          savedResponse: {
+            stepId: step!.id,
+            submittedAt: 1,
+            answers: {
+              'disturbance-params': JSON.stringify({
+                feedforward_zero: 0.6,
+                lowpass_cutoff: 0.2,
+                feedforward_strength: 10,
+              }),
+            },
+          } satisfies ManifestStepResponse,
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          workspaceParameters: {
+            feedforward_zero: 2.14375,
+            lowpass_cutoff: 0.125,
+            feedforward_strength: 75,
+          },
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(studentHtml).toContain('提交当前扰动前馈零点、低通截止频率和前馈强度');
+    expect(studentHtml).toContain('扰动前馈零点');
+    expect(studentHtml).toContain('一阶低通截止频率');
+    expect(studentHtml).toContain('前馈强度');
+    expect(studentHtml).toContain('2.14375');
+    expect(studentHtml).not.toContain('0.6');
+    expect(studentHtml).not.toContain('manifest 未提供');
+
+    const teacherHtml = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          responses: [
+            {
+              studentName: '学生甲',
+              response: {
+                stepId: step!.id,
+                submittedAt: 1,
+                answers: {
+                  'disturbance-params': JSON.stringify({
+                    feedforward_zero: 2.14375,
+                    lowpass_cutoff: 0.125,
+                    feedforward_strength: 75,
+                  }),
+                },
+              } satisfies ManifestStepResponse,
+            },
+          ],
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 0,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(teacherHtml).toContain('扰动前馈零点：2.14375 rad/s');
+    expect(teacherHtml).toContain('一阶低通截止频率：0.125 rad/s');
+    expect(teacherHtml).toContain('前馈强度：75 %');
+    expect(teacherHtml.indexOf('提交当前扰动前馈零点')).toBeLessThan(teacherHtml.indexOf('已提交 1 人'));
+    expect(teacherHtml).not.toContain('feedforward_zero');
+  });
+
   it('renders teacher-direct reveal controls through the shared teacher activity registry', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
@@ -1773,28 +1963,27 @@ describe('interactive runtime manifest', () => {
   it('drives 4-3 choice and quiz activity options from manifest instead of course-local constants', async () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const manifest = runtime.interactiveManifest!;
-    const branchChoice = manifest.steps
-      .find((step) => step.id === 'step-03')
+    const gapChoice = manifest.steps
+      .find((step) => step.id === 'step-04')
       ?.interactionSpec.activityCards?.[0];
     const postQuizCards = manifest.steps
-      .find((step) => step.id === 'step-14')
+      .find((step) => step.id === 'step-18')
       ?.interactionSpec.activityCards ?? [];
 
-    expect(branchChoice?.responseKind).toBe('single_choice');
-    expect(branchChoice?.options.map((option) => option.label)).toEqual([
-      '继续单结构',
-      '进入复合结构',
-      '反馈 + 前馈组合',
+    expect(gapChoice?.responseKind).toBe('single_choice');
+    expect(gapChoice?.options.map((option) => option.label)).toEqual([
+      '滞后',
+      '超前或超前-滞后',
+      '单独前馈',
     ]);
-    expect(branchChoice?.referenceAnswer).toContain('表 1');
+    expect(gapChoice?.referenceAnswer).toContain('超前或超前-滞后');
 
     expect(postQuizCards).toHaveLength(3);
-    expect(postQuizCards.every((card) => card.responseKind === 'single_choice')).toBe(true);
-    expect(postQuizCards.every((card) => card.options.length === 3)).toBe(true);
+    expect(postQuizCards.map((card) => card.responseKind)).toEqual(['single_choice', 'multi_choice', 'fill_text']);
     expect(postQuizCards.map((card) => card.referenceAnswer)).toEqual([
-      '因为当前主矛盾未必在低频保持能力',
-      '先改什么、希望换来什么、可能先透支什么',
-      '因为第一版方案的价值在于形成下一轮入口',
+      '提前补偿可测扰动。',
+      '四项都可能被漏掉。',
+      '示例：调节时间已接近目标，但舵角贴边时间偏长，下一轮优先调整前馈强度或抗饱和时间常数。',
     ]);
 
     const source = readFileSync(
@@ -1810,22 +1999,15 @@ describe('interactive runtime manifest', () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const moduleKinds = new Set(runtime.interactiveManifest!.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
-      'stage-map',
+      'formula-card',
       'goal-card-row',
-      'goal-card-set',
-      'question-card-set',
-      'native-formula-table',
-      'table-card',
-      'problem-statement',
-      'title-card',
-      'route-card',
-      'template-card',
-      'figure-note',
-      'rust-analysis-panel',
-      'rust-time-compare-panel',
-      'rust-bode-compare-panel',
+      'image-panel',
+      'interactive-figure-panel',
+      'native-table',
+      'step-reveal-chain',
+      'summary-card',
     ];
-    const activityModuleKinds = ['activity-card', 'activity-card-set', 'single-choice-card', 'quiz-group'];
+    const activityModuleKinds = ['activity-card', 'card-sort', 'quiz-group'];
 
     for (const kind of sharedKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);

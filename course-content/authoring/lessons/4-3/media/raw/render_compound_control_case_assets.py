@@ -308,6 +308,11 @@ def diagram_reference() -> str:
 
 def diagram_setpoint_filter() -> str:
     return tex_document(r'''\begin{tikzpicture}
+  \tikzset{
+    sum/.style={circle, draw=sumgreen, fill=none, minimum size=3.15mm, inner sep=0pt, line width=0.9pt,
+      path picture={\draw[sumgreen,line width=0.7pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[sumgreen,line width=0.7pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}}
+  }
   \node[label] (r) at (0,0) {$r$};
   \node[tap] (rtap) at (0.85,0) {};
   \node[block, minimum width=1.8cm] (qf) at (2.25,0) {给定滤波\\$Q_f(s)$};
@@ -370,7 +375,7 @@ def diagram_antiwindup() -> str:
   \node[label] (d) at (14.2,2.7) {$d$};
   \node[tap] (dtap) at (14.2,1.45) {};
   \node[block, minimum width=1.65cm] (fd) at (12.15,1.45) {$F_d(s)$};
-  \node[wideblock, minimum width=3.2cm] (aw) at (7.45,-1.62) {抗积分饱和\\$\dot x_i=e+\dfrac{u_{act}-u_{raw}}{T_{aw}}$};
+  \node[wideblock, minimum width=3.2cm] (aw) at (8.0,-1.62) {抗积分饱和\\$\dot x_i=e+\dfrac{u_{act}-u_{raw}}{T_{aw}}$};
   \draw[signal] (r) -- (rtap) -- (qf);
   \draw[signal] (qf) -- (se);
   \draw[signal] (rtap) |- (fr);
@@ -385,7 +390,7 @@ def diagram_antiwindup() -> str:
   \draw[signal] (d) -- (dtap) -- (sd.north);
   \draw[signal] (dtap) -- (fd.east);
   \draw[signal] (fd.west) -- (9.05,1.45) -- (su.35);
-  \draw[signal] (sat.south) -- (10.25,-1.0) -| (aw.east);
+  \draw[signal] (sat.south) |- (aw.east);
   \draw[signal] (aw.west) -| (pid.south);
   \draw[signal] (ytap) |- ($(se)+(0,-2.55)$) -| (se.south);
   \node[smalllabel] at ($(se)+(-0.25,0.28)$) {$+$};

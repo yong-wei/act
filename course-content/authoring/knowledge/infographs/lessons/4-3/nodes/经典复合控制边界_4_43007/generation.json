@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:13:20.519608Z",
+  "lesson_id": "4-3",
+  "node_id": "经典复合控制边界_4_43007",
+  "requested_node_id": "经典复合控制边界_4_43007",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019e07e6-d284-7de3-9726-2735d2e91fe3/ig_00591843bfd8431f0169fdef16ef64819994fe804a23d52677.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/4-3/nodes/经典复合控制边界_4_43007/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/4-3/nodes/经典复合控制边界_4_43007/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/4-3/nodes/经典复合控制边界_4_43007/source.json"
+}

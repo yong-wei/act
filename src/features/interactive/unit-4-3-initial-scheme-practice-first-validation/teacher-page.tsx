@@ -32,6 +32,7 @@ import {
   UNIT_4_3StepAiAssistant,
   UNIT_4_3StepContentPanel,
   UNIT_4_3TeacherActivitySummary,
+  UNIT_4_3TeacherSummaryPanel,
 } from './step-panels';
 import type { WorkspaceParameterChange } from './workspace';
 
@@ -151,6 +152,10 @@ export function UNIT_4_3TeacherPage({
   }, [courseStates]);
 
   const joinedStudents = useMemo(() => Array.from(new Set(studentStates.map((item) => item.studentName))), [studentStates]);
+  const totalSubmittedSteps = useMemo(
+    () => studentStates.reduce((sum, item) => sum + Object.keys(item.state.responses).length, 0),
+    [studentStates],
+  );
 
   const currentResponses = useMemo(() => {
     return studentStates
@@ -353,6 +358,14 @@ export function UNIT_4_3TeacherPage({
             }
           />
         </div>
+        {step.id === 'step-19' ? (
+          <div className="mt-4">
+            <UNIT_4_3TeacherSummaryPanel
+              studentCount={joinedStudents.length}
+              totalSubmittedSteps={totalSubmittedSteps}
+            />
+          </div>
+        ) : null}
       </main>
     </div>
   );

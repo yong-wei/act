@@ -282,6 +282,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/参考前馈与给定滤波分工_4_43008.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/参考前馈与给定滤波分工_4_43008.png",
+      "title": "参考前馈与给定滤波分工 信息图",
+      "lessonId": "4-3",
+      "nodeId": "参考前馈与给定滤波分工_4_43008",
+      "sourceNodeId": "参考前馈与给定滤波分工_4_43008"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
       "url": "/course-runtime/knowledge/infographs/nodes/反馈保底与前馈补偿边界_4_42005.png",
       "title": "反馈保底与前馈补偿边界 信息图",
@@ -345,6 +354,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/复合方案首轮记录表_4_43011.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/复合方案首轮记录表_4_43011.png",
+      "title": "复合方案首轮记录表 信息图",
+      "lessonId": "4-3",
+      "nodeId": "复合方案首轮记录表_4_43011",
+      "sourceNodeId": "复合方案首轮记录表_4_43011"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
       "title": "复平面可行域 信息图",
@@ -369,6 +387,15 @@
       "lessonId": "3-8",
       "nodeId": "奈奎斯特稳定判据_5_a1b34560",
       "sourceNodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/实现层复合保护_4_43010.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/实现层复合保护_4_43010.png",
+      "title": "实现层复合保护 信息图",
+      "lessonId": "4-3",
+      "nodeId": "实现层复合保护_4_43010",
+      "sourceNodeId": "实现层复合保护_4_43010"
     },
     {
       "type": "infograph",
@@ -495,6 +522,15 @@
       "lessonId": "3-7",
       "nodeId": "扰动作用下的稳态误差_3_5c9fcfe1",
       "sourceNodeId": "扰动作用下的稳态误差_3_5c9fcfe1"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/扰动前馈保守落地_4_43009.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/扰动前馈保守落地_4_43009.png",
+      "title": "扰动前馈保守落地 信息图",
+      "lessonId": "4-3",
+      "nodeId": "扰动前馈保守落地_4_43009",
+      "sourceNodeId": "扰动前馈保守落地_4_43009"
     },
     {
       "type": "infograph",
@@ -882,6 +918,15 @@
       "lessonId": "5-6",
       "nodeId": "经典PID冷链基线_5_56003",
       "sourceNodeId": "经典PID冷链基线_5_56003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/经典复合控制边界_4_43007.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/经典复合控制边界_4_43007.png",
+      "title": "经典复合控制边界 信息图",
+      "lessonId": "4-3",
+      "nodeId": "经典复合控制边界_4_43007",
+      "sourceNodeId": "经典复合控制边界_4_43007"
     },
     {
       "type": "infograph",

@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:09:17.201419Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "经典复合控制的初始方案落地：从单结构候选到工程可运行方案",
+    "groups": [
+      "参考通道与给定滤波"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "参考前馈与给定滤波分工_4_43008",
+    "name": "参考前馈与给定滤波分工",
+    "name_en": "Role Split Between Reference Feedforward and Setpoint Filtering",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "分析",
+    "definition": "参考前馈利用原始参考信号提前给出控制趋势，给定滤波让反馈通道看到更平滑的命令，二者共同体现参考通道和反馈通道可以分工处理。",
+    "examples": [
+      "客船航向变化中，参考前馈用低频逆模型减少初段滞后，给定滤波用 $Q_f(s)$ 降低命令突变造成的舵角尖峰。"
+    ],
+    "formulas": [
+      "r_f(s)=Q_f(s)r(s)"
+    ],
+    "keywords": [
+      "参考前馈",
+      "给定滤波",
+      "二自由度",
+      "参考通道"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/参考前馈与给定滤波分工_4_43008.md",
+  "card_frontmatter": {
+    "node_id": "参考前馈与给定滤波分工_4_43008",
+    "name": "参考前馈与给定滤波分工",
+    "name_en": "Role Split Between Reference Feedforward and Setpoint Filtering",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "参考前馈",
+      "给定滤波"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-reference-feedforward-comparison.png",
+      "4-3-setpoint-filter-comparison.png"
+    ]
+  },
+  "card_overview": "# 参考前馈与给定滤波分工 | Role Split Between Reference Feedforward and Setpoint Filtering\n\n**一句话定义**：参考前馈利用原始参考信号提前给出控制趋势，给定滤波让反馈通道看到更平滑的命令，二者共同体现参考通道和反馈通道可以分工处理。\n\n**核心直觉**：参考前馈负责“提前动”，给定滤波负责“别太猛”，反馈继续负责残余误差修正。\n\n**关键公式**：\n$$\nr_f(s)=Q_f(s)r(s)\n$$\n\n$$\nu=C(s)(r_f-y)+F_r(s)r\n$$\n\n**关联**：前置 → 按输入补偿前馈的无差度提升、经典复合控制边界 · 后续 → 实现层复合保护",
+  "card_detail": "### 完整解释\n\n当参考轨迹已知时，控制器不必等误差形成后才动作。参考前馈沿原始参考信号提前给出控制趋势，可以减少变化给定下的跟随滞后。工程上通常不直接使用完美逆模型，而是采用带低通的近似逆模型，避免高频噪声和执行器冲击。\n\n给定滤波处理的是另一件事：让反馈主结构看到更平滑的命令。反馈通道使用 $r_f$，参考前馈仍可使用原始 $r$，这就是本课采用的二自由度思想。它的代价也必须写清楚：航向变化更平顺，舵角峰值下降，但跟踪速度可能下降。\n\n![参考前馈加入前后的响应对比](../../lessons/4-3/media/processed/4-3-reference-feedforward-comparison.png)\n\n![给定滤波加入前后的响应对比](../../lessons/4-3/media/processed/4-3-setpoint-filter-comparison.png)\n\n### 常见误区\n\n1. **误区**：参考前馈和给定滤波都是“让跟踪更好”，可以混在一起说。\n   **纠正**：参考前馈提前施加控制趋势；给定滤波平滑反馈命令，二者收益和代价不同。\n\n2. **误区**：给定滤波只会改善响应。\n   **纠正**：给定滤波常常牺牲跟踪速度，必须和舵角峰值、平顺性一起判断。",
+  "card_plain_excerpt": "## 首页\n\n# 参考前馈与给定滤波分工 | Role Split Between Reference Feedforward and Setpoint Filtering\n\n**一句话定义**：参考前馈利用原始参考信号提前给出控制趋势，给定滤波让反馈通道看到更平滑的命令，二者共同体现参考通道和反馈通道可以分工处理。\n\n**核心直觉**：参考前馈负责“提前动”，给定滤波负责“别太猛”，反馈继续负责残余误差修正。\n\n**关键公式**：\n$$\nr_f(s)=Q_f(s)r(s)\n$$\n\n$$\nu=C(s)(r_f-y)+F_r(s)r\n$$\n\n**关联**：前置 → 按输入补偿前馈的无差度提升、经典复合控制边界 · 后续 → 实现层复合保护\n\n## 详情\n\n### 完整解释\n\n当参考轨迹已知时，控制器不必等误差形成后才动作。参考前馈沿原始参考信号提前给出控制趋势，可以减少变化给定下的跟随滞后。工程上通常不直接使用完美逆模型，而是采用带低通的近似逆模型，避免高频噪声和执行器冲击。\n\n给定滤波处理的是另一件事：让反馈主结构看到更平滑的命令。反馈通道使用 $r_f$，参考前馈仍可使用原始 $r$，这就是本课采用的二自由度思想。它的代价也必须写清楚：航向变化更平顺，舵角峰值下降，但跟踪速度可能下降。\n\n![参考前馈加入前后的响应对比](../../lessons/4-3/media/processed/4-3-reference-feedforward-comparison.png)\n\n![给定滤波加入前后的响应对比](../../lessons/4-3/media/processed/4-3-setpoint-filter-comparison.png)\n\n### 常见误区\n\n1. **误区**：参考前馈和给定滤波都是“让跟踪更好”，可以混在一起说。\n   **纠正**：参考前馈提前施加控制趋势；给定滤波平滑反馈命令，二者收益和代价不同。\n\n2. **误区**：给定滤波只会改善响应。\n   **纠正**：给定滤波常常牺牲跟踪速度，必须和舵角峰值、平顺性一起判断。",
+  "core_intuition": "参考前馈负责“提前动”，给定滤波负责“别太猛”，反馈继续负责残余误差修正。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "参考前馈与给定滤波分工",
+      "target_id": null,
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "按输入补偿前馈的无差度提升",
+      "target_id": null,
+      "target": "参考前馈与给定滤波分工",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典复合控制边界",
+      "target_id": null,
+      "target": "参考前馈与给定滤波分工",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "经典复合控制边界_4_43007",
+      "source": "经典复合控制边界",
+      "target_id": "参考前馈与给定滤波分工_4_43008",
+      "target": "参考前馈与给定滤波分工",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "在复合控制边界明确后，参考通道需要进一步拆分为参考前馈和给定滤波两种不同职责。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "按输入补偿前馈的无差度提升_4_42006",
+      "source": "按输入补偿前馈的无差度提升",
+      "target_id": "参考前馈与给定滤波分工_4_43008",
+      "target": "参考前馈与给定滤波分工",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "4-2 的输入前馈无差度思想在 4-3 中被推进到参考前馈与给定滤波的二自由度分工。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "参考前馈与给定滤波分工_4_43008",
+      "source": "参考前馈与给定滤波分工",
+      "target_id": "实现层复合保护_4_43010",
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "参考通道和反馈通道分工后，还必须用滤波、限幅、斜率限制和抗饱和保护真实执行器。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "参考前馈与给定滤波分工",
+        "参考前馈",
+        "给定滤波",
+        "二自由度",
+        "参考通道"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "r_f(s)=Q_f(s)r(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

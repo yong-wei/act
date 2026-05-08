@@ -20,6 +20,11 @@
 }
 \begin{document}
 \begin{tikzpicture}
+  \tikzset{
+    sum/.style={circle, draw=sumgreen, fill=none, minimum size=3.15mm, inner sep=0pt, line width=0.9pt,
+      path picture={\draw[sumgreen,line width=0.7pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[sumgreen,line width=0.7pt] (path picture bounding box.north west) -- (path picture bounding box.south east);}}
+  }
   \node[label] (r) at (0,0) {$r$};
   \node[tap] (rtap) at (0.85,0) {};
   \node[block, minimum width=1.8cm] (qf) at (2.25,0) {给定滤波\\$Q_f(s)$};

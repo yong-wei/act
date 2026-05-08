@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:09:17.264007Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "经典复合控制的初始方案落地：从单结构候选到工程可运行方案",
+    "groups": [
+      "实现层复合保护"
+    ],
+    "card_order_index": 9
+  },
+  "node": {
+    "id": "实现层复合保护_4_43010",
+    "name": "实现层复合保护",
+    "name_en": "Implementation-Layer Compound Protection",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把微分滤波、输出微分、给定滤波、幅值限幅、斜率限制和抗积分饱和纳入首轮方案，使控制律能在执行器边界下恢复。",
+    "examples": [
+      "舵角限幅和舵速限制会改变真实航向恢复过程；反算抗饱和用实际控制量与原始控制量的差额修正积分状态，避免饱和解除后的拖尾。"
+    ],
+    "formulas": [
+      "u_{\\mathrm{act}}=\\operatorname{rateLimit}\\left(\\operatorname{sat}(u_{\\mathrm{raw}})\\right)"
+    ],
+    "keywords": [
+      "限幅",
+      "斜率限制",
+      "抗积分饱和",
+      "微分滤波",
+      "实现层复合",
+      "执行器保护"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/实现层复合保护_4_43010.md",
+  "card_frontmatter": {
+    "node_id": "实现层复合保护_4_43010",
+    "name": "实现层复合保护",
+    "name_en": "Implementation-Layer Compound Protection",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "实现层复合",
+      "执行器保护"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-antiwindup-implementation-structure.png",
+      "4-3-antiwindup-comparison.png"
+    ]
+  },
+  "card_overview": "# 实现层复合保护 | Implementation-Layer Compound Protection\n\n**一句话定义**：把微分滤波、输出微分、给定滤波、幅值限幅、斜率限制和抗积分饱和纳入首轮方案，使控制律能在执行器边界下恢复。\n\n**核心直觉**：线性模型里看起来可行的控制律，可能在舵角贴边、舵速受限和积分累积时完全变样。\n\n**关键公式**：\n$$\nu_{\\mathrm{act}}=\\operatorname{rateLimit}\\left(\\operatorname{sat}(u_{\\mathrm{raw}})\\right)\n$$\n\n$$\n\\dot x_i=e+\\frac{u_{\\mathrm{act}}-u_{\\mathrm{raw}}}{T_{aw}}\n$$\n\n**关联**：前置 → 经典复合控制边界、参考前馈与给定滤波分工 · 后续 → 复合方案首轮记录表",
+  "card_detail": "### 完整解释\n\n实现层复合保护处理“控制律能不能在真实设备上运行”。微分滤波限制高频噪声和微分冲击；输出微分避免给定突变直接进入微分通道；给定滤波降低参考命令带来的控制尖峰；限幅和斜率限制反映执行器物理边界；抗积分饱和让积分状态不要继续追逐执行器无法实现的控制量。\n\n反算抗饱和的关键，是把实际控制量和原始控制量之间的差额反馈给积分通道。执行器饱和时，$u_{\\mathrm{act}}-u_{\\mathrm{raw}}$ 会抵消一部分原误差对积分的推动，使饱和解除后的恢复过程更短、更少反向冲击。\n\n![限幅斜率限制与抗积分饱和结构](../../lessons/4-3/media/processed/4-3-antiwindup-implementation-structure.png)\n\n![抗积分饱和加入前后的响应对比](../../lessons/4-3/media/processed/4-3-antiwindup-comparison.png)\n\n### 常见误区\n\n1. **误区**：限幅只是最后一道安全保护，不影响设计判断。\n   **纠正**：限幅会改变闭环恢复过程，也会触发积分饱和。\n\n2. **误区**：相角裕度满足要求就说明方案已经可靠。\n   **纠正**：相角裕度只说明线性反馈主环路的一部分性质，不能替代含执行器限制的时域复核。",
+  "card_plain_excerpt": "## 首页\n\n# 实现层复合保护 | Implementation-Layer Compound Protection\n\n**一句话定义**：把微分滤波、输出微分、给定滤波、幅值限幅、斜率限制和抗积分饱和纳入首轮方案，使控制律能在执行器边界下恢复。\n\n**核心直觉**：线性模型里看起来可行的控制律，可能在舵角贴边、舵速受限和积分累积时完全变样。\n\n**关键公式**：\n$$\nu_{\\mathrm{act}}=\\operatorname{rateLimit}\\left(\\operatorname{sat}(u_{\\mathrm{raw}})\\right)\n$$\n\n$$\n\\dot x_i=e+\\frac{u_{\\mathrm{act}}-u_{\\mathrm{raw}}}{T_{aw}}\n$$\n\n**关联**：前置 → 经典复合控制边界、参考前馈与给定滤波分工 · 后续 → 复合方案首轮记录表\n\n## 详情\n\n### 完整解释\n\n实现层复合保护处理“控制律能不能在真实设备上运行”。微分滤波限制高频噪声和微分冲击；输出微分避免给定突变直接进入微分通道；给定滤波降低参考命令带来的控制尖峰；限幅和斜率限制反映执行器物理边界；抗积分饱和让积分状态不要继续追逐执行器无法实现的控制量。\n\n反算抗饱和的关键，是把实际控制量和原始控制量之间的差额反馈给积分通道。执行器饱和时，$u_{\\mathrm{act}}-u_{\\mathrm{raw}}$ 会抵消一部分原误差对积分的推动，使饱和解除后的恢复过程更短、更少反向冲击。\n\n![限幅斜率限制与抗积分饱和结构](../../lessons/4-3/media/processed/4-3-antiwindup-implementation-structure.png)\n\n![抗积分饱和加入前后的响应对比](../../lessons/4-3/media/processed/4-3-antiwindup-comparison.png)\n\n### 常见误区\n\n1. **误区**：限幅只是最后一道安全保护，不影响设计判断。\n   **纠正**：限幅会改变闭环恢复过程，也会触发积分饱和。\n\n2. **误区**：相角裕度满足要求就说明方案已经可靠。\n   **纠正**：相角裕度只说明线性反馈主环路的一部分性质，不能替代含执行器限制的时域复核。",
+  "core_intuition": "线性模型里看起来可行的控制律，可能在舵角贴边、舵速受限和积分累积时完全变样。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "参考前馈与给定滤波分工",
+      "target_id": null,
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "实现层复合保护",
+      "target_id": null,
+      "target": "问题清单移交表",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "扰动前馈保守落地",
+      "target_id": null,
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "实现层复合保护",
+      "target_id": null,
+      "target": "复合方案首轮记录表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "参考前馈与给定滤波分工_4_43008",
+      "source": "参考前馈与给定滤波分工",
+      "target_id": "实现层复合保护_4_43010",
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.9,
+      "description": "参考通道和反馈通道分工后，还必须用滤波、限幅、斜率限制和抗饱和保护真实执行器。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "扰动前馈保守落地_4_43009",
+      "source": "扰动前馈保守落地",
+      "target_id": "实现层复合保护_4_43010",
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": "扰动前馈落地后，控制量可能出现补偿成分和峰值变化，必须纳入执行器保护与时域复核。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "实现层复合保护_4_43010",
+      "source": "实现层复合保护",
+      "target_id": "复合方案首轮记录表_4_43011",
+      "target": "复合方案首轮记录表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "实现层保护被写入方案后，才能形成包含结构、参数和验证证据的首轮记录表。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "实现层复合保护_4_43010",
+      "source": "实现层复合保护",
+      "target_id": "问题清单移交表_4_43005",
+      "target": "问题清单移交表",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": "若控制量长期贴边、舵速超限或饱和恢复拖尾，这些实现层问题必须写入问题清单。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "实现层复合保护",
+        "限幅",
+        "斜率限制",
+        "抗积分饱和",
+        "微分滤波",
+        "实现层复合",
+        "执行器保护"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "u_{\\mathrm{act}}=\\operatorname{rateLimit}\\left(\\operatorname{sat}(u_{\\mathrm{raw}})\\right)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

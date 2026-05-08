@@ -2,8 +2,8 @@
   "acceptance_version": 1,
   "lesson_id": "4-3",
   "status": "accepted",
-  "accepted_at": "2026-04-20T11:20:00+08:00",
-  "review_mode": "main_agent_fallback",
+  "accepted_at": "2026-05-08T22:40:00+08:00",
+  "review_mode": "pending_subagent_review_after_implementation",
   "implementation_contract_source": "src/lib/unit-4-3-course.ts",
   "reviewed_runtime_artifacts": [
     "course-content/runtime/lessons/4-3/review/review-report.md",
@@ -21,15 +21,38 @@
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "14 个步骤的题面、表格、公式、显影文本、图后解释与作答题面均来自 interactive-contract.yaml 的 content_blocks 与 interaction_spec。"
+        "19 个步骤的题面、表格、公式、显影文本、图后解释与作答题面均来自 interactive-contract.yaml 的 content_blocks 与 interaction_spec。"
       ]
     },
     "static_media_downgrade": {
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "step-05、step-06、step-07、step-10 与 step-13 已落为 Rust/WASM 原生联动面板：统一展示实际控制器传函、控件区以及校正前后性能指标对比。",
-        "step-13 进一步改为讲义语义下的双栏对比面板，固定呈现时域响应对比与 Bode 对比，不再沿用旧的静态结构图/对照图降级口径。"
+        "step-14、step-15、step-16 与 step-17 已落为 runtime 数据驱动的原生曲线联动面板：同页展示反馈主结构、复合环节公式、航向响应、舵角响应和参数控件。",
+        "四个参数面板直接消费 course-content/runtime/lessons/4-3/media/generated-data/4-3-compound-control-case-data.json，不回读 authoring 媒体路径。"
+      ]
+    },
+    "teacher_activity_prompt_visibility": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "evidence": [
+        "教师端继续使用 createManifestTeacherActivityRegistry，汇总区显示 activity_cards[].prompt 和选项，并通过查看细节展示学生明细。"
       ]
     }
   },

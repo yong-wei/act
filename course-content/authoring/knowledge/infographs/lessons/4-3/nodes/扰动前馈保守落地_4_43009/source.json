@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:09:17.260330Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "经典复合控制的初始方案落地：从单结构候选到工程可运行方案",
+    "groups": [
+      "扰动前馈与反馈保底"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "扰动前馈保守落地_4_43009",
+    "name": "扰动前馈保守落地",
+    "name_en": "Conservative Implementation of Disturbance Feedforward",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "在理想扰动对消条件基础上，引入前馈强度和低通滤波，使可测扰动被提前压低，同时保留反馈修正余量。",
+    "examples": [
+      "客船案例中理想扰动前馈等于执行器逆模型的负值，实际采用 75% 强度并加一阶低通，避免把模型误差和高频扰动直接放大到舵角。"
+    ],
+    "formulas": [
+      "F_d(s)=-\\frac{G_d(s)}{G_u(s)}"
+    ],
+    "keywords": [
+      "扰动前馈",
+      "保守强度",
+      "低通滤波",
+      "模型误差",
+      "保守落地"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/扰动前馈保守落地_4_43009.md",
+  "card_frontmatter": {
+    "node_id": "扰动前馈保守落地_4_43009",
+    "name": "扰动前馈保守落地",
+    "name_en": "Conservative Implementation of Disturbance Feedforward",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "扰动前馈",
+      "保守落地"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-disturbance-feedforward-structure.png",
+      "4-3-disturbance-feedforward-comparison.png"
+    ]
+  },
+  "card_overview": "# 扰动前馈保守落地 | Conservative Implementation of Disturbance Feedforward\n\n**一句话定义**：在理想扰动对消条件基础上，引入前馈强度和低通滤波，使可测扰动被提前压低，同时保留反馈修正余量。\n\n**核心直觉**：理想对消给出方向，保守强度和滤波决定它能不能在真实执行器上运行。\n\n**关键公式**：\n$$\nF_d(s)=-\\frac{G_d(s)}{G_u(s)}\n$$\n\n$$\nF_d(s)=\\lambda_d Q_d(s)F_d^\\ast(s)\n$$\n\n**关联**：前置 → 按扰动补偿前馈的对消条件、反馈保底与前馈补偿边界 · 后续 → 实现层复合保护、复合方案首轮记录表",
+  "card_detail": "### 完整解释\n\n扰动前馈的起点是对象分解：\n\n$$\ny=G_u(s)u+G_d(s)d.\n$$\n\n若扰动可测且模型准确，理想前馈可写为 $F_d^\\ast(s)=-G_d(s)/G_u(s)$。在客船案例中，扰动从执行器之后进入对象，理想扰动前馈等价于执行器逆模型的负值。这个结果有明确物理意义，但直接全强度使用会对模型误差和执行器能力非常敏感。\n\n因此 4-3 采用保守落地：前馈强度取 $75\\%$，并加入一阶低通。它不追求完全抵消，而是让低频扰动偏移先被压低，再由反馈闭环处理剩余部分。\n\n![扰动前馈复合结构](../../lessons/4-3/media/processed/4-3-disturbance-feedforward-structure.png)\n\n![扰动前馈加入前后的响应对比](../../lessons/4-3/media/processed/4-3-disturbance-feedforward-comparison.png)\n\n### 常见误区\n\n1. **误区**：理想对消越接近 100%，方案越好。\n   **纠正**：全强度对消更依赖模型和执行器能力，保守强度常常更适合作为首轮方案。\n\n2. **误区**：扰动前馈降低偏移后，反馈主结构就不重要了。\n   **纠正**：未知扰动、模型偏差和残余误差仍然由反馈闭环处理。",
+  "card_plain_excerpt": "## 首页\n\n# 扰动前馈保守落地 | Conservative Implementation of Disturbance Feedforward\n\n**一句话定义**：在理想扰动对消条件基础上，引入前馈强度和低通滤波，使可测扰动被提前压低，同时保留反馈修正余量。\n\n**核心直觉**：理想对消给出方向，保守强度和滤波决定它能不能在真实执行器上运行。\n\n**关键公式**：\n$$\nF_d(s)=-\\frac{G_d(s)}{G_u(s)}\n$$\n\n$$\nF_d(s)=\\lambda_d Q_d(s)F_d^\\ast(s)\n$$\n\n**关联**：前置 → 按扰动补偿前馈的对消条件、反馈保底与前馈补偿边界 · 后续 → 实现层复合保护、复合方案首轮记录表\n\n## 详情\n\n### 完整解释\n\n扰动前馈的起点是对象分解：\n\n$$\ny=G_u(s)u+G_d(s)d.\n$$\n\n若扰动可测且模型准确，理想前馈可写为 $F_d^\\ast(s)=-G_d(s)/G_u(s)$。在客船案例中，扰动从执行器之后进入对象，理想扰动前馈等价于执行器逆模型的负值。这个结果有明确物理意义，但直接全强度使用会对模型误差和执行器能力非常敏感。\n\n因此 4-3 采用保守落地：前馈强度取 $75\\%$，并加入一阶低通。它不追求完全抵消，而是让低频扰动偏移先被压低，再由反馈闭环处理剩余部分。\n\n![扰动前馈复合结构](../../lessons/4-3/media/processed/4-3-disturbance-feedforward-structure.png)\n\n![扰动前馈加入前后的响应对比](../../lessons/4-3/media/processed/4-3-disturbance-feedforward-comparison.png)\n\n### 常见误区\n\n1. **误区**：理想对消越接近 100%，方案越好。\n   **纠正**：全强度对消更依赖模型和执行器能力，保守强度常常更适合作为首轮方案。\n\n2. **误区**：扰动前馈降低偏移后，反馈主结构就不重要了。\n   **纠正**：未知扰动、模型偏差和残余误差仍然由反馈闭环处理。",
+  "core_intuition": "理想对消给出方向，保守强度和滤波决定它能不能在真实执行器上运行。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "扰动前馈保守落地",
+      "target_id": null,
+      "target": "复合方案首轮记录表",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典复合控制边界",
+      "target_id": null,
+      "target": "扰动前馈保守落地",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "扰动前馈保守落地",
+      "target_id": null,
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "related",
+      "strength": 0.84,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "按扰动补偿前馈的对消条件",
+      "target_id": null,
+      "target": "扰动前馈保守落地",
+      "relation": "applies_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "扰动前馈保守落地",
+      "target_id": null,
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "经典复合控制边界_4_43007",
+      "source": "经典复合控制边界",
+      "target_id": "扰动前馈保守落地_4_43009",
+      "target": "扰动前馈保守落地",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "扰动前馈是经典复合控制的关键入口，但 4-3 强调从理想对消转为保守强度和滤波落地。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "按扰动补偿前馈的对消条件_4_42007",
+      "source": "按扰动补偿前馈的对消条件",
+      "target_id": "扰动前馈保守落地_4_43009",
+      "target": "扰动前馈保守落地",
+      "relation": "applies_to",
+      "strength": 0.92,
+      "description": "理想扰动对消条件是 4-3 计算扰动前馈的起点，但必须继续检查实现性、模型误差和高频风险。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "扰动前馈保守落地_4_43009",
+      "source": "扰动前馈保守落地",
+      "target_id": "实现层复合保护_4_43010",
+      "target": "实现层复合保护",
+      "relation": "leads_to",
+      "strength": 0.88,
+      "description": "扰动前馈落地后，控制量可能出现补偿成分和峰值变化，必须纳入执行器保护与时域复核。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "扰动前馈保守落地_4_43009",
+      "source": "扰动前馈保守落地",
+      "target_id": "复合方案首轮记录表_4_43011",
+      "target": "复合方案首轮记录表",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": "前馈强度、滤波和扰动响应证据必须进入首轮记录表，作为后续优化变量和约束来源。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "扰动前馈保守落地_4_43009",
+      "source": "扰动前馈保守落地",
+      "target_id": "扰动抑制中的通道重写边界_4_43006",
+      "target": "扰动抑制中的通道重写边界",
+      "relation": "related",
+      "strength": 0.84,
+      "description": "扰动前馈是本课的可测扰动补偿入口，横摇等边界案例进一步说明扰动抑制有时需要通道重写。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "扰动前馈保守落地",
+        "扰动前馈",
+        "保守强度",
+        "低通滤波",
+        "模型误差",
+        "保守落地"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "F_d(s)=-\\frac{G_d(s)}{G_u(s)}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

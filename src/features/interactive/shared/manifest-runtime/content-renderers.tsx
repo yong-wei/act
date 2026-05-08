@@ -117,6 +117,7 @@ const MODULE_KIND_TITLE: Record<string, string> = {
   'native-formula-table': '公式表',
   'native-table': '表格',
   'problem-statement': '题面',
+  'reveal-chain': '推导步骤',
   'stat-panel': '课堂表现统计',
   'step-reveal': '推导步骤',
   'step-reveal-chain': '推导步骤',
@@ -221,6 +222,23 @@ function valueAtField(source: unknown, field: unknown) {
   return asRecord(source)[field];
 }
 
+function formulaItemsFromSource(source: unknown): string[] {
+  const directItems = asStringArray(source);
+  if (typeof source === 'string') directItems.push(source);
+  const record = asRecord(source);
+  directItems.push(
+    ...asStringArray(record.items),
+    ...asStringArray(record.formulas),
+    ...asStringArray(record.latex),
+    ...asStringArray(record.math),
+  );
+  for (const key of ['formula', 'latex', 'math'] as const) {
+    const value = record[key];
+    if (typeof value === 'string') directItems.push(value);
+  }
+  return uniqueStrings(directItems);
+}
+
 function getFormulaItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
   const direct = payload.formula ?? payload.formulas;
@@ -236,11 +254,15 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
     ?? valueAtField(keyedBlock, 'formulas')
     ?? valueAtField(keyedBlock, 'latex')
     ?? valueAtField(keyedBlock, 'math')
+    ?? valueAtField(keyedBlock, 'items')
+    ?? keyedBlock
     ?? valueAtField(moduleBlock, requestedField)
     ?? valueAtField(moduleBlock, 'formula')
     ?? valueAtField(moduleBlock, 'latex')
     ?? valueAtField(moduleBlock, 'math')
     ?? valueAtField(moduleBlock, 'formulas')
+    ?? valueAtField(moduleBlock, 'items')
+    ?? moduleBlock
     ?? payload.text
     ?? (
       formulaModuleIndex >= 0 && keyFormulas[formulaModuleIndex] !== undefined
@@ -248,8 +270,7 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
         : undefined
     )
     ?? [fallbackBlock.object, fallbackBlock.controller, fallbackBlock.controller_form].filter(Boolean);
-  const items = asStringArray(source);
-  if (typeof source === 'string') items.push(source);
+  const items = formulaItemsFromSource(source);
 
   if (typeof payload.formula_index === 'number') {
     return items[payload.formula_index] ? [items[payload.formula_index]] : [];
@@ -264,10 +285,12 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
 function formulaNotes(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const hasExplicitFormula = Boolean(module.payload.formula ?? module.payload.formulas);
   const keyedBlock = asRecord(blockFor(step, module.payload));
-  const blockNotes = textFieldsFromPayload(keyedBlock, ['note', 'explanation', 'text']);
+  const moduleBlock = asRecord(blockByModuleId(step, module));
+  const blockNotes = textFieldsFromPayload(keyedBlock, ['body', 'note', 'explanation', 'text'])
+    .concat(textFieldsFromPayload(moduleBlock, ['body', 'note', 'explanation', 'text']));
   return textFieldsFromPayload(
     module.payload,
-    hasExplicitFormula ? ['text', 'note', 'explanation'] : ['note', 'explanation'],
+    hasExplicitFormula ? ['body', 'text', 'note', 'explanation'] : ['body', 'note', 'explanation'],
   ).concat(blockNotes);
 }
 
@@ -1271,6 +1294,19 @@ export function createManifestContentModuleRegistry(extra: {
       return text ? <SummaryCard title={titleFromModule(module)} text={text} /> : null;
     },
     'step-reveal': ({ step, module, extra: renderExtra }) => {
+      const items = revealItems(step, module);
+      if (!items.length) return null;
+      return (
+        <StepReveal
+          title={titleFromModule(module)}
+          items={items}
+          revealProgress={renderExtra.revealProgress}
+          allowInlineReveal={renderExtra.allowInlineReveal}
+          onInlineReveal={renderExtra.onInlineReveal}
+        />
+      );
+    },
+    'reveal-chain': ({ step, module, extra: renderExtra }) => {
       const items = revealItems(step, module);
       if (!items.length) return null;
       return (

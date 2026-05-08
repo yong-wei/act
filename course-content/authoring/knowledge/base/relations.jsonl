@@ -16178,11 +16178,11 @@
 {"relation_id": "根轨迹|稳定裕度|new", "source": "根轨迹", "target": "稳定裕度", "source_chapter": 4, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "根轨迹|阻尼比|new", "source": "根轨迹", "target": "阻尼比", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "相位裕度直觉|相角裕度|new", "source": "相位裕度直觉", "target": "相角裕度", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "相位裕度直觉|超调量|new", "source": "相位裕度直觉", "target": "超调量", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "相位裕度直觉|超调量|new", "source": "相位裕度直觉", "target": "超调量", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "相位裕度直觉|阻尼比|new", "source": "相位裕度直觉", "target": "阻尼比", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "自然频率|上升时间|new", "source": "自然频率", "target": "上升时间", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "自然频率|调节时间|new", "source": "自然频率", "target": "调节时间", "source_chapter": 10, "target_chapter": 10, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "调节时间|复平面可行域|new", "source": "调节时间", "target": "复平面可行域", "source_chapter": 10, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "自然频率|调节时间|new", "source": "自然频率", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "调节时间|复平面可行域|new", "source": "调节时间", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
 {"relation_id": "阶跃响应|四种响应家族|new", "source": "阶跃响应", "target": "四种响应家族", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.85}
 {"relation_id": "阻尼比|复平面可行域|new", "source": "阻尼比", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
 {"relation_id": "阻尼比|最佳阻尼比|new", "source": "阻尼比", "target": "最佳阻尼比", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
@@ -16238,7 +16238,7 @@
 {"relation_id": "rel-0fd24b2406a111dc", "source": "峰值时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-130eb3682404c75b", "source": "伯德图", "target": "Bode首轮骨架", "source_chapter": 6, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "rel-1a472b3c126c275c", "source": "阻尼比", "target": "阻尼振荡频率", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "rel-1a7ab41a342835de", "source": "超调量", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-1a7ab41a342835de", "source": "超调量", "target": "时域指标到极点参数映射", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-20f6eaf73a81c2d4", "source": "时域指标到极点参数映射", "target": "闭环极点", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.98}
 {"relation_id": "rel-23e7944ed75ee57f", "source": "正弦稳态响应", "target": "频率特性", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.97}
 {"relation_id": "rel-2468f5319b1503ac", "source": "阻尼振荡频率", "target": "峰值时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
@@ -16270,9 +16270,9 @@
 {"relation_id": "rel-6054b1c998517f40", "source": "梅森增益公式", "target": "余子式接触判定", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.92}
 {"relation_id": "rel-606cf797e05daa31", "source": "典型环节对象库", "target": "比例环节", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.95}
 {"relation_id": "rel-65114e902e921bbf", "source": "信号流图", "target": "梅森增益公式", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
-{"relation_id": "rel-66570c2ff086f209", "source": "阻尼比", "target": "调节时间", "source_chapter": 3, "target_chapter": 10, "relation_type": "leads_to", "strength": 0.86}
+{"relation_id": "rel-66570c2ff086f209", "source": "阻尼比", "target": "调节时间", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.86}
 {"relation_id": "rel-697b83c88a845805", "source": "比例环节", "target": "系统结构图", "source_chapter": 2, "target_chapter": 2, "relation_type": "instance_of", "strength": 0.7}
-{"relation_id": "rel-6ab4c0be5e41bb63", "source": "调节时间", "target": "时域指标到极点参数映射", "source_chapter": 10, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-6ab4c0be5e41bb63", "source": "调节时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-6b5f60e72c5c0f8f", "source": "劳斯判据", "target": "变量平移判稳", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
 {"relation_id": "rel-6cb70242ff621f38", "source": "传递函数", "target": "频率特性", "source_chapter": 1, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-7413c9369168dab6", "source": "结构图等效变换", "target": "结构图简化", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
@@ -16286,7 +16286,7 @@
 {"relation_id": "rel-884deb267e552ae6", "source": "三域联动操作体验", "target": "临界增益体验", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 1.0}
 {"relation_id": "rel-897e5745769c97e8", "source": "串联连接", "target": "结构图等效变换", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "rel-89a9dccb1ebe9abe", "source": "传递函数", "target": "典型环节对象库", "source_chapter": 1, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
-{"relation_id": "rel-8b2033d899c32f9f", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.98}
+{"relation_id": "rel-8b2033d899c32f9f", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
 {"relation_id": "rel-8d9f9a56ea764bf5", "source": "稳定可行域", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-925bf2acd0c6995b", "source": "正弦函数", "target": "正弦稳态响应", "source_chapter": 1, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.95}
 {"relation_id": "rel-956c01e753a0f3a9", "source": "上升时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.88}
@@ -16652,3 +16652,80 @@
 {"relation_id": "rel-8e6e872a2e144d8e-12", "source": "相角裕度", "target": "越界证据记录单", "source_chapter": 5, "target_chapter": 4, "relation_type": "related", "strength": 0.86}
 {"relation_id": "rel-9516a4ca3f51e66b-12", "source": "相角裕度", "target": "首轮验证最小读数逻辑", "source_chapter": 5, "target_chapter": 4, "relation_type": "related", "strength": 0.89}
 {"relation_id": "rel-ca26700522b4b63e-12", "source": "相角裕度", "target": "跨域联读任务重排", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.91}
+{"relation_id": "rel-0214c9ee47b51699", "source": "数据驱动控制", "target": "热负荷预测补偿", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-0887816466ebc4e9", "source": "航向控制RL环境", "target": "策略学习安全外壳", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.86}
+{"relation_id": "rel-1660cbd1cfaa0e11", "source": "RL调度PID", "target": "四路线策略评价", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.92}
+{"relation_id": "rel-171fa83918b87d4e", "source": "模型数据责任分配", "target": "RL调度PID", "source_chapter": 5, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.82}
+{"relation_id": "rel-1977d75aac52e2de", "source": "积分与滞后的稳态改善分工", "target": "频域 PI 与滞后整定", "source_chapter": 3, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-19c1bfe2205ac03b", "source": "数据覆盖与泛化边界", "target": "热负荷预测补偿", "source_chapter": 5, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.86}
+{"relation_id": "rel-1dca6b722b22f060", "source": "显式控制律与学习策略", "target": "策略监督层调度", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "rel-21dd8eac1acd85bf", "source": "方法迁移前边界说明", "target": "策略学习进入条件", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-2bc1e08d26734795", "source": "策略监督层调度", "target": "三场景同题比较", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-2cbe789fa932fbf5", "source": "结构选型决策树", "target": "频域 PD 与超前整定", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.92}
+{"relation_id": "rel-342a53230cee07d4", "source": "相角裕度", "target": "频域 PD 与超前整定", "source_chapter": 5, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.92}
+{"relation_id": "rel-396f115419afa69c", "source": "频域 PI 与滞后整定", "target": "客船候选结构整定比较", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-39b1032bd46950b3", "source": "数据覆盖与泛化边界", "target": "训练覆盖与部署验证", "source_chapter": 5, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.9}
+{"relation_id": "rel-4196a15a875a4c42", "source": "单结构整定四类复核量", "target": "单结构首轮起步卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-45af9fbb2f0797a8", "source": "船舶航向控制对象", "target": "航向控制RL环境", "source_chapter": 2, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.88}
+{"relation_id": "rel-47b75a226dbb8659", "source": "频域 PI 与滞后整定", "target": "IMC/SIMC 与模型匹配整定", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.82}
+{"relation_id": "rel-4a245e50b901aeb7", "source": "结构选型决策树", "target": "客船候选结构整定比较", "source_chapter": 4, "target_chapter": 4, "relation_type": "instance_of", "strength": 0.91}
+{"relation_id": "rel-4b93e231d3407787", "source": "控制器频域特性矩阵", "target": "临界比例 PID 整定", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.82}
+{"relation_id": "rel-54c490b04c78a36b", "source": "幅值裕度", "target": "单结构整定四类复核量", "source_chapter": 5, "target_chapter": 4, "relation_type": "related", "strength": 0.84}
+{"relation_id": "rel-54ddf65becc61561", "source": "二状态冷链热模型", "target": "经典 PI/PID 冷链基线", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-69067dba4c7cb82e", "source": "目标驱动PD校正", "target": "频域 PD 与超前整定", "source_chapter": 3, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-69b64b76bad1eaf5", "source": "频域 PD 与超前整定", "target": "客船候选结构整定比较", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-69cecc605e57df38", "source": "客船候选结构整定比较", "target": "单结构整定四类复核量", "source_chapter": 4, "target_chapter": 4, "relation_type": "supports", "strength": 0.95}
+{"relation_id": "rel-781b5d504b4fbbd4", "source": "结构选型决策树", "target": "频域 PI 与滞后整定", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.91}
+{"relation_id": "rel-78f0dc778a429da1", "source": "三场景同题比较", "target": "证据要求等级", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-7b91e408f1fa4dd8", "source": "模型数据责任分配", "target": "方法选择说明卡", "source_chapter": 5, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.84}
+{"relation_id": "rel-7d7c42a6a64bd86e", "source": "目标驱动超前校正", "target": "频域 PD 与超前整定", "source_chapter": 3, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-7fed8ae63db93280", "source": "主矛盾到频段职责映射", "target": "结构选型决策树", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-80b03a3380fabdd3", "source": "控制器频域特性矩阵", "target": "结构工具箱最小语义", "source_chapter": 4, "target_chapter": 4, "relation_type": "supports", "strength": 0.94}
+{"relation_id": "rel-82f2509048789ff4", "source": "显式控制律与学习策略", "target": "强化学习控制回报", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-86524f53e9811775", "source": "相角裕度", "target": "单结构整定四类复核量", "source_chapter": 5, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-87d8a51d3b2f26f3", "source": "训练覆盖与部署验证", "target": "证据要求等级", "source_chapter": 5, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.88}
+{"relation_id": "rel-897edd0c9410175f", "source": "策略学习安全外壳", "target": "策略监督层调度", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-8c0dc199c7a669d5", "source": "热负荷预测补偿", "target": "三场景同题比较", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-9a1f7c4983a08c2c", "source": "控制在自主系统链路中的位置", "target": "显式控制律与学习策略", "source_chapter": 5, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.86}
+{"relation_id": "rel-a8c85af91214ad75", "source": "策略学习进入条件", "target": "策略学习安全外壳", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-b07eb6ecfb151711", "source": "设计任务表达卡", "target": "控制器频域特性矩阵", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.93}
+{"relation_id": "rel-b1baf61c5b902f4e", "source": "训练覆盖与部署验证", "target": "四路线策略评价", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-b6908f2f1cf91287", "source": "显式控制律与学习策略", "target": "策略学习进入条件", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-bfd9d07ab8a04ed3", "source": "强化学习控制回报", "target": "航向控制RL环境", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-c0d4ce4265b149be", "source": "控制器频域特性矩阵", "target": "结构作用点与代价来源对照", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-c50d970cfc5fa5a4", "source": "设计任务表达卡", "target": "策略学习进入条件", "source_chapter": 4, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.82}
+{"relation_id": "rel-cb9460fed854556c", "source": "传递函数", "target": "IMC/SIMC 与模型匹配整定", "source_chapter": 1, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.88}
+{"relation_id": "rel-ce38fb3856e68f81", "source": "策略学习安全外壳", "target": "RL调度PID", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "rel-cff9c54b7c4fe467", "source": "冷链温控同题任务", "target": "二状态冷链热模型", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-d7e33654b448dccf", "source": "方法迁移前边界说明", "target": "冷链温控同题任务", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-ded04fcbad18f45f", "source": "策略学习安全外壳", "target": "训练覆盖与部署验证", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-e0ae953274f86d64", "source": "策略学习进入条件", "target": "策略监督层调度", "source_chapter": 5, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.9}
+{"relation_id": "rel-e51dc9f823b851ec", "source": "证据要求等级", "target": "方法选择说明卡", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.92}
+{"relation_id": "rel-e6bb876f7044a77d", "source": "数据驱动控制", "target": "显式控制律与学习策略", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "rel-ebe57e19704d474e", "source": "经典 PI/PID 冷链基线", "target": "热负荷预测补偿", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "rel-f60ad592aa9651df", "source": "控制器频域特性矩阵", "target": "结构选型决策树", "source_chapter": 4, "target_chapter": 4, "relation_type": "supports", "strength": 0.94}
+{"relation_id": "rel-f853360a57d0685d", "source": "三频段闭环性能回读", "target": "控制器频域特性矩阵", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "rel-f992a25014c47dc3", "source": "结构选型决策树", "target": "临界比例 PID 整定", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.84}
+{"relation_id": "rel-faec7fbda080c9a7", "source": "低频补偿稳态改善路径", "target": "频域 PI 与滞后整定", "source_chapter": 3, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-fed98d46459492aa", "source": "经典 PI/PID 冷链基线", "target": "三场景同题比较", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-ff40d62633d1d597", "source": "三场景同题比较", "target": "方法选择说明卡", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-01441989fcf653af", "source": "扰动前馈保守落地", "target": "复合方案首轮记录表", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.91}
+{"relation_id": "rel-0bb85621be246867", "source": "参考前馈与给定滤波分工", "target": "实现层复合保护", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-1a7ab41a342835de-2", "source": "超调量", "target": "时域指标到极点参数映射", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-292c2331ed663c97", "source": "反馈保底与前馈补偿边界", "target": "经典复合控制边界", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.94}
+{"relation_id": "rel-424c5345e59ade1d", "source": "按输入补偿前馈的无差度提升", "target": "参考前馈与给定滤波分工", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-54d5709cf01bcad8", "source": "调节时间", "target": "复平面可行域", "source_chapter": 4, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "rel-66570c2ff086f209-2", "source": "阻尼比", "target": "调节时间", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.86}
+{"relation_id": "rel-6ab4c0be5e41bb63-2", "source": "调节时间", "target": "时域指标到极点参数映射", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-74a65bff47fdd340", "source": "复合方案首轮记录表", "target": "首轮验证最小读数逻辑", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-78dbbc65ffbfbd36", "source": "经典复合控制边界", "target": "扰动前馈保守落地", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.93}
+{"relation_id": "rel-8b2033d899c32f9f-2", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.98}
+{"relation_id": "rel-8c763efa15e79aa1", "source": "相位裕度直觉", "target": "超调量", "source_chapter": 5, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-8f85a84fa1876db9", "source": "扰动前馈保守落地", "target": "扰动抑制中的通道重写边界", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.84}
+{"relation_id": "rel-bb2fbf76fef42f18", "source": "实现层复合保护", "target": "问题清单移交表", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.88}
+{"relation_id": "rel-df5c5da6b6821e76", "source": "按扰动补偿前馈的对消条件", "target": "扰动前馈保守落地", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.92}
+{"relation_id": "rel-e4a36caa49a67ebd", "source": "单结构首轮起步卡", "target": "经典复合控制边界", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-e72af80c4fce8ca6", "source": "扰动前馈保守落地", "target": "实现层复合保护", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "rel-eaf01124008ca14c", "source": "实现层复合保护", "target": "复合方案首轮记录表", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-f8e843067f8710a9", "source": "自然频率", "target": "调节时间", "source_chapter": 10, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-fe7bcfddd6056a20", "source": "经典复合控制边界", "target": "参考前馈与给定滤波分工", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.93}

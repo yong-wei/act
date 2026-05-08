@@ -8,8 +8,6 @@ import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
-import { buildUnit43AnalysisRequest } from '@/resources/control-system/analysis/unit-4-3-request-builder';
-import { getControlAxisPreset } from '@/resources/control-system/charts/control-bode-options';
 
 vi.mock('server-only', () => ({}));
 
@@ -23,29 +21,34 @@ describe('unit 4-3 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('初始方案落地实践');
   });
 
-  it('defines the full 14-step lesson flow from the authoring contract', async () => {
+  it('defines the full 19-step lesson flow from the authoring contract', async () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const courseModule = await import('@/lib/unit-4-3-course');
     const steps = courseModule.buildUNIT_4_3RuntimeSteps(runtime.interactiveManifest);
 
-    expect(steps).toHaveLength(14);
+    expect(steps).toHaveLength(19);
     expect(steps[0]?.id).toBe('step-01');
-    expect(steps[13]?.id).toBe('step-14');
+    expect(steps[18]?.id).toBe('step-19');
     expect(steps.map((step: { pageType: string }) => step.pageType)).toEqual([
       'display',
-      'activity_card_set',
-      'single_choice',
       'display',
-      'activity_card_set',
-      'activity_card_set',
-      'activity_card_set',
-      'activity_card_set',
-      'worked_example_reveal',
-      'activity_card_set',
-      'worked_example_reveal',
-      'task_card_workspace',
-      'activity_card_set',
       'quiz_group',
+      'quiz_group',
+      'card_sort',
+      'step_reveal',
+      'activity_card_set',
+      'activity_card_set',
+      'activity_card_set',
+      'card_sort',
+      'activity_card_set',
+      'activity_card_set',
+      'activity_card_set',
+      'interactive_figure_submit',
+      'interactive_figure_submit',
+      'interactive_figure_submit',
+      'interactive_figure_submit',
+      'quiz_group',
+      'display',
     ]);
   });
 
@@ -59,7 +62,7 @@ describe('unit 4-3 interactive course', () => {
     expect(contractSource).toContain('/course-runtime/lessons/4-3/media');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for all 14 steps', async () => {
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 19 steps', async () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const contract = parse(
       readFileSync(
@@ -94,7 +97,7 @@ describe('unit 4-3 interactive course', () => {
     );
     const expectedStepIds = Object.keys(contract.steps);
 
-    expect(expectedStepIds).toHaveLength(14);
+    expect(expectedStepIds).toHaveLength(19);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -133,11 +136,11 @@ describe('unit 4-3 interactive course', () => {
     });
   });
 
-  it('exposes AI quick questions for the practice workspace step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-4-3-initial-scheme-practice-first-validation-v1', 'step-12');
+  it('exposes AI quick questions for the anti-windup validation step', () => {
+    const quickQuestions = getStepQuickQuestions('unit-4-3-initial-scheme-practice-first-validation-v1', 'step-17');
 
     expect(quickQuestions).toHaveLength(2);
-    expect(quickQuestions[0]?.question).toContain('对象分析记录单');
+    expect(quickQuestions[0]?.question).toContain('客船执行器保护与抗饱和验证');
   });
 
   it('renders runtime-first evidence pages without authoring media paths or inline AI blocks', () => {
@@ -160,22 +163,17 @@ describe('unit 4-3 interactive course', () => {
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
     expect(stepPanelsSource).toContain('createUNIT_4_3ModuleRegistry');
     expect(stepPanelsSource).not.toContain('switch (step.id)');
-    expect(stepPanelsSource).toContain('useControlEngine');
-    expect(stepPanelsSource).toContain('ControlFigureWorkspace');
-    expect(stepPanelsSource).toContain('buildUnit43AnalysisRequest');
-    expect(stepPanelsSource).toContain('getUnit43FallbackResult');
-    expect(stepPanelsSource).toContain('当前控制器传函');
-    expect(stepPanelsSource).toContain('校正前性能指标');
-    expect(stepPanelsSource).toContain('当前性能指标');
-    expect(stepPanelsSource).toContain('时域响应对比');
-    expect(stepPanelsSource).toContain('Bode 对比');
-    expect(runtimeManifestSource).toContain('M_p=e^{-\\\\frac{\\\\pi\\\\zeta}{\\\\sqrt{1-\\\\zeta^2}}}');
-    expect(runtimeManifestSource).toContain('t_s\\\\approx\\\\dfrac{4}{\\\\zeta\\\\omega_n}');
+    expect(stepPanelsSource).toContain('CompoundControlPanel');
+    expect(stepPanelsSource).toContain('COMPOUND_CASE_DATA_URL');
+    expect(stepPanelsSource).toContain('扰动前馈动态补偿面板');
+    expect(stepPanelsSource).toContain('参考前馈动态补偿面板');
+    expect(stepPanelsSource).toContain('给定滤波平顺性观察面板');
+    expect(stepPanelsSource).toContain('抗饱和动态验证面板');
+    expect(runtimeManifestSource).toContain('(s+2.14375)/0.01715');
+    expect(runtimeManifestSource).toContain('Q_f(s)=1/(16s+1)');
     expect(sharedContentRendererSource).toContain('data-progressive-reveal="step_click_reveal"');
-    expect(runtimeManifestSource).toContain('对象分析记录单');
-    expect(runtimeManifestSource).toContain('初始方案表达卡');
-    expect(runtimeManifestSource).toContain('问题清单移交表');
-    expect(stepPanelsSource).toContain('formatUnit43PlantFormula');
+    expect(sharedContentRendererSource).toContain("'reveal-chain':");
+    expect(runtimeManifestSource).toContain('首轮问题清单');
     expect(stepPanelsSource).toContain('ControlChartPanel');
     expect(stepPanelsSource).toContain('axisTooltipFormatter');
     expect(stepPanelsSource).toContain('md:grid-cols-2');
@@ -199,13 +197,13 @@ describe('unit 4-3 interactive course', () => {
 
     expect(stepPanelsSource).not.toContain('String.raw');
     expect(stepPanelsSource).not.toContain('<BlockMath math="');
-    expect(runtimeManifestSource).toContain('P_1(s)=\\\\dfrac{1}{(s+1)(0.4s+1)}');
-    expect(runtimeManifestSource).toContain('P_2(s)=\\\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}');
-    expect(runtimeManifestSource).toContain('P_3(s)=\\\\dfrac{1}{(s+1)(s+2)}');
-    expect(runtimeManifestSource).toContain('G_{\\\\varphi M_f}(s)=\\\\dfrac{1}{2.052s^2+0.3929s+1}');
+    expect(runtimeManifestSource).toContain('u=C_b(s)(r_f-y)+F_r(s)r+F_d(s)d');
+    expect(runtimeManifestSource).toContain('rateLimit');
+    expect(runtimeManifestSource).toContain('F_r(s)=9.375s/(8s+1)');
+    expect(runtimeManifestSource).toContain('\\\\dot x_i=e+(u_{act}-u_{raw})/T_{aw}');
   });
 
-  it('aligns step-09 and step-11 reveal rendering with the shared slice-based progressive reveal pattern', async () => {
+  it('aligns reveal rendering with the shared slice-based progressive reveal pattern', async () => {
     const sharedContentRendererSource = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
       'utf8',
@@ -217,46 +215,29 @@ describe('unit 4-3 interactive course', () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const revealLayerCounts = Object.fromEntries(
       runtime.interactiveManifest!.steps
-        .filter((step) => step.id === 'step-09' || step.id === 'step-11')
+        .filter((step) => ['step-06', 'step-07', 'step-08', 'step-12'].includes(step.id))
         .map((step) => [step.id, Array.isArray(step.contentBlocks.reveal_layers) ? step.contentBlocks.reveal_layers.length : 0]),
     );
 
     expect(sharedContentRendererSource).toContain('items.slice(0, visibleCount)');
     expect(sharedContentRendererSource).toContain('点击当前最下方步骤继续显示下一层');
     expect(sharedContentRendererSource).not.toContain('const visible = index < visibleCount;');
-    expect(revealLayerCounts).toEqual({ 'step-09': 5, 'step-11': 4 });
+    expect(revealLayerCounts).toEqual({ 'step-06': 3, 'step-07': 4, 'step-08': 4, 'step-12': 3 });
     expect(studentPageSource).toContain("stepManifest.teacherControls.teacherStepReveal === 'not_applicable'");
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
   });
 
-  it('adds an explicit legend to the step-13 comparison chart so baseline and current curves stay distinguishable', () => {
+  it('adds explicit legends to the compound control charts so baseline and current curves stay distinguishable', () => {
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
       'utf8',
     );
 
     expect(stepPanelsSource).toContain('legend:');
-    expect(stepPanelsSource).toContain("data: ['原系统', '当前参数']");
+    expect(stepPanelsSource).toContain("data: ['参考输入', '扰动输入', config.baselineLabel, config.currentLabel]");
     expect(stepPanelsSource).toContain("itemStyle: { color: BASELINE_SERIES_COLOR }");
     expect(stepPanelsSource).toContain("itemStyle: { color: CURRENT_SERIES_COLOR }");
-  });
-
-  it('keeps the step-13 roll-boundary comparison aligned to the 0-40 s authoring window', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
-      'utf8',
-    );
-
-    expect(getControlAxisPreset('unit43_roll_boundary', 'step')).toEqual({
-      x: [0, 40],
-      y: [-0.2, 1.2],
-    });
-
-    expect(
-      buildUnit43AnalysisRequest('roll_boundary', { kp: 0.7858, ki: 2, kd: 4.104 }).timeRange.end,
-    ).toBe(40);
-    expect(stepPanelsSource).toContain("yAxisName: '\\\\varphi / rad'");
   });
 
   it('maps runtime media through the exported interactive manifest instead of a hardcoded step media table', async () => {
@@ -267,11 +248,13 @@ describe('unit 4-3 interactive course', () => {
       runtime_only: true,
       runtime_export_required: true,
     });
-    expect(runtime.interactiveManifest?.steps.find((step) => step.id === 'step-05')?.contentBlocks.media_requirements).toMatchObject({
-      baseline_media: '/course-runtime/lessons/4-3/media/4-3-pi-lead-compound-quad.png',
+    expect(runtime.interactiveManifest?.steps.find((step) => step.id === 'step-14')?.interactiveFigureSpec).toMatchObject({
+      kind: 'unit43_disturbance_feedforward_panel',
+      baseline_media: '/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-comparison.png',
     });
-    expect(runtime.interactiveManifest?.steps.find((step) => step.id === 'step-13')?.contentBlocks.media_requirements).toMatchObject({
-      validation_media: '/course-runtime/lessons/4-3/media/4-3-roll-boundary-compare.png',
+    expect(runtime.interactiveManifest?.steps.find((step) => step.id === 'step-17')?.interactiveFigureSpec).toMatchObject({
+      kind: 'unit43_antiwindup_panel',
+      baseline_media: '/course-runtime/lessons/4-3/media/4-3-antiwindup-comparison.png',
     });
   });
 
@@ -290,7 +273,7 @@ describe('unit 4-3 interactive course', () => {
     };
 
     expect(acceptance.checks?.static_media_downgrade?.evidence?.join('\n')).not.toContain('4-3 契约未要求参数联动工作区');
-    expect(acceptance.checks?.static_media_downgrade?.evidence?.join('\n')).toContain('Rust/WASM');
+    expect(acceptance.checks?.static_media_downgrade?.evidence?.join('\n')).toContain('runtime 数据驱动的原生曲线联动面板');
   });
 
   it('wires the runtime entry page through shared media hub and runtime sections', () => {

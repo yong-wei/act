@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:09:17.204300Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "经典复合控制的初始方案落地：从单结构候选到工程可运行方案",
+    "groups": [
+      "复合控制边界",
+      "客船通道题面",
+      "后测概念回看"
+    ],
+    "card_order_index": 4
+  },
+  "node": {
+    "id": "经典复合控制边界_4_43007",
+    "name": "经典复合控制边界",
+    "name_en": "Boundary of Classical Compound Control",
+    "category": "概念性",
+    "knowledge_type": "D",
+    "bloom_level": "理解",
+    "definition": "经典复合控制把反馈主结构、参考前馈、扰动前馈和基础实现保护放在同一套初始方案中，但不把复杂多变量控制、预测控制或观测器设计提前展开。",
+    "examples": [
+      "参考前馈和扰动前馈属于狭义复合控制。",
+      "给定滤波、微分滤波和抗积分饱和属于本课采用的实现层复合。"
+    ],
+    "formulas": [
+      "u=\\operatorname{sat}\\left(C(s)(r_f-y)+F_r(s)r+F_d(s)d\\right)"
+    ],
+    "keywords": [
+      "经典复合控制",
+      "狭义复合",
+      "广义复合",
+      "实现层复合",
+      "复合控制",
+      "边界"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/经典复合控制边界_4_43007.md",
+  "card_frontmatter": {
+    "node_id": "经典复合控制边界_4_43007",
+    "name": "经典复合控制边界",
+    "name_en": "Boundary of Classical Compound Control",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "复合控制",
+      "边界"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-classic-compound-control-structure.png"
+    ]
+  },
+  "card_overview": "# 经典复合控制边界 | Boundary of Classical Compound Control\n\n**一句话定义**：经典复合控制把反馈主结构、参考前馈、扰动前馈和基础实现保护放在同一套初始方案中，但不把复杂多变量控制、预测控制或观测器设计提前展开。\n\n**核心直觉**：复合控制不是把一个更长的 $C(s)$ 串到误差后面，而是把不同信息放到不同通道。\n\n**关键公式**：\n$$\nu=\\operatorname{sat}\\left(C(s)(r_f-y)+F_r(s)r+F_d(s)d\\right)\n$$\n\n**关联**：前置 → 单结构首轮起步卡、反馈保底与前馈补偿边界 · 后续 → 参考前馈与给定滤波分工、扰动前馈保守落地、实现层复合保护",
+  "card_detail": "### 完整解释\n\n本课采用两层口径。狭义复合控制指前馈与反馈并用，典型形式是参考前馈和扰动前馈。广义复合控制还包括额外信息通道、局部回路、选择逻辑、模型补偿和工程保护。本课只取其中最基础的实现层复合：微分滤波、给定滤波、限幅、斜率限制和抗积分饱和。\n\n这个边界很重要。学生已经会用 `PID`、超前或超前-滞后形成反馈主结构；4-3 的新增任务是把参考变化、可测扰动和执行器边界放进同一版可运行方案，而不是重新开一门复杂控制结构专题。\n\n![经典复合控制的基本结构](../../lessons/4-3/media/processed/4-3-classic-compound-control-structure.png)\n\n### 常见误区\n\n1. **误区**：复合控制就是控制器公式更长。\n   **纠正**：复合控制的关键是通道分工，反馈、前馈、滤波和保护各自承担不同信息。\n\n2. **误区**：只要说到广义复合控制，就应同时讲串级、解耦、预测控制和观测器。\n   **纠正**：4-3 只处理能支撑初始方案落地的基础结构，复杂结构留给后续课程。",
+  "card_plain_excerpt": "## 首页\n\n# 经典复合控制边界 | Boundary of Classical Compound Control\n\n**一句话定义**：经典复合控制把反馈主结构、参考前馈、扰动前馈和基础实现保护放在同一套初始方案中，但不把复杂多变量控制、预测控制或观测器设计提前展开。\n\n**核心直觉**：复合控制不是把一个更长的 $C(s)$ 串到误差后面，而是把不同信息放到不同通道。\n\n**关键公式**：\n$$\nu=\\operatorname{sat}\\left(C(s)(r_f-y)+F_r(s)r+F_d(s)d\\right)\n$$\n\n**关联**：前置 → 单结构首轮起步卡、反馈保底与前馈补偿边界 · 后续 → 参考前馈与给定滤波分工、扰动前馈保守落地、实现层复合保护\n\n## 详情\n\n### 完整解释\n\n本课采用两层口径。狭义复合控制指前馈与反馈并用，典型形式是参考前馈和扰动前馈。广义复合控制还包括额外信息通道、局部回路、选择逻辑、模型补偿和工程保护。本课只取其中最基础的实现层复合：微分滤波、给定滤波、限幅、斜率限制和抗积分饱和。\n\n这个边界很重要。学生已经会用 `PID`、超前或超前-滞后形成反馈主结构；4-3 的新增任务是把参考变化、可测扰动和执行器边界放进同一版可运行方案，而不是重新开一门复杂控制结构专题。\n\n![经典复合控制的基本结构](../../lessons/4-3/media/processed/4-3-classic-compound-control-structure.png)\n\n### 常见误区\n\n1. **误区**：复合控制就是控制器公式更长。\n   **纠正**：复合控制的关键是通道分工，反馈、前馈、滤波和保护各自承担不同信息。\n\n2. **误区**：只要说到广义复合控制，就应同时讲串级、解耦、预测控制和观测器。\n   **纠正**：4-3 只处理能支撑初始方案落地的基础结构，复杂结构留给后续课程。",
+  "core_intuition": "复合控制不是把一个更长的 $C(s)$ 串到误差后面，而是把不同信息放到不同通道。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": null,
+      "target": "经典复合控制边界",
+      "relation": "applies_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典复合控制边界",
+      "target_id": null,
+      "target": "扰动前馈保守落地",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "单结构首轮起步卡",
+      "target_id": null,
+      "target": "经典复合控制边界",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "经典复合控制边界",
+      "target_id": null,
+      "target": "参考前馈与给定滤波分工",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "单结构首轮起步卡_4_42001",
+      "source": "单结构首轮起步卡",
+      "target_id": "经典复合控制边界_4_43007",
+      "target": "经典复合控制边界",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "4-3 从 4-2 的单结构候选缺口出发，进入前馈与实现层保护并用的经典复合控制边界。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "反馈保底与前馈补偿边界_4_42005",
+      "source": "反馈保底与前馈补偿边界",
+      "target_id": "经典复合控制边界_4_43007",
+      "target": "经典复合控制边界",
+      "relation": "applies_to",
+      "strength": 0.94,
+      "description": "经典复合控制首先要求学生分清前馈提前补偿和反馈闭环保底的职责。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "经典复合控制边界_4_43007",
+      "source": "经典复合控制边界",
+      "target_id": "参考前馈与给定滤波分工_4_43008",
+      "target": "参考前馈与给定滤波分工",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "在复合控制边界明确后，参考通道需要进一步拆分为参考前馈和给定滤波两种不同职责。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "经典复合控制边界_4_43007",
+      "source": "经典复合控制边界",
+      "target_id": "扰动前馈保守落地_4_43009",
+      "target": "扰动前馈保守落地",
+      "relation": "leads_to",
+      "strength": 0.93,
+      "description": "扰动前馈是经典复合控制的关键入口，但 4-3 强调从理想对消转为保守强度和滤波落地。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "经典复合控制边界",
+        "经典复合控制",
+        "狭义复合",
+        "广义复合",
+        "实现层复合",
+        "复合控制",
+        "边界"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "u=\\operatorname{sat}\\left(C(s)(r_f-y)+F_r(s)r+F_d(s)d\\right)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

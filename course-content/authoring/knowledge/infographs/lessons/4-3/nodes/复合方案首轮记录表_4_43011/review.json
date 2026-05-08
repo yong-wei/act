@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-05-08T14:22:28.026763Z",
+  "lesson_id": "4-3",
+  "node_id": "复合方案首轮记录表_4_43011",
+  "requested_node_id": "复合方案首轮记录表_4_43011",
+  "node_name": "复合方案首轮记录表",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已视觉核查：首轮记录表、四类验证小窗与优化入口表达清楚，公式可接受"
+}

@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-05-08T14:10:33.102977Z",
+  "lesson": {
+    "lesson_id": "4-3",
+    "title": "经典复合控制的初始方案落地：从单结构候选到工程可运行方案",
+    "groups": [
+      "实现层复合保护",
+      "首轮验证与问题清单"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "复合方案首轮记录表_4_43011",
+    "name": "复合方案首轮记录表",
+    "name_en": "First-Round Record Sheet for Compound Control Plans",
+    "category": "程序性",
+    "knowledge_type": "D",
+    "bloom_level": "应用",
+    "definition": "把反馈主结构、参考前馈、扰动前馈、给定滤波、执行器保护、抗饱和处理和首轮验证证据放在同一张表中，形成后续参数优化的输入。",
+    "examples": [
+      "客船经典复合方案记录反馈主结构 $C_b(s)$、扰动前馈 $F_d(s)$、参考前馈 $F_r(s)$、给定滤波 $Q_f(s)$、舵角限幅、舵速限制和抗饱和时间常数。"
+    ],
+    "formulas": [
+      "\\text{首轮记录}=\\{C_b,F_r,F_d,Q_f,u_{\\max},\\dot u_{\\max},T_{aw},\\text{验证证据}\\}"
+    ],
+    "keywords": [
+      "首轮记录",
+      "复合方案",
+      "优化入口",
+      "验证证据"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/复合方案首轮记录表_4_43011.md",
+  "card_frontmatter": {
+    "node_id": "复合方案首轮记录表_4_43011",
+    "name": "复合方案首轮记录表",
+    "name_en": "First-Round Record Sheet for Compound Control Plans",
+    "lesson_units": [
+      "4-3"
+    ],
+    "category": "程序性",
+    "knowledge_type": "D",
+    "chapter": "4",
+    "tags": [
+      "4-3",
+      "首轮记录",
+      "优化入口"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/4-3/design/4-3-handout.md"
+    ],
+    "asset_refs": [
+      "4-3-heading-case-quad.png"
+    ]
+  },
+  "card_overview": "# 复合方案首轮记录表 | First-Round Record Sheet for Compound Control Plans\n\n**一句话定义**：把反馈主结构、参考前馈、扰动前馈、给定滤波、执行器保护、抗饱和处理和首轮验证证据放在同一张表中，形成后续参数优化的输入。\n\n**核心直觉**：4-3 的成果不是最终最优解，而是一份能继续进入目标函数和约束优化的工程记录。\n\n**关键公式**：\n$$\n\\text{首轮记录}=\\{C_b,F_r,F_d,Q_f,u_{\\max},\\dot u_{\\max},T_{aw},\\text{验证证据}\\}\n$$\n\n**关联**：前置 → 实现层复合保护、扰动前馈保守落地 · 后续 → 首轮验证最小读数逻辑、问题清单移交表",
+  "card_detail": "### 完整解释\n\n复合方案首轮记录表至少包含七类内容：反馈主结构负责什么；参考前馈是否采用；扰动前馈如何取强度和滤波；给定滤波如何处理参考命令；执行器限幅和斜率限制如何进入验证；积分饱和如何处理；首轮验证看哪些证据。\n\n客船案例中，这张表记录 $C_b(s)$、$F_d(s)$、$F_r(s)$、$Q_f(s)$、舵角限幅、舵速限制和抗饱和时间常数。后续 4-4 不再从“选什么控制器”开始，而是从这张表中提取优化变量、参数范围、目标项和约束。\n\n![客船航向保持首轮验证主图](../../lessons/4-3/media/processed/4-3-heading-case-quad.png)\n\n### 常见误区\n\n1. **误区**：首轮记录表只是课堂提交格式。\n   **纠正**：它决定下一轮优化从哪些参数和证据出发。\n\n2. **误区**：只要把响应曲线变好，就不必记录控制量和饱和恢复。\n   **纠正**：控制量、舵速和饱和恢复是工程可运行性的核心证据。",
+  "card_plain_excerpt": "## 首页\n\n# 复合方案首轮记录表 | First-Round Record Sheet for Compound Control Plans\n\n**一句话定义**：把反馈主结构、参考前馈、扰动前馈、给定滤波、执行器保护、抗饱和处理和首轮验证证据放在同一张表中，形成后续参数优化的输入。\n\n**核心直觉**：4-3 的成果不是最终最优解，而是一份能继续进入目标函数和约束优化的工程记录。\n\n**关键公式**：\n$$\n\\text{首轮记录}=\\{C_b,F_r,F_d,Q_f,u_{\\max},\\dot u_{\\max},T_{aw},\\text{验证证据}\\}\n$$\n\n**关联**：前置 → 实现层复合保护、扰动前馈保守落地 · 后续 → 首轮验证最小读数逻辑、问题清单移交表\n\n## 详情\n\n### 完整解释\n\n复合方案首轮记录表至少包含七类内容：反馈主结构负责什么；参考前馈是否采用；扰动前馈如何取强度和滤波；给定滤波如何处理参考命令；执行器限幅和斜率限制如何进入验证；积分饱和如何处理；首轮验证看哪些证据。\n\n客船案例中，这张表记录 $C_b(s)$、$F_d(s)$、$F_r(s)$、$Q_f(s)$、舵角限幅、舵速限制和抗饱和时间常数。后续 4-4 不再从“选什么控制器”开始，而是从这张表中提取优化变量、参数范围、目标项和约束。\n\n![客船航向保持首轮验证主图](../../lessons/4-3/media/processed/4-3-heading-case-quad.png)\n\n### 常见误区\n\n1. **误区**：首轮记录表只是课堂提交格式。\n   **纠正**：它决定下一轮优化从哪些参数和证据出发。\n\n2. **误区**：只要把响应曲线变好，就不必记录控制量和饱和恢复。\n   **纠正**：控制量、舵速和饱和恢复是工程可运行性的核心证据。",
+  "core_intuition": "4-3 的成果不是最终最优解，而是一份能继续进入目标函数和约束优化的工程记录。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "扰动前馈保守落地",
+      "target_id": null,
+      "target": "复合方案首轮记录表",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "复合方案首轮记录表",
+      "target_id": null,
+      "target": "首轮验证最小读数逻辑",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "实现层复合保护",
+      "target_id": null,
+      "target": "复合方案首轮记录表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "实现层复合保护_4_43010",
+      "source": "实现层复合保护",
+      "target_id": "复合方案首轮记录表_4_43011",
+      "target": "复合方案首轮记录表",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": "实现层保护被写入方案后，才能形成包含结构、参数和验证证据的首轮记录表。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "扰动前馈保守落地_4_43009",
+      "source": "扰动前馈保守落地",
+      "target_id": "复合方案首轮记录表_4_43011",
+      "target": "复合方案首轮记录表",
+      "relation": "applies_to",
+      "strength": 0.91,
+      "description": "前馈强度、滤波和扰动响应证据必须进入首轮记录表，作为后续优化变量和约束来源。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "复合方案首轮记录表_4_43011",
+      "source": "复合方案首轮记录表",
+      "target_id": "首轮验证最小读数逻辑_4_43004",
+      "target": "首轮验证最小读数逻辑",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "首轮记录表把结构项和参数项固定下来，首轮验证再按参考响应、扰动响应、控制量和饱和恢复读取证据。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "复合方案首轮记录表",
+        "首轮记录",
+        "复合方案",
+        "优化入口",
+        "验证证据"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\text{首轮记录}=\\{C_b,F_r,F_d,Q_f,u_{\\max},\\dot u_{\\max},T_{aw},\\text{验证证据}\\}"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

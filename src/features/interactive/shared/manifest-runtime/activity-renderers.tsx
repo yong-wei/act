@@ -23,6 +23,7 @@ export type StudentInteractiveActivityRendererProps<TStep, TResponse> = {
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
+  workspaceParameters?: Record<string, string | number | boolean>;
   onSubmit: (response: TResponse) => void;
 };
 
@@ -40,6 +41,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   browseEnabled,
   answerVisible,
   revealProgress,
+  workspaceParameters,
   onSubmit,
 }: {
   registry: StudentInteractiveActivityRegistry<TStep, TResponse>;
@@ -50,6 +52,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
+  workspaceParameters?: Record<string, string | number | boolean>;
   onSubmit: (response: TResponse) => void;
 }) {
   const Renderer = registry[stepManifest.interactionSpec.interactionKind];
@@ -64,6 +67,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
     browseEnabled,
     answerVisible,
     revealProgress,
+    workspaceParameters,
     onSubmit,
   });
 }
@@ -148,6 +152,8 @@ type TeacherResponseItem = {
   response: ManifestStepResponse;
 };
 
+type ParameterField = { key: string; label: string; unit?: string };
+
 function normalizeMath(value: string) {
   return value
     .trim()
@@ -166,9 +172,71 @@ function renderActivityInlineContent(text: string) {
   });
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean')
+    .map((item) => String(item));
+}
+
+function parameterSubmitFields(stepManifest: InteractiveRuntimeStepManifest) {
+  const figureSpec = asRecord(stepManifest.interactiveFigureSpec);
+  const snakeSpec = asRecord(figureSpec.parameter_submit_spec);
+  const camelSpec = asRecord(figureSpec.parameterSubmitSpec);
+  return asStringArray(snakeSpec.submit_fields ?? camelSpec.submitFields ?? stepManifest.interactionSpec.submitFields);
+}
+
+function parameterControlFields(stepManifest: InteractiveRuntimeStepManifest): ParameterField[] {
+  const figureSpec = asRecord(stepManifest.interactiveFigureSpec);
+  const controls = Array.isArray(figureSpec.parameter_controls)
+    ? figureSpec.parameter_controls
+    : Array.isArray(figureSpec.parameterControls)
+      ? figureSpec.parameterControls
+      : Array.isArray(figureSpec.controls)
+        ? figureSpec.controls
+        : [];
+  return controls.reduce<ParameterField[]>((fields, value) => {
+      const item = asRecord(value);
+      const key = [item.key, item.id, item.field, item.name].find((candidate): candidate is string => typeof candidate === 'string' && candidate.trim().length > 0);
+      if (!key) return fields;
+      const label = [item.label, item.title].find((candidate): candidate is string => typeof candidate === 'string' && candidate.trim().length > 0) ?? key;
+      const unit = typeof item.unit === 'string' && item.unit.trim() ? item.unit : undefined;
+      fields.push({ key, label, unit });
+      return fields;
+    }, []);
+}
+
+function parameterFieldsForCard(
+  stepManifest: InteractiveRuntimeStepManifest,
+  card: InteractiveRuntimeActivityCardManifest,
+): ParameterField[] {
+  if (card.responseKind !== 'parameter_set' && !card.structuredFields?.length) return [];
+  const submitFields = card.structuredFields?.length ? card.structuredFields : parameterSubmitFields(stepManifest);
+  if (!submitFields.length) return [];
+  const controlFields = parameterControlFields(stepManifest);
+  return submitFields.map((key) => {
+    const control = controlFields.find((item) => item.key === key);
+    return control ?? { key, label: key };
+  });
+}
+
 function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
   const activityCards = stepManifest.interactionSpec.activityCards ?? [];
-  if (activityCards.length) return activityCards;
+  if (activityCards.length) {
+    return activityCards.map((card) => {
+      const parameterFields = parameterFieldsForCard(stepManifest, card);
+      if (!parameterFields.length) return card;
+      return {
+        ...card,
+        structuredFields: parameterFields.map((field) => field.key),
+        parameterFields,
+      };
+    });
+  }
 
   return (stepManifest.interactionSpec.submitFields ?? []).map((field) => ({
     id: field,
@@ -265,8 +333,40 @@ function isDragMatchCard(card: InteractiveRuntimeActivityCardManifest) {
   return card.responseKind === 'drag_match';
 }
 
+function isParameterSetCard(card: InteractiveRuntimeActivityCardManifest) {
+  return card.responseKind === 'parameter_set' && Boolean(card.parameterFields?.length);
+}
+
+function parseParameterAnswer(value: string): Record<string, string> {
+  if (!value.trim()) return {};
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed as Record<string, unknown>)
+        .filter(([, item]) => typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean')
+        .map(([key, item]) => [key, String(item)]),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function formatParameterAnswer(card: InteractiveRuntimeActivityCardManifest, value: string) {
+  const parsed = parseParameterAnswer(value);
+  const fields = card.parameterFields ?? [];
+  if (!fields.length || !Object.keys(parsed).length) return value;
+  return fields
+    .filter((field) => parsed[field.key]?.trim())
+    .map((field) => `${field.label}：${parsed[field.key]}${field.unit ? ` ${field.unit}` : ''}`)
+    .join('；');
+}
+
 function formatAnswerValue(card: InteractiveRuntimeActivityCardManifest, value: string) {
   if (!value.trim()) return '已提交空白内容';
+  if (isParameterSetCard(card)) {
+    return formatParameterAnswer(card, value);
+  }
   const answerOptions = card.matchOptions?.length ? card.matchOptions : card.options;
   if (!answerOptions.length) return value;
 
@@ -703,6 +803,52 @@ function DragSortAnswerInput({
   );
 }
 
+function ParameterSetAnswerInput({
+  card,
+  value,
+  onChange,
+}: {
+  card: InteractiveRuntimeActivityCardManifest;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const fields = card.parameterFields ?? [];
+  const parsed = parseParameterAnswer(value);
+  const commit = (key: string, nextValue: string) => {
+    onChange(JSON.stringify({ ...parsed, [key]: nextValue }));
+  };
+
+  return (
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
+      {fields.map((field) => (
+        <label key={field.key} className="premium-lesson-surface-elevated block px-4 py-3 text-sm leading-6">
+          <span className="premium-lesson-title block font-medium">{field.label}</span>
+          <span className="premium-lesson-muted mt-1 block text-xs">{field.unit ? `单位：${field.unit}` : '记录当前参数值'}</span>
+          <input
+            type="text"
+            value={parsed[field.key] ?? ''}
+            onChange={(event) => commit(field.key, event.target.value)}
+            className="premium-lesson-input mt-2 w-full"
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function parameterSetDraftValue(
+  card: InteractiveRuntimeActivityCardManifest,
+  workspaceParameters?: Record<string, string | number | boolean>,
+) {
+  if (!isParameterSetCard(card) || !workspaceParameters) return '';
+  const values = Object.fromEntries(
+    (card.parameterFields ?? [])
+      .map((field) => [field.key, workspaceParameters[field.key]])
+      .filter(([, value]) => value !== undefined && value !== null && String(value).trim()),
+  );
+  return Object.keys(values).length ? JSON.stringify(values) : '';
+}
+
 function StudentCardAnswerInput({
   card,
   value,
@@ -718,6 +864,10 @@ function StudentCardAnswerInput({
 
   if (isDragMatchCard(card)) {
     return <DragMatchAnswerInput card={card} value={value} onChange={onChange} />;
+  }
+
+  if (isParameterSetCard(card)) {
+    return <ParameterSetAnswerInput card={card} value={value} onChange={onChange} />;
   }
 
   if (isMultiSelectCard(card)) {
@@ -817,6 +967,7 @@ function StudentCards({
   released,
   browseEnabled,
   answerVisible,
+  workspaceParameters,
   onSubmit,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
@@ -824,6 +975,7 @@ function StudentCards({
   released: boolean;
   browseEnabled: boolean;
   answerVisible: boolean;
+  workspaceParameters?: Record<string, string | number | boolean>;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
@@ -875,6 +1027,11 @@ function StudentCards({
   }
 
   const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(localSubmittedKeys)]);
+  const draftValueForCard = (card: InteractiveRuntimeActivityCardManifest) => {
+    const currentParameterValue = parameterSetDraftValue(card, workspaceParameters);
+    if (currentParameterValue) return currentParameterValue;
+    return draftAnswers[card.id] ?? '';
+  };
 
   return (
     <div className="space-y-4">
@@ -887,7 +1044,7 @@ function StudentCards({
             <CardPrompt card={card} />
             <StudentCardAnswerInput
               card={card}
-              value={draftAnswers[card.id] ?? ''}
+              value={draftValueForCard(card)}
               onChange={(value) => {
                 setTouchedKeys((prev) => new Set(prev).add(card.id));
                 setDraftAnswers((prev) => ({ ...prev, [card.id]: value }));
@@ -897,6 +1054,10 @@ function StudentCards({
               <button
                 type="button"
                 onClick={() => {
+                  const currentDraft = {
+                    ...draftAnswers,
+                    [card.id]: draftValueForCard(card),
+                  };
                   setLocalSubmittedKeys((previous) => new Set(previous).add(card.id));
                   setTouchedKeys((previous) => {
                     const next = new Set(previous);
@@ -908,12 +1069,12 @@ function StudentCards({
                     submittedAt: Date.now(),
                     answers: buildPerCardSubmissionAnswers({
                       savedAnswers: savedResponse?.answers,
-                      currentDraft: draftAnswers,
+                      currentDraft,
                       targetKey: card.id,
                     }),
                   });
                 }}
-                disabled={!draftAnswers[card.id]?.trim()}
+                disabled={!draftValueForCard(card).trim()}
                 className="premium-lesson-action-primary disabled:opacity-40"
               >
                 提交答案

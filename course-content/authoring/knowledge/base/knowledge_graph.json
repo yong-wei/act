@@ -3172,26 +3172,36 @@
     "调节时间_10_fcbccf4e": {
       "id": "调节时间_10_fcbccf4e",
       "name": "调节时间",
-      "category": "概念性",
-      "bloom_level": "理解",
-      "chapter": 10,
-      "chapter_name": "状态空间",
-      "definition": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "根轨迹分析",
+      "definition": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
       "examples": [
-        "表10-7中给出了不同参数下的系统阶跃响应调节时间。"
+        "自动焊接头控制要求调节时间小于3秒，通过配置极点实部满足要求。",
+        "例4-9中，要求调节时间不超过某个值，是设计自动驾驶仪的性能指标之一。",
+        "在车辆控制系统中，要求调节时间小于规定值以保证快速响应。"
       ],
-      "formulas": [],
+      "formulas": [
+        "t_s = \\frac{4.4}{\\sigma}",
+        "t_s \\approx \\frac{4}{\\zeta \\omega_n} \\quad (\\text{对于2%误差带})",
+        "$t_s$"
+      ],
       "prerequisites": [],
       "related_concepts": [],
-      "difficulty": 2,
+      "difficulty": 4,
       "importance": 4,
       "keywords": [
-        "阶跃响应",
+        "稳态误差带",
+        "极点实部",
+        "响应速度",
         "性能指标",
-        "动态性能"
+        "稳态",
+        "调节时间",
+        "瞬态性能"
       ],
-      "created_at": "2026-02-04T17:54:16.627366",
-      "updated_at": "2026-02-04T17:54:16.627367"
+      "created_at": "2026-02-04T17:54:16.628302",
+      "updated_at": "2026-02-04T17:54:16.628302"
     },
     "ITAE最优性能_10_35da202b": {
       "id": "ITAE最优性能_10_35da202b",
@@ -5125,45 +5135,29 @@
     "超调量_3_fc3f5b17": {
       "id": "超调量_3_fc3f5b17",
       "name": "超调量",
-      "category": "程序性",
+      "category": "概念性",
       "bloom_level": "应用",
-      "chapter": 3,
-      "chapter_name": "时域分析",
-      "definition": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
       "examples": [
-        "若超调量为零，则响应无超调",
-        "衡量系统响应平稳性的重要指标，仅适用于欠阻尼系统。",
-        "图3-12显示了超调量与阻尼比的关系曲线，阻尼比越大，超调量越小。",
-        "比例-微分控制使阶跃响应的超调量下降。",
-        "在相同阻尼比下，比例-微分控制系统的超调量大于测速反馈控制系统。",
-        "习题3-4中要求根据单位阶跃响应求系统的超调量。"
+        "雕刻机系统：根据二阶近似模型估算超调量σ%=25%。",
+        "磁盘驱动读取系统：利用公式估算单位阶跃响应的超调量。"
       ],
       "formulas": [
-        "\\sigma \\% = \\frac{h(t_p) - h(\\infty)}{h(\\infty)} \\times 100\\%",
-        "\\sigma\\% = e^{-\\pi\\zeta / \\sqrt{1-\\zeta^2}} \\times 100\\%",
-        "\\sigma\\% = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100\\%",
-        "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}} \\times 100\\%",
-        "\\sigma \\% = \\frac{c_{max} - c(\\infty)}{c(\\infty)} \\times 100\\%"
+        "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}}\\times 100\\%"
       ],
       "prerequisites": [],
       "related_concepts": [],
-      "difficulty": 4,
+      "difficulty": 2,
       "importance": 4,
       "keywords": [
-        "最大超调量",
-        "百分比超调量",
-        "阻尼",
-        "超调量",
-        "σ%",
-        "平稳性",
-        "阻尼比",
-        "单位阶跃响应",
-        "动态性能",
         "阶跃响应",
-        "振荡"
+        "阻尼比",
+        "动态性能"
       ],
-      "created_at": "2026-02-04T17:54:16.627762",
-      "updated_at": "2026-02-04T17:54:16.627762"
+      "created_at": "2026-02-04T17:54:16.628685",
+      "updated_at": "2026-02-04T17:54:16.628685"
     },
     "稳态误差_3_c0207063": {
       "id": "稳态误差_3_c0207063",
@@ -7725,40 +7719,6 @@
       "created_at": "2026-02-04T17:54:16.628296",
       "updated_at": "2026-02-04T17:54:16.628297"
     },
-    "调节时间_10_fcbccf4e": {
-      "id": "调节时间_10_fcbccf4e",
-      "name": "调节时间",
-      "category": "程序性",
-      "bloom_level": "应用",
-      "chapter": 4,
-      "chapter_name": "根轨迹分析",
-      "definition": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
-      "examples": [
-        "自动焊接头控制要求调节时间小于3秒，通过配置极点实部满足要求。",
-        "例4-9中，要求调节时间不超过某个值，是设计自动驾驶仪的性能指标之一。",
-        "在车辆控制系统中，要求调节时间小于规定值以保证快速响应。"
-      ],
-      "formulas": [
-        "t_s = \\frac{4.4}{\\sigma}",
-        "t_s \\approx \\frac{4}{\\zeta \\omega_n} \\quad (\\text{对于2%误差带})",
-        "$t_s$"
-      ],
-      "prerequisites": [],
-      "related_concepts": [],
-      "difficulty": 4,
-      "importance": 4,
-      "keywords": [
-        "稳态误差带",
-        "极点实部",
-        "响应速度",
-        "性能指标",
-        "稳态",
-        "调节时间",
-        "瞬态性能"
-      ],
-      "created_at": "2026-02-04T17:54:16.628302",
-      "updated_at": "2026-02-04T17:54:16.628302"
-    },
     "阻尼比_4_bf7557b3": {
       "id": "阻尼比_4_bf7557b3",
       "name": "阻尼比",
@@ -9093,33 +9053,23 @@
       "id": "相角裕度_5_5a74b451",
       "name": "相角裕度",
       "category": "概念性",
-      "bloom_level": "应用",
+      "bloom_level": "理解",
       "chapter": 5,
       "chapter_name": "频域分析",
-      "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "examples": [
-        "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
-        "例5-14计算不同开环增益下的相角裕度。",
-        "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
-        "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
-      ],
-      "formulas": [
-        "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
-        "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
-      ],
+      "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+      "examples": [],
+      "formulas": [],
       "prerequisites": [],
       "related_concepts": [],
-      "difficulty": 4,
-      "importance": 5,
+      "difficulty": 3,
+      "importance": 3,
       "keywords": [
-        "截止频率",
-        "相位滞后",
-        "临界稳定",
-        "稳定性",
-        "开环频率特性"
+        "3-5",
+        "频域分析",
+        "相角裕度"
       ],
-      "created_at": "2026-02-04T17:54:16.628585",
-      "updated_at": "2026-02-04T17:54:16.628586"
+      "created_at": null,
+      "updated_at": null
     },
     "幅值裕度_5_73af26a5": {
       "id": "幅值裕度_5_73af26a5",
@@ -9581,33 +9531,6 @@
       ],
       "created_at": "2026-02-04T17:54:16.628679",
       "updated_at": "2026-02-04T17:54:16.628680"
-    },
-    "超调量_3_fc3f5b17": {
-      "id": "超调量_3_fc3f5b17",
-      "name": "超调量",
-      "category": "概念性",
-      "bloom_level": "应用",
-      "chapter": 5,
-      "chapter_name": "频域分析",
-      "definition": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
-      "examples": [
-        "雕刻机系统：根据二阶近似模型估算超调量σ%=25%。",
-        "磁盘驱动读取系统：利用公式估算单位阶跃响应的超调量。"
-      ],
-      "formulas": [
-        "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}}\\times 100\\%"
-      ],
-      "prerequisites": [],
-      "related_concepts": [],
-      "difficulty": 2,
-      "importance": 4,
-      "keywords": [
-        "阶跃响应",
-        "阻尼比",
-        "动态性能"
-      ],
-      "created_at": "2026-02-04T17:54:16.628685",
-      "updated_at": "2026-02-04T17:54:16.628685"
     },
     "主导极点_5_5a720cf2": {
       "id": "主导极点_5_5a720cf2",
@@ -19288,11 +19211,11 @@
       "name": "单结构与复合结构分流条件",
       "category": "概念性",
       "bloom_level": "分析",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
       "definition": "根据对象当前最紧矛盾、单结构已暴露的代价和可测通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈-前馈组合。",
       "examples": [
-        "若单结构继续增强会明显贴近控制峰值或相角裕量边界，就应考虑补入第二条机制线。",
+        "若单结构继续增强会明显贴近控制峰值或相角裕度边界，就应考虑补入第二条机制线。",
         "当扰动通道可测且主问题确实来自该通道时，反馈加前馈组合往往比继续强化单一反馈结构更合适。"
       ],
       "formulas": [
@@ -19304,7 +19227,7 @@
         "反馈保底与前馈补偿边界_4_42005"
       ],
       "related_concepts": [
-        "参数方向表达卡_4_43003"
+        "经典复合控制边界_4_43007"
       ],
       "difficulty": 4,
       "importance": 5,
@@ -19315,30 +19238,36 @@
         "第二机制线"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "结构分流",
+        "复合结构"
+      ],
+      "knowledge_type": "D"
     },
     "参数方向表达卡_4_43003": {
       "id": "参数方向表达卡_4_43003",
       "name": "参数方向表达卡",
       "category": "程序性",
       "bloom_level": "应用",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
       "definition": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
       "examples": [
-        "客船航向保持的超前初始方案，可写成“在截止频率附近补相位，先缩短调节时间，同时警惕超调量和控制峰值贴近边界”。",
-        "滞后加超前方案可写成“先抬低频能力压静差，再回收中频相位，首轮重点关注调节时间是否明显变慢”。"
+        "参考前馈方向可写成“沿参考变化提前给出操舵趋势，减少跟随滞后，同时警惕舵角峰值增大”。",
+        "扰动前馈方向可写成“先压低可测扰动偏移，同时保留反馈修正余量，防止模型误差导致过补偿”。"
       ],
       "formulas": [
         "\\text{参数方向}=(\\text{先改哪段行为},\\text{预期改善},\\text{最可能透支})"
       ],
       "prerequisites": [
         "单结构与复合结构分流条件_4_43002",
-        "目标驱动超前校正_3_36004",
-        "低频补偿稳态改善路径_3_37003"
+        "反馈保底与前馈补偿边界_4_42005"
       ],
       "related_concepts": [
-        "首轮验证最小读数逻辑_4_43004"
+        "参考前馈与给定滤波分工_4_43008",
+        "扰动前馈保守落地_4_43009"
       ],
       "difficulty": 4,
       "importance": 5,
@@ -19348,19 +19277,25 @@
         "首轮方案"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "参数方向",
+        "表达卡"
+      ],
+      "knowledge_type": "D"
     },
     "对象分析回收到设计入口_4_43001": {
       "id": "对象分析回收到设计入口_4_43001",
       "name": "对象分析回收到设计入口",
       "category": "程序性",
       "bloom_level": "分析",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
       "definition": "把对象模型、任务书、约束边界和首轮观察指标重新压成设计入口，明确当前最紧矛盾、暂缓决策项和第一轮验证重点。",
       "examples": [
-        "客船航向保持对象虽然自带积分特性，但当前最紧问题并不在稳态误差，而在中频动态品质与控制峰值边界。",
-        "某对象稳态误差偏大但速度尚可时，应先把低频能力写成入口，而不是一上来堆复合结构。"
+        "客船航向保持对象虽然自带积分特性，但当前最紧问题可能转为参考突变、可测扰动和执行器边界。",
+        "某单结构候选已改善动态指标后，应继续检查参考通道、扰动通道和控制量边界，而不是只继续调反馈增益。"
       ],
       "formulas": [
         "\\text{对象分析}=(\\text{主矛盾},\\text{硬约束},\\text{可接受代价},\\text{首轮验证重点})"
@@ -19370,7 +19305,7 @@
         "单结构首轮起步卡_4_42001"
       ],
       "related_concepts": [
-        "主矛盾到频段职责映射_4_42003"
+        "经典复合控制边界_4_43007"
       ],
       "difficulty": 4,
       "importance": 5,
@@ -19381,19 +19316,25 @@
         "约束"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "对象分析",
+        "设计入口"
+      ],
+      "knowledge_type": "D"
     },
     "扰动抑制中的通道重写边界_4_43006": {
       "id": "扰动抑制中的通道重写边界_4_43006",
       "name": "扰动抑制中的通道重写边界",
       "category": "概念性",
       "bloom_level": "分析",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
       "definition": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
       "examples": [
         "横摇减摇鳍控制器同时组合角速度、角度和积分作用，说明复合结构可以来自扰动抑制通道重写。",
-        "若设计任务转向可测扰动对消，就不能继续只用‘低频/中频补偿’解释结构组合。"
+        "若设计任务转向可测扰动对消，就不能继续只用低频/中频补偿解释结构组合。"
       ],
       "formulas": [
         "u(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)"
@@ -19403,7 +19344,7 @@
         "单结构与复合结构分流条件_4_43002"
       ],
       "related_concepts": [
-        "问题清单移交表_4_43005"
+        "扰动前馈保守落地_4_43009"
       ],
       "difficulty": 4,
       "importance": 4,
@@ -19414,19 +19355,25 @@
         "减摇鳍"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "扰动抑制",
+        "通道边界"
+      ],
+      "knowledge_type": "X"
     },
     "问题清单移交表_4_43005": {
       "id": "问题清单移交表_4_43005",
       "name": "问题清单移交表",
       "category": "程序性",
       "bloom_level": "应用",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
       "definition": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
       "examples": [
-        "客船航向保持的首轮问题清单会同时记录‘调节时间已进入目标附近’和‘控制峰值已贴近边界’。",
-        "若某方案静差已满足要求，但相角裕量和超调量同时偏紧，问题清单应先指向参数回收或机制重分配。"
+        "若扰动前馈明显压低扰动偏移但舵角同频补偿过大，下一轮应优先调整前馈强度或扰动前馈滤波。",
+        "若抗饱和改善恢复过程但跟踪速度偏慢，下一轮应把滤波时间常数和抗饱和时间常数纳入优化。"
       ],
       "formulas": [
         "\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})"
@@ -19435,7 +19382,7 @@
         "首轮验证最小读数逻辑_4_43004"
       ],
       "related_concepts": [
-        "单结构与复合结构分流条件_4_43002"
+        "复合方案首轮记录表_4_43011"
       ],
       "difficulty": 3,
       "importance": 5,
@@ -19445,28 +19392,32 @@
         "下一轮调整"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "问题清单",
+        "移交表"
+      ],
+      "knowledge_type": "D"
     },
     "首轮验证最小读数逻辑_4_43004": {
       "id": "首轮验证最小读数逻辑_4_43004",
       "name": "首轮验证最小读数逻辑",
       "category": "程序性",
       "bloom_level": "分析",
-      "chapter": 4,
+      "chapter": "4",
       "chapter_name": "约束设计层",
-      "definition": "首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。",
+      "definition": "首轮验证至少同时读取反馈裕度、参考响应、扰动响应、控制量边界和饱和恢复过程，用来判断复合方案是否接住主矛盾并暴露下一轮优化入口。",
       "examples": [
-        "客船航向保持首轮验证同时看调节时间、超调量、相角裕度和控制峰值，才能说明超前方案是否值得继续推进。",
-        "对低频补偿主导的对象，不能只看静差改善，还要同时看调节时间和相角裕度是否明显恶化。"
+        "客船经典复合方案需要同时看航向响应、扰动偏移、舵角轨迹、舵速限制和饱和恢复。",
+        "给定滤波使响应更平顺但变慢时，首轮验证必须把收益和代价一起记录。"
       ],
       "formulas": [
-        "\\text{首轮验证}=\\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}"
+        "\\text{首轮验证}=\\{\\text{反馈裕度},\\text{参考响应},\\text{扰动响应},\\text{控制量轨迹},\\text{饱和恢复}\\}"
       ],
       "prerequisites": [
-        "参数方向表达卡_4_43003",
-        "三频段闭环性能回读_3_38003",
-        "相角裕度_5_5a74b451",
-        "带宽频率_5_6996a44a"
+        "复合方案首轮记录表_4_43011",
+        "三频段闭环性能回读_3_38003"
       ],
       "related_concepts": [
         "问题清单移交表_4_43005"
@@ -19475,12 +19426,18 @@
       "importance": 5,
       "keywords": [
         "首轮验证",
-        "时域",
-        "频域",
-        "控制峰值"
+        "参考响应",
+        "扰动响应",
+        "饱和恢复"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "tags": [
+        "4-3",
+        "首轮验证",
+        "读数逻辑"
+      ],
+      "knowledge_type": "D"
     },
     "任务通道变化下的代价函数改写_4_44007": {
       "id": "任务通道变化下的代价函数改写_4_44007",
@@ -20729,28 +20686,6 @@
       "created_at": null,
       "updated_at": null
     },
-    "相角裕度_5_5a74b451": {
-      "id": "相角裕度_5_5a74b451",
-      "name": "相角裕度",
-      "category": "概念性",
-      "bloom_level": "理解",
-      "chapter": 5,
-      "chapter_name": "频域分析",
-      "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
-      "examples": [],
-      "formulas": [],
-      "prerequisites": [],
-      "related_concepts": [],
-      "difficulty": 3,
-      "importance": 3,
-      "keywords": [
-        "3-5",
-        "频域分析",
-        "相角裕度"
-      ],
-      "created_at": null,
-      "updated_at": null
-    },
     "典型非线性边界环节_5_51002": {
       "id": "典型非线性边界环节_5_51002",
       "name": "典型非线性边界环节",
@@ -21607,12 +21542,990 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "IMC_SIMC与模型匹配整定_4_42013": {
+      "id": "IMC_SIMC与模型匹配整定_4_42013",
+      "name": "IMC/SIMC 与模型匹配整定",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "当对象模型足够清楚时，用目标闭环极点、IMC/SIMC 闭环时间常数或逆模型思想给出控制器参数初值。",
+      "examples": [
+        "一阶惯性加纯滞后对象可用 \\(K_p=\\tau/[K(\\lambda+L)]\\)、\\(T_i=\\min\\{\\tau,4(\\lambda+L)\\}\\) 得到 PI 初值。"
+      ],
+      "formulas": [
+        "K_p=\\frac{\\tau}{K(\\lambda+L)},\\qquad T_i=\\min\\{\\tau,4(\\lambda+L)\\}"
+      ],
+      "prerequisites": [
+        "传递函数_1_5b0faf8b",
+        "控制器频域特性矩阵_4_42008"
+      ],
+      "related_concepts": [
+        "频域PI与滞后整定_4_42010",
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 4,
+      "importance": 4,
+      "keywords": [
+        "IMC",
+        "SIMC",
+        "模型匹配",
+        "极点配置",
+        "闭环时间常数"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "RL调度PID_5_55006": {
+      "id": "RL调度PID_5_55006",
+      "name": "RL调度PID",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "RL 调度 PID 让策略学习选择 PID 参数档位或修正量，实际控舵仍由带限幅和舵速约束的 PID 完成，是比直接控舵更稳妥的工程入口。",
+      "examples": [
+        "复杂边缘场景中，RL 在保守、常规、抗扰和快速四组 PID 参数之间选择，保留可解释控制结构和执行器边界。"
+      ],
+      "formulas": [
+        "\\delta_k=\\mathrm{PID}_{m_k}(e_{\\psi,k},r_k),\\quad m_k=\\pi_\\theta(s_k)"
+      ],
+      "prerequisites": [
+        "策略学习安全外壳",
+        "航向控制RL环境"
+      ],
+      "related_concepts": [
+        "四路线策略评价",
+        "模型数据责任分配"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "参数调度",
+        "PID",
+        "混合策略",
+        "工程入口"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "三场景同题比较_5_56006": {
+      "id": "三场景同题比较_5_56006",
+      "name": "三场景同题比较",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "三场景同题比较用常规日、入库高峰和未见扰动三组压力测试检验不同路线在性能收益、能耗、切换、恢复和验证责任上的差异。",
+      "examples": [
+        "E1 支持经典 PI/PID 优先；E2 支持预测补偿混合路线；E3 暴露策略监督层训练覆盖不足。"
+      ],
+      "formulas": [
+        "t_{rec}=\\min\\{t-t_e:T_a(t)\\leq 5.8,T_p(t)\\leq 5.8\\}",
+        "E=\\sum_k u(k)/60"
+      ],
+      "prerequisites": [
+        "经典PID冷链基线",
+        "热负荷预测补偿",
+        "策略监督层调度"
+      ],
+      "related_concepts": [
+        "证据要求等级",
+        "方法选择说明卡"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "常规日",
+        "入库高峰",
+        "未见扰动",
+        "恢复时间"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "临界比例PID整定_4_42012": {
+      "id": "临界比例PID整定_4_42012",
+      "name": "临界比例 PID 整定",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "通过比例控制下的等幅振荡试验获得临界增益 \\(K_u\\) 和临界周期 \\(P_u\\)，再按 Ziegler-Nichols 等表格给出 `P/PI/PID` 参数初值。",
+      "examples": [
+        "若试验得到 \\(K_u=8\\)、\\(P_u=4s\\)，Ziegler-Nichols PID 给出 \\(K_p=4.8\\)、\\(T_i=2s\\)、\\(T_d=0.5s\\)。"
+      ],
+      "formulas": [
+        "K_p=0.6K_u,\\quad T_i=\\frac{P_u}{2},\\quad T_d=\\frac{P_u}{8}"
+      ],
+      "prerequisites": [
+        "控制器频域特性矩阵_4_42008"
+      ],
+      "related_concepts": [
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "Ziegler-Nichols",
+        "PID",
+        "临界增益",
+        "临界周期",
+        "整定表"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "二状态冷链热模型_5_56002": {
+      "id": "二状态冷链热模型_5_56002",
+      "name": "二状态冷链热模型",
+      "category": "模型性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "二状态冷链热模型用空气温度和货品核心温度两个状态描述仓内热过程，区分传感器快速读数和货品本体慢热风险。",
+      "examples": [
+        "开门后空气温度较快下降，但货品核心温度可能仍然上升，因此只看空气温度会低估入库热负荷影响。"
+      ],
+      "formulas": [
+        "T_a(k+1)=T_a(k)+\\frac{T_{amb}(k)-T_a(k)}{420}+\\frac{T_p(k)-T_a(k)}{92}+0.040q_{door}(k)+0.030q_{load}(k)-0.080c(k)u(k)",
+        "T_p(k+1)=T_p(k)+\\frac{T_a(k)-T_p(k)}{250}+0.0062q_{load}(k)"
+      ],
+      "prerequisites": [
+        "冷链温控同题任务"
+      ],
+      "related_concepts": [
+        "经典PID冷链基线",
+        "热负荷预测补偿"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "空气温度",
+        "货品核心温度",
+        "热模型",
+        "时间尺度"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "冷链温控同题任务_5_56001": {
+      "id": "冷链温控同题任务_5_56001",
+      "name": "冷链温控同题任务",
+      "category": "场景性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "冷链温控同题任务把同一生物制剂冷藏仓、同一温区约束、同一扰动日志和同一评价指标交给多条控制路线比较，用来判断方法迁移是否有依据。",
+      "examples": [
+        "同一个 48 小时冷链仓库日志同时用于经典 PI/PID、数据驱动预测补偿和策略学习监督层，而不是给每条路线构造不同难度的案例。"
+      ],
+      "formulas": [
+        "2\\leq T_a(k)\\leq 8,\\quad 2\\leq T_p(k)\\leq 8",
+        "0\\leq u(k)\\leq 1"
+      ],
+      "prerequisites": [
+        "方法迁移前边界说明"
+      ],
+      "related_concepts": [
+        "二状态冷链热模型",
+        "三场景同题比较"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "冷链温控",
+        "同题比较",
+        "温区约束",
+        "方法迁移"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "单结构整定四类复核量_4_42015": {
+      "id": "单结构整定四类复核量_4_42015",
+      "name": "单结构整定四类复核量",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "单结构参数初算后，必须同时检查阶跃响应、扰动响应、相角裕度和控制量，避免只凭一个指标宣布结构有效。",
+      "examples": [
+        "客船案例中超前降低超调最明显，但仍要复核低频灵敏度和控制量峰值；滞后改善低频灵敏度，却牺牲动态品质。"
+      ],
+      "formulas": [
+        "\\text{复核}=(\\text{step},\\text{disturbance},PM,u_{peak})"
+      ],
+      "prerequisites": [
+        "结构选型决策树_4_42009",
+        "相角裕度_5_5a74b451",
+        "幅值裕度_5_73af26a5"
+      ],
+      "related_concepts": [
+        "单结构首轮起步卡_4_42001",
+        "客船候选结构整定比较_4_42014"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "复核",
+        "阶跃响应",
+        "扰动响应",
+        "相角裕度",
+        "控制量"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "四路线策略评价_5_55008": {
+      "id": "四路线策略评价_5_55008",
+      "name": "四路线策略评价",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "四路线策略评价把 PID、直接控舵 RL、安全外壳 RL 和 RL 调度 PID 放入同一边缘场景中，比较响应误差、超调、调节时间、舵角使用、舵速和安全退化。",
+      "examples": [
+        "5-5 航向仿真中，RL 调度 PID 的 RMS 误差为 4.20°，接近固定 PID 且保留显式控舵结构；直接控舵 RL 最大超调达到 58.04°。"
+      ],
+      "formulas": [
+        "e_{\\mathrm{RMS}}=\\sqrt{\\frac{1}{N}\\sum_{k=1}^{N}e_k^2}",
+        "\\mathrm{settling\\ time}=\\min\\{t: |e(\\tau)|\\leq \\varepsilon,\\forall \\tau\\geq t\\}"
+      ],
+      "prerequisites": [
+        "RL调度PID",
+        "训练覆盖与部署验证"
+      ],
+      "related_concepts": [
+        "策略学习进入条件",
+        "船舶航向控制对象"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "PID",
+        "直接控舵RL",
+        "安全外壳",
+        "RL调度PID",
+        "评价指标"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "客船候选结构整定比较_4_42014": {
+      "id": "客船候选结构整定比较_4_42014",
+      "name": "客船候选结构整定比较",
+      "category": "事实性",
+      "bloom_level": "评价",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "以客船航向控制对象为案例，比较基准 `P`、滞后、`PI`、超前和超前-滞后的 Bode、阶跃响应、扰动响应、低频灵敏度和控制量。",
+      "examples": [
+        "超前显著降低超调并提高相角裕度，但控制量峰值和低频抗扰需复核；滞后改善低频灵敏度，却让超调和调节时间变差。"
+      ],
+      "formulas": [
+        "G_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}"
+      ],
+      "prerequisites": [
+        "结构选型决策树_4_42009",
+        "频域PI与滞后整定_4_42010",
+        "频域PD与超前整定_4_42011"
+      ],
+      "related_concepts": [
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "客船航向控制",
+        "候选结构",
+        "Bode",
+        "扰动响应",
+        "控制量"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "强化学习控制回报_5_55003": {
+      "id": "强化学习控制回报_5_55003",
+      "name": "强化学习控制回报",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "强化学习控制回报把跟踪、安全、能耗、动作平滑和规则约束写成可训练目标，用来决定策略优化的方向。",
+      "examples": [
+        "航向保持奖励同时惩罚航向误差、偏航角速度、大舵角、舵角变化率和安全退化，而不是只奖励误差变小。"
+      ],
+      "formulas": [
+        "J(\\pi)=\\mathbb{E}_{\\pi}\\left[\\sum_{k=0}^{\\infty}\\gamma^k r_k\\right]",
+        "r_k=-w_e e_k^2-w_u u_k^2-w_{\\Delta u}(u_k-u_{k-1})^2-w_s I_{\\mathrm{safety},k}"
+      ],
+      "prerequisites": [
+        "显式控制律与学习策略"
+      ],
+      "related_concepts": [
+        "策略学习进入条件",
+        "航向控制RL环境"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "回报函数",
+        "长期回报",
+        "安全惩罚",
+        "动作平滑"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "控制器频域特性矩阵_4_42008": {
+      "id": "控制器频域特性矩阵_4_42008",
+      "name": "控制器频域特性矩阵",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "把 `PI/PD/PID/超前/滞后/超前-滞后` 放在同一 Bode 坐标中比较，说明每类结构首先改变低频增益、中频相位、截止频率还是高频增益。",
+      "examples": [
+        "`PI` 在低频端抬升幅值，服务静差和慢扰动；超前在目标频段附近提供正相位，服务相角裕度和超调。"
+      ],
+      "formulas": [
+        "L(s)=C(s)G(s)"
+      ],
+      "prerequisites": [
+        "设计任务表达卡_4_41001",
+        "三频段闭环性能回读_3_38003"
+      ],
+      "related_concepts": [
+        "结构工具箱最小语义_4_42002",
+        "结构作用点与代价来源对照_4_42004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "Bode",
+        "频域特性",
+        "控制结构",
+        "相位",
+        "幅值"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "方法选择说明卡_5_56008": {
+      "id": "方法选择说明卡_5_56008",
+      "name": "方法选择说明卡",
+      "category": "实践性",
+      "bloom_level": "创造",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "方法选择说明卡把任务对象、主要证据、推荐路线、选择理由、主要收益、关键风险、验证路径和暂不采用其他路线的依据组织成可审查的工程判断。",
+      "examples": [
+        "入库高峰中可推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿，同时说明策略学习因训练覆盖和安全壳证据不足暂不进入主闭环。"
+      ],
+      "formulas": [
+        "\\text{路线选择}=\\text{收益}\\land\\text{风险边界}\\land\\text{验证路径}"
+      ],
+      "prerequisites": [
+        "三场景同题比较",
+        "证据要求等级"
+      ],
+      "related_concepts": [
+        "模型数据责任分配",
+        "策略学习进入条件"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "说明卡",
+        "路线选择",
+        "验证路径",
+        "暂不采用"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "显式控制律与学习策略_5_55001": {
+      "id": "显式控制律与学习策略_5_55001",
+      "name": "显式控制律与学习策略",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "显式控制律把动作生成机制写成可读结构，学习策略则通过状态、样本和回报训练出动作生成函数；二者的核心差别在证据来源和验证方式。",
+      "examples": [
+        "航向保持中，PID 直接按误差和偏航角速度计算舵角；学习策略则根据训练形成的参数从状态向量输出动作或参数档位。"
+      ],
+      "formulas": [
+        "u(t)=C(e(t),x(t),p)",
+        "u=\\pi_\\theta(x)"
+      ],
+      "prerequisites": [
+        "控制在自主系统链路中的位置",
+        "数据驱动控制"
+      ],
+      "related_concepts": [
+        "策略学习进入条件",
+        "强化学习控制回报"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "显式控制律",
+        "学习策略",
+        "动作生成",
+        "验证责任"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "热负荷预测补偿_5_56004": {
+      "id": "热负荷预测补偿_5_56004",
+      "name": "热负荷预测补偿",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "热负荷预测补偿保留 PI/PID 主闭环，只预测未来一小时热负荷等级，并把该预测用于预冷设定点和受限压缩机前馈。",
+      "examples": [
+        "E2 入库高峰中，开门记录、入库批次和外界温度可以提前观察，因此预测预冷把恢复时间从 22 min 降到 0 min。"
+      ],
+      "formulas": [
+        "\\hat H_{60}(k)=0.16\\sum q_{door}+0.09\\sum q_{load}+0.35\\max(0,\\overline T_{amb,60}-22)",
+        "u_{ff}(k)=\\mathrm{clip}(0.030\\hat H_{60}(k)+0.020\\max(0,T_{amb}(k)-23),0,0.52)"
+      ],
+      "prerequisites": [
+        "数据驱动控制",
+        "经典PID冷链基线"
+      ],
+      "related_concepts": [
+        "数据覆盖与泛化边界",
+        "三场景同题比较"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "热负荷预测",
+        "预冷",
+        "前馈补偿",
+        "数据驱动"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "策略学习安全外壳_5_55005": {
+      "id": "策略学习安全外壳_5_55005",
+      "name": "策略学习安全外壳",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "策略学习安全外壳在学习策略输出动作后执行限幅、舵速约束、状态监控、退化记录和传统控制器接管，防止策略越过可执行和安全边界。",
+      "examples": [
+        "当策略建议导致舵角越界、舵速越界、误差继续放大或角速度过高时，控制量退回到限幅 PID 输出并记录安全退化。"
+      ],
+      "formulas": [
+        "|\\delta_k-\\delta_{k-1}|\\leq \\dot\\delta_{\\max}\\Delta t",
+        "\\delta_k\\in[-\\delta_{\\max},\\delta_{\\max}]"
+      ],
+      "prerequisites": [
+        "策略学习进入条件",
+        "航向控制RL环境"
+      ],
+      "related_concepts": [
+        "RL调度PID",
+        "训练覆盖与部署验证"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "安全外壳",
+        "动作限幅",
+        "降级接管",
+        "安全退化"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "策略学习进入条件_5_55002": {
+      "id": "策略学习进入条件_5_55002",
+      "name": "策略学习进入条件",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "策略学习进入条件用任务、样本、回报、验证和监控五项检查判断强化学习是否具备进入控制任务的依据。",
+      "examples": [
+        "固定仓库移动平台已有可靠 MPC 时，不宜整体替代控制器；强扰动航向保持可先考虑参数调度或扰动补偿。"
+      ],
+      "formulas": [
+        "\\text{进入条件}=\\text{任务}+\\text{样本}+\\text{回报}+\\text{验证}+\\text{监控}"
+      ],
+      "prerequisites": [
+        "显式控制律与学习策略",
+        "方法迁移前边界说明"
+      ],
+      "related_concepts": [
+        "训练覆盖与部署验证",
+        "策略学习安全外壳"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "进入条件",
+        "样本条件",
+        "回报条件",
+        "部署监控"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "策略监督层调度_5_56005": {
+      "id": "策略监督层调度_5_56005",
+      "name": "策略监督层调度",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "examples": [
+        "E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。"
+      ],
+      "formulas": [
+        "x(k)=[T_m(k),T_p(k),\\hat H_{60}(k),T_{amb}(k)]^T",
+        "m_k\\in\\{\\text{预冷},\\text{正常},\\text{节能},\\text{保守恢复}\\}"
+      ],
+      "prerequisites": [
+        "显式控制律与学习策略",
+        "策略学习进入条件"
+      ],
+      "related_concepts": [
+        "策略学习安全外壳",
+        "训练覆盖与部署验证"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "策略监督层",
+        "模式调度",
+        "安全壳",
+        "回退"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "经典PID冷链基线_5_56003": {
+      "id": "经典PID冷链基线_5_56003",
+      "name": "经典 PI/PID 冷链基线",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和、微分抑制和压缩机限幅形成可解释主闭环，是冷链方法比较中的基准和安全退路。",
+      "examples": [
+        "E1 常规日中，经典 PI/PID 已把空气温度峰值控制在 5.46°C、货品核心峰值控制在 5.15°C，不需要引入更复杂路线。"
+      ],
+      "formulas": [
+        "T_m(k)=T_a(k)+b(k)",
+        "e(k)=T_m(k)-T_{set}",
+        "u(k)=\\mathrm{clip}(u^\\star(k),0,1)"
+      ],
+      "prerequisites": [
+        "二状态冷链热模型"
+      ],
+      "related_concepts": [
+        "热负荷预测补偿",
+        "策略监督层调度"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "PI/PID",
+        "抗饱和",
+        "限幅",
+        "安全退路"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "结构选型决策树_4_42009": {
+      "id": "结构选型决策树_4_42009",
+      "name": "结构选型决策树",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "按照“任务证据 -> 低频/中频/通道/边界 -> 候选结构 -> 整定入口 -> 复核量”的顺序，把控制器选择变成可追踪的设计动作。",
+      "examples": [
+        "稳态误差和慢扰动优先检查 `PI` 或滞后；相角裕度不足优先检查 `PD`、测速反馈或超前；扰动可测时前馈作为补偿通道加入。"
+      ],
+      "formulas": [
+        "\\text{任务证据}\\rightarrow\\text{频段/通道}\\rightarrow\\text{候选结构}\\rightarrow\\text{整定入口}"
+      ],
+      "prerequisites": [
+        "控制器频域特性矩阵_4_42008",
+        "主矛盾到频段职责映射_4_42003"
+      ],
+      "related_concepts": [
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "决策树",
+        "选型",
+        "任务证据",
+        "候选结构"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "航向控制RL环境_5_55004": {
+      "id": "航向控制RL环境_5_55004",
+      "name": "航向控制RL环境",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "航向控制 RL 环境把 Nomoto 船舶航向模型、目标航向、扰动、执行器限制、状态观测和动作集合组织成可训练闭环。",
+      "examples": [
+        "训练场景随机化时间常数、舵效增益、扰动、初始航向和目标航向，用于观察策略是否只记住单一工况。"
+      ],
+      "formulas": [
+        "T\\dot r+r=K\\delta+d_r",
+        "\\dot\\psi=r",
+        "s_k=[e_{\\psi,k},r_k,\\delta_{k-1},\\hat d_{r,k}]^{\\mathsf T}"
+      ],
+      "prerequisites": [
+        "船舶航向控制对象",
+        "强化学习控制回报"
+      ],
+      "related_concepts": [
+        "策略学习安全外壳",
+        "四路线策略评价"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "Nomoto模型",
+        "航向控制",
+        "状态设计",
+        "动作设计"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "训练覆盖与部署验证_5_55007": {
+      "id": "训练覆盖与部署验证_5_55007",
+      "name": "训练覆盖与部署验证",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "训练覆盖与部署验证要求策略在参数随机化、扰动、执行器边界、传感器噪声和训练外工况中通过独立测试，再以观察模式、受限接入和接管机制逐步部署。",
+      "examples": [
+        "航向策略先在 Nomoto 或三自由度模型中训练，再做历史数据回放、硬件在环、受限水域观察模式和小范围接入。"
+      ],
+      "formulas": [
+        "\\mathcal{D}_{\\mathrm{train}}\\supset \\mathcal{B}_{\\mathrm{critical}}",
+        "\\text{部署证据}=\\text{训练覆盖}+\\text{独立测试}+\\text{安全外壳}+\\text{运行监控}"
+      ],
+      "prerequisites": [
+        "数据覆盖与泛化边界",
+        "策略学习安全外壳"
+      ],
+      "related_concepts": [
+        "策略学习进入条件",
+        "四路线策略评价"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "训练覆盖",
+        "独立测试",
+        "压力测试",
+        "部署监控"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "证据要求等级_5_56007": {
+      "id": "证据要求等级_5_56007",
+      "name": "证据要求等级",
+      "category": "评价性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "证据要求等级是本案例用于比较方法迁移代价的工程证据维度，表示路线选择还需要补充多少模型、数据、压力测试、安全壳和运行监控证据；它不是标准控制性能指标。",
+      "examples": [
+        "策略监督层的证据要求高，因为需要说明状态动作标签、训练覆盖、故障注入、拒绝条件、安全壳和运行审计。"
+      ],
+      "formulas": [
+        "\\text{证据要求}=\\text{模型说明}+\\text{数据覆盖}+\\text{压力测试}+\\text{安全壳}+\\text{部署监控}"
+      ],
+      "prerequisites": [
+        "三场景同题比较"
+      ],
+      "related_concepts": [
+        "训练覆盖与部署验证",
+        "方法选择说明卡"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "验证负担",
+        "证据要求",
+        "安全壳",
+        "部署监控"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "频域PD与超前整定_4_42011": {
+      "id": "频域PD与超前整定_4_42011",
+      "name": "频域 PD 与超前整定",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "围绕相角裕度、阻尼和超调问题，把 `PD` 或超前校正的相位补偿需求转成 \\(T_d\\) 或 \\(\\alpha,T,K_c\\) 的初算步骤。",
+      "examples": [
+        "超前校正先由目标相角裕度计算所需补偿，再用 \\(\\alpha=(1-\\sin\\phi_{max})/(1+\\sin\\phi_{max})\\) 和 \\(T=1/(\\omega_c\\sqrt{\\alpha})\\) 放置最大相位超前点。"
+      ],
+      "formulas": [
+        "C_{PD}(s)=K_p\\left(1+\\frac{T_d s}{1+\\frac{T_d}{N}s}\\right)",
+        "C_{lead}(s)=K_c\\frac{Ts+1}{\\alpha Ts+1}"
+      ],
+      "prerequisites": [
+        "目标驱动PD校正_3_36002",
+        "目标驱动超前校正_3_36004",
+        "相角裕度_5_5a74b451"
+      ],
+      "related_concepts": [
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "PD",
+        "超前",
+        "相角裕度",
+        "相位补偿",
+        "高频噪声"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "频域PI与滞后整定_4_42010": {
+      "id": "频域PI与滞后整定_4_42010",
+      "name": "频域 PI 与滞后整定",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "围绕低频能力不足，把 `PI` 零点、滞后零极点、目标截止频率和稳态误差改善倍数转成参数初算步骤。",
+      "examples": [
+        "频域 `PI` 可先取 \\(\\omega_z=\\omega_c/5\\sim\\omega_c/10\\)，再由 \\(|C_{PI}(j\\omega_c)G(j\\omega_c)|=1\\) 求 \\(K_p\\)。"
+      ],
+      "formulas": [
+        "C_{PI}(s)=K_p\\left(1+\\frac{1}{T_i s}\\right)",
+        "C_{lag}(s)=\\beta\\frac{Ts+1}{\\beta Ts+1}"
+      ],
+      "prerequisites": [
+        "低频补偿稳态改善路径_3_37003",
+        "积分与滞后的稳态改善分工_3_39003",
+        "控制器频域特性矩阵_4_42008"
+      ],
+      "related_concepts": [
+        "单结构整定四类复核量_4_42015"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "PI",
+        "滞后",
+        "低频增益",
+        "稳态误差",
+        "截止频率"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "参考前馈与给定滤波分工_4_43008": {
+      "id": "参考前馈与给定滤波分工_4_43008",
+      "name": "参考前馈与给定滤波分工",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "参考前馈利用原始参考信号提前给出控制趋势，给定滤波则让反馈通道看到更平滑的命令，二者共同体现参考通道和反馈通道可以分工处理的二自由度思想。",
+      "examples": [
+        "客船航向变化中，参考前馈用低频逆模型减少初段滞后，给定滤波用 $Q_f(s)$ 降低命令突变造成的舵角尖峰。"
+      ],
+      "formulas": [
+        "r_f(s)=Q_f(s)r(s)",
+        "u=C(s)(r_f-y)+F_r(s)r"
+      ],
+      "prerequisites": [
+        "按输入补偿前馈的无差度提升_4_42006",
+        "经典复合控制边界_4_43007"
+      ],
+      "related_concepts": [
+        "实现层复合保护_4_43010"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "参考前馈",
+        "给定滤波",
+        "二自由度",
+        "参考通道"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "复合方案首轮记录表_4_43011": {
+      "id": "复合方案首轮记录表_4_43011",
+      "name": "复合方案首轮记录表",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "把反馈主结构、参考前馈、扰动前馈、给定滤波、执行器保护、抗饱和处理和首轮验证证据放在同一张表中，形成后续参数优化的输入。",
+      "examples": [
+        "客船经典复合方案记录反馈主结构 $C_b(s)$、扰动前馈 $F_d(s)$、参考前馈 $F_r(s)$、给定滤波 $Q_f(s)$、舵角限幅、舵速限制和抗饱和时间常数。"
+      ],
+      "formulas": [
+        "\\text{首轮记录}=\\{C_b,F_r,F_d,Q_f,u_{\\max},\\dot u_{\\max},T_{aw},\\text{验证证据}\\}"
+      ],
+      "prerequisites": [
+        "实现层复合保护_4_43010",
+        "扰动前馈保守落地_4_43009"
+      ],
+      "related_concepts": [
+        "首轮验证最小读数逻辑_4_43004",
+        "问题清单移交表_4_43005"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "首轮记录",
+        "复合方案",
+        "优化入口",
+        "验证证据"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "实现层复合保护_4_43010": {
+      "id": "实现层复合保护_4_43010",
+      "name": "实现层复合保护",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "把微分滤波、输出微分、给定滤波、幅值限幅、斜率限制和抗积分饱和纳入首轮方案，使控制律不仅在线性模型中成立，也能在执行器约束下恢复。",
+      "examples": [
+        "舵角限幅和舵速限制会改变真实航向恢复过程；反算抗饱和用实际控制量与原始控制量的差额修正积分状态，避免饱和解除后的拖尾。"
+      ],
+      "formulas": [
+        "u_{\\mathrm{act}}=\\operatorname{rateLimit}(\\operatorname{sat}(u_{\\mathrm{raw}}))",
+        "\\dot x_i=e+\\frac{u_{\\mathrm{act}}-u_{\\mathrm{raw}}}{T_{aw}}"
+      ],
+      "prerequisites": [
+        "经典复合控制边界_4_43007",
+        "参考前馈与给定滤波分工_4_43008"
+      ],
+      "related_concepts": [
+        "复合方案首轮记录表_4_43011"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "限幅",
+        "斜率限制",
+        "抗积分饱和",
+        "微分滤波"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "扰动前馈保守落地_4_43009": {
+      "id": "扰动前馈保守落地_4_43009",
+      "name": "扰动前馈保守落地",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "在理想扰动对消条件基础上，引入前馈强度和低通滤波，使可测扰动被提前压低，同时保留反馈修正余量并降低模型误差风险。",
+      "examples": [
+        "客船案例中理想扰动前馈等于执行器逆模型的负值，实际采用 75% 强度并加一阶低通，避免把模型误差和高频扰动直接放大到舵角。"
+      ],
+      "formulas": [
+        "F_d(s)=-\\frac{G_d(s)}{G_u(s)}",
+        "F_d(s)=\\lambda_d Q_d(s)F_d^\\ast(s)"
+      ],
+      "prerequisites": [
+        "按扰动补偿前馈的对消条件_4_42007",
+        "反馈保底与前馈补偿边界_4_42005"
+      ],
+      "related_concepts": [
+        "扰动抑制中的通道重写边界_4_43006",
+        "复合方案首轮记录表_4_43011"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "扰动前馈",
+        "保守强度",
+        "低通滤波",
+        "模型误差"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "经典复合控制边界_4_43007": {
+      "id": "经典复合控制边界_4_43007",
+      "name": "经典复合控制边界",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 4,
+      "chapter_name": "约束设计层",
+      "definition": "把狭义的前馈-反馈并用和广义的实现层复合区分开来，明确本课只处理参考前馈、扰动前馈、给定滤波、微分滤波、限幅、斜率限制和抗积分饱和。",
+      "examples": [
+        "参考前馈和扰动前馈属于狭义复合控制。",
+        "给定滤波、微分滤波和抗积分饱和属于本课采用的实现层复合。"
+      ],
+      "formulas": [
+        "u=\\operatorname{sat}\\left(C(s)(r_f-y)+F_r(s)r+F_d(s)d\\right)"
+      ],
+      "prerequisites": [
+        "单结构首轮起步卡_4_42001",
+        "反馈保底与前馈补偿边界_4_42005"
+      ],
+      "related_concepts": [
+        "参考前馈与给定滤波分工_4_43008",
+        "扰动前馈保守落地_4_43009",
+        "实现层复合保护_4_43010"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "经典复合控制",
+        "狭义复合",
+        "广义复合",
+        "实现层复合"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-05-05T12:27:49.538699+00:00",
-    "total_nodes": 762,
-    "total_relations": 16654
+    "merged_at": "2026-05-08T13:26:32.045046+00:00",
+    "total_nodes": 788,
+    "total_relations": 16731
   }
 }

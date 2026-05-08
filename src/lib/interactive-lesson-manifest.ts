@@ -82,6 +82,7 @@ export interface InteractiveRuntimeActivityCardManifest {
   matchOptions?: InteractiveRuntimeChoiceOptionManifest[];
   referenceMatches?: InteractiveRuntimeReferenceMatchManifest[];
   structuredFields?: string[];
+  parameterFields?: Array<{ key: string; label: string; unit?: string }>;
 }
 
 export interface InteractiveRuntimeStepManifest {

@@ -5,7 +5,7 @@
 - 学时：90分钟
 - 知识类型：[D] 设计型
 - 前置：已能把控制任务写成任务表达卡，并能用单结构控制器完成首轮选型与整定
-- 讲义定位：这份讲义帮助我们把单结构候选推进为包含前馈、滤波、限幅与抗饱和的经典复合控制初始方案。
+- 本单元任务：把单结构候选推进为包含前馈、滤波、限幅与抗饱和的经典复合控制初始方案。
 
 ![从对象分析走向首轮验证](../media/processed/4-3-cover-comic.png)
 
@@ -41,16 +41,16 @@
 
 表 2. 两种复合控制口径
 
-| 口径 | 核心含义 | 本次课程如何使用 |
+| 口径 | 核心含义 | 本讲的用法 |
 | --- | --- | --- |
-| 狭义复合控制 | 开环前馈与闭环反馈并用，典型形式是按输入前馈补偿或按扰动前馈补偿 | 本次课程的核心内容，重点讨论反馈主结构与参考/扰动前馈的组合 |
+| 狭义复合控制 | 开环前馈与闭环反馈并用，典型形式是按输入前馈补偿或按扰动前馈补偿 | 本讲核心内容，重点讨论反馈主结构与参考/扰动前馈的组合 |
 | 广义复合控制 | 在单回路串联校正之外，引入额外信息通道、局部回路、选择逻辑、模型补偿、观测估计或工程保护 | 本次只取其中最基础的实现层复合，如微分滤波、给定滤波、抗积分饱和、限幅和斜率限制 |
 
-本次课程不展开串级控制、解耦控制、Smith 预估、扰动观测器、`MPC` 等复杂工程控制结构。这些方法同样属于广义复合控制，但它们需要更多对象模型、状态变量、约束求解或多变量分析，适合放到后续课程中处理。
+本讲不展开串级控制、解耦控制、Smith 预估、扰动观测器、`MPC` 等复杂工程控制结构。这些方法同样属于广义复合控制，但它们需要更多对象模型、状态变量、约束求解或多变量分析，适合放到后续课程中处理。
 
-完成本次课程后，学习者能够：
+完成本讲后，你应当能够：
 
-1. 区分狭义复合控制与广义复合控制，并说明本次只处理哪些结构。
+1. 区分狭义复合控制与广义复合控制，并说明本讲只处理哪些结构。
 2. 在已有 `PID` 或超前-滞后等基本反馈结构上，写出参考前馈与扰动前馈的复合表达。
 3. 解释传统串联校正 Bode 分析在前馈、限幅、抗饱和和给定滤波场景中的局限。
 4. 为一个复杂航向控制任务写出“反馈主结构 + 前馈通道 + 实现保护”的初始方案。
@@ -58,7 +58,7 @@
 
 ## 三、基本串联结构作为反馈主结构
 
-本次课程不重新讲 `PID`、超前和超前-滞后的整定公式。它们已经是可调用的基本结构。现在需要改变的是使用方式：先把其中一个结构作为反馈主结构，再判断是否需要加入前馈和工程实现环节。
+本讲不重新讲 `PID`、超前和超前-滞后的整定公式。它们已经是可调用的基本结构。现在需要改变的是使用方式：先把其中一个结构作为反馈主结构，再判断是否需要加入前馈和工程实现环节。
 
 单位反馈下的基本串联校正常写成
 
@@ -86,7 +86,7 @@ $$
 
 ![经典复合控制的基本结构](../media/processed/4-3-classic-compound-control-structure.png)
 
-这张框图把经典复合控制的几个入口放在同一张结构中：参考信号可以先经过给定滤波，也可以通过参考前馈直接进入控制输入端；可测扰动既可在执行器之后、对象之前进入被控过程，也可以通过扰动前馈提前补偿；反馈主结构仍围绕误差信号工作；执行器前端还要经过限幅和斜率限制。它说明复合控制不是把一个更复杂的 $C(s)$ 串到误差后面，而是把不同信息分别放到合适的通道中。
+这张框图把经典复合控制的几个入口放在同一张结构中：参考信号可以先经过给定滤波，也可以通过参考前馈直接进入控制输入端；可测扰动既可在执行器之后、对象之前进入被控过程，也可以通过扰动前馈提前补偿；反馈主结构仍围绕误差信号工作；执行器前端还要经过限幅和斜率限制。它说明复合控制的实质是把不同信息分别放到合适的通道中，而不是简单地把一个更复杂的 $C(s)$ 串到误差后面。
 
 ## 四、前馈与反馈的经典复合
 
@@ -243,7 +243,7 @@ $$
 | 斜率限制 | 防止执行器动作过快 | 控制量变化率是否超限，响应是否拖慢 |
 | 抗积分饱和 | 防止积分状态在饱和时继续累积 | 饱和解除后是否快速恢复，是否出现反向冲击 |
 
-这些环节属于广义复合控制中的实现层复合。本次课程只要求会把它们纳入初始方案，不要求展开复杂保护逻辑、选择控制或多回路控制。
+这些环节属于广义复合控制中的实现层复合。本讲只要求把它们纳入初始方案，不要求展开复杂保护逻辑、选择控制或多回路控制。
 
 ## 六、锚点案例：客船航向控制的经典复合方案
 
@@ -499,13 +499,13 @@ $$
 ## 九、小结
 
 1. 狭义复合控制主要指前馈与反馈并用；广义复合控制还包括额外通道、局部回路、模型补偿和工程实现保护。
-2. 4-3 的重点不是再次判断主要矛盾和重新选型，而是在 4-2 的单结构候选基础上处理更复杂的控制场景。
-3. `PID`、超前和超前-滞后在这里是反馈主结构，不再作为本次课程的新知识重新讲解。
+2. 4-3 的重点是在 4-2 的单结构候选基础上处理更复杂的控制场景，而不是再次判断主要矛盾和重新选型。
+3. `PID`、超前和超前-滞后在这里是反馈主结构，不再作为新知识重新讲解。
 4. 前馈负责提前利用参考或可测扰动，反馈负责稳定、鲁棒和残余误差修正。
 5. 微分滤波、给定滤波、限幅、斜率限制和抗积分饱和属于实现层复合，是初始方案能否落地的关键。
 6. 传统 Bode 分析仍服务反馈主环路，但不能单独覆盖前馈抵消、限幅、斜率限制和积分饱和。
 
-![本次课程信息图总结](../media/processed/4-3-info.png)
+![本讲信息图总结](../media/processed/4-3-info.png)
 
 ## 附录 A：经典复合控制初始方案记录项
 
@@ -522,23 +522,10 @@ $$
 
 这些项目写清之后，初始方案就不再只是一个控制器公式，而是一套可以进入仿真、验证和参数优化的工程控制结构。
 
-## 附录 B：参考文献与复现文件
+## 附录 B：参考文献
 
-### B.1 文献与资源来源
-
-1. `course-content/resource-library/pdf/22串联校正.md`，来源文件：`22串联校正.pdf`。本讲用于超前校正、频域指标与串联校正设计语言的背景整理。
-2. `course-content/resource-library/pdf/23滞后超前.md`，来源文件：`23滞后超前.pdf`。本讲用于滞后-超前结构、`PID` 与整定表的背景整理。
-3. `course-content/resource-library/ship-control-cases/sections/2.1-船舶航向控制建模实例.md`，来源文档：`course-content/questions/source/船舶控制案例20240116.docx`。本讲用于船舶航向控制对象、扰动进入方式和野本模型背景。
-4. `course-content/resource-library/ship-control-cases/sections/5.1-船舶航向控制频域分析.md`，来源文档：`course-content/questions/source/船舶控制案例20240116.docx`。本讲用于客船航向通道 $0.01715/[s(s+0.1)(s+2.14375)]$ 的频域分析背景。
-5. `course-content/resource-library/ship-control-cases/sections/6.1-船舶航向控制频域校正.md`，来源文档：`course-content/questions/source/船舶控制案例20240116.docx`。本讲用于客船航向控制频域校正案例的设计背景。
-6. Åström, K. J., and Hägglund, T. *PID Controllers: Theory, Design, and Tuning*. 2nd ed. Instrument Society of America, 1995. 本讲用于 `PID` 整定与抗积分饱和思想的参考背景。
-7. Ziegler, J. G., and Nichols, N. B. "Optimum Settings for Automatic Controllers." *Transactions of the ASME*, 64, 1942, pp. 759-768. 本讲用于经典 `PID` 整定表的历史来源背景。
-
-### B.2 数值与图像复现文件
-
-1. `course-content/authoring/lessons/4-3/media/raw/generate_compound_design_data.m`：生成 `PI + 超前`、滞后-超前、带微分滤波 `PID` 与客船初始校正案例的时域、频域和根轨迹数据。
-2. `course-content/authoring/lessons/4-3/media/raw/render_compound_figures.py`：根据 `4-3-compound-design-data.json` 排版生成复合结构四联图。
-3. `course-content/authoring/lessons/4-3/media/raw/generate_compound_control_case_data.m`：生成 6.1 至 6.5 中扰动前馈、参考前馈、给定滤波和抗积分饱和对比数据。
-4. `course-content/authoring/lessons/4-3/media/raw/render_compound_control_case_assets.py`：根据 `4-3-compound-control-case-data.json` 生成本讲通用结构图、6.2 至 6.5 局部结构图和响应对比图。
-5. `course-content/authoring/lessons/4-3/media/raw/generated-data/4-3-compound-control-case-data.json`：保存 6.2 至 6.5 的最终仿真数据和关键参数表达。
-6. `course-content/authoring/lessons/4-3/media/raw/generated-data/4-3-compound-design-data.json`：保存复合结构设计样例的最终仿真数据、频域数据、根轨迹数据和性能指标。
+1. Åström, K. J., and Hägglund, T. *PID Controllers: Theory, Design, and Tuning*. 2nd ed. Instrument Society of America, 1995.
+2. Ziegler, J. G., and Nichols, N. B. “Optimum Settings for Automatic Controllers.” *Transactions of the ASME*, 64(8), 1942, pp. 759-765.
+3. Fossen, T. I. *Handbook of Marine Craft Hydrodynamics and Motion Control*. John Wiley & Sons, 2011.
+4. Nomoto, K., Taguchi, T., Honda, K., and Hirano, S. “On the Steering Qualities of Ships.” *International Shipbuilding Progress*, 4(35), 1957, pp. 354-370.
+5. Ogata, K. *Modern Control Engineering*. 5th ed. Prentice Hall, 2010.

@@ -1,18 +1,32 @@
 {
-  "acceptance_version": 1,
+  "acceptance_version": 2,
   "lesson_id": "4-3",
   "status": "accepted",
-  "accepted_at": "2026-04-20T14:30:00+08:00",
-  "review_mode": "main_agent_double_review",
+  "accepted_at": "2026-05-08T13:54:50Z",
+  "review_mode": "subagent",
+  "subagent_review": {
+    "agent_id": "019e07d5-4165-7a03-9f10-2ef11aad7992",
+    "verdict": "pass",
+    "final_findings": [],
+    "closed_findings": [
+      "sequence.json knowledge-card group assignments were narrowed to match interactive-page.md step targets exactly"
+    ]
+  },
   "source_files": {
     "interactive_page": "course-content/authoring/lessons/4-3/design/4-3-interactive-page.md",
-    "interactive_contract": "course-content/authoring/lessons/4-3/design/4-3-interactive-contract.yaml"
+    "interactive_contract": "course-content/authoring/lessons/4-3/design/4-3-interactive-contract.yaml",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/4-3/sequence.json"
   },
   "checks": {
-    "evidence_complete": "pass",
+    "human_readable_page_approved_by_user": "pass",
     "contract_alignment": "pass",
+    "sequence_alignment": "pass",
     "student_self_contained": "pass",
-    "no_prose_pollution": "pass"
+    "step_14_disturbance_feedforward_controls": "pass",
+    "step_15_reference_feedforward_controls": "pass",
+    "step_16_setpoint_filter_split": "pass",
+    "step_17_antiwindup_full_compound_context": "pass",
+    "posttest_summary_separated": "pass"
   },
   "issues": []
 }

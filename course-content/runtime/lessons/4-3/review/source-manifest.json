@@ -1,7 +1,7 @@
 {
   "lesson_id": "4-3",
   "unit_type": "实践",
-  "generated_at": "2026-05-06T07:53:41.239257+00:00",
+  "generated_at": "2026-05-08T15:17:08.502687+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/4-3/design/4-3-handout.md",
     "course-content/authoring/lessons/4-3/design/4-3-interactive-page.md"
@@ -18,32 +18,52 @@
       "page_formula_sources": []
     },
     {
-      "output": "4-3-pi-lead-compound-quad.png",
+      "output": "4-3-classic-compound-control-structure.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
-      "output": "4-3-lag-lead-compound-quad.png",
+      "output": "4-3-disturbance-feedforward-structure.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
-      "output": "4-3-pid-compound-quad.png",
+      "output": "4-3-disturbance-feedforward-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-reference-feedforward-structure.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-reference-feedforward-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-setpoint-filter-structure.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-setpoint-filter-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-antiwindup-implementation-structure.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-antiwindup-comparison.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
       "output": "4-3-heading-case-quad.png",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
-      "output": "4-3-roll-fin-compensation-structure.png",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
-      "output": "4-3-roll-boundary-compare.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
@@ -73,12 +93,12 @@
       "page_formula_sources": []
     },
     {
-      "output": "4-3-parameter-direction-template.png",
+      "output": "4-3-compound-plan-record-template.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
-      "output": "4-3-issue-handover-template.png",
+      "output": "4-3-channel-role-check-template.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },

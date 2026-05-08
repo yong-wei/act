@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
@@ -96,6 +96,7 @@ export function UNIT_4_3StudentPage({
   const stepManifest = getUNIT_4_3StepManifest(interactiveManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
+  const [workspaceParametersByStep, setWorkspaceParametersByStep] = useState<Record<string, Record<string, string | number | boolean>>>({});
 
   useEffect(() => {
     const stepContext = getUnit43StepAIContext(step.id);
@@ -197,6 +198,13 @@ export function UNIT_4_3StudentPage({
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
+      setWorkspaceParametersByStep((current) => ({
+        ...current,
+        [step.id]: {
+          ...(current[step.id] ?? {}),
+          [change.key]: change.value,
+        },
+      }));
       trackWorkspaceParamChange(step.id, {
         key: change.key,
         value: change.value,
@@ -302,12 +310,13 @@ export function UNIT_4_3StudentPage({
             browseEnabled={browseEnabled}
             answerVisible={answerVisible}
             revealProgress={revealProgress}
+            workspaceParameters={workspaceParametersByStep[step.id]}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />
         </div>
 
-        {step.id === 'step-14' ? (
+        {step.id === 'step-19' ? (
           <div className="mt-4">
             <UNIT_4_3StudentSummaryPanel responses={courseState.responses} />
           </div>
