@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_2_3StudentPage } from '@/features/interactive/unit-2-3-frequency-response/student-page';
+import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function UNIT_2_3StudentRoute({
   params,
@@ -12,6 +13,8 @@ export default async function UNIT_2_3StudentRoute({
     sessionId: string;
   };
 }) {
+  await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-2-3-frequency-response-bode-intro');
+
   if (params.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role;

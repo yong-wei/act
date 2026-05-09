@@ -11,7 +11,11 @@ import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
-import { attachAfterSessionEndFlags, attachSourceLogIds } from '@/lib/data-governance/interactive-event-ingestion';
+import {
+  attachSourceLogIds,
+  normalizeInteractionContexts,
+  resolveClientEventId,
+} from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 export const dynamic = 'force-dynamic';
@@ -212,25 +216,63 @@ export async function POST(request: NextRequest) {
     }
 
     const sessionEndById = await loadSessionEndMetadata(validEvents);
-    const enrichedValidEvents = attachAfterSessionEndFlags(validEvents, sessionEndById);
+    const enrichedValidEvents = normalizeInteractionContexts(validEvents, sessionEndById);
+    const clientEventIds = Array.from(
+      new Set(
+        enrichedValidEvents
+          .map((item) => item.clientEventId)
+          .filter((value): value is string => typeof value === 'string' && value.length > 0),
+      ),
+    );
+    const existingLogs = clientEventIds.length > 0
+      ? await prisma.interactionLog.findMany({
+        where: {
+          userId: session.user.id,
+          clientEventId: { in: clientEventIds },
+        },
+        select: {
+          clientEventId: true,
+        },
+      })
+      : [];
+    const persistedClientEventIds = new Set(
+      existingLogs
+        .map((log) => log.clientEventId)
+        .filter((value): value is string => typeof value === 'string' && value.length > 0),
+    );
+    const seenClientEventIds = new Set<string>();
+    let duplicateEvents = 0;
+    const dedupedEvents = enrichedValidEvents.filter((item) => {
+      if (!item.clientEventId) {
+        return true;
+      }
+      if (persistedClientEventIds.has(item.clientEventId) || seenClientEventIds.has(item.clientEventId)) {
+        duplicateEvents += 1;
+        return false;
+      }
+      seenClientEventIds.add(item.clientEventId);
+      return true;
+    });
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = enrichedValidEvents.map(({ event, resourceId }) => ({
+    const interactionLogEvents = dedupedEvents.map((item) => ({
       userId: session.user.id,
-      resourceId,
-      resourceKey: event.resourceKey,
-      sessionId: event.sessionId ?? null,
-      lessonKey: event.lessonKey ?? null,
-      stepId: event.stepId ?? null,
-      actorRole: event.actorRole ?? null,
-      attemptKey: event.attemptKey ?? null,
-      eventType: event.type,
+      resourceId: item.resourceId,
+      resourceKey: item.event.resourceKey,
+      sessionId: item.sessionId,
+      lessonKey: item.event.lessonKey ?? null,
+      stepId: item.event.stepId ?? null,
+      actorRole: item.event.actorRole ?? null,
+      attemptKey: item.event.attemptKey ?? null,
+      eventType: item.event.type,
+      clientEventId: item.clientEventId,
+      learningContext: item.learningContext,
+      invalidContextReason: item.invalidContextReason,
       eventData: {
-        ...(event.data ?? {}),
-        ...(typeof event.id === 'string' ? { clientEventId: event.id } : {}),
+        ...(item.event.data ?? {}),
       },
-      clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
+      clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
     }));
 
     const persistedLogs = interactionLogEvents.length > 0
@@ -245,21 +287,26 @@ export async function POST(request: NextRequest) {
           actorRole: event.actorRole,
           attemptKey: event.attemptKey,
           eventType: event.eventType,
+          clientEventId: event.clientEventId,
+          learningContext: event.learningContext,
+          invalidContextReason: event.invalidContextReason,
           eventData: event.eventData as Prisma.InputJsonValue,
           clientEventAt: event.clientEventAt,
         })),
+        skipDuplicates: true,
         select: {
           id: true,
+          clientEventId: true,
           eventData: true,
         },
       })
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      enrichedValidEvents,
+      dedupedEvents,
       persistedLogs.map((log) => ({
         id: log.id,
-        clientEventId: readJsonString(log.eventData, 'clientEventId'),
+        clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
       })),
     );
 
@@ -285,7 +332,9 @@ export async function POST(request: NextRequest) {
           actionType: canonicalEventType,
           payload: {
             ...payload,
-            ...(typeof eventData.event.id === 'string' ? { clientEventId: eventData.event.id } : {}),
+            ...(resolveClientEventId(eventData.event) ? { clientEventId: resolveClientEventId(eventData.event) } : {}),
+            learningContext: eventData.learningContext,
+            ...(eventData.invalidContextReason ? { invalidContextReason: eventData.invalidContextReason } : {}),
             originalEventType: eventData.event.type,
           },
           priority: isCoreEvent(canonicalEventType) ? 'core' : 'secondary',
@@ -312,8 +361,9 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: validEvents.length,
+      count: dedupedEvents.length,
       degraded: degradedEvents.length,
+      duplicates: duplicateEvents,
       routing: routingResults.reduce((acc, r) => {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;

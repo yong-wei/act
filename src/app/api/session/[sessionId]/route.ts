@@ -11,6 +11,7 @@ import {
   enqueueSessionFinalizationEventIngestion,
   enqueueSessionFinalizationSnapshots,
 } from '@/lib/data-governance/session-finalization-snapshots';
+import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import { SessionStatus, BopppsStage } from '@prisma/client';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { redisClient } from '@/lib/redis-client';
@@ -91,6 +92,15 @@ async function inferAndPersistSessionClass(sessionId: string, teacherId: string)
   });
 
   return updated.count > 0 ? context.classId : null;
+}
+
+async function generateSessionSummaryReportsSafely(sessionId: string) {
+  try {
+    return await generateSessionSummaryReports(prisma, sessionId);
+  } catch (error) {
+    console.error('[SessionReports] Failed to generate session reports:', error);
+    return { classReports: 0, studentReports: 0, skipped: true };
+  }
 }
 
 export async function PATCH(request: Request, { params }: { params: { sessionId: string } }) {
@@ -211,6 +221,7 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
       await Promise.all([
         enqueueSessionFinalizationEventIngestion(sessionId),
         enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId),
+        generateSessionSummaryReportsSafely(sessionId),
       ]);
     }
 

@@ -80,10 +80,10 @@ export const UNIT_4_3_STUDENT_ITEM_ID = 'student:unit43:state';
 export const UNIT_4_3_TEACHER_SYNC_ITEM_ID = 'teacher:course-sync';
 export const UNIT_4_3_STUDENT_STATE_KEY = 'course';
 export const UNIT_4_3_TEACHER_STATE_KEY = 'teacher-sync';
-export const UNIT_4_3_COURSE_TITLE = '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证';
+export const UNIT_4_3_COURSE_TITLE = '4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案';
 export const UNIT_4_3_COURSE_SUBTITLE = 'Initial Scheme Practice';
 export const UNIT_4_3_COURSE_DESCRIPTION =
-  '围绕反馈主结构、前馈补偿、给定滤波、执行器保护与抗饱和验证，把单结构候选推进成可运行的经典复合控制初始方案。';
+  '围绕单结构候选缺口、经典复合控制边界、前馈与反馈分工、实现层保护和客船首轮记录，把已有反馈主结构推进为工程可运行的初始方案。';
 
 export const UNIT_4_3_STAGE_LABEL: Record<UNIT_4_3StageCode, string> = {
   B: 'B · 导入',
@@ -354,7 +354,7 @@ export function createEmptyUNIT_4_3StudentState(studentName: string): UNIT_4_3St
 export const UNIT_4_3_PREMIUM_LESSON_CARD = {
   id: 'unit-4-3-initial-scheme-practice-first-validation',
   title: UNIT_4_3_COURSE_TITLE,
-  description: '精品互动课：把反馈主结构、前馈补偿、给定滤波、执行器保护和抗饱和验证连接成经典复合控制初始方案。',
+  description: '精品互动课：把单结构候选缺口、前馈与反馈分工、给定滤波、执行器保护和抗饱和验证连接成经典复合控制初始方案。',
   duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_4_3_ROUTE_SEGMENT}`,
   badge: '精品课程',

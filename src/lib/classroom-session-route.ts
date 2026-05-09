@@ -190,6 +190,9 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
     routeSegment: UNIT_4_3_ROUTE_SEGMENT,
     aliases: [
       UNIT_4_3_COURSE_TITLE,
+      '4-3：经典复合控制的初始方案落地',
+      '经典复合控制的初始方案落地：从单结构候选到工程可运行方案',
+      '经典复合控制的初始方案落地',
       '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
       '初始方案落地实践：从对象分析到结构组合与首轮验证',
       '初始方案落地实践',

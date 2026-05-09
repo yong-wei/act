@@ -705,6 +705,9 @@ model ClassSession {
   // 当前进度控制
   currentStage  BopppsStage?
   currentItemId String? // 当前激活的 LessonItem ID
+  lessonVersion String?
+  manifestHash  String?
+  totalSteps    Int?
 
   startTime DateTime  @default(now())
   endTime   DateTime?
@@ -760,6 +763,9 @@ model InteractionLog {
   actorRole     String?
   attemptKey    String?
   eventType     String // view, interact, param_change, submit, ai_query, complete, error
+  clientEventId String?
+  learningContext String?
+  invalidContextReason String?
   eventData     Json      @default("{}")
   clientEventAt DateTime?
   createdAt     DateTime  @default(now())
@@ -771,6 +777,9 @@ model InteractionLog {
   @@index([userId, resourceKey])
   @@index([sessionId])
   @@index([sessionId, lessonKey])
+  @@index([userId, clientEventId])
+  @@index([learningContext])
+  @@index([invalidContextReason])
   @@index([createdAt])
   @@index([eventType])
 }

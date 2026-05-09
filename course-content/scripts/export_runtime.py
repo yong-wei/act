@@ -437,7 +437,13 @@ def generate_runtime_media(lesson_id: str) -> None:
     if processed_dir.exists() and any(path.is_file() for path in processed_dir.iterdir()):
         copy_media_assets(processed_dir, output_dir)
         copy_generated_media_data(lesson_dir, output_dir)
-        ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
+        processed_media_index = processed_dir / f'{lesson_id}-media.md'
+        media_index_seed = (
+            processed_media_index.read_text(encoding='utf-8')
+            if processed_media_index.exists()
+            else existing_media_index
+        )
+        ensure_runtime_media_index(media_index_path, lesson_id, media_index_seed)
         return
 
     if not raw_dir.exists():

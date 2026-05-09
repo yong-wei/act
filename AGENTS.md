@@ -195,3 +195,87 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
   not as the final answer.
 - Narrow targeted lookups may still be faster with plain `rg`; CRG should win
   on structure, not on every trivial query.
+
+
+<claude-mem-context>
+# Memory Context
+
+# [act.just.edu.cn] recent context, 2026-05-09 3:41pm GMT+8
+
+Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
+Format: ID TIME TYPE TITLE
+Fetch details: get_observations([IDs]) | Search: mem-search skill
+
+Stats: 50 obs (16,104t read) | 1,390,495t work | 99% savings
+
+### Apr 7, 2026
+S241 Created handout refinement skill with student-facing tone guidelines and course alignment (Apr 7 at 7:13 PM)
+S242 Started processing 2-1 handout through refine skill with student-facing transformation (Apr 7 at 8:16 PM)
+S245 Control systems course handout refinement completed and task marked as finished (Apr 7 at 8:28 PM)
+S246 Refined 2-2 lecture handout with comprehensive enhancements (Apr 7 at 11:12 PM)
+### Apr 8, 2026
+S247 Authentication system investigation initiated (Apr 8 at 7:17 AM)
+### Apr 12, 2026
+S248 Chinese language request received - continue monitoring primary session (Apr 12 at 8:26 PM)
+### Apr 16, 2026
+S249 Session initiated with greeting (Apr 16 at 3:07 PM)
+S250 Computer Use testing progress summary - application state access denied (Apr 16 at 7:41 PM)
+### Apr 21, 2026
+S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Automatic Control Principles course; primary session completed targeted polishing of the handout.md file. (Apr 21 at 10:17 AM)
+### May 2, 2026
+S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:50 PM)
+### May 8, 2026
+32184 11:04p 🔵 content-renderers.tsx 核心渲染逻辑提取：公式、表格、模块类型映射与公式提取逻辑确认
+32195 " 🔵 activity-renderers.tsx核心互动活动渲染逻辑提取：学生/教师端渲染、参数控制、公式归一化与作答统计逻辑确认
+32188 " 🔵 4-3互动运行时清单（interactive-manifest.json）片段提取：包含给定滤波结构图、活动卡与公式集配置
+32189 " 🔵 4-3互动课实现目录下无独立activity-renderers测试文件，与前期tests_for查询结果一致
+32199 " 🔵 4-3 Interactive Lesson Formula/Parameter Configurations Confirmed Across Contract, Manifest, and Implementation
+32194 " 🔵 4-3 Related Test Files Limited to Two Course-Level Files, No Renderer-Specific Tests Found
+32203 " 🔵 Major Uncommitted Changes to 4-3 Core Files Revealed via Git Diff: Contract Version Bump, Step Restructuring, and Teacher Control Updates
+32205 " 🔵 content-renderers.tsx公式提取、表格查找与渐进显影逻辑提取：多源回退解析与渐进显影项构造确认
+32204 " 🔵 activity-renderers.tsx 参数集与作答逻辑深度提取：parameter_set处理、学生端草稿管理、教师端控制按钮实现确认
+32207 " 🔵 4-3 Core Files Show Pervasive Disturbance Feedforward Configuration, No Step-14 Defined, Partial Search Term Matches
+32208 " 🔵 Interactive-Manifest-Runtime Tests for formula_set and parameter_set Directly Mirror 4-3 Lesson Content
+32099 " 🔵 Lines 1515-1765 of interactive-manifest-runtime.test.tsx Validate Shared Reveal, Drag-Match, and Teacher Control Logic
+32209 " 🔵 content-renderers.tsx公式注释、符号提取与课程目标/路径图组件逻辑提取：关联4-3公式渲染与步骤布局组件
+32212 " 🔵 activity-renderers.tsx 活动卡生成、答案格式化与互动类型注册逻辑提取：覆盖4-3全互动场景
+32211 " 🔵 4-3 interactive-manifest.json Step-14 完整定义确认：扰动前馈参数补偿配置与前后端实现完全对齐
+32210 11:05p 🔵 Interactive-Manifest-Runtime Tests Validate formula-card Rendering and Teacher-Side Parameter Submission Formatting for 4-3 Scenarios
+32219 " 🔵 content-renderers.tsx公式渲染全链路提取：类型定义、核心函数、组件实现与模块注册确认
+32215 " 🔵 content-renderers.tsx Formula Rendering Logic Mapped: getFormulaItems, formulaNotes, FormulaCard, and Registry Registration Confirmed
+32216 " 🔵 Interactive-Manifest-Runtime Tests Confirm formula-card Rendering Without Errors for 4-3-Aligned Formula Content
+32218 " 🔵 4-3 Student Page Initialization and Activity Rendering Logic Confirmed: Workspace Params, AI Context, Step Manifest Alignment
+32220 " 🔵 step-panels.tsx 扰动前馈面板默认参数与控件配置确认：与manifest、测试值完全对齐
+32225 " 🔵 activity-renderers.tsx Answer Formatting and Teacher-Side Logic Mapped: Submission Sync, Parameter Set Handling, and Teacher Dashboard Support
+32226 " 🔵 unit-4-3-course.ts Specified Line Range (2398-2420) Contains No Content
+32229 " 🔵 unit-4-3-ai-contexts.ts 指定行范围无匹配：1508-1520行无内容，需调整行号定位
+32231 " 🔵 Teacher-Side Answer Aggregation and Summary Logic in activity-renderers.tsx: TeacherCardOptions, aggregateCardAnswers, TeacherCardAnswerSummary Extracted for 4-3 Teacher Dashboard Support
+32234 " 🔵 4-3 工作区参数状态仅在student-page.tsx匹配，扰动前馈参数关键词未在其他三核心文件命中
+32233 " 🔵 unit-4-3-course.ts与unit-4-3-ai-contexts.ts实际行数确认：远小于此前查询的行号范围
+32235 " 🔵 unit-4-3-ai-contexts.ts 全量内容提取：AI上下文生成逻辑、配置字段与依赖关系确认
+32238 " 🔵 student-page.tsx 学生端权限控制与埋点逻辑提取：活动发布、浏览权限、教师揭示进度与步骤追踪
+32105 11:06p 🔵 Audit of 4-3 Interactive Course Runtime Implementation Completed
+32242 " 🔵 step-panels.tsx 参数面板回调链路确认：默认参数上报、滑块变更触发WorkspaceParameterChange
+32243 11:26p 🔵 Primary session received new request to update 4-3 interactive course design per latest draft
+32248 11:28p 🔵 Primary session receives request to update 4-3 interactive course design per latest draft
+32281 11:36p 🟣 Implemented parameter_set answer parsing and formatting for activity renderers
+32289 11:39p 🔵 4-3 lecture notes confirmed heavily revised, interactive course design restart requested
+### May 9, 2026
+32330 12:13p ✅ 检查并修正讲义4-4与之前内容的一致性
+32331 12:18p ✅ 修正讲义4-4与4-2/4-3内容不一致问题
+32332 12:21p ✅ 同步4-3互动课程作者态到运行态并修复旧资源引用
+32333 12:24p ✅ 移除4-4课程审查清单中的交互组件并修正时间戳
+32338 12:33p 🔵 课程4-4审查报告生成及检查
+32336 " ✅ 讲义内容审查与修正
+32339 1:03p 🔵 课程4-4审查报告显示所有检查通过
+32349 1:55p 🔵 Untitled
+32350 2:01p 🔵 [**title**: PDF抽查渲染方案更新]
+32351 2:04p 🔵 [**title**: 发现技能使用文档]
+32352 2:13p 🔴 修复课堂结束后治理数据的最终化遥测和快照入队
+32353 " 🔵 新增调试技能文档 debug-issue
+32354 2:51p 🔵 代码变更审查结果
+32355 2:56p 🟣 实现基于课程标题的路由解析与链接生成
+32356 3:06p ✅ 为表6添加PDF列宽注释
+
+Access 1390k tokens of past work via get_observations([IDs]) or mem-search skill.
+</claude-mem-context>

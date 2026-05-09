@@ -446,7 +446,7 @@ async function processEventIngestionJob(job: Job<EventIngestionJob>) {
     factsCreated = result.count;
   }
 
-  await markEventsProcessed(events.length);
+  await markEventsProcessed(events.length, batchDate);
 
   return {
     processed: events.length,

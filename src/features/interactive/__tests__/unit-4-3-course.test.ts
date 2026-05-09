@@ -18,7 +18,7 @@ describe('unit 4-3 interactive course', () => {
     const registry = COURSE_AI_CONTEXT_REGISTRY['unit-4-3-initial-scheme-practice-first-validation-v1'];
 
     expect(registry).toBeDefined();
-    expect(registry?.courseMeta.courseTitle).toContain('初始方案落地实践');
+    expect(registry?.courseMeta.courseTitle).toContain('经典复合控制的初始方案落地');
   });
 
   it('defines the full 19-step lesson flow from the authoring contract', async () => {
@@ -129,7 +129,7 @@ describe('unit 4-3 interactive course', () => {
     expect(FEATURED_LESSONS.some((lesson) => lesson.id === 'unit-4-3-initial-scheme-practice-first-validation')).toBe(true);
 
     expect(
-      resolveSessionRouteFromPlanTitle('4-3：初始方案落地实践：从对象分析到结构组合与首轮验证'),
+      resolveSessionRouteFromPlanTitle('4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案'),
     ).toEqual({
       routeSegment: 'unit-4-3-initial-scheme-practice-first-validation',
       isPremiumCourse: true,
@@ -256,6 +256,22 @@ describe('unit 4-3 interactive course', () => {
       kind: 'unit43_antiwindup_panel',
       baseline_media: '/course-runtime/lessons/4-3/media/4-3-antiwindup-comparison.png',
     });
+  });
+
+  it('exports the processed authoring media index to runtime instead of preserving stale runtime links', () => {
+    const authoringMediaIndex = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/4-3/media/processed/4-3-media.md'),
+      'utf8',
+    );
+    const runtimeMediaIndex = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-3/media/4-3-media.md'),
+      'utf8',
+    );
+
+    expect(runtimeMediaIndex).toBe(authoringMediaIndex);
+    expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=1a50c1d16508fe1d4bc869b994589a83');
+    expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=2613b2f360c95d3501065357cca826a8');
+    expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=72807c2c1b065890244844904f59977b');
   });
 
   it('records the revised implementation acceptance evidence instead of the old static-media downgrade claim', () => {

@@ -544,9 +544,9 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     getQuickQuestions: (stepId: string) => getUnit43StepQuickQuestionsLocal(stepId),
     courseMeta: {
       courseId: 'unit-4-3-initial-scheme-practice-first-validation-v1',
-      courseTitle: '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
+      courseTitle: '4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案',
       courseDescription:
-        '围绕对象分析、结构分流、复合结构职责、参数方向、首轮验证与问题清单，把起步卡推进成可验证的第一版方案。',
+        '围绕单结构候选缺口、经典复合控制边界、前馈与反馈分工、实现层保护和客船首轮记录，把已有反馈主结构推进为工程可运行的初始方案。',
     },
   },
 

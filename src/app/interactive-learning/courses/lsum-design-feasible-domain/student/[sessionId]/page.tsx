@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { LSUMStudentPage } from '@/features/interactive/lsum-design-feasible-domain/student-page';
+import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function LSUMStudentRoute({
   params,
@@ -12,6 +13,8 @@ export default async function LSUMStudentRoute({
     sessionId: string;
   };
 }) {
+  await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/lsum-design-feasible-domain');
+
   if (params.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role;

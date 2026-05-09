@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { UNIT_4_6StudentPage } from '@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/student-page';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function UNIT_4_6StudentRoute({
   params,
@@ -12,6 +13,8 @@ export default async function UNIT_4_6StudentRoute({
     sessionId: string;
   };
 }) {
+  await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding');
+
   if (params.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role;

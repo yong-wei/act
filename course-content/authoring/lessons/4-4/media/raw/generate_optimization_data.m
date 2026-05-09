@@ -200,8 +200,7 @@ function [score, metrics] = roll_cost(k, plant, sensor, disturbance, t, omega, r
   score = ...
     weights(1) * (metrics.output_rms / refs.output_rms_ref) + ...
     weights(2) * (metrics.resonance_peak / refs.resonance_peak_ref) + ...
-    weights(3) * (metrics.control_rms / refs.control_rms_ref) + ...
-    1200 * max(0, metrics.control_peak - thresholds.control_peak) ^ 2;
+    weights(3) * (metrics.control_rms / refs.control_rms_ref);
 endfunction
 
 function value = roll_objective(k, plant, sensor, disturbance, t, omega, refs, thresholds, weights)
@@ -450,6 +449,16 @@ endfor
 [~, pareto_order] = sort(pareto_itae);
 ship_pareto_front = ship_pareto_front(pareto_order);
 
+ship_pareto_front_bounded = {};
+for i = 1:numel(ship_pareto_front)
+  params = ship_pareto_front{i}.parameters;
+  x_candidate = [params.K; params.T; params.alpha];
+  if all(x_candidate >= lb - 1e-6) && all(x_candidate <= ub + 1e-6)
+    ship_pareto_front_bounded{end + 1} = ship_pareto_front{i};
+  endif
+endfor
+ship_pareto_front = ship_pareto_front_bounded;
+
 ship_pareto_examples = {};
 if !isempty(ship_pareto_front)
   example_indices = unique([1, ceil(numel(ship_pareto_front) / 2), numel(ship_pareto_front)]);
@@ -495,7 +504,7 @@ roll_refs.control_rms_ref = roll_initial.metrics.control_rms;
 roll_thresholds = struct();
 roll_thresholds.control_peak = 0.75;
 
-roll_weights = [0.55, 0.30, 0.15];
+roll_weights = [0.60, 0.25, 0.15];
 roll_bounds = [0.5, 3.5];
 [roll_k_opt, roll_score] = fminbnd(
   @(k) roll_objective(k, roll_plant, roll_sensor, roll_disturbance, roll_t, roll_w, roll_refs, roll_thresholds, roll_weights),
@@ -573,8 +582,7 @@ payload.roll.selected_score = roll_final_score;
 payload.roll.objective_terms = {
   struct("name", "rms(phi)", "role", "软目标", "meaning", "希望整体横摇均方值更低。"),
   struct("name", "peak|T_d(jw)|", "role", "软目标", "meaning", "希望谐振峰更低，避免海浪激励下放大。"),
-  struct("name", "rms(u)", "role", "软目标", "meaning", "希望减摇鳍动作更节制。"),
-  struct("name", "max|u| <= 0.75", "role", "硬约束", "meaning", "执行机构峰值动作不应过大。")
+  struct("name", "rms(u)", "role", "软目标", "meaning", "希望减摇鳍动作更节制。")
 };
 
 fid = fopen(out_file, "w");

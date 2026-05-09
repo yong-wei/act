@@ -200,8 +200,8 @@
       "name": "Pareto前沿与展示解取舍",
       "nodeType": "THEORY",
       "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
-      "positionX": -112.0,
-      "positionY": -30.0,
+      "positionX": -100.5,
+      "positionY": -58.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -276,7 +276,7 @@
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -30.0,
+      "positionX": 30.0,
       "positionY": -112.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
@@ -348,8 +348,8 @@
       "name": "优化起点与归一化来源",
       "nodeType": "THEORY",
       "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
-      "positionX": 30.0,
-      "positionY": -112.0,
+      "positionX": 82.0,
+      "positionY": -82.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -421,8 +421,8 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": 61.0,
-      "positionY": 105.7,
+      "positionX": -31.6,
+      "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -497,8 +497,8 @@
       "name": "参数方向表达卡",
       "nodeType": "THEORY",
       "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
-      "positionX": 31.6,
-      "positionY": 117.8,
+      "positionX": -61.0,
+      "positionY": 105.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -511,19 +511,19 @@
         "bloom_level": "应用",
         "definition": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
         "examples": [
-          "客船航向保持的超前初始方案，可写成“在截止频率附近补相位，先缩短调节时间，同时警惕超调量和控制峰值贴近边界”。",
-          "滞后加超前方案可写成“先抬低频能力压静差，再回收中频相位，首轮重点关注调节时间是否明显变慢”。"
+          "参考前馈方向可写成“沿参考变化提前给出操舵趋势，减少跟随滞后，同时警惕舵角峰值增大”。",
+          "扰动前馈方向可写成“先压低可测扰动偏移，同时保留反馈修正余量，防止模型误差导致过补偿”。"
         ],
         "formulas": [
           "\\text{参数方向}=(\\text{先改哪段行为},\\text{预期改善},\\text{最可能透支})"
         ],
         "prerequisites": [
           "单结构与复合结构分流条件_4_43002",
-          "目标驱动超前校正_3_36004",
-          "低频补偿稳态改善路径_3_37003"
+          "反馈保底与前馈补偿边界_4_42005"
         ],
         "relatedConcepts": [
-          "首轮验证最小读数逻辑_4_43004"
+          "参考前馈与给定滤波分工_4_43008",
+          "扰动前馈保守落地_4_43009"
         ],
         "difficulty": 4,
         "importance": 5,
@@ -570,8 +570,8 @@
       "name": "固定结构自由目标项选择",
       "nodeType": "THEORY",
       "description": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
-      "positionX": -117.8,
-      "positionY": 31.6,
+      "positionX": -86.3,
+      "positionY": -86.3,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -643,8 +643,8 @@
       "name": "无约束加权目标表达",
       "nodeType": "THEORY",
       "description": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
-      "positionX": 110.9,
-      "positionY": 64.0,
+      "positionX": -123.6,
+      "positionY": 33.1,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -715,8 +715,8 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": 64.0,
-      "positionY": 110.9,
+      "positionX": -123.6,
+      "positionY": -33.1,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -786,8 +786,8 @@
       "name": "经典试凑中的多目标拉扯",
       "nodeType": "THEORY",
       "description": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
-      "positionX": 34.7,
-      "positionY": 129.4,
+      "positionX": -94.8,
+      "positionY": -94.8,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -858,8 +858,8 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -129.4,
-      "positionY": -34.7,
+      "positionX": 140.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -934,8 +934,8 @@
       "name": "问题清单移交表",
       "nodeType": "THEORY",
       "description": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
-      "positionX": 36.2,
-      "positionY": 135.2,
+      "positionX": -70.0,
+      "positionY": -121.2,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -948,8 +948,8 @@
         "bloom_level": "应用",
         "definition": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
         "examples": [
-          "客船航向保持的首轮问题清单会同时记录‘调节时间已进入目标附近’和‘控制峰值已贴近边界’。",
-          "若某方案静差已满足要求，但相角裕量和超调量同时偏紧，问题清单应先指向参数回收或机制重分配。"
+          "若扰动前馈明显压低扰动偏移但舵角同频补偿过大，下一轮应优先调整前馈强度或扰动前馈滤波。",
+          "若抗饱和改善恢复过程但跟踪速度偏慢，下一轮应把滤波时间常数和抗饱和时间常数纳入优化。"
         ],
         "formulas": [
           "\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})"
@@ -958,7 +958,7 @@
           "首轮验证最小读数逻辑_4_43004"
         ],
         "relatedConcepts": [
-          "单结构与复合结构分流条件_4_43002"
+          "复合方案首轮记录表_4_43011"
         ],
         "difficulty": 3,
         "importance": 5,
@@ -1005,8 +1005,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 160.3,
-      "positionY": 43.0,
+      "positionX": -43.0,
+      "positionY": -160.3,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",

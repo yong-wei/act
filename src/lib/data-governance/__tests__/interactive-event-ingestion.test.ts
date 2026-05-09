@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { attachAfterSessionEndFlags, attachSourceLogIds } from '../interactive-event-ingestion';
+import {
+  attachAfterSessionEndFlags,
+  attachSourceLogIds,
+  normalizeInteractionContexts,
+} from '../interactive-event-ingestion';
 
 describe('attachAfterSessionEndFlags', () => {
   it('marks events sent after a finished session end time', () => {
@@ -84,6 +88,105 @@ describe('attachSourceLogIds', () => {
     expect(events[0].event.data).toMatchObject({
       eventType: 'lesson_submit',
       sourceLogId: 'interaction-log-001',
+    });
+  });
+});
+
+describe('normalizeInteractionContexts', () => {
+  it('marks live classroom events with a valid active session', () => {
+    const events = normalizeInteractionContexts(
+      [
+        {
+          event: {
+            id: 'client-event-live',
+            type: 'view',
+            timestamp: Date.parse('2026-05-07T02:30:00.000Z'),
+            resourceKey: 'unit-4-2',
+            sessionId: 'cmouv40fy009hd2apimc3xxlp',
+            data: { originPath: '/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/cmouv40fy009hd2apimc3xxlp' },
+          },
+          resourceId: null,
+        },
+      ],
+      new Map([
+        ['cmouv40fy009hd2apimc3xxlp', {
+          status: 'ACTIVE',
+          endTime: null,
+        }],
+      ]),
+    );
+
+    expect(events[0]).toMatchObject({
+      clientEventId: 'client-event-live',
+      learningContext: 'classroom_live',
+      invalidContextReason: null,
+    });
+    expect(events[0].event.sessionId).toBe('cmouv40fy009hd2apimc3xxlp');
+    expect(events[0].event.data).toMatchObject({
+      clientEventId: 'client-event-live',
+      learningContext: 'classroom_live',
+    });
+  });
+
+  it('drops malformed session ids from persistence context', () => {
+    const events = normalizeInteractionContexts(
+      [
+        {
+          event: {
+            id: 'client-event-bad-session',
+            type: 'view',
+            timestamp: Date.parse('2026-05-07T04:30:00.000Z'),
+            resourceKey: 'unit-4-2',
+            sessionId: 'cmouv40fy009hd2apimc3xxlp.',
+            data: {},
+          },
+          resourceId: null,
+        },
+      ],
+      new Map(),
+    );
+
+    expect(events[0]).toMatchObject({
+      learningContext: 'standalone_resource',
+      invalidContextReason: 'invalid_session_id_format',
+    });
+    expect(events[0].event.sessionId).toBeNull();
+    expect(events[0].event.data).toMatchObject({
+      invalidContextReason: 'invalid_session_id_format',
+      learningContext: 'standalone_resource',
+    });
+  });
+
+  it('classifies events sent after a finished session as classroom review', () => {
+    const events = normalizeInteractionContexts(
+      [
+        {
+          event: {
+            id: 'client-event-review',
+            type: 'submit',
+            timestamp: Date.parse('2026-05-09T02:30:00.000Z'),
+            resourceKey: 'unit-4-3',
+            sessionId: 'cmoxloe52000uq5bcojma7r78',
+            data: { eventType: 'lesson_submit' },
+          },
+          resourceId: null,
+        },
+      ],
+      new Map([
+        ['cmoxloe52000uq5bcojma7r78', {
+          status: 'FINISHED',
+          endTime: new Date('2026-05-09T02:04:23.000Z'),
+        }],
+      ]),
+    );
+
+    expect(events[0]).toMatchObject({
+      learningContext: 'classroom_review',
+      invalidContextReason: null,
+    });
+    expect(events[0].event.data).toMatchObject({
+      afterSessionEnd: true,
+      learningContext: 'classroom_review',
     });
   });
 });

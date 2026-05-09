@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_2_4StudentPage } from '@/features/interactive/unit-2-4-nyquist-margin-entry/student-page';
+import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function UNIT_2_4StudentRoute({
   params,
@@ -12,6 +13,8 @@ export default async function UNIT_2_4StudentRoute({
     sessionId: string;
   };
 }) {
+  await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-2-4-nyquist-margin-entry');
+
   if (params.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role;

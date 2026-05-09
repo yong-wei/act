@@ -1,6 +1,7 @@
 'use client';
 
-import { SlidersHorizontal } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 
 import {
   BodePanel,
@@ -39,6 +40,13 @@ export function MultiRepresentationLinkageClient({
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href="/interactive-learning/cross-domain-exploration"
+                  className="premium-lesson-action-tone premium-tone-slate inline-flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  返回上一层
+                </Link>
                 <div className="premium-lesson-caption rounded-full border border-border/60 px-3 py-2 text-xs">
                   {model.parameterSummary}
                 </div>

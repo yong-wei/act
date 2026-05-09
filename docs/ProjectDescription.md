@@ -7,8 +7,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-05-08
+📅 **最后更新**：2026-05-09
 # 近期更新
+
+🧩 **4-2 / 4-3 真实课堂数据治理加固（2026-05-09）**：本轮基于 4-2、4-3 真实课堂运行数据调查继续整改互动事件治理链路。学生端精品互动课会话页现在在服务端校验 `ClassSession`，过期或不存在的 session 会直接回到对应课程入口页，避免课后继续沿旧 classroom session 产生数据。`/api/interactive/events` 新增顶层 `clientEventId` 幂等键、`learningContext` 一级学习场景和 `invalidContextReason` 异常上下文标记，重复事件不再重复写入 raw `InteractionLog` 或继续进入事实物化；格式错误或不存在的 `sessionId` 会在入库前降级为空并保留原因。Redis 二级事件 worker 改为按实际 batch date 回写 processed 统计，`ClassSession` 创建时记录 runtime manifest 版本、哈希和总步数，课堂结束时同步生成确定性的班级与学生 session report。当前已通过新增定向 Vitest、Prisma schema 校验、`npm run lint`、`npm run test` 与 `npm run build`。
 
 🧩 **`4-3` 初始方案落地实践精品互动课更新（2026-05-08）**：本轮基于最新 19 步互动课程设计与 runtime manifest 更新 `unit-4-3-initial-scheme-practice-first-validation`，课程端改为完整消费 `course-content/runtime/lessons/4-3/interactive-manifest.json`，学生端和教师端同步 19 步页面、隐藏式 AI 上下文、总结统计与知识卡片入口。共享 manifest runtime 补齐 `formula_set.items/body` 公式正文渲染、`parameter_set` 结构化参数提交与教师端中文标签汇总，4-3 专用面板使用 runtime JSON 曲线数据绘制扰动前馈、参考前馈、给定滤波和抗饱和四类复合控制动态对比，并移除旧 14 步 Rust 分支包袱。实现完成后由子代理审核页面完整性、单页自洽性与教师端题目显示，修复必显公式、结构化参数重提和扰动前馈零点范围问题；当前已通过 strict implementation review、manifest audit、定向 Vitest、`npm run lint`、`npm run test`、部署脚本自检与 `npm run build`。
 

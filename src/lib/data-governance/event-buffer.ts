@@ -202,13 +202,15 @@ export async function getDailyStats(date: string): Promise<{
 /**
  * Mark events as processed in stats
  */
-export async function markEventsProcessed(count: number): Promise<void> {
+export async function markEventsProcessed(count: number, batchDate?: string): Promise<void> {
   if (!redisClient.isReady()) return;
 
   const client = redisClient.getClient();
   if (!client) return;
 
-  const date = new Date().toISOString().split('T')[0];
+  const date = batchDate && batchDate.trim().length > 0
+    ? batchDate
+    : new Date().toISOString().split('T')[0];
   try {
     await client.hincrby(REDIS_KEYS.dailyStats(date), 'processed', count);
   } catch (error) {

@@ -11,9 +11,9 @@ import {
 export const UNIT_4_3_INITIAL_SCHEME_PRACTICE_FIRST_VALIDATION_PRESET: PresetLessonConfig = {
   key: UNIT_4_3_PRESET_KEY,
   title: UNIT_4_3_COURSE_TITLE,
-  description: '围绕对象分析、结构分流、复合结构职责、参数方向、首轮验证与问题清单，把起步卡推进成第一版方案的精品互动课堂。',
+  description: '围绕单结构候选缺口、经典复合控制边界、前馈与反馈分工、实现层保护和客船首轮记录，把候选结构推进成工程可运行方案。',
   totalDuration: 90,
-  tags: ['精品课程', '模块4', '初始方案', '复合结构', '首轮验证'],
+  tags: ['精品课程', '模块4', '经典复合控制', '前馈反馈分工', '首轮验证'],
   items: UNIT_4_3_PRESET_STEPS.map((step, index) => ({
     stage: UNIT_4_3_STAGE_MAP[step.stage],
     order: index + 1,

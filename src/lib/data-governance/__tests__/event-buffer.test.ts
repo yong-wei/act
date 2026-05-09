@@ -434,6 +434,16 @@ describe('markEventsProcessed', () => {
     );
   });
 
+  it('should increment processed count on the processed batch date', async () => {
+    await markEventsProcessed(7, '2026-05-07');
+
+    expect(mockHincrby).toHaveBeenCalledWith(
+      'event:stats:daily:2026-05-07',
+      'processed',
+      7
+    );
+  });
+
   it('should do nothing when Redis is not ready', async () => {
     mockIsReady.mockReturnValue(false);
 

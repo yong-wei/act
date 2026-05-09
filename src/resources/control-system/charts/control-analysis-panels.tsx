@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 
@@ -35,6 +35,15 @@ import { ControlChartPanel } from './control-chart-panel';
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
+
+const ROOT_LOCUS_LINE_COLOR = '#2563eb';
+const ROOT_LOCUS_ASYMPTOTE_COLOR = '#64748b';
+const ROOT_LOCUS_STATIONARY_POINT_COLOR = '#7c3aed';
+const ROOT_LOCUS_CROSSING_POINT_COLOR = '#f97316';
+const ROOT_LOCUS_OPEN_POLE_COLOR = '#dc2626';
+const ROOT_LOCUS_OPEN_ZERO_COLOR = '#d97706';
+const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M2 6 L26 6';
+const ROOT_LOCUS_LEGEND_DASHED_LINE_ICON = 'path://M2 6 L7 6 M11 6 L16 6 M20 6 L25 6';
 
 export type RootLocusInteractiveHandle = {
   id: string;
@@ -275,16 +284,16 @@ function buildClosedNyquistClosure(
   const isSamePoint = (lhs: ComplexPoint, rhs: ComplexPoint) =>
     Math.abs(lhs.re - rhs.re) < 1e-9 && Math.abs(lhs.im - rhs.im) < 1e-9;
 
-  if (!isSamePoint(positiveStart, negativeEnd)) {
-    return [positiveStart, negativeEnd];
-  }
-
   if (explicitClosurePoints.length > 1) {
     const first = explicitClosurePoints[0];
     const last = explicitClosurePoints[explicitClosurePoints.length - 1];
     if (first && last && !isSamePoint(first, last)) {
       return explicitClosurePoints;
     }
+  }
+
+  if (!isSamePoint(positiveStart, negativeEnd)) {
+    return [positiveStart, negativeEnd];
   }
 
   return isSamePoint(positiveEnd, negativeStart) ? [] : [positiveEnd, negativeStart];
@@ -363,17 +372,17 @@ export function buildRootLocusOption(
     },
     ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
     ...(rootLocus.realAxisSegments ?? []).map((segment) => ({
-      name: '实轴根轨迹段',
+      name: '根轨迹',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#0f766e', width: 2.4 },
+      lineStyle: { color: ROOT_LOCUS_LINE_COLOR, width: 2.4 },
       data: [[segment.start ?? xMin, 0], [segment.end ?? xMax, 0]],
     } satisfies ChartSeriesItem)),
     ...locusBranches.map((branch, index) => ({
       name: index === 0 ? '根轨迹' : '',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#4c78a8', width: 1.7 },
+      lineStyle: { color: ROOT_LOCUS_LINE_COLOR, width: 1.7 },
       data: branch.map((point) => [point.re, point.im, point.gain ?? null]),
     })),
     ...(rootLocus.asymptotes ?? []).map((asymptote, index) => {
@@ -385,7 +394,7 @@ export function buildRootLocusOption(
         type: 'line',
         silent: true,
         showSymbol: false,
-        lineStyle: { color: 'rgba(15, 118, 110, 0.5)', width: 1.4 },
+        lineStyle: { color: ROOT_LOCUS_ASYMPTOTE_COLOR, type: 'dashed', width: 1.4 },
         data: [
           [asymptote.centroid - dx, -dy],
           [asymptote.centroid + dx, dy],
@@ -398,7 +407,7 @@ export function buildRootLocusOption(
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
             size: 9,
-            color: '#14b8a6',
+            color: ROOT_LOCUS_STATIONARY_POINT_COLOR,
           }),
           data: rootLocus.stationaryPoints?.map((point) => [point.re, point.im, point.gain ?? null]) ?? [],
         } satisfies ChartSeriesItem]
@@ -409,7 +418,7 @@ export function buildRootLocusOption(
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('dot-filled', {
             size: 8,
-            color: '#f97316',
+            color: ROOT_LOCUS_CROSSING_POINT_COLOR,
             strokeColor: '#ffffff',
             strokeWidth: 1,
           }),
@@ -421,7 +430,7 @@ export function buildRootLocusOption(
       type: 'scatter',
       ...getInteractiveSvgEChartsPointMarker('pole-cross', {
         size: 18,
-        color: '#c81d25',
+        color: ROOT_LOCUS_OPEN_POLE_COLOR,
         strokeWidth: 2.2,
       }),
       data: openLoopPoles.map((pole) => [pole.re, pole.im]),
@@ -431,7 +440,7 @@ export function buildRootLocusOption(
       type: 'scatter',
       ...getInteractiveSvgEChartsPointMarker('dot-hollow', {
         size: 12,
-        color: '#d97706',
+        color: ROOT_LOCUS_OPEN_ZERO_COLOR,
         strokeWidth: 2.2,
       }),
       data: openLoopZeros.map((zero) => [zero.re, zero.im]),
@@ -441,16 +450,14 @@ export function buildRootLocusOption(
       name: '当前闭环极点',
       type: 'scatter',
       ...getInteractiveSvgEChartsPointMarker('dot-filled', {
-        size: 15,
-        color: '#f97316',
-        strokeColor: '#ffffff',
-        strokeWidth: 2,
+        size: 13,
+        color: ROOT_LOCUS_LINE_COLOR,
       }),
       z: 10,
       data: currentPoles.map((pole) => [pole.re, pole.im]),
     },
   ];
-  const legendData = Array.from(new Set(
+  const legendNames = Array.from(new Set(
     series
       .map((item) => (item as { name?: string }).name)
       .filter((name): name is string =>
@@ -459,6 +466,21 @@ export function buildRootLocusOption(
         && !['实轴', '虚轴', '可行域参考', 'σ 边界', 'ζ 边界'].includes(name)
       ),
   ));
+  const legendData = legendNames.map((name) => {
+    if (name === '根轨迹') {
+      return { name, icon: ROOT_LOCUS_LEGEND_LINE_ICON };
+    }
+    if (name === '根轨迹渐近线') {
+      return { name, icon: ROOT_LOCUS_LEGEND_DASHED_LINE_ICON };
+    }
+    if (name === '当前闭环极点' || name === '虚轴交点') {
+      return { name, icon: 'circle' };
+    }
+    if (name === '分离/会合点') {
+      return { name, icon: 'diamond' };
+    }
+    return name;
+  });
 
   return {
     animation: false,
@@ -554,6 +576,10 @@ export function buildNyquistOption(result: ControlAnalysisResult, caseId?: strin
       },
       splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
     },
+    dataZoom: [
+      { type: 'inside', xAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: true, moveOnMouseMove: true },
+      { type: 'inside', yAxisIndex: 0, filterMode: 'none', zoomOnMouseWheel: true, moveOnMouseMove: true },
+    ],
     series: [
       {
         name: '实轴',
@@ -708,6 +734,7 @@ function renderInteractiveHandle(
       />
     </svg>
   );
+  const visibleContent = isClosedPole && handle.draggable ? null : content;
 
   return (
     <div
@@ -722,16 +749,16 @@ function renderInteractiveHandle(
         <button
           type="button"
           onPointerDown={(event) => onHandlePointerDown?.(handle.id, event)}
-          className="pointer-events-auto relative block bg-transparent p-0"
+          className="pointer-events-auto relative flex h-7 w-7 items-center justify-center rounded-full bg-transparent p-0"
           style={{ cursor: handle.cursor ?? 'grab' }}
           aria-label={handle.ariaLabel}
         >
-          {content}
+          {visibleContent}
           <span className="sr-only">{handle.ariaLabel}</span>
         </button>
       ) : (
         <div className="pointer-events-none" aria-label={handle.ariaLabel}>
-          {content}
+          {visibleContent}
         </div>
       )}
     </div>
@@ -833,27 +860,69 @@ export function RootLocusPanel({
   const title = mode === 'full' ? '根轨迹全览' : mode === 'zoom' ? '根轨迹区域放大' : '根轨迹';
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
   const chartRef = useRef<ECharts | null>(null);
+  const chartEventCleanupRef = useRef<(() => void) | null>(null);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
   const [overlayVersion, setOverlayVersion] = useState(0);
+  const rootLocusBranches = useMemo(
+    () => (mode === 'full' && result.rootLocus.fullBranches
+      ? result.rootLocus.fullBranches
+      : result.rootLocus.branches).map((branch) => branch.map(snapRootPoint)),
+    [mode, result.rootLocus.branches, result.rootLocus.fullBranches],
+  );
+  const closedLoopPoleHandles = useMemo<RootLocusInteractiveHandle[]>(
+    () => onClosedLoopGainCommit
+      ? normalizeConjugatePointSet(result.rootLocus.currentPoles).map((point, index) => ({
+          id: `closed-loop-pole-${index}`,
+          kind: 'pole',
+          point,
+          renderAs: 'closed-pole',
+          draggable: true,
+          ariaLabel: `拖动闭环极点 ${index + 1}`,
+          cursor: 'grab',
+        }))
+      : [],
+    [onClosedLoopGainCommit, result.rootLocus.currentPoles],
+  );
   const handleChartReady = useCallback((chart: ECharts, container: HTMLDivElement) => {
     chartRef.current = chart;
+    chartEventCleanupRef.current?.();
+    const refreshOverlay = () => setOverlayVersion((version) => version + 1);
+    chart.on('dataZoom', refreshOverlay as never);
+    chartEventCleanupRef.current = () => chart.off('dataZoom', refreshOverlay as never);
     setOverlayVersion((version) => version + 1);
     onChartReady?.(chart, container);
   }, [onChartReady]);
 
   useEffect(() => {
+    return () => {
+      chartEventCleanupRef.current?.();
+      chartEventCleanupRef.current = null;
+      dragCleanupRef.current?.();
+      dragCleanupRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    setOverlayVersion((version) => version + 1);
+  }, [result.rootLocus.currentPoles]);
+
+  const startClosedLoopPoleDrag = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
     const chart = chartRef.current;
     if (!chart || !onClosedLoopGainCommit) {
-      return undefined;
+      return;
     }
 
-    const branches = (mode === 'full' && result.rootLocus.fullBranches
-      ? result.rootLocus.fullBranches
-      : result.rootLocus.branches).map((branch) => branch.map(snapRootPoint));
-    let dragging = false;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    dragCleanupRef.current?.();
+
     let nextGain: number | null = null;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.userSelect = 'none';
 
     const previewGain = (gain: number) => {
-      const snapshot = findRootLocusSnapshot(branches, gain);
+      const snapshot = findRootLocusSnapshot(rootLocusBranches, gain);
       if (snapshot.length === 0) {
         return;
       }
@@ -863,18 +932,17 @@ export function RootLocusPanel({
           data: snapshot.map((pole) => [pole.re, pole.im]),
         }],
       }, { notMerge: false, lazyUpdate: true });
+      setOverlayVersion((version) => version + 1);
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!dragging) {
-        return;
-      }
-      event.preventDefault();
+    const handlePointerMove = (pointerEvent: PointerEvent) => {
+      pointerEvent.preventDefault();
+      pointerEvent.stopPropagation();
       const dom = chart.getDom();
       const rect = dom.getBoundingClientRect();
       const value = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
-        event.clientX - rect.left,
-        event.clientY - rect.top,
+        pointerEvent.clientX - rect.left,
+        pointerEvent.clientY - rect.top,
       ]);
       if (!Array.isArray(value) || value.length < 2) {
         return;
@@ -883,7 +951,7 @@ export function RootLocusPanel({
       if (!Number.isFinite(target.re) || !Number.isFinite(target.im)) {
         return;
       }
-      const closest = findClosestRootLocusPoint(branches, target);
+      const closest = findClosestRootLocusPoint(rootLocusBranches, target);
       if (!closest || closest.gain == null || !Number.isFinite(closest.gain)) {
         return;
       }
@@ -891,53 +959,55 @@ export function RootLocusPanel({
       previewGain(nextGain);
     };
 
-    const handlePointerUp = () => {
-      if (!dragging) {
-        return;
-      }
-      dragging = false;
-      document.body.style.userSelect = '';
+    const stopDrag = () => {
       window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointerup', stopDrag);
+      window.removeEventListener('pointercancel', stopDrag);
+      document.body.style.userSelect = previousUserSelect;
+      dragCleanupRef.current = null;
       if (nextGain != null) {
         onClosedLoopGainCommit(nextGain);
       }
     };
 
-    const handleChartMouseDown = (params: { seriesName?: string; event?: { event?: MouseEvent } }) => {
-      if (params.seriesName !== '当前闭环极点') {
+    dragCleanupRef.current = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopDrag);
+      window.removeEventListener('pointercancel', stopDrag);
+      document.body.style.userSelect = previousUserSelect;
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', stopDrag, { once: true });
+    window.addEventListener('pointercancel', stopDrag, { once: true });
+  }, [onClosedLoopGainCommit, rootLocusBranches]);
+
+  const handleInteractiveHandlePointerDown = useCallback(
+    (id: string, event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (id.startsWith('closed-loop-pole-')) {
+        startClosedLoopPoleDrag(event);
         return;
       }
-      const sourceEvent = params.event?.event;
-      sourceEvent?.preventDefault();
-      sourceEvent?.stopPropagation();
-      dragging = true;
-      nextGain = null;
-      document.body.style.userSelect = 'none';
-      window.addEventListener('pointermove', handlePointerMove);
-      window.addEventListener('pointerup', handlePointerUp, { once: true });
-    };
+      onHandlePointerDown?.(id, event);
+    },
+    [onHandlePointerDown, startClosedLoopPoleDrag],
+  );
 
-    chart.on('mousedown', handleChartMouseDown as never);
-    return () => {
-      chart.off('mousedown', handleChartMouseDown as never);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      document.body.style.userSelect = '';
-    };
-  }, [mode, onClosedLoopGainCommit, overlayVersion, result.rootLocus]);
+  const allInteractiveHandles = useMemo(
+    () => [...(interactiveHandles ?? []), ...closedLoopPoleHandles],
+    [closedLoopPoleHandles, interactiveHandles],
+  );
 
-  const interactiveOverlay = interactiveHandles && interactiveHandles.length > 0 ? (
+  const interactiveOverlay = allInteractiveHandles.length > 0 ? (
     <div
       ref={interactiveLayerRef}
       className="absolute inset-0"
       data-overlay-version={overlayVersion}
     >
-      {interactiveHandles.map((handle) =>
+      {allInteractiveHandles.map((handle) =>
         renderInteractiveHandle(
           handle,
           getInteractiveHandlePixelPosition(handle.point, chartRef.current),
-          onHandlePointerDown,
+          handleInteractiveHandlePointerDown,
         ),
       )}
     </div>

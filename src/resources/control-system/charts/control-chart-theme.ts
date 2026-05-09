@@ -15,26 +15,44 @@ export interface ControlChartThemeTokens {
   tooltipBackground: string;
   tooltipBorder: string;
   tooltipText: string;
+  rootLocusLine: string;
+  rootLocusAsymptote: string;
+  rootLocusStationaryPoint: string;
+  rootLocusCrossingPoint: string;
+  rootLocusOpenPole: string;
+  rootLocusOpenZero: string;
 }
 
 const CONTROL_CHART_THEMES: Record<ThemeMode, ControlChartThemeTokens> = {
   light: {
-    textPrimary: 'rgba(51, 65, 85, 0.88)',
-    textSecondary: 'rgba(71, 85, 105, 0.82)',
+    textPrimary: 'rgba(30, 41, 59, 0.9)',
+    textSecondary: 'rgba(71, 85, 105, 0.84)',
     axisLine: 'rgba(148, 163, 184, 0.55)',
     splitLine: 'rgba(148, 163, 184, 0.22)',
     tooltipBackground: 'rgba(255, 255, 255, 0.96)',
     tooltipBorder: 'rgba(148, 163, 184, 0.45)',
     tooltipText: '#0f172a',
+    rootLocusLine: '#2563eb',
+    rootLocusAsymptote: '#64748b',
+    rootLocusStationaryPoint: '#7c3aed',
+    rootLocusCrossingPoint: '#f97316',
+    rootLocusOpenPole: '#dc2626',
+    rootLocusOpenZero: '#d97706',
   },
   dark: {
-    textPrimary: 'rgba(226, 232, 240, 0.9)',
-    textSecondary: 'rgba(226, 232, 240, 0.75)',
+    textPrimary: 'rgba(241, 245, 249, 0.92)',
+    textSecondary: 'rgba(203, 213, 225, 0.78)',
     axisLine: 'rgba(148, 163, 184, 0.45)',
     splitLine: 'rgba(148, 163, 184, 0.12)',
     tooltipBackground: 'rgba(15, 23, 42, 0.94)',
     tooltipBorder: 'rgba(148, 163, 184, 0.28)',
     tooltipText: '#e2e8f0',
+    rootLocusLine: '#38bdf8',
+    rootLocusAsymptote: '#94a3b8',
+    rootLocusStationaryPoint: '#c084fc',
+    rootLocusCrossingPoint: '#fb923c',
+    rootLocusOpenPole: '#f87171',
+    rootLocusOpenZero: '#fbbf24',
   },
 };
 
@@ -97,12 +115,42 @@ function mapTooltip(tooltip: TooltipOption, tokens: ControlChartThemeTokens): To
 
 function mapSeries(series: SeriesOption, tokens: ControlChartThemeTokens): SeriesOption {
   const markLine = series.markLine as Record<string, unknown> | undefined;
+  const name = series.name;
+  const rootLocusColor =
+    name === '根轨迹' || name === '当前闭环极点'
+      ? tokens.rootLocusLine
+      : name === '根轨迹渐近线'
+        ? tokens.rootLocusAsymptote
+        : name === '分离/会合点'
+          ? tokens.rootLocusStationaryPoint
+          : name === '虚轴交点'
+            ? tokens.rootLocusCrossingPoint
+            : name === '开环极点'
+              ? tokens.rootLocusOpenPole
+              : name === '开环零点'
+                ? tokens.rootLocusOpenZero
+                : null;
+  const nextSeries: SeriesOption = rootLocusColor
+    ? {
+        ...series,
+        lineStyle: {
+          ...((series.lineStyle as Record<string, unknown> | undefined) ?? {}),
+          color: rootLocusColor,
+        },
+        itemStyle: {
+          ...((series.itemStyle as Record<string, unknown> | undefined) ?? {}),
+          color: rootLocusColor,
+          borderColor: name === '当前闭环极点' ? rootLocusColor : ((series.itemStyle as Record<string, unknown> | undefined)?.borderColor ?? rootLocusColor),
+        },
+      }
+    : series;
+
   if (!markLine) {
-    return series;
+    return nextSeries;
   }
 
   return {
-    ...series,
+    ...nextSeries,
     markLine: {
       ...markLine,
       label: {

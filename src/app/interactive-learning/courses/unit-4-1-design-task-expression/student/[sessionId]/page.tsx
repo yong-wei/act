@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_4_1StudentPage } from '@/features/interactive/unit-4-1-design-task-expression/student-page';
+import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function UNIT_4_1StudentRoute({
   params,
@@ -12,6 +13,8 @@ export default async function UNIT_4_1StudentRoute({
     sessionId: string;
   };
 }) {
+  await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-4-1-design-task-expression');
+
   if (params.sessionId !== 'demo') {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role;
