@@ -48,6 +48,7 @@ describe('arena task filtering', () => {
     expect(result.map((task) => task.id)).toEqual([
       'task-ship-roll-comfort',
       'task-ship-roll-mpc-hidden-scenarios',
+      'task-ship-roll-optimized-pid-robust',
     ]);
   });
 
@@ -62,5 +63,11 @@ describe('arena task filtering', () => {
       source: 'control-odyssey',
       leaderboard: 'season',
     }).map((task) => task.id)).toContain('task-odyssey-level-one-growth');
+  });
+
+  it('filters optimization tuning tasks by method', () => {
+    expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      method: 'optimized-pid',
+    }).map((task) => task.id)).toEqual(['task-ship-roll-optimized-pid-robust']);
   });
 });

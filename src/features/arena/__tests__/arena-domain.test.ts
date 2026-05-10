@@ -104,4 +104,16 @@ describe('arena domain model', () => {
     expect(ARENA_METRIC_PROFILES.find((profile) => profile.id === mpcTask?.metricProfileId)?.hardConstraints)
       .toContain('hidden_scenarios_passed');
   });
+
+  it('defines a bounded optimization-tuning task for robust PID design', () => {
+    const methods = new Set(ARENA_CHALLENGE_TASKS.flatMap((task) => task.allowedMethods));
+    const optimizationTask = getArenaChallengeTask('task-ship-roll-optimized-pid-robust');
+
+    expect(methods.has('optimized-pid')).toBe(true);
+    expect(optimizationTask?.allowedMethods).toEqual(['optimized-pid']);
+    expect(optimizationTask?.workspaceMode).toBe('predictive-control');
+    expect(optimizationTask?.primaryMetrics).toContain('hiddenScenarioWorst');
+    expect(ARENA_METRIC_PROFILES.find((profile) => profile.id === optimizationTask?.metricProfileId)?.diagnosticMetrics)
+      .toContain('optimizationBudget');
+  });
 });

@@ -36,6 +36,7 @@ const sourceLabels: Record<ChallengeObjectSource, string> = {
 const methodLabels: Record<ControllerMethod, string> = {
   'serial-compensator': '串联校正',
   pid: 'PID',
+  'optimized-pid': '优化调参',
   'composite-compensation': '复合校正',
   mpc: 'MPC',
   'black-box-control': '黑箱控制',
@@ -61,6 +62,7 @@ const methodOptions: Array<{ value: ControllerMethod | 'all'; label: string }> =
   { value: 'all', label: '全部方法' },
   { value: 'serial-compensator', label: '串联校正' },
   { value: 'pid', label: 'PID' },
+  { value: 'optimized-pid', label: '优化调参' },
   { value: 'composite-compensation', label: '复合校正' },
   { value: 'black-box-control', label: '黑箱控制' },
   { value: 'mpc', label: 'MPC' },

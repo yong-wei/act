@@ -13,6 +13,7 @@ import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-c
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'serial-compensator': '串联校正',
   pid: 'PID',
+  'optimized-pid': '优化调参',
   'composite-compensation': '复合校正',
   mpc: 'MPC',
   'black-box-control': '黑箱控制',

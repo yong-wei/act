@@ -42,6 +42,13 @@ const MPC_LIMITS = {
   maxSampleTime: 1,
 };
 
+const OPTIMIZATION_LIMITS = {
+  minWeight: 0.05,
+  maxWeight: 8,
+  minSearchBudget: 10,
+  maxSearchBudget: 240,
+};
+
 function numberParam(artifact: ControllerArtifact, key: string): number | undefined {
   const value = artifact.params[key];
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -254,6 +261,70 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
         safeDisturbanceCompensation,
       ].every((value) => value >= 0),
       closedLoopStable: validValues && closedLoopStable(model, controllerNumerator, controllerDenominator),
+      validationErrors,
+    };
+  }
+
+  if (artifact.method === 'optimized-pid') {
+    const template = artifact.params.template;
+    const speedWeight = numberParam(artifact, 'speedWeight');
+    const energyWeight = numberParam(artifact, 'energyWeight');
+    const robustnessWeight = numberParam(artifact, 'robustnessWeight');
+    const overshootWeight = numberParam(artifact, 'overshootWeight');
+    const searchBudget = numberParam(artifact, 'searchBudget');
+    const values = [speedWeight, energyWeight, robustnessWeight, overshootWeight, searchBudget];
+    const integerBudget = searchBudget !== undefined && Number.isInteger(searchBudget);
+    const weightError = (key: string, value: number | undefined): string | undefined => {
+      if (value === undefined) return `${key} 必须是有限数字。`;
+      if (value < OPTIMIZATION_LIMITS.minWeight || value > OPTIMIZATION_LIMITS.maxWeight) {
+        return `${key} 必须在 ${OPTIMIZATION_LIMITS.minWeight} 到 ${OPTIMIZATION_LIMITS.maxWeight} 之间。`;
+      }
+      return undefined;
+    };
+    const validationErrors = [
+      template !== 'bounded-optimized-pid' ? 'template 必须是 bounded-optimized-pid。' : undefined,
+      weightError('speedWeight', speedWeight),
+      weightError('energyWeight', energyWeight),
+      weightError('robustnessWeight', robustnessWeight),
+      weightError('overshootWeight', overshootWeight),
+      searchBudget === undefined ? 'searchBudget 必须是有限数字。' : undefined,
+      searchBudget !== undefined && !integerBudget ? 'searchBudget 必须是整数。' : undefined,
+      searchBudget !== undefined &&
+        (searchBudget < OPTIMIZATION_LIMITS.minSearchBudget ||
+          searchBudget > OPTIMIZATION_LIMITS.maxSearchBudget)
+        ? `searchBudget 必须在 ${OPTIMIZATION_LIMITS.minSearchBudget} 到 ${OPTIMIZATION_LIMITS.maxSearchBudget} 之间。`
+        : undefined,
+    ].filter(Boolean) as string[];
+    const validValues = validationErrors.length === 0;
+    const safeSpeedWeight = speedWeight ?? 0;
+    const safeEnergyWeight = energyWeight ?? 0;
+    const safeRobustnessWeight = robustnessWeight ?? 0;
+    const safeOvershootWeight = overshootWeight ?? 0;
+    const safeSearchBudget = searchBudget ?? 0;
+    const budgetBoost = Math.min(1.5, Math.log1p(safeSearchBudget) / Math.log1p(OPTIMIZATION_LIMITS.maxSearchBudget));
+    const effectiveGain = dcGain(model) *
+      (0.7 + 0.55 * safeSpeedWeight + 0.25 * safeOvershootWeight + 0.18 * safeRobustnessWeight) *
+      budgetBoost /
+      (1 + 0.32 * safeEnergyWeight);
+    const dampingShape = 1 + 0.22 * safeOvershootWeight + 0.18 * safeRobustnessWeight + 0.12 * budgetBoost;
+
+    return {
+      effectiveGain,
+      proportional: safeSpeedWeight,
+      integral: 0.18 * (safeSpeedWeight + safeRobustnessWeight),
+      derivative: (safeOvershootWeight + safeRobustnessWeight) / (1 + safeEnergyWeight),
+      shapeBoost: dampingShape,
+      robustnessBoost: 1 + 0.22 * safeRobustnessWeight + 0.08 * budgetBoost,
+      causal: validValues,
+      finite: values.every((value) => value !== undefined),
+      nonNegative: [
+        safeSpeedWeight,
+        safeEnergyWeight,
+        safeRobustnessWeight,
+        safeOvershootWeight,
+        safeSearchBudget,
+      ].every((value) => value >= 0),
+      closedLoopStable: validValues && closedLoopStable(model, [Math.max(effectiveGain, 0.001)], [1]),
       validationErrors,
     };
   }

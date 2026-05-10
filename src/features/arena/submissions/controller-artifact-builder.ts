@@ -2,12 +2,13 @@ import type { ChallengeTask, ControllerArtifact, ControllerMethod } from '../typ
 
 export type EvaluableControllerMethod = Extract<
   ControllerMethod,
-  'pid' | 'serial-compensator' | 'composite-compensation' | 'mpc'
+  'pid' | 'serial-compensator' | 'optimized-pid' | 'composite-compensation' | 'mpc'
 >;
 
 const evaluableMethods: EvaluableControllerMethod[] = [
   'pid',
   'serial-compensator',
+  'optimized-pid',
   'composite-compensation',
   'mpc',
 ];
@@ -46,6 +47,15 @@ export function buildControllerArtifactFromParams(input: BuildControllerArtifact
       gain: numberValue(input.values, 'gain'),
       zero: numberValue(input.values, 'zero'),
       pole: numberValue(input.values, 'pole'),
+    };
+  } else if (input.method === 'optimized-pid') {
+    params = {
+      template: 'bounded-optimized-pid',
+      speedWeight: numberValue(input.values, 'speedWeight'),
+      energyWeight: numberValue(input.values, 'energyWeight'),
+      robustnessWeight: numberValue(input.values, 'robustnessWeight'),
+      overshootWeight: numberValue(input.values, 'overshootWeight'),
+      searchBudget: numberValue(input.values, 'searchBudget'),
     };
   } else if (input.method === 'composite-compensation') {
     params = {

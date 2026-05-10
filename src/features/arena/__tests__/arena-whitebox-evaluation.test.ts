@@ -225,6 +225,55 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('predictionHorizon 必须在 4 到 60 之间');
   });
 
+  it('evaluates optimization-assisted PID templates with robust hidden scenario metrics', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-optimized-pid-robust',
+      artifact: {
+        id: 'artifact-optimized-pid-good',
+        taskId: 'task-ship-roll-optimized-pid-robust',
+        method: 'optimized-pid',
+        params: {
+          template: 'bounded-optimized-pid',
+          speedWeight: 1.2,
+          energyWeight: 0.7,
+          robustnessWeight: 1.4,
+          overshootWeight: 0.9,
+          searchBudget: 80,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.artifact.method).toBe('optimized-pid');
+    expect(result.metrics.hiddenScenarioWorst).toBeGreaterThan(0);
+    expect(result.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
+  });
+
+  it('rejects adversarial optimization tuning templates before ranking', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-optimized-pid-robust',
+      artifact: {
+        id: 'artifact-optimized-pid-adversarial',
+        taskId: 'task-ship-roll-optimized-pid-robust',
+        method: 'optimized-pid',
+        params: {
+          template: 'bounded-optimized-pid',
+          speedWeight: 0,
+          energyWeight: 0,
+          robustnessWeight: 0,
+          overshootWeight: 0,
+          searchBudget: 9999,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+    expect(result.explanation.join(' ')).toContain('searchBudget 必须在 10 到 240 之间');
+  });
+
   it('normalizes metric values and uses weighted geometric scoring', () => {
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 2)).toBe(1);
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 8)).toBe(0);

@@ -42,6 +42,15 @@ const mpcTask: ChallengeTask = {
   primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
 };
 
+const optimizedPidTask: ChallengeTask = {
+  ...baseTask,
+  id: 'task-ship-roll-optimized-pid-robust',
+  objectId: 'plant-ship-roll-whitebox',
+  allowedMethods: ['optimized-pid'],
+  workspaceMode: 'predictive-control',
+  primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
+};
+
 describe('arena controller artifact builder', () => {
   it('builds PID controller artifacts from string inputs', () => {
     const artifact = buildControllerArtifactFromParams({
@@ -172,12 +181,56 @@ describe('arena controller artifact builder', () => {
     })).toThrow('controlHorizon 必须是有限数字');
   });
 
+  it('builds optimization-assisted PID artifacts from objective weights', () => {
+    const artifact = buildControllerArtifactFromParams({
+      task: optimizedPidTask,
+      method: 'optimized-pid',
+      values: {
+        speedWeight: '1.2',
+        energyWeight: '0.7',
+        robustnessWeight: '1.4',
+        overshootWeight: '0.9',
+        searchBudget: '80',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    });
+
+    expect(artifact).toMatchObject({
+      taskId: optimizedPidTask.id,
+      method: 'optimized-pid',
+      params: {
+        template: 'bounded-optimized-pid',
+        speedWeight: 1.2,
+        energyWeight: 0.7,
+        robustnessWeight: 1.4,
+        overshootWeight: 0.9,
+        searchBudget: 80,
+      },
+    });
+  });
+
+  it('rejects malformed optimization tuning parameters before official evaluation', () => {
+    expect(() => buildControllerArtifactFromParams({
+      task: optimizedPidTask,
+      method: 'optimized-pid',
+      values: {
+        speedWeight: '1.2',
+        energyWeight: 'bad',
+        robustnessWeight: '1.4',
+        overshootWeight: '0.9',
+        searchBudget: '80',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    })).toThrow('energyWeight 必须是有限数字');
+  });
+
   it('only exposes methods supported by the current official evaluator', () => {
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['composite-compensation', 'serial-compensator'],
     })).toEqual(['serial-compensator', 'composite-compensation']);
     expect(getEvaluableControllerMethods(mpcTask)).toEqual(['mpc']);
+    expect(getEvaluableControllerMethods(optimizedPidTask)).toEqual(['optimized-pid']);
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['black-box-control'],
@@ -200,6 +253,8 @@ describe('arena controller artifact builder', () => {
     expect(source).toContain('disturbanceCompensation');
     expect(source).toContain('predictionHorizon');
     expect(source).toContain('controlWeight');
+    expect(source).toContain('speedWeight');
+    expect(source).toContain('robustnessWeight');
     expect(source).toContain('JSON.stringify({ taskId: task.id, artifact })');
     expect(source).not.toContain('提交 PID 控制器');
   });

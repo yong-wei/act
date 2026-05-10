@@ -40,6 +40,11 @@ export function ArenaSubmissionPanel({
   const [terminalWeight, setTerminalWeight] = useState('2');
   const [inputLimit, setInputLimit] = useState('4.5');
   const [sampleTime, setSampleTime] = useState('0.1');
+  const [speedWeight, setSpeedWeight] = useState('1.2');
+  const [energyWeight, setEnergyWeight] = useState('0.7');
+  const [robustnessWeight, setRobustnessWeight] = useState('1.4');
+  const [overshootWeight, setOvershootWeight] = useState('0.9');
+  const [searchBudget, setSearchBudget] = useState('80');
   const [status, setStatus] = useState<string | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
   const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
@@ -88,6 +93,11 @@ export function ArenaSubmissionPanel({
           terminalWeight,
           inputLimit,
           sampleTime,
+          speedWeight,
+          energyWeight,
+          robustnessWeight,
+          overshootWeight,
+          searchBudget,
         }),
       });
     } catch (error) {
@@ -226,6 +236,11 @@ export function ArenaSubmissionPanel({
           terminalWeight,
           inputLimit,
           sampleTime,
+          speedWeight,
+          energyWeight,
+          robustnessWeight,
+          overshootWeight,
+          searchBudget,
         }}
         setters={{
           setKp,
@@ -245,6 +260,11 @@ export function ArenaSubmissionPanel({
           setTerminalWeight,
           setInputLimit,
           setSampleTime,
+          setSpeedWeight,
+          setEnergyWeight,
+          setRobustnessWeight,
+          setOvershootWeight,
+          setSearchBudget,
         }}
       />
       <button
@@ -288,6 +308,7 @@ function methodLabel(method: ChallengeTask['allowedMethods'][number]): string {
   const labels: Record<ChallengeTask['allowedMethods'][number], string> = {
     'serial-compensator': '串联校正',
     pid: 'PID',
+    'optimized-pid': '优化调参',
     'composite-compensation': '复合校正',
     mpc: 'MPC',
     'black-box-control': '黑箱控制',
@@ -342,6 +363,11 @@ interface ControllerInputValues {
   terminalWeight: string;
   inputLimit: string;
   sampleTime: string;
+  speedWeight: string;
+  energyWeight: string;
+  robustnessWeight: string;
+  overshootWeight: string;
+  searchBudget: string;
 }
 
 interface ControllerInputSetters {
@@ -362,6 +388,11 @@ interface ControllerInputSetters {
   setTerminalWeight: (value: string) => void;
   setInputLimit: (value: string) => void;
   setSampleTime: (value: string) => void;
+  setSpeedWeight: (value: string) => void;
+  setEnergyWeight: (value: string) => void;
+  setRobustnessWeight: (value: string) => void;
+  setOvershootWeight: (value: string) => void;
+  setSearchBudget: (value: string) => void;
 }
 
 function controllerValues(
@@ -383,6 +414,15 @@ function controllerValues(
       terminalWeight: values.terminalWeight,
       inputLimit: values.inputLimit,
       sampleTime: values.sampleTime,
+    };
+  }
+  if (method === 'optimized-pid') {
+    return {
+      speedWeight: values.speedWeight,
+      energyWeight: values.energyWeight,
+      robustnessWeight: values.robustnessWeight,
+      overshootWeight: values.overshootWeight,
+      searchBudget: values.searchBudget,
     };
   }
   return {
@@ -432,6 +472,18 @@ function ControllerParamInputs({
         <NumberInput label="Terminal weight" value={values.terminalWeight} onChange={setters.setTerminalWeight} />
         <NumberInput label="Input limit" value={values.inputLimit} onChange={setters.setInputLimit} />
         <NumberInput label="Sample time" value={values.sampleTime} onChange={setters.setSampleTime} />
+      </div>
+    );
+  }
+
+  if (method === 'optimized-pid') {
+    return (
+      <div className="mt-4 grid gap-3 sm:grid-cols-5">
+        <NumberInput label="Speed weight" value={values.speedWeight} onChange={setters.setSpeedWeight} />
+        <NumberInput label="Energy weight" value={values.energyWeight} onChange={setters.setEnergyWeight} />
+        <NumberInput label="Robustness" value={values.robustnessWeight} onChange={setters.setRobustnessWeight} />
+        <NumberInput label="Overshoot" value={values.overshootWeight} onChange={setters.setOvershootWeight} />
+        <NumberInput label="Search budget" value={values.searchBudget} onChange={setters.setSearchBudget} />
       </div>
     );
   }

@@ -193,6 +193,18 @@ export const ARENA_METRIC_PROFILES: MetricProfile[] = [
     ],
     diagnosticMetrics: ['scenarioSpread', 'inputLimitUsage', 'sampleTime', 'solverTemplate'],
   },
+  {
+    id: 'metric-optimized-pid-robust',
+    name: '优化调参鲁棒评分',
+    hardConstraints: ['closed_loop_stable', 'finite_response', 'controller_causal', 'hidden_scenarios_passed'],
+    rankingMetrics: [
+      { id: 'hiddenScenarioWorst', label: '隐藏场景最差表现', direction: 'minimize', idealValue: 0.36, unacceptableValue: 2.5 },
+      { id: 'settlingTime', label: '调节时间', direction: 'minimize', idealValue: 3.4, unacceptableValue: 10, unit: 's' },
+      { id: 'controlEnergy', label: '控制能量', direction: 'minimize', idealValue: 4.5, unacceptableValue: 18 },
+      { id: 'overshoot', label: '超调量', direction: 'minimize', idealValue: 7, unacceptableValue: 30, unit: '%' },
+    ],
+    diagnosticMetrics: ['optimizationBudget', 'objectiveWeights', 'scenarioSpread', 'inputLimitUsage'],
+  },
 ];
 
 export const ARENA_LEADERBOARD_POLICIES: LeaderboardPolicy[] = [
@@ -363,6 +375,22 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     difficulty: '挑战',
     allowedMethods: ['mpc'],
     metricProfileId: 'metric-mpc-hidden-scenario-balanced',
+    leaderboardPolicyId: 'leaderboard-pareto-exploration',
+    leaderboardTypes: ['main', 'method', 'metric', 'pareto'],
+    primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
+    workspaceMode: 'predictive-control',
+    homeworkPolicy: '研究型项目候选',
+    homeworkEligible: false,
+    practiceMode: 'project',
+  },
+  {
+    id: 'task-ship-roll-optimized-pid-robust',
+    objectId: 'plant-ship-roll-whitebox',
+    title: '横摇对象优化调参鲁棒挑战',
+    goal: '使用固定优化辅助 PID 模板，在响应速度、能耗、超调和隐藏扰动鲁棒性之间形成可复现取舍。',
+    difficulty: '挑战',
+    allowedMethods: ['optimized-pid'],
+    metricProfileId: 'metric-optimized-pid-robust',
     leaderboardPolicyId: 'leaderboard-pareto-exploration',
     leaderboardTypes: ['main', 'method', 'metric', 'pareto'],
     primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],

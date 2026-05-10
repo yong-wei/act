@@ -10,6 +10,7 @@ export type ModelVisibility = 'white-box' | 'gray-box' | 'black-box';
 export type ControllerMethod =
   | 'serial-compensator'
   | 'pid'
+  | 'optimized-pid'
   | 'composite-compensation'
   | 'mpc'
   | 'black-box-control';
