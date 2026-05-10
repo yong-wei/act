@@ -30,7 +30,7 @@
 - [x] Run `npm run lint`.
 - [x] Browser-check `/arena` and one detail route.
 - [x] Update this plan with verification results.
-- [ ] Commit and push only Plan C files.
+- [x] Commit and push only Plan C files.
 
 ## Verification Record
 
@@ -38,5 +38,5 @@
 - Red test evidence: filtering test first failed with missing `../filtering`; route test first failed because `src/app/arena/challenges/[taskId]/page.tsx` did not exist.
 - Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
 - Browser check: Playwright verified `/arena` filter controls, search for `横摇 舒适度`, and detail route `task-second-order-lead-pid` showing `对象说明`, `评价规则`, and `进入工作台`.
-- Commit: Pending
-- Push: Pending
+- Commit: `14ee3e60 feat: add arena challenge filters`
+- Push: `rtk git push` -> pushed to `codex/interactive-course-production`.
