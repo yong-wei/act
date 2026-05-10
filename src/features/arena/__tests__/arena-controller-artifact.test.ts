@@ -25,6 +25,14 @@ const baseTask: ChallengeTask = {
   practiceMode: 'open',
 };
 
+const compositeTask: ChallengeTask = {
+  ...baseTask,
+  id: 'task-third-order-block-diagram',
+  objectId: 'plant-third-order-pure-pole',
+  allowedMethods: ['composite-compensation', 'serial-compensator'],
+  workspaceMode: 'block-diagram-workbench',
+};
+
 describe('arena controller artifact builder', () => {
   it('builds PID controller artifacts from string inputs', () => {
     const artifact = buildControllerArtifactFromParams({
@@ -66,11 +74,51 @@ describe('arena controller artifact builder', () => {
     })).toThrow('zero 必须是有限数字');
   });
 
+  it('builds composite compensation artifacts from block-diagram parameters', () => {
+    const artifact = buildControllerArtifactFromParams({
+      task: compositeTask,
+      method: 'composite-compensation',
+      values: {
+        prefilterGain: '0.9',
+        forwardGain: '2.2',
+        localFeedbackGain: '0.7',
+        disturbanceCompensation: '0.4',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    });
+
+    expect(artifact).toMatchObject({
+      taskId: compositeTask.id,
+      method: 'composite-compensation',
+      params: {
+        structure: 'prefilter-forward-local-feedback-disturbance',
+        prefilterGain: 0.9,
+        forwardGain: 2.2,
+        localFeedbackGain: 0.7,
+        disturbanceCompensation: 0.4,
+      },
+    });
+  });
+
+  it('rejects malformed composite compensation parameters before official evaluation', () => {
+    expect(() => buildControllerArtifactFromParams({
+      task: compositeTask,
+      method: 'composite-compensation',
+      values: {
+        prefilterGain: '0.9',
+        forwardGain: 'bad',
+        localFeedbackGain: '0.7',
+        disturbanceCompensation: '0.4',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    })).toThrow('forwardGain 必须是有限数字');
+  });
+
   it('only exposes methods supported by the current official evaluator', () => {
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['composite-compensation', 'serial-compensator'],
-    })).toEqual(['serial-compensator']);
+    })).toEqual(['serial-compensator', 'composite-compensation']);
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['black-box-control'],
@@ -89,6 +137,8 @@ describe('arena controller artifact builder', () => {
     expect(source).toContain("'arena_controller_save'");
     expect(source).toContain("'arena_submit'");
     expect(source).toContain("'arena_evaluation_complete'");
+    expect(source).toContain('prefilterGain');
+    expect(source).toContain('disturbanceCompensation');
     expect(source).toContain('JSON.stringify({ taskId: task.id, artifact })');
     expect(source).not.toContain('提交 PID 控制器');
   });

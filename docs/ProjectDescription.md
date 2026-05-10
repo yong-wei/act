@@ -10,6 +10,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 📅 **最后更新**：2026-05-10
 # 近期更新
 
+🧩 **竞技场复合校正提交与白箱评测（2026-05-10）**：结构化补偿任务 `task-third-order-block-diagram` 的 `composite-compensation` 已从“任务允许但不可提交”升级为官方白箱评测器支持的真实提交方法。提交面板新增前置滤波、前向增益、局部反馈和扰动补偿四个参数，统一经 `controller-artifact-builder` 构造成固定参数化复合结构，不扩展为通用框图编辑器。白箱评测器为复合校正加入有限性、正负性、工程上界、闭环稳定性和控制量解释约束，补齐对抗性测试，防止高扰动补偿绕过硬约束刷榜；方法榜继续只消费真实 `ArenaSubmission`。当前已通过 Plan L 定向 Vitest、lint、smoke test、`npm run build`，并经同一子代理复审关闭 blocker。
+
 🧩 **竞技场数据埋点与教学分析基础层（2026-05-10）**：竞技场 L0 核心事件已按 `docs/arena.md` 扩展为打开挑战、开始工作台、运行仿真、保存控制器、保存辨识模型、导入虚拟仿真、提交竞技场、官方评测完成、查看成绩、查看榜单与查看反馈，并全部登记到数据治理核心事件字典。当前挑战详情页和提交面板的可用路径已真实接入 `/api/interactive/events`；保存辨识模型事件已完成词表预留，等待黑箱辨识工作台具备模型保存 UI 后接入。新增 `buildArenaTeachingAnalytics`，从真实 `ArenaSubmission` 与官方评测结果中提炼闭环稳定性、长期薄弱指标、追求速度忽略能耗、黑箱辨识质量、失败到成功迭代和盲目调参等摘要信号；`arena_evaluation_complete` 现在可物化为设计类 `LearningFact`，打开和查看类事件不会进入能力画像。当前已通过 Plan K 定向 Vitest、lint、smoke test 与 `npm run build`，并经子代理复审。
 
 🧩 **竞技场学生提交工作台扩展（2026-05-10）**：挑战详情页的提交面板已从 PID-only 扩展为当前官方白箱评测器支持的 PID 与串联校正两类控制器工件。新增 `controller-artifact-builder` 统一把工作台输入构造成 `ControllerArtifact`，PID 使用 `Kp/Ki/Kd`，串联校正使用 `gain/zero/pole`，非有限参数会在进入官方评测前被拒绝。提交面板只暴露当前任务允许且评测器支持的方法，复合校正、MPC、黑箱控制等尚未建立官方评测器的方法不会被伪装成可提交；挑战详情页也改为按当前可评测方法判断是否挂载提交面板。当前已通过 Plan J 定向 Vitest、lint、smoke test 与 `npm run build`，并经子代理复审通过。

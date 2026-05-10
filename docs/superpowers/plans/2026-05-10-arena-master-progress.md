@@ -25,6 +25,7 @@
 | I | Leaderboard modes | `docs/superpowers/plans/2026-05-10-arena-plan-i-leaderboard-modes.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | `feat: add arena leaderboard modes` pushed |
 | J | Controller submission workspace | `docs/superpowers/plans/2026-05-10-arena-plan-j-controller-submission-workspace.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: expand arena controller submissions` pushed |
 | K | Telemetry and analytics materialization | `docs/superpowers/plans/2026-05-10-arena-plan-k-telemetry-analytics.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: add arena telemetry analytics` pushed |
+| L | Composite compensation submission and evaluation | `docs/superpowers/plans/2026-05-10-arena-plan-l-composite-compensation.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | Pending final commit |
 
 ## Completion Gates
 
@@ -53,6 +54,8 @@
 - 2026-05-10: Plan J implemented a pure controller artifact builder and method-aware submission panel for PID and serial compensator artifacts. Verification passed; independent subagent review found one low-risk test gap; follow-up guards were added and re-review passed.
 - 2026-05-10: Plan K started to complete Arena L0 telemetry and derive teaching-analysis signals from real submissions.
 - 2026-05-10: Plan K implemented Arena L0 event registration, production telemetry for available detail/submission paths, Arena teaching analytics summaries, and LearningFact materialization guards. Independent review found two issues; fixes were applied and re-review left only the known black-box identification model-save UI gap recorded in the plan. Verification passed.
+- 2026-05-10: Plan L started to turn composite compensation from a catalogue method into an evaluable submission path.
+- 2026-05-10: Plan L implemented fixed-structure composite compensation artifact building, submission-panel inputs, white-box evaluation, parameter bounds, adversarial anti-gaming coverage, and method leaderboard coverage. Independent subagent review found one blocker in the first scoring mapping; fixes were applied and re-review passed.
 
 ## Final Audit
 

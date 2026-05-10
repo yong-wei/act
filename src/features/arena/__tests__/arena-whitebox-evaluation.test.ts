@@ -105,6 +105,72 @@ describe('arena white-box evaluation', () => {
     expect(missingParams.explanation.join(' ')).toContain('gain 必须是有限数字');
   });
 
+  it('evaluates composite compensation artifacts on block-diagram tasks', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-third-order-block-diagram',
+      artifact: {
+        id: 'artifact-composite-good',
+        taskId: 'task-third-order-block-diagram',
+        method: 'composite-compensation',
+        params: {
+          structure: 'prefilter-forward-local-feedback-disturbance',
+          prefilterGain: 0.9,
+          forwardGain: 2.2,
+          localFeedbackGain: 0.7,
+          disturbanceCompensation: 0.4,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.score).toBeGreaterThan(0);
+    expect(result.artifact.method).toBe('composite-compensation');
+    expect(result.metrics.controlEnergy).toBeGreaterThan(0);
+    expect(result.hardConstraintResults.every((item) => item.passed)).toBe(true);
+  });
+
+  it('rejects malformed composite compensation artifacts without defaulting missing params', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-third-order-block-diagram',
+      artifact: {
+        id: 'artifact-composite-missing',
+        taskId: 'task-third-order-block-diagram',
+        method: 'composite-compensation',
+        params: {
+          prefilterGain: 0.9,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.explanation.join(' ')).toContain('forwardGain 必须是有限数字');
+  });
+
+  it('rejects adversarial composite compensation parameters before ranking', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-third-order-block-diagram',
+      artifact: {
+        id: 'artifact-composite-adversarial',
+        taskId: 'task-third-order-block-diagram',
+        method: 'composite-compensation',
+        params: {
+          structure: 'prefilter-forward-local-feedback-disturbance',
+          prefilterGain: 0.1,
+          forwardGain: 0.5,
+          localFeedbackGain: 2,
+          disturbanceCompensation: 64,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+    expect(result.explanation.join(' ')).toContain('disturbanceCompensation 不能超过 5');
+  });
+
   it('normalizes metric values and uses weighted geometric scoring', () => {
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 2)).toBe(1);
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 8)).toBe(0);

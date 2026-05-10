@@ -383,6 +383,25 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [pid],
     });
+    const composite = createArenaSubmission({
+      taskId: 'task-third-order-block-diagram',
+      artifact: {
+        id: 'artifact-composite-leaderboard',
+        taskId: 'task-third-order-block-diagram',
+        method: 'composite-compensation',
+        params: {
+          structure: 'prefilter-forward-local-feedback-disturbance',
+          prefilterGain: 0.9,
+          forwardGain: 2.2,
+          localFeedbackGain: 0.7,
+          disturbanceCompensation: 0.4,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+      studentLabel: '复合校正学生',
+      submittedAt: '2026-05-10T10:03:00.000Z',
+      existingSubmissions: [],
+    });
 
     expect(buildArenaLeaderboard([pid, serial], {
       taskId: 'task-second-order-lead-pid',
@@ -393,6 +412,11 @@ describe('arena submissions and leaderboards', () => {
       type: 'method',
       method: 'pid',
     }).entries.map((entry) => entry.studentLabel)).toEqual(['PID 学生']);
+    expect(buildArenaLeaderboard([composite], {
+      taskId: 'task-third-order-block-diagram',
+      type: 'method',
+      method: 'composite-compensation',
+    }).entries.map((entry) => entry.studentLabel)).toEqual(['复合校正学生']);
   });
 
   it('defines core Arena telemetry events compatible with the L0 event boundary', () => {

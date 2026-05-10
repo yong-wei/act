@@ -20,6 +20,13 @@ interface ControllerSummary {
   validationErrors: string[];
 }
 
+const COMPOSITE_LIMITS = {
+  maxPrefilterGain: 5,
+  maxForwardGain: 20,
+  maxLocalFeedbackGain: 10,
+  maxDisturbanceCompensation: 5,
+};
+
 function numberParam(artifact: ControllerArtifact, key: string): number | undefined {
   const value = artifact.params[key];
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -169,6 +176,70 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
     };
   }
 
+  if (artifact.method === 'composite-compensation') {
+    const structure = artifact.params.structure;
+    const prefilterGain = numberParam(artifact, 'prefilterGain');
+    const forwardGain = numberParam(artifact, 'forwardGain');
+    const localFeedbackGain = numberParam(artifact, 'localFeedbackGain');
+    const disturbanceCompensation = numberParam(artifact, 'disturbanceCompensation');
+    const values = [prefilterGain, forwardGain, localFeedbackGain, disturbanceCompensation];
+    const validationErrors = [
+      structure !== 'prefilter-forward-local-feedback-disturbance'
+        ? 'structure 必须是 prefilter-forward-local-feedback-disturbance。'
+        : undefined,
+      prefilterGain === undefined ? 'prefilterGain 必须是有限数字。' : undefined,
+      forwardGain === undefined ? 'forwardGain 必须是有限数字。' : undefined,
+      localFeedbackGain === undefined ? 'localFeedbackGain 必须是有限数字。' : undefined,
+      disturbanceCompensation === undefined ? 'disturbanceCompensation 必须是有限数字。' : undefined,
+      prefilterGain !== undefined && prefilterGain <= 0 ? 'prefilterGain 必须大于 0。' : undefined,
+      forwardGain !== undefined && forwardGain <= 0 ? 'forwardGain 必须大于 0。' : undefined,
+      localFeedbackGain !== undefined && localFeedbackGain < 0 ? 'localFeedbackGain 不能为负。' : undefined,
+      disturbanceCompensation !== undefined && disturbanceCompensation < 0 ? 'disturbanceCompensation 不能为负。' : undefined,
+      prefilterGain !== undefined && prefilterGain > COMPOSITE_LIMITS.maxPrefilterGain
+        ? `prefilterGain 不能超过 ${COMPOSITE_LIMITS.maxPrefilterGain}。`
+        : undefined,
+      forwardGain !== undefined && forwardGain > COMPOSITE_LIMITS.maxForwardGain
+        ? `forwardGain 不能超过 ${COMPOSITE_LIMITS.maxForwardGain}。`
+        : undefined,
+      localFeedbackGain !== undefined && localFeedbackGain > COMPOSITE_LIMITS.maxLocalFeedbackGain
+        ? `localFeedbackGain 不能超过 ${COMPOSITE_LIMITS.maxLocalFeedbackGain}。`
+        : undefined,
+      disturbanceCompensation !== undefined &&
+        disturbanceCompensation > COMPOSITE_LIMITS.maxDisturbanceCompensation
+        ? `disturbanceCompensation 不能超过 ${COMPOSITE_LIMITS.maxDisturbanceCompensation}。`
+        : undefined,
+    ].filter(Boolean) as string[];
+    const validValues = validationErrors.length === 0;
+    const safePrefilterGain = prefilterGain ?? 0;
+    const safeForwardGain = forwardGain ?? 0;
+    const safeLocalFeedbackGain = localFeedbackGain ?? 0;
+    const safeDisturbanceCompensation = disturbanceCompensation ?? 0;
+    const loopGain = (safePrefilterGain * safeForwardGain) / (1 + safeLocalFeedbackGain);
+    const disturbanceLoopBoost = 1 + 0.2 * safeDisturbanceCompensation;
+    const controllerNumerator = [loopGain * disturbanceLoopBoost];
+    const controllerDenominator = [1];
+
+    return {
+      effectiveGain: dcGain(model) * loopGain * disturbanceLoopBoost,
+      proportional: safeForwardGain,
+      integral: 2 * safeDisturbanceCompensation,
+      derivative: safeLocalFeedbackGain / (1 + safeLocalFeedbackGain),
+      shapeBoost: 1 +
+        (safeLocalFeedbackGain / (1 + safeLocalFeedbackGain)) +
+        0.2 * safeDisturbanceCompensation,
+      causal: validValues,
+      finite: values.every((value) => value !== undefined),
+      nonNegative: [
+        safePrefilterGain,
+        safeForwardGain,
+        safeLocalFeedbackGain,
+        safeDisturbanceCompensation,
+      ].every((value) => value >= 0),
+      closedLoopStable: validValues && closedLoopStable(model, controllerNumerator, controllerDenominator),
+      validationErrors,
+    };
+  }
+
   return {
     effectiveGain: 0,
     proportional: 0,
@@ -193,6 +264,7 @@ function evaluateHardConstraints(
   const stable = controller.finite && controller.nonNegative && controller.closedLoopStable;
   const controlEnergyLimit = metricProfile.rankingMetrics.find((metric) => metric.id === 'controlEnergy')?.unacceptableValue ?? 24;
   const controlNotSaturated = (metrics.controlEnergy ?? Number.POSITIVE_INFINITY) <= controlEnergyLimit;
+  const controlConstraintPassed = !object.tags.includes('频域约束') || controlNotSaturated;
 
   return [
     {
@@ -216,8 +288,8 @@ function evaluateHardConstraints(
     {
       id: 'control_not_saturated',
       label: '控制量未严重饱和',
-      passed: !object.tags.includes('频域约束') || controlNotSaturated,
-      reason: controlNotSaturated ? undefined : `控制能量超过不可接受值 ${controlEnergyLimit}。`,
+      passed: controlConstraintPassed,
+      reason: controlConstraintPassed ? undefined : `控制能量超过不可接受值 ${controlEnergyLimit}。`,
     },
   ];
 }

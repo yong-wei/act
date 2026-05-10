@@ -29,6 +29,10 @@ export function ArenaSubmissionPanel({
   const [gain, setGain] = useState('2');
   const [zero, setZero] = useState('1');
   const [pole, setPole] = useState('4');
+  const [prefilterGain, setPrefilterGain] = useState('0.9');
+  const [forwardGain, setForwardGain] = useState('2.2');
+  const [localFeedbackGain, setLocalFeedbackGain] = useState('0.7');
+  const [disturbanceCompensation, setDisturbanceCompensation] = useState('0.4');
   const [status, setStatus] = useState<string | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
   const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
@@ -59,9 +63,18 @@ export function ArenaSubmissionPanel({
       artifact = buildControllerArtifactFromParams({
         task,
         method: controllerMethod,
-        values: controllerMethod === 'pid'
-          ? { kp, ki, kd }
-          : { gain, zero, pole },
+        values: controllerValues(controllerMethod, {
+          kp,
+          ki,
+          kd,
+          gain,
+          zero,
+          pole,
+          prefilterGain,
+          forwardGain,
+          localFeedbackGain,
+          disturbanceCompensation,
+        }),
       });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '控制器参数无效');
@@ -179,19 +192,33 @@ export function ArenaSubmissionPanel({
           </select>
         </label>
       ) : null}
-      {controllerMethod === 'pid' ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <NumberInput label="Kp" value={kp} onChange={setKp} />
-          <NumberInput label="Ki" value={ki} onChange={setKi} />
-          <NumberInput label="Kd" value={kd} onChange={setKd} />
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <NumberInput label="Gain" value={gain} onChange={setGain} />
-          <NumberInput label="Zero" value={zero} onChange={setZero} />
-          <NumberInput label="Pole" value={pole} onChange={setPole} />
-        </div>
-      )}
+      <ControllerParamInputs
+        method={controllerMethod}
+        values={{
+          kp,
+          ki,
+          kd,
+          gain,
+          zero,
+          pole,
+          prefilterGain,
+          forwardGain,
+          localFeedbackGain,
+          disturbanceCompensation,
+        }}
+        setters={{
+          setKp,
+          setKi,
+          setKd,
+          setGain,
+          setZero,
+          setPole,
+          setPrefilterGain,
+          setForwardGain,
+          setLocalFeedbackGain,
+          setDisturbanceCompensation,
+        }}
+      />
       <button
         type="button"
         onClick={submitController}
@@ -267,6 +294,93 @@ function formatLeaderboardValue(
     return `Tier ${entry.paretoTier}`;
   }
   return entry.score.toFixed(1);
+}
+
+interface ControllerInputValues {
+  kp: string;
+  ki: string;
+  kd: string;
+  gain: string;
+  zero: string;
+  pole: string;
+  prefilterGain: string;
+  forwardGain: string;
+  localFeedbackGain: string;
+  disturbanceCompensation: string;
+}
+
+interface ControllerInputSetters {
+  setKp: (value: string) => void;
+  setKi: (value: string) => void;
+  setKd: (value: string) => void;
+  setGain: (value: string) => void;
+  setZero: (value: string) => void;
+  setPole: (value: string) => void;
+  setPrefilterGain: (value: string) => void;
+  setForwardGain: (value: string) => void;
+  setLocalFeedbackGain: (value: string) => void;
+  setDisturbanceCompensation: (value: string) => void;
+}
+
+function controllerValues(
+  method: EvaluableControllerMethod,
+  values: ControllerInputValues,
+): Record<string, string> {
+  if (method === 'pid') {
+    return { kp: values.kp, ki: values.ki, kd: values.kd };
+  }
+  if (method === 'serial-compensator') {
+    return { gain: values.gain, zero: values.zero, pole: values.pole };
+  }
+  return {
+    prefilterGain: values.prefilterGain,
+    forwardGain: values.forwardGain,
+    localFeedbackGain: values.localFeedbackGain,
+    disturbanceCompensation: values.disturbanceCompensation,
+  };
+}
+
+function ControllerParamInputs({
+  method,
+  values,
+  setters,
+}: {
+  method: EvaluableControllerMethod;
+  values: ControllerInputValues;
+  setters: ControllerInputSetters;
+}) {
+  if (method === 'pid') {
+    return (
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <NumberInput label="Kp" value={values.kp} onChange={setters.setKp} />
+        <NumberInput label="Ki" value={values.ki} onChange={setters.setKi} />
+        <NumberInput label="Kd" value={values.kd} onChange={setters.setKd} />
+      </div>
+    );
+  }
+
+  if (method === 'serial-compensator') {
+    return (
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <NumberInput label="Gain" value={values.gain} onChange={setters.setGain} />
+        <NumberInput label="Zero" value={values.zero} onChange={setters.setZero} />
+        <NumberInput label="Pole" value={values.pole} onChange={setters.setPole} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 grid gap-3 sm:grid-cols-4">
+      <NumberInput label="Prefilter" value={values.prefilterGain} onChange={setters.setPrefilterGain} />
+      <NumberInput label="Forward" value={values.forwardGain} onChange={setters.setForwardGain} />
+      <NumberInput label="Local feedback" value={values.localFeedbackGain} onChange={setters.setLocalFeedbackGain} />
+      <NumberInput
+        label="Disturbance"
+        value={values.disturbanceCompensation}
+        onChange={setters.setDisturbanceCompensation}
+      />
+    </div>
+  );
 }
 
 function NumberInput({
