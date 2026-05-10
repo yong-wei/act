@@ -18,6 +18,7 @@ export interface AxisPreset {
 export const UNIT_37_LOW_FREQUENCY_BODE_CASE_ID = 'unit37_low_frequency_bode';
 export const CONTROL_CHART_MAIN_LINE_WIDTH = 2.4;
 export const CONTROL_CHART_AUXILIARY_LINE_WIDTH = 1.4;
+export const CONTROL_CHART_KEY_POINT_MARKER_SIZE = 15;
 
 const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>> = {
   ship_heading: {
@@ -167,7 +168,7 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
             name: 'ωc 截止频率',
             type: 'scatter',
             ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-              size: 10,
+              size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
               color: '#22d3ee',
             }),
             label: { show: true, formatter: `ωc ${formatFixed(gainCross)}`, position: 'top' },
@@ -179,7 +180,7 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
             name: 'ωg 穿越频率',
             type: 'scatter',
             ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-              size: 10,
+              size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
               color: '#f97316',
             }),
             label: { show: true, formatter: `GM ${formatFixed(gainMargin, ' dB')}`, position: 'bottom' },
@@ -208,7 +209,7 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
           name: 'PM 相角裕度',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-            size: 10,
+            size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
             color: '#22d3ee',
           }),
           label: { show: true, formatter: `PM ${formatFixed(phaseMargin, '°')}`, position: 'top' },
@@ -220,7 +221,7 @@ export function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | '
           name: 'ωg 穿越频率',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-            size: 10,
+            size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
             color: '#f97316',
           }),
           label: {

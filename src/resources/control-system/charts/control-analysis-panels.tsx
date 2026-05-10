@@ -24,6 +24,7 @@ import {
   buildBodePanelOption,
   buildMarginSeries,
   CONTROL_CHART_AUXILIARY_LINE_WIDTH,
+  CONTROL_CHART_KEY_POINT_MARKER_SIZE,
   CONTROL_CHART_MAIN_LINE_WIDTH,
   formatAxisValue,
   getControlAxisPreset,
@@ -719,7 +720,7 @@ export function buildRootLocusOption(
           name: '分离/会合点',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-            size: 15,
+            size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
             color: ROOT_LOCUS_STATIONARY_POINT_COLOR,
           }),
           data: rootLocus.stationaryPoints?.map((point) => [point.re, point.im, point.gain ?? null]) ?? [],
@@ -730,7 +731,7 @@ export function buildRootLocusOption(
           name: '虚轴交点',
           type: 'scatter',
           ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-            size: 15,
+            size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
             color: ROOT_LOCUS_CROSSING_POINT_COLOR,
             strokeColor: '#ffffff',
             strokeWidth: 1,
@@ -1016,8 +1017,12 @@ function buildNyquistMarginAnnotationSeries(result: ControlAnalysisResult): Char
   ];
 }
 
-export function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
-  const axisPreset = getControlAxisPreset(caseId, 'nyquist');
+export function buildNyquistOption(
+  result: ControlAnalysisResult,
+  caseId?: string,
+  axisPresetOverride?: AxisPreset,
+): EChartsCoreOption {
+  const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, 'nyquist');
   const positivePoints = result.nyquist.positivePoints ?? result.nyquist.points;
   const negativePoints = result.nyquist.negativePoints ?? [];
   const contourSeries = result.nyquist.segments?.length
@@ -1093,7 +1098,7 @@ export function buildNyquistOption(result: ControlAnalysisResult, caseId?: strin
               name: 'Nyquist 关键点',
               type: 'scatter',
               ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
-                size: 15,
+                size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
                 color: '#f59e0b',
                 strokeColor: '#ffffff',
                 strokeWidth: 1,
@@ -1285,10 +1290,28 @@ export function PhasePanel({ result, caseId }: { result: ControlAnalysisResult; 
 }
 
 export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
+  const axisPreset = getControlAxisPreset(caseId, 'nyquist');
   const chartRef = useRef<ECharts | null>(null);
   const panZoomCleanupRef = useRef<(() => void) | null>(null);
   const aspectFrameRef = useRef<number | null>(null);
-  const option = useMemo(() => buildNyquistOption(result, caseId), [caseId, result]);
+  const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const axisScopeKeyRef = useRef<string | null>(null);
+  const axisScopeKey = [
+    caseId ?? '',
+    axisPreset?.x[0] ?? '',
+    axisPreset?.x[1] ?? '',
+    axisPreset?.y[0] ?? '',
+    axisPreset?.y[1] ?? '',
+  ].join('|');
+  if (axisScopeKeyRef.current !== axisScopeKey) {
+    axisScopeKeyRef.current = axisScopeKey;
+    preservedRangeRef.current = null;
+  }
+  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
+  const option = useMemo(
+    () => buildNyquistOption(result, caseId, displayedAxisPreset),
+    [displayedAxisPreset, caseId, result],
+  );
   const scheduleNyquistEqualAspect = useCallback((chart: ECharts | null = chartRef.current) => {
     if (!chart || typeof window === 'undefined') {
       return;
@@ -1297,14 +1320,19 @@ export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult
       window.cancelAnimationFrame(aspectFrameRef.current);
     }
     aspectFrameRef.current = window.requestAnimationFrame(() => {
-      enforceEqualAspectOnChart(chart);
+      enforceEqualAspectOnChart(chart, () => {
+        preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+      });
       aspectFrameRef.current = null;
     });
   }, []);
   const handleChartReady = useCallback((chart: ECharts) => {
     chartRef.current = chart;
     panZoomCleanupRef.current?.();
-    panZoomCleanupRef.current = installCartesianPanZoom(chart);
+    const refreshRange = () => {
+      preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+    };
+    panZoomCleanupRef.current = installCartesianPanZoom(chart, refreshRange);
     scheduleNyquistEqualAspect(chart);
   }, [scheduleNyquistEqualAspect]);
 

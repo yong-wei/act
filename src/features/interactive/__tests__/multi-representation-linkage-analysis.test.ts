@@ -258,6 +258,23 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');
   });
 
+  it('keeps the previous visible chart result while a new analysis request is pending', () => {
+    const modelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/model.ts'),
+      'utf8',
+    );
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(modelSource).toContain('lastValidOpenLoopResultRef');
+    expect(modelSource).toContain('lastVisibleAnalysisResultRef');
+    expect(modelSource).toContain('visibleOpenLoopAnalysisResult');
+    expect(modelSource).toContain('visibleAnalysisResult');
+    expect(pageSource).not.toContain('{!result ?');
+  });
+
   it('keeps the parameter drawer as a non-modal floating side panel', () => {
     const pageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
@@ -271,6 +288,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('fixed bottom-36 right-6');
     expect(pageSource).not.toContain('参数抽屉</button>');
     expect(drawerSource).toContain('DialogPrimitive.Portal');
+    expect(drawerSource).toContain('overscroll-contain');
+    expect(drawerSource).toContain('onWheelCapture={(event) => containDrawerWheel(event, event.currentTarget)}');
+    expect(drawerSource).toContain("window.addEventListener('wheel', handleWheel, { passive: false, capture: true })");
     expect(drawerSource).not.toContain('DialogContent');
     expect(drawerSource).not.toContain('DialogOverlay');
   });

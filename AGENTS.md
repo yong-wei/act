@@ -200,13 +200,13 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
 <claude-mem-context>
 # Memory Context
 
-# [act.just.edu.cn] recent context, 2026-05-10 4:38pm GMT+8
+# [act.just.edu.cn] recent context, 2026-05-10 5:21pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (4,836t read) | 841,477t work | 99% savings
+Stats: 50 obs (4,965t read) | 744,757t work | 99% savings
 
 ### Apr 7, 2026
 S241 Created handout refinement skill with student-facing tone guidelines and course alignment (Apr 7 at 7:13 PM)
@@ -225,21 +225,6 @@ S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Au
 ### May 2, 2026
 S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:50 PM)
 ### May 10, 2026
-32509 12:25p ✅ 修改 T5S.md 标题文本
-32510 12:29p 🔄 调整 T5 章节绘图脚本布局与标签
-32511 " 🔄 细化 T5 绘图脚本信号连线与节点位置
-32512 3:20p ✅ 更新 T5.md 中的驱动电压变量表示
-32513 3:22p 🔄 调整 T5 生成图脚本的节点布局与信号方向
-32514 3:23p 🔄 在 T5 生成图脚本中引入 dtap 以分离实际扰动与负载扰动信号
-32515 3:25p 🔄 细化 T5 生成图脚本中节点坐标与信号连线
-32516 " 🔵 执行 T5 图形生成脚本成功生成多张示意图
-32517 3:28p ✅ 生成作业5图形资源
-32518 3:31p ✅ 作业5文档关键术语与约束表述更新
-32519 3:36p 🔵 读取 TikZ 控制绘图技能文档
-32520 3:42p ✅ 更新控制框图布局以匹配参考答案要求
-32521 " 🔵 读取调试技能文档
-32522 3:43p 🔵 检测到高风险代码改动
-32523 3:44p ✅ 根轨迹与 Nyquist 线宽及渲染策略统一调整
 32524 3:45p ⚖️ 作业边界与内容划分调整决策
 32525 " 🟣 新增根轨迹匹配函数测试
 32527 3:48p 🟣 参数抽屉改为无遮罩的 Radix Dialog 实现
@@ -275,6 +260,21 @@ S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lesson
 32557 4:19p 🔵 读取 TikZ 控制绘图技能说明
 32558 4:20p ✅ 新增 4-3 复合控制方框图 TeX 文件
 32559 4:26p ⚖️ TikZ模块布局约束策略制定
+32560 4:38p ⚖️ 制定 TikZ 模块布局与标注约束策略
+32561 4:42p 🔵 多表征联动可视化引擎相关任务与进展记录
+32562 4:44p 🔵 ControlEngine 状态与结果类型定义
+32563 4:48p 🔵 读取 control-charts.test.tsx 前45行源码
+32564 " ✅ 更新 control-charts.test.tsx 以使用统一关键点尺寸并新增视口保持测试
+32565 4:49p 🔵 读取 control-analysis-panels.tsx 前35行源码
+32566 4:50p ✅ 在 control-bode-options.ts 中统一关键点标记尺寸
+32567 4:51p 🔵 page-client.tsx 中的结果渲染逻辑
+32568 4:53p 🔵 确认图表实例保持不变且抽屉滚动不影响页面
+32569 4:56p 🔴 参数抽屉滚动隔离实现
+32570 4:57p 🔵 单元测试全部通过
+32571 4:58p 🔵 ESLint 检查通过
+32572 5:03p ✅ 参数抽屉滚动隔离实现
+32573 5:08p 🔴 参数抽屉滚轮事件隔离修复
+32574 5:13p 🔵 检测到未提交的修改文件
 
-Access 841k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 745k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

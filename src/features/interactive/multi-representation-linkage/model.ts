@@ -240,6 +240,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const idRef = useRef(100);
   const pairRef = useRef(100);
   const baseControllerRef = useRef<CruiseControllerParams>(initialController);
+  const lastValidOpenLoopResultRef = useRef<ControlAnalysisResult | null>(null);
+  const lastVisibleAnalysisResultRef = useRef<ControlAnalysisResult | null>(null);
 
   const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
   const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
@@ -262,23 +264,41 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const deferredClosedLoopSelectionRequest = useDeferredValue(closedLoopSelectionRequest);
   const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
   const closedLoopSelectionState = useControlEngine(deferredClosedLoopSelectionRequest);
-  const openLoopAnalysisResult = useMemo(
-    () => doesRootLocusMatchPoleZeroSet(openLoopAnalysisState.result, polesPayload, zerosPayload)
-      ? openLoopAnalysisState.result
-      : null,
+  const visibleOpenLoopAnalysisResult = useMemo(
+    () => {
+      if (doesRootLocusMatchPoleZeroSet(openLoopAnalysisState.result, polesPayload, zerosPayload)) {
+        lastValidOpenLoopResultRef.current = openLoopAnalysisState.result;
+        return openLoopAnalysisState.result;
+      }
+      return lastValidOpenLoopResultRef.current;
+    },
     [openLoopAnalysisState.result, polesPayload, zerosPayload],
   );
-  const analysisResult = useMemo(
-    () => mergeClosedLoopSelectionResult(openLoopAnalysisResult, closedLoopSelectionState.result, closedLoopGain),
-    [closedLoopGain, closedLoopSelectionState.result, openLoopAnalysisResult],
+  const mergedAnalysisResult = useMemo(
+    () => mergeClosedLoopSelectionResult(
+      visibleOpenLoopAnalysisResult,
+      closedLoopSelectionState.result,
+      closedLoopGain,
+    ),
+    [closedLoopGain, closedLoopSelectionState.result, visibleOpenLoopAnalysisResult],
+  );
+  const visibleAnalysisResult = useMemo(
+    () => {
+      if (mergedAnalysisResult) {
+        lastVisibleAnalysisResultRef.current = mergedAnalysisResult;
+        return mergedAnalysisResult;
+      }
+      return lastVisibleAnalysisResultRef.current;
+    },
+    [mergedAnalysisResult],
   );
   const analysisState = useMemo(
-    () => mergeAnalysisState(openLoopAnalysisState, closedLoopSelectionState, analysisResult),
-    [analysisResult, closedLoopSelectionState, openLoopAnalysisState],
+    () => mergeAnalysisState(openLoopAnalysisState, closedLoopSelectionState, visibleAnalysisResult),
+    [visibleAnalysisResult, closedLoopSelectionState, openLoopAnalysisState],
   );
   const adaptedAnalysis = useMemo(
-    () => (analysisResult ? adaptLinkageAnalysisResult(analysisResult) : null),
-    [analysisResult],
+    () => (visibleAnalysisResult ? adaptLinkageAnalysisResult(visibleAnalysisResult) : null),
+    [visibleAnalysisResult],
   );
 
   const addPoint = useCallback((type: 'pole' | 'zero', pair: boolean) => {
@@ -437,8 +457,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     showMargins,
     drawerOpen,
     analysisState,
-    analysisResult,
-    frequencyAnalysisResult: openLoopAnalysisResult,
+    analysisResult: visibleAnalysisResult,
+    frequencyAnalysisResult: visibleOpenLoopAnalysisResult,
     adaptedAnalysis,
     parameterSummary,
     setGain: setOpenLoopGain,

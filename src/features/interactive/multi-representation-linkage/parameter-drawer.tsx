@@ -2,6 +2,8 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useCallback, useEffect, useRef } from 'react';
+import type { WheelEvent as ReactWheelEvent } from 'react';
 
 import type { LinkageResponseType, PoleZeroPoint } from './model';
 
@@ -103,6 +105,20 @@ function PointRows({
   );
 }
 
+type DrawerWheelEvent = WheelEvent | ReactWheelEvent<HTMLDivElement>;
+
+function containDrawerWheel(event: DrawerWheelEvent, element: HTMLElement) {
+  const atTop = element.scrollTop <= 0;
+  const atBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
+  const scrollingPastTop = event.deltaY < 0 && atTop;
+  const scrollingPastBottom = event.deltaY > 0 && atBottom;
+
+  event.stopPropagation();
+  if (scrollingPastTop || scrollingPastBottom) {
+    event.preventDefault();
+  }
+}
+
 export function ParameterDrawer({
   open,
   onOpenChange,
@@ -122,10 +138,36 @@ export function ParameterDrawer({
   onRemoveZero,
   onReset,
 }: ParameterDrawerProps) {
+  const wheelCleanupRef = useRef<(() => void) | null>(null);
+
+  const setContentNode = useCallback((element: HTMLDivElement | null) => {
+    wheelCleanupRef.current?.();
+    wheelCleanupRef.current = null;
+    if (!element) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent) => {
+      if (event.target instanceof Node && element.contains(event.target)) {
+        containDrawerWheel(event, element);
+      }
+    };
+    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    wheelCleanupRef.current = () => window.removeEventListener('wheel', handleWheel, { capture: true });
+  }, []);
+
+  useEffect(() => () => {
+    wheelCleanupRef.current?.();
+    wheelCleanupRef.current = null;
+  }, []);
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Content className="fixed inset-y-0 right-0 left-auto top-0 z-50 grid h-dvh w-full max-w-none translate-x-0 translate-y-0 gap-4 overflow-y-auto rounded-none border-l border-border bg-background p-5 text-foreground shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none">
+        <DialogPrimitive.Content
+          ref={setContentNode}
+          className="fixed inset-y-0 right-0 left-auto top-0 z-50 grid h-dvh w-full max-w-none translate-x-0 translate-y-0 gap-4 overflow-y-auto overscroll-contain rounded-none border-l border-border bg-background p-5 text-foreground shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none"
+          onWheelCapture={(event) => containDrawerWheel(event, event.currentTarget)}
+        >
           <div className="flex items-center justify-between gap-4">
             <DialogPrimitive.Title className="premium-lesson-title text-lg">参数抽屉</DialogPrimitive.Title>
             <DialogPrimitive.Close className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:pointer-events-none">

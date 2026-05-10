@@ -8,6 +8,7 @@ import type { ControlAnalysisResult } from '@/resources/control-system/analysis/
 import {
   buildBodeComparisonOption,
   buildBodePanelOption,
+  CONTROL_CHART_KEY_POINT_MARKER_SIZE,
   getControlAxisPreset,
 } from '@/resources/control-system/charts/control-bode-options';
 import {
@@ -261,7 +262,12 @@ describe('control chart shared presets and themes', () => {
   it('builds linked Bode subplots with margin annotations on a shared frequency range', () => {
     const option = buildBodePanelOption(MARGIN_RESULT, LOW_FREQUENCY_CASE_ID);
     const xAxes = option.xAxis as Array<{ min?: number; max?: number }>;
-    const series = option.series as Array<{ name?: string; label?: { formatter?: string }; data?: unknown[] }>;
+    const series = option.series as Array<{
+      name?: string;
+      label?: { formatter?: string };
+      data?: unknown[];
+      symbolSize?: number;
+    }>;
 
     expect(option.axisPointer).toEqual({ link: [{ xAxisIndex: [0, 1] }] });
     expect(xAxes[0]).toMatchObject({ min: 1e-2, max: 1e2 });
@@ -269,6 +275,9 @@ describe('control chart shared presets and themes', () => {
     expect(series.some((item) => item.name === 'ωc 截止频率' && item.label?.formatter?.includes('ωc'))).toBe(true);
     expect(series.some((item) => item.name === 'PM 相角裕度' && item.label?.formatter?.includes('PM'))).toBe(true);
     expect(series.some((item) => item.name === 'ωg 穿越频率' && item.label?.formatter?.includes('GM'))).toBe(true);
+    expect(series.find((item) => item.name === 'ωc 截止频率')?.symbolSize).toBe(CONTROL_CHART_KEY_POINT_MARKER_SIZE);
+    expect(series.find((item) => item.name === 'PM 相角裕度')?.symbolSize).toBe(CONTROL_CHART_KEY_POINT_MARKER_SIZE);
+    expect(series.find((item) => item.name === 'ωg 穿越频率')?.symbolSize).toBe(CONTROL_CHART_KEY_POINT_MARKER_SIZE);
   });
 
   it('does not draw an invalid gain-margin point when GM is infinite', () => {
@@ -529,6 +538,26 @@ describe('control chart shared presets and themes', () => {
     expect(option.dataZoom).toBeUndefined();
   });
 
+  it('lets Nyquist options reuse a preserved viewport instead of resetting to the preset', () => {
+    const option = buildNyquistOption(MARGIN_RESULT, 'ship_heading', {
+      x: [-1.25, 0.35],
+      y: [-0.8, 0.8],
+    });
+    const xAxis = option.xAxis as { min?: number; max?: number };
+    const yAxis = option.yAxis as { min?: number; max?: number };
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(xAxis.min).toBe(-1.25);
+    expect(xAxis.max).toBe(0.35);
+    expect(yAxis.min).toBe(-0.8);
+    expect(yAxis.max).toBe(0.8);
+    expect(panelSource).toContain('const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;');
+    expect(panelSource).toContain('buildNyquistOption(result, caseId, displayedAxisPreset)');
+  });
+
   it('renders Nyquist criterion and margin geometry annotations together', () => {
     const option = buildNyquistOption({
       ...MARGIN_RESULT,
@@ -652,7 +681,7 @@ describe('control chart shared presets and themes', () => {
 
     expect(panelSource).toContain('const scheduleNyquistEqualAspect = useCallback');
     expect(panelSource).toContain('scheduleNyquistEqualAspect(chart);');
-    expect(panelSource).toContain('enforceEqualAspectOnChart(chart);');
+    expect(panelSource).toContain('enforceEqualAspectOnChart(chart, () => {');
   });
 
   it('does not synthesize a high-frequency Nyquist closure near the origin', () => {

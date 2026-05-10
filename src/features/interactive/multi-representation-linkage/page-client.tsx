@@ -81,11 +81,7 @@ export function MultiRepresentationLinkageClient({
         />
 
         <section className="mt-4">
-          {!result ? (
-            <div className="premium-lesson-tone-block premium-tone-rose text-sm">
-              控制分析图暂时不可用。
-            </div>
-          ) : (
+          {result ? (
             <div className="grid gap-4">
               <ControlPerformanceBar result={result} />
               <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
@@ -98,6 +94,10 @@ export function MultiRepresentationLinkageClient({
                 />
                 <NyquistPanel result={frequencyResult} />
               </div>
+            </div>
+          ) : (
+            <div className="premium-lesson-tone-block premium-tone-rose text-sm">
+              控制分析图暂时不可用。
             </div>
           )}
         </section>
