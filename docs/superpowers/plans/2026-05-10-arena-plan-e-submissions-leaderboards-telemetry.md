@@ -30,7 +30,7 @@
 - [x] Run `npm run lint`.
 - [x] Browser-check submission and leaderboard surfaces.
 - [x] Update this plan with verification results.
-- [ ] Commit and push only Plan E files.
+- [x] Commit and push only Plan E files.
 
 ## Verification Record
 
@@ -39,5 +39,5 @@
 - Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
 - Browser check: Playwright verified challenge detail page shows `提交与排行榜预览`, clicking `提交示例 PID` displays `最近得分` and a `#1` leaderboard row.
 - API check: after restarting `next dev`, `POST /api/arena/evaluate` returned HTTP 200 JSON with a submission and artifact hash.
-- Commit: Pending
-- Push: Pending
+- Commit: `f20638a2 feat: add arena submissions leaderboard`
+- Push: `rtk git push` -> pushed to `codex/interactive-course-production`.
