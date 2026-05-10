@@ -29,7 +29,7 @@
 - [x] Run `npm run lint`.
 - [x] Browser-check teacher page and student visibility path.
 - [x] Update this plan with verification results.
-- [ ] Commit and push only Plan F files.
+- [x] Commit and push only Plan F files.
 
 ## Verification Record
 
@@ -38,5 +38,5 @@
 - Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
 - Browser check: logged in with fixed teacher account `test_teacher`; Playwright verified `/teacher/arena` shows `竞技场挑战配置`, `作业评价边界`, and `作业评价不等同排行榜名次`; student challenge detail shows `可作为作业挑战`.
 - API check: `POST /api/teacher/arena/preview` returned HTTP 200 JSON with publication payload.
-- Commit: Pending
-- Push: Pending
+- Commit: `2c678431 feat: add arena teacher configuration`
+- Push: `rtk git push` -> pushed to `codex/interactive-course-production`.
