@@ -28,7 +28,7 @@
 - [x] Run targeted tests.
 - [x] Run `npm run lint`.
 - [x] Update this plan with verification results.
-- [ ] Commit and push only Plan B files plus necessary Plan A integration changes.
+- [x] Commit and push only Plan B files plus necessary Plan A integration changes.
 
 ## Verification Record
 
@@ -36,5 +36,5 @@
 - Red test evidence: after adding Vitest include, first targeted run failed with `Cannot find module '../data/seed-challenges'`.
 - Regression check: `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed.
 - Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
-- Commit: Pending
-- Push: Pending
+- Commit: `2db775e9 feat: add arena domain model`
+- Push: `rtk git push` -> pushed to `codex/interactive-course-production`.
