@@ -30,7 +30,7 @@ export function ControlChartPanel({
   fallback,
   isFallback = false,
   className = '',
-  chartClassName = 'h-[260px]',
+  chartClassName = 'h-[520px]',
 }: ControlChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);

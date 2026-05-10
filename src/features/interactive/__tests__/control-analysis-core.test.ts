@@ -39,6 +39,17 @@ describe('control analysis core foundation', () => {
     expect(source).toContain('isFallback');
   });
 
+  it('falls back to browser main-thread wasm compute when the control-analysis worker cannot answer', () => {
+    const hookSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/analysis/use-control-engine.ts'),
+      'utf8',
+    );
+
+    expect(hookSource).toContain('computeAnalysisOnMainThread');
+    expect(hookSource).toContain('mainThreadFallbackTimer');
+    expect(hookSource).toContain("import('../wasm/control_engine/index.js')");
+  });
+
   it('uses metric headers instead of subtitle copy and fixes chart formatting constraints in source', () => {
     const panelShell = readFileSync(
       join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
@@ -92,11 +103,28 @@ describe('control analysis core foundation', () => {
     expect(typeSource).toContain("mode?: 'full' | 'half';");
     expect(typeSource).toContain('positivePoints?: ComplexPoint[];');
     expect(typeSource).toContain('negativePoints?: ComplexPoint[];');
+    expect(typeSource).toContain('export interface NyquistSegment');
+    expect(typeSource).toContain('segments?: NyquistSegment[];');
     expect(typeSource).toContain('infinityClosure?: NyquistClosureSegment;');
     expect(typeSource).toContain('keyPoints?: NyquistKeyPoint[];');
     expect(typeSource).toContain('encirclements?: number;');
+    expect(typeSource).toContain('export interface NyquistCriterion');
+    expect(typeSource).toContain('criterion?: NyquistCriterion;');
     expect(typeSource).toContain('branches: RootLocusSamplePoint[][];');
     expect(typeSource).toContain('fullBranches?: RootLocusSamplePoint[][];');
+    expect(typeSource).toContain('export interface RootLocusEvent');
+    expect(typeSource).toContain('events?: RootLocusEvent[];');
+    expect(typeSource).toContain('branchStructure?: RootLocusBranchStructure;');
+    expect(typeSource).toContain('views?: RootLocusViews;');
+    expect(typeSource).toContain('suggestedInsets?: RootLocusView[];');
+    expect(typeSource).toContain("'near_zero'");
+    expect(typeSource).toContain('endpointType?:');
+    expect(typeSource).toContain('targetZeroIndex?: number;');
+    expect(typeSource).toContain('terminalDistance?: number;');
+    expect(typeSource).toContain('samplingParameter?:');
+    expect(typeSource).toContain('diagnostics?: RootLocusDiagnostics;');
+    expect(typeSource).toContain('finiteZeroCoverage: RootLocusFiniteZeroCoverage;');
+    expect(typeSource).toContain('assignmentWarnings: string[];');
     expect(typeSource).toContain('gains?: number[];');
     expect(typeSource).toContain('stationaryPoints?: RootLocusSamplePoint[];');
     expect(typeSource).toContain('realAxisSegments?: RealAxisSegment[];');

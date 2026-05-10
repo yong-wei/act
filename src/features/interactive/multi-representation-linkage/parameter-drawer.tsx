@@ -1,6 +1,7 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { X } from 'lucide-react';
 
 import type { LinkageResponseType, PoleZeroPoint } from './model';
 
@@ -122,40 +123,45 @@ export function ParameterDrawer({
   onReset,
 }: ParameterDrawerProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-y-0 right-0 left-auto top-0 h-dvh w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-none border-l border-border bg-background p-5 text-foreground data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none">
-        <DialogHeader>
-          <DialogTitle className="premium-lesson-title text-lg">参数抽屉</DialogTitle>
-        </DialogHeader>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Content className="fixed inset-y-0 right-0 left-auto top-0 z-50 grid h-dvh w-full max-w-none translate-x-0 translate-y-0 gap-4 overflow-y-auto rounded-none border-l border-border bg-background p-5 text-foreground shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none">
+          <div className="flex items-center justify-between gap-4">
+            <DialogPrimitive.Title className="premium-lesson-title text-lg">参数抽屉</DialogPrimitive.Title>
+            <DialogPrimitive.Close className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:pointer-events-none">
+              <X className="h-4 w-4" />
+              <span className="sr-only">关闭</span>
+            </DialogPrimitive.Close>
+          </div>
 
-        <div className="space-y-4">
-          <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
-            <div className="premium-lesson-title text-sm font-medium">联动参数</div>
-            <NumberInput label="增益 K（闭环极点联动）" value={gain} onChange={onGainChange} />
-            <label className="premium-lesson-caption block text-xs">
-              响应类型
-              <select
-                value={responseType}
-                onChange={(event) => onResponseTypeChange(event.target.value as LinkageResponseType)}
-                className="premium-lesson-select mt-1 w-full"
-              >
-                <option value="step">Step</option>
-                <option value="impulse">Impulse</option>
-                <option value="ramp">Ramp</option>
-              </select>
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={showMargins}
-                onChange={(event) => onShowMarginsChange(event.target.checked)}
-                className="h-4 w-4 rounded border-border bg-background"
-              />
-              显示裕度标注
-            </label>
-          </section>
+          <div className="space-y-4">
+            <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
+              <div className="premium-lesson-title text-sm font-medium">联动参数</div>
+              <NumberInput label="增益 K（闭环极点联动）" value={gain} onChange={onGainChange} />
+              <label className="premium-lesson-caption block text-xs">
+                响应类型
+                <select
+                  value={responseType}
+                  onChange={(event) => onResponseTypeChange(event.target.value as LinkageResponseType)}
+                  className="premium-lesson-select mt-1 w-full"
+                >
+                  <option value="step">Step</option>
+                  <option value="impulse">Impulse</option>
+                  <option value="ramp">Ramp</option>
+                </select>
+              </label>
+              <label className="inline-flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showMargins}
+                  onChange={(event) => onShowMarginsChange(event.target.checked)}
+                  className="h-4 w-4 rounded border-border bg-background"
+                />
+                显示裕度标注
+              </label>
+            </section>
 
-          <section className="grid grid-cols-2 gap-2">
+            <section className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => onAddPoint('pole', false)}
@@ -188,9 +194,9 @@ export function ParameterDrawer({
             >
               添加共轭零点对
             </button>
-          </section>
+            </section>
 
-          <PointRows
+            <PointRows
             title="开环极点"
             type="p"
             points={modelPoles}
@@ -198,7 +204,7 @@ export function ParameterDrawer({
             onUpdate={onUpdatePole}
             onRemove={onRemovePole}
           />
-          <PointRows
+            <PointRows
             title="开环零点"
             type="z"
             points={modelZeros}
@@ -207,11 +213,12 @@ export function ParameterDrawer({
             onRemove={onRemoveZero}
           />
 
-          <button type="button" onClick={onReset} className="premium-lesson-control w-full justify-center">
-            恢复默认
-          </button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <button type="button" onClick={onReset} className="premium-lesson-control w-full justify-center">
+              恢复默认
+            </button>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

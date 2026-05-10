@@ -226,6 +226,168 @@ struct RootLocusAsymptote {
     angle_deg: f64,
 }
 
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+enum RootLocusSegmentType {
+    RealAxisLocus,
+    Branch,
+    BranchCompletion,
+    NearZero,
+    AsymptoticTail,
+    Asymptote,
+}
+
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum RootLocusSegmentLineStyle {
+    Solid,
+    Dashed,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusSegmentPoint {
+    re: f64,
+    im: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    gain: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch_id: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sample_index: Option<usize>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusSegmentMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch_id: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    angle_deg: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_auxiliary: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    endpoint_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target_zero_index: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    terminal_distance: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sampling_parameter: Option<String>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusSegment {
+    #[serde(rename = "type")]
+    segment_type: RootLocusSegmentType,
+    line_style: RootLocusSegmentLineStyle,
+    points: Vec<RootLocusSegmentPoint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    metadata: Option<RootLocusSegmentMetadata>,
+}
+
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+enum RootLocusEventType {
+    OpenLoopPole,
+    OpenLoopZero,
+    Breakaway,
+    Reentry,
+    ImaginaryAxisCrossing,
+    InfinityEndpoint,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusEvent {
+    #[serde(rename = "type")]
+    event_type: RootLocusEventType,
+    point: ComplexPoint,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    gain: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch_id: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    label: Option<String>,
+}
+
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+enum RootLocusStructuredSegmentType {
+    NearPole,
+    Regular,
+    NearBreak,
+    NearZero,
+    AsymptoticTail,
+    Asymptote,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusStructuredSegment {
+    id: String,
+    #[serde(rename = "type")]
+    segment_type: RootLocusStructuredSegmentType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch_id: Option<usize>,
+    points: Vec<RootLocusSegmentPoint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_auxiliary: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusBranchDescriptor {
+    id: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    start_event_type: Option<RootLocusEventType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    end_event_type: Option<RootLocusEventType>,
+    segment_ids: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusBranchStructure {
+    branches: Vec<RootLocusBranchDescriptor>,
+    segments: Vec<RootLocusStructuredSegment>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusView {
+    x: [f64; 2],
+    y: [f64; 2],
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    include_segment_types: Vec<RootLocusStructuredSegmentType>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    exclude_segment_types: Vec<RootLocusStructuredSegmentType>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusViews {
+    feature: RootLocusView,
+    full: RootLocusView,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusFiniteZeroCoverage {
+    matched_count: usize,
+    total_count: usize,
+    max_terminal_distance: f64,
+    all_matched_within_tolerance: bool,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusDiagnostics {
+    finite_zero_coverage: RootLocusFiniteZeroCoverage,
+    assignment_warnings: Vec<String>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RootLocusAngle {
@@ -264,7 +426,41 @@ struct BodeAxisData {
 #[serde(rename_all = "camelCase")]
 struct NyquistClosureSegment {
     points: Vec<ComplexPoint>,
+    segments: Vec<Vec<ComplexPoint>>,
     line_style: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct NyquistSegmentMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pole_location: Option<ComplexPoint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pole_order: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    frequency_interval: Option<[f64; 2]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameter_range: Option<[f64; 2]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    layer_index: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_auxiliary: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    collapsed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    branch: Option<String>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct NyquistSegment {
+    #[serde(rename = "type")]
+    segment_type: String,
+    points: Vec<ComplexPoint>,
+    direction: String,
+    line_style: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    metadata: Option<NyquistSegmentMetadata>,
 }
 
 #[derive(Debug, Serialize)]
@@ -291,16 +487,37 @@ struct NyquistData {
     points: Vec<ComplexPoint>,
     positive_points: Vec<ComplexPoint>,
     negative_points: Vec<ComplexPoint>,
+    segments: Vec<NyquistSegment>,
     infinity_closure: NyquistClosureSegment,
     key_points: Vec<NyquistKeyPoint>,
     asymptotes: Vec<NyquistAsymptote>,
     encirclements: f64,
+    criterion: NyquistCriterion,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NyquistCriterion {
+    n: i64,
+    p: usize,
+    z: usize,
+    relation: String,
+    is_consistent: bool,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RootLocusData {
     branches: Vec<Vec<RootLocusSamplePoint>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    segments: Vec<RootLocusSegment>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    events: Vec<RootLocusEvent>,
+    branch_structure: RootLocusBranchStructure,
+    views: RootLocusViews,
+    diagnostics: RootLocusDiagnostics,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    suggested_insets: Vec<RootLocusView>,
     gains: Vec<f64>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     real_axis_segments: Vec<RealAxisSegment>,
@@ -725,13 +942,18 @@ fn build_loop_tf(request: &ControlAnalysisRequest) -> TransferFunction {
         })
 }
 
-fn extract_primary_gain(structures: &[StructureSpec], fallback: f64) -> f64 {
-    structures
+fn build_root_locus_tf(request: &ControlAnalysisRequest) -> TransferFunction {
+    let plant = normalize_tf(TransferFunction {
+        numerator: request.plant.numerator.clone(),
+        denominator: request.plant.denominator.clone(),
+    });
+    request
+        .structures
         .iter()
-        .find(|item| item.enabled && item.kind == "gain")
-        .and_then(|item| item.params.get("k"))
-        .copied()
-        .unwrap_or(fallback)
+        .filter(|item| item.enabled && item.kind != "gain")
+        .fold(plant, |acc, structure| {
+            tf_mul(&acc, &tf_from_structure(structure))
+        })
 }
 
 fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
@@ -1052,14 +1274,35 @@ fn step_response(
     (points, metrics)
 }
 
+fn default_control_metrics() -> ControlMetrics {
+    ControlMetrics {
+        overshoot_pct: 0.0,
+        rise_time_sec: None,
+        settling_time_sec: None,
+        peak_time_sec: None,
+        final_value: 0.0,
+        phase_margin_deg: None,
+        gain_margin_db: None,
+        gain_crossover_rad_per_sec: None,
+        phase_crossover_rad_per_sec: None,
+        bandwidth_rad_per_sec: None,
+    }
+}
+
+fn output_requested(request: &ControlAnalysisRequest, keys: &[&str]) -> bool {
+    request.outputs.is_empty()
+        || keys
+            .iter()
+            .any(|key| request.outputs.iter().any(|output| output == key))
+}
+
 #[derive(Debug, Clone)]
 struct NyquistFrequencySample {
     omega: f64,
     value: Complex64,
 }
 
-fn eval_transfer_function(loop_tf: &TransferFunction, omega: f64) -> Complex64 {
-    let s = Complex64::new(0.0, omega);
+fn eval_transfer_function_at(loop_tf: &TransferFunction, s: Complex64) -> Complex64 {
     let denominator = eval_poly_complex(&loop_tf.denominator, s);
     if denominator.norm() < 1e-18 {
         let numerator = eval_poly_complex(&loop_tf.numerator, s);
@@ -1067,6 +1310,10 @@ fn eval_transfer_function(loop_tf: &TransferFunction, omega: f64) -> Complex64 {
         return Complex64::from_polar(1e12, angle);
     }
     eval_poly_complex(&loop_tf.numerator, s) / denominator
+}
+
+fn eval_transfer_function(loop_tf: &TransferFunction, omega: f64) -> Complex64 {
+    eval_transfer_function_at(loop_tf, Complex64::new(0.0, omega))
 }
 
 fn is_finite_complex(value: Complex64) -> bool {
@@ -1214,6 +1461,48 @@ fn nyquist_frequency_samples(
     samples
 }
 
+fn interpolate_nyquist_display_start(
+    left: &NyquistFrequencySample,
+    right: &NyquistFrequencySample,
+    target_radius: f64,
+) -> NyquistFrequencySample {
+    let left_radius = left.value.norm();
+    let right_radius = right.value.norm();
+    let denominator = (left_radius - right_radius).abs().max(1e-12);
+    let ratio = ((left_radius - target_radius) / denominator).clamp(0.0, 1.0);
+    let omega = left.omega * (right.omega / left.omega).powf(ratio);
+    let value = left.value + (right.value - left.value) * ratio;
+    NyquistFrequencySample { omega, value }
+}
+
+fn nyquist_display_samples(
+    loop_tf: &TransferFunction,
+    samples: &[NyquistFrequencySample],
+) -> Vec<NyquistFrequencySample> {
+    const DISPLAY_START_RADIUS: f64 = 2.0;
+    if low_frequency_infinity_order(loop_tf) == 0 || samples.len() < 2 {
+        return samples.to_vec();
+    }
+    let Some(first_visible_index) = samples
+        .iter()
+        .position(|sample| sample.value.norm() <= DISPLAY_START_RADIUS)
+    else {
+        return samples.to_vec();
+    };
+    if first_visible_index == 0 {
+        return samples.to_vec();
+    }
+
+    let mut display = Vec::with_capacity(samples.len() - first_visible_index + 1);
+    display.push(interpolate_nyquist_display_start(
+        &samples[first_visible_index - 1],
+        &samples[first_visible_index],
+        DISPLAY_START_RADIUS,
+    ));
+    display.extend(samples[first_visible_index..].iter().cloned());
+    display
+}
+
 fn interpolate_nyquist_sample(
     left: &NyquistFrequencySample,
     right: &NyquistFrequencySample,
@@ -1339,6 +1628,127 @@ fn nyquist_asymptotes(loop_tf: &TransferFunction) -> Vec<NyquistAsymptote> {
     asymptotes
 }
 
+fn low_frequency_infinity_order(loop_tf: &TransferFunction) -> usize {
+    let numerator_origin_order = trailing_zero_order(&loop_tf.numerator);
+    let denominator_origin_order = trailing_zero_order(&loop_tf.denominator);
+    denominator_origin_order.saturating_sub(numerator_origin_order)
+}
+
+fn mapped_origin_indent_segment(
+    loop_tf: &TransferFunction,
+    rho: f64,
+    positive_points: &[ComplexPoint],
+    negative_points: &[ComplexPoint],
+) -> Option<NyquistSegment> {
+    let pole_order = low_frequency_infinity_order(loop_tf);
+    if pole_order == 0 || !rho.is_finite() || rho <= 0.0 {
+        return None;
+    }
+
+    let Some(positive_start) = positive_points.first().cloned() else {
+        return None;
+    };
+    let Some(negative_end) = negative_points.last().cloned() else {
+        return None;
+    };
+
+    let start_angle = -std::f64::consts::FRAC_PI_2;
+    let end_angle = std::f64::consts::FRAC_PI_2;
+    let sample_count = (48 * pole_order).max(48);
+    let mut points = Vec::with_capacity(sample_count + 1);
+    for index in 0..=sample_count {
+        let ratio = index as f64 / sample_count as f64;
+        let theta = start_angle + (end_angle - start_angle) * ratio;
+        let s = Complex64::from_polar(rho, theta);
+        points.push(complex_to_point(eval_transfer_function_at(loop_tf, s)));
+    }
+    if points.len() > 1 {
+        if let Some(first) = points.first_mut() {
+            *first = negative_end;
+        }
+        if let Some(last) = points.last_mut() {
+            *last = positive_start;
+        }
+    }
+
+    Some(NyquistSegment {
+        segment_type: "infinity_arc".to_string(),
+        points,
+        direction: "contour_indent_right_half_plane".to_string(),
+        line_style: "dashed".to_string(),
+        metadata: Some(NyquistSegmentMetadata {
+            pole_location: Some(ComplexPoint { re: 0.0, im: 0.0 }),
+            pole_order: Some(pole_order),
+            frequency_interval: Some([-rho, rho]),
+            parameter_range: Some([start_angle, end_angle]),
+            layer_index: Some(0),
+            is_auxiliary: Some(true),
+            collapsed: None,
+            branch: None,
+        }),
+    })
+}
+
+fn nyquist_contour_segments(
+    loop_tf: &TransferFunction,
+    samples: &[NyquistFrequencySample],
+    positive_points: &[ComplexPoint],
+    negative_points: &[ComplexPoint],
+    mode: NyquistPlotMode,
+) -> Vec<NyquistSegment> {
+    let mut segments = Vec::new();
+    let min_omega = samples.first().map(|sample| sample.omega).unwrap_or(0.0);
+    let max_omega = samples.last().map(|sample| sample.omega).unwrap_or(0.0);
+
+    if mode == NyquistPlotMode::Full && !negative_points.is_empty() {
+        segments.push(NyquistSegment {
+            segment_type: "regular_negative".to_string(),
+            points: negative_points.to_vec(),
+            direction: "negative_frequency".to_string(),
+            line_style: "solid".to_string(),
+            metadata: Some(NyquistSegmentMetadata {
+                pole_location: None,
+                pole_order: None,
+                frequency_interval: Some([-max_omega, -min_omega]),
+                parameter_range: None,
+                layer_index: None,
+                is_auxiliary: Some(false),
+                collapsed: None,
+                branch: Some("negative".to_string()),
+            }),
+        });
+    }
+
+    if mode == NyquistPlotMode::Full {
+        if let Some(segment) =
+            mapped_origin_indent_segment(loop_tf, min_omega, positive_points, negative_points)
+        {
+            segments.push(segment);
+        }
+    }
+
+    if !positive_points.is_empty() {
+        segments.push(NyquistSegment {
+            segment_type: "regular_positive".to_string(),
+            points: positive_points.to_vec(),
+            direction: "positive_frequency".to_string(),
+            line_style: "solid".to_string(),
+            metadata: Some(NyquistSegmentMetadata {
+                pole_location: None,
+                pole_order: None,
+                frequency_interval: Some([min_omega, max_omega]),
+                parameter_range: None,
+                layer_index: None,
+                is_auxiliary: Some(false),
+                collapsed: None,
+                branch: Some("positive".to_string()),
+            }),
+        });
+    }
+
+    segments
+}
+
 fn winding_number(points: &[ComplexPoint], critical: Complex64) -> f64 {
     if points.len() < 2 {
         return 0.0;
@@ -1362,12 +1772,32 @@ fn winding_number(points: &[ComplexPoint], critical: Complex64) -> f64 {
     (total / (2.0 * std::f64::consts::PI)).round()
 }
 
+fn count_right_half_plane_roots(coeffs: &[f64]) -> usize {
+    durand_kerner(coeffs)
+        .iter()
+        .filter(|root| root.re > 1e-7)
+        .count()
+}
+
+fn build_nyquist_criterion(loop_tf: &TransferFunction, clockwise_n: i64) -> NyquistCriterion {
+    let p = count_right_half_plane_roots(&loop_tf.denominator);
+    let z = count_right_half_plane_roots(&poly_add(&loop_tf.denominator, &loop_tf.numerator));
+    NyquistCriterion {
+        n: clockwise_n,
+        p,
+        z,
+        relation: "Z = P + N".to_string(),
+        is_consistent: z as i64 == p as i64 + clockwise_n,
+    }
+}
+
 fn build_nyquist_data(
     loop_tf: &TransferFunction,
-    samples: &[NyquistFrequencySample],
+    display_samples: &[NyquistFrequencySample],
+    full_samples: &[NyquistFrequencySample],
     mode: NyquistPlotMode,
 ) -> NyquistData {
-    let positive_points: Vec<ComplexPoint> = samples
+    let positive_points: Vec<ComplexPoint> = display_samples
         .iter()
         .map(|sample| complex_to_point(sample.value))
         .collect();
@@ -1390,42 +1820,60 @@ fn build_nyquist_data(
     } else {
         positive_points.clone()
     };
-    let infinity_closure = if mode == NyquistPlotMode::Full {
-        match (positive_points.last(), negative_points.first()) {
-            (Some(start), Some(end)) => NyquistClosureSegment {
-                points: vec![start.clone(), end.clone()],
-                line_style: "dashed".to_string(),
-            },
-            _ => NyquistClosureSegment {
-                points: Vec::new(),
-                line_style: "dashed".to_string(),
-            },
-        }
-    } else {
-        NyquistClosureSegment {
-            points: Vec::new(),
-            line_style: "dashed".to_string(),
-        }
+    let segments = nyquist_contour_segments(loop_tf, display_samples, &positive_points, &negative_points, mode);
+    let closure_segments: Vec<Vec<ComplexPoint>> = segments
+        .iter()
+        .filter(|segment| segment.segment_type == "infinity_arc")
+        .map(|segment| segment.points.clone())
+        .collect();
+    let infinity_closure = NyquistClosureSegment {
+        points: closure_segments.iter().flatten().cloned().collect(),
+        segments: closure_segments,
+        line_style: "dashed".to_string(),
     };
-    let mut contour_points = negative_points.clone();
-    contour_points.extend(positive_points.clone());
+    let mut contour_points: Vec<ComplexPoint> = if mode == NyquistPlotMode::Full {
+        let full_positive_points: Vec<ComplexPoint> = full_samples
+            .iter()
+            .map(|sample| complex_to_point(sample.value))
+            .collect();
+        let full_negative_points: Vec<ComplexPoint> = full_positive_points
+            .iter()
+            .rev()
+            .map(|point| ComplexPoint {
+                re: point.re,
+                im: -point.im,
+            })
+            .collect();
+        nyquist_contour_segments(loop_tf, full_samples, &full_positive_points, &full_negative_points, mode)
+            .iter()
+            .flat_map(|segment| segment.points.iter().cloned())
+            .collect()
+    } else {
+        positive_points.clone()
+    };
     if let Some(start) = contour_points.first().cloned() {
         contour_points.push(start);
     }
+
+    let clockwise_n = if mode == NyquistPlotMode::Full {
+        -winding_number(&contour_points, Complex64::new(-1.0, 0.0)) as i64
+    } else {
+        let p = count_right_half_plane_roots(&loop_tf.denominator) as i64;
+        let z = count_right_half_plane_roots(&poly_add(&loop_tf.denominator, &loop_tf.numerator)) as i64;
+        z - p
+    };
 
     NyquistData {
         mode,
         points,
         positive_points,
         negative_points,
+        segments,
         infinity_closure,
-        key_points: nyquist_key_points(samples),
+        key_points: nyquist_key_points(full_samples),
         asymptotes: nyquist_asymptotes(loop_tf),
-        encirclements: if mode == NyquistPlotMode::Full {
-            winding_number(&contour_points, Complex64::new(-1.0, 0.0))
-        } else {
-            0.0
-        },
+        encirclements: clockwise_n as f64,
+        criterion: build_nyquist_criterion(loop_tf, clockwise_n),
     }
 }
 
@@ -1442,6 +1890,7 @@ fn frequency_response(
         .and_then(|item| item.sampling_mode)
         .unwrap_or(SamplingMode::Adaptive);
     let samples = nyquist_frequency_samples(&loop_tf, config, sampling_mode);
+    let display_samples = nyquist_display_samples(&loop_tf, &samples);
     let mut magnitude = Vec::with_capacity(samples.len());
     let mut phase = Vec::with_capacity(samples.len());
     let mut last_phase: Option<f64> = None;
@@ -1473,7 +1922,7 @@ fn frequency_response(
             y: phase_deg,
         });
     }
-    let nyquist = build_nyquist_data(&loop_tf, &samples, mode);
+    let nyquist = build_nyquist_data(&loop_tf, &display_samples, &samples, mode);
     (magnitude, phase, nyquist)
 }
 
@@ -1653,6 +2102,8 @@ fn best_root_assignment(previous: &[Complex64], current: &[Complex64]) -> Vec<Co
         return ordered;
     }
 
+    let mut current = current.to_vec();
+    sort_complex_points(&mut current);
     let mut best_cost = f64::INFINITY;
     let mut best_order = Vec::with_capacity(current.len());
     let mut used = vec![false; current.len()];
@@ -1705,7 +2156,7 @@ fn best_root_assignment(previous: &[Complex64], current: &[Complex64]) -> Vec<Co
     search(
         0,
         previous,
-        current,
+        &current,
         &mut used,
         &mut trial,
         0.0,
@@ -1769,16 +2220,21 @@ fn min_pairwise_distance(roots: &[Complex64]) -> f64 {
 
 fn should_refine_root_segment(
     left: &RootLocusSample,
+    midpoint: &RootLocusSample,
     right: &RootLocusSample,
     depth: usize,
     max_depth: usize,
 ) -> bool {
-    if depth >= max_depth || left.roots.len() != right.roots.len() {
+    if depth >= max_depth
+        || left.roots.len() != midpoint.roots.len()
+        || left.roots.len() != right.roots.len()
+    {
         return false;
     }
     let scale = left
         .roots
         .iter()
+        .chain(midpoint.roots.iter())
         .chain(right.roots.iter())
         .map(|root| root.norm())
         .fold(1.0_f64, f64::max);
@@ -1788,9 +2244,23 @@ fn should_refine_root_segment(
         .zip(right.roots.iter())
         .map(|(lhs, rhs)| (*lhs - *rhs).norm())
         .fold(0.0_f64, f64::max);
-    let min_spacing = min_pairwise_distance(&left.roots).min(min_pairwise_distance(&right.roots));
+    let max_chord_error = left
+        .roots
+        .iter()
+        .zip(midpoint.roots.iter())
+        .zip(right.roots.iter())
+        .map(|((lhs, mid), rhs)| {
+            let chord_midpoint = (*lhs + *rhs) * 0.5;
+            (*mid - chord_midpoint).norm()
+        })
+        .fold(0.0_f64, f64::max);
+    let min_spacing = min_pairwise_distance(&left.roots)
+        .min(min_pairwise_distance(&midpoint.roots))
+        .min(min_pairwise_distance(&right.roots));
 
-    max_delta > 0.12 * scale || (min_spacing < 0.03 * scale && max_delta > 0.01 * scale)
+    max_delta > 0.12 * scale
+        || max_chord_error > 0.0015 * scale
+        || (min_spacing < 0.1 * scale && max_delta > 0.0005 * scale)
 }
 
 fn append_root_locus_segment(
@@ -1807,12 +2277,13 @@ fn append_root_locus_segment(
         output.push(right);
         return;
     }
-    if should_refine_root_segment(left, &right, depth, max_depth) {
-        let mid_gain = 0.5 * (left.gain + right.gain);
-        if (mid_gain - left.gain).abs() < 1e-9 || (right.gain - mid_gain).abs() < 1e-9 {
-            output.push(right);
-            return;
-        }
+    let mid_gain = 0.5 * (left.gain + right.gain);
+    if (mid_gain - left.gain).abs() < 1e-9 || (right.gain - mid_gain).abs() < 1e-9 {
+        output.push(right);
+        return;
+    }
+    let midpoint = sample_root_locus(loop_tf, mid_gain, Some(&left.roots));
+    if should_refine_root_segment(left, &midpoint, &right, depth, max_depth) {
         append_root_locus_segment(
             loop_tf,
             left,
@@ -1995,12 +2466,37 @@ fn root_locus_gain_sequence(
             );
             gains.extend(linspace(min_gain, max_gain, config.samples.max(30)));
             gains.push(config.current_gain);
-            gains.extend(
-                stationary
+            let span = (max_gain - min_gain).max(1e-9);
+            let base_step = span / config.samples.max(30) as f64;
+            for stationary_point in stationary {
+                let center = stationary_point.gain;
+                if center < min_gain - 1e-9 || center > max_gain + 1e-9 {
+                    continue;
+                }
+                let nearest_stationary_gap = stationary
                     .iter()
-                    .map(|point| point.gain)
-                    .filter(|gain| *gain >= min_gain - 1e-9 && *gain <= max_gain + 1e-9),
-            );
+                    .map(|point| (point.gain - center).abs())
+                    .filter(|gap| *gap > 1e-9)
+                    .fold(f64::INFINITY, f64::min);
+                let separation_limit = if nearest_stationary_gap.is_finite() {
+                    nearest_stationary_gap * 0.35
+                } else {
+                    span
+                };
+                let window = (base_step * 0.9)
+                    .min(span * 0.08)
+                    .min(separation_limit)
+                    .max(base_step * 0.2)
+                    .max(center.abs() * 0.02)
+                    .min(span);
+                for ratio in [
+                    -1.0, -0.75, -0.5, -0.375, -0.25, -0.1875, -0.125, -0.0625, -0.03125,
+                    -0.015625, 0.0, 0.015625, 0.03125, 0.0625, 0.125, 0.1875, 0.25, 0.375,
+                    0.5, 0.75, 1.0,
+                ] {
+                    gains.push((center + window * ratio).clamp(min_gain, max_gain));
+                }
+            }
         }
     }
     sorted_unique_gains(gains)
@@ -2180,6 +2676,834 @@ fn imaginary_axis_crossings(branches: &[Vec<RootLocusSamplePoint>]) -> Vec<RootL
     crossings
 }
 
+fn root_locus_segment_point(
+    re: f64,
+    im: f64,
+    gain: Option<f64>,
+    branch_id: Option<usize>,
+    sample_index: Option<usize>,
+) -> RootLocusSegmentPoint {
+    RootLocusSegmentPoint {
+        re,
+        im,
+        gain,
+        branch_id,
+        sample_index,
+    }
+}
+
+fn root_locus_plot_extent(
+    branches: &[Vec<RootLocusSamplePoint>],
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+    centroid: Option<f64>,
+) -> f64 {
+    let mut extent = centroid.map(f64::abs).unwrap_or(1.0).max(1.0);
+    for point in open_loop_poles.iter().chain(open_loop_zeros.iter()) {
+        extent = extent.max(point.re.abs()).max(point.im.abs());
+    }
+    for point in branches.iter().flatten() {
+        extent = extent.max(point.re.abs()).max(point.im.abs());
+    }
+    extent.max(1.0) * 1.35
+}
+
+fn root_locus_real_axis_segments(
+    real_axis_segments: &[RealAxisSegment],
+    extent: f64,
+) -> Vec<RootLocusSegment> {
+    real_axis_segments
+        .iter()
+        .map(|segment| {
+            let start = segment.start.unwrap_or(-extent);
+            let end = segment.end.unwrap_or(extent);
+            RootLocusSegment {
+                segment_type: RootLocusSegmentType::RealAxisLocus,
+                line_style: RootLocusSegmentLineStyle::Solid,
+                points: vec![
+                    root_locus_segment_point(start, 0.0, None, None, None),
+                    root_locus_segment_point(end, 0.0, None, None, None),
+                ],
+                metadata: None,
+            }
+        })
+        .collect()
+}
+
+fn root_locus_branch_segments(branches: &[Vec<RootLocusSamplePoint>]) -> Vec<RootLocusSegment> {
+    branches
+        .iter()
+        .enumerate()
+        .filter(|(_, branch)| branch.len() > 1)
+        .map(|(branch_id, branch)| RootLocusSegment {
+            segment_type: RootLocusSegmentType::Branch,
+            line_style: RootLocusSegmentLineStyle::Solid,
+            points: branch
+                .iter()
+                .map(|point| {
+                    root_locus_segment_point(
+                        point.re,
+                        point.im,
+                        Some(point.gain),
+                        point.branch_id,
+                        point.sample_index,
+                    )
+                })
+                .collect(),
+            metadata: Some(RootLocusSegmentMetadata {
+                branch_id: Some(branch_id),
+                angle_deg: None,
+                is_auxiliary: None,
+                endpoint_type: None,
+                target_zero_index: None,
+                terminal_distance: None,
+                sampling_parameter: None,
+            }),
+        })
+        .collect()
+}
+
+fn root_locus_completion_segments(
+    branches: &[Vec<RootLocusSamplePoint>],
+    open_loop_zeros: &[Complex64],
+) -> Vec<RootLocusSegment> {
+    let mut segments = Vec::new();
+    let mut used_branches = vec![false; branches.len()];
+    let finite_zeros: Vec<Complex64> = open_loop_zeros.to_vec();
+
+    for zero in finite_zeros {
+        let mut best_branch_index = None;
+        let mut best_distance = f64::INFINITY;
+        for (branch_index, branch) in branches.iter().enumerate() {
+            if used_branches[branch_index] || branch.is_empty() {
+                continue;
+            }
+            if let Some(endpoint) = branch.last() {
+                let distance = (Complex64::new(endpoint.re, endpoint.im) - zero).norm();
+                if distance < best_distance {
+                    best_distance = distance;
+                    best_branch_index = Some(branch_index);
+                }
+            }
+        }
+
+        let Some(branch_index) = best_branch_index else {
+            continue;
+        };
+        if best_distance <= 1e-6 {
+            used_branches[branch_index] = true;
+            continue;
+        }
+        let Some(endpoint) = branches[branch_index].last() else {
+            continue;
+        };
+        let scale = zero.norm().max(Complex64::new(endpoint.re, endpoint.im).norm()).max(1.0);
+        if best_distance > 0.08 * scale {
+            continue;
+        }
+        segments.push(RootLocusSegment {
+            segment_type: RootLocusSegmentType::BranchCompletion,
+            line_style: RootLocusSegmentLineStyle::Solid,
+            points: vec![
+                root_locus_segment_point(
+                    endpoint.re,
+                    endpoint.im,
+                    Some(endpoint.gain),
+                    endpoint.branch_id,
+                    endpoint.sample_index,
+                ),
+                root_locus_segment_point(zero.re, zero.im, None, Some(branch_index), None),
+            ],
+            metadata: Some(RootLocusSegmentMetadata {
+                branch_id: Some(branch_index),
+                angle_deg: None,
+                is_auxiliary: None,
+                endpoint_type: Some("finite_zero".to_string()),
+                target_zero_index: None,
+                terminal_distance: Some(best_distance),
+                sampling_parameter: Some("gain".to_string()),
+            }),
+        });
+        used_branches[branch_index] = true;
+    }
+
+    segments
+}
+
+#[derive(Debug, Clone)]
+struct RootLocusZeroAssignment {
+    branch_index: usize,
+    zero_index: usize,
+}
+
+#[derive(Debug, Clone)]
+struct RootLocusNearZeroPlan {
+    segments: Vec<RootLocusSegment>,
+    assignments: Vec<RootLocusZeroAssignment>,
+    diagnostics: RootLocusDiagnostics,
+}
+
+fn near_zero_roots(loop_tf: &TransferFunction, mu: f64, previous: Option<&[Complex64]>) -> Vec<Complex64> {
+    let scaled_denominator: Vec<f64> = loop_tf.denominator.iter().map(|value| value * mu).collect();
+    let roots = durand_kerner(&poly_add(&loop_tf.numerator, &scaled_denominator));
+    previous
+        .map(|reference| best_root_assignment(reference, &roots))
+        .unwrap_or_else(|| {
+            let mut ordered = roots;
+            sort_complex_points(&mut ordered);
+            ordered
+        })
+}
+
+fn root_locus_mu_sequence(config: &RootLocusConfig) -> Vec<f64> {
+    let terminal_gain = config.max_gain.max(config.current_gain).max(config.min_gain).max(1e-6);
+    let start_mu = 1.0 / terminal_gain;
+    let end_mu = (start_mu * 1e-10).max(1e-14);
+    let samples = 18usize;
+    (0..samples)
+        .map(|index| {
+            let progress = index as f64 / (samples - 1) as f64;
+            start_mu * (end_mu / start_mu).powf(progress)
+        })
+        .collect()
+}
+
+fn assign_branches_to_finite_zeros(
+    branch_tracks: &[Vec<Complex64>],
+    open_loop_zeros: &[Complex64],
+) -> (Vec<RootLocusZeroAssignment>, Vec<String>) {
+    let mut candidates = Vec::new();
+    for (branch_index, track) in branch_tracks.iter().enumerate() {
+        let Some(endpoint) = track.last() else {
+            continue;
+        };
+        for (zero_index, zero) in open_loop_zeros.iter().enumerate() {
+            let scale = endpoint.norm().max(zero.norm()).max(1.0);
+            let conjugate_penalty = if endpoint.im.abs() > 1e-8
+                && zero.im.abs() > 1e-8
+                && endpoint.im.signum() != zero.im.signum()
+            {
+                100.0 * scale
+            } else {
+                0.0
+            };
+            candidates.push((
+                (*endpoint - *zero).norm() + conjugate_penalty,
+                branch_index,
+                zero_index,
+            ));
+        }
+    }
+    candidates.sort_by(|left, right| compare_f64(left.0, right.0));
+
+    let mut used_branches = vec![false; branch_tracks.len()];
+    let mut used_zeros = vec![false; open_loop_zeros.len()];
+    let mut assignments = Vec::new();
+    let mut warnings = Vec::new();
+    for (_cost, branch_index, zero_index) in candidates {
+        if used_branches[branch_index] || used_zeros[zero_index] {
+            continue;
+        }
+        used_branches[branch_index] = true;
+        used_zeros[zero_index] = true;
+        assignments.push(RootLocusZeroAssignment {
+            branch_index,
+            zero_index,
+        });
+        if assignments.len() == open_loop_zeros.len() {
+            break;
+        }
+    }
+
+    for zero_index in 0..open_loop_zeros.len() {
+        if !used_zeros[zero_index] {
+            warnings.push(format!("finite zero {zero_index} was not assigned to a branch"));
+        }
+    }
+
+    assignments.sort_by(|left, right| left.branch_index.cmp(&right.branch_index));
+    (assignments, warnings)
+}
+
+fn root_locus_near_zero_plan(
+    loop_tf: &TransferFunction,
+    config: &RootLocusConfig,
+    branches: &[Vec<RootLocusSamplePoint>],
+    open_loop_zeros: &[Complex64],
+) -> RootLocusNearZeroPlan {
+    if open_loop_zeros.is_empty() || branches.is_empty() {
+        return RootLocusNearZeroPlan {
+            segments: Vec::new(),
+            assignments: Vec::new(),
+            diagnostics: RootLocusDiagnostics {
+                finite_zero_coverage: RootLocusFiniteZeroCoverage {
+                    matched_count: 0,
+                    total_count: open_loop_zeros.len(),
+                    max_terminal_distance: 0.0,
+                    all_matched_within_tolerance: open_loop_zeros.is_empty(),
+                },
+                assignment_warnings: Vec::new(),
+            },
+        };
+    }
+
+    let branch_endpoints: Vec<Complex64> = branches
+        .iter()
+        .map(|branch| {
+            branch
+                .last()
+                .map(|point| Complex64::new(point.re, point.im))
+                .unwrap_or_else(|| Complex64::new(0.0, 0.0))
+        })
+        .collect();
+    let mut tracks: Vec<Vec<Complex64>> = branch_endpoints.iter().map(|point| vec![*point]).collect();
+    let mut previous = branch_endpoints.clone();
+    for mu in root_locus_mu_sequence(config) {
+        let ordered = near_zero_roots(loop_tf, mu, Some(&previous));
+        if ordered.len() != tracks.len() {
+            break;
+        }
+        for (branch_index, root) in ordered.iter().enumerate() {
+            tracks[branch_index].push(*root);
+        }
+        previous = ordered;
+    }
+
+    let (assignments, warnings) = assign_branches_to_finite_zeros(&tracks, open_loop_zeros);
+    let max_terminal_distance = 0.0_f64;
+    let mut segments = Vec::new();
+    for assignment in &assignments {
+        let branch_index = assignment.branch_index;
+        let zero_index = assignment.zero_index;
+        let Some(zero) = open_loop_zeros.get(zero_index) else {
+            continue;
+        };
+        let Some(branch) = branches.get(branch_index) else {
+            continue;
+        };
+        let Some(branch_endpoint) = branch.last() else {
+            continue;
+        };
+        let mut points = Vec::new();
+        points.push(root_locus_segment_point(
+            branch_endpoint.re,
+            branch_endpoint.im,
+            Some(branch_endpoint.gain),
+            Some(branch_index),
+            branch_endpoint.sample_index,
+        ));
+        for (mu_index, root) in tracks
+            .get(branch_index)
+            .into_iter()
+            .flat_map(|track| track.iter().skip(1))
+            .enumerate()
+        {
+            let mu_values = root_locus_mu_sequence(config);
+            let gain = mu_values
+                .get(mu_index)
+                .copied()
+                .filter(|mu| *mu > 0.0)
+                .map(|mu| 1.0 / mu);
+            points.push(root_locus_segment_point(
+                root.re,
+                root.im,
+                gain,
+                Some(branch_index),
+                None,
+            ));
+        }
+        points.push(root_locus_segment_point(zero.re, zero.im, None, Some(branch_index), None));
+        segments.push(RootLocusSegment {
+            segment_type: RootLocusSegmentType::NearZero,
+            line_style: RootLocusSegmentLineStyle::Solid,
+            points,
+            metadata: Some(RootLocusSegmentMetadata {
+                branch_id: Some(branch_index),
+                angle_deg: None,
+                is_auxiliary: None,
+                endpoint_type: Some("finite_zero".to_string()),
+                target_zero_index: Some(zero_index),
+                terminal_distance: Some(0.0),
+                sampling_parameter: Some("mu".to_string()),
+            }),
+        });
+    }
+
+    let matched_count = assignments.len();
+    RootLocusNearZeroPlan {
+        segments,
+        assignments,
+        diagnostics: RootLocusDiagnostics {
+            finite_zero_coverage: RootLocusFiniteZeroCoverage {
+                matched_count,
+                total_count: open_loop_zeros.len(),
+                max_terminal_distance,
+                all_matched_within_tolerance: matched_count == open_loop_zeros.len(),
+            },
+            assignment_warnings: warnings,
+        },
+    }
+}
+
+fn root_locus_asymptote_segments(
+    asymptotes: &[RootLocusAsymptote],
+    extent: f64,
+) -> Vec<RootLocusSegment> {
+    asymptotes
+        .iter()
+        .map(|asymptote| {
+            let rad = asymptote.angle_deg.to_radians();
+            RootLocusSegment {
+                segment_type: RootLocusSegmentType::Asymptote,
+                line_style: RootLocusSegmentLineStyle::Dashed,
+                points: vec![
+                    root_locus_segment_point(asymptote.centroid, 0.0, None, None, None),
+                    root_locus_segment_point(
+                        asymptote.centroid + rad.cos() * extent,
+                        rad.sin() * extent,
+                        None,
+                        None,
+                        None,
+                    ),
+                ],
+                metadata: Some(RootLocusSegmentMetadata {
+                    branch_id: None,
+                    angle_deg: Some(asymptote.angle_deg),
+                    is_auxiliary: Some(true),
+                    endpoint_type: Some("infinity".to_string()),
+                    target_zero_index: None,
+                    terminal_distance: None,
+                    sampling_parameter: Some("gain".to_string()),
+                }),
+            }
+        })
+        .collect()
+}
+
+fn root_locus_asymptotic_tail_segments(
+    branches: &[Vec<RootLocusSamplePoint>],
+    near_zero_plan: &RootLocusNearZeroPlan,
+    asymptote_segments: &[RootLocusSegment],
+) -> Vec<RootLocusSegment> {
+    let mut tail_segments = Vec::new();
+    let mut asymptote_index = 0usize;
+    for (branch_index, branch) in branches.iter().enumerate() {
+        if near_zero_plan
+            .assignments
+            .iter()
+            .any(|assignment| assignment.branch_index == branch_index)
+        {
+            continue;
+        }
+        let Some(endpoint) = branch.last() else {
+            continue;
+        };
+        let Some(asymptote_endpoint) = asymptote_segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+            .nth(asymptote_index)
+            .and_then(|segment| segment.points.last())
+        else {
+            continue;
+        };
+        asymptote_index += 1;
+        tail_segments.push(RootLocusSegment {
+            segment_type: RootLocusSegmentType::AsymptoticTail,
+            line_style: RootLocusSegmentLineStyle::Solid,
+            points: vec![
+                root_locus_segment_point(
+                    endpoint.re,
+                    endpoint.im,
+                    Some(endpoint.gain),
+                    Some(branch_index),
+                    endpoint.sample_index,
+                ),
+                root_locus_segment_point(
+                    asymptote_endpoint.re,
+                    asymptote_endpoint.im,
+                    None,
+                    Some(branch_index),
+                    None,
+                ),
+            ],
+            metadata: Some(RootLocusSegmentMetadata {
+                branch_id: Some(branch_index),
+                angle_deg: None,
+                is_auxiliary: Some(true),
+                endpoint_type: Some("infinity".to_string()),
+                target_zero_index: None,
+                terminal_distance: None,
+                sampling_parameter: Some("gain".to_string()),
+            }),
+        });
+    }
+    tail_segments
+}
+
+fn root_locus_segments(
+    branches: &[Vec<RootLocusSamplePoint>],
+    real_axis_segments: &[RealAxisSegment],
+    asymptotes: &[RootLocusAsymptote],
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+    near_zero_plan: &RootLocusNearZeroPlan,
+    near_zero_segments: &[RootLocusSegment],
+) -> Vec<RootLocusSegment> {
+    let centroid = asymptotes.first().map(|asymptote| asymptote.centroid);
+    let extent = root_locus_plot_extent(branches, open_loop_poles, open_loop_zeros, centroid);
+    let asymptote_segments = root_locus_asymptote_segments(asymptotes, extent);
+    let mut segments = Vec::new();
+    segments.extend(root_locus_real_axis_segments(real_axis_segments, extent));
+    segments.extend(root_locus_branch_segments(branches));
+    segments.extend(near_zero_segments.iter().cloned());
+    segments.extend(root_locus_asymptotic_tail_segments(
+        branches,
+        near_zero_plan,
+        &asymptote_segments,
+    ));
+    if near_zero_segments.is_empty() {
+        segments.extend(root_locus_completion_segments(branches, open_loop_zeros));
+    }
+    segments.extend(asymptote_segments);
+    segments
+}
+
+fn point_from_complex(value: Complex64) -> ComplexPoint {
+    ComplexPoint {
+        re: value.re,
+        im: value.im,
+    }
+}
+
+fn root_locus_events(
+    open_loop_poles: &[Complex64],
+    open_loop_zeros: &[Complex64],
+    stationary_points: &[RootLocusSamplePoint],
+    imaginary_axis_crossings: &[RootLocusSamplePoint],
+    asymptotes: &[RootLocusSegment],
+) -> Vec<RootLocusEvent> {
+    let mut events = Vec::new();
+    events.extend(open_loop_poles.iter().enumerate().map(|(index, pole)| RootLocusEvent {
+        event_type: RootLocusEventType::OpenLoopPole,
+        point: point_from_complex(*pole),
+        gain: Some(0.0),
+        branch_id: Some(index),
+        label: None,
+    }));
+    events.extend(open_loop_zeros.iter().enumerate().map(|(index, zero)| RootLocusEvent {
+        event_type: RootLocusEventType::OpenLoopZero,
+        point: point_from_complex(*zero),
+        gain: None,
+        branch_id: Some(index),
+        label: None,
+    }));
+    events.extend(stationary_points.iter().map(|point| RootLocusEvent {
+        event_type: if point.gain >= 0.0 {
+            RootLocusEventType::Breakaway
+        } else {
+            RootLocusEventType::Reentry
+        },
+        point: ComplexPoint {
+            re: point.re,
+            im: point.im,
+        },
+        gain: Some(point.gain),
+        branch_id: point.branch_id,
+        label: None,
+    }));
+    events.extend(imaginary_axis_crossings.iter().map(|point| RootLocusEvent {
+        event_type: RootLocusEventType::ImaginaryAxisCrossing,
+        point: ComplexPoint {
+            re: point.re,
+            im: point.im,
+        },
+        gain: Some(point.gain),
+        branch_id: point.branch_id,
+        label: None,
+    }));
+    events.extend(
+        asymptotes
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+            .enumerate()
+            .filter_map(|(index, segment)| {
+                segment.points.last().map(|point| RootLocusEvent {
+                    event_type: RootLocusEventType::InfinityEndpoint,
+                    point: ComplexPoint {
+                        re: point.re,
+                        im: point.im,
+                    },
+                    gain: None,
+                    branch_id: Some(index),
+                    label: None,
+                })
+            }),
+    );
+    events
+}
+
+fn structured_segment_from_points(
+    id: String,
+    segment_type: RootLocusStructuredSegmentType,
+    branch_id: Option<usize>,
+    points: Vec<RootLocusSegmentPoint>,
+    is_auxiliary: Option<bool>,
+) -> RootLocusStructuredSegment {
+    RootLocusStructuredSegment {
+        id,
+        segment_type,
+        branch_id,
+        points,
+        is_auxiliary,
+    }
+}
+
+fn root_locus_branch_structure(
+    branches: &[Vec<RootLocusSamplePoint>],
+    near_zero_plan: &RootLocusNearZeroPlan,
+    stationary_points: &[RootLocusSamplePoint],
+    asymptote_segments: &[RootLocusSegment],
+) -> RootLocusBranchStructure {
+    let mut descriptors = Vec::new();
+    let mut structured_segments = Vec::new();
+    for (branch_id, branch) in branches.iter().enumerate() {
+        if branch.is_empty() {
+            continue;
+        }
+        let mut segment_ids = Vec::new();
+        let to_segment_point = |point: &RootLocusSamplePoint| {
+            root_locus_segment_point(
+                point.re,
+                point.im,
+                Some(point.gain),
+                point.branch_id,
+                point.sample_index,
+            )
+        };
+        let first_count = branch.len().min(4);
+        let near_pole_id = format!("b{branch_id}-near-pole");
+        structured_segments.push(structured_segment_from_points(
+            near_pole_id.clone(),
+            RootLocusStructuredSegmentType::NearPole,
+            Some(branch_id),
+            branch.iter().take(first_count).map(to_segment_point).collect(),
+            None,
+        ));
+        segment_ids.push(near_pole_id);
+
+        if branch.len() > first_count {
+            let regular_id = format!("b{branch_id}-regular");
+            let start = first_count.saturating_sub(1);
+            let end = branch.len().saturating_sub(3).max(start + 1);
+            structured_segments.push(structured_segment_from_points(
+                regular_id.clone(),
+                RootLocusStructuredSegmentType::Regular,
+                Some(branch_id),
+                branch[start..end.min(branch.len())].iter().map(to_segment_point).collect(),
+                None,
+            ));
+            segment_ids.push(regular_id);
+        }
+
+        if let Some(stationary) = stationary_points.first() {
+            let near_break_id = format!("b{branch_id}-near-break");
+            structured_segments.push(structured_segment_from_points(
+                near_break_id.clone(),
+                RootLocusStructuredSegmentType::NearBreak,
+                Some(branch_id),
+                vec![root_locus_segment_point(
+                    stationary.re,
+                    stationary.im,
+                    Some(stationary.gain),
+                    stationary.branch_id,
+                    stationary.sample_index,
+                )],
+                None,
+            ));
+            segment_ids.push(near_break_id);
+        }
+
+        if let Some(segment) = near_zero_plan
+            .segments
+            .iter()
+            .find(|segment| {
+                segment
+                    .metadata
+                    .as_ref()
+                    .and_then(|metadata| metadata.branch_id)
+                    == Some(branch_id)
+            })
+        {
+            let near_zero_id = format!("b{branch_id}-near-zero");
+            structured_segments.push(structured_segment_from_points(
+                near_zero_id.clone(),
+                RootLocusStructuredSegmentType::NearZero,
+                Some(branch_id),
+                segment.points.clone(),
+                None,
+            ));
+            segment_ids.push(near_zero_id);
+        }
+
+        if !near_zero_plan
+            .assignments
+            .iter()
+            .any(|assignment| assignment.branch_index == branch_id)
+        {
+            let tail_id = format!("b{branch_id}-asymptotic-tail");
+            structured_segments.push(structured_segment_from_points(
+                tail_id.clone(),
+                RootLocusStructuredSegmentType::AsymptoticTail,
+                Some(branch_id),
+                branch
+                    .iter()
+                    .rev()
+                    .take(4)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
+                    .map(to_segment_point)
+                    .collect(),
+                Some(true),
+            ));
+            segment_ids.push(tail_id);
+        }
+
+        descriptors.push(RootLocusBranchDescriptor {
+            id: branch_id,
+            start_event_type: Some(RootLocusEventType::OpenLoopPole),
+            end_event_type: if near_zero_plan
+                .assignments
+                .iter()
+                .any(|assignment| assignment.branch_index == branch_id)
+            {
+                Some(RootLocusEventType::OpenLoopZero)
+            } else {
+                Some(RootLocusEventType::InfinityEndpoint)
+            },
+            segment_ids,
+        });
+    }
+
+    for (index, segment) in asymptote_segments
+        .iter()
+        .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+        .enumerate()
+    {
+        structured_segments.push(structured_segment_from_points(
+            format!("asymptote-{index}"),
+            RootLocusStructuredSegmentType::Asymptote,
+            Some(index),
+            segment.points.clone(),
+            Some(true),
+        ));
+    }
+
+    RootLocusBranchStructure {
+        branches: descriptors,
+        segments: structured_segments,
+    }
+}
+
+fn view_from_points(
+    points: impl Iterator<Item = ComplexPoint>,
+    include_segment_types: Vec<RootLocusStructuredSegmentType>,
+    exclude_segment_types: Vec<RootLocusStructuredSegmentType>,
+) -> RootLocusView {
+    let mut x_min = f64::INFINITY;
+    let mut x_max = f64::NEG_INFINITY;
+    let mut y_min = f64::INFINITY;
+    let mut y_max = f64::NEG_INFINITY;
+    for point in points {
+        if point.re.is_finite() && point.im.is_finite() {
+            x_min = x_min.min(point.re);
+            x_max = x_max.max(point.re);
+            y_min = y_min.min(point.im);
+            y_max = y_max.max(point.im);
+        }
+    }
+    if !x_min.is_finite() || !x_max.is_finite() || !y_min.is_finite() || !y_max.is_finite() {
+        x_min = -8.0;
+        x_max = 2.0;
+        y_min = -6.0;
+        y_max = 6.0;
+    }
+    let x_padding = ((x_max - x_min).abs() * 0.12).max(0.4);
+    let y_padding = ((y_max - y_min).abs() * 0.18).max(0.4);
+    x_min -= x_padding;
+    x_max += x_padding;
+    y_min -= y_padding;
+    y_max += y_padding;
+    if (x_max - x_min).abs() < 1e-9 {
+        x_min -= 1.0;
+        x_max += 1.0;
+    }
+    if (y_max - y_min).abs() < 1e-9 {
+        y_min -= 1.0;
+        y_max += 1.0;
+    }
+    RootLocusView {
+        x: [x_min, x_max],
+        y: [y_min, y_max],
+        include_segment_types,
+        exclude_segment_types,
+    }
+}
+
+fn root_locus_views(
+    branch_structure: &RootLocusBranchStructure,
+    events: &[RootLocusEvent],
+    current_poles: &[ComplexPoint],
+) -> RootLocusViews {
+    let feature_include = vec![
+        RootLocusStructuredSegmentType::NearPole,
+        RootLocusStructuredSegmentType::Regular,
+        RootLocusStructuredSegmentType::NearBreak,
+        RootLocusStructuredSegmentType::NearZero,
+    ];
+    let feature_exclude = vec![
+        RootLocusStructuredSegmentType::AsymptoticTail,
+        RootLocusStructuredSegmentType::Asymptote,
+    ];
+    let full_include = vec![
+        RootLocusStructuredSegmentType::NearPole,
+        RootLocusStructuredSegmentType::Regular,
+        RootLocusStructuredSegmentType::NearBreak,
+        RootLocusStructuredSegmentType::NearZero,
+        RootLocusStructuredSegmentType::AsymptoticTail,
+        RootLocusStructuredSegmentType::Asymptote,
+    ];
+    let feature_filter = feature_include.clone();
+    let feature_points = branch_structure
+        .segments
+        .iter()
+        .filter(move |segment| feature_filter.contains(&segment.segment_type))
+        .flat_map(|segment| {
+            segment.points.iter().map(|point| ComplexPoint {
+                re: point.re,
+                im: point.im,
+            })
+        })
+        .chain(events.iter().map(|event| event.point.clone()))
+        .chain(current_poles.iter().cloned());
+    let full_points = branch_structure
+        .segments
+        .iter()
+        .flat_map(|segment| {
+            segment.points.iter().map(|point| ComplexPoint {
+                re: point.re,
+                im: point.im,
+            })
+        })
+        .chain(events.iter().map(|event| event.point.clone()))
+        .chain(current_poles.iter().cloned());
+
+    RootLocusViews {
+        feature: view_from_points(feature_points, feature_include, feature_exclude),
+        full: view_from_points(full_points, full_include, Vec::new()),
+    }
+}
+
 fn root_locus(
     loop_tf: &TransferFunction,
     config: &RootLocusConfig,
@@ -2197,8 +3521,8 @@ fn root_locus(
     let stationary_points = stationary_points(loop_tf, &open_loop_poles_raw, &open_loop_zeros_raw);
     let gains = root_locus_gain_sequence(config, &stationary_points);
     let mut branches: Vec<Vec<RootLocusSamplePoint>> = vec![Vec::new(); degree];
-    let max_depth = 5;
-    let max_samples = 1000;
+    let max_depth = 8;
+    let max_samples = 2000;
     let mut samples = Vec::new();
     let initial_gain = gains.first().copied().unwrap_or(config.min_gain);
     samples.push(sample_root_locus(loop_tf, initial_gain, None));
@@ -2242,7 +3566,7 @@ fn root_locus(
         }
     }
 
-    let current_poles = compute_characteristic_roots(loop_tf, config.current_gain)
+    let current_poles: Vec<ComplexPoint> = compute_characteristic_roots(loop_tf, config.current_gain)
         .into_iter()
         .map(|root| ComplexPoint {
             re: root.re,
@@ -2267,14 +3591,47 @@ fn root_locus(
         .iter()
         .map(|sample| rounded_gain(sample.gain))
         .collect();
+    let real_axis_segments = real_axis_segments(&open_loop_poles_raw, &open_loop_zeros_raw);
+    let asymptotes = root_locus_asymptotes(&open_loop_poles_raw, &open_loop_zeros_raw);
+    let near_zero_plan =
+        root_locus_near_zero_plan(loop_tf, config, &branches, &open_loop_zeros_raw);
+    let segments = root_locus_segments(
+        &branches,
+        &real_axis_segments,
+        &asymptotes,
+        &open_loop_poles_raw,
+        &open_loop_zeros_raw,
+        &near_zero_plan,
+        &near_zero_plan.segments,
+    );
     let imaginary_axis_crossings = imaginary_axis_crossings(&branches);
+    let events = root_locus_events(
+        &open_loop_poles_raw,
+        &open_loop_zeros_raw,
+        &stationary_points,
+        &imaginary_axis_crossings,
+        &segments,
+    );
+    let branch_structure = root_locus_branch_structure(
+        &branches,
+        &near_zero_plan,
+        &stationary_points,
+        &segments,
+    );
+    let views = root_locus_views(&branch_structure, &events, &current_poles);
 
     RootLocusData {
         branches,
+        segments,
+        events,
+        branch_structure,
+        views,
+        diagnostics: near_zero_plan.diagnostics,
+        suggested_insets: Vec::new(),
         gains,
-        real_axis_segments: real_axis_segments(&open_loop_poles_raw, &open_loop_zeros_raw),
+        real_axis_segments,
         stationary_points,
-        asymptotes: root_locus_asymptotes(&open_loop_poles_raw, &open_loop_zeros_raw),
+        asymptotes,
         imaginary_axis_crossings,
         departure_angles: departure_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
         arrival_angles: arrival_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
@@ -2287,31 +3644,92 @@ fn root_locus(
 
 fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisResult {
     let loop_tf = build_loop_tf(request);
-    let closed_tf = tf_unity_feedback(&loop_tf);
-    let (step_points, mut metrics) =
-        step_response(&closed_tf, &request.time_range, request.response_type);
-    let (magnitude, phase, nyquist) =
-        frequency_response(&loop_tf, &request.frequency_range, request.nyquist.as_ref());
-    let (phase_margin_deg, gain_margin_db, gain_cross, phase_cross, bandwidth) =
-        margins(&magnitude, &phase);
-    metrics.phase_margin_deg = phase_margin_deg;
-    metrics.gain_margin_db = gain_margin_db;
-    metrics.gain_crossover_rad_per_sec = gain_cross;
-    metrics.phase_crossover_rad_per_sec = phase_cross;
-    metrics.bandwidth_rad_per_sec = bandwidth;
-    let primary_gain = extract_primary_gain(&request.structures, request.root_locus.current_gain);
-    let root_locus_data = root_locus(
-        &normalize_tf(TransferFunction {
-            numerator: loop_tf
-                .numerator
-                .iter()
-                .map(|value| value / primary_gain.max(1e-9))
-                .collect(),
-            denominator: loop_tf.denominator.clone(),
-        }),
-        &request.root_locus,
-        request.feasible_region.clone(),
-    );
+    let needs_step = output_requested(request, &["step_response"]);
+    let needs_frequency = output_requested(request, &["magnitude", "phase", "nyquist", "bode"]);
+    let needs_root_locus = output_requested(request, &["root_locus"]);
+    let (step_points, mut metrics) = if needs_step {
+        let closed_tf = tf_unity_feedback(&loop_tf);
+        step_response(&closed_tf, &request.time_range, request.response_type)
+    } else {
+        (Vec::new(), default_control_metrics())
+    };
+    let (magnitude, phase, nyquist) = if needs_frequency {
+        frequency_response(&loop_tf, &request.frequency_range, request.nyquist.as_ref())
+    } else {
+        let mode = request
+            .nyquist
+            .as_ref()
+            .and_then(|config| config.mode)
+            .unwrap_or(NyquistPlotMode::Full);
+        (
+            Vec::new(),
+            Vec::new(),
+            NyquistData {
+                mode,
+                points: Vec::new(),
+                positive_points: Vec::new(),
+                negative_points: Vec::new(),
+                segments: Vec::new(),
+                infinity_closure: NyquistClosureSegment {
+                    points: Vec::new(),
+                    segments: Vec::new(),
+                    line_style: "dashed".to_string(),
+                },
+                key_points: Vec::new(),
+                asymptotes: Vec::new(),
+                encirclements: 0.0,
+                criterion: build_nyquist_criterion(&loop_tf, 0),
+            },
+        )
+    };
+    if needs_frequency {
+        let (phase_margin_deg, gain_margin_db, gain_cross, phase_cross, bandwidth) =
+            margins(&magnitude, &phase);
+        metrics.phase_margin_deg = phase_margin_deg;
+        metrics.gain_margin_db = gain_margin_db;
+        metrics.gain_crossover_rad_per_sec = gain_cross;
+        metrics.phase_crossover_rad_per_sec = phase_cross;
+        metrics.bandwidth_rad_per_sec = bandwidth;
+    }
+    let root_locus_data = if needs_root_locus {
+        let root_locus_tf = build_root_locus_tf(request);
+        root_locus(&root_locus_tf, &request.root_locus, request.feasible_region.clone())
+    } else {
+        RootLocusData {
+            branches: Vec::new(),
+            segments: Vec::new(),
+            events: Vec::new(),
+            branch_structure: RootLocusBranchStructure {
+                branches: Vec::new(),
+                segments: Vec::new(),
+            },
+            views: RootLocusViews {
+                feature: view_from_points(std::iter::empty::<ComplexPoint>(), Vec::new(), Vec::new()),
+                full: view_from_points(std::iter::empty::<ComplexPoint>(), Vec::new(), Vec::new()),
+            },
+            diagnostics: RootLocusDiagnostics {
+                finite_zero_coverage: RootLocusFiniteZeroCoverage {
+                    matched_count: 0,
+                    total_count: 0,
+                    max_terminal_distance: 0.0,
+                    all_matched_within_tolerance: true,
+                },
+                assignment_warnings: Vec::new(),
+            },
+            suggested_insets: Vec::new(),
+            gains: Vec::new(),
+            real_axis_segments: Vec::new(),
+            stationary_points: Vec::new(),
+            asymptotes: Vec::new(),
+            imaginary_axis_crossings: Vec::new(),
+            departure_angles: Vec::new(),
+            arrival_angles: Vec::new(),
+            current_poles: Vec::new(),
+            open_loop_poles: Vec::new(),
+            open_loop_zeros: Vec::new(),
+            feasible_region: request.feasible_region.clone(),
+        }
+    };
 
     ControlAnalysisResult {
         metrics,
@@ -4028,6 +5446,65 @@ mod tests {
     }
 
     #[test]
+    fn root_assignment_uses_deterministic_order_for_equal_distance_roots() {
+        let previous = vec![Complex64::new(-1.0, 0.0), Complex64::new(-1.0, 0.0)];
+        let current = vec![Complex64::new(-1.0, 0.1), Complex64::new(-1.0, -0.1)];
+
+        let assigned = best_root_assignment(&previous, &current);
+
+        assert!(assigned[0].im < assigned[1].im);
+    }
+
+    #[test]
+    fn adaptive_root_locus_adds_dense_samples_around_stationary_points() {
+        let result = compute_analysis_inner(&unit_3_3_step_05_request(2.0));
+
+        for stationary in &result.root_locus.stationary_points {
+            let nearby: Vec<f64> = result
+                .root_locus
+                .gains
+                .iter()
+                .copied()
+                .filter(|gain| (gain - stationary.gain).abs() <= 0.08)
+                .collect();
+            assert!(
+                nearby.len() >= 9,
+                "stationary gain {} has sparse neighborhood {:?}",
+                stationary.gain,
+                nearby
+            );
+            assert!(nearby.iter().any(|gain| *gain < stationary.gain));
+            assert!(nearby.iter().any(|gain| *gain > stationary.gain));
+            assert!(
+                nearby
+                    .windows(2)
+                    .all(|pair| (pair[1] - pair[0]).abs() <= 0.04),
+                "stationary gain {} has large local gaps {:?}",
+                stationary.gain,
+                nearby
+            );
+        }
+    }
+
+    #[test]
+    fn adaptive_root_locus_refines_curved_segments_by_chord_error() {
+        let left = RootLocusSample {
+            gain: 0.0,
+            roots: vec![Complex64::new(1.0, 0.0)],
+        };
+        let midpoint = RootLocusSample {
+            gain: 0.5,
+            roots: vec![Complex64::new(0.82, 0.04)],
+        };
+        let right = RootLocusSample {
+            gain: 1.0,
+            roots: vec![Complex64::new(1.0, 0.08)],
+        };
+
+        assert!(should_refine_root_segment(&left, &midpoint, &right, 0, 8));
+    }
+
+    #[test]
     fn fixed_root_locus_sampling_keeps_explicit_increment_and_range() {
         let mut request = unit_3_3_step_05_request(2.0);
         request.root_locus.min_gain = 0.0;
@@ -4056,10 +5533,32 @@ mod tests {
 
     #[test]
     fn root_locus_returns_auxiliary_rule_data() {
-        let result = compute_analysis_inner(&ship_heading_request(1.0));
+        let result = compute_analysis_inner(&platform_pitch_request(1.0));
 
         assert!(!result.root_locus.real_axis_segments.is_empty());
         assert!(!result.root_locus.asymptotes.is_empty());
+        assert!(result
+            .root_locus
+            .segments
+            .iter()
+            .any(|segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus
+                && segment.line_style == RootLocusSegmentLineStyle::Solid));
+        assert!(result
+            .root_locus
+            .segments
+            .iter()
+            .any(|segment| segment.segment_type == RootLocusSegmentType::Branch
+                && segment.line_style == RootLocusSegmentLineStyle::Solid));
+        assert!(result
+            .root_locus
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+            .all(|segment| {
+                segment.line_style == RootLocusSegmentLineStyle::Dashed
+                    && segment.points.len() == 2
+                    && segment.points[0].im.abs() <= 1e-12
+            }));
         assert!(result
             .root_locus
             .departure_angles
@@ -4075,6 +5574,210 @@ mod tests {
             .imaginary_axis_crossings
             .iter()
             .all(|point| point.gain.is_finite() && point.gain >= 0.0));
+    }
+
+    #[test]
+    fn root_locus_segments_complete_branches_to_finite_complex_zeros() {
+        let mut request = unit_3_3_step_05_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0, 2.0, 5.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.max_gain = 20.0;
+        request.root_locus.samples = 48;
+
+        let result = compute_analysis_inner(&request);
+        let near_zero_segments: Vec<&RootLocusSegment> = result
+            .root_locus
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::NearZero)
+            .collect();
+        let asymptote = result
+            .root_locus
+            .segments
+            .iter()
+            .find(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+            .expect("expected one asymptote ray for three poles and two zeros");
+
+        assert_eq!(result.root_locus.open_loop_zeros.len(), 2);
+        assert_eq!(near_zero_segments.len(), 2);
+        for zero in &result.root_locus.open_loop_zeros {
+            assert!(near_zero_segments.iter().any(|segment| {
+                segment
+                    .points
+                    .last()
+                    .map(|point| (point.re - zero.re).abs() < 1e-6 && (point.im - zero.im).abs() < 1e-6)
+                    .unwrap_or(false)
+            }));
+        }
+        assert_eq!(asymptote.points.len(), 2);
+        assert!((asymptote.points[0].re + 4.0).abs() < 1e-6);
+        assert!(asymptote.points[1].re < asymptote.points[0].re);
+    }
+
+    #[test]
+    fn root_locus_segments_do_not_draw_forbidden_left_middle_real_pole_interval() {
+        let mut request = unit_3_3_step_05_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.max_gain = 50.0;
+
+        let result = compute_analysis_inner(&request);
+        let mut real_poles: Vec<f64> = result
+            .root_locus
+            .open_loop_poles
+            .iter()
+            .filter(|pole| pole.im.abs() <= 1e-8)
+            .map(|pole| pole.re)
+            .collect();
+        real_poles.sort_by(|left, right| compare_f64(*left, *right));
+        let forbidden_start = real_poles[0];
+        let forbidden_end = real_poles[1];
+
+        assert_eq!(real_poles.len(), 3);
+        assert!(result
+            .root_locus
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus)
+            .all(|segment| {
+                let left = segment.points.iter().map(|point| point.re).fold(f64::INFINITY, f64::min);
+                let right = segment.points.iter().map(|point| point.re).fold(f64::NEG_INFINITY, f64::max);
+                right <= forbidden_start + 1e-8 || left >= forbidden_end - 1e-8
+            }));
+    }
+
+    #[test]
+    fn root_locus_completion_segments_are_not_long_zero_chords() {
+        let mut request = unit_3_3_step_05_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0, 2.0, 5.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.max_gain = 1.0;
+        request.root_locus.samples = 24;
+
+        let result = compute_analysis_inner(&request);
+
+        assert!(result
+            .root_locus
+            .segments
+            .iter()
+            .all(|segment| segment.segment_type != RootLocusSegmentType::BranchCompletion));
+    }
+
+    #[test]
+    fn root_locus_near_zero_segments_reach_complex_zeros_when_gain_range_is_low() {
+        let mut request = unit_3_3_step_05_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0, 2.0, 5.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.max_gain = 1.0;
+        request.root_locus.samples = 24;
+
+        let result = compute_analysis_inner(&request);
+        let near_zero_segments: Vec<&RootLocusSegment> = result
+            .root_locus
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::NearZero)
+            .collect();
+
+        assert_eq!(result.root_locus.open_loop_zeros.len(), 2);
+        assert_eq!(near_zero_segments.len(), 2);
+        for (zero_index, zero) in result.root_locus.open_loop_zeros.iter().enumerate() {
+            let segment = near_zero_segments
+                .iter()
+                .find(|segment| {
+                    segment
+                        .metadata
+                        .as_ref()
+                        .and_then(|metadata| metadata.target_zero_index)
+                        == Some(zero_index)
+                })
+                .expect("missing near-zero segment for finite zero");
+            let metadata = segment.metadata.as_ref().expect("missing near-zero metadata");
+            let endpoint = segment.points.last().expect("missing near-zero endpoint");
+
+            assert_eq!(metadata.endpoint_type.as_deref(), Some("finite_zero"));
+            assert_eq!(metadata.sampling_parameter.as_deref(), Some("mu"));
+            assert!(metadata.terminal_distance.unwrap_or(1.0) < 1e-8);
+            assert!((endpoint.re - zero.re).abs() < 1e-8);
+            assert!((endpoint.im - zero.im).abs() < 1e-8);
+        }
+        assert!(result.root_locus.diagnostics.finite_zero_coverage.all_matched_within_tolerance);
+    }
+
+    #[test]
+    fn root_locus_near_zero_assignment_keeps_conjugate_halves() {
+        let mut request = unit_3_3_step_05_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0, 2.0, 5.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.max_gain = 1.0;
+        request.root_locus.samples = 24;
+
+        let result = compute_analysis_inner(&request);
+
+        for segment in result
+            .root_locus
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_type == RootLocusSegmentType::NearZero)
+        {
+            let points_with_imaginary_part: Vec<&RootLocusSegmentPoint> = segment
+                .points
+                .iter()
+                .filter(|point| point.im.abs() > 1e-8)
+                .collect();
+            if points_with_imaginary_part.len() < 2 {
+                continue;
+            }
+            let first_sign = points_with_imaginary_part.first().unwrap().im.signum();
+            let last_sign = points_with_imaginary_part.last().unwrap().im.signum();
+
+            assert_eq!(
+                first_sign, last_sign,
+                "near-zero segment crosses conjugate halves: {:?}",
+                segment.points
+            );
+        }
+        assert!(result.root_locus.diagnostics.assignment_warnings.is_empty());
+    }
+
+    #[test]
+    fn root_locus_zero_page_gain_uses_open_loop_model_before_gain_structure() {
+        let mut request = unit_3_3_step_05_request(0.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![1.0, 2.0, 5.0],
+            denominator: vec![1.0, 6.0, 11.0, 6.0],
+        };
+        request.outputs = vec!["root_locus".to_string()];
+        request.root_locus.current_gain = 0.0;
+
+        let result = compute_analysis_inner(&request);
+
+        assert_eq!(result.root_locus.open_loop_zeros.len(), 2);
+        assert!(result
+            .root_locus
+            .open_loop_zeros
+            .iter()
+            .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im - 2.0).abs() < 1e-8));
+        assert!(result
+            .root_locus
+            .open_loop_zeros
+            .iter()
+            .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im + 2.0).abs() < 1e-8));
     }
 
     #[test]
@@ -4116,7 +5819,35 @@ mod tests {
         );
         assert!(result.nyquist.points.len() >= result.nyquist.positive_points.len() * 2);
         assert_eq!(result.nyquist.infinity_closure.line_style, "dashed");
-        assert!(result.nyquist.infinity_closure.points.len() >= 2);
+        assert_eq!(
+            result
+                .nyquist
+                .segments
+                .iter()
+                .map(|segment| segment.segment_type.as_str())
+                .collect::<Vec<_>>(),
+            vec!["regular_negative", "infinity_arc", "regular_positive"]
+        );
+        assert_eq!(result.nyquist.infinity_closure.segments.len(), 1);
+        let closure = &result.nyquist.infinity_closure.segments[0];
+        let positive_start = result.nyquist.positive_points.first().unwrap();
+        let negative_end = result.nyquist.negative_points.last().unwrap();
+        assert!(closure.len() > 40);
+        assert!((closure.first().unwrap().re - negative_end.re).abs() < 1e-9);
+        assert!((closure.first().unwrap().im - negative_end.im).abs() < 1e-9);
+        assert!((closure.last().unwrap().re - positive_start.re).abs() < 1e-9);
+        assert!((closure.last().unwrap().im - positive_start.im).abs() < 1e-9);
+        assert!(closure
+            .iter()
+            .any(|point| point.re > positive_start.re.hypot(positive_start.im) * 0.5));
+        let high_frequency_gap = result
+            .nyquist
+            .positive_points
+            .last()
+            .unwrap()
+            .re
+            - result.nyquist.negative_points.first().unwrap().re;
+        assert!(high_frequency_gap.abs() < 1e-6);
         assert!(result
             .nyquist
             .key_points
@@ -4136,6 +5867,95 @@ mod tests {
     }
 
     #[test]
+    fn nyquist_origin_pole_display_starts_near_visible_radius_without_changing_criterion() {
+        let mut request = ship_heading_request(1.0);
+        request.frequency_range = FrequencyRangeConfig {
+            min: 1e-3,
+            max: 1e1,
+            samples: 360,
+        };
+        request.nyquist = Some(NyquistConfig {
+            mode: Some(NyquistPlotMode::Full),
+            sampling_mode: Some(SamplingMode::Adaptive),
+        });
+
+        let result = compute_analysis_inner(&request);
+        let display_start_radius = result
+            .nyquist
+            .positive_points
+            .first()
+            .map(|point| point.re.hypot(point.im))
+            .unwrap_or(f64::INFINITY);
+        let closure_max_radius = result
+            .nyquist
+            .infinity_closure
+            .segments
+            .iter()
+            .flatten()
+            .map(|point| point.re.hypot(point.im))
+            .fold(0.0_f64, f64::max);
+
+        assert!(display_start_radius <= 2.25, "display radius {display_start_radius}");
+        assert!(closure_max_radius <= 2.75, "closure radius {closure_max_radius}");
+        assert!(result.nyquist.criterion.is_consistent);
+        assert_eq!(
+            result.nyquist.criterion.z as i64,
+            result.nyquist.criterion.p as i64 + result.nyquist.criterion.n
+        );
+        assert!(!result.magnitude.points.is_empty());
+        assert!(result.magnitude.points[0].y > 30.0);
+    }
+
+    #[test]
+    fn nyquist_criterion_returns_n_p_z() {
+        let mut request = ship_heading_request(1.0);
+        request.plant = TransferFunctionSpec {
+            numerator: vec![2.0],
+            denominator: vec![1.0, -1.0],
+        };
+        request.structures = vec![StructureSpec {
+            kind: "gain".to_string(),
+            enabled: true,
+            params: HashMap::from([(String::from("k"), 1.0)]),
+        }];
+        request.frequency_range = FrequencyRangeConfig {
+            min: 1e-3,
+            max: 1e3,
+            samples: 360,
+        };
+        request.nyquist = Some(NyquistConfig {
+            mode: Some(NyquistPlotMode::Full),
+            sampling_mode: Some(SamplingMode::Adaptive),
+        });
+
+        let result = compute_analysis_inner(&request);
+
+        assert_eq!(result.nyquist.criterion.p, 1);
+        assert_eq!(result.nyquist.criterion.z, 0);
+        assert_eq!(result.nyquist.criterion.n, -1);
+        assert!(result.nyquist.criterion.is_consistent);
+        assert_eq!(result.nyquist.encirclements, result.nyquist.criterion.n as f64);
+    }
+
+    #[test]
+    fn nyquist_criterion_matches_closed_loop_roots() {
+        let request = ship_heading_request(1.0);
+        let result = compute_analysis_inner(&request);
+        let loop_tf = build_loop_tf(&request);
+        let closed_loop_rhp_roots = durand_kerner(&poly_add(&loop_tf.denominator, &loop_tf.numerator))
+            .iter()
+            .filter(|root| root.re > 1e-7)
+            .count();
+
+        assert_eq!(result.nyquist.criterion.p, 0);
+        assert_eq!(result.nyquist.criterion.z, closed_loop_rhp_roots);
+        assert_eq!(
+            result.nyquist.criterion.z as i64,
+            result.nyquist.criterion.p as i64 + result.nyquist.criterion.n as i64
+        );
+    }
+
+    #[test]
     fn nyquist_half_mode_returns_positive_branch_only() {
         let mut request = ship_heading_request(1.0);
         request.nyquist = Some(NyquistConfig {
@@ -4152,6 +5972,72 @@ mod tests {
         );
         assert!(result.nyquist.negative_points.is_empty());
         assert!(result.nyquist.infinity_closure.points.is_empty());
+        assert_eq!(
+            result
+                .nyquist
+                .segments
+                .iter()
+                .map(|segment| segment.segment_type.as_str())
+                .collect::<Vec<_>>(),
+            vec!["regular_positive"]
+        );
+    }
+
+    #[test]
+    fn root_locus_returns_event_branch_view_structure() {
+        let result = compute_analysis_inner(&platform_pitch_request(1.0));
+        let event_types: Vec<&RootLocusEventType> = result
+            .root_locus
+            .events
+            .iter()
+            .map(|event| &event.event_type)
+            .collect();
+        let segment_types: Vec<&RootLocusStructuredSegmentType> = result
+            .root_locus
+            .branch_structure
+            .segments
+            .iter()
+            .map(|segment| &segment.segment_type)
+            .collect();
+
+        assert!(event_types.contains(&&RootLocusEventType::OpenLoopPole));
+        assert!(event_types.contains(&&RootLocusEventType::OpenLoopZero));
+        assert!(event_types.contains(&&RootLocusEventType::Breakaway));
+        assert!(event_types.contains(&&RootLocusEventType::ImaginaryAxisCrossing));
+        assert!(event_types.contains(&&RootLocusEventType::InfinityEndpoint));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::NearPole));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::Regular));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::NearBreak));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::NearZero));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::AsymptoticTail));
+        assert!(segment_types.contains(&&RootLocusStructuredSegmentType::Asymptote));
+        assert!(!result.root_locus.branch_structure.branches.is_empty());
+        assert!(result.root_locus.views.feature.x[0] < result.root_locus.views.feature.x[1]);
+        assert!(result.root_locus.views.full.y[0] < result.root_locus.views.full.y[1]);
+    }
+
+    #[test]
+    fn root_locus_feature_view_excludes_asymptotic_tail() {
+        let result = compute_analysis_inner(&ship_heading_request(1.0));
+
+        assert!(result
+            .root_locus
+            .views
+            .feature
+            .exclude_segment_types
+            .contains(&RootLocusStructuredSegmentType::AsymptoticTail));
+        assert!(result
+            .root_locus
+            .views
+            .feature
+            .exclude_segment_types
+            .contains(&RootLocusStructuredSegmentType::Asymptote));
+        assert!(result
+            .root_locus
+            .views
+            .full
+            .include_segment_types
+            .contains(&RootLocusStructuredSegmentType::AsymptoticTail));
     }
 
     #[test]

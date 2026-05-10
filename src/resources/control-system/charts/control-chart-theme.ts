@@ -21,6 +21,11 @@ export interface ControlChartThemeTokens {
   rootLocusCrossingPoint: string;
   rootLocusOpenPole: string;
   rootLocusOpenZero: string;
+  timeResponseLine: string;
+  bodeMagnitudeLine: string;
+  bodePhaseLine: string;
+  nyquistLine: string;
+  nyquistUnitCircle: string;
 }
 
 const CONTROL_CHART_THEMES: Record<ThemeMode, ControlChartThemeTokens> = {
@@ -38,6 +43,11 @@ const CONTROL_CHART_THEMES: Record<ThemeMode, ControlChartThemeTokens> = {
     rootLocusCrossingPoint: '#f97316',
     rootLocusOpenPole: '#dc2626',
     rootLocusOpenZero: '#d97706',
+    timeResponseLine: '#0f766e',
+    bodeMagnitudeLine: '#6d28d9',
+    bodePhaseLine: '#be123c',
+    nyquistLine: '#0f766e',
+    nyquistUnitCircle: '#5b21b6',
   },
   dark: {
     textPrimary: 'rgba(241, 245, 249, 0.92)',
@@ -53,6 +63,11 @@ const CONTROL_CHART_THEMES: Record<ThemeMode, ControlChartThemeTokens> = {
     rootLocusCrossingPoint: '#fb923c',
     rootLocusOpenPole: '#f87171',
     rootLocusOpenZero: '#fbbf24',
+    timeResponseLine: '#22d3ee',
+    bodeMagnitudeLine: '#a78bfa',
+    bodePhaseLine: '#fb7185',
+    nyquistLine: '#22d3ee',
+    nyquistUnitCircle: '#a78bfa',
   },
 };
 
@@ -129,7 +144,20 @@ function mapSeries(series: SeriesOption, tokens: ControlChartThemeTokens): Serie
               ? tokens.rootLocusOpenPole
               : name === '开环零点'
                 ? tokens.rootLocusOpenZero
-                : null;
+                : name === '响应'
+                  ? tokens.timeResponseLine
+                  : name === '幅频'
+                    ? tokens.bodeMagnitudeLine
+                    : name === '相频'
+                      ? tokens.bodePhaseLine
+                      : name === 'Nyquist 正频率支'
+                        || name === 'Nyquist 负频率支'
+                        || name === '无穷远闭合段'
+                        || name === 'Nyquist 大圆弧'
+                          ? tokens.nyquistLine
+                          : name === '单位圆'
+                            ? tokens.nyquistUnitCircle
+                            : null;
   const nextSeries: SeriesOption = rootLocusColor
     ? {
         ...series,
@@ -139,8 +167,10 @@ function mapSeries(series: SeriesOption, tokens: ControlChartThemeTokens): Serie
         },
         itemStyle: {
           ...((series.itemStyle as Record<string, unknown> | undefined) ?? {}),
-          color: rootLocusColor,
-          borderColor: name === '当前闭环极点' ? rootLocusColor : ((series.itemStyle as Record<string, unknown> | undefined)?.borderColor ?? rootLocusColor),
+          color: name === '开环零点'
+            ? ((series.itemStyle as Record<string, unknown> | undefined)?.color ?? 'rgba(255, 255, 255, 0)')
+            : rootLocusColor,
+          borderColor: name === '当前闭环极点' ? rootLocusColor : rootLocusColor,
         },
       }
     : series;

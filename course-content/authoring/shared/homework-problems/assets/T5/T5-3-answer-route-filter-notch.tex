@@ -1,0 +1,69 @@
+
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[UTF8]{ctex}
+\setCJKmainfont{Songti SC}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{linegray}{HTML}{333333}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt,
+    minimum height=0.9cm, minimum width=1.45cm, align=center,
+    font=\footnotesize\bfseries},
+  wideblock/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt,
+    minimum height=0.92cm, minimum width=2.55cm, align=center,
+    font=\footnotesize\bfseries},
+  equipblock/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt,
+    minimum height=0.9cm, minimum width=1.9cm, align=center,
+    font=\footnotesize\bfseries},
+  sum/.style={circle, draw=sumgreen, fill=none, line width=1.2pt,
+    minimum size=0.46cm, inner sep=0pt,
+    path picture={
+      \draw[line width=0.9pt, sumgreen]
+        (path picture bounding box.south west) -- (path picture bounding box.north east)
+        (path picture bounding box.north west) -- (path picture bounding box.south east);
+    }},
+  tap/.style={circle, draw=taporange, fill=none, line width=1.2pt,
+    minimum size=4.5pt, inner sep=0pt},
+  signal/.style={-{Stealth[length=2.2mm]}, line width=1.2pt, draw=linegray},
+  wire/.style={line width=1.2pt, draw=linegray},
+  dashedbox/.style={rectangle, draw=linegray, dashed, line width=0.9pt,
+    inner sep=7pt, rounded corners=1pt},
+  lab/.style={font=\footnotesize},
+  neg/.style={font=\footnotesize, fill=white, inner sep=1pt}
+}
+\begin{document}
+
+\begin{tikzpicture}[auto, node distance=1.3cm]
+  \node[lab] (r) at (0,0) {速度给定};
+  \node[sum] (sum_e) at (1.2,0) {};
+  \node[block] (c) at (2.65,0) {反馈控制\\$PID$};
+  \node[block] (q) at (4.45,0) {校正/陷波\\$Q(s)$};
+  \node[block] (lim) at (6.25,0) {限幅};
+  \node[equipblock] (act) at (8.75,0) {执行机构};
+  \node[sum] (sum_l) at (10.6,0) {};
+  \node[equipblock] (load) at (12.35,0) {负载结构};
+  \node[tap] (ytap) at (13.55,0) {};
+  \node[lab] (y) at (14.8,0) {速度};
+
+  \node[block] (hf) at (6.7,-1.65) {测速滤波\\$H_f(s)$};
+  \node[lab] (d) at (10.6,1.65) {负载扰动};
+
+  \draw[signal] (r) -- node[lab, above] {$+$} (sum_e);
+  \draw[signal] (sum_e) -- (c);
+  \draw[signal] (c) -- (q);
+  \draw[signal] (q) -- (lim);
+  \draw[signal] (lim) -- (act);
+  \draw[signal] (act) -- (sum_l);
+  \draw[signal] (sum_l) -- (load);
+  \draw[wire] (load) -- (ytap);
+  \draw[signal] (ytap) -- (y);
+  \draw[signal] (ytap) |- (hf);
+  \draw[wire] (hf) -| (1.2,-1.65);
+  \draw[signal] (1.2,-1.65) -- node[neg, left, near end] {$-$} (sum_e.south);
+  \draw[signal] (d) -- node[lab, right] {$-$} (sum_l.north);
+\end{tikzpicture}
+\end{document}

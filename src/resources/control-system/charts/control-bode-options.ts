@@ -16,6 +16,8 @@ export interface AxisPreset {
 }
 
 export const UNIT_37_LOW_FREQUENCY_BODE_CASE_ID = 'unit37_low_frequency_bode';
+export const CONTROL_CHART_MAIN_LINE_WIDTH = 2.4;
+export const CONTROL_CHART_AUXILIARY_LINE_WIDTH = 1.4;
 
 const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>> = {
   ship_heading: {
@@ -313,7 +315,7 @@ export function buildBodePanelOption(
         name: '幅频',
         type: 'line',
         showSymbol: false,
-        lineStyle: { color: '#a78bfa', width: 2.5 },
+        lineStyle: { color: '#a78bfa', width: CONTROL_CHART_MAIN_LINE_WIDTH },
         data: result.magnitude.points.map((point) => [point.x, point.y]),
       },
       ...magnitudeMarginSeries,
@@ -323,7 +325,7 @@ export function buildBodePanelOption(
         xAxisIndex: 1,
         yAxisIndex: 1,
         showSymbol: false,
-        lineStyle: { color: '#fb7185', width: 2.5 },
+        lineStyle: { color: '#fb7185', width: CONTROL_CHART_MAIN_LINE_WIDTH },
         data: result.phase.points.map((point) => [point.x, point.y]),
       },
       ...phaseMarginSeries.map((series) => ({
@@ -413,7 +415,7 @@ export function buildBodeComparisonOption(
         showSymbol: false,
         xAxisIndex: 0,
         yAxisIndex: 0,
-        lineStyle: { width: 2.2, color: panel.color },
+        lineStyle: { width: CONTROL_CHART_MAIN_LINE_WIDTH, color: panel.color },
         data: panel.result.magnitude.points.map((point) => [point.x, point.y]),
       },
       {
@@ -422,7 +424,7 @@ export function buildBodeComparisonOption(
         showSymbol: false,
         xAxisIndex: 1,
         yAxisIndex: 1,
-        lineStyle: { width: 2.2, type: 'dashed', color: panel.color },
+        lineStyle: { width: CONTROL_CHART_MAIN_LINE_WIDTH, type: 'dashed', color: panel.color },
         data: panel.result.phase.points.map((point) => [point.x, point.y]),
       },
     ]),

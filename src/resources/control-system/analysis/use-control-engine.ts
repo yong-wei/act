@@ -18,6 +18,18 @@ interface WorkerFailureMessage {
 
 type WorkerMessage = WorkerSuccessMessage | WorkerFailureMessage;
 
+async function computeAnalysisOnMainThread(requestJson: string): Promise<string> {
+  const controlEngine = await import('../wasm/control_engine/index.js');
+  await controlEngine.default();
+  const request = JSON.parse(requestJson) as { runtimeMode?: string };
+  const nonlinearCompute = (controlEngine as typeof controlEngine & {
+    compute_nonlinear_analysis?: (request: string) => string;
+  }).compute_nonlinear_analysis;
+  return request.runtimeMode === 'nonlinear_analysis' && typeof nonlinearCompute === 'function'
+    ? nonlinearCompute(requestJson)
+    : controlEngine.compute_analysis(requestJson);
+}
+
 export function useControlEngine(
   request: ControlAnalysisRequest,
   fallbackResult?: ControlAnalysisResult,
@@ -65,6 +77,7 @@ export function useControlEngine(
     const worker = workerRef.current;
     const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     latestRequestIdRef.current = requestId;
+    let settled = false;
     setState((prev) => ({
       result: prev.result ?? fallbackResult ?? null,
       isLoading: true,
@@ -72,39 +85,74 @@ export function useControlEngine(
       isFallback: Boolean(prev.result?.isFallback ?? fallbackResult?.isFallback),
     }));
 
+    const finishWithResult = (resultJson: string) => {
+      const result = JSON.parse(resultJson) as ControlAnalysisResult;
+      cacheRef.current.set(requestKey, result);
+      setState({
+        result,
+        isLoading: false,
+        error: null,
+        isFallback: Boolean(result.isFallback),
+      });
+    };
+
+    const finishWithError = (error: string) => {
+      setState({
+        result: fallbackResult ?? null,
+        isLoading: false,
+        error,
+        isFallback: Boolean(fallbackResult),
+      });
+    };
+
+    const runMainThreadFallback = () => {
+      if (settled) {
+        return;
+      }
+      void computeAnalysisOnMainThread(requestKey)
+        .then((resultJson) => {
+          if (settled || latestRequestIdRef.current !== requestId) {
+            return;
+          }
+          settled = true;
+          finishWithResult(resultJson);
+        })
+        .catch((error) => {
+          if (settled || latestRequestIdRef.current !== requestId) {
+            return;
+          }
+          settled = true;
+          finishWithError(error instanceof Error ? error.message : '控制分析引擎执行失败。');
+        });
+    };
+
+    const mainThreadFallbackTimer = window.setTimeout(runMainThreadFallback, 4000);
+
     const handleMessage = (event: MessageEvent<WorkerMessage>) => {
       const message = event.data;
       if (message.id !== latestRequestIdRef.current) {
         return;
       }
-
-      if (message.ok) {
-        const result = JSON.parse(message.resultJson) as ControlAnalysisResult;
-        cacheRef.current.set(requestKey, result);
-        setState({
-          result,
-          isLoading: false,
-          error: null,
-          isFallback: Boolean(result.isFallback),
-        });
+      if (settled) {
         return;
       }
 
-      setState({
-        result: fallbackResult ?? null,
-        isLoading: false,
-        error: message.error,
-        isFallback: Boolean(fallbackResult),
-      });
+      if (message.ok) {
+        settled = true;
+        window.clearTimeout(mainThreadFallbackTimer);
+        finishWithResult(message.resultJson);
+        return;
+      }
+
+      window.clearTimeout(mainThreadFallbackTimer);
+      runMainThreadFallback();
     };
 
     const handleError = () => {
-      setState({
-        result: fallbackResult ?? null,
-        isLoading: false,
-        error: '控制分析 Worker 加载失败。',
-        isFallback: Boolean(fallbackResult),
-      });
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      window.clearTimeout(mainThreadFallbackTimer);
+      runMainThreadFallback();
     };
 
     worker.addEventListener('message', handleMessage);
@@ -112,6 +160,8 @@ export function useControlEngine(
     worker.postMessage({ id: requestId, requestJson: requestKey });
 
     return () => {
+      settled = true;
+      window.clearTimeout(mainThreadFallbackTimer);
       worker.removeEventListener('message', handleMessage);
       worker.removeEventListener('error', handleError);
     };

@@ -140,7 +140,37 @@ export interface BodeAxisData {
 
 export interface NyquistClosureSegment {
   points: ComplexPoint[];
+  segments?: ComplexPoint[][];
   lineStyle: 'dashed';
+}
+
+export type NyquistSegmentType =
+  | 'regular_positive'
+  | 'regular_negative'
+  | 'infinity_arc'
+  | 'big_arc'
+  | 'connector'
+  | 'asymptote'
+  | string;
+
+export interface NyquistSegmentMetadata {
+  poleLocation?: ComplexPoint;
+  poleOrder?: number;
+  frequencyInterval?: [number, number];
+  parameterRange?: [number, number];
+  layerIndex?: number;
+  isAuxiliary?: boolean;
+  collapsed?: boolean;
+  branch?: 'positive' | 'negative' | string;
+  [key: string]: unknown;
+}
+
+export interface NyquistSegment {
+  type: NyquistSegmentType;
+  points: ComplexPoint[];
+  direction?: string;
+  lineStyle?: 'solid' | 'dashed' | 'dotted' | string;
+  metadata?: NyquistSegmentMetadata;
 }
 
 export interface NyquistKeyPoint {
@@ -156,15 +186,25 @@ export interface NyquistAsymptote {
   point?: ComplexPoint;
 }
 
+export interface NyquistCriterion {
+  n: number;
+  p: number;
+  z: number;
+  relation: 'Z = P + N';
+  isConsistent: boolean;
+}
+
 export interface NyquistData {
   points: ComplexPoint[];
   mode?: 'full' | 'half';
   positivePoints?: ComplexPoint[];
   negativePoints?: ComplexPoint[];
+  segments?: NyquistSegment[];
   infinityClosure?: NyquistClosureSegment;
   keyPoints?: NyquistKeyPoint[];
   asymptotes?: NyquistAsymptote[];
   encirclements?: number;
+  criterion?: NyquistCriterion;
 }
 
 export interface RealAxisSegment {
@@ -177,6 +217,110 @@ export interface RootLocusAsymptote {
   angleDeg: number;
 }
 
+export type RootLocusSegmentType =
+  | 'real_axis_locus'
+  | 'branch'
+  | 'branch_completion'
+  | 'near_pole'
+  | 'regular'
+  | 'near_break'
+  | 'near_zero'
+  | 'asymptotic_tail'
+  | 'asymptote';
+
+export interface RootLocusSegmentPoint extends ComplexPoint {
+  gain?: number;
+  branchId?: number;
+  sampleIndex?: number;
+}
+
+export interface RootLocusSegmentMetadata {
+  branchId?: number;
+  angleDeg?: number;
+  isAuxiliary?: boolean;
+  endpointType?: 'finite_zero' | 'infinity' | string;
+  targetZeroIndex?: number;
+  terminalDistance?: number;
+  samplingParameter?: 'gain' | 'mu' | string;
+}
+
+export interface RootLocusSegment {
+  type: RootLocusSegmentType;
+  lineStyle: 'solid' | 'dashed';
+  points: RootLocusSegmentPoint[];
+  metadata?: RootLocusSegmentMetadata;
+}
+
+export type RootLocusEventType =
+  | 'open_loop_pole'
+  | 'open_loop_zero'
+  | 'breakaway'
+  | 'reentry'
+  | 'imaginary_axis_crossing'
+  | 'infinity_endpoint'
+  | string;
+
+export interface RootLocusEvent {
+  type: RootLocusEventType;
+  point: ComplexPoint;
+  gain?: number;
+  branchId?: number;
+  label?: string;
+}
+
+export type RootLocusStructuredSegmentType =
+  | 'near_pole'
+  | 'regular'
+  | 'near_break'
+  | 'near_zero'
+  | 'asymptotic_tail'
+  | 'asymptote'
+  | string;
+
+export interface RootLocusStructuredSegment {
+  id: string;
+  type: RootLocusStructuredSegmentType;
+  branchId?: number;
+  points: RootLocusSegmentPoint[];
+  isAuxiliary?: boolean;
+}
+
+export interface RootLocusBranchDescriptor {
+  id: number;
+  startEventType?: RootLocusEventType;
+  endEventType?: RootLocusEventType;
+  segmentIds: string[];
+}
+
+export interface RootLocusBranchStructure {
+  branches: RootLocusBranchDescriptor[];
+  segments: RootLocusStructuredSegment[];
+}
+
+export interface RootLocusView {
+  x: [number, number];
+  y: [number, number];
+  includeSegmentTypes?: RootLocusStructuredSegmentType[];
+  excludeSegmentTypes?: RootLocusStructuredSegmentType[];
+}
+
+export interface RootLocusViews {
+  feature: RootLocusView;
+  full: RootLocusView;
+}
+
+export interface RootLocusFiniteZeroCoverage {
+  matchedCount: number;
+  totalCount: number;
+  maxTerminalDistance: number;
+  allMatchedWithinTolerance: boolean;
+}
+
+export interface RootLocusDiagnostics {
+  finiteZeroCoverage: RootLocusFiniteZeroCoverage;
+  assignmentWarnings: string[];
+}
+
 export interface RootLocusAngle {
   point: ComplexPoint;
   angleDeg: number;
@@ -185,6 +329,12 @@ export interface RootLocusAngle {
 export interface RootLocusData {
   branches: RootLocusSamplePoint[][];
   fullBranches?: RootLocusSamplePoint[][];
+  segments?: RootLocusSegment[];
+  events?: RootLocusEvent[];
+  branchStructure?: RootLocusBranchStructure;
+  views?: RootLocusViews;
+  diagnostics?: RootLocusDiagnostics;
+  suggestedInsets?: RootLocusView[];
   gains?: number[];
   realAxisSegments?: RealAxisSegment[];
   stationaryPoints?: RootLocusSamplePoint[];

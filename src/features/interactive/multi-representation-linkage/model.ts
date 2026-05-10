@@ -20,7 +20,11 @@ import {
   adaptLinkageAnalysisResult,
   buildLinkageAnalysisRequest,
 } from '@/resources/control-system/analysis/multi-representation-linkage-analysis';
-import type { ComplexPoint as Complex } from '@/resources/control-system/analysis/types';
+import type {
+  ComplexPoint as Complex,
+  ControlAnalysisResult,
+  ControlEngineState,
+} from '@/resources/control-system/analysis/types';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 
 export interface MultiRepresentationInitialParams {
@@ -124,6 +128,88 @@ function toPoleZeroPoints(points: Complex[], prefix: 'p' | 'z'): PoleZeroPoint[]
   return result;
 }
 
+function normalizedPointKey(point: Complex): string {
+  return `${round3(point.re)}:${round3(Math.abs(point.im) < 1e-6 ? 0 : point.im)}`;
+}
+
+function normalizedPointKeys(points: Complex[]): string[] {
+  return points.map(normalizedPointKey).sort();
+}
+
+export function doesRootLocusMatchPoleZeroSet(
+  result: ControlAnalysisResult | null,
+  poles: Complex[],
+  zeros: Complex[],
+): boolean {
+  if (!result) {
+    return false;
+  }
+  const resultPoleKeys = normalizedPointKeys(result.rootLocus.openLoopPoles);
+  const resultZeroKeys = normalizedPointKeys(result.rootLocus.openLoopZeros);
+  const currentPoleKeys = normalizedPointKeys(poles);
+  const currentZeroKeys = normalizedPointKeys(zeros);
+  return resultPoleKeys.length === currentPoleKeys.length
+    && resultZeroKeys.length === currentZeroKeys.length
+    && resultPoleKeys.every((key, index) => key === currentPoleKeys[index])
+    && resultZeroKeys.every((key, index) => key === currentZeroKeys[index]);
+}
+
+function mergeClosedLoopSelectionResult(
+  openLoopResult: ControlAnalysisResult | null,
+  selectedResult: ControlAnalysisResult | null,
+  selectedGain: number,
+): ControlAnalysisResult | null {
+  if (!openLoopResult) {
+    return null;
+  }
+  const selectedPoles = openLoopResult.rootLocus.branches
+    .map((branch) => branch.reduce((best, point) => {
+      const bestDistance = Math.abs((best.gain ?? 0) - selectedGain);
+      const pointDistance = Math.abs((point.gain ?? 0) - selectedGain);
+      return pointDistance < bestDistance ? point : best;
+    }, branch[0]))
+    .filter((point): point is NonNullable<typeof point> => Boolean(point))
+    .map((point) => ({ re: point.re, im: point.im }));
+  if (!selectedResult) {
+    return {
+      ...openLoopResult,
+      rootLocus: {
+        ...openLoopResult.rootLocus,
+        currentPoles: selectedPoles.length > 0 ? selectedPoles : openLoopResult.rootLocus.currentPoles,
+      },
+    };
+  }
+  return {
+    ...openLoopResult,
+    metrics: {
+      ...openLoopResult.metrics,
+      overshootPct: selectedResult.metrics.overshootPct,
+      riseTimeSec: selectedResult.metrics.riseTimeSec,
+      settlingTimeSec: selectedResult.metrics.settlingTimeSec,
+      peakTimeSec: selectedResult.metrics.peakTimeSec,
+      finalValue: selectedResult.metrics.finalValue,
+    },
+    stepResponse: selectedResult.stepResponse,
+    rootLocus: {
+      ...openLoopResult.rootLocus,
+      currentPoles: selectedPoles.length > 0 ? selectedPoles : openLoopResult.rootLocus.currentPoles,
+    },
+  };
+}
+
+function mergeAnalysisState(
+  openLoopState: ControlEngineState,
+  selectedState: ControlEngineState,
+  result: ControlAnalysisResult | null,
+): ControlEngineState {
+  return {
+    result,
+    isLoading: openLoopState.isLoading || selectedState.isLoading,
+    error: openLoopState.error ?? selectedState.error,
+    isFallback: openLoopState.isFallback || selectedState.isFallback,
+  };
+}
+
 export function useMultiRepresentationLinkageModel(initialParams: MultiRepresentationInitialParams) {
   const isCourseMode = Boolean(initialParams.courseMode);
   const courseRole = initialParams.role ?? 'student';
@@ -145,6 +231,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(openLoopSeed.poles, 'p'));
   const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(openLoopSeed.zeros, 'z'));
   const [gain, setGain] = useState(openLoopSeed.gain);
+  const [closedLoopGain, setClosedLoopGain] = useState(openLoopSeed.gain);
   const [courseControlMode, setCourseControlMode] = useState<CruiseControllerMode>(initialControlMode);
   const [responseType, setResponseType] = useState<LinkageResponseType>('step');
   const [showMargins, setShowMargins] = useState(true);
@@ -160,9 +247,35 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => buildLinkageAnalysisRequest({ poles: polesPayload, zeros: zerosPayload, gain, responseType }),
     [gain, polesPayload, responseType, zerosPayload],
   );
+  const closedLoopSelectionRequest = useMemo(
+    () => buildLinkageAnalysisRequest({
+      poles: polesPayload,
+      zeros: zerosPayload,
+      gain: closedLoopGain,
+      rootLocusGain: closedLoopGain,
+      outputs: ['step_response'],
+      responseType,
+    }),
+    [closedLoopGain, polesPayload, responseType, zerosPayload],
+  );
   const deferredLinkageRequest = useDeferredValue(linkageRequest);
-  const analysisState = useControlEngine(deferredLinkageRequest);
-  const analysisResult = analysisState.result;
+  const deferredClosedLoopSelectionRequest = useDeferredValue(closedLoopSelectionRequest);
+  const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
+  const closedLoopSelectionState = useControlEngine(deferredClosedLoopSelectionRequest);
+  const openLoopAnalysisResult = useMemo(
+    () => doesRootLocusMatchPoleZeroSet(openLoopAnalysisState.result, polesPayload, zerosPayload)
+      ? openLoopAnalysisState.result
+      : null,
+    [openLoopAnalysisState.result, polesPayload, zerosPayload],
+  );
+  const analysisResult = useMemo(
+    () => mergeClosedLoopSelectionResult(openLoopAnalysisResult, closedLoopSelectionState.result, closedLoopGain),
+    [closedLoopGain, closedLoopSelectionState.result, openLoopAnalysisResult],
+  );
+  const analysisState = useMemo(
+    () => mergeAnalysisState(openLoopAnalysisState, closedLoopSelectionState, analysisResult),
+    [analysisResult, closedLoopSelectionState, openLoopAnalysisState],
+  );
   const adaptedAnalysis = useMemo(
     () => (analysisResult ? adaptLinkageAnalysisResult(analysisResult) : null),
     [analysisResult],
@@ -183,15 +296,18 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     } else {
       setModelZeros((previous) => [...previous, ...nextItems]);
     }
-  }, [isCourseMode]);
+    setClosedLoopGain(gain);
+  }, [gain, isCourseMode]);
 
   const updatePole = useCallback((pointId: string, next: Complex) => {
     setModelPoles((previous) => updatePointWithConjugateLink(previous, pointId, next));
-  }, []);
+    setClosedLoopGain(gain);
+  }, [gain]);
 
   const updateZero = useCallback((pointId: string, next: Complex) => {
     setModelZeros((previous) => updatePointWithConjugateLink(previous, pointId, next));
-  }, []);
+    setClosedLoopGain(gain);
+  }, [gain]);
 
   const removePole = useCallback((pointId: string) => {
     if (!isCourseMode) {
@@ -199,14 +315,16 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
         const next = removePointWithPair(previous, pointId);
         return next.length > 0 ? next : previous;
       });
+      setClosedLoopGain(gain);
     }
-  }, [isCourseMode]);
+  }, [gain, isCourseMode]);
 
   const removeZero = useCallback((pointId: string) => {
     if (!isCourseMode) {
       setModelZeros((previous) => removePointWithPair(previous, pointId));
+      setClosedLoopGain(gain);
     }
-  }, [isCourseMode]);
+  }, [gain, isCourseMode]);
 
   const reset = useCallback(() => {
     const fallbackModel = isCourseMode
@@ -217,6 +335,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     setModelPoles(nextPoles);
     setModelZeros(nextZeros);
     setGain(fallbackModel.gain);
+    setClosedLoopGain(fallbackModel.gain);
   }, [courseControlMode, isCourseMode]);
 
   useEffect(() => {
@@ -258,7 +377,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       }
       const nextGain = data.payload?.openLoop?.gain ?? nextModel?.gain;
       if (typeof nextGain === 'number' && Number.isFinite(nextGain)) {
-        setGain(round3(Math.max(0, nextGain)));
+        const sanitizedGain = round3(Math.max(0, nextGain));
+        setGain(sanitizedGain);
+        setClosedLoopGain(sanitizedGain);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -291,7 +412,18 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     }, window.location.origin);
   }, [adaptedAnalysis, courseControlMode, gain, isCourseMode, polesPayload, zerosPayload]);
 
-  const parameterSummary = `K=${gain.toFixed(3)} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length} | ${responseType}`;
+  const setOpenLoopGain = useCallback((value: number) => {
+    const sanitizedGain = round3(Math.max(0, value));
+    setGain(sanitizedGain);
+    setClosedLoopGain(sanitizedGain);
+  }, []);
+  const setSelectedClosedLoopGain = useCallback((value: number) => {
+    setClosedLoopGain(round3(Math.max(0, value)));
+  }, []);
+  const selectedGainText = Math.abs(closedLoopGain - gain) > 1e-6
+    ? ` | 闭环选点K=${closedLoopGain.toFixed(3)}`
+    : '';
+  const parameterSummary = `K=${gain.toFixed(3)}${selectedGainText} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length} | ${responseType}`;
 
   return {
     isCourseMode,
@@ -300,14 +432,17 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     modelPoles,
     modelZeros,
     gain,
+    closedLoopGain,
     responseType,
     showMargins,
     drawerOpen,
     analysisState,
     analysisResult,
+    frequencyAnalysisResult: openLoopAnalysisResult,
     adaptedAnalysis,
     parameterSummary,
-    setGain: (value: number) => setGain(round3(Math.max(0, value))),
+    setGain: setOpenLoopGain,
+    setClosedLoopGain: setSelectedClosedLoopGain,
     setResponseType,
     setShowMargins,
     setDrawerOpen,

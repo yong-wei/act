@@ -200,13 +200,13 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
 <claude-mem-context>
 # Memory Context
 
-# [act.just.edu.cn] recent context, 2026-05-09 3:41pm GMT+8
+# [act.just.edu.cn] recent context, 2026-05-10 4:38pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (16,104t read) | 1,390,495t work | 99% savings
+Stats: 50 obs (4,836t read) | 841,477t work | 99% savings
 
 ### Apr 7, 2026
 S241 Created handout refinement skill with student-facing tone guidelines and course alignment (Apr 7 at 7:13 PM)
@@ -224,58 +224,57 @@ S250 Computer Use testing progress summary - application state access denied (Ap
 S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Automatic Control Principles course; primary session completed targeted polishing of the handout.md file. (Apr 21 at 10:17 AM)
 ### May 2, 2026
 S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:50 PM)
-### May 8, 2026
-32184 11:04p 🔵 content-renderers.tsx 核心渲染逻辑提取：公式、表格、模块类型映射与公式提取逻辑确认
-32195 " 🔵 activity-renderers.tsx核心互动活动渲染逻辑提取：学生/教师端渲染、参数控制、公式归一化与作答统计逻辑确认
-32188 " 🔵 4-3互动运行时清单（interactive-manifest.json）片段提取：包含给定滤波结构图、活动卡与公式集配置
-32189 " 🔵 4-3互动课实现目录下无独立activity-renderers测试文件，与前期tests_for查询结果一致
-32199 " 🔵 4-3 Interactive Lesson Formula/Parameter Configurations Confirmed Across Contract, Manifest, and Implementation
-32194 " 🔵 4-3 Related Test Files Limited to Two Course-Level Files, No Renderer-Specific Tests Found
-32203 " 🔵 Major Uncommitted Changes to 4-3 Core Files Revealed via Git Diff: Contract Version Bump, Step Restructuring, and Teacher Control Updates
-32205 " 🔵 content-renderers.tsx公式提取、表格查找与渐进显影逻辑提取：多源回退解析与渐进显影项构造确认
-32204 " 🔵 activity-renderers.tsx 参数集与作答逻辑深度提取：parameter_set处理、学生端草稿管理、教师端控制按钮实现确认
-32207 " 🔵 4-3 Core Files Show Pervasive Disturbance Feedforward Configuration, No Step-14 Defined, Partial Search Term Matches
-32208 " 🔵 Interactive-Manifest-Runtime Tests for formula_set and parameter_set Directly Mirror 4-3 Lesson Content
-32099 " 🔵 Lines 1515-1765 of interactive-manifest-runtime.test.tsx Validate Shared Reveal, Drag-Match, and Teacher Control Logic
-32209 " 🔵 content-renderers.tsx公式注释、符号提取与课程目标/路径图组件逻辑提取：关联4-3公式渲染与步骤布局组件
-32212 " 🔵 activity-renderers.tsx 活动卡生成、答案格式化与互动类型注册逻辑提取：覆盖4-3全互动场景
-32211 " 🔵 4-3 interactive-manifest.json Step-14 完整定义确认：扰动前馈参数补偿配置与前后端实现完全对齐
-32210 11:05p 🔵 Interactive-Manifest-Runtime Tests Validate formula-card Rendering and Teacher-Side Parameter Submission Formatting for 4-3 Scenarios
-32219 " 🔵 content-renderers.tsx公式渲染全链路提取：类型定义、核心函数、组件实现与模块注册确认
-32215 " 🔵 content-renderers.tsx Formula Rendering Logic Mapped: getFormulaItems, formulaNotes, FormulaCard, and Registry Registration Confirmed
-32216 " 🔵 Interactive-Manifest-Runtime Tests Confirm formula-card Rendering Without Errors for 4-3-Aligned Formula Content
-32218 " 🔵 4-3 Student Page Initialization and Activity Rendering Logic Confirmed: Workspace Params, AI Context, Step Manifest Alignment
-32220 " 🔵 step-panels.tsx 扰动前馈面板默认参数与控件配置确认：与manifest、测试值完全对齐
-32225 " 🔵 activity-renderers.tsx Answer Formatting and Teacher-Side Logic Mapped: Submission Sync, Parameter Set Handling, and Teacher Dashboard Support
-32226 " 🔵 unit-4-3-course.ts Specified Line Range (2398-2420) Contains No Content
-32229 " 🔵 unit-4-3-ai-contexts.ts 指定行范围无匹配：1508-1520行无内容，需调整行号定位
-32231 " 🔵 Teacher-Side Answer Aggregation and Summary Logic in activity-renderers.tsx: TeacherCardOptions, aggregateCardAnswers, TeacherCardAnswerSummary Extracted for 4-3 Teacher Dashboard Support
-32234 " 🔵 4-3 工作区参数状态仅在student-page.tsx匹配，扰动前馈参数关键词未在其他三核心文件命中
-32233 " 🔵 unit-4-3-course.ts与unit-4-3-ai-contexts.ts实际行数确认：远小于此前查询的行号范围
-32235 " 🔵 unit-4-3-ai-contexts.ts 全量内容提取：AI上下文生成逻辑、配置字段与依赖关系确认
-32238 " 🔵 student-page.tsx 学生端权限控制与埋点逻辑提取：活动发布、浏览权限、教师揭示进度与步骤追踪
-32105 11:06p 🔵 Audit of 4-3 Interactive Course Runtime Implementation Completed
-32242 " 🔵 step-panels.tsx 参数面板回调链路确认：默认参数上报、滑块变更触发WorkspaceParameterChange
-32243 11:26p 🔵 Primary session received new request to update 4-3 interactive course design per latest draft
-32248 11:28p 🔵 Primary session receives request to update 4-3 interactive course design per latest draft
-32281 11:36p 🟣 Implemented parameter_set answer parsing and formatting for activity renderers
-32289 11:39p 🔵 4-3 lecture notes confirmed heavily revised, interactive course design restart requested
-### May 9, 2026
-32330 12:13p ✅ 检查并修正讲义4-4与之前内容的一致性
-32331 12:18p ✅ 修正讲义4-4与4-2/4-3内容不一致问题
-32332 12:21p ✅ 同步4-3互动课程作者态到运行态并修复旧资源引用
-32333 12:24p ✅ 移除4-4课程审查清单中的交互组件并修正时间戳
-32338 12:33p 🔵 课程4-4审查报告生成及检查
-32336 " ✅ 讲义内容审查与修正
-32339 1:03p 🔵 课程4-4审查报告显示所有检查通过
-32349 1:55p 🔵 Untitled
-32350 2:01p 🔵 [**title**: PDF抽查渲染方案更新]
-32351 2:04p 🔵 [**title**: 发现技能使用文档]
-32352 2:13p 🔴 修复课堂结束后治理数据的最终化遥测和快照入队
-32353 " 🔵 新增调试技能文档 debug-issue
-32354 2:51p 🔵 代码变更审查结果
-32355 2:56p 🟣 实现基于课程标题的路由解析与链接生成
-32356 3:06p ✅ 为表6添加PDF列宽注释
+### May 10, 2026
+32509 12:25p ✅ 修改 T5S.md 标题文本
+32510 12:29p 🔄 调整 T5 章节绘图脚本布局与标签
+32511 " 🔄 细化 T5 绘图脚本信号连线与节点位置
+32512 3:20p ✅ 更新 T5.md 中的驱动电压变量表示
+32513 3:22p 🔄 调整 T5 生成图脚本的节点布局与信号方向
+32514 3:23p 🔄 在 T5 生成图脚本中引入 dtap 以分离实际扰动与负载扰动信号
+32515 3:25p 🔄 细化 T5 生成图脚本中节点坐标与信号连线
+32516 " 🔵 执行 T5 图形生成脚本成功生成多张示意图
+32517 3:28p ✅ 生成作业5图形资源
+32518 3:31p ✅ 作业5文档关键术语与约束表述更新
+32519 3:36p 🔵 读取 TikZ 控制绘图技能文档
+32520 3:42p ✅ 更新控制框图布局以匹配参考答案要求
+32521 " 🔵 读取调试技能文档
+32522 3:43p 🔵 检测到高风险代码改动
+32523 3:44p ✅ 根轨迹与 Nyquist 线宽及渲染策略统一调整
+32524 3:45p ⚖️ 作业边界与内容划分调整决策
+32525 " 🟣 新增根轨迹匹配函数测试
+32527 3:48p 🟣 参数抽屉改为无遮罩的 Radix Dialog 实现
+32526 " ⚖️ 制定 TikZ 模块布局约束策略
+32528 3:50p 🟣 统一四图主曲线线宽常量化
+32529 " 🟣 Nyquist 显示采样起点半径策略实现
+32530 " ✅ 更新 TikZ 模块绘图约束文档
+32531 " 🔵 启动 TikZ 绘图工作代理
+32533 " 🔵 读取 tikz-control-draw 技能描述
+32534 3:51p 🔵 提取 T5-3 章节图形代码
+32532 " 🔵 负号样式在 block_styles.tex 中定义
+32535 3:52p ✅ 新增复合控制方框图 TikZ 源文件
+32536 " 🔵 多表征联动测试全部通过
+32537 3:53p ⚖️ 调整作业图形绘制细节
+32538 " 🔵 缺少 pdftocairo 工具
+32539 3:56p ✅ 生成复合控制方框图及其资源文件
+32540 " 🔄 更新 T5 图形绘制样式与布局
+32541 3:57p ⚖️ TikZ模块布局约束策略制定
+32542 " 🔵 确认图片资源被 .gitignore 忽略
+32543 3:59p 🔄 参数抽屉组件 JSX 结构微调
+32544 " 🔵 ESLint 检查通过
+32545 " 🔵 with_server 脚本帮助信息获取
+32546 4:02p 🔵 页面加载超时导致交互测试未完成
+32547 4:04p ⚖️ TikZ模块布局约束策略制定
+32548 " 🟣 参数抽屉改为无遮罩悬浮按钮
+32549 " ✅ 更新TikZ负号节点位置关键字
+32550 4:05p 🔵 多表征联动页面加载与不可用状态检测
+32551 4:11p 🔵 发现控制分析 Worker 的导入路径
+32552 4:12p 🔵 Worker 脚本加载返回 404
+32553 4:13p 🟣 新增主线程回退计算逻辑
+32554 4:14p ✅ 单元测试全部通过
+32555 4:17p ⚖️ 制定 TikZ 模块布局约束策略
+32557 4:19p 🔵 读取 TikZ 控制绘图技能说明
+32558 4:20p ✅ 新增 4-3 复合控制方框图 TeX 文件
+32559 4:26p ⚖️ TikZ模块布局约束策略制定
 
-Access 1390k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 841k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

@@ -27,6 +27,7 @@ export interface LinkageFrequencyDomainResponse {
   nyquistSamples: LinkageNyquistSample[];
   nyquistKeyPoints: NonNullable<ControlAnalysisResult['nyquist']['keyPoints']>;
   nyquistEncirclements: number;
+  nyquistCriterion?: NonNullable<ControlAnalysisResult['nyquist']['criterion']>;
   stabilityMargins: {
     gainMargin: { value: number; frequency: number; isInfinite?: boolean };
     phaseMargin: { value: number; frequency: number };
@@ -66,6 +67,8 @@ interface BuildLinkageAnalysisRequestInput {
   poles: ComplexPoint[];
   zeros: ComplexPoint[];
   gain: number;
+  rootLocusGain?: number;
+  outputs?: ControlAnalysisRequest['outputs'];
   responseType: NonNullable<ControlAnalysisRequest['responseType']>;
 }
 
@@ -218,9 +221,17 @@ export function buildLinkageAnalysisRequest(
   input: BuildLinkageAnalysisRequestInput,
 ): ControlAnalysisRequest {
   const sanitizedGain = Number.isFinite(input.gain) ? Math.max(0, input.gain) : 0;
+  const sanitizedRootLocusGain = Number.isFinite(input.rootLocusGain ?? NaN)
+    ? Math.max(0, input.rootLocusGain as number)
+    : sanitizedGain;
   const numerator = polyFromRoots(input.zeros);
   const denominator = polyFromRoots(input.poles);
-  const maxGain = recommendRootLocusMaxGain(input.poles, input.zeros, sanitizedGain);
+  const outputs = input.outputs ?? ['step_response', 'root_locus', 'magnitude', 'phase', 'nyquist', 'bode'];
+  const maxGain = recommendRootLocusMaxGain(
+    input.poles,
+    input.zeros,
+    Math.max(sanitizedGain, sanitizedRootLocusGain),
+  );
 
   return {
     runtimeMode: 'analysis',
@@ -232,7 +243,7 @@ export function buildLinkageAnalysisRequest(
       label: '多表征联动开环模型',
     },
     structures: [{ kind: 'gain', enabled: true, params: { k: sanitizedGain }, label: 'K' }],
-    outputs: ['step_response', 'root_locus', 'magnitude', 'phase', 'nyquist', 'bode'],
+    outputs,
     responseType: input.responseType,
     timeRange: DEFAULT_TIME_RANGE,
     frequencyRange: DEFAULT_FREQUENCY_RANGE,
@@ -244,7 +255,7 @@ export function buildLinkageAnalysisRequest(
       minGain: 0,
       maxGain,
       samples: 96,
-      currentGain: sanitizedGain,
+      currentGain: sanitizedRootLocusGain,
     },
     delay: undefined,
     discreteConfig: undefined,
@@ -307,6 +318,7 @@ export function adaptLinkageAnalysisResult(result: ControlAnalysisResult): Linka
       nyquistSamples,
       nyquistKeyPoints: result.nyquist.keyPoints ?? [],
       nyquistEncirclements: result.nyquist.encirclements ?? 0,
+      nyquistCriterion: result.nyquist.criterion,
       stabilityMargins,
       marginPoints: {
         gainCrossover: findClosestNyquistSample(nyquistSamples, result.metrics.gainCrossoverRadPerSec),

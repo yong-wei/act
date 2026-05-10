@@ -21,6 +21,7 @@ export function MultiRepresentationLinkageClient({
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
   const result = model.analysisResult;
+  const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
 
   return (
     <div className="premium-lesson-shell min-h-screen">
@@ -50,28 +51,12 @@ export function MultiRepresentationLinkageClient({
                 <div className="premium-lesson-caption rounded-full border border-border/60 px-3 py-2 text-xs">
                   {model.parameterSummary}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => model.setDrawerOpen(true)}
-                  className="premium-lesson-action-tone premium-tone-cyan inline-flex items-center gap-2"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  参数抽屉
-                </button>
               </div>
             </div>
           </header>
         ) : (
           <div className="premium-lesson-panel-soft mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-4">
             <div className="premium-lesson-caption text-xs">{model.parameterSummary}</div>
-            <button
-              type="button"
-              onClick={() => model.setDrawerOpen(true)}
-              className="premium-lesson-action-tone premium-tone-cyan inline-flex items-center gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              参数抽屉
-            </button>
           </div>
         )}
 
@@ -105,13 +90,13 @@ export function MultiRepresentationLinkageClient({
               <ControlPerformanceBar result={result} />
               <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
                 <TimeDomainPanel result={result} />
-                <BodePanel result={result} showMargins={model.showMargins} />
+                <BodePanel result={frequencyResult} showMargins={model.showMargins} />
                 <RootLocusPanel
                   result={result}
                   mode="full"
-                  onClosedLoopGainCommit={model.setGain}
+                  onClosedLoopGainCommit={model.setClosedLoopGain}
                 />
-                <NyquistPanel result={result} />
+                <NyquistPanel result={frequencyResult} />
               </div>
             </div>
           )}
@@ -125,6 +110,16 @@ export function MultiRepresentationLinkageClient({
               : '联动已更新：四个表征共用同一组开环零极点与 Rust/WASM 分析结果。'}
         </div>
       </main>
+      <button
+        type="button"
+        onClick={() => model.setDrawerOpen(true)}
+        className="premium-lesson-action-tone premium-tone-cyan fixed bottom-36 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full p-0 shadow-lg"
+        aria-label="打开参数抽屉"
+        title="参数抽屉"
+      >
+        <SlidersHorizontal className="h-5 w-5" />
+        <span className="sr-only">打开参数抽屉</span>
+      </button>
     </div>
   );
 }

@@ -1,10 +1,16 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { doesRootLocusMatchPoleZeroSet } from '@/features/interactive/multi-representation-linkage/model';
 import {
   adaptLinkageAnalysisResult,
   buildLinkageAnalysisRequest,
 } from '@/resources/control-system/analysis/multi-representation-linkage-analysis';
+
+const repoRoot = process.cwd();
 
 function makeAnalysisResult(overrides: Partial<ControlAnalysisResult> = {}): ControlAnalysisResult {
   return {
@@ -72,6 +78,7 @@ function makeAnalysisResult(overrides: Partial<ControlAnalysisResult> = {}): Con
       ],
       asymptotes: [{ end: 'high_frequency', kind: 'zero', angleDeg: -90 }],
       encirclements: 0,
+      criterion: { n: 0, p: 0, z: 0, relation: 'Z = P + N', isConsistent: true },
     },
     rootLocus: {
       branches: [
@@ -121,6 +128,23 @@ describe('multi representation linkage analysis adapter', () => {
     expect(request.rootLocus.currentGain).toBe(0);
   });
 
+  it('can build a time-domain-only request for closed-loop pole selection', () => {
+    const request = buildLinkageAnalysisRequest({
+      poles: [{ re: -1, im: 0 }],
+      zeros: [],
+      gain: 4.5,
+      rootLocusGain: 4.5,
+      outputs: ['step_response'],
+      responseType: 'step',
+    });
+
+    expect(request.outputs).toEqual(['step_response']);
+    expect(request.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 4.5 }, label: 'K' },
+    ]);
+    expect(request.rootLocus.currentGain).toBe(4.5);
+  });
+
   it('builds a unit numerator when no zero is present', () => {
     const request = buildLinkageAnalysisRequest({
       poles: [
@@ -149,6 +173,13 @@ describe('multi representation linkage analysis adapter', () => {
     expect(adapted.frequencyDomain.marginPoints.phaseCrossover?.frequency).toBe(4);
     expect(adapted.frequencyDomain.nyquistKeyPoints[0].kind).toBe('unit_circle_crossing');
     expect(adapted.frequencyDomain.nyquistEncirclements).toBe(0);
+    expect(adapted.frequencyDomain.nyquistCriterion).toEqual({
+      n: 0,
+      p: 0,
+      z: 0,
+      relation: 'Z = P + N',
+      isConsistent: true,
+    });
     expect(adapted.stability.isStable).toBe(true);
     expect(adapted.stability.rootLocus.branches[0][1].gain).toBe(2);
     expect(adapted.stability.hints.length).toBeGreaterThan(0);
@@ -185,5 +216,62 @@ describe('multi representation linkage analysis adapter', () => {
     expect(adapted.stability.polesInRHP).toBe(1);
     expect(adapted.stability.dampingRatios[0]).toBeLessThan(0);
     expect(adapted.stability.hints.some((hint) => hint.includes('不稳定'))).toBe(true);
+  });
+
+  it('keeps root-locus data from the open-loop analysis when merging closed-loop selection results', () => {
+    const modelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/model.ts'),
+      'utf8',
+    );
+
+    expect(modelSource).toContain("outputs: ['step_response']");
+    expect(modelSource).toContain('openLoopResult.rootLocus.branches');
+    expect(modelSource).toContain('pointDistance < bestDistance ? point : best');
+    expect(modelSource).not.toContain('currentPoles: selectedResult.rootLocus.currentPoles');
+  });
+
+  it('rejects stale root-locus results after the editable pole-zero set changes', () => {
+    const oldResult = makeAnalysisResult({
+      rootLocus: {
+        ...makeAnalysisResult().rootLocus,
+        openLoopPoles: [
+          { re: -0.5, im: 1.4 },
+          { re: -0.5, im: -1.4 },
+        ],
+        openLoopZeros: [],
+        imaginaryAxisCrossings: [{ re: 0, im: 1.2, gain: 4 }],
+      },
+    });
+
+    expect(doesRootLocusMatchPoleZeroSet(oldResult, oldResult.rootLocus.openLoopPoles, [])).toBe(true);
+    expect(doesRootLocusMatchPoleZeroSet(oldResult, [{ re: -2.2, im: 0 }], [])).toBe(false);
+  });
+
+  it('keeps Bode and Nyquist panels bound to the open-loop analysis result', () => {
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(pageSource).toContain('const frequencyResult = (model.frequencyAnalysisResult ?? result)!;');
+    expect(pageSource).toContain('<BodePanel result={frequencyResult} showMargins={model.showMargins} />');
+    expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');
+  });
+
+  it('keeps the parameter drawer as a non-modal floating side panel', () => {
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+    const drawerSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
+      'utf8',
+    );
+
+    expect(pageSource).toContain('fixed bottom-36 right-6');
+    expect(pageSource).not.toContain('参数抽屉</button>');
+    expect(drawerSource).toContain('DialogPrimitive.Portal');
+    expect(drawerSource).not.toContain('DialogContent');
+    expect(drawerSource).not.toContain('DialogOverlay');
   });
 });
