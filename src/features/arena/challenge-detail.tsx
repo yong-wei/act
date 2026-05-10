@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, BarChart3, ListChecks, Trophy } from 'lucide-react';
 
 import type { ChallengeObject, ChallengeTask, LeaderboardPolicy, MetricProfile } from './types';
+import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
 
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'serial-compensator': '串联校正',
@@ -138,6 +139,8 @@ export function ChallengeDetail({
                 <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.join(' / ')} />
               </div>
             </div>
+
+            <ArenaSubmissionPanel task={task} />
           </aside>
         </div>
       </section>
