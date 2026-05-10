@@ -46,4 +46,16 @@ assert.equal(
   '竞技场大厅应接入任务筛选与空状态',
 );
 
+assert.equal(
+  hallContent.includes('href={`/arena/challenges/${challenge.id}`}'),
+  true,
+  '竞技场大厅的“查看挑战”应链接到真实挑战详情路由',
+);
+
+assert.equal(
+  /<button[^>]*>\s*查看挑战/.test(hallContent),
+  false,
+  '竞技场大厅不应渲染无动作的“查看挑战”按钮',
+);
+
 console.log('arena routes test passed');
