@@ -25,7 +25,7 @@
 | I | Leaderboard modes | `docs/superpowers/plans/2026-05-10-arena-plan-i-leaderboard-modes.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | `feat: add arena leaderboard modes` pushed |
 | J | Controller submission workspace | `docs/superpowers/plans/2026-05-10-arena-plan-j-controller-submission-workspace.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: expand arena controller submissions` pushed |
 | K | Telemetry and analytics materialization | `docs/superpowers/plans/2026-05-10-arena-plan-k-telemetry-analytics.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: add arena telemetry analytics` pushed |
-| L | Composite compensation submission and evaluation | `docs/superpowers/plans/2026-05-10-arena-plan-l-composite-compensation.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | Pending final commit |
+| L | Composite compensation submission and evaluation | `docs/superpowers/plans/2026-05-10-arena-plan-l-composite-compensation.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `1aa7645b` |
 
 ## Completion Gates
 

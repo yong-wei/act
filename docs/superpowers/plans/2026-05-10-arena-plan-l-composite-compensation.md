@@ -61,4 +61,5 @@ Out of scope for this phase:
 
 ## Commit
 
-Pending final commit hash.
+- Implementation commit: `1aa7645b feat: add arena composite compensation evaluation`.
+- Push result: recorded after branch push.
