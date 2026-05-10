@@ -26,6 +26,7 @@
 | J | Controller submission workspace | `docs/superpowers/plans/2026-05-10-arena-plan-j-controller-submission-workspace.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: expand arena controller submissions` pushed |
 | K | Telemetry and analytics materialization | `docs/superpowers/plans/2026-05-10-arena-plan-k-telemetry-analytics.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: add arena telemetry analytics` pushed |
 | L | Composite compensation submission and evaluation | `docs/superpowers/plans/2026-05-10-arena-plan-l-composite-compensation.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `1aa7645b` |
+| M | Black-box identification submission and evaluation | `docs/superpowers/plans/2026-05-11-arena-plan-m-blackbox-identification.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `9f1ad1ca` |
 
 ## Completion Gates
 
@@ -56,6 +57,8 @@
 - 2026-05-10: Plan K implemented Arena L0 event registration, production telemetry for available detail/submission paths, Arena teaching analytics summaries, and LearningFact materialization guards. Independent review found two issues; fixes were applied and re-review left only the known black-box identification model-save UI gap recorded in the plan. Verification passed.
 - 2026-05-10: Plan L started to turn composite compensation from a catalogue method into an evaluable submission path.
 - 2026-05-10: Plan L implemented fixed-structure composite compensation artifact building, submission-panel inputs, white-box evaluation, parameter bounds, adversarial anti-gaming coverage, and method leaderboard coverage. Independent subagent review found one blocker in the first scoring mapping; fixes were applied and re-review passed.
+- 2026-05-11: Plan M started to add a minimal black-box identification submission and official evaluation path for virtual simulation Arena tasks.
+- 2026-05-11: Plan M implemented black-box control artifacts, `blackbox-v1` official evaluation dispatch, black-box submission UI, identification-model telemetry, protocol-aware persisted submission reading, and valid-only official leaderboards. Independent subagent review found two medium issues and one low issue; fixes were applied and re-review passed. Implementation commit `9f1ad1ca` recorded.
 
 ## Final Audit
 
