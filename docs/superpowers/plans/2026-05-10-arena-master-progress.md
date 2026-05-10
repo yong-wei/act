@@ -30,6 +30,7 @@
 | N | Black-box experiment interface and dataset flow | `docs/superpowers/plans/2026-05-11-arena-plan-n-blackbox-experiment-interface.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | `a9b9edde` |
 | O | Virtual simulation controller preview | `docs/superpowers/plans/2026-05-11-arena-plan-o-virtual-simulation-controller-preview.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | `fa636729` |
 | P | MPC template and hidden scenario evaluation | `docs/superpowers/plans/2026-05-11-arena-plan-p-mpc-hidden-scenarios.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `ce4900f3` |
+| Q | Optimization-assisted PID tuning | `docs/superpowers/plans/2026-05-11-arena-plan-q-optimization-tuning.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `4edb52ff` |
 
 ## Completion Gates
 
@@ -65,6 +66,7 @@
 - 2026-05-11: Plan N replaced manual black-box experiment claims with a bounded experiment dataset interface, Prisma-persisted student-owned datasets, production `/api/arena/blackbox-experiments`, UI run/import/save/submit flow, and server-side dataset ownership checks before official evaluation. Independent subagent review found one high issue in forged dataset references; fixes were applied and re-review passed. Implementation commit `a9b9edde` recorded.
 - 2026-05-11: Plan O added the workbench-to-virtual-simulation controller preview path before official black-box submission. Preview runs require a student-owned experiment dataset, persist to `ArenaVirtualSimulationRun`, return closed-loop trace and summary feedback, and remain separate from official `ArenaSubmission` leaderboard data. Independent subagent review found no blocker, high, or medium issues. Implementation commit `fa636729` recorded.
 - 2026-05-11: Plan P added the first advanced-method path: parameterized MPC artifacts, a predictive-control task, and deterministic hidden-scenario evaluation for a white-box Arena task. Independent subagent review found no blocker, high, medium, or low issues. Implementation commit `ce4900f3` recorded.
+- 2026-05-11: Plan Q added bounded optimization-assisted PID tuning as the next advanced-method path. The new `optimized-pid` method uses a fixed template with objective weights and search budget, remains on the official `/api/arena/evaluate` path, and keeps leaderboards sourced from real valid submissions. Independent subagent review found no blocker, high, medium, or low issues. Implementation commit `4edb52ff` recorded.
 
 ## Final Audit
 

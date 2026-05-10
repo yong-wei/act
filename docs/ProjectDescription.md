@@ -10,6 +10,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 📅 **最后更新**：2026-05-11
 # 近期更新
 
+🧩 **竞技场优化辅助 PID 与鲁棒隐藏场景评分（2026-05-11）**：Arena 第四阶段继续补齐“优化调参”入口，新增 `optimized-pid` 固定模板方法与 `task-ship-roll-optimized-pid-robust` 横摇对象鲁棒挑战。学生提交的不是任意代码，而是速度、能耗、鲁棒性、超调四类目标权重和搜索预算；服务端白箱评测器按 `bounded-optimized-pid` 模板做范围校验、保守等效闭环映射与隐藏场景最差表现评分。大厅筛选、挑战详情标签和提交面板均已支持“优化调参”，正式排名仍只消费真实 `/api/arena/evaluate` 后写入的 `ArenaSubmission`。
+
 🧩 **竞技场 MPC 参数化模板与隐藏场景评测（2026-05-11）**：Arena 第四阶段已新增首个高级方法入口 `task-ship-roll-mpc-hidden-scenarios`，面向船舶横摇白箱对象提供固定参数化 MPC 模板挑战。提交仍走真实 `/api/arena/evaluate` 与 `ArenaSubmission` 链路，不开放任意代码控制器；MPC 工件只包含预测时域、控制时域、输出权重、控制权重、终端权重、输入限幅和采样时间。白箱评测器新增模板范围校验、保守等效闭环映射和 `hiddenScenarioWorst` 隐藏场景最差表现指标，未通过隐藏场景或参数边界的提交不会进入正式排名。挑战详情提交面板已补齐 MPC 模板字段，方法榜和指标榜继续只消费真实提交记录。
 
 🧩 **竞技场虚拟仿真控制器预演（2026-05-11）**：黑箱工作台已补齐“工作台到虚拟仿真”的闭环预演路径。新增 `/api/arena/virtual-simulation-runs` 与 `ArenaVirtualSimulationRun` 表，学生在运行黑箱实验并保存辨识模型后，可以把黑箱控制器工件导入虚拟仿真预演，获得闭环轨迹、跟踪误差、最大偏差、控制能量、安全违反次数和平滑度摘要。预演服务复用学生本人 `experimentDatasetHash` 所有权校验，拒绝伪造或跨用户数据集；预演只写入虚拟仿真运行记录，不创建 `ArenaSubmission`，也不进入正式榜单。黑箱面板现在形成“运行实验 -> 保存辨识模型 -> 虚拟仿真预演 -> 官方提交”的路径，`arena_submit` 仍只用于官方评测。当前已通过 Plan O 定向 Vitest、Prisma validate/generate、lint、smoke test、`npm run build`，并经同一子代理审查通过。
