@@ -7,5 +7,7 @@ export * from './evaluation/whitebox-evaluator';
 export * from './leaderboards/leaderboard';
 export * from './submissions/artifact-hash';
 export * from './submissions/submission-service';
+export * from './submissions/persistence';
+export * from './stats';
 export * from './telemetry';
 export * from './teacher/configuration';

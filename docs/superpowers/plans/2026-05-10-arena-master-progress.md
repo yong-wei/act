@@ -20,6 +20,7 @@
 | D | White-box evaluation MVP | `docs/superpowers/plans/2026-05-10-arena-plan-d-whitebox-evaluation.md` | Complete | Evaluation tests, route regression, lint passed | `a3b74599` pushed |
 | E | Submissions, leaderboards, and telemetry | `docs/superpowers/plans/2026-05-10-arena-plan-e-submissions-leaderboards-telemetry.md` | Complete | Leaderboard tests, lint, Playwright, API check passed | `f20638a2` pushed |
 | F | Teacher challenge configuration and homework binding | `docs/superpowers/plans/2026-05-10-arena-plan-f-teacher-configuration.md` | Complete | Teacher tests, lint, Playwright, API check passed | `2c678431` pushed |
+| G | Persistent submissions and real leaderboard data | `docs/superpowers/plans/2026-05-10-arena-plan-g-persistent-submissions.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | pushed |
 
 ## Completion Gates
 
@@ -39,6 +40,7 @@
 - 2026-05-10: Plan F implemented teacher publication config, homework assessment boundary, teacher page, student task visibility display, and teacher preview API. Verification passed; commit `2c678431` pushed.
 - 2026-05-10: Final audit passed. Commands: `rtk npm run test:unit -- src/features/arena/__tests__/arena-domain.test.ts src/features/arena/__tests__/arena-filtering.test.ts src/features/arena/__tests__/arena-whitebox-evaluation.test.ts src/features/arena/__tests__/arena-leaderboard.test.ts src/features/arena/__tests__/arena-teacher-config.test.ts` -> 5 files, 16 tests passed; `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed; `rtk node scripts/tests/test-arena-routes.mjs` -> passed; `rtk npm run lint` -> passed; `rtk npm run test` -> smoke test passed; `rtk npm run build` -> passed.
 - 2026-05-10: Review follow-up completed after independent subagent review of Plan A-F implementation commits. See `docs/superpowers/plans/2026-05-10-arena-review-followups.md`. Original `查看挑战` no-action button finding is fixed and guarded by default `npm run test`. Arena-targeted tests, lint, and build passed; full `test:unit` still has 2 unrelated interactive failures outside Arena scope.
+- 2026-05-10: Plan G implemented the database-backed Arena submission foundation and removed hardcoded hall/detail leaderboard numbers from the challenge seed path. Independent review found four blockers; fixes added best-per-student leaderboard ranking, protocol-versioned evaluation reuse, student-only submit gate, and safer API error boundaries. Same subagent re-review passed. Verification passed; commit pushed.
 
 ## Final Audit
 

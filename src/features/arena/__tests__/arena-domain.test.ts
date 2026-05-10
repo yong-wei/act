@@ -22,6 +22,8 @@ describe('arena domain model', () => {
       expect(getArenaChallengeObject(task.objectId)?.id).toBe(task.objectId);
       expect(task.metricProfileId).toMatch(/^metric-/);
       expect(task.leaderboardPolicyId).toMatch(/^leaderboard-/);
+      expect('participantCount' in task).toBe(false);
+      expect('topScore' in task).toBe(false);
     }
   });
 

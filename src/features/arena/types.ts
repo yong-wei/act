@@ -78,8 +78,6 @@ export interface ChallengeTask {
   leaderboardTypes: LeaderboardType[];
   primaryMetrics: string[];
   workspaceMode: WorkspaceMode;
-  participantCount: number;
-  topScore: number;
   homeworkPolicy: string;
   homeworkEligible: boolean;
   practiceMode: 'open' | 'guided' | 'project';
@@ -91,4 +89,10 @@ export interface ControllerArtifact {
   method: ControllerMethod;
   params: Record<string, number | string | boolean>;
   createdAt: string;
+}
+
+export interface ArenaTaskStats {
+  participantCount: number;
+  submissionCount: number;
+  topScore: number | null;
 }

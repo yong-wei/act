@@ -26,6 +26,40 @@ export interface ArenaLeaderboard {
   entries: ArenaLeaderboardEntry[];
 }
 
+function compareSubmissions(
+  left: ArenaSubmissionRecord,
+  right: ArenaSubmissionRecord,
+  tieBreakers: string[],
+): number {
+  for (const tieBreaker of tieBreakers) {
+    if (tieBreaker === 'hardConstraintPass' && left.evaluation.valid !== right.evaluation.valid) {
+      return left.evaluation.valid ? -1 : 1;
+    }
+    if (tieBreaker === 'score' && left.evaluation.score !== right.evaluation.score) {
+      return right.evaluation.score - left.evaluation.score;
+    }
+    if (tieBreaker === 'submittedAt' && left.submittedAt !== right.submittedAt) {
+      return left.submittedAt.localeCompare(right.submittedAt);
+    }
+
+    const leftMetric = left.evaluation.metrics[tieBreaker];
+    const rightMetric = right.evaluation.metrics[tieBreaker];
+    if (Number.isFinite(leftMetric) && Number.isFinite(rightMetric) && leftMetric !== rightMetric) {
+      return leftMetric - rightMetric;
+    }
+  }
+  return left.submittedAt.localeCompare(right.submittedAt);
+}
+
+function participantKey(submission: ArenaSubmissionRecord): string {
+  return submission.userId ?? `label:${submission.studentLabel}`;
+}
+
+function leaderboardDedupeKey(submission: ArenaSubmissionRecord, options: ArenaLeaderboardOptions): string {
+  const base = participantKey(submission);
+  return options.type === 'method' && !options.method ? `${base}:${submission.artifact.method}` : base;
+}
+
 export function buildArenaLeaderboard(
   submissions: readonly ArenaSubmissionRecord[],
   options: ArenaLeaderboardOptions,
@@ -33,35 +67,23 @@ export function buildArenaLeaderboard(
   const task = getArenaChallengeTask(options.taskId);
   const policy = getArenaLeaderboardPolicy(options.leaderboardPolicyId ?? task?.leaderboardPolicyId ?? '');
   const tieBreakers = policy?.tieBreakers ?? ['hardConstraintPass', 'score', 'submittedAt'];
-  const filtered = submissions
+  const sorted = submissions
     .filter((submission) => submission.taskId === options.taskId)
     .filter((submission) => options.type !== 'method' || !options.method || submission.artifact.method === options.method)
     .slice()
-    .sort((left, right) => {
-      for (const tieBreaker of tieBreakers) {
-        if (tieBreaker === 'hardConstraintPass' && left.evaluation.valid !== right.evaluation.valid) {
-          return left.evaluation.valid ? -1 : 1;
-        }
-        if (tieBreaker === 'score' && left.evaluation.score !== right.evaluation.score) {
-          return right.evaluation.score - left.evaluation.score;
-        }
-        if (tieBreaker === 'submittedAt' && left.submittedAt !== right.submittedAt) {
-          return left.submittedAt.localeCompare(right.submittedAt);
-        }
-
-        const leftMetric = left.evaluation.metrics[tieBreaker];
-        const rightMetric = right.evaluation.metrics[tieBreaker];
-        if (Number.isFinite(leftMetric) && Number.isFinite(rightMetric) && leftMetric !== rightMetric) {
-          return leftMetric - rightMetric;
-        }
-      }
-      return left.submittedAt.localeCompare(right.submittedAt);
-    });
+    .sort((left, right) => compareSubmissions(left, right, tieBreakers));
+  const seen = new Set<string>();
+  const ranked = sorted.filter((submission) => {
+    const key = leaderboardDedupeKey(submission, options);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return {
     taskId: options.taskId,
     type: options.type,
-    entries: filtered.map((submission, index) => ({
+    entries: ranked.map((submission, index) => ({
       rank: index + 1,
       submissionId: submission.id,
       studentLabel: submission.studentLabel,

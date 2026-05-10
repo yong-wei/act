@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { createArenaSubmission } from '@/features/arena/submissions/submission-service';
-import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
+import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
+import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import type { ControllerArtifact } from '@/features/arena/types';
-
-const arenaEvaluateSubmissions: ArenaSubmissionRecord[] = [];
 
 export const dynamic = 'force-dynamic';
 
@@ -15,31 +13,36 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  if (session.user.role !== 'STUDENT') {
+    return NextResponse.json({ error: 'Only students can submit Arena entries' }, { status: 403 });
+  }
 
   try {
     const body = await request.json() as {
       taskId?: string;
       artifact?: ControllerArtifact;
-      studentLabel?: string;
     };
 
     if (!body.taskId || !body.artifact) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
-    const submission = createArenaSubmission({
+    const submission = await createPersistedArenaSubmission({
       taskId: body.taskId,
       artifact: body.artifact,
-      studentLabel: body.studentLabel ?? session.user.name ?? '匿名学生',
+      userId: session.user.id,
+      studentLabel: session.user.name ?? '匿名学生',
       submittedAt: new Date().toISOString(),
-      existingSubmissions: arenaEvaluateSubmissions,
+      store: prismaArenaSubmissionStore,
     });
-    arenaEvaluateSubmissions.push(submission);
 
     return NextResponse.json({ submission });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    const message = error instanceof Error ? error.message : 'Invalid Arena evaluation request';
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof ArenaSubmissionInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    console.error('Arena evaluation failed', error);
+    return NextResponse.json({ error: 'Arena evaluation failed' }, { status: 500 });
   }
 }

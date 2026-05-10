@@ -104,6 +104,10 @@ model User {
 
   // Data governance
   riskFlags          StudentRiskFlag[]
+
+  // Arena mode
+  arenaControllerArtifacts ArenaControllerArtifact[]
+  arenaSubmissions         ArenaSubmission[]
 }
 
 model StudentProfile {
@@ -1086,6 +1090,73 @@ model LearningFact {
   @@index([userId, startedAt])
   @@index([sessionId])
   @@index([factType, startedAt])
+}
+
+model ArenaControllerArtifact {
+  id           String   @id @default(cuid())
+  ownerId      String
+  taskId       String
+  artifactHash String
+  method       String
+  payload      Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  submissions ArenaSubmission[]
+
+  @@unique([ownerId, taskId, artifactHash])
+  @@index([taskId])
+  @@index([artifactHash])
+}
+
+model ArenaEvaluationRun {
+  id                    String   @id @default(cuid())
+  taskId                String
+  artifactHash          String
+  protocolVersion       String
+  artifactPayload       Json
+  valid                 Boolean
+  score                 Float
+  metrics               Json
+  satisfaction          Json
+  hardConstraintResults Json
+  penalties             Json
+  explanation           Json
+  completedAt           DateTime
+  createdAt             DateTime @default(now())
+
+  submissions ArenaSubmission[]
+
+  @@unique([taskId, artifactHash, protocolVersion])
+  @@index([taskId, score])
+  @@index([completedAt])
+}
+
+model ArenaSubmission {
+  id                   String   @id @default(cuid())
+  taskId               String
+  userId               String
+  studentLabel         String
+  artifactHash         String
+  method               String
+  score                Float
+  valid                Boolean
+  submittedAt          DateTime
+  createdAt            DateTime @default(now())
+
+  controllerArtifactId String
+  evaluationRunId      String
+
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  controllerArtifact ArenaControllerArtifact @relation(fields: [controllerArtifactId], references: [id], onDelete: Cascade)
+  evaluationRun      ArenaEvaluationRun      @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, score])
+  @@index([taskId, method])
+  @@index([taskId, submittedAt])
+  @@index([userId, submittedAt])
+  @@index([artifactHash])
 }
 
 // Student competency snapshot

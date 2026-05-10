@@ -6,6 +6,7 @@ import { hashControllerArtifact } from './artifact-hash';
 export interface ArenaSubmissionRecord {
   id: string;
   taskId: string;
+  userId?: string;
   studentLabel: string;
   artifactHash: string;
   artifact: ControllerArtifact;

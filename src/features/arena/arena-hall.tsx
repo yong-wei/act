@@ -22,6 +22,7 @@ import {
   type LeaderboardType,
   type ModelVisibility,
   type WorkspaceMode,
+  type ArenaTaskStats,
 } from '@/features/arena';
 
 const sourceLabels: Record<ChallengeObjectSource, string> = {
@@ -83,7 +84,7 @@ const phaseItems = [
   { label: '榜单结构', value: '主榜、方法榜、指标榜', icon: Medal },
 ];
 
-export function ArenaHall() {
+export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, ArenaTaskStats> }) {
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<ChallengeObjectSource | 'all'>('all');
   const [method, setMethod] = useState<ControllerMethod | 'all'>('all');
@@ -197,6 +198,11 @@ export function ArenaHall() {
           <div className="grid gap-4">
             {filteredTasks.map((challenge) => {
               const object = getArenaChallengeObject(challenge.objectId);
+              const stats = taskStats[challenge.id] ?? {
+                participantCount: 0,
+                submissionCount: 0,
+                topScore: null,
+              };
 
               return (
               <article key={challenge.id} className="surface-card p-5">
@@ -217,7 +223,9 @@ export function ArenaHall() {
                   </div>
                   <div className="min-w-28 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-right">
                     <div className="text-xs text-subtle">当前最高分</div>
-                    <div className="mt-1 text-2xl font-semibold text-primary">{challenge.topScore.toFixed(1)}</div>
+                    <div className="mt-1 text-2xl font-semibold text-primary">
+                      {stats.topScore === null ? '暂无' : stats.topScore.toFixed(1)}
+                    </div>
                   </div>
                 </div>
 
@@ -231,7 +239,7 @@ export function ArenaHall() {
 
                 <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-subtle md:flex-row md:items-center md:justify-between">
                   <div>
-                    {challenge.participantCount} 人参与 · 推荐进入 {workspaceLabels[challenge.workspaceMode]}
+                    {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入 {workspaceLabels[challenge.workspaceMode]}
                   </div>
                   <Link href={`/arena/challenges/${challenge.id}`} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     查看挑战

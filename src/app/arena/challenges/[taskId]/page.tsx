@@ -2,18 +2,16 @@ import { notFound } from 'next/navigation';
 
 import { ChallengeDetail } from '@/features/arena/challenge-detail';
 import {
-  ARENA_CHALLENGE_TASKS,
   getArenaChallengeObject,
   getArenaChallengeTask,
   getArenaLeaderboardPolicy,
   getArenaMetricProfile,
 } from '@/features/arena';
+import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
-export function generateStaticParams() {
-  return ARENA_CHALLENGE_TASKS.map((task) => ({ taskId: task.id }));
-}
+export const dynamic = 'force-dynamic';
 
-export default function ArenaChallengePage({ params }: { params: { taskId: string } }) {
+export default async function ArenaChallengePage({ params }: { params: { taskId: string } }) {
   const task = getArenaChallengeTask(params.taskId);
   if (!task) notFound();
 
@@ -22,6 +20,7 @@ export default function ArenaChallengePage({ params }: { params: { taskId: strin
   const leaderboardPolicy = getArenaLeaderboardPolicy(task.leaderboardPolicyId);
 
   if (!object || !metricProfile || !leaderboardPolicy) notFound();
+  const submissions = await prismaArenaSubmissionStore.listSubmissions({ taskId: task.id });
 
   return (
     <ChallengeDetail
@@ -29,6 +28,7 @@ export default function ArenaChallengePage({ params }: { params: { taskId: strin
       object={object}
       metricProfile={metricProfile}
       leaderboardPolicy={leaderboardPolicy}
+      submissions={submissions}
     />
   );
 }

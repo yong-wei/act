@@ -2,10 +2,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
+  createPersistedArenaSubmission: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
+}));
+
+vi.mock('@/features/arena/submissions/persistence', () => ({
+  createPersistedArenaSubmission: mocks.createPersistedArenaSubmission,
+  ArenaSubmissionInputError: class ArenaSubmissionInputError extends Error {},
+}));
+
+vi.mock('@/features/arena/submissions/prisma-store', () => ({
+  prismaArenaSubmissionStore: { marker: 'store' },
 }));
 
 import { POST } from '../route';
@@ -30,6 +40,27 @@ function postJson(body: unknown) {
 describe('POST /api/arena/evaluate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.createPersistedArenaSubmission.mockImplementation(async (input) => ({
+      id: `submission-${input.artifact.id}`,
+      taskId: input.taskId,
+      userId: input.userId,
+      studentLabel: input.studentLabel,
+      artifactHash: 'artifact-route-hash',
+      artifact: input.artifact,
+      evaluation: {
+        taskId: input.taskId,
+        artifact: input.artifact,
+        valid: true,
+        score: 88,
+        metrics: {},
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: ['评测完成'],
+      },
+      submittedAt: input.submittedAt,
+      reusedEvaluation: input.artifact.id === 'artifact-route-b',
+    }));
   });
 
   it('requires an authenticated user', async () => {
@@ -42,6 +73,8 @@ describe('POST /api/arena/evaluate', () => {
 
   it('maps invalid task requests to 400 instead of 500', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const { ArenaSubmissionInputError } = await import('@/features/arena/submissions/persistence');
+    mocks.createPersistedArenaSubmission.mockRejectedValueOnce(new ArenaSubmissionInputError('Unknown arena task: missing-task'));
 
     const response = await postJson({ taskId: 'missing-task', artifact });
     const payload = await response.json();
@@ -50,7 +83,27 @@ describe('POST /api/arena/evaluate', () => {
     expect(payload.error).toContain('Unknown arena task');
   });
 
-  it('reuses duplicate evaluation results through the route-level cache', async () => {
+  it('rejects non-student submissions before persistence', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', name: '教师甲', role: 'TEACHER' } });
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+
+    expect(response.status).toBe(403);
+    expect(mocks.createPersistedArenaSubmission).not.toHaveBeenCalled();
+  });
+
+  it('does not expose persistence errors to the client', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    mocks.createPersistedArenaSubmission.mockRejectedValueOnce(new Error('Prisma database connection detail'));
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(payload.error).toBe('Arena evaluation failed');
+  });
+
+  it('persists duplicate evaluation reuse through the Arena submission store', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
 
     const first = await postJson({ taskId: artifact.taskId, artifact });
@@ -60,5 +113,10 @@ describe('POST /api/arena/evaluate', () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(payload.submission.reusedEvaluation).toBe(true);
+    expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'student-1',
+      studentLabel: '学生甲',
+      store: { marker: 'store' },
+    }));
   });
 });

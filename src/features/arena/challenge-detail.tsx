@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, BarChart3, ListChecks, Trophy } from 'lucide-react';
 
 import type { ChallengeObject, ChallengeTask, LeaderboardPolicy, MetricProfile } from './types';
+import type { ArenaSubmissionRecord } from './submissions/submission-service';
+import { buildArenaTaskStats } from './stats';
 import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
 
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
@@ -24,6 +26,7 @@ interface ChallengeDetailProps {
   object: ChallengeObject;
   metricProfile: MetricProfile;
   leaderboardPolicy: LeaderboardPolicy;
+  submissions: ArenaSubmissionRecord[];
 }
 
 export function ChallengeDetail({
@@ -31,7 +34,14 @@ export function ChallengeDetail({
   object,
   metricProfile,
   leaderboardPolicy,
+  submissions,
 }: ChallengeDetailProps) {
+  const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
+    participantCount: 0,
+    submissionCount: 0,
+    topScore: null,
+  };
+
   return (
     <main className="surface-page min-h-screen">
       <header className="surface-topbar">
@@ -134,14 +144,15 @@ export function ChallengeDetail({
                 <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
               </div>
               <div className="mt-4 grid gap-3 text-sm">
-                <DetailItem label="当前最高分" value={task.topScore.toFixed(1)} />
-                <DetailItem label="参与人数" value={`${task.participantCount} 人`} />
+                <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
+                <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
+                <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
                 <DetailItem label="榜单类型" value={task.leaderboardTypes.join(' / ')} />
                 <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.join(' / ')} />
               </div>
             </div>
 
-            <ArenaSubmissionPanel task={task} />
+            <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
           </aside>
         </div>
       </section>

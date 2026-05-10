@@ -55,6 +55,18 @@ assert.equal(
 );
 
 assert.equal(
+  hallContent.includes('challenge.topScore') || hallContent.includes('challenge.participantCount'),
+  false,
+  '竞技场大厅不得从挑战种子读取硬编码榜单数据',
+);
+
+assert.equal(
+  detailContent.includes('样例方案') || detailContent.includes('提交示例 PID'),
+  false,
+  '挑战详情页不得渲染硬编码样例提交或样例榜单',
+);
+
+assert.equal(
   hallContent.includes('{challenge.title}') && hallContent.includes('对象：{object.name}'),
   true,
   '竞技场大厅任务卡应以挑战任务标题为主标题，对象名作为副信息',

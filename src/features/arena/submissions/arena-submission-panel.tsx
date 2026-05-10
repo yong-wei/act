@@ -1,53 +1,58 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { BarChart3, Send } from 'lucide-react';
 
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
-import { createArenaSubmission, type ArenaSubmissionRecord } from './submission-service';
+import type { ArenaSubmissionRecord } from './submission-service';
 import type { ChallengeTask, ControllerArtifact } from '../types';
 
-function sampleArtifact(task: ChallengeTask, id: string, params: ControllerArtifact['params']): ControllerArtifact {
+function makePidArtifact(task: ChallengeTask, params: ControllerArtifact['params']): ControllerArtifact {
   return {
-    id,
+    id: `artifact-${task.id}-${Date.now()}`,
     taskId: task.id,
     method: 'pid',
     params,
-    createdAt: '2026-05-10T10:00:00.000Z',
+    createdAt: new Date().toISOString(),
   };
 }
 
-export function ArenaSubmissionPanel({ task }: { task: ChallengeTask }) {
-  const baselineSubmissions = useMemo<ArenaSubmissionRecord[]>(() => {
-    const first = createArenaSubmission({
-      taskId: task.id,
-      artifact: sampleArtifact(task, 'artifact-preview-a', { kp: 2.2, ki: 0.7, kd: 0.28 }),
-      studentLabel: '样例方案 A',
-      submittedAt: '2026-05-10T10:01:00.000Z',
-      existingSubmissions: [],
-    });
-    const second = createArenaSubmission({
-      taskId: task.id,
-      artifact: sampleArtifact(task, 'artifact-preview-b', { kp: 1.1, ki: 0.2, kd: 0.08 }),
-      studentLabel: '样例方案 B',
-      submittedAt: '2026-05-10T10:02:00.000Z',
-      existingSubmissions: [first],
-    });
-    return [first, second];
-  }, [task]);
-  const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(baselineSubmissions);
+export function ArenaSubmissionPanel({
+  task,
+  initialSubmissions,
+}: {
+  task: ChallengeTask;
+  initialSubmissions: ArenaSubmissionRecord[];
+}) {
+  const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
+  const [kp, setKp] = useState('2.4');
+  const [ki, setKi] = useState('0.8');
+  const [kd, setKd] = useState('0.35');
+  const [status, setStatus] = useState<string | null>(null);
   const latest = submissions[submissions.length - 1];
   const leaderboard = buildArenaLeaderboard(submissions, { taskId: task.id, type: 'main' });
 
-  const submitPreview = () => {
-    const next = createArenaSubmission({
-      taskId: task.id,
-      artifact: sampleArtifact(task, `artifact-preview-${submissions.length + 1}`, { kp: 2.4, ki: 0.8, kd: 0.35 }),
-      studentLabel: '我的示例提交',
-      submittedAt: new Date().toISOString(),
-      existingSubmissions: submissions,
+  const submitController = async () => {
+    setStatus('正在提交官方评测...');
+    const artifact = makePidArtifact(task, {
+      kp: Number(kp),
+      ki: Number(ki),
+      kd: Number(kd),
     });
-    setSubmissions((current) => [...current, next]);
+    const response = await fetch('/api/arena/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: task.id, artifact }),
+    });
+    const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
+
+    if (!response.ok || !payload.submission) {
+      setStatus(payload.error ?? '提交失败');
+      return;
+    }
+
+    setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
+    setStatus(payload.submission.reusedEvaluation ? '重复控制器已复用官方评测结果。' : '官方评测已完成。');
   };
 
   return (
@@ -57,16 +62,22 @@ export function ArenaSubmissionPanel({ task }: { task: ChallengeTask }) {
         <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>
       </div>
       <p className="mt-2 text-sm leading-6 text-subtle">
-        当前阶段使用本地确定性评测演示提交闭环；正式提交持久化将在后续阶段接入。
+        提交 PID 参数后，平台会执行官方评测并写入真实排行榜记录。
       </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <NumberInput label="Kp" value={kp} onChange={setKp} />
+        <NumberInput label="Ki" value={ki} onChange={setKi} />
+        <NumberInput label="Kd" value={kd} onChange={setKd} />
+      </div>
       <button
         type="button"
-        onClick={submitPreview}
+        onClick={submitController}
         className="cta-primary mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
       >
         <Send className="h-4 w-4" />
-        提交示例 PID
+        提交 PID 控制器
       </button>
+      {status ? <div className="mt-3 text-xs text-subtle">{status}</div> : null}
       {latest ? (
         <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
           <div className="flex items-center justify-between">
@@ -85,7 +96,34 @@ export function ArenaSubmissionPanel({ task }: { task: ChallengeTask }) {
             <span className="text-primary">{entry.score.toFixed(1)}</span>
           </div>
         ))}
+        {leaderboard.entries.length === 0 ? (
+          <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm text-subtle">
+            暂无真实提交记录。
+          </div>
+        ) : null}
       </div>
     </section>
+  );
+}
+
+function NumberInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="grid gap-1 text-xs text-subtle">
+      {label}
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        inputMode="decimal"
+        className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
+      />
+    </label>
   );
 }
