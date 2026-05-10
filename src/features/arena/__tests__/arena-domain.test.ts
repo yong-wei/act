@@ -116,4 +116,23 @@ describe('arena domain model', () => {
     expect(ARENA_METRIC_PROFILES.find((profile) => profile.id === optimizationTask?.metricProfileId)?.diagnosticMetrics)
       .toContain('optimizationBudget');
   });
+
+  it('defines a standalone robust disturbance challenge with hidden-scenario scoring', () => {
+    const robustTask = getArenaChallengeTask('task-ship-roll-robust-disturbance');
+    const robustProfile = ARENA_METRIC_PROFILES.find((profile) => profile.id === robustTask?.metricProfileId);
+
+    expect(robustTask?.objectId).toBe('plant-ship-roll-whitebox');
+    expect(robustTask?.title).toContain('鲁棒');
+    expect(robustTask?.allowedMethods).toEqual(expect.arrayContaining(['serial-compensator', 'pid']));
+    expect(robustTask?.leaderboardTypes).toEqual(expect.arrayContaining(['main', 'method', 'metric', 'pareto']));
+    expect(robustTask?.primaryMetrics).toEqual(expect.arrayContaining(['hiddenScenarioWorst', 'controlEnergy']));
+    expect(robustProfile?.hardConstraints).toContain('control_not_saturated');
+    expect(robustProfile?.hardConstraints).toContain('hidden_scenarios_passed');
+    expect(robustProfile?.rankingMetrics.map((metric) => metric.id)).toEqual(expect.arrayContaining([
+      'hiddenScenarioWorst',
+      'settlingTime',
+      'controlEnergy',
+      'overshoot',
+    ]));
+  });
 });

@@ -276,6 +276,35 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('searchBudget 必须在 10 到 240 之间');
   });
 
+  it('evaluates robust disturbance challenges with hidden-scenario gates', () => {
+    const strong = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-robust-disturbance',
+      artifact: {
+        id: 'artifact-robust-serial-good',
+        taskId: 'task-ship-roll-robust-disturbance',
+        method: 'serial-compensator',
+        params: { gain: 2.4, zero: 0.8, pole: 6 },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+    });
+    const weak = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-robust-disturbance',
+      artifact: {
+        id: 'artifact-robust-pid-weak',
+        taskId: 'task-ship-roll-robust-disturbance',
+        method: 'pid',
+        params: { kp: 0.2, ki: 0, kd: 0 },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+    });
+
+    expect(strong.valid).toBe(true);
+    expect(strong.metrics.hiddenScenarioWorst).toBeGreaterThan(0);
+    expect(strong.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
+    expect(weak.valid).toBe(false);
+    expect(weak.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(false);
+  });
+
   it('fails closed for code-controller artifacts without an external sandbox result', () => {
     const result = evaluateArenaSubmission({
       taskId: 'task-ship-roll-mpc-hidden-scenarios',

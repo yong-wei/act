@@ -49,6 +49,7 @@ describe('arena task filtering', () => {
       'task-ship-roll-comfort',
       'task-ship-roll-mpc-hidden-scenarios',
       'task-ship-roll-optimized-pid-robust',
+      'task-ship-roll-robust-disturbance',
     ]);
   });
 

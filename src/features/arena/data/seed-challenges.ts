@@ -205,6 +205,24 @@ export const ARENA_METRIC_PROFILES: MetricProfile[] = [
     ],
     diagnosticMetrics: ['optimizationBudget', 'objectiveWeights', 'scenarioSpread', 'inputLimitUsage'],
   },
+  {
+    id: 'metric-whitebox-robust-disturbance',
+    name: '白箱鲁棒扰动评分',
+    hardConstraints: [
+      'closed_loop_stable',
+      'finite_response',
+      'controller_causal',
+      'control_not_saturated',
+      'hidden_scenarios_passed',
+    ],
+    rankingMetrics: [
+      { id: 'hiddenScenarioWorst', label: '扰动场景最差表现', direction: 'minimize', idealValue: 0.36, unacceptableValue: 1.6 },
+      { id: 'settlingTime', label: '调节时间', direction: 'minimize', idealValue: 3.6, unacceptableValue: 11, unit: 's' },
+      { id: 'controlEnergy', label: '控制能量', direction: 'minimize', idealValue: 4.2, unacceptableValue: 18 },
+      { id: 'overshoot', label: '超调量', direction: 'minimize', idealValue: 8, unacceptableValue: 32, unit: '%' },
+    ],
+    diagnosticMetrics: ['scenarioSpread', 'disturbanceRecovery', 'sensitivityPeak', 'controlSmoothness'],
+  },
 ];
 
 export const ARENA_LEADERBOARD_POLICIES: LeaderboardPolicy[] = [
@@ -396,6 +414,22 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
     workspaceMode: 'predictive-control',
     homeworkPolicy: '研究型项目候选',
+    homeworkEligible: false,
+    practiceMode: 'project',
+  },
+  {
+    id: 'task-ship-roll-robust-disturbance',
+    objectId: 'plant-ship-roll-whitebox',
+    title: '横摇对象鲁棒扰动挑战',
+    goal: '在横摇白箱对象上压低隐藏扰动场景的最差表现，同时约束控制能量和超调。',
+    difficulty: '挑战',
+    allowedMethods: ['serial-compensator', 'pid'],
+    metricProfileId: 'metric-whitebox-robust-disturbance',
+    leaderboardPolicyId: 'leaderboard-pareto-exploration',
+    leaderboardTypes: ['main', 'method', 'metric', 'pareto'],
+    primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
+    workspaceMode: 'multi-representation-linkage',
+    homeworkPolicy: '鲁棒控制项目候选',
     homeworkEligible: false,
     practiceMode: 'project',
   },
