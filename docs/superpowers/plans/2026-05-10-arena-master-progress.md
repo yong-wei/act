@@ -17,7 +17,7 @@
 | A | Home entry and Arena hall shell | `docs/superpowers/plans/2026-05-10-arena-plan-a-home-and-hall.md` | Complete | Targeted test, lint, Playwright passed | `2f91b0c8` pushed |
 | B | Domain model and seed challenges | `docs/superpowers/plans/2026-05-10-arena-plan-b-domain-model.md` | Complete | Domain test, regression test, lint passed | `2db775e9` pushed |
 | C | Challenge detail page and filters | `docs/superpowers/plans/2026-05-10-arena-plan-c-detail-and-filters.md` | Complete | Filtering tests, route test, lint, Playwright passed | `14ee3e60` pushed |
-| D | White-box evaluation MVP | `docs/superpowers/plans/2026-05-10-arena-plan-d-whitebox-evaluation.md` | Verified, awaiting commit | Evaluation tests, route regression, lint passed | Pending |
+| D | White-box evaluation MVP | `docs/superpowers/plans/2026-05-10-arena-plan-d-whitebox-evaluation.md` | Complete | Evaluation tests, route regression, lint passed | `a3b74599` pushed |
 | E | Submissions, leaderboards, and telemetry | `docs/superpowers/plans/2026-05-10-arena-plan-e-submissions-leaderboards-telemetry.md` | Not started | Pending | Pending |
 | F | Teacher challenge configuration and homework binding | `docs/superpowers/plans/2026-05-10-arena-plan-f-teacher-configuration.md` | Not started | Pending | Pending |
 
@@ -34,4 +34,4 @@
 - 2026-05-10: Plan A implemented home navigation entry, platform matrix entry, and `/arena` hall shell. Verification passed; commit `2f91b0c8` pushed.
 - 2026-05-10: Plan B implemented Arena domain types, seed white-box objects/tasks, and hall data integration. Verification passed; commit `2db775e9` pushed.
 - 2026-05-10: Plan C implemented task filters, empty state, challenge detail route, and task-first workspace entry. Verification passed; commit `14ee3e60` pushed.
-- 2026-05-10: Plan D implemented deterministic white-box evaluation, hard constraints, normalized metric satisfaction, weighted geometric scoring, and score explanations. Verification passed; commit pending.
+- 2026-05-10: Plan D implemented deterministic white-box evaluation, hard constraints, normalized metric satisfaction, weighted geometric scoring, and score explanations. Verification passed; commit `a3b74599` pushed.
