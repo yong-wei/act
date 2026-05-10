@@ -119,4 +119,20 @@ describe('POST /api/arena/evaluate', () => {
       store: { marker: 'store' },
     }));
   });
+
+  it('does not trust class or season scope from the request body', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+
+    await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      classId: 'forged-class',
+      seasonId: 'forged-season',
+    });
+
+    expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.not.objectContaining({
+      classId: 'forged-class',
+      seasonId: 'forged-season',
+    }));
+  });
 });

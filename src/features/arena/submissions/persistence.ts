@@ -34,6 +34,8 @@ export interface StoredArenaSubmission {
   id: string;
   taskId: string;
   userId: string;
+  classId?: string;
+  seasonId?: string;
   studentLabel: string;
   artifactHash: string;
   artifact: ControllerArtifact;
@@ -55,6 +57,8 @@ export interface CreatePersistedArenaSubmissionInput {
   taskId: string;
   artifact: ControllerArtifact;
   userId: string;
+  classId?: string;
+  seasonId?: string;
   studentLabel: string;
   submittedAt: string;
   store: ArenaSubmissionStore;
@@ -90,6 +94,8 @@ export async function createPersistedArenaSubmission(
   const storedSubmission = await input.store.createSubmission({
     taskId: input.taskId,
     userId: input.userId,
+    classId: input.classId,
+    seasonId: input.seasonId,
     studentLabel: input.studentLabel,
     artifactHash,
     artifact,
@@ -103,6 +109,8 @@ export async function createPersistedArenaSubmission(
     id: storedSubmission.id,
     taskId: storedSubmission.taskId,
     userId: storedSubmission.userId,
+    classId: storedSubmission.classId,
+    seasonId: storedSubmission.seasonId,
     studentLabel: storedSubmission.studentLabel,
     artifactHash: storedSubmission.artifactHash,
     artifact: storedSubmission.artifact,

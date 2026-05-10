@@ -1137,6 +1137,8 @@ model ArenaSubmission {
   id                   String   @id @default(cuid())
   taskId               String
   userId               String
+  classId              String?
+  seasonId             String?
   studentLabel         String
   artifactHash         String
   method               String
@@ -1154,6 +1156,8 @@ model ArenaSubmission {
 
   @@index([taskId, score])
   @@index([taskId, method])
+  @@index([taskId, classId])
+  @@index([taskId, seasonId])
   @@index([taskId, submittedAt])
   @@index([userId, submittedAt])
   @@index([artifactHash])

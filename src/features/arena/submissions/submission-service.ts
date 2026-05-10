@@ -7,6 +7,8 @@ export interface ArenaSubmissionRecord {
   id: string;
   taskId: string;
   userId?: string;
+  classId?: string;
+  seasonId?: string;
   studentLabel: string;
   artifactHash: string;
   artifact: ControllerArtifact;
@@ -19,6 +21,8 @@ export interface CreateArenaSubmissionInput {
   taskId: string;
   artifact: ControllerArtifact;
   studentLabel: string;
+  classId?: string;
+  seasonId?: string;
   submittedAt: string;
   existingSubmissions: ArenaSubmissionRecord[];
 }
@@ -34,6 +38,8 @@ export function createArenaSubmission(input: CreateArenaSubmissionInput): ArenaS
   return {
     id: `submission-${artifactHash}-${Date.parse(input.submittedAt) || 0}`,
     taskId: input.taskId,
+    classId: input.classId,
+    seasonId: input.seasonId,
     studentLabel: input.studentLabel,
     artifactHash,
     artifact,

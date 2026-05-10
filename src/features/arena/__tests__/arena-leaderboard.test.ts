@@ -159,6 +159,242 @@ describe('arena submissions and leaderboards', () => {
     expect(leaderboard.entries.find((entry) => entry.studentLabel === '学生甲')?.submissionId).toBe(improved.id);
   });
 
+  it('orders metric leaderboards by the selected metric instead of main score', () => {
+    const highScoreHighEnergy = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '高分高能耗',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const lowScoreLowEnergy = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-metric-low-energy',
+        params: { kp: 1.1, ki: 0.2, kd: 0.05 },
+      },
+      studentLabel: '低能耗',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [highScoreHighEnergy],
+    });
+    highScoreHighEnergy.evaluation.score = 95;
+    highScoreHighEnergy.evaluation.metrics.controlEnergy = 14;
+    lowScoreLowEnergy.evaluation.score = 78;
+    lowScoreLowEnergy.evaluation.metrics.controlEnergy = 3;
+
+    const leaderboard = buildArenaLeaderboard([highScoreHighEnergy, lowScoreLowEnergy], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'metric',
+      metricId: 'controlEnergy',
+    } as any);
+
+    expect(leaderboard.entries[0]).toMatchObject({
+      studentLabel: '低能耗',
+      metricId: 'controlEnergy',
+      metricValue: 3,
+    });
+  });
+
+  it('keeps hard-constraint failures behind valid submissions on metric leaderboards', () => {
+    const valid = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '有效方案',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const invalid = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-invalid-low-energy',
+        params: { kp: 0, ki: 0, kd: 0 },
+      },
+      studentLabel: '无效低能耗方案',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [valid],
+    });
+    valid.evaluation.valid = true;
+    valid.evaluation.metrics.controlEnergy = 8;
+    invalid.evaluation.valid = false;
+    invalid.evaluation.metrics.controlEnergy = 0.1;
+
+    const leaderboard = buildArenaLeaderboard([invalid, valid], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'metric',
+      metricId: 'controlEnergy',
+    } as any);
+
+    expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效方案', '无效低能耗方案']);
+  });
+
+  it('classifies Pareto front entries and records dominance evidence', () => {
+    const fast = createArenaSubmission({
+      taskId: 'task-delay-robust-pareto',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-pareto-fast',
+        taskId: 'task-delay-robust-pareto',
+        params: { kp: 2.6, ki: 0.5, kd: 0.25 },
+      },
+      studentLabel: '快速方案',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const efficient = createArenaSubmission({
+      taskId: 'task-delay-robust-pareto',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-pareto-efficient',
+        taskId: 'task-delay-robust-pareto',
+        params: { kp: 1.2, ki: 0.25, kd: 0.05 },
+      },
+      studentLabel: '低能耗方案',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [fast],
+    });
+    const dominated = createArenaSubmission({
+      taskId: 'task-delay-robust-pareto',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-pareto-dominated',
+        taskId: 'task-delay-robust-pareto',
+        params: { kp: 0.7, ki: 0.05, kd: 0 },
+      },
+      studentLabel: '被支配方案',
+      submittedAt: '2026-05-10T10:03:00.000Z',
+      existingSubmissions: [fast, efficient],
+    });
+    fast.evaluation.metrics = { settlingTime: 2, overshoot: 9, steadyStateError: 0.02, itae: 3, controlEnergy: 12 };
+    efficient.evaluation.metrics = { settlingTime: 4, overshoot: 8, steadyStateError: 0.02, itae: 4, controlEnergy: 3 };
+    dominated.evaluation.metrics = { settlingTime: 6, overshoot: 20, steadyStateError: 0.08, itae: 8, controlEnergy: 18 };
+    fast.evaluation.valid = true;
+    efficient.evaluation.valid = true;
+    dominated.evaluation.valid = true;
+    dominated.evaluation.score = 99;
+
+    const leaderboard = buildArenaLeaderboard([dominated, fast, efficient], {
+      taskId: 'task-delay-robust-pareto',
+      type: 'pareto',
+      metricIds: ['settlingTime', 'overshoot', 'steadyStateError', 'controlEnergy'],
+    } as any);
+
+    expect(leaderboard.entries.slice(0, 2).map((entry) => entry.paretoTier)).toEqual([1, 1]);
+    expect(leaderboard.entries.slice(0, 2).map((entry) => entry.studentLabel)).toEqual(expect.arrayContaining([
+      '快速方案',
+      '低能耗方案',
+    ]));
+    expect(leaderboard.entries.find((entry) => entry.studentLabel === '被支配方案')).toMatchObject({
+      paretoTier: 2,
+      dominanceCount: 2,
+    });
+    expect(leaderboard.entries.find((entry) => entry.studentLabel === '被支配方案')?.dominatedBySubmissionIds).toEqual(
+      expect.arrayContaining([fast.id, efficient.id]),
+    );
+  });
+
+  it('filters class and season leaderboards by persisted submission scope', () => {
+    const classA = {
+      ...createArenaSubmission({
+        taskId: 'task-integrator-low-frequency-balance',
+        artifact: {
+          ...pidArtifact,
+          id: 'artifact-class-a',
+          taskId: 'task-integrator-low-frequency-balance',
+        },
+        studentLabel: '甲班学生',
+        submittedAt: '2026-05-10T10:01:00.000Z',
+        existingSubmissions: [],
+      }),
+      classId: 'class-a',
+      seasonId: 'spring-2026',
+    };
+    const classB = {
+      ...createArenaSubmission({
+        taskId: 'task-integrator-low-frequency-balance',
+        artifact: {
+          ...pidArtifact,
+          id: 'artifact-class-b',
+          taskId: 'task-integrator-low-frequency-balance',
+          params: { kp: 1.4, ki: 0.2, kd: 0.05 },
+        },
+        studentLabel: '乙班学生',
+        submittedAt: '2026-05-10T10:02:00.000Z',
+        existingSubmissions: [classA],
+      }),
+      classId: 'class-b',
+      seasonId: 'spring-2026',
+    };
+    const otherSeason = {
+      ...classA,
+      id: 'submission-other-season',
+      studentLabel: '旧赛季学生',
+      seasonId: 'winter-2025',
+    };
+
+    expect(buildArenaLeaderboard([classA, classB, otherSeason], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'class',
+      classId: 'class-a',
+    } as any).entries.map((entry) => entry.studentLabel)).toEqual(['甲班学生', '旧赛季学生']);
+
+    expect(buildArenaLeaderboard([classA, classB, otherSeason], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'season',
+      seasonId: 'spring-2026',
+    } as any).entries.map((entry) => entry.studentLabel)).toEqual(expect.arrayContaining([
+      '甲班学生',
+      '乙班学生',
+    ]));
+    expect(buildArenaLeaderboard([classA, classB, otherSeason], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'season',
+      seasonId: 'spring-2026',
+    } as any).entries.map((entry) => entry.studentLabel)).not.toContain('旧赛季学生');
+
+    expect(buildArenaLeaderboard([classA, classB], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'class',
+    } as any).entries).toEqual([]);
+    expect(buildArenaLeaderboard([classA, classB], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'season',
+    } as any).entries).toEqual([]);
+  });
+
+  it('requires an explicit method for method leaderboard filtering', () => {
+    const pid = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: 'PID 学生',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const serial = createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-serial-method',
+        method: 'serial-compensator',
+        params: { gain: 2, zero: 1, pole: 4 },
+      },
+      studentLabel: '串联校正学生',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [pid],
+    });
+
+    expect(buildArenaLeaderboard([pid, serial], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'method',
+    } as any).entries).toEqual([]);
+    expect(buildArenaLeaderboard([pid, serial], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'method',
+      method: 'pid',
+    }).entries.map((entry) => entry.studentLabel)).toEqual(['PID 学生']);
+  });
+
   it('defines core Arena telemetry events compatible with the L0 event boundary', () => {
     expect(ARENA_CORE_EVENT_TYPES).toEqual([
       'arena_challenge_open',
