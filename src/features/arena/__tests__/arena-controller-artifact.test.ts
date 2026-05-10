@@ -7,6 +7,8 @@ import {
   buildControllerArtifactFromParams,
   getEvaluableControllerMethods,
 } from '../submissions/controller-artifact-builder';
+import { buildArenaWorkbenchPreview } from '../submissions/workbench-preview';
+import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ChallengeTask } from '../types';
 
 const baseTask: ChallengeTask = {
@@ -93,6 +95,61 @@ describe('arena controller artifact builder', () => {
       method: 'serial-compensator',
       params: { gain: 3, zero: 1.2, pole: 6 },
     });
+  });
+
+  it('builds local workbench previews without creating official submissions', () => {
+    const previousSubmission: ArenaSubmissionRecord = {
+      id: 'submission-previous',
+      taskId: baseTask.id,
+      userId: 'student-a',
+      studentLabel: '学生甲',
+      artifactHash: 'hash-previous',
+      artifact: {
+        id: 'artifact-previous',
+        taskId: baseTask.id,
+        method: 'pid',
+        params: { kp: 1.2, ki: 0.2, kd: 0.05 },
+        createdAt: '2026-05-11T09:00:00.000Z',
+      },
+      evaluation: {
+        taskId: baseTask.id,
+        artifact: {
+          id: 'artifact-previous',
+          taskId: baseTask.id,
+          method: 'pid',
+          params: { kp: 1.2, ki: 0.2, kd: 0.05 },
+          createdAt: '2026-05-11T09:00:00.000Z',
+        },
+        valid: true,
+        score: 40,
+        metrics: { settlingTime: 7, overshoot: 28, steadyStateError: 0.08, itae: 9 },
+        satisfaction: { settlingTime: 0.2, overshoot: 0.25, steadyStateError: 0.4, itae: 0.3 },
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: ['previous'],
+      },
+      submittedAt: '2026-05-11T09:00:00.000Z',
+      reusedEvaluation: false,
+    };
+
+    const preview = buildArenaWorkbenchPreview({
+      task: baseTask,
+      method: 'pid',
+      values: { kp: '2.4', ki: '0.8', kd: '0.35' },
+      previousSubmission,
+      now: '2026-05-11T10:00:00.000Z',
+    });
+
+    expect(preview.artifact).toMatchObject({
+      taskId: baseTask.id,
+      method: 'pid',
+      createdAt: '2026-05-11T10:00:00.000Z',
+    });
+    expect(preview.evaluation.taskId).toBe(baseTask.id);
+    expect(preview.evaluation.score).toBeGreaterThan(0);
+    expect(preview.comparison?.scoreDelta).toBeCloseTo(preview.evaluation.score - previousSubmission.evaluation.score, 5);
+    expect(preview.comparison?.metricDeltas.map((delta) => delta.metricId)).toEqual(baseTask.primaryMetrics);
+    expect(preview).not.toHaveProperty('submission');
   });
 
   it('rejects non-finite parameters before calling the official evaluator', () => {
@@ -348,10 +405,19 @@ describe('arena controller artifact builder', () => {
       join(process.cwd(), 'src/features/arena/submissions/arena-submission-panel.tsx'),
       'utf8',
     );
+    const detailSource = readFileSync(
+      join(process.cwd(), 'src/features/arena/challenge-detail.tsx'),
+      'utf8',
+    );
 
     expect(source).toContain('buildControllerArtifactFromParams');
+    expect(source).toContain('buildArenaWorkbenchPreview');
     expect(source).toContain('getEvaluableControllerMethods');
     expect(source).toContain('sendArenaCoreEvent');
+    expect(source).toContain('运行工作台仿真');
+    expect(source).toContain('方案比较');
+    expect(source).toContain('metricDeltas');
+    expect(source).toContain('formatMetricDelta');
     expect(source).toContain("'arena_controller_save'");
     expect(source).toContain("'arena_submit'");
     expect(source).toContain("'arena_evaluation_complete'");
@@ -363,6 +429,7 @@ describe('arena controller artifact builder', () => {
     expect(source).toContain('robustnessWeight');
     expect(source).toContain('JSON.stringify({ taskId: task.id, artifact })');
     expect(source).not.toContain('提交 PID 控制器');
+    expect(detailSource).not.toContain('当前阶段只建立任务入口');
   });
 
   it('mounts the submission panel based on current evaluator-supported methods', () => {

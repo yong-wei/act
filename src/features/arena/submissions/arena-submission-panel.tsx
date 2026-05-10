@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BarChart3, Send } from 'lucide-react';
+import { BarChart3, PlayCircle, Send } from 'lucide-react';
 
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import type { ArenaSubmissionRecord } from './submission-service';
@@ -11,6 +11,10 @@ import {
   getEvaluableControllerMethods,
   type EvaluableControllerMethod,
 } from './controller-artifact-builder';
+import {
+  buildArenaWorkbenchPreview,
+  type ArenaWorkbenchPreview,
+} from './workbench-preview';
 import { sendArenaCoreEvent } from '../telemetry';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
@@ -46,6 +50,7 @@ export function ArenaSubmissionPanel({
   const [overshootWeight, setOvershootWeight] = useState('0.9');
   const [searchBudget, setSearchBudget] = useState('80');
   const [status, setStatus] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ArenaWorkbenchPreview | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
   const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
   const [leaderboardType, setLeaderboardType] = useState<LeaderboardType>(task.leaderboardTypes[0] ?? 'main');
@@ -64,6 +69,55 @@ export function ArenaSubmissionPanel({
     metricId: selectedLeaderboardType === 'metric' ? metricId : undefined,
   });
 
+  const currentValues = () => controllerValues(controllerMethod, {
+    kp,
+    ki,
+    kd,
+    gain,
+    zero,
+    pole,
+    prefilterGain,
+    forwardGain,
+    localFeedbackGain,
+    disturbanceCompensation,
+    predictionHorizon,
+    controlHorizon,
+    outputWeight,
+    controlWeight,
+    terminalWeight,
+    inputLimit,
+    sampleTime,
+    speedWeight,
+    energyWeight,
+    robustnessWeight,
+    overshootWeight,
+    searchBudget,
+  });
+
+  const runLocalPreview = () => {
+    if (!evaluableMethods.includes(controllerMethod)) {
+      setStatus('当前任务没有可由白箱工作台预览的控制器方法。');
+      return;
+    }
+    try {
+      const nextPreview = buildArenaWorkbenchPreview({
+        task,
+        method: controllerMethod,
+        values: currentValues(),
+        previousSubmission: latest,
+      });
+      setPreview(nextPreview);
+      setStatus('工作台仿真已完成，可与最近一次真实提交比较。');
+      void sendArenaCoreEvent('arena_simulation_run', {
+        taskId: task.id,
+        method: controllerMethod,
+        previewMode: 'whitebox-workbench',
+      });
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '工作台仿真失败');
+    }
+  };
+
   const submitController = async () => {
     if (!evaluableMethods.includes(controllerMethod)) {
       setStatus('当前任务没有可由白箱评测器直接评测的控制器方法。');
@@ -75,30 +129,7 @@ export function ArenaSubmissionPanel({
       artifact = buildControllerArtifactFromParams({
         task,
         method: controllerMethod,
-        values: controllerValues(controllerMethod, {
-          kp,
-          ki,
-          kd,
-          gain,
-          zero,
-          pole,
-          prefilterGain,
-          forwardGain,
-          localFeedbackGain,
-          disturbanceCompensation,
-          predictionHorizon,
-          controlHorizon,
-          outputWeight,
-          controlWeight,
-          terminalWeight,
-          inputLimit,
-          sampleTime,
-          speedWeight,
-          energyWeight,
-          robustnessWeight,
-          overshootWeight,
-          searchBudget,
-        }),
+        values: currentValues(),
       });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '控制器参数无效');
@@ -267,15 +298,54 @@ export function ArenaSubmissionPanel({
           setSearchBudget,
         }}
       />
-      <button
-        type="button"
-        onClick={submitController}
-        className="cta-primary mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
-      >
-        <Send className="h-4 w-4" />
-        提交{methodLabel(controllerMethod)}控制器
-      </button>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={runLocalPreview}
+          className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm"
+        >
+          <PlayCircle className="h-4 w-4" />
+          运行工作台仿真
+        </button>
+        <button
+          type="button"
+          onClick={submitController}
+          className="cta-primary inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
+        >
+          <Send className="h-4 w-4" />
+          提交{methodLabel(controllerMethod)}控制器
+        </button>
+      </div>
       {status ? <div className="mt-3 text-xs text-subtle">{status}</div> : null}
+      {preview ? (
+        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-subtle">工作台仿真得分</span>
+            <span className="font-semibold text-primary">
+              {preview.evaluation.score.toFixed(1)} · {preview.evaluation.valid ? '达标' : '未达标'}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {task.primaryMetrics.map((metricId) => {
+              const metricDelta = preview.comparison?.metricDeltas.find((delta) => delta.metricId === metricId);
+              return (
+                <div key={metricId} className="grid gap-1 rounded-md border border-border/60 bg-background/45 px-2 py-1 text-xs sm:grid-cols-[1fr_auto]">
+                  <span className="text-subtle">{metricId}</span>
+                  <span className="text-right text-foreground">
+                    {formatMetricValue(preview.evaluation.metrics[metricId])}
+                    {metricDelta ? (
+                      <span className="ml-2 text-muted-foreground">{formatMetricDelta(metricDelta.delta)}</span>
+                    ) : null}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 text-xs text-subtle">
+            方案比较：{preview.comparison ? formatScoreDelta(preview.comparison.scoreDelta) : '暂无真实提交可比较'}
+          </div>
+        </div>
+      ) : null}
       {latest ? (
         <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
           <div className="flex items-center justify-between">
@@ -344,6 +414,21 @@ function formatLeaderboardValue(
     return `Tier ${entry.paretoTier}`;
   }
   return entry.score.toFixed(1);
+}
+
+function formatMetricValue(value: unknown): string {
+  return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(3) : '暂无';
+}
+
+function formatMetricDelta(value: number | null): string {
+  if (value === null) return '无可比数据';
+  const prefix = value > 0 ? '+' : '';
+  return `较上次 ${prefix}${value.toFixed(3)}`;
+}
+
+function formatScoreDelta(value: number): string {
+  const prefix = value > 0 ? '+' : '';
+  return `较最近真实提交 ${prefix}${value.toFixed(1)} 分`;
 }
 
 interface ControllerInputValues {

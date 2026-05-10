@@ -131,7 +131,7 @@ export function ChallengeDetail({
             <div className="surface-card p-6">
               <h2 className="text-lg font-semibold text-foreground">进入工作台</h2>
               <p className="mt-2 text-sm leading-6 text-subtle">
-                该任务推荐进入 {workspaceLabels[task.workspaceMode]}。当前阶段只建立任务入口，工作台复用既有页面。
+                该任务推荐进入 {workspaceLabels[task.workspaceMode]}。白箱任务可先在本页运行工作台仿真并比较方案，再提交官方评测。
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {task.allowedMethods.map((method) => (
