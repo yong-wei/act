@@ -124,6 +124,12 @@ export interface ComplexPoint {
   im: number;
 }
 
+export interface NyquistSamplePoint extends ComplexPoint {
+  frequency: number;
+  magnitudeDb: number;
+  phaseDeg: number;
+}
+
 export interface RootLocusSamplePoint extends ComplexPoint {
   gain?: number;
   branchId?: number;
@@ -199,6 +205,8 @@ export interface NyquistData {
   mode?: 'full' | 'half';
   positivePoints?: ComplexPoint[];
   negativePoints?: ComplexPoint[];
+  positiveSamples?: NyquistSamplePoint[];
+  negativeSamples?: NyquistSamplePoint[];
   segments?: NyquistSegment[];
   infinityClosure?: NyquistClosureSegment;
   keyPoints?: NyquistKeyPoint[];
@@ -343,6 +351,7 @@ export interface RootLocusData {
   departureAngles?: RootLocusAngle[];
   arrivalAngles?: RootLocusAngle[];
   currentPoles: ComplexPoint[];
+  currentGain?: number;
   openLoopPoles: ComplexPoint[];
   openLoopZeros: ComplexPoint[];
   feasibleRegion?: FeasibleRegionConfig;

@@ -2,10 +2,10 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { WheelEvent as ReactWheelEvent } from 'react';
 
-import type { LinkageResponseType, PoleZeroPoint } from './model';
+import type { CorrectionKind, CorrectionState, LinkageResponseType, PoleZeroPoint } from './model';
 
 interface ParameterDrawerProps {
   open: boolean;
@@ -14,9 +14,11 @@ interface ParameterDrawerProps {
   modelPoles: PoleZeroPoint[];
   modelZeros: PoleZeroPoint[];
   gain: number;
+  correctionState: CorrectionState;
   responseType: LinkageResponseType;
   showMargins: boolean;
   onGainChange: (value: number) => void;
+  onCorrectionChange: (patch: Partial<CorrectionState>) => void;
   onResponseTypeChange: (value: LinkageResponseType) => void;
   onShowMarginsChange: (value: boolean) => void;
   onAddPoint: (type: 'pole' | 'zero', pair: boolean) => void;
@@ -31,10 +33,12 @@ function NumberInput({
   label,
   value,
   onChange,
+  disabled = false,
 }: {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  disabled?: boolean;
 }) {
   return (
     <label className="premium-lesson-caption text-xs">
@@ -42,6 +46,7 @@ function NumberInput({
       <input
         type="number"
         step="0.001"
+        disabled={disabled}
         value={value.toFixed(3)}
         onChange={(event) => {
           const next = Number(event.target.value);
@@ -49,7 +54,7 @@ function NumberInput({
             onChange(next);
           }
         }}
-        className="premium-lesson-input mt-1 w-full"
+        className="premium-lesson-input mt-1 w-full disabled:cursor-not-allowed disabled:opacity-50"
       />
     </label>
   );
@@ -105,6 +110,99 @@ function PointRows({
   );
 }
 
+function CorrectionControls({
+  state,
+  disabled,
+  onChange,
+}: {
+  state: CorrectionState;
+  disabled: boolean;
+  onChange: (patch: Partial<CorrectionState>) => void;
+}) {
+  const isPidFamily = state.kind === 'pi' || state.kind === 'pd' || state.kind === 'pid';
+  const hasI = state.kind === 'pi' || state.kind === 'pid';
+  const hasD = state.kind === 'pd' || state.kind === 'pid';
+  const isLead = state.kind === 'lead' || state.kind === 'lead_lag';
+  const isLag = state.kind === 'lag' || state.kind === 'lead_lag';
+
+  return (
+    <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="premium-lesson-title text-sm font-medium">校正装置</div>
+        <label className="inline-flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={state.enabled}
+            disabled={disabled}
+            onChange={(event) => onChange({ enabled: event.target.checked })}
+            className="h-4 w-4 rounded border-border bg-background"
+          />
+          启用校正
+        </label>
+      </div>
+
+      <label className="premium-lesson-caption block text-xs">
+        结构
+        <select
+          value={state.kind}
+          disabled={disabled || !state.enabled}
+          onChange={(event) => onChange({ kind: event.target.value as CorrectionKind })}
+          className="premium-lesson-select mt-1 w-full"
+        >
+          <option value="pi">PI</option>
+          <option value="pd">PD</option>
+          <option value="pid">PID</option>
+          <option value="lead">超前</option>
+          <option value="lag">滞后</option>
+          <option value="lead_lag">滞后-超前</option>
+        </select>
+      </label>
+
+      {isPidFamily ? (
+        <div className="grid grid-cols-2 gap-2">
+          <NumberInput label="Kp" value={state.kp} disabled={disabled || !state.enabled} onChange={(kp) => onChange({ kp })} />
+          {hasI ? <NumberInput label="Ki" value={state.ki} disabled={disabled || !state.enabled} onChange={(ki) => onChange({ ki })} /> : null}
+          {hasD ? <NumberInput label="Kd" value={state.kd} disabled={disabled || !state.enabled} onChange={(kd) => onChange({ kd })} /> : null}
+          {hasI ? <NumberInput label="Ti=Kp/Ki" value={state.ti} disabled={disabled || !state.enabled} onChange={(ti) => onChange({ ti, ki: ti > 0 ? state.kp / ti : 0 })} /> : null}
+          {hasD ? <NumberInput label="Td=Kd/Kp" value={state.td} disabled={disabled || !state.enabled} onChange={(td) => onChange({ td, kd: state.kp * td })} /> : null}
+          {hasD ? (
+            <label className="premium-lesson-caption col-span-2 inline-flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={state.derivativeFilterEnabled}
+                disabled={disabled || !state.enabled}
+                onChange={(event) => onChange({ derivativeFilterEnabled: event.target.checked })}
+                className="h-4 w-4 rounded border-border bg-background"
+              />
+              启用微分滤波
+            </label>
+          ) : null}
+          {hasD && state.derivativeFilterEnabled ? (
+            <NumberInput label="Tf" value={state.tf} disabled={disabled || !state.enabled} onChange={(tf) => onChange({ tf })} />
+          ) : null}
+        </div>
+      ) : null}
+
+      {!isPidFamily ? (
+        <div className="grid grid-cols-2 gap-2">
+          {isLead ? (
+            <>
+              <NumberInput label="超前零点频率" value={state.leadZeroFrequency} disabled={disabled || !state.enabled} onChange={(leadZeroFrequency) => onChange({ leadZeroFrequency })} />
+              <NumberInput label="超前极点频率" value={state.leadPoleFrequency} disabled={disabled || !state.enabled} onChange={(leadPoleFrequency) => onChange({ leadPoleFrequency })} />
+            </>
+          ) : null}
+          {isLag ? (
+            <>
+              <NumberInput label="滞后零点频率" value={state.lagZeroFrequency} disabled={disabled || !state.enabled} onChange={(lagZeroFrequency) => onChange({ lagZeroFrequency })} />
+              <NumberInput label="滞后极点频率" value={state.lagPoleFrequency} disabled={disabled || !state.enabled} onChange={(lagPoleFrequency) => onChange({ lagPoleFrequency })} />
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 type DrawerWheelEvent = WheelEvent | ReactWheelEvent<HTMLDivElement>;
 
 function containDrawerWheel(event: DrawerWheelEvent, element: HTMLElement) {
@@ -126,9 +224,11 @@ export function ParameterDrawer({
   modelPoles,
   modelZeros,
   gain,
+  correctionState,
   responseType,
   showMargins,
   onGainChange,
+  onCorrectionChange,
   onResponseTypeChange,
   onShowMarginsChange,
   onAddPoint,
@@ -139,6 +239,11 @@ export function ParameterDrawer({
   onReset,
 }: ParameterDrawerProps) {
   const wheelCleanupRef = useRef<(() => void) | null>(null);
+  const [activeTab, setActiveTab] = useState<'plant' | 'correction'>('plant');
+  const tabClass = (tab: 'plant' | 'correction') =>
+    activeTab === tab
+      ? 'premium-lesson-action-tone premium-tone-cyan justify-center'
+      : 'premium-lesson-control justify-center';
 
   const setContentNode = useCallback((element: HTMLDivElement | null) => {
     wheelCleanupRef.current?.();
@@ -176,7 +281,34 @@ export function ParameterDrawer({
             </DialogPrimitive.Close>
           </div>
 
+          <div className="grid grid-cols-2 gap-2 rounded-md border border-border/60 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('plant')}
+              aria-pressed={activeTab === 'plant'}
+              className={tabClass('plant')}
+            >
+              对象
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('correction')}
+              aria-pressed={activeTab === 'correction'}
+              className={tabClass('correction')}
+            >
+              校正
+            </button>
+          </div>
+
           <div className="space-y-4">
+            {activeTab === 'correction' ? (
+              <CorrectionControls
+                state={correctionState}
+                disabled={isCourseMode}
+                onChange={onCorrectionChange}
+              />
+            ) : (
+              <>
             <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
               <div className="premium-lesson-title text-sm font-medium">联动参数</div>
               <NumberInput label="增益 K（闭环极点联动）" value={gain} onChange={onGainChange} />
@@ -258,6 +390,8 @@ export function ParameterDrawer({
             <button type="button" onClick={onReset} className="premium-lesson-control w-full justify-center">
               恢复默认
             </button>
+              </>
+            )}
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

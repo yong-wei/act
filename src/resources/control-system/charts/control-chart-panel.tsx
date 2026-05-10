@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
+import { RefreshCw } from 'lucide-react';
 
 import { useTheme } from '@/components/providers/theme-provider';
 import { DEFAULT_THEME } from '@/lib/theme-config';
@@ -17,6 +18,8 @@ export interface ControlChartPanelProps {
   onChartReady?: (chart: ECharts, container: HTMLDivElement) => void;
   fallback?: ReactNode;
   isFallback?: boolean;
+  onRefresh?: () => void;
+  refreshLabel?: string;
   className?: string;
   chartClassName?: string;
 }
@@ -29,6 +32,8 @@ export function ControlChartPanel({
   onChartReady,
   fallback,
   isFallback = false,
+  onRefresh,
+  refreshLabel = '刷新图形',
   className = '',
   chartClassName = 'h-[520px]',
 }: ControlChartPanelProps) {
@@ -111,8 +116,21 @@ export function ControlChartPanel({
     <div className={`premium-lesson-tone-block premium-tone-slate ${className}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{title}</div>
-        {meta ? <div className="premium-lesson-caption max-w-[72%] text-right text-[11px]">{meta}</div> : null}
-        {isFallback ? <div className="premium-lesson-caption text-[11px]">fixture fallback</div> : null}
+        <div className="flex max-w-[72%] items-start justify-end gap-2">
+          {meta ? <div className="premium-lesson-caption text-right text-[11px]">{meta}</div> : null}
+          {onRefresh ? (
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="premium-lesson-control flex h-7 w-7 shrink-0 items-center justify-center rounded-full p-0"
+              aria-label={refreshLabel}
+              title={refreshLabel}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+          {isFallback ? <div className="premium-lesson-caption text-[11px]">fixture fallback</div> : null}
+        </div>
       </div>
       <div className="relative mt-3 flex-1 overflow-hidden rounded-2xl border border-border/50 bg-background/55">
         <div ref={containerRef} className={`${chartClassName} w-full`} />

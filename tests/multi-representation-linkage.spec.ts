@@ -42,12 +42,17 @@ test('multi representation linkage page should not emit chart size warning on fi
   const gainInput = page.getByLabel('增益 K（闭环极点联动）');
   await gainInput.fill('4.500');
   await gainInput.press('Tab');
+  await page.getByRole('button', { name: '校正' }).click();
+  await page.getByLabel('启用校正').check();
+  await page.getByLabel('结构').selectOption('lead');
   await page.keyboard.press('Escape');
 
   await expect.poll(async () => {
     const text = ((await phaseMarginValue.textContent()) ?? '').trim();
     return text !== '--' && text !== initialPhaseMargin;
   }).toBe(true);
+  await expect(page.getByText('校正后 G(s)C(s)K')).toBeVisible();
+  await expect(page.getByText('校正装置 C(s)')).toBeVisible();
 
   await page.waitForTimeout(600);
 

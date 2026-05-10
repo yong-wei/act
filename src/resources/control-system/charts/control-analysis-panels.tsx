@@ -21,7 +21,9 @@ import type {
 } from '../analysis/types';
 import {
   axisTooltipFormatter,
+  buildBodeComparisonOption,
   buildBodePanelOption,
+  buildBodeTurnFrequencySeries,
   buildMarginSeries,
   CONTROL_CHART_AUXILIARY_LINE_WIDTH,
   CONTROL_CHART_KEY_POINT_MARKER_SIZE,
@@ -30,12 +32,15 @@ import {
   getControlAxisPreset,
   getRootLocusAxisKey,
   type AxisPreset,
+  type BodeTurnFrequencyHandle,
   type RootLocusMode,
 } from './control-bode-options';
 import { ControlChartPanel } from './control-chart-panel';
 
 // Shared axis presets must stay aligned with case ids like ship_heading/platform_pitch
 // and the root-locus variants rootLocusFull/rootLocusZoom used by the workspace.
+
+export { buildBodeTurnFrequencySeries };
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
@@ -47,15 +52,17 @@ const ROOT_LOCUS_STATIONARY_POINT_COLOR = '#7c3aed';
 const ROOT_LOCUS_CROSSING_POINT_COLOR = '#f97316';
 const ROOT_LOCUS_OPEN_POLE_COLOR = '#dc2626';
 const ROOT_LOCUS_OPEN_ZERO_COLOR = '#d97706';
+const ROOT_LOCUS_CORRECTION_POLE_COLOR = '#0f766e';
+const ROOT_LOCUS_CORRECTION_ZERO_COLOR = '#7c3aed';
 const ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH = 2.2;
-const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M0 -1 L28 -1 L28 1 L0 1 Z';
+const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M0 -1.2 L28 -1.2 L28 1.2 L0 1.2 Z';
 const ROOT_LOCUS_LEGEND_DASHED_LINE_ICON = 'path://M0 -1 L6 -1 L6 1 L0 1 Z M10 -1 L17 -1 L17 1 L10 1 Z M21 -1 L28 -1 L28 1 L21 1 Z';
 
 export type RootLocusInteractiveHandle = {
   id: string;
   kind: 'pole' | 'zero';
   point: ComplexPoint;
-  renderAs?: 'open-pole' | 'open-zero' | 'closed-pole';
+  renderAs?: 'open-pole' | 'open-zero' | 'closed-pole' | 'correction-pole' | 'correction-zero';
   draggable?: boolean;
   ariaLabel: string;
   cursor?: string;
@@ -338,6 +345,214 @@ function installCartesianPanZoom(chart: ECharts, onRangeChange?: () => void): ()
   };
 }
 
+function getDisplayedLogFrequencyRange(chart: ECharts): [number, number] | null {
+  const model = (chart as unknown as { getModel?: () => unknown }).getModel?.() as
+    | { getComponent?: (type: string, index: number) => { axis?: { scale?: { getExtent?: () => number[] } } } }
+    | undefined;
+  const extent = model?.getComponent?.('xAxis', 0)?.axis?.scale?.getExtent?.();
+  if (
+    Array.isArray(extent)
+    && extent.length >= 2
+    && extent.every(Number.isFinite)
+    && extent[0] > 0
+    && extent[1] > extent[0]
+  ) {
+    return [extent[0], extent[1]];
+  }
+  return null;
+}
+
+function applyLogFrequencyRange(chart: ECharts, range: [number, number]): void {
+  chart.setOption({
+    xAxis: [
+      { min: range[0], max: range[1] },
+      { min: range[0], max: range[1] },
+    ],
+  }, { notMerge: false, lazyUpdate: false });
+}
+
+function findBodeTurnHandleAt(
+  chart: ECharts,
+  handles: BodeTurnFrequencyHandle[],
+  event: { offsetX?: number; offsetY?: number },
+): BodeTurnFrequencyHandle | null {
+  if (typeof event.offsetX !== 'number' || typeof event.offsetY !== 'number') {
+    return null;
+  }
+  for (const handle of handles) {
+    const pixel = chart.convertToPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [handle.frequency, 0]);
+    if (!Array.isArray(pixel) || pixel.length < 2) {
+      continue;
+    }
+    if (Math.hypot(Number(pixel[0]) - event.offsetX, Number(pixel[1]) - event.offsetY) <= 18) {
+      return handle;
+    }
+  }
+  return null;
+}
+
+function installBodeFrequencyPanZoom(
+  chart: ECharts,
+  onRangeChange?: () => void,
+  turnFrequencyHandles: BodeTurnFrequencyHandle[] = [],
+): () => void {
+  const zr = chart.getZr();
+  let dragState: { startX: number; range: [number, number]; width: number } | null = null;
+
+  const containsPoint = (event: { offsetX?: number; offsetY?: number }) =>
+    typeof event.offsetX === 'number'
+    && typeof event.offsetY === 'number'
+    && (
+      chart.containPixel({ gridIndex: 0 }, [event.offsetX, event.offsetY])
+      || chart.containPixel({ gridIndex: 1 }, [event.offsetX, event.offsetY])
+    );
+
+  const handleMouseDown = (event: { offsetX?: number; offsetY?: number; event?: MouseEvent }) => {
+    if (event.event && event.event.button !== 0) {
+      return;
+    }
+    if (
+      shouldIgnoreCartesianPanZoom(event.event)
+      || !containsPoint(event)
+      || typeof event.offsetX !== 'number'
+      || findBodeTurnHandleAt(chart, turnFrequencyHandles, event)
+    ) {
+      return;
+    }
+    const range = getDisplayedLogFrequencyRange(chart);
+    if (!range) {
+      return;
+    }
+    const dom = chart.getDom();
+    dragState = { startX: event.offsetX, range, width: Math.max(1, dom.clientWidth) };
+    event.event?.preventDefault();
+  };
+
+  const handleMouseMove = (event: { offsetX?: number; event?: MouseEvent }) => {
+    if (!dragState || typeof event.offsetX !== 'number') {
+      return;
+    }
+    event.event?.preventDefault();
+    const logMin = Math.log10(dragState.range[0]);
+    const logMax = Math.log10(dragState.range[1]);
+    const span = logMax - logMin;
+    const shift = -((event.offsetX - dragState.startX) / dragState.width) * span;
+    applyLogFrequencyRange(chart, [10 ** (logMin + shift), 10 ** (logMax + shift)]);
+    onRangeChange?.();
+  };
+
+  const handleMouseUp = () => {
+    dragState = null;
+  };
+
+  const handleMouseWheel = (event: { offsetX?: number; offsetY?: number; wheelDelta?: number; event?: WheelEvent }) => {
+    if (shouldIgnoreCartesianPanZoom(event.event) || !containsPoint(event) || typeof event.offsetX !== 'number') {
+      return;
+    }
+    const range = getDisplayedLogFrequencyRange(chart);
+    if (!range) {
+      return;
+    }
+    const anchorValue = chart.convertFromPixel({ xAxisIndex: 0 }, [event.offsetX, event.offsetY ?? 0]);
+    const anchor = Array.isArray(anchorValue) ? Number(anchorValue[0]) : Number(anchorValue);
+    if (!Number.isFinite(anchor) || anchor <= 0) {
+      return;
+    }
+    event.event?.preventDefault();
+    const wheelDelta = typeof event.wheelDelta === 'number'
+      ? event.wheelDelta
+      : -(event.event?.deltaY ?? 0);
+    const factor = wheelDelta > 0 ? 0.84 : 1.18;
+    const anchorLog = Math.log10(anchor);
+    const nextRange: [number, number] = [
+      10 ** (anchorLog - (anchorLog - Math.log10(range[0])) * factor),
+      10 ** (anchorLog + (Math.log10(range[1]) - anchorLog) * factor),
+    ];
+    applyLogFrequencyRange(chart, nextRange);
+    onRangeChange?.();
+  };
+
+  zr.on('mousedown', handleMouseDown);
+  zr.on('mousemove', handleMouseMove);
+  zr.on('mouseup', handleMouseUp);
+  zr.on('globalout', handleMouseUp);
+  zr.on('mousewheel', handleMouseWheel);
+
+  return () => {
+    zr.off('mousedown', handleMouseDown);
+    zr.off('mousemove', handleMouseMove);
+    zr.off('mouseup', handleMouseUp);
+    zr.off('globalout', handleMouseUp);
+    zr.off('mousewheel', handleMouseWheel);
+  };
+}
+
+function installBodeTurnFrequencyDrag(
+  chart: ECharts,
+  handles: BodeTurnFrequencyHandle[],
+  onCommit: ((id: string, frequency: number) => void) | undefined,
+  onRangeChange?: () => void,
+): () => void {
+  if (!onCommit || handles.length === 0) {
+    return () => {};
+  }
+  const zr = chart.getZr();
+  let activeHandleId: string | null = null;
+  let nextFrequency: number | null = null;
+
+  const handleMouseDown = (event: { offsetX?: number; offsetY?: number; event?: MouseEvent }) => {
+    const handle = findBodeTurnHandleAt(chart, handles, event);
+    if (!handle) {
+      return;
+    }
+    activeHandleId = handle.id;
+    nextFrequency = handle.frequency;
+    event.event?.preventDefault();
+    event.event?.stopPropagation();
+  };
+
+  const handleMouseMove = (event: { offsetX?: number; offsetY?: number; event?: MouseEvent }) => {
+    if (!activeHandleId || typeof event.offsetX !== 'number') {
+      return;
+    }
+    const value = chart.convertFromPixel({ xAxisIndex: 0 }, [event.offsetX, event.offsetY ?? 0]);
+    const frequency = Array.isArray(value) ? Number(value[0]) : Number(value);
+    if (!Number.isFinite(frequency) || frequency <= 0) {
+      return;
+    }
+    nextFrequency = frequency;
+    chart.setOption({
+      series: [{
+        id: activeHandleId,
+        data: [[frequency, 0]],
+      }],
+    }, { notMerge: false, lazyUpdate: true });
+    event.event?.preventDefault();
+    event.event?.stopPropagation();
+    onRangeChange?.();
+  };
+
+  const handleMouseUp = () => {
+    if (activeHandleId && nextFrequency != null) {
+      onCommit(activeHandleId, nextFrequency);
+    }
+    activeHandleId = null;
+    nextFrequency = null;
+  };
+
+  zr.on('mousedown', handleMouseDown);
+  zr.on('mousemove', handleMouseMove);
+  zr.on('mouseup', handleMouseUp);
+  zr.on('globalout', handleMouseUp);
+
+  return () => {
+    zr.off('mousedown', handleMouseDown);
+    zr.off('mousemove', handleMouseMove);
+    zr.off('mouseup', handleMouseUp);
+    zr.off('globalout', handleMouseUp);
+  };
+}
+
 function toSeriesArray(series?: EChartsCoreOption['series']): ChartSeriesArray {
   if (!series) {
     return [];
@@ -370,8 +585,15 @@ function pointTooltipFormatter(params: { seriesName?: string; value?: number[] |
   const x = Array.isArray(value) ? Number(value[0]) : Number(value);
   const y = Array.isArray(value) ? Number(value[1]) : Number(value);
   const gain = Array.isArray(value) && value.length > 2 ? Number(value[2]) : Number.NaN;
+  const magnitudeDb = Array.isArray(value) && value.length > 3 ? Number(value[3]) : Number.NaN;
+  const phaseDeg = Array.isArray(value) && value.length > 4 ? Number(value[4]) : Number.NaN;
   const gainLine = Number.isFinite(gain) ? `<br/>Gain K: ${formatFixed(gain)}` : '';
-  return `${params.seriesName ?? '数据点'}<br/>Re(s): ${formatFixed(x)}<br/>Im(s): ${formatFixed(y)}${gainLine}`;
+  const damping = Math.hypot(x, y) > 1e-9 ? -x / Math.hypot(x, y) : 1;
+  const rootLine = `<br/>阻尼比: ${formatFixed(damping)}<br/>自然频率: ${formatFixed(Math.hypot(x, y))}`;
+  const nyquistLine = Number.isFinite(magnitudeDb) || Number.isFinite(phaseDeg)
+    ? `<br/>|L(jω)|: ${formatFixed(magnitudeDb, ' dB')}<br/>相角: ${formatFixed(phaseDeg, '°')}`
+    : '';
+  return `${params.seriesName ?? '数据点'}<br/>Re(s): ${formatFixed(x)}<br/>Im(s): ${formatFixed(y)}${gainLine}${rootLine}${nyquistLine}`;
 }
 
 function buildMetricText(metrics: ControlMetrics): ReactNode {
@@ -406,8 +628,33 @@ function buildNyquistMetaText(result: ControlAnalysisResult): ReactNode {
     .join(' | ');
 }
 
-function buildPoleText(points: ComplexPoint[]): ReactNode {
-  return points.map((point, index) => `p${index + 1}=${formatComplex(point)}`).join(' | ');
+function buildPointText(prefix: string, points: ComplexPoint[]): string {
+  return points.map((point, index) => `${prefix}${index + 1}=${formatComplex(point)}`).join(' | ');
+}
+
+function buildRootLocusMetaText(rootLocus: RootLocusData, correctionHandles: RootLocusInteractiveHandle[] = []): ReactNode {
+  const correctionPoles = correctionHandles.filter((handle) => handle.kind === 'pole').map((handle) => handle.point);
+  const correctionZeros = correctionHandles.filter((handle) => handle.kind === 'zero').map((handle) => handle.point);
+  const openLoopZeros = removeMatchingPoints(rootLocus.openLoopZeros, correctionZeros);
+  const rows = [
+    buildPointText('p', rootLocus.currentPoles),
+    openLoopZeros.length > 0 ? buildPointText('z', openLoopZeros) : '',
+  ].filter(Boolean);
+  const correctionParts = [
+    correctionPoles.length > 0 ? `校正极点 ${buildPointText('pc', correctionPoles)}` : '',
+    correctionZeros.length > 0 ? `校正零点 ${buildPointText('zc', correctionZeros)}` : '',
+  ].filter(Boolean);
+
+  if (correctionParts.length === 0) {
+    return rows.join(' | ');
+  }
+
+  return (
+    <span className="inline-flex flex-col items-end gap-0.5">
+      <span>{rows.join(' | ')}</span>
+      <span>{correctionParts.join(' | ')}</span>
+    </span>
+  );
 }
 
 
@@ -632,11 +879,33 @@ function buildRootLocusSegmentSeries(segments: RootLocusSegment[]): ChartSeriesA
     });
 }
 
+function rootPointKey(point: ComplexPoint): string {
+  return `${point.re.toFixed(6)}:${point.im.toFixed(6)}`;
+}
+
+function removeMatchingPoints(points: ComplexPoint[], pointsToRemove: ComplexPoint[]): ComplexPoint[] {
+  const counts = new Map<string, number>();
+  for (const point of pointsToRemove) {
+    const key = rootPointKey(point);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return points.filter((point) => {
+    const key = rootPointKey(point);
+    const count = counts.get(key) ?? 0;
+    if (count <= 0) {
+      return true;
+    }
+    counts.set(key, count - 1);
+    return false;
+  });
+}
+
 export function buildRootLocusOption(
   rootLocus: RootLocusData,
   caseId?: string,
   mode: RootLocusMode = 'default',
   axisPresetOverride?: AxisPreset,
+  correctionHandles: RootLocusInteractiveHandle[] = [],
 ): EChartsCoreOption {
   const autoView = mode === 'full' ? rootLocus.views?.full : rootLocus.views?.feature;
   const caseAxisPreset = getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
@@ -650,8 +919,10 @@ export function buildRootLocusOption(
   const locusBranches = (mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches)
     .map((branch) => branch.map(snapRootPoint));
   const currentPoles = normalizeConjugatePointSet(rootLocus.currentPoles);
-  const openLoopPoles = normalizeConjugatePointSet(rootLocus.openLoopPoles);
-  const openLoopZeros = normalizeConjugatePointSet(rootLocus.openLoopZeros);
+  const correctionPoles = normalizeConjugatePointSet(correctionHandles.filter((handle) => handle.kind === 'pole').map((handle) => handle.point));
+  const correctionZeros = normalizeConjugatePointSet(correctionHandles.filter((handle) => handle.kind === 'zero').map((handle) => handle.point));
+  const openLoopPoles = removeMatchingPoints(normalizeConjugatePointSet(rootLocus.openLoopPoles), correctionPoles);
+  const openLoopZeros = removeMatchingPoints(normalizeConjugatePointSet(rootLocus.openLoopZeros), correctionZeros);
   const xMin = axisPreset?.x[0] ?? -8;
   const xMax = axisPreset?.x[1] ?? 2;
   const yMin = axisPreset?.y[0] ?? -6;
@@ -760,6 +1031,33 @@ export function buildRootLocusOption(
       }),
       data: openLoopZeros.map((zero) => [zero.re, zero.im]),
     },
+    ...(correctionPoles.length > 0
+      ? [{
+          name: '校正装置极点',
+          type: 'scatter',
+          ...getInteractiveSvgEChartsPointMarker('pole-cross', {
+            size: 12,
+            color: ROOT_LOCUS_CORRECTION_POLE_COLOR,
+            strokeWidth: 2.2,
+          }),
+          z: 11,
+          data: correctionPoles.map((pole) => [pole.re, pole.im]),
+        } satisfies ChartSeriesItem]
+      : []),
+    ...(correctionZeros.length > 0
+      ? [{
+          name: '校正装置零点',
+          type: 'scatter',
+          ...getInteractiveSvgEChartsPointMarker('dot-hollow', {
+            size: 13,
+            color: ROOT_LOCUS_CORRECTION_ZERO_COLOR,
+            fillColor: 'rgba(255, 255, 255, 0)',
+            strokeWidth: ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH,
+          }),
+          z: 11,
+          data: correctionZeros.map((zero) => [zero.re, zero.im]),
+        } satisfies ChartSeriesItem]
+      : []),
     {
       id: 'currentClosedLoopPoles',
       name: '当前闭环极点',
@@ -789,6 +1087,12 @@ export function buildRootLocusOption(
       return { name, icon: ROOT_LOCUS_LEGEND_DASHED_LINE_ICON, symbolKeepAspect: true };
     }
     if (name === '当前闭环极点') {
+      return { name, icon: 'circle' };
+    }
+    if (name === '校正装置极点') {
+      return { name, icon: 'path://M-6 -6 L6 6 M6 -6 L-6 6' };
+    }
+    if (name === '校正装置零点') {
       return { name, icon: 'circle' };
     }
     if (name === '分离/会合点' || name === '虚轴交点') {
@@ -838,6 +1142,18 @@ export function buildRootLocusOption(
       splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
     },
     series,
+    graphic: rootLocus.currentGain == null ? [] : [
+      {
+        type: 'text',
+        right: 20,
+        top: 30,
+        style: {
+          text: `K=${rootLocus.currentGain.toFixed(3)}`,
+          fill: 'rgba(71, 85, 105, 0.92)',
+          font: '12px sans-serif',
+        },
+      },
+    ],
   };
 }
 
@@ -890,6 +1206,20 @@ function buildNyquistSegmentSeries(segments: NyquistSegment[]): ChartSeriesArray
     });
 }
 
+function toNyquistSeriesData(points: Array<ComplexPoint & {
+  frequency?: number;
+  magnitudeDb?: number;
+  phaseDeg?: number;
+}>): number[][] {
+  return points.map((point) => [
+    point.re,
+    point.im,
+    ...(Number.isFinite(point.frequency ?? NaN)
+      ? [point.frequency as number, point.magnitudeDb ?? 0, point.phaseDeg ?? 0]
+      : []),
+  ]);
+}
+
 function buildLegacyNyquistSegmentSeries(
   positivePoints: ComplexPoint[],
   negativePoints: ComplexPoint[],
@@ -907,7 +1237,7 @@ function buildLegacyNyquistSegmentSeries(
       type: 'line',
       showSymbol: false,
       lineStyle: { color: '#22d3ee', width: CONTROL_CHART_MAIN_LINE_WIDTH },
-      data: positivePoints.map((point) => [point.re, point.im]),
+      data: toNyquistSeriesData(positivePoints),
     } satisfies ChartSeriesItem,
     ...(negativePoints.length > 0
       ? [{
@@ -915,7 +1245,7 @@ function buildLegacyNyquistSegmentSeries(
           type: 'line',
           showSymbol: false,
           lineStyle: { color: '#22d3ee', width: CONTROL_CHART_MAIN_LINE_WIDTH },
-          data: negativePoints.map((point) => [point.re, point.im]),
+          data: toNyquistSeriesData(negativePoints),
         } satisfies ChartSeriesItem]
       : []),
     ...closureSegments.map((points) => ({
@@ -1023,11 +1353,16 @@ export function buildNyquistOption(
   axisPresetOverride?: AxisPreset,
 ): EChartsCoreOption {
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, 'nyquist');
-  const positivePoints = result.nyquist.positivePoints ?? result.nyquist.points;
-  const negativePoints = result.nyquist.negativePoints ?? [];
-  const contourSeries = result.nyquist.segments?.length
+  const positivePoints = result.nyquist.positiveSamples ?? result.nyquist.positivePoints ?? result.nyquist.points;
+  const negativePoints = result.nyquist.negativeSamples ?? result.nyquist.negativePoints ?? [];
+  const hasSampleMetadata = Boolean(result.nyquist.positiveSamples?.length || result.nyquist.negativeSamples?.length);
+  const contourSeries = result.nyquist.segments?.length && !hasSampleMetadata
     ? buildNyquistSegmentSeries(result.nyquist.segments)
-    : buildLegacyNyquistSegmentSeries(positivePoints, negativePoints, result.nyquist.infinityClosure);
+    : buildLegacyNyquistSegmentSeries(
+        positivePoints,
+        negativePoints,
+        result.nyquist.infinityClosure,
+      );
   const keyPoints = result.nyquist.keyPoints ?? [];
   const xMin = axisPreset?.x[0] ?? -2;
   const xMax = axisPreset?.x[1] ?? 2;
@@ -1168,11 +1503,23 @@ function renderInteractiveHandle(
   const isClosedPole = handle.renderAs === 'closed-pole' || renderAs === 'closed-pole';
   const markerKind: InteractiveSvgPointMarkerKind = isClosedPole
     ? 'dot-filled'
-    : renderAs === 'open-pole'
+    : renderAs === 'open-pole' || renderAs === 'correction-pole'
       ? 'pole-cross'
       : 'dot-hollow';
-  const markerSize = renderAs === 'open-pole' ? 12 : renderAs === 'open-zero' ? 13 : 16;
-  const markerColor = isClosedPole ? '#1f4e79' : renderAs === 'open-pole' ? '#c81d25' : '#d97706';
+  const markerSize = renderAs === 'open-pole' || renderAs === 'correction-pole'
+    ? 12
+    : renderAs === 'open-zero' || renderAs === 'correction-zero'
+      ? 13
+      : 16;
+  const markerColor = isClosedPole
+    ? '#1f4e79'
+    : renderAs === 'correction-pole'
+      ? ROOT_LOCUS_CORRECTION_POLE_COLOR
+      : renderAs === 'correction-zero'
+        ? ROOT_LOCUS_CORRECTION_ZERO_COLOR
+        : renderAs === 'open-pole'
+          ? '#c81d25'
+          : '#d97706';
   const content = (
     <svg
       viewBox={`0 0 ${markerSize} ${markerSize}`}
@@ -1196,9 +1543,9 @@ function renderInteractiveHandle(
         size={markerSize}
         color={markerColor}
         strokeColor={markerColor}
-        strokeWidth={renderAs === 'open-pole'
+        strokeWidth={renderAs === 'open-pole' || renderAs === 'correction-pole'
           ? 2.2
-          : renderAs === 'open-zero'
+          : renderAs === 'open-zero' || renderAs === 'correction-zero'
             ? ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH
             : 2}
       />
@@ -1251,8 +1598,169 @@ export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisR
   );
 }
 
-export function TimeDomainPanel(props: { result: ControlAnalysisResult; caseId?: string }) {
-  return <StepResponsePanel {...props} />;
+export function TimeDomainPanel({
+  result,
+  caseId,
+  onRefreshRange,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  onRefreshRange?: (range: CartesianRange) => void;
+}) {
+  const axisPreset = getControlAxisPreset(caseId, 'step');
+  const chartRef = useRef<ECharts | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
+  const option = useMemo(
+    () => buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
+      axisPreset: displayedAxisPreset,
+    }),
+    [displayedAxisPreset, result.stepResponse.points],
+  );
+  const handleChartReady = useCallback((chart: ECharts) => {
+    chartRef.current = chart;
+    cleanupRef.current?.();
+    const refreshRange = () => {
+      preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+    };
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+  }, []);
+  const handleRefresh = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart || !onRefreshRange) {
+      return;
+    }
+    const range = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+    if (range) {
+      preservedRangeRef.current = range;
+      onRefreshRange(range);
+    }
+  }, [onRefreshRange]);
+
+  useEffect(() => () => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    chartRef.current = null;
+  }, []);
+
+  return (
+    <ControlChartPanel
+      title="时域响应"
+      meta={buildMetricText(result.metrics)}
+      option={option}
+      fallback={fallbackNode(result)}
+      isFallback={Boolean(result.isFallback)}
+      onChartReady={handleChartReady}
+      onRefresh={onRefreshRange ? handleRefresh : undefined}
+      refreshLabel="按当前时域范围刷新"
+    />
+  );
+}
+
+function buildTimeDomainComparisonOption(
+  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>,
+  axisPreset?: AxisPreset,
+): EChartsCoreOption {
+  return {
+    animation: false,
+    legend: {
+      top: 0,
+      icon: ROOT_LOCUS_LEGEND_LINE_ICON,
+      data: panels.map((panel) => panel.label),
+    },
+    grid: { top: 34, right: 18, bottom: 42, left: 58 },
+    tooltip: {
+      trigger: 'axis',
+      formatter: axisTooltipFormatter,
+    },
+    xAxis: {
+      type: 'value',
+      min: axisPreset?.x[0],
+      max: axisPreset?.x[1],
+      name: '时间 / s',
+      nameLocation: 'middle',
+      nameGap: 30,
+      axisLabel: { formatter: formatAxisValue },
+      splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
+    },
+    yAxis: {
+      type: 'value',
+      min: axisPreset?.y[0],
+      max: axisPreset?.y[1],
+      name: '响应',
+      nameLocation: 'middle',
+      nameGap: 42,
+      axisLabel: { formatter: formatAxisValue },
+      splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
+    },
+    series: panels.map((panel) => ({
+      name: panel.label,
+      type: 'line',
+      showSymbol: false,
+      smooth: false,
+      lineStyle: { color: panel.color, width: CONTROL_CHART_MAIN_LINE_WIDTH },
+      data: panel.result.stepResponse.points.map((point) => [point.x, point.y]),
+    } satisfies ChartSeriesItem)),
+  };
+}
+
+export function TimeDomainComparisonPanel({
+  panels,
+  caseId,
+  onRefreshRange,
+}: {
+  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  caseId?: string;
+  onRefreshRange?: (range: CartesianRange) => void;
+}) {
+  const axisPreset = getControlAxisPreset(caseId, 'step');
+  const chartRef = useRef<ECharts | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
+  const option = useMemo(
+    () => buildTimeDomainComparisonOption(panels, displayedAxisPreset),
+    [displayedAxisPreset, panels],
+  );
+  const handleChartReady = useCallback((chart: ECharts) => {
+    chartRef.current = chart;
+    cleanupRef.current?.();
+    const refreshRange = () => {
+      preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+    };
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+  }, []);
+  const handleRefresh = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart || !onRefreshRange) {
+      return;
+    }
+    const range = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+    if (range) {
+      preservedRangeRef.current = range;
+      onRefreshRange(range);
+    }
+  }, [onRefreshRange]);
+
+  useEffect(() => () => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    chartRef.current = null;
+  }, []);
+
+  return (
+    <ControlChartPanel
+      title="时域响应"
+      meta="校正前 / 校正后"
+      option={option}
+      fallback={panels.find((panel) => panel.result.isFallback)?.result.fallbackMessage ?? null}
+      isFallback={panels.some((panel) => panel.result.isFallback)}
+      onChartReady={handleChartReady}
+      onRefresh={onRefreshRange ? handleRefresh : undefined}
+      refreshLabel="按当前时域范围刷新"
+    />
+  );
 }
 
 export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
@@ -1375,6 +1883,7 @@ export function RootLocusPanel({
   overlay,
   interactiveHandles,
   onHandlePointerDown,
+  onInteractiveHandleCommit,
   interactiveLayerRef,
   onChartReady,
   onClosedLoopGainCommit,
@@ -1388,6 +1897,7 @@ export function RootLocusPanel({
   overlay?: ReactNode;
   interactiveHandles?: RootLocusInteractiveHandle[];
   onHandlePointerDown?: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onInteractiveHandleCommit?: (id: string, point: ComplexPoint) => void;
   interactiveLayerRef?: Ref<HTMLDivElement>;
   onChartReady?: (chart: ECharts, container: HTMLDivElement) => void;
   onClosedLoopGainCommit?: (gain: number) => void;
@@ -1417,9 +1927,10 @@ export function RootLocusPanel({
   }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
   const option = useMemo(
-    () => buildRootLocusOption(result.rootLocus, caseId, mode, displayedAxisPreset),
-    [displayedAxisPreset, caseId, mode, result.rootLocus],
+    () => buildRootLocusOption(result.rootLocus, caseId, mode, displayedAxisPreset, interactiveHandles ?? []),
+    [displayedAxisPreset, caseId, mode, result.rootLocus, interactiveHandles],
   );
+  const [dragPreviewHandle, setDragPreviewHandle] = useState<{ id: string; point: ComplexPoint } | null>(null);
   const [overlayVersion, setOverlayVersion] = useState(0);
   const rootLocusBranches = useMemo(
     () => (mode === 'full' && result.rootLocus.fullBranches
@@ -1569,20 +2080,89 @@ export function RootLocusPanel({
     window.addEventListener('pointercancel', stopDrag, { once: true });
   }, [onClosedLoopGainCommit, rootLocusBranches]);
 
+  const startInteractiveHandleDrag = useCallback((id: string, event: ReactPointerEvent<HTMLButtonElement>) => {
+    const chart = chartRef.current;
+    if (!chart || !onInteractiveHandleCommit) {
+      onHandlePointerDown?.(id, event);
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    dragCleanupRef.current?.();
+
+    let nextPoint: ComplexPoint | null = null;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.userSelect = 'none';
+
+    const handlePointerMove = (pointerEvent: PointerEvent) => {
+      pointerEvent.preventDefault();
+      pointerEvent.stopPropagation();
+      const dom = chart.getDom();
+      const rect = dom.getBoundingClientRect();
+      const value = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
+        pointerEvent.clientX - rect.left,
+        pointerEvent.clientY - rect.top,
+      ]);
+      if (!Array.isArray(value) || value.length < 2) {
+        return;
+      }
+      const point = { re: Number(value[0]), im: Number(value[1]) };
+      if (Number.isFinite(point.re) && Number.isFinite(point.im)) {
+        nextPoint = point;
+        setDragPreviewHandle({ id, point });
+        setOverlayVersion((version) => version + 1);
+      }
+    };
+
+    const stopDrag = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopDrag);
+      window.removeEventListener('pointercancel', stopDrag);
+      document.body.style.userSelect = previousUserSelect;
+      dragCleanupRef.current = null;
+      setDragPreviewHandle(null);
+      if (nextPoint) {
+        preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
+        onInteractiveHandleCommit(id, nextPoint);
+      }
+    };
+
+    dragCleanupRef.current = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopDrag);
+      window.removeEventListener('pointercancel', stopDrag);
+      document.body.style.userSelect = previousUserSelect;
+      setDragPreviewHandle(null);
+    };
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', stopDrag, { once: true });
+    window.addEventListener('pointercancel', stopDrag, { once: true });
+  }, [onHandlePointerDown, onInteractiveHandleCommit]);
+
   const handleInteractiveHandlePointerDown = useCallback(
     (id: string, event: ReactPointerEvent<HTMLButtonElement>) => {
       if (id.startsWith('closed-loop-pole-')) {
         startClosedLoopPoleDrag(event);
         return;
       }
+      if (onInteractiveHandleCommit) {
+        startInteractiveHandleDrag(id, event);
+        return;
+      }
       onHandlePointerDown?.(id, event);
     },
-    [onHandlePointerDown, startClosedLoopPoleDrag],
+    [onHandlePointerDown, onInteractiveHandleCommit, startClosedLoopPoleDrag, startInteractiveHandleDrag],
   );
 
   const allInteractiveHandles = useMemo(
-    () => [...(interactiveHandles ?? []), ...closedLoopPoleHandles],
-    [closedLoopPoleHandles, interactiveHandles],
+    () => [...(interactiveHandles ?? []), ...closedLoopPoleHandles].map((handle) =>
+      dragPreviewHandle?.id === handle.id
+        ? { ...handle, point: dragPreviewHandle.point }
+        : handle,
+    ),
+    [closedLoopPoleHandles, dragPreviewHandle, interactiveHandles],
   );
 
   const interactiveOverlay = allInteractiveHandles.length > 0 ? (
@@ -1604,7 +2184,7 @@ export function RootLocusPanel({
   return (
     <ControlChartPanel
       title={title}
-      meta={buildPoleText(result.rootLocus.currentPoles)}
+      meta={buildRootLocusMetaText(result.rootLocus, interactiveHandles)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -1625,18 +2205,132 @@ export function BodePanel({
   result,
   caseId,
   showMargins = true,
+  turnFrequencyHandles = [],
+  onTurnFrequencyCommit,
+  onRefreshRange,
 }: {
   result: ControlAnalysisResult;
   caseId?: string;
   showMargins?: boolean;
+  turnFrequencyHandles?: BodeTurnFrequencyHandle[];
+  onTurnFrequencyCommit?: (id: string, frequency: number) => void;
+  onRefreshRange?: (range: [number, number]) => void;
 }) {
+  const chartRef = useRef<ECharts | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const preservedFrequencyRangeRef = useRef<[number, number] | null>(null);
+  const displayedFrequencyRange = preservedFrequencyRangeRef.current;
+  const option = useMemo(
+    () => buildBodePanelOption(result, caseId, showMargins, displayedFrequencyRange, turnFrequencyHandles),
+    [caseId, displayedFrequencyRange, result, showMargins, turnFrequencyHandles],
+  );
+  const handleChartReady = useCallback((chart: ECharts) => {
+    chartRef.current = chart;
+    cleanupRef.current?.();
+    const refreshRange = () => {
+      preservedFrequencyRangeRef.current = getDisplayedLogFrequencyRange(chart) ?? preservedFrequencyRangeRef.current;
+    };
+    const cleanupPanZoom = installBodeFrequencyPanZoom(chart, refreshRange, turnFrequencyHandles);
+    const cleanupTurnDrag = installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange);
+    cleanupRef.current = () => {
+      cleanupPanZoom();
+      cleanupTurnDrag();
+    };
+  }, [onTurnFrequencyCommit, turnFrequencyHandles]);
+  const handleRefresh = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart || !onRefreshRange) {
+      return;
+    }
+    const range = getDisplayedLogFrequencyRange(chart) ?? preservedFrequencyRangeRef.current;
+    if (range) {
+      preservedFrequencyRangeRef.current = range;
+      onRefreshRange(range);
+    }
+  }, [onRefreshRange]);
+
+  useEffect(() => () => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    chartRef.current = null;
+  }, []);
+
   return (
     <ControlChartPanel
       title="组合 Bode 图"
       meta={buildMarginText(result.metrics)}
-      option={buildBodePanelOption(result, caseId, showMargins)}
+      option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
+      onChartReady={handleChartReady}
+      onRefresh={onRefreshRange ? handleRefresh : undefined}
+      refreshLabel="按当前频率范围刷新"
+    />
+  );
+}
+
+export function BodeComparisonPanel({
+  panels,
+  caseId,
+  turnFrequencyHandles = [],
+  onTurnFrequencyCommit,
+  onRefreshRange,
+}: {
+  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  caseId?: string;
+  turnFrequencyHandles?: BodeTurnFrequencyHandle[];
+  onTurnFrequencyCommit?: (id: string, frequency: number) => void;
+  onRefreshRange?: (range: [number, number]) => void;
+}) {
+  const chartRef = useRef<ECharts | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const preservedFrequencyRangeRef = useRef<[number, number] | null>(null);
+  const displayedFrequencyRange = preservedFrequencyRangeRef.current;
+  const option = useMemo(
+    () => buildBodeComparisonOption(panels, caseId, displayedFrequencyRange, turnFrequencyHandles),
+    [caseId, displayedFrequencyRange, panels, turnFrequencyHandles],
+  );
+  const handleChartReady = useCallback((chart: ECharts) => {
+    chartRef.current = chart;
+    cleanupRef.current?.();
+    const refreshRange = () => {
+      preservedFrequencyRangeRef.current = getDisplayedLogFrequencyRange(chart) ?? preservedFrequencyRangeRef.current;
+    };
+    const cleanupPanZoom = installBodeFrequencyPanZoom(chart, refreshRange, turnFrequencyHandles);
+    const cleanupTurnDrag = installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange);
+    cleanupRef.current = () => {
+      cleanupPanZoom();
+      cleanupTurnDrag();
+    };
+  }, [onTurnFrequencyCommit, turnFrequencyHandles]);
+  const handleRefresh = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart || !onRefreshRange) {
+      return;
+    }
+    const range = getDisplayedLogFrequencyRange(chart) ?? preservedFrequencyRangeRef.current;
+    if (range) {
+      preservedFrequencyRangeRef.current = range;
+      onRefreshRange(range);
+    }
+  }, [onRefreshRange]);
+
+  useEffect(() => () => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    chartRef.current = null;
+  }, []);
+
+  return (
+    <ControlChartPanel
+      title="组合 Bode 图"
+      meta="校正前 G(s)K / 校正后 G(s)C(s)K / 校正装置 C(s)"
+      option={option}
+      fallback={panels.find((panel) => panel.result.isFallback)?.result.fallbackMessage ?? null}
+      isFallback={panels.some((panel) => panel.result.isFallback)}
+      onChartReady={handleChartReady}
+      onRefresh={onRefreshRange ? handleRefresh : undefined}
+      refreshLabel="按当前频率范围刷新"
     />
   );
 }

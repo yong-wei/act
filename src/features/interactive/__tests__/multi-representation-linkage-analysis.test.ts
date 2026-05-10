@@ -8,6 +8,9 @@ import { doesRootLocusMatchPoleZeroSet } from '@/features/interactive/multi-repr
 import {
   adaptLinkageAnalysisResult,
   buildLinkageAnalysisRequest,
+  buildCorrectionStructure,
+  buildFrequencyTurnCorrection,
+  buildPidCorrection,
 } from '@/resources/control-system/analysis/multi-representation-linkage-analysis';
 
 const repoRoot = process.cwd();
@@ -95,6 +98,7 @@ function makeAnalysisResult(overrides: Partial<ControlAnalysisResult> = {}): Con
         { re: -1.2, im: 1.6 },
         { re: -1.2, im: -1.6 },
       ],
+      currentGain: 2,
       openLoopPoles: [
         { re: -0.5, im: 1.4 },
         { re: -0.5, im: -1.4 },
@@ -143,6 +147,146 @@ describe('multi representation linkage analysis adapter', () => {
       { kind: 'gain', enabled: true, params: { k: 4.5 }, label: 'K' },
     ]);
     expect(request.rootLocus.currentGain).toBe(4.5);
+  });
+
+  it('keeps closed-loop pole drag committed to the open-loop gain truth', () => {
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(pageSource).toContain('onClosedLoopGainCommit={model.setGain}');
+    expect(pageSource).not.toContain('onClosedLoopGainCommit={model.setClosedLoopGain}');
+  });
+
+  it('builds baseline, corrected, and correction-device requests without restoring the legacy linkage api', () => {
+    const correction = buildPidCorrection({
+      enabled: true,
+      kp: 1.8,
+      ki: 0.6,
+      kd: 0.24,
+      derivativeFilterEnabled: true,
+      tf: 0.04,
+    });
+    const baseline = buildLinkageAnalysisRequest({
+      poles: [{ re: -1, im: 0 }],
+      zeros: [],
+      gain: 2,
+      responseType: 'step',
+    });
+    const corrected = buildLinkageAnalysisRequest({
+      poles: [{ re: -1, im: 0 }],
+      zeros: [],
+      gain: 2,
+      correctionStructures: [correction],
+      responseType: 'step',
+    });
+    const device = buildLinkageAnalysisRequest({
+      poles: [],
+      zeros: [],
+      gain: 1,
+      correctionStructures: [correction],
+      outputs: ['magnitude', 'phase', 'bode'],
+      includeOpenLoopGain: false,
+      plantLabel: '校正装置 C(s)',
+      responseType: 'step',
+    });
+    const workerSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/analysis/control-analysis.worker.ts'),
+      'utf8',
+    );
+
+    expect(baseline.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 2 }, label: 'K' },
+    ]);
+    expect(corrected.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 2 }, label: 'K' },
+      correction,
+    ]);
+    expect(device.plant).toMatchObject({ numerator: [1], denominator: [1], label: '校正装置 C(s)' });
+    expect(device.structures).toEqual([correction]);
+    expect(workerSource).not.toContain('/api/linkage');
+  });
+
+  it('converts PID direct gains and time constants bidirectionally', () => {
+    const fromDirectGains = buildPidCorrection({
+      enabled: true,
+      kp: 2,
+      ki: 0.5,
+      kd: 0.6,
+      derivativeFilterEnabled: false,
+      tf: 0.03,
+    });
+    const fromTimeConstants = buildPidCorrection({
+      enabled: true,
+      kp: 2,
+      ti: 4,
+      td: 0.3,
+      derivativeFilterEnabled: true,
+      tf: 0.05,
+    });
+
+    expect(fromDirectGains.params).toMatchObject({
+      kp: 2,
+      ki: 0.5,
+      kd: 0.6,
+      ti: 4,
+      td: 0.3,
+    });
+    expect(fromDirectGains.params).not.toHaveProperty('tf');
+    expect(fromTimeConstants.params).toMatchObject({
+      kp: 2,
+      ki: 0.5,
+      kd: 0.6,
+      ti: 4,
+      td: 0.3,
+      tf: 0.05,
+    });
+  });
+
+  it('uses turn frequencies as the editing surface for lead, lag, and lead-lag correction', () => {
+    const lead = buildFrequencyTurnCorrection({
+      kind: 'lead',
+      enabled: true,
+      zeroFrequency: 1,
+      poleFrequency: 5,
+    });
+    const lag = buildFrequencyTurnCorrection({
+      kind: 'lag',
+      enabled: true,
+      zeroFrequency: 0.2,
+      poleFrequency: 0.05,
+    });
+    const leadLag = buildFrequencyTurnCorrection({
+      kind: 'lead_lag',
+      enabled: true,
+      leadZeroFrequency: 1,
+      leadPoleFrequency: 6,
+      lagZeroFrequency: 0.2,
+      lagPoleFrequency: 0.05,
+    });
+
+    expect(lead.params).toMatchObject({ tau: 1, alpha: 0.2 });
+    expect(lag.params).toMatchObject({ tau: 5, beta: 4 });
+    expect(leadLag.params.tauLead).toBe(1);
+    expect(leadLag.params.alphaLead).toBeCloseTo(1 / 6, 10);
+    expect(leadLag.params.tauLag).toBe(5);
+    expect(leadLag.params.betaLag).toBe(4);
+  });
+
+  it('keeps correction controls out of course embed mode', () => {
+    const drawerSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
+      'utf8',
+    );
+    const modelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/model.ts'),
+      'utf8',
+    );
+
+    expect(drawerSource).toContain('disabled={isCourseMode}');
+    expect(drawerSource).toContain('校正');
+    expect(modelSource).toContain('correctionEnabled: !isCourseMode');
   });
 
   it('builds a unit numerator when no zero is present', () => {
@@ -224,7 +368,7 @@ describe('multi representation linkage analysis adapter', () => {
       'utf8',
     );
 
-    expect(modelSource).toContain("outputs: ['step_response']");
+    expect(modelSource).toContain('correctedLinkageRequest');
     expect(modelSource).toContain('openLoopResult.rootLocus.branches');
     expect(modelSource).toContain('pointDistance < bestDistance ? point : best');
     expect(modelSource).not.toContain('currentPoles: selectedResult.rootLocus.currentPoles');
@@ -254,7 +398,11 @@ describe('multi representation linkage analysis adapter', () => {
     );
 
     expect(pageSource).toContain('const frequencyResult = (model.frequencyAnalysisResult ?? result)!;');
-    expect(pageSource).toContain('<BodePanel result={frequencyResult} showMargins={model.showMargins} />');
+    expect(pageSource).toContain('BodeComparisonPanel');
+    expect(pageSource).toContain('TimeDomainComparisonPanel');
+    expect(pageSource).toContain('校正后 G(s)C(s)K');
+    expect(pageSource).toContain('onRefreshRange={model.refreshFrequencyRange}');
+    expect(pageSource).toContain('onRefreshRange={model.refreshTimeRange}');
     expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');
   });
 
@@ -269,8 +417,14 @@ describe('multi representation linkage analysis adapter', () => {
     );
 
     expect(modelSource).toContain('lastValidOpenLoopResultRef');
+    expect(modelSource).toContain('lastValidCorrectedResultRef');
     expect(modelSource).toContain('lastVisibleAnalysisResultRef');
-    expect(modelSource).toContain('visibleOpenLoopAnalysisResult');
+    expect(modelSource).toContain('visibleBaselineAnalysisResult');
+    expect(modelSource).toContain('correctionHandlesToPoleZeroSet');
+    expect(modelSource).toContain("renderAs: 'correction-zero'");
+    expect(modelSource).toContain("renderAs: 'correction-pole'");
+    expect(modelSource).toContain('setFrequencyRange');
+    expect(modelSource).toContain('setTimeRange');
     expect(modelSource).toContain('visibleAnalysisResult');
     expect(pageSource).not.toContain('{!result ?');
   });

@@ -12,6 +12,7 @@ import {
   getControlAxisPreset,
 } from '@/resources/control-system/charts/control-bode-options';
 import {
+  buildBodeTurnFrequencySeries,
   buildLineOption,
   buildNyquistOption,
   buildRootLocusOption,
@@ -101,6 +102,7 @@ const MARGIN_RESULT: ControlAnalysisResult = {
   rootLocus: {
     branches: [[{ re: -1, im: 0, gain: 1 }, { re: -2, im: 0, gain: 2 }]],
     currentPoles: [{ re: -1.2, im: 0 }],
+    currentGain: 2,
     openLoopPoles: [{ re: -1, im: 0 }],
     openLoopZeros: [{ re: -3, im: 0 }],
     segments: [
@@ -335,6 +337,11 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '虚轴交点')?.symbol).toBe('diamond');
     expect(series.find((item) => item.name === '虚轴交点')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
+    expect(String(option.tooltip?.formatter)).toContain('阻尼比');
+    expect(String(option.tooltip?.formatter)).toContain('自然频率');
+    expect((option.graphic as Array<{ type?: string; style?: { text?: string } }>).some((item) =>
+      item.type === 'text' && item.style?.text?.includes('K=2.000')
+    )).toBe(true);
     expect(legendItems).toEqual(expect.arrayContaining([
       expect.objectContaining({
         name: '根轨迹',
@@ -507,7 +514,20 @@ describe('control chart shared presets and themes', () => {
   });
 
   it('renders full Nyquist branches, key points, axes, critical point, and asymptotes', () => {
-    const option = buildNyquistOption(MARGIN_RESULT);
+    const option = buildNyquistOption({
+      ...MARGIN_RESULT,
+      nyquist: {
+        ...MARGIN_RESULT.nyquist,
+        positiveSamples: [
+          { re: 0, im: 0, frequency: 0.1, magnitudeDb: 0, phaseDeg: 0 },
+          { re: -1.2, im: 0.3, frequency: 2, magnitudeDb: 1.2, phaseDeg: 166 },
+        ],
+        negativeSamples: [
+          { re: -1.2, im: -0.3, frequency: -2, magnitudeDb: 1.2, phaseDeg: -166 },
+          { re: 0, im: 0, frequency: -0.1, magnitudeDb: 0, phaseDeg: 0 },
+        ],
+      },
+    });
     const series = option.series as Array<{
       name?: string;
       lineStyle?: { type?: string };
@@ -522,7 +542,7 @@ describe('control chart shared presets and themes', () => {
     expect(series.some((item) => item.name === '虚轴')).toBe(true);
     expect(series.some((item) => item.name === 'Nyquist 正频率支')).toBe(true);
     expect(series.some((item) => item.name === 'Nyquist 负频率支')).toBe(true);
-    expect(series.some((item) => item.name === '无穷远闭合段')).toBe(false);
+    expect(series.some((item) => item.name === '无穷远闭合段')).toBe(true);
     expect(series.some((item) =>
       item.name === '单位圆'
       && item.lineStyle?.type === 'dotted'
@@ -536,6 +556,41 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '-1+j0')?.symbol).toBe('circle');
     expect(series.find((item) => item.name === '-1+j0')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
+    expect(String(option.tooltip?.formatter)).toContain('|L(jω)|');
+    expect(series.find((item) => item.name === 'Nyquist 正频率支')?.data).toContainEqual([0, 0, 0.1, 0, 0]);
+  });
+
+  it('adds Bode turn-frequency markers and keeps the shared frequency pan-zoom source path', () => {
+    const turnSeries = buildBodeTurnFrequencySeries([
+      { id: 'lead-zero', label: '超前零点', frequency: 1.2 },
+      { id: 'lead-pole', label: '超前极点', frequency: 6 },
+    ]);
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(turnSeries.map((series) => series.name)).toEqual(['超前零点', '超前极点']);
+    expect(turnSeries.every((series) => series.xAxisIndex === 0 && series.yAxisIndex === 0)).toBe(true);
+    expect(panelSource).toContain('installBodeFrequencyPanZoom');
+    expect(panelSource).toContain('buildBodePanelOption(result, caseId, showMargins, displayedFrequencyRange, turnFrequencyHandles)');
+    expect(panelSource).toContain('buildBodeComparisonOption(panels, caseId, displayedFrequencyRange, turnFrequencyHandles)');
+    expect(panelSource).toContain('installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange)');
+    expect(panelSource).toContain('findBodeTurnHandleAt(chart, turnFrequencyHandles, event)');
+    expect(panelSource).toContain('onRefreshRange(range)');
+  });
+
+  it('keeps time-domain pan and zoom available through the shared cartesian installer', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain('export function TimeDomainPanel');
+    expect(panelSource).toContain('export function TimeDomainComparisonPanel');
+    expect(panelSource).toContain('installCartesianPanZoom(chart, refreshRange)');
+    expect(panelSource).toContain('buildLineOption(result.stepResponse.points');
+    expect(panelSource).toContain('按当前时域范围刷新');
   });
 
   it('lets Nyquist options reuse a preserved viewport instead of resetting to the preset', () => {

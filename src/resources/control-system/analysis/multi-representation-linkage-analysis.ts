@@ -4,6 +4,7 @@ import type {
   ControlAnalysisResult,
   CurvePoint,
   RootLocusSamplePoint,
+  StructureSpec,
 } from './types';
 
 export interface LinkageTimeDomainResponse {
@@ -68,8 +69,38 @@ interface BuildLinkageAnalysisRequestInput {
   zeros: ComplexPoint[];
   gain: number;
   rootLocusGain?: number;
+  correctionStructures?: StructureSpec[];
+  includeOpenLoopGain?: boolean;
+  plantLabel?: string;
   outputs?: ControlAnalysisRequest['outputs'];
   responseType: NonNullable<ControlAnalysisRequest['responseType']>;
+  timeRange?: ControlAnalysisRequest['timeRange'];
+  frequencyRange?: ControlAnalysisRequest['frequencyRange'];
+}
+
+export type CorrectionKind = 'pi' | 'pd' | 'pid' | 'lead' | 'lag' | 'lead_lag';
+
+export interface PidCorrectionInput {
+  enabled: boolean;
+  kp: number;
+  ki?: number;
+  kd?: number;
+  ti?: number;
+  td?: number;
+  derivativeFilterEnabled?: boolean;
+  tf?: number;
+}
+
+export interface FrequencyTurnCorrectionInput {
+  kind: 'lead' | 'lag' | 'lead_lag';
+  enabled: boolean;
+  zeroFrequency?: number;
+  poleFrequency?: number;
+  leadZeroFrequency?: number;
+  leadPoleFrequency?: number;
+  lagZeroFrequency?: number;
+  lagPoleFrequency?: number;
+  gain?: number;
 }
 
 const DEFAULT_TIME_RANGE = { start: 0, end: 20, samples: 401 } as const;
@@ -94,6 +125,104 @@ function round6(value: number): number {
 
 function complexAbs(point: ComplexPoint): number {
   return Math.hypot(point.re, point.im);
+}
+
+function positiveFinite(value: number | null | undefined, fallback: number): number {
+  return Number.isFinite(value ?? NaN) && (value as number) > 0 ? value as number : fallback;
+}
+
+export function buildPidCorrection(input: PidCorrectionInput): StructureSpec {
+  const kp = positiveFinite(input.kp, 1);
+  const ki = input.ki != null && Number.isFinite(input.ki)
+    ? Math.max(0, input.ki)
+    : input.ti != null && input.ti > 0
+      ? kp / input.ti
+      : 0;
+  const kd = input.kd != null && Number.isFinite(input.kd)
+    ? Math.max(0, input.kd)
+    : input.td != null && input.td > 0
+      ? kp * input.td
+      : 0;
+  const ti = ki > 0 ? kp / ki : 0;
+  const td = kp > 0 ? kd / kp : 0;
+  const params: Record<string, number> = {
+    kp: round12(kp),
+    ki: round12(ki),
+    kd: round12(kd),
+    ti: round12(ti),
+    td: round12(td),
+  };
+
+  if (input.derivativeFilterEnabled) {
+    params.tf = positiveFinite(input.tf, 0.03);
+  }
+
+  return {
+    kind: 'pid',
+    enabled: input.enabled,
+    params,
+    label: 'C(s)',
+  };
+}
+
+export function buildFrequencyTurnCorrection(input: FrequencyTurnCorrectionInput): StructureSpec {
+  const k = positiveFinite(input.gain, 1);
+  if (input.kind === 'lead') {
+    const zeroFrequency = positiveFinite(input.zeroFrequency, 1);
+    const poleFrequency = positiveFinite(input.poleFrequency, zeroFrequency * 4);
+    return {
+      kind: 'lead',
+      enabled: input.enabled,
+      params: {
+        k,
+        tau: round12(1 / zeroFrequency),
+        alpha: round12(zeroFrequency / poleFrequency),
+      },
+      label: 'C(s)',
+    };
+  }
+
+  if (input.kind === 'lag') {
+    const zeroFrequency = positiveFinite(input.zeroFrequency, 0.2);
+    const poleFrequency = positiveFinite(input.poleFrequency, zeroFrequency / 4);
+    return {
+      kind: 'lag',
+      enabled: input.enabled,
+      params: {
+        k,
+        tau: round12(1 / zeroFrequency),
+        beta: round12(zeroFrequency / poleFrequency),
+      },
+      label: 'C(s)',
+    };
+  }
+
+  const leadZeroFrequency = positiveFinite(input.leadZeroFrequency, 1);
+  const leadPoleFrequency = positiveFinite(input.leadPoleFrequency, leadZeroFrequency * 4);
+  const lagZeroFrequency = positiveFinite(input.lagZeroFrequency, 0.2);
+  const lagPoleFrequency = positiveFinite(input.lagPoleFrequency, lagZeroFrequency / 4);
+
+  return {
+    kind: 'lead_lag',
+    enabled: input.enabled,
+    params: {
+      k,
+      tauLead: round12(1 / leadZeroFrequency),
+      alphaLead: round12(leadZeroFrequency / leadPoleFrequency),
+      tauLag: round12(1 / lagZeroFrequency),
+      betaLag: round12(lagZeroFrequency / lagPoleFrequency),
+    },
+    label: 'C(s)',
+  };
+}
+
+export function buildCorrectionStructure(kind: CorrectionKind, params: Record<string, number>, enabled: boolean): StructureSpec {
+  return {
+    kind,
+    enabled,
+    params,
+    label: 'C(s)',
+  };
 }
 
 function polyFromRoots(roots: ComplexPoint[]): number[] {
@@ -227,6 +356,8 @@ export function buildLinkageAnalysisRequest(
   const numerator = polyFromRoots(input.zeros);
   const denominator = polyFromRoots(input.poles);
   const outputs = input.outputs ?? ['step_response', 'root_locus', 'magnitude', 'phase', 'nyquist', 'bode'];
+  const includeOpenLoopGain = input.includeOpenLoopGain ?? true;
+  const correctionStructures = input.correctionStructures?.filter((structure) => structure.enabled) ?? [];
   const maxGain = recommendRootLocusMaxGain(
     input.poles,
     input.zeros,
@@ -240,13 +371,18 @@ export function buildLinkageAnalysisRequest(
       numerator,
       denominator,
       coefficientOrder: 'descending',
-      label: '多表征联动开环模型',
+      label: input.plantLabel ?? '多表征联动开环模型',
     },
-    structures: [{ kind: 'gain', enabled: true, params: { k: sanitizedGain }, label: 'K' }],
+    structures: [
+      ...(includeOpenLoopGain
+        ? [{ kind: 'gain', enabled: true, params: { k: sanitizedGain }, label: 'K' } satisfies StructureSpec]
+        : []),
+      ...correctionStructures,
+    ],
     outputs,
     responseType: input.responseType,
-    timeRange: DEFAULT_TIME_RANGE,
-    frequencyRange: DEFAULT_FREQUENCY_RANGE,
+    timeRange: input.timeRange ?? DEFAULT_TIME_RANGE,
+    frequencyRange: input.frequencyRange ?? DEFAULT_FREQUENCY_RANGE,
     nyquist: {
       mode: 'full',
       samplingMode: 'adaptive',

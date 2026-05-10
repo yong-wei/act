@@ -200,6 +200,16 @@ struct ComplexPoint {
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
+struct NyquistSamplePoint {
+    re: f64,
+    im: f64,
+    frequency: f64,
+    magnitude_db: f64,
+    phase_deg: f64,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 struct RootLocusSamplePoint {
     re: f64,
     im: f64,
@@ -487,6 +497,8 @@ struct NyquistData {
     points: Vec<ComplexPoint>,
     positive_points: Vec<ComplexPoint>,
     negative_points: Vec<ComplexPoint>,
+    positive_samples: Vec<NyquistSamplePoint>,
+    negative_samples: Vec<NyquistSamplePoint>,
     segments: Vec<NyquistSegment>,
     infinity_closure: NyquistClosureSegment,
     key_points: Vec<NyquistKeyPoint>,
@@ -531,6 +543,7 @@ struct RootLocusData {
     departure_angles: Vec<RootLocusAngle>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     arrival_angles: Vec<RootLocusAngle>,
+    current_gain: f64,
     current_poles: Vec<ComplexPoint>,
     open_loop_poles: Vec<ComplexPoint>,
     open_loop_zeros: Vec<ComplexPoint>,
@@ -871,7 +884,17 @@ fn tf_from_structure(spec: &StructureSpec) -> TransferFunction {
                     },
                 );
                 let tf = get("tf", 0.0);
-                if tf > 0.0 {
+                if ki.abs() < 1e-12 && tf > 0.0 {
+                    TransferFunction {
+                        numerator: vec![kp * tf + kd, kp],
+                        denominator: vec![tf, 1.0],
+                    }
+                } else if ki.abs() < 1e-12 {
+                    TransferFunction {
+                        numerator: vec![kd, kp],
+                        denominator: vec![1.0],
+                    }
+                } else if tf > 0.0 {
                     TransferFunction {
                         numerator: vec![kp * tf + kd, kp + ki * tf, ki],
                         denominator: vec![tf, 1.0, 0.0],
@@ -1797,6 +1820,34 @@ fn build_nyquist_data(
     full_samples: &[NyquistFrequencySample],
     mode: NyquistPlotMode,
 ) -> NyquistData {
+    let positive_samples: Vec<NyquistSamplePoint> = display_samples
+        .iter()
+        .map(|sample| {
+            let point = complex_to_point(sample.value);
+            NyquistSamplePoint {
+                re: point.re,
+                im: point.im,
+                frequency: sample.omega,
+                magnitude_db: 20.0 * sample.value.norm().max(1e-12).log10(),
+                phase_deg: sample.value.arg().to_degrees(),
+            }
+        })
+        .collect();
+    let negative_samples: Vec<NyquistSamplePoint> = if mode == NyquistPlotMode::Full {
+        positive_samples
+            .iter()
+            .rev()
+            .map(|sample| NyquistSamplePoint {
+                re: sample.re,
+                im: -sample.im,
+                frequency: -sample.frequency,
+                magnitude_db: sample.magnitude_db,
+                phase_deg: -sample.phase_deg,
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
     let positive_points: Vec<ComplexPoint> = display_samples
         .iter()
         .map(|sample| complex_to_point(sample.value))
@@ -1868,6 +1919,8 @@ fn build_nyquist_data(
         points,
         positive_points,
         negative_points,
+        positive_samples,
+        negative_samples,
         segments,
         infinity_closure,
         key_points: nyquist_key_points(full_samples),
@@ -3635,6 +3688,7 @@ fn root_locus(
         imaginary_axis_crossings,
         departure_angles: departure_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
         arrival_angles: arrival_angles(&open_loop_poles_raw, &open_loop_zeros_raw),
+        current_gain: config.current_gain,
         current_poles,
         open_loop_poles,
         open_loop_zeros,
@@ -3669,6 +3723,8 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
                 points: Vec::new(),
                 positive_points: Vec::new(),
                 negative_points: Vec::new(),
+                positive_samples: Vec::new(),
+                negative_samples: Vec::new(),
                 segments: Vec::new(),
                 infinity_closure: NyquistClosureSegment {
                     points: Vec::new(),
@@ -3724,6 +3780,7 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
             imaginary_axis_crossings: Vec::new(),
             departure_angles: Vec::new(),
             arrival_angles: Vec::new(),
+            current_gain: request.root_locus.current_gain,
             current_poles: Vec::new(),
             open_loop_poles: Vec::new(),
             open_loop_zeros: Vec::new(),
@@ -5781,6 +5838,56 @@ mod tests {
     }
 
     #[test]
+    fn direct_pd_correction_does_not_add_cancelled_origin_pole_or_zero() {
+        let mut request = ship_heading_request(1.0);
+        request.outputs = vec!["root_locus".to_string()];
+        let baseline = compute_analysis_inner(&request);
+        request.structures.push(StructureSpec {
+            kind: "pid".to_string(),
+            enabled: true,
+            params: HashMap::from([
+                ("kp".to_string(), 1.0),
+                ("ki".to_string(), 0.0),
+                ("kd".to_string(), 0.2),
+                ("tf".to_string(), 0.04),
+            ]),
+        });
+
+        let result = compute_analysis_inner(&request);
+        let origin_pole_count = |points: &[ComplexPoint]| {
+            points
+                .iter()
+                .filter(|point| point.re.abs() < 1e-9 && point.im.abs() < 1e-9)
+                .count()
+        };
+        let origin_zero_count = |points: &[ComplexPoint]| {
+            points
+                .iter()
+                .filter(|point| point.re.abs() < 1e-9 && point.im.abs() < 1e-9)
+                .count()
+        };
+
+        assert_eq!(
+            origin_pole_count(&result.root_locus.open_loop_poles),
+            origin_pole_count(&baseline.root_locus.open_loop_poles)
+        );
+        assert_eq!(
+            origin_zero_count(&result.root_locus.open_loop_zeros),
+            origin_zero_count(&baseline.root_locus.open_loop_zeros)
+        );
+        assert!(result
+            .root_locus
+            .open_loop_poles
+            .iter()
+            .any(|pole| (pole.re + 25.0).abs() < 1e-8 && pole.im.abs() < 1e-8));
+        assert!(result
+            .root_locus
+            .open_loop_zeros
+            .iter()
+            .any(|zero| (zero.re + 1.0 / 0.24).abs() < 1e-8 && zero.im.abs() < 1e-8));
+    }
+
+    #[test]
     fn ship_heading_zero_gain_keeps_all_outputs_finite() {
         let result = compute_analysis_inner(&ship_heading_request(0.0));
 
@@ -5804,6 +5911,7 @@ mod tests {
     #[test]
     fn nyquist_returns_full_contour_metadata_and_key_points() {
         let mut request = ship_heading_request(1.0);
+        request.root_locus.current_gain = 2.75;
         request.nyquist = Some(NyquistConfig {
             mode: Some(NyquistPlotMode::Full),
             sampling_mode: Some(SamplingMode::Adaptive),
@@ -5813,6 +5921,28 @@ mod tests {
 
         assert_eq!(result.nyquist.mode, NyquistPlotMode::Full);
         assert!(!result.nyquist.positive_points.is_empty());
+        assert_eq!(result.root_locus.current_gain, 2.75);
+        assert_eq!(
+            result.nyquist.positive_samples.len(),
+            result.nyquist.positive_points.len()
+        );
+        assert_eq!(
+            result.nyquist.negative_samples.len(),
+            result.nyquist.negative_points.len()
+        );
+        assert!(result
+            .nyquist
+            .positive_samples
+            .iter()
+            .all(|point| point.frequency.is_finite()
+                && point.frequency > 0.0
+                && point.magnitude_db.is_finite()
+                && point.phase_deg.is_finite()));
+        assert!(result
+            .nyquist
+            .negative_samples
+            .iter()
+            .all(|point| point.frequency.is_finite() && point.frequency < 0.0));
         assert_eq!(
             result.nyquist.positive_points.len(),
             result.nyquist.negative_points.len()

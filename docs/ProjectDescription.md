@@ -364,17 +364,16 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 3.14 多表征联动可视化引擎 ✅
 - **页面路径**：`/interactive-learning/multi-representation-linkage`
+- **统一计算链路**：页面沿用 `useControlEngine -> control-analysis.worker.ts -> rust/control-engine`，由 WASM `compute_analysis` 统一计算时域、根轨迹、Bode 与 Nyquist，不再依赖旧 `/api/linkage/*` 计算路径
 - **开环根轨迹联动**：复平面以开环极点配置为输入，实时绘制根轨迹并叠加闭环极点（不同颜色）
 - **开环零点扩展**：支持添加开环零点（实零点 / 共轭零点对），并参与根轨迹、Bode、Nyquist 联动计算
 - **闭环极点拖拽**：支持在根轨迹上拖拽闭环极点，自动联动等效增益，时域响应按闭环极点位置重算
 - **共轭极点约束**：开环共轭极点联动移动；极点与图表关键数据均统一保留三位小数
 - **刷新策略优化**：拖拽过程中仅本地预览，松开后触发后端重算，降低交互延迟
-- **频域联动升级**：Bode 幅频/相频合并为同模块上下子图（共享十倍频程刻度），可勾选显示相角裕度与幅值裕度
-- **Nyquist + 提示分区**：下方拆分为 Nyquist 图（含裕度标注）与跨域关联提示模块
-- **后端计算 API**：
-  - `POST /api/linkage/calculate-time-domain`
-  - `POST /api/linkage/calculate-frequency-domain`
-  - `POST /api/linkage/stability-analysis`
+- **独立校正设计**：非课程模式可启用 PI / PD / PID / 超前 / 滞后 / 滞后-超前校正；对象参数与校正参数分离，根轨迹用独立颜色标注校正装置零极点，Bode 同屏显示校正前、校正后与 `C(s)` 本体曲线
+- **频域联动升级**：Bode 幅频/相频合并为同模块上下子图（共享十倍频程刻度），可拖动校正转折频率，支持共享频率轴拖动缩放，并可在当前视窗范围内刷新重算
+- **时域对比与视窗刷新**：启用校正后显示校正前后时域响应对比，时域图支持拖动缩放，并可按当前时间范围刷新响应曲线
+- **Nyquist + 提示分区**：下方拆分为 Nyquist 图（含裕度标注、频率采样提示与无穷远闭合段）与跨域关联提示模块
 - **教学提示**：基于极点分布、增益裕度、相位裕度自动生成跨域关联提示
 - **课程模式（2026-02-28）**：
   - 通过 query `courseMode=cruise-boppps` 启用课堂模式，默认注入“邮轮模型 + PID 控制器”近似开环

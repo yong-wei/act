@@ -18,13 +18,20 @@ import {
 } from '@/lib/cruise-course';
 import {
   adaptLinkageAnalysisResult,
+  buildFrequencyTurnCorrection,
   buildLinkageAnalysisRequest,
+  buildPidCorrection,
+  type CorrectionKind,
 } from '@/resources/control-system/analysis/multi-representation-linkage-analysis';
 import type {
   ComplexPoint as Complex,
   ControlAnalysisResult,
+  ControlAnalysisRequest,
   ControlEngineState,
+  StructureSpec,
 } from '@/resources/control-system/analysis/types';
+import type { BodeTurnFrequencyHandle } from '@/resources/control-system/charts/control-bode-options';
+import type { RootLocusInteractiveHandle } from '@/resources/control-system/charts/control-analysis-panels';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 
 export interface MultiRepresentationInitialParams {
@@ -43,6 +50,42 @@ export interface PoleZeroPoint {
 }
 
 export type LinkageResponseType = 'step' | 'impulse' | 'ramp';
+export type { CorrectionKind };
+
+export interface CorrectionState {
+  enabled: boolean;
+  kind: CorrectionKind;
+  kp: number;
+  ki: number;
+  kd: number;
+  ti: number;
+  td: number;
+  derivativeFilterEnabled: boolean;
+  tf: number;
+  leadZeroFrequency: number;
+  leadPoleFrequency: number;
+  lagZeroFrequency: number;
+  lagPoleFrequency: number;
+}
+
+export const DEFAULT_CORRECTION_STATE: CorrectionState = {
+  enabled: false,
+  kind: 'pid',
+  kp: 1,
+  ki: 0.2,
+  kd: 0.08,
+  ti: 5,
+  td: 0.08,
+  derivativeFilterEnabled: false,
+  tf: 0.03,
+  leadZeroFrequency: 1,
+  leadPoleFrequency: 5,
+  lagZeroFrequency: 0.2,
+  lagPoleFrequency: 0.05,
+};
+
+const DEFAULT_LINKAGE_TIME_RANGE: ControlAnalysisRequest['timeRange'] = { start: 0, end: 20, samples: 401 };
+const DEFAULT_LINKAGE_FREQUENCY_RANGE: ControlAnalysisRequest['frequencyRange'] = { min: 0.1, max: 100, samples: 140 };
 
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
@@ -136,6 +179,203 @@ function normalizedPointKeys(points: Complex[]): string[] {
   return points.map(normalizedPointKey).sort();
 }
 
+function syncCorrectionTimeConstants(state: CorrectionState): CorrectionState {
+  const kp = Math.max(0.0001, state.kp);
+  const ki = Math.max(0, state.ki);
+  const kd = Math.max(0, state.kd);
+  return {
+    ...state,
+    kp: round3(kp),
+    ki: round3(ki),
+    kd: round3(kd),
+    ti: ki > 0 ? round3(kp / ki) : 0,
+    td: kp > 0 ? round3(kd / kp) : 0,
+  };
+}
+
+export function setCorrectionTi(state: CorrectionState, ti: number): CorrectionState {
+  const nextTi = Math.max(0, ti);
+  const nextKi = nextTi > 0 ? state.kp / nextTi : 0;
+  return syncCorrectionTimeConstants({ ...state, ki: nextKi, ti: nextTi });
+}
+
+export function setCorrectionTd(state: CorrectionState, td: number): CorrectionState {
+  const nextTd = Math.max(0, td);
+  return syncCorrectionTimeConstants({ ...state, kd: state.kp * nextTd, td: nextTd });
+}
+
+export function correctionToStructures(state: CorrectionState, isCourseMode: boolean): StructureSpec[] {
+  if (isCourseMode || !state.enabled) {
+    return [];
+  }
+
+  if (state.kind === 'pi') {
+    return [buildPidCorrection({
+      enabled: true,
+      kp: state.kp,
+      ki: state.ki,
+      kd: 0,
+      derivativeFilterEnabled: false,
+    })];
+  }
+
+  if (state.kind === 'pd') {
+    return [buildPidCorrection({
+      enabled: true,
+      kp: state.kp,
+      ki: 0,
+      kd: state.kd,
+      derivativeFilterEnabled: state.derivativeFilterEnabled,
+      tf: state.tf,
+    })];
+  }
+
+  if (state.kind === 'pid') {
+    return [buildPidCorrection({
+      enabled: true,
+      kp: state.kp,
+      ki: state.ki,
+      kd: state.kd,
+      derivativeFilterEnabled: state.derivativeFilterEnabled,
+      tf: state.tf,
+    })];
+  }
+
+  if (state.kind === 'lead') {
+    return [buildFrequencyTurnCorrection({
+      kind: 'lead',
+      enabled: true,
+      zeroFrequency: state.leadZeroFrequency,
+      poleFrequency: state.leadPoleFrequency,
+    })];
+  }
+
+  if (state.kind === 'lag') {
+    return [buildFrequencyTurnCorrection({
+      kind: 'lag',
+      enabled: true,
+      zeroFrequency: state.lagZeroFrequency,
+      poleFrequency: state.lagPoleFrequency,
+    })];
+  }
+
+  return [buildFrequencyTurnCorrection({
+    kind: 'lead_lag',
+    enabled: true,
+    leadZeroFrequency: state.leadZeroFrequency,
+    leadPoleFrequency: state.leadPoleFrequency,
+    lagZeroFrequency: state.lagZeroFrequency,
+    lagPoleFrequency: state.lagPoleFrequency,
+  })];
+}
+
+export function correctionToTurnFrequencyHandles(state: CorrectionState, isCourseMode: boolean): BodeTurnFrequencyHandle[] {
+  if (isCourseMode || !state.enabled) {
+    return [];
+  }
+  if (state.kind === 'lead') {
+    return [
+      { id: 'lead-zero', label: '超前零点', frequency: state.leadZeroFrequency },
+      { id: 'lead-pole', label: '超前极点', frequency: state.leadPoleFrequency },
+    ];
+  }
+  if (state.kind === 'lag') {
+    return [
+      { id: 'lag-zero', label: '滞后零点', frequency: state.lagZeroFrequency },
+      { id: 'lag-pole', label: '滞后极点', frequency: state.lagPoleFrequency },
+    ];
+  }
+  if (state.kind === 'lead_lag') {
+    return [
+      { id: 'lead-zero', label: '超前零点', frequency: state.leadZeroFrequency },
+      { id: 'lead-pole', label: '超前极点', frequency: state.leadPoleFrequency },
+      { id: 'lag-zero', label: '滞后零点', frequency: state.lagZeroFrequency },
+      { id: 'lag-pole', label: '滞后极点', frequency: state.lagPoleFrequency },
+    ];
+  }
+  return [];
+}
+
+function realAxisFrequencyPoint(frequency: number): Complex {
+  return { re: -Math.max(0.001, frequency), im: 0 };
+}
+
+function pidZeroPoints(state: CorrectionState): Complex[] {
+  if (state.kd > 1e-9) {
+    const discriminant = state.kp * state.kp - 4 * state.kd * state.ki;
+    if (discriminant >= 0) {
+      const root = Math.sqrt(discriminant);
+      return [
+        { re: (-state.kp + root) / (2 * state.kd), im: 0 },
+        { re: (-state.kp - root) / (2 * state.kd), im: 0 },
+      ];
+    }
+    const real = -state.kp / (2 * state.kd);
+    const imag = Math.sqrt(-discriminant) / (2 * state.kd);
+    return [{ re: real, im: imag }, { re: real, im: -imag }];
+  }
+  if (state.ki > 1e-9 && state.kp > 1e-9) {
+    return [{ re: -state.ki / state.kp, im: 0 }];
+  }
+  return [];
+}
+
+export function correctionToRootHandles(state: CorrectionState, isCourseMode: boolean): RootLocusInteractiveHandle[] {
+  if (isCourseMode || !state.enabled) {
+    return [];
+  }
+  if (state.kind === 'lead') {
+    return [
+      { id: 'lead-zero', kind: 'zero', renderAs: 'correction-zero', point: realAxisFrequencyPoint(state.leadZeroFrequency), draggable: true, ariaLabel: '拖动超前校正零点' },
+      { id: 'lead-pole', kind: 'pole', renderAs: 'correction-pole', point: realAxisFrequencyPoint(state.leadPoleFrequency), draggable: true, ariaLabel: '拖动超前校正极点' },
+    ];
+  }
+  if (state.kind === 'lag') {
+    return [
+      { id: 'lag-zero', kind: 'zero', renderAs: 'correction-zero', point: realAxisFrequencyPoint(state.lagZeroFrequency), draggable: true, ariaLabel: '拖动滞后校正零点' },
+      { id: 'lag-pole', kind: 'pole', renderAs: 'correction-pole', point: realAxisFrequencyPoint(state.lagPoleFrequency), draggable: true, ariaLabel: '拖动滞后校正极点' },
+    ];
+  }
+  if (state.kind === 'lead_lag') {
+    return [
+      { id: 'lead-zero', kind: 'zero', renderAs: 'correction-zero', point: realAxisFrequencyPoint(state.leadZeroFrequency), draggable: true, ariaLabel: '拖动超前校正零点' },
+      { id: 'lead-pole', kind: 'pole', renderAs: 'correction-pole', point: realAxisFrequencyPoint(state.leadPoleFrequency), draggable: true, ariaLabel: '拖动超前校正极点' },
+      { id: 'lag-zero', kind: 'zero', renderAs: 'correction-zero', point: realAxisFrequencyPoint(state.lagZeroFrequency), draggable: true, ariaLabel: '拖动滞后校正零点' },
+      { id: 'lag-pole', kind: 'pole', renderAs: 'correction-pole', point: realAxisFrequencyPoint(state.lagPoleFrequency), draggable: true, ariaLabel: '拖动滞后校正极点' },
+    ];
+  }
+  return [
+    ...pidZeroPoints(state).map((point, index) => ({
+      id: `pid-zero-${index}`,
+      kind: 'zero' as const,
+      renderAs: 'correction-zero' as const,
+      point,
+      draggable: true,
+      ariaLabel: `拖动 PID 校正零点 ${index + 1}`,
+    })),
+    ...(state.kind === 'pi' || state.kind === 'pid'
+      ? [{
+          id: 'pid-integrator-pole',
+          kind: 'pole' as const,
+          renderAs: 'correction-pole' as const,
+          point: { re: 0, im: 0 },
+          draggable: false,
+          ariaLabel: 'PID 积分器原点极点',
+        }]
+      : []),
+    ...(state.derivativeFilterEnabled && (state.kind === 'pd' || state.kind === 'pid')
+      ? [{
+          id: 'pid-filter-pole',
+          kind: 'pole' as const,
+          renderAs: 'correction-pole' as const,
+          point: realAxisFrequencyPoint(1 / Math.max(0.001, state.tf)),
+          draggable: true,
+          ariaLabel: '拖动微分滤波极点',
+        }]
+      : []),
+  ];
+}
+
 export function doesRootLocusMatchPoleZeroSet(
   result: ControlAnalysisResult | null,
   poles: Complex[],
@@ -152,6 +392,16 @@ export function doesRootLocusMatchPoleZeroSet(
     && resultZeroKeys.length === currentZeroKeys.length
     && resultPoleKeys.every((key, index) => key === currentPoleKeys[index])
     && resultZeroKeys.every((key, index) => key === currentZeroKeys[index]);
+}
+
+function correctionHandlesToPoleZeroSet(handles: RootLocusInteractiveHandle[]): {
+  poles: Complex[];
+  zeros: Complex[];
+} {
+  return {
+    poles: handles.filter((handle) => handle.kind === 'pole').map((handle) => handle.point),
+    zeros: handles.filter((handle) => handle.kind === 'zero').map((handle) => handle.point),
+  };
 }
 
 function mergeClosedLoopSelectionResult(
@@ -175,6 +425,7 @@ function mergeClosedLoopSelectionResult(
       ...openLoopResult,
       rootLocus: {
         ...openLoopResult.rootLocus,
+        currentGain: selectedGain,
         currentPoles: selectedPoles.length > 0 ? selectedPoles : openLoopResult.rootLocus.currentPoles,
       },
     };
@@ -192,6 +443,7 @@ function mergeClosedLoopSelectionResult(
     stepResponse: selectedResult.stepResponse,
     rootLocus: {
       ...openLoopResult.rootLocus,
+      currentGain: selectedGain,
       currentPoles: selectedPoles.length > 0 ? selectedPoles : openLoopResult.rootLocus.currentPoles,
     },
   };
@@ -236,35 +488,72 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const [responseType, setResponseType] = useState<LinkageResponseType>('step');
   const [showMargins, setShowMargins] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [correctionState, setCorrectionState] = useState<CorrectionState>(() => ({
+    ...DEFAULT_CORRECTION_STATE,
+    enabled: !isCourseMode && DEFAULT_CORRECTION_STATE.enabled,
+  }));
+  const [timeRange, setTimeRange] = useState<ControlAnalysisRequest['timeRange']>(DEFAULT_LINKAGE_TIME_RANGE);
+  const [frequencyRange, setFrequencyRange] = useState<ControlAnalysisRequest['frequencyRange']>(DEFAULT_LINKAGE_FREQUENCY_RANGE);
 
   const idRef = useRef(100);
   const pairRef = useRef(100);
   const baseControllerRef = useRef<CruiseControllerParams>(initialController);
   const lastValidOpenLoopResultRef = useRef<ControlAnalysisResult | null>(null);
+  const lastValidCorrectedResultRef = useRef<ControlAnalysisResult | null>(null);
   const lastVisibleAnalysisResultRef = useRef<ControlAnalysisResult | null>(null);
 
   const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
   const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
-  const linkageRequest = useMemo(
-    () => buildLinkageAnalysisRequest({ poles: polesPayload, zeros: zerosPayload, gain, responseType }),
-    [gain, polesPayload, responseType, zerosPayload],
+  const correctionStructures = useMemo(
+    () => correctionToStructures(correctionState, isCourseMode),
+    [correctionState, isCourseMode],
   );
-  const closedLoopSelectionRequest = useMemo(
+  const turnFrequencyHandles = useMemo(
+    () => correctionToTurnFrequencyHandles(correctionState, isCourseMode),
+    [correctionState, isCourseMode],
+  );
+  const correctionRootHandles = useMemo(
+    () => correctionToRootHandles(correctionState, isCourseMode),
+    [correctionState, isCourseMode],
+  );
+  const correctionEnabled = !isCourseMode && correctionStructures.length > 0;
+  const linkageRequest = useMemo(
+    () => buildLinkageAnalysisRequest({ poles: polesPayload, zeros: zerosPayload, gain, responseType, timeRange, frequencyRange }),
+    [frequencyRange, gain, polesPayload, responseType, timeRange, zerosPayload],
+  );
+  const correctedLinkageRequest = useMemo(
     () => buildLinkageAnalysisRequest({
       poles: polesPayload,
       zeros: zerosPayload,
-      gain: closedLoopGain,
-      rootLocusGain: closedLoopGain,
-      outputs: ['step_response'],
+      gain,
+      correctionStructures,
       responseType,
+      timeRange,
+      frequencyRange,
     }),
-    [closedLoopGain, polesPayload, responseType, zerosPayload],
+    [correctionStructures, frequencyRange, gain, polesPayload, responseType, timeRange, zerosPayload],
+  );
+  const correctionDeviceRequest = useMemo(
+    () => buildLinkageAnalysisRequest({
+      poles: [],
+      zeros: [],
+      gain: 1,
+      correctionStructures,
+      includeOpenLoopGain: false,
+      plantLabel: '校正装置 C(s)',
+      outputs: ['magnitude', 'phase', 'bode'],
+      responseType,
+      frequencyRange,
+    }),
+    [correctionStructures, frequencyRange, responseType],
   );
   const deferredLinkageRequest = useDeferredValue(linkageRequest);
-  const deferredClosedLoopSelectionRequest = useDeferredValue(closedLoopSelectionRequest);
+  const deferredCorrectedLinkageRequest = useDeferredValue(correctedLinkageRequest);
+  const deferredCorrectionDeviceRequest = useDeferredValue(correctionDeviceRequest);
   const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
-  const closedLoopSelectionState = useControlEngine(deferredClosedLoopSelectionRequest);
-  const visibleOpenLoopAnalysisResult = useMemo(
+  const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest);
+  const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest);
+  const visibleBaselineAnalysisResult = useMemo(
     () => {
       if (doesRootLocusMatchPoleZeroSet(openLoopAnalysisState.result, polesPayload, zerosPayload)) {
         lastValidOpenLoopResultRef.current = openLoopAnalysisState.result;
@@ -274,13 +563,37 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     },
     [openLoopAnalysisState.result, polesPayload, zerosPayload],
   );
+  const visibleCorrectedAnalysisResult = useMemo(() => {
+    if (!correctionEnabled) {
+      return visibleBaselineAnalysisResult;
+    }
+    const correctionPoleZeroSet = correctionHandlesToPoleZeroSet(correctionRootHandles);
+    const expectedPoles = [...polesPayload, ...correctionPoleZeroSet.poles];
+    const expectedZeros = [...zerosPayload, ...correctionPoleZeroSet.zeros];
+
+    if (doesRootLocusMatchPoleZeroSet(correctedAnalysisState.result, expectedPoles, expectedZeros)) {
+      lastValidCorrectedResultRef.current = correctedAnalysisState.result;
+      return correctedAnalysisState.result;
+    }
+    if (doesRootLocusMatchPoleZeroSet(lastValidCorrectedResultRef.current, expectedPoles, expectedZeros)) {
+      return lastValidCorrectedResultRef.current;
+    }
+    return null;
+  }, [
+    correctedAnalysisState.result,
+    correctionEnabled,
+    correctionRootHandles,
+    polesPayload,
+    visibleBaselineAnalysisResult,
+    zerosPayload,
+  ]);
   const mergedAnalysisResult = useMemo(
     () => mergeClosedLoopSelectionResult(
-      visibleOpenLoopAnalysisResult,
-      closedLoopSelectionState.result,
-      closedLoopGain,
+      visibleCorrectedAnalysisResult,
+      null,
+      gain,
     ),
-    [closedLoopGain, closedLoopSelectionState.result, visibleOpenLoopAnalysisResult],
+    [gain, visibleCorrectedAnalysisResult],
   );
   const visibleAnalysisResult = useMemo(
     () => {
@@ -293,8 +606,12 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     [mergedAnalysisResult],
   );
   const analysisState = useMemo(
-    () => mergeAnalysisState(openLoopAnalysisState, closedLoopSelectionState, visibleAnalysisResult),
-    [visibleAnalysisResult, closedLoopSelectionState, openLoopAnalysisState],
+    () => mergeAnalysisState(
+      correctionEnabled ? correctedAnalysisState : openLoopAnalysisState,
+      correctionDeviceAnalysisState,
+      visibleAnalysisResult,
+    ),
+    [correctionDeviceAnalysisState, correctionEnabled, correctedAnalysisState, openLoopAnalysisState, visibleAnalysisResult],
   );
   const adaptedAnalysis = useMemo(
     () => (visibleAnalysisResult ? adaptLinkageAnalysisResult(visibleAnalysisResult) : null),
@@ -356,6 +673,12 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     setModelZeros(nextZeros);
     setGain(fallbackModel.gain);
     setClosedLoopGain(fallbackModel.gain);
+    setTimeRange(DEFAULT_LINKAGE_TIME_RANGE);
+    setFrequencyRange(DEFAULT_LINKAGE_FREQUENCY_RANGE);
+    setCorrectionState({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: false,
+    });
   }, [courseControlMode, isCourseMode]);
 
   useEffect(() => {
@@ -440,10 +763,74 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const setSelectedClosedLoopGain = useCallback((value: number) => {
     setClosedLoopGain(round3(Math.max(0, value)));
   }, []);
+  const updateCorrectionState = useCallback((patch: Partial<CorrectionState>) => {
+    if (isCourseMode) {
+      return;
+    }
+    setCorrectionState((previous) => syncCorrectionTimeConstants({
+      ...previous,
+      ...patch,
+      enabled: patch.enabled ?? previous.enabled,
+    }));
+  }, [isCourseMode]);
+  const updateCorrectionRootHandle = useCallback((id: string, point: Complex) => {
+    const frequency = round3(Math.max(0.001, -point.re));
+    const patch: Partial<CorrectionState> = {};
+    if (id === 'lead-zero') {
+      patch.leadZeroFrequency = frequency;
+    } else if (id === 'lead-pole') {
+      patch.leadPoleFrequency = frequency;
+    } else if (id === 'lag-zero') {
+      patch.lagZeroFrequency = frequency;
+    } else if (id === 'lag-pole') {
+      patch.lagPoleFrequency = frequency;
+    } else if (id === 'pid-filter-pole') {
+      patch.tf = round3(1 / frequency);
+      patch.derivativeFilterEnabled = true;
+    } else if (id.startsWith('pid-zero-')) {
+      if (correctionState.kind === 'pi') {
+        patch.ki = correctionState.kp * frequency;
+      } else if (correctionState.kind === 'pd') {
+        patch.kd = correctionState.kp / frequency;
+      } else if (correctionState.kind === 'pid') {
+        patch.ki = correctionState.kp * frequency;
+      }
+    }
+    if (Object.keys(patch).length > 0) {
+      updateCorrectionState(patch);
+    }
+  }, [correctionState, updateCorrectionState]);
+  const updateTurnFrequencyHandle = useCallback((id: string, frequency: number) => {
+    const nextFrequency = round3(Math.max(0.001, frequency));
+    const patch: Partial<CorrectionState> = {};
+    if (id === 'lead-zero') {
+      patch.leadZeroFrequency = nextFrequency;
+    } else if (id === 'lead-pole') {
+      patch.leadPoleFrequency = nextFrequency;
+    } else if (id === 'lag-zero') {
+      patch.lagZeroFrequency = nextFrequency;
+    } else if (id === 'lag-pole') {
+      patch.lagPoleFrequency = nextFrequency;
+    }
+    if (Object.keys(patch).length > 0) {
+      updateCorrectionState(patch);
+    }
+  }, [updateCorrectionState]);
+  const refreshTimeRange = useCallback((range: { x: [number, number] }) => {
+    const start = Math.max(0, Math.min(range.x[0], range.x[1]));
+    const end = Math.max(start + 0.001, Math.max(range.x[0], range.x[1]));
+    setTimeRange({ start: round3(start), end: round3(end), samples: DEFAULT_LINKAGE_TIME_RANGE.samples });
+  }, []);
+  const refreshFrequencyRange = useCallback((range: [number, number]) => {
+    const min = Math.max(0.001, Math.min(range[0], range[1]));
+    const max = Math.max(min * 1.01, Math.max(range[0], range[1]));
+    setFrequencyRange({ min: round3(min), max: round3(max), samples: DEFAULT_LINKAGE_FREQUENCY_RANGE.samples });
+  }, []);
   const selectedGainText = Math.abs(closedLoopGain - gain) > 1e-6
     ? ` | 闭环选点K=${closedLoopGain.toFixed(3)}`
     : '';
-  const parameterSummary = `K=${gain.toFixed(3)}${selectedGainText} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length} | ${responseType}`;
+  const correctionText = correctionEnabled ? ` | C(s)=${correctionState.kind}` : '';
+  const parameterSummary = `K=${gain.toFixed(3)}${selectedGainText} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length}${correctionText} | ${responseType}`;
 
   return {
     isCourseMode,
@@ -453,16 +840,28 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     modelZeros,
     gain,
     closedLoopGain,
+    correctionEnabled: !isCourseMode && correctionEnabled,
+    correctionState,
+    correctionStructures,
+    turnFrequencyHandles,
+    correctionRootHandles,
     responseType,
     showMargins,
     drawerOpen,
     analysisState,
     analysisResult: visibleAnalysisResult,
-    frequencyAnalysisResult: visibleOpenLoopAnalysisResult,
+    preCorrectionAnalysisResult: visibleBaselineAnalysisResult,
+    correctionDeviceAnalysisResult: correctionEnabled ? correctionDeviceAnalysisState.result : null,
+    frequencyAnalysisResult: visibleAnalysisResult,
     adaptedAnalysis,
     parameterSummary,
     setGain: setOpenLoopGain,
     setClosedLoopGain: setSelectedClosedLoopGain,
+    setCorrectionState: updateCorrectionState,
+    updateCorrectionRootHandle,
+    updateTurnFrequencyHandle,
+    refreshTimeRange,
+    refreshFrequencyRange,
     setResponseType,
     setShowMargins,
     setDrawerOpen,

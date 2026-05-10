@@ -15,10 +15,17 @@ export interface AxisPreset {
   y: [number, number];
 }
 
+export interface BodeTurnFrequencyHandle {
+  id: string;
+  label: string;
+  frequency: number;
+}
+
 export const UNIT_37_LOW_FREQUENCY_BODE_CASE_ID = 'unit37_low_frequency_bode';
 export const CONTROL_CHART_MAIN_LINE_WIDTH = 2.4;
 export const CONTROL_CHART_AUXILIARY_LINE_WIDTH = 1.4;
 export const CONTROL_CHART_KEY_POINT_MARKER_SIZE = 15;
+const BODE_LEGEND_LINE_ICON = 'path://M0 -1.2 L28 -1.2 L28 1.2 L0 1.2 Z';
 
 const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>> = {
   ship_heading: {
@@ -239,11 +246,13 @@ export function buildBodePanelOption(
   result: ControlAnalysisResult,
   caseId?: string,
   showMargins = true,
+  frequencyRangeOverride?: [number, number] | null,
+  turnFrequencyHandles: BodeTurnFrequencyHandle[] = [],
 ): EChartsCoreOption {
   const magnitudeAxis = getControlAxisPreset(caseId, 'magnitude');
   const phaseAxis = getControlAxisPreset(caseId, 'phase');
-  const frequencyMin = magnitudeAxis?.x[0] ?? phaseAxis?.x[0];
-  const frequencyMax = magnitudeAxis?.x[1] ?? phaseAxis?.x[1];
+  const frequencyMin = frequencyRangeOverride?.[0] ?? magnitudeAxis?.x[0] ?? phaseAxis?.x[0];
+  const frequencyMax = frequencyRangeOverride?.[1] ?? magnitudeAxis?.x[1] ?? phaseAxis?.x[1];
   const magnitudeMarginSeries = showMargins ? buildMarginSeries(result.metrics, 'magnitude') : [];
   const phaseMarginSeries = showMargins ? buildMarginSeries(result.metrics, 'phase') : [];
 
@@ -320,6 +329,7 @@ export function buildBodePanelOption(
         data: result.magnitude.points.map((point) => [point.x, point.y]),
       },
       ...magnitudeMarginSeries,
+      ...buildBodeTurnFrequencySeries(turnFrequencyHandles),
       {
         name: '相频',
         type: 'line',
@@ -338,6 +348,30 @@ export function buildBodePanelOption(
   };
 }
 
+export function buildBodeTurnFrequencySeries(handles: BodeTurnFrequencyHandle[]): ChartSeriesArray {
+  return handles
+    .filter((handle) => Number.isFinite(handle.frequency) && handle.frequency > 0)
+    .map((handle) => ({
+      id: handle.id,
+      name: handle.label,
+      type: 'scatter',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+        size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
+        color: '#14b8a6',
+        strokeColor: '#ffffff',
+        strokeWidth: 1,
+      }),
+      label: {
+        show: true,
+        formatter: `${handle.label} ${formatFixed(handle.frequency)}`,
+        position: 'top',
+      },
+      data: [[handle.frequency, 0]],
+    } satisfies ChartSeriesItem));
+}
+
 export function buildBodeComparisonOption(
   panels: Array<{
     label: string;
@@ -345,15 +379,20 @@ export function buildBodeComparisonOption(
     result: ControlAnalysisResult;
   }>,
   caseId?: string,
+  frequencyRangeOverride?: [number, number] | null,
+  turnFrequencyHandles: BodeTurnFrequencyHandle[] = [],
 ): EChartsCoreOption {
   const magnitudeAxis = getControlAxisPreset(caseId, 'magnitude');
   const phaseAxis = getControlAxisPreset(caseId, 'phase');
+  const frequencyMin = frequencyRangeOverride?.[0] ?? magnitudeAxis?.x[0] ?? phaseAxis?.x[0];
+  const frequencyMax = frequencyRangeOverride?.[1] ?? magnitudeAxis?.x[1] ?? phaseAxis?.x[1];
 
   return {
     color: panels.map((panel) => panel.color),
     animation: false,
     legend: {
       top: 8,
+      icon: BODE_LEGEND_LINE_ICON,
       data: panels.map((panel) => panel.label),
     },
     tooltip: {
@@ -371,16 +410,16 @@ export function buildBodeComparisonOption(
     xAxis: [
       {
         type: 'log',
-        min: magnitudeAxis?.x[0],
-        max: magnitudeAxis?.x[1],
+        min: frequencyMin,
+        max: frequencyMax,
         gridIndex: 0,
         axisLabel: { formatter: formatAxisValue },
         splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
       },
       {
         type: 'log',
-        min: phaseAxis?.x[0],
-        max: phaseAxis?.x[1],
+        min: frequencyMin,
+        max: frequencyMax,
         gridIndex: 1,
         name: 'ω / rad/s',
         nameLocation: 'middle',
@@ -409,7 +448,8 @@ export function buildBodeComparisonOption(
         splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
       },
     ],
-    series: panels.flatMap((panel) => [
+    series: [
+      ...panels.flatMap((panel) => [
       {
         name: panel.label,
         type: 'line',
@@ -428,6 +468,8 @@ export function buildBodeComparisonOption(
         lineStyle: { width: CONTROL_CHART_MAIN_LINE_WIDTH, type: 'dashed', color: panel.color },
         data: panel.result.phase.points.map((point) => [point.x, point.y]),
       },
-    ]),
+      ]),
+      ...buildBodeTurnFrequencySeries(turnFrequencyHandles),
+    ],
   };
 }
