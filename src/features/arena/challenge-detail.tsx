@@ -65,6 +65,7 @@ export function ChallengeDetail({
                 <DetailItem label="被控对象" value={object.name} />
                 <DetailItem label="公开程度" value={object.visibility === 'white-box' ? '白箱模型' : object.visibility} />
                 <DetailItem label="章节关联" value={object.chapter} />
+                <DetailItem label="任务属性" value={task.homeworkPolicy} />
                 <DetailItem label="模型表达" value={object.model.display} />
               </div>
               <div className="mt-4 flex flex-wrap gap-2">

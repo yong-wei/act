@@ -20,21 +20,23 @@
 
 ## Tasks
 
-- [ ] Add failing tests for teacher-published challenge visibility and homework grading boundary.
-- [ ] Run targeted tests and confirm expected failure.
-- [ ] Implement teacher configuration page for selecting a task, class scope, visibility, deadline, and leaderboard policy.
-- [ ] Implement homework binding display without treating rank as grade.
-- [ ] Add teacher navigation entry if consistent with existing teacher dashboard patterns.
-- [ ] Run targeted tests.
-- [ ] Run `npm run lint`.
-- [ ] Browser-check teacher page and student visibility path.
-- [ ] Update this plan with verification results.
+- [x] Add failing tests for teacher-published challenge visibility and homework grading boundary.
+- [x] Run targeted tests and confirm expected failure.
+- [x] Implement teacher configuration page for selecting a task, class scope, visibility, deadline, and leaderboard policy.
+- [x] Implement homework binding display without treating rank as grade.
+- [x] Add teacher navigation entry if consistent with existing teacher dashboard patterns.
+- [x] Run targeted tests.
+- [x] Run `npm run lint`.
+- [x] Browser-check teacher page and student visibility path.
+- [x] Update this plan with verification results.
 - [ ] Commit and push only Plan F files.
 
 ## Verification Record
 
-- Targeted tests: Pending
-- Lint: Pending
-- Browser check: Pending
+- Targeted tests: `rtk npm run test:unit -- src/features/arena/__tests__/arena-teacher-config.test.ts src/features/arena/__tests__/arena-leaderboard.test.ts` -> 2 files, 7 tests passed; `rtk node scripts/tests/test-arena-routes.mjs` -> passed.
+- Red test evidence: first targeted run failed with missing `../teacher/configuration`.
+- Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
+- Browser check: logged in with fixed teacher account `test_teacher`; Playwright verified `/teacher/arena` shows `竞技场挑战配置`, `作业评价边界`, and `作业评价不等同排行榜名次`; student challenge detail shows `可作为作业挑战`.
+- API check: `POST /api/teacher/arena/preview` returned HTTP 200 JSON with publication payload.
 - Commit: Pending
 - Push: Pending

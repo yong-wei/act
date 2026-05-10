@@ -19,7 +19,7 @@
 | C | Challenge detail page and filters | `docs/superpowers/plans/2026-05-10-arena-plan-c-detail-and-filters.md` | Complete | Filtering tests, route test, lint, Playwright passed | `14ee3e60` pushed |
 | D | White-box evaluation MVP | `docs/superpowers/plans/2026-05-10-arena-plan-d-whitebox-evaluation.md` | Complete | Evaluation tests, route regression, lint passed | `a3b74599` pushed |
 | E | Submissions, leaderboards, and telemetry | `docs/superpowers/plans/2026-05-10-arena-plan-e-submissions-leaderboards-telemetry.md` | Complete | Leaderboard tests, lint, Playwright, API check passed | `f20638a2` pushed |
-| F | Teacher challenge configuration and homework binding | `docs/superpowers/plans/2026-05-10-arena-plan-f-teacher-configuration.md` | Not started | Pending | Pending |
+| F | Teacher challenge configuration and homework binding | `docs/superpowers/plans/2026-05-10-arena-plan-f-teacher-configuration.md` | Verified, awaiting commit | Teacher tests, lint, Playwright, API check passed | Pending |
 
 ## Completion Gates
 
@@ -36,3 +36,4 @@
 - 2026-05-10: Plan C implemented task filters, empty state, challenge detail route, and task-first workspace entry. Verification passed; commit `14ee3e60` pushed.
 - 2026-05-10: Plan D implemented deterministic white-box evaluation, hard constraints, normalized metric satisfaction, weighted geometric scoring, and score explanations. Verification passed; commit `a3b74599` pushed.
 - 2026-05-10: Plan E implemented artifact hashing, duplicate evaluation reuse, leaderboard sorting, core Arena event names, local submission panel, and evaluate API. Verification passed; commit `f20638a2` pushed.
+- 2026-05-10: Plan F implemented teacher publication config, homework assessment boundary, teacher page, student task visibility display, and teacher preview API. Verification passed; commit pending.

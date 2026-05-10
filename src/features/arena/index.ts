@@ -8,3 +8,4 @@ export * from './leaderboards/leaderboard';
 export * from './submissions/artifact-hash';
 export * from './submissions/submission-service';
 export * from './telemetry';
+export * from './teacher/configuration';
