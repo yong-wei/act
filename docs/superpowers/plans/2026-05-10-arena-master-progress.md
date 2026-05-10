@@ -32,6 +32,7 @@
 | P | MPC template and hidden scenario evaluation | `docs/superpowers/plans/2026-05-11-arena-plan-p-mpc-hidden-scenarios.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `ce4900f3` |
 | Q | Optimization-assisted PID tuning | `docs/superpowers/plans/2026-05-11-arena-plan-q-optimization-tuning.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `4edb52ff` |
 | R | Personal Arena portfolio integration | `docs/superpowers/plans/2026-05-11-arena-plan-r-personal-portfolio.md` | Complete | Targeted tests, lint, smoke, build, subagent re-review passed | `c408b56b` |
+| S | Teacher challenge templates and editable configuration | `docs/superpowers/plans/2026-05-11-arena-plan-s-teacher-templates.md` | Complete | Targeted tests, lint, smoke, build, Hegel re-review passed | `47498fca` |
 
 ## Completion Gates
 
@@ -69,6 +70,7 @@
 - 2026-05-11: Plan P added the first advanced-method path: parameterized MPC artifacts, a predictive-control task, and deterministic hidden-scenario evaluation for a white-box Arena task. Independent subagent review found no blocker, high, medium, or low issues. Implementation commit `ce4900f3` recorded.
 - 2026-05-11: Plan Q added bounded optimization-assisted PID tuning as the next advanced-method path. The new `optimized-pid` method uses a fixed template with objective weights and search budget, remains on the official `/api/arena/evaluate` path, and keeps leaderboards sourced from real valid submissions. Independent subagent review found no blocker, high, medium, or low issues. Implementation commit `4edb52ff` recorded.
 - 2026-05-11: Plan R added the Arena personal portfolio path for the student personal center. The new profile aggregation reads real `ArenaSubmission` records, derives controller count, method distribution, black-box identification model references, personal leaderboard positions, failure objects, and improving metrics, then exposes the summary through `/api/user/profile` and renders it in `/profile`. Initial independent subagent review found one medium issue in unscoped profile submission loading; the fix now reads current-student submissions first, then only task-scoped leaderboard candidates. Hegel re-review found no blocker, high, medium, or low issues. Implementation commit `c408b56b` recorded.
+- 2026-05-11: Plan S added teacher-facing challenge templates and editable configuration for target signals, disturbances, initial conditions, allowed methods, hard constraints, scoring weights, Pareto ranking, hidden tests, public leaderboard visibility, telemetry level, and homework grade binding. Hegel review found medium issues in grade-binding consistency, read-only template fields, and leaderboard policy override validation; fixes were applied and Hegel re-review found no blocker, high, or medium issues. Implementation commit `47498fca` recorded.
 
 ## Final Audit
 
