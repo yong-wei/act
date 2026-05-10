@@ -196,7 +196,7 @@ describe('arena submissions and leaderboards', () => {
     });
   });
 
-  it('keeps hard-constraint failures behind valid submissions on metric leaderboards', () => {
+  it('excludes hard-constraint failures from official leaderboards', () => {
     const valid = createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
@@ -226,7 +226,7 @@ describe('arena submissions and leaderboards', () => {
       metricId: 'controlEnergy',
     } as any);
 
-    expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效方案', '无效低能耗方案']);
+    expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效方案']);
   });
 
   it('classifies Pareto front entries and records dominance evidence', () => {

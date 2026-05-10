@@ -198,7 +198,9 @@ export function buildArenaLeaderboard(
   const policy = getArenaLeaderboardPolicy(options.leaderboardPolicyId ?? task?.leaderboardPolicyId ?? '');
   const tieBreakers = policy?.tieBreakers ?? ['hardConstraintPass', 'score', 'submittedAt'];
   const metricId = options.type === 'metric' ? options.metricId : undefined;
-  const sorted = sortSubmissionsForLeaderboard(filterByLeaderboardScope(submissions, options), options, tieBreakers);
+  const eligibleSubmissions = filterByLeaderboardScope(submissions, options)
+    .filter((submission) => submission.evaluation.valid);
+  const sorted = sortSubmissionsForLeaderboard(eligibleSubmissions, options, tieBreakers);
   const seen = new Set<string>();
   const ranked = sorted.filter((submission) => {
     const key = leaderboardDedupeKey(submission, options);

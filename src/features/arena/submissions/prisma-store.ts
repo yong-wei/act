@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
+import { getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import type { ArenaSubmissionRecord } from './submission-service';
@@ -9,7 +10,6 @@ import type {
   StoredArenaEvaluation,
   StoredArenaSubmission,
 } from './persistence';
-import { ARENA_EVALUATION_PROTOCOL_VERSION } from './persistence';
 
 type PrismaJson = Record<string, unknown> | unknown[];
 
@@ -176,9 +176,6 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
     const rows = await (prisma as any).arenaSubmission.findMany({
       where: {
         ...(options?.taskId ? { taskId: options.taskId } : {}),
-        evaluationRun: {
-          protocolVersion: ARENA_EVALUATION_PROTOCOL_VERSION,
-        },
       },
       include: {
         controllerArtifact: true,
@@ -189,6 +186,11 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       },
     });
 
-    return rows.map((row: Record<string, unknown>) => toSubmissionRecord(row));
+    return rows
+      .filter((row: Record<string, unknown>) => {
+        const evaluationRun = row.evaluationRun as Record<string, unknown>;
+        return String(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion(String(row.taskId));
+      })
+      .map((row: Record<string, unknown>) => toSubmissionRecord(row));
   },
 };

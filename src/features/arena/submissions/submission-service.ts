@@ -1,4 +1,4 @@
-import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
+import { evaluateArenaSubmission } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from './artifact-hash';
@@ -33,7 +33,7 @@ export function createArenaSubmission(input: CreateArenaSubmissionInput): ArenaS
   const duplicate = input.existingSubmissions.find(
     (submission) => submission.taskId === input.taskId && submission.artifactHash === artifactHash,
   );
-  const evaluation = duplicate?.evaluation ?? evaluateWhiteBoxSubmission({ taskId: input.taskId, artifact });
+  const evaluation = duplicate?.evaluation ?? evaluateArenaSubmission({ taskId: input.taskId, artifact });
 
   return {
     id: `submission-${artifactHash}-${Date.parse(input.submittedAt) || 0}`,

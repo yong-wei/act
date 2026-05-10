@@ -5,6 +5,7 @@ import type { ChallengeObject, ChallengeTask, LeaderboardPolicy, MetricProfile }
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { buildArenaTaskStats } from './stats';
 import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
+import { ArenaBlackBoxSubmissionPanel } from './submissions/arena-blackbox-submission-panel';
 import { getArenaWorkspaceHref } from './workspace-routing';
 import { getEvaluableControllerMethods } from './submissions/controller-artifact-builder';
 import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-client';
@@ -47,6 +48,9 @@ export function ChallengeDetail({
   };
   const workspaceHref = getArenaWorkspaceHref(task, object);
   const canSubmitWithCurrentEvaluator = getEvaluableControllerMethods(task).length > 0;
+  const canSubmitWithBlackBoxEvaluator = object.visibility === 'black-box' &&
+    object.adapterType === 'virtual-simulation' &&
+    task.allowedMethods.includes('black-box-control');
 
   return (
     <main className="surface-page min-h-screen">
@@ -171,6 +175,8 @@ export function ChallengeDetail({
 
             {canSubmitWithCurrentEvaluator ? (
               <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
+            ) : canSubmitWithBlackBoxEvaluator ? (
+              <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />
             ) : (
               <section className="surface-card p-6">
                 <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>

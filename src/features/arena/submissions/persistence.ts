@@ -1,4 +1,4 @@
-import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
+import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from './artifact-hash';
@@ -69,11 +69,11 @@ export async function createPersistedArenaSubmission(
 ): Promise<ArenaSubmissionRecord> {
   const artifact = { ...input.artifact, taskId: input.taskId };
   const artifactHash = hashControllerArtifact(artifact);
-  const protocolVersion = ARENA_EVALUATION_PROTOCOL_VERSION;
+  const protocolVersion = getArenaEvaluationProtocolVersion(input.taskId);
   const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
   let evaluation: ArenaEvaluationResult;
   try {
-    evaluation = existingEvaluation?.result ?? evaluateWhiteBoxSubmission({ taskId: input.taskId, artifact });
+    evaluation = existingEvaluation?.result ?? evaluateArenaSubmission({ taskId: input.taskId, artifact });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid Arena submission';
     throw new ArenaSubmissionInputError(message);
