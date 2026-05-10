@@ -13,7 +13,8 @@ export type ControllerMethod =
   | 'optimized-pid'
   | 'composite-compensation'
   | 'mpc'
-  | 'black-box-control';
+  | 'black-box-control'
+  | 'code-controller';
 
 export type LeaderboardType = 'main' | 'method' | 'metric' | 'pareto' | 'class' | 'season';
 

@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { evaluateArenaSubmission } from '../evaluation/evaluator';
 import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
 import { normalizeMetricValue, scoreMetricSatisfaction } from '../evaluation/scoring';
+import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { ControllerArtifact } from '../types';
 
 const validPidArtifact: ControllerArtifact = {
@@ -272,6 +274,75 @@ describe('arena white-box evaluation', () => {
     expect(result.valid).toBe(false);
     expect(result.score).toBe(0);
     expect(result.explanation.join(' ')).toContain('searchBudget 必须在 10 到 240 之间');
+  });
+
+  it('fails closed for code-controller artifacts without an external sandbox result', () => {
+    const result = evaluateArenaSubmission({
+      taskId: 'task-ship-roll-mpc-hidden-scenarios',
+      artifact: {
+        id: 'artifact-code-controller',
+        taskId: 'task-ship-roll-mpc-hidden-scenarios',
+        method: 'code-controller',
+        params: {
+          language: 'typescript',
+          sourceHash: `sha256:${'1'.repeat(64)}`,
+          entryPoint: 'controller.step',
+          deterministicSeed: 'arena-seed-2026',
+          dependencyLockHash: `sha256:${'2'.repeat(64)}`,
+          runtimeLimitMs: 50,
+          memoryLimitMb: 32,
+        },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+    expect(result.hardConstraintResults.find((item) => item.id === 'external_sandbox_verified')?.passed).toBe(false);
+    expect(result.explanation.join(' ')).toContain('代码型控制器需要外部沙箱验证');
+    expect(result.explanation.join(' ')).toContain('禁止网络访问');
+    expect(result.explanation.join(' ')).toContain('内存限制');
+    expect(result.explanation.join(' ')).toContain('固定随机种子');
+    expect(result.explanation.join(' ')).toContain('依赖锁');
+    expect(result.explanation.join(' ')).toContain('禁止访问真实模型内部参数');
+  });
+
+  it('rejects direct code-controller persistence before creating official records', async () => {
+    const store = {
+      findEvaluationByHash: vi.fn(),
+      createEvaluation: vi.fn(),
+      upsertArtifact: vi.fn(),
+      createSubmission: vi.fn(),
+    };
+
+    await expect(createPersistedArenaSubmission({
+      taskId: 'task-ship-roll-mpc-hidden-scenarios',
+      artifact: {
+        id: 'artifact-code-controller-forged',
+        taskId: 'task-ship-roll-mpc-hidden-scenarios',
+        method: 'code-controller',
+        params: {
+          language: 'typescript',
+          sourceCode: 'export function step() { return 0; }',
+          sourceHash: `sha256:${'1'.repeat(64)}`,
+          entryPoint: 'controller.step',
+          deterministicSeed: 'arena-seed-2026',
+          dependencyLockHash: `sha256:${'2'.repeat(64)}`,
+          runtimeLimitMs: 50,
+          memoryLimitMb: 32,
+        },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+      userId: 'student-code',
+      studentLabel: '代码学生',
+      submittedAt: '2026-05-11T10:01:00.000Z',
+      store,
+    })).rejects.toThrow('Controller method code-controller is not allowed');
+
+    expect(store.findEvaluationByHash).not.toHaveBeenCalled();
+    expect(store.createEvaluation).not.toHaveBeenCalled();
+    expect(store.upsertArtifact).not.toHaveBeenCalled();
+    expect(store.createSubmission).not.toHaveBeenCalled();
   });
 
   it('normalizes metric values and uses weighted geometric scoring', () => {

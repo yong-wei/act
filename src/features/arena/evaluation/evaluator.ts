@@ -4,6 +4,30 @@ import type { ArenaEvaluationResult } from './types';
 import { evaluateBlackBoxSubmission } from './blackbox-evaluator';
 import { evaluateWhiteBoxSubmission } from './whitebox-evaluator';
 
+function rejectCodeControllerWithoutSandbox(taskId: string, artifact: ControllerArtifact): ArenaEvaluationResult {
+  return {
+    taskId,
+    artifact,
+    valid: false,
+    score: 0,
+    metrics: {},
+    satisfaction: {},
+    hardConstraintResults: [
+      {
+        id: 'external_sandbox_verified',
+        label: '外部沙箱验证',
+        passed: false,
+        reason: '代码型控制器需要外部沙箱验证后才能进入官方评测。',
+      },
+    ],
+    penalties: [],
+    explanation: [
+      '代码型控制器需要外部沙箱验证，当前官方评测默认失败关闭。',
+      '沙箱必须验证禁止网络访问、运行时间限制、内存限制、固定随机种子、依赖锁，以及禁止访问真实模型内部参数。',
+    ],
+  };
+}
+
 export function getArenaEvaluationProtocolVersion(taskId: string): string {
   const task = getArenaChallengeTask(taskId);
   const object = task ? getArenaChallengeObject(task.objectId) : undefined;
@@ -20,6 +44,9 @@ export function evaluateArenaSubmission({
   taskId: string;
   artifact: ControllerArtifact;
 }): ArenaEvaluationResult {
+  if (artifact.method === 'code-controller') {
+    return rejectCodeControllerWithoutSandbox(taskId, artifact);
+  }
   const task = getArenaChallengeTask(taskId);
   const object = task ? getArenaChallengeObject(task.objectId) : undefined;
   if (object?.visibility === 'black-box') {

@@ -17,6 +17,7 @@ const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'composite-compensation': '复合校正',
   mpc: 'MPC',
   'black-box-control': '黑箱控制',
+  'code-controller': '代码控制器',
 };
 
 const workspaceLabels: Record<ChallengeTask['workspaceMode'], string> = {

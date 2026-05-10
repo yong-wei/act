@@ -2,6 +2,11 @@ import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../e
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import type { ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
+import { getArenaChallengeTask } from '../data/seed-challenges';
+import {
+  normalizeCodeControllerManifest,
+  type CodeControllerManifest,
+} from './controller-artifact-builder';
 import { hashControllerArtifact } from './artifact-hash';
 import type { ArenaSubmissionRecord } from './submission-service';
 
@@ -102,10 +107,28 @@ async function assertBlackBoxExperimentOwnership(input: {
   }
 }
 
+function normalizeSubmissionArtifact(taskId: string, artifact: ControllerArtifact): ControllerArtifact {
+  const task = getArenaChallengeTask(taskId);
+  if (!task) {
+    throw new ArenaSubmissionInputError(`Unknown arena task: ${taskId}`);
+  }
+  if (!task.allowedMethods.includes(artifact.method)) {
+    throw new ArenaSubmissionInputError(`Controller method ${artifact.method} is not allowed for ${taskId}`);
+  }
+  if (artifact.method !== 'code-controller') {
+    return { ...artifact, taskId };
+  }
+  return {
+    ...artifact,
+    taskId,
+    params: normalizeCodeControllerManifest(artifact.params as unknown as CodeControllerManifest),
+  };
+}
+
 export async function createPersistedArenaSubmission(
   input: CreatePersistedArenaSubmissionInput,
 ): Promise<ArenaSubmissionRecord> {
-  const artifact = { ...input.artifact, taskId: input.taskId };
+  const artifact = normalizeSubmissionArtifact(input.taskId, input.artifact);
   const artifactHash = hashControllerArtifact(artifact);
   const protocolVersion = getArenaEvaluationProtocolVersion(input.taskId);
 

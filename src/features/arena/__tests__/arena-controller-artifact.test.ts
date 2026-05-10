@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
+  buildCodeControllerArtifactFromManifest,
   buildControllerArtifactFromParams,
   getEvaluableControllerMethods,
 } from '../submissions/controller-artifact-builder';
@@ -50,6 +51,17 @@ const optimizedPidTask: ChallengeTask = {
   workspaceMode: 'predictive-control',
   primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
 };
+
+const codeControllerTask: ChallengeTask = {
+  ...baseTask,
+  id: 'task-frontier-code-controller-safety',
+  objectId: 'plant-ship-roll-whitebox',
+  allowedMethods: ['code-controller'],
+  workspaceMode: 'predictive-control',
+  practiceMode: 'project',
+};
+const sourceHash = `sha256:${'1'.repeat(64)}`;
+const dependencyLockHash = `sha256:${'2'.repeat(64)}`;
 
 describe('arena controller artifact builder', () => {
   it('builds PID controller artifacts from string inputs', () => {
@@ -235,6 +247,100 @@ describe('arena controller artifact builder', () => {
       ...baseTask,
       allowedMethods: ['black-box-control'],
     })).toEqual([]);
+    expect(getEvaluableControllerMethods(codeControllerTask)).toEqual([]);
+  });
+
+  it('builds code controller artifacts from sandbox metadata without inline source', () => {
+    const artifact = buildCodeControllerArtifactFromManifest({
+      task: codeControllerTask,
+      manifest: {
+        language: 'typescript',
+        sourceHash,
+        entryPoint: 'controller.step',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash,
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      now: '2026-05-11T10:00:00.000Z',
+    });
+
+    expect(artifact).toMatchObject({
+      taskId: codeControllerTask.id,
+      method: 'code-controller',
+      params: {
+        language: 'typescript',
+        sourceHash,
+        entryPoint: 'controller.step',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash,
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      createdAt: '2026-05-11T10:00:00.000Z',
+    });
+    expect(artifact.params).not.toHaveProperty('sourceCode');
+  });
+
+  it('rejects code controller artifacts that include inline source or missing sandbox metadata', () => {
+    expect(() => buildCodeControllerArtifactFromManifest({
+      task: codeControllerTask,
+      manifest: {
+        language: 'javascript',
+        sourceCode: 'export function step() { return 0; }',
+        sourceHash,
+        entryPoint: 'controller.step',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash,
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      now: '2026-05-11T10:00:00.000Z',
+    })).toThrow('代码型控制器不能携带内联源码');
+
+    expect(() => buildCodeControllerArtifactFromManifest({
+      task: codeControllerTask,
+      manifest: {
+        language: 'javascript',
+        sourceHash,
+        entryPoint: '',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash,
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      now: '2026-05-11T10:00:00.000Z',
+    })).toThrow('entryPoint 是必填沙箱元数据');
+  });
+
+  it('rejects unsupported code languages and malformed dependency hashes', () => {
+    expect(() => buildCodeControllerArtifactFromManifest({
+      task: codeControllerTask,
+      manifest: {
+        language: 'ruby' as 'javascript',
+        sourceHash,
+        entryPoint: 'controller.step',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash,
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      now: '2026-05-11T10:00:00.000Z',
+    })).toThrow('language 必须是 javascript、typescript 或 python');
+
+    expect(() => buildCodeControllerArtifactFromManifest({
+      task: codeControllerTask,
+      manifest: {
+        language: 'javascript',
+        sourceHash,
+        entryPoint: 'controller.step',
+        deterministicSeed: 'arena-seed-2026',
+        dependencyLockHash: 'sha256:not-a-real-hash',
+        runtimeLimitMs: 50,
+        memoryLimitMb: 32,
+      },
+      now: '2026-05-11T10:00:00.000Z',
+    })).toThrow('dependencyLockHash 必须使用 sha256');
   });
 
   it('keeps the submission panel wired through the controller artifact builder', () => {
