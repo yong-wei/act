@@ -14,6 +14,8 @@ export default defineConfig({
       'src/lib/data-governance/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.tsx',
+      'src/features/arena/__tests__/**/*.test.ts',
+      'src/features/arena/__tests__/**/*.test.tsx',
       'src/features/interactive/__tests__/**/*.test.ts',
       'src/features/interactive/__tests__/**/*.test.tsx',
       'src/features/teacher/__tests__/**/*.test.ts',

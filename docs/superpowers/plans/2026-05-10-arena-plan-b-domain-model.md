@@ -20,19 +20,21 @@
 
 ## Tasks
 
-- [ ] Add failing tests for object-task separation, allowed controller methods, metric profile shape, and leaderboard policy shape.
-- [ ] Run the targeted tests and confirm they fail because the model does not exist.
-- [ ] Implement the minimal domain types.
-- [ ] Add 8-12 white-box seed objects and 2-3 tasks across representative objects.
-- [ ] Connect Plan A hall to the seed challenge data instead of local UI-only data.
-- [ ] Run targeted tests.
-- [ ] Run `npm run lint`.
-- [ ] Update this plan with verification results.
+- [x] Add failing tests for object-task separation, allowed controller methods, metric profile shape, and leaderboard policy shape.
+- [x] Run the targeted tests and confirm they fail because the model does not exist.
+- [x] Implement the minimal domain types.
+- [x] Add 8-12 white-box seed objects and 2-3 tasks across representative objects.
+- [x] Connect Plan A hall to the seed challenge data instead of local UI-only data.
+- [x] Run targeted tests.
+- [x] Run `npm run lint`.
+- [x] Update this plan with verification results.
 - [ ] Commit and push only Plan B files plus necessary Plan A integration changes.
 
 ## Verification Record
 
-- Targeted test: Pending
-- Lint: Pending
+- Targeted test: `rtk npm run test:unit -- src/features/arena/__tests__/arena-domain.test.ts` -> 1 file, 3 tests passed.
+- Red test evidence: after adding Vitest include, first targeted run failed with `Cannot find module '../data/seed-challenges'`.
+- Regression check: `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed.
+- Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
 - Commit: Pending
 - Push: Pending

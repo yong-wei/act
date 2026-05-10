@@ -10,44 +10,36 @@ import {
   Trophy,
 } from 'lucide-react';
 
-const challengeCards = [
-  {
-    id: 'second-order-serial-lead',
-    object: '二阶欠阻尼对象',
-    source: '典型传递函数',
-    difficulty: '基础',
-    target: '在稳定前提下缩短调节时间，并把超调量控制在指定范围内。',
-    methods: ['串联校正', 'PID'],
-    participants: '128',
-    topScore: '92.4',
-    workspace: '多表征联动工作台',
-    homework: '可作为作业挑战',
-  },
-  {
-    id: 'integrator-low-frequency-error',
-    object: '含积分环节对象',
-    source: '模块 3 误差分析',
-    difficulty: '进阶',
-    target: '在稳态误差达标后，比较控制能量与响应速度之间的取舍。',
-    methods: ['PID', '串联校正'],
-    participants: '96',
-    topScore: '88.7',
-    workspace: '多表征联动工作台',
-    homework: '开放练习',
-  },
-  {
-    id: 'ship-roll-whitebox',
-    object: '船舶横摇白箱模型',
-    source: '课程案例对象',
-    difficulty: '挑战',
-    target: '在舒适度指标约束下压低峰值响应，并保持控制量不过度放大。',
-    methods: ['串联校正', 'PID'],
-    participants: '74',
-    topScore: '85.1',
-    workspace: '频域-时域对照工作台',
-    homework: '课程项目候选',
-  },
-];
+import {
+  ARENA_CHALLENGE_TASKS,
+  getArenaChallengeObject,
+  type ChallengeObjectSource,
+  type ControllerMethod,
+  type WorkspaceMode,
+} from '@/features/arena';
+
+const sourceLabels: Record<ChallengeObjectSource, string> = {
+  typical: '典型传递函数',
+  homework: '作业对象',
+  'control-odyssey': '控制奥德赛',
+  'virtual-simulation': '虚拟仿真对象',
+  frontier: '前沿拓展对象',
+};
+
+const methodLabels: Record<ControllerMethod, string> = {
+  'serial-compensator': '串联校正',
+  pid: 'PID',
+  'composite-compensation': '复合校正',
+  mpc: 'MPC',
+  'black-box-control': '黑箱控制',
+};
+
+const workspaceLabels: Record<WorkspaceMode, string> = {
+  'multi-representation-linkage': '多表征联动工作台',
+  'block-diagram-workbench': '框图工作台',
+  'black-box-identification': '辨识 + 控制工作台',
+  'predictive-control': '预测控制工作台',
+};
 
 const phaseItems = [
   { label: '白箱对象', value: '8-12 个典型对象', icon: FlaskConical },
@@ -111,37 +103,40 @@ export function ArenaHall() {
           </div>
 
           <div className="grid gap-4">
-            {challengeCards.map((challenge) => (
+            {ARENA_CHALLENGE_TASKS.map((challenge) => {
+              const object = getArenaChallengeObject(challenge.objectId);
+
+              return (
               <article key={challenge.id} className="surface-card p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-subtle">
-                      <span>{challenge.source}</span>
+                      <span>{object ? sourceLabels[object.source] : '未知对象来源'}</span>
                       <span>·</span>
                       <span>{challenge.difficulty}</span>
                       <span>·</span>
-                      <span>{challenge.homework}</span>
+                      <span>{challenge.homeworkPolicy}</span>
                     </div>
-                    <h2 className="mt-2 text-xl font-semibold text-foreground">{challenge.object}</h2>
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.target}</p>
+                    <h2 className="mt-2 text-xl font-semibold text-foreground">{object?.name ?? challenge.title}</h2>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.goal}</p>
                   </div>
                   <div className="min-w-28 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-right">
                     <div className="text-xs text-subtle">当前最高分</div>
-                    <div className="mt-1 text-2xl font-semibold text-primary">{challenge.topScore}</div>
+                    <div className="mt-1 text-2xl font-semibold text-primary">{challenge.topScore.toFixed(1)}</div>
                   </div>
                 </div>
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {challenge.methods.map((method) => (
+                  {challenge.allowedMethods.map((method) => (
                     <span key={method} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
-                      {method}
+                      {methodLabels[method]}
                     </span>
                   ))}
                 </div>
 
                 <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-subtle md:flex-row md:items-center md:justify-between">
                   <div>
-                    {challenge.participants} 人参与 · 推荐进入 {challenge.workspace}
+                    {challenge.participantCount} 人参与 · 推荐进入 {workspaceLabels[challenge.workspaceMode]}
                   </div>
                   <button className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm" type="button">
                     查看挑战
@@ -149,7 +144,8 @@ export function ArenaHall() {
                   </button>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
