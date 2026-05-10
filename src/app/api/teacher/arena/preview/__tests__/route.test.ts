@@ -26,6 +26,17 @@ const validBody = {
   deadline: '2026-06-01T15:00:00.000Z',
   leaderboardPolicyId: 'leaderboard-class-homework',
   homeworkBinding: true,
+  templateId: 'template-pid-tuning',
+  targetSignal: '教师自定义阶跃目标',
+  disturbance: '教师自定义低频扰动',
+  initialCondition: '教师自定义初始条件',
+  allowedMethods: ['pid'],
+  hardConstraints: ['closed_loop_stable', 'finite_response'],
+  scoringMetricWeights: { steadyStateError: 0.5, settlingTime: 0.3, overshoot: 0.2 },
+  paretoEnabled: false,
+  hiddenTestEnabled: true,
+  publicLeaderboard: false,
+  telemetryLevel: 'L1',
 };
 
 function postJson(body: unknown) {
@@ -78,6 +89,17 @@ describe('POST /api/teacher/arena/preview', () => {
       taskId: 'task-integrator-low-frequency-balance',
       classId: 'class-2026-control',
       studentVisibility: 'class',
+      templateId: 'template-pid-tuning',
+      targetSignal: '教师自定义阶跃目标',
+      disturbance: '教师自定义低频扰动',
+      initialCondition: '教师自定义初始条件',
+      allowedMethods: ['pid'],
+      hardConstraints: ['closed_loop_stable', 'finite_response'],
+      scoringMetricWeights: { steadyStateError: 0.5, settlingTime: 0.3, overshoot: 0.2 },
+      paretoEnabled: false,
+      hiddenTestEnabled: true,
+      publicLeaderboard: false,
+      telemetryLevel: 'L1',
     });
   });
 });

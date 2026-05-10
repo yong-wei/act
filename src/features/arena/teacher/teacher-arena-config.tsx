@@ -5,13 +5,16 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, ClipboardList, Trophy } from 'lucide-react';
 
 import {
+  ARENA_CHALLENGE_TEMPLATES,
   ARENA_CHALLENGE_TASKS,
   ARENA_LEADERBOARD_POLICIES,
   getArenaChallengeObject,
+  type ControllerMethod,
 } from '@/features/arena';
 import {
   createArenaChallengePublication,
   deriveArenaHomeworkAssessment,
+  type ArenaTelemetryLevel,
 } from './configuration';
 
 const previewAssessment = deriveArenaHomeworkAssessment({
@@ -21,14 +24,36 @@ const previewAssessment = deriveArenaHomeworkAssessment({
   diagnosticWeakMetrics: ['controlEnergy'],
 });
 
+const initialTemplate = ARENA_CHALLENGE_TEMPLATES.find((template) => template.id === 'template-pid-tuning') ??
+  ARENA_CHALLENGE_TEMPLATES[0];
+
 export function TeacherArenaConfig() {
-  const [taskId, setTaskId] = useState('task-integrator-low-frequency-balance');
+  const [templateId, setTemplateId] = useState(initialTemplate.id);
+  const [taskId, setTaskId] = useState(initialTemplate.defaultTaskId);
   const [classId, setClassId] = useState('class-2026-control');
-  const [visibility, setVisibility] = useState<'class' | 'course' | 'public'>('class');
+  const [visibility, setVisibility] = useState<'class' | 'course' | 'public'>(initialTemplate.defaultVisibility);
   const [deadline, setDeadline] = useState('2026-06-01T15:00');
-  const [leaderboardPolicyId, setLeaderboardPolicyId] = useState('leaderboard-class-homework');
-  const [homeworkBinding, setHomeworkBinding] = useState(true);
+  const [leaderboardPolicyId, setLeaderboardPolicyId] = useState(initialTemplate.defaultLeaderboardPolicyId);
+  const [homeworkBinding, setHomeworkBinding] = useState(initialTemplate.gradeBinding);
+  const [targetSignal, setTargetSignal] = useState(initialTemplate.targetSignal);
+  const [disturbance, setDisturbance] = useState(initialTemplate.disturbance);
+  const [initialCondition, setInitialCondition] = useState(initialTemplate.initialCondition);
+  const [allowedMethods, setAllowedMethods] = useState<ControllerMethod[]>(initialTemplate.allowedMethods);
+  const [hardConstraintsText, setHardConstraintsText] = useState(initialTemplate.hardConstraints.join(', '));
+  const [scoringMetricWeightsText, setScoringMetricWeightsText] = useState(formatMetricWeights(initialTemplate.scoringMetricWeights));
+  const [paretoEnabled, setParetoEnabled] = useState(initialTemplate.paretoEnabled);
+  const [hiddenTestEnabled, setHiddenTestEnabled] = useState(initialTemplate.hiddenTestEnabled);
+  const [publicLeaderboard, setPublicLeaderboard] = useState(initialTemplate.publicLeaderboard);
+  const [telemetryLevel, setTelemetryLevel] = useState<ArenaTelemetryLevel>(initialTemplate.telemetryLevel);
   const [apiStatus, setApiStatus] = useState('尚未发送预览请求');
+  const selectedTemplate = useMemo(
+    () => ARENA_CHALLENGE_TEMPLATES.find((template) => template.id === templateId),
+    [templateId],
+  );
+  const selectedTask = useMemo(
+    () => ARENA_CHALLENGE_TASKS.find((task) => task.id === taskId),
+    [taskId],
+  );
 
   const previewPublication = useMemo(() => {
     try {
@@ -39,11 +64,68 @@ export function TeacherArenaConfig() {
         deadline: new Date(deadline).toISOString(),
         leaderboardPolicyId,
         homeworkBinding,
+        templateId,
+        targetSignal,
+        disturbance,
+        initialCondition,
+        allowedMethods,
+        hardConstraints: parseListText(hardConstraintsText),
+        scoringMetricWeights: parseMetricWeightsText(scoringMetricWeightsText),
+        paretoEnabled,
+        hiddenTestEnabled,
+        publicLeaderboard,
+        telemetryLevel,
       });
     } catch {
       return null;
     }
-  }, [classId, deadline, homeworkBinding, leaderboardPolicyId, taskId, visibility]);
+  }, [
+    allowedMethods,
+    classId,
+    deadline,
+    disturbance,
+    hardConstraintsText,
+    hiddenTestEnabled,
+    homeworkBinding,
+    initialCondition,
+    leaderboardPolicyId,
+    paretoEnabled,
+    publicLeaderboard,
+    scoringMetricWeightsText,
+    targetSignal,
+    taskId,
+    telemetryLevel,
+    templateId,
+    visibility,
+  ]);
+
+  const applyTemplate = (nextTemplateId: string) => {
+    const nextTemplate = ARENA_CHALLENGE_TEMPLATES.find((template) => template.id === nextTemplateId);
+    setTemplateId(nextTemplateId);
+    if (!nextTemplate) return;
+    setTaskId(nextTemplate.defaultTaskId);
+    setVisibility(nextTemplate.defaultVisibility);
+    setLeaderboardPolicyId(nextTemplate.defaultLeaderboardPolicyId);
+    setHomeworkBinding(nextTemplate.gradeBinding);
+    setTargetSignal(nextTemplate.targetSignal);
+    setDisturbance(nextTemplate.disturbance);
+    setInitialCondition(nextTemplate.initialCondition);
+    setAllowedMethods(nextTemplate.allowedMethods);
+    setHardConstraintsText(nextTemplate.hardConstraints.join(', '));
+    setScoringMetricWeightsText(formatMetricWeights(nextTemplate.scoringMetricWeights));
+    setParetoEnabled(nextTemplate.paretoEnabled);
+    setHiddenTestEnabled(nextTemplate.hiddenTestEnabled);
+    setPublicLeaderboard(nextTemplate.publicLeaderboard);
+    setTelemetryLevel(nextTemplate.telemetryLevel);
+  };
+
+  const toggleAllowedMethod = (method: ControllerMethod) => {
+    setAllowedMethods((current) => (
+      current.includes(method)
+        ? current.filter((item) => item !== method)
+        : [...current, method]
+    ));
+  };
 
   const submitPreviewRequest = async () => {
     setApiStatus('正在生成预览');
@@ -58,6 +140,17 @@ export function TeacherArenaConfig() {
           deadline: new Date(deadline).toISOString(),
           leaderboardPolicyId,
           homeworkBinding,
+          templateId,
+          targetSignal,
+          disturbance,
+          initialCondition,
+          allowedMethods,
+          hardConstraints: parseListText(hardConstraintsText),
+          scoringMetricWeights: parseMetricWeightsText(scoringMetricWeightsText),
+          paretoEnabled,
+          hiddenTestEnabled,
+          publicLeaderboard,
+          telemetryLevel,
         }),
       });
       const payload = await response.json() as { error?: string };
@@ -92,6 +185,16 @@ export function TeacherArenaConfig() {
           </div>
 
           <div className="surface-card grid gap-4 p-5">
+            <label className="grid gap-1 text-sm text-subtle">
+              配置模板
+              <select value={templateId} onChange={(event) => applyTemplate(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
+                {ARENA_CHALLENGE_TEMPLATES.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="grid gap-1 text-sm text-subtle">
               挑战任务
               <select value={taskId} onChange={(event) => setTaskId(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
@@ -137,6 +240,64 @@ export function TeacherArenaConfig() {
               <input type="checkbox" checked={homeworkBinding} onChange={(event) => setHomeworkBinding(event.target.checked)} />
               绑定为作业挑战
             </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-1 text-sm text-subtle">
+                目标信号
+                <input value={targetSignal} onChange={(event) => setTargetSignal(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                扰动
+                <input value={disturbance} onChange={(event) => setDisturbance(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                初始条件
+                <input value={initialCondition} onChange={(event) => setInitialCondition(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                埋点级别
+                <select value={telemetryLevel} onChange={(event) => setTelemetryLevel(event.target.value as ArenaTelemetryLevel)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
+                  <option value="L0">L0</option>
+                  <option value="L1">L1</option>
+                  <option value="L2">L2</option>
+                  <option value="L3">L3</option>
+                </select>
+              </label>
+            </div>
+            <div className="rounded-lg border border-border/70 bg-card/55 p-3">
+              <p className="text-sm text-subtle">允许控制器类型</p>
+              <div className="mt-2 flex flex-wrap gap-3 text-sm text-foreground">
+                {(selectedTask?.allowedMethods ?? []).map((method) => (
+                  <label key={method} className="inline-flex items-center gap-2">
+                    <input type="checkbox" checked={allowedMethods.includes(method)} onChange={() => toggleAllowedMethod(method)} />
+                    {method}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-1 text-sm text-subtle">
+                硬约束
+                <textarea value={hardConstraintsText} onChange={(event) => setHardConstraintsText(event.target.value)} rows={3} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                评分指标权重
+                <textarea value={scoringMetricWeightsText} onChange={(event) => setScoringMetricWeightsText(event.target.value)} rows={3} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+            </div>
+            <div className="grid gap-2 text-sm text-subtle md:grid-cols-3">
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={paretoEnabled} onChange={(event) => setParetoEnabled(event.target.checked)} />
+                启用 Pareto 榜
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={hiddenTestEnabled} onChange={(event) => setHiddenTestEnabled(event.target.checked)} />
+                启用隐藏测试
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={publicLeaderboard} onChange={(event) => setPublicLeaderboard(event.target.checked)} />
+                公开榜单
+              </label>
+            </div>
             <button type="button" onClick={submitPreviewRequest} className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
               生成发布预览
             </button>
@@ -157,12 +318,29 @@ export function TeacherArenaConfig() {
                 <PreviewRow label="可见性" value={previewPublication.studentVisibility} />
                 <PreviewRow label="截止时间" value={previewPublication.deadline} />
                 <PreviewRow label="作业绑定" value={previewPublication.homeworkBinding ? '是' : '否'} />
+                <PreviewRow label="目标信号" value={previewPublication.targetSignal} />
+                <PreviewRow label="扰动设置" value={previewPublication.disturbance} />
+                <PreviewRow label="初始条件" value={previewPublication.initialCondition} />
+                <PreviewRow label="控制器类型" value={previewPublication.allowedMethods.join(', ')} />
+                <PreviewRow label="硬约束" value={previewPublication.hardConstraints.join(', ')} />
+                <PreviewRow label="指标权重" value={formatMetricWeights(previewPublication.scoringMetricWeights)} />
+                <PreviewRow label="Pareto 榜" value={previewPublication.paretoEnabled ? '启用' : '关闭'} />
+                <PreviewRow label="隐藏测试" value={previewPublication.hiddenTestEnabled ? '启用' : '关闭'} />
+                <PreviewRow label="公开榜单" value={previewPublication.publicLeaderboard ? '启用' : '关闭'} />
+                <PreviewRow label="埋点级别" value={previewPublication.telemetryLevel} />
               </div>
             ) : (
               <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 当前任务、可见性、榜单或作业绑定组合不兼容。
               </div>
             )}
+          </div>
+
+          <div className="surface-card p-6">
+            <h2 className="text-lg font-semibold text-foreground">模板说明</h2>
+            <p className="mt-3 text-sm leading-6 text-subtle">
+              {selectedTemplate?.description ?? '当前模板不存在。'}
+            </p>
           </div>
 
           <div className="surface-card p-6">
@@ -182,6 +360,31 @@ export function TeacherArenaConfig() {
       </section>
     </main>
   );
+}
+
+function formatMetricWeights(weights: Record<string, number>) {
+  return Object.entries(weights)
+    .map(([metricId, weight]) => `${metricId}:${weight}`)
+    .join(' / ');
+}
+
+function parseListText(value: string) {
+  return value.split(/[,，/]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseMetricWeightsText(value: string) {
+  const entries = value.split('/')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [metricId, rawWeight] = item.split(':').map((part) => part.trim());
+      return [metricId, Number(rawWeight)] as const;
+    })
+    .filter(([metricId, weight]) => metricId && Number.isFinite(weight) && weight >= 0);
+
+  return Object.fromEntries(entries);
 }
 
 function PreviewRow({ label, value }: { label: string; value: string }) {

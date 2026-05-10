@@ -4,12 +4,35 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { createArenaChallengePublication } from '@/features/arena/teacher/configuration';
-import type { ArenaPublicationVisibility } from '@/features/arena/teacher/configuration';
+import type { ArenaPublicationVisibility, ArenaTelemetryLevel } from '@/features/arena/teacher/configuration';
+import type { ControllerMethod } from '@/features/arena/types';
 
 export const dynamic = 'force-dynamic';
 
 function parseVisibility(value: unknown): ArenaPublicationVisibility | null {
   return value === 'class' || value === 'course' || value === 'public' ? value : null;
+}
+
+function parseTelemetryLevel(value: unknown): ArenaTelemetryLevel | undefined {
+  return value === 'L0' || value === 'L1' || value === 'L2' || value === 'L3' ? value : undefined;
+}
+
+function parseStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  return items.length > 0 ? items : undefined;
+}
+
+function parseScoringMetricWeights(value: unknown): Record<string, number> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const weights = Object.entries(value as Record<string, unknown>)
+    .filter((entry): entry is [string, number] => (
+      entry[0].trim().length > 0
+      && typeof entry[1] === 'number'
+      && Number.isFinite(entry[1])
+      && entry[1] >= 0
+    ));
+  return weights.length > 0 ? Object.fromEntries(weights) : undefined;
 }
 
 export async function POST(request: Request) {
@@ -52,6 +75,17 @@ export async function POST(request: Request) {
       deadline: body.deadline,
       leaderboardPolicyId: body.leaderboardPolicyId,
       homeworkBinding: body.homeworkBinding === true,
+      templateId: typeof body.templateId === 'string' ? body.templateId : undefined,
+      targetSignal: typeof body.targetSignal === 'string' ? body.targetSignal : undefined,
+      disturbance: typeof body.disturbance === 'string' ? body.disturbance : undefined,
+      initialCondition: typeof body.initialCondition === 'string' ? body.initialCondition : undefined,
+      allowedMethods: parseStringArray(body.allowedMethods) as ControllerMethod[] | undefined,
+      hardConstraints: parseStringArray(body.hardConstraints),
+      scoringMetricWeights: parseScoringMetricWeights(body.scoringMetricWeights),
+      paretoEnabled: typeof body.paretoEnabled === 'boolean' ? body.paretoEnabled : undefined,
+      hiddenTestEnabled: typeof body.hiddenTestEnabled === 'boolean' ? body.hiddenTestEnabled : undefined,
+      publicLeaderboard: typeof body.publicLeaderboard === 'boolean' ? body.publicLeaderboard : undefined,
+      telemetryLevel: parseTelemetryLevel(body.telemetryLevel),
     });
 
     return NextResponse.json({ publication });
