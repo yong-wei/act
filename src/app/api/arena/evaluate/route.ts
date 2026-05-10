@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/experiment-service';
 import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import type { ControllerArtifact } from '@/features/arena/types';
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       studentLabel: session.user.name ?? '匿名学生',
       submittedAt: new Date().toISOString(),
       store: prismaArenaSubmissionStore,
+      blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
     });
 
     return NextResponse.json({ submission });

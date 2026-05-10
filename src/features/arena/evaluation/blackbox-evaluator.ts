@@ -9,6 +9,8 @@ import { clampScore, normalizeMetricValue, scoreMetricSatisfaction } from './sco
 
 interface BlackBoxSummary {
   representation: string | undefined;
+  experimentDatasetHash: string | undefined;
+  identificationModelId: string | undefined;
   claimedIdentificationQuality: number | undefined;
   experimentCount: number | undefined;
   controllerGain: number | undefined;
@@ -34,6 +36,12 @@ function summarizeBlackBoxArtifact(artifact: ControllerArtifact): BlackBoxSummar
   const representation = typeof artifact.params.representation === 'string'
     ? artifact.params.representation
     : undefined;
+  const experimentDatasetHash = typeof artifact.params.experimentDatasetHash === 'string'
+    ? artifact.params.experimentDatasetHash
+    : undefined;
+  const identificationModelId = typeof artifact.params.identificationModelId === 'string'
+    ? artifact.params.identificationModelId
+    : undefined;
   const claimedIdentificationQuality = numberParam(artifact, 'identificationQuality');
   const experimentCount = numberParam(artifact, 'experimentCount');
   const controllerGain = numberParam(artifact, 'controllerGain');
@@ -43,6 +51,10 @@ function summarizeBlackBoxArtifact(artifact: ControllerArtifact): BlackBoxSummar
     representation !== 'identified-model-controller'
       ? 'representation 必须是 identified-model-controller。'
       : undefined,
+    !experimentDatasetHash?.startsWith('arena-blackbox-dataset-')
+      ? 'experimentDatasetHash 必须来自黑箱实验数据集。'
+      : undefined,
+    !identificationModelId?.trim() ? 'identificationModelId 不能为空。' : undefined,
     claimedIdentificationQuality === undefined ? 'identificationQuality 必须是有限数字。' : undefined,
     experimentCount === undefined ? 'experimentCount 必须是有限数字。' : undefined,
     controllerGain === undefined ? 'controllerGain 必须是有限数字。' : undefined,
@@ -73,6 +85,8 @@ function summarizeBlackBoxArtifact(artifact: ControllerArtifact): BlackBoxSummar
 
   return {
     representation,
+    experimentDatasetHash,
+    identificationModelId,
     claimedIdentificationQuality,
     experimentCount,
     controllerGain,

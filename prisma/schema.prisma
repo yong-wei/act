@@ -108,6 +108,7 @@ model User {
   // Arena mode
   arenaControllerArtifacts ArenaControllerArtifact[]
   arenaSubmissions         ArenaSubmission[]
+  arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
 }
 
 model StudentProfile {
@@ -1161,6 +1162,22 @@ model ArenaSubmission {
   @@index([taskId, submittedAt])
   @@index([userId, submittedAt])
   @@index([artifactHash])
+}
+
+model ArenaBlackBoxExperiment {
+  id          String   @id @default(cuid())
+  userId      String
+  taskId      String
+  datasetHash String
+  signalType  String
+  payload     Json
+  budgetCost  Int
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, taskId, createdAt])
+  @@index([taskId, datasetHash])
 }
 
 // Student competency snapshot

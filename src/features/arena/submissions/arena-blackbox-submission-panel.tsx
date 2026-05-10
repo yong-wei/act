@@ -8,6 +8,22 @@ import type { ChallengeTask } from '../types';
 import { sendArenaCoreEvent } from '../telemetry';
 import { buildBlackBoxControlArtifactFromParams } from './blackbox-artifact-builder';
 import type { ArenaSubmissionRecord } from './submission-service';
+import type { ArenaBlackBoxExperimentDataset, ArenaIdentificationArtifactReference } from '../blackbox/experiment';
+
+type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
+
+function buildClientIdentificationReference(
+  dataset: ExperimentDatasetResponse,
+): ArenaIdentificationArtifactReference {
+  return {
+    modelId: `arena-identification-${dataset.datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`,
+    taskId: dataset.taskId,
+    datasetHash: dataset.datasetHash,
+    modelType: 'second-order-fit',
+    validationFit: dataset.summary.dataQuality,
+    createdAt: new Date().toISOString(),
+  };
+}
 
 export function ArenaBlackBoxSubmissionPanel({
   task,
@@ -17,11 +33,17 @@ export function ArenaBlackBoxSubmissionPanel({
   initialSubmissions: ArenaSubmissionRecord[];
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
+  const [signalType, setSignalType] = useState('step');
+  const [amplitude, setAmplitude] = useState('0.8');
+  const [duration, setDuration] = useState('8');
+  const [sampleTime, setSampleTime] = useState('0.2');
   const [identificationQuality, setIdentificationQuality] = useState('0.82');
   const [experimentCount, setExperimentCount] = useState('6');
   const [controllerGain, setControllerGain] = useState('1.6');
   const [dampingCompensation, setDampingCompensation] = useState('0.72');
   const [energyBudget, setEnergyBudget] = useState('12');
+  const [latestDataset, setLatestDataset] = useState<ExperimentDatasetResponse | null>(null);
+  const [identificationModel, setIdentificationModel] = useState<ArenaIdentificationArtifactReference | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const latest = submissions[submissions.length - 1];
   const leaderboard = buildArenaLeaderboard(submissions, {
@@ -30,16 +52,79 @@ export function ArenaBlackBoxSubmissionPanel({
     method: task.leaderboardTypes.includes('method') ? 'black-box-control' : undefined,
   });
 
+  const runExperiment = async () => {
+    setStatus('正在运行黑箱实验...');
+    void sendArenaCoreEvent('arena_simulation_run', {
+      taskId: task.id,
+      signalType,
+    });
+
+    const response = await fetch('/api/arena/blackbox-experiments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        taskId: task.id,
+        experimentInput: {
+          signalType,
+          amplitude: Number(amplitude),
+          duration: Number(duration),
+          sampleTime: Number(sampleTime),
+          initialRoll: 0.05,
+          disturbanceLevel: 0.3,
+        },
+      }),
+    });
+    const payload = await response.json() as {
+      dataset?: ExperimentDatasetResponse;
+      budget?: { limit: number; used: number; remaining: number };
+      error?: string;
+    };
+
+    if (!response.ok || !payload.dataset || !payload.budget) {
+      setStatus(payload.error ?? '黑箱实验失败');
+      return;
+    }
+
+    setLatestDataset(payload.dataset);
+    setExperimentCount(String(payload.budget.used));
+    setIdentificationQuality(payload.dataset.summary.dataQuality.toFixed(2));
+    setIdentificationModel(null);
+    setStatus(`黑箱实验数据集已导入工作台，剩余预算 ${payload.budget.remaining}/${payload.budget.limit}。`);
+    void sendArenaCoreEvent('arena_virtual_simulation_import', {
+      taskId: task.id,
+      datasetHash: payload.dataset.datasetHash,
+      budgetRemaining: payload.budget.remaining,
+    });
+  };
+
   const saveIdentificationModel = () => {
+    if (!latestDataset) {
+      setStatus('请先运行黑箱实验并导入数据集。');
+      return;
+    }
+
+    const model = buildClientIdentificationReference(latestDataset);
+    setIdentificationModel(model);
     setStatus('辨识模型已保存为黑箱控制工件草稿。');
     void sendArenaCoreEvent('arena_identification_model_save', {
       taskId: task.id,
+      datasetHash: latestDataset.datasetHash,
+      identificationModelId: model.modelId,
       identificationQuality: Number(identificationQuality),
       experimentCount: Number(experimentCount),
     });
   };
 
   const submitController = async () => {
+    if (!latestDataset) {
+      setStatus('请先运行黑箱实验并导入数据集。');
+      return;
+    }
+    if (!identificationModel) {
+      setStatus('请先保存辨识模型。');
+      return;
+    }
+
     setStatus('正在提交黑箱官方评测...');
     let artifact;
     try {
@@ -52,6 +137,8 @@ export function ArenaBlackBoxSubmissionPanel({
           dampingCompensation,
           energyBudget,
         },
+        experimentDatasetHash: latestDataset.datasetHash,
+        identificationModelId: identificationModel.modelId,
       });
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '黑箱控制参数无效');
@@ -60,6 +147,8 @@ export function ArenaBlackBoxSubmissionPanel({
 
     void sendArenaCoreEvent('arena_identification_model_save', {
       taskId: task.id,
+      datasetHash: latestDataset.datasetHash,
+      identificationModelId: identificationModel.modelId,
       identificationQuality: Number(identificationQuality),
       experimentCount: Number(experimentCount),
     });
@@ -112,6 +201,39 @@ export function ArenaBlackBoxSubmissionPanel({
       <p className="mt-2 text-sm leading-6 text-subtle">
         这里提交的是基于实验数据形成的辨识模型与控制器参数，官方评测会在隐藏海况上复算。
       </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <label className="grid gap-1 text-xs text-subtle">
+          实验信号
+          <select
+            value={signalType}
+            onChange={(event) => setSignalType(event.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
+          >
+            <option value="step">阶跃</option>
+            <option value="impulse">脉冲</option>
+            <option value="prbs">PRBS</option>
+            <option value="sine">正弦</option>
+          </select>
+        </label>
+        <NumberInput label="幅值" value={amplitude} onChange={setAmplitude} />
+        <NumberInput label="实验时长" value={duration} onChange={setDuration} />
+        <NumberInput label="采样周期" value={sampleTime} onChange={setSampleTime} />
+      </div>
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={runExperiment}
+          className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm"
+        >
+          <Radar className="h-4 w-4" />
+          运行黑箱实验并导入数据集
+        </button>
+      </div>
+      {latestDataset ? (
+        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-xs text-subtle">
+          数据集 {latestDataset.datasetHash} · {latestDataset.samples.length} 个采样点 · 数据质量 {latestDataset.summary.dataQuality.toFixed(2)}
+        </div>
+      ) : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <NumberInput label="辨识质量" value={identificationQuality} onChange={setIdentificationQuality} />
         <NumberInput label="实验次数" value={experimentCount} onChange={setExperimentCount} />

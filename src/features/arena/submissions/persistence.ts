@@ -1,6 +1,7 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
+import type { ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
 import { hashControllerArtifact } from './artifact-hash';
 import type { ArenaSubmissionRecord } from './submission-service';
 
@@ -62,6 +63,43 @@ export interface CreatePersistedArenaSubmissionInput {
   studentLabel: string;
   submittedAt: string;
   store: ArenaSubmissionStore;
+  blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
+}
+
+function expectedIdentificationModelId(datasetHash: string): string {
+  return `arena-identification-${datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
+}
+
+async function assertBlackBoxExperimentOwnership(input: {
+  userId: string;
+  taskId: string;
+  artifact: ControllerArtifact;
+  blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
+}) {
+  if (input.artifact.method !== 'black-box-control') return;
+
+  const datasetHash = input.artifact.params.experimentDatasetHash;
+  const identificationModelId = input.artifact.params.identificationModelId;
+
+  if (typeof datasetHash !== 'string' || !datasetHash.startsWith('arena-blackbox-dataset-')) {
+    throw new ArenaSubmissionInputError('Black-box submissions must reference a persisted experiment dataset.');
+  }
+  if (typeof identificationModelId !== 'string' || identificationModelId !== expectedIdentificationModelId(datasetHash)) {
+    throw new ArenaSubmissionInputError('Black-box submissions must reference the identification model derived from the experiment dataset.');
+  }
+  if (!input.blackBoxExperimentStore) {
+    throw new ArenaSubmissionInputError('Black-box experiment ownership store is required.');
+  }
+
+  const experiment = await input.blackBoxExperimentStore.findOwnedExperiment({
+    userId: input.userId,
+    taskId: input.taskId,
+    datasetHash,
+  });
+
+  if (!experiment) {
+    throw new ArenaSubmissionInputError('Black-box experiment dataset does not belong to the current student.');
+  }
 }
 
 export async function createPersistedArenaSubmission(
@@ -70,6 +108,14 @@ export async function createPersistedArenaSubmission(
   const artifact = { ...input.artifact, taskId: input.taskId };
   const artifactHash = hashControllerArtifact(artifact);
   const protocolVersion = getArenaEvaluationProtocolVersion(input.taskId);
+
+  await assertBlackBoxExperimentOwnership({
+    userId: input.userId,
+    taskId: input.taskId,
+    artifact,
+    blackBoxExperimentStore: input.blackBoxExperimentStore,
+  });
+
   const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
   let evaluation: ArenaEvaluationResult;
   try {

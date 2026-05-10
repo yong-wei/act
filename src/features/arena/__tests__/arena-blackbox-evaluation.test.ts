@@ -6,6 +6,9 @@ import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../e
 import { buildBlackBoxControlArtifactFromParams } from '../submissions/blackbox-artifact-builder';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 
+const experimentDatasetHash = 'arena-blackbox-dataset-test1234567890';
+const identificationModelId = 'arena-identification-test12345678';
+
 describe('arena black-box identification evaluation', () => {
   it('builds black-box control artifacts from identification workspace parameters', () => {
     const artifact = buildBlackBoxControlArtifactFromParams({
@@ -17,6 +20,8 @@ describe('arena black-box identification evaluation', () => {
         dampingCompensation: '0.72',
         energyBudget: '12',
       },
+      experimentDatasetHash,
+      identificationModelId,
       now: '2026-05-11T09:00:00.000Z',
     });
 
@@ -25,6 +30,8 @@ describe('arena black-box identification evaluation', () => {
       method: 'black-box-control',
       params: {
         representation: 'identified-model-controller',
+        experimentDatasetHash,
+        identificationModelId,
         identificationQuality: 0.82,
         experimentCount: 6,
         controllerGain: 1.6,
@@ -45,6 +52,8 @@ describe('arena black-box identification evaluation', () => {
         dampingCompensation: '0.72',
         energyBudget: '12',
       },
+      experimentDatasetHash,
+      identificationModelId,
       now: '2026-05-11T09:00:00.000Z',
     })).toThrow('identificationQuality 必须是有限数字');
   });
@@ -59,6 +68,8 @@ describe('arena black-box identification evaluation', () => {
         dampingCompensation: '0.72',
         energyBudget: '12',
       },
+      experimentDatasetHash,
+      identificationModelId,
       now: '2026-05-11T09:00:00.000Z',
     });
 
@@ -84,6 +95,8 @@ describe('arena black-box identification evaluation', () => {
         method: 'black-box-control',
         params: {
           representation: 'identified-model-controller',
+          experimentDatasetHash,
+          identificationModelId,
           identificationQuality: 0.1,
           experimentCount: 6,
           controllerGain: 1.6,
@@ -101,6 +114,8 @@ describe('arena black-box identification evaluation', () => {
         method: 'black-box-control',
         params: {
           representation: 'identified-model-controller',
+          experimentDatasetHash,
+          identificationModelId,
           identificationQuality: 1,
           experimentCount: 6,
           controllerGain: 1.6,
@@ -124,6 +139,8 @@ describe('arena black-box identification evaluation', () => {
         method: 'black-box-control',
         params: {
           representation: 'identified-model-controller',
+          experimentDatasetHash,
+          identificationModelId,
           identificationQuality: 1,
           experimentCount: 99,
           controllerGain: 30,
@@ -155,6 +172,8 @@ describe('arena black-box identification evaluation', () => {
         dampingCompensation: '0.72',
         energyBudget: '12',
       },
+      experimentDatasetHash,
+      identificationModelId,
       now: '2026-05-11T09:00:00.000Z',
     });
     const store = {
@@ -162,6 +181,19 @@ describe('arena black-box identification evaluation', () => {
       createEvaluation: vi.fn(async (evaluation) => ({ ...evaluation, id: 'blackbox-eval-row' })),
       upsertArtifact: vi.fn(async (storedArtifact) => ({ ...storedArtifact, id: 'blackbox-artifact-row' })),
       createSubmission: vi.fn(async (submission) => ({ ...submission, id: 'blackbox-submission-row' })),
+    };
+    const blackBoxExperimentStore = {
+      findOwnedExperiment: vi.fn().mockResolvedValue({
+        id: 'blackbox-experiment-row',
+        userId: 'student-blackbox',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        datasetHash: experimentDatasetHash,
+        signalType: 'step',
+        dataset: { datasetHash: experimentDatasetHash },
+        budgetCost: 1,
+        createdAt: '2026-05-11T09:00:00.000Z',
+      }),
+      createExperimentWithinBudget: vi.fn(),
     };
 
     const submission = await createPersistedArenaSubmission({
@@ -171,6 +203,7 @@ describe('arena black-box identification evaluation', () => {
       studentLabel: '黑箱学生',
       submittedAt: '2026-05-11T09:01:00.000Z',
       store,
+      blackBoxExperimentStore,
     });
 
     expect(submission.evaluation.valid).toBe(true);
@@ -182,6 +215,48 @@ describe('arena black-box identification evaluation', () => {
     expect(store.createEvaluation).toHaveBeenCalledWith(expect.objectContaining({
       protocolVersion: 'blackbox-v1',
     }));
+    expect(blackBoxExperimentStore.findOwnedExperiment).toHaveBeenCalledWith({
+      userId: 'student-blackbox',
+      taskId: 'task-cruise-roll-blackbox-identification',
+      datasetHash: experimentDatasetHash,
+    });
+  });
+
+  it('rejects forged or cross-user black-box experiment dataset references before official evaluation', async () => {
+    const artifact = buildBlackBoxControlArtifactFromParams({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      values: {
+        identificationQuality: '0.82',
+        experimentCount: '6',
+        controllerGain: '1.6',
+        dampingCompensation: '0.72',
+        energyBudget: '12',
+      },
+      experimentDatasetHash: 'arena-blackbox-dataset-forged-not-persisted',
+      identificationModelId: 'arena-identification-forged-not-p',
+      now: '2026-05-11T09:00:00.000Z',
+    });
+    const store = {
+      findEvaluationByHash: vi.fn(),
+      createEvaluation: vi.fn(),
+      upsertArtifact: vi.fn(),
+      createSubmission: vi.fn(),
+    };
+    const blackBoxExperimentStore = {
+      findOwnedExperiment: vi.fn().mockResolvedValue(null),
+      createExperimentWithinBudget: vi.fn(),
+    };
+
+    await expect(createPersistedArenaSubmission({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      artifact,
+      userId: 'student-blackbox',
+      studentLabel: '黑箱学生',
+      submittedAt: '2026-05-11T09:01:00.000Z',
+      store,
+      blackBoxExperimentStore,
+    })).rejects.toThrow('Black-box experiment dataset does not belong to the current student');
+    expect(store.findEvaluationByHash).not.toHaveBeenCalled();
   });
 
   it('mounts black-box submission UI and sends identification model telemetry', () => {
@@ -196,6 +271,8 @@ describe('arena black-box identification evaluation', () => {
 
     expect(detailSource).toContain('<ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />');
     expect(panelSource).toContain('buildBlackBoxControlArtifactFromParams');
+    expect(panelSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
+    expect(panelSource).toContain('identificationModelId: identificationModel.modelId');
     expect(panelSource).toContain("'arena_identification_model_save'");
     expect(panelSource).toContain("'arena_controller_save'");
     expect(panelSource).toContain("'arena_submit'");

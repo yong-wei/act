@@ -18,6 +18,10 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: { marker: 'store' },
 }));
 
+vi.mock('@/features/arena/blackbox/experiment-service', () => ({
+  prismaArenaBlackBoxExperimentStore: { marker: 'blackbox-store' },
+}));
+
 import { POST } from '../route';
 import type { ControllerArtifact } from '@/features/arena/types';
 
@@ -117,6 +121,7 @@ describe('POST /api/arena/evaluate', () => {
       userId: 'student-1',
       studentLabel: '学生甲',
       store: { marker: 'store' },
+      blackBoxExperimentStore: { marker: 'blackbox-store' },
     }));
   });
 

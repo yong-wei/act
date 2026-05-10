@@ -3,6 +3,8 @@ import type { ControllerArtifact } from '../types';
 export interface BuildBlackBoxControlArtifactInput {
   taskId: string;
   values: Record<string, string>;
+  experimentDatasetHash: string;
+  identificationModelId: string;
   now?: string;
 }
 
@@ -17,9 +19,18 @@ function numberValue(values: Record<string, string>, key: string): number {
 export function buildBlackBoxControlArtifactFromParams(
   input: BuildBlackBoxControlArtifactInput,
 ): ControllerArtifact {
+  if (!input.experimentDatasetHash.startsWith('arena-blackbox-dataset-')) {
+    throw new Error('experimentDatasetHash 必须来自黑箱实验数据集。');
+  }
+  if (!input.identificationModelId.trim()) {
+    throw new Error('identificationModelId 不能为空。');
+  }
+
   const createdAt = input.now ?? new Date().toISOString();
   const params: ControllerArtifact['params'] = {
     representation: 'identified-model-controller',
+    experimentDatasetHash: input.experimentDatasetHash,
+    identificationModelId: input.identificationModelId,
     identificationQuality: numberValue(input.values, 'identificationQuality'),
     experimentCount: numberValue(input.values, 'experimentCount'),
     controllerGain: numberValue(input.values, 'controllerGain'),
