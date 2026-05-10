@@ -2,10 +2,15 @@ import type { ChallengeTask, ControllerArtifact, ControllerMethod } from '../typ
 
 export type EvaluableControllerMethod = Extract<
   ControllerMethod,
-  'pid' | 'serial-compensator' | 'composite-compensation'
+  'pid' | 'serial-compensator' | 'composite-compensation' | 'mpc'
 >;
 
-const evaluableMethods: EvaluableControllerMethod[] = ['pid', 'serial-compensator', 'composite-compensation'];
+const evaluableMethods: EvaluableControllerMethod[] = [
+  'pid',
+  'serial-compensator',
+  'composite-compensation',
+  'mpc',
+];
 
 export interface BuildControllerArtifactInput {
   task: ChallengeTask;
@@ -42,13 +47,24 @@ export function buildControllerArtifactFromParams(input: BuildControllerArtifact
       zero: numberValue(input.values, 'zero'),
       pole: numberValue(input.values, 'pole'),
     };
-  } else {
+  } else if (input.method === 'composite-compensation') {
     params = {
       structure: 'prefilter-forward-local-feedback-disturbance',
       prefilterGain: numberValue(input.values, 'prefilterGain'),
       forwardGain: numberValue(input.values, 'forwardGain'),
       localFeedbackGain: numberValue(input.values, 'localFeedbackGain'),
       disturbanceCompensation: numberValue(input.values, 'disturbanceCompensation'),
+    };
+  } else {
+    params = {
+      template: 'bounded-linear-mpc',
+      predictionHorizon: numberValue(input.values, 'predictionHorizon'),
+      controlHorizon: numberValue(input.values, 'controlHorizon'),
+      outputWeight: numberValue(input.values, 'outputWeight'),
+      controlWeight: numberValue(input.values, 'controlWeight'),
+      terminalWeight: numberValue(input.values, 'terminalWeight'),
+      inputLimit: numberValue(input.values, 'inputLimit'),
+      sampleTime: numberValue(input.values, 'sampleTime'),
     };
   }
 

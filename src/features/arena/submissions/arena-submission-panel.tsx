@@ -33,6 +33,13 @@ export function ArenaSubmissionPanel({
   const [forwardGain, setForwardGain] = useState('2.2');
   const [localFeedbackGain, setLocalFeedbackGain] = useState('0.7');
   const [disturbanceCompensation, setDisturbanceCompensation] = useState('0.4');
+  const [predictionHorizon, setPredictionHorizon] = useState('18');
+  const [controlHorizon, setControlHorizon] = useState('5');
+  const [outputWeight, setOutputWeight] = useState('1.4');
+  const [controlWeight, setControlWeight] = useState('0.32');
+  const [terminalWeight, setTerminalWeight] = useState('2');
+  const [inputLimit, setInputLimit] = useState('4.5');
+  const [sampleTime, setSampleTime] = useState('0.1');
   const [status, setStatus] = useState<string | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
   const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
@@ -74,6 +81,13 @@ export function ArenaSubmissionPanel({
           forwardGain,
           localFeedbackGain,
           disturbanceCompensation,
+          predictionHorizon,
+          controlHorizon,
+          outputWeight,
+          controlWeight,
+          terminalWeight,
+          inputLimit,
+          sampleTime,
         }),
       });
     } catch (error) {
@@ -205,6 +219,13 @@ export function ArenaSubmissionPanel({
           forwardGain,
           localFeedbackGain,
           disturbanceCompensation,
+          predictionHorizon,
+          controlHorizon,
+          outputWeight,
+          controlWeight,
+          terminalWeight,
+          inputLimit,
+          sampleTime,
         }}
         setters={{
           setKp,
@@ -217,6 +238,13 @@ export function ArenaSubmissionPanel({
           setForwardGain,
           setLocalFeedbackGain,
           setDisturbanceCompensation,
+          setPredictionHorizon,
+          setControlHorizon,
+          setOutputWeight,
+          setControlWeight,
+          setTerminalWeight,
+          setInputLimit,
+          setSampleTime,
         }}
       />
       <button
@@ -307,6 +335,13 @@ interface ControllerInputValues {
   forwardGain: string;
   localFeedbackGain: string;
   disturbanceCompensation: string;
+  predictionHorizon: string;
+  controlHorizon: string;
+  outputWeight: string;
+  controlWeight: string;
+  terminalWeight: string;
+  inputLimit: string;
+  sampleTime: string;
 }
 
 interface ControllerInputSetters {
@@ -320,6 +355,13 @@ interface ControllerInputSetters {
   setForwardGain: (value: string) => void;
   setLocalFeedbackGain: (value: string) => void;
   setDisturbanceCompensation: (value: string) => void;
+  setPredictionHorizon: (value: string) => void;
+  setControlHorizon: (value: string) => void;
+  setOutputWeight: (value: string) => void;
+  setControlWeight: (value: string) => void;
+  setTerminalWeight: (value: string) => void;
+  setInputLimit: (value: string) => void;
+  setSampleTime: (value: string) => void;
 }
 
 function controllerValues(
@@ -331,6 +373,17 @@ function controllerValues(
   }
   if (method === 'serial-compensator') {
     return { gain: values.gain, zero: values.zero, pole: values.pole };
+  }
+  if (method === 'mpc') {
+    return {
+      predictionHorizon: values.predictionHorizon,
+      controlHorizon: values.controlHorizon,
+      outputWeight: values.outputWeight,
+      controlWeight: values.controlWeight,
+      terminalWeight: values.terminalWeight,
+      inputLimit: values.inputLimit,
+      sampleTime: values.sampleTime,
+    };
   }
   return {
     prefilterGain: values.prefilterGain,
@@ -365,6 +418,20 @@ function ControllerParamInputs({
         <NumberInput label="Gain" value={values.gain} onChange={setters.setGain} />
         <NumberInput label="Zero" value={values.zero} onChange={setters.setZero} />
         <NumberInput label="Pole" value={values.pole} onChange={setters.setPole} />
+      </div>
+    );
+  }
+
+  if (method === 'mpc') {
+    return (
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <NumberInput label="Prediction horizon" value={values.predictionHorizon} onChange={setters.setPredictionHorizon} />
+        <NumberInput label="Control horizon" value={values.controlHorizon} onChange={setters.setControlHorizon} />
+        <NumberInput label="Output weight" value={values.outputWeight} onChange={setters.setOutputWeight} />
+        <NumberInput label="Control weight" value={values.controlWeight} onChange={setters.setControlWeight} />
+        <NumberInput label="Terminal weight" value={values.terminalWeight} onChange={setters.setTerminalWeight} />
+        <NumberInput label="Input limit" value={values.inputLimit} onChange={setters.setInputLimit} />
+        <NumberInput label="Sample time" value={values.sampleTime} onChange={setters.setSampleTime} />
       </div>
     );
   }

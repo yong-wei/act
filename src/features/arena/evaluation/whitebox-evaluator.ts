@@ -13,6 +13,7 @@ interface ControllerSummary {
   integral: number;
   derivative: number;
   shapeBoost: number;
+  robustnessBoost: number;
   causal: boolean;
   finite: boolean;
   nonNegative: boolean;
@@ -25,6 +26,20 @@ const COMPOSITE_LIMITS = {
   maxForwardGain: 20,
   maxLocalFeedbackGain: 10,
   maxDisturbanceCompensation: 5,
+};
+
+const MPC_LIMITS = {
+  minPredictionHorizon: 4,
+  maxPredictionHorizon: 60,
+  minControlHorizon: 1,
+  maxControlHorizon: 20,
+  maxOutputWeight: 20,
+  minControlWeight: 0.01,
+  maxControlWeight: 10,
+  maxTerminalWeight: 30,
+  maxInputLimit: 12,
+  minSampleTime: 0.02,
+  maxSampleTime: 1,
 };
 
 function numberParam(artifact: ControllerArtifact, key: string): number | undefined {
@@ -134,6 +149,7 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
       integral: safeKi,
       derivative: safeKd,
       shapeBoost: 1 + 0.2 * safeKd,
+      robustnessBoost: 1,
       causal: true,
       finite: values.every((value) => value !== undefined),
       nonNegative: [safeKp, safeKi, safeKd].every((value) => value >= 0),
@@ -168,6 +184,7 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
       integral: 0,
       derivative: Math.max(0, safePole - safeZero) / Math.max(safePole, 1),
       shapeBoost: 1 + Math.max(0, safePole - safeZero) / Math.max(safePole, 1),
+      robustnessBoost: 1 + Math.max(0, safePole - safeZero) / Math.max(safePole, 2),
       causal: validValues,
       finite: values.every((value) => value !== undefined),
       nonNegative: [safeGain, safeZero, safePole].every((value) => value >= 0),
@@ -227,6 +244,7 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
       shapeBoost: 1 +
         (safeLocalFeedbackGain / (1 + safeLocalFeedbackGain)) +
         0.2 * safeDisturbanceCompensation,
+      robustnessBoost: 1 + safeLocalFeedbackGain / (1 + safeLocalFeedbackGain),
       causal: validValues,
       finite: values.every((value) => value !== undefined),
       nonNegative: [
@@ -240,12 +258,113 @@ function summarizeController(artifact: ControllerArtifact, model: TransferFuncti
     };
   }
 
+  if (artifact.method === 'mpc') {
+    const template = artifact.params.template;
+    const predictionHorizon = numberParam(artifact, 'predictionHorizon');
+    const controlHorizon = numberParam(artifact, 'controlHorizon');
+    const outputWeight = numberParam(artifact, 'outputWeight');
+    const controlWeight = numberParam(artifact, 'controlWeight');
+    const terminalWeight = numberParam(artifact, 'terminalWeight');
+    const inputLimit = numberParam(artifact, 'inputLimit');
+    const sampleTime = numberParam(artifact, 'sampleTime');
+    const values = [
+      predictionHorizon,
+      controlHorizon,
+      outputWeight,
+      controlWeight,
+      terminalWeight,
+      inputLimit,
+      sampleTime,
+    ];
+    const integerPrediction = predictionHorizon !== undefined && Number.isInteger(predictionHorizon);
+    const integerControl = controlHorizon !== undefined && Number.isInteger(controlHorizon);
+    const validationErrors = [
+      template !== 'bounded-linear-mpc' ? 'template 必须是 bounded-linear-mpc。' : undefined,
+      predictionHorizon === undefined ? 'predictionHorizon 必须是有限数字。' : undefined,
+      controlHorizon === undefined ? 'controlHorizon 必须是有限数字。' : undefined,
+      outputWeight === undefined ? 'outputWeight 必须是有限数字。' : undefined,
+      controlWeight === undefined ? 'controlWeight 必须是有限数字。' : undefined,
+      terminalWeight === undefined ? 'terminalWeight 必须是有限数字。' : undefined,
+      inputLimit === undefined ? 'inputLimit 必须是有限数字。' : undefined,
+      sampleTime === undefined ? 'sampleTime 必须是有限数字。' : undefined,
+      predictionHorizon !== undefined && !integerPrediction ? 'predictionHorizon 必须是整数。' : undefined,
+      controlHorizon !== undefined && !integerControl ? 'controlHorizon 必须是整数。' : undefined,
+      predictionHorizon !== undefined &&
+        (predictionHorizon < MPC_LIMITS.minPredictionHorizon || predictionHorizon > MPC_LIMITS.maxPredictionHorizon)
+        ? `predictionHorizon 必须在 ${MPC_LIMITS.minPredictionHorizon} 到 ${MPC_LIMITS.maxPredictionHorizon} 之间。`
+        : undefined,
+      controlHorizon !== undefined &&
+        (controlHorizon < MPC_LIMITS.minControlHorizon || controlHorizon > MPC_LIMITS.maxControlHorizon)
+        ? `controlHorizon 必须在 ${MPC_LIMITS.minControlHorizon} 到 ${MPC_LIMITS.maxControlHorizon} 之间。`
+        : undefined,
+      predictionHorizon !== undefined && controlHorizon !== undefined && controlHorizon > predictionHorizon
+        ? 'controlHorizon 不能超过 predictionHorizon。'
+        : undefined,
+      outputWeight !== undefined && (outputWeight <= 0 || outputWeight > MPC_LIMITS.maxOutputWeight)
+        ? `outputWeight 必须大于 0 且不超过 ${MPC_LIMITS.maxOutputWeight}。`
+        : undefined,
+      controlWeight !== undefined &&
+        (controlWeight < MPC_LIMITS.minControlWeight || controlWeight > MPC_LIMITS.maxControlWeight)
+        ? `controlWeight 必须在 ${MPC_LIMITS.minControlWeight} 到 ${MPC_LIMITS.maxControlWeight} 之间。`
+        : undefined,
+      terminalWeight !== undefined && (terminalWeight < 0 || terminalWeight > MPC_LIMITS.maxTerminalWeight)
+        ? `terminalWeight 必须在 0 到 ${MPC_LIMITS.maxTerminalWeight} 之间。`
+        : undefined,
+      inputLimit !== undefined && (inputLimit <= 0 || inputLimit > MPC_LIMITS.maxInputLimit)
+        ? `inputLimit 必须大于 0 且不超过 ${MPC_LIMITS.maxInputLimit}。`
+        : undefined,
+      sampleTime !== undefined && (sampleTime < MPC_LIMITS.minSampleTime || sampleTime > MPC_LIMITS.maxSampleTime)
+        ? `sampleTime 必须在 ${MPC_LIMITS.minSampleTime} 到 ${MPC_LIMITS.maxSampleTime} 之间。`
+        : undefined,
+    ].filter(Boolean) as string[];
+    const validValues = validationErrors.length === 0;
+    const safePredictionHorizon = predictionHorizon ?? 0;
+    const safeControlHorizon = controlHorizon ?? 0;
+    const safeOutputWeight = outputWeight ?? 0;
+    const safeControlWeight = controlWeight ?? 0;
+    const safeTerminalWeight = terminalWeight ?? 0;
+    const safeInputLimit = inputLimit ?? 0;
+    const horizonRatio = safePredictionHorizon > 0 ? safeControlHorizon / safePredictionHorizon : 0;
+    const loopGain = dcGain(model) *
+      safeOutputWeight *
+      (1 + 0.08 * safeTerminalWeight) *
+      (0.8 + 1.7 * horizonRatio) /
+      (1 + 1.4 * safeControlWeight);
+    const dampingShape = 1 +
+      0.2 * Math.log1p(safePredictionHorizon) +
+      0.12 * Math.log1p(safeTerminalWeight) +
+      0.05 * safeInputLimit;
+
+    return {
+      effectiveGain: loopGain,
+      proportional: safeOutputWeight,
+      integral: 0.2 * safeTerminalWeight,
+      derivative: Math.max(0, horizonRatio),
+      shapeBoost: dampingShape,
+      robustnessBoost: 1 + 0.12 * Math.log1p(safePredictionHorizon) + 0.08 * Math.log1p(safeInputLimit),
+      causal: validValues,
+      finite: values.every((value) => value !== undefined),
+      nonNegative: [
+        safePredictionHorizon,
+        safeControlHorizon,
+        safeOutputWeight,
+        safeControlWeight,
+        safeTerminalWeight,
+        safeInputLimit,
+        sampleTime ?? 0,
+      ].every((value) => value >= 0),
+      closedLoopStable: validValues && closedLoopStable(model, [Math.max(loopGain, 0.001)], [1]),
+      validationErrors,
+    };
+  }
+
   return {
     effectiveGain: 0,
     proportional: 0,
     integral: 0,
     derivative: 0,
     shapeBoost: 1,
+    robustnessBoost: 1,
     causal: false,
     finite: false,
     nonNegative: false,
@@ -265,8 +384,11 @@ function evaluateHardConstraints(
   const controlEnergyLimit = metricProfile.rankingMetrics.find((metric) => metric.id === 'controlEnergy')?.unacceptableValue ?? 24;
   const controlNotSaturated = (metrics.controlEnergy ?? Number.POSITIVE_INFINITY) <= controlEnergyLimit;
   const controlConstraintPassed = !object.tags.includes('频域约束') || controlNotSaturated;
+  const hiddenScenarioLimit = metricProfile.rankingMetrics.find((metric) => metric.id === 'hiddenScenarioWorst')?.unacceptableValue;
+  const hiddenScenarioPassed = hiddenScenarioLimit === undefined ||
+    (metrics.hiddenScenarioWorst ?? Number.POSITIVE_INFINITY) <= hiddenScenarioLimit;
 
-  return [
+  const results: HardConstraintResult[] = [
     {
       id: 'closed_loop_stable',
       label: '闭环稳定',
@@ -292,6 +414,17 @@ function evaluateHardConstraints(
       reason: controlConstraintPassed ? undefined : `控制能量超过不可接受值 ${controlEnergyLimit}。`,
     },
   ];
+
+  if (metricProfile.hardConstraints.includes('hidden_scenarios_passed')) {
+    results.push({
+      id: 'hidden_scenarios_passed',
+      label: '隐藏场景通过',
+      passed: hiddenScenarioPassed,
+      reason: hiddenScenarioPassed ? undefined : `隐藏场景最差表现超过不可接受值 ${hiddenScenarioLimit}。`,
+    });
+  }
+
+  return results;
 }
 
 function estimateMetrics(model: TransferFunctionModel, controller: ControllerSummary): Record<string, number> {
@@ -303,6 +436,7 @@ function estimateMetrics(model: TransferFunctionModel, controller: ControllerSum
       itae: 0,
       controlEnergy: 0,
       comfortBandPeak: 0,
+      hiddenScenarioWorst: 0,
     };
   }
   const gain = Math.max(0.05, controller.effectiveGain);
@@ -315,6 +449,11 @@ function estimateMetrics(model: TransferFunctionModel, controller: ControllerSum
   const itae = settlingTime * (0.55 + steadyStateError) + overshoot / 18;
   const controlEnergy = gain * (1 + 0.4 * controller.derivative + 0.2 * integralBoost);
   const comfortBandPeak = Math.max(0.1, overshoot / 11 + controlEnergy / 18);
+  const hiddenScenarioWorst = Math.max(
+    0.08,
+    ((settlingTime / 5) + (overshoot / 34) + (controlEnergy / 18)) /
+      Math.max(controller.robustnessBoost, 0.5),
+  );
 
   const round = (value: number, scale: number) => (Number.isFinite(value) ? Math.round(value * scale) / scale : 0);
 
@@ -325,6 +464,7 @@ function estimateMetrics(model: TransferFunctionModel, controller: ControllerSum
     itae: round(itae, 1000),
     controlEnergy: round(controlEnergy, 1000),
     comfortBandPeak: round(comfortBandPeak, 1000),
+    hiddenScenarioWorst: round(hiddenScenarioWorst, 1000),
   };
 }
 

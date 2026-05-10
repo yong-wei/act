@@ -93,4 +93,15 @@ describe('arena domain model', () => {
     expect(blackBoxTask?.workspaceMode).toBe('black-box-identification');
     expect(blackBoxTask?.allowedMethods).toContain('black-box-control');
   });
+
+  it('defines a bounded MPC advanced-method task with hidden scenario ranking', () => {
+    const mpcTask = getArenaChallengeTask('task-ship-roll-mpc-hidden-scenarios');
+
+    expect(mpcTask?.allowedMethods).toEqual(['mpc']);
+    expect(mpcTask?.workspaceMode).toBe('predictive-control');
+    expect(mpcTask?.leaderboardTypes).toContain('method');
+    expect(mpcTask?.primaryMetrics).toContain('hiddenScenarioWorst');
+    expect(ARENA_METRIC_PROFILES.find((profile) => profile.id === mpcTask?.metricProfileId)?.hardConstraints)
+      .toContain('hidden_scenarios_passed');
+  });
 });

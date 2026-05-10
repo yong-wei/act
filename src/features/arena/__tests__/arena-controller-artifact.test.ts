@@ -33,6 +33,15 @@ const compositeTask: ChallengeTask = {
   workspaceMode: 'block-diagram-workbench',
 };
 
+const mpcTask: ChallengeTask = {
+  ...baseTask,
+  id: 'task-ship-roll-mpc-hidden-scenarios',
+  objectId: 'plant-ship-roll-whitebox',
+  allowedMethods: ['mpc'],
+  workspaceMode: 'predictive-control',
+  primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
+};
+
 describe('arena controller artifact builder', () => {
   it('builds PID controller artifacts from string inputs', () => {
     const artifact = buildControllerArtifactFromParams({
@@ -114,11 +123,61 @@ describe('arena controller artifact builder', () => {
     })).toThrow('forwardGain 必须是有限数字');
   });
 
+  it('builds parameterized MPC artifacts from template inputs', () => {
+    const artifact = buildControllerArtifactFromParams({
+      task: mpcTask,
+      method: 'mpc',
+      values: {
+        predictionHorizon: '18',
+        controlHorizon: '5',
+        outputWeight: '1.4',
+        controlWeight: '0.32',
+        terminalWeight: '2',
+        inputLimit: '4.5',
+        sampleTime: '0.1',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    });
+
+    expect(artifact).toMatchObject({
+      taskId: mpcTask.id,
+      method: 'mpc',
+      params: {
+        template: 'bounded-linear-mpc',
+        predictionHorizon: 18,
+        controlHorizon: 5,
+        outputWeight: 1.4,
+        controlWeight: 0.32,
+        terminalWeight: 2,
+        inputLimit: 4.5,
+        sampleTime: 0.1,
+      },
+    });
+  });
+
+  it('rejects malformed MPC template parameters before official evaluation', () => {
+    expect(() => buildControllerArtifactFromParams({
+      task: mpcTask,
+      method: 'mpc',
+      values: {
+        predictionHorizon: '18',
+        controlHorizon: 'bad',
+        outputWeight: '1.4',
+        controlWeight: '0.32',
+        terminalWeight: '2',
+        inputLimit: '4.5',
+        sampleTime: '0.1',
+      },
+      now: '2026-05-10T10:00:00.000Z',
+    })).toThrow('controlHorizon 必须是有限数字');
+  });
+
   it('only exposes methods supported by the current official evaluator', () => {
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['composite-compensation', 'serial-compensator'],
     })).toEqual(['serial-compensator', 'composite-compensation']);
+    expect(getEvaluableControllerMethods(mpcTask)).toEqual(['mpc']);
     expect(getEvaluableControllerMethods({
       ...baseTask,
       allowedMethods: ['black-box-control'],
@@ -139,6 +198,8 @@ describe('arena controller artifact builder', () => {
     expect(source).toContain("'arena_evaluation_complete'");
     expect(source).toContain('prefilterGain');
     expect(source).toContain('disturbanceCompensation');
+    expect(source).toContain('predictionHorizon');
+    expect(source).toContain('controlWeight');
     expect(source).toContain('JSON.stringify({ taskId: task.id, artifact })');
     expect(source).not.toContain('提交 PID 控制器');
   });

@@ -45,7 +45,10 @@ describe('arena task filtering', () => {
       query: '横摇 舒适度',
     });
 
-    expect(result.map((task) => task.id)).toEqual(['task-ship-roll-comfort']);
+    expect(result.map((task) => task.id)).toEqual([
+      'task-ship-roll-comfort',
+      'task-ship-roll-mpc-hidden-scenarios',
+    ]);
   });
 
   it('filters black-box virtual simulation and control odyssey tasks by source and method', () => {

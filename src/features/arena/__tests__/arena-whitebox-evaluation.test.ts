@@ -171,6 +171,60 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('disturbanceCompensation 不能超过 5');
   });
 
+  it('evaluates bounded MPC templates with hidden scenario metrics', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-mpc-hidden-scenarios',
+      artifact: {
+        id: 'artifact-mpc-good',
+        taskId: 'task-ship-roll-mpc-hidden-scenarios',
+        method: 'mpc',
+        params: {
+          template: 'bounded-linear-mpc',
+          predictionHorizon: 18,
+          controlHorizon: 5,
+          outputWeight: 1.4,
+          controlWeight: 0.32,
+          terminalWeight: 2,
+          inputLimit: 4.5,
+          sampleTime: 0.1,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.artifact.method).toBe('mpc');
+    expect(result.metrics.hiddenScenarioWorst).toBeGreaterThan(0);
+    expect(result.satisfaction.hiddenScenarioWorst).toBeGreaterThanOrEqual(0);
+    expect(result.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
+  });
+
+  it('rejects adversarial MPC templates before hidden-scenario ranking', () => {
+    const result = evaluateWhiteBoxSubmission({
+      taskId: 'task-ship-roll-mpc-hidden-scenarios',
+      artifact: {
+        id: 'artifact-mpc-adversarial',
+        taskId: 'task-ship-roll-mpc-hidden-scenarios',
+        method: 'mpc',
+        params: {
+          template: 'bounded-linear-mpc',
+          predictionHorizon: 2,
+          controlHorizon: 8,
+          outputWeight: 0,
+          controlWeight: 0.001,
+          terminalWeight: 0,
+          inputLimit: 30,
+          sampleTime: 0.001,
+        },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+    expect(result.explanation.join(' ')).toContain('predictionHorizon 必须在 4 到 60 之间');
+  });
+
   it('normalizes metric values and uses weighted geometric scoring', () => {
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 2)).toBe(1);
     expect(normalizeMetricValue({ direction: 'minimize', idealValue: 2, unacceptableValue: 8 }, 8)).toBe(0);

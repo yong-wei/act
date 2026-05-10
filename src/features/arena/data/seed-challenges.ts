@@ -181,6 +181,18 @@ export const ARENA_METRIC_PROFILES: MetricProfile[] = [
     ],
     diagnosticMetrics: ['identifiedModelFit', 'disturbanceRecovery', 'smoothness'],
   },
+  {
+    id: 'metric-mpc-hidden-scenario-balanced',
+    name: 'MPC 隐藏场景均衡评分',
+    hardConstraints: ['closed_loop_stable', 'finite_response', 'controller_causal', 'hidden_scenarios_passed'],
+    rankingMetrics: [
+      { id: 'hiddenScenarioWorst', label: '隐藏场景最差表现', direction: 'minimize', idealValue: 0.32, unacceptableValue: 2.4 },
+      { id: 'settlingTime', label: '调节时间', direction: 'minimize', idealValue: 3.2, unacceptableValue: 10, unit: 's' },
+      { id: 'controlEnergy', label: '控制能量', direction: 'minimize', idealValue: 4, unacceptableValue: 18 },
+      { id: 'overshoot', label: '超调量', direction: 'minimize', idealValue: 6, unacceptableValue: 30, unit: '%' },
+    ],
+    diagnosticMetrics: ['scenarioSpread', 'inputLimitUsage', 'sampleTime', 'solverTemplate'],
+  },
 ];
 
 export const ARENA_LEADERBOARD_POLICIES: LeaderboardPolicy[] = [
@@ -342,6 +354,22 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '结构练习任务',
     homeworkEligible: false,
     practiceMode: 'guided',
+  },
+  {
+    id: 'task-ship-roll-mpc-hidden-scenarios',
+    objectId: 'plant-ship-roll-whitebox',
+    title: '横摇对象 MPC 隐藏场景挑战',
+    goal: '使用固定参数化 MPC 模板，在公开白箱模型上兼顾舒适度、能耗和隐藏扰动场景表现。',
+    difficulty: '挑战',
+    allowedMethods: ['mpc'],
+    metricProfileId: 'metric-mpc-hidden-scenario-balanced',
+    leaderboardPolicyId: 'leaderboard-pareto-exploration',
+    leaderboardTypes: ['main', 'method', 'metric', 'pareto'],
+    primaryMetrics: ['hiddenScenarioWorst', 'settlingTime', 'controlEnergy', 'overshoot'],
+    workspaceMode: 'predictive-control',
+    homeworkPolicy: '研究型项目候选',
+    homeworkEligible: false,
+    practiceMode: 'project',
   },
 ];
 
