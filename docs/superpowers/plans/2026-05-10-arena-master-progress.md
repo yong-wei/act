@@ -27,6 +27,7 @@
 | K | Telemetry and analytics materialization | `docs/superpowers/plans/2026-05-10-arena-plan-k-telemetry-analytics.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `feat: add arena telemetry analytics` pushed |
 | L | Composite compensation submission and evaluation | `docs/superpowers/plans/2026-05-10-arena-plan-l-composite-compensation.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `1aa7645b` |
 | M | Black-box identification submission and evaluation | `docs/superpowers/plans/2026-05-11-arena-plan-m-blackbox-identification.md` | Complete | Targeted tests, lint, smoke, build, subagent review passed | `9f1ad1ca` |
+| N | Black-box experiment interface and dataset flow | `docs/superpowers/plans/2026-05-11-arena-plan-n-blackbox-experiment-interface.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | `a9b9edde` |
 
 ## Completion Gates
 
@@ -59,6 +60,7 @@
 - 2026-05-10: Plan L implemented fixed-structure composite compensation artifact building, submission-panel inputs, white-box evaluation, parameter bounds, adversarial anti-gaming coverage, and method leaderboard coverage. Independent subagent review found one blocker in the first scoring mapping; fixes were applied and re-review passed.
 - 2026-05-11: Plan M started to add a minimal black-box identification submission and official evaluation path for virtual simulation Arena tasks.
 - 2026-05-11: Plan M implemented black-box control artifacts, `blackbox-v1` official evaluation dispatch, black-box submission UI, identification-model telemetry, protocol-aware persisted submission reading, and valid-only official leaderboards. Independent subagent review found two medium issues and one low issue; fixes were applied and re-review passed. Implementation commit `9f1ad1ca` recorded.
+- 2026-05-11: Plan N replaced manual black-box experiment claims with a bounded experiment dataset interface, Prisma-persisted student-owned datasets, production `/api/arena/blackbox-experiments`, UI run/import/save/submit flow, and server-side dataset ownership checks before official evaluation. Independent subagent review found one high issue in forged dataset references; fixes were applied and re-review passed. Implementation commit `a9b9edde` recorded.
 
 ## Final Audit
 

@@ -10,6 +10,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 📅 **最后更新**：2026-05-11
 # 近期更新
 
+🧩 **竞技场黑箱实验接口与数据集闭环（2026-05-11）**：邮轮黑箱辨识任务已新增正式黑箱实验入口 `/api/arena/blackbox-experiments`，只允许学生通过会话身份生成本人任务下的输入输出数据集，并写入 `ArenaBlackBoxExperiment` 持久化表。实验接口返回采样数据、场景摘要、数据集 hash、预算消耗和剩余预算，不返回传递函数或隐藏模型；预算检查和写入在 Prisma 事务内完成。黑箱提交面板已改为“运行实验并导入数据集 -> 保存辨识模型 -> 提交官方评测”的路径，并发送 `arena_simulation_run`、`arena_virtual_simulation_import`、`arena_identification_model_save`、`arena_submit` 等核心事件。正式评测提交前会校验 `experimentDatasetHash` 属于当前学生，且 `identificationModelId` 由该数据集派生，伪造或跨用户数据集不会进入官方评测或榜单。当前已通过 Plan N 定向 Vitest、Prisma validate/generate、lint、smoke test、`npm run build`，并经同一子代理复审关闭 high。
+
 🧩 **竞技场黑箱辨识提交与官方评测（2026-05-11）**：邮轮黑箱辨识任务 `task-cruise-roll-blackbox-identification` 已从“只展示入口”推进为最小真实提交闭环。新增黑箱控制器工件构造器、`blackbox-v1` 官方评测分发、黑箱辨识提交面板和生产路径 `arena_identification_model_save` 事件发送；提交仍统一进入 `/api/arena/evaluate`、持久化为真实 `ArenaSubmission`，并按任务协议区分 `whitebox-v1 / blackbox-v1`。黑箱官方指标不信任客户端自报辨识质量，而由实验次数、控制增益、阻尼补偿和能耗预算推导；正式榜单只展示通过硬约束的有效提交，无效提交保留为反馈记录但不进入排名。当前已通过 Plan M 定向 Vitest、lint、smoke test、`npm run build`，并经同一子代理复审关闭两个 medium。
 
 🧩 **竞技场复合校正提交与白箱评测（2026-05-10）**：结构化补偿任务 `task-third-order-block-diagram` 的 `composite-compensation` 已从“任务允许但不可提交”升级为官方白箱评测器支持的真实提交方法。提交面板新增前置滤波、前向增益、局部反馈和扰动补偿四个参数，统一经 `controller-artifact-builder` 构造成固定参数化复合结构，不扩展为通用框图编辑器。白箱评测器为复合校正加入有限性、正负性、工程上界、闭环稳定性和控制量解释约束，补齐对抗性测试，防止高扰动补偿绕过硬约束刷榜；方法榜继续只消费真实 `ArenaSubmission`。当前已通过 Plan L 定向 Vitest、lint、smoke test、`npm run build`，并经同一子代理复审关闭 blocker。
