@@ -58,7 +58,7 @@ function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord
 }
 
 export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
-  listSubmissions(options?: { taskId?: string }): Promise<ArenaSubmissionRecord[]>;
+  listSubmissions(options?: { taskId?: string; taskIds?: string[]; userId?: string }): Promise<ArenaSubmissionRecord[]>;
 } = {
   async findEvaluationByHash(taskId, artifactHash, protocolVersion) {
     const row = await (prisma as any).arenaEvaluationRun.findUnique({
@@ -173,9 +173,15 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async listSubmissions(options) {
+    const taskFilter = options?.taskId
+      ? { taskId: options.taskId }
+      : options?.taskIds?.length
+        ? { taskId: { in: options.taskIds } }
+        : {};
     const rows = await (prisma as any).arenaSubmission.findMany({
       where: {
-        ...(options?.taskId ? { taskId: options.taskId } : {}),
+        ...taskFilter,
+        ...(options?.userId ? { userId: options.userId } : {}),
       },
       include: {
         controllerArtifact: true,

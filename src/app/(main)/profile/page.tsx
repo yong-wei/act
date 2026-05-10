@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
+import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 
 interface UserProfile {
   user: {
@@ -86,6 +87,7 @@ interface UserProfile {
       actionUrl: string;
     };
   };
+  arenaPortfolio: ArenaStudentPortfolio;
 }
 
 interface ActivityItemData {
@@ -176,6 +178,7 @@ export default function ProfilePage() {
     profile.missionProgress.total > 0
       ? (profile.missionProgress.completed / profile.missionProgress.total) * 100
       : 0;
+  const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
 
   return (
     <div className="surface-page">
@@ -290,6 +293,71 @@ export default function ProfilePage() {
                 />
                 <StatItem label="平均得分" value={profile.statistics.averageScore} unit="分" color="text-violet-500" />
               </div>
+            </div>
+
+            <div className="surface-card p-6">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-foreground">竞技场画像</h3>
+                <Link href="/arena" className="text-sm text-primary transition hover:text-primary/80">
+                  进入竞技场 →
+                </Link>
+              </div>
+
+              {profile.arenaPortfolio.submissionSummary.total === 0 ? (
+                <p className="mt-4 text-sm text-subtle">暂无竞技场提交记录。</p>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <ArenaStat label="控制器" value={profile.arenaPortfolio.controllerCount} />
+                    <ArenaStat label="辨识模型" value={profile.arenaPortfolio.identificationModels.length} />
+                    <ArenaStat label="有效提交" value={profile.arenaPortfolio.submissionSummary.valid} />
+                  </div>
+
+                  <div className="surface-card-soft p-4">
+                    <p className="text-xs text-subtle">最好榜单位置</p>
+                    {topArenaRank ? (
+                      <div className="mt-2">
+                        <p className="font-medium text-foreground">{topArenaRank.taskTitle}</p>
+                        <p className="mt-1 text-sm text-subtle">
+                          第 {topArenaRank.rank} 名 · {Math.round(topArenaRank.bestScore)} 分
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-subtle">尚无进入正式榜单的有效方案</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-subtle">常失败对象</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {profile.arenaPortfolio.frequentFailureObjects.length > 0 ? (
+                        profile.arenaPortfolio.frequentFailureObjects.map((object) => (
+                          <span key={object.objectId} className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300">
+                            {object.objectName} · {object.failureCount} 次
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-subtle">暂无明显失败对象</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-subtle">提升明显指标</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {profile.arenaPortfolio.improvingMetrics.length > 0 ? (
+                        profile.arenaPortfolio.improvingMetrics.map((metric) => (
+                          <span key={`${metric.taskId}-${metric.metricId}`} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-300">
+                            {metric.metricLabel} +{Math.round(metric.delta * 100)}%
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-subtle">暂无可判定的指标提升</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="surface-card p-6">
@@ -505,6 +573,15 @@ function StatItem({
       <span className={`font-semibold ${color}`}>
         {value} <span className="text-sm text-subtle">{unit}</span>
       </span>
+    </div>
+  );
+}
+
+function ArenaStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="surface-card-soft p-3 text-center">
+      <div className="text-2xl font-bold text-foreground">{value}</div>
+      <div className="mt-1 text-xs text-subtle">{label}</div>
     </div>
   );
 }

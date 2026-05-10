@@ -29,6 +29,8 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
+import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
+import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,6 +86,7 @@ export interface UserProfileResponse {
     resources: PersonalizedResourceCard[];
     adaptivePractice: AdaptivePracticeSummary;
   };
+  arenaPortfolio: ArenaStudentPortfolio;
 }
 
 function parseStringList(value: unknown): string[] {
@@ -235,6 +238,7 @@ export async function GET() {
       interactionLogs,
       learningFacts,
       studentStates,
+      userArenaSubmissions,
     ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
@@ -328,11 +332,17 @@ export async function GET() {
           submittedAt: true,
         },
       }),
+      prismaArenaSubmissionStore.listSubmissions({ userId }),
     ]);
 
     if (!user) {
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
+
+    const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));
+    const arenaPortfolioSubmissions = arenaTaskIds.length > 0
+      ? await prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })
+      : [];
 
     const sessionIds = Array.from(new Set(studentStates.map((item) => item.sessionId)));
     const classSessions =
@@ -510,6 +520,7 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
+      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
     };
 
     return NextResponse.json(response);
