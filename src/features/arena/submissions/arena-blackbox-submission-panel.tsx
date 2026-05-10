@@ -9,6 +9,7 @@ import { sendArenaCoreEvent } from '../telemetry';
 import { buildBlackBoxControlArtifactFromParams } from './blackbox-artifact-builder';
 import type { ArenaSubmissionRecord } from './submission-service';
 import type { ArenaBlackBoxExperimentDataset, ArenaIdentificationArtifactReference } from '../blackbox/experiment';
+import type { ArenaVirtualSimulationPreviewRun } from '../blackbox/controller-preview';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
 
@@ -44,6 +45,7 @@ export function ArenaBlackBoxSubmissionPanel({
   const [energyBudget, setEnergyBudget] = useState('12');
   const [latestDataset, setLatestDataset] = useState<ExperimentDatasetResponse | null>(null);
   const [identificationModel, setIdentificationModel] = useState<ArenaIdentificationArtifactReference | null>(null);
+  const [previewRun, setPreviewRun] = useState<(ArenaVirtualSimulationPreviewRun & { id: string }) | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const latest = submissions[submissions.length - 1];
   const leaderboard = buildArenaLeaderboard(submissions, {
@@ -89,6 +91,7 @@ export function ArenaBlackBoxSubmissionPanel({
     setExperimentCount(String(payload.budget.used));
     setIdentificationQuality(payload.dataset.summary.dataQuality.toFixed(2));
     setIdentificationModel(null);
+    setPreviewRun(null);
     setStatus(`黑箱实验数据集已导入工作台，剩余预算 ${payload.budget.remaining}/${payload.budget.limit}。`);
     void sendArenaCoreEvent('arena_virtual_simulation_import', {
       taskId: task.id,
@@ -115,31 +118,68 @@ export function ArenaBlackBoxSubmissionPanel({
     });
   };
 
-  const submitController = async () => {
+  const buildCurrentArtifact = () => {
     if (!latestDataset) {
-      setStatus('请先运行黑箱实验并导入数据集。');
-      return;
+      throw new Error('请先运行黑箱实验并导入数据集。');
     }
     if (!identificationModel) {
-      setStatus('请先保存辨识模型。');
+      throw new Error('请先保存辨识模型。');
+    }
+
+    return buildBlackBoxControlArtifactFromParams({
+      taskId: task.id,
+      values: {
+        identificationQuality,
+        experimentCount,
+        controllerGain,
+        dampingCompensation,
+        energyBudget,
+      },
+      experimentDatasetHash: latestDataset.datasetHash,
+      identificationModelId: identificationModel.modelId,
+    });
+  };
+
+  const applyControllerPreview = async () => {
+    setStatus('正在将控制器导入虚拟仿真预演...');
+    let artifact;
+    try {
+      artifact = buildCurrentArtifact();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '黑箱控制参数无效');
       return;
     }
 
+    void sendArenaCoreEvent('arena_simulation_run', {
+      taskId: task.id,
+      method: 'black-box-control',
+      previewMode: 'virtual-simulation-controller',
+    });
+
+    const response = await fetch('/api/arena/virtual-simulation-runs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: task.id, artifact }),
+    });
+    const payload = await response.json() as {
+      preview?: ArenaVirtualSimulationPreviewRun & { id: string };
+      error?: string;
+    };
+
+    if (!response.ok || !payload.preview) {
+      setStatus(payload.error ?? '虚拟仿真预演失败');
+      return;
+    }
+
+    setPreviewRun(payload.preview);
+    setStatus('虚拟仿真预演已完成，可对照摘要后提交官方评测。');
+  };
+
+  const submitController = async () => {
     setStatus('正在提交黑箱官方评测...');
     let artifact;
     try {
-      artifact = buildBlackBoxControlArtifactFromParams({
-        taskId: task.id,
-        values: {
-          identificationQuality,
-          experimentCount,
-          controllerGain,
-          dampingCompensation,
-          energyBudget,
-        },
-        experimentDatasetHash: latestDataset.datasetHash,
-        identificationModelId: identificationModel.modelId,
-      });
+      artifact = buildCurrentArtifact();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '黑箱控制参数无效');
       return;
@@ -147,8 +187,8 @@ export function ArenaBlackBoxSubmissionPanel({
 
     void sendArenaCoreEvent('arena_identification_model_save', {
       taskId: task.id,
-      datasetHash: latestDataset.datasetHash,
-      identificationModelId: identificationModel.modelId,
+      datasetHash: String(artifact.params.experimentDatasetHash),
+      identificationModelId: String(artifact.params.identificationModelId),
       identificationQuality: Number(identificationQuality),
       experimentCount: Number(experimentCount),
     });
@@ -241,7 +281,7 @@ export function ArenaBlackBoxSubmissionPanel({
         <NumberInput label="阻尼补偿" value={dampingCompensation} onChange={setDampingCompensation} />
         <NumberInput label="能耗预算" value={energyBudget} onChange={setEnergyBudget} />
       </div>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <button
           type="button"
           onClick={saveIdentificationModel}
@@ -249,6 +289,14 @@ export function ArenaBlackBoxSubmissionPanel({
         >
           <Save className="h-4 w-4" />
           保存辨识模型
+        </button>
+        <button
+          type="button"
+          onClick={applyControllerPreview}
+          className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm"
+        >
+          <Radar className="h-4 w-4" />
+          导入虚拟仿真预演
         </button>
         <button
           type="button"
@@ -260,6 +308,17 @@ export function ArenaBlackBoxSubmissionPanel({
         </button>
       </div>
       {status ? <div className="mt-3 text-xs text-subtle">{status}</div> : null}
+      {previewRun ? (
+        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-subtle">虚拟仿真预演</span>
+            <span className="font-semibold text-primary">误差 {previewRun.summary.trackingError.toFixed(3)}</span>
+          </div>
+          <div className="mt-2 text-xs text-subtle">
+            最大偏差 {previewRun.summary.maxDeviation.toFixed(3)} · 能耗 {previewRun.summary.controlEnergy.toFixed(2)} · 安全违反 {previewRun.summary.safetyViolations}
+          </div>
+        </div>
+      ) : null}
       {latest ? (
         <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
           <div className="flex items-center justify-between">

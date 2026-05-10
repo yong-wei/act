@@ -1,0 +1,242 @@
+import { Prisma } from '@prisma/client';
+
+import { prisma } from '@/lib/prisma';
+
+import type { ControllerArtifact } from '../types';
+import { hashControllerArtifact } from '../submissions/artifact-hash';
+import type {
+  ArenaBlackBoxExperimentStore,
+  StoredArenaBlackBoxExperiment,
+} from './experiment-service';
+
+export interface ArenaVirtualSimulationTracePoint {
+  t: number;
+  reference: number;
+  output: number;
+  control: number;
+}
+
+export interface ArenaVirtualSimulationPreviewRun {
+  taskId: string;
+  datasetHash: string;
+  controllerHash: string;
+  scenarioId: string;
+  trace: ArenaVirtualSimulationTracePoint[];
+  summary: {
+    trackingError: number;
+    maxDeviation: number;
+    controlEnergy: number;
+    safetyViolations: number;
+    smoothness: number;
+  };
+  createdAt: string;
+}
+
+export interface StoredArenaVirtualSimulationRun {
+  id: string;
+  userId: string;
+  taskId: string;
+  datasetHash: string;
+  controllerHash: string;
+  scenarioId: string;
+  preview: ArenaVirtualSimulationPreviewRun;
+  createdAt: string;
+}
+
+export interface ArenaVirtualSimulationRunStore {
+  createRun(input: Omit<StoredArenaVirtualSimulationRun, 'id'>): Promise<StoredArenaVirtualSimulationRun>;
+}
+
+export class ArenaVirtualSimulationRunInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ArenaVirtualSimulationRunInputError';
+  }
+}
+
+function round(value: number, scale = 1000): number {
+  return Math.round(value * scale) / scale;
+}
+
+function numberParam(artifact: ControllerArtifact, key: string): number {
+  const value = artifact.params[key];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new ArenaVirtualSimulationRunInputError(`${key} must be a finite number.`);
+  }
+  return value;
+}
+
+function expectedIdentificationModelId(datasetHash: string): string {
+  return `arena-identification-${datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
+}
+
+async function getOwnedExperiment(input: {
+  userId: string;
+  taskId: string;
+  artifact: ControllerArtifact;
+  blackBoxExperimentStore: ArenaBlackBoxExperimentStore;
+}): Promise<StoredArenaBlackBoxExperiment> {
+  if (input.artifact.method !== 'black-box-control') {
+    throw new ArenaVirtualSimulationRunInputError('Only black-box control artifacts can run virtual simulation preview.');
+  }
+
+  const datasetHash = input.artifact.params.experimentDatasetHash;
+  const identificationModelId = input.artifact.params.identificationModelId;
+
+  if (typeof datasetHash !== 'string' || !datasetHash.startsWith('arena-blackbox-dataset-')) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires a persisted experiment dataset.');
+  }
+  if (typeof identificationModelId !== 'string' || identificationModelId !== expectedIdentificationModelId(datasetHash)) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires the identification model derived from the experiment dataset.');
+  }
+
+  const experiment = await input.blackBoxExperimentStore.findOwnedExperiment({
+    userId: input.userId,
+    taskId: input.taskId,
+    datasetHash,
+  });
+
+  if (!experiment) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box experiment dataset does not belong to the current student.');
+  }
+
+  return experiment;
+}
+
+export function buildArenaVirtualSimulationPreview({
+  taskId,
+  artifact,
+  experiment,
+  now = new Date().toISOString(),
+}: {
+  taskId: string;
+  artifact: ControllerArtifact;
+  experiment: StoredArenaBlackBoxExperiment;
+  now?: string;
+}): ArenaVirtualSimulationPreviewRun {
+  const controllerGain = numberParam(artifact, 'controllerGain');
+  const dampingCompensation = numberParam(artifact, 'dampingCompensation');
+  const energyBudget = numberParam(artifact, 'energyBudget');
+  const controllerHash = hashControllerArtifact({ ...artifact, taskId });
+  const sampleTime = 0.2;
+  const trace: ArenaVirtualSimulationTracePoint[] = [];
+  let roll = experiment.dataset.summary.finalOutput || 0.2;
+  let rollRate = 0;
+  let previousControl = 0;
+  let controlEnergy = 0;
+  let controlDelta = 0;
+  let safetyViolations = 0;
+
+  for (let index = 0; index <= 60; index += 1) {
+    const t = round(index * sampleTime);
+    const reference = 0;
+    const wave = 0.06 * Math.sin(0.8 * t + 0.5) + 0.025 * Math.sin(2.3 * t);
+    const rawControl = -controllerGain * (roll - reference) - dampingCompensation * rollRate;
+    const limit = Math.max(0.5, Math.min(energyBudget / 3, 6));
+    const control = Math.max(-limit, Math.min(limit, rawControl));
+    const acceleration = -0.72 * rollRate - 1.18 * roll + 0.68 * control + wave;
+    rollRate += acceleration * sampleTime;
+    roll += rollRate * sampleTime;
+    controlEnergy += control * control * sampleTime;
+    controlDelta += Math.abs(control - previousControl);
+    previousControl = control;
+    if (Math.abs(roll) > 0.75) safetyViolations += 1;
+
+    trace.push({
+      t,
+      reference,
+      output: round(roll),
+      control: round(control),
+    });
+  }
+
+  const trackingError = trace.reduce((sum, point) => sum + Math.abs(point.output - point.reference), 0) / trace.length;
+  const maxDeviation = Math.max(...trace.map((point) => Math.abs(point.output - point.reference)));
+  const smoothness = Math.max(0, 1 - controlDelta / Math.max(1, trace.length * 2));
+
+  return {
+    taskId,
+    datasetHash: experiment.datasetHash,
+    controllerHash,
+    scenarioId: 'cruise-roll-controller-preview',
+    trace,
+    summary: {
+      trackingError: round(trackingError),
+      maxDeviation: round(maxDeviation),
+      controlEnergy: round(controlEnergy),
+      safetyViolations,
+      smoothness: round(smoothness),
+    },
+    createdAt: now,
+  };
+}
+
+export async function createArenaVirtualSimulationPreviewRun({
+  userId,
+  taskId,
+  artifact,
+  now = new Date().toISOString(),
+  blackBoxExperimentStore,
+  runStore,
+}: {
+  userId: string;
+  taskId: string;
+  artifact: ControllerArtifact;
+  now?: string;
+  blackBoxExperimentStore: ArenaBlackBoxExperimentStore;
+  runStore: ArenaVirtualSimulationRunStore;
+}): Promise<ArenaVirtualSimulationPreviewRun & { id: string }> {
+  const experiment = await getOwnedExperiment({
+    userId,
+    taskId,
+    artifact,
+    blackBoxExperimentStore,
+  });
+  const preview = buildArenaVirtualSimulationPreview({
+    taskId,
+    artifact,
+    experiment,
+    now,
+  });
+  const stored = await runStore.createRun({
+    userId,
+    taskId,
+    datasetHash: preview.datasetHash,
+    controllerHash: preview.controllerHash,
+    scenarioId: preview.scenarioId,
+    preview,
+    createdAt: now,
+  });
+
+  return {
+    ...stored.preview,
+    id: stored.id,
+  };
+}
+
+export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStore = {
+  async createRun(input) {
+    const row = await prisma.arenaVirtualSimulationRun.create({
+      data: {
+        userId: input.userId,
+        taskId: input.taskId,
+        datasetHash: input.datasetHash,
+        controllerHash: input.controllerHash,
+        scenarioId: input.scenarioId,
+        payload: input.preview as unknown as Prisma.InputJsonValue,
+        createdAt: new Date(input.createdAt),
+      },
+    });
+
+    return {
+      id: row.id,
+      userId: row.userId,
+      taskId: row.taskId,
+      datasetHash: row.datasetHash,
+      controllerHash: row.controllerHash,
+      scenarioId: row.scenarioId,
+      preview: row.payload as unknown as ArenaVirtualSimulationPreviewRun,
+      createdAt: row.createdAt.toISOString(),
+    };
+  },
+};

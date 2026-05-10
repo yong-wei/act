@@ -109,6 +109,7 @@ model User {
   arenaControllerArtifacts ArenaControllerArtifact[]
   arenaSubmissions         ArenaSubmission[]
   arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
+  arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
 }
 
 model StudentProfile {
@@ -1177,6 +1178,23 @@ model ArenaBlackBoxExperiment {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, taskId, createdAt])
+  @@index([taskId, datasetHash])
+}
+
+model ArenaVirtualSimulationRun {
+  id             String   @id @default(cuid())
+  userId         String
+  taskId         String
+  datasetHash    String
+  controllerHash String
+  scenarioId     String
+  payload        Json
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, taskId, createdAt])
+  @@index([taskId, controllerHash])
   @@index([taskId, datasetHash])
 }
 
