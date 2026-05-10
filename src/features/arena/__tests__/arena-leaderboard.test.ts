@@ -5,7 +5,7 @@ import { createArenaSubmission } from '../submissions/submission-service';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import { buildArenaTaskStats } from '../stats';
-import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent } from '../telemetry';
+import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent, buildArenaInteractionEvent } from '../telemetry';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import type { ControllerArtifact } from '../types';
 
@@ -400,8 +400,14 @@ describe('arena submissions and leaderboards', () => {
       'arena_challenge_open',
       'arena_workspace_start',
       'arena_simulation_run',
+      'arena_controller_save',
+      'arena_identification_model_save',
+      'arena_virtual_simulation_import',
       'arena_submit',
+      'arena_evaluation_complete',
+      'arena_result_view',
       'arena_leaderboard_view',
+      'arena_feedback_view',
     ]);
 
     expect(buildArenaCoreEvent('arena_submit', {
@@ -412,8 +418,31 @@ describe('arena submissions and leaderboards', () => {
       resourceKey: 'arena:task-second-order-lead-pid',
       priority: 'core',
     });
-    expect(isCoreEvent('arena_submit')).toBe(true);
-    expect(isCoreEvent('arena_leaderboard_view')).toBe(true);
+    for (const eventType of ARENA_CORE_EVENT_TYPES) {
+      expect(isCoreEvent(eventType)).toBe(true);
+    }
+
+    expect(buildArenaInteractionEvent('arena_evaluation_complete', {
+      taskId: 'task-second-order-lead-pid',
+      score: 88.6,
+      valid: true,
+      method: 'pid',
+      originPath: '/arena/challenges/task-second-order-lead-pid',
+    }, 1770000000000)).toMatchObject({
+      id: 'arena_evaluation_complete:task-second-order-lead-pid:1770000000000',
+      type: 'arena_evaluation_complete',
+      resourceKey: 'arena:task-second-order-lead-pid',
+      timestamp: 1770000000000,
+      data: {
+        eventType: 'arena_evaluation_complete',
+        taskId: 'task-second-order-lead-pid',
+        score: 88.6,
+        valid: true,
+        method: 'pid',
+        originPath: '/arena/challenges/task-second-order-lead-pid',
+        pageType: 'workspace',
+      },
+    });
   });
 
   it('reuses official evaluations from the persistence store instead of route-local memory', async () => {

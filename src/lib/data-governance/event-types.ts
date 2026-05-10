@@ -228,6 +228,112 @@ export const CORE_EVENTS: EventTypeMetadata[] = [
     },
   },
   {
+    eventType: 'arena_challenge_open',
+    category: 'navigation',
+    priority: 'core',
+    description: '打开竞技场挑战',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+      },
+      required: ['taskId'],
+    },
+    competencyMapping: {
+      selfDirectedLearning: 0.2,
+    },
+  },
+  {
+    eventType: 'arena_workspace_start',
+    category: 'design',
+    priority: 'core',
+    description: '开始竞技场工作台',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        workspaceMode: { type: 'string' },
+      },
+      required: ['taskId'],
+    },
+    competencyMapping: {
+      parameterDesign: 0.2,
+      selfDirectedLearning: 0.2,
+    },
+  },
+  {
+    eventType: 'arena_simulation_run',
+    category: 'simulation',
+    priority: 'core',
+    description: '运行竞技场仿真',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        method: { type: 'string' },
+      },
+      required: ['taskId'],
+    },
+    competencyMapping: {
+      parameterDesign: 0.4,
+      engineeringDecision: 0.2,
+    },
+  },
+  {
+    eventType: 'arena_controller_save',
+    category: 'design',
+    priority: 'core',
+    description: '保存竞技场控制器方案',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        method: { type: 'string' },
+      },
+      required: ['taskId', 'method'],
+    },
+    competencyMapping: {
+      parameterDesign: 0.5,
+      selfDirectedLearning: 0.2,
+    },
+  },
+  {
+    eventType: 'arena_identification_model_save',
+    category: 'design',
+    priority: 'core',
+    description: '保存竞技场辨识模型',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        identificationQuality: { type: 'number' },
+      },
+      required: ['taskId'],
+    },
+    competencyMapping: {
+      controlModeling: 0.6,
+      crossDomainTransfer: 0.4,
+    },
+  },
+  {
+    eventType: 'arena_virtual_simulation_import',
+    category: 'simulation',
+    priority: 'core',
+    description: '导入竞技场虚拟仿真对象',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        objectId: { type: 'string' },
+      },
+      required: ['taskId'],
+    },
+    competencyMapping: {
+      crossDomainTransfer: 0.4,
+      engineeringDecision: 0.3,
+    },
+  },
+  {
     eventType: 'arena_submit',
     category: 'assessment',
     priority: 'core',
@@ -249,12 +355,54 @@ export const CORE_EVENTS: EventTypeMetadata[] = [
     },
   },
   {
+    eventType: 'arena_evaluation_complete',
+    category: 'assessment',
+    priority: 'core',
+    description: '竞技场官方评测完成',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        score: { type: 'number' },
+        valid: { type: 'boolean' },
+        method: { type: 'string' },
+        metrics: { type: 'object' },
+      },
+      required: ['taskId', 'score', 'valid'],
+    },
+    competencyMapping: {
+      parameterDesign: 0.9,
+      engineeringDecision: 0.6,
+      selfDirectedLearning: 0.3,
+    },
+  },
+  {
+    eventType: 'arena_result_view',
+    category: 'interaction',
+    priority: 'core',
+    description: '查看竞技场成绩',
+    competencyMapping: {
+      inquiryReflection: 0.2,
+      selfDirectedLearning: 0.2,
+    },
+  },
+  {
     eventType: 'arena_leaderboard_view',
     category: 'interaction',
     priority: 'core',
     description: '查看竞技场排行榜',
     competencyMapping: {
       inquiryReflection: 0.2,
+      selfDirectedLearning: 0.2,
+    },
+  },
+  {
+    eventType: 'arena_feedback_view',
+    category: 'interaction',
+    priority: 'core',
+    description: '查看竞技场反馈',
+    competencyMapping: {
+      inquiryReflection: 0.3,
       selfDirectedLearning: 0.2,
     },
   },

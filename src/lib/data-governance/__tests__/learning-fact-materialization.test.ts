@@ -154,4 +154,53 @@ describe('eventToLearningFactInput', () => {
 
     expect(fact).toBeNull();
   });
+
+  it('materializes Arena official evaluation completion as a design fact', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'arena-evaluation-001',
+      actionType: 'arena_evaluation_complete',
+      pagePath: '/arena/task-second-order-lead-pid',
+      pageType: 'workspace',
+      payload: {
+        eventType: 'arena_evaluation_complete',
+        taskId: 'task-second-order-lead-pid',
+        score: 91,
+        valid: true,
+        method: 'pid',
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'arena-evaluation-001',
+      factType: 'design',
+      outcome: 'success',
+      score: 91,
+    });
+    expect(fact?.competencyContribution).toMatchObject({
+      parameterDesign: 0.9,
+      engineeringDecision: 0.6,
+      selfDirectedLearning: 0.3,
+    });
+  });
+
+  it('does not materialize Arena open and view events as competency facts', () => {
+    for (const eventType of [
+      'arena_challenge_open',
+      'arena_workspace_start',
+      'arena_result_view',
+      'arena_leaderboard_view',
+      'arena_feedback_view',
+    ]) {
+      expect(eventToLearningFactInput(createEvent({
+        eventId: `${eventType}-001`,
+        actionType: eventType,
+        pagePath: '/arena/task-second-order-lead-pid',
+        pageType: 'workspace',
+        payload: {
+          eventType,
+          taskId: 'task-second-order-lead-pid',
+        },
+      }))).toBeNull();
+    }
+  });
 });

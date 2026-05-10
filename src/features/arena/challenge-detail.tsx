@@ -7,6 +7,7 @@ import { buildArenaTaskStats } from './stats';
 import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
 import { getArenaWorkspaceHref } from './workspace-routing';
 import { getEvaluableControllerMethods } from './submissions/controller-artifact-builder';
+import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-client';
 
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'serial-compensator': '串联校正',
@@ -49,6 +50,7 @@ export function ChallengeDetail({
 
   return (
     <main className="surface-page min-h-screen">
+      <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
       <header className="surface-topbar">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
           <Link href="/arena" className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
@@ -132,13 +134,14 @@ export function ChallengeDetail({
                   </span>
                 ))}
               </div>
-              <Link
+              <ArenaWorkspaceLink
                 href={workspaceHref}
+                task={task}
                 className="cta-primary mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
               >
                 进入工作台
                 <ArrowUpRight className="h-4 w-4" />
-              </Link>
+              </ArenaWorkspaceLink>
             </div>
 
             <div className="surface-card p-6">

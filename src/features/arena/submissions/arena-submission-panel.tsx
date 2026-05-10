@@ -11,6 +11,7 @@ import {
   getEvaluableControllerMethods,
   type EvaluableControllerMethod,
 } from './controller-artifact-builder';
+import { sendArenaCoreEvent } from '../telemetry';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
 
@@ -66,6 +67,18 @@ export function ArenaSubmissionPanel({
       setStatus(error instanceof Error ? error.message : '控制器参数无效');
       return;
     }
+    void sendArenaCoreEvent('arena_controller_save', {
+      taskId: task.id,
+      method: controllerMethod,
+    });
+    void sendArenaCoreEvent('arena_simulation_run', {
+      taskId: task.id,
+      method: controllerMethod,
+    });
+    void sendArenaCoreEvent('arena_submit', {
+      taskId: task.id,
+      method: controllerMethod,
+    });
     const response = await fetch('/api/arena/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -80,6 +93,21 @@ export function ArenaSubmissionPanel({
 
     setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
     setStatus(payload.submission.reusedEvaluation ? '重复控制器已复用官方评测结果。' : '官方评测已完成。');
+    void sendArenaCoreEvent('arena_evaluation_complete', {
+      taskId: task.id,
+      method: payload.submission.artifact.method,
+      score: payload.submission.evaluation.score,
+      valid: payload.submission.evaluation.valid,
+    });
+    void sendArenaCoreEvent('arena_result_view', {
+      taskId: task.id,
+      score: payload.submission.evaluation.score,
+      valid: payload.submission.evaluation.valid,
+    });
+    void sendArenaCoreEvent('arena_feedback_view', {
+      taskId: task.id,
+      valid: payload.submission.evaluation.valid,
+    });
   };
 
   return (

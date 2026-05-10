@@ -85,6 +85,10 @@ describe('arena controller artifact builder', () => {
 
     expect(source).toContain('buildControllerArtifactFromParams');
     expect(source).toContain('getEvaluableControllerMethods');
+    expect(source).toContain('sendArenaCoreEvent');
+    expect(source).toContain("'arena_controller_save'");
+    expect(source).toContain("'arena_submit'");
+    expect(source).toContain("'arena_evaluation_complete'");
     expect(source).toContain('JSON.stringify({ taskId: task.id, artifact })');
     expect(source).not.toContain('提交 PID 控制器');
   });
@@ -96,6 +100,8 @@ describe('arena controller artifact builder', () => {
     );
 
     expect(source).toContain('getEvaluableControllerMethods(task).length > 0');
+    expect(source).toContain('<ArenaChallengeTelemetry');
+    expect(source).toContain('<ArenaWorkspaceLink');
     expect(source).toContain('<ArenaSubmissionPanel task={task} initialSubmissions={submissions} />');
   });
 });

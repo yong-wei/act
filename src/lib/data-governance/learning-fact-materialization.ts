@@ -38,6 +38,16 @@ export function resolveLearningFactActionType(event: LearningEvent): string {
 }
 
 function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
+  if (
+    actionType === 'arena_challenge_open' ||
+    actionType === 'arena_workspace_start' ||
+    actionType === 'arena_result_view' ||
+    actionType === 'arena_leaderboard_view' ||
+    actionType === 'arena_feedback_view'
+  ) {
+    return false;
+  }
+
   if (isCoreEvent(actionType)) {
     return true;
   }
