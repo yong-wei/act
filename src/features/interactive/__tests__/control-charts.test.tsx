@@ -558,6 +558,11 @@ describe('control chart shared presets and themes', () => {
     expect(option.dataZoom).toBeUndefined();
     expect(String(option.tooltip?.formatter)).toContain('|L(jω)|');
     expect(series.find((item) => item.name === 'Nyquist 正频率支')?.data).toContainEqual([0, 0, 0.1, 0, 0]);
+    const tooltipFormatter = option.tooltip?.formatter as (params: { seriesName: string; value: number[] }) => string;
+    const tooltip = tooltipFormatter({ seriesName: 'Nyquist 正频率支', value: [0, 0, 0.1, 0, 0] });
+    expect(tooltip).toContain('ω: 0.10 rad/s');
+    expect(tooltip).toContain('|L(jω)|');
+    expect(tooltip).not.toContain('Gain K');
   });
 
   it('adds Bode turn-frequency markers and keeps the shared frequency pan-zoom source path', () => {

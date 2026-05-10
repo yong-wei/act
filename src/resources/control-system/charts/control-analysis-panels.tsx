@@ -596,6 +596,20 @@ function pointTooltipFormatter(params: { seriesName?: string; value?: number[] |
   return `${params.seriesName ?? '数据点'}<br/>Re(s): ${formatFixed(x)}<br/>Im(s): ${formatFixed(y)}${gainLine}${rootLine}${nyquistLine}`;
 }
 
+function nyquistTooltipFormatter(params: { seriesName?: string; value?: number[] | string | number }): string {
+  const value = params.value;
+  const x = Array.isArray(value) ? Number(value[0]) : Number(value);
+  const y = Array.isArray(value) ? Number(value[1]) : Number(value);
+  const frequency = Array.isArray(value) && value.length > 2 ? Number(value[2]) : Number.NaN;
+  const magnitudeDb = Array.isArray(value) && value.length > 3 ? Number(value[3]) : Number.NaN;
+  const phaseDeg = Array.isArray(value) && value.length > 4 ? Number(value[4]) : Number.NaN;
+  const frequencyLine = Number.isFinite(frequency) ? `<br/>ω: ${formatFixed(frequency, ' rad/s')}` : '';
+  const nyquistLine = Number.isFinite(magnitudeDb) || Number.isFinite(phaseDeg)
+    ? `<br/>|L(jω)|: ${formatFixed(magnitudeDb, ' dB')}<br/>相角: ${formatFixed(phaseDeg, '°')}`
+    : '';
+  return `${params.seriesName ?? 'Nyquist 点'}<br/>Re: ${formatFixed(x)}<br/>Im: ${formatFixed(y)}${frequencyLine}${nyquistLine}`;
+}
+
 function buildMetricText(metrics: ControlMetrics): ReactNode {
   return [
     `Mp ${formatFixed(metrics.overshootPct, '%')}`,
@@ -1374,7 +1388,7 @@ export function buildNyquistOption(
     grid: { top: 18, right: 18, bottom: 42, left: 58 },
     tooltip: {
       trigger: 'item',
-      formatter: pointTooltipFormatter,
+      formatter: nyquistTooltipFormatter,
     },
     xAxis: {
       type: 'value',

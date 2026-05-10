@@ -4,7 +4,11 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
-import { doesRootLocusMatchPoleZeroSet } from '@/features/interactive/multi-representation-linkage/model';
+import {
+  DEFAULT_CORRECTION_STATE,
+  correctionToRootHandles,
+  doesRootLocusMatchPoleZeroSet,
+} from '@/features/interactive/multi-representation-linkage/model';
 import {
   adaptLinkageAnalysisResult,
   buildLinkageAnalysisRequest,
@@ -242,6 +246,25 @@ describe('multi representation linkage analysis adapter', () => {
       td: 0.3,
       tf: 0.05,
     });
+  });
+
+  it('derives filtered PD correction root handles from the engine transfer function', () => {
+    const handles = correctionToRootHandles({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'pd',
+      kp: 1,
+      ki: 0,
+      kd: 0.2,
+      derivativeFilterEnabled: true,
+      tf: 0.04,
+    }, false);
+    const zero = handles.find((handle) => handle.kind === 'zero');
+    const filterPole = handles.find((handle) => handle.id === 'pid-filter-pole');
+
+    expect(zero?.point.re).toBeCloseTo(-1 / (1 * 0.04 + 0.2), 10);
+    expect(zero?.point.re).not.toBeCloseTo(-1 / 0.2, 10);
+    expect(filterPole?.point.re).toBeCloseTo(-25, 10);
   });
 
   it('uses turn frequencies as the editing surface for lead, lag, and lead-lag correction', () => {

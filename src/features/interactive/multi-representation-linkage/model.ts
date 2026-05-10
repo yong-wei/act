@@ -300,24 +300,48 @@ function realAxisFrequencyPoint(frequency: number): Complex {
   return { re: -Math.max(0.001, frequency), im: 0 };
 }
 
+function realPolynomialRoots(coefficients: number[]): Complex[] {
+  const trimmed = coefficients.slice();
+  while (trimmed.length > 0 && Math.abs(trimmed[0]) < 1e-12) {
+    trimmed.shift();
+  }
+  if (trimmed.length <= 1) {
+    return [];
+  }
+  if (trimmed.length === 2) {
+    const [a, b] = trimmed;
+    return [{ re: -b / a, im: 0 }];
+  }
+  const [a, b, c] = trimmed;
+  const discriminant = b * b - 4 * a * c;
+  if (discriminant >= 0) {
+    const root = Math.sqrt(discriminant);
+    return [
+      { re: (-b + root) / (2 * a), im: 0 },
+      { re: (-b - root) / (2 * a), im: 0 },
+    ];
+  }
+  const real = -b / (2 * a);
+  const imag = Math.sqrt(-discriminant) / (2 * a);
+  return [{ re: real, im: imag }, { re: real, im: -imag }];
+}
+
 function pidZeroPoints(state: CorrectionState): Complex[] {
-  if (state.kd > 1e-9) {
-    const discriminant = state.kp * state.kp - 4 * state.kd * state.ki;
-    if (discriminant >= 0) {
-      const root = Math.sqrt(discriminant);
-      return [
-        { re: (-state.kp + root) / (2 * state.kd), im: 0 },
-        { re: (-state.kp - root) / (2 * state.kd), im: 0 },
-      ];
-    }
-    const real = -state.kp / (2 * state.kd);
-    const imag = Math.sqrt(-discriminant) / (2 * state.kd);
-    return [{ re: real, im: imag }, { re: real, im: -imag }];
+  const kp = Math.max(0.0001, state.kp);
+  const ki = Math.max(0, state.ki);
+  const kd = Math.max(0, state.kd);
+  const tf = state.derivativeFilterEnabled ? Math.max(0.001, state.tf) : 0;
+
+  if (ki <= 1e-9 && tf > 0) {
+    return realPolynomialRoots([kp * tf + kd, kp]);
   }
-  if (state.ki > 1e-9 && state.kp > 1e-9) {
-    return [{ re: -state.ki / state.kp, im: 0 }];
+  if (ki <= 1e-9) {
+    return realPolynomialRoots([kd, kp]);
   }
-  return [];
+  if (tf > 0) {
+    return realPolynomialRoots([kp * tf + kd, kp + ki * tf, ki]);
+  }
+  return realPolynomialRoots([kd, kp, ki]);
 }
 
 export function correctionToRootHandles(state: CorrectionState, isCourseMode: boolean): RootLocusInteractiveHandle[] {
