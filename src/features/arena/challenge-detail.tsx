@@ -5,6 +5,7 @@ import type { ChallengeObject, ChallengeTask, LeaderboardPolicy, MetricProfile }
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { buildArenaTaskStats } from './stats';
 import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
+import { getArenaWorkspaceHref } from './workspace-routing';
 
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'serial-compensator': '串联校正',
@@ -19,6 +20,7 @@ const workspaceLabels: Record<ChallengeTask['workspaceMode'], string> = {
   'block-diagram-workbench': '框图工作台',
   'black-box-identification': '辨识 + 控制工作台',
   'predictive-control': '预测控制工作台',
+  'control-odyssey': '控制奥德赛工作台',
 };
 
 interface ChallengeDetailProps {
@@ -41,6 +43,8 @@ export function ChallengeDetail({
     submissionCount: 0,
     topScore: null,
   };
+  const workspaceHref = getArenaWorkspaceHref(task, object);
+  const canSubmitWithCurrentEvaluator = task.allowedMethods.includes('pid');
 
   return (
     <main className="surface-page min-h-screen">
@@ -76,8 +80,17 @@ export function ChallengeDetail({
                 <DetailItem label="公开程度" value={object.visibility === 'white-box' ? '白箱模型' : object.visibility} />
                 <DetailItem label="章节关联" value={object.chapter} />
                 <DetailItem label="任务属性" value={task.homeworkPolicy} />
-                <DetailItem label="模型表达" value={object.model.display} />
+                <DetailItem
+                  label={object.model ? '模型表达' : '公开接口'}
+                  value={object.model?.display ?? object.publicInterface ?? '该对象不公开传递函数模型'}
+                />
+                {object.evaluationInterface ? (
+                  <DetailItem label="评测接口" value={object.evaluationInterface} />
+                ) : null}
               </div>
+              {object.scenarioSummary ? (
+                <p className="mt-4 text-sm leading-6 text-subtle">{object.scenarioSummary}</p>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 {object.tags.map((tag) => (
                   <span key={tag} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
@@ -119,7 +132,7 @@ export function ChallengeDetail({
                 ))}
               </div>
               <Link
-                href={`/interactive-learning/multi-representation-linkage?arenaTask=${task.id}`}
+                href={workspaceHref}
                 className="cta-primary mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
               >
                 进入工作台
@@ -152,7 +165,16 @@ export function ChallengeDetail({
               </div>
             </div>
 
-            <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
+            {canSubmitWithCurrentEvaluator ? (
+              <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
+            ) : (
+              <section className="surface-card p-6">
+                <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>
+                <p className="mt-2 text-sm leading-6 text-subtle">
+                  该任务使用独立评测接口，当前详情页仅展示任务入口与真实榜单摘要。
+                </p>
+              </section>
+            )}
           </aside>
         </div>
       </section>

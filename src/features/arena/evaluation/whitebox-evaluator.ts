@@ -3,7 +3,7 @@ import {
   getArenaChallengeTask,
   getArenaMetricProfile,
 } from '../data/seed-challenges';
-import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile } from '../types';
+import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile, TransferFunctionModel } from '../types';
 import type { ArenaEvaluationPenalty, ArenaEvaluationResult, HardConstraintResult, WhiteBoxEvaluationInput } from './types';
 import { clampScore, normalizeMetricValue, scoreMetricSatisfaction } from './scoring';
 
@@ -25,9 +25,9 @@ function numberParam(artifact: ControllerArtifact, key: string): number | undefi
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-function dcGain(object: ChallengeObject): number {
-  const numerator = object.model.numerator;
-  const denominator = object.model.denominator;
+function dcGain(model: TransferFunctionModel): number {
+  const numerator = model.numerator;
+  const denominator = model.denominator;
   const numeratorConstant = numerator[numerator.length - 1] ?? 0;
   const denominatorConstant = denominator[denominator.length - 1] ?? 0;
   if (Math.abs(denominatorConstant) < 1e-9) {
@@ -92,15 +92,15 @@ function isHurwitzStable(polynomial: number[]): boolean {
   return table.every((row) => row[0] > 0);
 }
 
-function closedLoopStable(object: ChallengeObject, controllerNumerator: number[], controllerDenominator: number[]): boolean {
+function closedLoopStable(model: TransferFunctionModel, controllerNumerator: number[], controllerDenominator: number[]): boolean {
   const characteristic = addPolynomials(
-    multiplyPolynomials(controllerDenominator, object.model.denominator),
-    multiplyPolynomials(controllerNumerator, object.model.numerator),
+    multiplyPolynomials(controllerDenominator, model.denominator),
+    multiplyPolynomials(controllerNumerator, model.numerator),
   );
   return isHurwitzStable(characteristic);
 }
 
-function summarizeController(artifact: ControllerArtifact, object: ChallengeObject): ControllerSummary {
+function summarizeController(artifact: ControllerArtifact, model: TransferFunctionModel): ControllerSummary {
   if (artifact.method === 'pid') {
     const kp = numberParam(artifact, 'kp');
     const ki = numberParam(artifact, 'ki');
@@ -122,7 +122,7 @@ function summarizeController(artifact: ControllerArtifact, object: ChallengeObje
     const controllerDenominator = [1, 0];
 
     return {
-      effectiveGain: dcGain(object) * (safeKp + 0.45 * safeKi + 0.25 * safeKd),
+      effectiveGain: dcGain(model) * (safeKp + 0.45 * safeKi + 0.25 * safeKd),
       proportional: safeKp,
       integral: safeKi,
       derivative: safeKd,
@@ -130,7 +130,7 @@ function summarizeController(artifact: ControllerArtifact, object: ChallengeObje
       causal: true,
       finite: values.every((value) => value !== undefined),
       nonNegative: [safeKp, safeKi, safeKd].every((value) => value >= 0),
-      closedLoopStable: validValues && closedLoopStable(object, controllerNumerator, controllerDenominator),
+      closedLoopStable: validValues && closedLoopStable(model, controllerNumerator, controllerDenominator),
       validationErrors,
     };
   }
@@ -156,7 +156,7 @@ function summarizeController(artifact: ControllerArtifact, object: ChallengeObje
     const controllerDenominator = [1, safePole];
 
     return {
-      effectiveGain: dcGain(object) * safeGain * Math.max(0.2, safeZero / Math.max(safePole, 0.2)),
+      effectiveGain: dcGain(model) * safeGain * Math.max(0.2, safeZero / Math.max(safePole, 0.2)),
       proportional: safeGain,
       integral: 0,
       derivative: Math.max(0, safePole - safeZero) / Math.max(safePole, 1),
@@ -164,7 +164,7 @@ function summarizeController(artifact: ControllerArtifact, object: ChallengeObje
       causal: validValues,
       finite: values.every((value) => value !== undefined),
       nonNegative: [safeGain, safeZero, safePole].every((value) => value >= 0),
-      closedLoopStable: validValues && closedLoopStable(object, controllerNumerator, controllerDenominator),
+      closedLoopStable: validValues && closedLoopStable(model, controllerNumerator, controllerDenominator),
       validationErrors,
     };
   }
@@ -222,7 +222,7 @@ function evaluateHardConstraints(
   ];
 }
 
-function estimateMetrics(object: ChallengeObject, controller: ControllerSummary): Record<string, number> {
+function estimateMetrics(model: TransferFunctionModel, controller: ControllerSummary): Record<string, number> {
   if (!controller.finite || !Number.isFinite(controller.effectiveGain)) {
     return {
       settlingTime: 0,
@@ -234,7 +234,7 @@ function estimateMetrics(object: ChallengeObject, controller: ControllerSummary)
     };
   }
   const gain = Math.max(0.05, controller.effectiveGain);
-  const inertia = Math.max(1, object.model.denominator.length - 1);
+  const inertia = Math.max(1, model.denominator.length - 1);
   const dampingBoost = 1 + controller.derivative + 0.12 * controller.shapeBoost;
   const integralBoost = controller.integral > 0 ? controller.integral : 0;
   const settlingTime = Math.max(0.4, (7.5 * inertia) / (1 + 0.9 * gain + dampingBoost));
@@ -281,9 +281,12 @@ export function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): Aren
   if (!object || !metricProfile) {
     throw new Error(`Arena task ${task.id} has incomplete evaluation configuration.`);
   }
+  if (!object.model) {
+    throw new Error(`Arena object ${object.id} does not expose a transfer-function model for white-box evaluation.`);
+  }
 
-  const controller = summarizeController(input.artifact, object);
-  const metrics = estimateMetrics(object, controller);
+  const controller = summarizeController(input.artifact, object.model);
+  const metrics = estimateMetrics(object.model, controller);
   const hardConstraintResults = evaluateHardConstraints(task, object, metricProfile, controller, metrics);
   const valid = hardConstraintResults.every((result) => result.passed);
   const satisfaction = buildSatisfaction(metricProfile, metrics);

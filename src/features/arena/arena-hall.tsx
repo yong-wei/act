@@ -46,6 +46,7 @@ const workspaceLabels: Record<WorkspaceMode, string> = {
   'block-diagram-workbench': '框图工作台',
   'black-box-identification': '辨识 + 控制工作台',
   'predictive-control': '预测控制工作台',
+  'control-odyssey': '控制奥德赛工作台',
 };
 
 const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
@@ -60,6 +61,9 @@ const methodOptions: Array<{ value: ControllerMethod | 'all'; label: string }> =
   { value: 'all', label: '全部方法' },
   { value: 'serial-compensator', label: '串联校正' },
   { value: 'pid', label: 'PID' },
+  { value: 'composite-compensation', label: '复合校正' },
+  { value: 'black-box-control', label: '黑箱控制' },
+  { value: 'mpc', label: 'MPC' },
 ];
 
 const visibilityOptions: Array<{ value: ModelVisibility | 'all'; label: string }> = [
@@ -74,14 +78,16 @@ const leaderboardOptions: Array<{ value: LeaderboardType | 'all'; label: string 
   { value: 'main', label: '主榜' },
   { value: 'method', label: '方法榜' },
   { value: 'metric', label: '指标榜' },
+  { value: 'pareto', label: 'Pareto 榜' },
   { value: 'class', label: '班级榜' },
+  { value: 'season', label: '赛季榜' },
 ];
 
 const phaseItems = [
-  { label: '白箱对象', value: '8-12 个典型对象', icon: FlaskConical },
+  { label: '对象来源', value: '典型、作业、奥德赛、仿真', icon: FlaskConical },
   { label: '挑战任务', value: '对象 + 目标 + 方法 + 评测', icon: ListChecks },
   { label: '评分协议', value: '硬约束 + 指标满意度', icon: Gauge },
-  { label: '榜单结构', value: '主榜、方法榜、指标榜', icon: Medal },
+  { label: '榜单结构', value: '主榜、方法榜、指标榜、专题榜', icon: Medal },
 ];
 
 export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, ArenaTaskStats> }) {
@@ -124,7 +130,7 @@ export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, Arena
         <div className="space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-xs text-subtle">
             <BarChart3 className="h-4 w-4 text-primary" />
-            第一阶段：白箱对象竞技场
+            任务清单与评价方案覆盖
           </div>
           <div>
             <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">竞技场大厅</h1>
@@ -153,7 +159,7 @@ export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, Arena
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="text-sm font-semibold text-foreground">推荐挑战任务</div>
-              <div className="mt-1 text-xs text-subtle">MVP 阶段先开放串联校正与 PID 的白箱挑战</div>
+              <div className="mt-1 text-xs text-subtle">覆盖典型对象、作业对象、控制奥德赛和虚拟仿真对象</div>
             </div>
             <div className="text-xs text-subtle">任务优先，不按技术入口分流</div>
           </div>

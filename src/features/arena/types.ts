@@ -20,7 +20,14 @@ export type WorkspaceMode =
   | 'multi-representation-linkage'
   | 'block-diagram-workbench'
   | 'black-box-identification'
-  | 'predictive-control';
+  | 'predictive-control'
+  | 'control-odyssey';
+
+export type ChallengeObjectAdapterType =
+  | 'transfer-function'
+  | 'homework'
+  | 'control-odyssey'
+  | 'virtual-simulation';
 
 export type MetricDirection = 'minimize' | 'maximize' | 'target';
 
@@ -37,7 +44,11 @@ export interface ChallengeObject {
   visibility: ModelVisibility;
   chapter: string;
   tags: string[];
-  model: TransferFunctionModel;
+  adapterType?: ChallengeObjectAdapterType;
+  model?: TransferFunctionModel;
+  publicInterface?: string;
+  evaluationInterface?: string;
+  scenarioSummary?: string;
   relatedKnowledge: string[];
 }
 

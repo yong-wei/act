@@ -7,6 +7,7 @@ const detailRoutePath = path.join(root, 'src/app/arena/challenges/[taskId]/page.
 const detailComponentPath = path.join(root, 'src/features/arena/challenge-detail.tsx');
 const hallPath = path.join(root, 'src/features/arena/arena-hall.tsx');
 const teacherConfigPath = path.join(root, 'src/features/arena/teacher/teacher-arena-config.tsx');
+const workspaceRoutingPath = path.join(root, 'src/features/arena/workspace-routing.ts');
 
 assert.equal(
   fs.existsSync(detailRoutePath),
@@ -24,6 +25,7 @@ const detailRouteContent = fs.readFileSync(detailRoutePath, 'utf8');
 const detailContent = fs.readFileSync(detailComponentPath, 'utf8');
 const hallContent = fs.readFileSync(hallPath, 'utf8');
 const teacherConfigContent = fs.readFileSync(teacherConfigPath, 'utf8');
+const workspaceRoutingContent = fs.existsSync(workspaceRoutingPath) ? fs.readFileSync(workspaceRoutingPath, 'utf8') : '';
 
 assert.equal(
   detailRouteContent.includes('notFound'),
@@ -38,6 +40,15 @@ assert.equal(
     detailContent.includes('进入工作台'),
   true,
   '挑战详情页应展示对象、评价规则、知识点和工作台入口',
+);
+
+assert.equal(
+  fs.existsSync(workspaceRoutingPath) &&
+    detailContent.includes('getArenaWorkspaceHref') &&
+    workspaceRoutingContent.includes('black-box-identification') &&
+    workspaceRoutingContent.includes('control-odyssey'),
+  true,
+  '挑战详情页应通过工作台路由 helper 按任务模式进入对应工作台',
 );
 
 assert.equal(

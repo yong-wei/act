@@ -21,6 +21,7 @@
 | E | Submissions, leaderboards, and telemetry | `docs/superpowers/plans/2026-05-10-arena-plan-e-submissions-leaderboards-telemetry.md` | Complete | Leaderboard tests, lint, Playwright, API check passed | `f20638a2` pushed |
 | F | Teacher challenge configuration and homework binding | `docs/superpowers/plans/2026-05-10-arena-plan-f-teacher-configuration.md` | Complete | Teacher tests, lint, Playwright, API check passed | `2c678431` pushed |
 | G | Persistent submissions and real leaderboard data | `docs/superpowers/plans/2026-05-10-arena-plan-g-persistent-submissions.md` | Complete | Targeted tests, Prisma validate/generate, lint, smoke, build, subagent review passed | pushed |
+| H | Catalogue and evaluation coverage | `docs/superpowers/plans/2026-05-10-arena-plan-h-catalogue-evaluation-coverage.md` | Complete | Targeted tests, route guard, lint, smoke, build, subagent review passed | `feat: expand arena challenge catalogue` pushed |
 
 ## Completion Gates
 
@@ -41,6 +42,8 @@
 - 2026-05-10: Final audit passed. Commands: `rtk npm run test:unit -- src/features/arena/__tests__/arena-domain.test.ts src/features/arena/__tests__/arena-filtering.test.ts src/features/arena/__tests__/arena-whitebox-evaluation.test.ts src/features/arena/__tests__/arena-leaderboard.test.ts src/features/arena/__tests__/arena-teacher-config.test.ts` -> 5 files, 16 tests passed; `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed; `rtk node scripts/tests/test-arena-routes.mjs` -> passed; `rtk npm run lint` -> passed; `rtk npm run test` -> smoke test passed; `rtk npm run build` -> passed.
 - 2026-05-10: Review follow-up completed after independent subagent review of Plan A-F implementation commits. See `docs/superpowers/plans/2026-05-10-arena-review-followups.md`. Original `查看挑战` no-action button finding is fixed and guarded by default `npm run test`. Arena-targeted tests, lint, and build passed; full `test:unit` still has 2 unrelated interactive failures outside Arena scope.
 - 2026-05-10: Plan G implemented the database-backed Arena submission foundation and removed hardcoded hall/detail leaderboard numbers from the challenge seed path. Independent review found four blockers; fixes added best-per-student leaderboard ranking, protocol-versioned evaluation reuse, student-only submit gate, and safer API error boundaries. Same subagent re-review passed. Verification passed; commit pushed.
+- 2026-05-10: Plan H started to expand the Arena task catalogue and evaluation profile coverage across typical objects, homework objects, Control Odyssey objects, and virtual simulation objects.
+- 2026-05-10: Plan H implementation added task catalogue coverage, optional model metadata for black-box virtual simulation objects, metric/leaderboard profiles, and task-aware workspace routing. Verification passed; independent subagent review found no blocker. Commit pushed.
 
 ## Final Audit
 

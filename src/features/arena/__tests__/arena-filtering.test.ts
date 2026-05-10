@@ -47,4 +47,17 @@ describe('arena task filtering', () => {
 
     expect(result.map((task) => task.id)).toEqual(['task-ship-roll-comfort']);
   });
+
+  it('filters black-box virtual simulation and control odyssey tasks by source and method', () => {
+    expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      source: 'virtual-simulation',
+      visibility: 'black-box',
+      method: 'black-box-control',
+    }).map((task) => task.id)).toContain('task-cruise-roll-blackbox-identification');
+
+    expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      source: 'control-odyssey',
+      leaderboard: 'season',
+    }).map((task) => task.id)).toContain('task-odyssey-level-one-growth');
+  });
 });
