@@ -29,7 +29,7 @@
 - [x] Run `npm run lint`.
 - [x] Start or reuse the local app and verify `/` and `/arena` in browser or Playwright.
 - [x] Update this plan with verification results.
-- [ ] Commit and push only Plan A files.
+- [x] Commit and push only Plan A files.
 
 ## Verification Record
 
@@ -37,5 +37,5 @@
 - Red test evidence: first run failed on `首页应提供指向 /arena 的竞技场入口`.
 - Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
 - Browser check: direct `next dev` on `127.0.0.1:3001`; HTTP `/` and `/arena` returned 200; Playwright verified visible `竞技场`, `竞技场大厅`, and `推荐挑战任务`.
-- Commit: Pending
-- Push: Pending
+- Commit: `2f91b0c8 feat: add arena hall entry`
+- Push: `rtk git push` -> pushed to `codex/interactive-course-production`.

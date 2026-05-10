@@ -14,7 +14,7 @@
 
 | Plan | Scope | Plan File | Status | Verification | Commit |
 | --- | --- | --- | --- | --- | --- |
-| A | Home entry and Arena hall shell | `docs/superpowers/plans/2026-05-10-arena-plan-a-home-and-hall.md` | Verified, awaiting commit | Targeted test, lint, Playwright passed | Pending |
+| A | Home entry and Arena hall shell | `docs/superpowers/plans/2026-05-10-arena-plan-a-home-and-hall.md` | Complete | Targeted test, lint, Playwright passed | `2f91b0c8` pushed |
 | B | Domain model and seed challenges | `docs/superpowers/plans/2026-05-10-arena-plan-b-domain-model.md` | Not started | Pending | Pending |
 | C | Challenge detail page and filters | `docs/superpowers/plans/2026-05-10-arena-plan-c-detail-and-filters.md` | Not started | Pending | Pending |
 | D | White-box evaluation MVP | `docs/superpowers/plans/2026-05-10-arena-plan-d-whitebox-evaluation.md` | Not started | Pending | Pending |
@@ -31,4 +31,4 @@
 ## Progress Log
 
 - 2026-05-10: Created master progress file and six child plan files.
-- 2026-05-10: Plan A implemented home navigation entry, platform matrix entry, and `/arena` hall shell. Verification passed; commit pending.
+- 2026-05-10: Plan A implemented home navigation entry, platform matrix entry, and `/arena` hall shell. Verification passed; commit `2f91b0c8` pushed.
