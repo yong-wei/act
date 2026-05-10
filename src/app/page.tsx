@@ -17,6 +17,7 @@ import {
   Play,
   Ship,
   Sparkles,
+  Trophy,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -120,6 +121,12 @@ const shipScenarios = [
 ]
 
 const moduleLinks = [
+  {
+    title: '竞技场',
+    description: '挑战任务 · 官方评测 · 榜单比较',
+    href: '/arena',
+    icon: Trophy,
+  },
   {
     title: '知识图谱',
     description: '三维关系网 · 学习路径 · 资源地图',
@@ -278,6 +285,7 @@ export default function HomePage() {
             </div>
             <div className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
               <Link href="/simulations" prefetch={false} className="transition hover:text-primary">虚拟仿真</Link>
+              <Link href="/arena" className="transition hover:text-primary">竞技场</Link>
               <Link href="/knowledge" className="transition hover:text-primary">知识图谱</Link>
               <Link href="/interactive-learning" className="transition hover:text-primary">互动学习</Link>
               <Link href="/review" className="transition hover:text-primary">评审入口</Link>
