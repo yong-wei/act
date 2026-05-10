@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -12,9 +15,12 @@ import {
 
 import {
   ARENA_CHALLENGE_TASKS,
+  filterArenaChallengeTasks,
   getArenaChallengeObject,
   type ChallengeObjectSource,
   type ControllerMethod,
+  type LeaderboardType,
+  type ModelVisibility,
   type WorkspaceMode,
 } from '@/features/arena';
 
@@ -41,6 +47,35 @@ const workspaceLabels: Record<WorkspaceMode, string> = {
   'predictive-control': '预测控制工作台',
 };
 
+const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
+  { value: 'all', label: '全部来源' },
+  { value: 'typical', label: '典型对象' },
+  { value: 'homework', label: '作业对象' },
+  { value: 'control-odyssey', label: '奥德赛' },
+  { value: 'virtual-simulation', label: '虚拟仿真' },
+];
+
+const methodOptions: Array<{ value: ControllerMethod | 'all'; label: string }> = [
+  { value: 'all', label: '全部方法' },
+  { value: 'serial-compensator', label: '串联校正' },
+  { value: 'pid', label: 'PID' },
+];
+
+const visibilityOptions: Array<{ value: ModelVisibility | 'all'; label: string }> = [
+  { value: 'all', label: '全部公开程度' },
+  { value: 'white-box', label: '白箱' },
+  { value: 'gray-box', label: '灰箱' },
+  { value: 'black-box', label: '黑箱' },
+];
+
+const leaderboardOptions: Array<{ value: LeaderboardType | 'all'; label: string }> = [
+  { value: 'all', label: '全部榜单' },
+  { value: 'main', label: '主榜' },
+  { value: 'method', label: '方法榜' },
+  { value: 'metric', label: '指标榜' },
+  { value: 'class', label: '班级榜' },
+];
+
 const phaseItems = [
   { label: '白箱对象', value: '8-12 个典型对象', icon: FlaskConical },
   { label: '挑战任务', value: '对象 + 目标 + 方法 + 评测', icon: ListChecks },
@@ -49,6 +84,26 @@ const phaseItems = [
 ];
 
 export function ArenaHall() {
+  const [query, setQuery] = useState('');
+  const [source, setSource] = useState<ChallengeObjectSource | 'all'>('all');
+  const [method, setMethod] = useState<ControllerMethod | 'all'>('all');
+  const [difficulty, setDifficulty] = useState<'all' | '基础' | '进阶' | '挑战'>('all');
+  const [visibility, setVisibility] = useState<ModelVisibility | 'all'>('all');
+  const [homework, setHomework] = useState<'all' | 'homework-capable' | 'open-practice'>('all');
+  const [leaderboard, setLeaderboard] = useState<LeaderboardType | 'all'>('all');
+  const filteredTasks = useMemo(
+    () => filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      query,
+      source,
+      method,
+      difficulty,
+      visibility,
+      homework,
+      leaderboard,
+    }),
+    [difficulty, homework, leaderboard, method, query, source, visibility],
+  );
+
   return (
     <main className="surface-page min-h-screen">
       <header className="surface-topbar">
@@ -102,8 +157,45 @@ export function ArenaHall() {
             <div className="text-xs text-subtle">任务优先，不按技术入口分流</div>
           </div>
 
+          <div className="surface-card p-4">
+            <div className="text-sm font-semibold text-foreground">筛选挑战任务</div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="搜索对象、目标或知识点"
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
+              />
+              <FilterSelect value={source} onChange={(value) => setSource(value as ChallengeObjectSource | 'all')} options={sourceOptions} label="对象来源" />
+              <FilterSelect value={method} onChange={(value) => setMethod(value as ControllerMethod | 'all')} options={methodOptions} label="允许方法" />
+              <FilterSelect
+                value={difficulty}
+                onChange={(value) => setDifficulty(value as typeof difficulty)}
+                options={[
+                  { value: 'all', label: '全部难度' },
+                  { value: '基础', label: '基础' },
+                  { value: '进阶', label: '进阶' },
+                  { value: '挑战', label: '挑战' },
+                ]}
+                label="难度"
+              />
+              <FilterSelect value={visibility} onChange={(value) => setVisibility(value as ModelVisibility | 'all')} options={visibilityOptions} label="公开程度" />
+              <FilterSelect
+                value={homework}
+                onChange={(value) => setHomework(value as typeof homework)}
+                options={[
+                  { value: 'all', label: '全部任务属性' },
+                  { value: 'homework-capable', label: '可作为作业' },
+                  { value: 'open-practice', label: '开放练习' },
+                ]}
+                label="任务属性"
+              />
+              <FilterSelect value={leaderboard} onChange={(value) => setLeaderboard(value as LeaderboardType | 'all')} options={leaderboardOptions} label="榜单" />
+            </div>
+          </div>
+
           <div className="grid gap-4">
-            {ARENA_CHALLENGE_TASKS.map((challenge) => {
+            {filteredTasks.map((challenge) => {
               const object = getArenaChallengeObject(challenge.objectId);
 
               return (
@@ -138,17 +230,50 @@ export function ArenaHall() {
                   <div>
                     {challenge.participantCount} 人参与 · 推荐进入 {workspaceLabels[challenge.workspaceMode]}
                   </div>
-                  <button className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm" type="button">
+                  <Link href={`/arena/challenges/${challenge.id}`} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     查看挑战
                     <ArrowUpRight className="h-4 w-4" />
-                  </button>
+                  </Link>
                 </div>
               </article>
               );
             })}
+            {filteredTasks.length === 0 ? (
+              <div className="surface-card p-8 text-center">
+                <div className="text-sm font-semibold text-foreground">暂无匹配的挑战任务</div>
+                <div className="mt-2 text-sm text-subtle">请减少筛选条件，或先查看全部白箱对象挑战。</div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  options,
+  label,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  label: string;
+}) {
+  return (
+    <label className="grid gap-1 text-xs text-subtle">
+      {label}
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </label>
   );
 }

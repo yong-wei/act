@@ -21,21 +21,22 @@
 
 ## Tasks
 
-- [ ] Add failing tests for task filtering and invalid challenge route handling.
-- [ ] Run tests and confirm expected failure.
-- [ ] Implement filter state and empty states in the hall.
-- [ ] Implement the challenge detail route from seed data.
-- [ ] Add task-first workspace entry labels without implementing the workspaces yet.
-- [ ] Run targeted tests.
-- [ ] Run `npm run lint`.
-- [ ] Browser-check `/arena` and one detail route.
-- [ ] Update this plan with verification results.
+- [x] Add failing tests for task filtering and invalid challenge route handling.
+- [x] Run tests and confirm expected failure.
+- [x] Implement filter state and empty states in the hall.
+- [x] Implement the challenge detail route from seed data.
+- [x] Add task-first workspace entry labels without implementing the workspaces yet.
+- [x] Run targeted tests.
+- [x] Run `npm run lint`.
+- [x] Browser-check `/arena` and one detail route.
+- [x] Update this plan with verification results.
 - [ ] Commit and push only Plan C files.
 
 ## Verification Record
 
-- Targeted tests: Pending
-- Lint: Pending
-- Browser check: Pending
+- Targeted tests: `rtk npm run test:unit -- src/features/arena/__tests__/arena-filtering.test.ts src/features/arena/__tests__/arena-domain.test.ts` -> 2 files, 6 tests passed; `rtk node scripts/tests/test-arena-routes.mjs` -> passed; `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed.
+- Red test evidence: filtering test first failed with missing `../filtering`; route test first failed because `src/app/arena/challenges/[taskId]/page.tsx` did not exist.
+- Lint: `rtk npm run lint` -> passed with no ESLint warnings or errors.
+- Browser check: Playwright verified `/arena` filter controls, search for `横摇 舒适度`, and detail route `task-second-order-lead-pid` showing `对象说明`, `评价规则`, and `进入工作台`.
 - Commit: Pending
 - Push: Pending

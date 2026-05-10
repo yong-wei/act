@@ -173,7 +173,7 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     workspaceMode: 'multi-representation-linkage',
     participantCount: 96,
     topScore: 88.7,
-    homeworkPolicy: '开放练习',
+    homeworkPolicy: '可作为作业挑战',
   },
   {
     id: 'task-ship-roll-comfort',
