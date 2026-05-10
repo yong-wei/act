@@ -209,7 +209,10 @@ export function ArenaHall() {
                       <span>·</span>
                       <span>{challenge.homeworkPolicy}</span>
                     </div>
-                    <h2 className="mt-2 text-xl font-semibold text-foreground">{object?.name ?? challenge.title}</h2>
+                    <h2 className="mt-2 text-xl font-semibold text-foreground">{challenge.title}</h2>
+                    {object ? (
+                      <p className="mt-1 text-xs text-muted-foreground">对象：{object.name}</p>
+                    ) : null}
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.goal}</p>
                   </div>
                   <div className="min-w-28 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-right">

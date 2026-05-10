@@ -33,11 +33,11 @@ describe('arena teacher configuration', () => {
       homeworkBinding: true,
     });
     const otherClass = createArenaChallengePublication({
-      taskId: 'task-ship-roll-comfort',
+      taskId: 'task-integrator-low-frequency-balance',
       classId: 'class-b',
       visibility: 'class',
       deadline: '2026-06-01T15:00:00.000Z',
-      leaderboardPolicyId: 'leaderboard-whitebox-default',
+      leaderboardPolicyId: 'leaderboard-class-homework',
       homeworkBinding: false,
     });
 
@@ -57,5 +57,34 @@ describe('arena teacher configuration', () => {
     expect(assessment.gradeComponents.rankContribution).toBe(0);
     expect(assessment.gradeComponents.masteryScore).toBeGreaterThan(0);
     expect(assessment.summary).not.toContain('第 1 名即为成绩');
+  });
+
+  it('rejects incompatible leaderboard policies, visibility, and homework bindings', () => {
+    expect(() => createArenaChallengePublication({
+      taskId: 'task-second-order-lead-pid',
+      classId: 'class-2026-control',
+      visibility: 'class',
+      deadline: '2026-06-01T15:00:00.000Z',
+      leaderboardPolicyId: 'leaderboard-class-homework',
+      homeworkBinding: true,
+    })).toThrow(/not configured/);
+
+    expect(() => createArenaChallengePublication({
+      taskId: 'task-ship-roll-comfort',
+      classId: 'class-2026-control',
+      visibility: 'course',
+      deadline: '2026-06-01T15:00:00.000Z',
+      leaderboardPolicyId: 'leaderboard-whitebox-default',
+      homeworkBinding: true,
+    })).toThrow(/not eligible/);
+
+    expect(() => createArenaChallengePublication({
+      taskId: 'task-integrator-low-frequency-balance',
+      classId: 'class-2026-control',
+      visibility: 'course',
+      deadline: '2026-06-01T15:00:00.000Z',
+      leaderboardPolicyId: 'leaderboard-class-homework',
+      homeworkBinding: true,
+    })).toThrow(/does not match/);
   });
 });

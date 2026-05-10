@@ -5,6 +5,8 @@ import {
 
 export type ArenaPublicationVisibility = 'class' | 'course' | 'public';
 
+const publicationVisibilities: ArenaPublicationVisibility[] = ['class', 'course', 'public'];
+
 export interface CreateArenaChallengePublicationInput {
   taskId: string;
   classId: string;
@@ -44,6 +46,13 @@ export interface ArenaHomeworkAssessment {
 export function createArenaChallengePublication(
   input: CreateArenaChallengePublicationInput,
 ): ArenaChallengePublication {
+  if (!publicationVisibilities.includes(input.visibility)) {
+    throw new Error(`Invalid Arena publication visibility: ${input.visibility}`);
+  }
+  if (!Number.isFinite(Date.parse(input.deadline))) {
+    throw new Error(`Invalid Arena publication deadline: ${input.deadline}`);
+  }
+
   const task = getArenaChallengeTask(input.taskId);
   if (!task) {
     throw new Error(`Unknown arena task: ${input.taskId}`);
@@ -51,6 +60,22 @@ export function createArenaChallengePublication(
   const policy = getArenaLeaderboardPolicy(input.leaderboardPolicyId);
   if (!policy) {
     throw new Error(`Unknown leaderboard policy: ${input.leaderboardPolicyId}`);
+  }
+  if (task.leaderboardPolicyId !== policy.id) {
+    throw new Error(`Leaderboard policy ${policy.id} is not configured for ${task.id}.`);
+  }
+  const missingTypes = task.leaderboardTypes.filter((type) => !policy.types.includes(type));
+  if (missingTypes.length > 0) {
+    throw new Error(`Leaderboard policy ${policy.id} does not cover task leaderboard types: ${missingTypes.join(', ')}.`);
+  }
+  if (input.homeworkBinding && !task.homeworkEligible) {
+    throw new Error(`Arena task ${task.id} is not eligible for homework binding.`);
+  }
+  if (input.homeworkBinding && policy.visibility !== 'class') {
+    throw new Error('Homework-bound Arena challenges must use a class-visible leaderboard policy.');
+  }
+  if (input.visibility !== policy.visibility) {
+    throw new Error(`Publication visibility ${input.visibility} does not match leaderboard policy visibility ${policy.visibility}.`);
   }
 
   return {

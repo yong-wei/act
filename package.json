@@ -7,7 +7,7 @@
     "build": "npm run wasm:build:control-engine && prisma generate && next build",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "lint": "next lint",
-    "test": "node ./scripts/tests/smoke-test.mjs",
+    "test": "node ./scripts/tests/smoke-test.mjs && node ./scripts/tests/test-arena-home-entry.mjs && node ./scripts/tests/test-arena-routes.mjs",
     "test:theme": "npx --yes tsx ./scripts/tests/test-theme-toggle.ts",
     "test:theme-bridge": "npx --yes tsx ./scripts/tests/test-theme-bridge.ts",
     "test:theme-coverage": "npx --yes tsx ./scripts/tests/test-theme-coverage.ts",

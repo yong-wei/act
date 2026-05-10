@@ -1,24 +1,18 @@
+'use client';
+
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, ClipboardList, Trophy } from 'lucide-react';
 
 import {
   ARENA_CHALLENGE_TASKS,
+  ARENA_LEADERBOARD_POLICIES,
   getArenaChallengeObject,
-  getArenaLeaderboardPolicy,
 } from '@/features/arena';
 import {
   createArenaChallengePublication,
   deriveArenaHomeworkAssessment,
 } from './configuration';
-
-const previewPublication = createArenaChallengePublication({
-  taskId: 'task-integrator-low-frequency-balance',
-  classId: 'class-2026-control',
-  visibility: 'class',
-  deadline: '2026-06-01T15:00:00.000Z',
-  leaderboardPolicyId: 'leaderboard-class-homework',
-  homeworkBinding: true,
-});
 
 const previewAssessment = deriveArenaHomeworkAssessment({
   validSubmission: true,
@@ -28,6 +22,51 @@ const previewAssessment = deriveArenaHomeworkAssessment({
 });
 
 export function TeacherArenaConfig() {
+  const [taskId, setTaskId] = useState('task-integrator-low-frequency-balance');
+  const [classId, setClassId] = useState('class-2026-control');
+  const [visibility, setVisibility] = useState<'class' | 'course' | 'public'>('class');
+  const [deadline, setDeadline] = useState('2026-06-01T15:00');
+  const [leaderboardPolicyId, setLeaderboardPolicyId] = useState('leaderboard-class-homework');
+  const [homeworkBinding, setHomeworkBinding] = useState(true);
+  const [apiStatus, setApiStatus] = useState('尚未发送预览请求');
+
+  const previewPublication = useMemo(() => {
+    try {
+      return createArenaChallengePublication({
+        taskId,
+        classId,
+        visibility,
+        deadline: new Date(deadline).toISOString(),
+        leaderboardPolicyId,
+        homeworkBinding,
+      });
+    } catch {
+      return null;
+    }
+  }, [classId, deadline, homeworkBinding, leaderboardPolicyId, taskId, visibility]);
+
+  const submitPreviewRequest = async () => {
+    setApiStatus('正在生成预览');
+    try {
+      const response = await fetch('/api/teacher/arena/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId,
+          classId,
+          visibility,
+          deadline: new Date(deadline).toISOString(),
+          leaderboardPolicyId,
+          homeworkBinding,
+        }),
+      });
+      const payload = await response.json() as { error?: string };
+      setApiStatus(response.ok ? '预览请求已通过权限和配置校验' : payload.error ?? '预览请求未通过');
+    } catch {
+      setApiStatus('预览请求失败');
+    }
+  };
+
   return (
     <main className="surface-page min-h-screen">
       <header className="surface-topbar">
@@ -52,25 +91,56 @@ export function TeacherArenaConfig() {
             </p>
           </div>
 
-          <div className="grid gap-4">
-            {ARENA_CHALLENGE_TASKS.map((task) => {
-              const object = getArenaChallengeObject(task.objectId);
-              const policy = getArenaLeaderboardPolicy(task.leaderboardPolicyId);
-              return (
-                <article key={task.id} className="surface-card p-5">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <div className="text-xs text-subtle">{object?.name ?? '未知对象'} · {task.difficulty}</div>
-                      <h2 className="mt-2 text-lg font-semibold text-foreground">{task.title}</h2>
-                      <p className="mt-2 text-sm leading-6 text-subtle">{task.goal}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-sm text-subtle">
-                      {policy?.name ?? task.leaderboardPolicyId}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="surface-card grid gap-4 p-5">
+            <label className="grid gap-1 text-sm text-subtle">
+              挑战任务
+              <select value={taskId} onChange={(event) => setTaskId(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
+                {ARENA_CHALLENGE_TASKS.map((task) => {
+                  const object = getArenaChallengeObject(task.objectId);
+                  return (
+                    <option key={task.id} value={task.id}>
+                      {task.title} · {object?.name ?? task.objectId}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-1 text-sm text-subtle">
+                班级范围
+                <input value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                可见性
+                <select value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
+                  <option value="class">班级</option>
+                  <option value="course">课程</option>
+                  <option value="public">公开</option>
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                截止时间
+                <input type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground" />
+              </label>
+              <label className="grid gap-1 text-sm text-subtle">
+                榜单策略
+                <select value={leaderboardPolicyId} onChange={(event) => setLeaderboardPolicyId(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
+                  {ARENA_LEADERBOARD_POLICIES.map((policy) => (
+                      <option key={policy.id} value={policy.id}>
+                        {policy.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-subtle">
+              <input type="checkbox" checked={homeworkBinding} onChange={(event) => setHomeworkBinding(event.target.checked)} />
+              绑定为作业挑战
+            </label>
+            <button type="button" onClick={submitPreviewRequest} className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
+              生成发布预览
+            </button>
+            <div className="text-xs text-subtle">{apiStatus}</div>
           </div>
         </div>
 
@@ -80,13 +150,19 @@ export function TeacherArenaConfig() {
               <CalendarClock className="h-4 w-4 text-primary" />
               <h2 className="text-lg font-semibold text-foreground">发布预览</h2>
             </div>
-            <div className="mt-4 grid gap-3 text-sm">
-              <PreviewRow label="班级" value={previewPublication.classId} />
-              <PreviewRow label="任务" value={previewPublication.taskId} />
-              <PreviewRow label="可见性" value={previewPublication.studentVisibility} />
-              <PreviewRow label="截止时间" value={previewPublication.deadline} />
-              <PreviewRow label="作业绑定" value={previewPublication.homeworkBinding ? '是' : '否'} />
-            </div>
+            {previewPublication ? (
+              <div className="mt-4 grid gap-3 text-sm">
+                <PreviewRow label="班级" value={previewPublication.classId} />
+                <PreviewRow label="任务" value={previewPublication.taskId} />
+                <PreviewRow label="可见性" value={previewPublication.studentVisibility} />
+                <PreviewRow label="截止时间" value={previewPublication.deadline} />
+                <PreviewRow label="作业绑定" value={previewPublication.homeworkBinding ? '是' : '否'} />
+              </div>
+            ) : (
+              <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                当前任务、可见性、榜单或作业绑定组合不兼容。
+              </div>
+            )}
           </div>
 
           <div className="surface-card p-6">

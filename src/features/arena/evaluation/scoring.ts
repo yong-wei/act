@@ -30,8 +30,11 @@ export function scoreMetricSatisfaction(
   if (entries.length === 0) return 0;
 
   const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  if (totalWeight <= 0) return 0;
+  if (entries.some(([metricId]) => (satisfaction[metricId] ?? 0) <= 0)) return 0;
+
   const weightedLogSum = entries.reduce((sum, [metricId, weight]) => {
-    const value = Math.max(0.0001, Math.min(1, satisfaction[metricId] ?? 0));
+    const value = Math.min(1, satisfaction[metricId] ?? 0);
     return sum + (weight / totalWeight) * Math.log(value);
   }, 0);
 

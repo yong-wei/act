@@ -4,6 +4,7 @@ import { hashControllerArtifact } from '../submissions/artifact-hash';
 import { createArenaSubmission } from '../submissions/submission-service';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent } from '../telemetry';
+import { isCoreEvent } from '@/lib/data-governance/event-types';
 import type { ControllerArtifact } from '../types';
 
 const pidArtifact: ControllerArtifact = {
@@ -22,6 +23,7 @@ describe('arena submissions and leaderboards', () => {
     };
 
     expect(hashControllerArtifact(pidArtifact)).toBe(hashControllerArtifact(reordered));
+    expect(hashControllerArtifact(pidArtifact)).toMatch(/^artifact-[a-f0-9]{64}$/);
   });
 
   it('reuses duplicate evaluation results for identical task and controller artifact', () => {
@@ -74,6 +76,44 @@ describe('arena submissions and leaderboards', () => {
     expect(method.entries.every((entry) => entry.method === 'pid')).toBe(true);
   });
 
+  it('uses leaderboard policy metric tie breakers before submitted time', () => {
+    const first = createArenaSubmission({
+      taskId: 'task-integrator-low-frequency-balance',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-tie-a',
+        taskId: 'task-integrator-low-frequency-balance',
+        params: { kp: 1.6, ki: 0.4, kd: 0.12 },
+      },
+      studentLabel: '误差较大',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const second = createArenaSubmission({
+      taskId: 'task-integrator-low-frequency-balance',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-tie-b',
+        taskId: 'task-integrator-low-frequency-balance',
+        params: { kp: 1.8, ki: 0.6, kd: 0.12 },
+      },
+      studentLabel: '误差较小',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [first],
+    });
+    first.evaluation.score = 80;
+    second.evaluation.score = 80;
+    first.evaluation.metrics.steadyStateError = 0.08;
+    second.evaluation.metrics.steadyStateError = 0.03;
+
+    const leaderboard = buildArenaLeaderboard([first, second], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'main',
+    });
+
+    expect(leaderboard.entries[0]?.studentLabel).toBe('误差较小');
+  });
+
   it('defines core Arena telemetry events compatible with the L0 event boundary', () => {
     expect(ARENA_CORE_EVENT_TYPES).toEqual([
       'arena_challenge_open',
@@ -91,5 +131,7 @@ describe('arena submissions and leaderboards', () => {
       resourceKey: 'arena:task-second-order-lead-pid',
       priority: 'core',
     });
+    expect(isCoreEvent('arena_submit')).toBe(true);
+    expect(isCoreEvent('arena_leaderboard_view')).toBe(true);
   });
 });

@@ -6,6 +6,7 @@ const root = process.cwd();
 const detailRoutePath = path.join(root, 'src/app/arena/challenges/[taskId]/page.tsx');
 const detailComponentPath = path.join(root, 'src/features/arena/challenge-detail.tsx');
 const hallPath = path.join(root, 'src/features/arena/arena-hall.tsx');
+const teacherConfigPath = path.join(root, 'src/features/arena/teacher/teacher-arena-config.tsx');
 
 assert.equal(
   fs.existsSync(detailRoutePath),
@@ -22,6 +23,7 @@ assert.equal(
 const detailRouteContent = fs.readFileSync(detailRoutePath, 'utf8');
 const detailContent = fs.readFileSync(detailComponentPath, 'utf8');
 const hallContent = fs.readFileSync(hallPath, 'utf8');
+const teacherConfigContent = fs.readFileSync(teacherConfigPath, 'utf8');
 
 assert.equal(
   detailRouteContent.includes('notFound'),
@@ -53,9 +55,25 @@ assert.equal(
 );
 
 assert.equal(
+  hallContent.includes('{challenge.title}') && hallContent.includes('对象：{object.name}'),
+  true,
+  '竞技场大厅任务卡应以挑战任务标题为主标题，对象名作为副信息',
+);
+
+assert.equal(
   /<button[^>]*>\s*查看挑战/.test(hallContent),
   false,
   '竞技场大厅不应渲染无动作的“查看挑战”按钮',
+);
+
+assert.equal(
+  teacherConfigContent.includes("fetch('/api/teacher/arena/preview'") &&
+    teacherConfigContent.includes('setTaskId') &&
+    teacherConfigContent.includes('setClassId') &&
+    teacherConfigContent.includes('setDeadline') &&
+    teacherConfigContent.includes('setLeaderboardPolicyId'),
+  true,
+  '教师竞技场页面应提供真实配置表单并连接发布预览 API',
 );
 
 console.log('arena routes test passed');

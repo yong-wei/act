@@ -227,6 +227,37 @@ export const CORE_EVENTS: EventTypeMetadata[] = [
       selfDirectedLearning: 0.2,
     },
   },
+  {
+    eventType: 'arena_submit',
+    category: 'assessment',
+    priority: 'core',
+    description: '竞技场提交评测',
+    schema: {
+      type: 'object',
+      properties: {
+        taskId: { type: 'string' },
+        score: { type: 'number' },
+        valid: { type: 'boolean' },
+        method: { type: 'string' },
+      },
+      required: ['taskId', 'score', 'valid'],
+    },
+    competencyMapping: {
+      parameterDesign: 0.8,
+      engineeringDecision: 0.5,
+      selfDirectedLearning: 0.3,
+    },
+  },
+  {
+    eventType: 'arena_leaderboard_view',
+    category: 'interaction',
+    priority: 'core',
+    description: '查看竞技场排行榜',
+    competencyMapping: {
+      inquiryReflection: 0.2,
+      selfDirectedLearning: 0.2,
+    },
+  },
 ];
 
 // ============================================

@@ -81,6 +81,8 @@ export interface ChallengeTask {
   participantCount: number;
   topScore: number;
   homeworkPolicy: string;
+  homeworkEligible: boolean;
+  practiceMode: 'open' | 'guided' | 'project';
 }
 
 export interface ControllerArtifact {

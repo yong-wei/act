@@ -38,6 +38,7 @@
 - 2026-05-10: Plan E implemented artifact hashing, duplicate evaluation reuse, leaderboard sorting, core Arena event names, local submission panel, and evaluate API. Verification passed; commit `f20638a2` pushed.
 - 2026-05-10: Plan F implemented teacher publication config, homework assessment boundary, teacher page, student task visibility display, and teacher preview API. Verification passed; commit `2c678431` pushed.
 - 2026-05-10: Final audit passed. Commands: `rtk npm run test:unit -- src/features/arena/__tests__/arena-domain.test.ts src/features/arena/__tests__/arena-filtering.test.ts src/features/arena/__tests__/arena-whitebox-evaluation.test.ts src/features/arena/__tests__/arena-leaderboard.test.ts src/features/arena/__tests__/arena-teacher-config.test.ts` -> 5 files, 16 tests passed; `rtk node scripts/tests/test-arena-home-entry.mjs` -> passed; `rtk node scripts/tests/test-arena-routes.mjs` -> passed; `rtk npm run lint` -> passed; `rtk npm run test` -> smoke test passed; `rtk npm run build` -> passed.
+- 2026-05-10: Review follow-up completed after independent subagent review of Plan A-F implementation commits. See `docs/superpowers/plans/2026-05-10-arena-review-followups.md`. Original `查看挑战` no-action button finding is fixed and guarded by default `npm run test`. Arena-targeted tests, lint, and build passed; full `test:unit` still has 2 unrelated interactive failures outside Arena scope.
 
 ## Final Audit
 

@@ -158,6 +158,8 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     participantCount: 128,
     topScore: 92.4,
     homeworkPolicy: '可作为作业挑战',
+    homeworkEligible: true,
+    practiceMode: 'open',
   },
   {
     id: 'task-integrator-low-frequency-balance',
@@ -174,6 +176,8 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     participantCount: 96,
     topScore: 88.7,
     homeworkPolicy: '可作为作业挑战',
+    homeworkEligible: true,
+    practiceMode: 'guided',
   },
   {
     id: 'task-ship-roll-comfort',
@@ -190,6 +194,8 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     participantCount: 74,
     topScore: 85.1,
     homeworkPolicy: '课程项目候选',
+    homeworkEligible: false,
+    practiceMode: 'project',
   },
 ];
 

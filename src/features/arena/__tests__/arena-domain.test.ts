@@ -36,6 +36,8 @@ describe('arena domain model', () => {
       expect(task.primaryMetrics.length).toBeLessThanOrEqual(6);
       expect(task.leaderboardTypes).toContain('main');
       expect(task.leaderboardTypes.length).toBeGreaterThanOrEqual(3);
+      expect(typeof task.homeworkEligible).toBe('boolean');
+      expect(['open', 'guided', 'project']).toContain(task.practiceMode);
     }
   });
 

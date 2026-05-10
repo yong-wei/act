@@ -56,8 +56,8 @@ export function filterArenaChallengeTasks(
     if (filters.difficulty && filters.difficulty !== 'all' && task.difficulty !== filters.difficulty) return false;
     if (filters.visibility && filters.visibility !== 'all' && object.visibility !== filters.visibility) return false;
     if (filters.leaderboard && filters.leaderboard !== 'all' && !task.leaderboardTypes.includes(filters.leaderboard)) return false;
-    if (filters.homework === 'homework-capable' && !task.homeworkPolicy.includes('作业')) return false;
-    if (filters.homework === 'open-practice' && !task.homeworkPolicy.includes('开放')) return false;
+    if (filters.homework === 'homework-capable' && !task.homeworkEligible) return false;
+    if (filters.homework === 'open-practice' && task.practiceMode !== 'open') return false;
 
     return true;
   });

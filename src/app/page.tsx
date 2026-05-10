@@ -411,7 +411,7 @@ export default function HomePage() {
               <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
-                  <div className="text-xs text-subtle">三大核心模块</div>
+                  <div className="text-xs text-subtle">四个核心入口</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {moduleLinks.map((module) => (

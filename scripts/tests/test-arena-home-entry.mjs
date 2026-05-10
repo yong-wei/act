@@ -22,6 +22,12 @@ assert.equal(
 );
 
 assert.equal(
+  homeContent.includes('四个核心入口'),
+  true,
+  '首页平台入口矩阵应与四个入口数量一致',
+);
+
+assert.equal(
   fs.existsSync(arenaPagePath),
   true,
   '/arena 页面文件应存在',
