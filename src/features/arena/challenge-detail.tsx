@@ -6,6 +6,7 @@ import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { buildArenaTaskStats } from './stats';
 import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
 import { getArenaWorkspaceHref } from './workspace-routing';
+import { getEvaluableControllerMethods } from './submissions/controller-artifact-builder';
 
 const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
   'serial-compensator': '串联校正',
@@ -44,7 +45,7 @@ export function ChallengeDetail({
     topScore: null,
   };
   const workspaceHref = getArenaWorkspaceHref(task, object);
-  const canSubmitWithCurrentEvaluator = task.allowedMethods.includes('pid');
+  const canSubmitWithCurrentEvaluator = getEvaluableControllerMethods(task).length > 0;
 
   return (
     <main className="surface-page min-h-screen">

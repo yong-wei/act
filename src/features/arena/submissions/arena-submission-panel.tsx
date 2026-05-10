@@ -5,19 +5,14 @@ import { BarChart3, Send } from 'lucide-react';
 
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import type { ArenaSubmissionRecord } from './submission-service';
-import type { ChallengeTask, ControllerArtifact, LeaderboardType } from '../types';
+import type { ChallengeTask, LeaderboardType } from '../types';
+import {
+  buildControllerArtifactFromParams,
+  getEvaluableControllerMethods,
+  type EvaluableControllerMethod,
+} from './controller-artifact-builder';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
-
-function makePidArtifact(task: ChallengeTask, params: ControllerArtifact['params']): ControllerArtifact {
-  return {
-    id: `artifact-${task.id}-${Date.now()}`,
-    taskId: task.id,
-    method: 'pid',
-    params,
-    createdAt: new Date().toISOString(),
-  };
-}
 
 export function ArenaSubmissionPanel({
   task,
@@ -30,7 +25,12 @@ export function ArenaSubmissionPanel({
   const [kp, setKp] = useState('2.4');
   const [ki, setKi] = useState('0.8');
   const [kd, setKd] = useState('0.35');
+  const [gain, setGain] = useState('2');
+  const [zero, setZero] = useState('1');
+  const [pole, setPole] = useState('4');
   const [status, setStatus] = useState<string | null>(null);
+  const evaluableMethods = getEvaluableControllerMethods(task);
+  const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
   const [leaderboardType, setLeaderboardType] = useState<LeaderboardType>(task.leaderboardTypes[0] ?? 'main');
   const [metricId, setMetricId] = useState(task.primaryMetrics[0] ?? '');
   const [method, setMethod] = useState(task.allowedMethods[0] ?? 'pid');
@@ -48,12 +48,24 @@ export function ArenaSubmissionPanel({
   });
 
   const submitController = async () => {
+    if (!evaluableMethods.includes(controllerMethod)) {
+      setStatus('当前任务没有可由白箱评测器直接评测的控制器方法。');
+      return;
+    }
     setStatus('正在提交官方评测...');
-    const artifact = makePidArtifact(task, {
-      kp: Number(kp),
-      ki: Number(ki),
-      kd: Number(kd),
-    });
+    let artifact;
+    try {
+      artifact = buildControllerArtifactFromParams({
+        task,
+        method: controllerMethod,
+        values: controllerMethod === 'pid'
+          ? { kp, ki, kd }
+          : { gain, zero, pole },
+      });
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '控制器参数无效');
+      return;
+    }
     const response = await fetch('/api/arena/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -77,8 +89,24 @@ export function ArenaSubmissionPanel({
         <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>
       </div>
       <p className="mt-2 text-sm leading-6 text-subtle">
-        提交 PID 参数后，平台会执行官方评测并写入真实排行榜记录。
+        提交控制器参数后，平台会执行官方评测并写入真实排行榜记录。
       </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {evaluableMethods.map((allowedMethod) => (
+          <button
+            key={allowedMethod}
+            type="button"
+            onClick={() => setControllerMethod(allowedMethod)}
+            className={`rounded-lg border px-3 py-1.5 text-xs transition ${
+              controllerMethod === allowedMethod
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border/70 bg-card/55 text-subtle hover:text-foreground'
+            }`}
+          >
+            {methodLabel(allowedMethod)}
+          </button>
+        ))}
+      </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {availableLeaderboardTypes.map((type) => (
           <button
@@ -123,18 +151,26 @@ export function ArenaSubmissionPanel({
           </select>
         </label>
       ) : null}
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <NumberInput label="Kp" value={kp} onChange={setKp} />
-        <NumberInput label="Ki" value={ki} onChange={setKi} />
-        <NumberInput label="Kd" value={kd} onChange={setKd} />
-      </div>
+      {controllerMethod === 'pid' ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <NumberInput label="Kp" value={kp} onChange={setKp} />
+          <NumberInput label="Ki" value={ki} onChange={setKi} />
+          <NumberInput label="Kd" value={kd} onChange={setKd} />
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <NumberInput label="Gain" value={gain} onChange={setGain} />
+          <NumberInput label="Zero" value={zero} onChange={setZero} />
+          <NumberInput label="Pole" value={pole} onChange={setPole} />
+        </div>
+      )}
       <button
         type="button"
         onClick={submitController}
         className="cta-primary mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
       >
         <Send className="h-4 w-4" />
-        提交 PID 控制器
+        提交{methodLabel(controllerMethod)}控制器
       </button>
       {status ? <div className="mt-3 text-xs text-subtle">{status}</div> : null}
       {latest ? (
