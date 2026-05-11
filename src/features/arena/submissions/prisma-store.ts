@@ -13,6 +13,13 @@ import type {
 
 type PrismaJson = Record<string, unknown> | unknown[];
 
+function isMissingArenaSubmissionTable(error: unknown): boolean {
+  return typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'P2021';
+}
+
 function toEvaluationResult(row: Record<string, unknown>): ArenaEvaluationResult {
   return {
     taskId: String(row.taskId),
@@ -178,19 +185,27 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       : options?.taskIds?.length
         ? { taskId: { in: options.taskIds } }
         : {};
-    const rows = await (prisma as any).arenaSubmission.findMany({
-      where: {
-        ...taskFilter,
-        ...(options?.userId ? { userId: options.userId } : {}),
-      },
-      include: {
-        controllerArtifact: true,
-        evaluationRun: true,
-      },
-      orderBy: {
-        submittedAt: 'asc',
-      },
-    });
+    let rows: Array<Record<string, unknown>>;
+    try {
+      rows = await (prisma as any).arenaSubmission.findMany({
+        where: {
+          ...taskFilter,
+          ...(options?.userId ? { userId: options.userId } : {}),
+        },
+        include: {
+          controllerArtifact: true,
+          evaluationRun: true,
+        },
+        orderBy: {
+          submittedAt: 'asc',
+        },
+      });
+    } catch (error) {
+      if (isMissingArenaSubmissionTable(error)) {
+        return [];
+      }
+      throw error;
+    }
 
     return rows
       .filter((row: Record<string, unknown>) => {

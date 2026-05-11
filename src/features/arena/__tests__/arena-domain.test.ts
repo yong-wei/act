@@ -45,6 +45,17 @@ describe('arena domain model', () => {
     }
   });
 
+  it('keeps task primary metrics aligned with ranking metric profiles', () => {
+    for (const task of ARENA_CHALLENGE_TASKS) {
+      const profile = ARENA_METRIC_PROFILES.find((item) => item.id === task.metricProfileId);
+      const rankingMetricIds = new Set(profile?.rankingMetrics.map((metric) => metric.id) ?? []);
+
+      for (const metricId of task.primaryMetrics) {
+        expect(rankingMetricIds.has(metricId), `${task.id} primary metric ${metricId} must be rankable`).toBe(true);
+      }
+    }
+  });
+
   it('can resolve a task by id and preserve task-first workspace routing', () => {
     const task = getArenaChallengeTask('task-second-order-lead-pid') as ChallengeTask;
 
@@ -115,6 +126,19 @@ describe('arena domain model', () => {
     expect(optimizationTask?.primaryMetrics).toContain('hiddenScenarioWorst');
     expect(ARENA_METRIC_PROFILES.find((profile) => profile.id === optimizationTask?.metricProfileId)?.diagnosticMetrics)
       .toContain('optimizationBudget');
+  });
+
+  it('covers unstable typical plants with a stabilization challenge', () => {
+    const unstableObject = getArenaChallengeObject('plant-unstable-first-order');
+    const stabilizationTask = getArenaChallengeTask('task-unstable-first-order-stabilization');
+
+    expect(unstableObject?.source).toBe('typical');
+    expect(unstableObject?.visibility).toBe('white-box');
+    expect(unstableObject?.model?.display).toContain('s-1');
+    expect(stabilizationTask?.objectId).toBe('plant-unstable-first-order');
+    expect(stabilizationTask?.title).toContain('镇定');
+    expect(stabilizationTask?.allowedMethods).toEqual(expect.arrayContaining(['serial-compensator', 'pid']));
+    expect(stabilizationTask?.primaryMetrics).toEqual(expect.arrayContaining(['settlingTime', 'overshoot']));
   });
 
   it('defines a standalone robust disturbance challenge with hidden-scenario scoring', () => {

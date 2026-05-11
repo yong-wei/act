@@ -305,6 +305,36 @@ describe('arena white-box evaluation', () => {
     expect(weak.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(false);
   });
 
+  it('evaluates unstable plant stabilization challenges with closed-loop gates', () => {
+    const stabilizing = evaluateWhiteBoxSubmission({
+      taskId: 'task-unstable-first-order-stabilization',
+      artifact: {
+        id: 'artifact-unstable-pid-good',
+        taskId: 'task-unstable-first-order-stabilization',
+        method: 'pid',
+        params: { kp: 2, ki: 1, kd: 1 },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+    });
+    const weak = evaluateWhiteBoxSubmission({
+      taskId: 'task-unstable-first-order-stabilization',
+      artifact: {
+        id: 'artifact-unstable-pid-weak',
+        taskId: 'task-unstable-first-order-stabilization',
+        method: 'pid',
+        params: { kp: 0.2, ki: 0, kd: 0 },
+        createdAt: '2026-05-11T10:00:00.000Z',
+      },
+    });
+
+    expect(stabilizing.valid).toBe(true);
+    expect(stabilizing.score).toBeGreaterThan(0);
+    expect(stabilizing.metrics.settlingTime).toBeGreaterThan(0);
+    expect(stabilizing.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(true);
+    expect(weak.valid).toBe(false);
+    expect(weak.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(false);
+  });
+
   it('fails closed for code-controller artifacts without an external sandbox result', () => {
     const result = evaluateArenaSubmission({
       taskId: 'task-ship-roll-mpc-hidden-scenarios',

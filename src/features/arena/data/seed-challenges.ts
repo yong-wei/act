@@ -118,6 +118,17 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     model: { display: 'G(s)=5(1-0.25s)/(s+1)(1+0.25s)', numerator: [-1.25, 5], denominator: [0.25, 1.25, 1] },
     relatedKnowledge: ['时滞控制', '稳定裕度'],
   },
+  {
+    id: 'plant-unstable-first-order',
+    name: '不稳定一阶对象',
+    source: 'typical',
+    visibility: 'white-box',
+    chapter: '模块 3 / 模块 4',
+    tags: ['不稳定对象', '镇定', '闭环稳定'],
+    adapterType: 'transfer-function',
+    model: { display: 'G(s)=2/(s-1)', numerator: [2], denominator: [1, -1] },
+    relatedKnowledge: ['闭环稳定', '劳斯判据', '校正镇定'],
+  },
 ];
 
 export const ARENA_METRIC_PROFILES: MetricProfile[] = [
@@ -156,6 +167,18 @@ export const ARENA_METRIC_PROFILES: MetricProfile[] = [
       { id: 'controlEnergy', label: '控制能量', direction: 'minimize', idealValue: 4, unacceptableValue: 20 },
     ],
     diagnosticMetrics: ['gainMargin', 'phaseMargin', 'bandwidth', 'controllerOrder'],
+  },
+  {
+    id: 'metric-whitebox-stabilization-balanced',
+    name: '白箱镇定均衡评分',
+    hardConstraints: ['closed_loop_stable', 'finite_response', 'controller_causal'],
+    rankingMetrics: [
+      { id: 'settlingTime', label: '调节时间', direction: 'minimize', idealValue: 3, unacceptableValue: 10, unit: 's' },
+      { id: 'overshoot', label: '超调量', direction: 'minimize', idealValue: 10, unacceptableValue: 36, unit: '%' },
+      { id: 'steadyStateError', label: '稳态误差', direction: 'minimize', idealValue: 0.02, unacceptableValue: 0.14 },
+      { id: 'controlEnergy', label: '控制能量', direction: 'minimize', idealValue: 5, unacceptableValue: 22 },
+    ],
+    diagnosticMetrics: ['itae', 'riseTime', 'phaseMargin', 'controllerOrder'],
   },
   {
     id: 'metric-odyssey-growth',
@@ -368,6 +391,22 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '开放项目任务',
     homeworkEligible: false,
     practiceMode: 'project',
+  },
+  {
+    id: 'task-unstable-first-order-stabilization',
+    objectId: 'plant-unstable-first-order',
+    title: '不稳定一阶对象镇定挑战',
+    goal: '先使不稳定对象闭环稳定，再比较响应速度、超调、稳态误差和控制能量。',
+    difficulty: '挑战',
+    allowedMethods: ['serial-compensator', 'pid'],
+    metricProfileId: 'metric-whitebox-stabilization-balanced',
+    leaderboardPolicyId: 'leaderboard-whitebox-default',
+    leaderboardTypes: ['main', 'method', 'metric'],
+    primaryMetrics: ['settlingTime', 'overshoot', 'steadyStateError', 'controlEnergy'],
+    workspaceMode: 'multi-representation-linkage',
+    homeworkPolicy: '镇定练习任务',
+    homeworkEligible: false,
+    practiceMode: 'guided',
   },
   {
     id: 'task-third-order-block-diagram',
