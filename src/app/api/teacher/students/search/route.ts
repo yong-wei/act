@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * 搜索学生
  * GET /api/teacher/students/search?q=keyword&excludeClassId=xxx
  *
- * 按姓名、账号、学号搜索学生
+ * 按姓名、账号、学号搜索学生；无关键词时返回可添加候选学生
  */
 export async function GET(request: Request) {
   try {
@@ -28,30 +28,62 @@ export async function GET(request: Request) {
     const query = searchParams.get('q')?.trim();
     const excludeClassId = searchParams.get('excludeClassId');
 
-    if (!query || query.length < 2) {
+    if (!excludeClassId) {
+      return NextResponse.json({ error: '请提供班级ID' }, { status: 400 });
+    }
+
+    const classInfo = await prisma.class.findFirst({
+      where: {
+        id: excludeClassId,
+        ...(session.user.role === 'TEACHER' ? { teacherId: session.user.id } : {})
+      },
+      select: { id: true }
+    });
+
+    if (!classInfo) {
+      return NextResponse.json({ error: '班级不存在或无权限' }, { status: 404 });
+    }
+
+    if (query && query.length < 2) {
       return NextResponse.json({ error: '搜索关键词至少2个字符' }, { status: 400 });
     }
 
-    // 构建查询条件
+    const andConditions: Prisma.UserWhereInput[] = [];
+
+    if (query) {
+      andConditions.push({
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+          {
+            profile: {
+              is: {
+                studentNumber: { contains: query, mode: 'insensitive' }
+              }
+            }
+          }
+        ]
+      });
+    }
+
+    if (excludeClassId) {
+      andConditions.push({
+        OR: [
+          { profile: { is: null } },
+          {
+            profile: {
+              is: {
+                classId: { not: excludeClassId }
+              }
+            }
+          }
+        ]
+      });
+    }
+
     const whereCondition: Prisma.UserWhereInput = {
       role: 'STUDENT',
-      OR: [
-        { name: { contains: query, mode: 'insensitive' } },
-        { email: { contains: query, mode: 'insensitive' } },
-        {
-          profile: {
-            studentNumber: { contains: query, mode: 'insensitive' }
-          }
-        }
-      ],
-      // 如果提供了排除的班级ID，只返回不在该班级的学生
-      ...(excludeClassId ? {
-        NOT: {
-          profile: {
-            classId: excludeClassId
-          }
-        }
-      } : {})
+      ...(andConditions.length > 0 ? { AND: andConditions } : {})
     };
 
     const students = await prisma.user.findMany({

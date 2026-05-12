@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   X,
   Search,
@@ -51,6 +51,7 @@ export function AddStudentsModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState<string | null>(null);
   const [addedStudents, setAddedStudents] = useState<Set<string>>(new Set());
 
@@ -59,25 +60,53 @@ export function AddStudentsModal({
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // 搜索学生
-  const handleSearch = useCallback(async () => {
-    if (searchQuery.length < 2) return;
+  const fetchStudents = useCallback(async (query: string) => {
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length === 1) {
+      setSearchError('请输入至少2个字符');
+      setSearchResults([]);
+      return;
+    }
+
+    const params = new URLSearchParams({ excludeClassId: classId });
+    if (trimmedQuery.length >= 2) {
+      params.set('q', trimmedQuery);
+    }
 
     setIsSearching(true);
+    setSearchError(null);
     try {
-      const res = await fetch(
-        `/api/teacher/students/search?q=${encodeURIComponent(searchQuery)}&excludeClassId=${classId}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setSearchResults(data);
+      const res = await fetch(`/api/teacher/students/search?${params.toString()}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSearchError(data.error || '加载学生名单失败');
+        setSearchResults([]);
+        return;
       }
+
+      setSearchResults(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Search error:', error);
+      setSearchError('加载学生名单失败，请重试');
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, classId]);
+  }, [classId]);
+
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'search') return;
+
+    setSearchQuery('');
+    void fetchStudents('');
+  }, [activeTab, fetchStudents, isOpen]);
+
+  // 搜索学生
+  const handleSearch = useCallback(async () => {
+    await fetchStudents(searchQuery);
+  }, [fetchStudents, searchQuery]);
 
   // 添加学生到班级
   const handleAddStudent = async (student: Student) => {
@@ -211,7 +240,10 @@ export function AddStudentsModal({
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchError(null);
+                    }}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     placeholder="搜索姓名、账号或学号..."
                     className="w-full rounded-lg border border-slate-600 bg-slate-800 py-2 pl-10 pr-4 text-white placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
@@ -219,20 +251,27 @@ export function AddStudentsModal({
                 </div>
                 <button
                   onClick={handleSearch}
-                  disabled={searchQuery.length < 2 || isSearching}
+                  disabled={searchQuery.trim().length === 1 || isSearching}
                   className="rounded-lg bg-sky-600 px-4 py-2 font-medium text-white transition hover:bg-sky-500 disabled:opacity-50"
                 >
                   {isSearching ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    '搜索'
+                    searchQuery.trim().length >= 2 ? '搜索' : '刷新'
                   )}
                 </button>
               </div>
 
               {/* 搜索提示 */}
-              {searchQuery.length > 0 && searchQuery.length < 2 && (
+              {searchQuery.trim().length === 1 && !searchError && (
                 <p className="text-sm text-slate-500">请输入至少2个字符</p>
+              )}
+
+              {searchError && (
+                <p className="flex items-center gap-2 text-sm text-amber-400">
+                  <AlertCircle className="h-4 w-4" />
+                  {searchError}
+                </p>
               )}
 
               {/* 搜索结果 */}
@@ -280,10 +319,9 @@ export function AddStudentsModal({
                   ))}
                 </div>
               ) : (
-                searchQuery.length >= 2 &&
                 !isSearching && (
                   <div className="py-8 text-center text-slate-500">
-                    未找到匹配的学生
+                    {searchQuery.trim().length >= 2 ? '未找到匹配的学生' : '暂无可添加的候选学生'}
                   </div>
                 )
               )}

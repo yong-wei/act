@@ -114,15 +114,15 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 加入课堂 - 醒目入口 */}
+        {/* 加入课堂 / 班级 - 醒目入口 */}
         <div className="mb-8">
           <Link
             href="/classroom/join"
             className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary to-cyan-600 py-5 text-lg font-medium text-primary-foreground shadow-lg shadow-cyan-900/20 transition-all hover:from-primary/90 hover:to-cyan-500"
           >
             <Users className="h-6 w-6" />
-            加入课堂
-            <span className="ml-2 text-sm opacity-80">输入6位课堂码</span>
+            加入课堂 / 班级
+            <span className="ml-2 text-sm opacity-80">输入课堂码或班级加入码</span>
           </Link>
         </div>
 
