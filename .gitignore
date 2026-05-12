@@ -2,10 +2,11 @@
 .serena/
 image/
 AGENTS.md
+CLAUDE.md
+GEMINI.md
 .codex/
 !.codex/
 .codex/config.toml
-!.codex/config.toml
 .codex/agents/
 !.codex/agents/
 !.codex/agents/**
