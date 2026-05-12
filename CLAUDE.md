@@ -6,43 +6,11 @@
 
 ## MCP 资源
 
-### 全局策略
-
-**工具选择**：根据任务意图选择最匹配的 MCP 服务；避免无意义并发调用。
-
-* **最小必要**：收敛查询范围（tokens/结果数/时间窗/关键词），避免过度抓取与噪声。
-* **可追溯性**：统一在答复末尾追加“**工具调用简报**”（工具、输入摘要、参数、时间、来源/重试）。
-* **降级优先**：服务失败时，按“失败与降级”执行，无法外呼时提供本地保守答案并标注不确定性。
-
-### 服务清单与用途
-
-- chrome-devtools：浏览器调试首选
-- context7：检索并引用官方文档/API，用于库/框架/版本差异与配置问题。
-- postgres：数据库操作
-- Playwright：多浏览器操作
-- Serena：代码语义检索、符号级编辑、引用分析。
-
-### 服务选择与调用（意图判定）
-
-- 文档/API → Context7
-- 代码分析/修改 → Serena
-- 数据库查询与操作 → postgres
-- 浏览器/前端调试 → chrome-devtools
-
-### 具体服务规则
-
-**Context7（技术文档知识聚合）**
-
-- 触发：查询 SDK/API/框架官方文档、快速知识提要、参数示例。
-- 流程：先 `resolve-library-id`；确认最相关库；再 `get-library-docs`。
-- 输出：精炼答案 + 引用文档段落链接或出处标识；标注库 ID/版本。
-
-**Serena（代码语义检索/符号级编辑）**
-
-- 用途：提供基于语言服务器（LSP）的符号级检索与代码编辑能力。
-- 触发：需要按符号/语义查找、跨文件引用分析、重构迁移、在指定符号前后插入或替换实现等。
-- 常用工具：`find_symbol`, `find_referencing_symbols`, `insert_before_symbol`, `replace_symbol_body`。
-- 使用策略：优先小范围、精准操作；输出需带符号/文件定位与变更原因，便于追溯。
+- **Serena**: 代码语义检索、符号级编辑（`find_symbol`、`find_referencing_symbols`、`replace_symbol_body`）
+- **code-review-graph**: 知识图谱，优先用于代码探索和变更影响分析（见下方）
+- **chrome-devtools / Playwright**: 浏览器调试与 E2E 测试
+- **postgres**: 数据库直连操作
+- **选型**: 代码分析→Serena/CRG，浏览器→chrome-devtools，数据库→postgres
 
 ## Communication Protocol
 
@@ -119,11 +87,17 @@ src/
 │   ├── lesson-engine/     # Curriculum engine (Zustand store)
 │   └── ui/                # shadcn/ui components
 ├── lib/
-│   ├── auth.ts            # NextAuth configuration
-│   ├── prisma.ts          # Prisma client singleton
-│   ├── ai-client.ts       # SiliconFlow AI client
-│   ├── ai-tools.ts        # AI function calling tools
-│   └── simulation-engine.ts  # Ship physics (Nomoto model, PID)
+│   ├── auth.ts               # NextAuth configuration
+│   ├── prisma.ts             # Prisma client singleton
+│   ├── ai-client.ts          # SiliconFlow AI client
+│   ├── ai-tools.ts           # AI function calling tools
+│   ├── ai-prompt-builder.ts  # AI prompt construction
+│   ├── ai-context-resolver.ts # AI context resolution
+│   ├── simulation-engine.ts  # Ship physics (Nomoto model, PID)
+│   ├── data-governance/      # Learning data governance & event ingestion
+│   ├── classroom-analytics/  # Classroom event tracking & analytics
+│   ├── classroom-observability.ts # Session observability
+│   └── course-runtime.ts     # Course content runtime utilities
 ├── hooks/
 │   ├── useShipSimulation.ts  # Core simulation hook
 │   └── useEthicalMonitor.ts  # Ethics violation detection
@@ -212,43 +186,11 @@ AI_MODEL="Qwen/Qwen3.6-35B-A3B"
 ### 生成仿真图
 
 ```bash
-python3 scripts/generate_control_plots.py
+python3 scripts/generate_control_plots.py       # 8 张时域/频域/根轨迹图 → images/
+python3 scripts/control_diagrams_matplotlib.py  # 4 张框图与信号流图 → images/
 ```
 
-输出目录：`images/`（共 8 张 PNG，150 DPI）
-
-| 文件 | 内容 |
-|------|------|
-| `01_step_response.png` | 一阶/二阶系统阶跃响应（不同 T、ζ） |
-| `02_impulse_response.png` | 二阶系统脉冲响应 |
-| `03_bode_plot.png` | Bode 图，标注增益裕度 GM / 相位裕度 PM |
-| `04_nyquist_plot.png` | Nyquist 图，标注临界点 (−1, 0) |
-| `05_root_locus.png` | 根轨迹，标注各 K 值极点 |
-| `06_pzmap.png` | 极零点图（四种阻尼状态对比） |
-| `07_pid_comparison.png` | P / PD / PI / PID 阶跃响应对比 |
-| `08_nichols_chart.png` | Nichols 图，颜色编码频率 |
-
-### 框图与信号流图 (Matplotlib)
-
-用于绘制控制系统框图和信号流图。使用纯 `matplotlib` 实现，白色背景，风格符合教学标准。
-
-```bash
-# Generate diagrams
-python3 scripts/control_diagrams_matplotlib.py
-```
-
-输出文件：
-
-| 文件 | 内容 |
-|------|------|
-| `block_diagram_ref.png` | 标准框图（Σ 求和点、+/- 标签、分支点、反馈回路） |
-| `signal_flow_ref.png` | 信号流图（蓝色弧线、自环 a₂₂、虚线通路 P、反馈 a₁₁） |
-| `cascade_control.png` | 串级 PID 控制系统（位置/速度双环 + 扰动 D(s)） |
-| `mason_formula.png` | Mason 增益公式示例（前向 a-d、自环 e、反馈 f/g/h、跨接 i/j） |
-
-**样式说明**：
-- 框图：黑色线条，圆圈求和点带 Σ 符号，+/- 标注在圆外左侧，分支点为黑色圆点
-- 信号流图：蓝色 (#2E5090) 粗线条，节点为空心圆，弧线连接带箭头，增益标注在弧线旁
+详细输出清单与样式说明见 `docs/python-diagrams.md`。
 
 ## Testing Requirements (MANDATORY)
 

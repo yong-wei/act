@@ -233,6 +233,10 @@ Arena 对象来源包括典型对象、作业对象、Control Odyssey 对象、�
 
 数据治理不是简单计数。`LearningFact` 记录事实类型、结果、得分、耗时、能力贡献和来源事件；`StudentCompetencySnapshot` 聚合事实并保存分数、趋势、置信度和证据数量；`StudentProfileSummary` 面向个人中心和 AI 助手提供可读摘要；`StudentRiskFlag` 用于记录需要关注的风险；`ClassCompetencySnapshot` 面向教师端提供班级层面的能力结构和整体趋势。
 
+课堂提交的答题事实源已经从浏览器最终状态扩展到持久化的 `StudentStepResponse`。它用于保存关键互动步骤的提交版本、摘要、状态和可信 `sourceLogId`，避免只依赖 `StudentState.responses` 或客户端上报的日志 ID。4-4 数据治理回写脚本以该表为定向补数目标，并保持幂等：已回写记录会跳过，缺少可信原始日志或答案不完整的记录会被归入治理摘要，而不是伪造事实来源。
+
+`ClassSessionReport` 同时保留 legacy event type 和 canonical event type 统计。同步错误、提交、重提交和结课事件应按 canonical 口径进入报告摘要；课堂参与人数、产生事实人数、提交人数和快照更新人数则写入 `sessionGovernanceSummary`，避免把长期画像中的 `activeStudentCount` 误读为单次课堂活跃人数。
+
 后台处理由 API、worker、scheduler 和回放脚本共同完成。API 适合处理课堂核心提交等必须即时可见的事件；worker 适合处理批量事件、快照计算和治理任务；scheduler 负责定期生成学生和班级快照；backfill 脚本用于把历史事件重新物化为学习事实。排查画像异常时，应先区分原始事件、学习事实、快照和页面聚合接口属于哪一层。
 
 ## AI 能力

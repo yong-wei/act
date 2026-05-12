@@ -200,19 +200,14 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
 <claude-mem-context>
 # Memory Context
 
-# [act.just.edu.cn] recent context, 2026-05-12 10:37am GMT+8
+# [act.just.edu.cn] recent context, 2026-05-12 3:02pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (4,213t read) | 471,268t work | 99% savings
+Stats: 50 obs (6,176t read) | 561,335t work | 99% savings
 
-### Apr 7, 2026
-S245 Control systems course handout refinement completed and task marked as finished (Apr 7 at 8:28 PM)
-S246 Refined 2-2 lecture handout with comprehensive enhancements (Apr 7 at 11:12 PM)
-### Apr 8, 2026
-S247 Authentication system investigation initiated (Apr 8 at 7:17 AM)
 ### Apr 12, 2026
 S248 Chinese language request received - continue monitoring primary session (Apr 12 at 8:26 PM)
 ### Apr 16, 2026
@@ -224,58 +219,69 @@ S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Au
 S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:27 PM)
 S254 竞技场报错修复并完成计划W (May 2 at 1:50 PM)
 ### May 11, 2026
-32796 9:30a ✅ 记录 Arena 计划文档更新
-32797 " 🔵 检测到 AGENTS.md 文件修改
-32798 9:31a 🔵 代码库已同步至远程
-32799 10:22a ✅ 项目已部署到生产环境
-32800 " ✅ 项目已完成部署
-32801 10:23a ✅ 完成 WASM 编译与 Prisma 客户端生成
-32802 10:24a ✅ 类型检查与 lint 完成
-32803 10:25a ✅ 完成静态页面生成
-32804 " 🔵 检测到多个 npm 包已弃用
-32805 10:26a ✅ 依赖安装完成并构建 Docker 镜像层
-32806 10:27a ✅ 启动项目完整构建流程
-32807 10:28a ✅ 完成 Wasm、Prisma 与 Next.js 构建步骤
-32808 10:37a 🟣 项目已完成部署
-32809 " 🔵 构建产物路由体积统计
-32810 10:38a ✅ Docker 镜像构建复制项目文件
-32811 10:40a ✅ 构建 Docker 镜像完成
-32812 10:42a 🔵 SSH 连接可用性确认
-32813 10:44a ✅ 项目已部署至生产环境
-32814 10:47a 🔵 远程主机连接中断
-32815 10:57a 🔵 部署镜像文件大小确认
-32816 " 🔵 远程命令返回数值
-32817 10:58a 🔵 Docker 环境资源与容器状态概览
-32822 11:06a ✅ 完成一键远程部署流程
-S255 用户请求注销登录状态 (May 11 at 12:41 PM)
-32866 9:10p ✅ 项目代码图谱增量更新
-32867 9:11p 🔵 项目代码图谱统计信息
-32868 9:12p 🔵 项目 src/app 目录下的页面与路由文件列表
-32869 9:13p 🟣 虚拟仿真运行时加载与计算接口实现
-32870 9:14p ✅ Prisma 数据模型扩展
-32871 9:15p 🔵 运行时课程内容文件清单
-32872 " 🔵 交互式特性共享模块文件列表
-32873 9:17p 🔴 ProjectDescription 文档行数
-32874 9:18p 🔵 Arena 功能目录结构
-32875 " 🔴 ProjectDescription 文档无空格错误
-32876 9:35p ✅ 更新项目文档概览
-32877 9:36p ✅ 完善 ProjectDescription.md 文档
-32878 " ✅ 扩展 ProjectDescription.md 中的 Arena 与数据治理章节
-32879 9:43p 🔵 读取 refactor-safely 技能文档
-32880 9:44p 🔵 获取最小上下文图谱
-32881 9:46p 🔵 列出 docs 目录文件
-32882 9:47p 🔵 读取 package.json 配置
-32883 9:49p 🔵 列出项目根目录配置文件
-32884 9:50p ✅ 创建归档与图形目录
-32885 10:02p ✅ 创建文档归档目录
-32886 " 🔄 文档与脚本归档重构
-32887 10:05p 🔄 文档链接更新指向归档路径
-32888 10:07p 🔵 ESLint 检查通过
-32889 " 🔵 单元测试全部通过
-32890 " ✅ 删除 Python 缓存目录
-32891 10:08p 🔵 Codex SQLite WAL 日志文件结构确认
+S255 用户请求注销登录状态 (May 11 at 8:31 AM)
+S256 完成 4-5 讲义的润色并回写至原文件 (May 11 at 12:41 PM)
 ### May 12, 2026
-32892 10:37a ✅ 恢复项目文档 CLAUDE.md 与 GEMINI.md
+S257 确认并评估 CLAUDE.md 文档质量，提出更新建议 (May 12 at 11:52 AM)
+33162 1:30p 🔵 数据库完整性验证通过
+33163 " 🔵 4-4 章节活动卡定义已完整列出
+33164 " 🔵 StudentStepResponse 数据结构在前后端统一使用
+33165 1:31p 🔴 TypeScript 编译错误阻断构建
+33166 1:32p 🔵 完成 4-4 单元数据治理阻断检查
+33167 1:33p ✅ 本地仓库出现多项未提交修改
+33168 1:39p 🔵 4-4 单元数据治理分析报告要点
+33169 1:40p 🔵 Prisma 模式验证通过
+33170 " 🔵 session-reports.ts 中关键数据治理概念实现
+33171 1:42p 🔵 读取 review-changes 技能文档
+33172 " 🔵 读取 review-changes 技能文档
+33173 " 🔵 获取代码图统计信息
+33174 " 🔵 工作区文件变更状态
+33175 " 🔵 获取代码审查上下文
+33176 " 🔵 获取审查上下文高风险概览
+33178 1:43p 🔵 课堂画像与长期画像字段实现细节
+33177 " 🔵 搜索 Prisma 模型定义
+33179 " 🔵 检查 InteractionLog 与 StudentStepResponse 关联定义
+33180 " 🔵 4-4 课堂数据治理分析报告概览
+33181 1:44p 🔵 数据治理 ingest 测试用例概览
+33182 " 🔵 单元测试全部通过
+33183 " 🔵 扩展单元测试全部通过
+33184 " 🔵 单元测试全部通过
+33185 1:45p 🔴 运行临时 TypeScript 脚本失败
+33186 " 🔵 课堂会话与治理报告数据核对
+33187 1:46p 🔵 Session PATCH API 实现概览
+33188 1:48p 🔵 StudentStepResponse 与 InteractionLog 的阻断与非阻断问题定位
+33190 " 🔴 单元测试发现 InteractionLog 仍保留伪造 sourceLogId
+33189 " 🔵 不可变答题事实源实现确认
+33191 1:49p 🔵 InteractionLog 伪造 sourceLogId 剥离测试通过
+33192 " 🔵 课堂画像与长期画像分离目标已达成
+33194 " ⚖️ D 项收口判断
+33193 1:50p 🔵 LearningFact 与 sourceLogId 追踪链路文档化
+33195 " 🔵 InteractionLog 入库前剥离不可信 sourceLogId 实现确认
+33196 1:51p 🟣 attachSourceLogIds 实现可信 sourceLogId 绑定
+33197 " 🔵 InteractionLog、StudentStepResponse 与 LearningFact 均已剥离伪造 sourceLogId
+33198 1:55p 🔵 全局 CLAUDE.md 内容已检视
+33199 1:56p 🔵 关键源码目录仍然存在
+33200 1:57p ✅ 代码变更已提交并部署到服务器
+33201 " 🔵 读取 server-ops 技能文档
+33202 " 🔵 读取 remote-deploy.sh 部署脚本
+33203 1:58p 🔵 读取 backfill-unit-4-4-governance.ts 脚本
+33204 2:51p 🔵 检查 CLAUDE.md 第7行的空白字符
+33206 " 🔵 检查 course-content/CLAUDE.md 快速命令章节的字符显示
+33205 " 🟣 完成远端数据库导出并导入本地用于数据治理分析
+33207 2:52p ✅ 执行项目构建命令
+33209 2:53p ✅ 更新 course-content/CLAUDE.md 日期与快速命令章节
+33208 " 🔵 项目完整构建并生成 WASM 包
+33210 2:54p 🔵 更新 CLAUDE.md 文档内容
+33211 " ✅ 批量更新 CLAUDE.md 中的 MCP、Python 示例与 lib 结构章节
+S258 完成对 CLAUDE.md 与 course-content/CLAUDE.md 的多项内容更新 (May 12 at 2:54 PM)
+**Investigated**: 检查了文档中日期、Quick Commands、MCP 资源、Python 仿真图章节以及 lib 目录结构的现有内容并定位了需要替换的文本块。
 
-Access 471k tokens of past work via get_observations([IDs]) or mem-search skill.
+**Learned**: 文档中存在过时的日期、乱码的快速命令示例以及冗余的 MCP 规则；同时发现 lib 目录缺少若干关键模块，需要补全。
+
+**Completed**: 1) 将 `currentDate` 更新为 2026-05-12。2) 为 Quick Commands 区块添加 `validate-manifest.py` 与 `check-media-refs.py`。3) 将 MCP 资源章节浓缩为关键要点并更新资源列表。4) 替换 Python 仿真图章节为统一的脚本入口并简化输出说明。5) 扩展 lib 目录结构，新增 6 个模块（data-governance、classroom-analytics、classroom-observability、course-runtime 等）。6) 所有修改已写回文件并确认行数变化。
+
+**Next Steps**: 正在验证文档更新后的渲染效果，确保新增脚本路径可执行；随后计划同步更新相关 README 与 CI 配置，以便新模块在构建流水线中被正确引用。
+
+
+Access 561k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

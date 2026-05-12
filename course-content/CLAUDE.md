@@ -96,14 +96,20 @@ course-content/
 | 习题课3+复习 | 习题课3, R-1, R-2, R-3 | 8h |
 
 # currentDate
-Today's date is 2026-03-17.
+Today's date is 2026-05-12.
 
 ## Quick Commands
 
 ```bash
-# 课程导出（由 Codex 实现）
+# 课程导出
 ./course-content/scripts/export-runtime.sh
 
 # 查看课程创作技能
 cat .claude/skills/lesson/SKILL.md
+
+# Manifest 与文件完整性校验
+python3 course-content/scripts/validate-manifest.py
+
+# Media 资源引用一致性检查
+python3 course-content/scripts/check-media-refs.py
 ```

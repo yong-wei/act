@@ -13,7 +13,9 @@ import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledg
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit44StepAIContext } from '@/lib/course-ai-contexts';
+import { buildUNIT44SubmissionTelemetry } from '@/lib/data-governance/unit-4-4-submission-telemetry';
 import {
+  getUNIT_4_4ManifestStepFromManifest,
   getUNIT_4_4PageContractFromManifest,
   isUNIT_4_4StepReleasedByDefault,
   UNIT_4_4_LESSON_KEY,
@@ -158,6 +160,13 @@ export function UNIT_4_4StudentPage({
   const handleSubmitResponse = (response: UNIT_4_4StepResponse) => {
     const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
+      const submissionTelemetry = buildUNIT44SubmissionTelemetry(
+        response,
+        getUNIT_4_4ManifestStepFromManifest(runtimeManifest, step.id),
+      );
+      const submissionPayload: Record<string, unknown> = submissionTelemetry
+        ? { ...submissionTelemetry }
+        : { stepId: step.id, skipLearningFact: true };
       const nextState: UNIT_4_4StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
@@ -167,7 +176,11 @@ export function UNIT_4_4StudentPage({
           [step.id]: response,
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: submissionPayload,
+      });
       return nextState;
     });
   };

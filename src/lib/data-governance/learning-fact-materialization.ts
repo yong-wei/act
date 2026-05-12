@@ -38,6 +38,10 @@ export function resolveLearningFactActionType(event: LearningEvent): string {
 }
 
 function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
+  if (payload.skipLearningFact === true) {
+    return false;
+  }
+
   if (
     actionType === 'arena_challenge_open' ||
     actionType === 'arena_workspace_start' ||

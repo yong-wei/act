@@ -87,6 +87,7 @@ model User {
 
   // 互动埋点日志
   interactionLogs InteractionLog[]
+  studentStepResponses StudentStepResponse[]
 
   // 课堂固化报告
   studentSessionReports StudentSessionReport[]
@@ -720,6 +721,7 @@ model ClassSession {
   updatedAt DateTime? @updatedAt
 
   studentStates         StudentState[]
+  studentStepResponses  StudentStepResponse[]
   classSessionReports   ClassSessionReport[]
   studentSessionReports StudentSessionReport[]
 
@@ -778,6 +780,7 @@ model InteractionLog {
 
   user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   resource TeachingResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  studentStepResponse StudentStepResponse?
 
   @@index([userId, resourceId])
   @@index([userId, resourceKey])
@@ -788,6 +791,30 @@ model InteractionLog {
   @@index([invalidContextReason])
   @@index([createdAt])
   @@index([eventType])
+}
+
+model StudentStepResponse {
+  id            String       @id @default(cuid())
+  userId        String
+  sessionId     String
+  lessonKey     String?
+  stepId        String
+  attemptKey    String?
+  sourceLogId   String?      @unique
+  clientEventId String?
+  submittedAt   DateTime
+  responseData  Json
+  createdAt     DateTime     @default(now())
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session   ClassSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sourceLog InteractionLog? @relation(fields: [sourceLogId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, stepId])
+  @@index([userId, submittedAt])
+  @@index([lessonKey, stepId])
+  @@index([attemptKey])
+  @@index([clientEventId])
 }
 
 model ClassSessionReport {

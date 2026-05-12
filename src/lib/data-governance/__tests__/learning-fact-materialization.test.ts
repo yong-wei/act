@@ -141,6 +141,50 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('uses scored 4-4 submission telemetry as the learning fact evidence basis', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-4-submit-001',
+      actionType: 'submit',
+      sessionId: 'session-4-4',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+        stepId: 'step-08',
+        moduleId: 'step-08',
+        score: 100,
+        outcome: 'success',
+        competencyContribution: {
+          parameterDesign: 0.7,
+          controlModeling: 0.4,
+        },
+        evidenceTitle: '4-4 step-08：目标函数与权重表达',
+        questionSummaries: [
+          {
+            questionId: 'weight-preference',
+            prompt: '若更担心动作代价继续抬高，更应优先保留哪一组偏好？',
+            studentAnswer: 'C',
+            referenceAnswer: 'C',
+            isCorrect: true,
+          },
+        ],
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'unit-4-4-submit-001',
+      factType: 'question',
+      sessionId: 'session-4-4',
+      moduleId: 'step-08',
+      lessonId: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+      outcome: 'success',
+      score: 100,
+    });
+    expect(fact?.competencyContribution).toMatchObject({
+      parameterDesign: 0.7,
+      controlModeling: 0.4,
+    });
+  });
+
   it('does not materialize classroom completion facts from after-session events by default', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'late-submit-001',
@@ -149,6 +193,21 @@ describe('eventToLearningFactInput', () => {
         eventType: 'lesson_submit',
         lessonKey: 'unit-3-7-steady-error-low-frequency-compensation-v1',
         afterSessionEnd: true,
+      },
+    }));
+
+    expect(fact).toBeNull();
+  });
+
+  it('does not materialize lesson submits explicitly marked as non-governance evidence', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-4-unsupported-submit-001',
+      actionType: 'submit',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+        stepId: 'step-12',
+        skipLearningFact: true,
       },
     }));
 

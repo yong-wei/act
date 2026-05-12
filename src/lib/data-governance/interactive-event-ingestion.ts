@@ -196,12 +196,21 @@ export function attachSourceLogIds<T extends ValidInteractionEvent>(
 
   return events.map((item) => {
     const { event, resourceId } = item;
-    const sourceLogId = typeof event.id === 'string'
-      ? sourceLogIdByClientEventId.get(event.id)
+    const clientEventId = resolveClientEventId(event);
+    const sourceLogId = clientEventId
+      ? sourceLogIdByClientEventId.get(clientEventId)
       : undefined;
+    const { sourceLogId: _untrustedSourceLogId, ...trustedPayload } = event.data ?? {};
 
     if (!sourceLogId) {
-      return item;
+      return {
+        ...item,
+        resourceId,
+        event: {
+          ...event,
+          data: trustedPayload,
+        },
+      } as T;
     }
 
     return {
@@ -210,7 +219,7 @@ export function attachSourceLogIds<T extends ValidInteractionEvent>(
       event: {
         ...event,
         data: {
-          ...(event.data ?? {}),
+          ...trustedPayload,
           sourceLogId,
         },
       },

@@ -17,6 +17,7 @@ export default defineConfig({
       'src/features/arena/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.tsx',
       'src/app/api/arena/**/__tests__/**/*.test.ts',
+      'src/app/api/interactive/**/__tests__/**/*.test.ts',
       'src/app/api/teacher/arena/**/__tests__/**/*.test.ts',
       'src/features/interactive/__tests__/**/*.test.ts',
       'src/features/interactive/__tests__/**/*.test.tsx',

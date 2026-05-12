@@ -11,11 +11,13 @@ import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   attachSourceLogIds,
   normalizeInteractionContexts,
   resolveClientEventId,
 } from '@/lib/data-governance/interactive-event-ingestion';
+import type { NormalizedInteractionEvent } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 export const dynamic = 'force-dynamic';
@@ -103,6 +105,64 @@ function readJsonString(payload: Prisma.JsonValue, key: string): string | null {
 
   const value = payload[key];
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function readPayloadString(payload: Record<string, unknown>, key: string): string | null {
+  const value = payload[key];
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function buildStudentStepResponseRows(
+  events: NormalizedInteractionEvent[],
+  userId: string,
+): Prisma.StudentStepResponseCreateManyInput[] {
+  const rows: Prisma.StudentStepResponseCreateManyInput[] = [];
+
+  for (const eventData of events) {
+    const payload =
+      eventData.event.data && typeof eventData.event.data === 'object'
+        ? eventData.event.data
+        : {};
+    const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+
+    if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
+      continue;
+    }
+
+    const sessionId = eventData.sessionId;
+    const stepId = eventData.event.stepId ?? readPayloadString(payload, 'stepId');
+    const sourceLogId = readPayloadString(payload, 'sourceLogId');
+    const submittedAt = toDateTime(eventData.event.clientEventAt ?? eventData.event.timestamp);
+
+    if (!sessionId || !stepId || !sourceLogId || !submittedAt) {
+      continue;
+    }
+
+    const clientEventId = resolveClientEventId(eventData.event);
+
+    rows.push({
+      userId,
+      sessionId,
+      lessonKey: eventData.event.lessonKey ?? null,
+      stepId,
+      attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+      sourceLogId,
+      clientEventId,
+      submittedAt,
+      responseData: {
+        ...payload,
+        eventType: canonicalEventType,
+        resourceKey: eventData.event.resourceKey,
+        lessonKey: eventData.event.lessonKey ?? null,
+        stepId,
+        attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+        clientEventId,
+        learningContext: eventData.learningContext,
+      },
+    });
+  }
+
+  return rows;
 }
 
 async function loadSessionEndMetadata(
@@ -256,24 +316,25 @@ export async function POST(request: NextRequest) {
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = dedupedEvents.map((item) => ({
-      userId: session.user.id,
-      resourceId: item.resourceId,
-      resourceKey: item.event.resourceKey,
-      sessionId: item.sessionId,
-      lessonKey: item.event.lessonKey ?? null,
-      stepId: item.event.stepId ?? null,
-      actorRole: item.event.actorRole ?? null,
-      attemptKey: item.event.attemptKey ?? null,
-      eventType: item.event.type,
-      clientEventId: item.clientEventId,
-      learningContext: item.learningContext,
-      invalidContextReason: item.invalidContextReason,
-      eventData: {
-        ...(item.event.data ?? {}),
-      },
-      clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
-    }));
+    const interactionLogEvents = dedupedEvents.map((item) => {
+      const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
+      return {
+        userId: session.user.id,
+        resourceId: item.resourceId,
+        resourceKey: item.event.resourceKey,
+        sessionId: item.sessionId,
+        lessonKey: item.event.lessonKey ?? null,
+        stepId: item.event.stepId ?? null,
+        actorRole: item.event.actorRole ?? null,
+        attemptKey: item.event.attemptKey ?? null,
+        eventType: item.event.type,
+        clientEventId: item.clientEventId,
+        learningContext: item.learningContext,
+        invalidContextReason: item.invalidContextReason,
+        eventData,
+        clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
+      };
+    });
 
     const persistedLogs = interactionLogEvents.length > 0
       ? await prisma.interactionLog.createManyAndReturn({
@@ -310,6 +371,18 @@ export async function POST(request: NextRequest) {
       })),
     );
 
+    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id);
+    if (studentStepResponseRows.length > 0) {
+      try {
+        await prisma.studentStepResponse.createMany({
+          data: studentStepResponseRows,
+          skipDuplicates: true,
+        });
+      } catch (error) {
+        console.error('[Interactive Events API] Failed to persist immutable student step responses:', error);
+      }
+    }
+
     // Route events based on priority
     const routingResults: Array<{
       eventType: string;
@@ -318,6 +391,7 @@ export async function POST(request: NextRequest) {
       factsCreated: number;
       factActionType: string;
     }> = [];
+    const sessionsNeedingReportRefresh = new Set<string>();
 
     for (const eventData of sourceLinkedEvents) {
       const payload =
@@ -356,8 +430,21 @@ export async function POST(request: NextRequest) {
         factActionType: factResult.actionType,
       });
 
+      if (learningEvent.actionType === 'session_finalize' && learningEvent.sessionId) {
+        sessionsNeedingReportRefresh.add(learningEvent.sessionId);
+      }
+
       // Core facts now keep the persisted InteractionLog id through sourceLogId.
     }
+
+    for (const sessionId of Array.from(sessionsNeedingReportRefresh)) {
+      try {
+        await generateSessionSummaryReports(prisma, sessionId);
+      } catch (error) {
+        console.error('[Interactive Events API] Failed to refresh session report:', error);
+      }
+    }
+
     // Update response
     return NextResponse.json({
       success: true,

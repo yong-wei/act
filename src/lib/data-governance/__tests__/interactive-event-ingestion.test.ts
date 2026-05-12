@@ -90,6 +90,66 @@ describe('attachSourceLogIds', () => {
       sourceLogId: 'interaction-log-001',
     });
   });
+
+  it('matches source logs by payload clientEventId when the top-level event id is absent', () => {
+    const events = attachSourceLogIds(
+      [
+        {
+          resourceId: null,
+          event: {
+            type: 'submit',
+            timestamp: Date.parse('2026-05-12T02:31:00.000Z'),
+            resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+            sessionId: 'cmoxloe52000uq5bcojma7r78',
+            data: {
+              eventType: 'lesson_submit',
+              clientEventId: 'client-event-from-payload',
+            },
+          },
+        },
+      ],
+      [
+        {
+          id: 'interaction-log-from-payload',
+          clientEventId: 'client-event-from-payload',
+        },
+      ],
+    );
+
+    expect(events[0].event.data).toMatchObject({
+      eventType: 'lesson_submit',
+      clientEventId: 'client-event-from-payload',
+      sourceLogId: 'interaction-log-from-payload',
+    });
+  });
+
+  it('removes untrusted client sourceLogId when no persisted log matches', () => {
+    const events = attachSourceLogIds(
+      [
+        {
+          resourceId: null,
+          event: {
+            type: 'submit',
+            timestamp: Date.parse('2026-05-12T02:31:00.000Z'),
+            resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+            sessionId: 'cmoxloe52000uq5bcojma7r78',
+            data: {
+              eventType: 'lesson_submit',
+              clientEventId: 'client-event-missing-log',
+              sourceLogId: 'forged-log-id',
+            },
+          },
+        },
+      ],
+      [],
+    );
+
+    expect(events[0].event.data).toMatchObject({
+      eventType: 'lesson_submit',
+      clientEventId: 'client-event-missing-log',
+    });
+    expect(events[0].event.data).not.toHaveProperty('sourceLogId');
+  });
 });
 
 describe('normalizeInteractionContexts', () => {

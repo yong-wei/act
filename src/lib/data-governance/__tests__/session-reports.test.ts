@@ -5,8 +5,10 @@ import { generateSessionSummaryReports } from '../session-reports';
 describe('generateSessionSummaryReports', () => {
   const prisma = {
     classSession: { findUnique: vi.fn() },
+    studentState: { findMany: vi.fn() },
     interactionLog: { findMany: vi.fn() },
     learningFact: { findMany: vi.fn() },
+    studentCompetencySnapshot: { findMany: vi.fn() },
     classSessionReport: { upsert: vi.fn() },
     studentSessionReport: { upsert: vi.fn() },
   };
@@ -35,11 +37,11 @@ describe('generateSessionSummaryReports', () => {
       },
       {
         userId: 'student-1',
-        eventType: 'sync_error',
+        eventType: 'error',
         lessonKey: '4-3',
         learningContext: 'classroom_live',
         invalidContextReason: null,
-        eventData: {},
+        eventData: { eventType: 'sync_error' },
       },
       {
         userId: 'student-2',
@@ -49,6 +51,19 @@ describe('generateSessionSummaryReports', () => {
         invalidContextReason: null,
         eventData: { afterSessionEnd: true },
       },
+      {
+        userId: 'student-2',
+        eventType: 'error',
+        lessonKey: '4-3',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {},
+      },
+    ]);
+    prisma.studentState.findMany.mockResolvedValue([
+      { userId: 'student-1' },
+      { userId: 'student-2' },
+      { userId: 'student-3' },
     ]);
     prisma.learningFact.findMany.mockResolvedValue([
       {
@@ -63,6 +78,11 @@ describe('generateSessionSummaryReports', () => {
         outcome: 'partial',
         lessonId: '4-3',
       },
+    ]);
+    prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+      { userId: 'student-1', snapshotAt: new Date('2026-05-09T02:30:00.000Z') },
+      { userId: 'student-2', snapshotAt: new Date('2026-05-09T01:30:00.000Z') },
+      { userId: 'student-3', snapshotAt: new Date('2026-05-10T02:30:00.000Z') },
     ]);
     prisma.classSessionReport.upsert.mockResolvedValue({});
     prisma.studentSessionReport.upsert.mockResolvedValue({});
@@ -81,18 +101,57 @@ describe('generateSessionSummaryReports', () => {
         sessionId: 'session-4-3',
         lessonKey: '4-3',
         status: 'READY',
-        summary: '2 名学生产生 3 条互动日志，沉淀 2 条学习事实。',
+        summary: '2 名学生产生 4 条互动日志，沉淀 2 条学习事实。',
       }),
     }));
     expect(prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData).toMatchObject({
-      participants: 2,
-      interactionLogs: 3,
+      participants: 3,
+      interactionLogs: 4,
       learningFacts: 2,
-      syncErrors: 1,
+      syncErrors: 2,
+      legacyEventTypes: {
+        lesson_submit: 1,
+        error: 2,
+        view: 1,
+      },
+      canonicalEventTypes: {
+        lesson_submit: 1,
+        sync_error: 2,
+        page_view: 1,
+      },
       afterSessionEndEvents: 1,
       learningContexts: {
-        classroom_live: 2,
+        classroom_live: 3,
         classroom_review: 1,
+      },
+      sessionGovernanceSummary: {
+        sessionParticipants: 3,
+        loggedParticipants: 2,
+        factParticipants: 2,
+        submittedParticipants: 1,
+        snapshotUpdatedParticipants: 1,
+        syncErrorUsers: 2,
+        snapshotUpdateWindow: {
+          startTime: '2026-05-09T02:04:23.000Z',
+          endTime: '2026-05-09T04:04:23.000Z',
+        },
+      },
+      participationSemantics: {
+        participants: 'distinct users from StudentState, InteractionLog, and LearningFact for this session',
+        activeStudentCount: 'class-level long-term snapshot count, not a classroom participation metric',
+      },
+    });
+    expect(prisma.studentCompetencySnapshot.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: { in: ['student-1', 'student-2', 'student-3'] },
+        snapshotAt: {
+          gte: new Date('2026-05-09T02:04:23.000Z'),
+          lte: new Date('2026-05-09T04:04:23.000Z'),
+        },
+      },
+      select: {
+        userId: true,
+        snapshotAt: true,
       },
     });
     expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(2);

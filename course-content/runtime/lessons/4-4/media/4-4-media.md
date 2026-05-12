@@ -2,7 +2,7 @@
 
 - 多目标拉扯下的优化方向评审
 
-https://pan-yz.cldisk.com/v2/external/resourceDetail.html?appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=392704558&timestamp=1777514519611&showAppBar=true&puid=26652392&autoPreview=true&objectId=d3eeb6e9cb3a911e3455636f90376fc3&signature=956baf54e3f81cdf3f98b66bb5de35c4
+https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=d3eeb6e9cb3a911e3455636f90376fc3&v=1778557361128&puid=26652392&enc=911602953f2a5fa00784f31cb774a195&wps=94fc81c39e3d916c12e537184a74038dd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-743507198&timestamp=1778557361128&signature=028fb58062de6c128c2f3420df697c53
 
 # 4-4-slides.pdf
 
