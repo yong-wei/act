@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { buildClassroomSessionStatistics } from '@/lib/classroom-session-statistics';
 import { resolveClassAttribution } from '@/lib/data-governance/class-attribution';
 import { Prisma, SessionStatus } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -121,7 +122,16 @@ export async function GET(
               },
             },
           },
-        }
+        },
+        classSessionReports: {
+          where: {
+            reportType: 'class-summary',
+          },
+          select: {
+            reportData: true,
+          },
+          take: 1,
+        },
       },
       orderBy: {
         startTime: 'desc'
@@ -135,6 +145,12 @@ export async function GET(
           sessionClassId: s.classId,
           participantClassIds: s.studentStates.map((state) => state.user.profile?.classId),
         });
+        const statistics = buildClassroomSessionStatistics({
+          startTime: s.startTime,
+          endTime: s.endTime,
+          studentStateCount: s._count.studentStates,
+          reportData: s.classSessionReports?.[0]?.reportData,
+        });
 
         return {
           id: s.id,
@@ -144,12 +160,10 @@ export async function GET(
           endTime: s.endTime,
           currentStage: s.currentStage,
           plan: s.plan,
-          studentCount: s._count.studentStates,
+          studentCount: statistics.studentCount,
+          sessionStatistics: statistics,
           classAttribution,
-          // 计算时长（分钟）
-          durationMinutes: s.endTime
-            ? Math.round((s.endTime.getTime() - s.startTime.getTime()) / 60000)
-            : null
+          durationMinutes: statistics.durationMinutes,
         };
       })
       .filter((s) => s.classAttribution.classId === classId);

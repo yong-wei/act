@@ -82,6 +82,7 @@ describe('GET /api/teacher/sessions', () => {
           { user: { profile: { classId: 'class-2' } } },
         ],
         _count: { studentStates: 3 },
+        classSessionReports: [],
       },
     ]);
     mocks.prisma.class.findMany.mockResolvedValue([
@@ -100,6 +101,60 @@ describe('GET /api/teacher/sessions', () => {
         classId: 'class-1',
         mode: 'inferred',
         confidence: 2 / 3,
+      },
+    });
+  });
+
+  it('uses governance report statistics for classroom history counts when available', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      {
+        id: 'session-4-4',
+        joinCode: '703810',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-12T00:22:20.391Z'),
+        endTime: new Date('2026-05-12T02:05:09.624Z'),
+        currentStage: null,
+        classId: 'class-1',
+        class: { id: 'class-1', name: '2024自动化' },
+        plan: { id: 'plan-4-4', title: '4-4' },
+        studentStates: [],
+        _count: { studentStates: 0 },
+        classSessionReports: [{
+          reportData: {
+            sessionGovernanceSummary: {
+              sessionParticipants: 77,
+              loggedParticipants: 73,
+              factParticipants: 50,
+              submittedParticipants: 49,
+              snapshotUpdatedParticipants: 50,
+              syncErrorUsers: 11,
+            },
+          },
+        }],
+      },
+    ]);
+    mocks.prisma.class.findMany.mockResolvedValue([
+      { id: 'class-1', name: '2024自动化' },
+    ]);
+
+    const response = await GET(new Request('http://localhost/api/teacher/sessions'));
+    const payload = await response.json();
+
+    expect(payload[0]).toMatchObject({
+      id: 'session-4-4',
+      studentCount: 77,
+      durationMinutes: 103,
+      sessionStatistics: {
+        studentCount: 77,
+        hasGovernanceSummary: true,
+        governanceSummary: {
+          loggedParticipants: 73,
+          submittedParticipants: 49,
+          syncErrorUsers: 11,
+        },
       },
     });
   });
@@ -137,10 +192,10 @@ describe('PATCH /api/teacher/sessions', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.classSession.update).toHaveBeenCalledWith({
+    expect(mocks.prisma.classSession.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'session-1' },
       data: { classId: 'class-2' },
-    });
+    }));
   });
 });
 

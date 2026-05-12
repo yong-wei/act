@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
 import { getServerAuthSession } from '@/lib/auth'
+import {
+  buildClassroomSessionStatistics,
+  formatClassroomSessionDate,
+} from '@/lib/classroom-session-statistics'
 import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
 import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
@@ -523,6 +527,15 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
           data: true,
         },
       },
+      classSessionReports: {
+        where: {
+          reportType: 'class-summary',
+        },
+        select: {
+          reportData: true,
+        },
+        take: 1,
+      },
     },
   })
 
@@ -624,6 +637,13 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     new Set(reviewRecords.flatMap((item) => item.focusDimensions))
   ).map((key) => DIMENSION_LABEL[key])
   const focusStudents = chooseFocusStudents(reviewRecords, session.plan.title, session.id)
+  const sessionStatistics = buildClassroomSessionStatistics({
+    startTime: session.startTime,
+    endTime: session.endTime,
+    studentStateCount: session.studentStates.length,
+    reportData: session.classSessionReports[0]?.reportData,
+  })
+  const governanceSummary = sessionStatistics.governanceSummary
 
   return (
     <main className="surface-page mx-auto max-w-[1300px] px-6 py-8">
@@ -638,11 +658,31 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       <section className="surface-card mb-6 bg-gradient-to-br from-card via-card to-accent/35 p-6">
         <h1 className="text-2xl font-semibold text-foreground">《{session.plan.title}》课堂复盘</h1>
         <p className="mt-2 text-sm text-slate-300">
-          {classContext.class.name}（{classContext.class.code}） · {new Date(session.startTime).toLocaleString('zh-CN')}
+          {classContext.class.name}（{classContext.class.code}） · {formatClassroomSessionDate(session.startTime)}
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-300">
           <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">状态：{session.status}</span>
-          <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">课堂记录：{reviewRecords.length} 人</span>
+          <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">课堂记录：{sessionStatistics.studentCount} 人</span>
+          {governanceSummary?.loggedParticipants !== null && governanceSummary?.loggedParticipants !== undefined && (
+            <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">
+              有互动日志：{governanceSummary.loggedParticipants} 人
+            </span>
+          )}
+          {governanceSummary?.submittedParticipants !== null && governanceSummary?.submittedParticipants !== undefined && (
+            <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">
+              有提交：{governanceSummary.submittedParticipants} 人
+            </span>
+          )}
+          {governanceSummary?.factParticipants !== null && governanceSummary?.factParticipants !== undefined && (
+            <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">
+              形成学习事实：{governanceSummary.factParticipants} 人
+            </span>
+          )}
+          {governanceSummary?.syncErrorUsers !== null && governanceSummary?.syncErrorUsers !== undefined && (
+            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-amber-200">
+              同步错误：{governanceSummary.syncErrorUsers} 人
+            </span>
+          )}
           <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-sky-300">
             课程聚焦：{focusDimensionLabels.length > 0 ? focusDimensionLabels.join('、') : '未标注'}
           </span>
