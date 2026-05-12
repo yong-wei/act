@@ -3,14 +3,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
+const codexHome = process.env.CODEX_HOME || path.join(process.env.HOME, '.codex');
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
 }
 
 const agents = read('AGENTS.md');
-const memoryReadme = read('.codex/memory/README.md');
-const memorySkill = read('.codex/skills/memory-maintenance/SKILL.md');
+const memoryReadme = read('docs/memory/README.md');
+const memorySkill = fs.readFileSync(
+  path.join(codexHome, 'skills/memory-maintenance/SKILL.md'),
+  'utf8',
+);
 
 assert.match(
   agents,
@@ -20,7 +24,7 @@ assert.match(
 
 assert.match(
   agents,
-  /\.codex\/memory\/02-recent-summary\.md/,
+  /docs\/memory\/02-recent-summary\.md/,
   'AGENTS.md 应明确指向 recent summary 入口文件',
 );
 

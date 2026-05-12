@@ -1,0 +1,22 @@
+# 事故与复盘索引
+
+状态: active
+最后更新: 2026-04-15
+摘要: 存放真实故障和排障复盘，帮助跨会话快速识别“这是不是老问题重现”，当前已覆盖会话鉴权/部署混淆、startup 端口残留、本地 Homebrew Octave/Qt 插件缺失、Redis OOM 触发的 worker 日志风暴，以及 2026-04-15 暴露出的 Podman systemd 接管与生产认证地址配置问题。
+上游:
+- [../00-index.md](../00-index.md)
+下游:
+- [2026-03-16-session-api-auth-vs-deploy.md](2026-03-16-session-api-auth-vs-deploy.md)
+- [2026-03-19-startup-port-residue.md](2026-03-19-startup-port-residue.md)
+- [2026-03-24-homebrew-octave-qt-plugin.md](2026-03-24-homebrew-octave-qt-plugin.md)
+- [2026-03-25-worker-redis-oom-log-flood.md](2026-03-25-worker-redis-oom-log-flood.md)
+- [2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md](2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md)
+相关:
+- [../30-operations/50-known-deploy-risks.md](../30-operations/50-known-deploy-risks.md)
+
+## 记录规则
+
+- 标题使用日期 + 问题主题
+- 开头先写结论
+- 中段写证据
+- 末尾写后续行动

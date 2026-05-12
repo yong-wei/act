@@ -5,6 +5,7 @@
 ## 当前文档
 
 - [ProjectDescription.md](./ProjectDescription.md)：项目现状、核心架构、主要功能和运行链路。
+- [memory/](./memory/00-index.md)：项目长期记忆入口，供本地代理和 ChatGPT 递归读取稳定上下文。
 - [Simulation_Guidelines.md](./Simulation_Guidelines.md)：虚拟仿真与控制数值内核规范。
 - [arena.md](./arena.md)：Arena 控制竞技场设计与评测边界。
 - [interactive-lesson-modularization-status-and-refactor-plan.md](./interactive-lesson-modularization-status-and-refactor-plan.md)：互动课程 manifest 化改造现状与计划。
@@ -21,4 +22,4 @@
 
 - 新增长期有效文档时，优先放在明确专题目录中，并在本页登记。
 - 一次性执行计划、阶段草稿和已被实现取代的设计说明放入 `docs/archive/` 的对应子目录。
-- 当前项目事实以 `ProjectDescription.md` 为准；跨会话稳定经验沉淀到 `.codex/memory/`。
+- 当前项目事实以 `ProjectDescription.md` 为准；跨会话稳定经验沉淀到 `docs/memory/`。

@@ -19,6 +19,12 @@
 **重要：**在使用项目专属技能执行操作时，如果遇到了问题，在尝试解决后应该将解决思路沉淀在相应技能中，避免二次踩坑。
 </Skill-evolve>
 
+## 长期记忆入口
+
+- 项目长期记忆正式入口为 `docs/memory/`，初始化时优先读取 `docs/memory/00-index.md` 与 `docs/memory/02-recent-summary.md`，再按 `docs/memory/01-reading-map.md` 进入具体主题。
+- `docs/memory/CHATGPT_CONTEXT.md` 是面向网页版 ChatGPT GitHub 连接器的上下文入口；项目结构显著变化后，运行 `python3 "${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/scripts/update_chatgpt_context.py"` 刷新主干文件树。
+- 若发现旧版 `.codex/memory/`，不要继续双写；先按全局 `memory-maintenance` 技能判断是否迁移到 `docs/memory/`。
+
 ## 项目进度保存与验证
 
 - 当完成了重大功能更新后，需要及时提交并推送到当前分支。更新docs/ProjectDescription.md文档相关部分。
@@ -200,88 +206,77 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
 <claude-mem-context>
 # Memory Context
 
-# [act.just.edu.cn] recent context, 2026-05-12 3:02pm GMT+8
+# [act.just.edu.cn] recent context, 2026-05-12 9:39pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (6,176t read) | 561,335t work | 99% savings
+Stats: 50 obs (4,396t read) | 394,226t work | 99% savings
 
-### Apr 12, 2026
-S248 Chinese language request received - continue monitoring primary session (Apr 12 at 8:26 PM)
-### Apr 16, 2026
-S249 Session initiated with greeting (Apr 16 at 3:07 PM)
-S250 Computer Use testing progress summary - application state access denied (Apr 16 at 7:41 PM)
-### Apr 21, 2026
-S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Automatic Control Principles course; primary session completed targeted polishing of the handout.md file. (Apr 21 at 10:17 AM)
 ### May 2, 2026
-S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:27 PM)
 S254 竞技场报错修复并完成计划W (May 2 at 1:50 PM)
 ### May 11, 2026
 S255 用户请求注销登录状态 (May 11 at 8:31 AM)
 S256 完成 4-5 讲义的润色并回写至原文件 (May 11 at 12:41 PM)
 ### May 12, 2026
 S257 确认并评估 CLAUDE.md 文档质量，提出更新建议 (May 12 at 11:52 AM)
-33162 1:30p 🔵 数据库完整性验证通过
-33163 " 🔵 4-4 章节活动卡定义已完整列出
-33164 " 🔵 StudentStepResponse 数据结构在前后端统一使用
-33165 1:31p 🔴 TypeScript 编译错误阻断构建
-33166 1:32p 🔵 完成 4-4 单元数据治理阻断检查
-33167 1:33p ✅ 本地仓库出现多项未提交修改
-33168 1:39p 🔵 4-4 单元数据治理分析报告要点
-33169 1:40p 🔵 Prisma 模式验证通过
-33170 " 🔵 session-reports.ts 中关键数据治理概念实现
-33171 1:42p 🔵 读取 review-changes 技能文档
-33172 " 🔵 读取 review-changes 技能文档
-33173 " 🔵 获取代码图统计信息
-33174 " 🔵 工作区文件变更状态
-33175 " 🔵 获取代码审查上下文
-33176 " 🔵 获取审查上下文高风险概览
-33178 1:43p 🔵 课堂画像与长期画像字段实现细节
-33177 " 🔵 搜索 Prisma 模型定义
-33179 " 🔵 检查 InteractionLog 与 StudentStepResponse 关联定义
-33180 " 🔵 4-4 课堂数据治理分析报告概览
-33181 1:44p 🔵 数据治理 ingest 测试用例概览
-33182 " 🔵 单元测试全部通过
-33183 " 🔵 扩展单元测试全部通过
-33184 " 🔵 单元测试全部通过
-33185 1:45p 🔴 运行临时 TypeScript 脚本失败
-33186 " 🔵 课堂会话与治理报告数据核对
-33187 1:46p 🔵 Session PATCH API 实现概览
-33188 1:48p 🔵 StudentStepResponse 与 InteractionLog 的阻断与非阻断问题定位
-33190 " 🔴 单元测试发现 InteractionLog 仍保留伪造 sourceLogId
-33189 " 🔵 不可变答题事实源实现确认
-33191 1:49p 🔵 InteractionLog 伪造 sourceLogId 剥离测试通过
-33192 " 🔵 课堂画像与长期画像分离目标已达成
-33194 " ⚖️ D 项收口判断
-33193 1:50p 🔵 LearningFact 与 sourceLogId 追踪链路文档化
-33195 " 🔵 InteractionLog 入库前剥离不可信 sourceLogId 实现确认
-33196 1:51p 🟣 attachSourceLogIds 实现可信 sourceLogId 绑定
-33197 " 🔵 InteractionLog、StudentStepResponse 与 LearningFact 均已剥离伪造 sourceLogId
-33198 1:55p 🔵 全局 CLAUDE.md 内容已检视
-33199 1:56p 🔵 关键源码目录仍然存在
-33200 1:57p ✅ 代码变更已提交并部署到服务器
-33201 " 🔵 读取 server-ops 技能文档
-33202 " 🔵 读取 remote-deploy.sh 部署脚本
-33203 1:58p 🔵 读取 backfill-unit-4-4-governance.ts 脚本
-33204 2:51p 🔵 检查 CLAUDE.md 第7行的空白字符
-33206 " 🔵 检查 course-content/CLAUDE.md 快速命令章节的字符显示
-33205 " 🟣 完成远端数据库导出并导入本地用于数据治理分析
-33207 2:52p ✅ 执行项目构建命令
-33209 2:53p ✅ 更新 course-content/CLAUDE.md 日期与快速命令章节
-33208 " 🔵 项目完整构建并生成 WASM 包
-33210 2:54p 🔵 更新 CLAUDE.md 文档内容
-33211 " ✅ 批量更新 CLAUDE.md 中的 MCP、Python 示例与 lib 结构章节
-S258 完成对 CLAUDE.md 与 course-content/CLAUDE.md 的多项内容更新 (May 12 at 2:54 PM)
-**Investigated**: 检查了文档中日期、Quick Commands、MCP 资源、Python 仿真图章节以及 lib 目录结构的现有内容并定位了需要替换的文本块。
+S258 完成对 CLAUDE.md 与 course-content/CLAUDE.md 的多项内容更新 (May 12 at 1:57 PM)
+S259 确认可使用 claude-mem 技能并列出可用功能 (May 12 at 2:54 PM)
+33381 9:03p 🔵 会话 94544 再次无输出
+33382 9:04p 🔵 会话 94544 持续无输出
+33384 " 🔵 会话 94544 再次无输出
+33383 " 🟣 迁移记忆文件系统并创建 ChatGPT 上下文入口
+33386 9:05p 🔵 代码库图谱统计已生成
+33385 " ✅ 更新记忆迁移执行计划
+33387 " 🔵 获取当前 Git 分支
+33388 " 🔵 会话 94544 持续无输出
+33389 " 🔄 迁移记忆目录至 docs/memory
+S260 解释 knowledge-agent 工作原理并确认是否构建特定主题语料 (May 12 at 9:05 PM)
+33390 9:06p 🔵 远端部署进程日志
+33391 " 🔄 批量改写记忆文件链接为相对路径
+33392 " 🔵 发现 docs/memory 中仍残留旧路径引用
+33396 9:07p 🔵 远端部署完成
+33393 " 🔄 进一步替换旧 .codex/memory 路径
+33394 " 🔵 验证 docs/memory 中已无旧路径引用
+S261 解释 learn-codebase 工作原理并评估其在当前项目的适用性 (May 12 at 9:07 PM)
+33395 " ✅ 更新记忆迁移执行计划
+33397 9:08p 🔵 容器运行状态检查
+33398 " 🔵 Worker 启动日志
+33400 9:09p 🔴 新增更新 ChatGPT 上下文脚本
+33399 " 🔵 健康检查接口返回
+33401 " 🔴 生成 CHATGPT_CONTEXT.md
+33402 " 🔴 CHATGPT_CONTEXT.md 内容预览
+33403 " 🔴 更新排除前缀列表
+33404 9:10p 🔴 更新后 CHATGPT_CONTEXT.md 内容预览
+S262 阐述 claude-mem 各技能的使用策略与限制 (May 12 at 9:10 PM)
+33405 9:11p ✅ 更新执行计划状态
+33406 9:12p 🔴 更新 memory-maintenance 技能文档
+33407 " 🔴 增强 validate_memory 脚本
+33408 9:13p 🔴 更新 memory-file-template 文档
+33409 " 🔴 更新记忆框架测试脚本
+33410 9:14p 🔴 更新 docs/memory/README.md
+33411 " 🔴 更新 docs/memory/00-index.md
+33413 9:17p 🔴 在 AGENTS.md 中添加长期记忆入口说明
+33414 " 🔴 更新 docs/README.md
+33415 9:18p 🔴 更新 docs/ProjectDescription.md
+33417 9:19p 🔴 更新 memory-maintenance skill 的 openai.yaml 提示
+33422 9:21p 🔴 git diff 显示大量文档更新
+33426 9:26p ✅ 提交并推送所有代码更改
+S263 提交所有变更并推送 (May 12 at 9:27 PM)
+33427 9:30p 🔵 尝试移动 CHATGPT_CONTEXT.md 失败
+33428 9:31p ✅ 成功移动 CHATGPT_CONTEXT.md 至 docs/memory
+33429 " 🔄 更新脚本以使用 docs/memory 路径
+33430 " 🔄 build_context 函数签名扩展以接受输出路径
+33431 9:32p ✅ 更新 docs/memory/README.md 链接说明
+33432 " ✅ 修正 docs/memory/00-index.md 中的描述和链接
+33433 9:33p 🔵 读取 memory-maintenance 技能文档
+33434 9:34p 🔴 新增 memory-maintenance 脚本 update_chatgpt_context.py
+33435 9:35p ✅ 更新 AGENTS.md 中的上下文入口说明
+33436 9:36p 🔴 运行 update_chatgpt_context 脚本生成入口文件
+33437 " 🔴 确认项目中 CHATGPT_CONTEXT 相关引用一致性
+33438 9:38p 🔴 为 update_chatgpt_context 脚本添加元数据字段
+33439 " 🔴 查看生成的 CHATGPT_CONTEXT.md 前 80 行
 
-**Learned**: 文档中存在过时的日期、乱码的快速命令示例以及冗余的 MCP 规则；同时发现 lib 目录缺少若干关键模块，需要补全。
-
-**Completed**: 1) 将 `currentDate` 更新为 2026-05-12。2) 为 Quick Commands 区块添加 `validate-manifest.py` 与 `check-media-refs.py`。3) 将 MCP 资源章节浓缩为关键要点并更新资源列表。4) 替换 Python 仿真图章节为统一的脚本入口并简化输出说明。5) 扩展 lib 目录结构，新增 6 个模块（data-governance、classroom-analytics、classroom-observability、course-runtime 等）。6) 所有修改已写回文件并确认行数变化。
-
-**Next Steps**: 正在验证文档更新后的渲染效果，确保新增脚本路径可执行；随后计划同步更新相关 README 与 CI 配置，以便新模块在构建流水线中被正确引用。
-
-
-Access 561k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 394k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

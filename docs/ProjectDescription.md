@@ -2,7 +2,7 @@
 
 ## 文档定位
 
-本文用于帮助读者、维护者和后续代理快速理解本项目的主要功能、架构边界与关键运行链路。它不是更新日志；阶段性变化、事故复盘和详细制作流程应分别沉淀到 `docs/` 专题文档、`.codex/memory/` 或课程作者态目录中。
+本文用于帮助读者、维护者和后续代理快速理解本项目的主要功能、架构边界与关键运行链路。它不是更新日志；阶段性变化、事故复盘和详细制作流程应分别沉淀到 `docs/` 专题文档、`docs/memory/` 或课程作者态目录中。
 
 当前代码图谱已在 2026-05-11 更新。图谱覆盖 1480 个文件、8207 个代码节点和 80499 条关系边，主要社区集中在 `src/features`、`src/resources/simulations`、`src/lib`、课堂会话页面、runtime 脚本和测试守卫。
 
@@ -308,7 +308,7 @@ bash scripts/remote-deploy.sh
 - Arena 设计：`docs/arena.md`
 - 课程作者态：`course-content/authoring/lessons/`
 - 课程运行态：`course-content/runtime/`
-- 项目长期记忆：`.codex/memory/`
+- 项目长期记忆：`docs/memory/`
 - 项目技能：`.codex/skills/`
 - 运行日志：`.logs/`
 - 数据模型：`prisma/schema.prisma`

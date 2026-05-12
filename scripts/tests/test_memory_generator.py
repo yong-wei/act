@@ -3,13 +3,13 @@ from __future__ import annotations
 import subprocess
 import sys
 import tempfile
+import os
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GENERATOR = (
-    REPO_ROOT
-    / '.codex'
+    Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex')))
     / 'skills'
     / 'memory-maintenance'
     / 'scripts'
