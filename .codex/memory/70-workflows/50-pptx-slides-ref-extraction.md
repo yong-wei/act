@@ -7,7 +7,7 @@
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/00-index.md)
 下游: []
 相关:
-- [../../docs/plans/2026-03-26-pptx-slides-ref-conversion.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/plans/2026-03-26-pptx-slides-ref-conversion.md)
+- [../../docs/archive/plans/2026-03-26-pptx-slides-ref-conversion.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/archive/plans/2026-03-26-pptx-slides-ref-conversion.md)
 - [../../course-content/resource-library/pptx/README.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/README.md)
 - [../../course-content/resource-library/pptx/3方框图_控制系统结构/README.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/3方框图_控制系统结构/README.md)
 

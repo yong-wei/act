@@ -10,7 +10,7 @@
 - [../../course-content/resource-library/integration-framework.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/integration-framework.md)
 - [../../.codex/skills/syllabus-refactor/SKILL.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/syllabus-refactor/SKILL.md)
 - [../../.codex/skills/lesson/SKILL.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/lesson/SKILL.md)
-- [../../docs/plans/2026-03-28-resource-library-skill-integration.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/plans/2026-03-28-resource-library-skill-integration.md)
+- [../../docs/archive/plans/2026-03-28-resource-library-skill-integration.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/archive/plans/2026-03-28-resource-library-skill-integration.md)
 
 ## 适用场景
 

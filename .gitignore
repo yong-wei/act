@@ -71,6 +71,9 @@ coverage/
 *.tsbuildinfo
 *.log
 *.pid
+*.aux
+*.toc
+*.out
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -106,5 +109,7 @@ course-content/slides-ref
 # Local debugging and Rust build artifacts
 rust/control-engine/target/
 unit41-step*.png
+/manifest.json
+/octave-workspace
 # Added by code-review-graph
 .code-review-graph/

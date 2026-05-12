@@ -19,7 +19,7 @@
   - 注册到 `learning-catalog`、`preset-lessons` 与 `classroom-session-route`
 - 建立运行时媒体链路：
   - 5 个 `course-content/authoring/lessons/legacy/L-2b/media/raw/*.py` 支持 `--output`
-  - 新增 `scripts/generate_l2b_runtime_media.py`
+  - 新增 `scripts/figures/generate_l2b_runtime_media.py`
   - 生成 `course-content/runtime/lessons/legacy/L-2b/media/*.svg`
   - 新增 `/course-runtime/[...assetPath]` 路由读取 runtime 媒体
 - 落地双端同步课堂：

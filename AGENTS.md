@@ -200,17 +200,15 @@ to shrink search space and reveal structure; then switch to `rg`, `sed`,
 <claude-mem-context>
 # Memory Context
 
-# [act.just.edu.cn] recent context, 2026-05-10 5:21pm GMT+8
+# [act.just.edu.cn] recent context, 2026-05-12 10:37am GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (4,965t read) | 744,757t work | 99% savings
+Stats: 50 obs (4,213t read) | 471,268t work | 99% savings
 
 ### Apr 7, 2026
-S241 Created handout refinement skill with student-facing tone guidelines and course alignment (Apr 7 at 7:13 PM)
-S242 Started processing 2-1 handout through refine skill with student-facing transformation (Apr 7 at 8:16 PM)
 S245 Control systems course handout refinement completed and task marked as finished (Apr 7 at 8:28 PM)
 S246 Refined 2-2 lecture handout with comprehensive enhancements (Apr 7 at 11:12 PM)
 ### Apr 8, 2026
@@ -223,58 +221,61 @@ S250 Computer Use testing progress summary - application state access denied (Ap
 ### Apr 21, 2026
 S251 User requested refinement (润色) of 5-1 lecture notes (讲义) for the Automatic Control Principles course; primary session completed targeted polishing of the handout.md file. (Apr 21 at 10:17 AM)
 ### May 2, 2026
-S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:50 PM)
-### May 10, 2026
-32524 3:45p ⚖️ 作业边界与内容划分调整决策
-32525 " 🟣 新增根轨迹匹配函数测试
-32527 3:48p 🟣 参数抽屉改为无遮罩的 Radix Dialog 实现
-32526 " ⚖️ 制定 TikZ 模块布局约束策略
-32528 3:50p 🟣 统一四图主曲线线宽常量化
-32529 " 🟣 Nyquist 显示采样起点半径策略实现
-32530 " ✅ 更新 TikZ 模块绘图约束文档
-32531 " 🔵 启动 TikZ 绘图工作代理
-32533 " 🔵 读取 tikz-control-draw 技能描述
-32534 3:51p 🔵 提取 T5-3 章节图形代码
-32532 " 🔵 负号样式在 block_styles.tex 中定义
-32535 3:52p ✅ 新增复合控制方框图 TikZ 源文件
-32536 " 🔵 多表征联动测试全部通过
-32537 3:53p ⚖️ 调整作业图形绘制细节
-32538 " 🔵 缺少 pdftocairo 工具
-32539 3:56p ✅ 生成复合控制方框图及其资源文件
-32540 " 🔄 更新 T5 图形绘制样式与布局
-32541 3:57p ⚖️ TikZ模块布局约束策略制定
-32542 " 🔵 确认图片资源被 .gitignore 忽略
-32543 3:59p 🔄 参数抽屉组件 JSX 结构微调
-32544 " 🔵 ESLint 检查通过
-32545 " 🔵 with_server 脚本帮助信息获取
-32546 4:02p 🔵 页面加载超时导致交互测试未完成
-32547 4:04p ⚖️ TikZ模块布局约束策略制定
-32548 " 🟣 参数抽屉改为无遮罩悬浮按钮
-32549 " ✅ 更新TikZ负号节点位置关键字
-32550 4:05p 🔵 多表征联动页面加载与不可用状态检测
-32551 4:11p 🔵 发现控制分析 Worker 的导入路径
-32552 4:12p 🔵 Worker 脚本加载返回 404
-32553 4:13p 🟣 新增主线程回退计算逻辑
-32554 4:14p ✅ 单元测试全部通过
-32555 4:17p ⚖️ 制定 TikZ 模块布局约束策略
-32557 4:19p 🔵 读取 TikZ 控制绘图技能说明
-32558 4:20p ✅ 新增 4-3 复合控制方框图 TeX 文件
-32559 4:26p ⚖️ TikZ模块布局约束策略制定
-32560 4:38p ⚖️ 制定 TikZ 模块布局与标注约束策略
-32561 4:42p 🔵 多表征联动可视化引擎相关任务与进展记录
-32562 4:44p 🔵 ControlEngine 状态与结果类型定义
-32563 4:48p 🔵 读取 control-charts.test.tsx 前45行源码
-32564 " ✅ 更新 control-charts.test.tsx 以使用统一关键点尺寸并新增视口保持测试
-32565 4:49p 🔵 读取 control-analysis-panels.tsx 前35行源码
-32566 4:50p ✅ 在 control-bode-options.ts 中统一关键点标记尺寸
-32567 4:51p 🔵 page-client.tsx 中的结果渲染逻辑
-32568 4:53p 🔵 确认图表实例保持不变且抽屉滚动不影响页面
-32569 4:56p 🔴 参数抽屉滚动隔离实现
-32570 4:57p 🔵 单元测试全部通过
-32571 4:58p 🔵 ESLint 检查通过
-32572 5:03p ✅ 参数抽屉滚动隔离实现
-32573 5:08p 🔴 参数抽屉滚轮事件隔离修复
-32574 5:13p 🔵 检测到未提交的修改文件
+S252 Continue polishing the 5-2 lecture handout (course-content/authoring/lessons/5-2/design/handout.md) for the Automatic Control Principles course, focusing on wording refinement, consistency, and formatting checks (May 2 at 1:27 PM)
+S254 竞技场报错修复并完成计划W (May 2 at 1:50 PM)
+### May 11, 2026
+32796 9:30a ✅ 记录 Arena 计划文档更新
+32797 " 🔵 检测到 AGENTS.md 文件修改
+32798 9:31a 🔵 代码库已同步至远程
+32799 10:22a ✅ 项目已部署到生产环境
+32800 " ✅ 项目已完成部署
+32801 10:23a ✅ 完成 WASM 编译与 Prisma 客户端生成
+32802 10:24a ✅ 类型检查与 lint 完成
+32803 10:25a ✅ 完成静态页面生成
+32804 " 🔵 检测到多个 npm 包已弃用
+32805 10:26a ✅ 依赖安装完成并构建 Docker 镜像层
+32806 10:27a ✅ 启动项目完整构建流程
+32807 10:28a ✅ 完成 Wasm、Prisma 与 Next.js 构建步骤
+32808 10:37a 🟣 项目已完成部署
+32809 " 🔵 构建产物路由体积统计
+32810 10:38a ✅ Docker 镜像构建复制项目文件
+32811 10:40a ✅ 构建 Docker 镜像完成
+32812 10:42a 🔵 SSH 连接可用性确认
+32813 10:44a ✅ 项目已部署至生产环境
+32814 10:47a 🔵 远程主机连接中断
+32815 10:57a 🔵 部署镜像文件大小确认
+32816 " 🔵 远程命令返回数值
+32817 10:58a 🔵 Docker 环境资源与容器状态概览
+32822 11:06a ✅ 完成一键远程部署流程
+S255 用户请求注销登录状态 (May 11 at 12:41 PM)
+32866 9:10p ✅ 项目代码图谱增量更新
+32867 9:11p 🔵 项目代码图谱统计信息
+32868 9:12p 🔵 项目 src/app 目录下的页面与路由文件列表
+32869 9:13p 🟣 虚拟仿真运行时加载与计算接口实现
+32870 9:14p ✅ Prisma 数据模型扩展
+32871 9:15p 🔵 运行时课程内容文件清单
+32872 " 🔵 交互式特性共享模块文件列表
+32873 9:17p 🔴 ProjectDescription 文档行数
+32874 9:18p 🔵 Arena 功能目录结构
+32875 " 🔴 ProjectDescription 文档无空格错误
+32876 9:35p ✅ 更新项目文档概览
+32877 9:36p ✅ 完善 ProjectDescription.md 文档
+32878 " ✅ 扩展 ProjectDescription.md 中的 Arena 与数据治理章节
+32879 9:43p 🔵 读取 refactor-safely 技能文档
+32880 9:44p 🔵 获取最小上下文图谱
+32881 9:46p 🔵 列出 docs 目录文件
+32882 9:47p 🔵 读取 package.json 配置
+32883 9:49p 🔵 列出项目根目录配置文件
+32884 9:50p ✅ 创建归档与图形目录
+32885 10:02p ✅ 创建文档归档目录
+32886 " 🔄 文档与脚本归档重构
+32887 10:05p 🔄 文档链接更新指向归档路径
+32888 10:07p 🔵 ESLint 检查通过
+32889 " 🔵 单元测试全部通过
+32890 " ✅ 删除 Python 缓存目录
+32891 10:08p 🔵 Codex SQLite WAL 日志文件结构确认
+### May 12, 2026
+32892 10:37a ✅ 恢复项目文档 CLAUDE.md 与 GEMINI.md
 
-Access 745k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 471k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

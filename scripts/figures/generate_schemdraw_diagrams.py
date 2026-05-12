@@ -9,7 +9,7 @@ import schemdraw
 import schemdraw.flow as flow
 from pathlib import Path
 
-OUT = Path(__file__).parent.parent / 'images'
+OUT = Path(__file__).resolve().parents[2] / 'images'
 OUT.mkdir(exist_ok=True)
 
 

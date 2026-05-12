@@ -9,7 +9,7 @@
 相关:
 - [../30-operations/50-known-deploy-risks.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/50-known-deploy-risks.md)
 - [../30-operations/30-database-and-migrations.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/30-database-and-migrations.md)
-- [../../docs/plans/2026-03-25-worker-fault-containment-implementation.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/plans/2026-03-25-worker-fault-containment-implementation.md)
+- [../../docs/archive/plans/2026-03-25-worker-fault-containment-implementation.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/archive/plans/2026-03-25-worker-fault-containment-implementation.md)
 
 ## 结论
 

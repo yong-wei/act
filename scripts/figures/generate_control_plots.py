@@ -2,7 +2,7 @@
 """
 Control System Teaching Plots
 Generates time-domain, frequency-domain, and root locus plots for teaching.
-Run:  python3 scripts/generate_control_plots.py
+Run:  python3 scripts/figures/generate_control_plots.py
 """
 import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -31,7 +31,7 @@ plt.rcParams.update({
     'savefig.pad_inches': 0.2,
 })
 
-OUT = Path(__file__).parent.parent / 'images'
+OUT = Path(__file__).resolve().parents[2] / 'images'
 OUT.mkdir(exist_ok=True)
 
 COLORS = ['#2563EB', '#DC2626', '#16A34A', '#9333EA', '#EA580C']

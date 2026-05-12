@@ -13,7 +13,7 @@ import schemdraw.flow as flow
 from schemdraw.util import Point
 from pathlib import Path
 
-OUT = Path(__file__).parent.parent / 'images'
+OUT = Path(__file__).resolve().parents[2] / 'images'
 OUT.mkdir(exist_ok=True)
 
 # Style configuration
