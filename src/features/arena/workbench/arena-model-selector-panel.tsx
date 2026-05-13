@@ -1,12 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-import { ChevronRight, Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { ARENA_CHALLENGE_OBJECTS, getArenaChallengeObject } from '../data/seed-challenges';
 import { inferArenaObjectCapabilities } from './capabilities';
-import { getArenaWorkspaceHref } from '../workspace-routing';
 import type { ChallengeObject, WorkspaceMode } from '../types';
 
 interface ModelSelectorPanelProps {
@@ -128,14 +126,9 @@ export function ArenaModelSelectorPanel({
                       className="cursor-not-allowed rounded-lg border border-border/30 p-3 text-left opacity-50"
                     >
                       {cardContent}
-                      {!compatible && (
-                        <Link
-                          href={getArenaWorkspaceHref({ id: 'task-cruise-roll-blackbox-identification', workspaceMode: 'black-box-identification' } as any)}
-                          className="mt-1 block text-xs text-sky-600 underline dark:text-sky-400"
-                        >
-                          {recommendedWorkspaceLabel(obj)} <ChevronRight className="inline h-3 w-3" />
-                        </Link>
-                      )}
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {recommendedWorkspaceLabel(obj)}
+                      </span>
                     </div>
                   );
                 }

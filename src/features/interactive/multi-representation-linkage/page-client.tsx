@@ -33,6 +33,35 @@ export function MultiRepresentationLinkageClient({
     && model.correctionDeviceAnalysisResult,
   );
 
+  if (model.arenaContextIncompatible) {
+    return (
+      <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
+        <main className="premium-lesson-main mx-auto max-w-[720px] px-6 py-12 text-center">
+          <div className="premium-lesson-panel px-6 py-8 border-l-4 border-amber-500">
+            <div className="premium-lesson-kicker text-amber-600">Workbench Mismatch</div>
+            <h1 className="premium-lesson-title mt-4 text-2xl font-semibold">
+              当前挑战不支持多表征联动工作台
+            </h1>
+            <p className="premium-lesson-muted mt-3 text-sm">
+              该挑战的工作台模式为 {model.arenaContext?.recommendedWorkspaceMode}，
+              不支持根轨迹/Bode/Nyquist 等 SISO LTI 传函分析功能。
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Link href="/arena" className="premium-lesson-action-tone premium-tone-cyan">
+                返回竞技场
+              </Link>
+              {model.arenaContext && (
+                <Link href={model.arenaContext.returnHref} className="premium-lesson-control">
+                  查看挑战详情
+                </Link>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (model.arenaContextMissing) {
     return (
       <div className="premium-lesson-shell flex min-h-screen items-center justify-center">

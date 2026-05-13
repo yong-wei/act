@@ -500,8 +500,14 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const hasArenaTaskId = Boolean(initialParams.arenaTaskId);
   const arenaContextMissing = hasArenaTaskId && !arenaContext;
+  const arenaContextIncompatible = hasArenaTaskId && arenaContext && (
+    arenaContext.recommendedWorkspaceMode !== 'multi-representation-linkage'
+    || !arenaContext.capabilities.hasTransferFunction
+    || !arenaContext.capabilities.supportsRootLocus
+    || !arenaContext.capabilities.supportsBode
+  );
   const isCourseMode = Boolean(initialParams.courseMode);
-  const isArenaChallengeMode = Boolean(arenaContext && !arenaContextMissing);
+  const isArenaChallengeMode = Boolean(arenaContext && !arenaContextMissing && !arenaContextIncompatible);
   const isLockedByChallenge = isArenaChallengeMode && arenaContext!.locked;
   const isLockedOrCourse = isLockedByChallenge || isCourseMode;
 
@@ -936,6 +942,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     isEmbedded,
     arenaContext,
     arenaContextMissing,
+    arenaContextIncompatible,
     isArenaChallengeMode,
     isLockedByChallenge,
     isLockedOrCourse,
