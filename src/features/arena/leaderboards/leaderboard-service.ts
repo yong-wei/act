@@ -37,10 +37,11 @@ export function getLeaderboardViewModel(
   const validSubmissions = taskSubmissions.filter((s) => s.evaluation.valid);
   const allMethods = Array.from(new Set(taskSubmissions.map((s) => s.artifact.method)));
 
+  const { taskId: _optsTaskId, type: _optsType, ...safeOptions } = options ?? {};
   const leaderboard = buildArenaLeaderboard(submissions, {
     taskId,
     type: currentType,
-    ...options,
+    ...safeOptions,
   });
 
   return {
@@ -51,7 +52,7 @@ export function getLeaderboardViewModel(
     isEmpty: taskSubmissions.length === 0,
     hasNoValidSubmissions: taskSubmissions.length > 0 && validSubmissions.length === 0,
     totalSubmissions: taskSubmissions.length,
-    totalParticipants: new Set(taskSubmissions.map((s) => s.userId)).size,
+    totalParticipants: new Set(taskSubmissions.map((s) => s.userId ?? s.studentLabel)).size,
     availableTypes,
     availableMethods: allMethods,
   };
