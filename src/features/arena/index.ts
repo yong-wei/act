@@ -25,3 +25,4 @@ export * from './workbench/metric-mapping';
 export { ArenaModelSelectorPanel } from './workbench/arena-model-selector-panel';
 export * from './workbench/artifact-mappers';
 export * from './adapters/plant-adapter';
+export * from './telemetry/arena-event-dictionary';
