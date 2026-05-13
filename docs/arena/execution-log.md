@@ -124,3 +124,48 @@
 ### 结论
 
 Arena 绝非空白模块。现有代码已具备大厅、详情、提交、缓存、黑箱实验、评测器、榜单、埋点、教师配置和路由等完整骨架。第一个核心断点是 `arenaTask` 参数未从 URL 解析注入工作台。修复此断点即可让 Arena 与多表征工作台从"并列页面"变为"任务驱动工作台"。
+
+---
+
+## 任务 02：领域模型、能力矩阵与工作台上下文
+
+**执行时间**: 2026-05-13 09:04 GMT+8
+**状态**: ✅ 完成
+
+### 改动摘要
+
+**新增文件**:
+- `src/features/arena/workbench/types.ts` — ArenaWorkbenchContext, ArenaWorkbenchPreviewSummary 类型
+- `src/features/arena/workbench/capabilities.ts` — inferArenaObjectCapabilities 能力矩阵推断
+- `src/features/arena/workbench/context.ts` — resolveArenaWorkbenchContext 上下文解析
+- `src/features/arena/workbench/metric-mapping.ts` — 工作台预评测指标映射
+- `src/features/arena/__tests__/workbench-context.test.ts` — 43 个新增测试
+
+**修改文件**:
+- `src/features/arena/types.ts` — 新增 ArenaModelCapabilities, 扩展 ChallengeObject (modelType, timeRange, frequencyRange, workbenchSeed)
+- `src/features/arena/data/seed-challenges.ts` — 为 11 个对象补充 modelType, timeRange, frequencyRange, workbenchSeed
+- `src/features/arena/index.ts` — 导出 workbench 模块
+
+### Codex Review 修复
+
+4 个 P2 问题已修复:
+1. 复共轭极点对完整存储（二阶/奥德赛/船舶白箱）
+2. workbenchSeed gain 标准化为 num_lead/den_lead
+3. 白箱传函对象支持复合补偿能力
+4. 预评测分数在指标缺失时返回 null 而非部分分数
+
+### 验证结果
+
+| 检查项 | 结果 |
+|--------|------|
+| Arena 单元测试 (13 files) | ✅ 129 tests passed |
+| Lint | ✅ No warnings or errors |
+| Build | ✅ Passes |
+| Smoke tests | ✅ Passes |
+
+### 关键决策
+
+- `inferArenaObjectCapabilities` 集中维护能力矩阵，不在各页面重复判断
+- `resolveArenaWorkbenchContext` 在 task/object/metricProfile/leaderboardPolicy 任一缺失时返回 null
+- workbenchSeed 显式提供预计算 poles/zeros/gain，避免 UI 层多项式求根
+- 非最小相位对象（gain 为负）使用 |gain|，zerore 位置正确编码 RHP 零点
