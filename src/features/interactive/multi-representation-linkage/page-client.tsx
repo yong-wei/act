@@ -16,6 +16,7 @@ import {
 import { useMultiRepresentationLinkageModel, type MultiRepresentationInitialParams } from './model';
 import { ParameterDrawer } from './parameter-drawer';
 import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
+import { ArenaSubmitPanel } from './arena-submit-panel';
 
 export function MultiRepresentationLinkageClient({
   initialParams,
@@ -144,6 +145,14 @@ export function MultiRepresentationLinkageClient({
             currentObjectId={model.arenaContext.object.id}
             locked={model.isLockedByChallenge}
             workspaceMode={model.arenaContext.recommendedWorkspaceMode}
+          />
+        )}
+
+        {model.arenaContext && model.isLockedByChallenge && (
+          <ArenaSubmitPanel
+            arenaContext={model.arenaContext}
+            correctionState={model.correctionState}
+            isLockedByChallenge={model.isLockedByChallenge}
           />
         )}
 
