@@ -22,6 +22,5 @@ export * from './workbench/types';
 export * from './workbench/capabilities';
 export * from './workbench/context';
 export * from './workbench/metric-mapping';
-export { ArenaModelSelectorPanel } from './workbench/arena-model-selector-panel';
 export * from './workbench/artifact-mappers';
 export * from './adapters/plant-adapter';
