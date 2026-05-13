@@ -9,11 +9,13 @@ export function mapLinkageResultToArenaMetrics(
   if (!analysis) return {};
 
   const metrics: Record<string, number> = {};
+  const isStable = analysis.stability?.isStable !== false;
 
   if (analysis.timeDomain?.metrics?.overshoot !== undefined) {
     metrics.overshoot = analysis.timeDomain.metrics.overshoot;
   }
-  if (analysis.timeDomain?.metrics?.settlingTime !== undefined) {
+  if (isStable && analysis.timeDomain?.metrics?.settlingTime !== undefined
+      && analysis.timeDomain.metrics.settlingTime > 0) {
     metrics.settlingTime = analysis.timeDomain.metrics.settlingTime;
   }
   if (analysis.timeDomain?.metrics?.steadyStateError !== undefined) {

@@ -102,21 +102,8 @@ export function ArenaModelSelectorPanel({
                 const reason = incompatibilityReason(caps);
                 const isActive = obj.id === currentObjectId;
 
-                return (
-                  <button
-                    key={obj.id}
-                    type="button"
-                    disabled={!compatible || isActive}
-                    onClick={() => compatible && onSelectObject?.(obj.id)}
-                    title={!compatible ? reason : undefined}
-                    className={`rounded-lg border p-3 text-left transition-colors ${
-                      isActive
-                        ? 'border-sky-500/60 bg-sky-50 dark:bg-sky-950/20'
-                        : compatible
-                          ? 'border-border/60 hover:border-sky-400/40 hover:bg-muted/50'
-                          : 'cursor-not-allowed border-border/30 opacity-50'
-                    }`}
-                  >
+                const cardContent = (
+                  <>
                     <div className="text-sm font-medium">{obj.name}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {obj.model?.display ?? '无传函数据'}
@@ -130,15 +117,42 @@ export function ArenaModelSelectorPanel({
                         </>
                       )}
                     </div>
-                    {!compatible && obj.visibility !== 'white-box' && (
-                      <Link
-                        href={getArenaWorkspaceHref({ id: 'task-cruise-roll-blackbox-identification', workspaceMode: 'black-box-identification' } as any)}
-                        className="mt-1 block text-xs text-sky-600 underline dark:text-sky-400"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {recommendedWorkspaceLabel(obj)} <ChevronRight className="inline h-3 w-3" />
-                      </Link>
-                    )}
+                  </>
+                );
+
+                if (!compatible) {
+                  return (
+                    <div
+                      key={obj.id}
+                      title={reason}
+                      className="cursor-not-allowed rounded-lg border border-border/30 p-3 text-left opacity-50"
+                    >
+                      {cardContent}
+                      {!compatible && (
+                        <Link
+                          href={getArenaWorkspaceHref({ id: 'task-cruise-roll-blackbox-identification', workspaceMode: 'black-box-identification' } as any)}
+                          className="mt-1 block text-xs text-sky-600 underline dark:text-sky-400"
+                        >
+                          {recommendedWorkspaceLabel(obj)} <ChevronRight className="inline h-3 w-3" />
+                        </Link>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    key={obj.id}
+                    type="button"
+                    disabled={isActive}
+                    onClick={() => isActive ? undefined : onSelectObject?.(obj.id)}
+                    className={`rounded-lg border p-3 text-left transition-colors ${
+                      isActive
+                        ? 'border-sky-500/60 bg-sky-50 dark:bg-sky-950/20'
+                        : 'border-border/60 hover:border-sky-400/40 hover:bg-muted/50'
+                    }`}
+                  >
+                    {cardContent}
                   </button>
                 );
               })}

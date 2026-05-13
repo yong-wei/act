@@ -15,6 +15,7 @@ import {
 
 import { useMultiRepresentationLinkageModel, type MultiRepresentationInitialParams } from './model';
 import { ParameterDrawer } from './parameter-drawer';
+import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
 
 export function MultiRepresentationLinkageClient({
   initialParams,
@@ -110,7 +111,7 @@ export function MultiRepresentationLinkageClient({
                           <div className="rounded-md border border-sky-500/40 bg-sky-50 px-3 py-1.5 text-xs dark:bg-sky-950/30">
                             <div className="font-medium text-sky-800 dark:text-sky-300">预评测分数</div>
                             <div className="text-sky-700 dark:text-sky-400 tabular-nums">
-                              {(model.arenaPreviewSummary.previewScore * 100).toFixed(1)}%
+                              {model.arenaPreviewSummary.previewScore.toFixed(1)}
                             </div>
                           </div>
                         )}
@@ -136,6 +137,14 @@ export function MultiRepresentationLinkageClient({
           <div className="premium-lesson-panel-soft mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-4">
             <div className="premium-lesson-caption text-xs">{model.parameterSummary}</div>
           </div>
+        )}
+
+        {model.arenaContext && (
+          <ArenaModelSelectorPanel
+            currentObjectId={model.arenaContext.object.id}
+            locked={model.isLockedByChallenge}
+            workspaceMode={model.arenaContext.recommendedWorkspaceMode}
+          />
         )}
 
         <ParameterDrawer
