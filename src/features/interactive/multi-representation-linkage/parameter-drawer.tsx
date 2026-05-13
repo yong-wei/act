@@ -85,12 +85,14 @@ function PointRows({
           <NumberInput
             label={`${type}${index + 1}.Re`}
             value={point.re}
-            onChange={(value) => onUpdate(point.id, { re: value, im: point.im })}
+            disabled={disabled}
+            onChange={(value) => { if (!disabled) onUpdate(point.id, { re: value, im: point.im }); }}
           />
           <NumberInput
             label={`${type}${index + 1}.Im`}
             value={point.im}
-            onChange={(value) => onUpdate(point.id, { re: point.re, im: value })}
+            disabled={disabled}
+            onChange={(value) => { if (!disabled) onUpdate(point.id, { re: point.re, im: value }); }}
           />
           <div className="flex flex-col items-end justify-end gap-1 pb-1">
             <span className="premium-lesson-caption rounded border border-border/50 px-2 py-0.5 text-[11px]">
@@ -306,7 +308,7 @@ export function ParameterDrawer({
             {activeTab === 'correction' ? (
               <CorrectionControls
                 state={correctionState}
-                disabled={isCourseMode || Boolean(isLockedOrCourse)}
+                disabled={isCourseMode}
                 onChange={onCorrectionChange}
               />
             ) : (

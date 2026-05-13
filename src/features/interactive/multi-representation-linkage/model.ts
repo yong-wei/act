@@ -537,7 +537,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [correctionState, setCorrectionState] = useState<CorrectionState>(() => ({
     ...DEFAULT_CORRECTION_STATE,
-    enabled: !isCourseMode && DEFAULT_CORRECTION_STATE.enabled,
+    enabled: isArenaChallengeMode || (!isCourseMode && DEFAULT_CORRECTION_STATE.enabled),
   }));
   const effectiveTimeRange = arenaContext?.object.timeRange ?? undefined;
   const effectiveFreqRange = arenaContext?.object.frequencyRange ?? undefined;
@@ -589,9 +589,10 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const baseRequestInput = useMemo(() => ({
     poles: polesPayload,
     zeros: zerosPayload,
-    gain,
+    gain: arenaPlant ? 1 : gain,
     plant: arenaPlant,
     caseId: arenaCaseId,
+    includeOpenLoopGain: !arenaPlant,
     responseType,
     timeRange,
     frequencyRange,
@@ -725,14 +726,16 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   }, [gain, isLockedOrCourse]);
 
   const updatePole = useCallback((pointId: string, next: Complex) => {
+    if (isLockedOrCourse) return;
     setModelPoles((previous) => updatePointWithConjugateLink(previous, pointId, next));
     setClosedLoopGain(gain);
-  }, [gain]);
+  }, [gain, isLockedOrCourse]);
 
   const updateZero = useCallback((pointId: string, next: Complex) => {
+    if (isLockedOrCourse) return;
     setModelZeros((previous) => updatePointWithConjugateLink(previous, pointId, next));
     setClosedLoopGain(gain);
-  }, [gain]);
+  }, [gain, isLockedOrCourse]);
 
   const removePole = useCallback((pointId: string) => {
     if (!isLockedOrCourse) {
