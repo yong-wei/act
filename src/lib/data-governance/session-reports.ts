@@ -119,7 +119,7 @@ export async function generateSessionSummaryReports(
 
   const [studentStates, logs, facts] = await Promise.all([
     db.studentState.findMany({
-      where: { sessionId },
+      where: { sessionId, NOT: { stateKey: { startsWith: 'teacher' } } },
       select: {
         userId: true,
         lessonKey: true,
