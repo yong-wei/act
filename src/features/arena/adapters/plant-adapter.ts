@@ -1,6 +1,6 @@
 import type { ChallengeObject, ChallengeTask, ControllerArtifact } from '../types';
 import type { ArenaEvaluationResult } from '../evaluation/types';
-import type { ArenaBlackBoxExperimentDataset } from '../blackbox/experiment-service';
+import type { ArenaBlackBoxExperimentDataset } from '../blackbox/experiment';
 
 export interface ArenaPlantAdapter {
   canRunPublicExperiment(task: ChallengeTask, object: ChallengeObject): boolean;
@@ -8,7 +8,6 @@ export interface ArenaPlantAdapter {
     task: ChallengeTask;
     object: ChallengeObject;
     signalType: 'step' | 'impulse' | 'prbs' | 'sine';
-    sampleCount: number;
     seed?: string;
   }): Promise<ArenaBlackBoxExperimentDataset>;
   canRunOfficialEvaluation(task: ChallengeTask, object: ChallengeObject): boolean;
@@ -26,27 +25,47 @@ export function createCruiseRollBlackBoxAdapter(): ArenaPlantAdapter {
         && task.allowedMethods.includes('black-box-control');
     },
 
-    async runPublicExperiment({ signalType, sampleCount }) {
-      const maxSamples = Math.min(sampleCount, 2000);
-      const timePoints = Array.from({ length: maxSamples }, (_, i) => i * 0.05);
+    async runPublicExperiment({ task, object, signalType }) {
+      const sampleTime = 0.05;
+      const duration = 8;
+      const sampleCount = Math.floor(duration / sampleTime);
       const datasetHash = `arena-blackbox-dataset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      const scenarioId = 'default';
 
-      const response = timePoints.map((t) => {
+      const samples = Array.from({ length: sampleCount }, (_, i) => {
+        const t = i * sampleTime;
         const noise = Math.sin(t * 0.7) * 0.05 + Math.cos(t * 1.3) * 0.03;
-        const signalBase = signalType === 'step' ? 1.0
+        const input = signalType === 'step' ? 1.0
           : signalType === 'sine' ? Math.sin(t)
             : signalType === 'prbs' ? (Math.random() > 0.5 ? 1 : -1)
               : signalType === 'impulse' ? (t < 0.1 ? 10 : 0)
                 : 1.0;
-        return { time: t, input: signalBase, output: signalBase * 0.8 + noise };
+        return { t, input, output: input * 0.8 + noise };
       });
 
+      const peakOutput = Math.max(...samples.map((s) => Math.abs(s.output)));
+      const finalOutput = samples[samples.length - 1]?.output ?? 0;
+      const meanAbsOutput = samples.reduce((sum, s) => sum + Math.abs(s.output), 0) / samples.length;
+      const inputEnergy = samples.reduce((sum, s) => sum + Math.abs(s.input), 0);
+
       return {
+        taskId: task.id,
+        objectId: object.id,
         datasetHash,
+        scenarioId,
         signalType,
-        sampleCount: maxSamples,
+        sampleTime,
+        duration,
+        budgetCost: 1,
+        samples,
+        summary: {
+          peakOutput,
+          finalOutput,
+          meanAbsOutput,
+          inputEnergy,
+          dataQuality: Math.min(1, 0.7 + 0.3 * Math.random()),
+        },
         createdAt: new Date().toISOString(),
-        data: response,
       };
     },
 
