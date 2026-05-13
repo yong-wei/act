@@ -50,12 +50,13 @@ export function buildArenaArtifactFromMultiRepresentationState(
     const isLead = correctionState.kind === 'lead';
     const zeroFreq = isLead ? correctionState.leadZeroFrequency : correctionState.lagZeroFrequency;
     const poleFreq = isLead ? correctionState.leadPoleFrequency : correctionState.lagPoleFrequency;
+    const serialGain = zeroFreq > 0 ? poleFreq / zeroFreq : 1;
     return {
       artifact: {
         id: `artifact-${task.id}-serial-${Date.parse(createdAt) || Date.now()}`,
         taskId: task.id,
         method: 'serial-compensator',
-        params: { gain: 1, zero: zeroFreq, pole: poleFreq },
+        params: { gain: serialGain, zero: zeroFreq, pole: poleFreq },
         createdAt,
       },
     };
