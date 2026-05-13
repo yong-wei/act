@@ -25,7 +25,7 @@ export function inferArenaObjectCapabilities(object: ChallengeObject): ArenaMode
       supportsNyquist: true,
       supportsSerialCorrection: true,
       supportsPid: true,
-      supportsCompositeControl: false,
+      supportsCompositeControl: true,
       supportsIdentification: false,
       supportsMpc: false,
       supportsVirtualSimulationPreview: false,

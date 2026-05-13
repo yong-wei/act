@@ -19,7 +19,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     timeRange: { start: 0, end: 12, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
-      poles: [{ re: -1.2, im: 3.74 }],
+      poles: [{ re: -1.2, im: 3.74 }, { re: -1.2, im: -3.74 }],
       zeros: [],
       gain: 16,
     },
@@ -59,7 +59,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     workbenchSeed: {
       poles: [{ re: -0.5, im: 0 }],
       zeros: [],
-      gain: 4,
+      gain: 2,
     },
     relatedKnowledge: ['一阶响应', '频率特性'],
   },
@@ -97,7 +97,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     workbenchSeed: {
       poles: [{ re: -1, im: 0 }, { re: -3, im: 0 }],
       zeros: [{ re: 5, im: 0 }],
-      gain: 6,
+      gain: 1.2,
     },
     relatedKnowledge: ['零点作用', '非最小相边界'],
   },
@@ -116,7 +116,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     workbenchSeed: {
       poles: [{ re: 0, im: 0 }, { re: -1, im: 0 }, { re: -5, im: 0 }],
       zeros: [],
-      gain: 10,
+      gain: 50,
     },
     relatedKnowledge: ['Bode 图', '裕度校正'],
   },
@@ -133,7 +133,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     timeRange: { start: 0, end: 12, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
-      poles: [{ re: -0.8, im: 1.56 }],
+      poles: [{ re: -0.8, im: 1.56 }, { re: -0.8, im: -1.56 }],
       zeros: [],
       gain: 3,
     },
@@ -152,7 +152,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     timeRange: { start: 0, end: 20, samples: 800 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
-      poles: [{ re: -0.25, im: 1.19 }],
+      poles: [{ re: -0.25, im: 1.19 }, { re: -0.25, im: -1.19 }],
       zeros: [],
       gain: 0.8,
     },
