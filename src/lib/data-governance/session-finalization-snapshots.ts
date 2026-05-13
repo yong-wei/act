@@ -17,6 +17,10 @@ interface EventIngestionJob {
   coordinator?: boolean;
 }
 
+interface SessionReportJob {
+  sessionId?: string;
+}
+
 export interface SessionFinalizationSnapshotResult {
   studentSnapshotJobs: number;
   classSnapshotJobs: number;
@@ -30,6 +34,7 @@ const JOB_HISTORY_OPTIONS = {
 
 const CLASS_SNAPSHOT_DELAY_MS = 60_000;
 const EVENT_INGESTION_DELAY_MS = 5_000;
+const SESSION_REPORT_REFRESH_DELAY_MS = 90_000;
 
 export async function enqueueSessionFinalizationEventIngestion(
   sessionId: string,
@@ -72,6 +77,51 @@ export async function enqueueSessionFinalizationEventIngestion(
     };
   } catch (error) {
     console.error('[SessionFinalizationEventIngestion] Failed to enqueue event ingestion:', error);
+    return emptyResult;
+  }
+}
+
+export async function enqueueSessionSummaryReportRefresh(
+  sessionId: string,
+): Promise<{ reportRefreshJobs: number; skipped: boolean }> {
+  const emptyResult = {
+    reportRefreshJobs: 0,
+    skipped: true,
+  };
+
+  try {
+    if (!redisClient.isReady()) {
+      return emptyResult;
+    }
+
+    const connection = redisClient.getClient();
+    if (!connection) {
+      return emptyResult;
+    }
+
+    const reportQueue = new Queue<SessionReportJob>('session-report', { connection });
+    try {
+      await reportQueue.add(
+        'session-report-refresh',
+        { sessionId },
+        {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          delay: SESSION_REPORT_REFRESH_DELAY_MS,
+          jobId: `session-report-refresh-${sessionId}`,
+          ...JOB_HISTORY_OPTIONS,
+        },
+      );
+    } finally {
+      await reportQueue.close();
+    }
+
+    return {
+      reportRefreshJobs: 1,
+      skipped: false,
+    };
+  } catch (error) {
+    console.error('[SessionSummaryReportRefresh] Failed to enqueue report refresh:', error);
     return emptyResult;
   }
 }

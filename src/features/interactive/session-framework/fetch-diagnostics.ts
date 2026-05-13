@@ -122,6 +122,30 @@ export function toFetchTelemetryError(message: string, telemetry: FetchFailureTe
   return new FetchTelemetryError(message, telemetry);
 }
 
+export function shouldSurfaceSyncFailure({
+  telemetry,
+  consecutiveFailures,
+  minimumConsecutiveFailures = 3,
+}: {
+  telemetry: FetchFailureTelemetry | null | undefined;
+  consecutiveFailures: number;
+  minimumConsecutiveFailures?: number;
+}) {
+  if (!telemetry) {
+    return true;
+  }
+
+  if (telemetry.errorName === 'HttpError') {
+    return true;
+  }
+
+  if (telemetry.failureKind === 'aborted' && telemetry.timedOut !== true) {
+    return false;
+  }
+
+  return consecutiveFailures >= minimumConsecutiveFailures;
+}
+
 export function createFetchTimeout(timeoutMs = DEFAULT_SYNC_FETCH_TIMEOUT_MS) {
   if (typeof AbortController === 'undefined') {
     return null;

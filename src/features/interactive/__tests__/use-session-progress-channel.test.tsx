@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createStableTeacherSyncSignature,
   resolveDemoStepSyncUpdate,
   shouldPollSessionStatus,
 } from '../session-framework/use-session-progress-channel';
@@ -87,5 +88,39 @@ describe('resolveDemoStepSyncUpdate', () => {
     expect(shouldPollSessionStatus('ACTIVE')).toBe(true);
     expect(shouldPollSessionStatus('PAUSED')).toBe(true);
     expect(shouldPollSessionStatus('FINISHED')).toBe(false);
+  });
+
+  it('builds stable teacher sync signatures while ignoring volatile timestamps', () => {
+    expect(createStableTeacherSyncSignature({
+      kind: 'teacher_sync',
+      activeStepId: 'step-04',
+      updatedAt: 1_776_307_900_000,
+      revealedAnswers: {
+        'step-04': true,
+      },
+    })).toBe(createStableTeacherSyncSignature({
+      revealedAnswers: {
+        'step-04': true,
+      },
+      activeStepId: 'step-04',
+      kind: 'teacher_sync',
+      updatedAt: 1_776_307_950_000,
+    }));
+
+    expect(createStableTeacherSyncSignature({
+      kind: 'teacher_sync',
+      activeStepId: 'step-05',
+      revealedAnswers: {
+        'step-04': true,
+      },
+      updatedAt: 1_776_307_950_000,
+    })).not.toBe(createStableTeacherSyncSignature({
+      kind: 'teacher_sync',
+      activeStepId: 'step-04',
+      revealedAnswers: {
+        'step-04': true,
+      },
+      updatedAt: 1_776_307_950_000,
+    }));
   });
 });

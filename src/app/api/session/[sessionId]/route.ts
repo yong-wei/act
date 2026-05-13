@@ -10,6 +10,7 @@ import {
 import {
   enqueueSessionFinalizationEventIngestion,
   enqueueSessionFinalizationSnapshots,
+  enqueueSessionSummaryReportRefresh,
 } from '@/lib/data-governance/session-finalization-snapshots';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import { SessionStatus, BopppsStage } from '@prisma/client';
@@ -221,6 +222,7 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
       await Promise.all([
         enqueueSessionFinalizationEventIngestion(sessionId),
         enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId),
+        enqueueSessionSummaryReportRefresh(sessionId),
         generateSessionSummaryReportsSafely(sessionId),
       ]);
     }

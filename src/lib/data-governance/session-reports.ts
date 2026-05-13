@@ -29,6 +29,7 @@ interface LearningFactSummaryItem {
 
 interface StudentStateSummaryItem {
   userId: string;
+  lessonKey: string | null;
 }
 
 interface StudentSnapshotSummaryItem {
@@ -121,6 +122,7 @@ export async function generateSessionSummaryReports(
       where: { sessionId },
       select: {
         userId: true,
+        lessonKey: true,
       },
     }) as Promise<StudentStateSummaryItem[]>,
     db.interactionLog.findMany({
@@ -145,10 +147,6 @@ export async function generateSessionSummaryReports(
     }) as Promise<LearningFactSummaryItem[]>,
   ]);
 
-  const reportUserIds = Array.from(new Set([
-    ...logs.map((log) => log.userId),
-    ...facts.map((fact) => fact.userId),
-  ])).sort();
   const loggedUserIds = new Set(logs.map((log) => log.userId));
   const factUserIds = new Set(facts.map((fact) => fact.userId));
   const sessionParticipantUserIds = Array.from(new Set([
@@ -159,6 +157,7 @@ export async function generateSessionSummaryReports(
   const lessonKey = firstNonEmpty([
     logs.find((log) => log.lessonKey)?.lessonKey,
     facts.find((fact) => fact.lessonId)?.lessonId,
+    studentStates.find((state) => state.lessonKey)?.lessonKey,
   ]);
   const eventTypes: Record<string, number> = {};
   const canonicalEventTypes: Record<string, number> = {};
@@ -245,7 +244,7 @@ export async function generateSessionSummaryReports(
       activeStudentCount: 'class-level long-term snapshot count, not a classroom participation metric',
     },
   };
-  const summary = `${reportUserIds.length} 名学生产生 ${logs.length} 条互动日志，沉淀 ${facts.length} 条学习事实。`;
+  const summary = `${sessionParticipantUserIds.length} 名学生产生 ${logs.length} 条互动日志，沉淀 ${facts.length} 条学习事实。`;
 
   await db.classSessionReport.upsert({
     where: {
@@ -270,9 +269,15 @@ export async function generateSessionSummaryReports(
     },
   });
 
-  for (const userId of reportUserIds) {
+  for (const userId of sessionParticipantUserIds) {
     const studentLogs = logs.filter((log) => log.userId === userId);
     const studentFacts = facts.filter((fact) => fact.userId === userId);
+    const studentLessonKey = firstNonEmpty([
+      studentLogs.find((log) => log.lessonKey)?.lessonKey,
+      studentFacts.find((fact) => fact.lessonId)?.lessonId,
+      studentStates.find((state) => state.userId === userId)?.lessonKey,
+      lessonKey,
+    ]);
     const reportData = buildStudentReportData(userId, studentLogs, studentFacts);
     await db.studentSessionReport.upsert({
       where: {
@@ -285,14 +290,14 @@ export async function generateSessionSummaryReports(
       create: {
         sessionId,
         userId,
-        lessonKey,
+        lessonKey: studentLessonKey,
         reportType: 'student-summary',
         status: 'READY',
         summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
         reportData,
       },
       update: {
-        lessonKey,
+        lessonKey: studentLessonKey,
         status: 'READY',
         summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
         reportData,
@@ -300,5 +305,5 @@ export async function generateSessionSummaryReports(
     });
   }
 
-  return { classReports: 1, studentReports: reportUserIds.length, skipped: false };
+  return { classReports: 1, studentReports: sessionParticipantUserIds.length, skipped: false };
 }

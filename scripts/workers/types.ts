@@ -13,4 +13,8 @@ export interface ClassSnapshotJob {
   coordinator?: boolean;
 }
 
-export type WorkerJobData = EventIngestionJob | StudentSnapshotJob | ClassSnapshotJob;
+export interface SessionReportJob {
+  sessionId?: string;
+}
+
+export type WorkerJobData = EventIngestionJob | StudentSnapshotJob | ClassSnapshotJob | SessionReportJob;
