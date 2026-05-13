@@ -10,6 +10,7 @@ export * from './evaluation/whitebox-metric-provider';
 export * from './evaluation/metric-extraction';
 export * from './evaluation/metric-profile-evaluator';
 export * from './leaderboards/leaderboard';
+export * from './leaderboards/leaderboard-service';
 export * from './submissions/artifact-hash';
 export * from './submissions/submission-service';
 export * from './submissions/persistence';
