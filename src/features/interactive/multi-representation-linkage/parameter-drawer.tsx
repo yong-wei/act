@@ -11,6 +11,7 @@ interface ParameterDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isCourseMode: boolean;
+  isLockedOrCourse?: boolean;
   modelPoles: PoleZeroPoint[];
   modelZeros: PoleZeroPoint[];
   gain: number;
@@ -221,6 +222,7 @@ export function ParameterDrawer({
   open,
   onOpenChange,
   isCourseMode,
+  isLockedOrCourse,
   modelPoles,
   modelZeros,
   gain,
@@ -304,7 +306,7 @@ export function ParameterDrawer({
             {activeTab === 'correction' ? (
               <CorrectionControls
                 state={correctionState}
-                disabled={isCourseMode}
+                disabled={isCourseMode || Boolean(isLockedOrCourse)}
                 onChange={onCorrectionChange}
               />
             ) : (
@@ -339,7 +341,7 @@ export function ParameterDrawer({
             <button
               type="button"
               onClick={() => onAddPoint('pole', false)}
-              disabled={isCourseMode}
+              disabled={isCourseMode || Boolean(isLockedOrCourse)}
               className="premium-lesson-action-tone premium-tone-cyan disabled:cursor-not-allowed disabled:opacity-45"
             >
               添加实极点
@@ -347,7 +349,7 @@ export function ParameterDrawer({
             <button
               type="button"
               onClick={() => onAddPoint('pole', true)}
-              disabled={isCourseMode}
+              disabled={isCourseMode || Boolean(isLockedOrCourse)}
               className="premium-lesson-action-tone premium-tone-cyan disabled:cursor-not-allowed disabled:opacity-45"
             >
               添加共轭极点对
@@ -355,7 +357,7 @@ export function ParameterDrawer({
             <button
               type="button"
               onClick={() => onAddPoint('zero', false)}
-              disabled={isCourseMode}
+              disabled={isCourseMode || Boolean(isLockedOrCourse)}
               className="premium-lesson-action-tone premium-tone-rose disabled:cursor-not-allowed disabled:opacity-45"
             >
               添加实零点
@@ -363,7 +365,7 @@ export function ParameterDrawer({
             <button
               type="button"
               onClick={() => onAddPoint('zero', true)}
-              disabled={isCourseMode}
+              disabled={isCourseMode || Boolean(isLockedOrCourse)}
               className="premium-lesson-action-tone premium-tone-rose disabled:cursor-not-allowed disabled:opacity-45"
             >
               添加共轭零点对
@@ -374,7 +376,7 @@ export function ParameterDrawer({
             title="开环极点"
             type="p"
             points={modelPoles}
-            disabled={isCourseMode}
+            disabled={isCourseMode || Boolean(isLockedOrCourse)}
             onUpdate={onUpdatePole}
             onRemove={onRemovePole}
           />
@@ -382,7 +384,7 @@ export function ParameterDrawer({
             title="开环零点"
             type="z"
             points={modelZeros}
-            disabled={isCourseMode}
+            disabled={isCourseMode || Boolean(isLockedOrCourse)}
             onUpdate={onUpdateZero}
             onRemove={onRemoveZero}
           />

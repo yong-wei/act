@@ -72,6 +72,8 @@ interface BuildLinkageAnalysisRequestInput {
   correctionStructures?: StructureSpec[];
   includeOpenLoopGain?: boolean;
   plantLabel?: string;
+  plant?: ControlAnalysisRequest['plant'];
+  caseId?: string;
   outputs?: ControlAnalysisRequest['outputs'];
   responseType: NonNullable<ControlAnalysisRequest['responseType']>;
   timeRange?: ControlAnalysisRequest['timeRange'];
@@ -364,15 +366,17 @@ export function buildLinkageAnalysisRequest(
     Math.max(sanitizedGain, sanitizedRootLocusGain),
   );
 
+  const plant = input.plant ?? {
+    numerator,
+    denominator,
+    coefficientOrder: 'descending' as const,
+    label: input.plantLabel ?? '多表征联动开环模型',
+  };
+
   return {
-    runtimeMode: 'analysis',
-    caseId: 'multi-representation-linkage',
-    plant: {
-      numerator,
-      denominator,
-      coefficientOrder: 'descending',
-      label: input.plantLabel ?? '多表征联动开环模型',
-    },
+    runtimeMode: 'analysis' as const,
+    caseId: input.caseId ?? 'multi-representation-linkage',
+    plant,
     structures: [
       ...(includeOpenLoopGain
         ? [{ kind: 'gain', enabled: true, params: { k: sanitizedGain }, label: 'K' } satisfies StructureSpec]

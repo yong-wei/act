@@ -50,6 +50,10 @@ export function buildArenaWorkbenchPreviewSummary(
     return { id: def.id, label: def.label, value, unit: def.unit, satisfaction, status };
   });
 
+  const missingOfficialOnlyMetrics = metricProfile.diagnosticMetrics.filter(
+    (id) => rawMetrics[id] === undefined,
+  );
+
   const hasAnyMissing = metrics.some((m) => m.satisfaction === null);
   if (hasAnyMissing) {
     return { metrics, previewScore: null, missingOfficialOnlyMetrics };
@@ -58,10 +62,6 @@ export function buildArenaWorkbenchPreviewSummary(
   const previewScore = scoreMetricSatisfaction(
     Object.fromEntries(metrics.map((m) => [m.id, m.satisfaction!])),
     Object.fromEntries(metrics.map((m) => [m.id, 1])),
-  );
-
-  const missingOfficialOnlyMetrics = metricProfile.diagnosticMetrics.filter(
-    (id) => rawMetrics[id] === undefined,
   );
 
   return { metrics, previewScore, missingOfficialOnlyMetrics };
