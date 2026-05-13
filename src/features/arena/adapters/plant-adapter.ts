@@ -46,7 +46,7 @@ export function createCruiseRollBlackBoxAdapter(): ArenaPlantAdapter {
       const peakOutput = Math.max(...samples.map((s) => Math.abs(s.output)));
       const finalOutput = samples[samples.length - 1]?.output ?? 0;
       const meanAbsOutput = samples.reduce((sum, s) => sum + Math.abs(s.output), 0) / samples.length;
-      const inputEnergy = samples.reduce((sum, s) => sum + Math.abs(s.input), 0);
+      const inputEnergy = samples.reduce((sum, s) => sum + (s.input * s.input * sampleTime), 0);
 
       return {
         taskId: task.id,
