@@ -33,22 +33,37 @@ export function MultiRepresentationLinkageClient({
     && model.correctionDeviceAnalysisResult,
   );
 
+  if (model.arenaContextMissing) {
+    return (
+      <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
+        <main className="premium-lesson-main mx-auto max-w-[720px] px-6 py-12 text-center">
+          <div className="premium-lesson-panel px-6 py-8 border-l-4 border-destructive">
+            <div className="premium-lesson-kicker text-destructive">Arena Challenge Error</div>
+            <h1 className="premium-lesson-title mt-4 text-2xl font-semibold">挑战上下文加载失败</h1>
+            <p className="premium-lesson-muted mt-3 text-sm">
+              指定的竞技场挑战任务不存在或数据不完整，无法加载工作台。
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Link href="/arena" className="premium-lesson-action-tone premium-tone-cyan">
+                返回竞技场
+              </Link>
+              <Link
+                href="/interactive-learning/multi-representation-linkage"
+                className="premium-lesson-control"
+              >
+                进入自由探索
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="premium-lesson-shell min-h-screen">
       <main className="premium-lesson-main mx-auto max-w-[1500px] px-3 py-4 sm:px-6 sm:py-6">
-        {model.arenaContextMissing ? (
-          <header className="premium-lesson-panel px-5 py-5 border-l-4 border-destructive">
-            <div className="premium-lesson-kicker text-destructive">Arena Challenge Error</div>
-            <div className="mt-3">
-              <h1 className="premium-lesson-title text-2xl font-semibold">挑战上下文加载失败</h1>
-              <p className="premium-lesson-muted mt-2 text-sm">
-                指定的竞技场挑战任务不存在或数据不完整，请从
-                <Link href="/arena" className="underline mx-1">竞技场</Link>
-                重新进入。
-              </p>
-            </div>
-          </header>
-        ) : !model.isEmbedded ? (
+        {!model.isEmbedded ? (
           <header className="premium-lesson-panel px-5 py-5">
             <div className="premium-lesson-kicker">Multi Representation Linkage</div>
             <div className="mt-3 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
@@ -153,6 +168,7 @@ export function MultiRepresentationLinkageClient({
             arenaContext={model.arenaContext}
             correctionState={model.correctionState}
             isLockedByChallenge={model.isLockedByChallenge}
+            gain={model.gain}
           />
         )}
 

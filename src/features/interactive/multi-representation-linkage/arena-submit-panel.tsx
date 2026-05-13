@@ -13,12 +13,14 @@ interface ArenaSubmitPanelProps {
   arenaContext: ArenaWorkbenchContext;
   correctionState: CorrectionState;
   isLockedByChallenge: boolean;
+  gain: number;
 }
 
 export function ArenaSubmitPanel({
   arenaContext,
   correctionState,
   isLockedByChallenge,
+  gain,
 }: ArenaSubmitPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<ArenaEvaluationResult | null>(null);
@@ -27,6 +29,7 @@ export function ArenaSubmitPanel({
   const buildResult = buildArenaArtifactFromMultiRepresentationState({
     task: arenaContext.task,
     correctionState,
+    gain,
   });
 
   const canSubmit = isLockedByChallenge && buildResult.artifact !== null && !submitting;

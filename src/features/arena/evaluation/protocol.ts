@@ -1,6 +1,6 @@
 import { getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
 
-export const WHITEBOX_PROTOCOL_VERSION = 'whitebox-v2';
+export const WHITEBOX_PROTOCOL_VERSION = 'whitebox-v1';
 export const BLACKBOX_PROTOCOL_VERSION = 'blackbox-v1';
 
 export function getArenaEvaluationProtocolVersion(taskId: string): string {

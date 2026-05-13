@@ -5,6 +5,7 @@ import type { LinkageAnalysisViewModel } from '@/resources/control-system/analys
 export interface MultiRepresentationArtifactInput {
   task: ChallengeTask;
   correctionState: CorrectionState;
+  gain?: number;
   now?: string;
 }
 
@@ -17,7 +18,7 @@ export interface ArtifactBuildResult {
 export function buildArenaArtifactFromMultiRepresentationState(
   input: MultiRepresentationArtifactInput,
 ): ArtifactBuildResult {
-  const { task, correctionState, now } = input;
+  const { task, correctionState, gain = 1, now } = input;
   const createdAt = now ?? new Date().toISOString();
 
   if (!correctionState.enabled) {
@@ -34,9 +35,9 @@ export function buildArenaArtifactFromMultiRepresentationState(
         taskId: task.id,
         method: 'pid',
         params: {
-          kp: correctionState.kp,
-          ki: correctionState.kind === 'pd' ? 0 : correctionState.ki,
-          kd: correctionState.kind === 'pi' ? 0 : correctionState.kd,
+          kp: correctionState.kp * gain,
+          ki: (correctionState.kind === 'pd' ? 0 : correctionState.ki) * gain,
+          kd: (correctionState.kind === 'pi' ? 0 : correctionState.kd) * gain,
         },
         createdAt,
       },
@@ -50,7 +51,7 @@ export function buildArenaArtifactFromMultiRepresentationState(
     const isLead = correctionState.kind === 'lead';
     const zeroFreq = isLead ? correctionState.leadZeroFrequency : correctionState.lagZeroFrequency;
     const poleFreq = isLead ? correctionState.leadPoleFrequency : correctionState.lagPoleFrequency;
-    const serialGain = zeroFreq > 0 ? poleFreq / zeroFreq : 1;
+    const serialGain = (zeroFreq > 0 ? poleFreq / zeroFreq : 1) * gain;
     return {
       artifact: {
         id: `artifact-${task.id}-serial-${Date.parse(createdAt) || Date.now()}`,

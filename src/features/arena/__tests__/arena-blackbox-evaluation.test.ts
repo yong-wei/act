@@ -158,7 +158,7 @@ describe('arena black-box identification evaluation', () => {
   });
 
   it('keeps white-box and black-box official protocols separate', () => {
-    expect(getArenaEvaluationProtocolVersion('task-second-order-lead-pid')).toBe('whitebox-v2');
+    expect(getArenaEvaluationProtocolVersion('task-second-order-lead-pid')).toBe('whitebox-v1');
     expect(getArenaEvaluationProtocolVersion('task-cruise-roll-blackbox-identification')).toBe('blackbox-v1');
   });
 
