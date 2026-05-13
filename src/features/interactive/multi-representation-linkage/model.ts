@@ -37,6 +37,7 @@ import {
   resolveArenaWorkbenchContext,
   type ArenaWorkbenchContext,
 } from '@/features/arena';
+import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
 
 export interface MultiRepresentationInitialParams {
   courseMode?: boolean;
@@ -706,6 +707,11 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     [visibleAnalysisResult],
   );
 
+  const arenaPreviewSummary = useMemo(() => {
+    if (!isArenaChallengeMode || !arenaContext) return null;
+    return buildArenaWorkbenchPreviewSummary(adaptedAnalysis, arenaContext.metricProfile);
+  }, [adaptedAnalysis, arenaContext, isArenaChallengeMode]);
+
   const addPoint = useCallback((type: 'pole' | 'zero', pair: boolean) => {
     if (isLockedOrCourse) {
       return;
@@ -951,6 +957,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     correctionDeviceAnalysisResult: correctionEnabled ? correctionDeviceAnalysisState.result : null,
     frequencyAnalysisResult: visibleAnalysisResult,
     adaptedAnalysis,
+    arenaPreviewSummary,
     parameterSummary,
     setGain: setOpenLoopGain,
     setClosedLoopGain: setSelectedClosedLoopGain,

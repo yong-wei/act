@@ -16,3 +16,4 @@ export * from './workbench/types';
 export * from './workbench/capabilities';
 export * from './workbench/context';
 export * from './workbench/metric-mapping';
+export { ArenaModelSelectorPanel } from './workbench/arena-model-selector-panel';

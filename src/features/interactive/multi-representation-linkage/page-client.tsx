@@ -85,6 +85,37 @@ export function MultiRepresentationLinkageClient({
                     <p className="text-xs text-amber-600 mt-1">
                       工作台预评测，不等同于官方榜单成绩
                     </p>
+                    {model.arenaPreviewSummary && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {model.arenaPreviewSummary.metrics.map((metric) => (
+                          <div
+                            key={metric.id}
+                            className={`rounded-md border px-3 py-1.5 text-xs ${
+                              metric.status === 'unknown'
+                                ? 'border-border/40 bg-muted/30 text-muted-foreground'
+                                : metric.status === 'pass'
+                                  ? 'border-emerald-500/40 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300'
+                                  : metric.status === 'warning'
+                                    ? 'border-amber-500/40 bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300'
+                                    : 'border-red-500/40 bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-300'
+                            }`}
+                          >
+                            <div className="font-medium">{metric.label}</div>
+                            <div className="tabular-nums">
+                              {metric.value !== null ? `${metric.value.toFixed(2)}${metric.unit ?? ''}` : '官方评测计算'}
+                            </div>
+                          </div>
+                        ))}
+                        {model.arenaPreviewSummary.previewScore !== null && (
+                          <div className="rounded-md border border-sky-500/40 bg-sky-50 px-3 py-1.5 text-xs dark:bg-sky-950/30">
+                            <div className="font-medium text-sky-800 dark:text-sky-300">预评测分数</div>
+                            <div className="text-sky-700 dark:text-sky-400 tabular-nums">
+                              {(model.arenaPreviewSummary.previewScore * 100).toFixed(1)}%
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="premium-lesson-muted mt-2 text-sm">
