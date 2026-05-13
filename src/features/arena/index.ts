@@ -12,3 +12,7 @@ export * from './stats';
 export * from './telemetry';
 export * from './teacher/configuration';
 export * from './workspace-routing';
+export * from './workbench/types';
+export * from './workbench/capabilities';
+export * from './workbench/context';
+export * from './workbench/metric-mapping';
