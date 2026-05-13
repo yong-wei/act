@@ -35,8 +35,8 @@ export function buildArenaArtifactFromMultiRepresentationState(
         method: 'pid',
         params: {
           kp: correctionState.kp,
-          ki: correctionState.ki,
-          kd: correctionState.kd,
+          ki: correctionState.kind === 'pd' ? 0 : correctionState.ki,
+          kd: correctionState.kind === 'pi' ? 0 : correctionState.kd,
         },
         createdAt,
       },
@@ -47,7 +47,6 @@ export function buildArenaArtifactFromMultiRepresentationState(
     if (!task.allowedMethods.includes('serial-compensator')) {
       return { artifact: null, error: '当前挑战不允许使用串联校正方法。' };
     }
-    const gain = correctionState.kp;
     const isLead = correctionState.kind === 'lead';
     const zeroFreq = isLead ? correctionState.leadZeroFrequency : correctionState.lagZeroFrequency;
     const poleFreq = isLead ? correctionState.leadPoleFrequency : correctionState.lagPoleFrequency;
@@ -56,7 +55,7 @@ export function buildArenaArtifactFromMultiRepresentationState(
         id: `artifact-${task.id}-serial-${Date.parse(createdAt) || Date.now()}`,
         taskId: task.id,
         method: 'serial-compensator',
-        params: { gain, zero: zeroFreq, pole: poleFreq },
+        params: { gain: 1, zero: zeroFreq, pole: poleFreq },
         createdAt,
       },
     };
