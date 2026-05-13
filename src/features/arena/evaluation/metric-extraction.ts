@@ -17,8 +17,10 @@ export function extractMetricsFromAnalysisResult(
   result: ControlAnalysisResult,
 ): ExtractedMetrics {
   const metrics = result.metrics;
-  const polesInRHP = (result.rootLocus.currentPoles ?? []).some((pole) => pole.re > 0);
-  const closedLoopStable = !polesInRHP;
+  const currentPoles = result.rootLocus.currentPoles ?? [];
+  const closedLoopStable = currentPoles.length > 0
+    ? !currentPoles.some((pole) => pole.re > 0)
+    : false;
 
   const controlEnergy = deriveControlEnergy(result);
   const controlEnergyDerived = true;

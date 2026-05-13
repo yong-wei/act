@@ -34,17 +34,20 @@ export function buildArenaControlAnalysisRequest(input: {
     const zero = params.zero ?? 1;
     const pole = params.pole ?? 4;
     if (pole <= 0) throw new Error('serial-compensator pole must be positive');
+    const k = zero > 0 ? (gain * zero) / pole : gain;
     structures = [{
       kind: zero < pole ? 'lead' : 'lag',
       enabled: true,
       params: {
-        k: gain,
+        k,
         tau: 1 / zero,
         alpha: zero / pole,
         beta: zero / pole,
       },
       label: 'C(s)',
     }];
+  } else {
+    throw new Error(`Controller method ${artifact.method} is not yet supported by the analysis-based evaluator. Use the heuristic evaluator or specify pid/serial-compensator.`);
   }
 
   return {
@@ -57,7 +60,7 @@ export function buildArenaControlAnalysisRequest(input: {
       label: object.name,
     },
     structures,
-    outputs: ['step_response', 'magnitude', 'phase', 'bode'],
+    outputs: ['step_response', 'root_locus', 'magnitude', 'phase', 'bode'],
     responseType: 'step',
     timeRange,
     frequencyRange,
