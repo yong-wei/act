@@ -529,8 +529,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(effectiveSeed.poles, 'p'));
   const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(effectiveSeed.zeros, 'z'));
-  const [gain, setGain] = useState(effectiveSeed.gain);
-  const [closedLoopGain, setClosedLoopGain] = useState(effectiveSeed.gain);
+  const [gain, setGain] = useState(isArenaChallengeMode ? 1 : effectiveSeed.gain);
+  const [closedLoopGain, setClosedLoopGain] = useState(isArenaChallengeMode ? 1 : effectiveSeed.gain);
   const [courseControlMode, setCourseControlMode] = useState<CruiseControllerMode>(initialControlMode);
   const [responseType, setResponseType] = useState<LinkageResponseType>('step');
   const [showMargins, setShowMargins] = useState(true);
@@ -589,10 +589,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const baseRequestInput = useMemo(() => ({
     poles: polesPayload,
     zeros: zerosPayload,
-    gain: arenaPlant ? 1 : gain,
+    gain,
     plant: arenaPlant,
     caseId: arenaCaseId,
-    includeOpenLoopGain: !arenaPlant,
     responseType,
     timeRange,
     frequencyRange,
@@ -756,7 +755,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const reset = useCallback(() => {
     const fallbackModel = isArenaChallengeMode && arenaSeed
-      ? { poles: arenaSeed.poles, zeros: arenaSeed.zeros, gain: arenaSeed.gain }
+      ? { poles: arenaSeed.poles, zeros: arenaSeed.zeros, gain: 1 }
       : isCourseMode
         ? buildOpenLoopFromController(CRUISE_DEFAULT_PID, courseControlMode)
         : { poles: [{ re: -1.2, im: 1.3 }, { re: -1.2, im: -1.3 }], zeros: [] as Complex[], gain: 1 };
