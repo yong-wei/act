@@ -236,65 +236,6 @@ For new pages/features, navigate to the page and verify:
 SSH_TARGET: root@121.40.124.135
 REMOTE_PROJECT_DIR: /home/projects/act
 
-## Codex Review 分阶段审查规则
-
-在完成实际的代码工作后，必须分阶段调用 Codex review 进行审查。
-
-### 调用方式
-
-`codex review` **不支持 `--profile` 参数**。必须通过 `-c` 逐项覆盖配置：
-
-```bash
-codex review --commit HEAD \
-  -c model="gpt-5.5" \
-  -c model_reasoning_effort="xhigh"
-```
-
-| 参数 | 值 | 说明 |
-|------|-----|------|
-| `-c model` | `"gpt-5.5"` | 模型（当前最强） |
-| `-c model_reasoning_effort` | `"xhigh"` | 推理强度（最高深度） |
-
-### 审查类型选择
-
-| 场景 | 命令 |
-|------|------|
-| 单阶段提交后审查 | `codex review --commit HEAD -c model="gpt-5.5" -c model_reasoning_effort="xhigh"` |
-| 对比主分支累积变更 | `codex review --base main -c model="gpt-5.5" -c model_reasoning_effort="xhigh"` |
-| 高风险变更额外审查 | 常规 review 通过后追加 `codex adversarial-review --commit HEAD -c model="gpt-5.5" -c model_reasoning_effort="xhigh"` |
-
-### 触发条件
-
-- **适用**: 涉及 `.ts`、`.tsx`、`.py`、`.prisma`、`.sql`、`.css` 等代码文件的变更
-- **不适用**: 纯文档（`.md`）、纯配置（`.json`、`.env`）、纯排版调整
-
-### 调用时机（顺序执行）
-
-1. 当前阶段代码工作完成
-2. `npm run lint` 通过
-3. `npm run build` 通过
-4. `npm test` 通过
-5. **提交本阶段变更**（将审查范围限定为自己的改动）
-6. 调用 `codex review --commit HEAD -c model="gpt-5.5" -c model_reasoning_effort="xhigh"`
-
-### 行为约束
-
-- **禁止在 codex review 返回之前自行审查**——必须等待返回
-- **审查问题全部修复后方可进入下一阶段**
-- **修复后重新提交并再次审查**，直到无新增问题
-- 对 P3 级别的风格偏好若与项目惯例冲突，记录理由后可跳过
-- 复杂或跨文件问题可委托 `/codex:rescue` 修复
-
-### 完成版提交流程
-
-Codex review 通过后，提交完成版并推送：
-
-```bash
-git add <files>
-git commit -m "描述修复内容"
-git push
-```
-
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 

@@ -2,7 +2,7 @@
 
 ```text
 repo: yong-wei/act
-branch: codex/interactive-course-production
+branch: codex/arena-v2
 context entry: docs/memory/CHATGPT_CONTEXT.md
 ```
 
@@ -56,7 +56,7 @@ context entry: docs/memory/CHATGPT_CONTEXT.md
 1. 切换并确认分支：
 
 ```bash
-git checkout codex/interactive-course-production
+git checkout codex/arena-v2
 git status
 ```
 
@@ -962,7 +962,7 @@ data governance
 这套计划的关键不是增加一个“竞技场页面”，而是把 Arena 变成项目中控制任务、控制器工件、官方评测、排行榜和学习证据之间的中枢。现有代码已经具备相当多的骨架；真正要做的是补齐上下文注入、真实评测、工作台工件化和数据治理闭环。
 
 
-可以。下面是一份面向编程代理的阶段化执行计划。它以当前工作分支 `codex/interactive-course-production` 为基准，不按 `main` 分支判断。该分支已经提供正式 ChatGPT 项目记忆入口 `docs/memory/CHATGPT_CONTEXT.md`，并明确读取顺序为 `CHATGPT_CONTEXT.md -> 00-index.md -> 02-recent-summary.md -> 01-reading-map.md -> 相关主题索引`。 `docs/memory/README.md` 也明确 `docs/memory` 是正式项目记忆根目录，`CHATGPT_CONTEXT.md` 是面向 ChatGPT/GitHub 连接器的入口。
+可以。下面是一份面向编程代理的阶段化执行计划。它以当前工作分支 `codex/arena-v2` 为基准，不按 `main` 分支判断。该分支已经提供正式 ChatGPT 项目记忆入口 `docs/memory/CHATGPT_CONTEXT.md`，并明确读取顺序为 `CHATGPT_CONTEXT.md -> 00-index.md -> 02-recent-summary.md -> 01-reading-map.md -> 相关主题索引`。 `docs/memory/README.md` 也明确 `docs/memory` 是正式项目记忆根目录，`CHATGPT_CONTEXT.md` 是面向 ChatGPT/GitHub 连接器的入口。
 
 当前 Arena 已不是空白模块。`src/features/arena/index.ts` 已导出 types、seed challenges、filtering、evaluation、leaderboard、artifact hash、submission service、persistence、stats、telemetry、teacher configuration 和 workspace routing 等能力。 `docs/arena.md` 已把 Arena 定义为统一评测与排行榜层，而不是单一校正工具；基本单元是“对象 + 任务 + 允许方法 + 评测协议 + 榜单规则”。
 
@@ -990,7 +990,7 @@ data governance
 第一，工作分支固定为：
 
 ```text
-codex/interactive-course-production
+codex/arena-v2
 ```
 
 不要再基于 `main` 判断缺失文件。`src/features/arena/arena-hall.tsx`、`docs/arena.md`、`docs/memory/CHATGPT_CONTEXT.md` 均在当前分支存在。
@@ -1045,7 +1045,7 @@ prisma/schema.prisma
 
 ## 执行动作
 
-1. 确认当前分支为 `codex/interactive-course-production`。
+1. 确认当前分支为 `codex/arena-v2`。
 2. 运行一次最小基线检查：
 
 ```bash
