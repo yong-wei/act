@@ -93,6 +93,17 @@ export const DEFAULT_CORRECTION_STATE: CorrectionState = {
 const DEFAULT_LINKAGE_TIME_RANGE: ControlAnalysisRequest['timeRange'] = { start: 0, end: 20, samples: 401 };
 const DEFAULT_LINKAGE_FREQUENCY_RANGE: ControlAnalysisRequest['frequencyRange'] = { min: 0.1, max: 100, samples: 140 };
 
+const DISABLED_ANALYSIS_REQUEST: ControlAnalysisRequest = {
+  runtimeMode: 'analysis',
+  plant: { numerator: [1], denominator: [1], coefficientOrder: 'descending', label: 'disabled' },
+  structures: [],
+  outputs: [],
+  responseType: 'step',
+  timeRange: { start: 0, end: 0.1, samples: 2 },
+  frequencyRange: { min: 1, max: 2, samples: 2 },
+  rootLocus: { minGain: 0, maxGain: 1, samples: 2, currentGain: 0 },
+};
+
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
@@ -629,9 +640,17 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     }),
     [correctionStructures, frequencyRange, responseType],
   );
-  const deferredLinkageRequest = useDeferredValue(linkageRequest);
-  const deferredCorrectedLinkageRequest = useDeferredValue(correctedLinkageRequest);
-  const deferredCorrectionDeviceRequest = useDeferredValue(correctionDeviceRequest);
+  const shouldRunControlAnalysis = !arenaContextMissing && !arenaContextIncompatible;
+
+  const deferredLinkageRequest = useDeferredValue(
+    shouldRunControlAnalysis ? linkageRequest : DISABLED_ANALYSIS_REQUEST,
+  );
+  const deferredCorrectedLinkageRequest = useDeferredValue(
+    shouldRunControlAnalysis ? correctedLinkageRequest : DISABLED_ANALYSIS_REQUEST,
+  );
+  const deferredCorrectionDeviceRequest = useDeferredValue(
+    shouldRunControlAnalysis ? correctionDeviceRequest : DISABLED_ANALYSIS_REQUEST,
+  );
   const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
   const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest);
   const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest);
