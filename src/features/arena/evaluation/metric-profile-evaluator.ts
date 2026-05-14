@@ -9,6 +9,7 @@ export interface MetricProfileEvaluationInput {
   metricProfile: MetricProfile;
   metrics: Record<string, number>;
   hardConstraintResults: HardConstraintResult[];
+  primaryMetrics?: string[];
 }
 
 export function evaluateMetricProfile(input: MetricProfileEvaluationInput): ArenaEvaluationResult {
@@ -33,7 +34,10 @@ export function evaluateMetricProfile(input: MetricProfileEvaluationInput): Aren
     };
   }
 
-  const weights = buildDefaultWeights(metricProfile.rankingMetrics);
+  const scoringMetrics = input.primaryMetrics?.length
+    ? metricProfile.rankingMetrics.filter((m) => input.primaryMetrics!.includes(m.id))
+    : metricProfile.rankingMetrics;
+  const weights = buildDefaultWeights(scoringMetrics);
   const satisfaction = buildSatisfaction(metricProfile, metrics);
   const baseScore = scoreMetricSatisfaction(satisfaction, weights);
   const penalties = computePenalties(metrics);
