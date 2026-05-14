@@ -33,6 +33,11 @@ import type {
 import type { BodeTurnFrequencyHandle } from '@/resources/control-system/charts/control-bode-options';
 import type { RootLocusInteractiveHandle } from '@/resources/control-system/charts/control-analysis-panels';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
+import {
+  resolveArenaWorkbenchContext,
+  type ArenaWorkbenchContext,
+} from '@/features/arena';
+import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
 
 export interface MultiRepresentationInitialParams {
   courseMode?: boolean;
@@ -40,6 +45,7 @@ export interface MultiRepresentationInitialParams {
   embed?: boolean;
   controlMode?: CruiseControllerMode;
   controller?: Partial<CruiseControllerParams>;
+  arenaTaskId?: string;
 }
 
 export interface PoleZeroPoint {
@@ -487,7 +493,24 @@ function mergeAnalysisState(
 }
 
 export function useMultiRepresentationLinkageModel(initialParams: MultiRepresentationInitialParams) {
+  const arenaContext = useMemo<ArenaWorkbenchContext | null>(() => {
+    if (!initialParams.arenaTaskId) return null;
+    return resolveArenaWorkbenchContext(initialParams.arenaTaskId);
+  }, [initialParams.arenaTaskId]);
+
+  const hasArenaTaskId = Boolean(initialParams.arenaTaskId);
+  const arenaContextMissing = hasArenaTaskId && !arenaContext;
+  const arenaContextIncompatible = hasArenaTaskId && arenaContext && (
+    arenaContext.recommendedWorkspaceMode !== 'multi-representation-linkage'
+    || !arenaContext.capabilities.hasTransferFunction
+    || !arenaContext.capabilities.supportsRootLocus
+    || !arenaContext.capabilities.supportsBode
+  );
   const isCourseMode = Boolean(initialParams.courseMode);
+  const isArenaChallengeMode = Boolean(arenaContext && !arenaContextMissing && !arenaContextIncompatible);
+  const isLockedByChallenge = isArenaChallengeMode && arenaContext!.locked;
+  const isLockedOrCourse = isLockedByChallenge || isCourseMode;
+
   const courseRole = initialParams.role ?? 'student';
   const isEmbedded = Boolean(initialParams.embed);
   const initialControlMode = initialParams.controlMode ?? 'pid';
@@ -504,20 +527,33 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     [initialController, initialControlMode],
   );
 
-  const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(openLoopSeed.poles, 'p'));
-  const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(openLoopSeed.zeros, 'z'));
-  const [gain, setGain] = useState(openLoopSeed.gain);
-  const [closedLoopGain, setClosedLoopGain] = useState(openLoopSeed.gain);
+  const arenaSeed = useMemo(() => {
+    if (!isArenaChallengeMode || !arenaContext?.object.workbenchSeed) return null;
+    return arenaContext.object.workbenchSeed;
+  }, [arenaContext, isArenaChallengeMode]);
+
+  const effectiveSeed = arenaSeed ?? openLoopSeed;
+
+  const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(effectiveSeed.poles, 'p'));
+  const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(effectiveSeed.zeros, 'z'));
+  const [gain, setGain] = useState(isArenaChallengeMode ? 1 : effectiveSeed.gain);
+  const [closedLoopGain, setClosedLoopGain] = useState(isArenaChallengeMode ? 1 : effectiveSeed.gain);
   const [courseControlMode, setCourseControlMode] = useState<CruiseControllerMode>(initialControlMode);
   const [responseType, setResponseType] = useState<LinkageResponseType>('step');
   const [showMargins, setShowMargins] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [correctionState, setCorrectionState] = useState<CorrectionState>(() => ({
     ...DEFAULT_CORRECTION_STATE,
-    enabled: !isCourseMode && DEFAULT_CORRECTION_STATE.enabled,
+    enabled: isArenaChallengeMode || (!isCourseMode && DEFAULT_CORRECTION_STATE.enabled),
   }));
-  const [timeRange, setTimeRange] = useState<ControlAnalysisRequest['timeRange']>(DEFAULT_LINKAGE_TIME_RANGE);
-  const [frequencyRange, setFrequencyRange] = useState<ControlAnalysisRequest['frequencyRange']>(DEFAULT_LINKAGE_FREQUENCY_RANGE);
+  const effectiveTimeRange = arenaContext?.object.timeRange ?? undefined;
+  const effectiveFreqRange = arenaContext?.object.frequencyRange ?? undefined;
+  const [timeRange, setTimeRange] = useState<ControlAnalysisRequest['timeRange']>(
+    effectiveTimeRange ?? DEFAULT_LINKAGE_TIME_RANGE,
+  );
+  const [frequencyRange, setFrequencyRange] = useState<ControlAnalysisRequest['frequencyRange']>(
+    effectiveFreqRange ?? DEFAULT_LINKAGE_FREQUENCY_RANGE,
+  );
 
   const idRef = useRef(100);
   const pairRef = useRef(100);
@@ -525,6 +561,21 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const lastValidOpenLoopResultRef = useRef<ControlAnalysisResult | null>(null);
   const lastValidCorrectedResultRef = useRef<ControlAnalysisResult | null>(null);
   const lastVisibleAnalysisResultRef = useRef<ControlAnalysisResult | null>(null);
+
+  const arenaPlant = useMemo(() => {
+    if (!isArenaChallengeMode || !arenaContext?.object.model) return undefined;
+    return {
+      numerator: arenaContext.object.model.numerator,
+      denominator: arenaContext.object.model.denominator,
+      coefficientOrder: 'descending' as const,
+      label: arenaContext.object.name,
+    };
+  }, [arenaContext, isArenaChallengeMode]);
+
+  const arenaCaseId = useMemo(() => {
+    if (!isArenaChallengeMode) return undefined;
+    return arenaContext!.task.id;
+  }, [arenaContext, isArenaChallengeMode]);
 
   const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
   const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
@@ -541,21 +592,28 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     [correctionState, isCourseMode],
   );
   const correctionEnabled = !isCourseMode && correctionStructures.length > 0;
+
+  const baseRequestInput = useMemo(() => ({
+    poles: polesPayload,
+    zeros: zerosPayload,
+    gain,
+    plant: arenaPlant,
+    caseId: arenaCaseId,
+    responseType,
+    timeRange,
+    frequencyRange,
+  }), [polesPayload, zerosPayload, gain, arenaPlant, arenaCaseId, responseType, timeRange, frequencyRange]);
+
   const linkageRequest = useMemo(
-    () => buildLinkageAnalysisRequest({ poles: polesPayload, zeros: zerosPayload, gain, responseType, timeRange, frequencyRange }),
-    [frequencyRange, gain, polesPayload, responseType, timeRange, zerosPayload],
+    () => buildLinkageAnalysisRequest(baseRequestInput),
+    [baseRequestInput],
   );
   const correctedLinkageRequest = useMemo(
     () => buildLinkageAnalysisRequest({
-      poles: polesPayload,
-      zeros: zerosPayload,
-      gain,
+      ...baseRequestInput,
       correctionStructures,
-      responseType,
-      timeRange,
-      frequencyRange,
     }),
-    [correctionStructures, frequencyRange, gain, polesPayload, responseType, timeRange, zerosPayload],
+    [baseRequestInput, correctionStructures],
   );
   const correctionDeviceRequest = useMemo(
     () => buildLinkageAnalysisRequest({
@@ -579,25 +637,37 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest);
   const visibleBaselineAnalysisResult = useMemo(
     () => {
-      if (doesRootLocusMatchPoleZeroSet(openLoopAnalysisState.result, polesPayload, zerosPayload)) {
-        lastValidOpenLoopResultRef.current = openLoopAnalysisState.result;
-        return openLoopAnalysisState.result;
+      const currentResult = openLoopAnalysisState.result;
+      if (!currentResult) return lastValidOpenLoopResultRef.current;
+      if (arenaPlant) {
+        lastValidOpenLoopResultRef.current = currentResult;
+        return currentResult;
+      }
+      if (doesRootLocusMatchPoleZeroSet(currentResult, polesPayload, zerosPayload)) {
+        lastValidOpenLoopResultRef.current = currentResult;
+        return currentResult;
       }
       return lastValidOpenLoopResultRef.current;
     },
-    [openLoopAnalysisState.result, polesPayload, zerosPayload],
+    [openLoopAnalysisState.result, polesPayload, zerosPayload, arenaPlant],
   );
   const visibleCorrectedAnalysisResult = useMemo(() => {
     if (!correctionEnabled) {
       return visibleBaselineAnalysisResult;
     }
+    const currentResult = correctedAnalysisState.result;
+    if (!currentResult) return lastValidCorrectedResultRef.current;
+    if (arenaPlant) {
+      lastValidCorrectedResultRef.current = currentResult;
+      return currentResult;
+    }
     const correctionPoleZeroSet = correctionHandlesToPoleZeroSet(correctionRootHandles);
     const expectedPoles = [...polesPayload, ...correctionPoleZeroSet.poles];
     const expectedZeros = [...zerosPayload, ...correctionPoleZeroSet.zeros];
 
-    if (doesRootLocusMatchPoleZeroSet(correctedAnalysisState.result, expectedPoles, expectedZeros)) {
-      lastValidCorrectedResultRef.current = correctedAnalysisState.result;
-      return correctedAnalysisState.result;
+    if (doesRootLocusMatchPoleZeroSet(currentResult, expectedPoles, expectedZeros)) {
+      lastValidCorrectedResultRef.current = currentResult;
+      return currentResult;
     }
     if (doesRootLocusMatchPoleZeroSet(lastValidCorrectedResultRef.current, expectedPoles, expectedZeros)) {
       return lastValidCorrectedResultRef.current;
@@ -610,6 +680,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     polesPayload,
     visibleBaselineAnalysisResult,
     zerosPayload,
+    arenaPlant,
   ]);
   const mergedAnalysisResult = useMemo(
     () => mergeClosedLoopSelectionResult(
@@ -642,8 +713,13 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     [visibleAnalysisResult],
   );
 
+  const arenaPreviewSummary = useMemo(() => {
+    if (!isArenaChallengeMode || !arenaContext) return null;
+    return buildArenaWorkbenchPreviewSummary(adaptedAnalysis, arenaContext.metricProfile);
+  }, [adaptedAnalysis, arenaContext, isArenaChallengeMode]);
+
   const addPoint = useCallback((type: 'pole' | 'zero', pair: boolean) => {
-    if (isCourseMode) {
+    if (isLockedOrCourse) {
       return;
     }
     const nextItems: PoleZeroPoint[] = pair
@@ -658,52 +734,56 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       setModelZeros((previous) => [...previous, ...nextItems]);
     }
     setClosedLoopGain(gain);
-  }, [gain, isCourseMode]);
+  }, [gain, isLockedOrCourse]);
 
   const updatePole = useCallback((pointId: string, next: Complex) => {
+    if (isLockedOrCourse) return;
     setModelPoles((previous) => updatePointWithConjugateLink(previous, pointId, next));
     setClosedLoopGain(gain);
-  }, [gain]);
+  }, [gain, isLockedOrCourse]);
 
   const updateZero = useCallback((pointId: string, next: Complex) => {
+    if (isLockedOrCourse) return;
     setModelZeros((previous) => updatePointWithConjugateLink(previous, pointId, next));
     setClosedLoopGain(gain);
-  }, [gain]);
+  }, [gain, isLockedOrCourse]);
 
   const removePole = useCallback((pointId: string) => {
-    if (!isCourseMode) {
+    if (!isLockedOrCourse) {
       setModelPoles((previous) => {
         const next = removePointWithPair(previous, pointId);
         return next.length > 0 ? next : previous;
       });
       setClosedLoopGain(gain);
     }
-  }, [gain, isCourseMode]);
+  }, [gain, isLockedOrCourse]);
 
   const removeZero = useCallback((pointId: string) => {
-    if (!isCourseMode) {
+    if (!isLockedOrCourse) {
       setModelZeros((previous) => removePointWithPair(previous, pointId));
       setClosedLoopGain(gain);
     }
-  }, [gain, isCourseMode]);
+  }, [gain, isLockedOrCourse]);
 
   const reset = useCallback(() => {
-    const fallbackModel = isCourseMode
-      ? buildOpenLoopFromController(CRUISE_DEFAULT_PID, courseControlMode)
-      : { poles: [{ re: -1.2, im: 1.3 }, { re: -1.2, im: -1.3 }], zeros: [] as Complex[], gain: 1 };
+    const fallbackModel = isArenaChallengeMode && arenaSeed
+      ? { poles: arenaSeed.poles, zeros: arenaSeed.zeros, gain: 1 }
+      : isCourseMode
+        ? buildOpenLoopFromController(CRUISE_DEFAULT_PID, courseControlMode)
+        : { poles: [{ re: -1.2, im: 1.3 }, { re: -1.2, im: -1.3 }], zeros: [] as Complex[], gain: 1 };
     const nextPoles = toPoleZeroPoints(fallbackModel.poles, 'p');
     const nextZeros = toPoleZeroPoints(fallbackModel.zeros, 'z');
     setModelPoles(nextPoles);
     setModelZeros(nextZeros);
     setGain(fallbackModel.gain);
     setClosedLoopGain(fallbackModel.gain);
-    setTimeRange(DEFAULT_LINKAGE_TIME_RANGE);
-    setFrequencyRange(DEFAULT_LINKAGE_FREQUENCY_RANGE);
+    setTimeRange(effectiveTimeRange ?? DEFAULT_LINKAGE_TIME_RANGE);
+    setFrequencyRange(effectiveFreqRange ?? DEFAULT_LINKAGE_FREQUENCY_RANGE);
     setCorrectionState({
       ...DEFAULT_CORRECTION_STATE,
       enabled: false,
     });
-  }, [courseControlMode, isCourseMode]);
+  }, [arenaSeed, courseControlMode, effectiveFreqRange, effectiveTimeRange, isArenaChallengeMode, isCourseMode]);
 
   useEffect(() => {
     if (!isCourseMode) {
@@ -860,6 +940,12 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     isCourseMode,
     courseRole,
     isEmbedded,
+    arenaContext,
+    arenaContextMissing,
+    arenaContextIncompatible,
+    isArenaChallengeMode,
+    isLockedByChallenge,
+    isLockedOrCourse,
     modelPoles,
     modelZeros,
     gain,
@@ -878,6 +964,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     correctionDeviceAnalysisResult: correctionEnabled ? correctionDeviceAnalysisState.result : null,
     frequencyAnalysisResult: visibleAnalysisResult,
     adaptedAnalysis,
+    arenaPreviewSummary,
     parameterSummary,
     setGain: setOpenLoopGain,
     setClosedLoopGain: setSelectedClosedLoopGain,

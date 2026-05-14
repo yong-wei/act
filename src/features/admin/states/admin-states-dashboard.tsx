@@ -1,10 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import {
-  ArrowLeft,
   BarChart3,
   BookOpenCheck,
   Gamepad2,
@@ -36,7 +34,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useTheme } from '@/components/providers/theme-provider';
-import { UserMenu } from '@/components/shared/user-menu';
+import { AdminConsoleHeader } from '../admin-console-header';
 import { adminStatesMockData } from './stats-data';
 import type { SystemUsageData } from './system-usage-data';
 
@@ -159,64 +157,41 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-      {/* Header */}
-      <header className={`border-b ${isDark ? 'border-cyan-500/30 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950' : 'border-cyan-200 bg-gradient-to-b from-white via-slate-50 to-white'}`}>
-        <div className="mx-auto max-w-[1600px] px-6 py-6">
-          <Link
-            href="/admin"
-            className={`mb-4 inline-flex items-center gap-2 text-sm transition ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            返回管理后台
-          </Link>
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className={`text-xs uppercase tracking-[0.28em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>使用态势</p>
-              <h1 className={`mt-1 text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>系统使用量统计</h1>
-              <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                学期：{data.semester} · 数据更新时间：{lastUpdated.toLocaleString('zh-CN')}
-                {demoMode && <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-400">演示数据</span>}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* 演示模式切换 */}
-              <button
-                onClick={toggleDemoMode}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                  demoMode
-                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-                    : isDark
-                    ? 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-500'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
-                }`}
-              >
-                {demoMode ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                {demoMode ? '演示模式：开' : '演示模式：关'}
-              </button>
-              {/* 刷新按钮 */}
-              <button
-                onClick={refreshData}
-                disabled={loading}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                  isDark
-                    ? 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-500 disabled:opacity-50'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 disabled:opacity-50'
-                }`}
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                刷新
-              </button>
-              <UserMenu user={currentUser} />
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="admin-console-shell">
+      <AdminConsoleHeader
+        currentUser={currentUser}
+        currentHref="/admin/states"
+        backHref="/admin"
+        eyebrow="使用态势"
+        title="系统使用量统计"
+        description="查看真实访问量、互动分布、仿真活跃度与月度趋势，区分演示数据和实时接口返回。"
+        chips={
+          <>
+            <span className="admin-console-chip">学期：{data.semester}</span>
+            <span className="admin-console-chip">
+              数据更新时间：{lastUpdated.toLocaleString('zh-CN')}
+            </span>
+            {demoMode ? <span className="admin-console-chip text-amber-300">演示数据</span> : null}
+          </>
+        }
+        actions={
+          <>
+            <button onClick={toggleDemoMode} className="admin-console-button">
+              {demoMode ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+              {demoMode ? '演示模式：开' : '演示模式：关'}
+            </button>
+            <button onClick={refreshData} disabled={loading} className="admin-console-button disabled:opacity-50">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              刷新
+            </button>
+          </>
+        }
+      />
 
-      <main className="mx-auto grid max-w-[1600px] gap-6 px-6 py-6">
+      <main className="admin-console-container grid gap-6 py-8">
         {/* 错误提示 */}
         {error && (
-          <div className={`rounded-xl border p-4 ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-400 bg-red-50 text-red-800'}`}>
+          <div className="admin-console-notice admin-console-notice-danger">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               <span>获取真实数据失败：{error}，已自动切换回演示数据</span>

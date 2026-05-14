@@ -16,6 +16,19 @@ export type AdminConsoleEntry = {
   icon: LucideIcon;
 };
 
+export type AdminConsoleSection = {
+  title: string;
+  href: string;
+};
+
+export const ADMIN_CONSOLE_SECTIONS: AdminConsoleSection[] = [
+  { title: '管理员后台', href: '/admin' },
+  { title: '用户管理', href: '/admin/users' },
+  { title: '系统使用量统计', href: '/admin/states' },
+  { title: '数据治理', href: '/admin/data-governance' },
+  { title: '系统配置', href: '/admin/config' },
+];
+
 export const ADMIN_CONSOLE_ENTRIES: AdminConsoleEntry[] = [
   {
     title: '用户管理',

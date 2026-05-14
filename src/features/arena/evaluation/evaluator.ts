@@ -4,6 +4,8 @@ import type { ArenaEvaluationResult } from './types';
 import { evaluateBlackBoxSubmission } from './blackbox-evaluator';
 import { evaluateWhiteBoxSubmission } from './whitebox-evaluator';
 
+export { getArenaEvaluationProtocolVersion, WHITEBOX_PROTOCOL_VERSION, BLACKBOX_PROTOCOL_VERSION } from './protocol';
+
 function rejectCodeControllerWithoutSandbox(taskId: string, artifact: ControllerArtifact): ArenaEvaluationResult {
   return {
     taskId,
@@ -26,15 +28,6 @@ function rejectCodeControllerWithoutSandbox(taskId: string, artifact: Controller
       '沙箱必须验证禁止网络访问、运行时间限制、内存限制、固定随机种子、依赖锁，以及禁止访问真实模型内部参数。',
     ],
   };
-}
-
-export function getArenaEvaluationProtocolVersion(taskId: string): string {
-  const task = getArenaChallengeTask(taskId);
-  const object = task ? getArenaChallengeObject(task.objectId) : undefined;
-  if (object?.visibility === 'black-box') {
-    return 'blackbox-v1';
-  }
-  return 'whitebox-v1';
 }
 
 export function evaluateArenaSubmission({

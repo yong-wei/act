@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildFetchFailureTelemetry } from '../session-framework/fetch-diagnostics';
+import {
+  buildFetchFailureTelemetry,
+  shouldSurfaceSyncFailure,
+} from '../session-framework/fetch-diagnostics';
 
 describe('buildFetchFailureTelemetry', () => {
   it('records fetch source, URL, elapsed time, and browser connection context', () => {
@@ -93,5 +96,40 @@ describe('buildFetchFailureTelemetry', () => {
       elapsedMs: 5_000,
       timeoutMs: 20_000,
     });
+  });
+
+  it('does not surface short aborts or first network blips as classroom sync errors', () => {
+    expect(
+      shouldSurfaceSyncFailure({
+        telemetry: {
+          errorName: 'AbortError',
+          failureKind: 'aborted',
+          timedOut: false,
+        },
+        consecutiveFailures: 10,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldSurfaceSyncFailure({
+        telemetry: {
+          errorName: 'TypeError',
+          failureKind: 'network',
+          timedOut: false,
+        },
+        consecutiveFailures: 1,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldSurfaceSyncFailure({
+        telemetry: {
+          errorName: 'TypeError',
+          failureKind: 'network',
+          timedOut: false,
+        },
+        consecutiveFailures: 3,
+      }),
+    ).toBe(true);
   });
 });

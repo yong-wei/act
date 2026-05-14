@@ -27,6 +27,7 @@ import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance
 import {
   eventToLearningFactInput,
 } from '@/lib/data-governance/learning-fact-materialization';
+import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -34,7 +35,7 @@ import {
   getRecommendedScaffolding,
   getRiskLevelDescription,
 } from '@/lib/data-governance/risk-detector';
-import type { ClassSnapshotJob, EventIngestionJob, StudentSnapshotJob } from './types';
+import type { ClassSnapshotJob, EventIngestionJob, SessionReportJob, StudentSnapshotJob } from './types';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -64,9 +65,11 @@ let prisma: PrismaClient | null = null;
 let eventQueue: Queue<EventIngestionJob> | null = null;
 let studentQueue: Queue<StudentSnapshotJob> | null = null;
 let classQueue: Queue<ClassSnapshotJob> | null = null;
+let reportQueue: Queue<SessionReportJob> | null = null;
 let eventIngestionWorker: Worker<EventIngestionJob> | null = null;
 let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
+let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -894,6 +897,15 @@ function isSameClassAggregate(
   });
 }
 
+async function processSessionReportJob(job: Job<SessionReportJob>) {
+  if (!job.data.sessionId) {
+    throw new Error('session-report job requires sessionId');
+  }
+
+  const db = getPrismaClient();
+  return generateSessionSummaryReports(db, job.data.sessionId);
+}
+
 async function startWorkers() {
   await respectCooldown();
 
@@ -918,6 +930,7 @@ async function startWorkers() {
   eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection: redis });
   studentQueue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
   classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
+  reportQueue = new Queue<SessionReportJob>('session-report', { connection: redis });
 
   eventIngestionWorker = new Worker<EventIngestionJob>('event-ingestion', processEventIngestionJob, {
     connection: redis,
@@ -931,10 +944,15 @@ async function startWorkers() {
     connection: redis,
     concurrency: 1,
   });
+  sessionReportWorker = new Worker<SessionReportJob>('session-report', processSessionReportJob, {
+    connection: redis,
+    concurrency: 1,
+  });
 
   registerWorkerHandlers('EventIngestion', eventIngestionWorker);
   registerWorkerHandlers('StudentSnapshot', studentSnapshotWorker);
   registerWorkerHandlers('ClassSnapshot', classSnapshotWorker);
+  registerWorkerHandlers('SessionReport', sessionReportWorker);
 
   process.on('SIGTERM', () => {
     void shutdown(0);
@@ -966,9 +984,11 @@ async function shutdown(exitCode: number) {
   if (eventIngestionWorker) cleanupTasks.push(eventIngestionWorker.close());
   if (studentSnapshotWorker) cleanupTasks.push(studentSnapshotWorker.close());
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
+  if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());
+  if (reportQueue) cleanupTasks.push(reportQueue.close());
   if (prisma) cleanupTasks.push(prisma.$disconnect());
   if (redis) {
     cleanupTasks.push(

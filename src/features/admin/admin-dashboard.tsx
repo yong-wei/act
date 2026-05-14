@@ -4,7 +4,6 @@ import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
-  ArrowLeft,
   Download,
   Plus,
   RefreshCcw,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { UserMenu } from '@/components/shared/user-menu';
+import { AdminConsoleHeader } from './admin-console-header';
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
@@ -68,7 +67,7 @@ type AdminDashboardProps = {
     id: string;
     name?: string | null;
     email?: string | null;
-    role: UserRole;
+    role: 'ADMIN';
   };
 };
 
@@ -381,62 +380,50 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
   return (
     <div className="admin-console-shell">
-      <header className="admin-console-topbar">
-        <div className="admin-console-container py-8">
-          <div className="admin-console-hero">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-              <div className="space-y-4">
-                <Link href="/admin" className="admin-console-back-link">
-                  <ArrowLeft className="h-4 w-4" />
-                  返回管理后台
-                </Link>
-                <div className="space-y-2">
-                  <span className="admin-console-kicker">账号体系</span>
-                  <h1 className="admin-console-title text-3xl font-semibold">用户管理</h1>
-                  <p className="admin-console-muted max-w-3xl text-sm leading-6">
-                    账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3 text-sm">
-                  <span className="admin-console-chip">
-                    当前登录：{currentUser.name || currentUser.email || '管理员'}
+      <AdminConsoleHeader
+        currentUser={currentUser}
+        currentHref="/admin/users"
+        backHref="/admin"
+        eyebrow="账号体系"
+        title="用户管理"
+        description="账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。"
+        chips={
+          <>
+            <span className="admin-console-chip">
+              当前登录：{currentUser.name || currentUser.email || '管理员'}
+            </span>
+            <span className="admin-console-chip">{formattedNow}</span>
+          </>
+        }
+        actions={
+          <button onClick={handleRefresh} className="admin-console-button">
+            <RefreshCcw className="h-4 w-4" />
+            刷新数据
+          </button>
+        }
+      >
+        <div className="grid gap-4 lg:grid-cols-3">
+          {overviewCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.title} className="admin-console-metric-card">
+                <div className="flex items-center justify-between">
+                  <span className="admin-console-kicker">{card.title}</span>
+                  <span className="admin-console-icon-badge">
+                    <Icon className="h-4 w-4" />
                   </span>
-                  <span className="admin-console-chip">{formattedNow}</span>
+                </div>
+                <div className="mt-6">
+                  <p className="admin-console-title text-3xl font-semibold">
+                    {loadingOverview ? '...' : card.value}
+                  </p>
+                  <p className="admin-console-muted mt-2 text-sm">{card.meta}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button onClick={handleRefresh} className="admin-console-button">
-                  <RefreshCcw className="h-4 w-4" />
-                  刷新数据
-                </button>
-                <UserMenu user={currentUser} />
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              {overviewCards.map((card) => {
-                const Icon = card.icon;
-                return (
-                  <div key={card.title} className="admin-console-metric-card">
-                    <div className="flex items-center justify-between">
-                      <span className="admin-console-kicker">{card.title}</span>
-                      <span className="admin-console-icon-badge">
-                        <Icon className="h-4 w-4" />
-                      </span>
-                    </div>
-                    <div className="mt-6">
-                      <p className="admin-console-title text-3xl font-semibold">
-                        {loadingOverview ? '...' : card.value}
-                      </p>
-                      <p className="admin-console-muted mt-2 text-sm">{card.meta}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            );
+          })}
         </div>
-      </header>
+      </AdminConsoleHeader>
 
       <main className="admin-console-container grid gap-6 py-8 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
         <aside className="space-y-4">

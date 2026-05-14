@@ -7,7 +7,7 @@ import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile,
 import type { ArenaEvaluationPenalty, ArenaEvaluationResult, HardConstraintResult, WhiteBoxEvaluationInput } from './types';
 import { clampScore, normalizeMetricValue, scoreMetricSatisfaction } from './scoring';
 
-interface ControllerSummary {
+export interface ControllerSummary {
   effectiveGain: number;
   proportional: number;
   integral: number;
@@ -129,7 +129,7 @@ function closedLoopStable(model: TransferFunctionModel, controllerNumerator: num
   return isHurwitzStable(characteristic);
 }
 
-function summarizeController(artifact: ControllerArtifact, model: TransferFunctionModel): ControllerSummary {
+export function summarizeController(artifact: ControllerArtifact, model: TransferFunctionModel): ControllerSummary {
   if (artifact.method === 'pid') {
     const kp = numberParam(artifact, 'kp');
     const ki = numberParam(artifact, 'ki');
@@ -498,7 +498,7 @@ function evaluateHardConstraints(
   return results;
 }
 
-function estimateMetrics(model: TransferFunctionModel, controller: ControllerSummary): Record<string, number> {
+export function estimateMetrics(model: TransferFunctionModel, controller: ControllerSummary): Record<string, number> {
   if (!controller.finite || !Number.isFinite(controller.effectiveGain)) {
     return {
       settlingTime: 0,

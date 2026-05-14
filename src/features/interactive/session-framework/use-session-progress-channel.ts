@@ -9,6 +9,7 @@ import {
   createFetchTimeout,
   DEFAULT_SYNC_FETCH_TIMEOUT_MS,
   getFetchFailureTelemetry,
+  shouldSurfaceSyncFailure,
   toFetchTelemetryError,
   type FetchFailureTelemetry,
 } from './fetch-diagnostics';
@@ -60,6 +61,27 @@ export function resolveDemoStepSyncUpdate({
 
 export function shouldPollSessionStatus(status: SessionInfo['status'] | null | undefined) {
   return status !== 'FINISHED';
+}
+
+function normalizeTeacherSyncValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeTeacherSyncValue(item));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([key]) => key !== 'updatedAt')
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, normalizeTeacherSyncValue(item)]),
+    );
+  }
+
+  return value;
+}
+
+export function createStableTeacherSyncSignature(value: unknown) {
+  return JSON.stringify(normalizeTeacherSyncValue(value)) ?? 'null';
 }
 
 export function useSessionProgressChannel({
@@ -221,11 +243,9 @@ export function useSessionProgressChannel({
       const backoffSkips = Math.min(errorCountRef.current * 2, 10);
       pollSkipCountRef.current = backoffSkips;
 
-      // 合并状态更新，避免抖动
-      setError(errorMessage);
-      setErrorTelemetry(
+      const telemetry =
         getFetchFailureTelemetry(requestError) ??
-          buildFetchFailureTelemetry({
+        buildFetchFailureTelemetry({
             source: 'session_progress_get',
             url,
             method: 'GET',
@@ -234,8 +254,13 @@ export function useSessionProgressChannel({
             retryCount: errorCountRef.current,
             pollIntervalMs,
             timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
-          }),
-      );
+          });
+      const shouldSurface = shouldSurfaceSyncFailure({
+        telemetry,
+        consecutiveFailures: errorCountRef.current,
+      });
+      setError(shouldSurface ? errorMessage : null);
+      setErrorTelemetry(shouldSurface ? telemetry : null);
       setLoadingSession(false);
 
       // 连续错误超过5次，暂停轮询5秒

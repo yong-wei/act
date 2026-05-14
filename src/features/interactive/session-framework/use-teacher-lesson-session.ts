@@ -7,8 +7,12 @@ import type {
   LessonStepLite,
   TeacherLessonSessionResult,
 } from './session-contract';
-import { getFetchFailureTelemetry } from './fetch-diagnostics';
-import { shouldPollSessionStatus, useSessionProgressChannel } from './use-session-progress-channel';
+import { getFetchFailureTelemetry, shouldSurfaceSyncFailure } from './fetch-diagnostics';
+import {
+  createStableTeacherSyncSignature,
+  shouldPollSessionStatus,
+  useSessionProgressChannel,
+} from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 
 interface UseTeacherLessonSessionOptions<
@@ -59,6 +63,8 @@ export function useTeacherLessonSession<
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const isSyncingStatesRef = useRef(false);
+  const stateFailureCountRef = useRef(0);
+  const lastTeacherSyncSignatureRef = useRef<string | null>(null);
 
   const syncStates = useCallback(async () => {
     if (isSyncingStatesRef.current) {
@@ -72,11 +78,19 @@ export function useTeacherLessonSession<
     isSyncingStatesRef.current = true;
     try {
       await fetchTeacherViewStates();
+      stateFailureCountRef.current = 0;
       setError(null);
       setStateErrorTelemetry(null);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
-      setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
+      stateFailureCountRef.current += 1;
+      const telemetry = getFetchFailureTelemetry(requestError);
+      const shouldSurface = shouldSurfaceSyncFailure({
+        telemetry,
+        consecutiveFailures: stateFailureCountRef.current,
+      });
+      const errorMessage = requestError instanceof Error ? requestError.message : '课堂状态同步失败';
+      setError(shouldSurface ? errorMessage : null);
+      setStateErrorTelemetry(shouldSurface ? telemetry : null);
     } finally {
       isSyncingStatesRef.current = false;
     }
@@ -107,6 +121,15 @@ export function useTeacherLessonSession<
 
   const postTeacherSyncState = useCallback(
     async (payload: TeacherSyncState) => {
+      if (!shouldPollSessionStatus(sessionInfo?.status)) {
+        return;
+      }
+
+      const signature = createStableTeacherSyncSignature(payload);
+      if (signature === lastTeacherSyncSignatureRef.current) {
+        return;
+      }
+
       await postState({
         itemId: adapter.teacherItemId,
         stateKey: adapter.teacherStateKey,
@@ -114,8 +137,9 @@ export function useTeacherLessonSession<
         clientEventAt: Date.now(),
         data: payload,
       });
+      lastTeacherSyncSignatureRef.current = signature;
     },
-    [adapter, postState],
+    [adapter, postState, sessionInfo?.status],
   );
 
   const postTeacherSyncInput = useCallback(

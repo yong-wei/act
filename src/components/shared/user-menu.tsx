@@ -5,15 +5,18 @@ import { signOut } from 'next-auth/react';
 import { ChevronDown, KeyRound, LogOut, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 type UserMenuProps = {
   user: {
     name?: string | null;
     email?: string | null;
     role?: string | null;
   };
+  variant?: 'default' | 'admin';
 };
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -95,20 +98,43 @@ export function UserMenu({ user }: UserMenuProps) {
     <div ref={menuRef} className="relative z-[70]">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="surface-card-soft flex items-center gap-3 px-4 py-2 transition-colors hover:border-primary/55"
+        className={cn(
+          'flex items-center gap-3 px-4 py-2 transition-colors',
+          variant === 'admin'
+            ? 'admin-console-user-menu-button hover:border-cyan-300/50'
+            : 'surface-card-soft hover:border-primary/55'
+        )}
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-lg font-bold text-primary-foreground">
+        <div
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold',
+            variant === 'admin'
+              ? 'bg-cyan-500/20 text-cyan-100'
+              : 'bg-gradient-to-br from-amber-500 to-orange-600 text-primary-foreground'
+          )}
+        >
           {initials}
         </div>
         <div className="text-left">
-          <p className="text-sm font-medium text-foreground">{displayName}</p>
-          <p className="text-xs text-subtle">{user.email || '个人中心'}</p>
+          <p className={cn('text-sm font-medium', variant === 'admin' ? 'admin-console-title' : 'text-foreground')}>
+            {displayName}
+          </p>
+          <p className={cn('text-xs', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')}>
+            {user.email || '个人中心'}
+          </p>
         </div>
-        <ChevronDown className="h-4 w-4 text-subtle" />
+        <ChevronDown className={cn('h-4 w-4', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')} />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-[80] mt-2 w-52 rounded-xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-xl backdrop-blur">
+        <div
+          className={cn(
+            'absolute right-0 z-[80] mt-2 w-52 rounded-xl border p-2 text-sm shadow-xl backdrop-blur',
+            variant === 'admin'
+              ? 'admin-console-user-menu-panel'
+              : 'border-border/70 bg-background/95 text-foreground'
+          )}
+        >
           {user.role === 'STUDENT' && (
             <Link
               href="/profile"

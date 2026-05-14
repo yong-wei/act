@@ -31,6 +31,7 @@ function parseInitialParams(searchParams: SearchParams | undefined): MultiRepres
     embed: firstValue(searchParams?.embed) === '1',
     controlMode,
     controller,
+    arenaTaskId: firstValue(searchParams?.arenaTask),
   };
 }
 

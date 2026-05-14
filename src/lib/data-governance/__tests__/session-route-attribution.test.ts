@@ -128,6 +128,7 @@ describe('PATCH /api/session/[sessionId]', () => {
 
     expect(routeSource).toContain('enqueueSessionFinalizationSnapshots');
     expect(routeSource).toContain('enqueueSessionFinalizationEventIngestion');
+    expect(routeSource).toContain('enqueueSessionSummaryReportRefresh');
     expect(routeSource).toContain("status === 'FINISHED'");
   });
 });

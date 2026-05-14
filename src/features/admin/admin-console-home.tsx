@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { AdminConsoleHeader } from './admin-console-header';
 import { ADMIN_CONSOLE_ENTRIES, type AdminConsoleUser } from './admin-console-config';
 
 type AdminConsoleHomeProps = {
@@ -9,27 +10,13 @@ type AdminConsoleHomeProps = {
 export function AdminConsoleHome({ currentUser }: AdminConsoleHomeProps) {
   return (
     <div className="admin-console-shell">
-      <header className="admin-console-topbar">
-        <div className="admin-console-container py-8">
-          <div className="admin-console-hero">
-            <div className="space-y-4">
-              <span className="admin-console-kicker">管理总台</span>
-              <div className="space-y-3">
-                <h1 className="admin-console-title text-3xl font-semibold">管理员后台</h1>
-                <p className="admin-console-muted max-w-3xl text-sm leading-6">
-                  将后台操作分为四条明确通道：用户管理、系统使用量统计、数据治理、系统配置。入口统一放在这里，避免页面间跳转分散、权限职责混杂。
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm">
-                <span className="admin-console-chip">
-                  当前登录：{currentUser.name || currentUser.email || '管理员'}
-                </span>
-                <span className="admin-console-chip">角色：管理员</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AdminConsoleHeader
+        currentUser={currentUser}
+        currentHref="/admin"
+        eyebrow="管理总台"
+        title="管理员后台"
+        description="将后台操作分为四条明确通道：用户管理、系统使用量统计、数据治理、系统配置。入口统一放在这里，避免页面间跳转分散、权限职责混杂。"
+      />
 
       <main className="admin-console-container py-8">
         <section className="grid gap-5 lg:grid-cols-4">

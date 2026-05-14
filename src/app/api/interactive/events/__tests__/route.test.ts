@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   routeEvent: vi.fn(),
   persistCoreLearningFact: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
+  enqueueSessionSummaryReportRefresh: vi.fn(),
 }));
 
 vi.mock('next-auth', () => ({
@@ -49,6 +50,10 @@ vi.mock('@/lib/data-governance/learning-fact-materialization', () => ({
 
 vi.mock('@/lib/data-governance/session-reports', () => ({
   generateSessionSummaryReports: mocks.generateSessionSummaryReports,
+}));
+
+vi.mock('@/lib/data-governance/session-finalization-snapshots', () => ({
+  enqueueSessionSummaryReportRefresh: mocks.enqueueSessionSummaryReportRefresh,
 }));
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
@@ -92,6 +97,10 @@ describe('POST /api/interactive/events', () => {
     mocks.generateSessionSummaryReports.mockResolvedValue({
       classReports: 1,
       studentReports: 1,
+      skipped: false,
+    });
+    mocks.enqueueSessionSummaryReportRefresh.mockResolvedValue({
+      reportRefreshJobs: 1,
       skipped: false,
     });
   });
@@ -187,6 +196,7 @@ describe('POST /api/interactive/events', () => {
       mocks.prisma,
       'cmoxloe52000uq5bcojma7r78',
     );
+    expect(mocks.enqueueSessionSummaryReportRefresh).toHaveBeenCalledWith('cmoxloe52000uq5bcojma7r78');
   });
 
   it('persists immutable student step responses for lesson submissions', async () => {

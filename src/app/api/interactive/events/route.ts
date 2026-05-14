@@ -12,6 +12,7 @@ import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
+import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
   attachSourceLogIds,
   normalizeInteractionContexts,
@@ -439,7 +440,10 @@ export async function POST(request: NextRequest) {
 
     for (const sessionId of Array.from(sessionsNeedingReportRefresh)) {
       try {
-        await generateSessionSummaryReports(prisma, sessionId);
+        await Promise.all([
+          generateSessionSummaryReports(prisma, sessionId),
+          enqueueSessionSummaryReportRefresh(sessionId),
+        ]);
       } catch (error) {
         console.error('[Interactive Events API] Failed to refresh session report:', error);
       }

@@ -61,9 +61,9 @@ describe('generateSessionSummaryReports', () => {
       },
     ]);
     prisma.studentState.findMany.mockResolvedValue([
-      { userId: 'student-1' },
-      { userId: 'student-2' },
-      { userId: 'student-3' },
+      { userId: 'student-1', lessonKey: '4-3' },
+      { userId: 'student-2', lessonKey: '4-3' },
+      { userId: 'student-3', lessonKey: '4-3' },
     ]);
     prisma.learningFact.findMany.mockResolvedValue([
       {
@@ -89,7 +89,7 @@ describe('generateSessionSummaryReports', () => {
 
     const result = await generateSessionSummaryReports(prisma as never, 'session-4-3');
 
-    expect(result).toEqual({ classReports: 1, studentReports: 2, skipped: false });
+    expect(result).toEqual({ classReports: 1, studentReports: 3, skipped: false });
     expect(prisma.classSessionReport.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         sessionId_reportType: {
@@ -101,7 +101,7 @@ describe('generateSessionSummaryReports', () => {
         sessionId: 'session-4-3',
         lessonKey: '4-3',
         status: 'READY',
-        summary: '2 名学生产生 4 条互动日志，沉淀 2 条学习事实。',
+        summary: '3 名学生产生 4 条互动日志，沉淀 2 条学习事实。',
       }),
     }));
     expect(prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData).toMatchObject({
@@ -154,6 +154,25 @@ describe('generateSessionSummaryReports', () => {
         snapshotAt: true,
       },
     });
-    expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(2);
+    expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(3);
+    expect(prisma.studentSessionReport.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_userId_reportType: {
+          sessionId: 'session-4-3',
+          userId: 'student-3',
+          reportType: 'student-summary',
+        },
+      },
+      create: expect.objectContaining({
+        lessonKey: '4-3',
+        summary: '0 条互动日志，0 条学习事实。',
+        reportData: expect.objectContaining({
+          userId: 'student-3',
+          interactionLogs: 0,
+          learningFacts: 0,
+          syncErrors: 0,
+        }),
+      }),
+    }));
   });
 });

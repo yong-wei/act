@@ -39,6 +39,26 @@ export interface TransferFunctionModel {
   denominator: number[];
 }
 
+export interface ArenaModelCapabilities {
+  isLti: boolean;
+  isSiso: boolean;
+  isMimo: boolean;
+  isNonlinear: boolean;
+  hasTransferFunction: boolean;
+  hasStateSpace: boolean;
+  supportsStepResponse: boolean;
+  supportsRootLocus: boolean;
+  supportsBode: boolean;
+  supportsNyquist: boolean;
+  supportsSerialCorrection: boolean;
+  supportsPid: boolean;
+  supportsCompositeControl: boolean;
+  supportsIdentification: boolean;
+  supportsMpc: boolean;
+  supportsVirtualSimulationPreview: boolean;
+  supportsOfficialEvaluation: boolean;
+}
+
 export interface ChallengeObject {
   id: string;
   name: string;
@@ -52,6 +72,16 @@ export interface ChallengeObject {
   evaluationInterface?: string;
   scenarioSummary?: string;
   relatedKnowledge: string[];
+  capabilities?: ArenaModelCapabilities;
+  modelVersion?: string;
+  modelType?: 'transfer-function' | 'state-space' | 'nonlinear-simulation' | 'virtual-simulation' | 'data-only';
+  timeRange?: { start: number; end: number; samples: number };
+  frequencyRange?: { min: number; max: number; samples: number };
+  workbenchSeed?: {
+    poles: Array<{ re: number; im: number }>;
+    zeros: Array<{ re: number; im: number }>;
+    gain: number;
+  };
 }
 
 export interface MetricDefinition {

@@ -10,7 +10,7 @@ import type {
 import { shouldPollSessionStatus, useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 import { useSessionSSE } from './use-session-sse';
-import { getFetchFailureTelemetry } from './fetch-diagnostics';
+import { getFetchFailureTelemetry, shouldSurfaceSyncFailure } from './fetch-diagnostics';
 import { shouldRunHiddenAwarePoll } from './polling-visibility';
 
 interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
@@ -103,6 +103,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const initialPresenceSyncedRef = useRef(false);
   const isSyncingStatesRef = useRef(false);
+  const stateFailureCountRef = useRef(0);
   const lastHiddenStatePollAtRef = useRef(0);
 
   // 合并 SSE 和轮询的错误状态
@@ -134,11 +135,19 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     isSyncingStatesRef.current = true;
     try {
       await fetchStudentViewStates();
+      stateFailureCountRef.current = 0;
       setError(null);
       setStateErrorTelemetry(null);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
-      setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
+      stateFailureCountRef.current += 1;
+      const telemetry = getFetchFailureTelemetry(requestError);
+      const shouldSurface = shouldSurfaceSyncFailure({
+        telemetry,
+        consecutiveFailures: stateFailureCountRef.current,
+      });
+      const errorMessage = requestError instanceof Error ? requestError.message : '课堂状态同步失败';
+      setError(shouldSurface ? errorMessage : null);
+      setStateErrorTelemetry(shouldSurface ? telemetry : null);
     } finally {
       isSyncingStatesRef.current = false;
     }
