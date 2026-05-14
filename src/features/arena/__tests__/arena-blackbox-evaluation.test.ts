@@ -157,9 +157,12 @@ describe('arena black-box identification evaluation', () => {
     expect(result.explanation.join(' ')).toContain('controllerGain 不能超过 8');
   });
 
-  it('keeps white-box and black-box official protocols separate', () => {
-    expect(getArenaEvaluationProtocolVersion('task-second-order-lead-pid')).toBe('whitebox-v1');
-    expect(getArenaEvaluationProtocolVersion('task-cruise-roll-blackbox-identification')).toBe('blackbox-v1');
+  it('keeps white-box and black-box protocols separate, partitioned by method family', () => {
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'pid' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'serial-compensator' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-cruise-roll-blackbox-identification', method: 'black-box-control' })).toBe('blackbox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'code-controller' })).toBe('code-sandbox-disabled-v1');
   });
 
   it('persists black-box official evaluations with the black-box protocol version', async () => {
@@ -295,7 +298,7 @@ describe('arena black-box identification evaluation', () => {
       'utf8',
     );
 
-    expect(storeSource).toContain('getArenaEvaluationProtocolVersion(String(row.taskId))');
+    expect(storeSource).toContain('getArenaEvaluationProtocolVersion({ taskId: String(row.taskId) })');
     expect(storeSource).not.toContain('protocolVersion: ARENA_EVALUATION_PROTOCOL_VERSION');
   });
 });

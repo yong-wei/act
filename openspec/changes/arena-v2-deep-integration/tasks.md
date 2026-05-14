@@ -2,17 +2,17 @@
 
 ## 1. Gain 等价性与无效任务分析清理
 
-- [ ] 1.1 创建 `src/features/arena/__tests__/multi-representation-artifact-mapper.test.ts`，覆盖 PID/PI/PD/lead/lag/lead_lag 六种校正结构的 gain 等价性
-- [ ] 1.2 在 `useMultiRepresentationLinkageModel` 中增加 `shouldRunControlAnalysis` 判断，无效和不兼容 arenaTask 不启动 `useControlEngine`
-- [ ] 1.3 验证 `npm run lint` + `npm run test:unit` 通过
+- [x] 1.1 创建 `src/features/arena/__tests__/multi-representation-artifact-mapper.test.ts`，覆盖 PID/PI/PD/lead/lag/lead_lag 六种校正结构的 gain 等价性
+- [x] 1.2 在 `useMultiRepresentationLinkageModel` 中增加 `shouldRunControlAnalysis` 判断，无效和不兼容 arenaTask 不启动 `useControlEngine`
+- [x] 1.3 验证 `npm run lint` + `npm run test:unit` 通过
 
 ## 2. 协议版本按方法族拆分
 
-- [ ] 2.1 修改 `protocol.ts`：新增 `template-whitebox-v1`、`analysis-whitebox-v1`（预留）、`blackbox-v1`、`code-sandbox-disabled-v1`
-- [ ] 2.2 `getArenaEvaluationProtocolVersion` 接收 `{ taskId, method }` 参数，按对象类型 + method 返回协议版本
-- [ ] 2.3 更新 `createPersistedArenaSubmission` 和 `prisma-store listSubmissions` 的调用路径以匹配新签名
-- [ ] 2.4 更新现有测试中的 protocolVersion 引用，新增同 task 不同 method 的协议版本测试
-- [ ] 2.5 验证 `npm run build` + `npm run test:unit` 通过
+- [x] 2.1 修改 `protocol.ts`：新增 `template-whitebox-v1`、`analysis-whitebox-v1`（预留）、`blackbox-v1`、`code-sandbox-disabled-v1`
+- [x] 2.2 `getArenaEvaluationProtocolVersion` 接收 `{ taskId, method }` 参数，按对象类型 + method 返回协议版本
+- [x] 2.3 更新 `createPersistedArenaSubmission` 和 `prisma-store listSubmissions` 的调用路径以匹配新签名
+- [x] 2.4 更新现有测试中的 protocolVersion 引用，新增同 task 不同 method 的协议版本测试
+- [x] 2.5 验证 `npm run build` + `npm run test:unit` 通过
 
 ## 3. Metric Provider 接入评测主链路
 

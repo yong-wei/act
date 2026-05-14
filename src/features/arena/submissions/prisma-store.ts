@@ -210,7 +210,9 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
     return rows
       .filter((row: Record<string, unknown>) => {
         const evaluationRun = row.evaluationRun as Record<string, unknown>;
-        return String(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion(String(row.taskId));
+        const storedVersion = String(evaluationRun.protocolVersion);
+        const expectedVersion = getArenaEvaluationProtocolVersion({ taskId: String(row.taskId) });
+        return storedVersion === expectedVersion || storedVersion === 'whitebox-v1';
       })
       .map((row: Record<string, unknown>) => toSubmissionRecord(row));
   },
