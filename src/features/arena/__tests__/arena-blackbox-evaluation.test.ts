@@ -298,7 +298,7 @@ describe('arena black-box identification evaluation', () => {
       'utf8',
     );
 
-    expect(storeSource).toContain('getArenaEvaluationProtocolVersion({ taskId: String(row.taskId) })');
+    expect(storeSource).toContain('getArenaEvaluationProtocolVersion({ taskId: String(row.taskId), method');
     expect(storeSource).not.toContain('protocolVersion: ARENA_EVALUATION_PROTOCOL_VERSION');
   });
 });
