@@ -651,9 +651,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const deferredCorrectionDeviceRequest = useDeferredValue(
     shouldRunControlAnalysis ? correctionDeviceRequest : DISABLED_ANALYSIS_REQUEST,
   );
-  const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
-  const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest);
-  const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest);
+  const openLoopAnalysisState = useControlEngine(deferredLinkageRequest, undefined, shouldRunControlAnalysis);
+  const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest, undefined, shouldRunControlAnalysis);
+  const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest, undefined, shouldRunControlAnalysis);
   const visibleBaselineAnalysisResult = useMemo(
     () => {
       const currentResult = openLoopAnalysisState.result;
