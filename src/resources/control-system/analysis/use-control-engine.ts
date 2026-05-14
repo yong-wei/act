@@ -39,15 +39,21 @@ export function useControlEngine(
   const cacheRef = useRef<Map<string, ControlAnalysisResult>>(new Map());
   const workerRef = useRef<Worker | null>(null);
   const latestRequestIdRef = useRef<string | null>(null);
-  const [state, setState] = useState<ControlEngineState>({
-    result: fallbackResult ?? null,
-    isLoading: false,
+  const [state, setState] = useState<ControlEngineState>(() => ({
+    result: enabled ? (fallbackResult ?? null) : null,
+    isLoading: enabled,
     error: null,
-    isFallback: Boolean(fallbackResult?.isFallback),
-  });
+    isFallback: !enabled || Boolean(fallbackResult?.isFallback),
+  }));
 
   useEffect(() => {
     if (!enabled) {
+      setState({
+        result: null,
+        isLoading: false,
+        error: null,
+        isFallback: true,
+      });
       return undefined;
     }
 
