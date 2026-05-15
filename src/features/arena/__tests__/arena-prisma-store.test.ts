@@ -75,6 +75,25 @@ describe('prismaArenaSubmissionStore', () => {
     await expect(prismaArenaSubmissionStore.listSubmissions()).resolves.toEqual([]);
   });
 
+  it('returns an empty submission list in local development when DATABASE_URL is missing', async () => {
+    mocks.prisma.arenaSubmission.findMany.mockRejectedValueOnce(
+      new Error('Environment variable not found: DATABASE_URL'),
+    );
+
+    await expect(prismaArenaSubmissionStore.listSubmissions()).resolves.toEqual([]);
+  });
+
+  it('returns an empty submission list in tests when the Arena Prisma delegate is absent', async () => {
+    const originalDelegate = mocks.prisma.arenaSubmission;
+    (mocks.prisma as { arenaSubmission?: unknown }).arenaSubmission = undefined;
+
+    try {
+      await expect(prismaArenaSubmissionStore.listSubmissions()).resolves.toEqual([]);
+    } finally {
+      mocks.prisma.arenaSubmission = originalDelegate;
+    }
+  });
+
   it('rethrows non-migration errors while listing submissions', async () => {
     const error = Object.assign(new Error('connection failed'), { code: 'P1001' });
     mocks.prisma.arenaSubmission.findMany.mockRejectedValueOnce(error);

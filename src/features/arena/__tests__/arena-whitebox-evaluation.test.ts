@@ -72,6 +72,21 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(false);
   });
 
+  it('treats PD submissions as controllers without an integrator pole for the official stability gate', async () => {
+    const result = await evaluateOfficialWhiteBox({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        id: 'artifact-pd-reported-stable',
+        taskId: 'task-second-order-lead-pid',
+        method: 'pid',
+        params: { kp: 250.583, ki: 0, kd: 29.128 },
+        createdAt: '2026-05-15T10:00:00.000Z',
+      },
+    });
+
+    expect(result.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(true);
+  });
+
   it('rejects comfort submissions whose control energy exceeds the hard limit', async () => {
     const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-comfort',

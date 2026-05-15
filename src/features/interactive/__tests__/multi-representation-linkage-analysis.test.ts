@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import {
   DEFAULT_CORRECTION_STATE,
+  correctionToStructures,
   correctionToRootHandles,
   doesRootLocusMatchPoleZeroSet,
 } from '@/features/interactive/multi-representation-linkage/model';
@@ -297,6 +298,61 @@ describe('multi representation linkage analysis adapter', () => {
     expect(leadLag.params.betaLag).toBe(4);
   });
 
+  it('stores controller gain inside correction structures for PID, lead, and lag modes', () => {
+    expect(correctionToStructures({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'pid',
+      controllerGain: 3,
+      kp: 2,
+      ki: 0.5,
+      kd: 0.1,
+    }, false)[0]?.params).toMatchObject({ kp: 6, ki: 1.5, kd: 0.3 });
+
+    expect(correctionToStructures({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'lead',
+      controllerGain: 2.5,
+      leadZeroFrequency: 2,
+      leadPoleFrequency: 8,
+    }, false)[0]?.params).toMatchObject({ k: 2.5, tau: 0.5, alpha: 0.25 });
+
+    expect(correctionToStructures({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'lag',
+      controllerGain: 0.4,
+      lagZeroFrequency: 0.5,
+      lagPoleFrequency: 0.125,
+    }, false)[0]?.params).toMatchObject({ k: 0.4, tau: 2, beta: 4 });
+  });
+
+  it('can keep controller gain as the explicit root-locus gain for corrected workbench requests', () => {
+    const correctionShape = correctionToStructures({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'lead',
+      controllerGain: 2.5,
+      leadZeroFrequency: 2,
+      leadPoleFrequency: 8,
+    }, false, { includeControllerGain: false });
+    const request = buildLinkageAnalysisRequest({
+      poles: [{ re: -1, im: 0 }],
+      zeros: [],
+      gain: 2.5,
+      rootLocusGain: 2.5,
+      correctionStructures: correctionShape,
+      responseType: 'step',
+    });
+
+    expect(request.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 2.5 }, label: 'K' },
+      { kind: 'lead', enabled: true, params: { k: 1, tau: 0.5, alpha: 0.25 }, label: 'C(s)' },
+    ]);
+    expect(request.rootLocus.currentGain).toBe(2.5);
+  });
+
   it('keeps correction controls out of course embed mode', () => {
     const drawerSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
@@ -423,7 +479,8 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('const frequencyResult = (model.frequencyAnalysisResult ?? result)!;');
     expect(pageSource).toContain('BodeComparisonPanel');
     expect(pageSource).toContain('TimeDomainComparisonPanel');
-    expect(pageSource).toContain('校正后 G(s)C(s)K');
+    expect(pageSource).toContain('校正后开环');
+    expect(pageSource).not.toContain('校正后 G(s)C(s)K');
     expect(pageSource).toContain('onRefreshRange={model.refreshFrequencyRange}');
     expect(pageSource).toContain('onRefreshRange={model.refreshTimeRange}');
     expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');

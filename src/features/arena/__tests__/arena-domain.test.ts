@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -158,5 +161,34 @@ describe('arena domain model', () => {
       'controlEnergy',
       'overshoot',
     ]));
+  });
+
+  it('links related knowledge to real runtime knowledge graph nodes', () => {
+    const nodes = JSON.parse(
+      readFileSync(join(process.cwd(), 'course-content/runtime/knowledge/graph/nodes.json'), 'utf8'),
+    ) as Array<{ id: string }>;
+    const nodeIds = new Set(nodes.map((node) => node.id));
+
+    for (const object of ARENA_CHALLENGE_OBJECTS) {
+      expect(object.relatedKnowledge.length, `${object.id} should declare related knowledge`).toBeGreaterThan(0);
+      for (const item of object.relatedKnowledge as unknown[]) {
+        expect(item, `${object.id} related knowledge must use node refs`).toEqual(expect.objectContaining({
+          label: expect.any(String),
+          nodeId: expect.any(String),
+        }));
+        expect(nodeIds.has((item as { nodeId: string }).nodeId), `${object.id} nodeId exists`).toBe(true);
+      }
+    }
+  });
+
+  it('provides LaTeX model expressions for every white-box transfer-function object', () => {
+    const whiteBoxTransferObjects = ARENA_CHALLENGE_OBJECTS.filter((object) =>
+      object.visibility === 'white-box' && object.modelType === 'transfer-function'
+    );
+
+    expect(whiteBoxTransferObjects.length).toBeGreaterThan(0);
+    for (const object of whiteBoxTransferObjects) {
+      expect(object.model?.latex, `${object.id} model latex`).toEqual(expect.stringContaining('\\frac'));
+    }
   });
 });

@@ -15,11 +15,23 @@ export interface ArtifactBuildResult {
   unsupportedMethod?: string;
 }
 
+const correctionKindLabels: Record<CorrectionState['kind'], string> = {
+  pi: 'PI',
+  pd: 'PD',
+  pid: 'PID',
+  lead: '超前',
+  lag: '滞后',
+  lead_lag: '滞后-超前',
+};
+
 export function buildArenaArtifactFromMultiRepresentationState(
   input: MultiRepresentationArtifactInput,
 ): ArtifactBuildResult {
-  const { task, correctionState, gain = 1, now } = input;
+  const { task, correctionState, now } = input;
   const createdAt = now ?? new Date().toISOString();
+  const controllerGain = Number.isFinite(correctionState.controllerGain)
+    ? Math.max(0, correctionState.controllerGain)
+    : 1;
 
   if (!correctionState.enabled) {
     return { artifact: null, error: '请先启用校正器配置控制器参数。' };
@@ -35,9 +47,9 @@ export function buildArenaArtifactFromMultiRepresentationState(
         taskId: task.id,
         method: 'pid',
         params: {
-          kp: correctionState.kp * gain,
-          ki: (correctionState.kind === 'pd' ? 0 : correctionState.ki) * gain,
-          kd: (correctionState.kind === 'pi' ? 0 : correctionState.kd) * gain,
+          kp: correctionState.kp * controllerGain,
+          ki: (correctionState.kind === 'pd' ? 0 : correctionState.ki) * controllerGain,
+          kd: (correctionState.kind === 'pi' ? 0 : correctionState.kd) * controllerGain,
         },
         createdAt,
       },
@@ -51,13 +63,12 @@ export function buildArenaArtifactFromMultiRepresentationState(
     const isLead = correctionState.kind === 'lead';
     const zeroFreq = isLead ? correctionState.leadZeroFrequency : correctionState.lagZeroFrequency;
     const poleFreq = isLead ? correctionState.leadPoleFrequency : correctionState.lagPoleFrequency;
-    const serialGain = (zeroFreq > 0 ? poleFreq / zeroFreq : 1) * gain;
     return {
       artifact: {
         id: `artifact-${task.id}-serial-${Date.parse(createdAt) || Date.now()}`,
         taskId: task.id,
         method: 'serial-compensator',
-        params: { gain: serialGain, zero: zeroFreq, pole: poleFreq },
+        params: { gain: controllerGain, zero: zeroFreq, pole: poleFreq },
         createdAt,
       },
     };
@@ -66,12 +77,12 @@ export function buildArenaArtifactFromMultiRepresentationState(
   if (correctionState.kind === 'lead_lag') {
     return {
       artifact: null,
-      error: 'lead_lag 结构暂不支持官方提交，请使用单独的 lead 或 lag 校正。',
+      error: '滞后-超前结构暂不支持官方提交，请使用单独的超前或滞后校正。',
       unsupportedMethod: 'lead_lag',
     };
   }
 
-  return { artifact: null, error: `不支持的校正类型: ${correctionState.kind}` };
+  return { artifact: null, error: `不支持的校正类型：${correctionKindLabels[correctionState.kind] ?? correctionState.kind}` };
 }
 
 export interface PreviewMetricSnapshot {

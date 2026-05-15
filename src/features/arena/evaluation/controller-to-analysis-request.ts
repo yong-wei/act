@@ -15,6 +15,7 @@ export function buildArenaControlAnalysisRequest(input: {
   const frequencyRange = object.frequencyRange ?? { min: 0.1, max: 100, samples: 140 };
 
   let structures: StructureSpec[] = [];
+  let rootLocusCurrentGain = 1;
 
   if (artifact.method === 'pid') {
     const params = artifact.params as Record<string, number>;
@@ -34,18 +35,27 @@ export function buildArenaControlAnalysisRequest(input: {
     const zero = params.zero ?? 1;
     const pole = params.pole ?? 4;
     if (pole <= 0) throw new Error('serial-compensator pole must be positive');
-    const k = zero > 0 ? (gain * zero) / pole : gain;
-    structures = [{
-      kind: zero < pole ? 'lead' : 'lag',
-      enabled: true,
-      params: {
-        k,
-        tau: 1 / zero,
-        alpha: zero / pole,
-        beta: zero / pole,
+    if (zero <= 0) throw new Error('serial-compensator zero must be positive');
+    rootLocusCurrentGain = gain;
+    structures = [
+      {
+        kind: 'gain',
+        enabled: true,
+        params: { k: gain },
+        label: 'K',
       },
-      label: 'C(s)',
-    }];
+      {
+        kind: zero < pole ? 'lead' : 'lag',
+        enabled: true,
+        params: {
+          k: 1,
+          tau: 1 / zero,
+          alpha: zero / pole,
+          beta: zero / pole,
+        },
+        label: 'C(s)',
+      },
+    ];
   } else {
     throw new Error(`Controller method ${artifact.method} is not yet supported by the analysis-based evaluator. Use the heuristic evaluator or specify pid/serial-compensator.`);
   }
@@ -66,9 +76,9 @@ export function buildArenaControlAnalysisRequest(input: {
     frequencyRange,
     rootLocus: {
       minGain: 0,
-      maxGain: 40,
+      maxGain: Math.max(40, rootLocusCurrentGain * 2),
       samples: 48,
-      currentGain: 1,
+      currentGain: rootLocusCurrentGain,
     },
   };
 }

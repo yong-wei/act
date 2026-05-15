@@ -62,6 +62,7 @@ export type { CorrectionKind };
 export interface CorrectionState {
   enabled: boolean;
   kind: CorrectionKind;
+  controllerGain: number;
   kp: number;
   ki: number;
   kd: number;
@@ -78,6 +79,7 @@ export interface CorrectionState {
 export const DEFAULT_CORRECTION_STATE: CorrectionState = {
   enabled: false,
   kind: 'pid',
+  controllerGain: 1,
   kp: 1,
   ki: 0.2,
   kd: 0.08,
@@ -103,6 +105,15 @@ const DISABLED_ANALYSIS_REQUEST: ControlAnalysisRequest = {
   timeRange: { start: 0, end: 0.1, samples: 2 },
   frequencyRange: { min: 1, max: 2, samples: 2 },
   rootLocus: { minGain: 0, maxGain: 1, samples: 2, currentGain: 0 },
+};
+
+const CORRECTION_KIND_LABELS: Record<CorrectionKind, string> = {
+  pi: 'PI',
+  pd: 'PD',
+  pid: 'PID',
+  lead: '超前',
+  lag: '滞后',
+  lead_lag: '滞后-超前',
 };
 
 function round3(value: number): number {
@@ -198,11 +209,13 @@ function normalizedPointKeys(points: Complex[]): string[] {
 }
 
 function syncCorrectionTimeConstants(state: CorrectionState): CorrectionState {
+  const controllerGain = Math.max(0.0001, state.controllerGain);
   const kp = Math.max(0.0001, state.kp);
   const ki = Math.max(0, state.ki);
   const kd = Math.max(0, state.kd);
   return {
     ...state,
+    controllerGain: round3(controllerGain),
     kp: round3(kp),
     ki: round3(ki),
     kd: round3(kd),
@@ -222,16 +235,31 @@ export function setCorrectionTd(state: CorrectionState, td: number): CorrectionS
   return syncCorrectionTimeConstants({ ...state, kd: state.kp * nextTd, td: nextTd });
 }
 
-export function correctionToStructures(state: CorrectionState, isCourseMode: boolean): StructureSpec[] {
+export function setCorrectionControllerGain(state: CorrectionState, controllerGain: number): CorrectionState {
+  return syncCorrectionTimeConstants({
+    ...state,
+    controllerGain,
+  });
+}
+
+export function correctionToStructures(
+  state: CorrectionState,
+  isCourseMode: boolean,
+  options: { includeControllerGain?: boolean } = {},
+): StructureSpec[] {
   if (isCourseMode || !state.enabled) {
     return [];
   }
 
+  const controllerGain = options.includeControllerGain === false
+    ? 1
+    : Math.max(0.0001, state.controllerGain);
+
   if (state.kind === 'pi') {
     return [buildPidCorrection({
       enabled: true,
-      kp: state.kp,
-      ki: state.ki,
+      kp: state.kp * controllerGain,
+      ki: state.ki * controllerGain,
       kd: 0,
       derivativeFilterEnabled: false,
     })];
@@ -240,9 +268,9 @@ export function correctionToStructures(state: CorrectionState, isCourseMode: boo
   if (state.kind === 'pd') {
     return [buildPidCorrection({
       enabled: true,
-      kp: state.kp,
+      kp: state.kp * controllerGain,
       ki: 0,
-      kd: state.kd,
+      kd: state.kd * controllerGain,
       derivativeFilterEnabled: state.derivativeFilterEnabled,
       tf: state.tf,
     })];
@@ -251,9 +279,9 @@ export function correctionToStructures(state: CorrectionState, isCourseMode: boo
   if (state.kind === 'pid') {
     return [buildPidCorrection({
       enabled: true,
-      kp: state.kp,
-      ki: state.ki,
-      kd: state.kd,
+      kp: state.kp * controllerGain,
+      ki: state.ki * controllerGain,
+      kd: state.kd * controllerGain,
       derivativeFilterEnabled: state.derivativeFilterEnabled,
       tf: state.tf,
     })];
@@ -263,6 +291,7 @@ export function correctionToStructures(state: CorrectionState, isCourseMode: boo
     return [buildFrequencyTurnCorrection({
       kind: 'lead',
       enabled: true,
+      gain: controllerGain,
       zeroFrequency: state.leadZeroFrequency,
       poleFrequency: state.leadPoleFrequency,
     })];
@@ -272,6 +301,7 @@ export function correctionToStructures(state: CorrectionState, isCourseMode: boo
     return [buildFrequencyTurnCorrection({
       kind: 'lag',
       enabled: true,
+      gain: controllerGain,
       zeroFrequency: state.lagZeroFrequency,
       poleFrequency: state.lagPoleFrequency,
     })];
@@ -280,6 +310,7 @@ export function correctionToStructures(state: CorrectionState, isCourseMode: boo
   return [buildFrequencyTurnCorrection({
     kind: 'lead_lag',
     enabled: true,
+    gain: controllerGain,
     leadZeroFrequency: state.leadZeroFrequency,
     leadPoleFrequency: state.leadPoleFrequency,
     lagZeroFrequency: state.lagZeroFrequency,
@@ -595,6 +626,10 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => correctionToStructures(correctionState, isCourseMode),
     [correctionState, isCourseMode],
   );
+  const correctionShapeStructures = useMemo(
+    () => correctionToStructures(correctionState, isCourseMode, { includeControllerGain: false }),
+    [correctionState, isCourseMode],
+  );
   const turnFrequencyHandles = useMemo(
     () => correctionToTurnFrequencyHandles(correctionState, isCourseMode),
     [correctionState, isCourseMode],
@@ -603,7 +638,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => correctionToRootHandles(correctionState, isCourseMode),
     [correctionState, isCourseMode],
   );
-  const correctionEnabled = !isCourseMode && correctionStructures.length > 0;
+  const correctionEnabled = !isCourseMode && correctionShapeStructures.length > 0;
 
   const baseRequestInput = useMemo(() => ({
     poles: polesPayload,
@@ -623,23 +658,26 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const correctedLinkageRequest = useMemo(
     () => buildLinkageAnalysisRequest({
       ...baseRequestInput,
-      correctionStructures,
+      gain: correctionState.controllerGain,
+      rootLocusGain: correctionState.controllerGain,
+      correctionStructures: correctionShapeStructures,
     }),
-    [baseRequestInput, correctionStructures],
+    [baseRequestInput, correctionShapeStructures, correctionState.controllerGain],
   );
   const correctionDeviceRequest = useMemo(
     () => buildLinkageAnalysisRequest({
       poles: [],
       zeros: [],
-      gain: 1,
-      correctionStructures,
-      includeOpenLoopGain: false,
+      gain: correctionState.controllerGain,
+      rootLocusGain: correctionState.controllerGain,
+      correctionStructures: correctionShapeStructures,
+      includeOpenLoopGain: true,
       plantLabel: '校正装置 C(s)',
       outputs: ['magnitude', 'phase', 'bode'],
       responseType,
       frequencyRange,
     }),
-    [correctionStructures, frequencyRange, responseType],
+    [correctionShapeStructures, correctionState.controllerGain, frequencyRange, responseType],
   );
   const shouldRunControlAnalysis = !arenaContextMissing && !arenaContextIncompatible;
 
@@ -706,19 +744,28 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => mergeClosedLoopSelectionResult(
       visibleCorrectedAnalysisResult,
       null,
-      gain,
+      correctionEnabled ? correctionState.controllerGain : gain,
     ),
-    [gain, visibleCorrectedAnalysisResult],
+    [correctionEnabled, correctionState.controllerGain, gain, visibleCorrectedAnalysisResult],
   );
   const visibleAnalysisResult = useMemo(
     () => {
       if (mergedAnalysisResult) {
-        lastVisibleAnalysisResultRef.current = mergedAnalysisResult;
-        return mergedAnalysisResult;
+        const nextResult = correctionEnabled
+          ? {
+              ...mergedAnalysisResult,
+              rootLocus: {
+                ...mergedAnalysisResult.rootLocus,
+                currentGain: correctionState.controllerGain,
+              },
+            }
+          : mergedAnalysisResult;
+        lastVisibleAnalysisResultRef.current = nextResult;
+        return nextResult;
       }
       return lastVisibleAnalysisResultRef.current;
     },
-    [mergedAnalysisResult],
+    [correctionEnabled, correctionState.controllerGain, mergedAnalysisResult],
   );
   const analysisState = useMemo(
     () => mergeAnalysisState(
@@ -900,9 +947,13 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const setOpenLoopGain = useCallback((value: number) => {
     const sanitizedGain = round3(Math.max(0, value));
-    setGain(sanitizedGain);
+    if (!isCourseMode && correctionState.enabled) {
+      setCorrectionState((previous) => setCorrectionControllerGain(previous, sanitizedGain));
+    } else {
+      setGain(sanitizedGain);
+    }
     setClosedLoopGain(sanitizedGain);
-  }, []);
+  }, [correctionState.enabled, isCourseMode]);
   const setSelectedClosedLoopGain = useCallback((value: number) => {
     setClosedLoopGain(round3(Math.max(0, value)));
   }, []);
@@ -915,6 +966,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       ...patch,
       enabled: patch.enabled ?? previous.enabled,
     }));
+    if (patch.controllerGain !== undefined && Number.isFinite(patch.controllerGain)) {
+      setClosedLoopGain(round3(Math.max(0, patch.controllerGain)));
+    }
   }, [isCourseMode]);
   const updateCorrectionRootHandle = useCallback((id: string, point: Complex) => {
     const frequency = round3(Math.max(0.001, -point.re));
@@ -969,11 +1023,13 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     const max = Math.max(min * 1.01, Math.max(range[0], range[1]));
     setFrequencyRange({ min: round3(min), max: round3(max), samples: DEFAULT_LINKAGE_FREQUENCY_RANGE.samples });
   }, []);
-  const selectedGainText = Math.abs(closedLoopGain - gain) > 1e-6
+  const displayedGain = correctionEnabled ? correctionState.controllerGain : gain;
+  const selectedGainText = Math.abs(closedLoopGain - displayedGain) > 1e-6
     ? ` | 闭环选点K=${closedLoopGain.toFixed(3)}`
     : '';
-  const correctionText = correctionEnabled ? ` | C(s)=${correctionState.kind}` : '';
-  const parameterSummary = `K=${gain.toFixed(3)}${selectedGainText} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length}${correctionText} | ${responseType}`;
+  const correctionText = correctionEnabled ? ` | 校正装置 ${CORRECTION_KIND_LABELS[correctionState.kind]}` : '';
+  const responseTypeLabel = responseType === 'step' ? '阶跃响应' : responseType === 'impulse' ? '脉冲响应' : '斜坡响应';
+  const parameterSummary = `K=${displayedGain.toFixed(3)}${selectedGainText} | 极点 ${modelPoles.length} | 零点 ${modelZeros.length}${correctionText} | ${responseTypeLabel}`;
 
   return {
     isCourseMode,

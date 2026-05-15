@@ -432,15 +432,17 @@ describe('arena controller artifact builder', () => {
     expect(detailSource).not.toContain('当前阶段只建立任务入口');
   });
 
-  it('mounts the submission panel based on current evaluator-supported methods', () => {
+  it('keeps challenge detail read-only and routes submission to the workbench', () => {
     const source = readFileSync(
       join(process.cwd(), 'src/features/arena/challenge-detail.tsx'),
       'utf8',
     );
 
-    expect(source).toContain('getEvaluableControllerMethods(task).length > 0');
+    expect(source).not.toContain('getEvaluableControllerMethods(task).length > 0');
+    expect(source).not.toContain('<ArenaSubmissionPanel');
+    expect(source).not.toContain('<ArenaBlackBoxSubmissionPanel');
     expect(source).toContain('<ArenaChallengeTelemetry');
     expect(source).toContain('<ArenaWorkspaceLink');
-    expect(source).toContain('<ArenaSubmissionPanel task={task} initialSubmissions={submissions} />');
+    expect(source).toContain('仿真调试与方案提交均在工作台内完成');
   });
 });
