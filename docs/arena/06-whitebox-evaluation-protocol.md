@@ -6,6 +6,15 @@
 
 把白箱官方评测从单文件启发式估算推进为可替换的评测协议服务。`evaluateArenaSubmission` 仍是唯一入口，但内部将“控制器转分析请求”“指标提供”“硬约束与评分”拆开。
 
+## 当前协议边界
+
+当前正式启用两类协议：
+
+- `analysis-whitebox-v1`：`pid`、`serial-compensator` 官方提交通过服务端 `ControlAnalysisResult` 产出指标，再进入统一 metric profile 评分。
+- `template-whitebox-v1`：`composite-compensation`、`optimized-pid`、`mpc` 仍通过 heuristic template provider 产出指标。
+
+工作台本地预览继续使用 template-preview 路径，不加载服务端 WASM；只有 `/api/arena/evaluate` 和持久化官方评测走 `analysis-whitebox-v1`。
+
 ## 依赖
 
 - 任务 02 提供稳定对象能力和上下文。
@@ -51,12 +60,14 @@ export function buildArenaControlAnalysisRequest(input: {
 - [ ] 新增 `whitebox-metric-provider.ts`：
 
 ```ts
-export interface WhiteBoxMetricProvider {
+export interface SyncWhiteBoxMetricProvider {
+  id: string;
+  protocolVersion: string;
   evaluate(input: {
     task: ChallengeTask;
     object: ChallengeObject;
     artifact: ControllerArtifact;
-  }): Promise<Record<string, number>>;
+  }): Record<string, number>;
 }
 ```
 
@@ -79,7 +90,7 @@ controlEnergy
 
 - [ ] 新增 `metric-profile-evaluator.ts`，承载硬约束、满意度、score、penalties 和 explanation。
 - [ ] `whitebox-evaluator.ts` 改为编排白箱约束和指标 provider，不继续同时承担指标估算、评分和解释所有职责。
-- [ ] 升级协议版本，例如 `whitebox-v2`；确保旧缓存不会被新协议误用。
+- [x] 当前阶段对 `pid`、`serial-compensator` 启用 `analysis-whitebox-v1`；旧 `whitebox-v1` 不进入当前榜单默认列表。
 - [ ] 测试至少覆盖：
 
 ```text
@@ -108,8 +119,7 @@ rtk npx prisma validate
 
 - `/api/arena/evaluate` 仍通过 `createPersistedArenaSubmission` 写入。
 - `evaluateArenaSubmission` 仍是唯一官方评测入口。
-- 白箱评测协议版本已升级，缓存按新版本隔离。
+- 白箱评测协议版本与实际 provider 一致；`pid`、`serial-compensator` 使用 `analysis-whitebox-v1`，其他模板方法使用 `template-whitebox-v1`，缓存按协议隔离。
 - 指标 provider 可替换，评测器不再被启发式估算锁死。
 - 硬约束失败时 score 和 explanation 一致，不能出现无效提交高分。
 - 工作台预评测和官方评测至少复用同一套 metric profile 评分口径。
-

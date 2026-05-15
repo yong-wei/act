@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useCallback } from 'react';
 import { Loader2, Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
-import type { ArenaWorkbenchContext } from '@/features/arena';
+import type { ArenaWorkbenchContext } from '@/features/arena/domain';
 import type { CorrectionState } from './model';
 import { buildArenaArtifactFromMultiRepresentationState } from '@/features/arena/workbench/artifact-mappers';
 import type { ArenaEvaluationResult } from '@/features/arena/evaluation/types';

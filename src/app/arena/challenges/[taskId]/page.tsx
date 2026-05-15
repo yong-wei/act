@@ -6,7 +6,7 @@ import {
   getArenaChallengeTask,
   getArenaLeaderboardPolicy,
   getArenaMetricProfile,
-} from '@/features/arena';
+} from '@/features/arena/domain';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
 export const dynamic = 'force-dynamic';

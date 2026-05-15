@@ -97,7 +97,7 @@ describe('arena controller artifact builder', () => {
     });
   });
 
-  it('builds local workbench previews without creating official submissions', () => {
+  it('builds local workbench previews without creating official submissions', async () => {
     const previousSubmission: ArenaSubmissionRecord = {
       id: 'submission-previous',
       taskId: baseTask.id,
@@ -132,7 +132,7 @@ describe('arena controller artifact builder', () => {
       reusedEvaluation: false,
     };
 
-    const preview = buildArenaWorkbenchPreview({
+    const preview = await buildArenaWorkbenchPreview({
       task: baseTask,
       method: 'pid',
       values: { kp: '2.4', ki: '0.8', kd: '0.35' },

@@ -1,18 +1,7 @@
-export const ARENA_CORE_EVENT_TYPES = [
-  'arena_challenge_open',
-  'arena_workspace_start',
-  'arena_simulation_run',
-  'arena_controller_save',
-  'arena_identification_model_save',
-  'arena_virtual_simulation_import',
-  'arena_submit',
-  'arena_evaluation_complete',
-  'arena_result_view',
-  'arena_leaderboard_view',
-  'arena_feedback_view',
-] as const;
+import type { ArenaCoreEventType } from './arena-events';
 
-export type ArenaCoreEventType = typeof ARENA_CORE_EVENT_TYPES[number];
+export { ARENA_CORE_EVENT_TYPES } from './arena-events';
+export type { ArenaCoreEventType } from './arena-events';
 
 export interface ArenaCoreEvent {
   type: ArenaCoreEventType;

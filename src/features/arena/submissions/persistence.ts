@@ -10,8 +10,6 @@ import {
 import { hashControllerArtifact } from './artifact-hash';
 import type { ArenaSubmissionRecord } from './submission-service';
 
-export const ARENA_EVALUATION_PROTOCOL_VERSION = 'whitebox-v1';
-
 export class ArenaSubmissionInputError extends Error {
   constructor(message: string) {
     super(message);
@@ -142,7 +140,7 @@ export async function createPersistedArenaSubmission(
   const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
   let evaluation: ArenaEvaluationResult;
   try {
-    evaluation = existingEvaluation?.result ?? evaluateArenaSubmission({ taskId: input.taskId, artifact });
+    evaluation = existingEvaluation?.result ?? await evaluateArenaSubmission({ taskId: input.taskId, artifact });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid Arena submission';
     throw new ArenaSubmissionInputError(message);

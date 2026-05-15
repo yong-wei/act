@@ -2,21 +2,30 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { evaluateArenaSubmission } from '../evaluation/evaluator';
 import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
+import { defaultControlAnalysisService } from '../evaluation/control-analysis-service';
 import { normalizeMetricValue, scoreMetricSatisfaction } from '../evaluation/scoring';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { ControllerArtifact } from '../types';
+import type { WhiteBoxEvaluationInput } from '../evaluation/types';
 
 const validPidArtifact: ControllerArtifact = {
   id: 'artifact-pid-good',
   taskId: 'task-second-order-lead-pid',
   method: 'pid',
-  params: { kp: 2.4, ki: 0.8, kd: 0.35 },
+  params: { kp: 10, ki: 2, kd: 2 },
   createdAt: '2026-05-10T10:00:00.000Z',
 };
 
+function evaluateOfficialWhiteBox(input: WhiteBoxEvaluationInput) {
+  return evaluateWhiteBoxSubmission({
+    ...input,
+    controlAnalysisService: input.controlAnalysisService ?? defaultControlAnalysisService,
+  });
+}
+
 describe('arena white-box evaluation', () => {
-  it('evaluates a valid PID artifact with metrics, satisfaction, and explanation', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('evaluates a valid PID artifact with metrics, satisfaction, and explanation', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-second-order-lead-pid',
       artifact: validPidArtifact,
     });
@@ -30,8 +39,8 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('硬约束');
   });
 
-  it('rejects unstable or non-finite artifacts before ranking', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects unstable or non-finite artifacts before ranking', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...validPidArtifact,
@@ -47,8 +56,8 @@ describe('arena white-box evaluation', () => {
     expect(Object.values(result.metrics).every(Number.isFinite)).toBe(true);
   });
 
-  it('rejects a real unstable closed loop for the integrator task', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects a real unstable closed loop for the integrator task', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-integrator-low-frequency-balance',
       artifact: {
         id: 'artifact-pid-unstable-integrator',
@@ -63,8 +72,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(false);
   });
 
-  it('treats PD submissions as controllers without an integrator pole for the official stability gate', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('treats PD submissions as controllers without an integrator pole for the official stability gate', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         id: 'artifact-pd-reported-stable',
@@ -78,8 +87,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(true);
   });
 
-  it('rejects comfort submissions whose control energy exceeds the hard limit', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects comfort submissions whose control energy exceeds the hard limit', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-comfort',
       artifact: {
         id: 'artifact-pid-energy-high',
@@ -95,8 +104,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'control_not_saturated')?.passed).toBe(false);
   });
 
-  it('rejects malformed serial compensator artifacts without defaulting missing params', () => {
-    const missingParams = evaluateWhiteBoxSubmission({
+  it('rejects malformed serial compensator artifacts without defaulting missing params', async () => {
+    const missingParams = await evaluateOfficialWhiteBox({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         id: 'artifact-serial-missing',
@@ -106,7 +115,7 @@ describe('arena white-box evaluation', () => {
         createdAt: '2026-05-10T10:00:00.000Z',
       },
     });
-    const wrongTypes = evaluateWhiteBoxSubmission({
+    const wrongTypes = await evaluateOfficialWhiteBox({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         id: 'artifact-serial-wrong-types',
@@ -122,8 +131,8 @@ describe('arena white-box evaluation', () => {
     expect(missingParams.explanation.join(' ')).toContain('gain 必须是有限数字');
   });
 
-  it('evaluates composite compensation artifacts on block-diagram tasks', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('evaluates composite compensation artifacts on block-diagram tasks', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-third-order-block-diagram',
       artifact: {
         id: 'artifact-composite-good',
@@ -147,8 +156,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.every((item) => item.passed)).toBe(true);
   });
 
-  it('rejects malformed composite compensation artifacts without defaulting missing params', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects malformed composite compensation artifacts without defaulting missing params', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-third-order-block-diagram',
       artifact: {
         id: 'artifact-composite-missing',
@@ -165,8 +174,8 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('forwardGain 必须是有限数字');
   });
 
-  it('rejects adversarial composite compensation parameters before ranking', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects adversarial composite compensation parameters before ranking', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-third-order-block-diagram',
       artifact: {
         id: 'artifact-composite-adversarial',
@@ -188,8 +197,8 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('disturbanceCompensation 不能超过 5');
   });
 
-  it('evaluates bounded MPC templates with hidden scenario metrics', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('evaluates bounded MPC templates with hidden scenario metrics', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-mpc-hidden-scenarios',
       artifact: {
         id: 'artifact-mpc-good',
@@ -216,8 +225,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
   });
 
-  it('rejects adversarial MPC templates before hidden-scenario ranking', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects adversarial MPC templates before hidden-scenario ranking', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-mpc-hidden-scenarios',
       artifact: {
         id: 'artifact-mpc-adversarial',
@@ -242,8 +251,8 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('predictionHorizon 必须在 4 到 60 之间');
   });
 
-  it('evaluates optimization-assisted PID templates with robust hidden scenario metrics', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('evaluates optimization-assisted PID templates with robust hidden scenario metrics', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-optimized-pid-robust',
       artifact: {
         id: 'artifact-optimized-pid-good',
@@ -267,8 +276,8 @@ describe('arena white-box evaluation', () => {
     expect(result.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
   });
 
-  it('rejects adversarial optimization tuning templates before ranking', () => {
-    const result = evaluateWhiteBoxSubmission({
+  it('rejects adversarial optimization tuning templates before ranking', async () => {
+    const result = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-optimized-pid-robust',
       artifact: {
         id: 'artifact-optimized-pid-adversarial',
@@ -291,8 +300,8 @@ describe('arena white-box evaluation', () => {
     expect(result.explanation.join(' ')).toContain('searchBudget 必须在 10 到 240 之间');
   });
 
-  it('evaluates robust disturbance challenges with hidden-scenario gates', () => {
-    const strong = evaluateWhiteBoxSubmission({
+  it('fails robust disturbance analysis when hidden-scenario metrics are unavailable', async () => {
+    const strong = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-robust-disturbance',
       artifact: {
         id: 'artifact-robust-serial-good',
@@ -302,7 +311,7 @@ describe('arena white-box evaluation', () => {
         createdAt: '2026-05-11T10:00:00.000Z',
       },
     });
-    const weak = evaluateWhiteBoxSubmission({
+    const weak = await evaluateOfficialWhiteBox({
       taskId: 'task-ship-roll-robust-disturbance',
       artifact: {
         id: 'artifact-robust-pid-weak',
@@ -313,15 +322,16 @@ describe('arena white-box evaluation', () => {
       },
     });
 
-    expect(strong.valid).toBe(true);
-    expect(strong.metrics.hiddenScenarioWorst).toBeGreaterThan(0);
-    expect(strong.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(true);
+    expect(strong.valid).toBe(false);
+    expect(strong.metrics.hiddenScenarioWorst).toBeUndefined();
+    expect(strong.hardConstraintResults.find((item) => item.id === 'analysis_metrics_available')?.passed).toBe(false);
+    expect(strong.explanation.join(' ')).toContain('hiddenScenarioWorst');
     expect(weak.valid).toBe(false);
     expect(weak.hardConstraintResults.find((item) => item.id === 'hidden_scenarios_passed')?.passed).toBe(false);
   });
 
-  it('evaluates unstable plant stabilization challenges with closed-loop gates', () => {
-    const stabilizing = evaluateWhiteBoxSubmission({
+  it('evaluates unstable plant stabilization challenges with closed-loop gates', async () => {
+    const stabilizing = await evaluateOfficialWhiteBox({
       taskId: 'task-unstable-first-order-stabilization',
       artifact: {
         id: 'artifact-unstable-pid-good',
@@ -331,7 +341,7 @@ describe('arena white-box evaluation', () => {
         createdAt: '2026-05-11T10:00:00.000Z',
       },
     });
-    const weak = evaluateWhiteBoxSubmission({
+    const weak = await evaluateOfficialWhiteBox({
       taskId: 'task-unstable-first-order-stabilization',
       artifact: {
         id: 'artifact-unstable-pid-weak',
@@ -350,8 +360,8 @@ describe('arena white-box evaluation', () => {
     expect(weak.hardConstraintResults.find((item) => item.id === 'closed_loop_stable')?.passed).toBe(false);
   });
 
-  it('fails closed for code-controller artifacts without an external sandbox result', () => {
-    const result = evaluateArenaSubmission({
+  it('fails closed for code-controller artifacts without an external sandbox result', async () => {
+    const result = await evaluateArenaSubmission({
       taskId: 'task-ship-roll-mpc-hidden-scenarios',
       artifact: {
         id: 'artifact-code-controller',

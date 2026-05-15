@@ -5,13 +5,13 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, ClipboardList, Trophy } from 'lucide-react';
 
 import {
-  ARENA_CHALLENGE_TEMPLATES,
   ARENA_CHALLENGE_TASKS,
   ARENA_LEADERBOARD_POLICIES,
   getArenaChallengeObject,
   type ControllerMethod,
-} from '@/features/arena';
+} from '@/features/arena/domain';
 import {
+  ARENA_CHALLENGE_TEMPLATES,
   createArenaChallengePublication,
   deriveArenaHomeworkAssessment,
   type ArenaTelemetryLevel,

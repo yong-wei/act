@@ -51,7 +51,7 @@ function buildComparison(
   };
 }
 
-export function buildArenaWorkbenchPreview({
+export async function buildArenaWorkbenchPreview({
   task,
   method,
   values,
@@ -63,9 +63,13 @@ export function buildArenaWorkbenchPreview({
   values: Record<string, string>;
   previousSubmission?: ArenaSubmissionRecord;
   now?: string;
-}): ArenaWorkbenchPreview {
+}): Promise<ArenaWorkbenchPreview> {
   const artifact = buildControllerArtifactFromParams({ task, method, values, now });
-  const evaluation = evaluateWhiteBoxSubmission({ taskId: task.id, artifact });
+  const evaluation = await evaluateWhiteBoxSubmission({
+    taskId: task.id,
+    artifact,
+    metricProviderMode: 'template-preview',
+  });
 
   return {
     artifact,

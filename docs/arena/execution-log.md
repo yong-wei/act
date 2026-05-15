@@ -82,9 +82,10 @@
 
 ### 白箱官方评测现状
 
-`whitebox-evaluator.ts:L501` 使用 `estimateMetrics` 函数进行启发式指标估算：
-- 估算调节时间、超调量、稳态误差、控制能量等
-- 不是从 Rust/WASM ControlAnalysisResult 提取真实仿真指标
+当前白箱官方评测使用同步 heuristic template provider：
+- `evaluateWhiteBoxSubmission` 通过 `selectWhiteBoxMetricProvider(method)` 获取指标 provider
+- provider 内部包装 `estimateMetrics`，估算调节时间、超调量、稳态误差、控制能量等
+- `template-whitebox-v1` 是当前启用协议；`analysis-whitebox-v1` 仅预留给后续服务端 `ControlAnalysisResult` 评测
 - 满意度归一化和评分公式（`scoring.ts`）体系正确，可复用
 
 ### 基线测试结果
@@ -169,3 +170,43 @@ Arena 绝非空白模块。现有代码已具备大厅、详情、提交、缓�
 - `resolveArenaWorkbenchContext` 在 task/object/metricProfile/leaderboardPolicy 任一缺失时返回 null
 - workbenchSeed 显式提供预计算 poles/zeros/gain，避免 UI 层多项式求根
 - 非最小相位对象（gain 为负）使用 |gain|，zerore 位置正确编码 RHP 零点
+
+---
+
+## OpenSpec：arena-analysis-whitebox-evaluation
+
+**执行时间**: 2026-05-15 GMT+8
+**状态**: ✅ 完成
+
+### 改动摘要
+
+- 新增 `control-analysis-service.ts`，在服务端通过 `initSync` 加载本地 `index_bg.wasm`，避免 Node.js 默认 `fetch(file:)` 初始化失败。
+- `pid`、`serial-compensator` 官方白箱评测切换为 `analysis-whitebox-v1`，指标来自服务端 `ControlAnalysisResult`。
+- `composite-compensation`、`optimized-pid`、`mpc` 保持 `template-whitebox-v1`。
+- 官方评测改为异步；`createPersistedArenaSubmission` 在写入 `ArenaEvaluationRun` 前等待评测完成。
+- 工作台本地预览使用 `template-preview`，不把 `node:fs/promises` 或服务端 WASM 入口打进客户端 bundle。
+- 缺失或非有限分析指标不按 0 计分；必要指标缺失时添加 `analysis_metrics_available` 约束失败说明。
+- `controlEnergy` 当前是响应曲线导出的代理量，解释中标注为 derived，不称为直接执行器能量。
+
+### 数值边界
+
+- 服务端 WASM 输出按 3 位小数写入官方 metrics。
+- `controlEnergy` 为 step response 形状代理量，不代表真实控制输入能量。
+- 需要 `hiddenScenarioWorst` 等场景指标的白箱扰动任务，在真实场景评测接入前不会把缺失指标补 0 混入排名。
+
+### 验证结果
+
+| 检查项 | 结果 |
+|--------|------|
+| `npm run test:unit -- src/features/arena` | ✅ 18 files, 162 tests passed |
+| `npm run test:unit -- src/features/arena/__tests__/arena-analysis-whitebox-evaluation.test.ts` | ✅ 1 file, 5 tests passed |
+| `npm run test:unit -- src/app/api/arena/evaluate/__tests__/route.test.ts src/app/api/arena/blackbox-experiments/__tests__/route.test.ts` | ✅ 2 files, 10 tests passed |
+| `npm run lint` | ✅ No ESLint warnings or errors |
+| `npm run test -- --run src/features/arena` | ✅ Smoke, arena home entry, arena routes passed |
+| `npm run build` | ✅ Passes；`wasm-pack` 本平台回退 `cargo install` 为 warning |
+
+### 关键决策
+
+- 官方服务端评测由 `evaluateArenaSubmission` 注入 `defaultControlAnalysisService`，白箱 evaluator 本身不直接依赖 Node 文件系统。
+- `analysis-whitebox-v1` 与旧 `template-whitebox-v1` 缓存隔离，旧模板缓存不能满足新分析协议查询。
+- 本地工作台预览只承担快速反馈，不冒充官方分析评测。

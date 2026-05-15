@@ -36,7 +36,7 @@ import { useControlEngine } from '@/resources/control-system/analysis/use-contro
 import {
   resolveArenaWorkbenchContext,
   type ArenaWorkbenchContext,
-} from '@/features/arena';
+} from '@/features/arena/domain';
 import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
 

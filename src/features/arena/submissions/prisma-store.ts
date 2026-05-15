@@ -13,6 +13,13 @@ import type {
 
 type PrismaJson = Record<string, unknown> | unknown[];
 
+export interface ArenaSubmissionListOptions {
+  taskId?: string;
+  taskIds?: string[];
+  userId?: string;
+  includeLegacyProtocols?: boolean;
+}
+
 function isMissingArenaSubmissionTable(error: unknown): boolean {
   return typeof error === 'object' &&
     error !== null &&
@@ -69,13 +76,14 @@ function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord
     artifactHash: String(row.artifactHash),
     artifact: artifactRow.payload as ControllerArtifact,
     evaluation: toEvaluationResult(evaluationRow),
+    evaluationProtocolVersion: String(evaluationRow.protocolVersion),
     submittedAt: (row.submittedAt as Date).toISOString(),
     reusedEvaluation: false,
   };
 }
 
 export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
-  listSubmissions(options?: { taskId?: string; taskIds?: string[]; userId?: string }): Promise<ArenaSubmissionRecord[]>;
+  listSubmissions(options?: ArenaSubmissionListOptions): Promise<ArenaSubmissionRecord[]>;
 } = {
   async findEvaluationByHash(taskId, artifactHash, protocolVersion) {
     const row = await (prisma as any).arenaEvaluationRun.findUnique({
@@ -234,7 +242,8 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         const controllerArtifact = row.controllerArtifact as Record<string, unknown> | undefined;
         const method = (controllerArtifact?.payload as Record<string, unknown>)?.method as string | undefined;
         const expectedVersion = getArenaEvaluationProtocolVersion({ taskId: String(row.taskId), method: method as any });
-        return storedVersion === expectedVersion || storedVersion === 'whitebox-v1';
+        return storedVersion === expectedVersion ||
+          (options?.includeLegacyProtocols === true && storedVersion === 'whitebox-v1');
       })
       .map((row: Record<string, unknown>) => toSubmissionRecord(row));
   },
