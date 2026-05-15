@@ -24,6 +24,7 @@ import {
   injectChapterNodes,
   matchesNodeFilters,
 } from './graph/filter-utils';
+import type { KnowledgeGraphLabelMode } from './graph/label-policy';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -102,6 +103,7 @@ export function KnowledgeGraphSystem({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBloomLevels, setSelectedBloomLevels] = useState<string[]>([]);
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
+  const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
   const [isLightTheme, setIsLightTheme] = useState(false);
 
   // 视图模式：默认 2D
@@ -393,6 +395,32 @@ export function KnowledgeGraphSystem({
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
           </div>
 
+          <div className={`mb-3 flex items-center justify-between gap-3 rounded-lg border px-2 py-1.5 ${
+            isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'
+          }`}>
+            <span className={`text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>标签显示</span>
+            <div className="flex rounded-md border border-slate-400/30 p-0.5">
+              {([
+                ['focus', '重点标签'],
+                ['all', '全部标签'],
+              ] as const).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={labelMode === mode}
+                  onClick={() => setLabelMode(mode)}
+                  className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                    labelMode === mode
+                      ? (isLightTheme ? 'bg-sky-600 text-white' : 'bg-cyan-500/25 text-cyan-100')
+                      : (isLightTheme ? 'text-slate-600 hover:bg-white' : 'text-slate-400 hover:bg-slate-800/70')
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mb-3">
             <input
               type="text"
@@ -613,6 +641,7 @@ export function KnowledgeGraphSystem({
                 onNodeHover={handleNodeHover}
                 width={dimensions.width}
                 height={dimensions.height}
+                labelMode={labelMode}
               />
             ) : (
               <KnowledgeGraphCanvas
@@ -622,6 +651,7 @@ export function KnowledgeGraphSystem({
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
+                labelMode={labelMode}
               />
             )}
             </Suspense>

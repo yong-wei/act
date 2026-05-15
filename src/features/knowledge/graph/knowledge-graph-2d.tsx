@@ -12,6 +12,10 @@ import {
   getNodeTypeConfig,
   hexToRgba,
 } from './visual-config';
+import {
+  shouldRenderKnowledgeNodeLabel,
+  type KnowledgeGraphLabelMode,
+} from './label-policy';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
@@ -22,6 +26,7 @@ interface KnowledgeGraph2DProps {
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   width?: number;
   height?: number;
+  labelMode: KnowledgeGraphLabelMode;
 }
 
 // ========== 形状绘制函数 ==========
@@ -149,6 +154,7 @@ export function KnowledgeGraph2D({
   onNodeHover,
   width,
   height,
+  labelMode,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>();
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -239,7 +245,16 @@ export function KnowledgeGraph2D({
       ctx.stroke();
     }
 
-    // 始终绘制标签（节点名称）
+    if (!shouldRenderKnowledgeNodeLabel({
+      labelMode,
+      nodeId: node.id,
+      selectedNodeId: selectedNode?.id,
+      hoveredNodeId: hoveredNode?.id,
+      globalScale,
+    })) {
+      return;
+    }
+
     const label = node.name;
     const fontSize = isActive ? 12 / globalScale : 10 / globalScale;
     const minFontSize = 8 / globalScale;
@@ -263,7 +278,7 @@ export function KnowledgeGraph2D({
     ctx.fillStyle = labelFillColor;
 
     ctx.fillText(label, node.x, node.y + labelOffset);
-  }, [selectedNode, hoveredNode, isLightTheme]);
+  }, [selectedNode, hoveredNode, isLightTheme, labelMode]);
 
   // 3. 自定义连线渲染
   const paintLink = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -304,11 +319,11 @@ export function KnowledgeGraph2D({
   useEffect(() => {
     if (fgRef.current) {
       // 弱斥力，保持辐射布局
-      fgRef.current.d3Force('charge').strength(-50);
+      fgRef.current.d3Force('charge').strength(-65);
       // 链接距离
-      fgRef.current.d3Force('link').distance(60);
+      fgRef.current.d3Force('link').distance(72);
       // 碰撞避免
-      fgRef.current.d3Force('collide', d3.forceCollide(18).strength(0.7));
+      fgRef.current.d3Force('collide', d3.forceCollide(24).strength(0.8));
     }
   }, []);
 
