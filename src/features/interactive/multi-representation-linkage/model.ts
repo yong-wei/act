@@ -37,6 +37,7 @@ import {
   resolveArenaWorkbenchContext,
   type ArenaWorkbenchContext,
 } from '@/features/arena';
+import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
 
 export interface MultiRepresentationInitialParams {
@@ -784,6 +785,25 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     }
   }, [gain, isLockedOrCourse]);
 
+  const selectArenaObjectForExploration = useCallback((objectId: string) => {
+    const object = getArenaChallengeObject(objectId);
+    if (!object) return;
+    const seed = object.workbenchSeed;
+    if (!seed) return;
+    const nextPoles = toPoleZeroPoints(seed.poles, 'p');
+    const nextZeros = toPoleZeroPoints(seed.zeros, 'z');
+    setModelPoles(nextPoles);
+    setModelZeros(nextZeros);
+    setGain(1);
+    setClosedLoopGain(1);
+    if (object.timeRange) setTimeRange(object.timeRange);
+    if (object.frequencyRange) setFrequencyRange(object.frequencyRange);
+    setCorrectionState({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: false,
+    });
+  }, []);
+
   const reset = useCallback(() => {
     const fallbackModel = isArenaChallengeMode && arenaSeed
       ? { poles: arenaSeed.poles, zeros: arenaSeed.zeros, gain: 1 }
@@ -1000,6 +1020,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     updateZero,
     removePole,
     removeZero,
+    selectArenaObjectForExploration,
+
     reset,
   };
 }

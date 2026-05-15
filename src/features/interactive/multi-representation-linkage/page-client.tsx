@@ -189,6 +189,7 @@ export function MultiRepresentationLinkageClient({
             currentObjectId={model.arenaContext?.object.id}
             locked={model.isArenaChallengeMode && model.isLockedByChallenge}
             workspaceMode="multi-representation-linkage"
+            onSelectObject={model.selectArenaObjectForExploration}
           />
         )}
 
