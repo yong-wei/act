@@ -1,6 +1,56 @@
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import type { ArenaTaskStats } from './types';
 
+export interface ArenaStatsPublicationContext {
+  id: string;
+  deadline?: string;
+  gradingPolicy?: {
+    hideFullLeaderboardBeforeDeadline?: boolean;
+    [key: string]: unknown;
+  };
+}
+
+export function toArenaStatsPublicationContext(row: {
+  id: string;
+  deadline?: Date | string | null;
+  gradingPolicy?: unknown;
+}): ArenaStatsPublicationContext {
+  const gradingPolicy = row.gradingPolicy && typeof row.gradingPolicy === 'object' && !Array.isArray(row.gradingPolicy)
+    ? row.gradingPolicy as ArenaStatsPublicationContext['gradingPolicy']
+    : {};
+
+  return {
+    id: row.id,
+    deadline: row.deadline instanceof Date ? row.deadline.toISOString() : row.deadline ?? undefined,
+    gradingPolicy,
+  };
+}
+
+export function isArenaPublicationHiddenFromHallStats(
+  publication: ArenaStatsPublicationContext,
+  now: Date,
+): boolean {
+  if (publication.gradingPolicy?.hideFullLeaderboardBeforeDeadline !== true) return false;
+  if (typeof publication.deadline !== 'string') return false;
+  const deadlineTime = Date.parse(publication.deadline);
+  if (!Number.isFinite(deadlineTime)) return false;
+  return now.getTime() <= deadlineTime;
+}
+
+export function filterArenaSubmissionsForHallStats(
+  submissions: readonly ArenaSubmissionRecord[],
+  publications: readonly ArenaStatsPublicationContext[],
+  now: Date = new Date(),
+): ArenaSubmissionRecord[] {
+  const publicationById = new Map(publications.map((publication) => [publication.id, publication]));
+  return submissions.filter((submission) => {
+    if (!submission.publicationId) return true;
+    const publication = publicationById.get(submission.publicationId);
+    if (!publication) return true;
+    return !isArenaPublicationHiddenFromHallStats(publication, now);
+  });
+}
+
 export function buildArenaTaskStats(
   submissions: readonly ArenaSubmissionRecord[],
   taskIds: readonly string[],

@@ -24,6 +24,7 @@ import {
   type WorkspaceMode,
   type ArenaTaskStats,
 } from '@/features/arena/domain';
+import { selectArenaHallPublicationForTask } from './arena-publication-selection';
 import type { ArenaPublicationRecord } from './teacher/publication-store';
 
 const sourceLabels: Record<ChallengeObjectSource, string> = {
@@ -219,7 +220,7 @@ export function ArenaHall({
                 submissionCount: 0,
                 topScore: null,
               };
-              const publication = studentPublications.find((item) => item.taskId === challenge.id);
+              const publication = selectArenaHallPublicationForTask(studentPublications, challenge.id);
               const challengeHref = publication
                 ? `/arena/challenges/${challenge.id}?publicationId=${publication.id}`
                 : `/arena/challenges/${challenge.id}`;

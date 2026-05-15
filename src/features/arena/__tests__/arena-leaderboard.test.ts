@@ -5,7 +5,7 @@ import { createArenaSubmission } from '../submissions/submission-service';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { StoredArenaEvaluation } from '../submissions/persistence';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
-import { buildArenaTaskStats } from '../stats';
+import { buildArenaTaskStats, filterArenaSubmissionsForHallStats } from '../stats';
 import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent, buildArenaInteractionEvent } from '../telemetry';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import type { ControllerArtifact } from '../types';
@@ -569,6 +569,46 @@ describe('arena submissions and leaderboards', () => {
       participantCount: 0,
       submissionCount: 0,
       topScore: null,
+    });
+  });
+
+  it('excludes hidden publication submissions from hall stats before the deadline', async () => {
+    const hidden = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '学生甲',
+      publicationId: 'publication-hidden',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const open = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: { ...pidArtifact, id: 'artifact-visible', params: { kp: 1.1, ki: 0.2, kd: 0.08 } },
+      studentLabel: '学生乙',
+      publicationId: 'publication-open',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [hidden],
+    });
+
+    const visible = filterArenaSubmissionsForHallStats([hidden, open], [
+      {
+        id: 'publication-hidden',
+        deadline: '2026-06-01T15:00:00.000Z',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      {
+        id: 'publication-open',
+        deadline: '2026-06-01T15:00:00.000Z',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
+      },
+    ], new Date('2026-05-15T10:00:00.000Z'));
+
+    const stats = buildArenaTaskStats(visible, ['task-second-order-lead-pid']);
+
+    expect(visible.map((submission) => submission.id)).toEqual([open.id]);
+    expect(stats['task-second-order-lead-pid']).toMatchObject({
+      participantCount: 1,
+      submissionCount: 1,
     });
   });
 });
