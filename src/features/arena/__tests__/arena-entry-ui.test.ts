@@ -31,11 +31,22 @@ describe('arena student entry UI boundaries', () => {
   it('keeps challenge detail read-only and moves official submission to workbench only', () => {
     const detailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
     const workbenchSource = readRepoFile('src/features/interactive/multi-representation-linkage/page-client.tsx');
+    const controlOdysseySource = readRepoFile('src/app/interactive-learning/control-odyssey/page.tsx');
+    const blockDiagramSource = readRepoFile('src/app/interactive-learning/lesson-05/page.tsx');
+    const predictiveControlSource = readRepoFile('src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx');
+    const genericMountSource = readRepoFile('src/features/arena/workbench/arena-workbench-submission-mount.tsx');
+    const submissionsApiSource = readRepoFile('src/app/api/arena/submissions/route.ts');
 
     expect(detailSource).not.toContain('ArenaSubmissionPanel');
     expect(detailSource).not.toContain('ArenaBlackBoxSubmissionPanel');
     expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
     expect(workbenchSource).toContain('<ArenaSubmitPanel');
+    expect(controlOdysseySource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey"');
+    expect(blockDiagramSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench"');
+    expect(predictiveControlSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="predictive-control"');
+    expect(genericMountSource).toContain('/api/arena/submissions');
+    expect(genericMountSource).toContain('<ArenaSubmissionPanel');
+    expect(submissionsApiSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskId })');
   });
 
   it('renders white-box models, Chinese rule modules, constrained leaderboards, and knowledge preview affordances', () => {

@@ -19,6 +19,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { LESSON_05_CONFIG } from '@/resources/interactive-learning/lesson-05/manifest';
+import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 
 const BlockDiagramPrecheck = dynamic(
   () => import('@/resources/interactive-learning/lesson-05/block-diagram-precheck'),
@@ -255,6 +256,7 @@ export default function Lesson05Page() {
             </button>
           ))}
         </div>
+        <ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench" className="mt-10" />
       </div>
     </div>
   );

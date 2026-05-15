@@ -280,8 +280,10 @@ describe('arena black-box identification evaluation', () => {
     expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
     expect(cruiseSimulationPageSource).toContain('searchParams');
     expect(cruiseSimulationPageSource).toContain('resolveArenaWorkbenchContext');
+    expect(cruiseSimulationPageSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskId: blackBoxTask.id })');
     expect(cruiseSimulationPageSource).toContain('<ArenaBlackBoxSubmissionPanel');
-    expect(cruiseSimulationPageSource).toContain("workspaceMode === 'black-box-identification'");
+    expect(cruiseSimulationPageSource).toContain('initialSubmissions={blackBoxSubmissions}');
+    expect(cruiseSimulationPageSource).not.toContain('initialSubmissions={[]}');
     expect(panelSource).toContain('buildBlackBoxControlArtifactFromParams');
     expect(panelSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
     expect(panelSource).toContain('identificationModelId: identificationModel.modelId');

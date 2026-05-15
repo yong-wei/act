@@ -5,6 +5,7 @@
  */
 
 import dynamic from 'next/dynamic';
+import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 
 const ControlOdysseyGame = dynamic(
   () => import('@/resources/interactive-learning/control-odyssey').then(mod => mod.ControlOdysseyGame),
@@ -23,11 +24,14 @@ const ControlOdysseyGame = dynamic(
 
 export default function ControlOdysseyPage() {
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <ControlOdysseyGame
-        initialLevelId="level-1"
-        showEducation={true}
-      />
+    <div className="min-h-screen bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center">
+        <ControlOdysseyGame
+          initialLevelId="level-1"
+          showEducation={true}
+        />
+      </div>
+      <ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey" />
     </div>
   );
 }
