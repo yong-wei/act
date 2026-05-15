@@ -131,6 +131,24 @@ function closedLoopStable(model: TransferFunctionModel, controllerNumerator: num
   return isHurwitzStable(characteristic);
 }
 
+function buildPidFamilyTransferFunction({
+  kp,
+  ki,
+  kd,
+}: {
+  kp: number;
+  ki: number;
+  kd: number;
+}): { numerator: number[]; denominator: number[] } {
+  if (ki > 0) {
+    return { numerator: [kd, kp, ki], denominator: [1, 0] };
+  }
+  if (kd > 0) {
+    return { numerator: [kd, kp], denominator: [1] };
+  }
+  return { numerator: [kp], denominator: [1] };
+}
+
 export function summarizeController(artifact: ControllerArtifact, model: TransferFunctionModel): ControllerSummary {
   if (artifact.method === 'pid') {
     const kp = numberParam(artifact, 'kp');
@@ -149,8 +167,11 @@ export function summarizeController(artifact: ControllerArtifact, model: Transfe
     const safeKp = kp ?? 0;
     const safeKi = ki ?? 0;
     const safeKd = kd ?? 0;
-    const controllerNumerator = [safeKd, safeKp, safeKi];
-    const controllerDenominator = [1, 0];
+    const controllerTransfer = buildPidFamilyTransferFunction({
+      kp: safeKp,
+      ki: safeKi,
+      kd: safeKd,
+    });
 
     return {
       effectiveGain: dcGain(model) * (safeKp + 0.45 * safeKi + 0.25 * safeKd),
@@ -162,7 +183,11 @@ export function summarizeController(artifact: ControllerArtifact, model: Transfe
       causal: true,
       finite: values.every((value) => value !== undefined),
       nonNegative: [safeKp, safeKi, safeKd].every((value) => value >= 0),
-      closedLoopStable: validValues && closedLoopStable(model, controllerNumerator, controllerDenominator),
+      closedLoopStable: validValues && closedLoopStable(
+        model,
+        controllerTransfer.numerator,
+        controllerTransfer.denominator,
+      ),
       validationErrors,
     };
   }

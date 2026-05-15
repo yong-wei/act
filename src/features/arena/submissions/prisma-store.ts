@@ -20,6 +20,16 @@ function isMissingArenaSubmissionTable(error: unknown): boolean {
     (error as { code?: unknown }).code === 'P2021';
 }
 
+function isLocalDatabaseUrlMissing(error: unknown): boolean {
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('Environment variable not found: DATABASE_URL') ||
+    message.includes('env("DATABASE_URL")');
+}
+
 function toEvaluationResult(row: Record<string, unknown>): ArenaEvaluationResult {
   return {
     taskId: String(row.taskId),
@@ -185,9 +195,19 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       : options?.taskIds?.length
         ? { taskId: { in: options.taskIds } }
         : {};
+    const arenaSubmissionDelegate = (prisma as any).arenaSubmission as
+      | { findMany?: (args: unknown) => Promise<Array<Record<string, unknown>>> }
+      | undefined;
+    if (typeof arenaSubmissionDelegate?.findMany !== 'function') {
+      if (process.env.NODE_ENV !== 'production') {
+        return [];
+      }
+      throw new Error('ArenaSubmission Prisma delegate is not available.');
+    }
+
     let rows: Array<Record<string, unknown>>;
     try {
-      rows = await (prisma as any).arenaSubmission.findMany({
+      rows = await arenaSubmissionDelegate.findMany({
         where: {
           ...taskFilter,
           ...(options?.userId ? { userId: options.userId } : {}),
@@ -201,7 +221,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         },
       });
     } catch (error) {
-      if (isMissingArenaSubmissionTable(error)) {
+      if (isMissingArenaSubmissionTable(error) || isLocalDatabaseUrlMissing(error)) {
         return [];
       }
       throw error;

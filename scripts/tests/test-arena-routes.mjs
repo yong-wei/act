@@ -43,6 +43,32 @@ assert.equal(
 );
 
 assert.equal(
+  detailContent.includes('ArenaPageShell') &&
+    detailContent.includes('`/arena/challenges/${task.id}`') &&
+    detailContent.includes('课程：自动控制原理'),
+  true,
+  '挑战详情页应使用真实路径面包屑和竞技场页面壳层',
+);
+
+assert.equal(
+  detailContent.includes('ArenaSubmissionPanel') || detailContent.includes('ArenaBlackBoxSubmissionPanel'),
+  false,
+  '挑战详情页不得提供提交面板，提交应仅在工作台内部发生',
+);
+
+assert.equal(
+  hallContent.includes('Pareto 榜') || hallContent.includes('班级榜') || hallContent.includes('赛季榜'),
+  false,
+  '学生可见竞技场大厅只应保留主榜、方法榜和指标榜',
+);
+
+assert.equal(
+  detailContent.includes('ChallengeKnowledgePreview') && detailContent.includes('BlockMath'),
+  true,
+  '挑战详情页应提供知识预览并用 LaTeX 渲染白箱模型',
+);
+
+assert.equal(
   fs.existsSync(workspaceRoutingPath) &&
     detailContent.includes('getArenaWorkspaceHref') &&
     workspaceRoutingContent.includes('black-box-identification') &&

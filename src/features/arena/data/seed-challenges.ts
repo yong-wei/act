@@ -15,7 +15,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['二阶', '欠阻尼', '白箱'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=16/(s^2+2.4s+16)', numerator: [16], denominator: [1, 2.4, 16] },
+    model: { display: 'G(s)=16/(s^2+2.4s+16)', latex: 'G(s)=\\frac{16}{s^2+2.4s+16}', numerator: [16], denominator: [1, 2.4, 16] },
     timeRange: { start: 0, end: 12, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -23,7 +23,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 16,
     },
-    relatedKnowledge: ['二阶系统动态指标', '根轨迹', '频域裕度'],
+    relatedKnowledge: [
+      { label: '二阶系统标准型', nodeId: '二阶系统标准型_3_L2a' },
+      { label: '欠阻尼二阶系统', nodeId: '欠阻尼二阶系统_3_242477a2' },
+      { label: '根轨迹法', nodeId: '根轨迹法_2_e3f6c0c1' },
+      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c' },
+    ],
   },
   {
     id: 'plant-integrator-low-frequency',
@@ -34,7 +39,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['积分环节', '稳态误差', '低频增益'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=8/(s(s+2)(s+8))', numerator: [8], denominator: [1, 10, 16, 0] },
+    model: { display: 'G(s)=8/(s(s+2)(s+8))', latex: 'G(s)=\\frac{8}{s(s+2)(s+8)}', numerator: [8], denominator: [1, 10, 16, 0] },
     timeRange: { start: 0, end: 20, samples: 800 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -42,7 +47,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 8,
     },
-    relatedKnowledge: ['系统型别', '稳态误差', '低频补偿'],
+    relatedKnowledge: [
+      { label: '系统型别', nodeId: '系统型别_3_5573c2c3' },
+      { label: '稳态误差', nodeId: '稳态误差_3_c0207063' },
+      { label: '低频补偿稳态改善路径', nodeId: '低频补偿稳态改善路径_3_37003' },
+    ],
   },
   {
     id: 'plant-first-order-lag',
@@ -53,7 +62,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['一阶', '时间常数', '白箱'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=4/(2s+1)', numerator: [4], denominator: [2, 1] },
+    model: { display: 'G(s)=4/(2s+1)', latex: 'G(s)=\\frac{4}{2s+1}', numerator: [4], denominator: [2, 1] },
     timeRange: { start: 0, end: 10, samples: 500 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -61,7 +70,10 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 2,
     },
-    relatedKnowledge: ['一阶响应', '频率特性'],
+    relatedKnowledge: [
+      { label: '一阶系统', nodeId: '一阶系统_3_4f3b29ce' },
+      { label: '频率特性', nodeId: '频率特性_5_404adfdd' },
+    ],
   },
   {
     id: 'plant-third-order-pure-pole',
@@ -72,7 +84,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['三阶', '纯极点', '稳定裕度'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=20/((s+1)(s+4)(s+6))', numerator: [20], denominator: [1, 11, 34, 24] },
+    model: { display: 'G(s)=20/((s+1)(s+4)(s+6))', latex: 'G(s)=\\frac{20}{(s+1)(s+4)(s+6)}', numerator: [20], denominator: [1, 11, 34, 24] },
     timeRange: { start: 0, end: 15, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -80,7 +92,10 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 20,
     },
-    relatedKnowledge: ['劳斯判据', '根轨迹读图'],
+    relatedKnowledge: [
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
+      { label: '根轨迹完整法则', nodeId: '根轨迹完整法则_3_0f2e7b11' },
+    ],
   },
   {
     id: 'plant-non-minimum-phase-lite',
@@ -91,7 +106,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['非最小相位', '右半平面零点', '响应边界'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=6(1-s/5)/((s+1)(s+3))', numerator: [-1.2, 6], denominator: [1, 4, 3] },
+    model: { display: 'G(s)=6(1-s/5)/((s+1)(s+3))', latex: 'G(s)=\\frac{6(1-s/5)}{(s+1)(s+3)}', numerator: [-1.2, 6], denominator: [1, 4, 3] },
     timeRange: { start: 0, end: 15, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -99,7 +114,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [{ re: 5, im: 0 }],
       gain: 1.2,
     },
-    relatedKnowledge: ['零点作用', '非最小相边界'],
+    relatedKnowledge: [
+      { label: '零点作用', nodeId: '零点_2_c29600a1' },
+      { label: '非最小相与右半平面零点', nodeId: '非最小相与右半平面零点_3_35005' },
+      { label: '右半平面零点可行性边界', nodeId: '右半平面零点可行性边界_3_36005' },
+    ],
   },
   {
     id: 'plant-homework-margin',
@@ -110,7 +129,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['作业对象', '相位裕度', '白箱'],
     adapterType: 'homework',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=10/(s(s+1)(0.2s+1))', numerator: [10], denominator: [0.2, 1.2, 1, 0] },
+    model: { display: 'G(s)=10/(s(s+1)(0.2s+1))', latex: 'G(s)=\\frac{10}{s(s+1)(0.2s+1)}', numerator: [10], denominator: [0.2, 1.2, 1, 0] },
     timeRange: { start: 0, end: 20, samples: 800 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -118,7 +137,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 50,
     },
-    relatedKnowledge: ['Bode 图', '裕度校正'],
+    relatedKnowledge: [
+      { label: 'Bode 首轮骨架', nodeId: 'Bode首轮骨架_5_1e07d9da' },
+      { label: '幅值裕度', nodeId: '幅值裕度_5_73af26a5' },
+      { label: '相角裕度', nodeId: '相角裕度_5_5a74b451' },
+    ],
   },
   {
     id: 'plant-odyssey-level-one',
@@ -129,7 +152,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['关卡挑战', '低阶对象', '白箱'],
     adapterType: 'control-odyssey',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=3/(s^2+1.6s+3)', numerator: [3], denominator: [1, 1.6, 3] },
+    model: { display: 'G(s)=3/(s^2+1.6s+3)', latex: 'G(s)=\\frac{3}{s^2+1.6s+3}', numerator: [3], denominator: [1, 1.6, 3] },
     timeRange: { start: 0, end: 12, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -137,7 +160,10 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 3,
     },
-    relatedKnowledge: ['闭环稳定', '参数调节'],
+    relatedKnowledge: [
+      { label: '根轨迹增益换算', nodeId: '根轨迹增益换算_3_4b1d9e6c' },
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
+    ],
   },
   {
     id: 'plant-ship-roll-whitebox',
@@ -148,7 +174,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['船舶横摇', '舒适度', '频域约束'],
     adapterType: 'virtual-simulation',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=0.8/(s^2+0.5s+1.44)', numerator: [0.8], denominator: [1, 0.5, 1.44] },
+    model: { display: 'G(s)=0.8/(s^2+0.5s+1.44)', latex: 'G(s)=\\frac{0.8}{s^2+0.5s+1.44}', numerator: [0.8], denominator: [1, 0.5, 1.44] },
     timeRange: { start: 0, end: 20, samples: 800 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -156,7 +182,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 0.8,
     },
-    relatedKnowledge: ['频域舒适度', '陷波滤波', '控制量约束'],
+    relatedKnowledge: [
+      { label: '频域综合判断与工程读回', nodeId: '频域综合判断与工程读回_3_38004' },
+      { label: '控制器频域特性矩阵', nodeId: '控制器频域特性矩阵_4_42008' },
+      { label: '鲁棒性', nodeId: '鲁棒性_10_f5336265' },
+    ],
   },
   {
     id: 'plant-cruise-roll-blackbox',
@@ -170,7 +200,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     publicInterface: '输入减摇控制参数与海况场景，读取横摇角、控制能耗和约束违反记录。',
     evaluationInterface: '通过邮轮仿真后台执行隐藏海况批量评测，不向学生公开传递函数。',
     scenarioSummary: '面向邮轮横摇闭环表现的黑箱辨识与控制挑战。',
-    relatedKnowledge: ['黑箱辨识', '闭环实验设计', '鲁棒性测试'],
+    relatedKnowledge: [
+      { label: '系统辨识工具箱', nodeId: '系统辨识工具箱_1_fbd46ce7' },
+      { label: '实验法（系统辨识）', nodeId: '实验法_系统辨识__2_b07364ee' },
+      { label: '鲁棒性', nodeId: '鲁棒性_10_f5336265' },
+    ],
   },
   {
     id: 'plant-delay-approximated',
@@ -181,7 +215,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['时滞近似', 'Padé', '校正边界'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=5(1-0.25s)/(s+1)(1+0.25s)', numerator: [-1.25, 5], denominator: [0.25, 1.25, 1] },
+    model: { display: 'G(s)=5(1-0.25s)/(s+1)(1+0.25s)', latex: 'G(s)=\\frac{5(1-0.25s)}{(s+1)(1+0.25s)}', numerator: [-1.25, 5], denominator: [0.25, 1.25, 1] },
     timeRange: { start: 0, end: 15, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -189,7 +223,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [{ re: 4, im: 0 }],
       gain: 5,
     },
-    relatedKnowledge: ['时滞控制', '稳定裕度'],
+    relatedKnowledge: [
+      { label: '纯延迟', nodeId: '纯延迟_2_8f4165fd' },
+      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c' },
+      { label: '右半平面零点可行性边界', nodeId: '右半平面零点可行性边界_3_36005' },
+    ],
   },
   {
     id: 'plant-unstable-first-order',
@@ -200,7 +238,7 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     tags: ['不稳定对象', '镇定', '闭环稳定'],
     adapterType: 'transfer-function',
     modelType: 'transfer-function',
-    model: { display: 'G(s)=2/(s-1)', numerator: [2], denominator: [1, -1] },
+    model: { display: 'G(s)=2/(s-1)', latex: 'G(s)=\\frac{2}{s-1}', numerator: [2], denominator: [1, -1] },
     timeRange: { start: 0, end: 12, samples: 600 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 200 },
     workbenchSeed: {
@@ -208,7 +246,11 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       zeros: [],
       gain: 2,
     },
-    relatedKnowledge: ['闭环稳定', '劳斯判据', '校正镇定'],
+    relatedKnowledge: [
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
+      { label: '目标驱动超前校正', nodeId: '目标驱动超前校正_3_36004' },
+      { label: '校正元件', nodeId: '校正元件_1_99f830b7' },
+    ],
   },
 ];
 

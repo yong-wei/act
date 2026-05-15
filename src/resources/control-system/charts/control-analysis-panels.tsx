@@ -73,6 +73,8 @@ interface CartesianRange {
   y: [number, number];
 }
 
+type PartialAxisPreset = Partial<AxisPreset>;
+
 export interface CartesianDragRangeInput extends CartesianRange {
   width: number;
   height: number;
@@ -650,7 +652,11 @@ function buildRootLocusMetaText(rootLocus: RootLocusData, correctionHandles: Roo
   const correctionPoles = correctionHandles.filter((handle) => handle.kind === 'pole').map((handle) => handle.point);
   const correctionZeros = correctionHandles.filter((handle) => handle.kind === 'zero').map((handle) => handle.point);
   const openLoopZeros = removeMatchingPoints(rootLocus.openLoopZeros, correctionZeros);
+  const currentGainText = rootLocus.currentGain == null
+    ? ''
+    : `当前开环增益：K=${rootLocus.currentGain.toFixed(3)}`;
   const rows = [
+    currentGainText,
     buildPointText('p', rootLocus.currentPoles),
     openLoopZeros.length > 0 ? buildPointText('z', openLoopZeros) : '',
   ].filter(Boolean);
@@ -671,6 +677,23 @@ function buildRootLocusMetaText(rootLocus: RootLocusData, correctionHandles: Roo
   );
 }
 
+export function calculateStableResponseAxisPreset(
+  points: CurvePoint[],
+  isStable: boolean,
+): { y: [number, number] } | undefined {
+  if (!isStable || points.length === 0) {
+    return undefined;
+  }
+  const maxAbs = points.reduce((max, point) => {
+    const value = Math.abs(point.y);
+    return Number.isFinite(value) ? Math.max(max, value) : max;
+  }, 0);
+  if (maxAbs <= 0) {
+    return undefined;
+  }
+  const limit = roundRangeValue(maxAbs * 1.1);
+  return { y: [-limit, limit] };
+}
 
 export function buildLineOption(
   points: CurvePoint[],
@@ -679,7 +702,7 @@ export function buildLineOption(
   yAxisName: string,
   opts?: {
     xAxisType?: 'value' | 'log';
-    axisPreset?: AxisPreset;
+    axisPreset?: PartialAxisPreset;
     extraSeries?: ChartSeriesArray;
   },
 ): EChartsCoreOption {
@@ -693,8 +716,8 @@ export function buildLineOption(
     },
     xAxis: {
       type: opts?.xAxisType ?? 'value',
-      min: axisPreset?.x[0],
-      max: axisPreset?.x[1],
+      min: axisPreset?.x?.[0],
+      max: axisPreset?.x?.[1],
       name: xAxisName,
       nameLocation: 'middle',
       nameGap: 30,
@@ -705,8 +728,8 @@ export function buildLineOption(
     },
     yAxis: {
       type: 'value',
-      min: axisPreset?.y[0],
-      max: axisPreset?.y[1],
+      min: axisPreset?.y?.[0],
+      max: axisPreset?.y?.[1],
       name: yAxisName,
       nameLocation: 'middle',
       nameGap: 42,
@@ -1133,8 +1156,8 @@ export function buildRootLocusOption(
     },
     xAxis: {
       type: 'value',
-      min: axisPreset?.x[0],
-      max: axisPreset?.x[1],
+      min: axisPreset?.x?.[0],
+      max: axisPreset?.x?.[1],
       name: 'Re(s)',
       nameLocation: 'middle',
       nameGap: 28,
@@ -1145,8 +1168,8 @@ export function buildRootLocusOption(
     },
     yAxis: {
       type: 'value',
-      min: axisPreset?.y[0],
-      max: axisPreset?.y[1],
+      min: axisPreset?.y?.[0],
+      max: axisPreset?.y?.[1],
       name: 'Im(s)',
       nameLocation: 'middle',
       nameGap: 36,
@@ -1622,10 +1645,14 @@ export function TimeDomainPanel({
   onRefreshRange?: (range: CartesianRange) => void;
 }) {
   const axisPreset = getControlAxisPreset(caseId, 'step');
+  const stableAxisPreset = calculateStableResponseAxisPreset(
+    result.stepResponse.points,
+    result.metrics.settlingTimeSec != null,
+  );
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
-  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
+  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
       axisPreset: displayedAxisPreset,
@@ -1674,7 +1701,7 @@ export function TimeDomainPanel({
 
 function buildTimeDomainComparisonOption(
   panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>,
-  axisPreset?: AxisPreset,
+  axisPreset?: PartialAxisPreset,
 ): EChartsCoreOption {
   return {
     animation: false,
@@ -1690,8 +1717,8 @@ function buildTimeDomainComparisonOption(
     },
     xAxis: {
       type: 'value',
-      min: axisPreset?.x[0],
-      max: axisPreset?.x[1],
+      min: axisPreset?.x?.[0],
+      max: axisPreset?.x?.[1],
       name: '时间 / s',
       nameLocation: 'middle',
       nameGap: 30,
@@ -1700,8 +1727,8 @@ function buildTimeDomainComparisonOption(
     },
     yAxis: {
       type: 'value',
-      min: axisPreset?.y[0],
-      max: axisPreset?.y[1],
+      min: axisPreset?.y?.[0],
+      max: axisPreset?.y?.[1],
       name: '响应',
       nameLocation: 'middle',
       nameGap: 42,
@@ -1729,10 +1756,14 @@ export function TimeDomainComparisonPanel({
   onRefreshRange?: (range: CartesianRange) => void;
 }) {
   const axisPreset = getControlAxisPreset(caseId, 'step');
+  const stableAxisPreset = calculateStableResponseAxisPreset(
+    panels.flatMap((panel) => panel.result.stepResponse.points),
+    panels.every((panel) => panel.result.metrics.settlingTimeSec != null),
+  );
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
-  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
+  const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildTimeDomainComparisonOption(panels, displayedAxisPreset),
     [displayedAxisPreset, panels],

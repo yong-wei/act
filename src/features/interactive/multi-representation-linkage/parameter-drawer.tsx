@@ -4,6 +4,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { WheelEvent as ReactWheelEvent } from 'react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import type { CorrectionKind, CorrectionState, LinkageResponseType, PoleZeroPoint } from './model';
 
@@ -41,24 +43,76 @@ function NumberInput({
   onChange: (value: number) => void;
   disabled?: boolean;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(() => value.toFixed(2));
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraft(Number.isFinite(value) ? value.toFixed(2) : '');
+    }
+  }, [isEditing, value]);
+
+  const commit = () => {
+    setIsEditing(false);
+    const next = Number(draft);
+    if (Number.isFinite(next)) {
+      onChange(next);
+      return;
+    }
+    setDraft(Number.isFinite(value) ? value.toFixed(2) : '');
+  };
+
   return (
     <label className="premium-lesson-caption text-xs">
       {label}
       <input
         type="number"
-        step="0.001"
+        step="1"
         disabled={disabled}
-        value={value.toFixed(3)}
+        value={draft}
+        onFocus={() => setIsEditing(true)}
         onChange={(event) => {
-          const next = Number(event.target.value);
+          const nextDraft = event.target.value;
+          setDraft(nextDraft);
+          const next = Number(nextDraft);
           if (Number.isFinite(next)) {
             onChange(next);
+          }
+        }}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.currentTarget.blur();
           }
         }}
         className="premium-lesson-input mt-1 w-full disabled:cursor-not-allowed disabled:opacity-50"
       />
     </label>
   );
+}
+
+function formatMathNumber(value: number): string {
+  return Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '0';
+}
+
+function buildControllerExpression(state: CorrectionState): string {
+  const k = formatMathNumber(state.controllerGain);
+  if (state.kind === 'pi') {
+    return `C(s)=${k}\\left(${formatMathNumber(state.kp)}+\\frac{${formatMathNumber(state.ki)}}{s}\\right)`;
+  }
+  if (state.kind === 'pd') {
+    return `C(s)=${k}\\left(${formatMathNumber(state.kp)}+${formatMathNumber(state.kd)}s\\right)`;
+  }
+  if (state.kind === 'pid') {
+    return `C(s)=${k}\\left(${formatMathNumber(state.kp)}+\\frac{${formatMathNumber(state.ki)}}{s}+${formatMathNumber(state.kd)}s\\right)`;
+  }
+  if (state.kind === 'lead') {
+    return `C(s)=${k}\\frac{1+s/${formatMathNumber(state.leadZeroFrequency)}}{1+s/${formatMathNumber(state.leadPoleFrequency)}}`;
+  }
+  if (state.kind === 'lag') {
+    return `C(s)=${k}\\frac{1+s/${formatMathNumber(state.lagZeroFrequency)}}{1+s/${formatMathNumber(state.lagPoleFrequency)}}`;
+  }
+  return `C(s)=${k}\\frac{1+s/${formatMathNumber(state.leadZeroFrequency)}}{1+s/${formatMathNumber(state.leadPoleFrequency)}}\\frac{1+s/${formatMathNumber(state.lagZeroFrequency)}}{1+s/${formatMathNumber(state.lagPoleFrequency)}}`;
 }
 
 function PointRows({
@@ -161,6 +215,17 @@ function CorrectionControls({
         </select>
       </label>
 
+      <div className="rounded-lg border border-cyan-500/20 bg-background/75 px-3 py-2 text-sm [&_.katex-display]:m-0">
+        <BlockMath math={buildControllerExpression(state)} />
+      </div>
+
+      <NumberInput
+        label="控制器增益 K"
+        value={state.controllerGain}
+        disabled={disabled || !state.enabled}
+        onChange={(controllerGain) => onChange({ controllerGain })}
+      />
+
       {isPidFamily ? (
         <div className="grid grid-cols-2 gap-2">
           <NumberInput label="Kp" value={state.kp} disabled={disabled || !state.enabled} onChange={(kp) => onChange({ kp })} />
@@ -244,10 +309,11 @@ export function ParameterDrawer({
 }: ParameterDrawerProps) {
   const wheelCleanupRef = useRef<(() => void) | null>(null);
   const [activeTab, setActiveTab] = useState<'plant' | 'correction'>('plant');
+  const tabBaseClass = 'flex h-10 min-w-0 items-center justify-center rounded-md px-3 text-sm font-medium leading-none transition';
   const tabClass = (tab: 'plant' | 'correction') =>
     activeTab === tab
-      ? 'premium-lesson-action-tone premium-tone-cyan justify-center'
-      : 'premium-lesson-control justify-center';
+      ? `${tabBaseClass} premium-lesson-action-tone premium-tone-cyan`
+      : `${tabBaseClass} premium-lesson-control`;
 
   const setContentNode = useCallback((element: HTMLDivElement | null) => {
     wheelCleanupRef.current?.();
@@ -315,7 +381,9 @@ export function ParameterDrawer({
               <>
             <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
               <div className="premium-lesson-title text-sm font-medium">联动参数</div>
-              <NumberInput label="增益 K（闭环极点联动）" value={gain} onChange={onGainChange} />
+              {!correctionState.enabled ? (
+                <NumberInput label="开环增益 K" value={gain} onChange={onGainChange} />
+              ) : null}
               <label className="premium-lesson-caption block text-xs">
                 响应类型
                 <select
@@ -323,9 +391,9 @@ export function ParameterDrawer({
                   onChange={(event) => onResponseTypeChange(event.target.value as LinkageResponseType)}
                   className="premium-lesson-select mt-1 w-full"
                 >
-                  <option value="step">Step</option>
-                  <option value="impulse">Impulse</option>
-                  <option value="ramp">Ramp</option>
+                  <option value="step">阶跃响应</option>
+                  <option value="impulse">脉冲响应</option>
+                  <option value="ramp">斜坡响应</option>
                 </select>
               </label>
               <label className="inline-flex items-center gap-2 text-sm text-foreground">

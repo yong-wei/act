@@ -17,6 +17,7 @@ import {
   buildNyquistOption,
   buildRootLocusOption,
   ControlPerformanceBar,
+  calculateStableResponseAxisPreset,
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
 } from '@/resources/control-system/charts/control-analysis-panels';
@@ -596,6 +597,56 @@ describe('control chart shared presets and themes', () => {
     expect(panelSource).toContain('installCartesianPanZoom(chart, refreshRange)');
     expect(panelSource).toContain('buildLineOption(result.stepResponse.points');
     expect(panelSource).toContain('按当前时域范围刷新');
+  });
+
+  it('computes a stable-response default y range from 1.1 times the response maximum', () => {
+    const preset = calculateStableResponseAxisPreset([
+      { x: 0, y: 0 },
+      { x: 1, y: 0.8 },
+      { x: 2, y: 1.2 },
+    ], true);
+
+    expect(preset).toEqual({ y: [-1.32, 1.32] });
+    expect(calculateStableResponseAxisPreset([{ x: 0, y: 3 }], false)).toBeUndefined();
+  });
+
+  it('lets time-domain charts apply a y-only stable-response preset', () => {
+    const option = buildLineOption(
+      [{ x: 0, y: 0 }, { x: 1, y: 1.2 }],
+      '#22d3ee',
+      '时间 / s',
+      '响应',
+      { axisPreset: { y: [-1.32, 1.32] } },
+    );
+    const xAxis = option.xAxis as { min?: number; max?: number };
+    const yAxis = option.yAxis as { min?: number; max?: number };
+
+    expect(xAxis.min).toBeUndefined();
+    expect(xAxis.max).toBeUndefined();
+    expect(yAxis.min).toBe(-1.32);
+    expect(yAxis.max).toBe(1.32);
+  });
+
+  it('keeps y-only stable-response presets safe for comparison panels', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain('min: axisPreset?.x?.[0]');
+    expect(panelSource).toContain('max: axisPreset?.x?.[1]');
+    expect(panelSource).toContain('min: axisPreset?.y?.[0]');
+    expect(panelSource).toContain('max: axisPreset?.y?.[1]');
+  });
+
+  it('keeps root-locus full view gain in the panel status area instead of only drawing it inside the chart', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain('当前开环增益');
+    expect(panelSource).toContain('rootLocus.currentGain');
   });
 
   it('lets Nyquist options reuse a preserved viewport instead of resetting to the preset', () => {

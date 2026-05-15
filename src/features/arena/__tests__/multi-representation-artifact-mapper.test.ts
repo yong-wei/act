@@ -34,6 +34,7 @@ const pidState: CorrectionState = {
   leadPoleFrequency: 5,
   lagZeroFrequency: 0.2,
   lagPoleFrequency: 0.05,
+  controllerGain: 1,
 };
 
 const piState: CorrectionState = { ...pidState, kind: 'pi' };
@@ -55,52 +56,67 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
     expect(result.artifact!.params).toMatchObject({ kp: 2, ki: 0.5, kd: 0.1 });
   });
 
-  it('PID: gain=2 scales kp/ki/kd by 2x', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: pidState, gain: 2 });
+  it('PID: controller gain is represented inside correction state and does not double-scale through open-loop gain', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...pidState, controllerGain: 2 },
+      gain: 9,
+    });
     expect(result.artifact!.params).toMatchObject({ kp: 4, ki: 1, kd: 0.2 });
   });
 
-  it('PID: gain=0.5 scales kp/ki/kd by 0.5x', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: pidState, gain: 0.5 });
-    expect(result.artifact!.params).toMatchObject({ kp: 1, ki: 0.25, kd: 0.05 });
-  });
-
-  it('PI: kd=0 regardless of gain', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: piState, gain: 2 });
+  it('PI: kd=0 and controller gain is read from correction state', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...piState, controllerGain: 2 },
+      gain: 9,
+    });
     expect(result.artifact!.params).toMatchObject({ kp: 4, ki: 1, kd: 0 });
   });
 
-  it('PD: ki=0 regardless of gain', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: pdState, gain: 3 });
+  it('PD: ki=0 and controller gain is read from correction state', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...pdState, controllerGain: 3 },
+      gain: 9,
+    });
     expect(result.artifact!.params.kp).toBe(6);
     expect(result.artifact!.params.ki).toBe(0);
     expect(result.artifact!.params.kd).toBeCloseTo(0.3, 10);
   });
 
-  it('lead: serial gain = poleFreq/zeroFreq * gain (k=1 in preview)', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: leadState, gain: 1 });
+  it('lead: serial gain defaults to correction-state controller gain', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: leadState, gain: 9 });
     expect(result.artifact!.method).toBe('serial-compensator');
-    expect(result.artifact!.params.gain).toBeCloseTo(4, 5); // 8/2 = 4
+    expect(result.artifact!.params.gain).toBeCloseTo(1, 5);
     expect(result.artifact!.params.zero).toBe(2);
     expect(result.artifact!.params.pole).toBe(8);
   });
 
-  it('lead: with gain=2, serial gain doubles', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: leadState, gain: 2 });
-    expect(result.artifact!.params.gain).toBeCloseTo(8, 5);
+  it('lead: serial compensator preserves controller gain from correction state', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...leadState, controllerGain: 2.5 },
+      gain: 9,
+    });
+    expect(result.artifact!.params.gain).toBeCloseTo(2.5, 5);
   });
 
-  it('lag: serial gain = poleFreq/zeroFreq * gain', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: lagState, gain: 1 });
+  it('lag: serial gain defaults to correction-state controller gain', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: lagState, gain: 9 });
     expect(result.artifact!.method).toBe('serial-compensator');
-    expect(result.artifact!.params.gain).toBeCloseTo(0.25, 5); // 0.125/0.5 = 0.25
+    expect(result.artifact!.params.gain).toBeCloseTo(1, 5);
     expect(result.artifact!.params.zero).toBe(0.5);
     expect(result.artifact!.params.pole).toBe(0.125);
   });
 
-  it('lag: with gain=4, serial gain quadruples', () => {
-    const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: lagState, gain: 4 });
-    expect(result.artifact!.params.gain).toBeCloseTo(1, 5);
+  it('lag: serial compensator preserves controller gain from correction state', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...lagState, controllerGain: 0.4 },
+      gain: 9,
+    });
+    expect(result.artifact!.params.gain).toBeCloseTo(0.4, 5);
   });
 
   it('lead_lag: still blocked from official submission', () => {

@@ -22,9 +22,15 @@ assert.equal(
 );
 
 assert.equal(
-  homeContent.includes('四个核心入口'),
+  homeContent.includes('三个核心入口'),
   true,
-  '首页平台入口矩阵应与四个入口数量一致',
+  '首页平台入口矩阵应与三个入口数量一致',
+);
+
+assert.equal(
+  homeContent.includes('评审入口') || homeContent.includes("href: '/review'") || homeContent.includes('href="/review"'),
+  false,
+  '首页不应继续公开评审入口',
 );
 
 assert.equal(
@@ -41,6 +47,14 @@ assert.equal(
   combinedArenaContent.includes('竞技场大厅'),
   true,
   '/arena 页面应呈现竞技场大厅',
+);
+
+assert.equal(
+  combinedArenaContent.includes('ArenaPageShell') &&
+    combinedArenaContent.includes('课程：自动控制原理') &&
+    combinedArenaContent.includes('实践与拓展'),
+  true,
+  '/arena 页面应使用真实路径面包屑和竞技场页面壳层',
 );
 
 assert.equal(

@@ -53,6 +53,15 @@ describe('arena task filtering', () => {
     ]);
   });
 
+  it('searches related knowledge by display labels instead of node ids', () => {
+    const result = filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      query: '二阶系统标准型',
+    });
+
+    expect(result.map((task) => task.id)).toContain('task-second-order-lead-pid');
+    expect(result.map((task) => task.id)).not.toContain('task-cruise-roll-blackbox-identification');
+  });
+
   it('filters black-box virtual simulation and control odyssey tasks by source and method', () => {
     expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
       source: 'virtual-simulation',
