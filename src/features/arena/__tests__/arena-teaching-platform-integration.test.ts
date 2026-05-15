@@ -135,6 +135,19 @@ describe('arena teaching platform integration', () => {
       publicationId: publication.id,
       status: 'paused',
     })).resolves.toMatchObject({ status: 'paused' });
+
+    await expect(createArenaPublicationRecord(db as any, {
+      actor: { id: 'admin-1', role: 'ADMIN' },
+      taskId: 'task-integrator-low-frequency-balance',
+      classId: 'class-b',
+      visibility: 'class',
+      deadline: future,
+      leaderboardPolicyId: 'leaderboard-class-homework',
+      homeworkBinding: false,
+    })).resolves.toMatchObject({
+      teacherId: 'teacher-b',
+      classId: 'class-b',
+    });
   });
 
   it('resolves student access only for active visible publications and rejects other-class submissions', async () => {

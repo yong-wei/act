@@ -231,7 +231,7 @@ export async function createArenaPublicationRecord(
     data: {
       taskId: preview.taskId,
       classId: targetClass.id,
-      teacherId: input.actor.id,
+      teacherId: targetClass.teacherId,
       visibility: preview.studentVisibility,
       deadline: new Date(preview.deadline),
       leaderboardPolicyId: preview.leaderboardPolicyId,
