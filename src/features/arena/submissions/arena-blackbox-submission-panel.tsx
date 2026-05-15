@@ -29,9 +29,11 @@ function buildClientIdentificationReference(
 export function ArenaBlackBoxSubmissionPanel({
   task,
   initialSubmissions,
+  publicationId,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
+  publicationId?: string;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState('step');
@@ -159,7 +161,9 @@ export function ArenaBlackBoxSubmissionPanel({
     const response = await fetch('/api/arena/virtual-simulation-runs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id, artifact }),
+      body: publicationId
+        ? JSON.stringify({ taskId: task.id, artifact, publicationId })
+        : JSON.stringify({ taskId: task.id, artifact }),
     });
     const payload = await response.json() as {
       preview?: ArenaVirtualSimulationPreviewRun & { id: string };
@@ -218,8 +222,14 @@ export function ArenaBlackBoxSubmissionPanel({
     void sendArenaCoreEvent('arena_evaluation_complete', {
       taskId: task.id,
       method: payload.submission.artifact.method,
+      publicationId: publicationId ?? null,
       score: payload.submission.evaluation.score,
       valid: payload.submission.evaluation.valid,
+      artifactHash: payload.submission.artifactHash,
+      classId: payload.submission.classId ?? null,
+      metricProfileId: task.metricProfileId,
+      leaderboardPolicyId: task.leaderboardPolicyId,
+      metricsJson: JSON.stringify(payload.submission.evaluation.metrics),
     });
     void sendArenaCoreEvent('arena_result_view', {
       taskId: task.id,

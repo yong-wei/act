@@ -10,6 +10,8 @@ import {
   type ControllerId,
   type LevelTier
 } from '@/resources/interactive-learning/control-odyssey/level-data';
+import { bridgeOdysseyRunToArenaSubmission, getArenaTaskForOdysseyLevel } from '@/features/arena/odyssey/bridge';
+import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -499,6 +501,8 @@ export async function submitGameScore(
     enableFeedforward?: boolean;
     enableSmithPredictor?: boolean;
     difficultyScale?: number;
+    publicationId?: string;
+    seasonId?: string;
   }
 ) {
   const session = await getServerAuthSession();
@@ -593,6 +597,50 @@ export async function submitGameScore(
         controlControllerLevels: controllerLevels
       }
     });
+
+    const arenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
+    if (arenaTaskId) {
+      const bridgeResult = await bridgeOdysseyRunToArenaSubmission({
+        userId: session.user.id,
+        studentLabel: session.user.name ?? '匿名学生',
+        runId: runId as string,
+        levelId,
+        tier: context?.tier ?? 'bronze',
+        controllerId: context?.controllerId,
+        pidParams: context?.pidParams,
+        metrics,
+        publicationId: context?.publicationId,
+        seasonId: context?.seasonId,
+        submittedAt: log.createdAt.toISOString(),
+        submissionStore: prismaArenaSubmissionStore,
+        store: {
+          async findByOdysseyRun({ runId: odysseyRunId, taskId, publicationId }) {
+            const submissions = await prismaArenaSubmissionStore.listSubmissions({
+              taskId,
+              userId: session.user.id,
+              publicationId,
+            });
+            return submissions.find((submission) =>
+              (submission.artifact.params as Record<string, unknown>).odysseyRunId === odysseyRunId
+            ) ?? null;
+          },
+          async markOdysseyRunSubmitted() {
+            // The Arena submission itself carries the deterministic Odyssey run id.
+          },
+        },
+      });
+      if (!bridgeResult.ok) {
+        await prisma.simulationLog.update({
+          where: { id: log.id },
+          data: {
+            metrics: {
+              ...(metrics && typeof metrics === 'object' ? metrics : {}),
+              arenaBridge: bridgeResult,
+            },
+          },
+        });
+      }
+    }
 
     revalidatePath('/interactive-learning/control-odyssey');
     return log;

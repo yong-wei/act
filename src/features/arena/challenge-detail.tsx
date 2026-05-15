@@ -34,6 +34,7 @@ interface ChallengeDetailProps {
   metricProfile: MetricProfile;
   leaderboardPolicy: LeaderboardPolicy;
   submissions: ArenaSubmissionRecord[];
+  publicationId?: string;
 }
 
 export function ChallengeDetail({
@@ -42,13 +43,14 @@ export function ChallengeDetail({
   metricProfile,
   leaderboardPolicy,
   submissions,
+  publicationId,
 }: ChallengeDetailProps) {
   const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
     participantCount: 0,
     submissionCount: 0,
     topScore: null,
   };
-  const workspaceHref = getArenaWorkspaceHref(task, object);
+  const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
   const canSubmitWithCurrentEvaluator = getEvaluableControllerMethods(task).length > 0;
   const canSubmitWithBlackBoxEvaluator = object.visibility === 'black-box' &&
     object.adapterType === 'virtual-simulation' &&
@@ -176,9 +178,17 @@ export function ChallengeDetail({
             </div>
 
             {canSubmitWithCurrentEvaluator ? (
-              <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
+              publicationId ? (
+                <ArenaSubmissionPanel task={task} initialSubmissions={submissions} publicationId={publicationId} />
+              ) : (
+                <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
+              )
             ) : canSubmitWithBlackBoxEvaluator ? (
-              <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />
+              publicationId ? (
+                <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} publicationId={publicationId} />
+              ) : (
+                <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />
+              )
             ) : (
               <section className="surface-card p-6">
                 <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>

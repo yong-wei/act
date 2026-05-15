@@ -22,9 +22,11 @@ type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
 export function ArenaSubmissionPanel({
   task,
   initialSubmissions,
+  publicationId,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
+  publicationId?: string;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [kp, setKp] = useState('2.4');
@@ -150,7 +152,9 @@ export function ArenaSubmissionPanel({
     const response = await fetch('/api/arena/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id, artifact }),
+      body: publicationId
+        ? JSON.stringify({ taskId: task.id, artifact, publicationId })
+        : JSON.stringify({ taskId: task.id, artifact }),
     });
     const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
 
@@ -164,8 +168,14 @@ export function ArenaSubmissionPanel({
     void sendArenaCoreEvent('arena_evaluation_complete', {
       taskId: task.id,
       method: payload.submission.artifact.method,
+      publicationId: publicationId ?? null,
       score: payload.submission.evaluation.score,
       valid: payload.submission.evaluation.valid,
+      artifactHash: payload.submission.artifactHash,
+      classId: payload.submission.classId ?? null,
+      metricProfileId: task.metricProfileId,
+      leaderboardPolicyId: task.leaderboardPolicyId,
+      metricsJson: JSON.stringify(payload.submission.evaluation.metrics),
     });
     void sendArenaCoreEvent('arena_result_view', {
       taskId: task.id,

@@ -17,6 +17,9 @@ export interface ArenaSubmissionListOptions {
   taskId?: string;
   taskIds?: string[];
   userId?: string;
+  classId?: string;
+  seasonId?: string;
+  publicationId?: string;
   includeLegacyProtocols?: boolean;
 }
 
@@ -62,6 +65,8 @@ function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord
     userId: String(row.userId),
     classId: typeof row.classId === 'string' ? row.classId : undefined,
     seasonId: typeof row.seasonId === 'string' ? row.seasonId : undefined,
+    publicationId: typeof row.publicationId === 'string' ? row.publicationId : undefined,
+    isLate: Boolean(row.isLate),
     studentLabel: String(row.studentLabel),
     artifactHash: String(row.artifactHash),
     artifact: artifactRow.payload as ControllerArtifact,
@@ -158,6 +163,8 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         userId: input.userId,
         classId: input.classId ?? null,
         seasonId: input.seasonId ?? null,
+        publicationId: input.publicationId ?? null,
+        isLate: input.isLate ?? false,
         studentLabel: input.studentLabel,
         artifactHash: input.artifactHash,
         method: input.artifact.method,
@@ -179,6 +186,8 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       userId: String(row.userId),
       classId: typeof row.classId === 'string' ? row.classId : undefined,
       seasonId: typeof row.seasonId === 'string' ? row.seasonId : undefined,
+      publicationId: typeof row.publicationId === 'string' ? row.publicationId : undefined,
+      isLate: Boolean(row.isLate),
       studentLabel: String(row.studentLabel),
       artifactHash: String(row.artifactHash),
       artifact: (row.controllerArtifact as Record<string, unknown>).payload as ControllerArtifact,
@@ -188,6 +197,9 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async listSubmissions(options) {
+    if (!(prisma as any).arenaSubmission?.findMany) {
+      return [];
+    }
     const taskFilter = options?.taskId
       ? { taskId: options.taskId }
       : options?.taskIds?.length
@@ -199,6 +211,9 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         where: {
           ...taskFilter,
           ...(options?.userId ? { userId: options.userId } : {}),
+          ...(options?.classId ? { classId: options.classId } : {}),
+          ...(options?.seasonId ? { seasonId: options.seasonId } : {}),
+          ...(options?.publicationId ? { publicationId: options.publicationId } : {}),
         },
         include: {
           controllerArtifact: true,

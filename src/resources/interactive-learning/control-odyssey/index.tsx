@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { GameCanvas } from './components/GameCanvas';
@@ -92,6 +93,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   initialLevelId = 'level-1',
   showEducation = true,
 }) => {
+  const searchParams = useSearchParams();
+  const publicationId = searchParams.get('publicationId') ?? undefined;
   const {
     gameState,
     setGameState,
@@ -204,7 +207,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             enableSpeedFeedback,
             enableFeedforward,
             enableSmithPredictor,
-            difficultyScale
+            difficultyScale,
+            publicationId
           }
         );
 
@@ -242,6 +246,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     enableFeedforward,
     enableSmithPredictor,
     difficultyScale,
+    publicationId,
     personalBestScores,
     setControlCredits,
     setUnlockedControllers,

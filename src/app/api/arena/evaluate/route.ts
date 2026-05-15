@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
 import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/experiment-service';
 import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  ArenaPublicationAccessError,
+  resolveAccessibleArenaPublicationForStudent,
+} from '@/features/arena/teacher/publication-store';
 import type { ControllerArtifact } from '@/features/arena/types';
 
 export const dynamic = 'force-dynamic';
@@ -22,16 +27,30 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       taskId?: string;
       artifact?: ControllerArtifact;
+      publicationId?: string;
     };
 
     if (!body.taskId || !body.artifact) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
+    const publicationContext = typeof body.publicationId === 'string' && body.publicationId.trim().length > 0
+      ? await resolveAccessibleArenaPublicationForStudent(prisma as any, {
+        publicationId: body.publicationId,
+        studentId: session.user.id,
+        taskId: body.taskId,
+        now: new Date(),
+      })
+      : null;
+
     const submission = await createPersistedArenaSubmission({
       taskId: body.taskId,
       artifact: body.artifact,
       userId: session.user.id,
+      publicationId: publicationContext?.id,
+      classId: publicationContext?.classId,
+      seasonId: publicationContext?.seasonId,
+      isLate: publicationContext?.isLate,
       studentLabel: session.user.name ?? '匿名学生',
       submittedAt: new Date().toISOString(),
       store: prismaArenaSubmissionStore,
@@ -41,6 +60,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ submission });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof ArenaPublicationAccessError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof ArenaSubmissionInputError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

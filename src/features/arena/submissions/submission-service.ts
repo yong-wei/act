@@ -9,6 +9,8 @@ export interface ArenaSubmissionRecord {
   userId?: string;
   classId?: string;
   seasonId?: string;
+  publicationId?: string;
+  isLate?: boolean;
   studentLabel: string;
   artifactHash: string;
   artifact: ControllerArtifact;
@@ -24,6 +26,8 @@ export interface CreateArenaSubmissionInput {
   studentLabel: string;
   classId?: string;
   seasonId?: string;
+  publicationId?: string;
+  isLate?: boolean;
   submittedAt: string;
   existingSubmissions: ArenaSubmissionRecord[];
 }
@@ -41,6 +45,8 @@ export async function createArenaSubmission(input: CreateArenaSubmissionInput): 
     taskId: input.taskId,
     classId: input.classId,
     seasonId: input.seasonId,
+    publicationId: input.publicationId,
+    isLate: input.isLate,
     studentLabel: input.studentLabel,
     artifactHash,
     artifact,
