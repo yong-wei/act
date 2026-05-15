@@ -5,6 +5,7 @@ export * from './evaluation/types';
 export * from './evaluation/scoring';
 export * from './evaluation/evaluator';
 export * from './evaluation/protocol';
+export * from './evaluation/control-analysis-service';
 export * from './evaluation/controller-to-analysis-request';
 export * from './evaluation/whitebox-metric-provider';
 export * from './evaluation/metric-extraction';

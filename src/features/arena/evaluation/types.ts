@@ -1,4 +1,5 @@
 import type { ControllerArtifact } from '../types';
+import type { ControlAnalysisService } from './control-analysis-service';
 
 export interface HardConstraintResult {
   id: string;
@@ -28,4 +29,6 @@ export interface ArenaEvaluationResult {
 export interface WhiteBoxEvaluationInput {
   taskId: string;
   artifact: ControllerArtifact;
+  controlAnalysisService?: ControlAnalysisService;
+  metricProviderMode?: 'official' | 'template-preview';
 }

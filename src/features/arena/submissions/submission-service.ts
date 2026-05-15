@@ -28,13 +28,13 @@ export interface CreateArenaSubmissionInput {
   existingSubmissions: ArenaSubmissionRecord[];
 }
 
-export function createArenaSubmission(input: CreateArenaSubmissionInput): ArenaSubmissionRecord {
+export async function createArenaSubmission(input: CreateArenaSubmissionInput): Promise<ArenaSubmissionRecord> {
   const artifact = { ...input.artifact, taskId: input.taskId };
   const artifactHash = hashControllerArtifact(artifact);
   const duplicate = input.existingSubmissions.find(
     (submission) => submission.taskId === input.taskId && submission.artifactHash === artifactHash,
   );
-  const evaluation = duplicate?.evaluation ?? evaluateArenaSubmission({ taskId: input.taskId, artifact });
+  const evaluation = duplicate?.evaluation ?? await evaluateArenaSubmission({ taskId: input.taskId, artifact });
 
   return {
     id: `submission-${artifactHash}-${Date.parse(input.submittedAt) || 0}`,

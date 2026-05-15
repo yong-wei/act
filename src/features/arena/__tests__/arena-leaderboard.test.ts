@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { hashControllerArtifact } from '../submissions/artifact-hash';
 import { createArenaSubmission } from '../submissions/submission-service';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
+import type { StoredArenaEvaluation } from '../submissions/persistence';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import { buildArenaTaskStats } from '../stats';
 import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent, buildArenaInteractionEvent } from '../telemetry';
@@ -18,7 +19,7 @@ const pidArtifact: ControllerArtifact = {
 };
 
 describe('arena submissions and leaderboards', () => {
-  it('hashes controller artifacts independent of parameter key order', () => {
+  it('hashes controller artifacts independent of parameter key order', async () => {
     const reordered: ControllerArtifact = {
       ...pidArtifact,
       params: { kd: 0.35, kp: 2.4, ki: 0.8 },
@@ -28,15 +29,15 @@ describe('arena submissions and leaderboards', () => {
     expect(hashControllerArtifact(pidArtifact)).toMatch(/^artifact-[a-f0-9]{64}$/);
   });
 
-  it('reuses duplicate evaluation results for identical task and controller artifact', () => {
-    const first = createArenaSubmission({
+  it('reuses duplicate evaluation results for identical task and controller artifact', async () => {
+    const first = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '学生甲',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const second = createArenaSubmission({
+    const second = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: { ...pidArtifact, id: 'artifact-b' },
       studentLabel: '学生甲',
@@ -49,15 +50,15 @@ describe('arena submissions and leaderboards', () => {
     expect(second.artifactHash).toBe(first.artifactHash);
   });
 
-  it('orders main and method leaderboards by score and stable tie breakers', () => {
-    const good = createArenaSubmission({
+  it('orders main and method leaderboards by score and stable tie breakers', async () => {
+    const good = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '学生甲',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const weaker = createArenaSubmission({
+    const weaker = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -78,8 +79,8 @@ describe('arena submissions and leaderboards', () => {
     expect(method.entries.every((entry) => entry.method === 'pid')).toBe(true);
   });
 
-  it('uses leaderboard policy metric tie breakers before submitted time', () => {
-    const first = createArenaSubmission({
+  it('uses leaderboard policy metric tie breakers before submitted time', async () => {
+    const first = await createArenaSubmission({
       taskId: 'task-integrator-low-frequency-balance',
       artifact: {
         ...pidArtifact,
@@ -91,7 +92,7 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const second = createArenaSubmission({
+    const second = await createArenaSubmission({
       taskId: 'task-integrator-low-frequency-balance',
       artifact: {
         ...pidArtifact,
@@ -116,8 +117,8 @@ describe('arena submissions and leaderboards', () => {
     expect(leaderboard.entries[0]?.studentLabel).toBe('误差较小');
   });
 
-  it('keeps only each student best submission on the main leaderboard', () => {
-    const first = createArenaSubmission({
+  it('keeps only each student best submission on the main leaderboard', async () => {
+    const first = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -128,14 +129,14 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const improved = createArenaSubmission({
+    const improved = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '学生甲',
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [first],
     });
-    const other = createArenaSubmission({
+    const other = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -159,15 +160,15 @@ describe('arena submissions and leaderboards', () => {
     expect(leaderboard.entries.find((entry) => entry.studentLabel === '学生甲')?.submissionId).toBe(improved.id);
   });
 
-  it('orders metric leaderboards by the selected metric instead of main score', () => {
-    const highScoreHighEnergy = createArenaSubmission({
+  it('orders metric leaderboards by the selected metric instead of main score', async () => {
+    const highScoreHighEnergy = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '高分高能耗',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const lowScoreLowEnergy = createArenaSubmission({
+    const lowScoreLowEnergy = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -196,15 +197,15 @@ describe('arena submissions and leaderboards', () => {
     });
   });
 
-  it('excludes hard-constraint failures from official leaderboards', () => {
-    const valid = createArenaSubmission({
+  it('excludes hard-constraint failures from official leaderboards', async () => {
+    const valid = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '有效方案',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const invalid = createArenaSubmission({
+    const invalid = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -229,8 +230,8 @@ describe('arena submissions and leaderboards', () => {
     expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效方案']);
   });
 
-  it('classifies Pareto front entries and records dominance evidence', () => {
-    const fast = createArenaSubmission({
+  it('classifies Pareto front entries and records dominance evidence', async () => {
+    const fast = await createArenaSubmission({
       taskId: 'task-delay-robust-pareto',
       artifact: {
         ...pidArtifact,
@@ -242,7 +243,7 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const efficient = createArenaSubmission({
+    const efficient = await createArenaSubmission({
       taskId: 'task-delay-robust-pareto',
       artifact: {
         ...pidArtifact,
@@ -254,7 +255,7 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [fast],
     });
-    const dominated = createArenaSubmission({
+    const dominated = await createArenaSubmission({
       taskId: 'task-delay-robust-pareto',
       artifact: {
         ...pidArtifact,
@@ -294,9 +295,9 @@ describe('arena submissions and leaderboards', () => {
     );
   });
 
-  it('filters class and season leaderboards by persisted submission scope', () => {
+  it('filters class and season leaderboards by persisted submission scope', async () => {
     const classA = {
-      ...createArenaSubmission({
+      ...(await createArenaSubmission({
         taskId: 'task-integrator-low-frequency-balance',
         artifact: {
           ...pidArtifact,
@@ -306,12 +307,12 @@ describe('arena submissions and leaderboards', () => {
         studentLabel: '甲班学生',
         submittedAt: '2026-05-10T10:01:00.000Z',
         existingSubmissions: [],
-      }),
+      })),
       classId: 'class-a',
       seasonId: 'spring-2026',
     };
     const classB = {
-      ...createArenaSubmission({
+      ...(await createArenaSubmission({
         taskId: 'task-integrator-low-frequency-balance',
         artifact: {
           ...pidArtifact,
@@ -322,7 +323,7 @@ describe('arena submissions and leaderboards', () => {
         studentLabel: '乙班学生',
         submittedAt: '2026-05-10T10:02:00.000Z',
         existingSubmissions: [classA],
-      }),
+      })),
       classId: 'class-b',
       seasonId: 'spring-2026',
     };
@@ -363,15 +364,15 @@ describe('arena submissions and leaderboards', () => {
     } as any).entries).toEqual([]);
   });
 
-  it('requires an explicit method for method leaderboard filtering', () => {
-    const pid = createArenaSubmission({
+  it('requires an explicit method for method leaderboard filtering', async () => {
+    const pid = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: 'PID 学生',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const serial = createArenaSubmission({
+    const serial = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         ...pidArtifact,
@@ -383,7 +384,7 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [pid],
     });
-    const composite = createArenaSubmission({
+    const composite = await createArenaSubmission({
       taskId: 'task-third-order-block-diagram',
       artifact: {
         id: 'artifact-composite-leaderboard',
@@ -419,7 +420,7 @@ describe('arena submissions and leaderboards', () => {
     }).entries.map((entry) => entry.studentLabel)).toEqual(['复合校正学生']);
   });
 
-  it('defines core Arena telemetry events compatible with the L0 event boundary', () => {
+  it('defines core Arena telemetry events compatible with the L0 event boundary', async () => {
     expect(ARENA_CORE_EVENT_TYPES).toEqual([
       'arena_challenge_open',
       'arena_workspace_start',
@@ -471,26 +472,35 @@ describe('arena submissions and leaderboards', () => {
 
   it('reuses official evaluations from the persistence store instead of route-local memory', async () => {
     const calls: string[] = [];
+    const evaluationRows = new Map<string, StoredArenaEvaluation>();
+    const artifactHash = hashControllerArtifact(pidArtifact);
+    evaluationRows.set(`${pidArtifact.taskId}:${artifactHash}:template-whitebox-v1`, {
+      id: 'eval-legacy-template',
+      taskId: pidArtifact.taskId,
+      artifactHash,
+      protocolVersion: 'template-whitebox-v1',
+      result: {
+        taskId: pidArtifact.taskId,
+        artifact: pidArtifact,
+        valid: true,
+        score: 12,
+        metrics: { settlingTime: 8, overshoot: 20, steadyStateError: 0.08, itae: 9 },
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: ['legacy template cache'],
+      },
+      completedAt: '2026-05-10T09:00:00.000Z',
+    });
     const store = {
-      findEvaluationByHash: vi.fn()
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          id: 'eval-existing',
-          taskId: pidArtifact.taskId,
-          artifactHash: hashControllerArtifact(pidArtifact),
-          protocolVersion: 'template-whitebox-v1',
-          result: createArenaSubmission({
-            taskId: pidArtifact.taskId,
-            artifact: pidArtifact,
-            studentLabel: '学生甲',
-            submittedAt: '2026-05-10T10:01:00.000Z',
-            existingSubmissions: [],
-          }).evaluation,
-          completedAt: '2026-05-10T10:01:00.000Z',
-        }),
-      createEvaluation: vi.fn(async (evaluation) => {
+      findEvaluationByHash: vi.fn(async (taskId: string, hash: string, protocolVersion: string) =>
+        evaluationRows.get(`${taskId}:${hash}:${protocolVersion}`) ?? null,
+      ),
+      createEvaluation: vi.fn(async (evaluation: Omit<StoredArenaEvaluation, 'id'>) => {
         calls.push('createEvaluation');
-        return { ...evaluation, id: 'eval-created' };
+        const row = { ...evaluation, id: 'eval-created' };
+        evaluationRows.set(`${evaluation.taskId}:${evaluation.artifactHash}:${evaluation.protocolVersion}`, row);
+        return row;
       }),
       upsertArtifact: vi.fn(async (artifact) => {
         calls.push('upsertArtifact');
@@ -521,23 +531,23 @@ describe('arena submissions and leaderboards', () => {
 
     expect(first.reusedEvaluation).toBe(false);
     expect(second.reusedEvaluation).toBe(true);
-    expect(store.findEvaluationByHash).toHaveBeenCalledWith(pidArtifact.taskId, hashControllerArtifact(pidArtifact), 'template-whitebox-v1');
+    expect(store.findEvaluationByHash).toHaveBeenCalledWith(pidArtifact.taskId, artifactHash, 'analysis-whitebox-v1');
     expect(store.createEvaluation).toHaveBeenCalledTimes(1);
     expect(store.createEvaluation).toHaveBeenCalledWith(expect.objectContaining({
-      protocolVersion: 'template-whitebox-v1',
+      protocolVersion: 'analysis-whitebox-v1',
     }));
     expect(store.createSubmission).toHaveBeenCalledTimes(2);
   });
 
-  it('builds task stats from real submissions and leaves empty tasks without fake scores', () => {
-    const first = createArenaSubmission({
+  it('builds task stats from real submissions and leaves empty tasks without fake scores', async () => {
+    const first = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
       studentLabel: '学生甲',
       submittedAt: '2026-05-10T10:01:00.000Z',
       existingSubmissions: [],
     });
-    const second = createArenaSubmission({
+    const second = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: { ...pidArtifact, id: 'artifact-stats-b', params: { kp: 1.1, ki: 0.2, kd: 0.08 } },
       studentLabel: '学生乙',

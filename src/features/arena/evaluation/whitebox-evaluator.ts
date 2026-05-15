@@ -7,7 +7,12 @@ import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile,
 import type { ArenaEvaluationPenalty, ArenaEvaluationResult, HardConstraintResult, WhiteBoxEvaluationInput } from './types';
 import { normalizeMetricValue } from './scoring';
 import { evaluateMetricProfile } from './metric-profile-evaluator';
-import { selectWhiteBoxMetricProvider } from './whitebox-metric-provider';
+import {
+  createHeuristicWhiteBoxMetricProvider,
+  normalizeWhiteBoxMetricProviderOutput,
+  selectWhiteBoxMetricProvider,
+  type WhiteBoxMetricProviderOutput,
+} from './whitebox-metric-provider';
 
 export interface ControllerSummary {
   effectiveGain: number;
@@ -452,8 +457,12 @@ function evaluateHardConstraints(
   metricProfile: MetricProfile,
   controller: ControllerSummary,
   metrics: Record<string, number>,
+  providerOutput?: WhiteBoxMetricProviderOutput,
 ): HardConstraintResult[] {
-  const stable = controller.finite && controller.nonNegative && controller.closedLoopStable;
+  const stable = controller.finite &&
+    controller.nonNegative &&
+    controller.closedLoopStable &&
+    (providerOutput?.analysisClosedLoopStable ?? true);
   const controlEnergyLimit = metricProfile.rankingMetrics.find((metric) => metric.id === 'controlEnergy')?.unacceptableValue ?? 24;
   const controlNotSaturated = (metrics.controlEnergy ?? Number.POSITIVE_INFINITY) <= controlEnergyLimit;
   const controlConstraintPassed = !object.tags.includes('频域约束') || controlNotSaturated;
@@ -494,6 +503,20 @@ function evaluateHardConstraints(
       label: '隐藏场景通过',
       passed: hiddenScenarioPassed,
       reason: hiddenScenarioPassed ? undefined : `隐藏场景最差表现超过不可接受值 ${hiddenScenarioLimit}。`,
+    });
+  }
+
+  const requiredMetrics = metricProfile.rankingMetrics.map((metric) => metric.id);
+  const analysisBacked = providerOutput?.analysisClosedLoopStable !== undefined;
+  const missingAnalysisMetrics = requiredMetrics.filter((metricId) =>
+    analysisBacked && !Number.isFinite(metrics[metricId]),
+  );
+  if (missingAnalysisMetrics.length > 0) {
+    results.push({
+      id: 'analysis_metrics_available',
+      label: '分析指标可用',
+      passed: false,
+      reason: `ControlAnalysisResult 缺少必要指标：${missingAnalysisMetrics.join(', ')}。`,
     });
   }
 
@@ -552,7 +575,7 @@ function computePenalties(metrics: Record<string, number>): ArenaEvaluationPenal
   return penalties;
 }
 
-export function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): ArenaEvaluationResult {
+export async function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): Promise<ArenaEvaluationResult> {
   const task = getArenaChallengeTask(input.taskId);
   if (!task) {
     throw new Error(`Unknown arena task: ${input.taskId}`);
@@ -571,22 +594,34 @@ export function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): Aren
   }
 
   const controller = summarizeController(input.artifact, object.model);
-  const provider = selectWhiteBoxMetricProvider(input.artifact.method);
-  const metrics = provider.evaluate({
+  const provider = input.metricProviderMode === 'template-preview' || controller.validationErrors.length > 0
+    ? createHeuristicWhiteBoxMetricProvider()
+    : selectWhiteBoxMetricProvider(input.artifact.method, {
+      controlAnalysisService: input.controlAnalysisService,
+    });
+  const providerOutput = normalizeWhiteBoxMetricProviderOutput(await provider.evaluate({
     task,
     object,
     artifact: input.artifact,
-  });
-  const hardConstraintResults = evaluateHardConstraints(task, object, metricProfile, controller, metrics);
+  }));
+  const hardConstraintResults = evaluateHardConstraints(task, object, metricProfile, controller, providerOutput.metrics, providerOutput);
 
-  return evaluateMetricProfile({
+  const result = evaluateMetricProfile({
     taskId: task.id,
     artifact: input.artifact,
     metricProfile,
-    metrics,
+    metrics: providerOutput.metrics,
     hardConstraintResults,
     primaryMetrics: task.primaryMetrics,
   });
+
+  return {
+    ...result,
+    explanation: [
+      ...result.explanation,
+      ...providerOutput.explanation,
+    ],
+  };
 }
 
 function buildSatisfaction(metricProfile: MetricProfile, metrics: Record<string, number>): Record<string, number> {
