@@ -160,6 +160,9 @@ describe('arena black-box identification evaluation', () => {
   it('keeps white-box and black-box protocols separate, partitioned by method family', () => {
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'pid' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'serial-compensator' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-third-order-block-diagram', method: 'composite-compensation' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-ship-roll-optimized-pid-robust', method: 'optimized-pid' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-ship-roll-mpc-hidden-scenarios', method: 'mpc' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-cruise-roll-blackbox-identification', method: 'black-box-control' })).toBe('blackbox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'code-controller' })).toBe('code-sandbox-disabled-v1');

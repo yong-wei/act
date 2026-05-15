@@ -1,6 +1,5 @@
 import { ArenaHall } from '@/features/arena/arena-hall';
-import { ARENA_CHALLENGE_TASKS } from '@/features/arena';
-import { buildArenaTaskStats } from '@/features/arena/stats';
+import { ARENA_CHALLENGE_TASKS, buildArenaTaskStats } from '@/features/arena/domain';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
 export const dynamic = 'force-dynamic';

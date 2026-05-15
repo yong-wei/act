@@ -23,4 +23,3 @@ export * from './workbench/capabilities';
 export * from './workbench/context';
 export * from './workbench/metric-mapping';
 export * from './workbench/artifact-mappers';
-export * from './adapters/plant-adapter';

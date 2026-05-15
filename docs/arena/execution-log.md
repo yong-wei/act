@@ -82,9 +82,10 @@
 
 ### 白箱官方评测现状
 
-`whitebox-evaluator.ts:L501` 使用 `estimateMetrics` 函数进行启发式指标估算：
-- 估算调节时间、超调量、稳态误差、控制能量等
-- 不是从 Rust/WASM ControlAnalysisResult 提取真实仿真指标
+当前白箱官方评测使用同步 heuristic template provider：
+- `evaluateWhiteBoxSubmission` 通过 `selectWhiteBoxMetricProvider(method)` 获取指标 provider
+- provider 内部包装 `estimateMetrics`，估算调节时间、超调量、稳态误差、控制能量等
+- `template-whitebox-v1` 是当前启用协议；`analysis-whitebox-v1` 仅预留给后续服务端 `ControlAnalysisResult` 评测
 - 满意度归一化和评分公式（`scoring.ts`）体系正确，可复用
 
 ### 基线测试结果

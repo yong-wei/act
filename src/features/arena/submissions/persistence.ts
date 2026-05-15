@@ -10,8 +10,6 @@ import {
 import { hashControllerArtifact } from './artifact-hash';
 import type { ArenaSubmissionRecord } from './submission-service';
 
-export const ARENA_EVALUATION_PROTOCOL_VERSION = 'whitebox-v1';
-
 export class ArenaSubmissionInputError extends Error {
   constructor(message: string) {
     super(message);
