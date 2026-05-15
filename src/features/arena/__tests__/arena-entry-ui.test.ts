@@ -17,6 +17,8 @@ describe('arena student entry UI boundaries', () => {
     const authLayoutSource = readRepoFile('src/app/(auth)/layout.tsx');
 
     expect(hallSource).toContain('ArenaPageShell');
+    expect(hallSource).toContain("from './display-labels'");
+    expect(hallSource).not.toContain("from '@/features/arena'");
     expect(detailSource).toContain('ArenaPageShell');
     expect(hallSource).toContain('课程：自动控制原理');
     expect(detailSource).toContain('`/arena/challenges/${task.id}`');

@@ -267,6 +267,10 @@ describe('arena black-box identification evaluation', () => {
       join(process.cwd(), 'src/features/arena/challenge-detail.tsx'),
       'utf8',
     );
+    const cruiseSimulationPageSource = readFileSync(
+      join(process.cwd(), 'src/app/simulations/cruise/page.tsx'),
+      'utf8',
+    );
     const panelSource = readFileSync(
       join(process.cwd(), 'src/features/arena/submissions/arena-blackbox-submission-panel.tsx'),
       'utf8',
@@ -274,6 +278,10 @@ describe('arena black-box identification evaluation', () => {
 
     expect(detailSource).not.toContain('<ArenaBlackBoxSubmissionPanel');
     expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
+    expect(cruiseSimulationPageSource).toContain('searchParams');
+    expect(cruiseSimulationPageSource).toContain('resolveArenaWorkbenchContext');
+    expect(cruiseSimulationPageSource).toContain('<ArenaBlackBoxSubmissionPanel');
+    expect(cruiseSimulationPageSource).toContain("workspaceMode === 'black-box-identification'");
     expect(panelSource).toContain('buildBlackBoxControlArtifactFromParams');
     expect(panelSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
     expect(panelSource).toContain('identificationModelId: identificationModel.modelId');

@@ -12,20 +12,21 @@ import {
 } from 'lucide-react';
 
 import { ArenaPageShell } from './arena-page-shell';
+import { ARENA_CHALLENGE_TASKS, getArenaChallengeObject } from './data/seed-challenges';
 import {
-  ARENA_CHALLENGE_TASKS,
   arenaMethodLabels,
   arenaSourceLabels,
   arenaVisibilityLabels,
   arenaWorkspaceLabels,
-  filterArenaChallengeTasks,
-  getArenaChallengeObject,
+} from './display-labels';
+import { filterArenaChallengeTasks } from './filtering';
+import {
   type ChallengeObjectSource,
   type ControllerMethod,
   type LeaderboardType,
   type ModelVisibility,
   type ArenaTaskStats,
-} from '@/features/arena';
+} from './types';
 
 const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
   { value: 'all', label: '全部来源' },
