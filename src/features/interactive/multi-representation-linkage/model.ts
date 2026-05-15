@@ -794,8 +794,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     const nextZeros = toPoleZeroPoints(seed.zeros, 'z');
     setModelPoles(nextPoles);
     setModelZeros(nextZeros);
-    setGain(1);
-    setClosedLoopGain(1);
+    setGain(seed.gain);
+    setClosedLoopGain(seed.gain);
     if (object.timeRange) setTimeRange(object.timeRange);
     if (object.frequencyRange) setFrequencyRange(object.frequencyRange);
     setCorrectionState({
