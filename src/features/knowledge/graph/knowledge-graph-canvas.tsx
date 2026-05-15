@@ -19,6 +19,10 @@ import {
 } from './visual-config';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
 import { CHAPTER_NODE_PREFIX } from './filter-utils';
+import {
+  shouldRenderKnowledgeNodeLabel,
+  type KnowledgeGraphLabelMode,
+} from './label-policy';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -27,6 +31,7 @@ interface KnowledgeGraphCanvasProps {
   hoveredNode: KnowledgeNodeData | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
+  labelMode: KnowledgeGraphLabelMode;
 }
 
 // ========== 几何体创建函数 ==========
@@ -103,6 +108,7 @@ export function KnowledgeGraphCanvas({
   hoveredNode,
   onNodeClick,
   onNodeHover,
+  labelMode,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>();
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -241,13 +247,19 @@ export function KnowledgeGraphCanvas({
       group.add(ring);
     }
 
-    // 5. 创建标签（始终显示）
-    const sprite = createTextSprite(node.name, isLightTheme);
-    sprite.position.set(0, 10, 0);
-    group.add(sprite);
+    if (shouldRenderKnowledgeNodeLabel({
+      labelMode,
+      nodeId: node.id,
+      selectedNodeId: selectedNode?.id,
+      hoveredNodeId: hoveredNode?.id,
+    })) {
+      const sprite = createTextSprite(node.name, isLightTheme);
+      sprite.position.set(0, 10, 0);
+      group.add(sprite);
+    }
 
     return group;
-  }, [selectedNode, hoveredNode, isLightTheme]);
+  }, [selectedNode, hoveredNode, isLightTheme, labelMode]);
 
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {
@@ -274,12 +286,12 @@ export function KnowledgeGraphCanvas({
   useEffect(() => {
     if (fgRef.current) {
       // 配置力导向参数（降低斥力使节点更紧凑）
-      fgRef.current.d3Force('charge').strength(-80);
-      fgRef.current.d3Force('link').distance(50);
+      fgRef.current.d3Force('charge').strength(-110);
+      fgRef.current.d3Force('link').distance(70);
 
       // 添加碰撞检测
       const d3 = require('d3');
-      fgRef.current.d3Force('collide', d3.forceCollide(15).strength(0.8));
+      fgRef.current.d3Force('collide', d3.forceCollide(22).strength(0.85));
     }
   }, []);
 

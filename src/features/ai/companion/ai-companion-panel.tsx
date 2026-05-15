@@ -1,6 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import {
+  attemptOutcomeToSuccess,
+  canRecordAttempt,
+  getFeedbackStatusMessage,
+  type AttemptOutcome,
+  type FeedbackSubmissionState,
+} from './attempt-feedback-state';
 
 interface AttemptInput {
   kp: number;
@@ -10,7 +17,6 @@ interface AttemptInput {
   settlingTime: number;
   comfortIndex: number;
   stabilityMargin: number;
-  isSuccessful: boolean;
 }
 
 interface InterventionDecision {
@@ -56,12 +62,14 @@ export function AICompanionPanel({
     settlingTime: 35,
     comfortIndex: 18,
     stabilityMargin: 32,
-    isSuccessful: false,
   });
 
+  const [attemptOutcome, setAttemptOutcome] = useState<AttemptOutcome>(null);
+  const [attemptNotice, setAttemptNotice] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackState, setFeedbackState] = useState<FeedbackSubmissionState>({ status: 'idle' });
 
   const studentState = useMemo(
     () => ({
@@ -74,6 +82,12 @@ export function AICompanionPanel({
   );
 
   const addAttempt = () => {
+    const isSuccessful = attemptOutcomeToSuccess(attemptOutcome);
+    if (isSuccessful === null) {
+      setAttemptNotice('请选择本次尝试结果后再记录');
+      return;
+    }
+
     setAttempts((prev) => [
       ...prev,
       {
@@ -85,9 +99,11 @@ export function AICompanionPanel({
           comfortIndex: current.comfortIndex,
           stabilityMargin: current.stabilityMargin,
         },
-        isSuccessful: current.isSuccessful,
+        isSuccessful,
       },
     ]);
+    setAttemptOutcome(null);
+    setAttemptNotice(null);
   };
 
   const requestIntervention = async () => {
@@ -106,6 +122,7 @@ export function AICompanionPanel({
 
       const data = (await response.json()) as GenerateResponse;
       setResult(data);
+      setFeedbackState({ status: 'idle' });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '未知错误');
     } finally {
@@ -115,17 +132,37 @@ export function AICompanionPanel({
 
   const sendFeedback = async (wasHelpful: boolean) => {
     if (!result) return;
+    if (feedbackState.status === 'submitting' || feedbackState.status === 'success') return;
 
-    await fetch('/api/ai/intervention/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId,
-        interventionId: result.interventionId,
-        wasHelpful,
-      }),
-    });
+    setFeedbackState({ status: 'submitting' });
+    try {
+      const response = await fetch('/api/ai/intervention/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          interventionId: result.interventionId,
+          wasHelpful,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('反馈提交失败');
+      }
+
+      setFeedbackState({ status: 'success' });
+    } catch (feedbackError) {
+      setFeedbackState({
+        status: 'error',
+        message: feedbackError instanceof Error ? feedbackError.message : '反馈提交失败',
+      });
+    }
   };
+
+  const feedbackStatusMessage = getFeedbackStatusMessage(feedbackState);
+  const feedbackButtonsDisabled =
+    feedbackState.status === 'submitting' || feedbackState.status === 'success';
+  const recordAttemptDisabled = !canRecordAttempt(attemptOutcome);
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-300 bg-white/95 p-3 text-slate-900">
@@ -158,20 +195,44 @@ export function AICompanionPanel({
         ))}
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-slate-700">
-        <input
-          type="checkbox"
-          checked={current.isSuccessful}
-          onChange={(event) => setCurrent((prev) => ({ ...prev, isSuccessful: event.target.checked }))}
-        />
-        本次尝试是否成功
-      </label>
+      <fieldset className="space-y-2 text-xs text-slate-700">
+        <legend className="font-medium text-slate-800">本次尝试是否成功</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            ['success', '成功'],
+            ['failure', '失败'],
+          ] as const).map(([value, label]) => (
+            <label
+              key={value}
+              className={`flex cursor-pointer items-center justify-center gap-2 rounded border px-3 py-2 transition ${
+                attemptOutcome === value
+                  ? 'border-sky-600 bg-sky-50 text-sky-800'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <input
+                type="radio"
+                name="attempt-outcome"
+                value={value}
+                checked={attemptOutcome === value}
+                onChange={() => setAttemptOutcome(value)}
+                className="accent-sky-700"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {attemptNotice || recordAttemptDisabled ? (
+        <div className="text-xs text-amber-700">请选择本次尝试结果后再记录</div>
+      ) : null}
 
       <div className="flex gap-2">
         <button
           type="button"
           onClick={addAttempt}
-          className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+          disabled={recordAttemptDisabled}
+          className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           记录尝试
         </button>
@@ -209,18 +270,30 @@ export function AICompanionPanel({
             <button
               type="button"
               onClick={() => void sendFeedback(true)}
-              className="rounded border border-transparent bg-sky-700 px-2 py-1 text-xs text-white transition hover:bg-sky-600"
+              disabled={feedbackButtonsDisabled}
+              className="rounded border border-transparent bg-sky-700 px-2 py-1 text-xs text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               建议有帮助
             </button>
             <button
               type="button"
               onClick={() => void sendFeedback(false)}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 transition hover:bg-slate-100"
+              disabled={feedbackButtonsDisabled}
+              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               建议需改进
             </button>
           </div>
+          {feedbackStatusMessage ? (
+            <div
+              role="status"
+              className={`text-xs ${
+                feedbackState.status === 'error' ? 'text-red-700' : 'text-emerald-700'
+              }`}
+            >
+              {feedbackStatusMessage}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

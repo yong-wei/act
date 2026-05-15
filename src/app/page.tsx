@@ -22,6 +22,13 @@ import {
 
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   ShipModelPreview,
   getShipModelPosterPath,
   preloadShipModel,
@@ -154,6 +161,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showCourseDesignDialog, setShowCourseDesignDialog] = useState(false)
   const [homeDynamicModelEnabled, setHomeDynamicModelEnabled] = useState(false)
   const [connectionHint, setConnectionHint] = useState<ConnectionHint | undefined>(undefined)
   const totalSlides = shipScenarios.length
@@ -335,7 +343,12 @@ export default function HomePage() {
                     {currentScenario.ctaLabel ?? '开启任务链'}
                   </Button>
                 )}
-                <Button variant="outline" className="btn-ghost-themed border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="btn-ghost-themed border"
+                  onClick={() => setShowCourseDesignDialog(true)}
+                >
                   了解课程设计
                 </Button>
               </div>
@@ -457,6 +470,37 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      <Dialog open={showCourseDesignDialog} onOpenChange={setShowCourseDesignDialog}>
+        <DialogContent className="max-w-2xl border-border bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">虚拟仿真要求和背景知识</DialogTitle>
+            <DialogDescription className="text-subtle">
+              当前任务：{currentScenario.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 text-sm leading-6 text-subtle md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-background/45 p-4">
+              <div className="mb-3 text-sm font-semibold text-foreground">虚拟仿真要求</div>
+              <ul className="space-y-2">
+                <li>识别控制对象、任务目标、主要扰动与执行器约束，再进入仿真操作。</li>
+                <li>围绕稳定性、超调量、响应时间、稳态误差和控制能耗观察响应变化。</li>
+                <li>每次调整参数后记录现象、判断原因，并说明方案是否满足任务指标。</li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-border bg-background/45 p-4">
+              <div className="mb-3 text-sm font-semibold text-foreground">背景知识</div>
+              <ul className="space-y-2">
+                <li>船舶与海工平台会同时受到风、浪、流、负载变化和测量噪声影响。</li>
+                <li>不同任务分别对应定位控制、时滞控制、变质量控制、频域舒适度和快速机动等问题。</li>
+                <li>仿真重点不是完成点击流程，而是把响应曲线与控制原理中的指标建立对应关系。</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 登录弹窗 */}
       <LoginModal

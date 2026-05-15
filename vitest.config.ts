@@ -13,8 +13,11 @@ export default defineConfig({
     include: [
       'src/lib/__tests__/**/*.test.ts',
       'src/lib/data-governance/__tests__/**/*.test.ts',
+      'src/app/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.tsx',
+      'src/features/ai/__tests__/**/*.test.ts',
+      'src/features/knowledge/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.tsx',
       'src/app/api/classes/**/__tests__/**/*.test.ts',
