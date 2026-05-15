@@ -36,7 +36,7 @@ export interface ArenaPublicationRecord extends ArenaChallengePublication {
 export interface ArenaResolvedSubmissionContext {
   id: string;
   taskId: string;
-  classId: string;
+  classId?: string;
   seasonId?: string;
   isLate: boolean;
   deadline: string;
@@ -341,11 +341,14 @@ export async function resolveAccessibleArenaPublicationForStudent(
   if (isLate && publication.gradingPolicy.allowLateSubmissions !== true && input.allowAfterDeadline !== true) {
     throw new ArenaPublicationAccessError('Arena publication deadline has passed.');
   }
+  const submissionClassId = publication.visibility === 'class'
+    ? publication.classId
+    : studentClassId ?? undefined;
 
   return {
     id: publication.id,
     taskId: publication.taskId,
-    classId: publication.classId,
+    classId: submissionClassId,
     seasonId: typeof publication.gradingPolicy.seasonId === 'string' ? publication.gradingPolicy.seasonId : undefined,
     isLate,
     deadline: publication.deadline,

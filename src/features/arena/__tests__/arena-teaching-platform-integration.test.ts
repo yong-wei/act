@@ -167,6 +167,29 @@ describe('arena teaching platform integration', () => {
     })).rejects.toThrow(/not allowed/i);
   });
 
+  it('scopes course-wide publication submissions to the submitting student class', async () => {
+    const db = createMockDb();
+    const publication = await createArenaPublicationRecord(db as any, {
+      actor: { id: 'teacher-a', role: 'TEACHER' },
+      taskId: 'task-second-order-lead-pid',
+      classId: 'class-a',
+      visibility: 'course',
+      deadline: future,
+      leaderboardPolicyId: 'leaderboard-whitebox-default',
+      homeworkBinding: false,
+    });
+
+    await expect(resolveAccessibleArenaPublicationForStudent(db as any, {
+      publicationId: publication.id,
+      studentId: 'student-b',
+      taskId: 'task-second-order-lead-pid',
+      now: new Date('2026-05-15T10:00:00.000Z'),
+    })).resolves.toMatchObject({
+      id: publication.id,
+      classId: 'class-b',
+    });
+  });
+
   it('filters publication leaderboard entries and hides class ranking before deadline', () => {
     const own = submission({ id: 'own', userId: 'student-a', publicationId: 'publication-1' });
     const other = submission({ id: 'other', userId: 'student-b', publicationId: 'publication-1', studentLabel: '学生乙' });
