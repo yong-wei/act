@@ -209,11 +209,12 @@ export function summarizeController(artifact: ControllerArtifact, model: Transfe
     const safeGain = gain ?? 0;
     const safeZero = zero ?? 0;
     const safePole = pole ?? 1;
-    const controllerNumerator = [safeGain, safeGain * safeZero];
+    const serialShape = safeZero > 0 ? safePole / safeZero : 0;
+    const controllerNumerator = [safeGain * serialShape, safeGain * safePole];
     const controllerDenominator = [1, safePole];
 
     return {
-      effectiveGain: dcGain(model) * safeGain * Math.max(0.2, safeZero / Math.max(safePole, 0.2)),
+      effectiveGain: dcGain(model) * safeGain,
       proportional: safeGain,
       integral: 0,
       derivative: Math.max(0, safePole - safeZero) / Math.max(safePole, 1),

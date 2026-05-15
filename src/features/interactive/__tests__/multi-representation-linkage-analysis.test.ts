@@ -328,6 +328,31 @@ describe('multi representation linkage analysis adapter', () => {
     }, false)[0]?.params).toMatchObject({ k: 0.4, tau: 2, beta: 4 });
   });
 
+  it('can keep controller gain as the explicit root-locus gain for corrected workbench requests', () => {
+    const correctionShape = correctionToStructures({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: true,
+      kind: 'lead',
+      controllerGain: 2.5,
+      leadZeroFrequency: 2,
+      leadPoleFrequency: 8,
+    }, false, { includeControllerGain: false });
+    const request = buildLinkageAnalysisRequest({
+      poles: [{ re: -1, im: 0 }],
+      zeros: [],
+      gain: 2.5,
+      rootLocusGain: 2.5,
+      correctionStructures: correctionShape,
+      responseType: 'step',
+    });
+
+    expect(request.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 2.5 }, label: 'K' },
+      { kind: 'lead', enabled: true, params: { k: 1, tau: 0.5, alpha: 0.25 }, label: 'C(s)' },
+    ]);
+    expect(request.rootLocus.currentGain).toBe(2.5);
+  });
+
   it('keeps correction controls out of course embed mode', () => {
     const drawerSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),

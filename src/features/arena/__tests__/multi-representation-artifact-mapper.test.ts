@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildArenaArtifactFromMultiRepresentationState } from '../workbench/artifact-mappers';
+import { buildArenaControlAnalysisRequest } from '../evaluation/controller-to-analysis-request';
+import { summarizeController } from '../evaluation/whitebox-evaluator';
 import type { CorrectionState } from '@/features/interactive/multi-representation-linkage/model';
-import type { ChallengeTask } from '../types';
+import type { ChallengeObject, ChallengeTask } from '../types';
 
 const baseTask: ChallengeTask = {
   id: 'task-second-order-lead-pid',
@@ -48,6 +50,21 @@ const lagState: CorrectionState = {
   lagZeroFrequency: 0.5, lagPoleFrequency: 0.125,
 };
 const leadLagState: CorrectionState = { ...pidState, kind: 'lead_lag' };
+
+const baseObject: ChallengeObject = {
+  id: 'plant-second-order-underdamped',
+  name: '二阶欠阻尼对象',
+  source: 'typical',
+  visibility: 'white-box',
+  chapter: '3',
+  tags: ['二阶系统'],
+  relatedKnowledge: [],
+  model: {
+    display: '1/(s^2+2s+4)',
+    numerator: [1],
+    denominator: [1, 2, 4],
+  },
+};
 
 describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', () => {
   it('PID: gain=1 returns raw kp/ki/kd', () => {
@@ -100,6 +117,26 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
       gain: 9,
     });
     expect(result.artifact!.params.gain).toBeCloseTo(2.5, 5);
+  });
+
+  it('lead: official analysis interprets serial gain as the same controller gain shown in the workbench', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...leadState, controllerGain: 2.5 },
+    });
+    const request = buildArenaControlAnalysisRequest({
+      task: baseTask,
+      object: baseObject,
+      artifact: result.artifact!,
+    });
+    const controller = summarizeController(result.artifact!, baseObject.model!);
+
+    expect(request.structures).toEqual([
+      { kind: 'gain', enabled: true, params: { k: 2.5 }, label: 'K' },
+      { kind: 'lead', enabled: true, params: { k: 1, tau: 0.5, alpha: 0.25, beta: 0.25 }, label: 'C(s)' },
+    ]);
+    expect(request.rootLocus.currentGain).toBeCloseTo(2.5, 10);
+    expect(controller.effectiveGain).toBeCloseTo(0.625, 10);
   });
 
   it('lag: serial gain defaults to correction-state controller gain', () => {

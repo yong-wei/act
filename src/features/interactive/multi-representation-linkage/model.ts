@@ -235,12 +235,25 @@ export function setCorrectionTd(state: CorrectionState, td: number): CorrectionS
   return syncCorrectionTimeConstants({ ...state, kd: state.kp * nextTd, td: nextTd });
 }
 
-export function correctionToStructures(state: CorrectionState, isCourseMode: boolean): StructureSpec[] {
+export function setCorrectionControllerGain(state: CorrectionState, controllerGain: number): CorrectionState {
+  return syncCorrectionTimeConstants({
+    ...state,
+    controllerGain,
+  });
+}
+
+export function correctionToStructures(
+  state: CorrectionState,
+  isCourseMode: boolean,
+  options: { includeControllerGain?: boolean } = {},
+): StructureSpec[] {
   if (isCourseMode || !state.enabled) {
     return [];
   }
 
-  const controllerGain = Math.max(0.0001, state.controllerGain);
+  const controllerGain = options.includeControllerGain === false
+    ? 1
+    : Math.max(0.0001, state.controllerGain);
 
   if (state.kind === 'pi') {
     return [buildPidCorrection({
@@ -613,6 +626,10 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => correctionToStructures(correctionState, isCourseMode),
     [correctionState, isCourseMode],
   );
+  const correctionShapeStructures = useMemo(
+    () => correctionToStructures(correctionState, isCourseMode, { includeControllerGain: false }),
+    [correctionState, isCourseMode],
+  );
   const turnFrequencyHandles = useMemo(
     () => correctionToTurnFrequencyHandles(correctionState, isCourseMode),
     [correctionState, isCourseMode],
@@ -621,7 +638,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => correctionToRootHandles(correctionState, isCourseMode),
     [correctionState, isCourseMode],
   );
-  const correctionEnabled = !isCourseMode && correctionStructures.length > 0;
+  const correctionEnabled = !isCourseMode && correctionShapeStructures.length > 0;
 
   const baseRequestInput = useMemo(() => ({
     poles: polesPayload,
@@ -641,23 +658,26 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const correctedLinkageRequest = useMemo(
     () => buildLinkageAnalysisRequest({
       ...baseRequestInput,
-      correctionStructures,
+      gain: correctionState.controllerGain,
+      rootLocusGain: correctionState.controllerGain,
+      correctionStructures: correctionShapeStructures,
     }),
-    [baseRequestInput, correctionStructures],
+    [baseRequestInput, correctionShapeStructures, correctionState.controllerGain],
   );
   const correctionDeviceRequest = useMemo(
     () => buildLinkageAnalysisRequest({
       poles: [],
       zeros: [],
-      gain: 1,
-      correctionStructures,
-      includeOpenLoopGain: false,
+      gain: correctionState.controllerGain,
+      rootLocusGain: correctionState.controllerGain,
+      correctionStructures: correctionShapeStructures,
+      includeOpenLoopGain: true,
       plantLabel: '校正装置 C(s)',
       outputs: ['magnitude', 'phase', 'bode'],
       responseType,
       frequencyRange,
     }),
-    [correctionStructures, frequencyRange, responseType],
+    [correctionShapeStructures, correctionState.controllerGain, frequencyRange, responseType],
   );
   const shouldRunControlAnalysis = !arenaContextMissing && !arenaContextIncompatible;
 
@@ -724,9 +744,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     () => mergeClosedLoopSelectionResult(
       visibleCorrectedAnalysisResult,
       null,
-      gain,
+      correctionEnabled ? correctionState.controllerGain : gain,
     ),
-    [gain, visibleCorrectedAnalysisResult],
+    [correctionEnabled, correctionState.controllerGain, gain, visibleCorrectedAnalysisResult],
   );
   const visibleAnalysisResult = useMemo(
     () => {
@@ -928,10 +948,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
   const setOpenLoopGain = useCallback((value: number) => {
     const sanitizedGain = round3(Math.max(0, value));
     if (!isCourseMode && correctionState.enabled) {
-      setCorrectionState((previous) => syncCorrectionTimeConstants({
-        ...previous,
-        controllerGain: sanitizedGain,
-      }));
+      setCorrectionState((previous) => setCorrectionControllerGain(previous, sanitizedGain));
     } else {
       setGain(sanitizedGain);
     }
@@ -949,6 +966,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       ...patch,
       enabled: patch.enabled ?? previous.enabled,
     }));
+    if (patch.controllerGain !== undefined && Number.isFinite(patch.controllerGain)) {
+      setClosedLoopGain(round3(Math.max(0, patch.controllerGain)));
+    }
   }, [isCourseMode]);
   const updateCorrectionRootHandle = useCallback((id: string, point: Complex) => {
     const frequency = round3(Math.max(0.001, -point.re));
