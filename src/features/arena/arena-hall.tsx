@@ -23,7 +23,7 @@ import {
   type ModelVisibility,
   type WorkspaceMode,
   type ArenaTaskStats,
-} from '@/features/arena';
+} from '@/features/arena/domain';
 
 const sourceLabels: Record<ChallengeObjectSource, string> = {
   typical: '典型传递函数',

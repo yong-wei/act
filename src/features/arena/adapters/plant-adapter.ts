@@ -18,7 +18,7 @@ export interface ArenaPlantAdapter {
   }): Promise<ArenaEvaluationResult>;
 }
 
-export function createCruiseRollBlackBoxAdapter(): ArenaPlantAdapter {
+export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaPlantAdapter {
   return {
     canRunPublicExperiment(task, object) {
       return object.id === 'plant-cruise-roll-blackbox'

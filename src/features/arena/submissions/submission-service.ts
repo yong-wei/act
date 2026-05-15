@@ -13,6 +13,7 @@ export interface ArenaSubmissionRecord {
   artifactHash: string;
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;
+  evaluationProtocolVersion?: string;
   submittedAt: string;
   reusedEvaluation: boolean;
 }

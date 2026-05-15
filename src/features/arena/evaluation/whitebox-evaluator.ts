@@ -7,7 +7,7 @@ import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile,
 import type { ArenaEvaluationPenalty, ArenaEvaluationResult, HardConstraintResult, WhiteBoxEvaluationInput } from './types';
 import { normalizeMetricValue } from './scoring';
 import { evaluateMetricProfile } from './metric-profile-evaluator';
-import { createHeuristicWhiteBoxMetricProvider } from './whitebox-metric-provider';
+import { selectWhiteBoxMetricProvider } from './whitebox-metric-provider';
 
 export interface ControllerSummary {
   effectiveGain: number;
@@ -571,8 +571,12 @@ export function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): Aren
   }
 
   const controller = summarizeController(input.artifact, object.model);
-  const provider = createHeuristicWhiteBoxMetricProvider();
-  const metrics = estimateMetrics(object.model, controller);
+  const provider = selectWhiteBoxMetricProvider(input.artifact.method);
+  const metrics = provider.evaluate({
+    task,
+    object,
+    artifact: input.artifact,
+  });
   const hardConstraintResults = evaluateHardConstraints(task, object, metricProfile, controller, metrics);
 
   return evaluateMetricProfile({
