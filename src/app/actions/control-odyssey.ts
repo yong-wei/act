@@ -12,6 +12,10 @@ import {
 } from '@/resources/interactive-learning/control-odyssey/level-data';
 import { bridgeOdysseyRunToArenaSubmission, getArenaTaskForOdysseyLevel } from '@/features/arena/odyssey/bridge';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  resolveAccessibleArenaPublicationForStudent,
+  type ArenaResolvedSubmissionContext,
+} from '@/features/arena/teacher/publication-store';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -600,6 +604,33 @@ export async function submitGameScore(
 
     const arenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
     if (arenaTaskId) {
+      let publicationContext: ArenaResolvedSubmissionContext | null = null;
+      if (context?.publicationId) {
+        try {
+          publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
+            publicationId: context.publicationId,
+            studentId: session.user.id,
+            taskId: arenaTaskId,
+            now: log.createdAt,
+          });
+        } catch (error) {
+          await prisma.simulationLog.update({
+            where: { id: log.id },
+            data: {
+              metrics: {
+                ...(metrics && typeof metrics === 'object' ? metrics : {}),
+                arenaBridge: {
+                  ok: false,
+                  reason: error instanceof Error ? error.message : 'Arena publication context is not accessible.',
+                  gameScorePreserved: true,
+                },
+              },
+            },
+          });
+          revalidatePath('/interactive-learning/control-odyssey');
+          return log;
+        }
+      }
       const bridgeResult = await bridgeOdysseyRunToArenaSubmission({
         userId: session.user.id,
         studentLabel: session.user.name ?? '匿名学生',
@@ -609,8 +640,10 @@ export async function submitGameScore(
         controllerId: context?.controllerId,
         pidParams: context?.pidParams,
         metrics,
-        publicationId: context?.publicationId,
-        seasonId: context?.seasonId,
+        publicationId: publicationContext?.id,
+        classId: publicationContext?.classId,
+        seasonId: publicationContext?.seasonId ?? context?.seasonId,
+        isLate: publicationContext?.isLate,
         submittedAt: log.createdAt.toISOString(),
         submissionStore: prismaArenaSubmissionStore,
         store: {

@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 
 import { ChallengeDetail } from '@/features/arena/challenge-detail';
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import {
   getArenaChallengeObject,
   getArenaChallengeTask,
@@ -8,6 +10,11 @@ import {
   getArenaMetricProfile,
 } from '@/features/arena/domain';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  ArenaPublicationAccessError,
+  resolveAccessibleArenaPublicationForStudent,
+  type ArenaResolvedSubmissionContext,
+} from '@/features/arena/teacher/publication-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +36,41 @@ export default async function ArenaChallengePage({
   const publicationId = typeof searchParams?.publicationId === 'string' && searchParams.publicationId.trim().length > 0
     ? searchParams.publicationId
     : undefined;
-  const submissions = await prismaArenaSubmissionStore.listSubmissions({ taskId: task.id, publicationId });
+  let publicationContext: ArenaResolvedSubmissionContext | null = null;
+  let viewerUserId: string | undefined;
+  if (publicationId) {
+    const session = await getServerAuthSession();
+    if (!session?.user?.id || session.user.role !== 'STUDENT') {
+      notFound();
+    }
+    viewerUserId = session.user.id;
+    try {
+      publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
+        publicationId,
+        studentId: session.user.id,
+        taskId: task.id,
+        now: new Date(),
+        allowAfterDeadline: true,
+      });
+    } catch (error) {
+      if (error instanceof ArenaPublicationAccessError) {
+        notFound();
+      }
+      throw error;
+    }
+  }
+
+  const submissions = await prismaArenaSubmissionStore.listSubmissions({
+    taskId: task.id,
+    publicationId,
+    ...(publicationContext?.classId ? { classId: publicationContext.classId } : {}),
+  });
+  const hideFullPublicationLeaderboard =
+    publicationContext?.gradingPolicy.hideFullLeaderboardBeforeDeadline === true &&
+    publicationContext.isLate !== true;
+  const visibleSubmissions = hideFullPublicationLeaderboard && viewerUserId
+    ? submissions.filter((submission) => submission.userId === viewerUserId)
+    : submissions;
 
   return (
     <ChallengeDetail
@@ -37,7 +78,7 @@ export default async function ArenaChallengePage({
       object={object}
       metricProfile={metricProfile}
       leaderboardPolicy={leaderboardPolicy}
-      submissions={submissions}
+      submissions={visibleSubmissions}
       publicationId={publicationId}
     />
   );

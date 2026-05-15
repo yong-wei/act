@@ -101,6 +101,7 @@ export interface ResolveAccessibleArenaPublicationInput {
   studentId: string;
   taskId: string;
   now?: Date;
+  allowAfterDeadline?: boolean;
 }
 
 export interface ListArenaPublicationsForStudentInput {
@@ -337,7 +338,7 @@ export async function resolveAccessibleArenaPublicationForStudent(
 
   const now = input.now ?? new Date();
   const isLate = now.getTime() > Date.parse(publication.deadline);
-  if (isLate && publication.gradingPolicy.allowLateSubmissions !== true) {
+  if (isLate && publication.gradingPolicy.allowLateSubmissions !== true && input.allowAfterDeadline !== true) {
     throw new ArenaPublicationAccessError('Arena publication deadline has passed.');
   }
 

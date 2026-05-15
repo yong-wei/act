@@ -208,7 +208,9 @@ export function ArenaBlackBoxSubmissionPanel({
     const response = await fetch('/api/arena/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id, artifact }),
+      body: publicationId
+        ? JSON.stringify({ taskId: task.id, artifact, publicationId })
+        : JSON.stringify({ taskId: task.id, artifact }),
     });
     const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
 

@@ -60,7 +60,9 @@ assert.equal(
 );
 
 assert.equal(
-  hallContent.includes('href={`/arena/challenges/${challenge.id}`}'),
+  hallContent.includes('const challengeHref = publication') &&
+    hallContent.includes('href={challengeHref}') &&
+    hallContent.includes('`/arena/challenges/${challenge.id}`'),
   true,
   '竞技场大厅的“查看挑战”应链接到真实挑战详情路由',
 );

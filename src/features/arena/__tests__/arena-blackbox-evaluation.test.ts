@@ -283,6 +283,7 @@ describe('arena black-box identification evaluation', () => {
     expect(panelSource).toContain("'arena_controller_save'");
     expect(panelSource).toContain("'arena_submit'");
     expect(panelSource).toContain("'arena_evaluation_complete'");
+    expect(panelSource).toMatch(/fetch\('\/api\/arena\/evaluate'[\s\S]*body: publicationId/);
     expect(panelSource).toContain('JSON.stringify({ taskId: task.id, artifact })');
   });
 

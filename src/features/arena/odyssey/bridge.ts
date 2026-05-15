@@ -34,6 +34,7 @@ export interface BridgeOdysseyRunInput extends BuildOdysseyArenaArtifactInput {
   publicationId?: string;
   classId?: string;
   seasonId?: string;
+  isLate?: boolean;
   submittedAt: string;
   store?: OdysseyArenaBridgeMarkerStore;
   createSubmission?: (input: CreatePersistedArenaSubmissionInput) => Promise<ArenaSubmissionRecord>;
@@ -112,6 +113,7 @@ export async function bridgeOdysseyRunToArenaSubmission(input: BridgeOdysseyRunI
       publicationId: input.publicationId,
       classId: input.classId,
       seasonId: input.seasonId,
+      isLate: input.isLate,
       studentLabel: input.studentLabel,
       submittedAt: input.submittedAt,
       store: input.submissionStore as CreatePersistedArenaSubmissionInput['store'],
