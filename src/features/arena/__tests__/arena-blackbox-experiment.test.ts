@@ -95,7 +95,7 @@ describe('arena black-box experiment interface', () => {
     expect(store.createExperimentWithinBudget).toHaveBeenCalled();
   });
 
-  it('requires official black-box submissions to reference an experiment dataset and identification model', () => {
+  it('requires official black-box submissions to reference an experiment dataset and identification model', async () => {
     const dataset = runArenaBlackBoxExperiment({
       taskId: 'task-cruise-roll-blackbox-identification',
       input: experimentInput,
@@ -116,7 +116,7 @@ describe('arena black-box experiment interface', () => {
       now: '2026-05-11T10:24:00.000Z',
     });
 
-    const result = evaluateArenaSubmission({ taskId: dataset.taskId, artifact });
+    const result = await evaluateArenaSubmission({ taskId: dataset.taskId, artifact });
 
     expect(result.valid).toBe(true);
     expect(result.artifact.params.experimentDatasetHash).toBe(dataset.datasetHash);

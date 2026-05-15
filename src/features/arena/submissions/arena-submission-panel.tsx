@@ -94,13 +94,13 @@ export function ArenaSubmissionPanel({
     searchBudget,
   });
 
-  const runLocalPreview = () => {
+  const runLocalPreview = async () => {
     if (!evaluableMethods.includes(controllerMethod)) {
       setStatus('当前任务没有可由白箱工作台预览的控制器方法。');
       return;
     }
     try {
-      const nextPreview = buildArenaWorkbenchPreview({
+      const nextPreview = await buildArenaWorkbenchPreview({
         task,
         method: controllerMethod,
         values: currentValues(),

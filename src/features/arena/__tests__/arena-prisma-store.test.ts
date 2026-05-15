@@ -85,7 +85,7 @@ describe('prismaArenaSubmissionStore', () => {
   it('excludes legacy whitebox-v1 submissions by default', async () => {
     mocks.prisma.arenaSubmission.findMany.mockResolvedValueOnce([
       submissionRow('legacy', 'whitebox-v1'),
-      submissionRow('current', 'template-whitebox-v1'),
+      submissionRow('current', 'analysis-whitebox-v1'),
       submissionRow('blackbox-current', 'blackbox-v1', {
         taskId: 'task-cruise-roll-blackbox-identification',
         method: 'black-box-control',
@@ -124,7 +124,7 @@ describe('prismaArenaSubmissionStore', () => {
       'mpc-current',
     ]);
     expect(submissions.map((submission) => submission.evaluationProtocolVersion)).toEqual([
-      'template-whitebox-v1',
+      'analysis-whitebox-v1',
       'blackbox-v1',
       'template-whitebox-v1',
     ]);
@@ -133,7 +133,7 @@ describe('prismaArenaSubmissionStore', () => {
   it('includes legacy whitebox-v1 submissions only when explicitly requested', async () => {
     mocks.prisma.arenaSubmission.findMany.mockResolvedValueOnce([
       submissionRow('legacy', 'whitebox-v1'),
-      submissionRow('current', 'template-whitebox-v1'),
+      submissionRow('current', 'analysis-whitebox-v1'),
     ]);
 
     const submissions = await prismaArenaSubmissionStore.listSubmissions({ includeLegacyProtocols: true });
@@ -141,7 +141,7 @@ describe('prismaArenaSubmissionStore', () => {
     expect(submissions.map((submission) => submission.id)).toEqual(['legacy', 'current']);
     expect(submissions.map((submission) => submission.evaluationProtocolVersion)).toEqual([
       'whitebox-v1',
-      'template-whitebox-v1',
+      'analysis-whitebox-v1',
     ]);
   });
 });

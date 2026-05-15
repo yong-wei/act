@@ -8,7 +8,12 @@
 
 ## 当前协议边界
 
-当前正式启用的是 `template-whitebox-v1`：`pid`、`serial-compensator`、`composite-compensation`、`optimized-pid`、`mpc` 均通过同步 heuristic template provider 产出指标，再进入统一 metric profile 评分。`analysis-whitebox-v1` 只是为后续服务端 `ControlAnalysisResult` 评测预留的协议名，当前不得用于官方提交、缓存复用或榜单隔离。
+当前正式启用两类协议：
+
+- `analysis-whitebox-v1`：`pid`、`serial-compensator` 官方提交通过服务端 `ControlAnalysisResult` 产出指标，再进入统一 metric profile 评分。
+- `template-whitebox-v1`：`composite-compensation`、`optimized-pid`、`mpc` 仍通过 heuristic template provider 产出指标。
+
+工作台本地预览继续使用 template-preview 路径，不加载服务端 WASM；只有 `/api/arena/evaluate` 和持久化官方评测走 `analysis-whitebox-v1`。
 
 ## 依赖
 
@@ -85,7 +90,7 @@ controlEnergy
 
 - [ ] 新增 `metric-profile-evaluator.ts`，承载硬约束、满意度、score、penalties 和 explanation。
 - [ ] `whitebox-evaluator.ts` 改为编排白箱约束和指标 provider，不继续同时承担指标估算、评分和解释所有职责。
-- [ ] 当前阶段使用 `template-whitebox-v1`；`analysis-whitebox-v1` 仅在真实服务端分析结果接入后启用，旧 `whitebox-v1` 不进入当前榜单默认列表。
+- [x] 当前阶段对 `pid`、`serial-compensator` 启用 `analysis-whitebox-v1`；旧 `whitebox-v1` 不进入当前榜单默认列表。
 - [ ] 测试至少覆盖：
 
 ```text
@@ -114,7 +119,7 @@ rtk npx prisma validate
 
 - `/api/arena/evaluate` 仍通过 `createPersistedArenaSubmission` 写入。
 - `evaluateArenaSubmission` 仍是唯一官方评测入口。
-- 白箱评测协议版本与实际 provider 一致；当前模板评测统一使用 `template-whitebox-v1`，缓存按协议隔离。
+- 白箱评测协议版本与实际 provider 一致；`pid`、`serial-compensator` 使用 `analysis-whitebox-v1`，其他模板方法使用 `template-whitebox-v1`，缓存按协议隔离。
 - 指标 provider 可替换，评测器不再被启发式估算锁死。
 - 硬约束失败时 score 和 explanation 一致，不能出现无效提交高分。
 - 工作台预评测和官方评测至少复用同一套 metric profile 评分口径。

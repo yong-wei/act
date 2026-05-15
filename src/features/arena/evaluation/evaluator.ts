@@ -3,6 +3,7 @@ import type { ControllerArtifact } from '../types';
 import type { ArenaEvaluationResult } from './types';
 import { evaluateBlackBoxSubmission } from './blackbox-evaluator';
 import { evaluateWhiteBoxSubmission } from './whitebox-evaluator';
+import { defaultControlAnalysisService } from './control-analysis-service';
 
 export {
   getArenaEvaluationProtocolVersion,
@@ -42,14 +43,18 @@ export function evaluateArenaSubmission({
 }: {
   taskId: string;
   artifact: ControllerArtifact;
-}): ArenaEvaluationResult {
+}): Promise<ArenaEvaluationResult> {
   if (artifact.method === 'code-controller') {
-    return rejectCodeControllerWithoutSandbox(taskId, artifact);
+    return Promise.resolve(rejectCodeControllerWithoutSandbox(taskId, artifact));
   }
   const task = getArenaChallengeTask(taskId);
   const object = task ? getArenaChallengeObject(task.objectId) : undefined;
   if (object?.visibility === 'black-box') {
-    return evaluateBlackBoxSubmission({ taskId, artifact });
+    return Promise.resolve(evaluateBlackBoxSubmission({ taskId, artifact }));
   }
-  return evaluateWhiteBoxSubmission({ taskId, artifact });
+  return evaluateWhiteBoxSubmission({
+    taskId,
+    artifact,
+    controlAnalysisService: defaultControlAnalysisService,
+  });
 }

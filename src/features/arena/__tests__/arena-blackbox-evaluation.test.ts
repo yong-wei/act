@@ -58,7 +58,7 @@ describe('arena black-box identification evaluation', () => {
     })).toThrow('identificationQuality 必须是有限数字');
   });
 
-  it('evaluates valid black-box control artifacts without exposing a transfer function', () => {
+  it('evaluates valid black-box control artifacts without exposing a transfer function', async () => {
     const artifact = buildBlackBoxControlArtifactFromParams({
       taskId: 'task-cruise-roll-blackbox-identification',
       values: {
@@ -73,7 +73,7 @@ describe('arena black-box identification evaluation', () => {
       now: '2026-05-11T09:00:00.000Z',
     });
 
-    const result = evaluateArenaSubmission({
+    const result = await evaluateArenaSubmission({
       taskId: 'task-cruise-roll-blackbox-identification',
       artifact,
     });
@@ -86,8 +86,8 @@ describe('arena black-box identification evaluation', () => {
     expect(result.explanation.join(' ')).not.toContain('G(s)');
   });
 
-  it('does not trust client-claimed identification quality for official metrics', () => {
-    const lowClaim = evaluateArenaSubmission({
+  it('does not trust client-claimed identification quality for official metrics', async () => {
+    const lowClaim = await evaluateArenaSubmission({
       taskId: 'task-cruise-roll-blackbox-identification',
       artifact: {
         id: 'artifact-blackbox-low-claim',
@@ -106,7 +106,7 @@ describe('arena black-box identification evaluation', () => {
         createdAt: '2026-05-11T09:00:00.000Z',
       },
     });
-    const highClaim = evaluateArenaSubmission({
+    const highClaim = await evaluateArenaSubmission({
       taskId: 'task-cruise-roll-blackbox-identification',
       artifact: {
         id: 'artifact-blackbox-high-claim',
@@ -130,8 +130,8 @@ describe('arena black-box identification evaluation', () => {
     expect(highClaim.score).toBe(lowClaim.score);
   });
 
-  it('rejects out-of-range black-box artifacts before ranking', () => {
-    const result = evaluateArenaSubmission({
+  it('rejects out-of-range black-box artifacts before ranking', async () => {
+    const result = await evaluateArenaSubmission({
       taskId: 'task-cruise-roll-blackbox-identification',
       artifact: {
         id: 'artifact-blackbox-adversarial',
@@ -158,13 +158,13 @@ describe('arena black-box identification evaluation', () => {
   });
 
   it('keeps white-box and black-box protocols separate, partitioned by method family', () => {
-    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'pid' })).toBe('template-whitebox-v1');
-    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'serial-compensator' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'pid' })).toBe('analysis-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'serial-compensator' })).toBe('analysis-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-third-order-block-diagram', method: 'composite-compensation' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-ship-roll-optimized-pid-robust', method: 'optimized-pid' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-ship-roll-mpc-hidden-scenarios', method: 'mpc' })).toBe('template-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-cruise-roll-blackbox-identification', method: 'black-box-control' })).toBe('blackbox-v1');
-    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid' })).toBe('template-whitebox-v1');
+    expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid' })).toBe('analysis-whitebox-v1');
     expect(getArenaEvaluationProtocolVersion({ taskId: 'task-second-order-lead-pid', method: 'code-controller' })).toBe('code-sandbox-disabled-v1');
   });
 

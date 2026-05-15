@@ -10,12 +10,17 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../evaluation/whitebox-metric-provider', () => ({
   selectWhiteBoxMetricProvider: mocks.selectWhiteBoxMetricProvider,
   createHeuristicWhiteBoxMetricProvider: mocks.createHeuristicWhiteBoxMetricProvider,
+  normalizeWhiteBoxMetricProviderOutput: (output: Record<string, number>) => ({
+    metrics: output,
+    metricSources: {},
+    explanation: [],
+  }),
 }));
 
 import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
 
 describe('arena white-box metric provider selection', () => {
-  it('routes official template metrics through the selected provider', () => {
+  it('routes official template metrics through the selected provider', async () => {
     const provider = {
       id: 'test-template-provider',
       protocolVersion: 'template-whitebox-v1',
@@ -31,7 +36,7 @@ describe('arena white-box metric provider selection', () => {
     };
     mocks.selectWhiteBoxMetricProvider.mockReturnValue(provider);
 
-    const result = evaluateWhiteBoxSubmission({
+    const result = await evaluateWhiteBoxSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: {
         id: 'artifact-provider-path',
@@ -42,7 +47,7 @@ describe('arena white-box metric provider selection', () => {
       },
     });
 
-    expect(mocks.selectWhiteBoxMetricProvider).toHaveBeenCalledWith('pid');
+    expect(mocks.selectWhiteBoxMetricProvider).toHaveBeenCalledWith('pid', { controlAnalysisService: undefined });
     expect(provider.evaluate).toHaveBeenCalledWith(expect.objectContaining({
       artifact: expect.objectContaining({ method: 'pid' }),
       task: expect.objectContaining({ id: 'task-second-order-lead-pid' }),
@@ -51,12 +56,15 @@ describe('arena white-box metric provider selection', () => {
     expect(result.metrics.settlingTime).toBe(1.25);
   });
 
-  it('exposes template protocol metadata for all current white-box template methods', async () => {
+  it('exposes protocol metadata for analysis and template white-box methods', async () => {
     const actual = await vi.importActual<typeof import('../evaluation/whitebox-metric-provider')>(
       '../evaluation/whitebox-metric-provider',
     );
 
-    for (const method of ['pid', 'serial-compensator', 'composite-compensation', 'optimized-pid', 'mpc']) {
+    for (const method of ['pid', 'serial-compensator']) {
+      expect(actual.selectWhiteBoxMetricProvider(method).protocolVersion).toBe('analysis-whitebox-v1');
+    }
+    for (const method of ['composite-compensation', 'optimized-pid', 'mpc']) {
       expect(actual.selectWhiteBoxMetricProvider(method).protocolVersion).toBe('template-whitebox-v1');
     }
   });
