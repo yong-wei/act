@@ -37,6 +37,7 @@ import {
   resolveArenaWorkbenchContext,
   type ArenaWorkbenchContext,
 } from '@/features/arena';
+import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
 
 export interface MultiRepresentationInitialParams {
@@ -92,6 +93,17 @@ export const DEFAULT_CORRECTION_STATE: CorrectionState = {
 
 const DEFAULT_LINKAGE_TIME_RANGE: ControlAnalysisRequest['timeRange'] = { start: 0, end: 20, samples: 401 };
 const DEFAULT_LINKAGE_FREQUENCY_RANGE: ControlAnalysisRequest['frequencyRange'] = { min: 0.1, max: 100, samples: 140 };
+
+const DISABLED_ANALYSIS_REQUEST: ControlAnalysisRequest = {
+  runtimeMode: 'analysis',
+  plant: { numerator: [1], denominator: [1], coefficientOrder: 'descending', label: 'disabled' },
+  structures: [],
+  outputs: [],
+  responseType: 'step',
+  timeRange: { start: 0, end: 0.1, samples: 2 },
+  frequencyRange: { min: 1, max: 2, samples: 2 },
+  rootLocus: { minGain: 0, maxGain: 1, samples: 2, currentGain: 0 },
+};
 
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
@@ -629,12 +641,20 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     }),
     [correctionStructures, frequencyRange, responseType],
   );
-  const deferredLinkageRequest = useDeferredValue(linkageRequest);
-  const deferredCorrectedLinkageRequest = useDeferredValue(correctedLinkageRequest);
-  const deferredCorrectionDeviceRequest = useDeferredValue(correctionDeviceRequest);
-  const openLoopAnalysisState = useControlEngine(deferredLinkageRequest);
-  const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest);
-  const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest);
+  const shouldRunControlAnalysis = !arenaContextMissing && !arenaContextIncompatible;
+
+  const deferredLinkageRequest = useDeferredValue(
+    shouldRunControlAnalysis ? linkageRequest : DISABLED_ANALYSIS_REQUEST,
+  );
+  const deferredCorrectedLinkageRequest = useDeferredValue(
+    shouldRunControlAnalysis ? correctedLinkageRequest : DISABLED_ANALYSIS_REQUEST,
+  );
+  const deferredCorrectionDeviceRequest = useDeferredValue(
+    shouldRunControlAnalysis ? correctionDeviceRequest : DISABLED_ANALYSIS_REQUEST,
+  );
+  const openLoopAnalysisState = useControlEngine(deferredLinkageRequest, undefined, shouldRunControlAnalysis);
+  const correctedAnalysisState = useControlEngine(deferredCorrectedLinkageRequest, undefined, shouldRunControlAnalysis);
+  const correctionDeviceAnalysisState = useControlEngine(deferredCorrectionDeviceRequest, undefined, shouldRunControlAnalysis);
   const visibleBaselineAnalysisResult = useMemo(
     () => {
       const currentResult = openLoopAnalysisState.result;
@@ -764,6 +784,25 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
       setClosedLoopGain(gain);
     }
   }, [gain, isLockedOrCourse]);
+
+  const selectArenaObjectForExploration = useCallback((objectId: string) => {
+    const object = getArenaChallengeObject(objectId);
+    if (!object) return;
+    const seed = object.workbenchSeed;
+    if (!seed) return;
+    const nextPoles = toPoleZeroPoints(seed.poles, 'p');
+    const nextZeros = toPoleZeroPoints(seed.zeros, 'z');
+    setModelPoles(nextPoles);
+    setModelZeros(nextZeros);
+    setGain(seed.gain);
+    setClosedLoopGain(seed.gain);
+    if (object.timeRange) setTimeRange(object.timeRange);
+    if (object.frequencyRange) setFrequencyRange(object.frequencyRange);
+    setCorrectionState({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: false,
+    });
+  }, []);
 
   const reset = useCallback(() => {
     const fallbackModel = isArenaChallengeMode && arenaSeed
@@ -981,6 +1020,8 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     updateZero,
     removePole,
     removeZero,
+    selectArenaObjectForExploration,
+
     reset,
   };
 }

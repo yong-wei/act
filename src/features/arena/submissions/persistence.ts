@@ -130,7 +130,7 @@ export async function createPersistedArenaSubmission(
 ): Promise<ArenaSubmissionRecord> {
   const artifact = normalizeSubmissionArtifact(input.taskId, input.artifact);
   const artifactHash = hashControllerArtifact(artifact);
-  const protocolVersion = getArenaEvaluationProtocolVersion(input.taskId);
+  const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
   await assertBlackBoxExperimentOwnership({
     userId: input.userId,

@@ -4,7 +4,13 @@ import type { ArenaEvaluationResult } from './types';
 import { evaluateBlackBoxSubmission } from './blackbox-evaluator';
 import { evaluateWhiteBoxSubmission } from './whitebox-evaluator';
 
-export { getArenaEvaluationProtocolVersion, WHITEBOX_PROTOCOL_VERSION, BLACKBOX_PROTOCOL_VERSION } from './protocol';
+export {
+  getArenaEvaluationProtocolVersion,
+  ANALYSIS_WHITEBOX_PROTOCOL_VERSION,
+  TEMPLATE_WHITEBOX_PROTOCOL_VERSION,
+  BLACKBOX_PROTOCOL_VERSION,
+  CODE_SANDBOX_DISABLED_PROTOCOL_VERSION,
+} from './protocol';
 
 function rejectCodeControllerWithoutSandbox(taskId: string, artifact: ControllerArtifact): ArenaEvaluationResult {
   return {

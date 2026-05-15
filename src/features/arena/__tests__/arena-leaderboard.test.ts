@@ -478,7 +478,7 @@ describe('arena submissions and leaderboards', () => {
           id: 'eval-existing',
           taskId: pidArtifact.taskId,
           artifactHash: hashControllerArtifact(pidArtifact),
-          protocolVersion: 'whitebox-v1',
+          protocolVersion: 'template-whitebox-v1',
           result: createArenaSubmission({
             taskId: pidArtifact.taskId,
             artifact: pidArtifact,
@@ -521,10 +521,10 @@ describe('arena submissions and leaderboards', () => {
 
     expect(first.reusedEvaluation).toBe(false);
     expect(second.reusedEvaluation).toBe(true);
-    expect(store.findEvaluationByHash).toHaveBeenCalledWith(pidArtifact.taskId, hashControllerArtifact(pidArtifact), 'whitebox-v1');
+    expect(store.findEvaluationByHash).toHaveBeenCalledWith(pidArtifact.taskId, hashControllerArtifact(pidArtifact), 'template-whitebox-v1');
     expect(store.createEvaluation).toHaveBeenCalledTimes(1);
     expect(store.createEvaluation).toHaveBeenCalledWith(expect.objectContaining({
-      protocolVersion: 'whitebox-v1',
+      protocolVersion: 'template-whitebox-v1',
     }));
     expect(store.createSubmission).toHaveBeenCalledTimes(2);
   });

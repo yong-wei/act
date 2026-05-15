@@ -33,19 +33,30 @@ async function computeAnalysisOnMainThread(requestJson: string): Promise<string>
 export function useControlEngine(
   request: ControlAnalysisRequest,
   fallbackResult?: ControlAnalysisResult,
+  enabled = true,
 ): ControlEngineState {
   const requestKey = useMemo(() => JSON.stringify(request), [request]);
   const cacheRef = useRef<Map<string, ControlAnalysisResult>>(new Map());
   const workerRef = useRef<Worker | null>(null);
   const latestRequestIdRef = useRef<string | null>(null);
-  const [state, setState] = useState<ControlEngineState>({
-    result: fallbackResult ?? null,
-    isLoading: true,
+  const [state, setState] = useState<ControlEngineState>(() => ({
+    result: enabled ? (fallbackResult ?? null) : null,
+    isLoading: enabled,
     error: null,
-    isFallback: Boolean(fallbackResult?.isFallback),
-  });
+    isFallback: !enabled || Boolean(fallbackResult?.isFallback),
+  }));
 
   useEffect(() => {
+    if (!enabled) {
+      setState({
+        result: null,
+        isLoading: false,
+        error: null,
+        isFallback: true,
+      });
+      return undefined;
+    }
+
     if (typeof window === 'undefined') {
       setState({
         result: fallbackResult ?? null,
@@ -165,7 +176,7 @@ export function useControlEngine(
       worker.removeEventListener('message', handleMessage);
       worker.removeEventListener('error', handleError);
     };
-  }, [fallbackResult, requestKey]);
+  }, [enabled, fallbackResult, requestKey]);
 
   useEffect(() => {
     return () => {

@@ -11,6 +11,13 @@ export interface WhiteBoxMetricProvider {
   }): Promise<Record<string, number>>;
 }
 
+export function selectWhiteBoxMetricProvider(method: string): WhiteBoxMetricProvider {
+  if (method === 'pid' || method === 'serial-compensator') {
+    return createHeuristicWhiteBoxMetricProvider();
+  }
+  return createHeuristicWhiteBoxMetricProvider();
+}
+
 export function createHeuristicWhiteBoxMetricProvider(): WhiteBoxMetricProvider {
   return {
     async evaluate({ task, object, artifact }) {

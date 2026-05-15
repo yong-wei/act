@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/session-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
@@ -9,8 +8,6 @@ import { buildThemeInitScript } from '@/lib/theme-config'
 import { GlobalAIProvider } from '@/components/providers/global-ai-provider'
 import { GlobalAIFloatingButton } from '@/components/ai/global-ai-button'
 import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'AI-OBE船舶控制平台',
@@ -31,7 +28,7 @@ export default async function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: buildThemeInitScript() }} />
       </head>
-      <body className={inter.className}>
+      <body>
         <ThemeProvider>
           <SessionProvider session={session}>
             <GlobalAIProvider>

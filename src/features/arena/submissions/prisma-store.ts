@@ -210,7 +210,11 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
     return rows
       .filter((row: Record<string, unknown>) => {
         const evaluationRun = row.evaluationRun as Record<string, unknown>;
-        return String(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion(String(row.taskId));
+        const storedVersion = String(evaluationRun.protocolVersion);
+        const controllerArtifact = row.controllerArtifact as Record<string, unknown> | undefined;
+        const method = (controllerArtifact?.payload as Record<string, unknown>)?.method as string | undefined;
+        const expectedVersion = getArenaEvaluationProtocolVersion({ taskId: String(row.taskId), method: method as any });
+        return storedVersion === expectedVersion || storedVersion === 'whitebox-v1';
       })
       .map((row: Record<string, unknown>) => toSubmissionRecord(row));
   },

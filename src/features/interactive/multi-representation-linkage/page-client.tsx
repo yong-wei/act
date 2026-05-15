@@ -184,11 +184,12 @@ export function MultiRepresentationLinkageClient({
           </div>
         )}
 
-        {model.arenaContext && (
+        {!model.isEmbedded && (
           <ArenaModelSelectorPanel
-            currentObjectId={model.arenaContext.object.id}
-            locked={model.isLockedByChallenge}
-            workspaceMode={model.arenaContext.recommendedWorkspaceMode}
+            currentObjectId={model.arenaContext?.object.id}
+            locked={model.isArenaChallengeMode && model.isLockedByChallenge}
+            workspaceMode="multi-representation-linkage"
+            onSelectObject={model.selectArenaObjectForExploration}
           />
         )}
 

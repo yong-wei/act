@@ -5,7 +5,9 @@ import {
 } from '../data/seed-challenges';
 import type { ChallengeObject, ChallengeTask, ControllerArtifact, MetricProfile, TransferFunctionModel } from '../types';
 import type { ArenaEvaluationPenalty, ArenaEvaluationResult, HardConstraintResult, WhiteBoxEvaluationInput } from './types';
-import { clampScore, normalizeMetricValue, scoreMetricSatisfaction } from './scoring';
+import { normalizeMetricValue } from './scoring';
+import { evaluateMetricProfile } from './metric-profile-evaluator';
+import { createHeuristicWhiteBoxMetricProvider } from './whitebox-metric-provider';
 
 export interface ControllerSummary {
   effectiveGain: number;
@@ -569,48 +571,18 @@ export function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput): Aren
   }
 
   const controller = summarizeController(input.artifact, object.model);
+  const provider = createHeuristicWhiteBoxMetricProvider();
   const metrics = estimateMetrics(object.model, controller);
   const hardConstraintResults = evaluateHardConstraints(task, object, metricProfile, controller, metrics);
-  const valid = hardConstraintResults.every((result) => result.passed);
-  const satisfaction = buildSatisfaction(metricProfile, metrics);
 
-  if (!valid) {
-    return {
-      taskId: task.id,
-      artifact: input.artifact,
-      valid: false,
-      score: 0,
-      metrics,
-      satisfaction,
-      hardConstraintResults,
-      penalties: [],
-      explanation: [
-        '硬约束未全部通过，提交未进入正式排名。',
-        ...hardConstraintResults.filter((item) => !item.passed).map((item) => `${item.label}: ${item.reason}`),
-      ],
-    };
-  }
-
-  const weights = Object.fromEntries(task.primaryMetrics.map((metricId) => [metricId, 1]));
-  const baseScore = scoreMetricSatisfaction(satisfaction, weights);
-  const penalties = computePenalties(metrics);
-  const penaltyValue = penalties.reduce((sum, penalty) => sum + penalty.value, 0);
-  const score = clampScore(baseScore - penaltyValue);
-
-  return {
+  return evaluateMetricProfile({
     taskId: task.id,
     artifact: input.artifact,
-    valid: true,
-    score,
+    metricProfile,
     metrics,
-    satisfaction,
     hardConstraintResults,
-    penalties,
-    explanation: [
-      '硬约束全部通过，提交进入正式排名。',
-      `基础分 ${baseScore.toFixed(1)}，惩罚 ${penaltyValue.toFixed(1)}，最终分 ${score.toFixed(1)}。`,
-    ],
-  };
+    primaryMetrics: task.primaryMetrics,
+  });
 }
 
 function buildSatisfaction(metricProfile: MetricProfile, metrics: Record<string, number>): Record<string, number> {
