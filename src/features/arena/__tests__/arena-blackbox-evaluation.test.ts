@@ -244,6 +244,7 @@ describe('arena black-box identification evaluation', () => {
     expect(blackBoxExperimentStore.countOwnedExperiments).toHaveBeenCalledWith({
       userId: 'student-blackbox',
       taskId: 'task-cruise-roll-blackbox-identification',
+      since: '2026-05-11T00:00:00.000Z',
       atOrBefore: '2026-05-11T09:01:00.000Z',
     });
   });

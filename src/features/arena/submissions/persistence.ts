@@ -1,7 +1,7 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
-import type { ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
+import { startOfUtcDay, type ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
 import { getArenaChallengeTask } from '../data/seed-challenges';
 import {
   normalizeCodeControllerManifest,
@@ -115,6 +115,7 @@ async function assertBlackBoxExperimentOwnership(input: {
   const experimentCount = await input.blackBoxExperimentStore.countOwnedExperiments({
     userId: input.userId,
     taskId: input.taskId,
+    since: startOfUtcDay(input.submittedAt).toISOString(),
     atOrBefore: input.submittedAt,
   });
 
