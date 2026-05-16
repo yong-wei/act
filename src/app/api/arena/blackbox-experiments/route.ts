@@ -9,7 +9,7 @@ import {
 import type { ArenaBlackBoxExperimentInput } from '@/features/arena/blackbox/experiment';
 import {
   ArenaPlantAdapterSelectionError,
-  getArenaPlantAdapterForTaskId,
+  getArenaPlantAdapterForPublicExperimentTaskId,
 } from '@/features/arena/adapters/registry';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and experimentInput are required' }, { status: 400 });
     }
 
-    const adapter = getArenaPlantAdapterForTaskId(body.taskId);
+    const adapter = getArenaPlantAdapterForPublicExperimentTaskId(body.taskId);
     const result = await adapter.runPublicExperiment({
       taskId: body.taskId,
       experimentInput: body.experimentInput,

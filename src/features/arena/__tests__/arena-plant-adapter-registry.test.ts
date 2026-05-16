@@ -5,8 +5,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ArenaPlantAdapterSelectionError,
+  getArenaPlantAdapterForPublicExperimentTaskId,
   getArenaPlantAdapterForObject,
   getArenaPlantAdapterForTaskId,
+  getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '../adapters/registry';
 import {
   getArenaChallengeObject,
@@ -44,6 +46,13 @@ describe('Arena PlantAdapter registry', () => {
 
   it('rejects unsupported task ids before falling back to mock data', () => {
     expect(() => getArenaPlantAdapterForTaskId('missing-task')).toThrow(ArenaPlantAdapterSelectionError);
+  });
+
+  it('rejects white-box tasks for black-box public experiment and preview operations', () => {
+    expect(() => getArenaPlantAdapterForPublicExperimentTaskId('task-second-order-lead-pid'))
+      .toThrow(ArenaPlantAdapterSelectionError);
+    expect(() => getArenaPlantAdapterForVirtualPreviewTaskId('task-second-order-lead-pid'))
+      .toThrow(ArenaPlantAdapterSelectionError);
   });
 
   it('keeps production API routes away from the test-only mock adapter', () => {

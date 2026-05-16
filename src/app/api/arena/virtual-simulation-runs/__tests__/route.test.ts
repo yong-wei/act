@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  getArenaPlantAdapterForTaskId: vi.fn(),
+  getArenaPlantAdapterForVirtualPreviewTaskId: vi.fn(),
   runVirtualPreview: vi.fn(),
 }));
 
@@ -20,7 +20,7 @@ vi.mock('@/features/arena/blackbox/controller-preview', () => ({
 }));
 
 vi.mock('@/features/arena/adapters/registry', () => ({
-  getArenaPlantAdapterForTaskId: mocks.getArenaPlantAdapterForTaskId,
+  getArenaPlantAdapterForVirtualPreviewTaskId: mocks.getArenaPlantAdapterForVirtualPreviewTaskId,
   ArenaPlantAdapterSelectionError: class ArenaPlantAdapterSelectionError extends Error {},
 }));
 
@@ -55,7 +55,7 @@ function postJson(body: unknown) {
 describe('POST /api/arena/virtual-simulation-runs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getArenaPlantAdapterForTaskId.mockReturnValue({
+    mocks.getArenaPlantAdapterForVirtualPreviewTaskId.mockReturnValue({
       id: 'cruise-roll-blackbox-production',
       runVirtualPreview: mocks.runVirtualPreview,
     });
@@ -106,7 +106,7 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(200);
     expect(payload.preview.id).toBe('preview-row-1');
-    expect(mocks.getArenaPlantAdapterForTaskId).toHaveBeenCalledWith(artifact.taskId);
+    expect(mocks.getArenaPlantAdapterForVirtualPreviewTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.runVirtualPreview).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       taskId: artifact.taskId,
@@ -131,7 +131,7 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
   it('maps unsupported adapter selection to 400 without storing a preview run', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
-    mocks.getArenaPlantAdapterForTaskId.mockImplementationOnce(() => {
+    mocks.getArenaPlantAdapterForVirtualPreviewTaskId.mockImplementationOnce(() => {
       throw new ArenaPlantAdapterSelectionError('No production Arena plant adapter supports task missing-task.');
     });
 

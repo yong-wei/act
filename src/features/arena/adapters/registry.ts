@@ -35,7 +35,7 @@ export function getArenaPlantAdapterForObject(
   );
 }
 
-export function getArenaPlantAdapterForTaskId(taskId: string): ArenaPlantAdapter {
+function getArenaTaskAndObject(taskId: string): { task: ChallengeTask; object: ChallengeObject } {
   const task = getArenaChallengeTask(taskId);
   if (!task) {
     throw new ArenaPlantAdapterSelectionError(`No production Arena plant adapter supports task ${taskId}.`);
@@ -48,7 +48,34 @@ export function getArenaPlantAdapterForTaskId(taskId: string): ArenaPlantAdapter
     );
   }
 
+  return { task, object };
+}
+
+export function getArenaPlantAdapterForTaskId(taskId: string): ArenaPlantAdapter {
+  const { task, object } = getArenaTaskAndObject(taskId);
   return getArenaPlantAdapterForObject(object, task);
+}
+
+export function getArenaPlantAdapterForPublicExperimentTaskId(taskId: string): ArenaPlantAdapter {
+  const { task, object } = getArenaTaskAndObject(taskId);
+  const adapter = getArenaPlantAdapterForObject(object, task);
+  if (!adapter.canRunPublicExperiment(task, object)) {
+    throw new ArenaPlantAdapterSelectionError(
+      `No production Arena plant adapter supports public experiments for task ${task.id}.`,
+    );
+  }
+  return adapter;
+}
+
+export function getArenaPlantAdapterForVirtualPreviewTaskId(taskId: string): ArenaPlantAdapter {
+  const { task, object } = getArenaTaskAndObject(taskId);
+  const adapter = getArenaPlantAdapterForObject(object, task);
+  if (!adapter.canRunVirtualPreview(task, object)) {
+    throw new ArenaPlantAdapterSelectionError(
+      `No production Arena plant adapter supports virtual previews for task ${task.id}.`,
+    );
+  }
+  return adapter;
 }
 
 export type { ArenaPlantAdapter };

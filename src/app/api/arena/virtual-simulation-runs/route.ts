@@ -10,7 +10,7 @@ import {
 import type { ControllerArtifact } from '@/features/arena/types';
 import {
   ArenaPlantAdapterSelectionError,
-  getArenaPlantAdapterForTaskId,
+  getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '@/features/arena/adapters/registry';
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
-    const adapter = getArenaPlantAdapterForTaskId(body.taskId);
+    const adapter = getArenaPlantAdapterForVirtualPreviewTaskId(body.taskId);
     const preview = await adapter.runVirtualPreview({
       userId: session.user.id,
       taskId: body.taskId,

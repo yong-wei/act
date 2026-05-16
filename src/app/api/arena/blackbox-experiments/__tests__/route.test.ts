@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  getArenaPlantAdapterForTaskId: vi.fn(),
+  getArenaPlantAdapterForPublicExperimentTaskId: vi.fn(),
   runPublicExperiment: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ vi.mock('@/features/arena/blackbox/experiment-service', () => ({
 }));
 
 vi.mock('@/features/arena/adapters/registry', () => ({
-  getArenaPlantAdapterForTaskId: mocks.getArenaPlantAdapterForTaskId,
+  getArenaPlantAdapterForPublicExperimentTaskId: mocks.getArenaPlantAdapterForPublicExperimentTaskId,
   ArenaPlantAdapterSelectionError: class ArenaPlantAdapterSelectionError extends Error {},
 }));
 
@@ -42,7 +42,7 @@ function postJson(body: unknown) {
 describe('POST /api/arena/blackbox-experiments', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getArenaPlantAdapterForTaskId.mockReturnValue({
+    mocks.getArenaPlantAdapterForPublicExperimentTaskId.mockReturnValue({
       id: 'cruise-roll-blackbox-production',
       runPublicExperiment: mocks.runPublicExperiment,
     });
@@ -107,7 +107,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
     expect(response.status).toBe(200);
     expect(payload.dataset.datasetHash).toBe('arena-blackbox-dataset-route');
     expect(payload.budget.remaining).toBe(19);
-    expect(mocks.getArenaPlantAdapterForTaskId).toHaveBeenCalledWith('task-cruise-roll-blackbox-identification');
+    expect(mocks.getArenaPlantAdapterForPublicExperimentTaskId).toHaveBeenCalledWith('task-cruise-roll-blackbox-identification');
     expect(mocks.runPublicExperiment).toHaveBeenCalledWith(expect.objectContaining({
       taskId: 'task-cruise-roll-blackbox-identification',
       experimentInput,
@@ -134,7 +134,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
   it('maps unsupported adapter selection to 400 without falling back to mock data', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
-    mocks.getArenaPlantAdapterForTaskId.mockImplementationOnce(() => {
+    mocks.getArenaPlantAdapterForPublicExperimentTaskId.mockImplementationOnce(() => {
       throw new ArenaPlantAdapterSelectionError('No production Arena plant adapter supports task missing-task.');
     });
 
