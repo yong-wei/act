@@ -14,6 +14,7 @@ import {
   getPresetDefaultViewConfigs,
   getWorkbenchViewPlugin,
 } from '../views';
+import { ClassicFourViewPreset } from '../presets/classic-four-view-preset';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -49,6 +50,7 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
   const metricNames = 'metricProfile' in session
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
+  const showClassicPreset = session.defaultPreset === 'classic-whitebox' && 'taskId' in session;
   const resetViewConfig = (viewId: WorkbenchViewId) => {
     const fallback = defaultViewConfigs.find((config) => config.id === viewId);
     setViewConfigs((current) => ({
@@ -210,6 +212,11 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
               );
             })}
           </div>
+          {showClassicPreset ? (
+            <div className="mt-6">
+              <ClassicFourViewPreset session={session} />
+            </div>
+          ) : null}
         </div>
       </section>
     </main>
