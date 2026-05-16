@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  createArenaBlackBoxExperiment: vi.fn(),
+  getArenaPlantAdapterForPublicExperimentTaskId: vi.fn(),
+  runPublicExperiment: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -10,9 +11,13 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('@/features/arena/blackbox/experiment-service', () => ({
-  createArenaBlackBoxExperiment: mocks.createArenaBlackBoxExperiment,
   prismaArenaBlackBoxExperimentStore: { marker: 'blackbox-store' },
   ArenaBlackBoxExperimentInputError: class ArenaBlackBoxExperimentInputError extends Error {},
+}));
+
+vi.mock('@/features/arena/adapters/registry', () => ({
+  getArenaPlantAdapterForPublicExperimentTaskId: mocks.getArenaPlantAdapterForPublicExperimentTaskId,
+  ArenaPlantAdapterSelectionError: class ArenaPlantAdapterSelectionError extends Error {},
 }));
 
 import { POST } from '../route';
@@ -37,7 +42,11 @@ function postJson(body: unknown) {
 describe('POST /api/arena/blackbox-experiments', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.createArenaBlackBoxExperiment.mockResolvedValue({
+    mocks.getArenaPlantAdapterForPublicExperimentTaskId.mockReturnValue({
+      id: 'cruise-roll-blackbox-production',
+      runPublicExperiment: mocks.runPublicExperiment,
+    });
+    mocks.runPublicExperiment.mockResolvedValue({
       dataset: {
         id: 'experiment-row-1',
         taskId: 'task-cruise-roll-blackbox-identification',
@@ -82,10 +91,10 @@ describe('POST /api/arena/blackbox-experiments', () => {
     });
 
     expect(response.status).toBe(403);
-    expect(mocks.createArenaBlackBoxExperiment).not.toHaveBeenCalled();
+    expect(mocks.runPublicExperiment).not.toHaveBeenCalled();
   });
 
-  it('creates a student-owned black-box experiment dataset through the service', async () => {
+  it('creates a student-owned black-box experiment dataset through the production registry adapter', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
     const response = await postJson({
@@ -98,7 +107,8 @@ describe('POST /api/arena/blackbox-experiments', () => {
     expect(response.status).toBe(200);
     expect(payload.dataset.datasetHash).toBe('arena-blackbox-dataset-route');
     expect(payload.budget.remaining).toBe(19);
-    expect(mocks.createArenaBlackBoxExperiment).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.getArenaPlantAdapterForPublicExperimentTaskId).toHaveBeenCalledWith('task-cruise-roll-blackbox-identification');
+    expect(mocks.runPublicExperiment).toHaveBeenCalledWith(expect.objectContaining({
       taskId: 'task-cruise-roll-blackbox-identification',
       experimentInput,
       userId: 'student-1',
@@ -109,7 +119,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
   it('maps invalid black-box experiment requests to 400', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaBlackBoxExperimentInputError } = await import('@/features/arena/blackbox/experiment-service');
-    mocks.createArenaBlackBoxExperiment.mockRejectedValueOnce(new ArenaBlackBoxExperimentInputError('Daily black-box experiment budget exceeded.'));
+    mocks.runPublicExperiment.mockRejectedValueOnce(new ArenaBlackBoxExperimentInputError('Daily black-box experiment budget exceeded.'));
 
     const response = await postJson({
       taskId: 'task-cruise-roll-blackbox-identification',
@@ -119,5 +129,23 @@ describe('POST /api/arena/blackbox-experiments', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('budget exceeded');
+  });
+
+  it('maps unsupported adapter selection to 400 without falling back to mock data', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
+    mocks.getArenaPlantAdapterForPublicExperimentTaskId.mockImplementationOnce(() => {
+      throw new ArenaPlantAdapterSelectionError('No production Arena plant adapter supports task missing-task.');
+    });
+
+    const response = await postJson({
+      taskId: 'missing-task',
+      experimentInput,
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('No production Arena plant adapter');
+    expect(mocks.runPublicExperiment).not.toHaveBeenCalled();
   });
 });

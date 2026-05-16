@@ -1155,6 +1155,7 @@ model ArenaEvaluationRun {
   hardConstraintResults Json
   penalties             Json
   explanation           Json
+  metadata              Json     @default("{}")
   completedAt           DateTime
   createdAt             DateTime @default(now())
 

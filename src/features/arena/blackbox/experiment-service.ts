@@ -31,6 +31,12 @@ export interface ArenaBlackBoxExperimentStore {
     taskId: string;
     datasetHash: string;
   }): Promise<StoredArenaBlackBoxExperiment | null>;
+  countOwnedExperiments?(input: {
+    userId: string;
+    taskId: string;
+    since?: string;
+    atOrBefore?: string;
+  }): Promise<number>;
   createExperimentWithinBudget(
     input: Omit<StoredArenaBlackBoxExperiment, 'id'> & {
       since: Date;
@@ -56,7 +62,7 @@ export interface CreateArenaBlackBoxExperimentResult {
   };
 }
 
-function startOfUtcDay(isoDate: string): Date {
+export function startOfUtcDay(isoDate: string): Date {
   const date = new Date(isoDate);
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
@@ -131,6 +137,21 @@ export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore = 
       budgetCost: row.budgetCost,
       createdAt: row.createdAt.toISOString(),
     };
+  },
+
+  async countOwnedExperiments(input) {
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (input.since) createdAt.gte = new Date(input.since);
+    if (input.atOrBefore) createdAt.lte = new Date(input.atOrBefore);
+    const aggregate = await prisma.arenaBlackBoxExperiment.aggregate({
+      where: {
+        userId: input.userId,
+        taskId: input.taskId,
+        ...(Object.keys(createdAt).length > 0 ? { createdAt } : {}),
+      },
+      _sum: { budgetCost: true },
+    });
+    return aggregate._sum.budgetCost ?? 0;
   },
 
   async createExperimentWithinBudget(input) {

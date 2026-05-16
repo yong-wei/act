@@ -24,6 +24,7 @@ export interface ArenaEvaluationResult {
   hardConstraintResults: HardConstraintResult[];
   penalties: ArenaEvaluationPenalty[];
   explanation: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface WhiteBoxEvaluationInput {

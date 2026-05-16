@@ -1,8 +1,7 @@
-import type { ChallengeObject, ChallengeTask, ControllerArtifact } from '../types';
-import type { ArenaEvaluationResult } from '../evaluation/types';
+import type { ChallengeObject, ChallengeTask } from '../types';
 import type { ArenaBlackBoxExperimentDataset } from '../blackbox/experiment';
 
-export interface ArenaPlantAdapter {
+export interface ArenaTestPlantAdapter {
   canRunPublicExperiment(task: ChallengeTask, object: ChallengeObject): boolean;
   runPublicExperiment(input: {
     task: ChallengeTask;
@@ -10,15 +9,9 @@ export interface ArenaPlantAdapter {
     signalType: 'step' | 'impulse' | 'prbs' | 'sine';
     seed?: string;
   }): Promise<ArenaBlackBoxExperimentDataset>;
-  canRunOfficialEvaluation(task: ChallengeTask, object: ChallengeObject): boolean;
-  runOfficialEvaluation(input: {
-    task: ChallengeTask;
-    object: ChallengeObject;
-    artifact: ControllerArtifact;
-  }): Promise<ArenaEvaluationResult>;
 }
 
-export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaPlantAdapter {
+export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaTestPlantAdapter {
   return {
     canRunPublicExperiment(task, object) {
       return object.id === 'plant-cruise-roll-blackbox'
@@ -69,12 +62,5 @@ export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaPlantAdapter
       };
     },
 
-    canRunOfficialEvaluation(task, object) {
-      return this.canRunPublicExperiment(task, object);
-    },
-
-    async runOfficialEvaluation() {
-      throw new Error('Official blackbox evaluation must use the server-side evaluator via evaluateArenaSubmission.');
-    },
   };
 }

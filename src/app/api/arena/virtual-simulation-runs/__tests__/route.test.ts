@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  createArenaVirtualSimulationPreviewRun: vi.fn(),
+  getArenaPlantAdapterForVirtualPreviewTaskId: vi.fn(),
+  runVirtualPreview: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -14,9 +15,13 @@ vi.mock('@/features/arena/blackbox/experiment-service', () => ({
 }));
 
 vi.mock('@/features/arena/blackbox/controller-preview', () => ({
-  createArenaVirtualSimulationPreviewRun: mocks.createArenaVirtualSimulationPreviewRun,
   prismaArenaVirtualSimulationRunStore: { marker: 'preview-store' },
   ArenaVirtualSimulationRunInputError: class ArenaVirtualSimulationRunInputError extends Error {},
+}));
+
+vi.mock('@/features/arena/adapters/registry', () => ({
+  getArenaPlantAdapterForVirtualPreviewTaskId: mocks.getArenaPlantAdapterForVirtualPreviewTaskId,
+  ArenaPlantAdapterSelectionError: class ArenaPlantAdapterSelectionError extends Error {},
 }));
 
 import { POST } from '../route';
@@ -50,7 +55,11 @@ function postJson(body: unknown) {
 describe('POST /api/arena/virtual-simulation-runs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.createArenaVirtualSimulationPreviewRun.mockResolvedValue({
+    mocks.getArenaPlantAdapterForVirtualPreviewTaskId.mockReturnValue({
+      id: 'cruise-roll-blackbox-production',
+      runVirtualPreview: mocks.runVirtualPreview,
+    });
+    mocks.runVirtualPreview.mockResolvedValue({
       id: 'preview-row-1',
       taskId: artifact.taskId,
       datasetHash: artifact.params.experimentDatasetHash,
@@ -82,10 +91,10 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     const response = await postJson({ taskId: artifact.taskId, artifact });
 
     expect(response.status).toBe(403);
-    expect(mocks.createArenaVirtualSimulationPreviewRun).not.toHaveBeenCalled();
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
   });
 
-  it('creates a preview run for the session student and does not trust request user identity', async () => {
+  it('creates a preview run through the production registry adapter for the session student', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
     const response = await postJson({
@@ -97,7 +106,8 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(200);
     expect(payload.preview.id).toBe('preview-row-1');
-    expect(mocks.createArenaVirtualSimulationPreviewRun).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.getArenaPlantAdapterForVirtualPreviewTaskId).toHaveBeenCalledWith(artifact.taskId);
+    expect(mocks.runVirtualPreview).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       taskId: artifact.taskId,
       artifact,
@@ -109,12 +119,27 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
   it('maps invalid preview requests to 400', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaVirtualSimulationRunInputError } = await import('@/features/arena/blackbox/controller-preview');
-    mocks.createArenaVirtualSimulationPreviewRun.mockRejectedValueOnce(new ArenaVirtualSimulationRunInputError('Black-box experiment dataset does not belong to the current student.'));
+    mocks.runVirtualPreview.mockRejectedValueOnce(new ArenaVirtualSimulationRunInputError('Black-box experiment dataset does not belong to the current student.'));
 
     const response = await postJson({ taskId: artifact.taskId, artifact });
     const payload = await response.json();
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('does not belong');
+  });
+
+  it('maps unsupported adapter selection to 400 without storing a preview run', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
+    mocks.getArenaPlantAdapterForVirtualPreviewTaskId.mockImplementationOnce(() => {
+      throw new ArenaPlantAdapterSelectionError('No production Arena plant adapter supports task missing-task.');
+    });
+
+    const response = await postJson({ taskId: 'missing-task', artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('No production Arena plant adapter');
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
   });
 });

@@ -4,10 +4,13 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ArenaBlackBoxExperimentInputError,
-  createArenaBlackBoxExperiment,
   prismaArenaBlackBoxExperimentStore,
 } from '@/features/arena/blackbox/experiment-service';
 import type { ArenaBlackBoxExperimentInput } from '@/features/arena/blackbox/experiment';
+import {
+  ArenaPlantAdapterSelectionError,
+  getArenaPlantAdapterForPublicExperimentTaskId,
+} from '@/features/arena/adapters/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +33,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and experimentInput are required' }, { status: 400 });
     }
 
-    const result = await createArenaBlackBoxExperiment({
+    const adapter = getArenaPlantAdapterForPublicExperimentTaskId(body.taskId);
+    const result = await adapter.runPublicExperiment({
       taskId: body.taskId,
       experimentInput: body.experimentInput,
       userId: session.user.id,
@@ -40,7 +44,10 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    if (error instanceof ArenaBlackBoxExperimentInputError) {
+    if (
+      error instanceof ArenaBlackBoxExperimentInputError ||
+      error instanceof ArenaPlantAdapterSelectionError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error('Arena black-box experiment failed', error);

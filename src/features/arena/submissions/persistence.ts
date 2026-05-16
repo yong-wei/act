@@ -1,7 +1,7 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
-import type { ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
+import { startOfUtcDay, type ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
 import { getArenaChallengeTask } from '../data/seed-challenges';
 import {
   normalizeCodeControllerManifest,
@@ -82,8 +82,9 @@ async function assertBlackBoxExperimentOwnership(input: {
   taskId: string;
   artifact: ControllerArtifact;
   blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
-}) {
-  if (input.artifact.method !== 'black-box-control') return;
+  submittedAt: string;
+}): Promise<ControllerArtifact> {
+  if (input.artifact.method !== 'black-box-control') return input.artifact;
 
   const datasetHash = input.artifact.params.experimentDatasetHash;
   const identificationModelId = input.artifact.params.identificationModelId;
@@ -107,6 +108,24 @@ async function assertBlackBoxExperimentOwnership(input: {
   if (!experiment) {
     throw new ArenaSubmissionInputError('Black-box experiment dataset does not belong to the current student.');
   }
+  if (typeof input.blackBoxExperimentStore.countOwnedExperiments !== 'function') {
+    throw new ArenaSubmissionInputError('Black-box experiment count store is required.');
+  }
+
+  const experimentCount = await input.blackBoxExperimentStore.countOwnedExperiments({
+    userId: input.userId,
+    taskId: input.taskId,
+    since: startOfUtcDay(input.submittedAt).toISOString(),
+    atOrBefore: input.submittedAt,
+  });
+
+  return {
+    ...input.artifact,
+    params: {
+      ...input.artifact.params,
+      experimentCount,
+    },
+  };
 }
 
 function normalizeSubmissionArtifact(taskId: string, artifact: ControllerArtifact): ControllerArtifact {
@@ -130,16 +149,15 @@ function normalizeSubmissionArtifact(taskId: string, artifact: ControllerArtifac
 export async function createPersistedArenaSubmission(
   input: CreatePersistedArenaSubmissionInput,
 ): Promise<ArenaSubmissionRecord> {
-  const artifact = normalizeSubmissionArtifact(input.taskId, input.artifact);
-  const artifactHash = hashControllerArtifact(artifact);
-  const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
-
-  await assertBlackBoxExperimentOwnership({
+  const artifact = await assertBlackBoxExperimentOwnership({
     userId: input.userId,
     taskId: input.taskId,
-    artifact,
+    artifact: normalizeSubmissionArtifact(input.taskId, input.artifact),
     blackBoxExperimentStore: input.blackBoxExperimentStore,
+    submittedAt: input.submittedAt,
   });
+  const artifactHash = hashControllerArtifact(artifact);
+  const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
   const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
   let evaluation: ArenaEvaluationResult;

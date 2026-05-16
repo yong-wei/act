@@ -5,10 +5,13 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/experiment-service';
 import {
   ArenaVirtualSimulationRunInputError,
-  createArenaVirtualSimulationPreviewRun,
   prismaArenaVirtualSimulationRunStore,
 } from '@/features/arena/blackbox/controller-preview';
 import type { ControllerArtifact } from '@/features/arena/types';
+import {
+  ArenaPlantAdapterSelectionError,
+  getArenaPlantAdapterForVirtualPreviewTaskId,
+} from '@/features/arena/adapters/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +34,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
-    const preview = await createArenaVirtualSimulationPreviewRun({
+    const adapter = getArenaPlantAdapterForVirtualPreviewTaskId(body.taskId);
+    const preview = await adapter.runVirtualPreview({
       userId: session.user.id,
       taskId: body.taskId,
       artifact: body.artifact,
@@ -42,7 +46,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ preview });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    if (error instanceof ArenaVirtualSimulationRunInputError) {
+    if (
+      error instanceof ArenaVirtualSimulationRunInputError ||
+      error instanceof ArenaPlantAdapterSelectionError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error('Arena virtual simulation preview failed', error);

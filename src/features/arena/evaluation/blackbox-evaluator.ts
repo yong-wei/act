@@ -6,6 +6,11 @@ import {
 import type { ControllerArtifact, MetricProfile } from '../types';
 import type { ArenaEvaluationResult, HardConstraintResult } from './types';
 import { clampScore, normalizeMetricValue, scoreMetricSatisfaction } from './scoring';
+import {
+  CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET,
+  CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET_ID,
+} from './blackbox-scenario-set';
+import { evaluateCruiseRollOfficialMetrics } from './blackbox-official-metrics';
 
 interface BlackBoxSummary {
   representation: string | undefined;
@@ -96,71 +101,28 @@ function summarizeBlackBoxArtifact(artifact: ControllerArtifact): BlackBoxSummar
   };
 }
 
-function round(value: number, scale: number): number {
-  return Number.isFinite(value) ? Math.round(value * scale) / scale : 0;
-}
-
-function estimateBlackBoxMetrics(summary: BlackBoxSummary): Record<string, number> {
-  const officialIdentificationFit = deriveOfficialIdentificationFit(summary);
+function evaluateBlackBoxOfficialMetrics(summary: BlackBoxSummary): Record<string, number> {
   if (summary.validationErrors.length > 0) {
     return {
       trackingError: 0,
       worstCaseDeviation: 0,
       controlEnergy: 0,
       constraintViolations: 0,
-      identificationFit: officialIdentificationFit,
+      identificationFit: 0,
       disturbanceRecovery: 0,
       smoothness: 0,
     };
   }
 
-  const identificationQuality = officialIdentificationFit;
-  const experimentCount = summary.experimentCount ?? 0;
-  const controllerGain = summary.controllerGain ?? 0;
-  const dampingCompensation = summary.dampingCompensation ?? 0;
-  const energyBudget = summary.energyBudget ?? 1;
-  const experimentPenalty = experimentCount < 6 ? (6 - experimentCount) * 0.018 : 0;
-  const trackingError = Math.max(
-    0.035,
-    0.5 * (1 - identificationQuality) +
-      Math.abs(controllerGain - 1.6) * 0.045 +
-      Math.max(0, 0.55 - dampingCompensation) * 0.15 +
-      experimentPenalty,
-  );
-  const worstCaseDeviation = trackingError * 1.75 +
-    Math.max(0, controllerGain - 3) * 0.08 +
-    Math.max(0, 0.45 - dampingCompensation) * 0.2;
-  const controlEnergy = controllerGain * 4 + dampingCompensation * 2.2;
-  const constraintViolations = Math.max(
-    0,
-    Math.ceil(Math.max(0, controlEnergy - energyBudget) / 3) +
-      Math.ceil(Math.max(0, trackingError - 0.45) * 8) +
-      (identificationQuality < 0.45 ? 2 : 0),
-  );
-  const disturbanceRecovery = Math.max(0, 1 - trackingError);
-  const smoothness = Math.max(0.1, 1 - Math.abs(controllerGain - 1.4) * 0.12 - dampingCompensation * 0.04);
-
-  return {
-    trackingError: round(trackingError, 1000),
-    worstCaseDeviation: round(worstCaseDeviation, 1000),
-    controlEnergy: round(controlEnergy, 1000),
-    constraintViolations,
-    identificationFit: round(identificationQuality, 1000),
-    disturbanceRecovery: round(disturbanceRecovery, 1000),
-    smoothness: round(smoothness, 1000),
-  };
-}
-
-function deriveOfficialIdentificationFit(summary: BlackBoxSummary): number {
-  const experimentCount = summary.experimentCount ?? 0;
-  const controllerGain = summary.controllerGain ?? 0;
-  const dampingCompensation = summary.dampingCompensation ?? 0;
-  const energyBudget = summary.energyBudget ?? 0;
-  const experimentFit = Math.min(1, experimentCount / 8);
-  const gainFit = Math.max(0, 1 - Math.abs(controllerGain - 1.6) / 4);
-  const dampingFit = Math.max(0, 1 - Math.abs(dampingCompensation - 0.7) / 2);
-  const budgetFit = Math.max(0, 1 - Math.abs(energyBudget - 12) / 24);
-  return round((0.4 * experimentFit) + (0.25 * gainFit) + (0.2 * dampingFit) + (0.15 * budgetFit), 1000);
+  return evaluateCruiseRollOfficialMetrics({
+    controller: {
+      experimentCount: summary.experimentCount ?? 0,
+      controllerGain: summary.controllerGain ?? 0,
+      dampingCompensation: summary.dampingCompensation ?? 0,
+      energyBudget: summary.energyBudget ?? 1,
+    },
+    scenarioSet: CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET,
+  });
 }
 
 function evaluateHardConstraints(
@@ -205,6 +167,10 @@ function buildSatisfaction(metricProfile: MetricProfile, metrics: Record<string,
   );
 }
 
+function buildFailedSatisfaction(metricProfile: MetricProfile): Record<string, number> {
+  return Object.fromEntries(metricProfile.rankingMetrics.map((metric) => [metric.id, 0]));
+}
+
 export function evaluateBlackBoxSubmission({
   taskId,
   artifact,
@@ -232,10 +198,13 @@ export function evaluateBlackBoxSubmission({
     throw new Error(`Arena task ${task.id} is not configured for black-box virtual simulation evaluation.`);
   }
 
+  const metadata = { scenarioSetId: CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET_ID };
   const summary = summarizeBlackBoxArtifact(artifact);
-  const metrics = estimateBlackBoxMetrics(summary);
+  const metrics = evaluateBlackBoxOfficialMetrics(summary);
   const hardConstraintResults = evaluateHardConstraints(summary, metrics);
-  const satisfaction = buildSatisfaction(metricProfile, metrics);
+  const satisfaction = summary.validationErrors.length > 0
+    ? buildFailedSatisfaction(metricProfile)
+    : buildSatisfaction(metricProfile, metrics);
   const valid = hardConstraintResults.every((result) => result.passed);
 
   if (!valid) {
@@ -252,6 +221,7 @@ export function evaluateBlackBoxSubmission({
         '黑箱官方评测硬约束未全部通过，提交未进入正式排名。',
         ...hardConstraintResults.filter((item) => !item.passed).map((item) => `${item.label}: ${item.reason}`),
       ],
+      metadata,
     };
   }
 
@@ -275,5 +245,6 @@ export function evaluateBlackBoxSubmission({
       '黑箱官方评测硬约束全部通过，提交进入正式排名。',
       `基础分 ${baseScore.toFixed(1)}，实验预算惩罚 ${experimentPenalty.toFixed(1)}，最终分 ${score.toFixed(1)}。`,
     ],
+    metadata,
   };
 }
