@@ -52,6 +52,7 @@ describe('arena student entry UI boundaries', () => {
     expect(cruiseSource).toContain('requestedPublicationId');
     expect(cruiseSource).toContain('publicationId={publicationContext?.id}');
     expect(submissionsApiSource).toContain('resolveAccessibleArenaPublicationForStudent');
+    expect(submissionsApiSource).toContain('filterArenaSubmissionsForHiddenPublicationPolicy');
     expect(submissionsApiSource).toContain('publicationId,');
     expect(submissionsApiSource).toContain('submission.userId === viewerUserId');
   });
