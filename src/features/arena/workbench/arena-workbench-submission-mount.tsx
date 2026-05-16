@@ -24,10 +24,12 @@ export function ArenaWorkbenchSubmissionMount({
     [arenaTaskId],
   );
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[] | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
     setSubmissions(null);
+    setViewerUserId(undefined);
 
     if (!arenaContext || arenaContext.recommendedWorkspaceMode !== workspaceMode) {
       return () => {
@@ -46,14 +48,17 @@ export function ArenaWorkbenchSubmissionMount({
       .then(async (response) => {
         const payload = await response.json() as {
           submissions?: ArenaSubmissionRecord[];
+          viewerUserId?: string;
         };
         if (!cancelled) {
           setSubmissions(response.ok ? payload.submissions ?? [] : []);
+          setViewerUserId(response.ok ? payload.viewerUserId : undefined);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setSubmissions([]);
+          setViewerUserId(undefined);
         }
       });
 
@@ -85,6 +90,7 @@ export function ArenaWorkbenchSubmissionMount({
         task={arenaContext.task}
         initialSubmissions={submissions}
         publicationId={publicationId}
+        viewerUserId={viewerUserId}
       />
     </div>
   );

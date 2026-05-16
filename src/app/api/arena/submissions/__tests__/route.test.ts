@@ -68,10 +68,12 @@ describe('GET /api/arena/submissions', () => {
       { id: 'open-submission', userId: 'student-1', taskId },
     ]);
     const response = await getSubmissions(`http://localhost/api/arena/submissions?taskId=${taskId}`);
+    const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(mocks.resolveAccessibleArenaPublicationForStudent).not.toHaveBeenCalled();
     expect(mocks.listSubmissions).toHaveBeenCalledWith({ taskId, publicationId: undefined });
+    expect(payload.viewerUserId).toBe('student-1');
   });
 
   it('filters hidden publication submissions from unscoped task reads', async () => {
@@ -124,6 +126,7 @@ describe('GET /api/arena/submissions', () => {
       classId: 'class-a',
     });
     expect(payload.submissions.map((submission: { id: string }) => submission.id)).toEqual(['own-submission']);
+    expect(payload.viewerUserId).toBe('student-1');
   });
 
   it('does not class-scope course-wide publication submission reads', async () => {

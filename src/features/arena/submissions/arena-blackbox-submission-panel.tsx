@@ -31,10 +31,12 @@ export function ArenaBlackBoxSubmissionPanel({
   task,
   initialSubmissions,
   publicationId,
+  viewerUserId,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
   publicationId?: string;
+  viewerUserId?: string;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState('step');
@@ -50,7 +52,10 @@ export function ArenaBlackBoxSubmissionPanel({
   const [identificationModel, setIdentificationModel] = useState<ArenaIdentificationArtifactReference | null>(null);
   const [previewRun, setPreviewRun] = useState<(ArenaVirtualSimulationPreviewRun & { id: string }) | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const latest = submissions[submissions.length - 1];
+  const personalSubmissions = viewerUserId
+    ? submissions.filter((submission) => submission.userId === viewerUserId)
+    : [];
+  const latest = personalSubmissions[personalSubmissions.length - 1];
   const leaderboard = buildArenaLeaderboard(submissions, {
     taskId: task.id,
     type: task.leaderboardTypes.includes('method') ? 'method' : 'main',
@@ -335,7 +340,7 @@ export function ArenaBlackBoxSubmissionPanel({
       {latest ? (
         <ArenaPersonalFeedback
           latest={latest}
-          previousSubmissions={submissions.slice(0, -1)}
+          previousSubmissions={personalSubmissions.slice(0, -1)}
           mode="black-box"
         />
       ) : null}

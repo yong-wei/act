@@ -223,7 +223,9 @@ describe('arena personal feedback component', () => {
     );
 
     expect(source).toContain("import { ArenaPersonalFeedback } from '../student/arena-personal-feedback'");
-    expect(source).toContain('previousSubmissions={submissions.slice(0, -1)}');
+    expect(source).toContain('viewerUserId');
+    expect(source).toContain('submissions.filter((submission) => submission.userId === viewerUserId)');
+    expect(source).toContain('previousSubmissions={personalSubmissions.slice(0, -1)}');
     expect(source).toContain('mode="white-box"');
   });
 
@@ -234,7 +236,31 @@ describe('arena personal feedback component', () => {
     );
 
     expect(source).toContain("import { ArenaPersonalFeedback } from '../student/arena-personal-feedback'");
-    expect(source).toContain('previousSubmissions={submissions.slice(0, -1)}');
+    expect(source).toContain('viewerUserId');
+    expect(source).toContain('submissions.filter((submission) => submission.userId === viewerUserId)');
+    expect(source).toContain('previousSubmissions={personalSubmissions.slice(0, -1)}');
     expect(source).toContain('mode="black-box"');
+  });
+
+  it('passes viewer identity from Arena submission entry points to personal feedback panels', () => {
+    const apiSource = readFileSync(
+      join(process.cwd(), 'src/app/api/arena/submissions/route.ts'),
+      'utf8',
+    );
+    const mountSource = readFileSync(
+      join(process.cwd(), 'src/features/arena/workbench/arena-workbench-submission-mount.tsx'),
+      'utf8',
+    );
+    const cruiseSource = readFileSync(
+      join(process.cwd(), 'src/app/simulations/cruise/page.tsx'),
+      'utf8',
+    );
+
+    expect(apiSource).toContain('const session = await getServerAuthSession()');
+    expect(apiSource).toContain('viewerUserId: session?.user?.id');
+    expect(mountSource).toContain('viewerUserId?: string');
+    expect(mountSource).toContain('setViewerUserId');
+    expect(mountSource).toContain('viewerUserId={viewerUserId}');
+    expect(cruiseSource).toContain('viewerUserId={session?.user?.id}');
   });
 });
