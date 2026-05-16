@@ -1,5 +1,9 @@
 import dynamicImport from 'next/dynamic';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import {
+  filterArenaSubmissionsForHiddenPublicationPolicy,
+  toArenaStatsPublicationContext,
+} from '@/features/arena/domain';
 import { ArenaBlackBoxSubmissionPanel } from '@/features/arena/submissions/arena-blackbox-submission-panel';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
@@ -69,12 +73,34 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
       ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
     })
     : [];
+  const submissionPublicationIds = requestedPublicationId
+    ? []
+    : Array.from(
+      new Set(
+        blackBoxSubmissions
+          .map((submission) => submission.publicationId)
+          .filter((id): id is string => typeof id === 'string'),
+      ),
+    );
+  const publicationRows = submissionPublicationIds.length > 0
+    ? await prisma.arenaChallengePublication.findMany({
+      where: { id: { in: submissionPublicationIds } },
+      select: { id: true, deadline: true, gradingPolicy: true },
+    })
+    : [];
+  const taskVisibleBlackBoxSubmissions = requestedPublicationId
+    ? blackBoxSubmissions
+    : filterArenaSubmissionsForHiddenPublicationPolicy(
+      blackBoxSubmissions,
+      publicationRows.map(toArenaStatsPublicationContext),
+      new Date(),
+    );
   const visibleBlackBoxSubmissions =
     publicationContext?.gradingPolicy.hideFullLeaderboardBeforeDeadline === true &&
     publicationContext.isLate !== true &&
     session?.user?.id
-      ? blackBoxSubmissions.filter((submission) => submission.userId === session.user.id)
-      : blackBoxSubmissions;
+      ? taskVisibleBlackBoxSubmissions.filter((submission) => submission.userId === session.user.id)
+      : taskVisibleBlackBoxSubmissions;
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100">

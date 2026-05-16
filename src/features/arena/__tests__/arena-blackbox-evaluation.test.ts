@@ -287,6 +287,7 @@ describe('arena black-box identification evaluation', () => {
     expect(cruiseSimulationPageSource).toContain('resolveAccessibleArenaPublicationForStudent');
     expect(cruiseSimulationPageSource).toContain('prismaArenaSubmissionStore.listSubmissions({');
     expect(cruiseSimulationPageSource).toContain('publicationId: publicationContext.id');
+    expect(cruiseSimulationPageSource).toContain('filterArenaSubmissionsForHiddenPublicationPolicy');
     expect(cruiseSimulationPageSource).toContain('<ArenaBlackBoxSubmissionPanel');
     expect(cruiseSimulationPageSource).toContain('initialSubmissions={visibleBlackBoxSubmissions}');
     expect(cruiseSimulationPageSource).toContain('publicationId={publicationContext?.id}');
