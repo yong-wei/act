@@ -202,6 +202,7 @@ describe('arena black-box identification evaluation', () => {
         budgetCost: 1,
         createdAt: '2026-05-11T09:00:00.000Z',
       }),
+      countOwnedExperiments: vi.fn().mockResolvedValue(6),
       createExperimentWithinBudget: vi.fn(),
     };
 
@@ -234,6 +235,74 @@ describe('arena black-box identification evaluation', () => {
       taskId: 'task-cruise-roll-blackbox-identification',
       datasetHash: experimentDatasetHash,
     });
+    expect(blackBoxExperimentStore.countOwnedExperiments).toHaveBeenCalledWith({
+      userId: 'student-blackbox',
+      taskId: 'task-cruise-roll-blackbox-identification',
+      atOrBefore: '2026-05-11T09:01:00.000Z',
+    });
+  });
+
+  it('derives official black-box experiment count from persisted experiments instead of client claims', async () => {
+    const artifact = buildBlackBoxControlArtifactFromParams({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      values: {
+        identificationQuality: '0.82',
+        experimentCount: '12',
+        controllerGain: '1.6',
+        dampingCompensation: '0.72',
+        energyBudget: '12',
+      },
+      experimentDatasetHash,
+      identificationModelId,
+      now: '2026-05-11T09:00:00.000Z',
+    });
+    const store = {
+      findEvaluationByHash: vi.fn().mockResolvedValue(null),
+      createEvaluation: vi.fn(async (evaluation) => ({ ...evaluation, id: 'blackbox-eval-row' })),
+      upsertArtifact: vi.fn(async (storedArtifact) => ({ ...storedArtifact, id: 'blackbox-artifact-row' })),
+      createSubmission: vi.fn(async (submission) => ({ ...submission, id: 'blackbox-submission-row' })),
+    };
+    const blackBoxExperimentStore = {
+      findOwnedExperiment: vi.fn().mockResolvedValue({
+        id: 'blackbox-experiment-row',
+        userId: 'student-blackbox',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        datasetHash: experimentDatasetHash,
+        signalType: 'step',
+        dataset: { datasetHash: experimentDatasetHash },
+        budgetCost: 1,
+        createdAt: '2026-05-11T09:00:00.000Z',
+      }),
+      countOwnedExperiments: vi.fn().mockResolvedValue(1),
+      createExperimentWithinBudget: vi.fn(),
+    };
+
+    const submission = await createPersistedArenaSubmission({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      artifact,
+      userId: 'student-blackbox',
+      studentLabel: '黑箱学生',
+      submittedAt: '2026-05-11T09:01:00.000Z',
+      store,
+      blackBoxExperimentStore,
+    });
+
+    expect(submission.artifact.params.experimentCount).toBe(1);
+    expect(submission.evaluation.artifact.params.experimentCount).toBe(1);
+    expect(submission.evaluation.valid).toBe(false);
+    expect(submission.evaluation.explanation.join(' ')).toContain('experimentCount 不能低于 3');
+    expect(store.findEvaluationByHash).toHaveBeenCalledWith(
+      'task-cruise-roll-blackbox-identification',
+      submission.artifactHash,
+      'blackbox-official-v1',
+    );
+    expect(store.createEvaluation).toHaveBeenCalledWith(expect.objectContaining({
+      result: expect.objectContaining({
+        artifact: expect.objectContaining({
+          params: expect.objectContaining({ experimentCount: 1 }),
+        }),
+      }),
+    }));
   });
 
   it('separates black-box official cache lookup from legacy blackbox-v1 evaluations', async () => {
@@ -287,6 +356,7 @@ describe('arena black-box identification evaluation', () => {
         budgetCost: 1,
         createdAt: '2026-05-11T09:00:00.000Z',
       }),
+      countOwnedExperiments: vi.fn().mockResolvedValue(6),
       createExperimentWithinBudget: vi.fn(),
     };
 
@@ -331,6 +401,7 @@ describe('arena black-box identification evaluation', () => {
     };
     const blackBoxExperimentStore = {
       findOwnedExperiment: vi.fn().mockResolvedValue(null),
+      countOwnedExperiments: vi.fn(),
       createExperimentWithinBudget: vi.fn(),
     };
 
@@ -344,6 +415,7 @@ describe('arena black-box identification evaluation', () => {
       blackBoxExperimentStore,
     })).rejects.toThrow('Black-box experiment dataset does not belong to the current student');
     expect(store.findEvaluationByHash).not.toHaveBeenCalled();
+    expect(blackBoxExperimentStore.countOwnedExperiments).not.toHaveBeenCalled();
   });
 
   it('keeps black-box submission UI available while challenge detail stays read-only', () => {

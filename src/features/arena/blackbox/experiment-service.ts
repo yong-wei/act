@@ -31,6 +31,11 @@ export interface ArenaBlackBoxExperimentStore {
     taskId: string;
     datasetHash: string;
   }): Promise<StoredArenaBlackBoxExperiment | null>;
+  countOwnedExperiments?(input: {
+    userId: string;
+    taskId: string;
+    atOrBefore?: string;
+  }): Promise<number>;
   createExperimentWithinBudget(
     input: Omit<StoredArenaBlackBoxExperiment, 'id'> & {
       since: Date;
@@ -131,6 +136,16 @@ export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore = 
       budgetCost: row.budgetCost,
       createdAt: row.createdAt.toISOString(),
     };
+  },
+
+  async countOwnedExperiments(input) {
+    return prisma.arenaBlackBoxExperiment.count({
+      where: {
+        userId: input.userId,
+        taskId: input.taskId,
+        ...(input.atOrBefore ? { createdAt: { lte: new Date(input.atOrBefore) } } : {}),
+      },
+    });
   },
 
   async createExperimentWithinBudget(input) {
