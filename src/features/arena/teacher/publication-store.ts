@@ -377,7 +377,7 @@ export async function loadArenaPublicationReportForActor(
     listSubmissions({
       taskId: publication.taskId,
       publicationId: publication.id,
-      classId: publication.classId,
+      ...(publication.visibility === 'class' ? { classId: publication.classId } : {}),
     }),
     listPublicationRoster(db, publication.classId),
   ]);

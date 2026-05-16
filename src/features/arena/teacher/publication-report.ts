@@ -90,7 +90,7 @@ function filterPublicationSubmissions(input: BuildArenaPublicationReportInput): 
   return input.submissions.filter((submission) => (
     submission.publicationId === input.publication.id
     && submission.taskId === input.publication.taskId
-    && submission.classId === input.publication.classId
+    && (input.publication.visibility !== 'class' || submission.classId === input.publication.classId)
   ));
 }
 

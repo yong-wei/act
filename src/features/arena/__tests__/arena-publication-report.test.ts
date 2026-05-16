@@ -31,7 +31,7 @@ function submission(input: {
   submittedAt: string;
   method?: ControllerMethod;
   publicationId?: string;
-  classId?: string;
+  classId?: string | null;
   satisfaction?: Record<string, number>;
   metrics?: Record<string, number>;
   hardConstraintResults?: Array<{ id: string; label: string; passed: boolean; value?: number; threshold?: number }>;
@@ -42,7 +42,7 @@ function submission(input: {
     id: input.id,
     taskId: 'task-report',
     userId: input.userId,
-    classId: input.classId ?? 'class-a',
+    classId: input.classId === null ? undefined : input.classId ?? 'class-a',
     publicationId: input.publicationId ?? 'publication-a',
     studentLabel: input.studentLabel,
     artifactHash: `hash-${input.id}`,
@@ -234,6 +234,70 @@ describe('arena publication report analytics', () => {
     expect(report.personalBests).toEqual([]);
     expect(report.excellentSolutions).toEqual([]);
   });
+
+  it('keeps course-wide publication reports scoped to publication without class filtering', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-course',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'course',
+        leaderboardPolicyId: 'leaderboard-course',
+        gradingPolicy: {},
+      },
+      submissions: [
+        submission({
+          id: 'owner-class',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 80,
+          valid: true,
+          publicationId: 'publication-course',
+          submittedAt: '2026-05-16T08:00:00.000Z',
+        }),
+        submission({
+          id: 'other-class',
+          userId: 'student-b',
+          studentLabel: '学生乙',
+          score: 90,
+          valid: true,
+          publicationId: 'publication-course',
+          classId: 'class-b',
+          submittedAt: '2026-05-16T08:10:00.000Z',
+        }),
+        submission({
+          id: 'no-class',
+          userId: 'student-c',
+          studentLabel: '学生丙',
+          score: 70,
+          valid: false,
+          publicationId: 'publication-course',
+          classId: null,
+          submittedAt: '2026-05-16T08:20:00.000Z',
+        }),
+        submission({
+          id: 'other-publication',
+          userId: 'student-d',
+          studentLabel: '学生丁',
+          score: 100,
+          valid: true,
+          publicationId: 'publication-other',
+          classId: 'class-b',
+          submittedAt: '2026-05-16T08:30:00.000Z',
+        }),
+      ],
+    });
+
+    expect(report.participation.participantCount).toBe(3);
+    expect(report.submissions).toMatchObject({
+      submissionCount: 3,
+      validSubmissionCount: 2,
+      invalidSubmissionCount: 1,
+    });
+    expect(report.scores).toEqual({ average: 80, median: 80, highest: 90 });
+    expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a', 'student-c']);
+  });
 });
 
 function publicationRow(overrides: Record<string, unknown> = {}) {
@@ -331,6 +395,49 @@ describe('arena publication report access', () => {
       participantCount: 1,
       nonSubmitterCount: 1,
     });
+  });
+
+  it('does not apply the owner class filter when loading course-wide publication reports', async () => {
+    const db = reportDb();
+    db.arenaChallengePublication.findUnique.mockImplementationOnce(async () => publicationRow({
+      id: 'publication-a',
+      visibility: 'course',
+      config: {
+        taskId: 'task-report',
+        classId: 'class-a',
+        studentVisibility: 'course',
+        deadline: '2026-06-01T08:00:00.000Z',
+        leaderboardPolicyId: 'leaderboard-course',
+        homeworkBinding: false,
+      },
+    }));
+    const listSubmissions = vi.fn(async () => [
+      submission({
+        id: 'other-class',
+        userId: 'student-b',
+        studentLabel: '学生乙',
+        score: 90,
+        valid: true,
+        publicationId: 'publication-a',
+        classId: 'class-b',
+        submittedAt: '2026-05-16T08:10:00.000Z',
+      }),
+    ]);
+
+    const report = await loadArenaPublicationReportForActor(db as any, {
+      actor: { id: 'teacher-a', role: 'TEACHER' },
+      publicationId: 'publication-a',
+      listSubmissions,
+    });
+
+    expect(listSubmissions).toHaveBeenCalledWith({
+      taskId: 'task-report',
+      publicationId: 'publication-a',
+    });
+    expect(report.participation.participantCount).toBe(1);
+    expect(report.personalBests).toEqual([
+      expect.objectContaining({ userId: 'student-b', submissionId: 'other-class', score: 90 }),
+    ]);
   });
 
   it('allows admins and denies teachers outside the publication class without reading submissions', async () => {
