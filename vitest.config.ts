@@ -20,6 +20,7 @@ export default defineConfig({
       'src/features/knowledge/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.tsx',
+      'src/features/control-workbench/__tests__/**/*.test.ts',
       'src/app/api/classes/**/__tests__/**/*.test.ts',
       'src/app/api/arena/**/__tests__/**/*.test.ts',
       'src/app/api/interactive/**/__tests__/**/*.test.ts',
