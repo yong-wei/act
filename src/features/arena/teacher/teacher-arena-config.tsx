@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, ClipboardList, Trophy } from 'lucide-react';
 
 import {
@@ -19,6 +19,10 @@ import {
 } from './configuration';
 
 type ArenaPublicationStatus = 'draft' | 'active' | 'paused' | 'archived' | 'closed';
+type PublishedArenaPublication = ArenaChallengePublication & {
+  id: string;
+  status: ArenaPublicationStatus;
+};
 
 const previewAssessment = deriveArenaHomeworkAssessment({
   validSubmission: true,
@@ -49,10 +53,7 @@ export function TeacherArenaConfig() {
   const [publicLeaderboard, setPublicLeaderboard] = useState(initialTemplate.publicLeaderboard);
   const [telemetryLevel, setTelemetryLevel] = useState<ArenaTelemetryLevel>(initialTemplate.telemetryLevel);
   const [apiStatus, setApiStatus] = useState('尚未发送预览请求');
-  const [publishedItems, setPublishedItems] = useState<Array<ArenaChallengePublication & {
-    id: string;
-    status: ArenaPublicationStatus;
-  }>>([]);
+  const [publishedItems, setPublishedItems] = useState<PublishedArenaPublication[]>([]);
   const selectedTemplate = useMemo(
     () => ARENA_CHALLENGE_TEMPLATES.find((template) => template.id === templateId),
     [templateId],
@@ -61,6 +62,30 @@ export function TeacherArenaConfig() {
     () => ARENA_CHALLENGE_TASKS.find((task) => task.id === taskId),
     [taskId],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublishedItems() {
+      try {
+        const response = await fetch('/api/teacher/arena/publications', { cache: 'no-store' });
+        const payload = await response.json() as { publications?: PublishedArenaPublication[] };
+        if (!cancelled && response.ok && Array.isArray(payload.publications)) {
+          setPublishedItems(payload.publications);
+        }
+      } catch {
+        if (!cancelled) {
+          setPublishedItems([]);
+        }
+      }
+    }
+
+    void loadPublishedItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const previewPublication = useMemo(() => {
     try {
@@ -201,7 +226,7 @@ export function TeacherArenaConfig() {
       });
       const payload = await response.json() as {
         error?: string;
-        publication?: ArenaChallengePublication & { id: string; status: ArenaPublicationStatus };
+        publication?: PublishedArenaPublication;
       };
       if (!response.ok || !payload.publication) {
         setApiStatus(payload.error ?? '发布失败');
@@ -224,7 +249,7 @@ export function TeacherArenaConfig() {
       });
       const payload = await response.json() as {
         error?: string;
-        publication?: ArenaChallengePublication & { id: string; status: ArenaPublicationStatus };
+        publication?: PublishedArenaPublication;
       };
       if (!response.ok || !payload.publication) {
         setApiStatus(payload.error ?? '状态更新失败');

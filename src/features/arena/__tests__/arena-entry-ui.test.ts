@@ -67,4 +67,12 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).not.toContain('班级榜');
     expect(hallSource).not.toContain('赛季榜');
   });
+
+  it('loads existing teacher publications before showing lifecycle actions', () => {
+    const teacherConfigSource = readRepoFile('src/features/arena/teacher/teacher-arena-config.tsx');
+
+    expect(teacherConfigSource).toContain("fetch('/api/teacher/arena/publications'");
+    expect(teacherConfigSource).toContain('setPublishedItems(payload.publications)');
+    expect(teacherConfigSource).toContain("fetch(`/api/teacher/arena/publications/${publicationId}/status`");
+  });
 });

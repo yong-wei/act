@@ -65,7 +65,7 @@ export default async function ArenaChallengePage({
   const submissions = await prismaArenaSubmissionStore.listSubmissions({
     taskId: task.id,
     publicationId,
-    ...(publicationContext?.classId ? { classId: publicationContext.classId } : {}),
+    ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
   });
   const submissionPublicationIds = publicationId
     ? []

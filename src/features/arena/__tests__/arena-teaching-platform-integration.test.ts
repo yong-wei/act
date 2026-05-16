@@ -199,6 +199,7 @@ describe('arena teaching platform integration', () => {
       now: new Date('2026-05-15T10:00:00.000Z'),
     })).resolves.toMatchObject({
       id: publication.id,
+      visibility: 'course',
       classId: 'class-b',
     });
   });

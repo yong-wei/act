@@ -54,6 +54,7 @@ describe('ArenaChallengePage publication context', () => {
     mocks.resolveAccessibleArenaPublicationForStudent.mockResolvedValue({
       id: 'publication-1',
       taskId,
+      visibility: 'class',
       classId: 'class-a',
       seasonId: 'season-2026',
       isLate: false,
@@ -106,6 +107,28 @@ describe('ArenaChallengePage publication context', () => {
 
     expect(mocks.resolveAccessibleArenaPublicationForStudent).not.toHaveBeenCalled();
     expect(mocks.listSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('does not class-scope course-wide publication submission reads', async () => {
+    mocks.resolveAccessibleArenaPublicationForStudent.mockResolvedValueOnce({
+      id: 'publication-course',
+      taskId,
+      visibility: 'course',
+      classId: 'class-b',
+      seasonId: 'season-2026',
+      isLate: false,
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
+    });
+
+    await ArenaChallengePage({
+      params: { taskId },
+      searchParams: { publicationId: 'publication-course' },
+    });
+
+    expect(mocks.listSubmissions).toHaveBeenCalledWith({
+      taskId,
+      publicationId: 'publication-course',
+    });
   });
 
   it('filters hidden publication submissions on bare challenge pages', async () => {

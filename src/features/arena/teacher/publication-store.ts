@@ -36,6 +36,7 @@ export interface ArenaPublicationRecord extends ArenaChallengePublication {
 export interface ArenaResolvedSubmissionContext {
   id: string;
   taskId: string;
+  visibility: ArenaPublicationVisibility;
   classId?: string;
   seasonId?: string;
   isLate: boolean;
@@ -348,6 +349,7 @@ export async function resolveAccessibleArenaPublicationForStudent(
   return {
     id: publication.id,
     taskId: publication.taskId,
+    visibility: publication.visibility,
     classId: submissionClassId,
     seasonId: typeof publication.gradingPolicy.seasonId === 'string' ? publication.gradingPolicy.seasonId : undefined,
     isLate,
