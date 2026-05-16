@@ -37,7 +37,7 @@ export function isArenaPublicationHiddenFromHallStats(
   return now.getTime() <= deadlineTime;
 }
 
-export function filterArenaSubmissionsForHallStats(
+export function filterArenaSubmissionsForHiddenPublicationPolicy(
   submissions: readonly ArenaSubmissionRecord[],
   publications: readonly ArenaStatsPublicationContext[],
   now: Date = new Date(),
@@ -49,6 +49,14 @@ export function filterArenaSubmissionsForHallStats(
     if (!publication) return true;
     return !isArenaPublicationHiddenFromHallStats(publication, now);
   });
+}
+
+export function filterArenaSubmissionsForHallStats(
+  submissions: readonly ArenaSubmissionRecord[],
+  publications: readonly ArenaStatsPublicationContext[],
+  now: Date = new Date(),
+): ArenaSubmissionRecord[] {
+  return filterArenaSubmissionsForHiddenPublicationPolicy(submissions, publications, now);
 }
 
 export function buildArenaTaskStats(

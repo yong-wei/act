@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   notFound: vi.fn(() => {
     throw new Error('notFound');
   }),
+  findPublications: vi.fn(),
   listSubmissions: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
   challengeDetail: vi.fn(() => null),
@@ -16,6 +17,14 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    arenaChallengePublication: {
+      findMany: mocks.findPublications,
+    },
+  },
 }));
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
@@ -41,6 +50,7 @@ describe('ArenaChallengePage publication context', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.findPublications.mockResolvedValue([]);
     mocks.resolveAccessibleArenaPublicationForStudent.mockResolvedValue({
       id: 'publication-1',
       taskId,
@@ -96,5 +106,40 @@ describe('ArenaChallengePage publication context', () => {
 
     expect(mocks.resolveAccessibleArenaPublicationForStudent).not.toHaveBeenCalled();
     expect(mocks.listSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('filters hidden publication submissions on bare challenge pages', async () => {
+    mocks.listSubmissions.mockResolvedValue([
+      { id: 'hidden-submission', userId: 'student-2', taskId, publicationId: 'publication-hidden' },
+      { id: 'open-submission', userId: 'student-3', taskId, publicationId: 'publication-open' },
+      { id: 'bare-submission', userId: 'student-4', taskId },
+    ]);
+    mocks.findPublications.mockResolvedValue([
+      {
+        id: 'publication-hidden',
+        deadline: new Date(Date.now() + 60_000),
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      {
+        id: 'publication-open',
+        deadline: new Date(Date.now() + 60_000),
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
+      },
+    ]);
+
+    const element = await ArenaChallengePage({
+      params: { taskId },
+      searchParams: {},
+    });
+
+    expect(mocks.listSubmissions).toHaveBeenCalledWith({ taskId });
+    expect(mocks.findPublications).toHaveBeenCalledWith({
+      where: { id: { in: ['publication-hidden', 'publication-open'] } },
+      select: { id: true, deadline: true, gradingPolicy: true },
+    });
+    expect(element.props.submissions.map((submission: { id: string }) => submission.id)).toEqual([
+      'open-submission',
+      'bare-submission',
+    ]);
   });
 });

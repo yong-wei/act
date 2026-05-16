@@ -4,10 +4,12 @@ import { ChallengeDetail } from '@/features/arena/challenge-detail';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
+  filterArenaSubmissionsForHiddenPublicationPolicy,
   getArenaChallengeObject,
   getArenaChallengeTask,
   getArenaLeaderboardPolicy,
   getArenaMetricProfile,
+  toArenaStatsPublicationContext,
 } from '@/features/arena/domain';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
@@ -65,12 +67,34 @@ export default async function ArenaChallengePage({
     publicationId,
     ...(publicationContext?.classId ? { classId: publicationContext.classId } : {}),
   });
+  const submissionPublicationIds = publicationId
+    ? []
+    : Array.from(
+      new Set(
+        submissions
+          .map((submission) => submission.publicationId)
+          .filter((id): id is string => typeof id === 'string'),
+      ),
+    );
+  const publicationRows = submissionPublicationIds.length > 0
+    ? await prisma.arenaChallengePublication.findMany({
+      where: { id: { in: submissionPublicationIds } },
+      select: { id: true, deadline: true, gradingPolicy: true },
+    })
+    : [];
   const hideFullPublicationLeaderboard =
     publicationContext?.gradingPolicy.hideFullLeaderboardBeforeDeadline === true &&
     publicationContext.isLate !== true;
+  const taskVisibleSubmissions = publicationId
+    ? submissions
+    : filterArenaSubmissionsForHiddenPublicationPolicy(
+      submissions,
+      publicationRows.map(toArenaStatsPublicationContext),
+      new Date(),
+    );
   const visibleSubmissions = hideFullPublicationLeaderboard && viewerUserId
-    ? submissions.filter((submission) => submission.userId === viewerUserId)
-    : submissions;
+    ? taskVisibleSubmissions.filter((submission) => submission.userId === viewerUserId)
+    : taskVisibleSubmissions;
 
   return (
     <ChallengeDetail
