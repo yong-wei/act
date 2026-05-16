@@ -483,7 +483,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).not.toContain('校正后 G(s)C(s)K');
     expect(pageSource).toContain('onRefreshRange={model.refreshFrequencyRange}');
     expect(pageSource).toContain('onRefreshRange={model.refreshTimeRange}');
-    expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');
+    expect(pageSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
+    expect(pageSource).toContain("nyquistOptions.has('corrected-open-loop')");
+    expect(pageSource).toContain('<NyquistPanel result={panel.result} />');
   });
 
   it('keeps the previous visible chart result while a new analysis request is pending', () => {

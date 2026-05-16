@@ -2,6 +2,9 @@ import Link from 'next/link';
 
 import { MultiRepresentationLinkageClient } from '@/features/interactive/multi-representation-linkage/page-client';
 import type { WorkbenchSessionContext } from '../types';
+import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+
+type ClassicPresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 
 function hasClassicModel(session: WorkbenchSessionContext) {
   return Boolean(
@@ -15,7 +18,31 @@ function hasClassicModel(session: WorkbenchSessionContext) {
   );
 }
 
-export function ClassicFourViewPreset({ session }: { session: WorkbenchSessionContext }) {
+function mapClassicViewConfig(config: WorkbenchViewConfig | undefined) {
+  if (!config) return undefined;
+  return {
+    enabled: config.enabled,
+    selectedOptions: config.selectedOptions ? [...config.selectedOptions] : undefined,
+  };
+}
+
+function mapClassicViewConfigs(viewConfigs: ClassicPresetViewConfigs | undefined) {
+  if (!viewConfigs) return undefined;
+  return {
+    'time-domain': mapClassicViewConfig(viewConfigs['time-domain']),
+    bode: mapClassicViewConfig(viewConfigs.bode),
+    'root-locus': mapClassicViewConfig(viewConfigs['root-locus']),
+    nyquist: mapClassicViewConfig(viewConfigs.nyquist),
+  };
+}
+
+export function ClassicFourViewPreset({
+  session,
+  viewConfigs,
+}: {
+  session: WorkbenchSessionContext;
+  viewConfigs?: ClassicPresetViewConfigs;
+}) {
   if (!('taskId' in session) || !hasClassicModel(session)) {
     return (
       <section className="rounded-lg border border-amber-400/40 bg-amber-950/20 p-5 text-sm text-amber-100">
@@ -44,7 +71,9 @@ export function ClassicFourViewPreset({ session }: { session: WorkbenchSessionCo
         initialParams={{
           arenaTaskId: session.taskId,
           embed: true,
+          publicationId: 'publicationId' in session ? session.publicationId : undefined,
           role: 'student',
+          viewConfigs: mapClassicViewConfigs(viewConfigs),
         }}
       />
     </section>

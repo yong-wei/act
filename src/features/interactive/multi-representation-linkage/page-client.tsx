@@ -7,15 +7,19 @@ import 'katex/dist/katex.min.css';
 
 import {
   BodeComparisonPanel,
-  BodePanel,
   ControlPerformanceBar,
   NyquistPanel,
   RootLocusPanel,
   TimeDomainComparisonPanel,
-  TimeDomainPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
+import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 
-import { useMultiRepresentationLinkageModel, type MultiRepresentationInitialParams } from './model';
+import {
+  useMultiRepresentationLinkageModel,
+  type MultiRepresentationInitialParams,
+  type MultiRepresentationViewConfigs,
+  type MultiRepresentationViewId,
+} from './model';
 import { ParameterDrawer } from './parameter-drawer';
 import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
 import { ArenaSubmitPanel } from './arena-submit-panel';
@@ -25,6 +29,44 @@ import {
   arenaVisibilityLabels,
   arenaWorkspaceLabels,
 } from '@/features/arena/display-labels';
+
+function selectedViewOptions(
+  viewConfigs: MultiRepresentationViewConfigs | undefined,
+  viewId: MultiRepresentationViewId,
+  fallbackOptions: string[],
+) {
+  const config = viewConfigs?.[viewId];
+  if (!config) return new Set(fallbackOptions);
+  if (config.enabled === false) return new Set<string>();
+  return new Set(config.selectedOptions ?? []);
+}
+
+function buildReferenceResponseResult(
+  result: ControlAnalysisResult,
+  responseType: 'step' | 'impulse' | 'ramp',
+): ControlAnalysisResult {
+  return {
+    ...result,
+    isFallback: false,
+    fallbackMessage: undefined,
+    stepResponse: {
+      ...result.stepResponse,
+      points: result.stepResponse.points.map((point) => ({
+        ...point,
+        y: responseType === 'ramp' ? point.x : responseType === 'impulse' ? 0 : 1,
+      })),
+    },
+  };
+}
+
+function WorkbenchViewEmptyNotice({ title }: { title: string }) {
+  return (
+    <div className="premium-lesson-panel px-5 py-4 text-sm text-muted-foreground">
+      <div className="premium-lesson-kicker">{title}</div>
+      <p className="mt-2">当前视图没有选择可显示曲线。</p>
+    </div>
+  );
+}
 
 export function MultiRepresentationLinkageClient({
   initialParams,
@@ -40,6 +82,74 @@ export function MultiRepresentationLinkageClient({
     && result
     && model.correctionDeviceAnalysisResult,
   );
+  const timeDomainOptions = selectedViewOptions(
+    initialParams.viewConfigs,
+    'time-domain',
+    showCorrectionComparison ? ['uncorrected-output', 'corrected-output'] : ['corrected-output'],
+  );
+  const bodeOptions = selectedViewOptions(
+    initialParams.viewConfigs,
+    'bode',
+    showCorrectionComparison
+      ? ['uncorrected-open-loop', 'corrected-open-loop', 'correction-device']
+      : ['corrected-open-loop'],
+  );
+  const rootLocusOptions = selectedViewOptions(
+    initialParams.viewConfigs,
+    'root-locus',
+    ['corrected-root-locus'],
+  );
+  const nyquistOptions = selectedViewOptions(
+    initialParams.viewConfigs,
+    'nyquist',
+    ['corrected-open-loop'],
+  );
+  const baselineResult = result ? model.preCorrectionAnalysisResult ?? result : null;
+  const timeDomainPanels = result
+    ? [
+        ...(timeDomainOptions.has('reference')
+          ? [{
+              label: '参考输入',
+              color: '#22c55e',
+              result: buildReferenceResponseResult(result, model.responseType),
+            }]
+          : []),
+        ...(timeDomainOptions.has('uncorrected-output') && baselineResult
+          ? [{ label: '未校正输出', color: '#64748b', result: baselineResult }]
+          : []),
+        ...(timeDomainOptions.has('corrected-output')
+          ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', color: '#0ea5e9', result }]
+          : []),
+      ]
+    : [];
+  const bodePanels = result
+    ? [
+        ...(bodeOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+          ? [{ label: '未校正开环', color: '#64748b', result: model.preCorrectionAnalysisResult }]
+          : []),
+        ...(bodeOptions.has('corrected-open-loop')
+          ? [{ label: '校正后开环', color: '#0ea5e9', result: frequencyResult }]
+          : []),
+        ...(bodeOptions.has('correction-device') && model.correctionDeviceAnalysisResult
+          ? [{ label: '校正装置', color: '#f97316', result: model.correctionDeviceAnalysisResult }]
+          : []),
+      ]
+    : [];
+  const rootLocusResult = result && rootLocusOptions.size > 0
+    ? rootLocusOptions.has('corrected-root-locus')
+      ? result
+      : baselineResult
+    : null;
+  const nyquistPanels = result
+    ? [
+        ...(nyquistOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+          ? [{ label: '未校正开环', result: model.preCorrectionAnalysisResult }]
+          : []),
+        ...(nyquistOptions.has('corrected-open-loop')
+          ? [{ label: '校正后开环', result: frequencyResult }]
+          : []),
+      ]
+    : [];
 
   if (model.arenaContextIncompatible) {
     return (
@@ -214,6 +324,7 @@ export function MultiRepresentationLinkageClient({
             correctionState={model.correctionState}
             isLockedByChallenge={model.isLockedByChallenge}
             gain={model.gain}
+            publicationId={initialParams.publicationId}
           />
         )}
 
@@ -245,45 +356,49 @@ export function MultiRepresentationLinkageClient({
             <div className="grid gap-4">
               <ControlPerformanceBar result={result} />
               <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
-                {showCorrectionComparison ? (
+                {timeDomainPanels.length > 0 ? (
                   <TimeDomainComparisonPanel
-                    panels={[
-                      { label: '校正前开环', color: '#64748b', result: model.preCorrectionAnalysisResult! },
-                      { label: '校正后开环', color: '#0ea5e9', result },
-                    ]}
+                    panels={timeDomainPanels}
                     onRefreshRange={model.refreshTimeRange}
                   />
                 ) : (
-                  <TimeDomainPanel result={result} onRefreshRange={model.refreshTimeRange} />
+                  <WorkbenchViewEmptyNotice title="时域响应" />
                 )}
-                {showCorrectionComparison ? (
+                {bodePanels.length > 0 ? (
                   <BodeComparisonPanel
-                    panels={[
-                      { label: '校正前开环', color: '#64748b', result: model.preCorrectionAnalysisResult! },
-                      { label: '校正后开环', color: '#0ea5e9', result },
-                      { label: '校正装置', color: '#f97316', result: model.correctionDeviceAnalysisResult! },
-                    ]}
+                    panels={bodePanels}
                     turnFrequencyHandles={model.turnFrequencyHandles}
                     onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
                     onRefreshRange={model.refreshFrequencyRange}
                   />
                 ) : (
-                  <BodePanel
-                    result={frequencyResult}
-                    showMargins={model.showMargins}
-                    turnFrequencyHandles={model.turnFrequencyHandles}
-                    onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
-                    onRefreshRange={model.refreshFrequencyRange}
-                  />
+                  <WorkbenchViewEmptyNotice title="Bode 图" />
                 )}
-                <RootLocusPanel
-                  result={result}
-                  mode="full"
-                  interactiveHandles={model.correctionRootHandles}
-                  onInteractiveHandleCommit={model.updateCorrectionRootHandle}
-                  onClosedLoopGainCommit={model.setGain}
-                />
-                <NyquistPanel result={frequencyResult} />
+                {rootLocusResult ? (
+                  <RootLocusPanel
+                    result={rootLocusResult}
+                    mode="full"
+                    interactiveHandles={rootLocusOptions.has('corrected-root-locus') ? model.correctionRootHandles : []}
+                    onInteractiveHandleCommit={rootLocusOptions.has('corrected-root-locus') ? model.updateCorrectionRootHandle : undefined}
+                    onClosedLoopGainCommit={model.setGain}
+                  />
+                ) : (
+                  <WorkbenchViewEmptyNotice title="根轨迹" />
+                )}
+                {nyquistPanels.length === 1 ? (
+                  <NyquistPanel result={nyquistPanels[0].result} />
+                ) : nyquistPanels.length > 1 ? (
+                  <div className="grid gap-4">
+                    {nyquistPanels.map((panel) => (
+                      <div key={panel.label} className="space-y-2">
+                        <div className="premium-lesson-caption px-1 text-xs">{panel.label}</div>
+                        <NyquistPanel result={panel.result} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <WorkbenchViewEmptyNotice title="Nyquist 图" />
+                )}
               </div>
             </div>
           ) : (

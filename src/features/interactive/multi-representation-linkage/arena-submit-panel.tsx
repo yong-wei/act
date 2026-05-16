@@ -18,6 +18,7 @@ interface ArenaSubmitPanelProps {
   correctionState: CorrectionState;
   isLockedByChallenge: boolean;
   gain: number;
+  publicationId?: string;
 }
 
 export function ArenaSubmitPanel({
@@ -25,6 +26,7 @@ export function ArenaSubmitPanel({
   correctionState,
   isLockedByChallenge,
   gain,
+  publicationId,
 }: ArenaSubmitPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<ArenaEvaluationResult | null>(null);
@@ -51,10 +53,16 @@ export function ArenaSubmitPanel({
       const response = await fetch('/api/arena/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          taskId: arenaContext.task.id,
-          artifact: buildResult.artifact,
-        }),
+        body: publicationId
+          ? JSON.stringify({
+              taskId: arenaContext.task.id,
+              artifact: buildResult.artifact,
+              publicationId,
+            })
+          : JSON.stringify({
+              taskId: arenaContext.task.id,
+              artifact: buildResult.artifact,
+            }),
       });
 
       const data = await response.json();
@@ -68,7 +76,7 @@ export function ArenaSubmitPanel({
     } finally {
       setSubmitting(false);
     }
-  }, [arenaContext.task.id, buildResult.artifact]);
+  }, [arenaContext.task.id, buildResult.artifact, publicationId]);
 
   return (
     <div className="premium-lesson-panel px-5 py-4 mt-4">

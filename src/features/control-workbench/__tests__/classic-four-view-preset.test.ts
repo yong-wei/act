@@ -36,9 +36,12 @@ describe('classic four-view control workbench preset', () => {
 
     expect(shellSource).toContain('ClassicFourViewPreset');
     expect(shellSource).toContain("session.defaultPreset === 'classic-whitebox'");
+    expect(shellSource).toContain('viewConfigs={viewConfigs}');
     expect(presetSource).toContain('MultiRepresentationLinkageClient');
     expect(presetSource).toContain('arenaTaskId: session.taskId');
     expect(presetSource).toContain('embed: true');
+    expect(presetSource).toContain("publicationId: 'publicationId' in session ? session.publicationId : undefined");
+    expect(presetSource).toContain('viewConfigs: mapClassicViewConfigs(viewConfigs)');
   });
 
   it('keeps the legacy multi-representation route as the shared client wrapper', () => {
@@ -46,6 +49,21 @@ describe('classic four-view control workbench preset', () => {
 
     expect(routeSource).toContain('MultiRepresentationLinkageClient');
     expect(routeSource).toContain('arenaTaskId: firstValue(searchParams?.arenaTask)');
+    expect(routeSource).toContain('publicationId: firstValue(searchParams?.publicationId)');
+  });
+
+  it('passes workbench view selection into the embedded chart rendering', () => {
+    const clientSource = readRepoFile('src/features/interactive/multi-representation-linkage/page-client.tsx');
+    const submitSource = readRepoFile('src/features/interactive/multi-representation-linkage/arena-submit-panel.tsx');
+
+    expect(clientSource).toContain('selectedViewOptions');
+    expect(clientSource).toContain("initialParams.viewConfigs");
+    expect(clientSource).toContain("timeDomainOptions.has('corrected-output')");
+    expect(clientSource).toContain("bodeOptions.has('correction-device')");
+    expect(clientSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
+    expect(clientSource).toContain('publicationId={initialParams.publicationId}');
+    expect(submitSource).toContain('publicationId');
+    expect(submitSource).toContain('publicationId,');
   });
 
   it('keeps incompatible classic preset requests fail-closed and Chinese', () => {

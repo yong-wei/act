@@ -214,7 +214,7 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
           </div>
           {showClassicPreset ? (
             <div className="mt-6">
-              <ClassicFourViewPreset session={session} />
+              <ClassicFourViewPreset session={session} viewConfigs={viewConfigs} />
             </div>
           ) : null}
         </div>
