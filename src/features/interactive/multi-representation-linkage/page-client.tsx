@@ -380,7 +380,7 @@ export function MultiRepresentationLinkageClient({
                     mode="full"
                     interactiveHandles={rootLocusOptions.has('corrected-root-locus') ? model.correctionRootHandles : []}
                     onInteractiveHandleCommit={rootLocusOptions.has('corrected-root-locus') ? model.updateCorrectionRootHandle : undefined}
-                    onClosedLoopGainCommit={model.setGain}
+                    onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}
                   />
                 ) : (
                   <WorkbenchViewEmptyNotice title="根轨迹" />

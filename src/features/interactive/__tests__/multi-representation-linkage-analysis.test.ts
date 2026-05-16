@@ -154,13 +154,13 @@ describe('multi representation linkage analysis adapter', () => {
     expect(request.rootLocus.currentGain).toBe(4.5);
   });
 
-  it('keeps closed-loop pole drag committed to the open-loop gain truth', () => {
+  it('keeps closed-loop pole drag committed only from the corrected root locus', () => {
     const pageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
       'utf8',
     );
 
-    expect(pageSource).toContain('onClosedLoopGainCommit={model.setGain}');
+    expect(pageSource).toContain("onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}");
     expect(pageSource).not.toContain('onClosedLoopGainCommit={model.setClosedLoopGain}');
   });
 
