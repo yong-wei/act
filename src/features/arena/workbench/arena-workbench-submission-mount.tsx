@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+import { ArenaBlackBoxSubmissionPanel } from '../submissions/arena-blackbox-submission-panel';
 import { ArenaSubmissionPanel } from '../submissions/arena-submission-panel';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { WorkspaceMode } from '../types';
@@ -71,7 +72,7 @@ export function ArenaWorkbenchSubmissionMount({
     return null;
   }
 
-  if (getEvaluableControllerMethods(arenaContext.task).length === 0) {
+  if (workspaceMode !== 'black-box-identification' && getEvaluableControllerMethods(arenaContext.task).length === 0) {
     return null;
   }
 
@@ -79,6 +80,20 @@ export function ArenaWorkbenchSubmissionMount({
     return (
       <div className={className}>
         <section className="surface-card p-6 text-sm text-subtle">正在加载竞技场提交记录...</section>
+      </div>
+    );
+  }
+
+  if (workspaceMode === 'black-box-identification') {
+    return (
+      <div className={className}>
+        <ArenaBlackBoxSubmissionPanel
+          key={`${arenaContext.task.id}:${publicationId ?? 'open'}`}
+          task={arenaContext.task}
+          initialSubmissions={submissions}
+          publicationId={publicationId}
+          viewerUserId={viewerUserId}
+        />
       </div>
     );
   }

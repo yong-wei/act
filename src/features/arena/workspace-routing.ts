@@ -1,8 +1,16 @@
 import type { ChallengeObject, ChallengeTask } from './types';
 
 function withArenaTask(path: string, taskId: string, params: Record<string, string> = {}): string {
-  const searchParams = new URLSearchParams({ arenaTask: taskId, ...params });
+  const searchParams = new URLSearchParams(params);
+  searchParams.set('arenaTask', taskId);
   return `${path}?${searchParams.toString()}`;
+}
+
+function withControlWorkbenchTask(task: ChallengeTask, params: Record<string, string>): string {
+  const searchParams = new URLSearchParams(params);
+  searchParams.set('preset', task.workspaceMode);
+  searchParams.set('arenaTask', task.id);
+  return `/interactive-learning/control-workbench?${searchParams.toString()}`;
 }
 
 export function getArenaWorkspaceHref(
@@ -14,17 +22,5 @@ export function getArenaWorkspaceHref(
     return withArenaTask('/interactive-learning/control-odyssey', task.id, params);
   }
 
-  if (task.workspaceMode === 'black-box-identification') {
-    return withArenaTask('/simulations/cruise', task.id, { mode: 'black-box-identification', ...params });
-  }
-
-  if (task.workspaceMode === 'block-diagram-workbench') {
-    return withArenaTask('/interactive-learning/lesson-05', task.id, { workspace: 'block-diagram', ...params });
-  }
-
-  if (task.workspaceMode === 'predictive-control') {
-    return withArenaTask('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition', task.id, params);
-  }
-
-  return withArenaTask('/interactive-learning/multi-representation-linkage', task.id, params);
+  return withControlWorkbenchTask(task, params);
 }

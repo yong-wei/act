@@ -123,8 +123,10 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('自由探索模式');
     expect(shellSource).toContain('视图配置');
     expect(shellSource).toContain('重置默认');
-    expect(shellSource).not.toContain('ArenaSubmissionPanel');
-    expect(shellSource).not.toContain('ArenaBlackBoxSubmissionPanel');
+    expect(shellSource).toContain('ArenaWorkbenchSubmissionMount');
+    expect(shellSource).toContain('showArenaSubmissionMount');
+    expect(shellSource).toContain("session.defaultPreset !== 'classic-whitebox'");
+    expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
   });
 
   it('preserves assignment publication id in the challenge return link', () => {

@@ -17,7 +17,6 @@ import {
   arenaMethodLabels,
   arenaSourceLabels,
   arenaVisibilityLabels,
-  arenaWorkspaceLabels,
 } from './display-labels';
 import { filterArenaChallengeTasks } from './filtering';
 import {
@@ -26,6 +25,7 @@ import {
   type LeaderboardType,
   type ModelVisibility,
   type ArenaTaskStats,
+  type WorkspaceMode,
 } from './types';
 import { selectArenaHallPublicationForTask } from './arena-publication-selection';
 import type { ArenaPublicationRecord } from './teacher/publication-store';
@@ -68,6 +68,12 @@ const phaseItems = [
   { label: '评分协议', value: '硬约束 + 指标满意度', icon: Gauge },
   { label: '榜单结构', value: '主榜、方法榜、指标榜', icon: Medal },
 ];
+
+function getArenaHallEntryLabel(source: ChallengeObjectSource | undefined, workspaceMode: WorkspaceMode): string {
+  return source === 'control-odyssey' || workspaceMode === 'control-odyssey'
+    ? '控制奥德赛'
+    : '控制工作台';
+}
 
 export function ArenaHall({
   taskStats = {},
@@ -233,7 +239,7 @@ export function ArenaHall({
 
                 <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-subtle md:flex-row md:items-center md:justify-between">
                   <div>
-                    {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入 {arenaWorkspaceLabels[challenge.workspaceMode]}
+                    {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入{getArenaHallEntryLabel(object?.source, challenge.workspaceMode)}
                   </div>
                   <Link href={challengeHref} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     查看挑战

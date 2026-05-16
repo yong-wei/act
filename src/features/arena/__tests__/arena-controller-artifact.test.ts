@@ -443,6 +443,6 @@ describe('arena controller artifact builder', () => {
     expect(source).not.toContain('<ArenaBlackBoxSubmissionPanel');
     expect(source).toContain('<ArenaChallengeTelemetry');
     expect(source).toContain('<ArenaWorkspaceLink');
-    expect(source).toContain('仿真调试与方案提交均在工作台内完成');
+    expect(source).toContain('仿真调试与方案提交均在控制工作台内完成');
   });
 });
