@@ -34,6 +34,7 @@ describe('arena student entry UI boundaries', () => {
     const controlOdysseySource = readRepoFile('src/app/interactive-learning/control-odyssey/page.tsx');
     const blockDiagramSource = readRepoFile('src/app/interactive-learning/lesson-05/page.tsx');
     const predictiveControlSource = readRepoFile('src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx');
+    const cruiseSource = readRepoFile('src/app/simulations/cruise/page.tsx');
     const genericMountSource = readRepoFile('src/features/arena/workbench/arena-workbench-submission-mount.tsx');
     const submissionsApiSource = readRepoFile('src/app/api/arena/submissions/route.ts');
 
@@ -45,8 +46,14 @@ describe('arena student entry UI boundaries', () => {
     expect(blockDiagramSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench"');
     expect(predictiveControlSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="predictive-control"');
     expect(genericMountSource).toContain('/api/arena/submissions');
+    expect(genericMountSource).toContain("searchParams.get('publicationId')");
+    expect(genericMountSource).toContain('publicationId={publicationId}');
     expect(genericMountSource).toContain('<ArenaSubmissionPanel');
-    expect(submissionsApiSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskId })');
+    expect(cruiseSource).toContain('requestedPublicationId');
+    expect(cruiseSource).toContain('publicationId={publicationContext?.id}');
+    expect(submissionsApiSource).toContain('resolveAccessibleArenaPublicationForStudent');
+    expect(submissionsApiSource).toContain('publicationId,');
+    expect(submissionsApiSource).toContain('submission.userId === viewerUserId');
   });
 
   it('renders white-box models, Chinese rule modules, constrained leaderboards, and knowledge preview affordances', () => {
