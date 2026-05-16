@@ -379,7 +379,7 @@ export async function loadArenaPublicationReportForActor(
       publicationId: publication.id,
       ...(publication.visibility === 'class' ? { classId: publication.classId } : {}),
     }),
-    listPublicationRoster(db, publication.classId),
+    publication.visibility === 'class' ? listPublicationRoster(db, publication.classId) : Promise.resolve([]),
   ]);
 
   return buildArenaPublicationReport({

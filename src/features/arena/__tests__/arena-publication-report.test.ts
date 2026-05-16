@@ -246,6 +246,10 @@ describe('arena publication report analytics', () => {
         leaderboardPolicyId: 'leaderboard-course',
         gradingPolicy: {},
       },
+      roster: [
+        { userId: 'student-a', studentLabel: '学生甲' },
+        { userId: 'student-owner-missing', studentLabel: '发布班级未提交学生' },
+      ],
       submissions: [
         submission({
           id: 'owner-class',
@@ -290,6 +294,11 @@ describe('arena publication report analytics', () => {
     });
 
     expect(report.participation.participantCount).toBe(3);
+    expect(report.participation).toMatchObject({
+      expectedStudentCount: 0,
+      nonSubmitterCount: 0,
+      nonSubmitters: [],
+    });
     expect(report.submissions).toMatchObject({
       submissionCount: 3,
       validSubmissionCount: 2,
@@ -435,6 +444,12 @@ describe('arena publication report access', () => {
       publicationId: 'publication-a',
     });
     expect(report.participation.participantCount).toBe(1);
+    expect(report.participation).toMatchObject({
+      expectedStudentCount: 0,
+      nonSubmitterCount: 0,
+      nonSubmitters: [],
+    });
+    expect(db.studentProfile.findMany).not.toHaveBeenCalled();
     expect(report.personalBests).toEqual([
       expect.objectContaining({ userId: 'student-b', submissionId: 'other-class', score: 90 }),
     ]);

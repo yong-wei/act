@@ -213,7 +213,7 @@ function buildExcellentSolutions(
 export function buildArenaPublicationReport(input: BuildArenaPublicationReportInput): ArenaPublicationReport {
   const scopedSubmissions = filterPublicationSubmissions(input);
   const participantUserIds = new Set(scopedSubmissions.map((submission) => submission.userId ?? submission.studentLabel));
-  const roster = input.roster ?? [];
+  const roster = input.publication.visibility === 'class' ? input.roster ?? [] : [];
   const nonSubmitters = roster.filter((student) => !participantUserIds.has(student.userId));
   const validSubmissionCount = scopedSubmissions.filter((submission) => submission.evaluation.valid).length;
 
