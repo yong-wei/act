@@ -34,10 +34,10 @@ assert.equal(
 );
 
 assert.equal(
-  detailContent.includes('对象说明') &&
+    detailContent.includes('对象说明') &&
     detailContent.includes('评价规则') &&
     detailContent.includes('相关知识点') &&
-    detailContent.includes('进入工作台'),
+    detailContent.includes('进入控制工作台'),
   true,
   '挑战详情页应展示对象、评价规则、知识点和工作台入口',
 );
@@ -71,10 +71,12 @@ assert.equal(
 assert.equal(
   fs.existsSync(workspaceRoutingPath) &&
     detailContent.includes('getArenaWorkspaceHref') &&
-    workspaceRoutingContent.includes('black-box-identification') &&
+    workspaceRoutingContent.includes('/interactive-learning/control-workbench') &&
+    workspaceRoutingContent.includes("searchParams.set('preset', task.workspaceMode)") &&
+    workspaceRoutingContent.includes("searchParams.set('arenaTask', task.id)") &&
     workspaceRoutingContent.includes('control-odyssey'),
   true,
-  '挑战详情页应通过工作台路由 helper 按任务模式进入对应工作台',
+  '挑战详情页应通过路由 helper 进入统一控制工作台并保留 Odyssey 例外',
 );
 
 assert.equal(

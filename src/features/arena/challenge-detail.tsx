@@ -172,10 +172,10 @@ export function ChallengeDetail({
             <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
                 <Rocket className="h-5 w-5 text-blue-600" />
-                进入工作台
+                进入控制工作台
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                该任务推荐进入 {arenaWorkspaceLabels[task.workspaceMode]}。仿真调试与方案提交均在工作台内完成。
+                推荐预设：{arenaWorkspaceLabels[task.workspaceMode]}。仿真调试与方案提交均在控制工作台内完成。
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {task.allowedMethods.map((method) => (
@@ -192,7 +192,7 @@ export function ChallengeDetail({
                 task={task}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
               >
-                进入工作台
+                进入控制工作台
                 <ArrowUpRight className="h-4 w-4" />
               </ArenaWorkspaceLink>
             </div>
