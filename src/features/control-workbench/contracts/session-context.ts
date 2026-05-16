@@ -63,8 +63,8 @@ export interface ChallengeWorkbenchSessionContext extends ArenaBoundWorkbenchSes
 export interface AssignmentWorkbenchSessionContext extends ArenaBoundWorkbenchSession {
   mode: 'assignment';
   publicationId: string;
-  classId: string;
-  seasonId: string;
+  classId?: string;
+  seasonId?: string;
 }
 
 export interface OdysseyWorkbenchSessionContext extends ArenaBoundWorkbenchSession {
