@@ -105,7 +105,7 @@ describe('prismaArenaSubmissionStore', () => {
     mocks.prisma.arenaSubmission.findMany.mockResolvedValueOnce([
       submissionRow('legacy', 'whitebox-v1'),
       submissionRow('current', 'analysis-whitebox-v1'),
-      submissionRow('blackbox-current', 'blackbox-v1', {
+      submissionRow('blackbox-current', 'blackbox-official-v1', {
         taskId: 'task-cruise-roll-blackbox-identification',
         method: 'black-box-control',
         params: {
@@ -144,7 +144,7 @@ describe('prismaArenaSubmissionStore', () => {
     ]);
     expect(submissions.map((submission) => submission.evaluationProtocolVersion)).toEqual([
       'analysis-whitebox-v1',
-      'blackbox-v1',
+      'blackbox-official-v1',
       'template-whitebox-v1',
     ]);
   });

@@ -51,6 +51,7 @@ function toEvaluationResult(row: Record<string, unknown>): ArenaEvaluationResult
     hardConstraintResults: row.hardConstraintResults as ArenaEvaluationResult['hardConstraintResults'],
     penalties: row.penalties as ArenaEvaluationResult['penalties'],
     explanation: row.explanation as string[],
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
   };
 }
 
@@ -118,6 +119,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       hardConstraintResults: result.hardConstraintResults as unknown as PrismaJson,
       penalties: result.penalties as unknown as PrismaJson,
       explanation: result.explanation as unknown as PrismaJson,
+      metadata: (result.metadata ?? {}) as unknown as PrismaJson,
       completedAt: new Date(input.completedAt),
     };
     const row = await (prisma as any).arenaEvaluationRun.upsert({
