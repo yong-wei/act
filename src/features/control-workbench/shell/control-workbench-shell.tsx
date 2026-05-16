@@ -8,6 +8,7 @@ import {
   arenaWorkspaceLabels,
   formatArenaMetric,
 } from '@/features/arena/display-labels';
+import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
 import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
@@ -51,6 +52,7 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
   const showClassicPreset = session.defaultPreset === 'classic-whitebox' && 'taskId' in session;
+  const showArenaSubmissionMount = 'recommendedWorkspaceMode' in session && session.defaultPreset !== 'classic-whitebox';
   const resetViewConfig = (viewId: WorkbenchViewId) => {
     const fallback = defaultViewConfigs.find((config) => config.id === viewId);
     setViewConfigs((current) => ({
@@ -216,6 +218,12 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
             <div className="mt-6">
               <ClassicFourViewPreset session={session} viewConfigs={viewConfigs} />
             </div>
+          ) : null}
+          {showArenaSubmissionMount && 'recommendedWorkspaceMode' in session ? (
+            <ArenaWorkbenchSubmissionMount
+              workspaceMode={session.recommendedWorkspaceMode}
+              className="mt-6"
+            />
           ) : null}
         </div>
       </section>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+import { ArenaBlackBoxSubmissionPanel } from '../submissions/arena-blackbox-submission-panel';
 import { ArenaSubmissionPanel } from '../submissions/arena-submission-panel';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { WorkspaceMode } from '../types';
@@ -24,10 +25,12 @@ export function ArenaWorkbenchSubmissionMount({
     [arenaTaskId],
   );
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[] | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
     setSubmissions(null);
+    setViewerUserId(undefined);
 
     if (!arenaContext || arenaContext.recommendedWorkspaceMode !== workspaceMode) {
       return () => {
@@ -46,14 +49,17 @@ export function ArenaWorkbenchSubmissionMount({
       .then(async (response) => {
         const payload = await response.json() as {
           submissions?: ArenaSubmissionRecord[];
+          viewerUserId?: string;
         };
         if (!cancelled) {
           setSubmissions(response.ok ? payload.submissions ?? [] : []);
+          setViewerUserId(response.ok ? payload.viewerUserId : undefined);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setSubmissions([]);
+          setViewerUserId(undefined);
         }
       });
 
@@ -66,7 +72,7 @@ export function ArenaWorkbenchSubmissionMount({
     return null;
   }
 
-  if (getEvaluableControllerMethods(arenaContext.task).length === 0) {
+  if (workspaceMode !== 'black-box-identification' && getEvaluableControllerMethods(arenaContext.task).length === 0) {
     return null;
   }
 
@@ -78,6 +84,20 @@ export function ArenaWorkbenchSubmissionMount({
     );
   }
 
+  if (workspaceMode === 'black-box-identification') {
+    return (
+      <div className={className}>
+        <ArenaBlackBoxSubmissionPanel
+          key={`${arenaContext.task.id}:${publicationId ?? 'open'}`}
+          task={arenaContext.task}
+          initialSubmissions={submissions}
+          publicationId={publicationId}
+          viewerUserId={viewerUserId}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <ArenaSubmissionPanel
@@ -85,6 +105,7 @@ export function ArenaWorkbenchSubmissionMount({
         task={arenaContext.task}
         initialSubmissions={submissions}
         publicationId={publicationId}
+        viewerUserId={viewerUserId}
       />
     </div>
   );

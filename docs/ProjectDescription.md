@@ -56,7 +56,7 @@ AI-OBE 船舶智控平台是一个面向“自动控制原理”和船舶智能�
 - `/teacher/classes`：班级管理、学生导入、课堂记录和班级学情入口。
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览，消费数据治理聚合结果。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
-- `/teacher/arena`：教师侧 Arena 任务配置与预览入口。
+- `/teacher/arena`：教师侧 Arena 任务配置、预览、发布管理与发布报告入口。
 
 教师工作流从教案与班级开始。教师可以直接使用系统预置教案，也可以创建或编辑自己的 `LessonPlan`；预置教案通过 `src/features/teacher/preset-lessons/presets` 维护，克隆后生成可授课的数据库教案。创建课堂时，系统生成 `ClassSession` 和 6 位课堂码，并记录课堂关联的 lesson version、manifest hash 和总步骤数。
 
@@ -212,6 +212,8 @@ Arena 对象来源包括典型对象、作业对象、Control Odyssey 对象、�
 
 黑箱任务强调所有权和来源校验。学生先通过 `/api/arena/blackbox-experiments` 生成本人数据集，再基于数据集保存辨识模型或控制器工件；虚拟仿真预演写入 `ArenaVirtualSimulationRun`，用于观察闭环轨迹、安全违反、控制能量和平滑度，但不会直接进入正式排名。只有 `/api/arena/evaluate` 创建的官方提交才进入 `ArenaSubmission`。
 
+教师发布报告基于持久化 `ArenaSubmission` 与班级花名册生成，不从前端榜单重建统计。报告按 publication、class 与教师/管理员授权范围聚合参与、有效率、分数分布、硬约束失败、薄弱指标、方法分布、未提交学生、个人最佳和优秀方案；学生提交面板则复用统一反馈规则解释正式排名、硬约束失败、个人最佳变化和黑箱聚合弱项，不暴露隐藏场景参数、顺序或轨迹。
+
 ## 数据治理与学习画像
 
 数据治理位于 `src/lib/data-governance/`，负责把互动日志和后台事件转成可解释的学习证据。
@@ -228,6 +230,8 @@ Arena 对象来源包括典型对象、作业对象、Control Odyssey 对象、�
 - `StudentRiskFlag`、`GrowthRecord`、`LearningRecommendation`：风险、成长和推荐链路。
 
 数据进入路径包括 API 同步物化、worker 异步处理和历史回放脚本。课堂提交、session finalize、Arena 官方评测、仿真记录、题目作答和 AI 交互均可进入证据链，但只有高价值事件才应转成能力画像贡献。
+
+学生画像和教师班级洞察会消费后端生成的 Arena 摘要。个人中心展示学生 Arena 最佳分、有效提交率、近期挑战、薄弱指标、方法偏好和提升次数；班级洞察按班级范围展示 Arena 达成率、平均分、硬约束失败分布、薄弱指标、方法分布和未提交人数。官方分数与有效性以 `ArenaSubmission` 为准，`LearningFact` 中的 Arena 上下文只作为辅助证据。
 
 学生能力模型是六维结构：控制建模与分析、参数设计与调优、跨域迁移与联动、工程决策与约束、探究反思与提示词、自主学习进展。不同事件类型映射到不同维度，例如仿真指标主要影响参数设计和工程约束，题目作答主要影响控制建模与自主学习，AI 交互和提示词评价影响探究反思，设计类任务影响目标-行为-结果一致性和跨域迁移。
 

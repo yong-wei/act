@@ -48,7 +48,7 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
   const blackBoxTask = arenaContext?.task.workspaceMode === 'black-box-identification'
     ? arenaContext.task
     : null;
-  const session = blackBoxTask && requestedPublicationId ? await getServerAuthSession() : null;
+  const session = blackBoxTask ? await getServerAuthSession() : null;
   let publicationContext: ArenaResolvedSubmissionContext | null = null;
   if (blackBoxTask && requestedPublicationId && session?.user?.id && session.user.role === 'STUDENT') {
     try {
@@ -112,6 +112,7 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
             task={blackBoxTask}
             initialSubmissions={visibleBlackBoxSubmissions}
             publicationId={publicationContext?.id}
+            viewerUserId={session?.user?.id}
           />
         </div>
       ) : null}

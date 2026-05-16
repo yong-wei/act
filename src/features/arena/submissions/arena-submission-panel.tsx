@@ -16,6 +16,7 @@ import {
   type ArenaWorkbenchPreview,
 } from './workbench-preview';
 import { sendArenaCoreEvent } from '../telemetry';
+import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
 
@@ -23,10 +24,12 @@ export function ArenaSubmissionPanel({
   task,
   initialSubmissions,
   publicationId,
+  viewerUserId,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
   publicationId?: string;
+  viewerUserId?: string;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [kp, setKp] = useState('2.4');
@@ -58,7 +61,10 @@ export function ArenaSubmissionPanel({
   const [leaderboardType, setLeaderboardType] = useState<LeaderboardType>(task.leaderboardTypes[0] ?? 'main');
   const [metricId, setMetricId] = useState(task.primaryMetrics[0] ?? '');
   const [method, setMethod] = useState(task.allowedMethods[0] ?? 'pid');
-  const latest = submissions[submissions.length - 1];
+  const personalSubmissions = viewerUserId
+    ? submissions.filter((submission) => submission.userId === viewerUserId)
+    : [];
+  const latest = personalSubmissions[personalSubmissions.length - 1];
   const availableLeaderboardTypes = task.leaderboardTypes.filter(isPreviewLeaderboardType);
   const selectedLeaderboardType: PreviewLeaderboardType = isPreviewLeaderboardType(leaderboardType) &&
     availableLeaderboardTypes.includes(leaderboardType)
@@ -357,15 +363,11 @@ export function ArenaSubmissionPanel({
         </div>
       ) : null}
       {latest ? (
-        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-subtle">最近得分</span>
-            <span className="font-semibold text-primary">{latest.evaluation.score.toFixed(1)}</span>
-          </div>
-          <div className="mt-2 text-xs text-subtle">
-            {latest.reusedEvaluation ? '重复控制器已复用既有评测结果。' : latest.evaluation.explanation[0]}
-          </div>
-        </div>
+        <ArenaPersonalFeedback
+          latest={latest}
+          previousSubmissions={personalSubmissions.slice(0, -1)}
+          mode="white-box"
+        />
       ) : null}
       <div className="mt-4 grid gap-2">
         {leaderboard.entries.slice(0, 4).map((entry) => (

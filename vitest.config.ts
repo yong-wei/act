@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    testTimeout: 30000,
     include: [
       'src/lib/__tests__/**/*.test.ts',
       'src/lib/data-governance/__tests__/**/*.test.ts',

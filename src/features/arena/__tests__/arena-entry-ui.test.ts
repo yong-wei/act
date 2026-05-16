@@ -30,7 +30,10 @@ describe('arena student entry UI boundaries', () => {
 
   it('keeps challenge detail read-only and moves official submission to workbench only', () => {
     const detailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
+    const hallSource = readRepoFile('src/features/arena/arena-hall.tsx');
     const workbenchSource = readRepoFile('src/features/interactive/multi-representation-linkage/page-client.tsx');
+    const legacyRouteSource = readRepoFile('src/app/interactive-learning/multi-representation-linkage/page.tsx');
+    const controlWorkbenchRouteSource = readRepoFile('src/app/interactive-learning/control-workbench/page.tsx');
     const controlOdysseySource = readRepoFile('src/app/interactive-learning/control-odyssey/page.tsx');
     const blockDiagramSource = readRepoFile('src/app/interactive-learning/lesson-05/page.tsx');
     const predictiveControlSource = readRepoFile('src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx');
@@ -40,8 +43,18 @@ describe('arena student entry UI boundaries', () => {
 
     expect(detailSource).not.toContain('ArenaSubmissionPanel');
     expect(detailSource).not.toContain('ArenaBlackBoxSubmissionPanel');
-    expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
+    expect(detailSource).toContain('仿真调试与方案提交均在控制工作台内完成');
+    expect(detailSource).toContain('进入控制工作台');
+    expect(detailSource).not.toContain('进入多表征工作台');
+    expect(detailSource).not.toContain('进入黑箱仿真');
+    expect(detailSource).not.toContain('进入 MPC 课程');
+    expect(hallSource).toContain('推荐进入{getArenaHallEntryLabel');
+    expect(hallSource).toContain('getArenaHallEntryLabel');
+    expect(hallSource).toContain('控制奥德赛');
     expect(workbenchSource).toContain('<ArenaSubmitPanel');
+    expect(legacyRouteSource).toContain('MultiRepresentationLinkageClient');
+    expect(controlWorkbenchRouteSource).toContain('resolveControlWorkbenchSession');
+    expect(controlWorkbenchRouteSource).toContain('arenaTask: firstValue(searchParams?.arenaTask)');
     expect(controlOdysseySource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey"');
     expect(blockDiagramSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench"');
     expect(predictiveControlSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="predictive-control"');
@@ -49,6 +62,8 @@ describe('arena student entry UI boundaries', () => {
     expect(genericMountSource).toContain("searchParams.get('publicationId')");
     expect(genericMountSource).toContain('publicationId={publicationId}');
     expect(genericMountSource).toContain('<ArenaSubmissionPanel');
+    expect(genericMountSource).toContain('<ArenaBlackBoxSubmissionPanel');
+    expect(genericMountSource).toContain("workspaceMode === 'black-box-identification'");
     expect(cruiseSource).toContain('requestedPublicationId');
     expect(cruiseSource).toContain('filterArenaSubmissionsForHiddenPublicationPolicy');
     expect(cruiseSource).toContain('publicationId={publicationContext?.id}');

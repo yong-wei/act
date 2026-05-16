@@ -440,7 +440,7 @@ describe('arena black-box identification evaluation', () => {
     );
 
     expect(detailSource).not.toContain('<ArenaBlackBoxSubmissionPanel');
-    expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
+    expect(detailSource).toContain('仿真调试与方案提交均在控制工作台内完成');
     expect(cruiseSimulationPageSource).toContain('searchParams');
     expect(cruiseSimulationPageSource).toContain('resolveArenaWorkbenchContext');
     expect(cruiseSimulationPageSource).toContain('requestedPublicationId');

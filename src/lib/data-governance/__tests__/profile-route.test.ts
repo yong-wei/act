@@ -5,12 +5,16 @@ const mocks = vi.hoisted(() => {
   const generateRecommendations = vi.fn();
   const getAbilityReport = vi.fn();
   const getDiagnostic = vi.fn();
+  const prismaArenaSubmissionStore = {
+    listSubmissions: vi.fn(),
+  };
 
   return {
     getServerAuthSession,
     generateRecommendations,
     getAbilityReport,
     getDiagnostic,
+    prismaArenaSubmissionStore,
     prisma: {
       user: {
         findUnique: vi.fn(),
@@ -112,7 +116,50 @@ vi.mock('@/features/assessment/adaptive-engine', () => ({
   getDiagnostic: mocks.getDiagnostic,
 }));
 
+vi.mock('@/features/arena/submissions/prisma-store', () => ({
+  prismaArenaSubmissionStore: mocks.prismaArenaSubmissionStore,
+}));
+
 import { GET } from '@/app/api/user/profile/route';
+
+function arenaSubmission(overrides: Record<string, unknown> = {}) {
+  const taskId = typeof overrides.taskId === 'string' ? overrides.taskId : 'task-integrator-low-frequency-balance';
+  const artifact = {
+    id: `artifact-${overrides.id ?? 'arena-1'}`,
+    taskId,
+    method: overrides.method ?? 'pid',
+    params: { kp: 2.4, ki: 0.8, kd: 0.35 },
+    createdAt: '2026-05-16T08:00:00.000Z',
+  };
+  return {
+    id: overrides.id ?? 'arena-1',
+    taskId,
+    userId: overrides.userId ?? 'student-1',
+    classId: 'class-1',
+    publicationId: 'publication-1',
+    studentLabel: '张同学',
+    artifactHash: `hash-${overrides.id ?? 'arena-1'}`,
+    artifact,
+    evaluation: {
+      taskId,
+      artifact,
+      valid: overrides.valid ?? true,
+      score: overrides.score ?? 86,
+      metrics: { settlingTime: 3.2, overshoot: 8, steadyStateError: 0.02, controlEnergy: 5 },
+      satisfaction: overrides.satisfaction ?? {
+        settlingTime: 0.7,
+        overshoot: 0.8,
+        steadyStateError: 0.9,
+        controlEnergy: 0.65,
+      },
+      hardConstraintResults: [{ id: 'closed_loop_stable', label: '闭环稳定', passed: overrides.valid ?? true }],
+      penalties: [],
+      explanation: [],
+    },
+    submittedAt: overrides.submittedAt ?? '2026-05-16T08:20:00.000Z',
+    reusedEvaluation: false,
+  };
+}
 
 describe('GET /api/user/profile', () => {
   beforeEach(() => {
@@ -222,6 +269,17 @@ describe('GET /api/user/profile', () => {
         timeSpent: 420,
         competencyContribution: { crossDomainTransfer: 0.5 },
       },
+      {
+        id: 'fact-arena-1',
+        factType: 'design',
+        moduleId: 'task-integrator-low-frequency-balance',
+        sessionId: null,
+        startedAt: new Date('2026-05-16T08:30:00.000Z'),
+        outcome: 'success',
+        score: 0.86,
+        timeSpent: 300,
+        contextJson: { arena: { taskId: 'task-integrator-low-frequency-balance', valid: true } },
+      },
     ]);
 
     mocks.prisma.studentState.findMany.mockResolvedValue([
@@ -292,6 +350,46 @@ describe('GET /api/user/profile', () => {
         designTheta: 0.26,
       },
     });
+
+    mocks.prismaArenaSubmissionStore.listSubmissions.mockImplementation(async (options: { userId?: string; taskIds?: string[] }) => {
+      if (options.userId === 'student-1') {
+        return [
+          arenaSubmission({
+            id: 'arena-early',
+            score: 52,
+            valid: false,
+            submittedAt: '2026-05-16T08:00:00.000Z',
+            satisfaction: { settlingTime: 0.35, overshoot: 0.6, steadyStateError: 0.4, controlEnergy: 0.45 },
+          }),
+          arenaSubmission({
+            id: 'arena-best',
+            score: 86,
+            valid: true,
+            submittedAt: '2026-05-16T08:20:00.000Z',
+            satisfaction: { settlingTime: 0.82, overshoot: 0.78, steadyStateError: 0.91, controlEnergy: 0.68 },
+          }),
+        ];
+      }
+      if (Array.isArray(options.taskIds)) {
+        return [
+          arenaSubmission({
+            id: 'arena-early',
+            score: 52,
+            valid: false,
+            submittedAt: '2026-05-16T08:00:00.000Z',
+            satisfaction: { settlingTime: 0.35, overshoot: 0.6, steadyStateError: 0.4, controlEnergy: 0.45 },
+          }),
+          arenaSubmission({
+            id: 'arena-best',
+            score: 86,
+            valid: true,
+            submittedAt: '2026-05-16T08:20:00.000Z',
+            satisfaction: { settlingTime: 0.82, overshoot: 0.78, steadyStateError: 0.91, controlEnergy: 0.68 },
+          }),
+        ];
+      }
+      return [];
+    });
   });
 
   it('returns six-dimension competency, preview activities, and adaptive reinforcement summary', async () => {
@@ -329,6 +427,15 @@ describe('GET /api/user/profile', () => {
       weakAreas: ['phase-margin', 'controller-tuning'],
       recommendedFocus: ['优先练习“相位裕度-超调量”映射题', '加强 PID 参数因果调节训练'],
       actionUrl: '/assessment/adaptive-practice',
+    });
+    expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
+    expect(body.arenaSummary).toMatchObject({
+      submissionCount: 2,
+      bestScore: 86,
+      validSubmissionRate: 0.5,
+      methodPreference: 'pid',
+      improvementCount: 1,
+      learningFactContextCount: 1,
     });
   });
 });

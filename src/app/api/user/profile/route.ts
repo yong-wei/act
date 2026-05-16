@@ -31,6 +31,10 @@ import { generateRecommendations } from '@/lib/data-governance/recommendation-en
 import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
 import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  buildArenaStudentEvidenceSummary,
+  type ArenaStudentEvidenceSummary,
+} from '@/features/arena/evidence-summary';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,6 +91,7 @@ export interface UserProfileResponse {
     adaptivePractice: AdaptivePracticeSummary;
   };
   arenaPortfolio: ArenaStudentPortfolio;
+  arenaSummary: ArenaStudentEvidenceSummary;
 }
 
 function parseStringList(value: unknown): string[] {
@@ -321,6 +326,7 @@ export async function GET() {
           outcome: true,
           score: true,
           timeSpent: true,
+          contextJson: true,
         },
       }),
       prisma.studentState.findMany({
@@ -521,6 +527,11 @@ export async function GET() {
         }),
       },
       arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
+      arenaSummary: buildArenaStudentEvidenceSummary({
+        userId,
+        submissions: userArenaSubmissions,
+        learningFacts,
+      }),
     };
 
     return NextResponse.json(response);

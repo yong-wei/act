@@ -481,6 +481,9 @@ export function TeacherArenaConfig() {
                       <div className="mt-1 text-xs text-subtle">{item.classId} · {item.status}</div>
                     </div>
                     <div className="flex gap-2">
+                      <Link href={`/teacher/arena/publications/${item.id}`} className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs">
+                        查看报告
+                      </Link>
                       <button type="button" onClick={() => updatePublicationStatus(item.id, 'paused')} className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs">
                         暂停
                       </button>
