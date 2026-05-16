@@ -167,6 +167,10 @@ function buildSatisfaction(metricProfile: MetricProfile, metrics: Record<string,
   );
 }
 
+function buildFailedSatisfaction(metricProfile: MetricProfile): Record<string, number> {
+  return Object.fromEntries(metricProfile.rankingMetrics.map((metric) => [metric.id, 0]));
+}
+
 export function evaluateBlackBoxSubmission({
   taskId,
   artifact,
@@ -198,7 +202,9 @@ export function evaluateBlackBoxSubmission({
   const summary = summarizeBlackBoxArtifact(artifact);
   const metrics = evaluateBlackBoxOfficialMetrics(summary);
   const hardConstraintResults = evaluateHardConstraints(summary, metrics);
-  const satisfaction = buildSatisfaction(metricProfile, metrics);
+  const satisfaction = summary.validationErrors.length > 0
+    ? buildFailedSatisfaction(metricProfile)
+    : buildSatisfaction(metricProfile, metrics);
   const valid = hardConstraintResults.every((result) => result.passed);
 
   if (!valid) {

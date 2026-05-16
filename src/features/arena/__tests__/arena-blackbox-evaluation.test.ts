@@ -158,6 +158,12 @@ describe('arena black-box identification evaluation', () => {
     expect(result.score).toBe(0);
     expect(result.explanation.join(' ')).toContain('experimentCount 不能超过 20');
     expect(result.explanation.join(' ')).toContain('controllerGain 不能超过 8');
+    expect(result.satisfaction).toEqual({
+      trackingError: 0,
+      worstCaseDeviation: 0,
+      controlEnergy: 0,
+      constraintViolations: 0,
+    });
   });
 
   it('keeps white-box and black-box protocols separate, partitioned by method family', () => {
