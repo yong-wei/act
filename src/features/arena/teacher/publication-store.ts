@@ -5,6 +5,13 @@ import {
   type ArenaChallengePublication,
   type ArenaPublicationVisibility,
 } from './configuration';
+import {
+  buildArenaPublicationReport,
+  type ArenaPublicationReport,
+  type ArenaPublicationReportRosterStudent,
+} from './publication-report';
+import { prismaArenaSubmissionStore, type ArenaSubmissionListOptions } from '../submissions/prisma-store';
+import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 
 export type { ArenaPublicationVisibility, ArenaTelemetryLevel } from './configuration';
 
@@ -71,6 +78,13 @@ type ArenaPublicationDb = {
   };
   studentProfile?: {
     findUnique(args: unknown): Promise<{ userId: string; classId: string | null } | null>;
+    findMany?: (args: unknown) => Promise<Array<{
+      userId: string;
+      user?: {
+        name?: string | null;
+        email?: string | null;
+      } | null;
+    }>>;
   };
 };
 
@@ -114,6 +128,12 @@ export interface UpdateArenaPublicationStatusInput {
   actor: ArenaPublicationActor;
   publicationId: string;
   status: ArenaPublicationStatus;
+}
+
+export interface LoadArenaPublicationReportForActorInput {
+  actor: ArenaPublicationActor;
+  publicationId: string;
+  listSubmissions?: (options: ArenaSubmissionListOptions) => Promise<ArenaSubmissionRecord[]>;
 }
 
 function isArenaPublicationStatus(value: unknown): value is ArenaPublicationStatus {
@@ -201,6 +221,35 @@ async function assertActorCanManagePublication(
 ) {
   if (actor.role === 'ADMIN') return;
   await assertTeacherCanUseClass(db, actor, String(publication.classId));
+}
+
+async function listPublicationRoster(
+  db: ArenaPublicationDb,
+  classId: string,
+): Promise<ArenaPublicationReportRosterStudent[]> {
+  if (typeof db.studentProfile?.findMany !== 'function') {
+    return [];
+  }
+
+  const rows = await db.studentProfile.findMany({
+    where: { classId },
+    select: {
+      userId: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return rows
+    .map((row) => ({
+      userId: row.userId,
+      studentLabel: row.user?.name ?? row.user?.email ?? row.userId,
+    }))
+    .sort((left, right) => left.studentLabel.localeCompare(right.studentLabel, 'zh-Hans-CN'));
 }
 
 export async function createArenaPublicationRecord(
@@ -310,6 +359,36 @@ export async function updateArenaPublicationStatus(
   return toRecord(row);
 }
 
+export async function loadArenaPublicationReportForActor(
+  db: ArenaPublicationDb,
+  input: LoadArenaPublicationReportForActorInput,
+): Promise<ArenaPublicationReport> {
+  const row = await db.arenaChallengePublication.findUnique({
+    where: { id: input.publicationId },
+  });
+  if (!row) {
+    throw new ArenaPublicationPermissionError('Arena publication was not found.');
+  }
+  await assertActorCanManagePublication(db, input.actor, row);
+
+  const publication = toRecord(row);
+  const listSubmissions = input.listSubmissions ?? prismaArenaSubmissionStore.listSubmissions;
+  const [submissions, roster] = await Promise.all([
+    listSubmissions({
+      taskId: publication.taskId,
+      publicationId: publication.id,
+      classId: publication.classId,
+    }),
+    listPublicationRoster(db, publication.classId),
+  ]);
+
+  return buildArenaPublicationReport({
+    publication,
+    submissions,
+    roster,
+  });
+}
+
 export async function resolveAccessibleArenaPublicationForStudent(
   db: Pick<ArenaPublicationDb, 'arenaChallengePublication' | 'studentProfile'>,
   input: ResolveAccessibleArenaPublicationInput,
@@ -368,6 +447,9 @@ export const prismaArenaPublicationStore = {
   },
   updateStatus(input: UpdateArenaPublicationStatusInput) {
     return updateArenaPublicationStatus(prisma as unknown as ArenaPublicationDb, input);
+  },
+  loadReport(input: LoadArenaPublicationReportForActorInput) {
+    return loadArenaPublicationReportForActor(prisma as unknown as ArenaPublicationDb, input);
   },
   resolveForStudent(input: ResolveAccessibleArenaPublicationInput) {
     return resolveAccessibleArenaPublicationForStudent(prisma as unknown as ArenaPublicationDb, input);

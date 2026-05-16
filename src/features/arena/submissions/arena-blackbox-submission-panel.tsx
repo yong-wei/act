@@ -10,6 +10,7 @@ import { buildBlackBoxControlArtifactFromParams } from './blackbox-artifact-buil
 import type { ArenaSubmissionRecord } from './submission-service';
 import type { ArenaBlackBoxExperimentDataset, ArenaIdentificationArtifactReference } from '../blackbox/experiment';
 import type { ArenaVirtualSimulationPreviewRun } from '../blackbox/controller-preview';
+import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
 
@@ -332,15 +333,11 @@ export function ArenaBlackBoxSubmissionPanel({
         </div>
       ) : null}
       {latest ? (
-        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-subtle">最近得分</span>
-            <span className="font-semibold text-primary">{latest.evaluation.score.toFixed(1)}</span>
-          </div>
-          <div className="mt-2 text-xs text-subtle">
-            {latest.evaluation.explanation[0]}
-          </div>
-        </div>
+        <ArenaPersonalFeedback
+          latest={latest}
+          previousSubmissions={submissions.slice(0, -1)}
+          mode="black-box"
+        />
       ) : null}
       <div className="mt-4 grid gap-2">
         {leaderboard.entries.slice(0, 4).map((entry) => (
