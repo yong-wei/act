@@ -1,32 +1,26 @@
-import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight, BarChart3, ListChecks, Trophy } from 'lucide-react';
+import { ArrowUpRight, BarChart3, ListChecks, Rocket, Trophy } from 'lucide-react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import type { ChallengeObject, ChallengeTask, LeaderboardPolicy, MetricProfile } from './types';
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { buildArenaTaskStats } from './stats';
-import { ArenaSubmissionPanel } from './submissions/arena-submission-panel';
-import { ArenaBlackBoxSubmissionPanel } from './submissions/arena-blackbox-submission-panel';
 import { getArenaWorkspaceHref } from './workspace-routing';
-import { getEvaluableControllerMethods } from './submissions/controller-artifact-builder';
 import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-client';
-
-const methodLabels: Record<ChallengeTask['allowedMethods'][number], string> = {
-  'serial-compensator': '串联校正',
-  pid: 'PID',
-  'optimized-pid': '优化调参',
-  'composite-compensation': '复合校正',
-  mpc: 'MPC',
-  'black-box-control': '黑箱控制',
-  'code-controller': '代码控制器',
-};
-
-const workspaceLabels: Record<ChallengeTask['workspaceMode'], string> = {
-  'multi-representation-linkage': '多表征联动工作台',
-  'block-diagram-workbench': '框图工作台',
-  'black-box-identification': '辨识 + 控制工作台',
-  'predictive-control': '预测控制工作台',
-  'control-odyssey': '控制奥德赛工作台',
-};
+import { ArenaPageShell } from './arena-page-shell';
+import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
+import {
+  ARENA_STUDENT_LEADERBOARD_TYPES,
+  arenaMethodLabels,
+  arenaSourceLabels,
+  arenaVisibilityLabels,
+  arenaWorkspaceLabels,
+  formatArenaHardConstraint,
+  formatArenaLeaderboardType,
+  formatArenaMetricExplanation,
+  formatArenaMetricGoal,
+  formatArenaTieBreaker,
+} from './display-labels';
 
 interface ChallengeDetailProps {
   task: ChallengeTask;
@@ -51,164 +45,183 @@ export function ChallengeDetail({
     topScore: null,
   };
   const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
-  const canSubmitWithCurrentEvaluator = getEvaluableControllerMethods(task).length > 0;
-  const canSubmitWithBlackBoxEvaluator = object.visibility === 'black-box' &&
-    object.adapterType === 'virtual-simulation' &&
-    task.allowedMethods.includes('black-box-control');
+  const studentLeaderboardTypes = task.leaderboardTypes.filter((type) =>
+    ARENA_STUDENT_LEADERBOARD_TYPES.includes(type),
+  );
 
   return (
-    <main className="surface-page min-h-screen">
+    <ArenaPageShell
+      activePath="/arena"
+      breadcrumbs={[
+        { label: '课程：自动控制原理', href: '/' },
+        { label: '实践与拓展', href: '/interactive-learning' },
+        { label: '自动控制竞技场', href: '/arena' },
+        { label: task.title, href: `/arena/challenges/${task.id}` },
+      ]}
+    >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
-      <header className="surface-topbar">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
-          <Link href="/arena" className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-            <ArrowLeft className="h-4 w-4" />
-            返回竞技场大厅
-          </Link>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Trophy className="h-4 w-4 text-primary" />
-            {leaderboardPolicy.name}
-          </div>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-[1600px] px-6 py-10">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.8fr]">
+      <section className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-xs text-subtle">
-              <ListChecks className="h-4 w-4 text-primary" />
-              挑战任务 · {task.difficulty}
-            </div>
-            <div>
-              <h1 className="text-4xl font-semibold text-foreground md:text-5xl">{task.title}</h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-blue-700">
+                <Trophy className="h-5 w-5" />
+                自动控制竞技场
+                <span className="rounded-full bg-blue-50 px-2 py-1 text-xs">{task.difficulty}</span>
+              </div>
+              <h1 className="mt-4 text-3xl font-semibold text-slate-950 md:text-4xl">{task.title}</h1>
+              <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">{task.goal}</p>
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
+                <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
+                <DetailItem label="工作台" value={arenaWorkspaceLabels[task.workspaceMode]} />
+                <DetailItem label="榜单规则" value={leaderboardPolicy.name} />
+              </div>
             </div>
 
-            <div className="surface-card p-6">
-              <h2 className="text-lg font-semibold text-foreground">对象说明</h2>
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
+                <ListChecks className="h-5 w-5 text-blue-600" />
+                对象说明
+              </h2>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <DetailItem label="被控对象" value={object.name} />
-                <DetailItem label="公开程度" value={object.visibility === 'white-box' ? '白箱模型' : object.visibility} />
                 <DetailItem label="章节关联" value={object.chapter} />
                 <DetailItem label="任务属性" value={task.homeworkPolicy} />
-                <DetailItem
-                  label={object.model ? '模型表达' : '公开接口'}
-                  value={object.model?.display ?? object.publicInterface ?? '该对象不公开传递函数模型'}
-                />
                 {object.evaluationInterface ? (
                   <DetailItem label="评测接口" value={object.evaluationInterface} />
                 ) : null}
               </div>
+              <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+                <div className="text-xs font-medium text-slate-500">{object.model ? '模型表达' : '公开接口'}</div>
+                {object.model ? (
+                  <div className="mt-2 overflow-x-auto text-sm [&_.katex-display]:m-0">
+                    <BlockMath math={object.model.latex ?? object.model.display} />
+                  </div>
+                ) : (
+                  <div className="mt-2 text-sm leading-6 text-slate-700">
+                    {object.publicInterface ?? '该对象不公开传递函数模型'}
+                  </div>
+                )}
+              </div>
               {object.scenarioSummary ? (
-                <p className="mt-4 text-sm leading-6 text-subtle">{object.scenarioSummary}</p>
+                <p className="mt-4 text-sm leading-6 text-slate-600">{object.scenarioSummary}</p>
               ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 {object.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
+                  <span key={tag} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs text-blue-700">
                     {tag}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="surface-card p-6">
-              <h2 className="text-lg font-semibold text-foreground">评价规则</h2>
-              <div className="mt-4 grid gap-3">
-                {metricProfile.rankingMetrics.map((metric) => (
-                  <div key={metric.id} className="flex items-center justify-between rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm">
-                    <span className="text-foreground">{metric.label}</span>
-                    <span className="text-subtle">
-                      理想 {metric.idealValue}{metric.unit ?? ''} · 不可接受 {metric.unacceptableValue}{metric.unit ?? ''}
-                    </span>
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-950">评价规则</h2>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+                <section className="overflow-hidden rounded-lg border border-blue-100">
+                  <div className="bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">基础目标</div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[560px] text-left text-sm">
+                      <thead className="bg-slate-50 text-xs text-slate-500">
+                        <tr>
+                          <th className="px-4 py-2 font-medium">指标</th>
+                          <th className="px-4 py-2 font-medium">目标或允许范围</th>
+                          <th className="px-4 py-2 font-medium">说明</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {metricProfile.rankingMetrics.map((metric) => (
+                          <tr key={metric.id}>
+                            <td className="px-4 py-3 font-medium text-slate-900">
+                              {metric.label}
+                              {metric.unit ? <span className="ml-1 text-xs text-slate-500">({metric.unit})</span> : null}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">{formatArenaMetricGoal(metric)}</td>
+                            <td className="px-4 py-3 text-slate-600">{formatArenaMetricExplanation(metric)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+                </section>
+
+                <section className="rounded-lg border border-red-100 bg-red-50/70 p-4">
+                  <div className="text-sm font-semibold text-red-700">硬约束</div>
+                  <div className="mt-3 grid gap-3">
+                    {metricProfile.hardConstraints.map((constraint) => (
+                      <div key={constraint} className="rounded-lg border border-red-100 bg-white px-3 py-2 text-sm text-slate-700">
+                        {formatArenaHardConstraint(constraint)}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-red-700">任一硬约束未通过时，提交不进入正式排名。</p>
+                </section>
               </div>
-              <div className="mt-4 text-xs text-subtle">
-                硬约束：{metricProfile.hardConstraints.join(' / ')}
+            </div>
+
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-950">相关知识点</h2>
+              <div className="mt-4">
+                <ChallengeKnowledgePreview items={object.relatedKnowledge} />
               </div>
             </div>
           </div>
 
           <aside className="space-y-4">
-            <div className="surface-card p-6">
-              <h2 className="text-lg font-semibold text-foreground">进入工作台</h2>
-              <p className="mt-2 text-sm leading-6 text-subtle">
-                该任务推荐进入 {workspaceLabels[task.workspaceMode]}。白箱任务可先在本页运行工作台仿真并比较方案，再提交官方评测。
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
+                <Rocket className="h-5 w-5 text-blue-600" />
+                进入工作台
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                该任务推荐进入 {arenaWorkspaceLabels[task.workspaceMode]}。仿真调试与方案提交均在工作台内完成。
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {task.allowedMethods.map((method) => (
-                  <span key={method} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
-                    {methodLabels[method]}
+                  <span key={method} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs text-blue-700">
+                    {arenaMethodLabels[method]}
                   </span>
                 ))}
+              </div>
+              <div className="mt-5 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                提交后通过真实指标验证的数据会自动进入主榜、方法榜和指标榜。
               </div>
               <ArenaWorkspaceLink
                 href={workspaceHref}
                 task={task}
-                className="cta-primary mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
               >
                 进入工作台
                 <ArrowUpRight className="h-4 w-4" />
               </ArenaWorkspaceLink>
             </div>
 
-            <div className="surface-card p-6">
-              <h2 className="text-lg font-semibold text-foreground">相关知识点</h2>
-              <div className="mt-4 grid gap-2">
-                {object.relatedKnowledge.map((item) => (
-                  <div key={item} className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm text-subtle">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="surface-card p-6">
+            <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+                <h2 className="text-lg font-semibold text-slate-950">榜单摘要</h2>
               </div>
               <div className="mt-4 grid gap-3 text-sm">
                 <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
                 <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
                 <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
-                <DetailItem label="榜单类型" value={task.leaderboardTypes.join(' / ')} />
-                <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.join(' / ')} />
+                <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
+                <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
               </div>
             </div>
-
-            {canSubmitWithCurrentEvaluator ? (
-              publicationId ? (
-                <ArenaSubmissionPanel task={task} initialSubmissions={submissions} publicationId={publicationId} />
-              ) : (
-                <ArenaSubmissionPanel task={task} initialSubmissions={submissions} />
-              )
-            ) : canSubmitWithBlackBoxEvaluator ? (
-              publicationId ? (
-                <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} publicationId={publicationId} />
-              ) : (
-                <ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />
-              )
-            ) : (
-              <section className="surface-card p-6">
-                <h2 className="text-lg font-semibold text-foreground">提交与排行榜预览</h2>
-                <p className="mt-2 text-sm leading-6 text-subtle">
-                  该任务使用独立评测接口，当前详情页仅展示任务入口与真实榜单摘要。
-                </p>
-              </section>
-            )}
           </aside>
         </div>
       </section>
-    </main>
+    </ArenaPageShell>
   );
 }
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-subtle">{label}</div>
-      <div className="mt-1 text-sm font-medium text-foreground">{value}</div>
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="mt-1 text-sm font-medium text-slate-900">{value}</div>
     </div>
   );
 }

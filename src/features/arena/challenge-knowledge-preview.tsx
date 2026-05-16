@@ -1,0 +1,172 @@
+'use client';
+
+import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
+import { BookOpen, Image as ImageIcon, Loader2 } from 'lucide-react';
+
+import type { RelatedKnowledgeRef } from './types';
+import {
+  KnowledgeCardDialog,
+  extractInfographResource,
+  resolveKnowledgeInfographSrc,
+  type KnowledgeCardSource,
+} from '@/features/knowledge/knowledge-card';
+
+interface ArenaKnowledgeNode extends KnowledgeCardSource {
+  id: string;
+  chapter?: string | null;
+  chapterName?: string | null;
+  tags?: string[] | null;
+  relatedNodes?: Array<{
+    id: string;
+    name: string;
+    relation?: string;
+    category?: string;
+  }>;
+}
+
+export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRef[] }) {
+  const [selected, setSelected] = useState<RelatedKnowledgeRef | null>(items[0] ?? null);
+  const [node, setNode] = useState<ArenaKnowledgeNode | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
+
+  useEffect(() => {
+    if (!selected) {
+      setNode(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setNode(null);
+    setCardOpen(false);
+    fetch(`/api/knowledge/nodes/${selected.nodeId}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled) {
+          setNode(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setNode(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
+
+  const infographSrc = useMemo(
+    () => resolveKnowledgeInfographSrc(extractInfographResource(node?.resources)),
+    [node?.resources],
+  );
+  const tags = node?.tags ?? [];
+  const relations = node?.relatedNodes ?? [];
+
+  if (items.length === 0) {
+    return <p className="text-sm text-slate-500">暂无关联知识点。</p>;
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <button
+            key={item.nodeId}
+            type="button"
+            onClick={() => setSelected(item)}
+            className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+              selected?.nodeId === item.nodeId
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-700'
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            正在加载知识预览
+          </div>
+        ) : node ? (
+          <div className="grid gap-4">
+            <div>
+              <div className="text-xs font-medium text-blue-700">知识预览</div>
+              <h3 className="mt-1 text-base font-semibold text-slate-950">{node.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{node.description}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                {node.chapterName || node.chapter ? <span>章节：{node.chapterName ?? node.chapter}</span> : null}
+                {tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-white px-2 py-1">{tag}</span>
+                ))}
+              </div>
+            </div>
+
+            {relations.length > 0 ? (
+              <div className="grid gap-2 text-xs text-slate-500">
+                <div className="font-medium text-slate-700">关联关系</div>
+                <div className="flex flex-wrap gap-2">
+                  {relations.slice(0, 6).map((relation) => (
+                    <span key={relation.id} className="rounded-full border border-blue-100 bg-white px-2 py-1">
+                      {relation.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {infographSrc ? (
+              <figure className="overflow-hidden rounded-lg border border-blue-100 bg-white">
+                <Image
+                  src={infographSrc}
+                  alt={`${node.name}信息图`}
+                  width={800}
+                  height={320}
+                  className="max-h-52 w-full object-contain p-2"
+                  unoptimized
+                />
+              </figure>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCardOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                <BookOpen className="h-4 w-4" />
+                打开知识卡片
+              </button>
+              {infographSrc ? (
+                <a
+                  href={infographSrc}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  查看信息图
+                </a>
+              ) : null}
+            </div>
+            <KnowledgeCardDialog open={cardOpen} onOpenChange={setCardOpen} node={node} />
+          </div>
+        ) : selected ? (
+          <div className="text-sm text-slate-500">{selected.label}</div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

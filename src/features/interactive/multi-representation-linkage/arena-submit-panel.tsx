@@ -8,6 +8,10 @@ import type { ArenaWorkbenchContext } from '@/features/arena/domain';
 import type { CorrectionState } from './model';
 import { buildArenaArtifactFromMultiRepresentationState } from '@/features/arena/workbench/artifact-mappers';
 import type { ArenaEvaluationResult } from '@/features/arena/evaluation/types';
+import {
+  formatArenaHardConstraint,
+  formatArenaMetric,
+} from '@/features/arena/display-labels';
 
 interface ArenaSubmitPanelProps {
   arenaContext: ArenaWorkbenchContext;
@@ -33,6 +37,9 @@ export function ArenaSubmitPanel({
   });
 
   const canSubmit = isLockedByChallenge && buildResult.artifact !== null && !submitting;
+  const metricDefinitions = new Map(
+    arenaContext.metricProfile.rankingMetrics.map((metric) => [metric.id, metric]),
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!buildResult.artifact) return;
@@ -65,7 +72,7 @@ export function ArenaSubmitPanel({
 
   return (
     <div className="premium-lesson-panel px-5 py-4 mt-4">
-      <div className="premium-lesson-kicker">Arena 官方提交</div>
+      <div className="premium-lesson-kicker">竞技场官方提交</div>
 
       {!isLockedByChallenge && (
         <p className="mt-2 text-sm text-muted-foreground">
@@ -103,7 +110,7 @@ export function ArenaSubmitPanel({
               ? <CheckCircle className="h-5 w-5 text-emerald-600" />
               : <XCircle className="h-5 w-5 text-destructive" />}
             <span className="font-semibold">
-              {result.valid ? `得分: ${result.score.toFixed(1)}` : '未通过硬约束'}
+              {result.valid ? `得分：${result.score.toFixed(1)}` : '未通过硬约束'}
             </span>
           </div>
 
@@ -111,7 +118,7 @@ export function ArenaSubmitPanel({
             <div className="grid grid-cols-2 gap-2 text-xs">
               {Object.entries(result.metrics).map(([key, value]) => (
                 <div key={key} className="rounded border border-border/60 px-2 py-1">
-                  <span className="text-muted-foreground">{key}:</span>{' '}
+                  <span className="text-muted-foreground">{formatArenaMetric(key, metricDefinitions.get(key))}：</span>{' '}
                   <span className="tabular-nums">{Number(value).toFixed(3)}</span>
                 </div>
               ))}
@@ -125,7 +132,7 @@ export function ArenaSubmitPanel({
                   {hc.passed
                     ? <CheckCircle className="h-3 w-3 text-emerald-500" />
                     : <XCircle className="h-3 w-3 text-destructive" />}
-                  {hc.label}
+                  {formatArenaHardConstraint(hc.id)}
                   {hc.reason && <span className="text-destructive"> — {hc.reason}</span>}
                 </li>
               ))}
@@ -161,7 +168,7 @@ export function ArenaSubmitPanel({
           className="premium-lesson-action-tone premium-tone-cyan inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {submitting ? '提交中...' : '提交官方评测'}
+          {submitting ? '提交中……' : '提交官方评测'}
         </button>
         {!canSubmit && !submitting && isLockedByChallenge && (
           <p className="mt-1 text-xs text-muted-foreground">

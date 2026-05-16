@@ -35,7 +35,7 @@ function matchesQuery(task: ChallengeTask, query: string | undefined): boolean {
     object?.name,
     object?.chapter,
     object?.tags.join(' '),
-    object?.relatedKnowledge.join(' '),
+    object?.relatedKnowledge.map((item) => item.label).join(' '),
   ].filter(Boolean).join(' '));
 
   return normalizedQuery.split(/\s+/).every((term) => haystack.includes(term));

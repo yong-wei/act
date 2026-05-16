@@ -265,9 +265,13 @@ describe('arena black-box identification evaluation', () => {
     expect(store.findEvaluationByHash).not.toHaveBeenCalled();
   });
 
-  it('mounts black-box submission UI and sends identification model telemetry', () => {
+  it('keeps black-box submission UI available while challenge detail stays read-only', () => {
     const detailSource = readFileSync(
       join(process.cwd(), 'src/features/arena/challenge-detail.tsx'),
+      'utf8',
+    );
+    const cruiseSimulationPageSource = readFileSync(
+      join(process.cwd(), 'src/app/simulations/cruise/page.tsx'),
       'utf8',
     );
     const panelSource = readFileSync(
@@ -275,7 +279,14 @@ describe('arena black-box identification evaluation', () => {
       'utf8',
     );
 
-    expect(detailSource).toContain('<ArenaBlackBoxSubmissionPanel task={task} initialSubmissions={submissions} />');
+    expect(detailSource).not.toContain('<ArenaBlackBoxSubmissionPanel');
+    expect(detailSource).toContain('仿真调试与方案提交均在工作台内完成');
+    expect(cruiseSimulationPageSource).toContain('searchParams');
+    expect(cruiseSimulationPageSource).toContain('resolveArenaWorkbenchContext');
+    expect(cruiseSimulationPageSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskId: blackBoxTask.id })');
+    expect(cruiseSimulationPageSource).toContain('<ArenaBlackBoxSubmissionPanel');
+    expect(cruiseSimulationPageSource).toContain('initialSubmissions={blackBoxSubmissions}');
+    expect(cruiseSimulationPageSource).not.toContain('initialSubmissions={[]}');
     expect(panelSource).toContain('buildBlackBoxControlArtifactFromParams');
     expect(panelSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
     expect(panelSource).toContain('identificationModelId: identificationModel.modelId');
@@ -287,13 +298,14 @@ describe('arena black-box identification evaluation', () => {
     expect(panelSource).toContain('JSON.stringify({ taskId: task.id, artifact })');
   });
 
-  it('mounts black-box submission UI only for virtual-simulation black-box tasks', () => {
+  it('does not gate challenge detail submission surfaces by virtual-simulation adapter type', () => {
     const detailSource = readFileSync(
       join(process.cwd(), 'src/features/arena/challenge-detail.tsx'),
       'utf8',
     );
 
-    expect(detailSource).toContain("object.adapterType === 'virtual-simulation'");
+    expect(detailSource).not.toContain("object.adapterType === 'virtual-simulation'");
+    expect(detailSource).not.toContain('ArenaBlackBoxSubmissionPanel');
   });
 
   it('lists persisted submissions through the current protocol for each task type', () => {

@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import {
   BodeComparisonPanel,
@@ -17,6 +19,12 @@ import { useMultiRepresentationLinkageModel, type MultiRepresentationInitialPara
 import { ParameterDrawer } from './parameter-drawer';
 import { ArenaModelSelectorPanel } from '@/features/arena/workbench/arena-model-selector-panel';
 import { ArenaSubmitPanel } from './arena-submit-panel';
+import {
+  arenaMethodLabels,
+  arenaSourceLabels,
+  arenaVisibilityLabels,
+  arenaWorkspaceLabels,
+} from '@/features/arena/display-labels';
 
 export function MultiRepresentationLinkageClient({
   initialParams,
@@ -38,13 +46,13 @@ export function MultiRepresentationLinkageClient({
       <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
         <main className="premium-lesson-main mx-auto max-w-[720px] px-6 py-12 text-center">
           <div className="premium-lesson-panel px-6 py-8 border-l-4 border-amber-500">
-            <div className="premium-lesson-kicker text-amber-600">Workbench Mismatch</div>
+            <div className="premium-lesson-kicker text-amber-600">工作台模式不匹配</div>
             <h1 className="premium-lesson-title mt-4 text-2xl font-semibold">
               当前挑战不支持多表征联动工作台
             </h1>
             <p className="premium-lesson-muted mt-3 text-sm">
-              该挑战的工作台模式为 {model.arenaContext?.recommendedWorkspaceMode}，
-              不支持根轨迹/Bode/Nyquist 等 SISO LTI 传函分析功能。
+              该挑战的工作台模式为 {model.arenaContext ? arenaWorkspaceLabels[model.arenaContext.recommendedWorkspaceMode] : '未知工作台'}，
+              不支持根轨迹、伯德图和奈奎斯特图等单输入单输出线性时不变传递函数分析功能。
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link href="/arena" className="premium-lesson-action-tone premium-tone-cyan">
@@ -67,7 +75,7 @@ export function MultiRepresentationLinkageClient({
       <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
         <main className="premium-lesson-main mx-auto max-w-[720px] px-6 py-12 text-center">
           <div className="premium-lesson-panel px-6 py-8 border-l-4 border-destructive">
-            <div className="premium-lesson-kicker text-destructive">Arena Challenge Error</div>
+            <div className="premium-lesson-kicker text-destructive">竞技场挑战错误</div>
             <h1 className="premium-lesson-title mt-4 text-2xl font-semibold">挑战上下文加载失败</h1>
             <p className="premium-lesson-muted mt-3 text-sm">
               指定的竞技场挑战任务不存在或数据不完整，无法加载工作台。
@@ -94,7 +102,7 @@ export function MultiRepresentationLinkageClient({
       <main className="premium-lesson-main mx-auto max-w-[1500px] px-3 py-4 sm:px-6 sm:py-6">
         {!model.isEmbedded ? (
           <header className="premium-lesson-panel px-5 py-5">
-            <div className="premium-lesson-kicker">Multi Representation Linkage</div>
+            <div className="premium-lesson-kicker">多表征联动工作台</div>
             <div className="mt-3 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
@@ -115,14 +123,21 @@ export function MultiRepresentationLinkageClient({
                 </div>
                 {model.isArenaChallengeMode ? (
                   <div className="mt-2 space-y-1">
+                    <div className="premium-lesson-muted text-sm">
+                      <div>对象：{model.arenaContext!.object.name}</div>
+                      {model.arenaContext!.object.model ? (
+                        <div className="mt-1 max-w-xl overflow-x-auto rounded-md border border-border/60 bg-background/70 px-3 py-2 text-xs [&_.katex-display]:m-0">
+                          <BlockMath math={model.arenaContext!.object.model.latex ?? model.arenaContext!.object.model.display} />
+                        </div>
+                      ) : (
+                        <div className="mt-1">该对象不公开传递函数。</div>
+                      )}
+                    </div>
                     <p className="premium-lesson-muted text-sm">
-                      对象：{model.arenaContext!.object.name}（{model.arenaContext!.object.model?.display ?? '无传函'}）
+                      来源：{arenaSourceLabels[model.arenaContext!.object.source]} | 公开程度：{arenaVisibilityLabels[model.arenaContext!.object.visibility]} | 工作台：{arenaWorkspaceLabels[model.arenaContext!.recommendedWorkspaceMode]}
                     </p>
                     <p className="premium-lesson-muted text-sm">
-                      来源：{model.arenaContext!.object.source} | 公开程度：{model.arenaContext!.object.visibility} | 工作台：{model.arenaContext!.recommendedWorkspaceMode}
-                    </p>
-                    <p className="premium-lesson-muted text-sm">
-                      允许方法：{model.arenaContext!.allowedMethods.join('、')} | 评价指标：{model.arenaContext!.metricProfile.rankingMetrics.map((m) => m.label).join('、')}
+                      允许方法：{model.arenaContext!.allowedMethods.map((method) => arenaMethodLabels[method]).join('、')} | 评价指标：{model.arenaContext!.metricProfile.rankingMetrics.map((m) => m.label).join('、')}
                     </p>
                     <p className="premium-lesson-muted text-sm">
                       状态：{model.isLockedByChallenge ? '挑战锁定（对象不可编辑）' : '自由设计'}
@@ -166,8 +181,8 @@ export function MultiRepresentationLinkageClient({
                 ) : (
                   <p className="premium-lesson-muted mt-2 text-sm">
                     {model.isCourseMode
-                      ? `课程模式(${model.courseRole})：默认按邮轮模型与控制器注入开环，禁用添加和删除极点零点。`
-                      : '开环极点零点、闭环时域指标、Bode 裕度、根轨迹和 Nyquist 轨迹同步刷新。'}
+                      ? `课程模式（${model.courseRole === 'teacher' ? '教师' : '学生'}）：默认按邮轮模型与控制器注入开环，禁用添加和删除极点零点。`
+                      : '开环极点零点、闭环时域指标、伯德图裕度、根轨迹和奈奎斯特轨迹同步刷新。'}
                   </p>
                 )}
               </div>
@@ -233,8 +248,8 @@ export function MultiRepresentationLinkageClient({
                 {showCorrectionComparison ? (
                   <TimeDomainComparisonPanel
                     panels={[
-                      { label: '校正前 G(s)K', color: '#64748b', result: model.preCorrectionAnalysisResult! },
-                      { label: '校正后 G(s)C(s)K', color: '#0ea5e9', result },
+                      { label: '校正前开环', color: '#64748b', result: model.preCorrectionAnalysisResult! },
+                      { label: '校正后开环', color: '#0ea5e9', result },
                     ]}
                     onRefreshRange={model.refreshTimeRange}
                   />
@@ -244,9 +259,9 @@ export function MultiRepresentationLinkageClient({
                 {showCorrectionComparison ? (
                   <BodeComparisonPanel
                     panels={[
-                      { label: '校正前 G(s)K', color: '#64748b', result: model.preCorrectionAnalysisResult! },
-                      { label: '校正后 G(s)C(s)K', color: '#0ea5e9', result },
-                      { label: '校正装置 C(s)', color: '#f97316', result: model.correctionDeviceAnalysisResult! },
+                      { label: '校正前开环', color: '#64748b', result: model.preCorrectionAnalysisResult! },
+                      { label: '校正后开环', color: '#0ea5e9', result },
+                      { label: '校正装置', color: '#f97316', result: model.correctionDeviceAnalysisResult! },
                     ]}
                     turnFrequencyHandles={model.turnFrequencyHandles}
                     onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
@@ -283,7 +298,7 @@ export function MultiRepresentationLinkageClient({
             ? '正在计算联动结果。'
             : model.analysisState.error
               ? `计算失败：${model.analysisState.error}`
-              : '联动已更新：四个表征共用同一组开环零极点与 Rust/WASM 分析结果。'}
+              : '联动已更新：四个表征共用同一组开环零极点与统一分析结果。'}
         </div>
       </main>
       <button

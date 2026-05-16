@@ -10,7 +10,6 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  ClipboardCheck,
   Globe,
   GraduationCap,
   Layers,
@@ -145,12 +144,6 @@ const moduleLinks = [
     description: '幅角原理 · 控制地图 · 交互探索',
     href: '/interactive-learning',
     icon: BookOpen,
-  },
-  {
-    title: '评审入口',
-    description: 'DevelopmentPlan 对齐 · 分支功能演示',
-    href: '/review',
-    icon: ClipboardCheck,
   },
 ]
 
@@ -296,7 +289,6 @@ export default function HomePage() {
               <Link href="/arena" className="transition hover:text-primary">竞技场</Link>
               <Link href="/knowledge" className="transition hover:text-primary">知识图谱</Link>
               <Link href="/interactive-learning" className="transition hover:text-primary">互动学习</Link>
-              <Link href="/review" className="transition hover:text-primary">评审入口</Link>
             </div>
             <div className="flex items-center gap-3">
               {session ? (
@@ -424,7 +416,7 @@ export default function HomePage() {
               <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
-                  <div className="text-xs text-subtle">四个核心入口</div>
+                  <div className="text-xs text-subtle">三个核心入口</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {moduleLinks.map((module) => (

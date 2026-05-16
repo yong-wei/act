@@ -35,8 +35,14 @@ export type MetricDirection = 'minimize' | 'maximize' | 'target';
 
 export interface TransferFunctionModel {
   display: string;
+  latex?: string;
   numerator: number[];
   denominator: number[];
+}
+
+export interface RelatedKnowledgeRef {
+  label: string;
+  nodeId: string;
 }
 
 export interface ArenaModelCapabilities {
@@ -71,7 +77,7 @@ export interface ChallengeObject {
   publicInterface?: string;
   evaluationInterface?: string;
   scenarioSummary?: string;
-  relatedKnowledge: string[];
+  relatedKnowledge: RelatedKnowledgeRef[];
   capabilities?: ArenaModelCapabilities;
   modelVersion?: string;
   modelType?: 'transfer-function' | 'state-space' | 'nonlinear-simulation' | 'virtual-simulation' | 'data-only';
