@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, ClipboardList, Trophy } from 'lucide-react';
 
 import {
@@ -14,8 +14,15 @@ import {
   ARENA_CHALLENGE_TEMPLATES,
   createArenaChallengePublication,
   deriveArenaHomeworkAssessment,
+  type ArenaChallengePublication,
   type ArenaTelemetryLevel,
 } from './configuration';
+
+type ArenaPublicationStatus = 'draft' | 'active' | 'paused' | 'archived' | 'closed';
+type PublishedArenaPublication = ArenaChallengePublication & {
+  id: string;
+  status: ArenaPublicationStatus;
+};
 
 const previewAssessment = deriveArenaHomeworkAssessment({
   validSubmission: true,
@@ -46,6 +53,7 @@ export function TeacherArenaConfig() {
   const [publicLeaderboard, setPublicLeaderboard] = useState(initialTemplate.publicLeaderboard);
   const [telemetryLevel, setTelemetryLevel] = useState<ArenaTelemetryLevel>(initialTemplate.telemetryLevel);
   const [apiStatus, setApiStatus] = useState('尚未发送预览请求');
+  const [publishedItems, setPublishedItems] = useState<PublishedArenaPublication[]>([]);
   const selectedTemplate = useMemo(
     () => ARENA_CHALLENGE_TEMPLATES.find((template) => template.id === templateId),
     [templateId],
@@ -54,6 +62,30 @@ export function TeacherArenaConfig() {
     () => ARENA_CHALLENGE_TASKS.find((task) => task.id === taskId),
     [taskId],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublishedItems() {
+      try {
+        const response = await fetch('/api/teacher/arena/publications', { cache: 'no-store' });
+        const payload = await response.json() as { publications?: PublishedArenaPublication[] };
+        if (!cancelled && response.ok && Array.isArray(payload.publications)) {
+          setPublishedItems(payload.publications);
+        }
+      } catch {
+        if (!cancelled) {
+          setPublishedItems([]);
+        }
+      }
+    }
+
+    void loadPublishedItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const previewPublication = useMemo(() => {
     try {
@@ -157,6 +189,78 @@ export function TeacherArenaConfig() {
       setApiStatus(response.ok ? '预览请求已通过权限和配置校验' : payload.error ?? '预览请求未通过');
     } catch {
       setApiStatus('预览请求失败');
+    }
+  };
+
+  const publicationPayload = () => ({
+    taskId,
+    classId,
+    visibility,
+    deadline: new Date(deadline).toISOString(),
+    leaderboardPolicyId,
+    homeworkBinding,
+    gradingPolicy: {
+      hideFullLeaderboardBeforeDeadline: homeworkBinding,
+      allowLateSubmissions: false,
+    },
+    templateId,
+    targetSignal,
+    disturbance,
+    initialCondition,
+    allowedMethods,
+    hardConstraints: parseListText(hardConstraintsText),
+    scoringMetricWeights: parseMetricWeightsText(scoringMetricWeightsText),
+    paretoEnabled,
+    hiddenTestEnabled,
+    publicLeaderboard,
+    telemetryLevel,
+  });
+
+  const submitPublishRequest = async () => {
+    setApiStatus('正在发布挑战');
+    try {
+      const response = await fetch('/api/teacher/arena/publications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(publicationPayload()),
+      });
+      const payload = await response.json() as {
+        error?: string;
+        publication?: PublishedArenaPublication;
+      };
+      if (!response.ok || !payload.publication) {
+        setApiStatus(payload.error ?? '发布失败');
+        return;
+      }
+      setPublishedItems((items) => [payload.publication!, ...items.filter((item) => item.id !== payload.publication!.id)]);
+      setApiStatus('挑战已发布');
+    } catch {
+      setApiStatus('发布请求失败');
+    }
+  };
+
+  const updatePublicationStatus = async (publicationId: string, status: ArenaPublicationStatus) => {
+    setApiStatus('正在更新发布状态');
+    try {
+      const response = await fetch(`/api/teacher/arena/publications/${publicationId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json() as {
+        error?: string;
+        publication?: PublishedArenaPublication;
+      };
+      if (!response.ok || !payload.publication) {
+        setApiStatus(payload.error ?? '状态更新失败');
+        return;
+      }
+      setPublishedItems((items) => items.map((item) => (
+        item.id === publicationId ? payload.publication! : item
+      )));
+      setApiStatus('发布状态已更新');
+    } catch {
+      setApiStatus('状态更新请求失败');
     }
   };
 
@@ -298,9 +402,14 @@ export function TeacherArenaConfig() {
                 公开榜单
               </label>
             </div>
-            <button type="button" onClick={submitPreviewRequest} className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
-              生成发布预览
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={submitPreviewRequest} className="btn-ghost-themed inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm">
+                生成发布预览
+              </button>
+              <button type="button" onClick={submitPublishRequest} className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
+                正式发布挑战
+              </button>
+            </div>
             <div className="text-xs text-subtle">{apiStatus}</div>
           </div>
         </div>
@@ -354,6 +463,37 @@ export function TeacherArenaConfig() {
               <PreviewRow label="指标掌握" value={`${previewAssessment.gradeComponents.masteryScore}`} />
               <PreviewRow label="诊断表现" value={`${previewAssessment.gradeComponents.diagnosticScore}`} />
               <PreviewRow label="名次贡献" value={`${previewAssessment.gradeComponents.rankContribution}`} />
+            </div>
+          </div>
+
+          <div className="surface-card p-6">
+            <h2 className="text-lg font-semibold text-foreground">已发布挑战</h2>
+            <div className="mt-4 grid gap-3">
+              {publishedItems.length === 0 ? (
+                <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-3 text-sm text-subtle">
+                  暂无本页发布记录
+                </div>
+              ) : publishedItems.map((item) => (
+                <div key={item.id} className="rounded-lg border border-border/70 bg-card/55 px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-medium text-foreground">{item.taskId}</div>
+                      <div className="mt-1 text-xs text-subtle">{item.classId} · {item.status}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => updatePublicationStatus(item.id, 'paused')} className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs">
+                        暂停
+                      </button>
+                      <button type="button" onClick={() => updatePublicationStatus(item.id, 'active')} className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs">
+                        重开
+                      </button>
+                      <button type="button" onClick={() => updatePublicationStatus(item.id, 'archived')} className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs">
+                        归档
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </aside>

@@ -111,6 +111,7 @@ model User {
   arenaSubmissions         ArenaSubmission[]
   arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
   arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
+  arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
 }
 
 model StudentProfile {
@@ -163,6 +164,7 @@ model Class {
 
   students StudentProfile[]
   sessions ClassSession[] // 班级的课堂会话
+  arenaChallengePublications ArenaChallengePublication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1112,6 +1114,7 @@ model LearningFact {
   // Context
   courseId        String?
   lessonId        String?
+  contextJson     Json     @default("{}")
 
   createdAt       DateTime @default(now())
 
@@ -1162,12 +1165,39 @@ model ArenaEvaluationRun {
   @@index([completedAt])
 }
 
+model ArenaChallengePublication {
+  id                  String   @id @default(cuid())
+  taskId              String
+  classId             String
+  teacherId           String
+  visibility          String
+  deadline            DateTime
+  leaderboardPolicyId String
+  homeworkBinding     Boolean  @default(false)
+  gradingPolicy       Json     @default("{}")
+  status              String   @default("active")
+  config              Json     @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  teacher     User              @relation("ArenaChallengePublications", fields: [teacherId], references: [id], onDelete: Cascade)
+  class       Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  submissions ArenaSubmission[]
+
+  @@index([teacherId, status])
+  @@index([classId, status, deadline])
+  @@index([taskId, status])
+  @@index([visibility, status])
+}
+
 model ArenaSubmission {
   id                   String   @id @default(cuid())
   taskId               String
   userId               String
   classId              String?
   seasonId             String?
+  publicationId        String?
+  isLate               Boolean  @default(false)
   studentLabel         String
   artifactHash         String
   method               String
@@ -1182,11 +1212,14 @@ model ArenaSubmission {
   user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   controllerArtifact ArenaControllerArtifact @relation(fields: [controllerArtifactId], references: [id], onDelete: Cascade)
   evaluationRun      ArenaEvaluationRun      @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+  publication        ArenaChallengePublication? @relation(fields: [publicationId], references: [id], onDelete: SetNull)
 
   @@index([taskId, score])
   @@index([taskId, method])
   @@index([taskId, classId])
   @@index([taskId, seasonId])
+  @@index([taskId, publicationId])
+  @@index([publicationId, submittedAt])
   @@index([taskId, submittedAt])
   @@index([userId, submittedAt])
   @@index([artifactHash])

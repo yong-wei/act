@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createPersistedArenaSubmission: vi.fn(),
+  resolveAccessibleArenaPublicationForStudent: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -16,6 +17,11 @@ vi.mock('@/features/arena/submissions/persistence', () => ({
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: { marker: 'store' },
+}));
+
+vi.mock('@/features/arena/teacher/publication-store', () => ({
+  resolveAccessibleArenaPublicationForStudent: mocks.resolveAccessibleArenaPublicationForStudent,
+  ArenaPublicationAccessError: class ArenaPublicationAccessError extends Error {},
 }));
 
 vi.mock('@/features/arena/blackbox/experiment-service', () => ({
@@ -44,6 +50,13 @@ function postJson(body: unknown) {
 describe('POST /api/arena/evaluate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.resolveAccessibleArenaPublicationForStudent.mockImplementation(async ({ publicationId }) => ({
+      id: publicationId,
+      taskId: 'task-second-order-lead-pid',
+      classId: 'class-a',
+      seasonId: undefined,
+      isLate: false,
+    }));
     mocks.createPersistedArenaSubmission.mockImplementation(async (input) => ({
       id: `submission-${input.artifact.id}`,
       taskId: input.taskId,
@@ -139,5 +152,50 @@ describe('POST /api/arena/evaluate', () => {
       classId: 'forged-class',
       seasonId: 'forged-season',
     }));
+  });
+
+  it('validates publication context before persisting contextual submissions', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    mocks.resolveAccessibleArenaPublicationForStudent.mockResolvedValueOnce({
+      id: 'publication-1',
+      taskId: artifact.taskId,
+      classId: 'class-a',
+      seasonId: 'season-2026',
+      isLate: false,
+    });
+
+    const response = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      publicationId: 'publication-1',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      publicationId: 'publication-1',
+      studentId: 'student-1',
+      taskId: artifact.taskId,
+    }));
+    expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
+      publicationId: 'publication-1',
+      classId: 'class-a',
+      seasonId: 'season-2026',
+      isLate: false,
+    }));
+  });
+
+  it('rejects unauthorized publication submissions before official evaluation', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    const { ArenaPublicationAccessError } = await import('@/features/arena/teacher/publication-store');
+    mocks.resolveAccessibleArenaPublicationForStudent.mockRejectedValueOnce(new ArenaPublicationAccessError('Publication not allowed'));
+
+    const response = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      publicationId: 'publication-other',
+    });
+
+    expect(response.status).toBe(403);
+    expect(mocks.createPersistedArenaSubmission).not.toHaveBeenCalled();
   });
 });

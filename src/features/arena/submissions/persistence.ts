@@ -40,6 +40,8 @@ export interface StoredArenaSubmission {
   userId: string;
   classId?: string;
   seasonId?: string;
+  publicationId?: string;
+  isLate?: boolean;
   studentLabel: string;
   artifactHash: string;
   artifact: ControllerArtifact;
@@ -63,6 +65,8 @@ export interface CreatePersistedArenaSubmissionInput {
   userId: string;
   classId?: string;
   seasonId?: string;
+  publicationId?: string;
+  isLate?: boolean;
   studentLabel: string;
   submittedAt: string;
   store: ArenaSubmissionStore;
@@ -163,6 +167,8 @@ export async function createPersistedArenaSubmission(
     userId: input.userId,
     classId: input.classId,
     seasonId: input.seasonId,
+    publicationId: input.publicationId,
+    isLate: input.isLate,
     studentLabel: input.studentLabel,
     artifactHash,
     artifact,
@@ -178,6 +184,8 @@ export async function createPersistedArenaSubmission(
     userId: storedSubmission.userId,
     classId: storedSubmission.classId,
     seasonId: storedSubmission.seasonId,
+    publicationId: storedSubmission.publicationId,
+    isLate: storedSubmission.isLate,
     studentLabel: storedSubmission.studentLabel,
     artifactHash: storedSubmission.artifactHash,
     artifact: storedSubmission.artifact,

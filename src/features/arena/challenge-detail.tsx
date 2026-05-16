@@ -28,6 +28,7 @@ interface ChallengeDetailProps {
   metricProfile: MetricProfile;
   leaderboardPolicy: LeaderboardPolicy;
   submissions: ArenaSubmissionRecord[];
+  publicationId?: string;
 }
 
 export function ChallengeDetail({
@@ -36,13 +37,14 @@ export function ChallengeDetail({
   metricProfile,
   leaderboardPolicy,
   submissions,
+  publicationId,
 }: ChallengeDetailProps) {
   const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
     participantCount: 0,
     submissionCount: 0,
     topScore: null,
   };
-  const workspaceHref = getArenaWorkspaceHref(task, object);
+  const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
   const studentLeaderboardTypes = task.leaderboardTypes.filter((type) =>
     ARENA_STUDENT_LEADERBOARD_TYPES.includes(type),
   );

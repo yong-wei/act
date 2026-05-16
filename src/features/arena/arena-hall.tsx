@@ -27,6 +27,8 @@ import {
   type ModelVisibility,
   type ArenaTaskStats,
 } from './types';
+import { selectArenaHallPublicationForTask } from './arena-publication-selection';
+import type { ArenaPublicationRecord } from './teacher/publication-store';
 
 const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
   { value: 'all', label: '全部来源' },
@@ -67,7 +69,13 @@ const phaseItems = [
   { label: '榜单结构', value: '主榜、方法榜、指标榜', icon: Medal },
 ];
 
-export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, ArenaTaskStats> }) {
+export function ArenaHall({
+  taskStats = {},
+  studentPublications = [],
+}: {
+  taskStats?: Record<string, ArenaTaskStats>;
+  studentPublications?: ArenaPublicationRecord[];
+}) {
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<ChallengeObjectSource | 'all'>('all');
   const [method, setMethod] = useState<ControllerMethod | 'all'>('all');
@@ -180,6 +188,10 @@ export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, Arena
                 submissionCount: 0,
                 topScore: null,
               };
+              const publication = selectArenaHallPublicationForTask(studentPublications, challenge.id);
+              const challengeHref = publication
+                ? `/arena/challenges/${challenge.id}?publicationId=${publication.id}`
+                : `/arena/challenges/${challenge.id}`;
 
               return (
               <article key={challenge.id} className="surface-card p-5">
@@ -197,6 +209,11 @@ export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, Arena
                       <p className="mt-1 text-xs text-muted-foreground">对象：{object.name}</p>
                     ) : null}
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.goal}</p>
+                    {publication ? (
+                      <div className="mt-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
+                        班级发布 · 截止 {new Date(publication.deadline).toLocaleString('zh-CN')}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="min-w-28 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-right">
                     <div className="text-xs text-subtle">当前最高分</div>
@@ -218,7 +235,7 @@ export function ArenaHall({ taskStats = {} }: { taskStats?: Record<string, Arena
                   <div>
                     {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入 {arenaWorkspaceLabels[challenge.workspaceMode]}
                   </div>
-                  <Link href={`/arena/challenges/${challenge.id}`} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                  <Link href={challengeHref} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     查看挑战
                     <ArrowUpRight className="h-4 w-4" />
                   </Link>

@@ -1,6 +1,7 @@
 export * from './domain';
 export * from './leaderboards/leaderboard';
 export * from './leaderboards/leaderboard-service';
+export * from './leaderboards/publication-leaderboard';
 export * from './evaluation/types';
 export * from './evaluation/scoring';
 export * from './evaluation/evaluator';
@@ -18,3 +19,5 @@ export * from './blackbox/experiment';
 export * from './blackbox/experiment-service';
 export * from './blackbox/controller-preview';
 export * from './teacher/configuration';
+export * from './teacher/publication-store';
+export * from './odyssey/bridge';

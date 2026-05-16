@@ -18,6 +18,7 @@ export function ArenaWorkbenchSubmissionMount({
 }) {
   const searchParams = useSearchParams();
   const arenaTaskId = searchParams.get('arenaTask');
+  const publicationId = searchParams.get('publicationId')?.trim() || undefined;
   const arenaContext = useMemo(
     () => (arenaTaskId ? resolveArenaWorkbenchContext(arenaTaskId) : null),
     [arenaTaskId],
@@ -34,7 +35,12 @@ export function ArenaWorkbenchSubmissionMount({
       };
     }
 
-    fetch(`/api/arena/submissions?taskId=${encodeURIComponent(arenaContext.task.id)}`, {
+    const submissionParams = new URLSearchParams({ taskId: arenaContext.task.id });
+    if (publicationId) {
+      submissionParams.set('publicationId', publicationId);
+    }
+
+    fetch(`/api/arena/submissions?${submissionParams.toString()}`, {
       cache: 'no-store',
     })
       .then(async (response) => {
@@ -54,7 +60,7 @@ export function ArenaWorkbenchSubmissionMount({
     return () => {
       cancelled = true;
     };
-  }, [arenaContext, workspaceMode]);
+  }, [arenaContext, publicationId, workspaceMode]);
 
   if (!arenaContext || arenaContext.recommendedWorkspaceMode !== workspaceMode) {
     return null;
@@ -74,7 +80,12 @@ export function ArenaWorkbenchSubmissionMount({
 
   return (
     <div className={className}>
-      <ArenaSubmissionPanel key={arenaContext.task.id} task={arenaContext.task} initialSubmissions={submissions} />
+      <ArenaSubmissionPanel
+        key={`${arenaContext.task.id}:${publicationId ?? 'open'}`}
+        task={arenaContext.task}
+        initialSubmissions={submissions}
+        publicationId={publicationId}
+      />
     </div>
   );
 }

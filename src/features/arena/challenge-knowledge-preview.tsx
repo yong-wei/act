@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Image as ImageIcon, Loader2 } from 'lucide-react';
 
@@ -128,7 +129,14 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
 
             {infographSrc ? (
               <figure className="overflow-hidden rounded-lg border border-blue-100 bg-white">
-                <img src={infographSrc} alt={`${node.name}信息图`} className="max-h-52 w-full object-contain p-2" />
+                <Image
+                  src={infographSrc}
+                  alt={`${node.name}信息图`}
+                  width={800}
+                  height={320}
+                  className="max-h-52 w-full object-contain p-2"
+                  unoptimized
+                />
               </figure>
             ) : null}
 
