@@ -10,6 +10,7 @@ import { buildBlackBoxControlArtifactFromParams } from './blackbox-artifact-buil
 import type { ArenaSubmissionRecord } from './submission-service';
 import type { ArenaBlackBoxExperimentDataset, ArenaIdentificationArtifactReference } from '../blackbox/experiment';
 import type { ArenaVirtualSimulationPreviewRun } from '../blackbox/controller-preview';
+import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
 
@@ -30,10 +31,12 @@ export function ArenaBlackBoxSubmissionPanel({
   task,
   initialSubmissions,
   publicationId,
+  viewerUserId,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
   publicationId?: string;
+  viewerUserId?: string;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState('step');
@@ -49,7 +52,10 @@ export function ArenaBlackBoxSubmissionPanel({
   const [identificationModel, setIdentificationModel] = useState<ArenaIdentificationArtifactReference | null>(null);
   const [previewRun, setPreviewRun] = useState<(ArenaVirtualSimulationPreviewRun & { id: string }) | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const latest = submissions[submissions.length - 1];
+  const personalSubmissions = viewerUserId
+    ? submissions.filter((submission) => submission.userId === viewerUserId)
+    : [];
+  const latest = personalSubmissions[personalSubmissions.length - 1];
   const leaderboard = buildArenaLeaderboard(submissions, {
     taskId: task.id,
     type: task.leaderboardTypes.includes('method') ? 'method' : 'main',
@@ -332,15 +338,11 @@ export function ArenaBlackBoxSubmissionPanel({
         </div>
       ) : null}
       {latest ? (
-        <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-subtle">最近得分</span>
-            <span className="font-semibold text-primary">{latest.evaluation.score.toFixed(1)}</span>
-          </div>
-          <div className="mt-2 text-xs text-subtle">
-            {latest.evaluation.explanation[0]}
-          </div>
-        </div>
+        <ArenaPersonalFeedback
+          latest={latest}
+          previousSubmissions={personalSubmissions.slice(0, -1)}
+          mode="black-box"
+        />
       ) : null}
       <div className="mt-4 grid gap-2">
         {leaderboard.entries.slice(0, 4).map((entry) => (

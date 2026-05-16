@@ -18,6 +18,11 @@ import {
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  buildArenaClassEvidenceSummary,
+  type ArenaClassEvidenceSummary,
+} from '@/features/arena/evidence-summary';
+import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +81,7 @@ export interface TeacherClassInsightsPayload {
     }>;
     levelDistribution: LevelDistribution;
   };
+  arena: ArenaClassEvidenceSummary;
   spotlightStudents: TeacherClassInsightStudent[];
   students: TeacherClassInsightStudent[];
 }
@@ -128,6 +134,8 @@ export async function GET(
       riskFlags,
       growthCounts,
       recommendationCounts,
+      arenaSubmissions,
+      arenaLearningFacts,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
         where: { classId },
@@ -169,6 +177,24 @@ export async function GET(
               isCompleted: false,
             },
             _count: { _all: true },
+          })
+        : Promise.resolve([]),
+      prismaArenaSubmissionStore.listSubmissions({ classId }),
+      studentIds.length
+        ? prisma.learningFact.findMany({
+            where: {
+              userId: { in: studentIds },
+              factType: 'design',
+            },
+            orderBy: { startedAt: 'desc' },
+            take: 200,
+            select: {
+              factType: true,
+              moduleId: true,
+              outcome: true,
+              score: true,
+              contextJson: true,
+            },
           })
         : Promise.resolve([]),
     ]);
@@ -309,6 +335,12 @@ export async function GET(
         dimensions: dimensionStats,
         levelDistribution,
       },
+      arena: buildArenaClassEvidenceSummary({
+        classId,
+        expectedStudentCount: totalStudents,
+        submissions: arenaSubmissions,
+        learningFacts: arenaLearningFacts,
+      }),
       spotlightStudents: rankStudentsByAttention(students).slice(0, 5),
       students,
     };

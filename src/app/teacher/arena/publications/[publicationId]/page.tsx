@@ -1,0 +1,242 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { BarChart3, ClipboardList, ShieldAlert, Trophy, Users } from 'lucide-react';
+
+import { getServerAuthSession } from '@/lib/auth';
+import {
+  ArenaPublicationPermissionError,
+  prismaArenaPublicationStore,
+} from '@/features/arena/teacher/publication-store';
+
+export const dynamic = 'force-dynamic';
+
+interface ArenaPublicationReportPageProps {
+  params: { publicationId: string };
+}
+
+function formatPercent(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatScore(value: number | null): string {
+  return value === null ? '暂无' : value.toFixed(value % 1 === 0 ? 0 : 2);
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+export default async function ArenaPublicationReportPage({ params }: ArenaPublicationReportPageProps) {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
+    notFound();
+  }
+
+  try {
+    const report = await prismaArenaPublicationStore.loadReport({
+      actor: { id: session.user.id, role: session.user.role as 'TEACHER' | 'ADMIN' },
+      publicationId: params.publicationId,
+    });
+
+    return (
+      <main className="surface-page min-h-screen">
+        <section className="mx-auto max-w-[1600px] px-6 py-10">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-subtle">竞技场发布报告</p>
+              <h1 className="mt-2 text-3xl font-semibold text-foreground">{report.publication.taskId}</h1>
+              <p className="mt-2 text-sm text-subtle">
+                {report.publication.classId} · 截止 {formatDate(report.publication.deadline)} · {report.publication.visibility}
+              </p>
+              <p className="mt-1 text-xs text-subtle">
+                榜单策略 {report.publication.leaderboardPolicyId} ·
+                {report.publication.gradingPolicy.hideFullLeaderboardBeforeDeadline ? '截止前隐藏完整同伴榜单' : '榜单实时可见'}
+              </p>
+            </div>
+            <Link href="/teacher/arena" className="btn-ghost-themed rounded-lg border px-3 py-2 text-sm">
+              返回竞技场配置
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <MetricPanel
+              icon={<Users className="h-4 w-4" />}
+              label="参与情况"
+              value={`${report.participation.participantCount}/${report.participation.expectedStudentCount || report.participation.participantCount}`}
+              detail={`未提交 ${report.participation.nonSubmitterCount} 人`}
+            />
+            <MetricPanel
+              icon={<ClipboardList className="h-4 w-4" />}
+              label="提交次数"
+              value={`${report.submissions.submissionCount}`}
+              detail={`有效提交率 ${formatPercent(report.submissions.validSubmissionRate)}`}
+            />
+            <MetricPanel
+              icon={<BarChart3 className="h-4 w-4" />}
+              label="平均分"
+              value={formatScore(report.scores.average)}
+              detail={`中位数 ${formatScore(report.scores.median)} / 最高 ${formatScore(report.scores.highest)}`}
+            />
+            <MetricPanel
+              icon={<Trophy className="h-4 w-4" />}
+              label="优秀方案"
+              value={`${report.excellentSolutions.length}`}
+              detail="按有效提交分数排序"
+            />
+          </div>
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-2">
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">硬约束失败</h2>
+              <div className="mt-4 grid gap-2">
+                {report.hardConstraintFailures.length === 0 ? (
+                  <EmptyLine text="当前没有硬约束失败记录" />
+                ) : report.hardConstraintFailures.map((failure) => (
+                  <SignalRow key={failure.id} label={failure.label} value={`${failure.count} 次`} />
+                ))}
+              </div>
+            </section>
+
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">薄弱指标</h2>
+              <div className="mt-4 grid gap-2">
+                {report.weakMetrics.length === 0 ? (
+                  <EmptyLine text="当前没有低满意度指标" />
+                ) : report.weakMetrics.map((metric) => (
+                  <SignalRow
+                    key={metric.metricId}
+                    label={metric.metricId}
+                    value={`${metric.affectedSubmissionCount} 次 / 最低 ${formatPercent(metric.lowestSatisfaction)}`}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">方法分布</h2>
+              <div className="mt-4 grid gap-2">
+                {report.methodDistribution.length === 0 ? (
+                  <EmptyLine text="暂无提交方法数据" />
+                ) : report.methodDistribution.map((method) => (
+                  <SignalRow key={method.method} label={method.method} value={`${method.count} 次`} />
+                ))}
+              </div>
+            </section>
+
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">未提交学生</h2>
+              <div className="mt-4 grid gap-2">
+                {report.participation.nonSubmitters.length === 0 ? (
+                  <EmptyLine text="当前没有未提交学生" />
+                ) : report.participation.nonSubmitters.map((student) => (
+                  <SignalRow key={student.userId} label={student.studentLabel} value={student.userId} />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-2">
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">个人最佳</h2>
+              <div className="mt-4 grid gap-3">
+                {report.personalBests.length === 0 ? (
+                  <EmptyLine text="暂无个人最佳记录" />
+                ) : report.personalBests.map((best) => (
+                  <ResultRow
+                    key={best.userId}
+                    label={best.studentLabel}
+                    score={best.score}
+                    detail={`${best.method} · ${best.valid ? '有效' : '无效'} · ${formatDate(best.submittedAt)}`}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="surface-card p-5">
+              <h2 className="text-lg font-semibold text-foreground">优秀方案</h2>
+              <div className="mt-4 grid gap-3">
+                {report.excellentSolutions.length === 0 ? (
+                  <EmptyLine text="暂无有效优秀方案" />
+                ) : report.excellentSolutions.map((solution) => (
+                  <ResultRow
+                    key={solution.submissionId}
+                    label={solution.studentLabel}
+                    score={solution.score}
+                    detail={`${solution.method} · ${formatDate(solution.submittedAt)}`}
+                  />
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {report.submissions.submissionCount === 0 ? (
+            <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-subtle">
+              <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
+              <span>当前发布还没有官方提交。报告仍保留任务、班级、截止时间、可见性和榜单策略上下文。</span>
+            </div>
+          ) : null}
+        </section>
+      </main>
+    );
+  } catch (error) {
+    if (error instanceof ArenaPublicationPermissionError) {
+      notFound();
+    }
+    throw error;
+  }
+}
+
+function MetricPanel({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="surface-card p-5">
+      <div className="flex items-center gap-2 text-sm text-subtle">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-3 text-3xl font-semibold text-foreground">{value}</div>
+      <div className="mt-2 text-xs text-subtle">{detail}</div>
+    </div>
+  );
+}
+
+function SignalRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm">
+      <span className="text-foreground">{label}</span>
+      <span className="text-subtle">{value}</span>
+    </div>
+  );
+}
+
+function ResultRow({ label, score, detail }: { label: string; score: number; detail: string }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-sm font-semibold text-primary">{formatScore(score)}</span>
+      </div>
+      <div className="mt-1 text-xs text-subtle">{detail}</div>
+    </div>
+  );
+}
+
+function EmptyLine({ text }: { text: string }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm text-subtle">
+      {text}
+    </div>
+  );
+}

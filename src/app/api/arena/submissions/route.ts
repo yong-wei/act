@@ -29,18 +29,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Arena task not found' }, { status: 404 });
   }
 
+  const session = await getServerAuthSession();
+  const viewerUserId = session?.user?.id;
   let publicationContext: ArenaResolvedSubmissionContext | null = null;
-  let viewerUserId: string | undefined;
 
   if (publicationId) {
-    const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (session.user.role !== 'STUDENT') {
       return NextResponse.json({ error: 'Only students can view Arena publication submissions' }, { status: 403 });
     }
-    viewerUserId = session.user.id;
     try {
       publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
         publicationId,
@@ -91,5 +90,8 @@ export async function GET(request: Request) {
     ? taskVisibleSubmissions.filter((submission) => submission.userId === viewerUserId)
     : taskVisibleSubmissions;
 
-  return NextResponse.json({ submissions: visibleSubmissions });
+  return NextResponse.json({
+    submissions: visibleSubmissions,
+    viewerUserId: session?.user?.id,
+  });
 }
