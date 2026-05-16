@@ -18,6 +18,7 @@ export interface WorkbenchViewConfig {
   title: string;
   enabled: boolean;
   locked?: boolean;
+  selectedOptions?: string[];
   signalKinds?: WorkbenchSignalKind[];
   signalSources?: WorkbenchSignalSource[];
   settings?: Record<string, string | number | boolean>;

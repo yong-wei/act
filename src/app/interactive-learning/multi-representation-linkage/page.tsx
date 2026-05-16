@@ -32,6 +32,7 @@ function parseInitialParams(searchParams: SearchParams | undefined): MultiRepres
     controlMode,
     controller,
     arenaTaskId: firstValue(searchParams?.arenaTask),
+    publicationId: firstValue(searchParams?.publicationId),
   };
 }
 

@@ -154,13 +154,13 @@ describe('multi representation linkage analysis adapter', () => {
     expect(request.rootLocus.currentGain).toBe(4.5);
   });
 
-  it('keeps closed-loop pole drag committed to the open-loop gain truth', () => {
+  it('keeps closed-loop pole drag committed only from the corrected root locus', () => {
     const pageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
       'utf8',
     );
 
-    expect(pageSource).toContain('onClosedLoopGainCommit={model.setGain}');
+    expect(pageSource).toContain("onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}");
     expect(pageSource).not.toContain('onClosedLoopGainCommit={model.setClosedLoopGain}');
   });
 
@@ -483,7 +483,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).not.toContain('校正后 G(s)C(s)K');
     expect(pageSource).toContain('onRefreshRange={model.refreshFrequencyRange}');
     expect(pageSource).toContain('onRefreshRange={model.refreshTimeRange}');
-    expect(pageSource).toContain('<NyquistPanel result={frequencyResult} />');
+    expect(pageSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
+    expect(pageSource).toContain("nyquistOptions.has('corrected-open-loop')");
+    expect(pageSource).toContain('<NyquistPanel result={panel.result} />');
   });
 
   it('keeps the previous visible chart result while a new analysis request is pending', () => {

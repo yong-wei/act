@@ -1797,7 +1797,7 @@ export function TimeDomainComparisonPanel({
   return (
     <ControlChartPanel
       title="时域响应"
-      meta="校正前 / 校正后"
+      meta={panels.map((panel) => panel.label).join(' / ')}
       option={option}
       fallback={panels.find((panel) => panel.result.isFallback)?.result.fallbackMessage ?? null}
       isFallback={panels.some((panel) => panel.result.isFallback)}
@@ -2369,7 +2369,7 @@ export function BodeComparisonPanel({
   return (
     <ControlChartPanel
       title="组合 Bode 图"
-      meta="校正前 G(s)K / 校正后 G(s)C(s)K / 校正装置 C(s)"
+      meta={panels.map((panel) => panel.label).join(' / ')}
       option={option}
       fallback={panels.find((panel) => panel.result.isFallback)?.result.fallbackMessage ?? null}
       isFallback={panels.some((panel) => panel.result.isFallback)}

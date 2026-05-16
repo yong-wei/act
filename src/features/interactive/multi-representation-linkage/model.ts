@@ -47,7 +47,18 @@ export interface MultiRepresentationInitialParams {
   controlMode?: CruiseControllerMode;
   controller?: Partial<CruiseControllerParams>;
   arenaTaskId?: string;
+  publicationId?: string;
+  viewConfigs?: MultiRepresentationViewConfigs;
 }
+
+export type MultiRepresentationViewId = 'time-domain' | 'bode' | 'root-locus' | 'nyquist';
+
+export interface MultiRepresentationViewConfig {
+  enabled?: boolean;
+  selectedOptions?: string[];
+}
+
+export type MultiRepresentationViewConfigs = Partial<Record<MultiRepresentationViewId, MultiRepresentationViewConfig>>;
 
 export interface PoleZeroPoint {
   id: string;
