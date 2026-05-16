@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import {
@@ -6,6 +9,11 @@ import {
   formatArenaMetric,
 } from '@/features/arena/display-labels';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
+import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import {
+  getPresetDefaultViewConfigs,
+  getWorkbenchViewPlugin,
+} from '../views';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -26,23 +34,13 @@ export function getControlWorkbenchReturnHref(session: WorkbenchSessionContext) 
   return `/arena/challenges/${session.taskId}?${params.toString()}`;
 }
 
-export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchResolutionResult }) {
-  if (!result.ok) {
-    return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
-        <div className="mx-auto max-w-5xl rounded-lg border border-red-400/40 bg-red-950/30 p-6">
-          <p className="text-sm text-red-200">无法解析竞技场挑战</p>
-          <h1 className="mt-2 text-2xl font-semibold">工作台上下文不可用</h1>
-          <p className="mt-3 text-sm leading-6 text-red-100">{result.error.message}</p>
-          <Link className="mt-5 inline-flex text-sm font-medium text-red-100 underline" href="/arena">
-            返回竞技场大厅
-          </Link>
-        </div>
-      </main>
-    );
-  }
+function keyedViewConfigs(configs: WorkbenchViewConfig[]) {
+  return Object.fromEntries(configs.map((config) => [config.id, config])) as Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
+}
 
-  const { session } = result;
+function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionContext }) {
+  const defaultViewConfigs = useMemo(() => getPresetDefaultViewConfigs(session.defaultPreset), [session.defaultPreset]);
+  const [viewConfigs, setViewConfigs] = useState(() => keyedViewConfigs(defaultViewConfigs));
   const taskTitle = 'task' in session ? session.task.title : '自由探索工作台';
   const objectName = 'object' in session ? session.object.name : '未绑定官方对象';
   const workspaceLabel = 'recommendedWorkspaceMode' in session
@@ -51,6 +49,34 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
   const metricNames = 'metricProfile' in session
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
+  const resetViewConfig = (viewId: WorkbenchViewId) => {
+    const fallback = defaultViewConfigs.find((config) => config.id === viewId);
+    setViewConfigs((current) => ({
+      ...current,
+      [viewId]: fallback ? { ...fallback, selectedOptions: fallback.selectedOptions ? [...fallback.selectedOptions] : undefined } : undefined,
+    }));
+  };
+  const toggleViewOption = (viewId: WorkbenchViewId, optionId: string) => {
+    setViewConfigs((current) => {
+      const currentConfig = current[viewId] ?? defaultViewConfigs.find((config) => config.id === viewId);
+      const selected = new Set(currentConfig?.selectedOptions ?? []);
+      if (selected.has(optionId)) {
+        selected.delete(optionId);
+      } else if (viewId === 'root-locus') {
+        selected.clear();
+        selected.add(optionId);
+      } else {
+        selected.add(optionId);
+      }
+      return {
+        ...current,
+        [viewId]: {
+          ...(currentConfig ?? { id: viewId, title: viewId, enabled: true }),
+          selectedOptions: Array.from(selected),
+        },
+      };
+    });
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -109,7 +135,19 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
         </aside>
 
         <div className="rounded-lg border border-white/10 bg-slate-900/60 p-6">
-          <h2 className="text-xl font-semibold">工作台外壳</h2>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">工作台外壳</h2>
+              <p className="mt-1 text-sm text-slate-400">视图配置保存在当前浏览器会话中。</p>
+            </div>
+            <button
+              className="inline-flex h-9 items-center justify-center rounded-md border border-white/15 px-3 text-sm text-slate-100 hover:bg-white/10"
+              type="button"
+              onClick={() => setViewConfigs(keyedViewConfigs(defaultViewConfigs))}
+            >
+              重置默认
+            </button>
+          </div>
           {session.mode === 'explore' ? (
             <p className="mt-3 text-sm leading-6 text-slate-300">
               自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。
@@ -120,15 +158,79 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
             </p>
           )}
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {session.allowedViews.map((viewId) => (
-              <div key={viewId} className="rounded-md border border-white/10 bg-slate-950/50 p-3">
-                <p className="text-sm font-medium text-slate-100">{viewId}</p>
-                <p className="mt-1 text-xs text-slate-400">等待预设视图接入</p>
-              </div>
-            ))}
+            {session.allowedViews.map((viewId) => {
+              const plugin = getWorkbenchViewPlugin(viewId);
+              const config = viewConfigs[viewId] ?? defaultViewConfigs.find((item) => item.id === viewId);
+              const availability = plugin?.getAvailability(session) ?? { available: true };
+              const options = plugin?.getOptions(session) ?? [];
+              return (
+                <div key={viewId} className="rounded-md border border-white/10 bg-slate-950/50 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-medium text-slate-100">{plugin?.title ?? config?.title ?? viewId}</p>
+                      <p className="mt-1 text-xs text-slate-400">{availability.available ? '视图配置' : availability.reason}</p>
+                    </div>
+                    <button
+                      className="shrink-0 text-xs text-cyan-200 underline-offset-4 hover:underline"
+                      type="button"
+                      onClick={() => resetViewConfig(viewId)}
+                    >
+                      重置默认
+                    </button>
+                  </div>
+                  {options.length ? (
+                    <div className="mt-3 space-y-2">
+                      {options.map((option) => {
+                        const selected = Boolean(config?.selectedOptions?.includes(option.id));
+                        return (
+                          <label key={option.id} className="flex gap-2 text-xs text-slate-300">
+                            <input
+                              checked={selected && option.enabled}
+                              className="mt-0.5"
+                              disabled={!availability.available || !option.enabled}
+                              onChange={() => toggleViewOption(viewId, option.id)}
+                              type={viewId === 'root-locus' ? 'radio' : 'checkbox'}
+                            />
+                            <span>
+                              <span className={option.enabled && availability.available ? 'text-slate-100' : 'text-slate-500'}>
+                                {option.label}
+                              </span>
+                              {!option.enabled && option.disabledReason ? (
+                                <span className="mt-0.5 block text-slate-500">{option.disabledReason}</span>
+                              ) : null}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-xs text-slate-400">等待预设视图接入</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
     </main>
   );
+}
+
+export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchResolutionResult }) {
+  if (!result.ok) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+        <div className="mx-auto max-w-5xl rounded-lg border border-red-400/40 bg-red-950/30 p-6">
+          <p className="text-sm text-red-200">无法解析竞技场挑战</p>
+          <h1 className="mt-2 text-2xl font-semibold">工作台上下文不可用</h1>
+          <p className="mt-3 text-sm leading-6 text-red-100">{result.error.message}</p>
+          <Link className="mt-5 inline-flex text-sm font-medium text-red-100 underline" href="/arena">
+            返回竞技场大厅
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  return <ResolvedControlWorkbenchShell session={result.session} />;
 }

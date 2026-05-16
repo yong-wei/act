@@ -121,6 +121,8 @@ describe('control workbench route boundary', () => {
     expect(routeSource).toContain('resolveControlWorkbenchSession');
     expect(shellSource).toContain('无法解析竞技场挑战');
     expect(shellSource).toContain('自由探索模式');
+    expect(shellSource).toContain('视图配置');
+    expect(shellSource).toContain('重置默认');
     expect(shellSource).not.toContain('ArenaSubmissionPanel');
     expect(shellSource).not.toContain('ArenaBlackBoxSubmissionPanel');
   });
