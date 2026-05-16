@@ -1,0 +1,34 @@
+# OpenSpec Buddy Metadata Schema
+
+GitHub Issue front matter is the machine-readable task record.
+
+## Required Fields
+
+| Field | Meaning | Rule |
+| --- | --- | --- |
+| `change_id` | OpenSpec change name | kebab-case |
+| `claim_branch` | Branch reserved for the implementation | must equal `change_id` |
+| `series` | Larger work series | non-empty |
+| `coupling_group` | Mutual-exclusion group | non-empty; use `none` only for truly independent work |
+| `execution_mode` | Branching mode | `isolated`, `fixed-branch`, `stacked`, or `docs-only` |
+| `base_branch` | Branch used as base | non-empty |
+| `depends_on` | Upstream changes | list; use `[]` if none |
+| `openspec_path` | Local OpenSpec change path | should be `openspec/changes/<change_id>` |
+| `risk` | Review and validation level | `low`, `medium`, or `high` |
+| `area` | Product or code area | non-empty |
+
+## Optional Field
+
+| Field | Meaning | Rule |
+| --- | --- | --- |
+| `required_branch` | Existing branch that must be used | empty unless execution mode requires it |
+
+## Validation Rules
+
+- `change_id` must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
+- `claim_branch` must equal `change_id`.
+- `openspec_path` should equal `openspec/changes/<change_id>`.
+- `depends_on` must parse as a list, including an empty list.
+- `execution_mode: fixed-branch` requires `required_branch` to equal `claim_branch`.
+- `execution_mode: stacked` requires `depends_on` to be non-empty.
+- A change can be claimed only from `status:ready`.
