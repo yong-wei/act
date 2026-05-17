@@ -29,6 +29,46 @@ no newer claim comment exists
 
 Otherwise stop. Do not force-push or delete another agent's branch.
 
+## Resume Or Branch Drift
+
+After a resume, compaction, or manual branch operation, verify the current
+branch before editing or committing:
+
+```bash
+git status --short --branch
+git branch --show-current
+```
+
+If the branch is not the claimed `change_id`, preserve local work first:
+
+```bash
+git stash push -u -m "wip <change_id> before branch correction"
+git switch <change_id>
+git merge --ff-only main
+git stash pop
+```
+
+Do not commit implementation work on a coordination branch. If a coordination
+branch contains already committed skill or documentation updates that should
+land before the claimed change, merge those updates to `main` first, then
+fast-forward or rebase the claim branch onto the updated `main`.
+
+## Project Status Script Recovery
+
+When Project status synchronization fails, fix the Buddy script before
+continuing the state transition. Verification must include:
+
+```bash
+bash -n .codex/skills/openspec-buddy/scripts/*.sh
+.codex/skills/openspec-buddy/scripts/set-project-status.sh <issue> status:in-review
+```
+
+Use the real GitHub Project field and option names from:
+
+```bash
+gh project field-list <project-number> --owner <owner> --format json --limit 100
+```
+
 ## Goal Mode Failure Policy
 
 In goal mode:
