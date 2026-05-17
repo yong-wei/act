@@ -80,7 +80,7 @@ if (!field) process.exit(1);
 const option = (field.options || []).find((entry) => entry.name === optionName);
 if (!option) process.exit(2);
 process.stdout.write(`${field.id} ${option.id}`);
-' "$fields_file" "$status_field_name" "$project_status")" || {
+' "$fields_file" "$status_field_name" "$project_status") || {
   echo "Could not resolve Project field \"$status_field_name\" option \"$project_status\"." >&2
   exit 1
 }
