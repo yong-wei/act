@@ -5,7 +5,7 @@ import { Activity, BarChart3, Gauge, SlidersHorizontal } from 'lucide-react';
 
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import type { WorkbenchSessionContext } from '../types';
-import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import type { WorkbenchPanelInstance } from '../views';
 import {
   buildPredictiveControlArtifactFromDraft,
   DEFAULT_PREDICTIVE_CONTROL_DRAFT,
@@ -13,8 +13,6 @@ import {
   type PredictiveControlDraft,
   type PredictiveControlMethod,
 } from './predictive-control-draft';
-
-type PredictivePresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 
 type PredictiveDraftField = keyof PredictiveControlDraft;
 
@@ -47,11 +45,10 @@ function resolvePredictiveMethod(session: WorkbenchSessionContext): PredictiveCo
   return null;
 }
 
-function selectedViewLabels(viewConfigs?: PredictivePresetViewConfigs) {
-  if (!viewConfigs) return [];
-  return Object.values(viewConfigs)
-    .filter((config): config is WorkbenchViewConfig => Boolean(config?.enabled))
-    .map((config) => config.title);
+function selectedPanelLabels(panelInstances?: WorkbenchPanelInstance[]) {
+  return panelInstances
+    ?.filter((panel) => panel.enabled)
+    .map((panel) => panel.title) ?? [];
 }
 
 function NumberInput({
@@ -117,14 +114,14 @@ function PredictiveParameterPanel({
 
 export function PredictiveControlPreset({
   session,
-  viewConfigs,
+  panelInstances,
 }: {
   session: WorkbenchSessionContext;
-  viewConfigs?: PredictivePresetViewConfigs;
+  panelInstances?: WorkbenchPanelInstance[];
 }) {
   const [draft, setDraft] = useState<PredictiveControlDraft>(DEFAULT_PREDICTIVE_CONTROL_DRAFT);
   const activeMethod = resolvePredictiveMethod(session);
-  const viewLabels = selectedViewLabels(viewConfigs);
+  const viewLabels = selectedPanelLabels(panelInstances);
   const artifactPreview = useMemo(() => {
     if (!activeMethod || !('task' in session)) return null;
     try {

@@ -17,8 +17,10 @@ import {
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 
 import {
+  resolvePanelSelectedOptions,
   useMultiRepresentationLinkageModel,
   type MultiRepresentationInitialParams,
+  type MultiRepresentationPanelInstance,
   type MultiRepresentationViewConfigs,
   type MultiRepresentationViewId,
 } from './model';
@@ -45,6 +47,7 @@ function selectedViewOptions(
 
 type ClassicRootLocusSourceId = 'uncorrected-root-locus' | 'corrected-root-locus';
 type ClassicNyquistSourceId = 'uncorrected-open-loop' | 'corrected-open-loop';
+type ClassicPanelSourceId = ClassicRootLocusSourceId | ClassicNyquistSourceId;
 
 function ClassicSourceSwitch<T extends string>({
   label,
@@ -89,6 +92,16 @@ function ClassicSourceSwitch<T extends string>({
   );
 }
 
+function selectPanelSource<T extends ClassicPanelSourceId, TOption extends { id: T }>(
+  sourceSelections: Record<string, ClassicPanelSourceId>,
+  panelId: string,
+  sourceOptions: TOption[],
+) {
+  return sourceOptions.find((option) => option.id === sourceSelections[panelId])
+    ?? sourceOptions[0]
+    ?? null;
+}
+
 function buildReferenceResponseResult(
   result: ControlAnalysisResult,
   responseType: 'step' | 'impulse' | 'ramp',
@@ -122,8 +135,7 @@ export function MultiRepresentationLinkageClient({
   initialParams: MultiRepresentationInitialParams;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
-  const [rootLocusSourceId, setRootLocusSourceId] = useState<ClassicRootLocusSourceId>('corrected-root-locus');
-  const [nyquistSourceId, setNyquistSourceId] = useState<ClassicNyquistSourceId>('corrected-open-loop');
+  const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
   const result = model.analysisResult;
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
   const showCorrectionComparison = Boolean(
@@ -155,62 +167,144 @@ export function MultiRepresentationLinkageClient({
     showCorrectionComparison ? ['uncorrected-open-loop', 'corrected-open-loop'] : ['corrected-open-loop'],
   );
   const baselineResult = result ? model.preCorrectionAnalysisResult ?? result : null;
-  const timeDomainPanels = result
+  const workbenchPanels: MultiRepresentationPanelInstance[] = initialParams.panelInstances?.length
+    ? initialParams.panelInstances.filter((panel) => panel.enabled !== false)
+    : [
+        { id: 'panel-time-domain', viewId: 'time-domain', title: '时域响应', selectedOptions: Array.from(timeDomainOptions) },
+        { id: 'panel-bode', viewId: 'bode', title: 'Bode 图', selectedOptions: Array.from(bodeOptions) },
+        { id: 'panel-root-locus', viewId: 'root-locus', title: '根轨迹', selectedOptions: Array.from(rootLocusOptions) },
+        { id: 'panel-nyquist', viewId: 'nyquist', title: 'Nyquist 图', selectedOptions: Array.from(nyquistOptions) },
+      ];
+  const buildTimeDomainPanels = (options: Set<string>) => result
     ? [
-        ...(timeDomainOptions.has('reference')
+        ...(options.has('reference')
           ? [{
               label: '参考输入',
               style: TIME_DOMAIN_CURVE_STYLES.reference,
               result: buildReferenceResponseResult(result, model.responseType),
             }]
           : []),
-        ...(timeDomainOptions.has('uncorrected-output') && baselineResult
+        ...(options.has('uncorrected-output') && baselineResult
           ? [{ label: '未校正输出', style: TIME_DOMAIN_CURVE_STYLES.uncorrected, result: baselineResult }]
           : []),
-        ...(timeDomainOptions.has('corrected-output')
+        ...(options.has('corrected-output')
           ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', style: TIME_DOMAIN_CURVE_STYLES.corrected, result }]
           : []),
       ]
     : [];
-  const bodePanels = result
+  const buildBodePanels = (options: Set<string>) => result
     ? [
-        ...(bodeOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+        ...(options.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
           ? [{ label: '未校正开环', color: '#64748b', result: model.preCorrectionAnalysisResult }]
           : []),
-        ...(bodeOptions.has('corrected-open-loop')
+        ...(options.has('corrected-open-loop')
           ? [{ label: '校正后开环', color: '#0ea5e9', result: frequencyResult }]
           : []),
-        ...(bodeOptions.has('correction-device') && model.correctionDeviceAnalysisResult
+        ...(options.has('correction-device') && model.correctionDeviceAnalysisResult
           ? [{ label: '校正装置', color: '#f97316', result: model.correctionDeviceAnalysisResult }]
           : []),
       ]
     : [];
-  const rootLocusSourceOptions = result
-    ? [
-        ...(rootLocusOptions.has('uncorrected-root-locus') && baselineResult
-          ? [{ id: 'uncorrected-root-locus' as const, label: '未校正根轨迹', result: baselineResult }]
-          : []),
-        ...(rootLocusOptions.has('corrected-root-locus')
-          ? [{ id: 'corrected-root-locus' as const, label: '校正后根轨迹', result }]
-          : []),
-      ]
-    : [];
-  const selectedRootLocusSource = rootLocusSourceOptions.find((option) => option.id === rootLocusSourceId)
-    ?? rootLocusSourceOptions[0]
-    ?? null;
-  const nyquistSourceOptions = result
-    ? [
-        ...(nyquistOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
-          ? [{ id: 'uncorrected-open-loop' as const, label: '未校正开环', result: model.preCorrectionAnalysisResult }]
-          : []),
-        ...(nyquistOptions.has('corrected-open-loop')
-          ? [{ id: 'corrected-open-loop' as const, label: '校正后开环', result: frequencyResult }]
-          : []),
-      ]
-    : [];
-  const selectedNyquistSource = nyquistSourceOptions.find((option) => option.id === nyquistSourceId)
-    ?? nyquistSourceOptions[0]
-    ?? null;
+  const updatePanelSourceSelection = (panelId: string, sourceId: ClassicPanelSourceId) => {
+    setPanelSourceSelections((current) => ({
+      ...current,
+      [panelId]: sourceId,
+    }));
+  };
+  const renderWorkbenchPanel = (panel: MultiRepresentationPanelInstance) => {
+    let content;
+
+    if (panel.viewId === 'time-domain') {
+      const panels = buildTimeDomainPanels(resolvePanelSelectedOptions(panel, timeDomainOptions));
+      content = panels.length > 0 ? (
+        <TimeDomainComparisonPanel panels={panels} onRefreshRange={model.refreshTimeRange} />
+      ) : (
+        <WorkbenchViewEmptyNotice title="时域响应" />
+      );
+    } else if (panel.viewId === 'bode') {
+      const panels = buildBodePanels(resolvePanelSelectedOptions(panel, bodeOptions));
+      content = panels.length > 0 ? (
+        <BodeComparisonPanel
+          panels={panels}
+          turnFrequencyHandles={model.turnFrequencyHandles}
+          onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
+          onRefreshRange={model.refreshFrequencyRange}
+        />
+      ) : (
+        <WorkbenchViewEmptyNotice title="Bode 图" />
+      );
+    } else if (panel.viewId === 'root-locus') {
+      const options = resolvePanelSelectedOptions(panel, rootLocusOptions);
+      const sourceOptions = result
+        ? [
+            ...(options.has('uncorrected-root-locus') && baselineResult
+              ? [{ id: 'uncorrected-root-locus' as const, label: '未校正根轨迹', result: baselineResult }]
+              : []),
+            ...(options.has('corrected-root-locus')
+              ? [{ id: 'corrected-root-locus' as const, label: '校正后根轨迹', result }]
+              : []),
+          ]
+        : [];
+      const selectedSource = selectPanelSource(panelSourceSelections, panel.id, sourceOptions);
+      content = selectedSource ? (
+        <div className="space-y-2">
+          <ClassicSourceSwitch
+            label="根轨迹来源"
+            options={sourceOptions}
+            selectedId={selectedSource.id}
+            onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+          />
+          <RootLocusPanel
+            result={selectedSource.result}
+            mode="full"
+            interactiveHandles={selectedSource.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
+            onInteractiveHandleCommit={selectedSource.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
+            onClosedLoopGainCommit={selectedSource.id === 'corrected-root-locus' ? model.setGain : undefined}
+          />
+        </div>
+      ) : (
+        <WorkbenchViewEmptyNotice title="根轨迹" />
+      );
+    } else {
+      const options = resolvePanelSelectedOptions(panel, nyquistOptions);
+      const sourceOptions = result
+        ? [
+            ...(options.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+              ? [{ id: 'uncorrected-open-loop' as const, label: '未校正开环', result: model.preCorrectionAnalysisResult }]
+              : []),
+            ...(options.has('corrected-open-loop')
+              ? [{ id: 'corrected-open-loop' as const, label: '校正后开环', result: frequencyResult }]
+              : []),
+          ]
+        : [];
+      const selectedSource = selectPanelSource(panelSourceSelections, panel.id, sourceOptions);
+      content = selectedSource ? (
+        <div className="space-y-2">
+          <ClassicSourceSwitch
+            label="Nyquist 来源"
+            options={sourceOptions}
+            selectedId={selectedSource.id}
+            onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+          />
+          <NyquistPanel result={selectedSource.result} />
+        </div>
+      ) : (
+        <WorkbenchViewEmptyNotice title="Nyquist 图" />
+      );
+    }
+
+    return (
+      <section key={panel.id} className="rounded-lg border border-border/70 bg-card/70 p-3" data-workbench-panel-id={panel.id}>
+        <header className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-foreground">{panel.title}</h3>
+          <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 text-[11px] text-subtle">
+            独立面板
+          </span>
+        </header>
+        {content}
+      </section>
+    );
+  };
 
   if (model.arenaContextIncompatible) {
     return (
@@ -417,56 +511,7 @@ export function MultiRepresentationLinkageClient({
             <div className="grid gap-4">
               <ControlPerformanceBar result={result} />
               <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
-                {timeDomainPanels.length > 0 ? (
-                  <TimeDomainComparisonPanel
-                    panels={timeDomainPanels}
-                    onRefreshRange={model.refreshTimeRange}
-                  />
-                ) : (
-                  <WorkbenchViewEmptyNotice title="时域响应" />
-                )}
-                {bodePanels.length > 0 ? (
-                  <BodeComparisonPanel
-                    panels={bodePanels}
-                    turnFrequencyHandles={model.turnFrequencyHandles}
-                    onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
-                    onRefreshRange={model.refreshFrequencyRange}
-                  />
-                ) : (
-                  <WorkbenchViewEmptyNotice title="Bode 图" />
-                )}
-                {selectedRootLocusSource ? (
-                  <div className="space-y-2">
-                    <ClassicSourceSwitch
-                      label="根轨迹来源"
-                      options={rootLocusSourceOptions}
-                      selectedId={selectedRootLocusSource.id}
-                      onSelect={setRootLocusSourceId}
-                    />
-                    <RootLocusPanel
-                      result={selectedRootLocusSource.result}
-                      mode="full"
-                      interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
-                      onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
-                      onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
-                    />
-                  </div>
-                ) : (
-                  <WorkbenchViewEmptyNotice title="根轨迹" />
-                )}
-                {selectedNyquistSource ? (
-                  <div className="space-y-2">
-                    <ClassicSourceSwitch
-                      label="Nyquist 来源"
-                      options={nyquistSourceOptions}
-                      selectedId={selectedNyquistSource.id}
-                      onSelect={setNyquistSourceId}
-                    />
-                    {selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null}
-                  </div>
-                ) : (
-                  <WorkbenchViewEmptyNotice title="Nyquist 图" />
-                )}
+                {workbenchPanels.map(renderWorkbenchPanel)}
               </div>
             </div>
           ) : (

@@ -41,6 +41,7 @@ describe('arena student entry UI boundaries', () => {
   it('uses the shared Arena shell and removes public review entry links', () => {
     const hallSource = readRepoFile('src/features/arena/arena-hall.tsx');
     const detailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
+    const shellSource = readRepoFile('src/features/arena/arena-page-shell.tsx');
     const homeSource = readRepoFile('src/app/page.tsx');
     const authLayoutSource = readRepoFile('src/app/(auth)/layout.tsx');
 
@@ -48,7 +49,21 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).toContain("from './display-labels'");
     expect(hallSource).not.toContain("from '@/features/arena'");
     expect(detailSource).toContain('ArenaPageShell');
-    expect(hallSource).toContain('课程：自动控制原理');
+    expect(hallSource).toContain("'首页'");
+    expect(hallSource).toContain("'竞技场首页'");
+    expect(detailSource).toContain("'首页'");
+    expect(detailSource).toContain("'竞技场首页'");
+    expect(shellSource).toContain("'虚拟仿真'");
+    expect(shellSource).toContain("'竞技场'");
+    expect(shellSource).toContain("'知识图谱'");
+    expect(shellSource).toContain("'互动学习'");
+    expect(shellSource).not.toContain("'我的方案'");
+    expect(shellSource).not.toContain("'通知消息'");
+    expect(shellSource).not.toContain("'AI 助教'");
+    expect(shellSource).not.toContain("'成绩与统计'");
+    expect(shellSource).not.toContain("bg-[#061b3c]");
+    expect(shellSource).not.toContain("bg-[#f6f9ff]");
+    expect(shellSource).toContain('href="/profile"');
     expect(detailSource).toContain('`/arena/challenges/${task.id}`');
     expect(homeSource).not.toContain('评审入口');
     expect(homeSource).not.toContain("href: '/review'");
@@ -111,6 +126,9 @@ describe('arena student entry UI boundaries', () => {
     }));
 
     expect(html).toContain('进入控制工作台');
+    expect(html).toContain('首页');
+    expect(html).toContain('竞技场首页');
+    expect(html).toContain(props.task.title);
     expect(html).toContain('仿真调试与方案提交均在控制工作台内完成');
     expect(html).toContain('/interactive-learning/control-workbench?');
     expect(html).toContain('arenaTask=task-second-order-lead-pid');

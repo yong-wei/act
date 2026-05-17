@@ -25,6 +25,7 @@ describe('classic four-view control workbench preset', () => {
     expect(result.session.allowedViews).toEqual(
       expect.arrayContaining(['time-domain', 'bode', 'root-locus', 'nyquist']),
     );
+    expect(result.session.allowedViews).not.toContain('metric-summary');
     expect(result.session.workingModel?.representation.kind).toBe('transfer-function');
   });
 
@@ -89,9 +90,17 @@ describe('classic four-view control workbench preset', () => {
 
     expect(clientSource).toContain('selectedViewOptions');
     expect(clientSource).toContain("initialParams.viewConfigs");
-    expect(clientSource).toContain("timeDomainOptions.has('corrected-output')");
-    expect(clientSource).toContain("bodeOptions.has('correction-device')");
-    expect(clientSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
+    expect(clientSource).toContain('resolvePanelSelectedOptions(panel, timeDomainOptions)');
+    expect(clientSource).toContain('resolvePanelSelectedOptions(panel, bodeOptions)');
+    expect(clientSource).toContain('resolvePanelSelectedOptions(panel, nyquistOptions)');
+    expect(clientSource).toContain("options.has('corrected-output')");
+    expect(clientSource).toContain("options.has('correction-device')");
+    expect(clientSource).toContain("options.has('uncorrected-open-loop')");
+    expect(clientSource).toContain('const [panelSourceSelections, setPanelSourceSelections]');
+    expect(clientSource).toContain('selectPanelSource(panelSourceSelections, panel.id, sourceOptions)');
+    expect(clientSource).toContain('[panelId]: sourceId');
+    expect(clientSource).not.toContain('rootLocusSourceId');
+    expect(clientSource).not.toContain('nyquistSourceId');
     expect(clientSource).toContain('publicationId={initialParams.publicationId}');
     expect(submitSource).toContain('publicationId');
     expect(submitSource).toContain('publicationId,');

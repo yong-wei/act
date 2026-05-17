@@ -83,6 +83,9 @@ describe('predictive control workbench preset', () => {
     expect(shellSource).toContain('PredictiveControlPreset');
     expect(shellSource).toContain("session.defaultPreset === 'predictive-control'");
     expect(shellSource).toContain("session.defaultPreset !== 'predictive-control'");
+    expect(shellSource).toContain('panelInstances={panels}');
+    expect(presetSource).toContain('panelInstances?: WorkbenchPanelInstance[]');
+    expect(presetSource).toContain('selectedPanelLabels(panelInstances)');
     expect(presetSource).toContain('predictionHorizon');
     expect(presetSource).toContain('controlHorizon');
     expect(presetSource).toContain('outputWeight');

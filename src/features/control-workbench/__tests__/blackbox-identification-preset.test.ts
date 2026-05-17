@@ -46,7 +46,7 @@ describe('black-box identification control workbench preset', () => {
 
     expect(shellSource).toContain('BlackBoxIdentificationPreset');
     expect(shellSource).toContain("session.defaultPreset === 'blackbox-identification'");
-    expect(shellSource).toContain('viewConfigs={viewConfigs}');
+    expect(shellSource).toContain('panelInstances={panels}');
     expect(shellSource).toContain("session.defaultPreset !== 'blackbox-identification'");
     expect(presetSource).toContain('/api/arena/blackbox-experiments');
     expect(presetSource).toContain('/api/arena/virtual-simulation-runs');
@@ -99,7 +99,7 @@ describe('black-box identification control workbench preset', () => {
     ]));
   });
 
-  it('uses view configuration options to gate black-box preset sections', () => {
+  it('uses panel instance options to gate black-box preset sections', () => {
     const configs = getPresetDefaultViewConfigs('blackbox-identification');
     const experimentConfig = configs.find((config) => config.id === 'experiment-dataset');
     const responseConfig = configs.find((config) => config.id === 'response-comparison');
@@ -110,6 +110,7 @@ describe('black-box identification control workbench preset', () => {
     expect(responseConfig?.selectedOptions).toEqual(['nominal-model-response', 'virtual-preview-response']);
     expect(metricConfig?.selectedOptions).toContain('leaderboard-official-metrics');
     expect(presetSource).toContain('isBlackBoxWorkbenchOptionSelected');
+    expect(presetSource).toContain('panelInstances?.filter((panel) => panel.enabled && panel.viewId === viewId)');
     expect(presetSource).toContain('showExperimentDataset');
     expect(presetSource).toContain('showIdentificationModel');
     expect(presetSource).toContain('showPreviewResponse');

@@ -14,20 +14,18 @@ import type { ChallengeTask } from '@/features/arena/types';
 import type {
   NominalModelArtifact,
   WorkbenchSessionContext,
-  WorkbenchViewConfig,
   WorkbenchViewId,
 } from '../contracts';
+import type { WorkbenchPanelInstance } from '../views';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
-type ViewConfigMap = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
-
 interface BlackBoxIdentificationPanelProps {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
   publicationId?: string;
   viewerUserId?: string;
   officialTargetHidden?: boolean;
-  viewConfigs?: ViewConfigMap;
+  panelInstances?: WorkbenchPanelInstance[];
 }
 
 function qualityStatus(value: number): NominalModelArtifact['validationMetrics'][number]['status'] {
@@ -101,22 +99,19 @@ function NumberInput({
   );
 }
 
-function activeViewLabels(viewConfigs?: ViewConfigMap) {
-  if (!viewConfigs) return [];
-  return Object.values(viewConfigs)
-    .filter((config): config is WorkbenchViewConfig => Boolean(config?.enabled))
-    .map((config) => config.title);
+function activePanelLabels(panelInstances?: WorkbenchPanelInstance[]) {
+  return panelInstances
+    ?.filter((panel) => panel.enabled)
+    .map((panel) => panel.title) ?? [];
 }
 
 function isBlackBoxWorkbenchOptionSelected(
-  viewConfigs: ViewConfigMap | undefined,
+  panelInstances: WorkbenchPanelInstance[] | undefined,
   viewId: WorkbenchViewId,
   optionId: string,
 ) {
-  const config = viewConfigs?.[viewId];
-  if (config?.enabled === false) return false;
-  if (!config?.selectedOptions) return true;
-  return config.selectedOptions.includes(optionId);
+  const panels = panelInstances?.filter((panel) => panel.enabled && panel.viewId === viewId) ?? [];
+  return panels.some((panel) => !panel.selectedOptions || panel.selectedOptions.includes(optionId));
 }
 
 export function BlackBoxIdentificationPanel({
@@ -125,7 +120,7 @@ export function BlackBoxIdentificationPanel({
   publicationId,
   viewerUserId,
   officialTargetHidden = true,
-  viewConfigs,
+  panelInstances,
 }: BlackBoxIdentificationPanelProps) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState<ArenaBlackBoxSignalType>('step');
@@ -150,29 +145,29 @@ export function BlackBoxIdentificationPanel({
     type: task.leaderboardTypes.includes('method') ? 'method' : 'main',
     method: task.leaderboardTypes.includes('method') ? 'black-box-control' : undefined,
   });
-  const viewLabels = activeViewLabels(viewConfigs);
+  const viewLabels = activePanelLabels(panelInstances);
   const showExperimentDataset = isBlackBoxWorkbenchOptionSelected(
-    viewConfigs,
+    panelInstances,
     'experiment-dataset',
     'persisted-experiment-dataset',
   );
   const showIdentificationModel = isBlackBoxWorkbenchOptionSelected(
-    viewConfigs,
+    panelInstances,
     'identification',
     'student-nominal-model',
   );
   const showNominalResponse = isBlackBoxWorkbenchOptionSelected(
-    viewConfigs,
+    panelInstances,
     'response-comparison',
     'nominal-model-response',
   );
   const showPreviewResponse = isBlackBoxWorkbenchOptionSelected(
-    viewConfigs,
+    panelInstances,
     'response-comparison',
     'virtual-preview-response',
   );
   const showMetricSummary = isBlackBoxWorkbenchOptionSelected(
-    viewConfigs,
+    panelInstances,
     'metric-summary',
     'leaderboard-official-metrics',
   );
@@ -548,10 +543,10 @@ export function BlackBoxIdentificationPanel({
 
 export function BlackBoxIdentificationPreset({
   session,
-  viewConfigs,
+  panelInstances,
 }: {
   session: WorkbenchSessionContext;
-  viewConfigs?: ViewConfigMap;
+  panelInstances?: WorkbenchPanelInstance[];
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[] | null>(null);
   const [viewerUserId, setViewerUserId] = useState<string | undefined>(undefined);
@@ -633,7 +628,7 @@ export function BlackBoxIdentificationPreset({
       publicationId={publicationId}
       viewerUserId={viewerUserId}
       officialTargetHidden={officialTargetHidden}
-      viewConfigs={viewConfigs}
+      panelInstances={panelInstances}
     />
   );
 }

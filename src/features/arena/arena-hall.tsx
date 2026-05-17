@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import {
   ArrowUpRight,
   BarChart3,
+  Search,
   FlaskConical,
   Gauge,
   ListChecks,
@@ -106,52 +107,49 @@ export function ArenaHall({
     <ArenaPageShell
       activePath="/arena"
       breadcrumbs={[
-        { label: '课程：自动控制原理', href: '/' },
-        { label: '实践与拓展', href: '/interactive-learning' },
-        { label: '自动控制竞技场', href: '/arena' },
+        { label: '首页', href: '/' },
+        { label: '竞技场首页', href: '/arena' },
       ]}
     >
-      <section className="mx-auto grid max-w-[1600px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[0.9fr_1.4fr] lg:px-8">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-xs text-subtle">
-            <BarChart3 className="h-4 w-4 text-primary" />
-            任务清单与评价方案覆盖
-          </div>
-          <div>
-            <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">竞技场大厅</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-subtle">
-              从挑战任务进入控制设计：每个任务由被控对象、任务目标、允许方法、官方评测和榜单规则共同定义。学生先选择要解决的任务，再进入合适的工作台。
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {phaseItems.map((item) => (
-              <div key={item.label} className="surface-card-soft p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{item.label}</div>
-                    <div className="mt-1 text-xs text-subtle">{item.value}</div>
+      <section className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid items-stretch gap-4 lg:grid-cols-2">
+          <div className="surface-card flex min-h-[260px] flex-col justify-between rounded-lg p-5">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                任务清单与评价方案覆盖
+              </div>
+              <h1 className="mt-4 text-3xl font-semibold tracking-normal text-foreground md:text-4xl">竞技场大厅</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-subtle">
+                从挑战任务进入控制设计：每个任务由被控对象、任务目标、允许方法、官方评测和榜单规则共同定义。
+              </p>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {phaseItems.map((item) => (
+                <div key={item.label} className="rounded-lg border border-border/60 bg-background/55 p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{item.label}</div>
+                      <div className="mt-1 text-xs text-subtle">{item.value}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <div className="text-sm font-semibold text-foreground">推荐挑战任务</div>
-              <div className="mt-1 text-xs text-subtle">覆盖典型对象、作业对象、控制奥德赛和虚拟仿真对象</div>
+              ))}
             </div>
-            <div className="text-xs text-subtle">任务优先，不按技术入口分流</div>
           </div>
 
-          <div className="surface-card p-4">
-            <div className="text-sm font-semibold text-foreground">筛选挑战任务</div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="surface-card flex min-h-[260px] flex-col rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-semibold text-foreground">筛选挑战任务</div>
+                <div className="mt-1 text-xs text-subtle">任务优先，不按技术入口分流</div>
+              </div>
+              <Search className="h-5 w-5 text-primary" />
+            </div>
+            <div className="mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -185,8 +183,17 @@ export function ArenaHall({
               <FilterSelect value={leaderboard} onChange={(value) => setLeaderboard(value as LeaderboardType | 'all')} options={leaderboardOptions} label="榜单" />
             </div>
           </div>
+        </div>
 
-          <div className="grid gap-4">
+        <div className="mt-5">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <div className="text-sm font-semibold text-foreground">推荐挑战任务</div>
+              <div className="mt-1 text-xs text-subtle">覆盖典型对象、作业对象、控制奥德赛和虚拟仿真对象</div>
+            </div>
+            <div className="text-xs text-subtle">{filteredTasks.length} 个任务</div>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
             {filteredTasks.map((challenge) => {
               const object = getArenaChallengeObject(challenge.objectId);
               const stats = taskStats[challenge.id] ?? {
@@ -200,7 +207,7 @@ export function ArenaHall({
                 : `/arena/challenges/${challenge.id}`;
 
               return (
-              <article key={challenge.id} className="surface-card p-5">
+              <article key={challenge.id} className="surface-card rounded-lg p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-subtle">
@@ -221,7 +228,7 @@ export function ArenaHall({
                       </div>
                     ) : null}
                   </div>
-                  <div className="min-w-28 rounded-lg border border-border/70 bg-card/60 px-3 py-2 text-right">
+                  <div className="min-w-28 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-right">
                     <div className="text-xs text-subtle">当前最高分</div>
                     <div className="mt-1 text-2xl font-semibold text-primary">
                       {stats.topScore === null ? '暂无' : stats.topScore.toFixed(1)}

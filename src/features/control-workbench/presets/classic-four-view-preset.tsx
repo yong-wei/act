@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { MultiRepresentationLinkageClient } from '@/features/interactive/multi-representation-linkage/page-client';
 import type { WorkbenchSessionContext } from '../types';
 import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import type { WorkbenchPanelInstance } from '../views';
 import type { MultiRepresentationInitialParams } from '@/features/interactive/multi-representation-linkage/model';
 
 type ClassicPresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
@@ -61,9 +62,11 @@ function mapClassicViewConfigs(viewConfigs: ClassicPresetViewConfigs | undefined
 export function ClassicFourViewPreset({
   session,
   viewConfigs,
+  panelInstances,
 }: {
   session: WorkbenchSessionContext;
   viewConfigs?: ClassicPresetViewConfigs;
+  panelInstances?: WorkbenchPanelInstance[];
 }) {
   if (!hasClassicModel(session)) {
     return (
@@ -99,6 +102,18 @@ export function ClassicFourViewPreset({
           plantModel,
           publicationId: 'publicationId' in session ? session.publicationId : undefined,
           role: 'student',
+          panelInstances: panelInstances?.filter((panel) => (
+            panel.viewId === 'time-domain'
+            || panel.viewId === 'bode'
+            || panel.viewId === 'root-locus'
+            || panel.viewId === 'nyquist'
+          )).map((panel) => ({
+            id: panel.id,
+            viewId: panel.viewId as 'time-domain' | 'bode' | 'root-locus' | 'nyquist',
+            title: panel.title,
+            enabled: panel.enabled,
+            selectedOptions: panel.selectedOptions ? [...panel.selectedOptions] : undefined,
+          })),
           viewConfigs: mapClassicViewConfigs(viewConfigs),
         }}
       />

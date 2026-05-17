@@ -14,6 +14,25 @@ import type { ControllerArtifact } from '@/features/arena/types';
 
 export const dynamic = 'force-dynamic';
 
+function isPendingArenaDatabaseMigration(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+  const prismaError = error as {
+    code?: unknown;
+    meta?: {
+      modelName?: unknown;
+      column?: unknown;
+    };
+  };
+  if (prismaError.code !== 'P2021' && prismaError.code !== 'P2022') {
+    return false;
+  }
+  const modelName = typeof prismaError.meta?.modelName === 'string' ? prismaError.meta.modelName : '';
+  const column = typeof prismaError.meta?.column === 'string' ? prismaError.meta.column : '';
+  return modelName.startsWith('Arena') || column.startsWith('Arena');
+}
+
 export async function POST(request: Request) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
@@ -65,6 +84,13 @@ export async function POST(request: Request) {
     }
     if (error instanceof ArenaSubmissionInputError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (isPendingArenaDatabaseMigration(error)) {
+      console.error('Arena evaluation schema migration pending', error);
+      return NextResponse.json(
+        { error: '竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。' },
+        { status: 503 },
+      );
     }
     console.error('Arena evaluation failed', error);
     return NextResponse.json({ error: 'Arena evaluation failed' }, { status: 500 });

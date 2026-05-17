@@ -6,6 +6,7 @@ const root = process.cwd();
 const homePath = path.join(root, 'src/app/page.tsx');
 const arenaPagePath = path.join(root, 'src/app/arena/page.tsx');
 const arenaHallPath = path.join(root, 'src/features/arena/arena-hall.tsx');
+const arenaShellPath = path.join(root, 'src/features/arena/arena-page-shell.tsx');
 
 const homeContent = fs.readFileSync(homePath, 'utf8');
 
@@ -41,7 +42,8 @@ assert.equal(
 
 const arenaContent = fs.readFileSync(arenaPagePath, 'utf8');
 const arenaHallContent = fs.existsSync(arenaHallPath) ? fs.readFileSync(arenaHallPath, 'utf8') : '';
-const combinedArenaContent = `${arenaContent}\n${arenaHallContent}`;
+const arenaShellContent = fs.existsSync(arenaShellPath) ? fs.readFileSync(arenaShellPath, 'utf8') : '';
+const combinedArenaContent = `${arenaContent}\n${arenaHallContent}\n${arenaShellContent}`;
 
 assert.equal(
   combinedArenaContent.includes('竞技场大厅'),
@@ -51,10 +53,20 @@ assert.equal(
 
 assert.equal(
   combinedArenaContent.includes('ArenaPageShell') &&
-    combinedArenaContent.includes('课程：自动控制原理') &&
-    combinedArenaContent.includes('实践与拓展'),
+    combinedArenaContent.includes('首页') &&
+    combinedArenaContent.includes('竞技场首页'),
   true,
-  '/arena 页面应使用真实路径面包屑和竞技场页面壳层',
+  '/arena 页面应使用首页 > 竞技场首页面包屑和竞技场页面壳层',
+);
+
+assert.equal(
+  combinedArenaContent.includes('虚拟仿真') &&
+    combinedArenaContent.includes('竞技场') &&
+    combinedArenaContent.includes('知识图谱') &&
+    combinedArenaContent.includes('互动学习') &&
+    combinedArenaContent.includes('个人中心'),
+  true,
+  '/arena 页面壳层应使用首页一致的四入口导航和个人中心入口',
 );
 
 assert.equal(
