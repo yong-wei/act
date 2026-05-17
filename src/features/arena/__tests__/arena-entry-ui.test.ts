@@ -1,12 +1,40 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it } from 'vitest';
+
+import { ChallengeDetail } from '../challenge-detail';
+import {
+  getArenaChallengeObject,
+  getArenaChallengeTask,
+  getArenaLeaderboardPolicy,
+  getArenaMetricProfile,
+} from '../data/seed-challenges';
 
 const repoRoot = process.cwd();
 
 function readRepoFile(relativePath: string) {
   return readFileSync(join(repoRoot, relativePath), 'utf8');
+}
+
+function getChallengeDetailFixture(taskId: string) {
+  const task = getArenaChallengeTask(taskId);
+  expect(task).toBeDefined();
+  const object = getArenaChallengeObject(task!.objectId);
+  expect(object).toBeDefined();
+  const metricProfile = getArenaMetricProfile(task!.metricProfileId);
+  expect(metricProfile).toBeDefined();
+  const leaderboardPolicy = getArenaLeaderboardPolicy(task!.leaderboardPolicyId);
+  expect(leaderboardPolicy).toBeDefined();
+
+  return {
+    task: task!,
+    object: object!,
+    metricProfile: metricProfile!,
+    leaderboardPolicy: leaderboardPolicy!,
+  };
 }
 
 describe('arena student entry UI boundaries', () => {
@@ -72,6 +100,23 @@ describe('arena student entry UI boundaries', () => {
     expect(submissionsApiSource).toContain('filterArenaSubmissionsForHiddenPublicationPolicy');
     expect(submissionsApiSource).toContain('publicationId,');
     expect(submissionsApiSource).toContain('submission.userId === viewerUserId');
+  });
+
+  it('renders the challenge detail entry link for the unified control workbench', () => {
+    const props = getChallengeDetailFixture('task-second-order-lead-pid');
+    const html = renderToStaticMarkup(createElement(ChallengeDetail, {
+      ...props,
+      submissions: [],
+      publicationId: 'publication-a',
+    }));
+
+    expect(html).toContain('进入控制工作台');
+    expect(html).toContain('仿真调试与方案提交均在控制工作台内完成');
+    expect(html).toContain('/interactive-learning/control-workbench?');
+    expect(html).toContain('arenaTask=task-second-order-lead-pid');
+    expect(html).toContain('publicationId=publication-a');
+    expect(html).not.toContain('ArenaSubmissionPanel');
+    expect(html).not.toContain('ArenaBlackBoxSubmissionPanel');
   });
 
   it('renders white-box models, Chinese rule modules, constrained leaderboards, and knowledge preview affordances', () => {
