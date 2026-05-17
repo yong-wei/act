@@ -434,8 +434,8 @@ describe('arena black-box identification evaluation', () => {
       join(process.cwd(), 'src/app/simulations/cruise/page.tsx'),
       'utf8',
     );
-    const panelSource = readFileSync(
-      join(process.cwd(), 'src/features/arena/submissions/arena-blackbox-submission-panel.tsx'),
+    const presetSource = readFileSync(
+      join(process.cwd(), 'src/features/control-workbench/presets/blackbox-identification-preset.tsx'),
       'utf8',
     );
 
@@ -452,15 +452,15 @@ describe('arena black-box identification evaluation', () => {
     expect(cruiseSimulationPageSource).toContain('initialSubmissions={visibleBlackBoxSubmissions}');
     expect(cruiseSimulationPageSource).toContain('publicationId={publicationContext?.id}');
     expect(cruiseSimulationPageSource).not.toContain('initialSubmissions={[]}');
-    expect(panelSource).toContain('buildBlackBoxControlArtifactFromParams');
-    expect(panelSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
-    expect(panelSource).toContain('identificationModelId: identificationModel.modelId');
-    expect(panelSource).toContain("'arena_identification_model_save'");
-    expect(panelSource).toContain("'arena_controller_save'");
-    expect(panelSource).toContain("'arena_submit'");
-    expect(panelSource).toContain("'arena_evaluation_complete'");
-    expect(panelSource).toMatch(/fetch\('\/api\/arena\/evaluate'[\s\S]*body: publicationId/);
-    expect(panelSource).toContain('JSON.stringify({ taskId: task.id, artifact })');
+    expect(presetSource).toContain('buildBlackBoxControlArtifactFromParams');
+    expect(presetSource).toContain('experimentDatasetHash: latestDataset.datasetHash');
+    expect(presetSource).toContain('identificationModelId: nominalModelId(nominalModel)');
+    expect(presetSource).toContain("'arena_identification_model_save'");
+    expect(presetSource).toContain("'arena_controller_save'");
+    expect(presetSource).toContain("'arena_submit'");
+    expect(presetSource).toContain("'arena_evaluation_complete'");
+    expect(presetSource).toMatch(/fetch\('\/api\/arena\/evaluate'[\s\S]*body: publicationId/);
+    expect(presetSource).toContain('JSON.stringify({ taskId: task.id, artifact })');
   });
 
   it('does not gate challenge detail submission surfaces by virtual-simulation adapter type', () => {

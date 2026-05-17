@@ -32,12 +32,12 @@ export const CLASSIC_WHITEBOX_LAYOUT_PRESET: WorkbenchLayoutPreset = {
 export const BLACKBOX_IDENTIFICATION_LAYOUT_PRESET: WorkbenchLayoutPreset = {
   id: 'blackbox-identification',
   label: '黑箱辨识工作台',
-  defaultViewId: 'identification',
+  defaultViewId: 'experiment-dataset',
   viewConfigs: [
-    { id: 'identification', title: '辨识结果', enabled: true },
+    { id: 'experiment-dataset', title: '黑箱实验数据', enabled: true },
+    { id: 'identification', title: '学生名义模型', enabled: true },
+    { id: 'response-comparison', title: '名义模型响应对照', enabled: true },
     { id: 'metric-summary', title: '指标摘要', enabled: true },
-    { id: 'control-effort', title: '控制能耗', enabled: true },
-    { id: 'response-comparison', title: '响应对照', enabled: true },
   ],
   methodPanelIds: ['experiment-design', 'identification', 'black-box-control', 'metric-review'],
 };

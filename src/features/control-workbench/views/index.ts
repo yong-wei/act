@@ -15,7 +15,13 @@ export type WorkbenchViewOptionId =
   | 'correction-device'
   | 'uncorrected-root-locus'
   | 'corrected-root-locus'
-  | 'nominal-root-locus';
+  | 'nominal-root-locus'
+  | 'persisted-experiment-dataset'
+  | 'student-nominal-model'
+  | 'nominal-model-response'
+  | 'virtual-preview-response'
+  | 'official-hidden-target'
+  | 'leaderboard-official-metrics';
 
 export interface WorkbenchViewAvailability {
   available: boolean;
@@ -149,6 +155,50 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
       ];
     },
   },
+  {
+    id: 'experiment-dataset',
+    title: '黑箱实验数据',
+    getAvailability: (session) => (
+      session.experimentPolicy.requiresPersistedDataset
+        ? { available: true }
+        : { available: false, reason: '当前会话不要求持久化黑箱实验数据。' }
+    ),
+    getOptions: (session) => [
+      session.experimentPolicy.requiresPersistedDataset
+        ? enabledOption('persisted-experiment-dataset', '竞技场持久化实验数据集')
+        : disabledOption('persisted-experiment-dataset', '竞技场持久化实验数据集', '当前会话不使用黑箱实验服务。'),
+    ],
+  },
+  {
+    id: 'identification',
+    title: '学生名义模型',
+    getAvailability: (session) => (
+      session.officialTarget?.hiddenTarget
+        ? { available: true }
+        : { available: false, reason: '当前对象不是隐藏黑箱对象。' }
+    ),
+    getOptions: () => [
+      enabledOption('student-nominal-model', '学生名义模型'),
+      disabledOption('official-hidden-target', '官方隐藏对象', '官方隐藏对象不展示为模型。'),
+    ],
+  },
+  {
+    id: 'response-comparison',
+    title: '名义模型响应对照',
+    getAvailability: () => ({ available: true }),
+    getOptions: () => [
+      enabledOption('nominal-model-response', '学生名义模型响应'),
+      enabledOption('virtual-preview-response', '虚拟仿真预演响应'),
+    ],
+  },
+  {
+    id: 'metric-summary',
+    title: '指标摘要',
+    getAvailability: () => ({ available: true }),
+    getOptions: () => [
+      enabledOption('leaderboard-official-metrics', '官方评测指标摘要'),
+    ],
+  },
 ];
 
 const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
@@ -181,9 +231,10 @@ const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
 const DEFAULT_VIEW_CONFIGS: Record<WorkbenchPresetId, WorkbenchViewConfig[]> = {
   'classic-whitebox': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   'blackbox-identification': [
-    { id: 'identification', title: '辨识结果', enabled: true },
-    { id: 'metric-summary', title: '指标摘要', enabled: true },
-    { id: 'response-comparison', title: '响应对照', enabled: true },
+    { id: 'experiment-dataset', title: '黑箱实验数据', enabled: true, selectedOptions: ['persisted-experiment-dataset'] },
+    { id: 'identification', title: '学生名义模型', enabled: true, selectedOptions: ['student-nominal-model'] },
+    { id: 'response-comparison', title: '名义模型响应对照', enabled: true, selectedOptions: ['nominal-model-response', 'virtual-preview-response'] },
+    { id: 'metric-summary', title: '指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
   ],
   'assignment-guided': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   odyssey: [

@@ -122,7 +122,7 @@ describe('arena virtual simulation controller preview', () => {
 
   it('wires the black-box panel to run experiment, save identification, preview, and submit', () => {
     const source = readFileSync(
-      join(process.cwd(), 'src/features/arena/submissions/arena-blackbox-submission-panel.tsx'),
+      join(process.cwd(), 'src/features/control-workbench/presets/blackbox-identification-preset.tsx'),
       'utf8',
     );
 
