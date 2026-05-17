@@ -54,6 +54,11 @@ After PR merge:
 4. Commit archive update.
 5. Merge archive commit into `main`.
 6. Push `main`.
-7. Delete local and remote claim branch.
+7. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
+   If the issue is already closed or the Project item is already `Done`, still rerun
+   `mark-achieved.sh` to reconcile the label, archive comment, and Project `End`.
+8. Delete the remote claim branch before deleting the local branch. Local `git branch -d`
+   can reject deletion while the local branch still tracks an older remote claim branch,
+   even when the branch is merged to current `HEAD`.
 
 The archive step must set the issue to `status:archived`, close the issue, set Project `Status` to `Done`, and set Project `End` to the current local date.
