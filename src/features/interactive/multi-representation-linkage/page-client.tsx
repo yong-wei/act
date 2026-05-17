@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -10,6 +11,7 @@ import {
   ControlPerformanceBar,
   NyquistPanel,
   RootLocusPanel,
+  TIME_DOMAIN_CURVE_STYLES,
   TimeDomainComparisonPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
@@ -39,6 +41,52 @@ function selectedViewOptions(
   if (!config) return new Set(fallbackOptions);
   if (config.enabled === false) return new Set<string>();
   return new Set(config.selectedOptions ?? []);
+}
+
+type ClassicRootLocusSourceId = 'uncorrected-root-locus' | 'corrected-root-locus';
+type ClassicNyquistSourceId = 'uncorrected-open-loop' | 'corrected-open-loop';
+
+function ClassicSourceSwitch<T extends string>({
+  label,
+  options,
+  selectedId,
+  onSelect,
+}: {
+  label: string;
+  options: Array<{ id: T; label: string }>;
+  selectedId: T;
+  onSelect: (id: T) => void;
+}) {
+  if (options.length <= 1) {
+    return (
+      <div className="premium-lesson-caption px-1 text-xs">
+        {label}：{options[0]?.label ?? '无可用来源'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-1">
+      <span className="premium-lesson-caption text-xs">{label}</span>
+      <div className="flex flex-wrap gap-1" role="group" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onSelect(option.id)}
+            aria-pressed={selectedId === option.id}
+            className={`rounded-md border px-2.5 py-1 text-xs transition ${
+              selectedId === option.id
+                ? 'border-cyan-500 bg-cyan-50 text-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-100'
+                : 'border-border/60 bg-background/60 text-muted-foreground hover:border-cyan-400/70 hover:text-foreground'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function buildReferenceResponseResult(
@@ -74,6 +122,8 @@ export function MultiRepresentationLinkageClient({
   initialParams: MultiRepresentationInitialParams;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
+  const [rootLocusSourceId, setRootLocusSourceId] = useState<ClassicRootLocusSourceId>('corrected-root-locus');
+  const [nyquistSourceId, setNyquistSourceId] = useState<ClassicNyquistSourceId>('corrected-open-loop');
   const result = model.analysisResult;
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
   const showCorrectionComparison = Boolean(
@@ -97,12 +147,12 @@ export function MultiRepresentationLinkageClient({
   const rootLocusOptions = selectedViewOptions(
     initialParams.viewConfigs,
     'root-locus',
-    ['corrected-root-locus'],
+    showCorrectionComparison ? ['uncorrected-root-locus', 'corrected-root-locus'] : ['corrected-root-locus'],
   );
   const nyquistOptions = selectedViewOptions(
     initialParams.viewConfigs,
     'nyquist',
-    ['corrected-open-loop'],
+    showCorrectionComparison ? ['uncorrected-open-loop', 'corrected-open-loop'] : ['corrected-open-loop'],
   );
   const baselineResult = result ? model.preCorrectionAnalysisResult ?? result : null;
   const timeDomainPanels = result
@@ -110,15 +160,15 @@ export function MultiRepresentationLinkageClient({
         ...(timeDomainOptions.has('reference')
           ? [{
               label: '参考输入',
-              color: '#22c55e',
+              style: TIME_DOMAIN_CURVE_STYLES.reference,
               result: buildReferenceResponseResult(result, model.responseType),
             }]
           : []),
         ...(timeDomainOptions.has('uncorrected-output') && baselineResult
-          ? [{ label: '未校正输出', color: '#64748b', result: baselineResult }]
+          ? [{ label: '未校正输出', style: TIME_DOMAIN_CURVE_STYLES.uncorrected, result: baselineResult }]
           : []),
         ...(timeDomainOptions.has('corrected-output')
-          ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', color: '#0ea5e9', result }]
+          ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', style: TIME_DOMAIN_CURVE_STYLES.corrected, result }]
           : []),
       ]
     : [];
@@ -135,21 +185,32 @@ export function MultiRepresentationLinkageClient({
           : []),
       ]
     : [];
-  const rootLocusResult = result && rootLocusOptions.size > 0
-    ? rootLocusOptions.has('corrected-root-locus')
-      ? result
-      : baselineResult
-    : null;
-  const nyquistPanels = result
+  const rootLocusSourceOptions = result
     ? [
-        ...(nyquistOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
-          ? [{ label: '未校正开环', result: model.preCorrectionAnalysisResult }]
+        ...(rootLocusOptions.has('uncorrected-root-locus') && baselineResult
+          ? [{ id: 'uncorrected-root-locus' as const, label: '未校正根轨迹', result: baselineResult }]
           : []),
-        ...(nyquistOptions.has('corrected-open-loop')
-          ? [{ label: '校正后开环', result: frequencyResult }]
+        ...(rootLocusOptions.has('corrected-root-locus')
+          ? [{ id: 'corrected-root-locus' as const, label: '校正后根轨迹', result }]
           : []),
       ]
     : [];
+  const selectedRootLocusSource = rootLocusSourceOptions.find((option) => option.id === rootLocusSourceId)
+    ?? rootLocusSourceOptions[0]
+    ?? null;
+  const nyquistSourceOptions = result
+    ? [
+        ...(nyquistOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+          ? [{ id: 'uncorrected-open-loop' as const, label: '未校正开环', result: model.preCorrectionAnalysisResult }]
+          : []),
+        ...(nyquistOptions.has('corrected-open-loop')
+          ? [{ id: 'corrected-open-loop' as const, label: '校正后开环', result: frequencyResult }]
+          : []),
+      ]
+    : [];
+  const selectedNyquistSource = nyquistSourceOptions.find((option) => option.id === nyquistSourceId)
+    ?? nyquistSourceOptions[0]
+    ?? null;
 
   if (model.arenaContextIncompatible) {
     return (
@@ -374,27 +435,34 @@ export function MultiRepresentationLinkageClient({
                 ) : (
                   <WorkbenchViewEmptyNotice title="Bode 图" />
                 )}
-                {rootLocusResult ? (
-                  <RootLocusPanel
-                    result={rootLocusResult}
-                    mode="full"
-                    interactiveHandles={rootLocusOptions.has('corrected-root-locus') ? model.correctionRootHandles : []}
-                    onInteractiveHandleCommit={rootLocusOptions.has('corrected-root-locus') ? model.updateCorrectionRootHandle : undefined}
-                    onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}
-                  />
+                {selectedRootLocusSource ? (
+                  <div className="space-y-2">
+                    <ClassicSourceSwitch
+                      label="根轨迹来源"
+                      options={rootLocusSourceOptions}
+                      selectedId={selectedRootLocusSource.id}
+                      onSelect={setRootLocusSourceId}
+                    />
+                    <RootLocusPanel
+                      result={selectedRootLocusSource.result}
+                      mode="full"
+                      interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
+                      onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
+                      onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
+                    />
+                  </div>
                 ) : (
                   <WorkbenchViewEmptyNotice title="根轨迹" />
                 )}
-                {nyquistPanels.length === 1 ? (
-                  <NyquistPanel result={nyquistPanels[0].result} />
-                ) : nyquistPanels.length > 1 ? (
-                  <div className="grid gap-4">
-                    {nyquistPanels.map((panel) => (
-                      <div key={panel.label} className="space-y-2">
-                        <div className="premium-lesson-caption px-1 text-xs">{panel.label}</div>
-                        <NyquistPanel result={panel.result} />
-                      </div>
-                    ))}
+                {selectedNyquistSource ? (
+                  <div className="space-y-2">
+                    <ClassicSourceSwitch
+                      label="Nyquist 来源"
+                      options={nyquistSourceOptions}
+                      selectedId={selectedNyquistSource.id}
+                      onSelect={setNyquistSourceId}
+                    />
+                    {selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null}
                   </div>
                 ) : (
                   <WorkbenchViewEmptyNotice title="Nyquist 图" />

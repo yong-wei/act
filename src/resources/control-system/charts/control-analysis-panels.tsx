@@ -58,6 +58,18 @@ const ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH = 2.2;
 const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M0 -1.2 L28 -1.2 L28 1.2 L0 1.2 Z';
 const ROOT_LOCUS_LEGEND_DASHED_LINE_ICON = 'path://M0 -1 L6 -1 L6 1 L0 1 Z M10 -1 L17 -1 L17 1 L10 1 Z M21 -1 L28 -1 L28 1 L21 1 Z';
 
+export type TimeDomainCurveStyle = {
+  color: string;
+  lineType: 'solid' | 'dashed';
+  width?: number;
+};
+
+export const TIME_DOMAIN_CURVE_STYLES = {
+  reference: { color: '#22c55e', lineType: 'dashed' },
+  uncorrected: { color: '#64748b', lineType: 'solid' },
+  corrected: { color: '#0ea5e9', lineType: 'solid' },
+} as const satisfies Record<string, TimeDomainCurveStyle>;
+
 export type RootLocusInteractiveHandle = {
   id: string;
   kind: 'pole' | 'zero';
@@ -684,15 +696,17 @@ export function calculateStableResponseAxisPreset(
   if (!isStable || points.length === 0) {
     return undefined;
   }
-  const maxAbs = points.reduce((max, point) => {
-    const value = Math.abs(point.y);
-    return Number.isFinite(value) ? Math.max(max, value) : max;
-  }, 0);
-  if (maxAbs <= 0) {
+  const values = points.map((point) => point.y).filter(Number.isFinite);
+  if (values.length === 0) {
     return undefined;
   }
-  const limit = roundRangeValue(maxAbs * 1.1);
-  return { y: [-limit, limit] };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const nearFlatBase = Math.max(Math.min(Math.abs(min), Math.abs(max)), 1);
+  const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
+  const margin = span > magnitudeBase * 0.05 ? span * 0.1 : nearFlatBase * 0.1;
+  return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
 }
 
 export function buildLineOption(
@@ -1700,15 +1714,17 @@ export function TimeDomainPanel({
 }
 
 function buildTimeDomainComparisonOption(
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>,
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>,
   axisPreset?: PartialAxisPreset,
 ): EChartsCoreOption {
   return {
     animation: false,
     legend: {
       top: 0,
-      icon: ROOT_LOCUS_LEGEND_LINE_ICON,
-      data: panels.map((panel) => panel.label),
+      data: panels.map((panel) => ({
+        name: panel.label,
+        icon: panel.style.lineType === 'dashed' ? ROOT_LOCUS_LEGEND_DASHED_LINE_ICON : ROOT_LOCUS_LEGEND_LINE_ICON,
+      })),
     },
     grid: { top: 34, right: 18, bottom: 42, left: 58 },
     tooltip: {
@@ -1740,7 +1756,7 @@ function buildTimeDomainComparisonOption(
       type: 'line',
       showSymbol: false,
       smooth: false,
-      lineStyle: { color: panel.color, width: CONTROL_CHART_MAIN_LINE_WIDTH },
+      lineStyle: { color: panel.style.color, type: panel.style.lineType, width: panel.style.width ?? CONTROL_CHART_MAIN_LINE_WIDTH },
       data: panel.result.stepResponse.points.map((point) => [point.x, point.y]),
     } satisfies ChartSeriesItem)),
   };
@@ -1751,7 +1767,7 @@ export function TimeDomainComparisonPanel({
   caseId,
   onRefreshRange,
 }: {
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>;
   caseId?: string;
   onRefreshRange?: (range: CartesianRange) => void;
 }) {

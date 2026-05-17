@@ -155,6 +155,15 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
   });
 
+  it('keeps root-locus source options as multi-select view configuration controls', () => {
+    const shellSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
+
+    expect(shellSource).toContain('type="checkbox"');
+    expect(shellSource).not.toContain("viewId === 'root-locus' ? 'radio' : 'checkbox'");
+    expect(shellSource).not.toContain("} else if (viewId === 'root-locus')");
+    expect(shellSource).not.toContain('selected.clear();');
+  });
+
   it('preserves assignment publication id in the challenge return link', () => {
     const result = resolveControlWorkbenchSession({
       arenaTask: 'task-second-order-lead-pid',

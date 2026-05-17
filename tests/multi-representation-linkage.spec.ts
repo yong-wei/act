@@ -71,8 +71,16 @@ test('multi representation linkage page should not emit chart size warning on fi
     const text = ((await phaseMarginValue.textContent()) ?? '').trim();
     return text !== '--' && text !== initialPhaseMargin;
   }).toBe(true);
-  await expect(page.getByText('校正后开环')).toBeVisible();
+  await expect(page.getByText('校正后开环', { exact: true })).toBeVisible();
   await expect(page.getByText('校正装置', { exact: true })).toBeVisible();
+  const rootSourceGroup = page.getByRole('group', { name: '根轨迹来源' });
+  const nyquistSourceGroup = page.getByRole('group', { name: 'Nyquist 来源' });
+  await expect(rootSourceGroup.getByRole('button', { name: '校正后根轨迹' })).toHaveAttribute('aria-pressed', 'true');
+  await rootSourceGroup.getByRole('button', { name: '未校正根轨迹' }).click();
+  await expect(rootSourceGroup.getByRole('button', { name: '未校正根轨迹' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(nyquistSourceGroup.getByRole('button', { name: '校正后开环' })).toHaveAttribute('aria-pressed', 'true');
+  await nyquistSourceGroup.getByRole('button', { name: '未校正开环' }).click();
+  await expect(nyquistSourceGroup.getByRole('button', { name: '未校正开环' })).toHaveAttribute('aria-pressed', 'true');
 
   await page.waitForTimeout(600);
 
