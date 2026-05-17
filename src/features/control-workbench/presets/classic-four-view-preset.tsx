@@ -87,13 +87,16 @@ export function ClassicFourViewPreset({
     );
   }
 
+  const plantModel = buildClassicPlantModel(session);
+
   return (
     <section className="overflow-hidden rounded-lg border border-white/10 bg-slate-950/30">
       <MultiRepresentationLinkageClient
+        key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}
         initialParams={{
           arenaTaskId: 'taskId' in session ? session.taskId : undefined,
           embed: true,
-          plantModel: buildClassicPlantModel(session),
+          plantModel,
           publicationId: 'publicationId' in session ? session.publicationId : undefined,
           role: 'student',
           viewConfigs: mapClassicViewConfigs(viewConfigs),

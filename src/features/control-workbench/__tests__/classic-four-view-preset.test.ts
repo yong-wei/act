@@ -40,10 +40,18 @@ describe('classic four-view control workbench preset', () => {
     expect(shellSource).toContain('viewConfigs={viewConfigs}');
     expect(presetSource).toContain('MultiRepresentationLinkageClient');
     expect(presetSource).toContain("arenaTaskId: 'taskId' in session ? session.taskId : undefined");
-    expect(presetSource).toContain('plantModel: buildClassicPlantModel(session)');
+    expect(presetSource).toContain('plantModel,');
     expect(presetSource).toContain('embed: true');
     expect(presetSource).toContain("publicationId: 'publicationId' in session ? session.publicationId : undefined");
     expect(presetSource).toContain('viewConfigs: mapClassicViewConfigs(viewConfigs)');
+  });
+
+  it('remounts the embedded chart client when the selected plant model changes', () => {
+    const presetSource = readRepoFile('src/features/control-workbench/presets/classic-four-view-preset.tsx');
+
+    expect(presetSource).toContain('const plantModel = buildClassicPlantModel(session)');
+    expect(presetSource).toContain("key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}");
+    expect(presetSource).toContain('plantModel,');
   });
 
   it('resolves free explore to a renderable classic preset model', () => {
