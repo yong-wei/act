@@ -206,9 +206,6 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       const selected = new Set(currentConfig?.selectedOptions ?? []);
       if (selected.has(optionId)) {
         selected.delete(optionId);
-      } else if (viewId === 'root-locus') {
-        selected.clear();
-        selected.add(optionId);
       } else {
         selected.add(optionId);
       }
@@ -340,7 +337,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
                               className="mt-0.5"
                               disabled={!availability.available || !option.enabled}
                               onChange={() => toggleViewOption(viewId, option.id)}
-                              type={viewId === 'root-locus' ? 'radio' : 'checkbox'}
+                              type="checkbox"
                             />
                             <span>
                               <span className={option.enabled && availability.available ? 'text-slate-100' : 'text-slate-500'}>
