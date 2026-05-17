@@ -28,7 +28,7 @@ Backlog -> Ready -> Claimed -> In Progress -> In Review -> Merged -> Archived
 ```
 
 `Blocked` can be entered from `Backlog` or `Ready` when dependencies, branch constraints, or coupling-group constraints prevent execution. `Stale-claim`, `needs-human`, and `failed` are recovery labels for automation.
-`Tracking` is reserved for non-executable series parent issues.
+`Tracking` is reserved for non-executable series parent issues. A series parent moves from `tracking` to `archived` only after all child change issues are closed and labeled `status:archived`.
 
 ## Agent Actions
 
@@ -40,6 +40,7 @@ Backlog -> Ready -> Claimed -> In Progress -> In Review -> Merged -> Archived
 | open PR | in-progress | in-review | PR URL comment |
 | merge PR | in-review | merged | PR merge commit |
 | archive | merged | archived | OpenSpec archive path |
+| finish series parent | tracking | archived | every child issue is closed and `status:archived` |
 | stale claim | claimed/in-progress | stale-claim | expired lease and safe branch/PR recovery proof |
 | human escalation | any active state | needs-human | ambiguity, repeated review loops, or unsafe recovery |
 | failure | any active state | failed | reproducible failure with command output |

@@ -133,7 +133,8 @@ Steps:
    .codex/skills/openspec-buddy/scripts/mark-achieved.sh <issue-number> <archive-path> [pr-url]
    ```
    This must leave the Project `Status` as `Done`, set Project `End` to the current date, and close the issue if it is still open.
-6. Report dependent blocked issues, if any.
+   The script also checks the linked series parent and closes it when all child changes are already archived.
+7. Report dependent blocked issues and any finalized series parent issue, if any.
 
 `achieve` means the GitHub issue, PR, and OpenSpec archive all agree that the change is complete.
 
@@ -169,6 +170,6 @@ Also report the GitHub Project item id or state that the issue was already prese
 
 For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, and the OpenSpec change being applied.
 
-For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, and any follow-up issues that were unblocked.
+For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, any finalized series parent issue, and any follow-up issues that were unblocked.
 
 For every mode, include the execution retrospective required above.

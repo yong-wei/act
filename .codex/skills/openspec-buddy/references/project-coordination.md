@@ -42,7 +42,7 @@ Project status mapping:
 | `status:claimed`, `status:in-progress`, `status:in-review` | `In Progress` |
 | `status:merged`, `status:archived` | `Done` |
 
-`status:archived` is the normal completed-change state. It must leave the issue label and the Project `Status` both showing completion.
+`status:archived` is the normal completed-change state. It must leave the issue label and the Project `Status` both showing completion. Series parent issues start as `status:tracking`, but once all child changes are closed with `status:archived`, the parent must also move to `status:archived`, Project `Status: Done`, and Project `End` set.
 
 ## Overrides
 
@@ -60,6 +60,7 @@ The default Project has `Start` and `End` date fields.
 
 - `claim-change.sh` sets `Start` to the local date after the branch lock, assignee, label, and claim comment are confirmed.
 - `mark-achieved.sh` sets `End` to the local date after `status:archived` is recorded.
+- `close-completed-series-parent.sh` sets parent `End` when the last child change in a series is archived.
 
 For manual repair, use:
 

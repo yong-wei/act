@@ -73,8 +73,15 @@ After PR merge:
 10. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
    If the issue is already closed or the Project item is already `Done`, still rerun
    `mark-achieved.sh` to reconcile the label, archive comment, and Project `End`.
-11. Delete the remote claim branch before deleting the local branch. Local `git branch -d`
+11. Verify the linked series parent. If every child issue under the parent is
+    closed and labeled `status:archived`, the parent must also be closed with
+    `status:archived`, Project `Status: Done`, and Project `End` set. Use:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/close-completed-series-parent.sh <child-or-parent-issue>
+   ```
+12. Delete the remote claim branch before deleting the local branch. Local `git branch -d`
    can reject deletion while the local branch still tracks an older remote claim branch,
    even when the branch is merged to current `HEAD`.
 
 The archive step must set the issue to `status:archived`, close the issue, set Project `Status` to `Done`, and set Project `End` to the current local date.
+The same completion rule applies to a series parent after its last child change is archived.

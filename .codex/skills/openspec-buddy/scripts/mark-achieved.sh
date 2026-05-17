@@ -24,3 +24,5 @@ if [[ "$state" == "OPEN" ]]; then
 else
   gh issue comment "$issue_number" --body "$body"
 fi
+
+"$script_dir/close-completed-series-parent.sh" "$issue_number"

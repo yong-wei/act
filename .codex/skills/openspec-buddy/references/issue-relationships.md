@@ -20,6 +20,21 @@ series:<series-name>
 
 It is not an executable OpenSpec change and must never be selected by `apply` or `auto`.
 
+## Series Parent Completion
+
+After each child change is archived, check the linked series parent. When every
+sub-issue under the parent is closed and labeled `status:archived`, finalize the
+parent issue too:
+
+```bash
+.codex/skills/openspec-buddy/scripts/close-completed-series-parent.sh <child-or-parent-issue>
+```
+
+Finalization changes the parent from `status:tracking` to `status:archived`,
+sets the Project `Status` to `Done`, sets Project `End` to the local date, and
+closes the parent with a comment listing the archived child changes. If any
+child issue is still open or not archived, leave the parent as `status:tracking`.
+
 ## Parent Link
 
 After creating each child issue, link it to the series parent:

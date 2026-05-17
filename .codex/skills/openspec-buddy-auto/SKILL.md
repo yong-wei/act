@@ -59,6 +59,9 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     `status:archived` while local `tasks.md` still contains incomplete items.
     The Project `Status` must become `Done` when the issue reaches `status:archived`.
     The Project `End` field must be set during archive.
+    If the archived issue belongs to a series parent and all sibling changes are
+    also archived, finalize the parent issue as `status:archived`, Project
+    `Status: Done`, Project `End` set, and closed.
 16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
 17. Return to the coordination branch and fast-forward it to `main`.
 18. Write an execution retrospective before final reporting.
@@ -105,6 +108,7 @@ Do not merge unless all are true:
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
 - Treat OpenSpec tasks as part of the cross-system completion record, not as local notes. If code already satisfies a task but `tasks.md` is still unchecked, close the task in the implementation PR before review/merge/archive; otherwise GitHub issue state and local OpenSpec state drift permanently.
+- Treat series parent issues as completion records too. A `type:series-parent` issue should remain `status:tracking` only while at least one child change is unfinished; after the last child reaches `status:archived`, close the parent with `status:archived`, Project `Done`, and Project `End`.
 
 ## Execution Retrospective Requirement
 
@@ -130,5 +134,6 @@ Report:
 - merge commit
 - archive commit/path
 - final issue status
+- finalized parent issue, if any
 - execution retrospective
 - next executable change, if goal mode continues
