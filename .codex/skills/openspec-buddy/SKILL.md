@@ -65,11 +65,12 @@ Steps:
    - no open issue in the same `coupling_group` has `status:claimed` or `status:in-progress`
    - `claim_branch` equals `change_id`
    - execution mode and branch constraints are satisfiable
-5. Claim the issue:
+5. Claim the issue with a remote branch lock:
    ```bash
    .codex/skills/openspec-buddy/scripts/claim-change.sh <issue-number>
    ```
-6. Re-read the issue and confirm the claim.
+   The claim creates `origin/<change_id>` from the declared `base_branch`, writes a structured claim comment, and sets a lease.
+6. Re-read the issue and confirm the claim id, assignee, status label, and branch lock.
 7. Use branch `<change_id>` for the implementation. For isolated work, create it from `base_branch`. For fixed-branch work, stop if the required branch is not the same as the declared claim branch.
 8. After entering the claim branch, mark the issue in progress:
    ```bash
@@ -83,9 +84,9 @@ Steps:
 
 If claim verification fails, stop before editing files.
 
-### achieve
+### achieve / archive
 
-Use after the PR for a GitHub-tracked OpenSpec change has been merged and the user wants to finish the change record.
+Use after the PR for a GitHub-tracked OpenSpec change has been merged and the user wants to finish the change record. Treat `archive` as an alias for `achieve`.
 
 Steps:
 
@@ -106,6 +107,7 @@ Steps:
 Read only the reference needed for the current mode:
 
 - `references/issue-template.md`: body template for `propose`
+- `references/claim-locking.md`: branch lock, claim lease, and stale-claim rules for `apply`
 - `references/metadata-schema.md`: field definitions and validation rules
 - `references/project-coordination.md`: default GitHub Project target for `propose`
 - `references/status-flow.md`: labels and transitions
@@ -116,6 +118,8 @@ Read only the reference needed for the current mode:
 - Do not execute adjacent OpenSpec changes found in the worktree.
 - Do not treat GitHub Projects as the agent execution source of truth; use issue front matter, labels, assignee, and comments.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
+- Do not bypass the remote branch lock in `claim-change.sh`; label changes alone are not a reliable lock.
+- Do not reclaim `status:claimed` or `status:in-progress` work unless the lease is stale and the branch/PR recovery checks prove it is safe.
 - Do not continue after a failed claim or unresolved coupling conflict.
 - GitHub is the task-state source of truth; Git is still the code source of truth.
 

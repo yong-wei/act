@@ -1,0 +1,23 @@
+{
+  "skill_name": "openspec-buddy-auto",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "使用 openspec-buddy-auto 处理下一个可以执行的 change。",
+      "expected_output": "先同步 main，核对 active OpenSpec change 与 status:ready issue，选择一个可执行项，调用 openspec-buddy apply 抢占并进入同名分支，不直接跳过 claim。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "在 goal 模式下自动处理所有剩余 OpenSpec change。",
+      "expected_output": "每轮只 claim 一个 change，每轮合并归档后重新 fetch main 并重算候选；无可执行项或预算耗尽时停止。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "PR 已打开，等待 code review 后继续。",
+      "expected_output": "使用 heartbeat 等待五分钟，醒来后检查 review、unresolved threads、requested changes、CI 和 mergeability；有反馈则修复并重复等待，无反馈且检查通过才合并。",
+      "files": []
+    }
+  ]
+}

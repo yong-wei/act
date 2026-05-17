@@ -13,6 +13,9 @@ status:in-review
 status:merged
 status:archived
 status:blocked
+status:stale-claim
+status:needs-human
+status:failed
 ```
 
 Only one `status:*` label should be present on an issue.
@@ -23,7 +26,7 @@ Only one `status:*` label should be present on an issue.
 Backlog -> Ready -> Claimed -> In Progress -> In Review -> Merged -> Archived
 ```
 
-`Blocked` can be entered from `Backlog` or `Ready` when dependencies, branch constraints, or coupling-group constraints prevent execution.
+`Blocked` can be entered from `Backlog` or `Ready` when dependencies, branch constraints, or coupling-group constraints prevent execution. `Stale-claim`, `needs-human`, and `failed` are recovery labels for automation.
 
 ## Agent Actions
 
@@ -35,6 +38,9 @@ Backlog -> Ready -> Claimed -> In Progress -> In Review -> Merged -> Archived
 | open PR | in-progress | in-review | PR URL comment |
 | merge PR | in-review | merged | PR merge commit |
 | archive | merged | archived | OpenSpec archive path |
+| stale claim | claimed/in-progress | stale-claim | expired lease and safe branch/PR recovery proof |
+| human escalation | any active state | needs-human | ambiguity, repeated review loops, or unsafe recovery |
+| failure | any active state | failed | reproducible failure with command output |
 
 ## Coupling Rule
 
@@ -48,3 +54,15 @@ status:in-progress
 ```
 
 This rule prevents two worktrees from executing strongly coupled changes at the same time.
+
+## Claim Lock Rule
+
+`status:claimed` is valid only when the issue also has:
+
+```text
+origin/<change_id> exists
+latest OpenSpec Buddy Claim comment records the branch
+claim lease has not expired
+```
+
+If the label and branch disagree, stop and mark the issue `status:needs-human` unless the recovery condition in `claim-locking.md` is satisfied.

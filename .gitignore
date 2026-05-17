@@ -24,6 +24,8 @@ GEMINI.md
 !.codex/skills/agent-evolver/**
 !.codex/skills/openspec-buddy/
 !.codex/skills/openspec-buddy/**
+!.codex/skills/openspec-buddy-auto/
+!.codex/skills/openspec-buddy-auto/**
 !.codex/skills/lesson/
 .codex/skills/lesson/*
 !.codex/skills/lesson/SKILL.md

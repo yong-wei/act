@@ -1,0 +1,99 @@
+---
+name: openspec-buddy-auto
+description: Use when the user asks to automatically process GitHub Issue-backed OpenSpec changes end to end, including selecting executable changes, claiming work, implementing, opening PRs, handling review loops, merging, archiving, or iterating through all available changes.
+compatibility: Requires openspec CLI, GitHub CLI, OpenSpec Buddy, and Codex heartbeat automations.
+---
+
+# OpenSpec Buddy Auto
+
+OpenSpec Buddy Auto is the high-permission execution layer for GitHub-tracked OpenSpec changes.
+It orchestrates one change from ready issue to merged, archived result. It does not replace `openspec-buddy`; it calls `openspec-buddy` for issue, claim, branch, and archive state.
+
+## When To Use
+
+Use this skill only when the user explicitly asks to auto-run OpenSpec Buddy changes, process the next executable change, or iterate through all available changes in goal mode.
+
+Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or isolated PR review tasks.
+
+## Required References
+
+- `references/selection-rules.md`: selecting an executable change
+- `references/execution-loop.md`: end-to-end run lifecycle
+- `references/review-waiting.md`: five-minute PR review wait loop
+- `references/failure-recovery.md`: stale claim, unsafe recovery, and stop conditions
+
+## One-Change Run
+
+1. Start from a clean worktree on the long-lived coordination branch.
+2. Fetch `origin/main` and fast-forward local `main`.
+3. List active OpenSpec changes from `origin/main`.
+4. Read GitHub issues in Project `ACT Openspec LTE` through issue labels and front matter.
+5. Select one executable change using `references/selection-rules.md`.
+6. Run `openspec-buddy apply` for the issue:
+   - claim the issue
+   - create the remote branch lock
+   - switch to branch `<change_id>`
+   - set issue status to `status:in-progress`
+7. Implement with the relevant OpenSpec and superpowers skills:
+   - `openspec-apply-change`
+   - `superpowers:test-driven-development` when adding behavior
+   - `superpowers:systematic-debugging` when failures occur
+   - `superpowers:verification-before-completion` before claiming completion
+   - `superpowers:requesting-code-review` before or after PR creation when applicable
+8. Commit, push, and open a ready PR with `@codex审核，中文回复`.
+9. Mark the issue `status:in-review`.
+10. Wait five minutes using a heartbeat automation; do not busy-loop.
+11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
+12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes, resolve threads, and repeat from step 10.
+13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.
+14. Fast-forward the claim branch to `origin/main`.
+15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
+16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
+17. Return to the coordination branch and fast-forward it to `main`.
+
+## Goal Mode
+
+When the user asks to process all available changes, repeat one-change runs with these rules:
+
+- Claim only one issue per iteration.
+- After every merge/archive, fetch `origin/main` and recalculate executable changes.
+- Skip `status:blocked`, `status:claimed`, `status:in-progress`, `status:stale-claim`, `status:needs-human`, and `status:failed`.
+- Stop when no executable issue remains.
+- Stop when the user's goal budget, time budget, review-round limit, or token budget is reached.
+- Never continue from a stale initial issue list.
+
+## Review Loop Limits
+
+Default limits:
+
+```text
+max_review_rounds: 5
+max_elapsed_hours: 24
+```
+
+If the limit is reached, set the issue to `status:needs-human`, comment with the evidence, and stop. Do not merge by exhaustion.
+
+## Merge Gates
+
+Do not merge unless all are true:
+
+- PR is open and mergeable.
+- CI/checks have completed successfully or the repository has no required checks.
+- No unresolved review threads remain.
+- No reviewer has requested changes on the latest commit.
+- No new review/comment has appeared since the last five-minute wait.
+- The implementation branch contains only the claimed change and required follow-up fixes.
+
+## Output
+
+Report:
+
+- selected issue and `change_id`
+- claim branch and claim id
+- PR URL
+- review rounds performed
+- verification commands
+- merge commit
+- archive commit/path
+- final issue status
+- next executable change, if goal mode continues
