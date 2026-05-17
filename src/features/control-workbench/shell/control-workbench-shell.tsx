@@ -16,6 +16,7 @@ import {
   getWorkbenchViewPlugin,
 } from '../views';
 import { ClassicFourViewPreset } from '../presets/classic-four-view-preset';
+import { BlackBoxIdentificationPreset } from '../presets/blackbox-identification-preset';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -52,7 +53,10 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
   const showClassicPreset = session.defaultPreset === 'classic-whitebox' && 'taskId' in session;
-  const showArenaSubmissionMount = 'recommendedWorkspaceMode' in session && session.defaultPreset !== 'classic-whitebox';
+  const showBlackBoxPreset = session.defaultPreset === 'blackbox-identification' && 'taskId' in session;
+  const showArenaSubmissionMount = 'recommendedWorkspaceMode' in session
+    && session.defaultPreset !== 'classic-whitebox'
+    && session.defaultPreset !== 'blackbox-identification';
   const resetViewConfig = (viewId: WorkbenchViewId) => {
     const fallback = defaultViewConfigs.find((config) => config.id === viewId);
     setViewConfigs((current) => ({
@@ -217,6 +221,11 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
           {showClassicPreset ? (
             <div className="mt-6">
               <ClassicFourViewPreset session={session} viewConfigs={viewConfigs} />
+            </div>
+          ) : null}
+          {showBlackBoxPreset ? (
+            <div className="mt-6">
+              <BlackBoxIdentificationPreset session={session} viewConfigs={viewConfigs} />
             </div>
           ) : null}
           {showArenaSubmissionMount && 'recommendedWorkspaceMode' in session ? (

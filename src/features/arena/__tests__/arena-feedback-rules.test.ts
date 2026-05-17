@@ -231,11 +231,11 @@ describe('arena personal feedback component', () => {
 
   it('uses the shared feedback component in the black-box submission panel', () => {
     const source = readFileSync(
-      join(process.cwd(), 'src/features/arena/submissions/arena-blackbox-submission-panel.tsx'),
+      join(process.cwd(), 'src/features/control-workbench/presets/blackbox-identification-preset.tsx'),
       'utf8',
     );
 
-    expect(source).toContain("import { ArenaPersonalFeedback } from '../student/arena-personal-feedback'");
+    expect(source).toContain("import { ArenaPersonalFeedback } from '@/features/arena/student/arena-personal-feedback'");
     expect(source).toContain('viewerUserId');
     expect(source).toContain('submissions.filter((submission) => submission.userId === viewerUserId)');
     expect(source).toContain('previousSubmissions={personalSubmissions.slice(0, -1)}');

@@ -21,6 +21,10 @@ describe('control workbench view configuration', () => {
       'bode',
       'root-locus',
       'nyquist',
+      'experiment-dataset',
+      'identification',
+      'response-comparison',
+      'metric-summary',
     ]);
   });
 
