@@ -44,14 +44,14 @@ If the branch is not the claimed `change_id`, preserve local work first:
 ```bash
 git stash push -u -m "wip <change_id> before branch correction"
 git switch <change_id>
-git merge --ff-only main
+git merge --ff-only integration
 git stash pop
 ```
 
 Do not commit implementation work on a coordination branch. If a coordination
 branch contains already committed skill or documentation updates that should
-land before the claimed change, merge those updates to `main` first, then
-fast-forward or rebase the claim branch onto the updated `main`.
+land before the claimed change, merge those updates to `integration` first, then
+fast-forward or rebase the claim branch onto the updated `integration`.
 
 ## Project Status Script Recovery
 

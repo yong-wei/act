@@ -9,7 +9,7 @@ claim_branch: example-change-id
 series: arena-workbench
 coupling_group: workbench-context-chain
 execution_mode: isolated
-base_branch: main
+base_branch: integration
 required_branch:
 depends_on: []
 parent_issue:

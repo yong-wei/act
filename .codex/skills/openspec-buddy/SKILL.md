@@ -43,28 +43,30 @@ Steps:
 1. Derive or confirm a kebab-case `change_id`.
 2. Prepare an issue body from `references/issue-template.md`.
 3. Set `claim_branch: <change_id>`.
-4. Add labels:
+4. Set `base_branch: integration`. Do not create new Buddy issues with
+   `base_branch: main`; release from `integration` to `main` is manual.
+5. Add labels:
    - `status:ready`
    - `area:<area>`
    - `series:<series>`
    - `risk:<low|medium|high>`
    - `mode:<isolated|fixed-branch|stacked|docs-only>`
-5. Create the issue with `gh issue create`.
-6. If this is a planned series, create or identify the series parent issue, then link the child issue:
+6. Create the issue with `gh issue create`.
+7. If this is a planned series, create or identify the series parent issue, then link the child issue:
    ```bash
    .codex/skills/openspec-buddy/scripts/create-series-parent.sh <series>
    .codex/skills/openspec-buddy/scripts/link-issue-parent.sh <parent-issue> <child-issue>
    ```
-7. If this issue depends on another change issue, link the native relationship:
+8. If this issue depends on another change issue, link the native relationship:
    ```bash
    .codex/skills/openspec-buddy/scripts/link-issue-dependencies.sh <blocked-issue> <blocking-issue>
    ```
-8. Add the created issue to the default GitHub Project:
+9. Add the created issue to the default GitHub Project:
    ```bash
    .codex/skills/openspec-buddy/scripts/add-issue-to-project.sh <issue-url>
    ```
    The script also sets the Project `Status` to `Todo`.
-9. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
+10. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
 
 Do not claim the issue or implement in `propose`.
 
@@ -87,6 +89,7 @@ Steps:
    - front matter `depends_on` entries are not active unfinished changes
    - no open issue in the same `coupling_group` has `status:claimed` or `status:in-progress`
    - `claim_branch` equals `change_id`
+   - `base_branch` equals `integration`
    - execution mode and branch constraints are satisfiable
 5. Claim the issue with a remote branch lock:
    ```bash
@@ -106,7 +109,9 @@ Steps:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-review.sh <issue-number> <pr-url>
    ```
-   This must leave the Project `Status` as `In Progress`.
+   This first verifies the PR targets `integration`. If the PR targets `main`,
+   the script attempts to retarget it to `integration`; if retargeting fails,
+   stop before review/merge. This must leave the Project `Status` as `In Progress`.
 
 If claim verification fails, stop before editing files.
 
@@ -117,7 +122,7 @@ Use after the PR for a GitHub-tracked OpenSpec change has been merged and the us
 Steps:
 
 1. Confirm the PR is merged.
-2. Confirm the target branch contains the merge.
+2. Confirm the target branch `integration` contains the merge.
 3. Confirm local OpenSpec tasks are complete:
    ```bash
    openspec instructions apply --change <change_id> --json
@@ -157,6 +162,7 @@ Read only the reference needed for the current mode:
 - Do not claim an issue while GitHub `blockedBy` contains any open, unarchived issue.
 - Do not treat GitHub Projects as the agent execution source of truth; use issue front matter, labels, assignee, and comments.
 - Do not update `status:*` labels without the Buddy wrapper scripts; Project `Status` must stay synchronized for human-visible coordination.
+- Do not open, review, or merge Buddy PRs against `main`. Retarget them to `integration` or stop.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
 - Do not bypass the remote branch lock in `claim-change.sh`; label changes alone are not a reliable lock.
 - Do not reclaim `status:claimed` or `status:in-progress` work unless the lease is stale and the branch/PR recovery checks prove it is safe.

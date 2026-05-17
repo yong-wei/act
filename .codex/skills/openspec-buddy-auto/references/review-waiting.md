@@ -34,7 +34,7 @@ review_round
 After the foreground wait finishes:
 
 ```bash
-gh pr view <pr> --json state,mergeable,reviewDecision,reviews,comments,commits,statusCheckRollup
+gh pr view <pr> --json state,baseRefName,mergeable,reviewDecision,reviews,comments,commits,statusCheckRollup
 gh api graphql ... # required for reviewThreads and isResolved state
 ```
 
@@ -43,11 +43,21 @@ Check:
 ```text
 new review comments
 new requested changes
+PR base branch is integration
 unresolved review threads
 CI/check failures
 mergeability
 new commits not created by this run
 ```
+
+If `baseRefName` is `main`, retarget the PR before any review or merge gate:
+
+```bash
+.codex/skills/openspec-buddy/scripts/ensure-pr-base.sh <pr-number-or-url>
+```
+
+If the script cannot retarget the PR to `integration`, stop and mark the issue
+`status:needs-human` rather than merging a Buddy change to `main`.
 
 ## Thread-Aware Review Rule
 

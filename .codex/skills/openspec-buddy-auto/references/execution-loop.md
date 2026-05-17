@@ -7,8 +7,8 @@ Verify:
 ```bash
 git status --short --branch
 git fetch origin
-git switch main
-git merge --ff-only origin/main
+git switch integration
+git merge --ff-only origin/integration
 ```
 
 Stop if local unrelated changes exist.
@@ -41,10 +41,13 @@ Open a formal PR:
 
 ```text
 title: concise change title
+base: integration
 body: summary, verification, linked issue
 review request: @codex审核，中文回复
 ```
 
+Do not let `gh pr create` fall back to the repository default branch; pass
+`--base integration` explicitly.
 Set issue to `status:in-review` with the PR URL; the Project `Status` must remain `In Progress`.
 Do this only after OpenSpec task progress is `complete == total`; otherwise finish or reconcile the local tasks first.
 
@@ -53,7 +56,7 @@ Do this only after OpenSpec task progress is `complete == total`; otherwise fini
 After PR merge:
 
 1. Keep the claim branch until archive is complete.
-2. Fast-forward the claim branch to `origin/main`.
+2. Fast-forward the claim branch to `origin/integration`.
 3. Recheck `openspec instructions apply --change <change_id> --json` or the archived `tasks.md` source before moving the change.
    Archive only when all tasks are checked. If the PR auto-closed the issue before tasks were complete, keep the branch, finish the task checklist, and merge that state before marking achieved.
 4. Before moving the change, inspect `openspec/changes/<change_id>/specs/**/spec.md`.
@@ -68,8 +71,8 @@ After PR merge:
    existing debt unless the claimed change caused it.
 6. Run `openspec-buddy achieve` / `archive`.
 7. Commit archive update.
-8. Merge archive commit into `main`.
-9. Push `main`.
+8. Merge archive commit into `integration`.
+9. Push `integration`.
 10. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
    If the issue is already closed or the Project item is already `Done`, still rerun
    `mark-achieved.sh` to reconcile the label, archive comment, and Project `End`.
@@ -85,3 +88,5 @@ After PR merge:
 
 The archive step must set the issue to `status:archived`, close the issue, set Project `Status` to `Done`, and set Project `End` to the current local date.
 The same completion rule applies to a series parent after its last child change is archived.
+Buddy automation must not merge or push `main`; promoting `integration` to `main`
+is a manual release decision.

@@ -11,7 +11,7 @@ GitHub Issue front matter is the machine-readable task record.
 | `series` | Larger work series | non-empty |
 | `coupling_group` | Mutual-exclusion group | non-empty; use `none` only for truly independent work |
 | `execution_mode` | Branching mode | `isolated`, `fixed-branch`, `stacked`, or `docs-only` |
-| `base_branch` | Branch used as base | non-empty |
+| `base_branch` | Branch used as base | defaults to `integration`; automation rejects `main` |
 | `depends_on` | Upstream changes | list; use `[]` if none |
 | `openspec_path` | Local OpenSpec change path | should be `openspec/changes/<change_id>` |
 | `risk` | Review and validation level | `low`, `medium`, or `high` |
@@ -30,6 +30,7 @@ GitHub Issue front matter is the machine-readable task record.
 
 - `change_id` must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
 - `claim_branch` must equal `change_id`.
+- `base_branch` must be `integration` for normal Buddy automation.
 - `openspec_path` should equal `openspec/changes/<change_id>`.
 - `depends_on` must parse as a list, including an empty list.
 - `blocked_by` and `blocking`, when present, must parse as lists.

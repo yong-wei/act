@@ -25,8 +25,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 ## One-Change Run
 
 1. Start from a clean worktree on the long-lived coordination branch.
-2. Fetch `origin/main` and fast-forward local `main`.
-3. List active OpenSpec changes from `origin/main`.
+2. Fetch `origin/integration` and fast-forward local `integration`.
+3. List active OpenSpec changes from `origin/integration`.
 4. Read GitHub issues in Project `ACT Openspec LTE` through issue labels and front matter.
 5. Select one executable change using `references/selection-rules.md`.
    Relationship-aware selection must ignore series parent issues, skip issues with open `blockedBy`, prefer the current series when one is already in progress, and prefer issues that unblock downstream changes.
@@ -45,7 +45,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    - `superpowers:requesting-code-review` before or after PR creation when applicable
    Before opening a PR, `openspec instructions apply --change <change_id> --json`
    must report `remaining: 0`; finish or explicitly reconcile incomplete tasks first.
-8. Commit, push, and open a ready PR with `@codex审核，中文回复`.
+8. Commit, push, and open a ready PR against `integration` with `@codex审核，中文回复`.
 9. Mark the issue `status:in-review`.
    The Project `Status` must remain `In Progress`.
 10. Wait five minutes in the same foreground workflow, then check again.
@@ -53,7 +53,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
 12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes, resolve threads, and repeat from step 10.
 13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.
-14. Fast-forward the claim branch to `origin/main`.
+14. Fast-forward the claim branch to `origin/integration`.
 15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
     Recheck the OpenSpec task state before archiving; an issue must not reach
     `status:archived` while local `tasks.md` still contains incomplete items.
@@ -62,8 +62,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     If the archived issue belongs to a series parent and all sibling changes are
     also archived, finalize the parent issue as `status:archived`, Project
     `Status: Done`, Project `End` set, and closed.
-16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
-17. Return to the coordination branch and fast-forward it to `main`.
+16. Commit and push the archive update, merge it to `integration`, push `integration`, then delete the local and remote claim branch.
+17. Return to the coordination branch and fast-forward it to `integration`.
 18. Write an execution retrospective before final reporting.
 
 ## Goal Mode
@@ -71,7 +71,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 When the user asks to process all available changes, repeat one-change runs with these rules:
 
 - Claim only one issue per iteration.
-- After every merge/archive, fetch `origin/main` and recalculate executable changes.
+- After every merge/archive, fetch `origin/integration` and recalculate executable changes.
 - If the previous iteration completed a series issue, prefer the same series until no issue in that series is executable.
 - Skip `status:blocked`, `status:claimed`, `status:in-progress`, `status:stale-claim`, `status:needs-human`, and `status:failed`.
 - Skip `type:series-parent` and any issue with open native `blockedBy` relationships.
@@ -95,6 +95,7 @@ If the limit is reached, set the issue to `status:needs-human`, comment with the
 Do not merge unless all are true:
 
 - PR is open and mergeable.
+- PR base is `integration`; if base is `main`, retarget it to `integration` before review/merge, and stop if it cannot be retargeted.
 - CI/checks have completed successfully or the repository has no required checks.
 - No unresolved review threads remain.
 - No reviewer has requested changes on the latest commit.
@@ -106,6 +107,7 @@ Do not merge unless all are true:
 - Treat GitHub `reviewThreads` as the source of truth for actionable review state. `latestReviews` can lag behind the latest head commit or report an empty commit oid.
 - Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; after review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
+- OpenSpec Buddy automation targets `integration`, not `main`. New changes use `base_branch: integration`, PRs use base `integration`, and archive commits land on `integration`. Merging `integration` to `main` is a manual release action outside Buddy Auto.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
 - Treat OpenSpec tasks as part of the cross-system completion record, not as local notes. If code already satisfies a task but `tasks.md` is still unchecked, close the task in the implementation PR before review/merge/archive; otherwise GitHub issue state and local OpenSpec state drift permanently.
 - Treat series parent issues as completion records too. A `type:series-parent` issue should remain `status:tracking` only while at least one child change is unfinished; after the last child reaches `status:archived`, close the parent with `status:archived`, Project `Done`, and Project `End`.

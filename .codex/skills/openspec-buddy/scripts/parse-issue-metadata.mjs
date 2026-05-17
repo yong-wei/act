@@ -89,6 +89,11 @@ function validate(data) {
     errors.push("claim_branch must equal change_id.");
   }
 
+  const expectedBaseBranch = "integration";
+  if (data.base_branch !== expectedBaseBranch) {
+    errors.push(`base_branch must be ${expectedBaseBranch}.`);
+  }
+
   const expectedPath = `openspec/changes/${data.change_id}`;
   if (data.openspec_path && data.openspec_path !== expectedPath) {
     errors.push(`openspec_path should be ${expectedPath}.`);
