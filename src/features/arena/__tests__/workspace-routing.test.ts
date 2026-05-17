@@ -31,10 +31,13 @@ describe('Arena workspace routing', () => {
   });
 
   it('keeps Control Odyssey tasks on the dedicated Odyssey route', () => {
-    const url = routeFor('task-odyssey-level-one-growth');
+    const url = routeFor('task-odyssey-level-one-growth', {
+      publicationId: 'publication-odyssey',
+    });
 
     expect(url.pathname).toBe('/interactive-learning/control-odyssey');
     expect(url.searchParams.get('arenaTask')).toBe('task-odyssey-level-one-growth');
+    expect(url.searchParams.get('publicationId')).toBe('publication-odyssey');
     expect(url.searchParams.get('preset')).toBeNull();
   });
 

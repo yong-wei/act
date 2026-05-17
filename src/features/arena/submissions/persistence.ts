@@ -2,7 +2,7 @@ import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../e
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import { startOfUtcDay, type ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
-import { getArenaChallengeTask } from '../data/seed-challenges';
+import { getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
 import {
   normalizeCodeControllerManifest,
   type CodeControllerManifest,
@@ -71,6 +71,7 @@ export interface CreatePersistedArenaSubmissionInput {
   submittedAt: string;
   store: ArenaSubmissionStore;
   blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
+  source?: 'odyssey-bridge';
 }
 
 function expectedIdentificationModelId(datasetHash: string): string {
@@ -146,9 +147,20 @@ function normalizeSubmissionArtifact(taskId: string, artifact: ControllerArtifac
   };
 }
 
+function assertTrustedOdysseySubmissionSource(input: CreatePersistedArenaSubmissionInput): void {
+  const task = getArenaChallengeTask(input.taskId);
+  const object = task ? getArenaChallengeObject(task.objectId) : null;
+  if (object?.source !== 'control-odyssey') return;
+
+  if (input.source !== 'odyssey-bridge') {
+    throw new ArenaSubmissionInputError('Control Odyssey Arena submissions must be created by the Odyssey bridge.');
+  }
+}
+
 export async function createPersistedArenaSubmission(
   input: CreatePersistedArenaSubmissionInput,
 ): Promise<ArenaSubmissionRecord> {
+  assertTrustedOdysseySubmissionSource(input);
   const artifact = await assertBlackBoxExperimentOwnership({
     userId: input.userId,
     taskId: input.taskId,

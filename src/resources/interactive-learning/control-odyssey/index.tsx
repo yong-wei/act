@@ -94,6 +94,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   showEducation = true,
 }) => {
   const searchParams = useSearchParams();
+  const arenaTaskId = searchParams.get('arenaTask') ?? undefined;
   const publicationId = searchParams.get('publicationId') ?? undefined;
   const {
     gameState,
@@ -193,8 +194,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           finalScore,
           {
           maxOvershoot: metrics.maxOvershoot,
+          settlingTime: metrics.settlingTime,
           steadyError: metrics.steadyError,
           avgRelativeError: metrics.avgRelativeError,
+          controlEnergy: metrics.controlEnergy,
+          controlSmoothness: metrics.controlSmoothness,
           scoreMultiplier
           },
           {
@@ -208,6 +212,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             enableFeedforward,
             enableSmithPredictor,
             difficultyScale,
+            arenaTaskId,
             publicationId
           }
         );
@@ -246,6 +251,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     enableFeedforward,
     enableSmithPredictor,
     difficultyScale,
+    arenaTaskId,
     publicationId,
     personalBestScores,
     setControlCredits,
@@ -1674,7 +1680,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
           <div className="flex-1 flex overflow-hidden relative">
             <div className="flex-1 relative bg-slate-950">
-              <GameCanvas />
+              <GameCanvas lockSetpointInput={Boolean(arenaTaskId)} />
             </div>
           </div>
 

@@ -16,6 +16,7 @@ import {
   resolveAccessibleArenaPublicationForStudent,
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
+import { computeOfficialOdysseyTelemetry } from '@/resources/interactive-learning/control-odyssey/engine/official-simulation';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -505,8 +506,8 @@ export async function submitGameScore(
     enableFeedforward?: boolean;
     enableSmithPredictor?: boolean;
     difficultyScale?: number;
+    arenaTaskId?: string;
     publicationId?: string;
-    seasonId?: string;
   }
 ) {
   const session = await getServerAuthSession();
@@ -602,8 +603,47 @@ export async function submitGameScore(
       }
     });
 
-    const arenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
-    if (arenaTaskId) {
+    const expectedArenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
+    const requestedArenaTaskId = context?.arenaTaskId?.trim();
+    const shouldSubmitArenaBridge = Boolean(
+      runId
+      && expectedArenaTaskId
+      && requestedArenaTaskId === expectedArenaTaskId
+    );
+    if (shouldSubmitArenaBridge && expectedArenaTaskId) {
+      const arenaTaskId = expectedArenaTaskId;
+      let officialMetrics: Record<string, unknown>;
+      try {
+        officialMetrics = computeOfficialOdysseyTelemetry({
+          levelId,
+          tier: context?.tier,
+          controllerId: context?.controllerId,
+          controlMode: context?.controlMode,
+          pidParams: context?.pidParams,
+          extraParams: context?.extraParams,
+          enableSpeedFeedback: context?.enableSpeedFeedback,
+          enableFeedforward: context?.enableFeedforward,
+          enableSmithPredictor: context?.enableSmithPredictor,
+          difficultyScale: context?.difficultyScale,
+          controllerLevels,
+        });
+      } catch (error) {
+        await prisma.simulationLog.update({
+          where: { id: log.id },
+          data: {
+            metrics: {
+              ...(metrics && typeof metrics === 'object' ? metrics : {}),
+              arenaBridge: {
+                ok: false,
+                reason: error instanceof Error ? error.message : 'Server-side Odyssey telemetry simulation failed.',
+                gameScorePreserved: true,
+              },
+            },
+          },
+        });
+        revalidatePath('/interactive-learning/control-odyssey');
+        return log;
+      }
       let publicationContext: ArenaResolvedSubmissionContext | null = null;
       if (context?.publicationId) {
         try {
@@ -639,10 +679,10 @@ export async function submitGameScore(
         tier: context?.tier ?? 'bronze',
         controllerId: context?.controllerId,
         pidParams: context?.pidParams,
-        metrics,
+        metrics: officialMetrics,
         publicationId: publicationContext?.id,
         classId: publicationContext?.classId,
-        seasonId: publicationContext?.seasonId ?? context?.seasonId,
+        seasonId: publicationContext?.seasonId,
         isLate: publicationContext?.isLate,
         submittedAt: log.createdAt.toISOString(),
         submissionStore: prismaArenaSubmissionStore,

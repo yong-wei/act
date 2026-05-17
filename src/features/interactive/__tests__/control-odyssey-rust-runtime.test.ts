@@ -3,8 +3,17 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { CONTROL_ODYSSEY_LEVELS, getTransferFunctionModel } from '@/resources/interactive-learning/control-odyssey/level-data';
+import {
+  CONTROL_ODYSSEY_LEVELS,
+  buildRuntimeTierConfig,
+  getTierConfig,
+  getTransferFunctionModel,
+} from '@/resources/interactive-learning/control-odyssey/level-data';
 import { buildRustSimulationRequest, createInitialRustSimulationState } from '@/resources/interactive-learning/control-odyssey/engine/rust-runtime-adapter';
+import {
+  buildOfficialOdysseyReplayControllerConfig,
+  computeOfficialOdysseyTelemetry,
+} from '@/resources/interactive-learning/control-odyssey/engine/official-simulation';
 
 describe('control odyssey Rust runtime adapter', () => {
   it('marks level-data transfer function coefficients as ascending for Rust', () => {
@@ -83,6 +92,67 @@ describe('control odyssey Rust runtime adapter', () => {
 
     expect(source).not.toContain('createLinearPlant');
     expect(source).toContain('computeRustSimulationStep');
+  });
+
+  it('computes official Odyssey telemetry on the server instead of trusting client metrics', () => {
+    const metrics = computeOfficialOdysseyTelemetry({
+      levelId: 'level-1',
+      tier: 'bronze',
+      controllerId: 'PID',
+      controlMode: 'AUTO',
+      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+      controllerLevels: { P: 3, PI: 3, PD: 3, PID: 1, VFB: 0, FF: 0, SMITH: 0 },
+    });
+
+    expect(metrics.officialTelemetrySource).toBe('server-rust-simulation');
+    expect(metrics.settlingTime).toBeGreaterThan(0);
+    expect(metrics.settlingTime).toBeLessThan(20);
+    expect(metrics.controlEnergy).toBeGreaterThanOrEqual(0);
+  });
+
+  it('builds deterministic sequence references for random Odyssey tiers', () => {
+    for (const tier of ['silver', 'gold'] as const) {
+      const first = buildRuntimeTierConfig(getTierConfig('level-1', tier));
+      const second = buildRuntimeTierConfig(getTierConfig('level-1', tier));
+
+      expect(first.reference.seed).toBe(second.reference.seed);
+      expect(first.reference.events).toEqual(second.reference.events);
+      expect(first.reference.events).toHaveLength(4);
+    }
+  });
+
+  it('clamps official replay controller parameters to server-side unlock levels', () => {
+    const replayController = buildOfficialOdysseyReplayControllerConfig({
+      controllerId: 'PID',
+      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+      extraParams: { speedFeedbackTau: 2, feedforwardGain: 2, smithDelay: 2 },
+      enableSpeedFeedback: true,
+      enableFeedforward: true,
+      enableSmithPredictor: true,
+      controllerLevels: { P: 1, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
+    });
+
+    expect(replayController.controllerId).toBe('P');
+    expect(replayController.pid).toEqual({ kp: 0.1, ki: 0, kd: 0 });
+    expect(replayController.enableSpeedFeedback).toBe(false);
+    expect(replayController.enableFeedforward).toBe(false);
+    expect(replayController.enableSmithPredictor).toBe(false);
+    expect(replayController.extraParams).toEqual({
+      speedFeedbackTau: 0,
+      feedforwardGain: 0,
+      smithDelay: 0,
+    });
+  });
+
+  it('rejects manual official Odyssey replay until input traces are persisted', () => {
+    expect(() => computeOfficialOdysseyTelemetry({
+      levelId: 'level-1',
+      tier: 'bronze',
+      controllerId: 'P',
+      controlMode: 'MANUAL',
+      pidParams: { kp: 2.1, ki: 0, kd: 0 },
+      controllerLevels: { P: 3, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
+    })).toThrow('Manual Odyssey runs require input trace replay');
   });
 
   it('keeps the PD visual layer from redrawing the full ship silhouette', () => {

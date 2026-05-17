@@ -12,9 +12,11 @@ import { SimulationClock } from '@/lib/simulation';
 interface GameCanvasProps {
   width?: number;
   height?: number;
+  lockSetpointInput?: boolean;
 }
 
 type StepInfo = { at: number; amplitude: number; target: number };
+const SETTLING_DWELL_SECONDS = 0.5;
 
 const buildStepTimeline = (reference: { type: string; base?: number; events: { at: number; amplitude: number }[] }) => {
   const base = reference.base ?? VIEWPORT_HEIGHT / 2;
@@ -32,7 +34,8 @@ const buildStepTimeline = (reference: { type: string; base?: number; events: { a
 
 export const GameCanvas: React.FC<GameCanvasProps> = ({ 
   width = 800, 
-  height = 400 
+  height = 400,
+  lockSetpointInput = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -59,7 +62,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     avgRelativeErrorTime: 0,
     steadySumY: 0,
     steadySumR: 0,
-    steadyTime: 0
+    steadyTime: 0,
+    elapsedTime: 0,
+    controlEnergySum: 0,
+    controlVariationSum: 0,
+    previousControlU: 0,
+    settlingCandidateAt: null as number | null,
+    settlingTime: null as number | null
   });
 
   const stepRef = useRef<{
@@ -68,6 +77,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     currentIndex: number;
     currentAmplitude: number;
     currentTarget: number;
+    currentStartTime: number | null;
     direction: number;
     peak: number | null;
   }>({
@@ -76,6 +86,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     currentIndex: -1,
     currentAmplitude: 0,
     currentTarget: VIEWPORT_HEIGHT / 2,
+    currentStartTime: null,
     direction: 0,
     peak: null
   });
@@ -128,7 +139,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     };
   }, [gameState, setGameState]);
 
-  const finalizeStepOvershoot = () => {
+  const finalizeStepOvershoot = useCallback(() => {
     const step = stepRef.current;
     const amplitude = Math.abs(step.currentAmplitude);
     if (!amplitude || step.peak === null) return;
@@ -141,16 +152,48 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     if (overshootRatio > 0) {
       metricsRef.current.maxOvershoot = Math.max(metricsRef.current.maxOvershoot, overshootRatio * 100);
     }
-  };
+  }, []);
 
-  const getMetricsSnapshot = () => {
+  const updateStepSettling = useCallback((error: number) => {
+    const step = stepRef.current;
+    const amplitude = Math.abs(step.currentAmplitude);
+    if (!amplitude || step.currentStartTime === null) return;
+
+    const tolerance = Math.max(4, amplitude * 0.05);
+    const metrics = metricsRef.current;
+    if (error <= tolerance) {
+      metrics.settlingCandidateAt ??= metrics.elapsedTime;
+      if (metrics.elapsedTime - metrics.settlingCandidateAt >= SETTLING_DWELL_SECONDS) {
+        metrics.settlingTime = Math.max(0, metrics.settlingCandidateAt - step.currentStartTime);
+      }
+      return;
+    }
+
+    metrics.settlingCandidateAt = null;
+    metrics.settlingTime = null;
+  }, []);
+
+  const readStepSettlingTime = useCallback(() => {
+    const metrics = metricsRef.current;
+    const step = stepRef.current;
+    if (metrics.settlingTime !== null) return metrics.settlingTime;
+    if (step.currentStartTime !== null) {
+      return Math.max(0, metrics.elapsedTime - step.currentStartTime);
+    }
+    return metrics.elapsedTime;
+  }, []);
+
+  const getMetricsSnapshot = useCallback(() => {
     const {
       maxOvershoot,
       avgRelativeErrorSum,
       avgRelativeErrorTime,
       steadySumY,
       steadySumR,
-      steadyTime
+      steadyTime,
+      elapsedTime,
+      controlEnergySum,
+      controlVariationSum
     } = metricsRef.current;
     const avgRelativeError = avgRelativeErrorTime > 0
       ? (avgRelativeErrorSum / avgRelativeErrorTime) * 100
@@ -158,14 +201,18 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     const steadyAvgR = steadyTime > 0 ? steadySumR / steadyTime : 0;
     const steadyAvgY = steadyTime > 0 ? steadySumY / steadyTime : 0;
     const steadyError = steadyTime > 0 && Math.abs(steadyAvgR) > 0.001
-      ? ((steadyAvgY - steadyAvgR) / steadyAvgR) * 100
+      ? (Math.abs(steadyAvgY - steadyAvgR) / Math.abs(steadyAvgR)) * 100
       : 0;
+    const normalizedTime = Math.max(elapsedTime, 1);
     return {
       maxOvershoot,
       avgRelativeError,
-      steadyError
+      steadyError,
+      settlingTime: readStepSettlingTime(),
+      controlEnergy: controlEnergySum / normalizedTime,
+      controlSmoothness: controlVariationSum / normalizedTime
     };
-  };
+  }, [readStepSettlingTime]);
 
   // 重置游戏逻辑
   const handleReset = useCallback(() => {
@@ -190,7 +237,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       avgRelativeErrorTime: 0,
       steadySumY: 0,
       steadySumR: 0,
-      steadyTime: 0
+      steadyTime: 0,
+      elapsedTime: 0,
+      controlEnergySum: 0,
+      controlVariationSum: 0,
+      previousControlU: 0,
+      settlingCandidateAt: null,
+      settlingTime: null
     };
     const { base, steps } = buildStepTimeline(runtimeTier.reference);
     stepRef.current = {
@@ -199,6 +252,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       currentIndex: -1,
       currentAmplitude: 0,
       currentTarget: base,
+      currentStartTime: null,
       direction: 0,
       peak: null
     };
@@ -260,8 +314,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       const simulateStep = (dt: number) => {
         // 计算输入
         let controlInput = 0;
-        if (inputRef.current.up) controlInput -= 1;   // 向上是负 Y (在 MANUAL 是 dU, AUTO 是 dR)
-        if (inputRef.current.down) controlInput += 1; // 向下是正 Y
+        const allowSetpointInput = !(lockSetpointInput && controlMode === 'AUTO');
+        if (allowSetpointInput && inputRef.current.up) controlInput -= 1;   // 向上是负 Y (在 MANUAL 是 dU, AUTO 是 dR)
+        if (allowSetpointInput && inputRef.current.down) controlInput += 1; // 向下是正 Y
 
         const tierKey = `${currentLevelId}-${currentTier}`;
         if (!tierConfigRef.current || tierKeyRef.current !== tierKey) {
@@ -345,6 +400,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           },
           outputLimits
         }, disturbance);
+        metricsRef.current.elapsedTime += dt;
+        metricsRef.current.controlEnergySum += shipState.u * shipState.u * dt;
+        metricsRef.current.controlVariationSum += Math.abs(shipState.u - metricsRef.current.previousControlU);
+        metricsRef.current.previousControlU = shipState.u;
 
         // 限制飞船不跑出屏幕垂直范围 (可选，或者作为碰撞)
         if (shipState.y < 0) shipState.y = 0;
@@ -364,8 +423,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             const currentStep = stepMeta.steps[stepMeta.currentIndex];
             stepMeta.currentAmplitude = currentStep.amplitude;
             stepMeta.currentTarget = currentStep.target;
+            stepMeta.currentStartTime = metricsRef.current.elapsedTime;
             stepMeta.direction = Math.sign(currentStep.amplitude);
             stepMeta.peak = shipState.y;
+            metricsRef.current.settlingCandidateAt = null;
+            metricsRef.current.settlingTime = null;
           }
 
           if (stepMeta.currentAmplitude !== 0 && stepMeta.peak !== null) {
@@ -384,6 +446,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           metricsRef.current.avgRelativeErrorSum += (error / referenceDelta) * dt;
           metricsRef.current.avgRelativeErrorTime += dt;
         }
+        updateStepSettling(error);
         if (shipWorldX >= maxDistanceLocal - 500) {
           metricsRef.current.steadySumY += shipState.y * dt;
           metricsRef.current.steadySumR += referenceY * dt;
@@ -399,7 +462,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           updateMetrics(shipState.y, shipState.u, displayR, maxDistanceLocal, {
             maxOvershoot: snapshot.maxOvershoot,
             avgRelativeError: snapshot.avgRelativeError,
-            steadyError: snapshot.steadyError
+            steadyError: snapshot.steadyError,
+            settlingTime: snapshot.settlingTime,
+            controlEnergy: snapshot.controlEnergy,
+            controlSmoothness: snapshot.controlSmoothness
           });
           setGameState('VICTORY');
           // 立即停止循环，不进行后续更新
@@ -451,7 +517,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         updateMetrics(shipState.y, shipState.u, displayR, scrollX, {
           maxOvershoot: snapshot.maxOvershoot,
           avgRelativeError: snapshot.avgRelativeError,
-          steadyError: snapshot.steadyError
+          steadyError: snapshot.steadyError,
+          settlingTime: snapshot.settlingTime,
+          controlEnergy: snapshot.controlEnergy,
+          controlSmoothness: snapshot.controlSmoothness
         });
       };
 
@@ -630,12 +699,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     enableFeedforward,
     enableSmithPredictor,
     difficultyScale,
+    lockSetpointInput,
     controllerLevels.P,
     controllerLevels.PI,
     controllerLevels.PD,
     controllerLevels.VFB,
     controllerLevels.FF,
-    setAutoOffset
+    setAutoOffset,
+    finalizeStepOvershoot,
+    getMetricsSnapshot,
+    updateStepSettling
   ]); // 更新依赖
 
   return (

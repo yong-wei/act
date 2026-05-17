@@ -10,6 +10,8 @@ interface ControlOdysseyMetrics {
   settlingTime: number;
   avgRelativeError: number; // 平均相对误差 (%)
   steadyError: number; // 稳态误差 (%)
+  controlEnergy: number;
+  controlSmoothness: number;
 }
 
 interface ControlOdysseyPidParams {
@@ -89,7 +91,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   score: 0,
   distance: 0,
   maxDistance: 3000,
-  metrics: { maxOvershoot: 0, settlingTime: 0, avgRelativeError: 0, steadyError: 0 },
+  metrics: { maxOvershoot: 0, settlingTime: 0, avgRelativeError: 0, steadyError: 0, controlEnergy: 0, controlSmoothness: 0 },
   shipY: 200,
   shipU: 0,
   shipR: 200,
@@ -155,7 +157,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
       score: 0,
       distance: 0,
       maxDistance: newMaxDistance,
-      metrics: { maxOvershoot: 0, settlingTime: 0, avgRelativeError: 0, steadyError: 0 },
+      metrics: { maxOvershoot: 0, settlingTime: 0, avgRelativeError: 0, steadyError: 0, controlEnergy: 0, controlSmoothness: 0 },
       shipY: 200,
       shipU: 0,
       shipR: 200,
