@@ -4,18 +4,32 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ArenaBlackBoxSubmissionPanel } from '../submissions/arena-blackbox-submission-panel';
-import { ArenaSubmissionPanel } from '../submissions/arena-submission-panel';
+import {
+  ArenaSubmissionPanel,
+  type CompositeSubmissionDraft,
+} from '../submissions/arena-submission-panel';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { WorkspaceMode } from '../types';
-import { getEvaluableControllerMethods } from '../submissions/controller-artifact-builder';
+import {
+  getEvaluableControllerMethods,
+  type EvaluableControllerMethod,
+} from '../submissions/controller-artifact-builder';
 import { resolveArenaWorkbenchContext } from './context';
 
 export function ArenaWorkbenchSubmissionMount({
   workspaceMode,
   className = 'mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8',
+  compositeDraft,
+  onCompositeDraftChange,
+  evaluationModeLabel,
+  preferredControllerMethod,
 }: {
   workspaceMode: WorkspaceMode;
   className?: string;
+  compositeDraft?: CompositeSubmissionDraft;
+  onCompositeDraftChange?: (draft: CompositeSubmissionDraft) => void;
+  evaluationModeLabel?: string;
+  preferredControllerMethod?: EvaluableControllerMethod;
 }) {
   const searchParams = useSearchParams();
   const arenaTaskId = searchParams.get('arenaTask');
@@ -106,6 +120,10 @@ export function ArenaWorkbenchSubmissionMount({
         initialSubmissions={submissions}
         publicationId={publicationId}
         viewerUserId={viewerUserId}
+        compositeDraft={compositeDraft}
+        onCompositeDraftChange={onCompositeDraftChange}
+        evaluationModeLabel={evaluationModeLabel}
+        preferredControllerMethod={preferredControllerMethod}
       />
     </div>
   );

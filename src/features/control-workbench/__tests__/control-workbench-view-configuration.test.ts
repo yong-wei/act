@@ -24,6 +24,7 @@ describe('control workbench view configuration', () => {
       'experiment-dataset',
       'identification',
       'response-comparison',
+      'control-effort',
       'metric-summary',
     ]);
   });
@@ -64,5 +65,19 @@ describe('control workbench view configuration', () => {
       enabled: false,
       disabledReason: expect.stringContaining('没有黑箱实验数据'),
     });
+  });
+
+  it('declares composite-control defaults for block-diagram workbenches', () => {
+    const session = getSessionForTask('task-third-order-block-diagram');
+    const configs = getPresetDefaultViewConfigs('composite-control');
+    const controlEffort = getWorkbenchViewPlugin('control-effort');
+
+    expect(session.defaultPreset).toBe('composite-control');
+    expect(session.allowedViews).toEqual(['time-domain', 'response-comparison', 'control-effort', 'metric-summary']);
+    expect(configs.map((config) => config.id)).toEqual(['time-domain', 'response-comparison', 'control-effort', 'metric-summary']);
+    expect(configs.find((config) => config.id === 'control-effort')?.selectedOptions).toEqual([
+      'control-effort-estimate',
+    ]);
+    expect(controlEffort?.title).toBe('控制量');
   });
 });

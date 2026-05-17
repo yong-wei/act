@@ -20,16 +20,40 @@ import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
 
+export interface CompositeSubmissionDraft {
+  prefilterGain: string;
+  forwardGain: string;
+  localFeedbackGain: string;
+  disturbanceCompensation: string;
+  controlLimit: string;
+}
+
+const DEFAULT_COMPOSITE_SUBMISSION_DRAFT: CompositeSubmissionDraft = {
+  prefilterGain: '0.90',
+  forwardGain: '2.20',
+  localFeedbackGain: '0.70',
+  disturbanceCompensation: '0.40',
+  controlLimit: '4.50',
+};
+
 export function ArenaSubmissionPanel({
   task,
   initialSubmissions,
   publicationId,
   viewerUserId,
+  compositeDraft,
+  onCompositeDraftChange,
+  evaluationModeLabel,
+  preferredControllerMethod,
 }: {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
   publicationId?: string;
   viewerUserId?: string;
+  compositeDraft?: CompositeSubmissionDraft;
+  onCompositeDraftChange?: (draft: CompositeSubmissionDraft) => void;
+  evaluationModeLabel?: string;
+  preferredControllerMethod?: EvaluableControllerMethod;
 }) {
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [kp, setKp] = useState('2.4');
@@ -38,10 +62,9 @@ export function ArenaSubmissionPanel({
   const [gain, setGain] = useState('2');
   const [zero, setZero] = useState('1');
   const [pole, setPole] = useState('4');
-  const [prefilterGain, setPrefilterGain] = useState('0.9');
-  const [forwardGain, setForwardGain] = useState('2.2');
-  const [localFeedbackGain, setLocalFeedbackGain] = useState('0.7');
-  const [disturbanceCompensation, setDisturbanceCompensation] = useState('0.4');
+  const [localCompositeDraft, setLocalCompositeDraft] = useState<CompositeSubmissionDraft>(
+    compositeDraft ?? DEFAULT_COMPOSITE_SUBMISSION_DRAFT,
+  );
   const [predictionHorizon, setPredictionHorizon] = useState('18');
   const [controlHorizon, setControlHorizon] = useState('5');
   const [outputWeight, setOutputWeight] = useState('1.4');
@@ -57,10 +80,24 @@ export function ArenaSubmissionPanel({
   const [status, setStatus] = useState<string | null>(null);
   const [preview, setPreview] = useState<ArenaWorkbenchPreview | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
-  const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(evaluableMethods[0] ?? 'pid');
+  const [controllerMethod, setControllerMethod] = useState<EvaluableControllerMethod>(
+    preferredControllerMethod && evaluableMethods.includes(preferredControllerMethod)
+      ? preferredControllerMethod
+      : evaluableMethods[0] ?? 'pid',
+  );
   const [leaderboardType, setLeaderboardType] = useState<LeaderboardType>(task.leaderboardTypes[0] ?? 'main');
   const [metricId, setMetricId] = useState(task.primaryMetrics[0] ?? '');
   const [method, setMethod] = useState(task.allowedMethods[0] ?? 'pid');
+  const isCompositeDraftControlled = Boolean(compositeDraft && onCompositeDraftChange);
+  const activeCompositeDraft = isCompositeDraftControlled ? compositeDraft! : localCompositeDraft;
+  const updateCompositeDraft = (field: keyof CompositeSubmissionDraft) => (value: string) => {
+    const nextDraft = { ...activeCompositeDraft, [field]: value };
+    if (isCompositeDraftControlled) {
+      onCompositeDraftChange!(nextDraft);
+    } else {
+      setLocalCompositeDraft(nextDraft);
+    }
+  };
   const personalSubmissions = viewerUserId
     ? submissions.filter((submission) => submission.userId === viewerUserId)
     : [];
@@ -84,10 +121,11 @@ export function ArenaSubmissionPanel({
     gain,
     zero,
     pole,
-    prefilterGain,
-    forwardGain,
-    localFeedbackGain,
-    disturbanceCompensation,
+    prefilterGain: activeCompositeDraft.prefilterGain,
+    forwardGain: activeCompositeDraft.forwardGain,
+    localFeedbackGain: activeCompositeDraft.localFeedbackGain,
+    disturbanceCompensation: activeCompositeDraft.disturbanceCompensation,
+    controlLimit: activeCompositeDraft.controlLimit,
     predictionHorizon,
     controlHorizon,
     outputWeight,
@@ -203,6 +241,11 @@ export function ArenaSubmissionPanel({
       <p className="mt-2 text-sm leading-6 text-subtle">
         提交控制器参数后，平台会执行官方评测并写入真实排行榜记录。
       </p>
+      {evaluationModeLabel ? (
+        <p className="mt-2 text-xs leading-5 text-subtle">
+          当前复合校正采用{evaluationModeLabel}，结构参数通过同一提交通道生成官方评测记录。
+        </p>
+      ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         {evaluableMethods.map((allowedMethod) => (
           <button
@@ -272,10 +315,11 @@ export function ArenaSubmissionPanel({
           gain,
           zero,
           pole,
-          prefilterGain,
-          forwardGain,
-          localFeedbackGain,
-          disturbanceCompensation,
+          prefilterGain: activeCompositeDraft.prefilterGain,
+          forwardGain: activeCompositeDraft.forwardGain,
+          localFeedbackGain: activeCompositeDraft.localFeedbackGain,
+          disturbanceCompensation: activeCompositeDraft.disturbanceCompensation,
+          controlLimit: activeCompositeDraft.controlLimit,
           predictionHorizon,
           controlHorizon,
           outputWeight,
@@ -296,10 +340,11 @@ export function ArenaSubmissionPanel({
           setGain,
           setZero,
           setPole,
-          setPrefilterGain,
-          setForwardGain,
-          setLocalFeedbackGain,
-          setDisturbanceCompensation,
+          setPrefilterGain: updateCompositeDraft('prefilterGain'),
+          setForwardGain: updateCompositeDraft('forwardGain'),
+          setLocalFeedbackGain: updateCompositeDraft('localFeedbackGain'),
+          setDisturbanceCompensation: updateCompositeDraft('disturbanceCompensation'),
+          setControlLimit: updateCompositeDraft('controlLimit'),
           setPredictionHorizon,
           setControlHorizon,
           setOutputWeight,
@@ -454,6 +499,7 @@ interface ControllerInputValues {
   forwardGain: string;
   localFeedbackGain: string;
   disturbanceCompensation: string;
+  controlLimit: string;
   predictionHorizon: string;
   controlHorizon: string;
   outputWeight: string;
@@ -479,6 +525,7 @@ interface ControllerInputSetters {
   setForwardGain: (value: string) => void;
   setLocalFeedbackGain: (value: string) => void;
   setDisturbanceCompensation: (value: string) => void;
+  setControlLimit: (value: string) => void;
   setPredictionHorizon: (value: string) => void;
   setControlHorizon: (value: string) => void;
   setOutputWeight: (value: string) => void;
@@ -528,6 +575,7 @@ function controllerValues(
     forwardGain: values.forwardGain,
     localFeedbackGain: values.localFeedbackGain,
     disturbanceCompensation: values.disturbanceCompensation,
+    controlLimit: values.controlLimit,
   };
 }
 
@@ -587,15 +635,16 @@ function ControllerParamInputs({
   }
 
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-4">
-      <NumberInput label="Prefilter" value={values.prefilterGain} onChange={setters.setPrefilterGain} />
-      <NumberInput label="Forward" value={values.forwardGain} onChange={setters.setForwardGain} />
-      <NumberInput label="Local feedback" value={values.localFeedbackGain} onChange={setters.setLocalFeedbackGain} />
+    <div className="mt-4 grid gap-3 sm:grid-cols-5">
+      <NumberInput label="前置滤波增益" value={values.prefilterGain} onChange={setters.setPrefilterGain} />
+      <NumberInput label="前馈增益" value={values.forwardGain} onChange={setters.setForwardGain} />
+      <NumberInput label="局部反馈增益" value={values.localFeedbackGain} onChange={setters.setLocalFeedbackGain} />
       <NumberInput
-        label="Disturbance"
+        label="扰动补偿"
         value={values.disturbanceCompensation}
         onChange={setters.setDisturbanceCompensation}
       />
+      <NumberInput label="控制限幅" value={values.controlLimit} onChange={setters.setControlLimit} />
     </div>
   );
 }
