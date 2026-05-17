@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BarChart3, PlayCircle, Send } from 'lucide-react';
 
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
+import { formatArenaMetric } from '../display-labels';
 import type { ArenaSubmissionRecord } from './submission-service';
 import type { ChallengeTask, LeaderboardType } from '../types';
 import {
@@ -28,6 +29,21 @@ export interface CompositeSubmissionDraft {
   controlLimit: string;
 }
 
+export interface PredictiveSubmissionDraft {
+  predictionHorizon: string;
+  controlHorizon: string;
+  outputWeight: string;
+  controlWeight: string;
+  terminalWeight: string;
+  inputLimit: string;
+  sampleTime: string;
+  speedWeight: string;
+  energyWeight: string;
+  robustnessWeight: string;
+  overshootWeight: string;
+  searchBudget: string;
+}
+
 const DEFAULT_COMPOSITE_SUBMISSION_DRAFT: CompositeSubmissionDraft = {
   prefilterGain: '0.90',
   forwardGain: '2.20',
@@ -36,6 +52,26 @@ const DEFAULT_COMPOSITE_SUBMISSION_DRAFT: CompositeSubmissionDraft = {
   controlLimit: '4.50',
 };
 
+const DEFAULT_PREDICTIVE_SUBMISSION_DRAFT: PredictiveSubmissionDraft = {
+  predictionHorizon: '18',
+  controlHorizon: '5',
+  outputWeight: '1.40',
+  controlWeight: '0.32',
+  terminalWeight: '2.00',
+  inputLimit: '4.50',
+  sampleTime: '0.10',
+  speedWeight: '1.20',
+  energyWeight: '0.70',
+  robustnessWeight: '1.40',
+  overshootWeight: '0.90',
+  searchBudget: '80',
+};
+
+export function getPreviewMetricIds(task: ChallengeTask, officialOnlyMetricIds: string[] = []): string[] {
+  const officialOnlyMetricSet = new Set(officialOnlyMetricIds);
+  return task.primaryMetrics.filter((metricId) => !officialOnlyMetricSet.has(metricId));
+}
+
 export function ArenaSubmissionPanel({
   task,
   initialSubmissions,
@@ -43,6 +79,9 @@ export function ArenaSubmissionPanel({
   viewerUserId,
   compositeDraft,
   onCompositeDraftChange,
+  predictiveDraft,
+  onPredictiveDraftChange,
+  officialOnlyMetricIds = [],
   evaluationModeLabel,
   preferredControllerMethod,
 }: {
@@ -52,6 +91,9 @@ export function ArenaSubmissionPanel({
   viewerUserId?: string;
   compositeDraft?: CompositeSubmissionDraft;
   onCompositeDraftChange?: (draft: CompositeSubmissionDraft) => void;
+  predictiveDraft?: PredictiveSubmissionDraft;
+  onPredictiveDraftChange?: (draft: PredictiveSubmissionDraft) => void;
+  officialOnlyMetricIds?: string[];
   evaluationModeLabel?: string;
   preferredControllerMethod?: EvaluableControllerMethod;
 }) {
@@ -65,18 +107,9 @@ export function ArenaSubmissionPanel({
   const [localCompositeDraft, setLocalCompositeDraft] = useState<CompositeSubmissionDraft>(
     compositeDraft ?? DEFAULT_COMPOSITE_SUBMISSION_DRAFT,
   );
-  const [predictionHorizon, setPredictionHorizon] = useState('18');
-  const [controlHorizon, setControlHorizon] = useState('5');
-  const [outputWeight, setOutputWeight] = useState('1.4');
-  const [controlWeight, setControlWeight] = useState('0.32');
-  const [terminalWeight, setTerminalWeight] = useState('2');
-  const [inputLimit, setInputLimit] = useState('4.5');
-  const [sampleTime, setSampleTime] = useState('0.1');
-  const [speedWeight, setSpeedWeight] = useState('1.2');
-  const [energyWeight, setEnergyWeight] = useState('0.7');
-  const [robustnessWeight, setRobustnessWeight] = useState('1.4');
-  const [overshootWeight, setOvershootWeight] = useState('0.9');
-  const [searchBudget, setSearchBudget] = useState('80');
+  const [localPredictiveDraft, setLocalPredictiveDraft] = useState<PredictiveSubmissionDraft>(
+    predictiveDraft ?? DEFAULT_PREDICTIVE_SUBMISSION_DRAFT,
+  );
   const [status, setStatus] = useState<string | null>(null);
   const [preview, setPreview] = useState<ArenaWorkbenchPreview | null>(null);
   const evaluableMethods = getEvaluableControllerMethods(task);
@@ -90,12 +123,22 @@ export function ArenaSubmissionPanel({
   const [method, setMethod] = useState(task.allowedMethods[0] ?? 'pid');
   const isCompositeDraftControlled = Boolean(compositeDraft && onCompositeDraftChange);
   const activeCompositeDraft = isCompositeDraftControlled ? compositeDraft! : localCompositeDraft;
+  const isPredictiveDraftControlled = Boolean(predictiveDraft && onPredictiveDraftChange);
+  const activePredictiveDraft = isPredictiveDraftControlled ? predictiveDraft! : localPredictiveDraft;
   const updateCompositeDraft = (field: keyof CompositeSubmissionDraft) => (value: string) => {
     const nextDraft = { ...activeCompositeDraft, [field]: value };
     if (isCompositeDraftControlled) {
       onCompositeDraftChange!(nextDraft);
     } else {
       setLocalCompositeDraft(nextDraft);
+    }
+  };
+  const updatePredictiveDraft = (field: keyof PredictiveSubmissionDraft) => (value: string) => {
+    const nextDraft = { ...activePredictiveDraft, [field]: value };
+    if (isPredictiveDraftControlled) {
+      onPredictiveDraftChange!(nextDraft);
+    } else {
+      setLocalPredictiveDraft(nextDraft);
     }
   };
   const personalSubmissions = viewerUserId
@@ -107,6 +150,10 @@ export function ArenaSubmissionPanel({
     availableLeaderboardTypes.includes(leaderboardType)
     ? leaderboardType
     : availableLeaderboardTypes[0] ?? 'main';
+  const previewMetricIds = getPreviewMetricIds(task, officialOnlyMetricIds);
+  const officialOnlyMetricSet = new Set(officialOnlyMetricIds);
+  const officialOnlyPreviewMetricIds = task.primaryMetrics.filter((metricId) => officialOnlyMetricSet.has(metricId));
+  const hasOfficialOnlyPreviewMetrics = officialOnlyPreviewMetricIds.length > 0;
   const leaderboard = buildArenaLeaderboard(submissions, {
     taskId: task.id,
     type: selectedLeaderboardType,
@@ -126,18 +173,18 @@ export function ArenaSubmissionPanel({
     localFeedbackGain: activeCompositeDraft.localFeedbackGain,
     disturbanceCompensation: activeCompositeDraft.disturbanceCompensation,
     controlLimit: activeCompositeDraft.controlLimit,
-    predictionHorizon,
-    controlHorizon,
-    outputWeight,
-    controlWeight,
-    terminalWeight,
-    inputLimit,
-    sampleTime,
-    speedWeight,
-    energyWeight,
-    robustnessWeight,
-    overshootWeight,
-    searchBudget,
+    predictionHorizon: activePredictiveDraft.predictionHorizon,
+    controlHorizon: activePredictiveDraft.controlHorizon,
+    outputWeight: activePredictiveDraft.outputWeight,
+    controlWeight: activePredictiveDraft.controlWeight,
+    terminalWeight: activePredictiveDraft.terminalWeight,
+    inputLimit: activePredictiveDraft.inputLimit,
+    sampleTime: activePredictiveDraft.sampleTime,
+    speedWeight: activePredictiveDraft.speedWeight,
+    energyWeight: activePredictiveDraft.energyWeight,
+    robustnessWeight: activePredictiveDraft.robustnessWeight,
+    overshootWeight: activePredictiveDraft.overshootWeight,
+    searchBudget: activePredictiveDraft.searchBudget,
   });
 
   const runLocalPreview = async () => {
@@ -243,7 +290,7 @@ export function ArenaSubmissionPanel({
       </p>
       {evaluationModeLabel ? (
         <p className="mt-2 text-xs leading-5 text-subtle">
-          当前复合校正采用{evaluationModeLabel}，结构参数通过同一提交通道生成官方评测记录。
+          当前任务采用{evaluationModeLabel}，模板参数通过同一提交通道生成官方评测记录。
         </p>
       ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
@@ -320,18 +367,18 @@ export function ArenaSubmissionPanel({
           localFeedbackGain: activeCompositeDraft.localFeedbackGain,
           disturbanceCompensation: activeCompositeDraft.disturbanceCompensation,
           controlLimit: activeCompositeDraft.controlLimit,
-          predictionHorizon,
-          controlHorizon,
-          outputWeight,
-          controlWeight,
-          terminalWeight,
-          inputLimit,
-          sampleTime,
-          speedWeight,
-          energyWeight,
-          robustnessWeight,
-          overshootWeight,
-          searchBudget,
+          predictionHorizon: activePredictiveDraft.predictionHorizon,
+          controlHorizon: activePredictiveDraft.controlHorizon,
+          outputWeight: activePredictiveDraft.outputWeight,
+          controlWeight: activePredictiveDraft.controlWeight,
+          terminalWeight: activePredictiveDraft.terminalWeight,
+          inputLimit: activePredictiveDraft.inputLimit,
+          sampleTime: activePredictiveDraft.sampleTime,
+          speedWeight: activePredictiveDraft.speedWeight,
+          energyWeight: activePredictiveDraft.energyWeight,
+          robustnessWeight: activePredictiveDraft.robustnessWeight,
+          overshootWeight: activePredictiveDraft.overshootWeight,
+          searchBudget: activePredictiveDraft.searchBudget,
         }}
         setters={{
           setKp,
@@ -345,18 +392,18 @@ export function ArenaSubmissionPanel({
           setLocalFeedbackGain: updateCompositeDraft('localFeedbackGain'),
           setDisturbanceCompensation: updateCompositeDraft('disturbanceCompensation'),
           setControlLimit: updateCompositeDraft('controlLimit'),
-          setPredictionHorizon,
-          setControlHorizon,
-          setOutputWeight,
-          setControlWeight,
-          setTerminalWeight,
-          setInputLimit,
-          setSampleTime,
-          setSpeedWeight,
-          setEnergyWeight,
-          setRobustnessWeight,
-          setOvershootWeight,
-          setSearchBudget,
+          setPredictionHorizon: updatePredictiveDraft('predictionHorizon'),
+          setControlHorizon: updatePredictiveDraft('controlHorizon'),
+          setOutputWeight: updatePredictiveDraft('outputWeight'),
+          setControlWeight: updatePredictiveDraft('controlWeight'),
+          setTerminalWeight: updatePredictiveDraft('terminalWeight'),
+          setInputLimit: updatePredictiveDraft('inputLimit'),
+          setSampleTime: updatePredictiveDraft('sampleTime'),
+          setSpeedWeight: updatePredictiveDraft('speedWeight'),
+          setEnergyWeight: updatePredictiveDraft('energyWeight'),
+          setRobustnessWeight: updatePredictiveDraft('robustnessWeight'),
+          setOvershootWeight: updatePredictiveDraft('overshootWeight'),
+          setSearchBudget: updatePredictiveDraft('searchBudget'),
         }}
       />
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -381,13 +428,15 @@ export function ArenaSubmissionPanel({
       {preview ? (
         <div className="mt-4 rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-subtle">工作台仿真得分</span>
+            <span className="text-subtle">{hasOfficialOnlyPreviewMetrics ? '工作台本地预览' : '工作台仿真得分'}</span>
             <span className="font-semibold text-primary">
-              {preview.evaluation.score.toFixed(1)} · {preview.evaluation.valid ? '达标' : '未达标'}
+              {hasOfficialOnlyPreviewMetrics
+                ? '本地预览不计算官方总分'
+                : `${preview.evaluation.score.toFixed(1)} · ${preview.evaluation.valid ? '达标' : '未达标'}`}
             </span>
           </div>
           <div className="mt-3 grid gap-2">
-            {task.primaryMetrics.map((metricId) => {
+            {previewMetricIds.map((metricId) => {
               const metricDelta = preview.comparison?.metricDeltas.find((delta) => delta.metricId === metricId);
               return (
                 <div key={metricId} className="grid gap-1 rounded-md border border-border/60 bg-background/45 px-2 py-1 text-xs sm:grid-cols-[1fr_auto]">
@@ -401,9 +450,17 @@ export function ArenaSubmissionPanel({
                 </div>
               );
             })}
+            {officialOnlyPreviewMetricIds.map((metricId) => (
+              <div key={metricId} className="grid gap-1 rounded-md border border-border/60 bg-background/45 px-2 py-1 text-xs sm:grid-cols-[1fr_auto]">
+                <span className="text-subtle">{formatArenaMetric(metricId)}</span>
+                <span className="text-right text-muted-foreground">仅官方评测后显示</span>
+              </div>
+            ))}
           </div>
           <div className="mt-3 text-xs text-subtle">
-            方案比较：{preview.comparison ? formatScoreDelta(preview.comparison.scoreDelta) : '暂无真实提交可比较'}
+            方案比较：{hasOfficialOnlyPreviewMetrics
+              ? '隐藏场景指标仅官方评测后参与总分'
+              : preview.comparison ? formatScoreDelta(preview.comparison.scoreDelta) : '暂无真实提交可比较'}
           </div>
         </div>
       ) : null}
@@ -611,13 +668,13 @@ function ControllerParamInputs({
   if (method === 'mpc') {
     return (
       <div className="mt-4 grid gap-3 sm:grid-cols-4">
-        <NumberInput label="Prediction horizon" value={values.predictionHorizon} onChange={setters.setPredictionHorizon} />
-        <NumberInput label="Control horizon" value={values.controlHorizon} onChange={setters.setControlHorizon} />
-        <NumberInput label="Output weight" value={values.outputWeight} onChange={setters.setOutputWeight} />
-        <NumberInput label="Control weight" value={values.controlWeight} onChange={setters.setControlWeight} />
-        <NumberInput label="Terminal weight" value={values.terminalWeight} onChange={setters.setTerminalWeight} />
-        <NumberInput label="Input limit" value={values.inputLimit} onChange={setters.setInputLimit} />
-        <NumberInput label="Sample time" value={values.sampleTime} onChange={setters.setSampleTime} />
+        <NumberInput label="预测时域" value={values.predictionHorizon} onChange={setters.setPredictionHorizon} />
+        <NumberInput label="控制时域" value={values.controlHorizon} onChange={setters.setControlHorizon} />
+        <NumberInput label="输出误差权重" value={values.outputWeight} onChange={setters.setOutputWeight} />
+        <NumberInput label="控制量权重" value={values.controlWeight} onChange={setters.setControlWeight} />
+        <NumberInput label="终端权重" value={values.terminalWeight} onChange={setters.setTerminalWeight} />
+        <NumberInput label="输入限幅" value={values.inputLimit} onChange={setters.setInputLimit} />
+        <NumberInput label="采样时间" value={values.sampleTime} onChange={setters.setSampleTime} />
       </div>
     );
   }
@@ -625,11 +682,11 @@ function ControllerParamInputs({
   if (method === 'optimized-pid') {
     return (
       <div className="mt-4 grid gap-3 sm:grid-cols-5">
-        <NumberInput label="Speed weight" value={values.speedWeight} onChange={setters.setSpeedWeight} />
-        <NumberInput label="Energy weight" value={values.energyWeight} onChange={setters.setEnergyWeight} />
-        <NumberInput label="Robustness" value={values.robustnessWeight} onChange={setters.setRobustnessWeight} />
-        <NumberInput label="Overshoot" value={values.overshootWeight} onChange={setters.setOvershootWeight} />
-        <NumberInput label="Search budget" value={values.searchBudget} onChange={setters.setSearchBudget} />
+        <NumberInput label="速度权重" value={values.speedWeight} onChange={setters.setSpeedWeight} />
+        <NumberInput label="能量权重" value={values.energyWeight} onChange={setters.setEnergyWeight} />
+        <NumberInput label="鲁棒权重" value={values.robustnessWeight} onChange={setters.setRobustnessWeight} />
+        <NumberInput label="超调权重" value={values.overshootWeight} onChange={setters.setOvershootWeight} />
+        <NumberInput label="搜索预算" value={values.searchBudget} onChange={setters.setSearchBudget} />
       </div>
     );
   }

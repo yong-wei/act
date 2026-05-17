@@ -18,6 +18,7 @@ import {
 import { ClassicFourViewPreset } from '../presets/classic-four-view-preset';
 import { BlackBoxIdentificationPreset } from '../presets/blackbox-identification-preset';
 import { CompositeControlPreset } from '../presets/composite-control-preset';
+import { PredictiveControlPreset } from '../presets/predictive-control-preset';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -56,10 +57,12 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
   const showClassicPreset = session.defaultPreset === 'classic-whitebox' && 'taskId' in session;
   const showBlackBoxPreset = session.defaultPreset === 'blackbox-identification' && 'taskId' in session;
   const showCompositePreset = session.defaultPreset === 'composite-control' && 'taskId' in session;
+  const showPredictivePreset = session.defaultPreset === 'predictive-control' && 'taskId' in session;
   const showArenaSubmissionMount = 'recommendedWorkspaceMode' in session
     && session.defaultPreset !== 'classic-whitebox'
     && session.defaultPreset !== 'blackbox-identification'
-    && session.defaultPreset !== 'composite-control';
+    && session.defaultPreset !== 'composite-control'
+    && session.defaultPreset !== 'predictive-control';
   const resetViewConfig = (viewId: WorkbenchViewId) => {
     const fallback = defaultViewConfigs.find((config) => config.id === viewId);
     setViewConfigs((current) => ({
@@ -234,6 +237,11 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
           {showCompositePreset ? (
             <div className="mt-6">
               <CompositeControlPreset session={session} viewConfigs={viewConfigs} />
+            </div>
+          ) : null}
+          {showPredictivePreset ? (
+            <div className="mt-6">
+              <PredictiveControlPreset session={session} viewConfigs={viewConfigs} />
             </div>
           ) : null}
           {showArenaSubmissionMount && 'recommendedWorkspaceMode' in session ? (

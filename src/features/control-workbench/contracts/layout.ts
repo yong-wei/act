@@ -5,6 +5,7 @@ export type WorkbenchPresetId =
   | 'classic-whitebox'
   | 'blackbox-identification'
   | 'composite-control'
+  | 'predictive-control'
   | 'assignment-guided'
   | 'odyssey'
   | 'free-explore';
@@ -54,4 +55,16 @@ export const COMPOSITE_CONTROL_LAYOUT_PRESET: WorkbenchLayoutPreset = {
     { id: 'metric-summary', title: '结构与指标摘要', enabled: true },
   ],
   methodPanelIds: ['composite-compensation', 'serial-compensator'],
+};
+
+export const PREDICTIVE_CONTROL_LAYOUT_PRESET: WorkbenchLayoutPreset = {
+  id: 'predictive-control',
+  label: '预测控制工作台',
+  defaultViewId: 'time-domain',
+  viewConfigs: [
+    { id: 'time-domain', title: '模板预览', enabled: true },
+    { id: 'control-effort', title: '控制量与约束', enabled: true },
+    { id: 'metric-summary', title: '官方指标摘要', enabled: true },
+  ],
+  methodPanelIds: ['mpc', 'optimized-pid'],
 };

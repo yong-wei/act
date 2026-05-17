@@ -56,8 +56,21 @@ function hasModelSource(session: WorkbenchSessionContext) {
   return hasPublicTransferFunction(session) || hasNominalModel(session);
 }
 
-function hasControllerSource(session: WorkbenchSessionContext) {
+function hasClassicalCorrectionSource(session: WorkbenchSessionContext) {
   return session.allowedMethods.includes('serial-compensator') || session.allowedMethods.includes('pid');
+}
+
+function hasResponsePreviewControllerSource(session: WorkbenchSessionContext) {
+  return hasClassicalCorrectionSource(session)
+    || session.allowedMethods.includes('composite-compensation')
+    || session.allowedMethods.includes('mpc')
+    || session.allowedMethods.includes('optimized-pid');
+}
+
+function hasControlEffortSource(session: WorkbenchSessionContext) {
+  return session.allowedMethods.includes('composite-compensation')
+    || session.allowedMethods.includes('mpc')
+    || session.allowedMethods.includes('optimized-pid');
 }
 
 function modelAvailability(session: WorkbenchSessionContext): WorkbenchViewAvailability {
@@ -87,7 +100,7 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     getAvailability: () => ({ available: true }),
     getOptions: (session) => {
       const modelReady = hasModelSource(session);
-      const controllerReady = hasControllerSource(session);
+      const controllerReady = hasResponsePreviewControllerSource(session);
       return [
         enabledOption('reference', '参考输入'),
         modelReady
@@ -106,7 +119,7 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     getAvailability: modelAvailability,
     getOptions: (session) => {
       const modelReady = hasModelSource(session);
-      const controllerReady = hasControllerSource(session);
+      const controllerReady = hasClassicalCorrectionSource(session);
       return [
         modelReady
           ? enabledOption('uncorrected-open-loop', '未校正开环')
@@ -126,7 +139,7 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     getAvailability: modelAvailability,
     getOptions: (session) => {
       const modelReady = hasModelSource(session);
-      const controllerReady = hasControllerSource(session);
+      const controllerReady = hasClassicalCorrectionSource(session);
       return [
         modelReady
           ? enabledOption('uncorrected-root-locus', '未校正根轨迹')
@@ -146,7 +159,7 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     getAvailability: modelAvailability,
     getOptions: (session) => {
       const modelReady = hasModelSource(session);
-      const controllerReady = hasControllerSource(session);
+      const controllerReady = hasClassicalCorrectionSource(session);
       return [
         modelReady
           ? enabledOption('uncorrected-open-loop', '未校正开环')
@@ -204,7 +217,7 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     title: '控制量',
     getAvailability: () => ({ available: true }),
     getOptions: (session) => [
-      session.allowedMethods.includes('composite-compensation') || session.allowedMethods.includes('mpc')
+      hasControlEffortSource(session)
         ? enabledOption('control-effort-estimate', '控制量估计')
         : disabledOption('control-effort-estimate', '控制量估计', '当前方法没有控制量估计。'),
     ],
@@ -259,6 +272,11 @@ const DEFAULT_VIEW_CONFIGS: Record<WorkbenchPresetId, WorkbenchViewConfig[]> = {
     { id: 'response-comparison', title: '响应与扰动对照', enabled: true, selectedOptions: ['virtual-preview-response', 'disturbance-rejection-response'] },
     { id: 'control-effort', title: '控制量', enabled: true, selectedOptions: ['control-effort-estimate'] },
     { id: 'metric-summary', title: '结构与指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
+  ],
+  'predictive-control': [
+    { id: 'time-domain', title: '模板预览', enabled: true, selectedOptions: ['reference', 'corrected-output'] },
+    { id: 'control-effort', title: '控制量与约束', enabled: true, selectedOptions: ['control-effort-estimate'] },
+    { id: 'metric-summary', title: '官方指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
   ],
   'assignment-guided': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   odyssey: [

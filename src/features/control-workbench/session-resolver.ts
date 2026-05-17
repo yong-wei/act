@@ -20,6 +20,7 @@ const WORKSPACE_PRESET_MAP: Record<string, WorkbenchPresetId> = {
   'classic-whitebox': 'classic-whitebox',
   'multi-representation-linkage': 'classic-whitebox',
   'block-diagram-workbench': 'composite-control',
+  'predictive-control': 'predictive-control',
   'blackbox-identification': 'blackbox-identification',
   'black-box-identification': 'blackbox-identification',
   'assignment-guided': 'assignment-guided',
