@@ -50,14 +50,24 @@ After PR merge:
 
 1. Keep the claim branch until archive is complete.
 2. Fast-forward the claim branch to `origin/main`.
-3. Run `openspec-buddy achieve` / `archive`.
-4. Commit archive update.
-5. Merge archive commit into `main`.
-6. Push `main`.
-7. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
+3. Before moving the change, inspect `openspec/changes/<change_id>/specs/**/spec.md`.
+   If a delta spec adds a capability and `openspec/specs/<capability>/spec.md`
+   does not exist, create the main spec from the delta requirements first.
+4. Validate the synced spec or affected spec set, for example:
+   ```bash
+   openspec validate <capability> --strict
+   ```
+   A failing unrelated spec in `openspec validate --all --strict` is not a reason
+   to edit unrelated capabilities in the current archive commit; record it as
+   existing debt unless the claimed change caused it.
+5. Run `openspec-buddy achieve` / `archive`.
+6. Commit archive update.
+7. Merge archive commit into `main`.
+8. Push `main`.
+9. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
    If the issue is already closed or the Project item is already `Done`, still rerun
    `mark-achieved.sh` to reconcile the label, archive comment, and Project `End`.
-8. Delete the remote claim branch before deleting the local branch. Local `git branch -d`
+10. Delete the remote claim branch before deleting the local branch. Local `git branch -d`
    can reject deletion while the local branch still tracks an older remote claim branch,
    even when the branch is merged to current `HEAD`.
 

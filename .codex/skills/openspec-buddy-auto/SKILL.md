@@ -93,6 +93,13 @@ Do not merge unless all are true:
 - No new review/comment has appeared since the last five-minute wait.
 - The implementation branch contains only the claimed change and required follow-up fixes.
 
+## Learned Rules
+
+- Treat GitHub `reviewThreads` as the source of truth for actionable review state. `latestReviews` can lag behind the latest head commit or report an empty commit oid.
+- Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; after review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
+- Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
+- During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
+
 ## Output
 
 Report:
