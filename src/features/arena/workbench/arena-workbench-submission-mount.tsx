@@ -7,6 +7,7 @@ import { ArenaBlackBoxSubmissionPanel } from '../submissions/arena-blackbox-subm
 import {
   ArenaSubmissionPanel,
   type CompositeSubmissionDraft,
+  type PredictiveSubmissionDraft,
 } from '../submissions/arena-submission-panel';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { WorkspaceMode } from '../types';
@@ -15,12 +16,16 @@ import {
   type EvaluableControllerMethod,
 } from '../submissions/controller-artifact-builder';
 import { resolveArenaWorkbenchContext } from './context';
+import { resolveWorkbenchOfficialOnlyMetricIds } from './official-only-metrics';
 
 export function ArenaWorkbenchSubmissionMount({
   workspaceMode,
   className = 'mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8',
   compositeDraft,
   onCompositeDraftChange,
+  predictiveDraft,
+  onPredictiveDraftChange,
+  officialOnlyMetricIds,
   evaluationModeLabel,
   preferredControllerMethod,
 }: {
@@ -28,6 +33,9 @@ export function ArenaWorkbenchSubmissionMount({
   className?: string;
   compositeDraft?: CompositeSubmissionDraft;
   onCompositeDraftChange?: (draft: CompositeSubmissionDraft) => void;
+  predictiveDraft?: PredictiveSubmissionDraft;
+  onPredictiveDraftChange?: (draft: PredictiveSubmissionDraft) => void;
+  officialOnlyMetricIds?: string[];
   evaluationModeLabel?: string;
   preferredControllerMethod?: EvaluableControllerMethod;
 }) {
@@ -90,6 +98,12 @@ export function ArenaWorkbenchSubmissionMount({
     return null;
   }
 
+  const resolvedOfficialOnlyMetricIds = resolveWorkbenchOfficialOnlyMetricIds({
+    workspaceMode,
+    task: arenaContext.task,
+    explicitMetricIds: officialOnlyMetricIds,
+  });
+
   if (submissions === null) {
     return (
       <div className={className}>
@@ -122,6 +136,9 @@ export function ArenaWorkbenchSubmissionMount({
         viewerUserId={viewerUserId}
         compositeDraft={compositeDraft}
         onCompositeDraftChange={onCompositeDraftChange}
+        predictiveDraft={predictiveDraft}
+        onPredictiveDraftChange={onPredictiveDraftChange}
+        officialOnlyMetricIds={resolvedOfficialOnlyMetricIds}
         evaluationModeLabel={evaluationModeLabel}
         preferredControllerMethod={preferredControllerMethod}
       />
