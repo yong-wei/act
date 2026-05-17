@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import 'katex/dist/katex.min.css';
+import { InlineMath } from 'react-katex';
 
 import {
   arenaMethodLabels,
@@ -19,6 +21,12 @@ import { ClassicFourViewPreset } from '../presets/classic-four-view-preset';
 import { BlackBoxIdentificationPreset } from '../presets/blackbox-identification-preset';
 import { CompositeControlPreset } from '../presets/composite-control-preset';
 import { PredictiveControlPreset } from '../presets/predictive-control-preset';
+import {
+  getControlWorkbenchObjectGroups,
+  selectControlWorkbenchObject,
+  type WorkbenchObjectGroup,
+  type WorkbenchObjectOption,
+} from '../object-selection';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -43,8 +51,118 @@ function keyedViewConfigs(configs: WorkbenchViewConfig[]) {
   return Object.fromEntries(configs.map((config) => [config.id, config])) as Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 }
 
-function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionContext }) {
+function objectOptionClass(option: WorkbenchObjectOption) {
+  if (option.selected) {
+    return 'border-cyan-600 bg-cyan-50 text-slate-950 shadow-sm dark:border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-50';
+  }
+  if (!option.compatible) {
+    return 'border-amber-300 bg-amber-50 text-amber-950 hover:border-amber-500 dark:border-amber-400/30 dark:bg-amber-950/20 dark:text-amber-100';
+  }
+  return 'border-slate-200 bg-white text-slate-800 hover:border-cyan-500 hover:bg-cyan-50 dark:border-white/10 dark:bg-slate-950/50 dark:text-slate-100 dark:hover:border-cyan-300/80 dark:hover:bg-cyan-950/30';
+}
+
+function ObjectLabels({ labels }: { labels: WorkbenchObjectOption['labels'] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {labels.map((label) => (
+        <span
+          key={`${label.label}:${label.value}`}
+          className="inline-flex min-h-6 items-center rounded-md border border-slate-200 bg-slate-100 px-2 text-[11px] font-medium text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+          aria-label={`${label.label}：${label.value}`}
+        >
+          {label.value}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function WorkbenchObjectSelector({
+  expanded,
+  groups,
+  onSelect,
+  onToggle,
+  selectionError,
+}: {
+  expanded: boolean;
+  groups: WorkbenchObjectGroup[];
+  onSelect: (objectId: string) => void;
+  onToggle: () => void;
+  selectionError: string | null;
+}) {
+  const selectedOption = groups.flatMap((group) => group.options).find((option) => option.selected);
+
+  return (
+    <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-slate-950 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-100" aria-label="对象选择">
+      <button
+        className="flex w-full items-start justify-between gap-3 text-left"
+        type="button"
+        aria-expanded={expanded}
+        onClick={onToggle}
+      >
+        <span>
+          <span className="block text-sm font-semibold">对象选择</span>
+          <span className="mt-1 block text-xs text-slate-600 dark:text-slate-400">{selectedOption?.name ?? '未选择对象'}</span>
+        </span>
+        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-slate-200 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
+          {expanded ? '收' : '展'}
+        </span>
+      </button>
+      {selectedOption ? (
+        <div className="mt-3">
+          <ObjectLabels labels={selectedOption.labels} />
+        </div>
+      ) : null}
+      {selectionError ? (
+        <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/30 dark:text-amber-100" role="status">
+          {selectionError}
+        </p>
+      ) : null}
+      {expanded ? (
+        <div className="mt-4 space-y-4">
+          {groups.map((group) => (
+            <div key={group.id} className="space-y-2">
+              <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400">{group.label}</h3>
+              <div className="grid gap-2">
+                {group.options.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-disabled={false}
+                    data-incompatible={!option.compatible}
+                    className={`rounded-md border p-3 text-left transition ${objectOptionClass(option)}`}
+                    onClick={() => onSelect(option.id)}
+                  >
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-semibold">{option.name}</span>
+                      {option.selected ? <span className="text-xs font-medium text-cyan-700 dark:text-cyan-200">当前</span> : null}
+                    </span>
+                    <span className="mt-2 block text-xs leading-6">
+                      {option.modelLatex ? <InlineMath math={option.modelLatex} /> : option.modelDisplay}
+                    </span>
+                    <span className="mt-2 block">
+                      <ObjectLabels labels={option.labels} />
+                    </span>
+                    {!option.compatible && option.disabledReason ? (
+                      <span className="mt-2 block text-xs text-amber-700 dark:text-amber-200">{option.disabledReason}</span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ResolvedControlWorkbenchShell({ session: initialSession }: { session: WorkbenchSessionContext }) {
+  const [session, setSession] = useState<WorkbenchSessionContext>(initialSession);
+  const [objectSelectorExpanded, setObjectSelectorExpanded] = useState(false);
+  const [objectSelectionError, setObjectSelectionError] = useState<string | null>(null);
   const defaultViewConfigs = useMemo(() => getPresetDefaultViewConfigs(session.defaultPreset), [session.defaultPreset]);
+  const objectGroups = useMemo(() => getControlWorkbenchObjectGroups(session), [session]);
   const [viewConfigs, setViewConfigs] = useState(() => keyedViewConfigs(defaultViewConfigs));
   const taskTitle = 'task' in session ? session.task.title : '综合仿真工作台';
   const objectName = 'object' in session ? session.object.name : '未绑定官方对象';
@@ -63,6 +181,18 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
     && session.defaultPreset !== 'blackbox-identification'
     && session.defaultPreset !== 'composite-control'
     && session.defaultPreset !== 'predictive-control';
+
+  useEffect(() => {
+    setSession(initialSession);
+    setObjectSelectionError(null);
+  }, [initialSession]);
+
+  const selectObject = (objectId: string) => {
+    const result = selectControlWorkbenchObject(session, objectId);
+    setSession(result.session);
+    setObjectSelectionError(result.error ?? null);
+  };
+
   const resetViewConfig = (viewId: WorkbenchViewId) => {
     const fallback = defaultViewConfigs.find((config) => config.id === viewId);
     setViewConfigs((current) => ({
@@ -121,7 +251,14 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
 
       <section className="mx-auto grid max-w-7xl gap-4 px-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="rounded-lg border border-white/10 bg-slate-900/70 p-4">
-          <h2 className="text-base font-semibold">会话状态</h2>
+          <WorkbenchObjectSelector
+            expanded={objectSelectorExpanded}
+            groups={objectGroups}
+            onSelect={selectObject}
+            onToggle={() => setObjectSelectorExpanded((current) => !current)}
+            selectionError={objectSelectionError}
+          />
+          <h2 className="mt-5 text-base font-semibold">会话状态</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div>
               <dt className="text-slate-400">允许方法</dt>
