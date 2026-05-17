@@ -10,6 +10,12 @@ fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$script_dir/ensure-pr-base.sh" "$pr_url"
+
+if [[ "$(gh pr view "$pr_url" --json isDraft --jq '.isDraft')" == "true" ]]; then
+  echo "Buddy PR must be ready for review, not draft: $pr_url" >&2
+  exit 1
+fi
+
 "$script_dir/set-status-label.sh" "$issue_number" "status:in-review"
 
 gh issue comment "$issue_number" --body "PR opened for review: $pr_url"

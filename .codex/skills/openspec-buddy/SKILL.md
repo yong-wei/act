@@ -105,13 +105,15 @@ Steps:
    ```
    This must leave the Project `Status` as `In Progress`.
 9. Invoke `openspec-apply-change` for the matching local OpenSpec change.
-10. After opening a PR, mark the issue in review:
+10. Open a ready PR against `integration`, never a draft PR. After opening
+    the ready PR, mark the issue in review:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-review.sh <issue-number> <pr-url>
    ```
    This first verifies the PR targets `integration`. If the PR targets `main`,
    the script attempts to retarget it to `integration`; if retargeting fails,
-   stop before review/merge. This must leave the Project `Status` as `In Progress`.
+   stop before review/merge. The script also rejects draft PRs. This must leave
+   the Project `Status` as `In Progress`.
 
 If claim verification fails, stop before editing files.
 
@@ -163,6 +165,7 @@ Read only the reference needed for the current mode:
 - Do not treat GitHub Projects as the agent execution source of truth; use issue front matter, labels, assignee, and comments.
 - Do not update `status:*` labels without the Buddy wrapper scripts; Project `Status` must stay synchronized for human-visible coordination.
 - Do not open, review, or merge Buddy PRs against `main`. Retarget them to `integration` or stop.
+- Do not create or submit draft PRs for Buddy changes; PRs must be ready for review when they are handed to the review loop.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
 - Do not bypass the remote branch lock in `claim-change.sh`; label changes alone are not a reliable lock.
 - Do not reclaim `status:claimed` or `status:in-progress` work unless the lease is stale and the branch/PR recovery checks prove it is safe.
