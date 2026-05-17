@@ -39,7 +39,11 @@ Steps:
    - `risk:<low|medium|high>`
    - `mode:<isolated|fixed-branch|stacked|docs-only>`
 5. Create the issue with `gh issue create`.
-6. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
+6. Add the created issue to the default GitHub Project:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/add-issue-to-project.sh <issue-url>
+   ```
+7. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
 
 Do not claim the issue or implement in `propose`.
 
@@ -103,6 +107,7 @@ Read only the reference needed for the current mode:
 
 - `references/issue-template.md`: body template for `propose`
 - `references/metadata-schema.md`: field definitions and validation rules
+- `references/project-coordination.md`: default GitHub Project target for `propose`
 - `references/status-flow.md`: labels and transitions
 
 ## Guardrails
@@ -117,6 +122,7 @@ Read only the reference needed for the current mode:
 ## Output
 
 For `propose`, report the issue URL, `change_id`, labels, and OpenSpec path.
+Also report the GitHub Project item id or state that the issue was already present in the Project.
 
 For `apply`, report the issue, claim branch, dependency status, coupling-group result, and the OpenSpec change being applied.
 
