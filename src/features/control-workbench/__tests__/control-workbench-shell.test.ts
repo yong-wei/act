@@ -42,11 +42,37 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('explore');
+    expect(result.session.object.id).toBe('plant-second-order-underdamped');
     expect(result.session.officialTarget).toBeNull();
-    expect(result.session.workingModel).toBeNull();
+    expect(result.session.workingModel?.sourceObjectId).toBe('plant-second-order-underdamped');
+    expect(result.session.workingModel?.representation.kind).toBe('transfer-function');
     expect(result.session.submissionPolicy.officialEvaluationEnabled).toBe(false);
     expect(result.session.submissionPolicy.leaderboardEnabled).toBe(false);
     expect(result.session.submissionPolicy.disabledReason).toContain('自由探索');
+  });
+
+  it('selects a configured free-explore object from objectId and falls back safely', () => {
+    const selected = resolveControlWorkbenchSession({
+      mode: 'explore',
+      preset: 'classic-four-view',
+      objectId: 'plant-first-order-lag',
+    });
+    const fallback = resolveControlWorkbenchSession({
+      mode: 'explore',
+      preset: 'classic-four-view',
+      objectId: 'missing-object',
+    });
+
+    expect(selected.ok).toBe(true);
+    expect(fallback.ok).toBe(true);
+    if (!selected.ok || !fallback.ok) return;
+
+    expect(selected.session.mode).toBe('explore');
+    expect(selected.session.object.id).toBe('plant-first-order-lag');
+    expect(selected.session.workingModel?.sourceObjectId).toBe('plant-first-order-lag');
+    expect(fallback.session.object.id).toBe('plant-second-order-underdamped');
+    expect('taskId' in selected.session).toBe(false);
+    expect(selected.session.officialTarget).toBeNull();
   });
 
   it('preserves publication id as assignment context', () => {
@@ -141,5 +167,14 @@ describe('control workbench route boundary', () => {
     expect(getControlWorkbenchReturnHref(result.session)).toBe(
       '/arena/challenges/task-second-order-lead-pid?publicationId=pub+1',
     );
+  });
+
+  it('returns free exploration to the cross-domain catalog', () => {
+    const result = resolveControlWorkbenchSession({});
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(getControlWorkbenchReturnHref(result.session)).toBe('/interactive-learning/cross-domain-exploration');
   });
 });

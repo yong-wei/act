@@ -34,7 +34,7 @@ export const arenaMethodLabels: Record<ControllerMethod, string> = {
 };
 
 export const arenaWorkspaceLabels: Record<WorkspaceMode, string> = {
-  'multi-representation-linkage': '多表征联动工作台',
+  'multi-representation-linkage': '综合仿真工作台',
   'block-diagram-workbench': '框图工作台',
   'black-box-identification': '黑箱辨识与控制工作台',
   'predictive-control': '预测控制工作台',
