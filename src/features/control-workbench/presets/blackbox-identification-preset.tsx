@@ -108,6 +108,17 @@ function activeViewLabels(viewConfigs?: ViewConfigMap) {
     .map((config) => config.title);
 }
 
+function isBlackBoxWorkbenchOptionSelected(
+  viewConfigs: ViewConfigMap | undefined,
+  viewId: WorkbenchViewId,
+  optionId: string,
+) {
+  const config = viewConfigs?.[viewId];
+  if (config?.enabled === false) return false;
+  if (!config?.selectedOptions) return true;
+  return config.selectedOptions.includes(optionId);
+}
+
 export function BlackBoxIdentificationPanel({
   task,
   initialSubmissions,
@@ -140,6 +151,32 @@ export function BlackBoxIdentificationPanel({
     method: task.leaderboardTypes.includes('method') ? 'black-box-control' : undefined,
   });
   const viewLabels = activeViewLabels(viewConfigs);
+  const showExperimentDataset = isBlackBoxWorkbenchOptionSelected(
+    viewConfigs,
+    'experiment-dataset',
+    'persisted-experiment-dataset',
+  );
+  const showIdentificationModel = isBlackBoxWorkbenchOptionSelected(
+    viewConfigs,
+    'identification',
+    'student-nominal-model',
+  );
+  const showNominalResponse = isBlackBoxWorkbenchOptionSelected(
+    viewConfigs,
+    'response-comparison',
+    'nominal-model-response',
+  );
+  const showPreviewResponse = isBlackBoxWorkbenchOptionSelected(
+    viewConfigs,
+    'response-comparison',
+    'virtual-preview-response',
+  );
+  const showMetricSummary = isBlackBoxWorkbenchOptionSelected(
+    viewConfigs,
+    'metric-summary',
+    'leaderboard-official-metrics',
+  );
+  const showModelAndResponse = showIdentificationModel || showNominalResponse || showPreviewResponse;
 
   const runExperiment = async () => {
     setStatus('正在运行黑箱实验...');
@@ -359,6 +396,7 @@ export function BlackBoxIdentificationPanel({
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
+          {showExperimentDataset ? (
           <section className="rounded-md border border-white/10 bg-slate-900/60 p-4">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-cyan-200" />
@@ -396,7 +434,9 @@ export function BlackBoxIdentificationPanel({
               </div>
             ) : null}
           </section>
+          ) : null}
 
+          {showModelAndResponse ? (
           <section className="rounded-md border border-white/10 bg-slate-900/60 p-4">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-cyan-200" />
@@ -405,14 +445,16 @@ export function BlackBoxIdentificationPanel({
             <p className="mt-2 text-sm text-slate-300">
               名义模型由当前学生拥有的数据集生成，响应图和频域图均标注为名义结果。
             </p>
-            <button
-              type="button"
-              onClick={saveNominalModel}
-              className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-100 hover:bg-white/10"
-            >
-              <Save className="h-4 w-4" />
-              保存学生名义模型
-            </button>
+            {showIdentificationModel ? (
+              <button
+                type="button"
+                onClick={saveNominalModel}
+                className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-100 hover:bg-white/10"
+              >
+                <Save className="h-4 w-4" />
+                保存学生名义模型
+              </button>
+            ) : null}
             {nominalModel ? (
               <div className="mt-4 grid gap-2 rounded-lg border border-white/10 bg-slate-950/50 p-3 text-xs text-slate-300">
                 <span>模型编号：{nominalModelId(nominalModel)}</span>
@@ -421,6 +463,12 @@ export function BlackBoxIdentificationPanel({
               </div>
             ) : null}
           </section>
+          ) : null}
+          {!showExperimentDataset && !showModelAndResponse ? (
+            <section className="rounded-md border border-white/10 bg-slate-900/60 p-4 text-sm text-slate-300">
+              当前视图配置未启用黑箱实验或名义模型视图。
+            </section>
+          ) : null}
         </div>
 
         <aside className="space-y-4">
@@ -454,7 +502,7 @@ export function BlackBoxIdentificationPanel({
             {status ? <div className="mt-3 text-xs text-slate-300">{status}</div> : null}
           </section>
 
-          {previewRun ? (
+          {previewRun && showPreviewResponse ? (
             <section className="rounded-md border border-cyan-300/20 bg-cyan-950/20 p-4 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-cyan-100">虚拟仿真预演</span>
@@ -474,6 +522,7 @@ export function BlackBoxIdentificationPanel({
             />
           ) : null}
 
+          {showMetricSummary ? (
           <section className="rounded-md border border-white/10 bg-slate-900/60 p-4">
             <h3 className="text-base font-semibold">黑箱榜单摘录</h3>
             <div className="mt-3 grid gap-2">
@@ -490,6 +539,7 @@ export function BlackBoxIdentificationPanel({
               ) : null}
             </div>
           </section>
+          ) : null}
         </aside>
       </div>
     </section>

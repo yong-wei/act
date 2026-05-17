@@ -231,10 +231,10 @@ const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
 const DEFAULT_VIEW_CONFIGS: Record<WorkbenchPresetId, WorkbenchViewConfig[]> = {
   'classic-whitebox': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   'blackbox-identification': [
-    { id: 'experiment-dataset', title: '黑箱实验数据', enabled: true },
-    { id: 'identification', title: '学生名义模型', enabled: true },
-    { id: 'response-comparison', title: '名义模型响应对照', enabled: true },
-    { id: 'metric-summary', title: '指标摘要', enabled: true },
+    { id: 'experiment-dataset', title: '黑箱实验数据', enabled: true, selectedOptions: ['persisted-experiment-dataset'] },
+    { id: 'identification', title: '学生名义模型', enabled: true, selectedOptions: ['student-nominal-model'] },
+    { id: 'response-comparison', title: '名义模型响应对照', enabled: true, selectedOptions: ['nominal-model-response', 'virtual-preview-response'] },
+    { id: 'metric-summary', title: '指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
   ],
   'assignment-guided': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   odyssey: [
