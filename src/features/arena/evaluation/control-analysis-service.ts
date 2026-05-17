@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import type {
   ControlAnalysisRequest,
@@ -13,14 +14,23 @@ export interface ControlAnalysisService {
 
 let controlEnginePromise: Promise<ControlEngineModule> | null = null;
 
+export function getControlEngineWasmPath() {
+  return path.join(
+    process.cwd(),
+    'src',
+    'resources',
+    'control-system',
+    'wasm',
+    'control_engine',
+    'index_bg.wasm',
+  );
+}
+
 async function loadControlEngine(): Promise<ControlEngineModule> {
   if (!controlEnginePromise) {
     controlEnginePromise = (async () => {
       const controlEngine = await import('@/resources/control-system/wasm/control_engine/index.js');
-      const wasmBytes = await readFile(new URL(
-        '../../../resources/control-system/wasm/control_engine/index_bg.wasm',
-        import.meta.url,
-      ));
+      const wasmBytes = await readFile(getControlEngineWasmPath());
       controlEngine.initSync({ module: wasmBytes });
       return controlEngine;
     })();

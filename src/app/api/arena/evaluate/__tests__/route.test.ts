@@ -120,6 +120,21 @@ describe('POST /api/arena/evaluate', () => {
     expect(payload.error).toBe('Arena evaluation failed');
   });
 
+  it('reports pending Arena database migrations as a specific Chinese error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The column `ArenaEvaluationRun.metadata` does not exist in the current database.'),
+      { code: 'P2022', meta: { modelName: 'ArenaEvaluationRun', column: 'ArenaEvaluationRun.metadata' } },
+    );
+    mocks.createPersistedArenaSubmission.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
   it('persists duplicate evaluation reuse through the Arena submission store', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
 

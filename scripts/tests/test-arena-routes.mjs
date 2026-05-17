@@ -44,10 +44,11 @@ assert.equal(
 
 assert.equal(
   detailContent.includes('ArenaPageShell') &&
-    detailContent.includes('`/arena/challenges/${task.id}`') &&
-    detailContent.includes('课程：自动控制原理'),
+    detailContent.includes('首页') &&
+    detailContent.includes('竞技场首页') &&
+    detailContent.includes('task.title'),
   true,
-  '挑战详情页应使用真实路径面包屑和竞技场页面壳层',
+  '挑战详情页应使用首页 > 竞技场首页 > 具体挑战名称面包屑和竞技场页面壳层',
 );
 
 assert.equal(

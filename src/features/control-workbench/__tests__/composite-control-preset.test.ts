@@ -76,6 +76,9 @@ describe('composite control workbench preset', () => {
     expect(shellSource).toContain('CompositeControlPreset');
     expect(shellSource).toContain("session.defaultPreset === 'composite-control'");
     expect(shellSource).toContain("session.defaultPreset !== 'composite-control'");
+    expect(shellSource).toContain('panelInstances={panels}');
+    expect(presetSource).toContain('panelInstances?: WorkbenchPanelInstance[]');
+    expect(presetSource).toContain('selectedPanelLabels(panelInstances)');
     expect(presetSource).toContain('prefilterGain');
     expect(presetSource).toContain('forwardGain');
     expect(presetSource).toContain('localFeedbackGain');

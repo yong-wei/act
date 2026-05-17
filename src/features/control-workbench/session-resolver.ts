@@ -34,7 +34,7 @@ const WORKSPACE_PRESET_MAP: Record<string, WorkbenchPresetId> = {
 };
 
 const WORKSPACE_VIEW_MAP: Record<string, WorkbenchViewId[]> = {
-  'multi-representation-linkage': ['time-domain', 'bode', 'root-locus', 'nyquist', 'metric-summary'],
+  'multi-representation-linkage': ['time-domain', 'bode', 'root-locus', 'nyquist'],
   'black-box-identification': ['experiment-dataset', 'identification', 'response-comparison', 'metric-summary'],
   'block-diagram-workbench': ['time-domain', 'response-comparison', 'control-effort', 'metric-summary'],
   'predictive-control': ['time-domain', 'control-effort', 'metric-summary'],

@@ -49,6 +49,7 @@ export interface MultiRepresentationInitialParams {
   arenaTaskId?: string;
   plantModel?: MultiRepresentationPlantModel;
   publicationId?: string;
+  panelInstances?: MultiRepresentationPanelInstance[];
   viewConfigs?: MultiRepresentationViewConfigs;
 }
 
@@ -77,6 +78,19 @@ export interface MultiRepresentationViewConfig {
 }
 
 export type MultiRepresentationViewConfigs = Partial<Record<MultiRepresentationViewId, MultiRepresentationViewConfig>>;
+
+export interface MultiRepresentationPanelInstance extends MultiRepresentationViewConfig {
+  id: string;
+  viewId: MultiRepresentationViewId;
+  title: string;
+}
+
+export function resolvePanelSelectedOptions(
+  panel: Pick<MultiRepresentationPanelInstance, 'selectedOptions'>,
+  fallbackOptions: Set<string>,
+) {
+  return new Set(Array.isArray(panel.selectedOptions) ? panel.selectedOptions : fallbackOptions);
+}
 
 export interface PoleZeroPoint {
   id: string;

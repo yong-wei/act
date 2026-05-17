@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { resolvePanelSelectedOptions } from '../../interactive/multi-representation-linkage/model';
 import { resolveControlWorkbenchSession } from '../session-resolver';
 import {
+  buildDefaultWorkbenchPanelInstances,
   getPresetDefaultViewConfigs,
   getWorkbenchViewPlugin,
+  keyedViewConfigsFromPanels,
+  toggleWorkbenchPanelOption,
   WORKBENCH_VIEW_PLUGINS,
 } from '../views';
 
@@ -43,9 +47,74 @@ describe('control workbench view configuration', () => {
       'corrected-root-locus',
     ]);
     expect(configs.find((config) => config.id === 'nyquist')?.selectedOptions).toEqual([
-      'uncorrected-open-loop',
       'corrected-open-loop',
     ]);
+  });
+
+  it('builds independent panel instances from preset defaults', () => {
+    const session = getSessionForTask('task-second-order-lead-pid');
+    const panels = buildDefaultWorkbenchPanelInstances(session);
+
+    expect(panels.map((panel) => panel.viewId)).toEqual(['time-domain', 'bode', 'root-locus', 'nyquist']);
+    expect(new Set(panels.map((panel) => panel.id)).size).toBe(panels.length);
+    expect(panels[0]).toMatchObject({
+      viewId: 'time-domain',
+      title: '时域响应',
+      enabled: true,
+    });
+    expect(panels.find((panel) => panel.viewId === 'nyquist')?.selectedOptions).toEqual([
+      'corrected-open-loop',
+    ]);
+  });
+
+  it('keeps same-type panel instances independent when toggling options', () => {
+    const session = getSessionForTask('task-second-order-lead-pid');
+    const [firstBode] = buildDefaultWorkbenchPanelInstances(session).filter((panel) => panel.viewId === 'bode');
+    const duplicateBode = {
+      ...firstBode,
+      id: 'panel-custom-bode',
+      selectedOptions: ['corrected-open-loop'],
+    };
+    const panels = [firstBode, duplicateBode];
+
+    const next = toggleWorkbenchPanelOption(panels, duplicateBode.id, 'correction-device');
+
+    expect(next.find((panel) => panel.id === firstBode.id)?.selectedOptions).toEqual(firstBode.selectedOptions);
+    expect(next.find((panel) => panel.id === duplicateBode.id)?.selectedOptions).toEqual([
+      'corrected-open-loop',
+      'correction-device',
+    ]);
+  });
+
+  it('keeps an explicitly cleared panel empty instead of falling back to defaults', () => {
+    const fallbackOptions = new Set(['corrected-output']);
+
+    expect(Array.from(resolvePanelSelectedOptions({}, fallbackOptions))).toEqual(['corrected-output']);
+    expect(Array.from(resolvePanelSelectedOptions({ selectedOptions: [] }, fallbackOptions))).toEqual([]);
+  });
+
+  it('encodes removed default views as disabled configs for non-classic presets', () => {
+    const session = getSessionForTask('task-cruise-roll-blackbox-identification');
+    const defaults = getPresetDefaultViewConfigs(session.defaultPreset);
+    const panels = buildDefaultWorkbenchPanelInstances(session)
+      .filter((panel) => panel.viewId !== 'identification');
+
+    const configs = keyedViewConfigsFromPanels(panels, defaults);
+
+    expect(configs.identification?.enabled).toBe(false);
+    expect(configs.identification?.selectedOptions).toEqual([]);
+  });
+
+  it('uses single-selection behavior for root-locus and nyquist panels', () => {
+    const session = getSessionForTask('task-second-order-lead-pid');
+    const rootLocus = buildDefaultWorkbenchPanelInstances(session).find((panel) => panel.viewId === 'root-locus')!;
+    const nyquist = buildDefaultWorkbenchPanelInstances(session).find((panel) => panel.viewId === 'nyquist')!;
+
+    const nextRoot = toggleWorkbenchPanelOption([rootLocus], rootLocus.id, 'uncorrected-root-locus');
+    const nextNyquist = toggleWorkbenchPanelOption([nyquist], nyquist.id, 'uncorrected-open-loop');
+
+    expect(nextRoot[0].selectedOptions).toEqual(['uncorrected-root-locus']);
+    expect(nextNyquist[0].selectedOptions).toEqual(['uncorrected-open-loop']);
   });
 
   it('marks root locus unavailable for black-box sessions without a nominal model', () => {
