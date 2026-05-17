@@ -39,10 +39,30 @@ test('multi representation linkage page should not emit chart size warning on fi
   const initialPhaseMargin = ((await phaseMarginValue.textContent()) ?? '').trim();
   await page.getByRole('button', { name: '参数抽屉' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  const gainInput = page.getByLabel('增益 K（闭环极点联动）');
+  const objectTab = page.getByTestId('parameter-drawer-object-tab');
+  const correctionTab = page.getByTestId('parameter-drawer-correction-tab');
+  await expect(objectTab).toHaveAttribute('data-state', 'active');
+  await expect(correctionTab).toHaveAttribute('data-state', 'inactive');
+  await expect(objectTab).toHaveClass(/w-full min-w-0/);
+  await expect(objectTab).toHaveClass(/overflow-hidden/);
+  const objectBoxBefore = await objectTab.boundingBox();
+  const correctionBoxBefore = await correctionTab.boundingBox();
+  expect(objectBoxBefore).not.toBeNull();
+  expect(correctionBoxBefore).not.toBeNull();
+  const gainInput = page.getByLabel('开环增益 K');
   await gainInput.fill('4.500');
   await gainInput.press('Tab');
-  await page.getByRole('button', { name: '校正' }).click();
+  await correctionTab.click();
+  await expect(objectTab).toHaveAttribute('data-state', 'inactive');
+  await expect(correctionTab).toHaveAttribute('data-state', 'active');
+  const objectBoxAfter = await objectTab.boundingBox();
+  const correctionBoxAfter = await correctionTab.boundingBox();
+  expect(objectBoxAfter).not.toBeNull();
+  expect(correctionBoxAfter).not.toBeNull();
+  expect(Math.round(objectBoxAfter!.height)).toBe(Math.round(objectBoxBefore!.height));
+  expect(Math.round(correctionBoxAfter!.height)).toBe(Math.round(correctionBoxBefore!.height));
+  expect(Math.round(objectBoxAfter!.width)).toBe(Math.round(objectBoxBefore!.width));
+  expect(Math.round(correctionBoxAfter!.width)).toBe(Math.round(correctionBoxBefore!.width));
   await page.getByLabel('启用校正').check();
   await page.getByLabel('结构').selectOption('lead');
   await page.keyboard.press('Escape');
@@ -51,8 +71,8 @@ test('multi representation linkage page should not emit chart size warning on fi
     const text = ((await phaseMarginValue.textContent()) ?? '').trim();
     return text !== '--' && text !== initialPhaseMargin;
   }).toBe(true);
-  await expect(page.getByText('校正后 G(s)C(s)K')).toBeVisible();
-  await expect(page.getByText('校正装置 C(s)')).toBeVisible();
+  await expect(page.getByText('校正后开环')).toBeVisible();
+  await expect(page.getByText('校正装置', { exact: true })).toBeVisible();
 
   await page.waitForTimeout(600);
 

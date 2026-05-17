@@ -530,4 +530,30 @@ describe('multi representation linkage analysis adapter', () => {
     expect(drawerSource).not.toContain('DialogContent');
     expect(drawerSource).not.toContain('DialogOverlay');
   });
+
+  it('keeps parameter drawer tabs bounded, theme-aware, and semantically unchanged', () => {
+    const drawerSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
+      'utf8',
+    );
+
+    expect(drawerSource).toContain('const drawerTabBaseClass =');
+    expect(drawerSource).toContain('w-full min-w-0');
+    expect(drawerSource).toContain('overflow-hidden');
+    expect(drawerSource).toContain('transition-colors');
+    expect(drawerSource).toContain('const drawerTabActiveClass =');
+    expect(drawerSource).toContain('bg-cyan-100 text-cyan-950');
+    expect(drawerSource).toContain('dark:bg-cyan-300/20 dark:text-cyan-50');
+    expect(drawerSource).toContain('const drawerTabInactiveClass =');
+    expect(drawerSource).toContain('hover:bg-cyan-50 hover:text-cyan-900');
+    expect(drawerSource).toContain('dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50');
+    expect(drawerSource).toContain('data-testid="parameter-drawer-object-tab"');
+    expect(drawerSource).toContain('data-testid="parameter-drawer-correction-tab"');
+    expect(drawerSource).toContain("data-state={activeTab === 'plant' ? 'active' : 'inactive'}");
+    expect(drawerSource).toContain("data-state={activeTab === 'correction' ? 'active' : 'inactive'}");
+    expect(drawerSource).toContain('className="block max-w-full truncate" title="对象"');
+    expect(drawerSource).toContain('className="block max-w-full truncate" title="校正"');
+    expect(drawerSource).toContain('disabled={isCourseMode || Boolean(isLockedOrCourse)}');
+    expect(drawerSource).toContain('disabled={disabled || !state.enabled}');
+  });
 });
