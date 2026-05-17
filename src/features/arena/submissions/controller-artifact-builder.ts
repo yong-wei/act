@@ -54,6 +54,18 @@ function numberValue(values: Record<string, string>, key: string): number {
   return value;
 }
 
+function optionalNumberValue(values: Record<string, string>, key: string): number | undefined {
+  const rawValue = values[key];
+  if (rawValue === undefined || rawValue.trim() === '') {
+    return undefined;
+  }
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) {
+    throw new Error(`${key} 必须是有限数字。`);
+  }
+  return value;
+}
+
 export function buildControllerArtifactFromParams(input: BuildControllerArtifactInput): ControllerArtifact {
   const createdAt = input.now ?? new Date().toISOString();
   let params: ControllerArtifact['params'];
@@ -80,12 +92,14 @@ export function buildControllerArtifactFromParams(input: BuildControllerArtifact
       searchBudget: numberValue(input.values, 'searchBudget'),
     };
   } else if (input.method === 'composite-compensation') {
+    const controlLimit = optionalNumberValue(input.values, 'controlLimit');
     params = {
       structure: 'prefilter-forward-local-feedback-disturbance',
       prefilterGain: numberValue(input.values, 'prefilterGain'),
       forwardGain: numberValue(input.values, 'forwardGain'),
       localFeedbackGain: numberValue(input.values, 'localFeedbackGain'),
       disturbanceCompensation: numberValue(input.values, 'disturbanceCompensation'),
+      ...(controlLimit === undefined ? {} : { controlLimit }),
     };
   } else {
     params = {

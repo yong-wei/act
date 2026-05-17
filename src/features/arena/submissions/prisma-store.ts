@@ -23,11 +23,23 @@ export interface ArenaSubmissionListOptions {
   includeLegacyProtocols?: boolean;
 }
 
-function isMissingArenaSubmissionTable(error: unknown): boolean {
-  return typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === 'P2021';
+function isMissingArenaSubmissionSchema(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  const prismaError = error as {
+    code?: unknown;
+    meta?: {
+      modelName?: unknown;
+    };
+  };
+  return prismaError.code === 'P2021' ||
+    (
+      process.env.NODE_ENV !== 'production' &&
+      prismaError.code === 'P2022' &&
+      prismaError.meta?.modelName === 'ArenaSubmission'
+    );
 }
 
 function isLocalDatabaseUrlMissing(error: unknown): boolean {
@@ -246,7 +258,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         },
       });
     } catch (error) {
-      if (isMissingArenaSubmissionTable(error) || isLocalDatabaseUrlMissing(error)) {
+      if (isMissingArenaSubmissionSchema(error) || isLocalDatabaseUrlMissing(error)) {
         return [];
       }
       throw error;

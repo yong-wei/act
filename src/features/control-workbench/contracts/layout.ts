@@ -4,6 +4,7 @@ import type { WorkbenchViewConfig, WorkbenchViewId } from './views';
 export type WorkbenchPresetId =
   | 'classic-whitebox'
   | 'blackbox-identification'
+  | 'composite-control'
   | 'assignment-guided'
   | 'odyssey'
   | 'free-explore';
@@ -40,4 +41,17 @@ export const BLACKBOX_IDENTIFICATION_LAYOUT_PRESET: WorkbenchLayoutPreset = {
     { id: 'metric-summary', title: '指标摘要', enabled: true },
   ],
   methodPanelIds: ['experiment-design', 'identification', 'black-box-control', 'metric-review'],
+};
+
+export const COMPOSITE_CONTROL_LAYOUT_PRESET: WorkbenchLayoutPreset = {
+  id: 'composite-control',
+  label: '复合校正工作台',
+  defaultViewId: 'time-domain',
+  viewConfigs: [
+    { id: 'time-domain', title: '时域响应', enabled: true },
+    { id: 'response-comparison', title: '响应与扰动对照', enabled: true },
+    { id: 'control-effort', title: '控制量', enabled: true },
+    { id: 'metric-summary', title: '结构与指标摘要', enabled: true },
+  ],
+  methodPanelIds: ['composite-compensation', 'serial-compensator'],
 };

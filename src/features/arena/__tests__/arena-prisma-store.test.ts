@@ -65,6 +65,7 @@ function submissionRow(id: string, protocolVersion: string, overrides: Partial<C
 describe('prismaArenaSubmissionStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it('returns an empty submission list when Arena tables have not been migrated yet', async () => {
@@ -73,6 +74,32 @@ describe('prismaArenaSubmissionStore', () => {
     }));
 
     await expect(prismaArenaSubmissionStore.listSubmissions()).resolves.toEqual([]);
+  });
+
+  it('returns an empty submission list when Arena submission columns have not been migrated yet', async () => {
+    mocks.prisma.arenaSubmission.findMany.mockRejectedValueOnce(Object.assign(new Error('missing publicationId column'), {
+      code: 'P2022',
+      meta: {
+        modelName: 'ArenaSubmission',
+        column: 'ArenaSubmission.publicationId',
+      },
+    }));
+
+    await expect(prismaArenaSubmissionStore.listSubmissions()).resolves.toEqual([]);
+  });
+
+  it('rethrows missing Arena submission columns in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const error = Object.assign(new Error('missing publicationId column'), {
+      code: 'P2022',
+      meta: {
+        modelName: 'ArenaSubmission',
+        column: 'ArenaSubmission.publicationId',
+      },
+    });
+    mocks.prisma.arenaSubmission.findMany.mockRejectedValueOnce(error);
+
+    await expect(prismaArenaSubmissionStore.listSubmissions()).rejects.toBe(error);
   });
 
   it('returns an empty submission list in local development when DATABASE_URL is missing', async () => {

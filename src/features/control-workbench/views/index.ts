@@ -20,6 +20,8 @@ export type WorkbenchViewOptionId =
   | 'student-nominal-model'
   | 'nominal-model-response'
   | 'virtual-preview-response'
+  | 'disturbance-rejection-response'
+  | 'control-effort-estimate'
   | 'official-hidden-target'
   | 'leaderboard-official-metrics';
 
@@ -186,9 +188,25 @@ export const WORKBENCH_VIEW_PLUGINS: WorkbenchViewPlugin[] = [
     id: 'response-comparison',
     title: '名义模型响应对照',
     getAvailability: () => ({ available: true }),
-    getOptions: () => [
-      enabledOption('nominal-model-response', '学生名义模型响应'),
-      enabledOption('virtual-preview-response', '虚拟仿真预演响应'),
+    getOptions: (session) => {
+      const options = [
+        enabledOption('nominal-model-response', '学生名义模型响应'),
+        enabledOption('virtual-preview-response', '虚拟仿真预演响应'),
+      ];
+      if (session.allowedMethods.includes('composite-compensation')) {
+        options.push(enabledOption('disturbance-rejection-response', '扰动抑制响应'));
+      }
+      return options;
+    },
+  },
+  {
+    id: 'control-effort',
+    title: '控制量',
+    getAvailability: () => ({ available: true }),
+    getOptions: (session) => [
+      session.allowedMethods.includes('composite-compensation') || session.allowedMethods.includes('mpc')
+        ? enabledOption('control-effort-estimate', '控制量估计')
+        : disabledOption('control-effort-estimate', '控制量估计', '当前方法没有控制量估计。'),
     ],
   },
   {
@@ -235,6 +253,12 @@ const DEFAULT_VIEW_CONFIGS: Record<WorkbenchPresetId, WorkbenchViewConfig[]> = {
     { id: 'identification', title: '学生名义模型', enabled: true, selectedOptions: ['student-nominal-model'] },
     { id: 'response-comparison', title: '名义模型响应对照', enabled: true, selectedOptions: ['nominal-model-response', 'virtual-preview-response'] },
     { id: 'metric-summary', title: '指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
+  ],
+  'composite-control': [
+    { id: 'time-domain', title: '时域响应', enabled: true, selectedOptions: ['reference', 'corrected-output'] },
+    { id: 'response-comparison', title: '响应与扰动对照', enabled: true, selectedOptions: ['virtual-preview-response', 'disturbance-rejection-response'] },
+    { id: 'control-effort', title: '控制量', enabled: true, selectedOptions: ['control-effort-estimate'] },
+    { id: 'metric-summary', title: '结构与指标摘要', enabled: true, selectedOptions: ['leaderboard-official-metrics'] },
   ],
   'assignment-guided': CLASSIC_WHITEBOX_VIEW_CONFIGS,
   odyssey: [
