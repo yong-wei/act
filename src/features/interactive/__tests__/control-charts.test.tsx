@@ -599,15 +599,30 @@ describe('control chart shared presets and themes', () => {
     expect(panelSource).toContain('按当前时域范围刷新');
   });
 
-  it('computes a stable-response default y range from 1.1 times the response maximum', () => {
+  it('computes a stable-response default y range from visible extrema with margin', () => {
     const preset = calculateStableResponseAxisPreset([
       { x: 0, y: 0 },
       { x: 1, y: 0.8 },
       { x: 2, y: 1.2 },
     ], true);
 
-    expect(preset).toEqual({ y: [-1.32, 1.32] });
+    expect(preset).toEqual({ y: [-0.12, 1.32] });
+    expect(calculateStableResponseAxisPreset([{ x: 0, y: 5 }, { x: 1, y: 5.001 }], true)).toEqual({
+      y: [4.5, 5.501],
+    });
     expect(calculateStableResponseAxisPreset([{ x: 0, y: 3 }], false)).toBeUndefined();
+  });
+
+  it('uses shared time-domain curve styles for rendered lines and legends', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain('export const TIME_DOMAIN_CURVE_STYLES');
+    expect(panelSource).toContain("reference: { color: '#22c55e', lineType: 'dashed'");
+    expect(panelSource).toContain('lineStyle: { color: panel.style.color, type: panel.style.lineType');
+    expect(panelSource).toContain("icon: panel.style.lineType === 'dashed' ? ROOT_LOCUS_LEGEND_DASHED_LINE_ICON : ROOT_LOCUS_LEGEND_LINE_ICON");
   });
 
   it('lets time-domain charts apply a y-only stable-response preset', () => {

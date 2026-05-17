@@ -39,7 +39,12 @@ describe('control workbench view configuration', () => {
       'corrected-output',
     ]);
     expect(configs.find((config) => config.id === 'root-locus')?.selectedOptions).toEqual([
+      'uncorrected-root-locus',
       'corrected-root-locus',
+    ]);
+    expect(configs.find((config) => config.id === 'nyquist')?.selectedOptions).toEqual([
+      'uncorrected-open-loop',
+      'corrected-open-loop',
     ]);
   });
 

@@ -249,7 +249,7 @@ const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
     id: 'root-locus',
     title: '根轨迹',
     enabled: true,
-    selectedOptions: ['corrected-root-locus'],
+    selectedOptions: ['uncorrected-root-locus', 'corrected-root-locus'],
   },
   {
     id: 'nyquist',

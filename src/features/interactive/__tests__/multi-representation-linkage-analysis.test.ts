@@ -160,7 +160,7 @@ describe('multi representation linkage analysis adapter', () => {
       'utf8',
     );
 
-    expect(pageSource).toContain("onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}");
+    expect(pageSource).toContain("onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}");
     expect(pageSource).not.toContain('onClosedLoopGainCommit={model.setClosedLoopGain}');
   });
 
@@ -485,7 +485,12 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain('onRefreshRange={model.refreshTimeRange}');
     expect(pageSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
     expect(pageSource).toContain("nyquistOptions.has('corrected-open-loop')");
-    expect(pageSource).toContain('<NyquistPanel result={panel.result} />');
+    expect(pageSource).toContain('ClassicSourceSwitch');
+    expect(pageSource).toContain('rootLocusSourceOptions');
+    expect(pageSource).toContain('nyquistSourceOptions');
+    expect(pageSource).toContain("selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []");
+    expect(pageSource).toContain('selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} />');
+    expect(pageSource).not.toContain('<NyquistPanel result={panel.result} />');
   });
 
   it('keeps the previous visible chart result while a new analysis request is pending', () => {
