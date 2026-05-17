@@ -24,7 +24,7 @@ body_file="$tmp_dir/body.md"
 metadata_file="$tmp_dir/metadata.json"
 issues_file="$tmp_dir/issues.json"
 
-gh issue view "$issue_number" --json number,title,labels,assignees,body,url > "$issue_file"
+gh issue view "$issue_number" --json id,number,title,labels,assignees,body,url > "$issue_file"
 node -e 'const fs=require("fs"); const issue=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(issue.body || "");' "$issue_file" > "$body_file"
 node "$script_dir/parse-issue-metadata.mjs" "$body_file" > "$metadata_file"
 
@@ -41,6 +41,60 @@ fi
 if ! node -e 'const fs=require("fs"); const issue=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const labels=issue.labels.map((l)=>l.name); process.exit(labels.includes("status:ready") ? 0 : 1);' "$issue_file"; then
   echo "Issue #$issue_number is not status:ready." >&2
   exit 1
+fi
+
+if node -e 'const fs=require("fs"); const issue=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const labels=issue.labels.map((l)=>l.name); process.exit(labels.includes("type:series-parent") ? 0 : 1);' "$issue_file"; then
+  echo "Issue #$issue_number is a series parent and cannot be claimed." >&2
+  exit 1
+fi
+
+issue_id="$(node -e 'const fs=require("fs"); const issue=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(issue.id);' "$issue_file")"
+blocked_by_file="$tmp_dir/blocked-by.json"
+gh api graphql \
+  -f query='
+query($id: ID!) {
+  node(id: $id) {
+    ... on Issue {
+      blockedBy(first: 40) {
+        nodes { number title state labels(first: 40) { nodes { name } } }
+      }
+    }
+  }
+}' \
+  -f id="$issue_id" > "$blocked_by_file"
+
+if ! node -e '
+const fs = require("fs");
+const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const blockers = data.data.node.blockedBy.nodes.filter((issue) => {
+  const labels = issue.labels.nodes.map((label) => label.name);
+  return issue.state !== "CLOSED" && !labels.includes("status:archived") && !labels.includes("status:merged");
+});
+if (blockers.length > 0) {
+  process.stderr.write(JSON.stringify(blockers.map((issue) => ({ number: issue.number, title: issue.title })), null, 2));
+  process.stderr.write("\n");
+  process.exit(1);
+}
+' "$blocked_by_file"; then
+  echo "Issue #$issue_number still has open blockedBy relationships." >&2
+  exit 1
+fi
+
+if command -v openspec >/dev/null 2>&1; then
+  openspec list --json > "$tmp_dir/openspec-list.json"
+  if ! node -e '
+const fs = require("fs");
+const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const active = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const activeNames = new Set((active.changes || []).map((change) => change.name));
+const unfinished = (metadata.depends_on || []).filter((changeId) => activeNames.has(changeId));
+if (unfinished.length > 0) {
+  process.stderr.write(`depends_on contains active unfinished changes: ${unfinished.join(", ")}\n`);
+  process.exit(1);
+}
+' "$metadata_file" "$tmp_dir/openspec-list.json"; then
+    exit 1
+  fi
 fi
 
 gh issue list --state open --limit 200 --json number,title,labels,body > "$issues_file"
@@ -85,4 +139,5 @@ if (!labels.includes("status:claimed") || !assignees.includes(viewer)) process.e
 ' "$tmp_dir/claimed.json" "$viewer"
 
 created_branch_lock=""
+"$script_dir/set-project-date.sh" "$issue_number" "Start" "$(date +%F)"
 printf 'Claimed issue #%s for change %s on branch %s with claim %s\n' "$issue_number" "$change_id" "$claim_branch" "$claim_id"

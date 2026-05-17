@@ -22,6 +22,9 @@ GitHub Issue front matter is the machine-readable task record.
 | Field | Meaning | Rule |
 | --- | --- | --- |
 | `required_branch` | Existing branch that must be used | empty unless execution mode requires it |
+| `parent_issue` | Series parent issue number or URL | mirror of GitHub parent relationship |
+| `blocked_by` | Issue numbers or change ids blocking this change | mirror of GitHub `blockedBy`; list |
+| `blocking` | Issue numbers or change ids this change blocks | mirror of GitHub `blocking`; list |
 
 ## Validation Rules
 
@@ -29,6 +32,7 @@ GitHub Issue front matter is the machine-readable task record.
 - `claim_branch` must equal `change_id`.
 - `openspec_path` should equal `openspec/changes/<change_id>`.
 - `depends_on` must parse as a list, including an empty list.
+- `blocked_by` and `blocking`, when present, must parse as lists.
 - `execution_mode: fixed-branch` requires `required_branch` to equal `claim_branch`.
 - `execution_mode: stacked` requires `depends_on` to be non-empty.
 - A change can be claimed only from `status:ready`.

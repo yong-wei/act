@@ -38,7 +38,7 @@ Project status mapping:
 
 | Issue label | Project `Status` |
 | --- | --- |
-| `status:backlog`, `status:ready`, `status:blocked`, `status:stale-claim`, `status:needs-human`, `status:failed` | `Todo` |
+| `status:backlog`, `status:ready`, `status:blocked`, `status:tracking`, `status:stale-claim`, `status:needs-human`, `status:failed` | `Todo` |
 | `status:claimed`, `status:in-progress`, `status:in-review` | `In Progress` |
 | `status:merged`, `status:archived` | `Done` |
 
@@ -52,4 +52,18 @@ Use these environment variables only when the user explicitly names another Proj
 OPENSPEC_BUDDY_PROJECT_OWNER=<owner>
 OPENSPEC_BUDDY_PROJECT_NUMBER=<number>
 OPENSPEC_BUDDY_PROJECT_TITLE=<title>
+```
+
+## Date Fields
+
+The default Project has `Start` and `End` date fields.
+
+- `claim-change.sh` sets `Start` to the local date after the branch lock, assignee, label, and claim comment are confirmed.
+- `mark-achieved.sh` sets `End` to the local date after `status:archived` is recorded.
+
+For manual repair, use:
+
+```bash
+.codex/skills/openspec-buddy/scripts/set-project-date.sh <issue> Start YYYY-MM-DD
+.codex/skills/openspec-buddy/scripts/set-project-date.sh <issue> End YYYY-MM-DD
 ```

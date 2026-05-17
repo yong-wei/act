@@ -22,6 +22,7 @@ origin/<change_id>
 status:claimed
 OpenSpec Buddy Claim comment with claim_id and lease_until
 Project Status: In Progress
+Project Start: current local date
 ```
 
 Then switch to `<change_id>` and mark `status:in-progress`; the Project `Status` must remain `In Progress`.
@@ -55,4 +56,4 @@ After PR merge:
 6. Push `main`.
 7. Delete local and remote claim branch.
 
-The archive step must set the issue to `status:archived` and the Project `Status` to `Done`.
+The archive step must set the issue to `status:archived`, close the issue, set Project `Status` to `Done`, and set Project `End` to the current local date.

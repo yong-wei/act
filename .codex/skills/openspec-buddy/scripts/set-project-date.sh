@@ -2,40 +2,27 @@
 set -euo pipefail
 
 issue_ref="${1:-}"
-target_status="${2:-}"
-if [[ -z "$issue_ref" || -z "$target_status" ]]; then
-  echo "Usage: set-project-status.sh <issue-number-or-url> <status:label>" >&2
+field_name="${2:-}"
+date_value="${3:-}"
+
+if [[ -z "$issue_ref" || -z "$field_name" || -z "$date_value" ]]; then
+  echo "Usage: set-project-date.sh <issue-number-or-url> <Start|End> <YYYY-MM-DD>" >&2
   exit 2
 fi
 
-if [[ "$target_status" != status:* ]]; then
-  echo "Target status label must start with status:." >&2
+if [[ "$field_name" != "Start" && "$field_name" != "End" ]]; then
+  echo "Project date field must be Start or End." >&2
+  exit 2
+fi
+
+if [[ ! "$date_value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  echo "Date must use YYYY-MM-DD." >&2
   exit 2
 fi
 
 project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
 project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
 project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
-status_field_name="${OPENSPEC_BUDDY_PROJECT_STATUS_FIELD:-Status}"
-todo_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_TODO:-Todo}"
-in_progress_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_IN_PROGRESS:-In Progress}"
-done_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_DONE:-Done}"
-
-case "$target_status" in
-  status:claimed|status:in-progress|status:in-review)
-    project_status="$in_progress_option_name"
-    ;;
-  status:merged|status:archived)
-    project_status="$done_option_name"
-    ;;
-  status:backlog|status:ready|status:blocked|status:tracking|status:stale-claim|status:needs-human|status:failed)
-    project_status="$todo_option_name"
-    ;;
-  *)
-    echo "No Project Status mapping for $target_status." >&2
-    exit 2
-    ;;
-esac
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -70,20 +57,18 @@ gh project field-list "$project_number" \
   --format json \
   --limit 100 > "$fields_file"
 
-read -r status_field_id status_option_id < <(node -e '
+field_id="$(node -e '
 const fs = require("fs");
 const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const fieldName = process.argv[2];
-const optionName = process.argv[3];
-const field = (data.fields || []).find((entry) => entry.name === fieldName);
-if (!field) process.exit(1);
-const option = (field.options || []).find((entry) => entry.name === optionName);
-if (!option) process.exit(2);
-process.stdout.write(`${field.id} ${option.id}\n`);
-' "$fields_file" "$status_field_name" "$project_status") || {
-  echo "Could not resolve Project field \"$status_field_name\" option \"$project_status\"." >&2
+const field = (data.fields || []).find((entry) => entry.name === fieldName && entry.type === "ProjectV2Field");
+if (field) process.stdout.write(field.id);
+' "$fields_file" "$field_name")"
+
+if [[ -z "$field_id" ]]; then
+  echo "Could not resolve Project date field \"$field_name\"." >&2
   exit 1
-}
+fi
 
 gh project item-list "$project_number" \
   --owner "$project_owner" \
@@ -111,9 +96,9 @@ fi
 gh project item-edit \
   --id "$item_id" \
   --project-id "$project_id" \
-  --field-id "$status_field_id" \
-  --single-select-option-id "$status_option_id" \
+  --field-id "$field_id" \
+  --date "$date_value" \
   --format json \
   --jq '.id' >/dev/null
 
-printf 'Project "%s" Status set to "%s" for %s.\n' "$project_title" "$project_status" "$issue_url"
+printf 'Project "%s" %s set to "%s" for %s.\n' "$project_title" "$field_name" "$date_value" "$issue_url"

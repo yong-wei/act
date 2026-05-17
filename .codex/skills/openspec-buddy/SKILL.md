@@ -39,12 +39,21 @@ Steps:
    - `risk:<low|medium|high>`
    - `mode:<isolated|fixed-branch|stacked|docs-only>`
 5. Create the issue with `gh issue create`.
-6. Add the created issue to the default GitHub Project:
+6. If this is a planned series, create or identify the series parent issue, then link the child issue:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/create-series-parent.sh <series>
+   .codex/skills/openspec-buddy/scripts/link-issue-parent.sh <parent-issue> <child-issue>
+   ```
+7. If this issue depends on another change issue, link the native relationship:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/link-issue-dependencies.sh <blocked-issue> <blocking-issue>
+   ```
+8. Add the created issue to the default GitHub Project:
    ```bash
    .codex/skills/openspec-buddy/scripts/add-issue-to-project.sh <issue-url>
    ```
    The script also sets the Project `Status` to `Todo`.
-7. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
+9. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
 
 Do not claim the issue or implement in `propose`.
 
@@ -62,7 +71,9 @@ Steps:
    ```
 4. Verify:
    - issue has `status:ready`
-   - dependencies are `Merged` or `Archived`
+   - issue is not labeled `type:series-parent`
+   - native `blockedBy` has no open, unarchived issue
+   - front matter `depends_on` entries are not active unfinished changes
    - no open issue in the same `coupling_group` has `status:claimed` or `status:in-progress`
    - `claim_branch` equals `change_id`
    - execution mode and branch constraints are satisfiable
@@ -71,7 +82,7 @@ Steps:
    .codex/skills/openspec-buddy/scripts/claim-change.sh <issue-number>
    ```
    The claim creates `origin/<change_id>` from the declared `base_branch`, writes a structured claim comment, and sets a lease.
-   It also mirrors the issue status to the Project `Status` field.
+   It also mirrors the issue status to the Project `Status` field and sets Project `Start` to the current date.
 6. Re-read the issue and confirm the claim id, assignee, status label, and branch lock.
 7. Use branch `<change_id>` for the implementation. For isolated work, create it from `base_branch`. For fixed-branch work, stop if the required branch is not the same as the declared claim branch.
 8. After entering the claim branch, mark the issue in progress:
@@ -102,7 +113,7 @@ Steps:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-achieved.sh <issue-number> <archive-path> [pr-url]
    ```
-   This must leave the Project `Status` as `Done`.
+   This must leave the Project `Status` as `Done`, set Project `End` to the current date, and close the issue if it is still open.
 6. Report dependent blocked issues, if any.
 
 `achieve` means the GitHub issue, PR, and OpenSpec archive all agree that the change is complete.
@@ -114,6 +125,7 @@ Read only the reference needed for the current mode:
 - `references/issue-template.md`: body template for `propose`
 - `references/claim-locking.md`: branch lock, claim lease, and stale-claim rules for `apply`
 - `references/metadata-schema.md`: field definitions and validation rules
+- `references/issue-relationships.md`: parent issue, blocked-by, blocking, and Project date rules
 - `references/project-coordination.md`: default GitHub Project target and status sync
 - `references/status-flow.md`: labels and transitions
 
@@ -121,6 +133,8 @@ Read only the reference needed for the current mode:
 
 - Do not implement unclaimed GitHub-tracked changes.
 - Do not execute adjacent OpenSpec changes found in the worktree.
+- Do not claim `type:series-parent` issues.
+- Do not claim an issue while GitHub `blockedBy` contains any open, unarchived issue.
 - Do not treat GitHub Projects as the agent execution source of truth; use issue front matter, labels, assignee, and comments.
 - Do not update `status:*` labels without the Buddy wrapper scripts; Project `Status` must stay synchronized for human-visible coordination.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
@@ -131,9 +145,9 @@ Read only the reference needed for the current mode:
 
 ## Output
 
-For `propose`, report the issue URL, `change_id`, labels, and OpenSpec path.
+For `propose`, report the issue URL, `change_id`, labels, OpenSpec path, parent issue link, and dependency relationship links.
 Also report the GitHub Project item id or state that the issue was already present in the Project, plus the Project `Status`.
 
-For `apply`, report the issue, claim branch, dependency status, coupling-group result, and the OpenSpec change being applied.
+For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, and the OpenSpec change being applied.
 
-For `achieve`, report the PR, merge state, archive path, final labels, and any follow-up issues that were unblocked.
+For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, and any follow-up issues that were unblocked.

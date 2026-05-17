@@ -13,6 +13,7 @@ status:in-review
 status:merged
 status:archived
 status:blocked
+status:tracking
 status:stale-claim
 status:needs-human
 status:failed
@@ -27,6 +28,7 @@ Backlog -> Ready -> Claimed -> In Progress -> In Review -> Merged -> Archived
 ```
 
 `Blocked` can be entered from `Backlog` or `Ready` when dependencies, branch constraints, or coupling-group constraints prevent execution. `Stale-claim`, `needs-human`, and `failed` are recovery labels for automation.
+`Tracking` is reserved for non-executable series parent issues.
 
 ## Agent Actions
 

@@ -29,10 +29,12 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 3. List active OpenSpec changes from `origin/main`.
 4. Read GitHub issues in Project `ACT Openspec LTE` through issue labels and front matter.
 5. Select one executable change using `references/selection-rules.md`.
+   Relationship-aware selection must ignore series parent issues, skip issues with open `blockedBy`, prefer the current series when one is already in progress, and prefer issues that unblock downstream changes.
 6. Run `openspec-buddy apply` for the issue:
    - claim the issue
    - create the remote branch lock
    - switch to branch `<change_id>`
+   - set Project `Start`
    - set issue status to `status:in-progress`
    - set Project `Status` to `In Progress`
 7. Implement with the relevant OpenSpec and superpowers skills:
@@ -51,6 +53,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 14. Fast-forward the claim branch to `origin/main`.
 15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
     The Project `Status` must become `Done` when the issue reaches `status:archived`.
+    The Project `End` field must be set during archive.
 16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
 17. Return to the coordination branch and fast-forward it to `main`.
 
@@ -60,7 +63,9 @@ When the user asks to process all available changes, repeat one-change runs with
 
 - Claim only one issue per iteration.
 - After every merge/archive, fetch `origin/main` and recalculate executable changes.
+- If the previous iteration completed a series issue, prefer the same series until no issue in that series is executable.
 - Skip `status:blocked`, `status:claimed`, `status:in-progress`, `status:stale-claim`, `status:needs-human`, and `status:failed`.
+- Skip `type:series-parent` and any issue with open native `blockedBy` relationships.
 - Stop when no executable issue remains.
 - Stop when the user's goal budget, time budget, review-round limit, or token budget is reached.
 - Never continue from a stale initial issue list.
@@ -92,6 +97,7 @@ Do not merge unless all are true:
 Report:
 
 - selected issue and `change_id`
+- selected series and whether current-series preference was applied
 - claim branch and claim id
 - PR URL
 - review rounds performed

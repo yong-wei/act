@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 const source = process.argv[2] || "-";
 const body = source === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(source, "utf8");
+const listKeys = new Set(["depends_on", "blocked_by", "blocking"]);
 
 function parseScalar(value) {
   const trimmed = value.trim();
@@ -42,7 +43,7 @@ function parseFrontMatter(markdown) {
     const key = pair[1];
     const value = pair[2] ?? "";
     if (value.trim() === "") {
-      if (key === "depends_on") {
+      if (listKeys.has(key)) {
         data[key] = [];
         currentListKey = key;
         continue;

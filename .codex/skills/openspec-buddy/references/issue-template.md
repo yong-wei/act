@@ -12,6 +12,9 @@ execution_mode: isolated
 base_branch: main
 required_branch:
 depends_on: []
+parent_issue:
+blocked_by: []
+blocking: []
 openspec_path: openspec/changes/example-change-id
 risk: medium
 area: arena
@@ -41,6 +44,7 @@ Describe the user-visible or engineering outcome.
 - Use the claim branch named in front matter.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
+- Stop if GitHub blockedBy relationships still contain open blockers.
 ```
 
 Labels to apply:
