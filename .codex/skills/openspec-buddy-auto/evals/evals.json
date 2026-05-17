@@ -16,7 +16,7 @@
     {
       "id": 3,
       "prompt": "PR 已打开，等待 code review 后继续。",
-      "expected_output": "使用 heartbeat 等待五分钟，醒来后检查 review、unresolved threads、requested changes、CI 和 mergeability；有反馈则修复并重复等待，无反馈且检查通过才合并。",
+      "expected_output": "在当前串行流程中空等待五分钟，不使用 Codex 自动化、heartbeat 或后台监控；等待结束后检查 review、unresolved threads、requested changes、CI 和 mergeability；有反馈则修复、resolve、推送，并再次串行等待五分钟；无反馈且检查通过才合并。",
       "files": []
     }
   ]

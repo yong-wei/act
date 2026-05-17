@@ -1,7 +1,7 @@
 ---
 name: openspec-buddy-auto
 description: Use when the user asks to automatically process GitHub Issue-backed OpenSpec changes end to end, including selecting executable changes, claiming work, implementing, opening PRs, handling review loops, merging, archiving, or iterating through all available changes.
-compatibility: Requires openspec CLI, GitHub CLI, OpenSpec Buddy, and Codex heartbeat automations.
+compatibility: Requires openspec CLI, GitHub CLI, OpenSpec Buddy, and a foreground shell wait for review pauses.
 ---
 
 # OpenSpec Buddy Auto
@@ -46,7 +46,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 8. Commit, push, and open a ready PR with `@codex审核，中文回复`.
 9. Mark the issue `status:in-review`.
    The Project `Status` must remain `In Progress`.
-10. Wait five minutes using a heartbeat automation; do not busy-loop.
+10. Wait five minutes in the same foreground workflow, then check again.
+    Do not use Codex automations, heartbeats, reminders, or background monitors for this wait.
 11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
 12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes, resolve threads, and repeat from step 10.
 13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.

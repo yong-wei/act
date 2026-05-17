@@ -1,6 +1,20 @@
 # PR Review Waiting
 
-Use a heartbeat automation for each five-minute wait. Do not busy-loop.
+Use a serial foreground wait for each five-minute review pause. Do not use
+Codex automations, heartbeat automations, reminders, or background monitors:
+they run in parallel and can break the one-change-at-a-time workflow.
+
+The wait should block the current execution flow, for example:
+
+```bash
+sleep 300
+```
+
+In this repository, follow the local shell rule and run:
+
+```bash
+rtk sleep 300
+```
 
 ## State To Remember
 
@@ -15,9 +29,9 @@ last_seen_comment_ids
 review_round
 ```
 
-## Wake-Up Check
+## Post-Wait Check
 
-On wake:
+After the foreground wait finishes:
 
 ```bash
 gh pr view <pr> --json state,mergeable,reviewDecision,reviews,comments,commits,statusCheckRollup
@@ -35,7 +49,7 @@ mergeability
 new commits not created by this run
 ```
 
-If there is actionable feedback, fix it, reply, resolve corresponding review threads, push, and schedule another five-minute heartbeat.
+If there is actionable feedback, fix it, reply, resolve corresponding review threads, push, and perform another serial foreground five-minute wait before checking again.
 
 If there is no new actionable feedback and all merge gates pass, merge.
 
