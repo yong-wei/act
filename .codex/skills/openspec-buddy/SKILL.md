@@ -21,6 +21,17 @@ one GitHub Issue = one change_id = one claim branch = one OpenSpec change = one 
 
 The issue front matter must include `claim_branch`, and `claim_branch` must equal `change_id`.
 
+## Execution Retrospective Requirement
+
+After every `propose`, `apply`, or `achieve` run, include a brief execution retrospective in the final report.
+The retrospective must state:
+
+- what worked in the Buddy workflow
+- what was confusing, fragile, manual, or missing
+- whether any reusable rule should be added to `openspec-buddy`, `openspec-buddy-auto`, or their references
+
+If the run reveals a reusable workflow gap and the user asks to persist it, update the relevant skill file in the same branch before closing the task.
+
 ## Modes
 
 ### propose
@@ -151,3 +162,5 @@ Also report the GitHub Project item id or state that the issue was already prese
 For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, and the OpenSpec change being applied.
 
 For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, and any follow-up issues that were unblocked.
+
+For every mode, include the execution retrospective required above.

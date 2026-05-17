@@ -57,6 +57,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     The Project `End` field must be set during archive.
 16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
 17. Return to the coordination branch and fast-forward it to `main`.
+18. Write an execution retrospective before final reporting.
 
 ## Goal Mode
 
@@ -100,6 +101,17 @@ Do not merge unless all are true:
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
 
+## Execution Retrospective Requirement
+
+Every one-change run must end with a concise retrospective before the final report is closed.
+The retrospective must state:
+
+- selection and claim behavior that worked or failed
+- implementation, review, wait, merge, archive, or issue-sync friction
+- whether the skill or reference files need a reusable rule update
+
+If the run exposes a reusable flaw and the user asks to persist the lesson, update the relevant Buddy or Auto skill file, commit it, and push it before moving to another change.
+
 ## Output
 
 Report:
@@ -113,4 +125,5 @@ Report:
 - merge commit
 - archive commit/path
 - final issue status
+- execution retrospective
 - next executable change, if goal mode continues
