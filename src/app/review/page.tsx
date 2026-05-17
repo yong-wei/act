@@ -17,8 +17,8 @@ const reviewEntries: ReviewEntry[] = [
     href: '/review/adaptive-assessment-figures',
   },
   {
-    title: '多表征联动可视化引擎',
-    href: '/interactive-learning/multi-representation-linkage',
+    title: '综合仿真工作台',
+    href: '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view',
   },
   {
     title: '自适应跨域题库系统',

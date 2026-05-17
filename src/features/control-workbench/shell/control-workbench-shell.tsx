@@ -32,7 +32,7 @@ function modeLabel(mode: string) {
 }
 
 export function getControlWorkbenchReturnHref(session: WorkbenchSessionContext) {
-  if (!('taskId' in session)) return '/arena';
+  if (!('taskId' in session)) return '/interactive-learning/cross-domain-exploration';
   if (!('publicationId' in session)) return `/arena/challenges/${session.taskId}`;
 
   const params = new URLSearchParams({ publicationId: session.publicationId });
@@ -46,7 +46,7 @@ function keyedViewConfigs(configs: WorkbenchViewConfig[]) {
 function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionContext }) {
   const defaultViewConfigs = useMemo(() => getPresetDefaultViewConfigs(session.defaultPreset), [session.defaultPreset]);
   const [viewConfigs, setViewConfigs] = useState(() => keyedViewConfigs(defaultViewConfigs));
-  const taskTitle = 'task' in session ? session.task.title : '自由探索工作台';
+  const taskTitle = 'task' in session ? session.task.title : '综合仿真工作台';
   const objectName = 'object' in session ? session.object.name : '未绑定官方对象';
   const workspaceLabel = 'recommendedWorkspaceMode' in session
     ? arenaWorkspaceLabels[session.recommendedWorkspaceMode]
@@ -54,7 +54,7 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
   const metricNames = 'metricProfile' in session
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
-  const showClassicPreset = session.defaultPreset === 'classic-whitebox' && 'taskId' in session;
+  const showClassicPreset = session.defaultPreset === 'classic-whitebox';
   const showBlackBoxPreset = session.defaultPreset === 'blackbox-identification' && 'taskId' in session;
   const showCompositePreset = session.defaultPreset === 'composite-control' && 'taskId' in session;
   const showPredictivePreset = session.defaultPreset === 'predictive-control' && 'taskId' in session;
@@ -111,9 +111,9 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
           ) : (
             <Link
               className="inline-flex h-10 items-center justify-center rounded-md border border-white/15 px-4 text-sm text-slate-100 hover:bg-white/10"
-              href="/arena"
+              href={getControlWorkbenchReturnHref(session)}
             >
-              返回竞技场大厅
+              返回跨域探索
             </Link>
           )}
         </div>
@@ -151,7 +151,7 @@ function ResolvedControlWorkbenchShell({ session }: { session: WorkbenchSessionC
         <div className="rounded-lg border border-white/10 bg-slate-900/60 p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold">工作台外壳</h2>
+              <h2 className="text-xl font-semibold">综合仿真工作台</h2>
               <p className="mt-1 text-sm text-slate-400">视图配置保存在当前浏览器会话中。</p>
             </div>
             <button

@@ -68,6 +68,8 @@ describe('control workbench shared contracts', () => {
     const session: WorkbenchSessionContext = {
       mode: 'explore',
       title: '自由探索',
+      object: getObject('plant-second-order-underdamped'),
+      selectedObjectId: 'plant-second-order-underdamped',
       officialTarget: null,
       workingModel: null,
       allowedMethods: ['pid', 'serial-compensator'],
