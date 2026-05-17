@@ -309,11 +309,13 @@ export function ParameterDrawer({
 }: ParameterDrawerProps) {
   const wheelCleanupRef = useRef<(() => void) | null>(null);
   const [activeTab, setActiveTab] = useState<'plant' | 'correction'>('plant');
-  const tabBaseClass = 'flex h-10 min-w-0 items-center justify-center rounded-md px-3 text-sm font-medium leading-none transition';
-  const tabClass = (tab: 'plant' | 'correction') =>
+  const drawerTabBaseClass = 'flex h-10 w-full min-w-0 items-center justify-center overflow-hidden rounded-md border px-3 text-sm font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  const drawerTabActiveClass = 'border-cyan-600 bg-cyan-100 text-cyan-950 shadow-sm hover:bg-cyan-100 dark:border-cyan-300/70 dark:bg-cyan-300/20 dark:text-cyan-50 dark:hover:bg-cyan-300/20';
+  const drawerTabInactiveClass = 'border-transparent bg-transparent text-muted-foreground hover:border-cyan-300/70 hover:bg-cyan-50 hover:text-cyan-900 dark:hover:border-cyan-300/40 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50';
+  const drawerTabClass = (tab: 'plant' | 'correction') =>
     activeTab === tab
-      ? `${tabBaseClass} premium-lesson-action-tone premium-tone-cyan`
-      : `${tabBaseClass} premium-lesson-control`;
+      ? `${drawerTabBaseClass} ${drawerTabActiveClass}`
+      : `${drawerTabBaseClass} ${drawerTabInactiveClass}`;
 
   const setContentNode = useCallback((element: HTMLDivElement | null) => {
     wheelCleanupRef.current?.();
@@ -351,22 +353,26 @@ export function ParameterDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-border/60 p-1">
+          <div className="grid min-w-0 grid-cols-2 gap-2 rounded-md border border-border/60 p-1">
             <button
               type="button"
               onClick={() => setActiveTab('plant')}
               aria-pressed={activeTab === 'plant'}
-              className={tabClass('plant')}
+              data-testid="parameter-drawer-object-tab"
+              data-state={activeTab === 'plant' ? 'active' : 'inactive'}
+              className={drawerTabClass('plant')}
             >
-              对象
+              <span className="block max-w-full truncate" title="对象">对象</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('correction')}
               aria-pressed={activeTab === 'correction'}
-              className={tabClass('correction')}
+              data-testid="parameter-drawer-correction-tab"
+              data-state={activeTab === 'correction' ? 'active' : 'inactive'}
+              className={drawerTabClass('correction')}
             >
-              校正
+              <span className="block max-w-full truncate" title="校正">校正</span>
             </button>
           </div>
 
