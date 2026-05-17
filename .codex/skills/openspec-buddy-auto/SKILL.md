@@ -43,6 +43,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    - `superpowers:systematic-debugging` when failures occur
    - `superpowers:verification-before-completion` before claiming completion
    - `superpowers:requesting-code-review` before or after PR creation when applicable
+   Before opening a PR, `openspec instructions apply --change <change_id> --json`
+   must report `remaining: 0`; finish or explicitly reconcile incomplete tasks first.
 8. Commit, push, and open a ready PR with `@codex审核，中文回复`.
 9. Mark the issue `status:in-review`.
    The Project `Status` must remain `In Progress`.
@@ -53,6 +55,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.
 14. Fast-forward the claim branch to `origin/main`.
 15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
+    Recheck the OpenSpec task state before archiving; an issue must not reach
+    `status:archived` while local `tasks.md` still contains incomplete items.
     The Project `Status` must become `Done` when the issue reaches `status:archived`.
     The Project `End` field must be set during archive.
 16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
@@ -100,6 +104,7 @@ Do not merge unless all are true:
 - Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; after review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
+- Treat OpenSpec tasks as part of the cross-system completion record, not as local notes. If code already satisfies a task but `tasks.md` is still unchecked, close the task in the implementation PR before review/merge/archive; otherwise GitHub issue state and local OpenSpec state drift permanently.
 
 ## Execution Retrospective Requirement
 

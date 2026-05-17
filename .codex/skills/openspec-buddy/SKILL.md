@@ -118,9 +118,17 @@ Steps:
 
 1. Confirm the PR is merged.
 2. Confirm the target branch contains the merge.
-3. Invoke `openspec-archive-change` for the matching change.
-4. Commit and push the OpenSpec archive update when requested by the user or by the current workflow.
-5. Mark the issue archived:
+3. Confirm local OpenSpec tasks are complete:
+   ```bash
+   openspec instructions apply --change <change_id> --json
+   ```
+   The progress must show `remaining: 0`. If tasks are still unchecked but the
+   implementation already satisfies them, finish `tasks.md` and include that
+   state before archiving. Do not let a closed issue and an incomplete local
+   task checklist diverge.
+4. Invoke `openspec-archive-change` for the matching change.
+5. Commit and push the OpenSpec archive update when requested by the user or by the current workflow.
+6. Mark the issue archived:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-achieved.sh <issue-number> <archive-path> [pr-url]
    ```
