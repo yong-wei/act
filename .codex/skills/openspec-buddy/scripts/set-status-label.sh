@@ -25,3 +25,6 @@ fi
 args+=(--add-label "$target_status")
 
 gh "${args[@]}"
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$script_dir/set-project-status.sh" "$issue_number" "$target_status"

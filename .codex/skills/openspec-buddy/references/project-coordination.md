@@ -11,7 +11,7 @@
 | Title | `ACT Openspec LTE` |
 | URL | `https://github.com/users/yong-wei/projects/1` |
 
-The Project is the human-visible coordination board. Labels and issue front matter remain the agent execution source of truth.
+The Project is the human-visible coordination board. Labels and issue front matter remain the agent execution source of truth, but every issue status transition must also mirror to the Project `Status` field.
 
 ## Command
 
@@ -22,6 +22,27 @@ After creating the issue, run:
 ```
 
 The script is idempotent: if the issue is already present in the Project, it reports the existing item id and does not add a duplicate.
+It also sets the Project `Status` to `Todo` for a newly registered `status:ready` issue.
+
+## Status Sync
+
+Whenever an issue `status:*` label changes, run:
+
+```bash
+.codex/skills/openspec-buddy/scripts/set-status-label.sh <issue-number> <status:label>
+```
+
+Do not edit status labels directly with `gh issue edit`; the wrapper also updates the Project `Status`.
+
+Project status mapping:
+
+| Issue label | Project `Status` |
+| --- | --- |
+| `status:backlog`, `status:ready`, `status:blocked`, `status:stale-claim`, `status:needs-human`, `status:failed` | `Todo` |
+| `status:claimed`, `status:in-progress`, `status:in-review` | `In Progress` |
+| `status:merged`, `status:archived` | `Done` |
+
+`status:archived` is the normal completed-change state. It must leave the issue label and the Project `Status` both showing completion.
 
 ## Overrides
 

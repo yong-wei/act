@@ -10,6 +10,7 @@ fi
 project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
 project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
 project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 tmp_file="$(mktemp)"
 trap 'rm -f "$tmp_file"' EXIT
@@ -31,6 +32,7 @@ if (item) process.stdout.write(item.id);
 
 if [[ -n "$existing_id" ]]; then
   printf 'Issue already present in project "%s": %s\n' "$project_title" "$existing_id"
+  "$script_dir/set-project-status.sh" "$issue_url" "status:ready"
   exit 0
 fi
 
@@ -43,3 +45,4 @@ item_id="$(
 )"
 
 printf 'Added issue to project "%s": %s\n' "$project_title" "$item_id"
+"$script_dir/set-project-status.sh" "$issue_url" "status:ready"

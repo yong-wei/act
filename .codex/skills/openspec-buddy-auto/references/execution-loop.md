@@ -21,9 +21,10 @@ Use `openspec-buddy apply`. The claim must create:
 origin/<change_id>
 status:claimed
 OpenSpec Buddy Claim comment with claim_id and lease_until
+Project Status: In Progress
 ```
 
-Then switch to `<change_id>` and mark `status:in-progress`.
+Then switch to `<change_id>` and mark `status:in-progress`; the Project `Status` must remain `In Progress`.
 
 ## Implement
 
@@ -40,7 +41,7 @@ body: summary, verification, linked issue
 review request: @codex审核，中文回复
 ```
 
-Set issue to `status:in-review` with the PR URL.
+Set issue to `status:in-review` with the PR URL; the Project `Status` must remain `In Progress`.
 
 ## Merge And Archive
 
@@ -53,3 +54,5 @@ After PR merge:
 5. Merge archive commit into `main`.
 6. Push `main`.
 7. Delete local and remote claim branch.
+
+The archive step must set the issue to `status:archived` and the Project `Status` to `Done`.

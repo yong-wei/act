@@ -34,6 +34,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    - create the remote branch lock
    - switch to branch `<change_id>`
    - set issue status to `status:in-progress`
+   - set Project `Status` to `In Progress`
 7. Implement with the relevant OpenSpec and superpowers skills:
    - `openspec-apply-change`
    - `superpowers:test-driven-development` when adding behavior
@@ -42,12 +43,14 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    - `superpowers:requesting-code-review` before or after PR creation when applicable
 8. Commit, push, and open a ready PR with `@codex审核，中文回复`.
 9. Mark the issue `status:in-review`.
+   The Project `Status` must remain `In Progress`.
 10. Wait five minutes using a heartbeat automation; do not busy-loop.
 11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
 12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes, resolve threads, and repeat from step 10.
 13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.
 14. Fast-forward the claim branch to `origin/main`.
 15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
+    The Project `Status` must become `Done` when the issue reaches `status:archived`.
 16. Commit and push the archive update, merge it to `main`, push `main`, then delete the local and remote claim branch.
 17. Return to the coordination branch and fast-forward it to `main`.
 

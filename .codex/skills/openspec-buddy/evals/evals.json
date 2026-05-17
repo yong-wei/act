@@ -4,19 +4,19 @@
     {
       "id": 1,
       "prompt": "openspec-buddy propose：为竞技场排行榜筛选重构注册一个新的 change，要求使用 GitHub Issue 协调。",
-      "expected_output": "生成或确认 change_id，使用 YAML front matter issue 模板，设置 claim_branch 等于 change_id，创建 issue 后加入 ACT Openspec LTE Project，并说明不会开始实现。",
+      "expected_output": "生成或确认 change_id，使用 YAML front matter issue 模板，设置 claim_branch 等于 change_id，创建 issue 后加入 ACT Openspec LTE Project，将 Project Status 设为 Todo，并说明不会开始实现。",
       "files": []
     },
     {
       "id": 2,
       "prompt": "openspec-buddy apply #123：开始实现这个 OpenSpec change。",
-      "expected_output": "先读取并校验 Issue metadata 和 labels，检查依赖、耦合组、claim_branch，再通过远端同名分支锁和结构化 claim comment 抢占；claim 失败时停止，不修改代码。",
+      "expected_output": "先读取并校验 Issue metadata 和 labels，检查依赖、耦合组、claim_branch，再通过远端同名分支锁和结构化 claim comment 抢占，并同步 Project Status 为 In Progress；claim 失败时停止，不修改代码。",
       "files": []
     },
     {
       "id": 3,
       "prompt": "openspec-buddy achieve #123：PR 已合并，请完成归档。",
-      "expected_output": "确认 PR 合并状态，调用 OpenSpec archive 流程，提交归档变更，并把 Issue 标记为 status:archived。",
+      "expected_output": "确认 PR 合并状态，调用 OpenSpec archive 流程，提交归档变更，把 Issue 标记为 status:archived，并将 Project Status 设为 Done。",
       "files": []
     }
   ]

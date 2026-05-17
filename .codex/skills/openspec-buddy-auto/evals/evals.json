@@ -4,13 +4,13 @@
     {
       "id": 1,
       "prompt": "使用 openspec-buddy-auto 处理下一个可以执行的 change。",
-      "expected_output": "先同步 main，核对 active OpenSpec change 与 status:ready issue，选择一个可执行项，调用 openspec-buddy apply 抢占并进入同名分支，不直接跳过 claim。",
+      "expected_output": "先同步 main，核对 active OpenSpec change 与 status:ready issue，选择一个可执行项，调用 openspec-buddy apply 抢占并进入同名分支，同步 Project Status 为 In Progress，不直接跳过 claim。",
       "files": []
     },
     {
       "id": 2,
       "prompt": "在 goal 模式下自动处理所有剩余 OpenSpec change。",
-      "expected_output": "每轮只 claim 一个 change，每轮合并归档后重新 fetch main 并重算候选；无可执行项或预算耗尽时停止。",
+      "expected_output": "每轮只 claim 一个 change，每轮合并归档后将 Project Status 设为 Done，重新 fetch main 并重算候选；无可执行项或预算耗尽时停止。",
       "files": []
     },
     {

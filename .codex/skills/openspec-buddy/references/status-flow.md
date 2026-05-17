@@ -1,6 +1,6 @@
 # OpenSpec Buddy Status Flow
 
-Use labels as the agent-facing state record.
+Use labels as the agent-facing state record. Mirror every label transition to the GitHub Project `Status` field through `set-status-label.sh`.
 
 ## Status Labels
 
@@ -18,7 +18,7 @@ status:needs-human
 status:failed
 ```
 
-Only one `status:*` label should be present on an issue.
+Only one `status:*` label should be present on an issue. Do not modify status labels directly; use `scripts/set-status-label.sh` so the Project board stays synchronized.
 
 ## Normal Flow
 
