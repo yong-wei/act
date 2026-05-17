@@ -4,6 +4,7 @@ import type { CreatePersistedArenaSubmissionInput } from '../submissions/persist
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ControllerArtifact } from '../types';
+import { normalizeOdysseyOfficialTelemetry } from './telemetry';
 
 export const ODYSSEY_ARENA_TASK_BY_LEVEL: Record<string, string> = {
   'level-1': 'task-odyssey-level-one-growth',
@@ -63,6 +64,10 @@ export function buildOdysseyArenaArtifact(input: BuildOdysseyArenaArtifactInput)
     throw new Error(`Odyssey level ${input.levelId} is not eligible for Arena bridge submission.`);
   }
   const metrics = input.metrics ?? {};
+  const telemetry = normalizeOdysseyOfficialTelemetry(metrics);
+  if (!telemetry.ok) {
+    throw new Error(telemetry.reason);
+  }
   const pidParams = input.pidParams ?? {
     kp: finiteNumber((metrics as Record<string, unknown>).kp, 1),
     ki: finiteNumber((metrics as Record<string, unknown>).ki, 0),
@@ -80,6 +85,8 @@ export function buildOdysseyArenaArtifact(input: BuildOdysseyArenaArtifactInput)
       odysseyTier: input.tier,
       odysseyControllerId: input.controllerId ?? 'PID',
       odysseyMetricsJson: JSON.stringify(metrics),
+      odysseyOfficialMetricsJson: JSON.stringify(telemetry.metrics),
+      odysseyTelemetryComplete: true,
     },
     createdAt: new Date(0).toISOString(),
   };
@@ -104,6 +111,10 @@ export async function bridgeOdysseyRunToArenaSubmission(input: BridgeOdysseyRunI
   if (!input.submissionStore && !input.createSubmission) {
     return { ok: false, reason: 'Arena submission store is required.', gameScorePreserved: true };
   }
+  const telemetry = normalizeOdysseyOfficialTelemetry(input.metrics);
+  if (!telemetry.ok) {
+    return { ok: false, reason: telemetry.reason, gameScorePreserved: true };
+  }
 
   try {
     const submission = await createSubmission({
@@ -117,6 +128,7 @@ export async function bridgeOdysseyRunToArenaSubmission(input: BridgeOdysseyRunI
       studentLabel: input.studentLabel,
       submittedAt: input.submittedAt,
       store: input.submissionStore as CreatePersistedArenaSubmissionInput['store'],
+      source: 'odyssey-bridge',
     });
     await input.store?.markOdysseyRunSubmitted({
       runId: input.runId,

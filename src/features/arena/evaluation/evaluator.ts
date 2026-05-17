@@ -4,6 +4,7 @@ import type { ArenaEvaluationResult } from './types';
 import { evaluateBlackBoxSubmission } from './blackbox-evaluator';
 import { evaluateWhiteBoxSubmission } from './whitebox-evaluator';
 import { defaultControlAnalysisService } from './control-analysis-service';
+import { evaluateOdysseySubmission } from '../odyssey/evaluator';
 
 export {
   getArenaEvaluationProtocolVersion,
@@ -50,6 +51,9 @@ export function evaluateArenaSubmission({
   }
   const task = getArenaChallengeTask(taskId);
   const object = task ? getArenaChallengeObject(task.objectId) : undefined;
+  if (object?.source === 'control-odyssey') {
+    return Promise.resolve(evaluateOdysseySubmission({ taskId, artifact }));
+  }
   if (object?.visibility === 'black-box') {
     return Promise.resolve(evaluateBlackBoxSubmission({ taskId, artifact }));
   }

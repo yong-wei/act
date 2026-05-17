@@ -55,7 +55,8 @@ describe('arena student entry UI boundaries', () => {
     expect(legacyRouteSource).toContain('MultiRepresentationLinkageClient');
     expect(controlWorkbenchRouteSource).toContain('resolveControlWorkbenchSession');
     expect(controlWorkbenchRouteSource).toContain('arenaTask: firstValue(searchParams?.arenaTask)');
-    expect(controlOdysseySource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey"');
+    expect(controlOdysseySource).toContain('<OdysseyArenaBridgeShell />');
+    expect(controlOdysseySource).not.toContain('<ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey"');
     expect(blockDiagramSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench"');
     expect(predictiveControlSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="predictive-control"');
     expect(genericMountSource).toContain('/api/arena/submissions');

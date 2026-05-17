@@ -156,14 +156,15 @@ const createStepSequence = (
   maxAt: number,
   minAmplitude: number,
   maxAmplitude: number,
-  minGap: number
+  minGap: number,
+  random: () => number = Math.random
 ) => {
   const events: SignalEvent[] = [];
   let attempts = 0;
   while (events.length < count && attempts < 200) {
     attempts += 1;
-    const at = Math.round(minAt + Math.random() * (maxAt - minAt));
-    const amplitude = Math.round(minAmplitude + Math.random() * (maxAmplitude - minAmplitude));
+    const at = Math.round(minAt + random() * (maxAt - minAt));
+    const amplitude = Math.round(minAmplitude + random() * (maxAmplitude - minAmplitude));
     if (events.some((event) => Math.abs(event.at - at) < minGap)) {
       continue;
     }
@@ -174,12 +175,29 @@ const createStepSequence = (
     const step = Math.max(minGap, Math.floor((maxAt - minAt) / count));
     for (let i = events.length; i < count; i += 1) {
       const at = Math.round(minAt + i * step);
-      const amplitude = Math.round(minAmplitude + Math.random() * (maxAmplitude - minAmplitude));
+      const amplitude = Math.round(minAmplitude + random() * (maxAmplitude - minAmplitude));
       events.push({ at, amplitude });
     }
   }
 
   return events.sort((a, b) => a.at - b.at);
+};
+
+const hashSeed = (source: string) => {
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const createSeededRandom = (seed: number) => {
+  let state = seed || 1;
+  return () => {
+    state = Math.imul(1664525, state) + 1013904223;
+    return ((state >>> 0) / 4294967296);
+  };
 };
 
 const buildTierConfigs = (): LevelTierConfig[] => {
@@ -579,11 +597,21 @@ export const buildRuntimeTierConfig = (tierConfig: LevelTierConfig): LevelTierCo
   }
 
   const { count, minAt, maxAt, minAmplitude, maxAmplitude, minGap = 200 } = reference.random;
+  const seed = reference.seed ?? hashSeed(`${tierConfig.tier}:${count}:${minAt}:${maxAt}:${minAmplitude}:${maxAmplitude}:${minGap}`);
   return {
     ...tierConfig,
     reference: {
       ...reference,
-      events: createStepSequence(count, minAt, maxAt, minAmplitude, maxAmplitude, minGap),
+      seed,
+      events: createStepSequence(
+        count,
+        minAt,
+        maxAt,
+        minAmplitude,
+        maxAmplitude,
+        minGap,
+        createSeededRandom(seed),
+      ),
     },
   };
 };
