@@ -79,26 +79,31 @@ export function ChallengeLeaderboardBrowser({
       <div className="mt-4 overflow-hidden rounded-lg border border-border/70">
         {current.entries.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-muted/45 text-xs text-subtle">
                 <tr>
-                  <th className="px-3 py-2 font-medium">排名</th>
-                  <th className="px-3 py-2 font-medium">姓名</th>
-                  <th className="px-3 py-2 font-medium">学号</th>
-                  <th className="px-3 py-2 font-medium">方法</th>
-                  <th className="px-3 py-2 font-medium">得分</th>
-                  <th className="px-3 py-2 font-medium">具体指标</th>
-                  <th className="px-3 py-2 font-medium">提交时间</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">排名</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">姓名 / 学号</th>
+                  {current.showMethodColumn ? (
+                    <th className="whitespace-nowrap px-3 py-2 font-medium">方法</th>
+                  ) : null}
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">得分</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">具体指标</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">提交时间</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 bg-background/50">
                 {current.entries.map((entry) => (
                   <tr key={entry.submissionId}>
-                    <td className="px-3 py-3 font-semibold text-primary">#{entry.rank}</td>
-                    <td className="px-3 py-3 font-medium text-foreground">{entry.studentName}</td>
-                    <td className="px-3 py-3 text-subtle">{entry.studentNumberLabel}</td>
-                    <td className="px-3 py-3 text-subtle">{entry.methodLabel}</td>
-                    <td className="px-3 py-3 font-medium text-foreground">{entry.score.toFixed(1)}</td>
+                    <td className="whitespace-nowrap px-3 py-3 font-semibold text-primary">#{entry.rank}</td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      <div className="font-medium text-foreground">{entry.studentName}</div>
+                      <div className="mt-0.5 text-xs text-subtle">{entry.studentNumberLabel}</div>
+                    </td>
+                    {current.showMethodColumn ? (
+                      <td className="whitespace-nowrap px-3 py-3 text-subtle">{entry.methodLabel}</td>
+                    ) : null}
+                    <td className="whitespace-nowrap px-3 py-3 font-medium text-foreground">{entry.score.toFixed(1)}</td>
                     <td className="px-3 py-3 text-subtle">
                       <div className="flex flex-wrap gap-1.5">
                         {entry.metrics.map((metric) => (
@@ -108,7 +113,7 @@ export function ChallengeLeaderboardBrowser({
                         ))}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-subtle">{formatSubmittedAt(entry.submittedAt)}</td>
+                    <td className="whitespace-nowrap px-3 py-3 text-subtle">{formatSubmittedAt(entry.submittedAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -140,6 +145,7 @@ function selectCurrentView(
       type: 'main',
       label: '主榜',
       subOptions: [],
+      showMethodColumn: true,
       entries: [],
       metricColumns: [],
       emptyMessage: '当前还没有官方提交。',

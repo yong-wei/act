@@ -682,6 +682,40 @@ describe('control chart shared presets and themes', () => {
     });
   });
 
+  it('keeps time-domain y ranges independent from equal-aspect cartesian expansion', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+    const preset = calculateTimeDomainVisibleAxisPreset([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1.2 },
+    ]);
+    const equalAspectRange = calculateEqualAspectCartesianRange({
+      x: [0, 12],
+      y: preset!.y,
+      width: 720,
+      height: 420,
+    });
+    const timeDomainPanZoomOptOuts = panelSource.match(
+      /installCartesianPanZoom\(chart, refreshRange, \{ preserveAspectRatio: false \}\)/g,
+    ) ?? [];
+
+    expect(preset).toEqual({ y: [-0.12, 1.32] });
+    expect(equalAspectRange.y[1] - equalAspectRange.y[0]).toBeGreaterThan(6);
+    expect(timeDomainPanZoomOptOuts).toHaveLength(2);
+  });
+
+  it('replaces stale ECharts series when selectable chart curves change', () => {
+    const chartPanelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
+      'utf8',
+    );
+
+    expect(chartPanelSource).toContain("replaceMerge: ['series']");
+  });
+
   it('builds Bode comparison options from shared source styles without a chart-area legend', () => {
     const option = buildBodeComparisonOption([
       { label: '未校正开环', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop, result: SAMPLE_RESULT },

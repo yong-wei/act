@@ -486,6 +486,9 @@ describe('multi representation linkage analysis adapter', () => {
     expect(pageSource).toContain("nyquistOptions.has('uncorrected-open-loop')");
     expect(pageSource).toContain("nyquistOptions.has('corrected-open-loop')");
     expect(pageSource).toContain('ClassicSourceSwitch');
+    expect(pageSource).toContain('data-panel-local-configuration="source-switch"');
+    expect(pageSource).toContain('panelControls = selectedNyquistSource ? (');
+    expect(pageSource).toContain('className="flex min-h-[660px] flex-col rounded-lg border border-border/70 bg-card/70 p-3"');
     expect(pageSource).toContain('rootLocusSourceOptions');
     expect(pageSource).toContain('nyquistSourceOptions');
     expect(pageSource).toContain("selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []");
@@ -536,26 +539,31 @@ describe('multi representation linkage analysis adapter', () => {
     expect(drawerSource).not.toContain('DialogOverlay');
   });
 
-  it('keeps parameter drawer tabs bounded, theme-aware, and semantically unchanged', () => {
+  it('keeps parameter drawer tabs native, bounded, and theme-aware', () => {
     const drawerSource = readFileSync(
       join(repoRoot, 'src/features/interactive/multi-representation-linkage/parameter-drawer.tsx'),
       'utf8',
     );
 
+    expect(drawerSource).toContain("import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';");
+    expect(drawerSource).toContain('<Tabs');
+    expect(drawerSource).toContain('<TabsList');
+    expect(drawerSource).toContain('<TabsTrigger');
+    expect(drawerSource).toContain('<TabsContent');
     expect(drawerSource).toContain('const drawerTabBaseClass =');
     expect(drawerSource).toContain('w-full min-w-0');
     expect(drawerSource).toContain('overflow-hidden');
     expect(drawerSource).toContain('transition-colors');
     expect(drawerSource).toContain('const drawerTabActiveClass =');
-    expect(drawerSource).toContain('bg-cyan-100 text-cyan-950');
-    expect(drawerSource).toContain('dark:bg-cyan-300/20 dark:text-cyan-50');
+    expect(drawerSource).toContain('data-[state=active]:bg-cyan-100');
+    expect(drawerSource).toContain('data-[state=active]:text-cyan-950');
+    expect(drawerSource).toContain('dark:data-[state=active]:bg-cyan-300/20');
+    expect(drawerSource).toContain('dark:data-[state=active]:text-cyan-50');
     expect(drawerSource).toContain('const drawerTabInactiveClass =');
     expect(drawerSource).toContain('hover:bg-cyan-50 hover:text-cyan-900');
     expect(drawerSource).toContain('dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50');
     expect(drawerSource).toContain('data-testid="parameter-drawer-object-tab"');
     expect(drawerSource).toContain('data-testid="parameter-drawer-correction-tab"');
-    expect(drawerSource).toContain("data-state={activeTab === 'plant' ? 'active' : 'inactive'}");
-    expect(drawerSource).toContain("data-state={activeTab === 'correction' ? 'active' : 'inactive'}");
     expect(drawerSource).toContain('className="block max-w-full truncate" title="对象"');
     expect(drawerSource).toContain('className="block max-w-full truncate" title="校正"');
     expect(drawerSource).toContain('disabled={isCourseMode || Boolean(isLockedOrCourse)}');

@@ -47,6 +47,7 @@ describe('control workbench view configuration', () => {
       'corrected-root-locus',
     ]);
     expect(configs.find((config) => config.id === 'nyquist')?.selectedOptions).toEqual([
+      'uncorrected-open-loop',
       'corrected-open-loop',
     ]);
   });
@@ -63,6 +64,7 @@ describe('control workbench view configuration', () => {
       enabled: true,
     });
     expect(panels.find((panel) => panel.viewId === 'nyquist')?.selectedOptions).toEqual([
+      'uncorrected-open-loop',
       'corrected-open-loop',
     ]);
   });

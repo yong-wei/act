@@ -486,12 +486,14 @@ describe('arena submissions and leaderboards', () => {
       methodLabel: 'PID',
       score: 80,
     });
+    expect(methodView.current.showMethodColumn).toBe(false);
     expect(methodView.current.entries[0]?.metrics.map((metric) => metric.id)).toEqual([
       'settlingTime',
       'overshoot',
       'steadyStateError',
     ]);
     expect(metricView.current.selectedSubId).toBe('itae');
+    expect(metricView.current.showMethodColumn).toBe(true);
     expect(metricView.current.entries.map((entry) => entry.studentName)).toEqual(['学生乙', '学生甲']);
     expect(metricView.current.entries[0]?.metrics).toEqual([
       expect.objectContaining({ id: 'itae', value: 3 }),

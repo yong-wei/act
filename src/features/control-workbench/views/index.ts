@@ -266,7 +266,7 @@ const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
     id: 'nyquist',
     title: 'Nyquist 图',
     enabled: true,
-    selectedOptions: ['corrected-open-loop'],
+    selectedOptions: ['uncorrected-open-loop', 'corrected-open-loop'],
   },
 ];
 
