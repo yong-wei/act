@@ -20,6 +20,7 @@ function fact(overrides: Partial<LearningFact>): LearningFact {
     sourceLogId: overrides.sourceLogId ?? 'log-1',
     courseId: overrides.courseId ?? null,
     lessonId: overrides.lessonId ?? 'unit-4-1-design-task-expression-v1',
+    contextJson: overrides.contextJson ?? {},
     createdAt: overrides.createdAt ?? new Date('2026-05-06T03:58:01Z'),
   };
 }

@@ -52,17 +52,20 @@ describe('useTeacherLessonSession', () => {
 
     renderToString(<Harness />);
 
-    await session?.postTeacherSyncState({
+    const teacherSession = session as unknown as TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> | null;
+    if (!teacherSession) throw new Error('Expected teacher lesson session');
+
+    await teacherSession.postTeacherSyncState({
       activeStepId: 'step-04',
       revealedAnswers: { 'step-04': true },
       updatedAt: 1_776_307_900_000,
     });
-    await session?.postTeacherSyncState({
+    await teacherSession.postTeacherSyncState({
       revealedAnswers: { 'step-04': true },
       activeStepId: 'step-04',
       updatedAt: 1_776_307_950_000,
     });
-    await session?.postTeacherSyncState({
+    await teacherSession.postTeacherSyncState({
       activeStepId: 'step-05',
       revealedAnswers: { 'step-04': true },
       updatedAt: 1_776_308_000_000,

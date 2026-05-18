@@ -36,6 +36,7 @@ describe('predictive control workbench preset', () => {
     if (!mpcResult.ok || !optimizedPidResult.ok) return;
 
     expect(mpcResult.session.defaultPreset).toBe('predictive-control');
+    if (mpcResult.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(mpcResult.session.recommendedWorkspaceMode).toBe('predictive-control');
     expect(mpcResult.session.allowedMethods).toEqual(['mpc']);
     expect(mpcResult.session.allowedViews).toEqual([

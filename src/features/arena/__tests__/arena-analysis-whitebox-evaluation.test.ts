@@ -8,7 +8,10 @@ import {
 } from '../evaluation/control-analysis-service';
 import { getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
-import { createAnalysisWhiteBoxMetricProvider } from '../evaluation/whitebox-metric-provider';
+import {
+  createAnalysisWhiteBoxMetricProvider,
+  normalizeWhiteBoxMetricProviderOutput,
+} from '../evaluation/whitebox-metric-provider';
 import type { ControllerArtifact } from '../types';
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 
@@ -144,7 +147,9 @@ describe('arena analysis-backed white-box evaluation', () => {
     const task = getArenaChallengeTask('task-second-order-lead-pid')!;
     const object = getArenaChallengeObject(task.objectId)!;
 
-    const output = await provider.evaluate({ task, object, artifact: pidArtifact });
+    const output = normalizeWhiteBoxMetricProviderOutput(
+      await provider.evaluate({ task, object, artifact: pidArtifact }),
+    );
 
     expect(output.metricSources.controlEnergy).toBe('derived-from-response');
     expect(output.explanation.join(' ')).toContain('derived');

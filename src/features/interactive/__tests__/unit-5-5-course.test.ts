@@ -123,9 +123,15 @@ describe('unit 5-5 interactive course', () => {
       kind: 'native-table',
       mustBeVisible: true,
     });
-    expect(step10?.interactionSpec.activityCards[0]?.matchOptions).toHaveLength(
-      step10?.interactionSpec.activityCards[0]?.matchItems.length,
-    );
+    const step10ActivityCards = step10?.interactionSpec.activityCards;
+    expect(step10ActivityCards).toBeDefined();
+    if (!step10ActivityCards) throw new Error('Expected step-10 activity cards');
+    const firstStep10Card = step10ActivityCards[0];
+    expect(firstStep10Card).toBeDefined();
+    if (!firstStep10Card) throw new Error('Expected step-10 first activity card');
+    expect(firstStep10Card.matchItems).toBeDefined();
+    if (!firstStep10Card.matchItems) throw new Error('Expected step-10 match items');
+    expect(firstStep10Card.matchOptions).toHaveLength(firstStep10Card.matchItems.length);
     expect(step10?.acceptanceChecks.join('')).toContain('原生表格');
 
     const revealItems = step13?.contentBlocks.reveal_layers as { items?: Array<Record<string, unknown>> } | undefined;

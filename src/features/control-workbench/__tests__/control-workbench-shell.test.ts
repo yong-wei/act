@@ -23,6 +23,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('challenge');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.task.id).toBe('task-second-order-lead-pid');
     expect(result.session.object.id).toBe('plant-second-order-underdamped');
     expect(result.session.metricProfile.id).toBe('metric-whitebox-time-domain-balanced');
@@ -87,6 +88,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('assignment');
+    if (result.session.mode !== 'assignment') throw new Error('Expected assignment session');
     expect(result.session.publicationId).toBe('pub-1');
     expect(result.session.classId).toBe('class-1');
     expect(result.session.seasonId).toBe('season-1');
@@ -121,6 +123,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('challenge');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.officialTarget.hiddenTarget).toBe(true);
     expect('transferFunction' in result.session.officialTarget).toBe(false);
     expect(result.session.workingModel).toBeNull();

@@ -19,6 +19,7 @@ function freeExploreSession() {
 
   expect(result.ok).toBe(true);
   if (!result.ok) throw new Error('Expected free explore session');
+  if (result.session.mode !== 'explore') throw new Error('Expected explore session');
   return result.session;
 }
 
@@ -44,9 +45,14 @@ describe('control workbench object selection', () => {
     const result = selectControlWorkbenchObject(freeExploreSession(), 'plant-first-order-lag');
 
     expect(result.error).toBeUndefined();
+    if (result.session.mode !== 'explore') throw new Error('Expected explore session');
     expect(result.session.object.id).toBe('plant-first-order-lag');
     expect(result.session.selectedObjectId).toBe('plant-first-order-lag');
     expect(result.session.workingModel?.sourceObjectId).toBe('plant-first-order-lag');
+    expect(result.session.workingModel?.representation.kind).toBe('transfer-function');
+    if (result.session.workingModel?.representation.kind !== 'transfer-function') {
+      throw new Error('Expected transfer-function working model');
+    }
     expect(result.session.workingModel?.representation.latex).toBe('G(s)=\\frac{4}{2s+1}');
   });
 
