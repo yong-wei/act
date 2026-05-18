@@ -167,7 +167,10 @@ describe('unit 5-3 interactive course', () => {
     expect(step12Caption).toContain('责任主体如何变化');
     expect(step12Caption).not.toBe(step12?.title);
 
-    const formula = step04?.modules.find((module) => module.id === 'chain-formula')?.payload.formulas?.[0];
+    const formulaPayload = step04?.modules.find((module) => module.id === 'chain-formula')?.payload as {
+      formulas?: string[];
+    } | undefined;
+    const formula = formulaPayload?.formulas?.[0];
     expect(formula).toBe('\\mathrm{MASS}=\\text{感知}+\\text{估计}+\\text{规划}+\\text{控制}+\\text{执行}+\\text{监督}');
     const roleCard = step04?.interactionSpec.activityCards?.find((card) => card.id === 'role-match');
     expect(roleCard?.matchItems?.map((item) => item.label)).toContain('目标船轮廓识别');

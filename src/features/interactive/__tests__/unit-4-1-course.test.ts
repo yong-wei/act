@@ -41,7 +41,7 @@ describe('unit 4-1 interactive course', () => {
     const courseModule = await import('@/lib/unit-4-1-course');
     const { manifest } = readRuntimeManifest();
 
-    expect(courseModule.UNIT_4_1_RUNTIME_MANIFEST).toBeUndefined();
+    expect((courseModule as Record<string, unknown>).UNIT_4_1_RUNTIME_MANIFEST).toBeUndefined();
     expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(13);
     expect(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => step.id)).toEqual(manifest.stepOrder);
     expect(courseModule.UNIT_4_1_LESSON_STEPS[0]?.id).toBe('step-01');

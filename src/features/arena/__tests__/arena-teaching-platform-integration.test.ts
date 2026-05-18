@@ -302,10 +302,9 @@ describe('arena teaching platform integration', () => {
       classId: 'class-a',
       publicationId: 'publication-1',
       submissions: [
-        submission({ id: 'valid-a', valid: true } as any),
+        submission({ id: 'valid-a' }),
         submission({
           id: 'invalid-a',
-          valid: false,
           evaluation: {
             valid: false,
             score: 35,

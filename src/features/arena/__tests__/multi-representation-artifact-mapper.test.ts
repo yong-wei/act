@@ -188,7 +188,7 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
   });
 
   it('rejects method not in allowedMethods', () => {
-    const pidOnlyTask = { ...baseTask, allowedMethods: ['pid'] as const };
+    const pidOnlyTask = { ...baseTask, allowedMethods: ['pid'] as ChallengeTask['allowedMethods'] };
     const result = buildArenaArtifactFromMultiRepresentationState({
       task: pidOnlyTask,
       correctionState: leadState,

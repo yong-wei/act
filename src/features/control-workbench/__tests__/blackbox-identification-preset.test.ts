@@ -25,6 +25,7 @@ describe('black-box identification control workbench preset', () => {
     if (!result.ok) return;
 
     expect(result.session.defaultPreset).toBe('blackbox-identification');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.officialTarget.hiddenTarget).toBe(true);
     expect('transferFunction' in result.session.officialTarget).toBe(false);
     expect(result.session.workingModel).toBeNull();

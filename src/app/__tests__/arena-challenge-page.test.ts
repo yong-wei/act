@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   findPublications: vi.fn(),
   listSubmissions: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
-  challengeDetail: vi.fn(() => null),
+  challengeDetail: vi.fn((_props: unknown) => null),
 }));
 
 vi.mock('next/navigation', () => ({

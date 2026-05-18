@@ -28,6 +28,7 @@ function createMockFact(overrides: Partial<LearningFact> = {}): LearningFact {
     sourceLogId: null,
     courseId: null,
     lessonId: null,
+    contextJson: {},
     createdAt: new Date(),
     ...overrides,
   };

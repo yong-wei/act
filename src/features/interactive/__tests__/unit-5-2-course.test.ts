@@ -91,7 +91,7 @@ describe('unit 5-2 interactive course', () => {
         ),
       ]),
     );
-    const fullHtml = [...htmlByStep.values()].join('\n');
+    const fullHtml = Array.from(htmlByStep.values()).join('\n');
 
     for (const leakedTitle of [
       'tool summary',

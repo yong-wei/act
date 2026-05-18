@@ -29,6 +29,23 @@ import { applyControlChartTheme } from '@/resources/control-system/charts/contro
 const LOW_FREQUENCY_CASE_ID = 'unit37_low_frequency_bode';
 const repoRoot = process.cwd();
 
+type ChartSeriesLike = {
+  name?: string;
+  data?: unknown[];
+  lineStyle?: { color?: string; type?: string; width?: number };
+  itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  label?: { formatter?: string };
+  symbol?: string;
+  symbolSize?: number;
+  xAxisIndex?: number;
+  yAxisIndex?: number;
+  z?: number;
+};
+
+function getTooltipFormatter(option: unknown): unknown {
+  return (option as { tooltip?: { formatter?: unknown } }).tooltip?.formatter;
+}
+
 const SAMPLE_RESULT: ControlAnalysisResult = {
   metrics: {
     overshootPct: 0,
@@ -341,8 +358,8 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '虚轴交点')?.symbol).toBe('diamond');
     expect(series.find((item) => item.name === '虚轴交点')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
-    expect(String(option.tooltip?.formatter)).toContain('阻尼比');
-    expect(String(option.tooltip?.formatter)).toContain('自然频率');
+    expect(String(getTooltipFormatter(option))).toContain('阻尼比');
+    expect(String(getTooltipFormatter(option))).toContain('自然频率');
     expect((option.graphic as Array<{ type?: string; style?: { text?: string } }>).some((item) =>
       item.type === 'text' && item.style?.text?.includes('K=2.000')
     )).toBe(true);
@@ -496,7 +513,7 @@ describe('control chart shared presets and themes', () => {
         ],
       },
     });
-    const getSeries = (option: { series?: unknown }) => option.series as Array<{
+    const getSeries = (option: unknown) => (option as { series?: unknown }).series as Array<{
       name?: string;
       lineStyle?: { width?: number; type?: string };
     }>;
@@ -560,9 +577,9 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '-1+j0')?.symbol).toBe('circle');
     expect(series.find((item) => item.name === '-1+j0')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
-    expect(String(option.tooltip?.formatter)).toContain('|L(jω)|');
+    expect(String(getTooltipFormatter(option))).toContain('|L(jω)|');
     expect(series.find((item) => item.name === 'Nyquist 正频率支')?.data).toContainEqual([0, 0, 0.1, 0, 0]);
-    const tooltipFormatter = option.tooltip?.formatter as (params: { seriesName: string; value: number[] }) => string;
+    const tooltipFormatter = getTooltipFormatter(option) as (params: { seriesName: string; value: number[] }) => string;
     const tooltip = tooltipFormatter({ seriesName: 'Nyquist 正频率支', value: [0, 0, 0.1, 0, 0] });
     expect(tooltip).toContain('ω: 0.10 rad/s');
     expect(tooltip).toContain('|L(jω)|');
@@ -573,7 +590,7 @@ describe('control chart shared presets and themes', () => {
     const turnSeries = buildBodeTurnFrequencySeries([
       { id: 'lead-zero', label: '超前零点', frequency: 1.2 },
       { id: 'lead-pole', label: '超前极点', frequency: 6 },
-    ]);
+    ]) as ChartSeriesLike[];
     const panelSource = readFileSync(
       join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
       'utf8',
