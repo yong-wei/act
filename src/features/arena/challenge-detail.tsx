@@ -9,6 +9,8 @@ import { getArenaWorkspaceHref } from './workspace-routing';
 import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-client';
 import { ArenaPageShell } from './arena-page-shell';
 import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
+import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
+import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import {
   ARENA_STUDENT_LEADERBOARD_TYPES,
   arenaMethodLabels,
@@ -48,6 +50,11 @@ export function ChallengeDetail({
   const studentLeaderboardTypes = task.leaderboardTypes.filter((type) =>
     ARENA_STUDENT_LEADERBOARD_TYPES.includes(type),
   );
+  const leaderboardBrowser = getChallengeLeaderboardBrowserData({
+    taskId: task.id,
+    submissions,
+    leaderboardPolicyId: leaderboardPolicy.id,
+  });
 
   return (
     <ArenaPageShell
@@ -208,6 +215,7 @@ export function ChallengeDetail({
                 <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
                 <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
               </div>
+              <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
             </div>
           </aside>
         </div>

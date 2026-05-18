@@ -5,6 +5,7 @@ import { createArenaSubmission } from '../submissions/submission-service';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { StoredArenaEvaluation } from '../submissions/persistence';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
+import { getChallengeLeaderboardBrowserViewModel } from '../leaderboards/leaderboard-service';
 import { buildArenaTaskStats, filterArenaSubmissionsForHallStats } from '../stats';
 import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent, buildArenaInteractionEvent } from '../telemetry';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
@@ -418,6 +419,84 @@ describe('arena submissions and leaderboards', () => {
       type: 'method',
       method: 'composite-compensation',
     }).entries.map((entry) => entry.studentLabel)).toEqual(['复合校正学生']);
+  });
+
+  it('builds challenge-detail leaderboard groups with student numbers and selected metrics', async () => {
+    const pid = {
+      ...(await createArenaSubmission({
+        taskId: 'task-second-order-lead-pid',
+        artifact: pidArtifact,
+        studentLabel: '学生甲',
+        submittedAt: '2026-05-10T10:01:00.000Z',
+        existingSubmissions: [],
+      })),
+      userId: 'student-a',
+      studentNumber: '2026001',
+    };
+    const serial = {
+      ...(await createArenaSubmission({
+        taskId: 'task-second-order-lead-pid',
+        artifact: {
+          ...pidArtifact,
+          id: 'artifact-browser-serial',
+          method: 'serial-compensator',
+          params: { gain: 2, zero: 1, pole: 4 },
+        },
+        studentLabel: '学生乙',
+        submittedAt: '2026-05-10T10:02:00.000Z',
+        existingSubmissions: [pid],
+      })),
+      userId: 'student-b',
+    };
+    const invalid = {
+      ...serial,
+      id: 'invalid-browser-row',
+      studentLabel: '无效学生',
+      evaluation: {
+        ...serial.evaluation,
+        valid: false,
+      },
+    };
+    pid.evaluation.score = 80;
+    serial.evaluation.score = 70;
+    pid.evaluation.metrics.itae = 8;
+    serial.evaluation.metrics.itae = 3;
+
+    const methodView = getChallengeLeaderboardBrowserViewModel({
+      taskId: 'task-second-order-lead-pid',
+      submissions: [invalid, serial, pid],
+      selectedType: 'method',
+      selectedMethod: 'pid',
+    });
+    const metricView = getChallengeLeaderboardBrowserViewModel({
+      taskId: 'task-second-order-lead-pid',
+      submissions: [invalid, serial, pid],
+      selectedType: 'metric',
+      selectedMetricId: 'itae',
+    });
+
+    expect(methodView.categories.map((category) => category.type)).toEqual(['main', 'method', 'metric']);
+    expect(methodView.methodOptions.map((option) => option.id)).toContain('pid');
+    expect(methodView.metricOptions.map((option) => option.id)).toContain('itae');
+    expect(methodView.current.entries).toHaveLength(1);
+    expect(methodView.current.entries[0]).toMatchObject({
+      studentName: '学生甲',
+      studentNumber: '2026001',
+      studentNumberLabel: '2026001',
+      methodLabel: 'PID',
+      score: 80,
+    });
+    expect(methodView.current.entries[0]?.metrics.map((metric) => metric.id)).toEqual([
+      'settlingTime',
+      'overshoot',
+      'steadyStateError',
+    ]);
+    expect(metricView.current.selectedSubId).toBe('itae');
+    expect(metricView.current.entries.map((entry) => entry.studentName)).toEqual(['学生乙', '学生甲']);
+    expect(metricView.current.entries[0]?.metrics).toEqual([
+      expect.objectContaining({ id: 'itae', value: 3 }),
+    ]);
+    expect(metricView.current.entries.map((entry) => entry.studentName)).not.toContain('无效学生');
   });
 
   it('defines core Arena telemetry events compatible with the L0 event boundary', async () => {
