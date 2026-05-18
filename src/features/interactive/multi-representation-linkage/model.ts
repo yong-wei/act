@@ -675,6 +675,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     setModelZeros(toPoleZeroPoints(effectiveSeed.zeros, 'z'));
     setGain(nextGain);
     setClosedLoopGain(nextGain);
+    setCourseControlMode(initialControlMode);
     setTimeRange(effectiveTimeRange ?? DEFAULT_LINKAGE_TIME_RANGE);
     setFrequencyRange(effectiveFreqRange ?? DEFAULT_LINKAGE_FREQUENCY_RANGE);
     setCorrectionState({
@@ -686,6 +687,7 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     effectiveSeed,
     effectiveTimeRange,
     hasConfiguredPlantModel,
+    initialControlMode,
     isArenaChallengeMode,
     routeCorrectionEnabled,
     routeResetKey,
