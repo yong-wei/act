@@ -85,6 +85,11 @@ export interface MultiRepresentationPanelInstance extends MultiRepresentationVie
   title: string;
 }
 
+export type MultiRepresentationPanelOptionsChangeHandler = (
+  panelId: string,
+  selectedOptions: string[],
+) => void;
+
 export function resolvePanelSelectedOptions(
   panel: Pick<MultiRepresentationPanelInstance, 'selectedOptions'>,
   fallbackOptions: Set<string>,

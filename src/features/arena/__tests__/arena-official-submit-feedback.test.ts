@@ -109,4 +109,21 @@ describe('arena official submission feedback view model', () => {
     expect(explanation.join('\n')).not.toContain('template-whitebox-v1');
     expect(explanation.join('\n')).not.toContain('deterministic template metrics');
   });
+
+  it('does not blame zero score on zero satisfaction when penalties caused the final zero', () => {
+    const result = evaluation({
+      satisfaction: {
+        settlingTime: 0.7,
+        overshoot: 0.8,
+        steadyStateError: 1,
+      },
+      penalties: [{ id: 'control_energy_high', label: '控制能量偏高', value: 95 }],
+      explanation: ['硬约束全部通过，提交进入正式排名。'],
+    });
+    const explanation = sanitizeOfficialEvaluationExplanation(result, rankingMetrics, ['settlingTime', 'overshoot']);
+    const text = explanation.join('\n');
+
+    expect(text).toContain('惩罚');
+    expect(text).not.toContain('存在达标度为 0 的排名指标');
+  });
 });

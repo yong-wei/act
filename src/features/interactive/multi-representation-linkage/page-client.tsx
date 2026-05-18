@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -22,6 +22,7 @@ import {
   useMultiRepresentationLinkageModel,
   type MultiRepresentationInitialParams,
   type MultiRepresentationPanelInstance,
+  type MultiRepresentationPanelOptionsChangeHandler,
   type MultiRepresentationViewConfigs,
   type MultiRepresentationViewId,
 } from './model';
@@ -197,8 +198,10 @@ function WorkbenchViewEmptyNotice({ title }: { title: string }) {
 
 export function MultiRepresentationLinkageClient({
   initialParams,
+  onPanelSelectedOptionsChange,
 }: {
   initialParams: MultiRepresentationInitialParams;
+  onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
   const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
@@ -242,6 +245,12 @@ export function MultiRepresentationLinkageClient({
         { id: 'panel-root-locus', viewId: 'root-locus', title: '根轨迹', selectedOptions: Array.from(rootLocusOptions) },
         { id: 'panel-nyquist', viewId: 'nyquist', title: 'Nyquist 图', selectedOptions: Array.from(nyquistOptions) },
       ];
+  const panelSelectionSignature = workbenchPanels
+    .map((panel) => `${panel.id}:${(panel.selectedOptions ?? []).join(',')}`)
+    .join('|');
+  useEffect(() => {
+    setPanelOptionOverrides({});
+  }, [panelSelectionSignature]);
   const buildTimeDomainPanels = (options: Set<string>) => result
     ? [
         ...(options.has('reference')
@@ -282,15 +291,15 @@ export function MultiRepresentationLinkageClient({
         panel,
         panel.viewId === 'time-domain' ? timeDomainOptions : bodeOptions,
       )));
-      if (mode === 'single') {
-        return { ...current, [panel.id]: [optionId] };
-      }
-      if (selected.has(optionId)) {
+      if (mode === 'single') selected.clear();
+      if (mode === 'multiple' && selected.has(optionId)) {
         selected.delete(optionId);
       } else {
         selected.add(optionId);
       }
-      return { ...current, [panel.id]: Array.from(selected) };
+      const nextOptions = Array.from(selected);
+      onPanelSelectedOptionsChange?.(panel.id, nextOptions);
+      return { ...current, [panel.id]: nextOptions };
     });
   };
   const buildTimeDomainCurveOptions = (): Array<ClassicCurveOption<ClassicTimeDomainOptionId>> => [

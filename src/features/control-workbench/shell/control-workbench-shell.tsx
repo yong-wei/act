@@ -341,6 +341,12 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
     setPanels((current) => current.length <= 1 ? current : current.filter((panel) => panel.id !== panelId));
   };
 
+  const updatePanelSelectedOptions = (panelId: string, selectedOptions: string[]) => {
+    setPanels((current) => current.map((panel) => (
+      panel.id === panelId ? { ...panel, selectedOptions } : panel
+    )));
+  };
+
   const renderPanelConfiguration = (panel: WorkbenchPanelInstance) => {
     const plugin = getWorkbenchViewPlugin(panel.viewId);
     const availability = plugin?.getAvailability(session) ?? { available: true };
@@ -481,7 +487,12 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
             </p>
           )}
           {showClassicPreset ? (
-            <ClassicFourViewPreset session={session} viewConfigs={viewConfigs} panelInstances={panels} />
+            <ClassicFourViewPreset
+              session={session}
+              viewConfigs={viewConfigs}
+              panelInstances={panels}
+              onPanelSelectedOptionsChange={updatePanelSelectedOptions}
+            />
           ) : null}
           {showBlackBoxPreset ? (
             <BlackBoxIdentificationPreset session={session} panelInstances={panels} />

@@ -4,7 +4,10 @@ import { MultiRepresentationLinkageClient } from '@/features/interactive/multi-r
 import type { WorkbenchSessionContext } from '../types';
 import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import type { WorkbenchPanelInstance } from '../views';
-import type { MultiRepresentationInitialParams } from '@/features/interactive/multi-representation-linkage/model';
+import type {
+  MultiRepresentationInitialParams,
+  MultiRepresentationPanelOptionsChangeHandler,
+} from '@/features/interactive/multi-representation-linkage/model';
 
 type ClassicPresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 
@@ -63,10 +66,12 @@ export function ClassicFourViewPreset({
   session,
   viewConfigs,
   panelInstances,
+  onPanelSelectedOptionsChange,
 }: {
   session: WorkbenchSessionContext;
   viewConfigs?: ClassicPresetViewConfigs;
   panelInstances?: WorkbenchPanelInstance[];
+  onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
 }) {
   if (!hasClassicModel(session)) {
     return (
@@ -96,6 +101,7 @@ export function ClassicFourViewPreset({
     <section className="overflow-hidden rounded-lg border border-white/10 bg-slate-950/30">
       <MultiRepresentationLinkageClient
         key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}
+        onPanelSelectedOptionsChange={onPanelSelectedOptionsChange}
         initialParams={{
           arenaTaskId: 'taskId' in session ? session.taskId : undefined,
           embed: true,

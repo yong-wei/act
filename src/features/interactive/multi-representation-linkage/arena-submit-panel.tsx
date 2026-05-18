@@ -138,8 +138,13 @@ export function sanitizeOfficialEvaluationExplanation(
     const zeroMetrics = scoringMetrics
       .filter((metric) => (result.satisfaction[metric.id] ?? 0) <= 0)
       .map((metric) => formatArenaMetric(metric.id, metric));
-    const metricText = zeroMetrics.length ? `，主要受 ${zeroMetrics.join('、')} 影响` : '';
-    visibleLines.unshift(`硬约束已通过，但排名分为 0：评分聚合中存在达标度为 0 的排名指标${metricText}，因此最终分归零。`);
+    if (zeroMetrics.length > 0) {
+      visibleLines.unshift(`硬约束已通过，但排名分为 0：评分聚合中存在达标度为 0 的排名指标，主要受 ${zeroMetrics.join('、')} 影响，因此最终分归零。`);
+    } else if (result.penalties.length > 0) {
+      visibleLines.unshift('硬约束已通过，但最终分为 0：排名基础分被惩罚项扣减至 0，请对照基础分、惩罚和各项实际指标。');
+    } else {
+      visibleLines.unshift('硬约束已通过，但排名分为 0：评分聚合后的排名分未形成有效得分，请对照各项实际指标与目标差距。');
+    }
   }
   if (visibleLines.length) return visibleLines;
   return [result.valid ? '官方评测完成。' : '硬约束未全部通过，提交未进入正式排名。'];
