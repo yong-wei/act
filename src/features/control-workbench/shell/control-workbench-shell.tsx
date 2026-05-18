@@ -20,7 +20,6 @@ import {
   getPresetDefaultViewConfigs,
   getWorkbenchViewPlugin,
   keyedViewConfigsFromPanels,
-  toggleWorkbenchPanelOption,
   type WorkbenchPanelInstance,
 } from '../views';
 import { ClassicFourViewPreset } from '../presets/classic-four-view-preset';
@@ -342,14 +341,9 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
     setPanels((current) => current.length <= 1 ? current : current.filter((panel) => panel.id !== panelId));
   };
 
-  const togglePanelOption = (panelId: string, optionId: string) => {
-    setPanels((current) => toggleWorkbenchPanelOption(current, panelId, optionId));
-  };
-
   const renderPanelConfiguration = (panel: WorkbenchPanelInstance) => {
     const plugin = getWorkbenchViewPlugin(panel.viewId);
     const availability = plugin?.getAvailability(session) ?? { available: true };
-    const options = plugin?.getOptions(session) ?? [];
     return (
       <article key={panel.id} className="rounded-lg border border-border/70 bg-background/60 p-3" data-workbench-panel-config-id={panel.id}>
         <div className="flex items-start justify-between gap-2">
@@ -379,41 +373,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
             </button>
           </div>
         </div>
-        <details className="mt-3">
-          <summary className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-3 py-2 text-xs font-medium text-foreground">
-            <Settings2 className="h-4 w-4" />
-            面板配置
-          </summary>
-          {options.length ? (
-            <div className="mt-3 grid gap-2">
-              {options.map((option) => {
-                const selected = Boolean(panel.selectedOptions?.includes(option.id));
-                return (
-                  <label key={option.id} className="flex gap-2 text-xs text-subtle">
-                    <input
-                      checked={selected && option.enabled && availability.available}
-                      className="mt-0.5"
-                      disabled={!availability.available || !option.enabled}
-                      name={isSingleSelectionView(panel.viewId) ? panel.id : undefined}
-                      onChange={() => togglePanelOption(panel.id, option.id)}
-                      type={isSingleSelectionView(panel.viewId) ? 'radio' : 'checkbox'}
-                    />
-                    <span>
-                      <span className={option.enabled && availability.available ? 'text-foreground' : 'text-muted-foreground'}>
-                        {option.label}
-                      </span>
-                      {!option.enabled && option.disabledReason ? (
-                        <span className="mt-0.5 block text-muted-foreground">{option.disabledReason}</span>
-                      ) : null}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="mt-3 text-xs text-subtle">该面板暂无可配置选项。</p>
-          )}
-        </details>
+        <p className="mt-3 text-xs text-subtle">每个面板的配置在对应面板标题区调整。</p>
       </article>
     );
   };
@@ -481,7 +441,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-base font-semibold text-foreground">面板布置与添加面板</h2>
-              <p className="mt-1 text-sm text-subtle">可以添加允许的面板；每个面板的配置只影响自己。</p>
+              <p className="mt-1 text-sm text-subtle">可以添加允许的面板；每个面板的配置在对应面板标题区调整。</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {availablePanelPlugins.map((plugin) => (

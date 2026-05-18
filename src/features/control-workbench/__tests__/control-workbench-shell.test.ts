@@ -149,7 +149,7 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('自由探索模式');
     expect(shellSource).toContain('会话状态');
     expect(shellSource).toContain('添加面板');
-    expect(shellSource).toContain('面板配置');
+    expect(shellSource).toContain('每个面板的配置在对应面板标题区调整');
     expect(shellSource).toContain('重置默认');
     expect(shellSource).toContain('sessionStorage');
     expect(shellSource).toContain('ArenaWorkbenchSubmissionMount');
@@ -158,12 +158,13 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
   });
 
-  it('uses single-select controls for root-locus and nyquist panel configuration', () => {
+  it('keeps layout controls structural and leaves view-specific configuration inside panels', () => {
     const shellSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
 
     expect(shellSource).toContain("return viewId === 'root-locus' || viewId === 'nyquist';");
-    expect(shellSource).toContain("name={isSingleSelectionView(panel.viewId) ? panel.id : undefined}");
-    expect(shellSource).toContain("type={isSingleSelectionView(panel.viewId) ? 'radio' : 'checkbox'}");
+    expect(shellSource).not.toContain('面板配置');
+    expect(shellSource).not.toContain("type={isSingleSelectionView(panel.viewId) ? 'radio' : 'checkbox'}");
+    expect(shellSource).not.toContain('togglePanelOption');
     expect(shellSource).not.toContain("viewId === 'root-locus' ? 'radio' : 'checkbox'");
     expect(shellSource).not.toContain("} else if (viewId === 'root-locus')");
     expect(shellSource).not.toContain('selected.clear();');
