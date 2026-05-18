@@ -36,11 +36,16 @@ import {
   type RootLocusMode,
 } from './control-bode-options';
 import { ControlChartPanel } from './control-chart-panel';
+import {
+  CONTROL_SIGNAL_CURVE_STYLES as SHARED_CONTROL_SIGNAL_CURVE_STYLES,
+  type ControlSignalCurveStyle,
+} from './control-signal-styles';
 
 // Shared axis presets must stay aligned with case ids like ship_heading/platform_pitch
 // and the root-locus variants rootLocusFull/rootLocusZoom used by the workspace.
 
 export { buildBodeTurnFrequencySeries };
+export const CONTROL_SIGNAL_CURVE_STYLES = SHARED_CONTROL_SIGNAL_CURVE_STYLES;
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
@@ -58,17 +63,13 @@ const ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH = 2.2;
 const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M0 -1.2 L28 -1.2 L28 1.2 L0 1.2 Z';
 const ROOT_LOCUS_LEGEND_DASHED_LINE_ICON = 'path://M0 -1 L6 -1 L6 1 L0 1 Z M10 -1 L17 -1 L17 1 L10 1 Z M21 -1 L28 -1 L28 1 L21 1 Z';
 
-export type TimeDomainCurveStyle = {
-  color: string;
-  lineType: 'solid' | 'dashed';
-  width?: number;
-};
+export type TimeDomainCurveStyle = ControlSignalCurveStyle;
 
 export const TIME_DOMAIN_CURVE_STYLES = {
-  reference: { color: '#22c55e', lineType: 'dashed' },
-  uncorrected: { color: '#64748b', lineType: 'solid' },
-  corrected: { color: '#0ea5e9', lineType: 'solid' },
-} as const satisfies Record<string, TimeDomainCurveStyle>;
+  reference: CONTROL_SIGNAL_CURVE_STYLES.reference,
+  uncorrected: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput,
+  corrected: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput,
+} as const;
 
 export type RootLocusInteractiveHandle = {
   id: string;
@@ -706,6 +707,22 @@ export function calculateStableResponseAxisPreset(
   const nearFlatBase = Math.max(Math.min(Math.abs(min), Math.abs(max)), 1);
   const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
   const margin = span > magnitudeBase * 0.05 ? span * 0.1 : nearFlatBase * 0.1;
+  return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
+}
+
+export function calculateTimeDomainVisibleAxisPreset(points: CurvePoint[]): { y: [number, number] } | undefined {
+  if (points.length === 0) {
+    return undefined;
+  }
+  const values = points.map((point) => point.y).filter(Number.isFinite);
+  if (values.length === 0) {
+    return undefined;
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
+  const margin = span > magnitudeBase * 0.05 ? span * 0.1 : magnitudeBase * 0.1;
   return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
 }
 
@@ -1713,20 +1730,13 @@ export function TimeDomainPanel({
   );
 }
 
-function buildTimeDomainComparisonOption(
+export function buildTimeDomainComparisonOption(
   panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>,
   axisPreset?: PartialAxisPreset,
 ): EChartsCoreOption {
   return {
     animation: false,
-    legend: {
-      top: 0,
-      data: panels.map((panel) => ({
-        name: panel.label,
-        icon: panel.style.lineType === 'dashed' ? ROOT_LOCUS_LEGEND_DASHED_LINE_ICON : ROOT_LOCUS_LEGEND_LINE_ICON,
-      })),
-    },
-    grid: { top: 34, right: 18, bottom: 42, left: 58 },
+    grid: { top: 18, right: 18, bottom: 42, left: 58 },
     tooltip: {
       trigger: 'axis',
       formatter: axisTooltipFormatter,
@@ -1772,9 +1782,8 @@ export function TimeDomainComparisonPanel({
   onRefreshRange?: (range: CartesianRange) => void;
 }) {
   const axisPreset = getControlAxisPreset(caseId, 'step');
-  const stableAxisPreset = calculateStableResponseAxisPreset(
+  const stableAxisPreset = calculateTimeDomainVisibleAxisPreset(
     panels.flatMap((panel) => panel.result.stepResponse.points),
-    panels.every((panel) => panel.result.metrics.settlingTimeSec != null),
   );
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -2337,7 +2346,7 @@ export function BodeComparisonPanel({
   onTurnFrequencyCommit,
   onRefreshRange,
 }: {
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  panels: Array<{ label: string; color?: string; style?: ControlSignalCurveStyle; result: ControlAnalysisResult }>;
   caseId?: string;
   turnFrequencyHandles?: BodeTurnFrequencyHandle[];
   onTurnFrequencyCommit?: (id: string, frequency: number) => void;

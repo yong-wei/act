@@ -13,11 +13,14 @@ import {
 } from '@/resources/control-system/charts/control-bode-options';
 import {
   buildBodeTurnFrequencySeries,
+  buildTimeDomainComparisonOption,
   buildLineOption,
   buildNyquistOption,
   buildRootLocusOption,
   ControlPerformanceBar,
+  CONTROL_SIGNAL_CURVE_STYLES,
   calculateStableResponseAxisPreset,
+  calculateTimeDomainVisibleAxisPreset,
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
 } from '@/resources/control-system/charts/control-analysis-panels';
@@ -613,16 +616,94 @@ describe('control chart shared presets and themes', () => {
     expect(calculateStableResponseAxisPreset([{ x: 0, y: 3 }], false)).toBeUndefined();
   });
 
-  it('uses shared time-domain curve styles for rendered lines and legends', () => {
+  it('uses shared curve styles for time-domain rendered lines and panel-local legend controls', () => {
     const panelSource = readFileSync(
       join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
       'utf8',
     );
 
-    expect(panelSource).toContain('export const TIME_DOMAIN_CURVE_STYLES');
-    expect(panelSource).toContain("reference: { color: '#22c55e', lineType: 'dashed'");
+    expect(CONTROL_SIGNAL_CURVE_STYLES.reference).toMatchObject({ color: '#22c55e', lineType: 'dashed' });
+    expect(CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput).toMatchObject({ color: '#64748b', lineType: 'solid' });
+    expect(CONTROL_SIGNAL_CURVE_STYLES.correctedOutput).toMatchObject({ color: '#0ea5e9', lineType: 'solid' });
+    expect(panelSource).toContain('export const CONTROL_SIGNAL_CURVE_STYLES');
     expect(panelSource).toContain('lineStyle: { color: panel.style.color, type: panel.style.lineType');
-    expect(panelSource).toContain("icon: panel.style.lineType === 'dashed' ? ROOT_LOCUS_LEGEND_DASHED_LINE_ICON : ROOT_LOCUS_LEGEND_LINE_ICON");
+    expect(panelSource).not.toContain('legend: {\\n      top: 0');
+  });
+
+  it('builds time-domain comparison options without a chart-area legend and ranges all visible signals', () => {
+    const preset = calculateTimeDomainVisibleAxisPreset([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1.2 },
+    ]);
+    const option = buildTimeDomainComparisonOption([
+      {
+        label: '参考输入',
+        style: CONTROL_SIGNAL_CURVE_STYLES.reference,
+        result: {
+          ...SAMPLE_RESULT,
+          stepResponse: { points: [{ x: 0, y: 1 }, { x: 1, y: 1 }] },
+        },
+      },
+      {
+        label: '校正后输出',
+        style: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput,
+        result: {
+          ...SAMPLE_RESULT,
+          stepResponse: { points: [{ x: 0, y: 0 }, { x: 1, y: 1.2 }] },
+        },
+      },
+    ], preset);
+    const series = option.series as Array<{ name: string; lineStyle: { color: string; type: string } }>;
+    const yAxis = option.yAxis as { min?: number; max?: number };
+
+    expect(option.legend).toBeUndefined();
+    expect(yAxis).toMatchObject({ min: -0.12, max: 1.32 });
+    expect(series.find((item) => item.name === '参考输入')?.lineStyle).toMatchObject({
+      color: CONTROL_SIGNAL_CURVE_STYLES.reference.color,
+      type: CONTROL_SIGNAL_CURVE_STYLES.reference.lineType,
+    });
+  });
+
+  it('builds Bode comparison options from shared source styles without a chart-area legend', () => {
+    const option = buildBodeComparisonOption([
+      { label: '未校正开环', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop, result: SAMPLE_RESULT },
+      { label: '校正后开环', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop, result: SAMPLE_RESULT },
+      { label: '校正装置', style: CONTROL_SIGNAL_CURVE_STYLES.correctionDevice, result: SAMPLE_RESULT },
+    ]);
+    const series = option.series as Array<{ name: string; lineStyle: { color: string; type?: string } }>;
+
+    expect(option.legend).toBeUndefined();
+    expect(option.color).toEqual([
+      CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop.color,
+      CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop.color,
+      CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+    ]);
+    expect(series.filter((item) => item.name === '校正装置').map((item) => item.lineStyle.color))
+      .toEqual([
+        CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+        CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+      ]);
+  });
+
+  it('keeps workbench curve configuration local to each panel header', () => {
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(pageSource).toContain('data-panel-local-configuration="curve-toggle-group"');
+    expect(pageSource).toContain('function PanelCurveToggleGroup');
+    expect(pageSource).toContain('const [panelOptionOverrides, setPanelOptionOverrides]');
+    expect(pageSource).toContain('onPanelSelectedOptionsChange?.(panel.id, nextOptions)');
+    expect(pageSource).toContain('setPanelOptionOverrides({});');
+    expect(pageSource).toContain('onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}');
+    expect(pageSource).toContain('data-line-style={option.style.lineType}');
+    expect(pageSource).toContain('<LineStyleSample style={option.style} />');
+    expect(pageSource).toContain('label="时域信号"');
+    expect(pageSource).toContain('label="Bode 曲线"');
+    expect(pageSource).toContain('label="Nyquist 来源"');
+    expect(pageSource).toContain('style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop');
   });
 
   it('lets time-domain charts apply a y-only stable-response preset', () => {
