@@ -13,6 +13,36 @@
 
 The Project is the human-visible coordination board. Labels and issue front matter remain the agent execution source of truth, but every issue status transition must also mirror to the Project `Status` field.
 
+## PR Coordination
+
+Every Buddy implementation PR must be coordinated with the same Project and
+labels as its originating issue before the review wait starts.
+
+After creating a ready PR against `integration`, run:
+
+```bash
+.codex/skills/openspec-buddy/scripts/configure-pr-metadata.sh <issue-number> <pr-number-or-url>
+```
+
+The helper must:
+
+- add `pr:openspec-buddy`
+- add `pr:base-<base-branch>`, normally `pr:base-integration`
+- copy the issue's `area:*`, `series:*`, and `risk:*` labels to the PR
+- add the PR to the same Project as the issue
+- set the PR Project `Status` to `In Progress`
+- add a non-closing origin issue reference to the PR body
+
+Do not copy `status:*` labels to PRs. Issue status remains the Buddy execution
+state, while `pr:*` labels describe PR-specific review metadata.
+
+Do not use closing keywords such as `Closes`, `Fixes`, or `Resolves` to link a
+Buddy PR to its issue. Those keywords can close the issue before OpenSpec
+archive. Use the helper's non-closing origin reference and the issue comment
+created by `mark-review.sh` for traceability. If the GitHub UI requires a
+manual Development sidebar link, record that as a manual follow-up rather than
+using an unsafe closing keyword.
+
 ## Command
 
 After creating the issue, run:

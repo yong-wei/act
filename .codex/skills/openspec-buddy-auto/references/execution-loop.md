@@ -42,12 +42,28 @@ Open a formal PR:
 ```text
 title: concise change title
 base: integration
-body: summary, verification, linked issue
+body: summary, verification, non-closing origin issue reference
 review request: @codex审核，中文回复
 ```
 
 Do not let `gh pr create` fall back to the repository default branch; pass
 `--base integration` explicitly.
+Do not use closing keywords such as `Closes`, `Fixes`, or `Resolves` for the
+Buddy issue; issue closure belongs to the archive step.
+
+After the PR exists and before marking the issue in review, configure PR
+metadata:
+
+```bash
+.codex/skills/openspec-buddy/scripts/configure-pr-metadata.sh <issue-number> <pr-number-or-url>
+```
+
+This adds PR-scoped labels, copies the issue's area/series/risk labels, adds
+the PR to the same Project as the issue, sets the PR Project `Status` to
+`In Progress`, and records the originating issue in the PR body without closing
+it. If this fails, stop before review waiting; do not silently continue with an
+untracked PR.
+
 Set issue to `status:in-review` with the PR URL; the Project `Status` must remain `In Progress`.
 Do this only after OpenSpec task progress is `complete == total`; otherwise finish or reconcile the local tasks first.
 

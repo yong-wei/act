@@ -46,15 +46,22 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    Before opening a PR, `openspec instructions apply --change <change_id> --json`
    must report `remaining: 0`; finish or explicitly reconcile incomplete tasks first.
 8. Commit, push, and open a ready PR against `integration` with `@codex审核，中文回复`.
-9. Mark the issue `status:in-review`.
+   The PR body must not use closing keywords for the Buddy issue.
+9. Configure PR metadata with `openspec-buddy/scripts/configure-pr-metadata.sh`:
+   - add PR-scoped labels such as `pr:openspec-buddy` and `pr:base-integration`
+   - copy the issue's `area:*`, `series:*`, and `risk:*` labels to the PR
+   - add the PR to the same Project as the issue
+   - set the PR Project `Status` to `In Progress`
+   - record the originating issue in the PR body without closing it
+10. Mark the issue `status:in-review`.
    The Project `Status` must remain `In Progress`.
-10. Wait five minutes in the same foreground workflow, then check again.
+11. Wait five minutes in the same foreground workflow, then check again.
     Do not use Codex automations, heartbeats, reminders, or background monitors for this wait.
-11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
-12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes. Before resolving any review thread, reply in that thread with the fix or non-actionable rationale and evidence; then resolve the thread and repeat from step 10.
-13. If no new review appears for three consecutive five-minute checks and checks are green, merge the PR without deleting the branch yet. If a Codex review explicitly says there are no significant issues or no major problems, and all merge gates pass, it may be merged without waiting for the remaining quiet checks.
-14. Fast-forward the claim branch to `origin/integration`.
-15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
+12. Check PR review, unresolved threads, requested changes, CI, mergeability, labels, Project membership, and origin issue traceability.
+13. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes. Before resolving any review thread, reply in that thread with the fix or non-actionable rationale and evidence; then resolve the thread and repeat from step 11.
+14. If no new review appears for three consecutive five-minute checks and checks are green, merge the PR without deleting the branch yet. If a Codex review explicitly says there are no significant issues or no major problems, and all merge gates pass, it may be merged without waiting for the remaining quiet checks.
+15. Fast-forward the claim branch to `origin/integration`.
+16. Run `openspec-buddy achieve` or `openspec-buddy archive`.
     Recheck the OpenSpec task state before archiving; an issue must not reach
     `status:archived` while local `tasks.md` still contains incomplete items.
     The Project `Status` must become `Done` when the issue reaches `status:archived`.
@@ -62,9 +69,9 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     If the archived issue belongs to a series parent and all sibling changes are
     also archived, finalize the parent issue as `status:archived`, Project
     `Status: Done`, Project `End` set, and closed.
-16. Commit and push the archive update, merge it to `integration`, push `integration`, then delete the local and remote claim branch.
-17. Return to the coordination branch and fast-forward it to `integration`.
-18. Write an execution retrospective before final reporting.
+17. Commit and push the archive update, merge it to `integration`, push `integration`, then delete the local and remote claim branch.
+18. Return to the coordination branch and fast-forward it to `integration`.
+19. Write an execution retrospective before final reporting.
 
 ## Goal Mode
 
@@ -96,6 +103,9 @@ Do not merge unless all are true:
 
 - PR is open and mergeable.
 - PR base is `integration`; if base is `main`, retarget it to `integration` before review/merge, and stop if it cannot be retargeted.
+- PR has `pr:openspec-buddy`, `pr:base-integration`, and the originating issue's applicable `area:*`, `series:*`, and `risk:*` labels.
+- PR is in the same Project as the originating issue, and its Project `Status` is `In Progress`.
+- PR body records the originating issue without a closing keyword.
 - CI/checks have completed successfully or the repository has no required checks.
 - No unresolved review threads remain.
 - No reviewer has requested changes on the latest commit.
@@ -109,6 +119,7 @@ Do not merge unless all are true:
 - Every review-thread resolve must be preceded by a reply in that same thread. The reply must state the fix commit or the reason the thread is non-actionable, plus the verification evidence. Do not silently resolve Codex review threads.
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
 - OpenSpec Buddy automation targets `integration`, not `main`. New changes use `base_branch: integration`, PRs use base `integration`, and archive commits land on `integration`. Merging `integration` to `main` is a manual release action outside Buddy Auto.
+- Buddy PRs must be configured with the `pr:*` namespace labels, inherited area/series/risk labels, the same Project as the issue, and a non-closing origin issue reference before review waiting begins. Do not use closing keywords to force a Development link, because Buddy issues close only during archive.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
 - Treat OpenSpec tasks as part of the cross-system completion record, not as local notes. If code already satisfies a task but `tasks.md` is still unchecked, close the task in the implementation PR before review/merge/archive; otherwise GitHub issue state and local OpenSpec state drift permanently.
 - Treat series parent issues as completion records too. A `type:series-parent` issue should remain `status:tracking` only while at least one child change is unfinished; after the last child reaches `status:archived`, close the parent with `status:archived`, Project `Done`, and Project `End`.

@@ -45,6 +45,9 @@ Check:
 new review comments
 new requested changes
 PR base branch is integration
+PR has pr:* metadata labels and copied area/series/risk labels
+PR is in the same Project as the originating issue
+PR body records the origin issue without closing keywords
 unresolved review threads
 CI/check failures
 mergeability

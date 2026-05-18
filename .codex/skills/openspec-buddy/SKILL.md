@@ -105,15 +105,27 @@ Steps:
    ```
    This must leave the Project `Status` as `In Progress`.
 9. Invoke `openspec-apply-change` for the matching local OpenSpec change.
-10. Open a ready PR against `integration`, never a draft PR. After opening
-    the ready PR, mark the issue in review:
+10. Open a ready PR against `integration`, never a draft PR. The PR body must
+    not use closing keywords such as `Closes`, `Fixes`, or `Resolves` for the
+    Buddy issue, because the issue must stay open until OpenSpec archive.
+11. After opening the ready PR, configure PR metadata before review:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/configure-pr-metadata.sh <issue-number> <pr-url>
+   ```
+   This must add PR-scoped labels such as `pr:openspec-buddy` and
+   `pr:base-integration`, copy the issue's `area:*`, `series:*`, and `risk:*`
+   labels to the PR, add the PR to the same Project as the issue, set the PR
+   Project `Status` to `In Progress`, and add a non-closing origin issue
+   reference to the PR body for Development traceability.
+12. Mark the issue in review:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-review.sh <issue-number> <pr-url>
    ```
    This first verifies the PR targets `integration`. If the PR targets `main`,
    the script attempts to retarget it to `integration`; if retargeting fails,
-   stop before review/merge. The script also rejects draft PRs. This must leave
-   the Project `Status` as `In Progress`.
+   stop before review/merge. The script also rejects draft PRs and runs the PR
+   metadata configuration helper. This must leave the issue Project `Status` as
+   `In Progress`.
 
 If claim verification fails, stop before editing files.
 
@@ -166,6 +178,8 @@ Read only the reference needed for the current mode:
 - Do not update `status:*` labels without the Buddy wrapper scripts; Project `Status` must stay synchronized for human-visible coordination.
 - Do not open, review, or merge Buddy PRs against `main`. Retarget them to `integration` or stop.
 - Do not create or submit draft PRs for Buddy changes; PRs must be ready for review when they are handed to the review loop.
+- Do not leave Buddy PRs without PR-scoped labels, copied area/series/risk labels, the same Project as the originating issue, and a non-closing origin issue reference.
+- Do not use closing keywords to link Buddy PRs to issues; issue closure is reserved for the archive step.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
 - Do not bypass the remote branch lock in `claim-change.sh`; label changes alone are not a reliable lock.
 - Do not reclaim `status:claimed` or `status:in-progress` work unless the lease is stale and the branch/PR recovery checks prove it is safe.
@@ -177,7 +191,7 @@ Read only the reference needed for the current mode:
 For `propose`, report the issue URL, `change_id`, labels, OpenSpec path, parent issue link, and dependency relationship links.
 Also report the GitHub Project item id or state that the issue was already present in the Project, plus the Project `Status`.
 
-For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, and the OpenSpec change being applied.
+For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, PR metadata labels, PR Project membership, and the OpenSpec change being applied.
 
 For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, any finalized series parent issue, and any follow-up issues that were unblocked.
 
