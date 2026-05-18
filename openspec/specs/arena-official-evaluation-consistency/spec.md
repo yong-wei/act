@@ -65,6 +65,29 @@ Official evaluation results shown to students SHALL use Chinese hard-constraint 
 - **THEN** those raw English notes SHALL NOT be shown directly to students
 - **AND** any displayed explanation SHALL be Chinese.
 
+#### Scenario: Official metrics use compact comparison layout
+- **WHEN** the official submission module displays multiple current or official metrics
+- **THEN** the metric rows SHALL use a compact layout that keeps actual values and target or threshold values close enough for direct comparison
+- **AND** the layout SHALL avoid wasting vertical space on repeated labels.
+
+### Requirement: Official submission panel previews current metrics
+The official submission panel SHALL display current actual metric estimates for the active workbench state before the student clicks official submit.
+
+#### Scenario: Current metrics update before submission
+- **WHEN** a student changes controller parameters, correction settings, or selected object data in a supported challenge workbench
+- **THEN** the official submission panel SHALL update the displayed current actual metric values from the current analysis state
+- **AND** it SHALL NOT wait for an official submission click before showing those current values.
+
+#### Scenario: Preview metrics are distinct from official result
+- **WHEN** current preview metrics and the latest official submission result are both available
+- **THEN** the UI SHALL distinguish current preview values from persisted official evaluation values
+- **AND** it SHALL still use the same Chinese metric vocabulary and target or threshold comparison format.
+
+#### Scenario: Preview metrics unavailable
+- **WHEN** a current metric cannot be computed for the active workbench state
+- **THEN** the official submission panel SHALL show a Chinese unavailable state for that metric
+- **AND** it SHALL NOT show fabricated values.
+
 ### Requirement: Leaderboards include only valid official submissions
 Arena leaderboards SHALL include only official submissions that pass hard constraints.
 
@@ -90,4 +113,3 @@ The system SHALL support successful official evaluation from a student-authentic
 - **WHEN** the official evaluation accepts a student submission
 - **THEN** the submission SHALL be persisted through the Arena official submission path
 - **AND** the result SHALL be eligible for the leaderboard rules defined by the task's metric profile.
-

@@ -44,7 +44,7 @@ Parameter drawer numeric inputs SHALL use step 1, display two decimal places whe
 - **THEN** finite numeric values SHALL display with two digits after the decimal point.
 
 ### Requirement: Parameter drawer tab layout is stable
-The parameter drawer SHALL keep top-level object and correction labels readable, visually stable, and clearly active as the selected object, correction state, or correction structure changes.
+The parameter drawer SHALL use native tab semantics for top-level object and correction labels, and those tabs SHALL remain readable, visually stable, and clearly active as the selected object, correction state, or correction structure changes.
 
 #### Scenario: Switching structures does not deform tabs
 - **WHEN** a student switches between PI, PD, PID, lead, lag, and lead-lag
@@ -70,6 +70,11 @@ The parameter drawer SHALL keep top-level object and correction labels readable,
 - **WHEN** a student switches between the object label and a correction label
 - **THEN** the newly current label SHALL change to the active color treatment
 - **AND** the label dimensions SHALL remain stable during the state change.
+
+#### Scenario: Native tabs replace simulated labels
+- **WHEN** the parameter drawer renders object and correction top-level controls
+- **THEN** those controls SHALL use the repository's native tab component or equivalent native tab semantics
+- **AND** they SHALL NOT be implemented as unrelated buttons that only imitate tab styling.
 
 ### Requirement: Time-domain chart auto range reflects stable response
 The stable time-domain response chart SHALL default its y-axis range to cover 1.1 times the maximum response signal magnitude.
@@ -97,4 +102,3 @@ The root-locus view SHALL use the effective controller gain and SHALL synchroniz
 #### Scenario: Closed-loop poles use equivalent gain
 - **WHEN** controller gain is changed through the correction controls
 - **THEN** the root-locus closed-loop pole markers SHALL be computed from the same effective gain used for official artifact generation.
-

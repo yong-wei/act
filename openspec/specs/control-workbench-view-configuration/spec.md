@@ -58,6 +58,11 @@ Bode and Nyquist views SHALL expose only source curves that exist for the curren
 - **THEN** the Nyquist view SHALL provide a control to select uncorrected or corrected source data
 - **AND** the selected source SHALL be identifiable in the view.
 
+#### Scenario: Nyquist source switch is visible in the panel
+- **WHEN** a Nyquist panel is rendered in a correction-enabled classic workbench context
+- **THEN** the uncorrected/corrected source switch SHALL be visible in or adjacent to the Nyquist panel header
+- **AND** the layout composition layer SHALL NOT be the only place where the Nyquist source can be changed.
+
 ### Requirement: Root locus uses single selected source
 The root-locus view SHALL render one selected source at a time and SHALL support uncorrected/corrected source switching when correction is enabled.
 
@@ -80,7 +85,7 @@ Workbench panel configuration SHALL persist by panel instance while the student 
 - **AND** sibling panels SHALL keep their own configuration state.
 
 ### Requirement: Time-domain view auto-ranges visible curves
-The time-domain response view SHALL compute its default vertical range from the finite extrema of the currently visible time-domain curves, include approximately 10% visual margin, and avoid fixed aspect-ratio constraints that prevent data-driven vertical display.
+The time-domain response view SHALL compute its default vertical range from the finite extrema of the currently visible time-domain curves, include approximately 10% visual margin, and SHALL NOT apply fixed equal-aspect Cartesian constraints to time-domain response axes.
 
 #### Scenario: Visible response curves determine axis range
 - **WHEN** reference, uncorrected output, corrected output, or other configured visible signals contain finite samples
@@ -95,6 +100,16 @@ The time-domain response view SHALL compute its default vertical range from the 
 #### Scenario: Reference signal contributes to range
 - **WHEN** the reference signal is visible together with response curves
 - **THEN** the default y-axis range SHALL include the reference signal values.
+
+#### Scenario: Time-domain chart does not use equal aspect
+- **WHEN** a time-domain response panel has a wide time range such as 0 to 12 seconds and response values near 0 to 1.2
+- **THEN** the default y-axis range SHALL remain close to the visible response range with margin
+- **AND** the y-axis SHALL NOT be expanded to match x-axis units per pixel.
+
+#### Scenario: Data changes reset stale automatic y range
+- **WHEN** the selected visible signals, selected object, response type, or analysis result identity changes
+- **THEN** the time-domain view SHALL recompute the automatic y-axis range from the new visible data
+- **AND** it SHALL NOT preserve an old y-axis range unless the user explicitly panned, zoomed, or refreshed the range.
 
 ### Requirement: Workbench layout is composed of panel instances
 The control workbench SHALL render analysis views as ordered panel instances rather than as one global instance per view type.
@@ -141,3 +156,27 @@ Each workbench panel SHALL expose its configuration through a control in that pa
 - **THEN** it SHALL provide structural actions such as add, remove, reorder, or reset
 - **AND** it SHALL NOT render time-domain, Bode, root-locus, or Nyquist specific configuration controls outside the corresponding panel.
 
+### Requirement: Selectable chart series match panel controls
+Time-domain and Bode chart panels SHALL render exactly the selected available series declared by their panel-local controls.
+
+#### Scenario: Time-domain curve is hidden after deselection
+- **WHEN** a student deselects a time-domain curve such as reference, uncorrected output, or corrected output
+- **THEN** the corresponding rendered series SHALL be removed from the chart
+- **AND** tooltip or chart state SHALL NOT continue to expose the deselected series.
+
+#### Scenario: Bode curve is hidden after deselection
+- **WHEN** a student deselects a Bode curve such as uncorrected open loop, corrected open loop, or correction device
+- **THEN** the corresponding magnitude and phase series SHALL be removed from the chart
+- **AND** the remaining rendered curves SHALL match the selected control states.
+
+### Requirement: Chart panel wrappers keep stable dimensions
+Workbench chart panel wrappers SHALL keep stable dimensions while source and curve controls are toggled.
+
+#### Scenario: Root-locus source switch does not change wrapper height
+- **WHEN** a student switches root-locus source between uncorrected and corrected data
+- **THEN** the containing panel module SHALL keep the same reserved height
+- **AND** only the plotted content and selected-state indication SHALL change.
+
+#### Scenario: Shared chart panels do not resize on option changes
+- **WHEN** a student toggles time-domain, Bode, Nyquist, or root-locus options
+- **THEN** surrounding layout modules SHALL NOT jump in height or width because of the toggle state.
