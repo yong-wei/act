@@ -24,14 +24,16 @@ const correctionKindLabels: Record<CorrectionState['kind'], string> = {
   lead_lag: '滞后-超前',
 };
 
+function positiveFinite(value: number | null | undefined, fallback: number): number {
+  return Number.isFinite(value ?? NaN) && (value as number) > 0 ? value as number : fallback;
+}
+
 export function buildArenaArtifactFromMultiRepresentationState(
   input: MultiRepresentationArtifactInput,
 ): ArtifactBuildResult {
   const { task, correctionState, now } = input;
   const createdAt = now ?? new Date().toISOString();
-  const controllerGain = Number.isFinite(correctionState.controllerGain)
-    ? Math.max(0, correctionState.controllerGain)
-    : 1;
+  const controllerGain = positiveFinite(correctionState.controllerGain, 1);
 
   if (!correctionState.enabled) {
     return { artifact: null, error: '请先启用校正器配置控制器参数。' };
@@ -61,8 +63,12 @@ export function buildArenaArtifactFromMultiRepresentationState(
       return { artifact: null, error: '当前挑战不允许使用串联校正方法。' };
     }
     const isLead = correctionState.kind === 'lead';
-    const zeroFreq = isLead ? correctionState.leadZeroFrequency : correctionState.lagZeroFrequency;
-    const poleFreq = isLead ? correctionState.leadPoleFrequency : correctionState.lagPoleFrequency;
+    const zeroFreq = isLead
+      ? positiveFinite(correctionState.leadZeroFrequency, 1)
+      : positiveFinite(correctionState.lagZeroFrequency, 0.2);
+    const poleFreq = isLead
+      ? positiveFinite(correctionState.leadPoleFrequency, zeroFreq * 4)
+      : positiveFinite(correctionState.lagPoleFrequency, zeroFreq / 4);
     return {
       artifact: {
         id: `artifact-${task.id}-serial-${Date.parse(createdAt) || Date.now()}`,
