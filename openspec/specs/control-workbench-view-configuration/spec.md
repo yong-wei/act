@@ -12,7 +12,7 @@ Each workbench view SHALL declare whether it is available for the current sessio
 - **AND** the UI SHALL show a Chinese explanation instead of a chart.
 
 ### Requirement: Time-domain view supports signal selection
-The time-domain view SHALL support configurable signal visibility based on available session data and SHALL keep rendered curve styles synchronized with legend styles.
+The time-domain view SHALL support configurable signal visibility based on available session data, and its panel-local signal controls SHALL be the visible legend for rendered curves.
 
 #### Scenario: Classic white-box default signals
 - **WHEN** the classic preset loads
@@ -26,23 +26,37 @@ The time-domain view SHALL support configurable signal visibility based on avail
 #### Scenario: Reference signal is dashed
 - **WHEN** the reference signal is visible in the time-domain response view
 - **THEN** it SHALL be rendered as a dashed curve
-- **AND** the legend sample for the reference signal SHALL use the same dashed style and color.
+- **AND** the panel-local selector sample for the reference signal SHALL use the same dashed style and color.
 
-#### Scenario: Output legend styles match curves
+#### Scenario: Output control styles match curves
 - **WHEN** uncorrected output and corrected output are visible
-- **THEN** each legend sample SHALL use the same color and line style as its rendered curve.
+- **THEN** each panel-local selector sample SHALL use the same color and line style as its rendered curve.
+
+#### Scenario: Chart area has no separate time-domain legend
+- **WHEN** the time-domain panel renders configurable signal controls
+- **THEN** the chart drawing area SHALL NOT render a separate legend that duplicates or conflicts with those controls.
 
 ### Requirement: Frequency views expose valid options only
-Bode and Nyquist views SHALL expose only source curves that exist for the current session. Bode MAY allow valid curve overlays, while Nyquist SHALL render one selected source at a time.
+Bode and Nyquist views SHALL expose only source curves that exist for the current session. Bode MAY allow valid curve overlays through checkable panel-local controls, while Nyquist SHALL render one selected source at a time.
 
 #### Scenario: Bode shows correction device in classic preset
 - **WHEN** correction is enabled in the classic preset
 - **THEN** the Bode view MAY offer uncorrected open loop, corrected open loop, and correction device curves.
 
+#### Scenario: Bode controls serve as legend
+- **WHEN** the Bode view offers multiple selectable curves
+- **THEN** each checkable control SHALL show the curve label, color, and line style from the shared style preset
+- **AND** the chart drawing area SHALL NOT render a separate legend that duplicates or conflicts with those controls.
+
 #### Scenario: Nyquist renders one selected source
 - **WHEN** a student selects a Nyquist source such as corrected open loop
 - **THEN** the Nyquist view SHALL render the selected source only
 - **AND** it SHALL NOT overlay uncorrected and corrected Nyquist curves in the same panel.
+
+#### Scenario: Nyquist switches correction source
+- **WHEN** correction is enabled and both uncorrected and corrected Nyquist curves are available
+- **THEN** the Nyquist view SHALL provide a control to select uncorrected or corrected source data
+- **AND** the selected source SHALL be identifiable in the view.
 
 ### Requirement: Root locus uses single selected source
 The root-locus view SHALL render one selected source at a time and SHALL support uncorrected/corrected source switching when correction is enabled.
@@ -66,10 +80,10 @@ Workbench panel configuration SHALL persist by panel instance while the student 
 - **AND** sibling panels SHALL keep their own configuration state.
 
 ### Requirement: Time-domain view auto-ranges visible curves
-The time-domain response view SHALL compute its default vertical range from the finite extrema of the currently visible time-domain curves and include approximately 10% visual margin.
+The time-domain response view SHALL compute its default vertical range from the finite extrema of the currently visible time-domain curves, include approximately 10% visual margin, and avoid fixed aspect-ratio constraints that prevent data-driven vertical display.
 
 #### Scenario: Visible response curves determine axis range
-- **WHEN** reference, uncorrected output, or corrected output curves are visible and contain finite samples
+- **WHEN** reference, uncorrected output, corrected output, or other configured visible signals contain finite samples
 - **THEN** the time-domain view SHALL choose a y-axis range that contains their minimum and maximum values
 - **AND** it SHALL add approximately 10% margin relative to the visible curve span or magnitude.
 
@@ -77,6 +91,10 @@ The time-domain response view SHALL compute its default vertical range from the 
 - **WHEN** the visible curves have a near-zero vertical span
 - **THEN** the time-domain view SHALL apply a minimum readable vertical span
 - **AND** it SHALL NOT collapse the plot around a single value.
+
+#### Scenario: Reference signal contributes to range
+- **WHEN** the reference signal is visible together with response curves
+- **THEN** the default y-axis range SHALL include the reference signal values.
 
 ### Requirement: Workbench layout is composed of panel instances
 The control workbench SHALL render analysis views as ordered panel instances rather than as one global instance per view type.
@@ -102,7 +120,7 @@ The control workbench SHALL render analysis views as ordered panel instances rat
 - **AND** removing it SHALL NOT reset the configuration of remaining panels.
 
 ### Requirement: Panel controls are local to each panel header
-Each workbench panel SHALL expose its configuration through a control in that panel's title area.
+Each workbench panel SHALL expose its configuration through a control in that panel's title area, and the layout composition layer SHALL be responsible only for panel add, remove, reorder, and reset behavior.
 
 #### Scenario: Panel configuration opens from title area
 - **WHEN** a student clicks a panel's configuration control
@@ -117,4 +135,9 @@ Each workbench panel SHALL expose its configuration through a control in that pa
 - **WHEN** a student changes selected options in one panel instance
 - **THEN** only that panel instance SHALL update
 - **AND** another panel with the same view type SHALL keep its previous selected options.
+
+#### Scenario: Layout does not render view-specific settings
+- **WHEN** the workbench layout renders panel instances
+- **THEN** it SHALL provide structural actions such as add, remove, reorder, or reset
+- **AND** it SHALL NOT render time-domain, Bode, root-locus, or Nyquist specific configuration controls outside the corresponding panel.
 

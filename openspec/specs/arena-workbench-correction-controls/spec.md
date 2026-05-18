@@ -66,6 +66,11 @@ The parameter drawer SHALL keep top-level object and correction labels readable,
 - **THEN** the label SHALL be truncated, wrapped within a fixed bound, or otherwise constrained
 - **AND** it SHALL NOT stretch or deform the drawer header.
 
+#### Scenario: Current label changes color without resizing
+- **WHEN** a student switches between the object label and a correction label
+- **THEN** the newly current label SHALL change to the active color treatment
+- **AND** the label dimensions SHALL remain stable during the state change.
+
 ### Requirement: Time-domain chart auto range reflects stable response
 The stable time-domain response chart SHALL default its y-axis range to cover 1.1 times the maximum response signal magnitude.
 
@@ -92,3 +97,4 @@ The root-locus view SHALL use the effective controller gain and SHALL synchroniz
 #### Scenario: Closed-loop poles use equivalent gain
 - **WHEN** controller gain is changed through the correction controls
 - **THEN** the root-locus closed-loop pole markers SHALL be computed from the same effective gain used for official artifact generation.
+
