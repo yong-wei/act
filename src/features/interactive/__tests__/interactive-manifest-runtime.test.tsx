@@ -545,7 +545,7 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('$|\\delta|\\le 12^\\circ$');
   });
 
-  it('keeps activity runtime modules out of the static content layout even when a content registry contains a matching renderer', () => {
+  it('renders required activity runtime module slots without duplicating activity prompts in static content', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
@@ -602,6 +602,8 @@ describe('interactive runtime manifest', () => {
     );
 
     expect(html).toContain('正文只保留静态内容。');
+    expect(html).toContain('data-manifest-activity-module="activity-a"');
+    expect(html).toContain('data-manifest-activity-kind="activity-card"');
     expect(html).not.toContain('本页作答');
     expect(html).not.toContain('这个题面只能出现在活动作答区。');
     expect(html).not.toContain('data-manifest-render-error');

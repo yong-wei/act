@@ -56,6 +56,26 @@ const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
   'table-builder',
 ]);
 
+function renderActivityRuntimeModuleSlot({
+  module,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+}) {
+  return createElement(
+    'section',
+    {
+      'data-manifest-activity-module': module.id,
+      'data-manifest-activity-kind': module.kind,
+      className: 'rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3',
+    },
+    createElement(
+      'p',
+      { className: 'text-sm font-medium text-foreground' },
+      module.title || '互动任务',
+    ),
+  );
+}
+
 function buildOrderedRegions(
   step: InteractiveRuntimeStepManifest,
   regionNodes: InteractiveLayoutRegionNode[],
@@ -265,6 +285,13 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
   const regionNodes: InteractiveLayoutRegionNode[] = step.modules
     .map((module) => {
       if (ACTIVITY_RUNTIME_MODULE_KINDS.has(module.kind)) {
+        if (module.mustBeVisible) {
+          return {
+            moduleId: module.id,
+            regionId: module.region,
+            node: renderActivityRuntimeModuleSlot({ module }),
+          } as InteractiveLayoutRegionNode;
+        }
         return null;
       }
       const renderModule = moduleRegistry[module.kind];

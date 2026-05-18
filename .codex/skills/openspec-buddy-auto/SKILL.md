@@ -51,8 +51,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 10. Wait five minutes in the same foreground workflow, then check again.
     Do not use Codex automations, heartbeats, reminders, or background monitors for this wait.
 11. Check PR review, unresolved threads, requested changes, CI, and mergeability.
-12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes, resolve threads, and repeat from step 10.
-13. If no new actionable review exists and checks are green, merge the PR without deleting the branch yet.
+12. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes. Before resolving any review thread, reply in that thread with the fix or non-actionable rationale and evidence; then resolve the thread and repeat from step 10.
+13. If no new review appears for three consecutive five-minute checks and checks are green, merge the PR without deleting the branch yet. If a Codex review explicitly says there are no significant issues or no major problems, and all merge gates pass, it may be merged without waiting for the remaining quiet checks.
 14. Fast-forward the claim branch to `origin/integration`.
 15. Run `openspec-buddy achieve` or `openspec-buddy archive`.
     Recheck the OpenSpec task state before archiving; an issue must not reach
@@ -99,13 +99,14 @@ Do not merge unless all are true:
 - CI/checks have completed successfully or the repository has no required checks.
 - No unresolved review threads remain.
 - No reviewer has requested changes on the latest commit.
-- No new review/comment has appeared since the last five-minute wait.
+- No new review/comment has appeared for three consecutive five-minute checks after the latest head commit or latest review-handling push, unless the latest Codex review explicitly says there are no significant issues or no major problems.
 - The implementation branch contains only the claimed change and required follow-up fixes.
 
 ## Learned Rules
 
 - Treat GitHub `reviewThreads` as the source of truth for actionable review state. `latestReviews` can lag behind the latest head commit or report an empty commit oid.
-- Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; after review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
+- Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; require three consecutive quiet review checks before merging unless Codex explicitly reports no significant issues. After review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
+- Every review-thread resolve must be preceded by a reply in that same thread. The reply must state the fix commit or the reason the thread is non-actionable, plus the verification evidence. Do not silently resolve Codex review threads.
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
 - OpenSpec Buddy automation targets `integration`, not `main`. New changes use `base_branch: integration`, PRs use base `integration`, and archive commits land on `integration`. Merging `integration` to `main` is a manual release action outside Buddy Auto.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.

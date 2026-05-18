@@ -27,6 +27,7 @@ last_seen_review_ids
 last_seen_review_thread_ids
 last_seen_comment_ids
 review_round
+quiet_review_checks
 ```
 
 ## Post-Wait Check
@@ -68,9 +69,29 @@ not enough to decide whether inline review feedback is still actionable.
 Observed failure mode: `latestReviews` may point at a prior commit or omit the
 commit oid, while `reviewThreads` still shows the current unresolved thread.
 
-If there is actionable feedback, fix it, reply, resolve corresponding review threads, push, and perform another serial foreground five-minute wait before checking again.
+## Three-Check Merge Rule
 
-If there is no new actionable feedback and all merge gates pass, merge.
+After the latest head commit or latest review-handling push, check for new
+review every five minutes in the foreground. Merge only after three consecutive
+checks with no new review, no new review comments, and no new unresolved
+threads.
+
+Reset `quiet_review_checks` to `0` whenever a new review, review comment, PR
+comment, requested-changes review, or follow-up fix push appears.
+
+Exception: if the latest Codex review explicitly says there are no significant
+issues, no major problems, or equivalent wording, and all other merge gates pass,
+the PR may be merged without waiting for the remaining quiet checks.
+
+## Thread Resolution Rule
+
+If there is actionable feedback, fix it, push, and reply in the corresponding
+review thread with the fix commit or evidence. Resolve the thread only after the
+reply exists. For non-actionable feedback, reply with the rationale and evidence
+before resolving. Silent thread resolution is not allowed.
+
+After resolving threads, perform another foreground five-minute wait before
+checking again, unless the no-significant-issues exception applies.
 
 ## CI Waiting
 

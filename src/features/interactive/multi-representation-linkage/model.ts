@@ -622,6 +622,27 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const configuredSeed = configuredPlantModel?.workbenchSeed ?? null;
   const effectiveSeed = arenaSeed ?? configuredSeed ?? openLoopSeed;
+  const effectiveTimeRange = arenaContext?.object.timeRange ?? configuredPlantModel?.timeRange ?? undefined;
+  const effectiveFreqRange = arenaContext?.object.frequencyRange ?? configuredPlantModel?.frequencyRange ?? undefined;
+  const routeResetKey = useMemo(() => JSON.stringify({
+    arenaTaskId: arenaContext?.task.id ?? null,
+    plantModelId: configuredPlantModel?.id ?? null,
+    courseMode: isCourseMode,
+    controlMode: initialControlMode,
+    poles: effectiveSeed.poles,
+    zeros: effectiveSeed.zeros,
+    gain: effectiveSeed.gain,
+    timeRange: effectiveTimeRange ?? null,
+    frequencyRange: effectiveFreqRange ?? null,
+  }), [
+    arenaContext?.task.id,
+    configuredPlantModel?.id,
+    effectiveFreqRange,
+    effectiveSeed,
+    effectiveTimeRange,
+    initialControlMode,
+    isCourseMode,
+  ]);
 
   const [modelPoles, setModelPoles] = useState(() => toPoleZeroPoints(effectiveSeed.poles, 'p'));
   const [modelZeros, setModelZeros] = useState(() => toPoleZeroPoints(effectiveSeed.zeros, 'z'));
@@ -635,14 +656,40 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
     ...DEFAULT_CORRECTION_STATE,
     enabled: isArenaChallengeMode || (!isCourseMode && DEFAULT_CORRECTION_STATE.enabled),
   }));
-  const effectiveTimeRange = arenaContext?.object.timeRange ?? configuredPlantModel?.timeRange ?? undefined;
-  const effectiveFreqRange = arenaContext?.object.frequencyRange ?? configuredPlantModel?.frequencyRange ?? undefined;
   const [timeRange, setTimeRange] = useState<ControlAnalysisRequest['timeRange']>(
     effectiveTimeRange ?? DEFAULT_LINKAGE_TIME_RANGE,
   );
   const [frequencyRange, setFrequencyRange] = useState<ControlAnalysisRequest['frequencyRange']>(
     effectiveFreqRange ?? DEFAULT_LINKAGE_FREQUENCY_RANGE,
   );
+  const routeCorrectionEnabled = isArenaChallengeMode || (!isCourseMode && DEFAULT_CORRECTION_STATE.enabled);
+  const lastRouteResetKeyRef = useRef(routeResetKey);
+
+  useEffect(() => {
+    if (lastRouteResetKeyRef.current === routeResetKey) {
+      return;
+    }
+    lastRouteResetKeyRef.current = routeResetKey;
+    const nextGain = isArenaChallengeMode || hasConfiguredPlantModel ? 1 : effectiveSeed.gain;
+    setModelPoles(toPoleZeroPoints(effectiveSeed.poles, 'p'));
+    setModelZeros(toPoleZeroPoints(effectiveSeed.zeros, 'z'));
+    setGain(nextGain);
+    setClosedLoopGain(nextGain);
+    setTimeRange(effectiveTimeRange ?? DEFAULT_LINKAGE_TIME_RANGE);
+    setFrequencyRange(effectiveFreqRange ?? DEFAULT_LINKAGE_FREQUENCY_RANGE);
+    setCorrectionState({
+      ...DEFAULT_CORRECTION_STATE,
+      enabled: routeCorrectionEnabled,
+    });
+  }, [
+    effectiveFreqRange,
+    effectiveSeed,
+    effectiveTimeRange,
+    hasConfiguredPlantModel,
+    isArenaChallengeMode,
+    routeCorrectionEnabled,
+    routeResetKey,
+  ]);
 
   const idRef = useRef(100);
   const pairRef = useRef(100);
