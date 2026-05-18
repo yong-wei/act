@@ -75,14 +75,14 @@ function ClassicSourceSwitch<T extends string>({
 }) {
   if (options.length <= 1) {
     return (
-      <div className="premium-lesson-caption px-1 text-xs">
+      <div className="premium-lesson-caption px-1 text-xs" data-panel-local-configuration="source-switch">
         {label}：{options[0]?.label ?? '无可用来源'}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-1">
+    <div className="flex flex-wrap items-center gap-2 px-1" data-panel-local-configuration="source-switch">
       <span className="premium-lesson-caption text-xs">{label}</span>
       <div className="flex flex-wrap gap-1" role="group" aria-label={label}>
         {options.map((option) => (
@@ -402,22 +402,22 @@ export function MultiRepresentationLinkageClient({
           ]
         : [];
       const selectedRootLocusSource = selectPanelSource(panelSourceSelections, panel.id, rootLocusSourceOptions);
+      panelControls = selectedRootLocusSource ? (
+        <ClassicSourceSwitch
+          label="根轨迹来源"
+          options={rootLocusSourceOptions}
+          selectedId={selectedRootLocusSource.id}
+          onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+        />
+      ) : null;
       content = selectedRootLocusSource ? (
-        <div className="space-y-2">
-          <ClassicSourceSwitch
-            label="根轨迹来源"
-            options={rootLocusSourceOptions}
-            selectedId={selectedRootLocusSource.id}
-            onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
-          />
-          <RootLocusPanel
-            result={selectedRootLocusSource.result}
-            mode="full"
-            interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
-            onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
-            onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
-          />
-        </div>
+        <RootLocusPanel
+          result={selectedRootLocusSource.result}
+          mode="full"
+          interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
+          onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
+          onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
+        />
       ) : (
         <WorkbenchViewEmptyNotice title="根轨迹" />
       );
@@ -434,24 +434,24 @@ export function MultiRepresentationLinkageClient({
           ]
         : [];
       const selectedNyquistSource = selectPanelSource(panelSourceSelections, panel.id, nyquistSourceOptions);
+      panelControls = selectedNyquistSource ? (
+        <ClassicSourceSwitch
+          label="Nyquist 来源"
+          options={nyquistSourceOptions}
+          selectedId={selectedNyquistSource.id}
+          onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+        />
+      ) : null;
       content = selectedNyquistSource ? (
-        <div className="space-y-2">
-          <ClassicSourceSwitch
-            label="Nyquist 来源"
-            options={nyquistSourceOptions}
-            selectedId={selectedNyquistSource.id}
-            onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
-          />
-          {selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null}
-        </div>
+        selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null
       ) : (
         <WorkbenchViewEmptyNotice title="Nyquist 图" />
       );
     }
 
     return (
-      <section key={panel.id} className="rounded-lg border border-border/70 bg-card/70 p-3" data-workbench-panel-id={panel.id}>
-        <header className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <section key={panel.id} className="flex min-h-[660px] flex-col rounded-lg border border-border/70 bg-card/70 p-3" data-workbench-panel-id={panel.id}>
+        <header className="mb-3 flex min-h-[4.25rem] flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
             <h3 className="text-sm font-semibold text-foreground">{panel.title}</h3>
             {panelControls}
@@ -460,7 +460,7 @@ export function MultiRepresentationLinkageClient({
             独立面板
           </span>
         </header>
-        {content}
+        <div className="min-h-0 flex-1">{content}</div>
       </section>
     );
   };
@@ -635,6 +635,7 @@ export function MultiRepresentationLinkageClient({
         {model.arenaContext && model.isLockedByChallenge && (
           <ArenaSubmitPanel
             arenaContext={model.arenaContext}
+            previewSummary={model.arenaPreviewSummary}
             correctionState={model.correctionState}
             isLockedByChallenge={model.isLockedByChallenge}
             gain={model.gain}

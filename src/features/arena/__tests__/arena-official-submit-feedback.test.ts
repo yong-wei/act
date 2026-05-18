@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   buildOfficialSubmissionMetricRows,
+  buildOfficialSubmissionPreviewMetricRows,
   buildOfficialSubmissionScoreSummary,
   sanitizeOfficialEvaluationExplanation,
 } from '../../interactive/multi-representation-linkage/arena-submit-panel';
@@ -92,6 +95,32 @@ describe('arena official submission feedback view model', () => {
     });
   });
 
+  it('builds current preview metric rows before official submit', () => {
+    const rows = buildOfficialSubmissionPreviewMetricRows({
+      metrics: [
+        { id: 'settlingTime', label: '调节时间', value: 3.2, unit: 's', satisfaction: 0.85, status: 'pass' },
+        { id: 'overshoot', label: '超调量', value: 6, unit: '%', satisfaction: 1, status: 'pass' },
+        { id: 'steadyStateError', label: '稳态误差', value: null, satisfaction: null, status: 'unknown' },
+      ],
+      previewScore: null,
+      missingOfficialOnlyMetrics: ['steadyStateError'],
+    }, rankingMetrics);
+
+    expect(rows[0]).toMatchObject({
+      id: 'settlingTime',
+      actualText: '3.200s',
+      targetText: '目标 ≤ 2.500s',
+      status: 'close',
+      statusLabel: '接近目标',
+    });
+    expect(rows[1]).toMatchObject({ status: 'reached', statusLabel: '已达标' });
+    expect(rows[2]).toMatchObject({
+      actualText: '暂不可计算',
+      status: 'unavailable',
+      statusLabel: '待计算',
+    });
+  });
+
   it('explains valid zero score in Chinese without exposing raw English provider notes', () => {
     const result = evaluation();
     const summary = buildOfficialSubmissionScoreSummary(result, rankingMetrics, ['settlingTime', 'overshoot']);
@@ -125,5 +154,14 @@ describe('arena official submission feedback view model', () => {
 
     expect(text).toContain('惩罚');
     expect(text).not.toContain('存在达标度为 0 的排名指标');
+  });
+
+  it('passes current preview metrics into the official submit panel', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('previewSummary={model.arenaPreviewSummary}');
   });
 });

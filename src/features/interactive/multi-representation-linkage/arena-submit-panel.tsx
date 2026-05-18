@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useCallback } from 'react';
 import { Loader2, Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
-import type { ArenaWorkbenchContext } from '@/features/arena/domain';
+import type { ArenaWorkbenchContext, ArenaWorkbenchPreviewSummary } from '@/features/arena/domain';
 import type { CorrectionState } from './model';
 import { buildArenaArtifactFromMultiRepresentationState } from '@/features/arena/workbench/artifact-mappers';
 import type { ArenaEvaluationResult } from '@/features/arena/evaluation/types';
@@ -17,13 +17,14 @@ import {
 
 interface ArenaSubmitPanelProps {
   arenaContext: ArenaWorkbenchContext;
+  previewSummary?: ArenaWorkbenchPreviewSummary | null;
   correctionState: CorrectionState;
   isLockedByChallenge: boolean;
   gain: number;
   publicationId?: string;
 }
 
-export type OfficialSubmissionMetricStatus = 'reached' | 'close' | 'failed';
+export type OfficialSubmissionMetricStatus = 'reached' | 'close' | 'failed' | 'unavailable';
 
 export interface OfficialSubmissionMetricRow {
   id: string;
@@ -47,16 +48,18 @@ const officialMetricStatusLabels: Record<OfficialSubmissionMetricStatus, string>
   reached: '已达标',
   close: '接近目标',
   failed: '未达标',
+  unavailable: '待计算',
 };
 
 const officialMetricStatusClasses: Record<OfficialSubmissionMetricStatus, string> = {
   reached: 'border-emerald-500/40 bg-emerald-50 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-200',
   close: 'border-amber-500/40 bg-amber-50 text-amber-800 dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-200',
   failed: 'border-red-500/40 bg-red-50 text-red-800 dark:border-red-400/40 dark:bg-red-500/10 dark:text-red-200',
+  unavailable: 'border-border/60 bg-muted/40 text-muted-foreground dark:border-border/50 dark:bg-muted/20',
 };
 
-function formatOfficialMetricValue(value: number | undefined, unit = '') {
-  return Number.isFinite(value) ? `${Number(value).toFixed(3)}${unit}` : '无有效值';
+function formatOfficialMetricValue(value: number | null | undefined, unit = '', unavailableText = '无有效值') {
+  return Number.isFinite(value) ? `${Number(value).toFixed(3)}${unit}` : unavailableText;
 }
 
 function formatMetricTarget(metric: MetricDefinition) {
@@ -73,8 +76,9 @@ function formatMetricUnacceptable(metric: MetricDefinition) {
   return `不可接受 ≥ ${value}`;
 }
 
-function metricStatusFromSatisfaction(value: number | undefined): OfficialSubmissionMetricStatus {
-  if (!Number.isFinite(value) || Number(value) < 0.6) return 'failed';
+function metricStatusFromSatisfaction(value: number | null | undefined): OfficialSubmissionMetricStatus {
+  if (!Number.isFinite(value)) return 'unavailable';
+  if (Number(value) < 0.6) return 'failed';
   if (Number(value) < 0.98) return 'close';
   return 'reached';
 }
@@ -96,14 +100,82 @@ export function buildOfficialSubmissionMetricRows(
     return {
       id: metric.id,
       label: formatArenaMetric(metric.id, metric),
-      actualText: formatOfficialMetricValue(result.metrics[metric.id], metric.unit),
+      actualText: formatOfficialMetricValue(result.metrics[metric.id], metric.unit, '暂不可计算'),
       targetText: formatMetricTarget(metric),
       unacceptableText: formatMetricUnacceptable(metric),
-      satisfactionText: Number.isFinite(satisfaction) ? `${Math.round(Number(satisfaction) * 100)}%` : '0%',
+      satisfactionText: Number.isFinite(satisfaction) ? `${Math.round(Number(satisfaction) * 100)}%` : '待计算',
       status,
       statusLabel: officialMetricStatusLabels[status],
     };
   });
+}
+
+export function buildOfficialSubmissionPreviewMetricRows(
+  previewSummary: ArenaWorkbenchPreviewSummary,
+  metrics: MetricDefinition[],
+): OfficialSubmissionMetricRow[] {
+  const metricDefinitions = new Map(metrics.map((metric) => [metric.id, metric]));
+  return previewSummary.metrics.map((previewMetric) => {
+    const metric = metricDefinitions.get(previewMetric.id);
+    const status = metricStatusFromSatisfaction(previewMetric.satisfaction);
+    return {
+      id: previewMetric.id,
+      label: metric ? formatArenaMetric(metric.id, metric) : previewMetric.label,
+      actualText: formatOfficialMetricValue(
+        previewMetric.value,
+        metric?.unit ?? previewMetric.unit,
+        '暂不可计算',
+      ),
+      targetText: metric ? formatMetricTarget(metric) : '目标暂不可用',
+      unacceptableText: metric ? formatMetricUnacceptable(metric) : '阈值暂不可用',
+      satisfactionText: Number.isFinite(previewMetric.satisfaction)
+        ? `${Math.round(Number(previewMetric.satisfaction) * 100)}%`
+        : '待计算',
+      status,
+      statusLabel: officialMetricStatusLabels[status],
+    };
+  });
+}
+
+function OfficialSubmissionMetricRows({
+  rows,
+  actualLabel,
+}: {
+  rows: OfficialSubmissionMetricRow[];
+  actualLabel: string;
+}) {
+  return (
+    <div className="grid gap-2 text-xs sm:grid-cols-2">
+      {rows.map((row) => (
+        <div key={row.id} className="rounded-md border border-border/60 px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-medium text-foreground">{row.label}</span>
+            <span className={`rounded-md border px-2 py-0.5 ${officialMetricStatusClasses[row.status]}`}>
+              {row.statusLabel}
+            </span>
+          </div>
+          <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+            <div>
+              <dt className="text-muted-foreground">{actualLabel}</dt>
+              <dd className="tabular-nums">{row.actualText}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">达标度</dt>
+              <dd className="tabular-nums">{row.satisfactionText}</dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-muted-foreground">目标</dt>
+              <dd>{row.targetText}</dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-muted-foreground">不可接受阈值</dt>
+              <dd>{row.unacceptableText}</dd>
+            </div>
+          </dl>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function buildOfficialSubmissionScoreSummary(
@@ -152,6 +224,7 @@ export function sanitizeOfficialEvaluationExplanation(
 
 export function ArenaSubmitPanel({
   arenaContext,
+  previewSummary,
   correctionState,
   isLockedByChallenge,
   gain,
@@ -168,9 +241,9 @@ export function ArenaSubmitPanel({
   });
 
   const canSubmit = isLockedByChallenge && buildResult.artifact !== null && !submitting;
-  const metricDefinitions = new Map(
-    arenaContext.metricProfile.rankingMetrics.map((metric) => [metric.id, metric]),
-  );
+  const previewMetricRows = previewSummary
+    ? buildOfficialSubmissionPreviewMetricRows(previewSummary, arenaContext.metricProfile.rankingMetrics)
+    : [];
   const metricRows = result
     ? buildOfficialSubmissionMetricRows(result, arenaContext.metricProfile.rankingMetrics)
     : [];
@@ -257,6 +330,23 @@ export function ArenaSubmitPanel({
         </div>
       )}
 
+      {previewMetricRows.length > 0 && (
+        <section className="mt-3 space-y-2" aria-label="当前预评测指标">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">当前指标</h3>
+              <p className="text-xs text-muted-foreground">根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。</p>
+            </div>
+            {previewSummary?.previewScore !== null && previewSummary?.previewScore !== undefined ? (
+              <span className="rounded-md border border-sky-500/40 bg-sky-50 px-2 py-1 text-xs font-medium text-sky-800 dark:bg-sky-950/30 dark:text-sky-300">
+                预评测分数 {previewSummary.previewScore.toFixed(1)}
+              </span>
+            ) : null}
+          </div>
+          <OfficialSubmissionMetricRows rows={previewMetricRows} actualLabel="当前值" />
+        </section>
+      )}
+
       {result && (
         <div className="mt-3 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -296,36 +386,10 @@ export function ArenaSubmitPanel({
           ) : null}
 
           {result.valid && metricRows.length > 0 && (
-            <div className="grid gap-2 text-xs">
-              {metricRows.map((row) => (
-                <div key={row.id} className="rounded-md border border-border/60 px-3 py-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium text-foreground">{row.label}</span>
-                    <span className={`rounded-md border px-2 py-0.5 ${officialMetricStatusClasses[row.status]}`}>
-                      {row.statusLabel}
-                    </span>
-                  </div>
-                  <dl className="mt-2 grid gap-1 sm:grid-cols-4">
-                    <div>
-                      <dt className="text-muted-foreground">实际值</dt>
-                      <dd className="tabular-nums">{row.actualText}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">目标</dt>
-                      <dd>{row.targetText}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">不可接受阈值</dt>
-                      <dd>{row.unacceptableText}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">达标度</dt>
-                      <dd className="tabular-nums">{row.satisfactionText}</dd>
-                    </div>
-                  </dl>
-                </div>
-              ))}
-            </div>
+            <section className="space-y-2" aria-label="官方评测指标">
+              <h3 className="text-sm font-semibold text-foreground">官方评测结果</h3>
+              <OfficialSubmissionMetricRows rows={metricRows} actualLabel="实际值" />
+            </section>
           )}
 
           {result.hardConstraintResults.length > 0 && (

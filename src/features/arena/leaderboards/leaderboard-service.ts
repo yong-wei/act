@@ -60,6 +60,7 @@ export interface ChallengeLeaderboardCategoryModel {
   label: string;
   subOptions: ChallengeLeaderboardOption[];
   selectedSubId?: string;
+  showMethodColumn: boolean;
   entries: ChallengeLeaderboardDetailRow[];
   metricColumns: ChallengeLeaderboardOption[];
   emptyMessage: string;
@@ -267,6 +268,7 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
       ? metricOptions
       : [];
   const selectedSubId = selectedType === 'method' ? selectedMethod : selectedType === 'metric' ? selectedMetricId : undefined;
+  const showMethodColumn = !(selectedType === 'method' && selectedSubId);
 
   return {
     taskId: input.taskId,
@@ -279,6 +281,7 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
       label: formatArenaLeaderboardType(selectedType),
       subOptions,
       selectedSubId,
+      showMethodColumn,
       entries: toDetailRows(input.submissions, leaderboard.entries, metricColumns),
       metricColumns,
       emptyMessage: input.submissions.length === 0

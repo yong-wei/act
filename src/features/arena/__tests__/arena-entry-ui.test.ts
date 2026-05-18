@@ -226,11 +226,13 @@ describe('arena student entry UI boundaries', () => {
     expect(html).toContain('方法榜');
     expect(html).toContain('指标榜');
     expect(html).toContain('当前榜单');
-    expect(html).toContain('姓名');
-    expect(html).toContain('学号');
+    expect(html).toContain('姓名 / 学号');
     expect(html).toContain('具体指标');
     expect(html).toContain('2026001');
     expect(html).toContain('未登记');
+    const leaderboardBrowserSource = readRepoFile('src/features/arena/challenge-leaderboard-browser.tsx');
+    expect(leaderboardBrowserSource).toContain('current.showMethodColumn');
+    expect(leaderboardBrowserSource).toContain('whitespace-nowrap');
   });
 
   it('loads existing teacher publications before showing lifecycle actions', () => {

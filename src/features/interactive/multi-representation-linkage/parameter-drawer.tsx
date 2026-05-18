@@ -7,6 +7,7 @@ import type { WheelEvent as ReactWheelEvent } from 'react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CorrectionKind, CorrectionState, LinkageResponseType, PoleZeroPoint } from './model';
 
 interface ParameterDrawerProps {
@@ -310,12 +311,9 @@ export function ParameterDrawer({
   const wheelCleanupRef = useRef<(() => void) | null>(null);
   const [activeTab, setActiveTab] = useState<'plant' | 'correction'>('plant');
   const drawerTabBaseClass = 'flex h-10 w-full min-w-0 items-center justify-center overflow-hidden rounded-md border px-3 text-sm font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
-  const drawerTabActiveClass = 'border-cyan-600 bg-cyan-100 text-cyan-950 shadow-sm hover:bg-cyan-100 dark:border-cyan-300/70 dark:bg-cyan-300/20 dark:text-cyan-50 dark:hover:bg-cyan-300/20';
+  const drawerTabActiveClass = 'data-[state=active]:border-cyan-600 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-950 data-[state=active]:shadow-sm data-[state=active]:hover:bg-cyan-100 dark:data-[state=active]:border-cyan-300/70 dark:data-[state=active]:bg-cyan-300/20 dark:data-[state=active]:text-cyan-50 dark:data-[state=active]:hover:bg-cyan-300/20';
   const drawerTabInactiveClass = 'border-transparent bg-transparent text-muted-foreground hover:border-cyan-300/70 hover:bg-cyan-50 hover:text-cyan-900 dark:hover:border-cyan-300/40 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50';
-  const drawerTabClass = (tab: 'plant' | 'correction') =>
-    activeTab === tab
-      ? `${drawerTabBaseClass} ${drawerTabActiveClass}`
-      : `${drawerTabBaseClass} ${drawerTabInactiveClass}`;
+  const drawerTabClass = `${drawerTabBaseClass} ${drawerTabInactiveClass} ${drawerTabActiveClass}`;
 
   const setContentNode = useCallback((element: HTMLDivElement | null) => {
     wheelCleanupRef.current?.();
@@ -353,37 +351,37 @@ export function ParameterDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="grid min-w-0 grid-cols-2 gap-2 rounded-md border border-border/60 p-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab('plant')}
-              aria-pressed={activeTab === 'plant'}
-              data-testid="parameter-drawer-object-tab"
-              data-state={activeTab === 'plant' ? 'active' : 'inactive'}
-              className={drawerTabClass('plant')}
-            >
-              <span className="block max-w-full truncate" title="对象">对象</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('correction')}
-              aria-pressed={activeTab === 'correction'}
-              data-testid="parameter-drawer-correction-tab"
-              data-state={activeTab === 'correction' ? 'active' : 'inactive'}
-              className={drawerTabClass('correction')}
-            >
-              <span className="block max-w-full truncate" title="校正">校正</span>
-            </button>
-          </div>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as 'plant' | 'correction')}
+            className="space-y-4"
+          >
+            <TabsList className="grid h-auto min-w-0 grid-cols-2 gap-2 rounded-md border border-border/60 bg-transparent p-1">
+              <TabsTrigger
+                value="plant"
+                data-testid="parameter-drawer-object-tab"
+                className={drawerTabClass}
+              >
+                <span className="block max-w-full truncate" title="对象">对象</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="correction"
+                data-testid="parameter-drawer-correction-tab"
+                className={drawerTabClass}
+              >
+                <span className="block max-w-full truncate" title="校正">校正</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="space-y-4">
-            {activeTab === 'correction' ? (
+            <TabsContent value="correction" className="mt-0 space-y-4">
               <CorrectionControls
                 state={correctionState}
                 disabled={isCourseMode}
                 onChange={onCorrectionChange}
               />
-            ) : (
+            </TabsContent>
+
+            <TabsContent value="plant" className="mt-0 space-y-4">
               <>
             <section className="premium-lesson-tone-block premium-tone-cyan space-y-3">
               <div className="premium-lesson-title text-sm font-medium">联动参数</div>
@@ -469,8 +467,8 @@ export function ParameterDrawer({
               恢复默认
             </button>
               </>
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

@@ -87,6 +87,9 @@ interface CartesianRange {
 }
 
 type PartialAxisPreset = Partial<AxisPreset>;
+interface CartesianPanZoomOptions {
+  preserveAspectRatio?: boolean;
+}
 
 export interface CartesianDragRangeInput extends CartesianRange {
   width: number;
@@ -251,7 +254,11 @@ function shouldIgnoreCartesianPanZoom(event?: MouseEvent | WheelEvent): boolean 
   return target instanceof Element && Boolean(target.closest('[data-cartesian-pan-zoom-ignore="true"]'));
 }
 
-function installCartesianPanZoom(chart: ECharts, onRangeChange?: () => void): () => void {
+function installCartesianPanZoom(
+  chart: ECharts,
+  onRangeChange?: () => void,
+  options: CartesianPanZoomOptions = {},
+): () => void {
   const zr = chart.getZr();
   let dragState: {
     startX: number;
@@ -349,7 +356,9 @@ function installCartesianPanZoom(chart: ECharts, onRangeChange?: () => void): ()
   zr.on('mouseup', handleMouseUp);
   zr.on('globalout', handleMouseUp);
   zr.on('mousewheel', handleMouseWheel);
-  enforceEqualAspectOnChart(chart, onRangeChange);
+  if (options.preserveAspectRatio !== false) {
+    enforceEqualAspectOnChart(chart, onRangeChange);
+  }
 
   return () => {
     zr.off('mousedown', handleMouseDown);
@@ -724,6 +733,46 @@ export function calculateTimeDomainVisibleAxisPreset(points: CurvePoint[]): { y:
   const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
   const margin = span > magnitudeBase * 0.05 ? span * 0.1 : magnitudeBase * 0.1;
   return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
+}
+
+function buildCurvePointRangeSignature(points: CurvePoint[]): string {
+  const finitePoints = points.filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+  if (finitePoints.length === 0) {
+    return 'empty';
+  }
+  const yValues = finitePoints.map((point) => point.y);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const first = finitePoints[0];
+  const last = finitePoints[finitePoints.length - 1];
+  return [
+    finitePoints.length,
+    roundRangeValue(first.x),
+    roundRangeValue(first.y),
+    roundRangeValue(last.x),
+    roundRangeValue(last.y),
+    roundRangeValue(minY),
+    roundRangeValue(maxY),
+  ].join(':');
+}
+
+function buildTimeDomainResultRangeSignature(result: ControlAnalysisResult, caseId?: string): string {
+  return `${caseId ?? 'default'}|${buildCurvePointRangeSignature(result.stepResponse.points)}`;
+}
+
+function buildTimeDomainComparisonRangeSignature(
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>,
+  caseId?: string,
+): string {
+  return [
+    caseId ?? 'default',
+    ...panels.map((panel) => [
+      panel.label,
+      panel.style.color,
+      panel.style.lineType,
+      buildCurvePointRangeSignature(panel.result.stepResponse.points),
+    ].join(':')),
+  ].join('|');
 }
 
 export function buildLineOption(
@@ -1683,6 +1732,15 @@ export function TimeDomainPanel({
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const rangeSignatureRef = useRef<string | null>(null);
+  const rangeSignature = useMemo(
+    () => buildTimeDomainResultRangeSignature(result, caseId),
+    [caseId, result],
+  );
+  if (rangeSignatureRef.current !== rangeSignature) {
+    preservedRangeRef.current = null;
+    rangeSignatureRef.current = rangeSignature;
+  }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
@@ -1696,7 +1754,7 @@ export function TimeDomainPanel({
     const refreshRange = () => {
       preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
     };
-    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange, { preserveAspectRatio: false });
   }, []);
   const handleRefresh = useCallback(() => {
     const chart = chartRef.current;
@@ -1788,6 +1846,15 @@ export function TimeDomainComparisonPanel({
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const rangeSignatureRef = useRef<string | null>(null);
+  const rangeSignature = useMemo(
+    () => buildTimeDomainComparisonRangeSignature(panels, caseId),
+    [caseId, panels],
+  );
+  if (rangeSignatureRef.current !== rangeSignature) {
+    preservedRangeRef.current = null;
+    rangeSignatureRef.current = rangeSignature;
+  }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildTimeDomainComparisonOption(panels, displayedAxisPreset),
@@ -1799,7 +1866,7 @@ export function TimeDomainComparisonPanel({
     const refreshRange = () => {
       preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
     };
-    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange, { preserveAspectRatio: false });
   }, []);
   const handleRefresh = useCallback(() => {
     const chart = chartRef.current;
