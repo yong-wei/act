@@ -98,7 +98,7 @@ describe('arena official submission feedback view model', () => {
   it('builds current preview metric rows before official submit', () => {
     const rows = buildOfficialSubmissionPreviewMetricRows({
       metrics: [
-        { id: 'settlingTime', label: '调节时间', value: 3.2, unit: 's', satisfaction: 0.85, status: 'warning' },
+        { id: 'settlingTime', label: '调节时间', value: 3.2, unit: 's', satisfaction: 0.85, status: 'pass' },
         { id: 'overshoot', label: '超调量', value: 6, unit: '%', satisfaction: 1, status: 'pass' },
         { id: 'steadyStateError', label: '稳态误差', value: null, satisfaction: null, status: 'unknown' },
       ],

@@ -83,15 +83,6 @@ function metricStatusFromSatisfaction(value: number | null | undefined): Officia
   return 'reached';
 }
 
-function metricStatusFromPreviewStatus(
-  status: ArenaWorkbenchPreviewSummary['metrics'][number]['status'],
-): OfficialSubmissionMetricStatus {
-  if (status === 'pass') return 'reached';
-  if (status === 'warning') return 'close';
-  if (status === 'fail') return 'failed';
-  return 'unavailable';
-}
-
 function getScoringMetricDefinitions(metrics: MetricDefinition[], primaryMetricIds?: string[]) {
   if (!primaryMetricIds?.length) return metrics;
   const primaryIds = new Set(primaryMetricIds);
@@ -126,7 +117,7 @@ export function buildOfficialSubmissionPreviewMetricRows(
   const metricDefinitions = new Map(metrics.map((metric) => [metric.id, metric]));
   return previewSummary.metrics.map((previewMetric) => {
     const metric = metricDefinitions.get(previewMetric.id);
-    const status = metricStatusFromPreviewStatus(previewMetric.status);
+    const status = metricStatusFromSatisfaction(previewMetric.satisfaction);
     return {
       id: previewMetric.id,
       label: metric ? formatArenaMetric(metric.id, metric) : previewMetric.label,
