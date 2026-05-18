@@ -12,6 +12,7 @@ export interface ArenaSubmissionRecord {
   publicationId?: string;
   isLate?: boolean;
   studentLabel: string;
+  studentNumber?: string;
   artifactHash: string;
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;

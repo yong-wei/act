@@ -12,6 +12,7 @@ import {
   getArenaLeaderboardPolicy,
   getArenaMetricProfile,
 } from '../data/seed-challenges';
+import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 
 const repoRoot = process.cwd();
 
@@ -34,6 +35,44 @@ function getChallengeDetailFixture(taskId: string) {
     object: object!,
     metricProfile: metricProfile!,
     leaderboardPolicy: leaderboardPolicy!,
+  };
+}
+
+function leaderboardSubmission(overrides: Partial<ArenaSubmissionRecord>): ArenaSubmissionRecord {
+  return {
+    id: 'submission-ui-a',
+    taskId: 'task-second-order-lead-pid',
+    userId: 'student-ui-a',
+    studentLabel: '学生甲',
+    studentNumber: '2026001',
+    artifactHash: 'artifact-ui-a',
+    artifact: {
+      id: 'artifact-ui-a',
+      taskId: 'task-second-order-lead-pid',
+      method: 'pid',
+      params: { kp: 2.4, ki: 0.8, kd: 0.35 },
+      createdAt: '2026-05-10T10:00:00.000Z',
+    },
+    evaluation: {
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        id: 'artifact-ui-a',
+        taskId: 'task-second-order-lead-pid',
+        method: 'pid',
+        params: { kp: 2.4, ki: 0.8, kd: 0.35 },
+        createdAt: '2026-05-10T10:00:00.000Z',
+      },
+      valid: true,
+      score: 82,
+      metrics: { settlingTime: 3.2, overshoot: 4.1, steadyStateError: 0.01, controlEnergy: 8 },
+      satisfaction: {},
+      hardConstraintResults: [],
+      penalties: [],
+      explanation: [],
+    },
+    submittedAt: '2026-05-10T10:01:00.000Z',
+    reusedEvaluation: false,
+    ...overrides,
   };
 }
 
@@ -154,6 +193,39 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).not.toContain('Pareto 榜');
     expect(hallSource).not.toContain('班级榜');
     expect(hallSource).not.toContain('赛季榜');
+  });
+
+  it('renders a challenge-detail leaderboard browser with student number and metric columns', () => {
+    const props = getChallengeDetailFixture('task-second-order-lead-pid');
+    const html = renderToStaticMarkup(createElement(ChallengeDetail, {
+      ...props,
+      submissions: [
+        leaderboardSubmission({ id: 'submission-ui-a', studentLabel: '学生甲', studentNumber: '2026001' }),
+        leaderboardSubmission({
+          id: 'submission-ui-b',
+          userId: 'student-ui-b',
+          studentLabel: '学生乙',
+          studentNumber: undefined,
+          artifactHash: 'artifact-ui-b',
+          submittedAt: '2026-05-10T10:02:00.000Z',
+          evaluation: {
+            ...leaderboardSubmission({}).evaluation,
+            score: 76,
+            metrics: { settlingTime: 4.4, overshoot: 6.2, steadyStateError: 0.03, controlEnergy: 5 },
+          },
+        }),
+      ],
+    }));
+
+    expect(html).toContain('主榜');
+    expect(html).toContain('方法榜');
+    expect(html).toContain('指标榜');
+    expect(html).toContain('当前榜单');
+    expect(html).toContain('姓名');
+    expect(html).toContain('学号');
+    expect(html).toContain('具体指标');
+    expect(html).toContain('2026001');
+    expect(html).toContain('未登记');
   });
 
   it('loads existing teacher publications before showing lifecycle actions', () => {

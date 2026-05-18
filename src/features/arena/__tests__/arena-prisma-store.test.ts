@@ -44,6 +44,11 @@ function submissionRow(id: string, protocolVersion: string, overrides: Partial<C
     controllerArtifact: {
       payload: rowArtifact,
     },
+    user: {
+      profile: {
+        studentNumber: `S-${id}`,
+      },
+    },
     evaluationRun: {
       id: `eval-${id}`,
       taskId: rowArtifact.taskId,
@@ -189,5 +194,28 @@ describe('prismaArenaSubmissionStore', () => {
       'whitebox-v1',
       'analysis-whitebox-v1',
     ]);
+  });
+
+  it('assembles student numbers from student profiles for leaderboard display', async () => {
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValueOnce([
+      submissionRow('current', 'analysis-whitebox-v1'),
+    ]);
+
+    const submissions = await prismaArenaSubmissionStore.listSubmissions();
+
+    expect(mocks.prisma.arenaSubmission.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      include: expect.objectContaining({
+        user: {
+          select: {
+            profile: {
+              select: {
+                studentNumber: true,
+              },
+            },
+          },
+        },
+      }),
+    }));
+    expect(submissions[0]?.studentNumber).toBe('S-current');
   });
 });
