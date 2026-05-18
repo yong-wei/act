@@ -112,6 +112,7 @@ describe('arena student entry UI boundaries', () => {
 
   it('keeps challenge detail read-only and moves official submission to workbench only', () => {
     const detailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
+    const leaderboardBrowserSource = readRepoFile('src/features/arena/challenge-leaderboard-browser.tsx');
     const hallSource = readRepoFile('src/features/arena/arena-hall.tsx');
     const workbenchSource = readRepoFile('src/features/interactive/multi-representation-linkage/page-client.tsx');
     const legacyRouteSource = readRepoFile('src/app/interactive-learning/multi-representation-linkage/page.tsx');
@@ -128,6 +129,7 @@ describe('arena student entry UI boundaries', () => {
     expect(detailSource).toContain('getChallengeLeaderboardBrowserData');
     expect(detailSource).toContain('browser={leaderboardBrowser}');
     expect(detailSource).not.toContain('submissions={submissions}');
+    expect(leaderboardBrowserSource).toContain("timeZone: 'Asia/Shanghai'");
     expect(detailSource).toContain('仿真调试与方案提交均在控制工作台内完成');
     expect(detailSource).toContain('进入控制工作台');
     expect(detailSource).not.toContain('进入多表征工作台');
