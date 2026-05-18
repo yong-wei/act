@@ -125,6 +125,9 @@ describe('arena student entry UI boundaries', () => {
 
     expect(detailSource).not.toContain('ArenaSubmissionPanel');
     expect(detailSource).not.toContain('ArenaBlackBoxSubmissionPanel');
+    expect(detailSource).toContain('getChallengeLeaderboardBrowserData');
+    expect(detailSource).toContain('browser={leaderboardBrowser}');
+    expect(detailSource).not.toContain('submissions={submissions}');
     expect(detailSource).toContain('仿真调试与方案提交均在控制工作台内完成');
     expect(detailSource).toContain('进入控制工作台');
     expect(detailSource).not.toContain('进入多表征工作台');

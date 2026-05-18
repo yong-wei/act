@@ -74,6 +74,14 @@ export interface ChallengeLeaderboardBrowserViewModel {
   current: ChallengeLeaderboardCategoryModel;
 }
 
+export interface ChallengeLeaderboardBrowserData {
+  taskId: string;
+  categories: ChallengeLeaderboardCategoryOption[];
+  methodOptions: ChallengeLeaderboardOption[];
+  metricOptions: ChallengeLeaderboardOption[];
+  views: ChallengeLeaderboardCategoryModel[];
+}
+
 const TYPE_LABELS: Record<LeaderboardType, string> = {
   main: '主榜',
   method: '方法榜',
@@ -147,7 +155,9 @@ function metricOptionsForTask(taskId: string): ChallengeLeaderboardOption[] {
   const task = getArenaChallengeTask(taskId);
   const profile = task ? getArenaMetricProfile(task.metricProfileId) : undefined;
   const byId = metricDefinitionsById(profile?.rankingMetrics ?? []);
-  const metricIds = task?.primaryMetrics?.length ? task.primaryMetrics : profile?.rankingMetrics.map((metric) => metric.id) ?? [];
+  const metricIds = task?.primaryMetrics?.length
+    ? task.primaryMetrics
+    : profile?.rankingMetrics.map((metric) => metric.id) ?? [];
   return metricIds
     .filter((metricId, index, all) => all.indexOf(metricId) === index)
     .map((metricId) => ({
@@ -275,5 +285,67 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
         ? '当前还没有官方提交。'
         : '当前榜单暂无符合条件的有效提交。',
     },
+  };
+}
+
+export function getChallengeLeaderboardBrowserData(input: {
+  taskId: string;
+  submissions: readonly ArenaSubmissionRecord[];
+  leaderboardPolicyId?: string;
+}): ChallengeLeaderboardBrowserData {
+  const baseView = getChallengeLeaderboardBrowserViewModel({
+    taskId: input.taskId,
+    submissions: input.submissions,
+    leaderboardPolicyId: input.leaderboardPolicyId,
+  });
+  const views = baseView.categories.flatMap((category) => {
+    if (category.type === 'method') {
+      if (baseView.methodOptions.length === 0) {
+        return [getChallengeLeaderboardBrowserViewModel({
+          taskId: input.taskId,
+          submissions: input.submissions,
+          selectedType: 'method',
+          leaderboardPolicyId: input.leaderboardPolicyId,
+        }).current];
+      }
+      return baseView.methodOptions.map((option) => getChallengeLeaderboardBrowserViewModel({
+        taskId: input.taskId,
+        submissions: input.submissions,
+        selectedType: 'method',
+        selectedMethod: option.id as ControllerMethod,
+        leaderboardPolicyId: input.leaderboardPolicyId,
+      }).current);
+    }
+    if (category.type === 'metric') {
+      if (baseView.metricOptions.length === 0) {
+        return [getChallengeLeaderboardBrowserViewModel({
+          taskId: input.taskId,
+          submissions: input.submissions,
+          selectedType: 'metric',
+          leaderboardPolicyId: input.leaderboardPolicyId,
+        }).current];
+      }
+      return baseView.metricOptions.map((option) => getChallengeLeaderboardBrowserViewModel({
+        taskId: input.taskId,
+        submissions: input.submissions,
+        selectedType: 'metric',
+        selectedMetricId: option.id,
+        leaderboardPolicyId: input.leaderboardPolicyId,
+      }).current);
+    }
+    return [getChallengeLeaderboardBrowserViewModel({
+      taskId: input.taskId,
+      submissions: input.submissions,
+      selectedType: 'main',
+      leaderboardPolicyId: input.leaderboardPolicyId,
+    }).current];
+  });
+
+  return {
+    taskId: baseView.taskId,
+    categories: baseView.categories,
+    methodOptions: baseView.methodOptions,
+    metricOptions: baseView.metricOptions,
+    views,
   };
 }

@@ -2,39 +2,33 @@
 
 import { useMemo, useState } from 'react';
 
-import type { ArenaSubmissionRecord } from './submissions/submission-service';
-import type { ControllerMethod, LeaderboardPolicy } from './types';
 import {
-  getChallengeLeaderboardBrowserViewModel,
+  type ChallengeLeaderboardBrowserData,
+  type ChallengeLeaderboardCategoryModel,
   type ChallengeLeaderboardOption,
 } from './leaderboards/leaderboard-service';
+import type { ControllerMethod } from './types';
 
 type ChallengeLeaderboardType = 'main' | 'method' | 'metric';
 
 interface ChallengeLeaderboardBrowserProps {
-  taskId: string;
-  leaderboardPolicy: LeaderboardPolicy;
-  submissions: ArenaSubmissionRecord[];
+  browser: ChallengeLeaderboardBrowserData;
 }
 
 export function ChallengeLeaderboardBrowser({
-  taskId,
-  leaderboardPolicy,
-  submissions,
+  browser,
 }: ChallengeLeaderboardBrowserProps) {
   const [selectedType, setSelectedType] = useState<ChallengeLeaderboardType>('main');
-  const [selectedMethod, setSelectedMethod] = useState<ControllerMethod | undefined>();
-  const [selectedMetricId, setSelectedMetricId] = useState<string | undefined>();
-  const viewModel = useMemo(() => getChallengeLeaderboardBrowserViewModel({
-    taskId,
-    submissions,
-    selectedType,
+  const [selectedMethod, setSelectedMethod] = useState<ControllerMethod | undefined>(
+    browser.methodOptions[0]?.id as ControllerMethod | undefined,
+  );
+  const [selectedMetricId, setSelectedMetricId] = useState<string | undefined>(browser.metricOptions[0]?.id);
+  const current = useMemo(() => selectCurrentView(browser, selectedType, selectedMethod, selectedMetricId), [
+    browser,
     selectedMethod,
     selectedMetricId,
-    leaderboardPolicyId: leaderboardPolicy.id,
-  }), [leaderboardPolicy.id, selectedMethod, selectedMetricId, selectedType, submissions, taskId]);
-
-  const current = viewModel.current;
+    selectedType,
+  ]);
 
   return (
     <section className="mt-6 border-t border-border/70 pt-5">
@@ -46,14 +40,22 @@ export function ChallengeLeaderboardBrowser({
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        {viewModel.categories.map((category) => (
+        {browser.categories.map((category) => (
           <button
             key={category.type}
             type="button"
-            onClick={() => setSelectedType(category.type)}
+            onClick={() => {
+              setSelectedType(category.type);
+              if (category.type === 'method' && !selectedMethod) {
+                setSelectedMethod(browser.methodOptions[0]?.id as ControllerMethod | undefined);
+              }
+              if (category.type === 'metric' && !selectedMetricId) {
+                setSelectedMetricId(browser.metricOptions[0]?.id);
+              }
+            }}
             className={[
               'rounded-lg border px-3 py-2 text-sm font-medium transition',
-              category.type === viewModel.selectedType
+              category.type === selectedType
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border/70 bg-background/70 text-foreground hover:border-primary/40',
             ].join(' ')}
@@ -118,6 +120,30 @@ export function ChallengeLeaderboardBrowser({
       </div>
     </section>
   );
+}
+
+function selectCurrentView(
+  browser: ChallengeLeaderboardBrowserData,
+  selectedType: ChallengeLeaderboardType,
+  selectedMethod?: ControllerMethod,
+  selectedMetricId?: string,
+): ChallengeLeaderboardCategoryModel {
+  const selectedSubId = selectedType === 'method'
+    ? selectedMethod
+    : selectedType === 'metric'
+      ? selectedMetricId
+      : undefined;
+  return browser.views.find((view) => view.type === selectedType && view.selectedSubId === selectedSubId)
+    ?? browser.views.find((view) => view.type === selectedType)
+    ?? browser.views[0]
+    ?? {
+      type: 'main',
+      label: '主榜',
+      subOptions: [],
+      entries: [],
+      metricColumns: [],
+      emptyMessage: '当前还没有官方提交。',
+    };
 }
 
 function SubSelector({
