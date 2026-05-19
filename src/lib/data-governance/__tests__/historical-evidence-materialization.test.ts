@@ -467,6 +467,54 @@ describe('historical evidence materialization', () => {
     });
   });
 
+  it('treats online facts with the same source log as already materialized', async () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      existingSourceLogIds: new Set(['log-online']),
+      rowsBySource: {
+        InteractionLog: [
+          {
+            id: 'log-online',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:00:00.000Z',
+            eventType: 'submit',
+            sessionId: 'session-1',
+            lessonKey: 'unit-4-7-v1',
+            stepId: 'step-02',
+            eventData: {
+              eventType: 'lesson_submit',
+              score: 90,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+    const createMany = vi.fn().mockResolvedValue({ count: 0 });
+
+    const result = await applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany } },
+      plan,
+    );
+
+    expect(plan.candidates[0]).toMatchObject({
+      alreadyMaterialized: true,
+      fact: {
+        sourceEventId: 'historical:InteractionLog:log-online:lesson_submit',
+        sourceLogId: 'log-online',
+      },
+    });
+    expect(result).toMatchObject({
+      candidateRows: 1,
+      alreadyMaterializedRows: 1,
+      requestedCreateRows: 0,
+      createdRows: 0,
+    });
+    expect(createMany).not.toHaveBeenCalled();
+  });
+
   it('writes pending facts in bounded batches', async () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',

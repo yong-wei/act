@@ -89,6 +89,7 @@ export interface HistoricalEvidenceMaterializationPlan {
 export interface BuildHistoricalEvidenceMaterializationPlanInput {
   generatedAt?: string;
   existingSourceEventIds?: Set<string>;
+  existingSourceLogIds?: Set<string>;
   rowsBySource: Partial<Record<EvidenceSourceId, EvidenceCoverageRow[]>>;
 }
 
@@ -335,6 +336,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
   input: BuildHistoricalEvidenceMaterializationPlanInput,
 ): HistoricalEvidenceMaterializationPlan {
   const existingSourceEventIds = input.existingSourceEventIds ?? new Set<string>();
+  const existingSourceLogIds = input.existingSourceLogIds ?? new Set<string>();
   const candidates: HistoricalEvidenceMaterializationCandidate[] = [];
   const skipped: HistoricalEvidenceMaterializationSkip[] = [];
   const sources: HistoricalEvidenceMaterializationSourceSummary[] = [];
@@ -478,7 +480,8 @@ export function buildHistoricalEvidenceMaterializationPlan(
         valueLevel: classification.valueLevel,
         eligibility: classification.eligibility,
         confidence: 'high',
-        alreadyMaterialized: existingSourceEventIds.has(stableSourceIdentity),
+        alreadyMaterialized: existingSourceEventIds.has(stableSourceIdentity)
+          || existingSourceLogIds.has(readString(fact.sourceLogId) ?? ''),
         canonicalEventType,
         fact,
       };

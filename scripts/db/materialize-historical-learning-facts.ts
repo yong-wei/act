@@ -47,6 +47,10 @@ function readRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
 function compactSourceLabel(...values: unknown[]): string | null {
   return values
     .map((value) => typeof value === 'string' ? value.trim() : '')
@@ -257,42 +261,77 @@ function mergeBatchPlan(
   }
 }
 
-async function collectExistingSourceEventIdsForCandidates(
-  sourceEventIds: string[],
+interface ExistingMaterializedCandidateKeys {
+  sourceEventIds: Set<string>;
+  sourceLogIds: Set<string>;
+}
+
+async function collectExistingMaterializedKeysForCandidates(
+  candidates: HistoricalEvidenceMaterializationCandidate[],
   batchSize: number,
 ) {
-  const uniqueIds = [...new Set(sourceEventIds)].filter((value) => value.length > 0);
-  const existingSourceEventIds = new Set<string>();
+  const uniqueSourceEventIds = [...new Set(
+    candidates.map((candidate) => candidate.stableSourceIdentity),
+  )].filter((value) => value.length > 0);
+  const uniqueSourceLogIds = [...new Set(
+    candidates
+      .map((candidate) => readString(candidate.fact.sourceLogId))
+      .filter((value): value is string => Boolean(value)),
+  )];
+  const existingKeys: ExistingMaterializedCandidateKeys = {
+    sourceEventIds: new Set<string>(),
+    sourceLogIds: new Set<string>(),
+  };
 
-  for (let offset = 0; offset < uniqueIds.length; offset += batchSize) {
+  for (let offset = 0; offset < uniqueSourceEventIds.length; offset += batchSize) {
     const existingFacts = await prisma.learningFact.findMany({
       where: {
         sourceEventId: {
-          in: uniqueIds.slice(offset, offset + batchSize),
+          in: uniqueSourceEventIds.slice(offset, offset + batchSize),
         },
       },
       select: { sourceEventId: true },
     });
     for (const fact of existingFacts) {
-      if (fact.sourceEventId) existingSourceEventIds.add(fact.sourceEventId);
+      if (fact.sourceEventId) existingKeys.sourceEventIds.add(fact.sourceEventId);
     }
   }
 
-  return existingSourceEventIds;
+  for (let offset = 0; offset < uniqueSourceLogIds.length; offset += batchSize) {
+    const existingFacts = await prisma.learningFact.findMany({
+      where: {
+        sourceLogId: {
+          in: uniqueSourceLogIds.slice(offset, offset + batchSize),
+        },
+      },
+      select: { sourceLogId: true },
+    });
+    for (const fact of existingFacts) {
+      if (fact.sourceLogId) existingKeys.sourceLogIds.add(fact.sourceLogId);
+    }
+  }
+
+  return existingKeys;
 }
 
 function markAlreadyMaterializedCandidates(
   plan: HistoricalEvidenceMaterializationPlan,
-  existingSourceEventIds: Set<string>,
+  existingKeys: ExistingMaterializedCandidateKeys,
 ): HistoricalEvidenceMaterializationPlan {
-  if (existingSourceEventIds.size === 0) return plan;
+  if (existingKeys.sourceEventIds.size === 0 && existingKeys.sourceLogIds.size === 0) {
+    return plan;
+  }
 
   return {
     ...plan,
-    candidates: plan.candidates.map((candidate) => ({
-      ...candidate,
-      alreadyMaterialized: existingSourceEventIds.has(candidate.stableSourceIdentity),
-    })),
+    candidates: plan.candidates.map((candidate) => {
+      const sourceLogId = readString(candidate.fact.sourceLogId);
+      return {
+        ...candidate,
+        alreadyMaterialized: existingKeys.sourceEventIds.has(candidate.stableSourceIdentity)
+          || (sourceLogId ? existingKeys.sourceLogIds.has(sourceLogId) : false),
+      };
+    }),
   };
 }
 
@@ -721,11 +760,11 @@ async function buildPlanFromSourceBatches(
         existingSourceEventIds: new Set(),
         rowsBySource: { [sourceId]: rows },
       });
-      const existingSourceEventIds = await collectExistingSourceEventIdsForCandidates(
-        batchPlan.candidates.map((candidate) => candidate.stableSourceIdentity),
+      const existingKeys = await collectExistingMaterializedKeysForCandidates(
+        batchPlan.candidates,
         batchSize,
       );
-      mergeBatchPlan(state, markAlreadyMaterializedCandidates(batchPlan, existingSourceEventIds));
+      mergeBatchPlan(state, markAlreadyMaterializedCandidates(batchPlan, existingKeys));
     }
   }
 
