@@ -34,10 +34,12 @@ pr_label_file="$tmp_dir/pr-labels.txt"
 body_file="$tmp_dir/body.md"
 
 gh issue view "$issue_number" --json id,number,url,labels,projectItems,body > "$issue_file"
-gh pr view "$pr_ref" --json id,number,url,body,baseRefName,labels,projectItems,isDraft > "$pr_file"
+gh pr view "$pr_ref" --json id,number,url,body,baseRefName,labels,isDraft > "$pr_file"
 
 issue_url="$(node -e 'const fs=require("fs"); const issue=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(issue.url);' "$issue_file")"
 pr_url="$(node -e 'const fs=require("fs"); const pr=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(pr.url);' "$pr_file")"
+pr_number="$(node -e 'const fs=require("fs"); const pr=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(pr.number));' "$pr_file")"
+repo_nwo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
 
 node -e '
 const fs = require("fs");
@@ -81,13 +83,21 @@ while IFS= read -r label_name; do
   fi
 done < "$pr_label_file"
 
-labels_csv="$(node -e 'const fs=require("fs"); const labels=fs.readFileSync(process.argv[1],"utf8").split(/\n/).filter(Boolean); process.stdout.write(labels.join(","));' "$labels_file")"
+labels_json_file="$tmp_dir/labels.json"
+node -e '
+const fs = require("fs");
+const labels = fs.readFileSync(process.argv[1], "utf8").split(/\n/).filter(Boolean);
+fs.writeFileSync(process.argv[2], JSON.stringify({ labels }));
+' "$labels_file" "$labels_json_file"
 
-if [[ -n "$labels_csv" ]]; then
+if [[ -s "$labels_file" ]]; then
   if [[ "$dry_run" == "1" ]]; then
+    labels_csv="$(node -e 'const fs=require("fs"); const labels=fs.readFileSync(process.argv[1],"utf8").split(/\n/).filter(Boolean); process.stdout.write(labels.join(","));' "$labels_file")"
     printf '[dry-run] add PR labels to %s: %s\n' "$pr_url" "$labels_csv"
   else
-    gh pr edit "$pr_url" --add-label "$labels_csv"
+    gh api "repos/$repo_nwo/issues/$pr_number/labels" \
+      -X POST \
+      --input "$labels_json_file" >/dev/null
   fi
 fi
 
@@ -159,7 +169,15 @@ if [[ "$body_status" == "0" ]]; then
   if [[ "$dry_run" == "1" ]]; then
     printf '[dry-run] append non-closing origin issue reference to PR body: #%s\n' "$issue_number"
   else
-    gh pr edit "$pr_url" --body-file "$body_file"
+    body_json_file="$tmp_dir/body.json"
+    node -e '
+const fs = require("fs");
+const body = fs.readFileSync(process.argv[1], "utf8");
+fs.writeFileSync(process.argv[2], JSON.stringify({ body }));
+' "$body_file" "$body_json_file"
+    gh api "repos/$repo_nwo/pulls/$pr_number" \
+      -X PATCH \
+      --input "$body_json_file" >/dev/null
   fi
 elif [[ "$body_status" == "2" ]]; then
   printf 'PR body already records origin issue #%s.\n' "$issue_number"
