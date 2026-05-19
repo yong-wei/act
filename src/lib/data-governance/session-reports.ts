@@ -338,7 +338,7 @@ export async function generateSessionSummaryReports(
       windowEndTime: snapshotWindowEnd.toISOString(),
     },
     participationSemantics: {
-      participants: 'distinct users from StudentState, InteractionLog, and LearningFact for this session',
+      participants: 'distinct users from StudentState, InteractionLog, LearningFact, and StudentStepResponse for this session',
       activeStudentCount: 'class-level long-term snapshot count, not a classroom participation metric',
     },
   };
