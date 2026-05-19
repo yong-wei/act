@@ -8,6 +8,7 @@ describe('generateSessionSummaryReports', () => {
     studentState: { findMany: vi.fn() },
     interactionLog: { findMany: vi.fn() },
     learningFact: { findMany: vi.fn() },
+    studentStepResponse: { findMany: vi.fn() },
     studentCompetencySnapshot: { findMany: vi.fn() },
     classSessionReport: { upsert: vi.fn() },
     studentSessionReport: { upsert: vi.fn() },
@@ -38,14 +39,28 @@ describe('generateSessionSummaryReports', () => {
       {
         userId: 'student-1',
         eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:00.000Z'),
         lessonKey: '4-3',
         learningContext: 'classroom_live',
         invalidContextReason: null,
-        eventData: { eventType: 'sync_error' },
+        eventData: { eventType: 'sync_error', message: 'poll failed' },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:10.000Z'),
+        lessonKey: '4-3',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: { eventType: 'sync_error', message: 'poll failed' },
       },
       {
         userId: 'student-2',
         eventType: 'view',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:01:00.000Z'),
         lessonKey: '4-3',
         learningContext: 'classroom_review',
         invalidContextReason: null,
@@ -54,6 +69,8 @@ describe('generateSessionSummaryReports', () => {
       {
         userId: 'student-2',
         eventType: 'error',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:02:00.000Z'),
         lessonKey: '4-3',
         learningContext: 'classroom_live',
         invalidContextReason: null,
@@ -79,6 +96,24 @@ describe('generateSessionSummaryReports', () => {
         lessonId: '4-3',
       },
     ]);
+    prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        stepId: 'step-02',
+        submittedAt: new Date('2026-05-09T00:35:00.000Z'),
+        responseData: {
+          answers: { q1: 'A' },
+        },
+      },
+      {
+        userId: 'student-1',
+        stepId: 'step-02',
+        submittedAt: new Date('2026-05-09T00:36:00.000Z'),
+        responseData: {
+          answers: { q1: 'B' },
+        },
+      },
+    ]);
     prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
       { userId: 'student-1', snapshotAt: new Date('2026-05-09T02:30:00.000Z') },
       { userId: 'student-2', snapshotAt: new Date('2026-05-09T01:30:00.000Z') },
@@ -101,27 +136,30 @@ describe('generateSessionSummaryReports', () => {
         sessionId: 'session-4-3',
         lessonKey: '4-3',
         status: 'READY',
-        summary: '3 名学生产生 4 条互动日志，沉淀 2 条学习事实。',
+        summary: '3 名学生产生 5 条互动日志，沉淀 2 条学习事实。',
       }),
     }));
     expect(prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData).toMatchObject({
       participants: 3,
-      interactionLogs: 4,
+      interactionLogs: 5,
       learningFacts: 2,
-      syncErrors: 2,
+      syncErrors: 3,
+      durableSubmissions: 2,
+      submittedParticipantsFromDurableResponses: 1,
+      syncErrorIncidents: 2,
       legacyEventTypes: {
         lesson_submit: 1,
-        error: 2,
+        error: 3,
         view: 1,
       },
       canonicalEventTypes: {
         lesson_submit: 1,
-        sync_error: 2,
+        sync_error: 3,
         page_view: 1,
       },
       afterSessionEndEvents: 1,
       learningContexts: {
-        classroom_live: 3,
+        classroom_live: 4,
         classroom_review: 1,
       },
       sessionGovernanceSummary: {
@@ -129,12 +167,29 @@ describe('generateSessionSummaryReports', () => {
         loggedParticipants: 2,
         factParticipants: 2,
         submittedParticipants: 1,
+        durableSubmittedParticipants: 1,
+        durableSubmissionAttempts: 2,
         snapshotUpdatedParticipants: 1,
         syncErrorUsers: 2,
+        rawSyncErrors: 3,
+        syncErrorIncidents: 2,
         snapshotUpdateWindow: {
           startTime: '2026-05-09T02:04:23.000Z',
           endTime: '2026-05-09T04:04:23.000Z',
         },
+      },
+      evidenceSources: {
+        interactionLogs: 'InteractionLog rows for this session',
+        durableSubmissions: 'StudentStepResponse rows for this session',
+        learningFacts: 'LearningFact rows for this session',
+        stateParticipants: 'StudentState rows for this session, excluding teacher state',
+        snapshotUpdatedParticipants: 'StudentCompetencySnapshot rows in the report snapshot update window',
+        syncErrorIncidents: 'sync_error InteractionLog rows grouped by user, step, signature, and 30 second burst window',
+      },
+      snapshotCoveragePolicy: {
+        denominator: 'sessionParticipants',
+        denominatorCount: 3,
+        updatedCount: 1,
       },
       participationSemantics: {
         participants: 'distinct users from StudentState, InteractionLog, and LearningFact for this session',
@@ -171,6 +226,7 @@ describe('generateSessionSummaryReports', () => {
           interactionLogs: 0,
           learningFacts: 0,
           syncErrors: 0,
+          durableSubmissions: 0,
         }),
       }),
     }));
