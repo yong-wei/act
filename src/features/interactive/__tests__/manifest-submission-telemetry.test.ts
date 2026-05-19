@@ -9,8 +9,8 @@ describe('buildManifestSubmissionTelemetry', () => {
         stepId: 'step-02',
         submittedAt: 1778550642900,
         answers: {
-          'model-order': 'A',
-          'disturbance-boundary': 'B',
+          'model-order': 'a',
+          'disturbance-boundary': 'b',
           reflection: '需要补充扰动边界。',
         },
       },
@@ -26,8 +26,11 @@ describe('buildManifestSubmissionTelemetry', () => {
               responseKind: 'single_choice',
               submitScope: 'per_card',
               layoutSpan: 'half',
-              options: [],
-              referenceAnswer: 'A',
+              options: [
+                { value: 'a', label: '保留名义模型阶次。' },
+                { value: 'b', label: '忽略模型阶次。' },
+              ],
+              referenceAnswer: '选 A。名义模型阶次应保留为二阶。',
             },
             {
               id: 'disturbance-boundary',
@@ -36,8 +39,11 @@ describe('buildManifestSubmissionTelemetry', () => {
               responseKind: 'single_choice',
               submitScope: 'per_card',
               layoutSpan: 'half',
-              options: [],
-              referenceAnswer: 'A',
+              options: [
+                { value: 'a', label: '不能忽略。' },
+                { value: 'b', label: '可以忽略。' },
+              ],
+              referenceAnswer: '选 A。扰动边界不能忽略。',
             },
             {
               id: 'reflection',
@@ -60,21 +66,23 @@ describe('buildManifestSubmissionTelemetry', () => {
       responseKind: 'manifest_step_response',
       interactionKind: 'quiz_group',
       answers: {
-        'model-order': 'A',
-        'disturbance-boundary': 'B',
+        'model-order': 'a',
+        'disturbance-boundary': 'b',
         reflection: '需要补充扰动边界。',
       },
       questionSummaries: [
         {
           questionId: 'model-order',
-          studentAnswer: 'A',
-          referenceAnswer: 'A',
+          studentAnswer: 'a',
+          referenceAnswer: '选 A。名义模型阶次应保留为二阶。',
+          referenceValue: 'a',
           isCorrect: true,
         },
         {
           questionId: 'disturbance-boundary',
-          studentAnswer: 'B',
-          referenceAnswer: 'A',
+          studentAnswer: 'b',
+          referenceAnswer: '选 A。扰动边界不能忽略。',
+          referenceValue: 'a',
           isCorrect: false,
         },
       ],
