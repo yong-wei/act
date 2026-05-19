@@ -97,18 +97,6 @@ function printTextReport(
   }
 }
 
-async function collectExistingSourceEventIds() {
-  const existingFacts = await prisma.learningFact.findMany({
-    where: { sourceEventId: { startsWith: 'historical:' } },
-    select: { sourceEventId: true },
-  });
-  return new Set(
-    existingFacts
-      .map((fact) => fact.sourceEventId)
-      .filter((value): value is string => typeof value === 'string' && value.length > 0),
-  );
-}
-
 type IdPageArgs = {
   take: number;
   orderBy: { id: 'asc' };
@@ -267,6 +255,45 @@ function mergeBatchPlan(
     state.skipped.push(skipped);
     addSkipToSummary(summary, skipped);
   }
+}
+
+async function collectExistingSourceEventIdsForCandidates(
+  sourceEventIds: string[],
+  batchSize: number,
+) {
+  const uniqueIds = [...new Set(sourceEventIds)].filter((value) => value.length > 0);
+  const existingSourceEventIds = new Set<string>();
+
+  for (let offset = 0; offset < uniqueIds.length; offset += batchSize) {
+    const existingFacts = await prisma.learningFact.findMany({
+      where: {
+        sourceEventId: {
+          in: uniqueIds.slice(offset, offset + batchSize),
+        },
+      },
+      select: { sourceEventId: true },
+    });
+    for (const fact of existingFacts) {
+      if (fact.sourceEventId) existingSourceEventIds.add(fact.sourceEventId);
+    }
+  }
+
+  return existingSourceEventIds;
+}
+
+function markAlreadyMaterializedCandidates(
+  plan: HistoricalEvidenceMaterializationPlan,
+  existingSourceEventIds: Set<string>,
+): HistoricalEvidenceMaterializationPlan {
+  if (existingSourceEventIds.size === 0) return plan;
+
+  return {
+    ...plan,
+    candidates: plan.candidates.map((candidate) => ({
+      ...candidate,
+      alreadyMaterialized: existingSourceEventIds.has(candidate.stableSourceIdentity),
+    })),
+  };
 }
 
 function finalizeAggregatePlan(state: AggregatePlanState): HistoricalEvidenceMaterializationPlan {
@@ -662,21 +689,22 @@ async function* readSourceRowBatches(
 }
 
 async function buildPlanFromSourceBatches(
-  existingSourceEventIds: Set<string>,
   batchSize: number,
 ) {
   const state = createAggregatePlanState();
 
   for (const sourceId of SOURCE_PROCESSING_ORDER) {
     for await (const rows of readSourceRowBatches(sourceId, batchSize)) {
-      mergeBatchPlan(
-        state,
-        buildHistoricalEvidenceMaterializationPlan({
-          generatedAt: state.generatedAt,
-          existingSourceEventIds,
-          rowsBySource: { [sourceId]: rows },
-        }),
+      const batchPlan = buildHistoricalEvidenceMaterializationPlan({
+        generatedAt: state.generatedAt,
+        existingSourceEventIds: new Set(),
+        rowsBySource: { [sourceId]: rows },
+      });
+      const existingSourceEventIds = await collectExistingSourceEventIdsForCandidates(
+        batchPlan.candidates.map((candidate) => candidate.stableSourceIdentity),
+        batchSize,
       );
+      mergeBatchPlan(state, markAlreadyMaterializedCandidates(batchPlan, existingSourceEventIds));
     }
   }
 
@@ -686,8 +714,7 @@ async function buildPlanFromSourceBatches(
 async function main() {
   const isApply = hasFlag('--apply');
   const batchSize = readBatchSize();
-  const existingSourceEventIds = await collectExistingSourceEventIds();
-  const plan = await buildPlanFromSourceBatches(existingSourceEventIds, batchSize);
+  const plan = await buildPlanFromSourceBatches(batchSize);
   const applyResult = isApply
     ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan)
     : null;
