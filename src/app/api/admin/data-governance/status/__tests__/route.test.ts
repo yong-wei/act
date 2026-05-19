@@ -22,6 +22,10 @@ const mocks = vi.hoisted(() => ({
       count: vi.fn(),
       findMany: vi.fn(),
     },
+    studentEvidenceFeatureCache: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+    },
     studentRiskFlag: {
       count: vi.fn(),
       findMany: vi.fn(),
@@ -92,6 +96,20 @@ describe('GET /api/admin/data-governance/status', () => {
       { factType: 'question' },
       { factType: 'simulation' },
     ]);
+    mocks.prisma.studentEvidenceFeatureCache.count.mockResolvedValue(2);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
+      {
+        refreshedAt: new Date('2026-05-19T08:10:00.000Z'),
+        statusMarkers: [],
+        sourceCoverage: {
+          LearningFact: 'available',
+          StudentCompetencySnapshot: 'missing',
+          StudentProfileSummary: 'missing',
+        },
+        sourceFactCount: 4,
+        rebuildCount: 1,
+      },
+    ]);
     mocks.prisma.user.findMany.mockResolvedValue([
       { id: 'student-1', name: '张三', email: 'student@example.test' },
     ]);
@@ -124,6 +142,13 @@ describe('GET /api/admin/data-governance/status', () => {
       userId: 'student-1',
       userName: '张三',
       factCount: 12,
+    });
+    expect(payload.featureCache).toMatchObject({
+      totalEntries: 2,
+      staleEntries: 0,
+      latestRefreshAt: '2026-05-19T08:10:00.000Z',
+      totalSourceFacts: 4,
+      payloadVersion: 'student-evidence-features.v1',
     });
   });
 
