@@ -113,7 +113,7 @@ describe('buildManifestSubmissionTelemetry', () => {
     });
   });
 
-  it('scores multi-select answers serialized with a single pipe', () => {
+  it('scores multi-choice answers serialized with a single pipe', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {
         stepId: 'step-11',
@@ -131,7 +131,7 @@ describe('buildManifestSubmissionTelemetry', () => {
               id: 'multi-evidence',
               title: '多选证据',
               prompt: '哪些证据需要同时保留？',
-              responseKind: 'multi_select',
+              responseKind: 'multi_choice',
               submitScope: 'per_card',
               layoutSpan: 'half',
               options: [

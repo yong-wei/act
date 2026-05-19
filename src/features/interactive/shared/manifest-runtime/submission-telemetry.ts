@@ -12,6 +12,7 @@ interface ManifestResponseLike {
 const OBJECTIVE_RESPONSE_KINDS = new Set([
   'single_choice',
   'binary_choice',
+  'multi_choice',
   'multi_select',
 ]);
 
