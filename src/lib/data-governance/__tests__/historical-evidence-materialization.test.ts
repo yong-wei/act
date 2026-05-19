@@ -207,6 +207,73 @@ describe('historical evidence materialization', () => {
     ]));
   });
 
+  it('deduplicates classroom resubmissions with the canonical response event type', () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        InteractionLog: [
+          {
+            id: 'log-resubmit',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:10:00.000Z',
+            eventType: 'submit',
+            eventData: {
+              eventType: 'lesson_resubmit',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              score: 88,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+        StudentStepResponse: [
+          {
+            id: 'response-2',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:10:01.000Z',
+            eventData: {
+              eventType: 'lesson_resubmit',
+              sessionId: 'session-1',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              sourceLogId: 'log-resubmit',
+              score: 88,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+
+    expect(plan.totals).toMatchObject({
+      candidateRows: 1,
+      newFactRows: 1,
+      excludedRows: 1,
+    });
+    expect(plan.candidates[0]).toMatchObject({
+      sourceId: 'StudentStepResponse',
+      stableSourceIdentity: 'historical:InteractionLog:log-resubmit:lesson_resubmit',
+      evidenceSubtype: 'lesson_resubmit',
+      canonicalEventType: 'lesson_resubmit',
+      fact: {
+        sourceEventId: 'historical:InteractionLog:log-resubmit:lesson_resubmit',
+        sourceLogId: 'log-resubmit',
+        factType: 'question',
+      },
+    });
+    expect(plan.skipped).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourceId: 'InteractionLog',
+        sourceRecordId: 'log-resubmit',
+        reason: 'duplicate_canonical_source',
+        canonicalEventType: 'lesson_resubmit',
+      }),
+    ]));
+  });
+
   it('applies only new facts and reports already materialized stable identities', async () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',

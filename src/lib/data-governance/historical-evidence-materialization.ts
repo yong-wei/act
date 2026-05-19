@@ -167,6 +167,12 @@ function resolveEvidenceSubtype(
   if (sourceId === 'InteractionLog') {
     return canonicalEventType ?? 'interaction_event';
   }
+  if (
+    sourceId === 'StudentStepResponse'
+    && (canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit')
+  ) {
+    return canonicalEventType;
+  }
   return EVIDENCE_SUBTYPES[sourceId] ?? 'historical_evidence';
 }
 
@@ -174,7 +180,24 @@ function resolveActionType(sourceId: EvidenceSourceId, evidenceSubtype: string) 
   if (sourceId === 'InteractionLog') {
     return evidenceSubtype;
   }
+  if (
+    sourceId === 'StudentStepResponse'
+    && (evidenceSubtype === 'lesson_submit' || evidenceSubtype === 'lesson_resubmit')
+  ) {
+    return evidenceSubtype;
+  }
   return SOURCE_ACTION_TYPES[sourceId] ?? evidenceSubtype;
+}
+
+function resolveCanonicalEventType(
+  row: EvidenceCoverageRow,
+  sourceId: EvidenceSourceId,
+  classificationCanonicalEventType: string | undefined,
+) {
+  if (sourceId === 'StudentStepResponse') {
+    return readString(readRecord(row.eventData).eventType) ?? classificationCanonicalEventType;
+  }
+  return classificationCanonicalEventType;
 }
 
 function getMaterializationSources() {
@@ -302,6 +325,11 @@ export function buildHistoricalEvidenceMaterializationPlan(
 
       const classification = classifyEvidenceRow({ ...row, sourceId: source.id });
       const userId = readString(row.userId);
+      const canonicalEventType = resolveCanonicalEventType(
+        row,
+        source.id,
+        classification.canonicalEventType,
+      );
       const skipBase = {
         sourceId: source.id,
         sourceRecordId: row.id,
@@ -310,7 +338,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
         eligibility: classification.eligibility,
         valueLevel: classification.valueLevel,
         userId,
-        canonicalEventType: classification.canonicalEventType,
+        canonicalEventType,
       };
 
       if (shouldTreatAsUnsupported(classification)) {
@@ -347,7 +375,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
         continue;
       }
 
-      const evidenceSubtype = resolveEvidenceSubtype(source.id, classification.canonicalEventType);
+      const evidenceSubtype = resolveEvidenceSubtype(source.id, canonicalEventType);
       const actionType = resolveActionType(source.id, evidenceSubtype);
       const stableSourceIdentity = buildStableSourceIdentity(
         row,
@@ -375,7 +403,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
         classification.provenance,
         classification.valueLevel,
         'high',
-        classification.canonicalEventType,
+        canonicalEventType,
       );
 
       if (!fact) {
@@ -401,7 +429,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
         eligibility: classification.eligibility,
         confidence: 'high',
         alreadyMaterialized: existingSourceEventIds.has(stableSourceIdentity),
-        canonicalEventType: classification.canonicalEventType,
+        canonicalEventType,
         fact,
       };
       sourceCandidates.push(candidate);
