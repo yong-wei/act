@@ -150,6 +150,31 @@ function compactJsonObject(value: Record<string, unknown>): Prisma.InputJsonObje
   ) as Prisma.InputJsonObject;
 }
 
+function compactRecord(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  );
+}
+
+function buildEventPayload(row: EvidenceCoverageRow, sourceId: EvidenceSourceId): Record<string, unknown> {
+  const payload = readRecord(row.eventData);
+  if (sourceId !== 'InteractionLog') return payload;
+
+  return compactRecord({
+    ...payload,
+    eventType: readString(payload.eventType) ?? readString(row.eventType),
+    resourceId: readString(row.resourceId) ?? readString(payload.resourceId),
+    resourceKey: readString(row.resourceKey) ?? readString(payload.resourceKey),
+    sessionId: readString(row.sessionId) ?? readString(payload.sessionId),
+    lessonKey: readString(row.lessonKey) ?? readString(payload.lessonKey),
+    stepId: readString(row.stepId) ?? readString(payload.stepId),
+    attemptKey: readString(row.attemptKey) ?? readString(payload.attemptKey),
+    clientEventId: readString(row.clientEventId) ?? readString(payload.clientEventId),
+    learningContext: readString(row.learningContext) ?? readString(payload.learningContext),
+    invalidContextReason: readString(row.invalidContextReason) ?? readString(payload.invalidContextReason),
+  });
+}
+
 function normalizeDate(value: string | Date | null | undefined): string | null {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -216,7 +241,7 @@ function buildStableSourceIdentity(
   evidenceSubtype: string,
   actionType: string,
 ) {
-  const payload = readRecord(row.eventData);
+  const payload = buildEventPayload(row, sourceId);
 
   if (sourceId === 'StudentStepResponse') {
     const sourceLogId = readString(payload.sourceLogId);
@@ -244,7 +269,7 @@ function buildFactInput(
   const userId = readString(row.userId);
   if (!userId) return null;
 
-  const rawPayload = readRecord(row.eventData);
+  const rawPayload = buildEventPayload(row, sourceId);
   const sourceLogId = sourceId === 'InteractionLog'
     ? row.id
     : readString(rawPayload.sourceLogId);
@@ -384,7 +409,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
 
       const evidenceSubtype = resolveEvidenceSubtype(source.id, canonicalEventType);
       const actionType = resolveActionType(source.id, evidenceSubtype);
-      const payload = readRecord(row.eventData);
+      const payload = buildEventPayload(row, source.id);
 
       if (!shouldMaterializeLearningFact(actionType, payload)) {
         sourceSkipped.push({

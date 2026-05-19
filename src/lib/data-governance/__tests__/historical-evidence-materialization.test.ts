@@ -141,6 +141,47 @@ describe('historical evidence materialization', () => {
     });
   });
 
+  it('uses InteractionLog wrapper fields to preserve classroom attribution', () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        InteractionLog: [
+          {
+            id: 'log-wrapper',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:00:00.000Z',
+            eventType: 'submit',
+            sessionId: 'session-1',
+            lessonKey: 'unit-4-7-v1',
+            stepId: 'step-02',
+            attemptKey: 'step-02:attempt-1',
+            clientEventId: 'client-submit-1',
+            resourceKey: 'unit-4-7',
+            eventData: {
+              eventType: 'lesson_submit',
+              score: 75,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+
+    expect(plan.candidates[0]).toMatchObject({
+      sourceId: 'InteractionLog',
+      stableSourceIdentity: 'historical:InteractionLog:log-wrapper:lesson_submit',
+      fact: {
+        sessionId: 'session-1',
+        lessonId: 'unit-4-7-v1',
+        moduleId: 'step-02',
+        sourceLogId: 'log-wrapper',
+        score: 75,
+      },
+    });
+  });
+
   it('deduplicates classroom submissions by their canonical source interaction log', () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',
