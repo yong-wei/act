@@ -125,6 +125,11 @@ const EVIDENCE_SUBTYPES: Partial<Record<EvidenceSourceId, string>> = {
   LearningFact: 'existing_learning_fact',
 };
 
+const MATERIALIZATION_SOURCE_PRIORITY: Partial<Record<EvidenceSourceId, number>> = {
+  StudentStepResponse: 0,
+  InteractionLog: 1,
+};
+
 function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -170,6 +175,34 @@ function resolveActionType(sourceId: EvidenceSourceId, evidenceSubtype: string) 
     return evidenceSubtype;
   }
   return SOURCE_ACTION_TYPES[sourceId] ?? evidenceSubtype;
+}
+
+function getMaterializationSources() {
+  return getEvidenceSourceCatalog()
+    .map((source, index) => ({ source, index }))
+    .sort((left, right) => (
+      (MATERIALIZATION_SOURCE_PRIORITY[left.source.id] ?? 100 + left.index)
+      - (MATERIALIZATION_SOURCE_PRIORITY[right.source.id] ?? 100 + right.index)
+    ))
+    .map(({ source }) => source);
+}
+
+function buildStableSourceIdentity(
+  row: EvidenceCoverageRow,
+  sourceId: EvidenceSourceId,
+  evidenceSubtype: string,
+  actionType: string,
+) {
+  const payload = readRecord(row.eventData);
+
+  if (sourceId === 'StudentStepResponse') {
+    const sourceLogId = readString(payload.sourceLogId);
+    if (sourceLogId) {
+      return `historical:InteractionLog:${sourceLogId}:${actionType}`;
+    }
+  }
+
+  return `historical:${sourceId}:${row.id}:${evidenceSubtype}`;
 }
 
 function resolveTimeSpent(payload: Record<string, unknown>) {
@@ -250,8 +283,9 @@ export function buildHistoricalEvidenceMaterializationPlan(
   const candidates: HistoricalEvidenceMaterializationCandidate[] = [];
   const skipped: HistoricalEvidenceMaterializationSkip[] = [];
   const sources: HistoricalEvidenceMaterializationSourceSummary[] = [];
+  const seenStableSourceIdentities = new Set<string>();
 
-  for (const source of getEvidenceSourceCatalog()) {
+  for (const source of getMaterializationSources()) {
     const rows = input.rowsBySource[source.id] ?? [];
     const sourceCandidates: HistoricalEvidenceMaterializationCandidate[] = [];
     const sourceSkipped: HistoricalEvidenceMaterializationSkip[] = [];
@@ -314,8 +348,22 @@ export function buildHistoricalEvidenceMaterializationPlan(
       }
 
       const evidenceSubtype = resolveEvidenceSubtype(source.id, classification.canonicalEventType);
-      const stableSourceIdentity = `historical:${source.id}:${row.id}:${evidenceSubtype}`;
       const actionType = resolveActionType(source.id, evidenceSubtype);
+      const stableSourceIdentity = buildStableSourceIdentity(
+        row,
+        source.id,
+        evidenceSubtype,
+        actionType,
+      );
+
+      if (seenStableSourceIdentities.has(stableSourceIdentity)) {
+        sourceSkipped.push({
+          ...skipBase,
+          reason: 'duplicate_canonical_source',
+        });
+        continue;
+      }
+
       const fact = buildFactInput(
         row,
         source.id,
@@ -337,6 +385,8 @@ export function buildHistoricalEvidenceMaterializationPlan(
         });
         continue;
       }
+
+      seenStableSourceIdentities.add(stableSourceIdentity);
 
       const candidate: HistoricalEvidenceMaterializationCandidate = {
         sourceId: source.id,

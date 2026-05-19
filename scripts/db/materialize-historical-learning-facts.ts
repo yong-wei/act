@@ -4,14 +4,41 @@ import {
   applyHistoricalEvidenceMaterializationPlan,
   buildHistoricalEvidenceMaterializationPlan,
   type HistoricalEvidenceMaterializationApplyResult,
+  type HistoricalEvidenceMaterializationCandidate,
   type HistoricalEvidenceMaterializationPlan,
+  type HistoricalEvidenceMaterializationSkip,
 } from '@/lib/data-governance/historical-evidence-materialization';
-import type { EvidenceCoverageRow } from '@/lib/data-governance/evidence-source-catalog';
+import {
+  getEvidenceSourceCatalog,
+  type EvidenceCoverageRow,
+  type EvidenceSourceId,
+} from '@/lib/data-governance/evidence-source-catalog';
 
 const prisma = new PrismaClient();
+const DEFAULT_BATCH_SIZE = 1000;
+const SOURCE_PROCESSING_ORDER: EvidenceSourceId[] = [
+  'StudentStepResponse',
+  'InteractionLog',
+  'SimulationLog',
+  'UserAnswer',
+  'AbilityAssessment',
+  'PromptAssessment',
+  'DesignSession',
+  'ArenaSubmission',
+  'ArenaEvaluationRun',
+  'LearningFact',
+];
 
 function hasFlag(name: string) {
   return process.argv.includes(name);
+}
+
+function readBatchSize() {
+  const value = process.argv.find((argument) => argument.startsWith('--batch-size='));
+  if (!value) return DEFAULT_BATCH_SIZE;
+
+  const parsed = Number(value.slice('--batch-size='.length));
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_BATCH_SIZE;
 }
 
 function readRecord(value: unknown): Record<string, unknown> {
@@ -82,127 +109,538 @@ async function collectExistingSourceEventIds() {
   );
 }
 
-async function collectRows() {
-  const [
-    interactionLogs,
-    studentStepResponses,
-    simulationLogs,
-    userAnswers,
-    abilityAssessments,
-    promptAssessments,
-    designSessions,
-    arenaSubmissions,
-    arenaEvaluationRuns,
-    learningFacts,
-  ] = await Promise.all([
-    prisma.interactionLog.findMany({
-      select: {
-        id: true,
-        userId: true,
-        eventType: true,
-        eventData: true,
-        clientEventAt: true,
-        createdAt: true,
-      },
+type IdPageArgs = {
+  take: number;
+  orderBy: { id: 'asc' };
+  cursor?: { id: string };
+  skip?: number;
+};
+
+interface SourcePlanSummaryAccumulator {
+  sourceId: EvidenceSourceId;
+  totalRows: number;
+  candidateRows: number;
+  newFactRows: number;
+  alreadyMaterializedRows: number;
+  excludedRows: number;
+  unsupportedRows: number;
+  lowConfidenceRows: number;
+  affectedUsers: Set<string>;
+  firstObservedAt: string | null;
+  lastObservedAt: string | null;
+  sampleTraceReferences: string[];
+}
+
+interface AggregatePlanState {
+  generatedAt: string;
+  candidates: HistoricalEvidenceMaterializationCandidate[];
+  skipped: HistoricalEvidenceMaterializationSkip[];
+  sourceSummaries: Map<EvidenceSourceId, SourcePlanSummaryAccumulator>;
+  plannedSourceEventIds: Set<string>;
+}
+
+function emptySourceAccumulator(sourceId: EvidenceSourceId): SourcePlanSummaryAccumulator {
+  return {
+    sourceId,
+    totalRows: 0,
+    candidateRows: 0,
+    newFactRows: 0,
+    alreadyMaterializedRows: 0,
+    excludedRows: 0,
+    unsupportedRows: 0,
+    lowConfidenceRows: 0,
+    affectedUsers: new Set(),
+    firstObservedAt: null,
+    lastObservedAt: null,
+    sampleTraceReferences: [],
+  };
+}
+
+function createAggregatePlanState(): AggregatePlanState {
+  return {
+    generatedAt: new Date().toISOString(),
+    candidates: [],
+    skipped: [],
+    sourceSummaries: new Map(
+      getEvidenceSourceCatalog().map((source) => [source.id, emptySourceAccumulator(source.id)]),
+    ),
+    plannedSourceEventIds: new Set(),
+  };
+}
+
+function getSourceAccumulator(state: AggregatePlanState, sourceId: EvidenceSourceId) {
+  const existing = state.sourceSummaries.get(sourceId);
+  if (existing) return existing;
+
+  const created = emptySourceAccumulator(sourceId);
+  state.sourceSummaries.set(sourceId, created);
+  return created;
+}
+
+function updateSourceWindow(
+  summary: SourcePlanSummaryAccumulator,
+  firstObservedAt: string | null,
+  lastObservedAt: string | null,
+) {
+  if (firstObservedAt && (!summary.firstObservedAt || firstObservedAt < summary.firstObservedAt)) {
+    summary.firstObservedAt = firstObservedAt;
+  }
+  if (lastObservedAt && (!summary.lastObservedAt || lastObservedAt > summary.lastObservedAt)) {
+    summary.lastObservedAt = lastObservedAt;
+  }
+}
+
+function addCandidateToSummary(
+  summary: SourcePlanSummaryAccumulator,
+  candidate: HistoricalEvidenceMaterializationCandidate,
+) {
+  summary.candidateRows += 1;
+  if (candidate.alreadyMaterialized) {
+    summary.alreadyMaterializedRows += 1;
+  } else {
+    summary.newFactRows += 1;
+  }
+  summary.affectedUsers.add(candidate.userId);
+}
+
+function addSkipToSummary(
+  summary: SourcePlanSummaryAccumulator,
+  skipped: HistoricalEvidenceMaterializationSkip,
+) {
+  if (skipped.eligibility === 'unsupported') {
+    summary.unsupportedRows += 1;
+  } else if (skipped.reason === 'unknown_provenance') {
+    summary.lowConfidenceRows += 1;
+  } else {
+    summary.excludedRows += 1;
+  }
+}
+
+function duplicateSkipFromCandidate(
+  candidate: HistoricalEvidenceMaterializationCandidate,
+): HistoricalEvidenceMaterializationSkip {
+  return {
+    sourceId: candidate.sourceId,
+    sourceRecordId: candidate.sourceRecordId,
+    traceReference: candidate.traceReference,
+    reason: 'duplicate_canonical_source',
+    provenance: candidate.provenance,
+    eligibility: candidate.eligibility,
+    valueLevel: candidate.valueLevel,
+    userId: candidate.userId,
+    canonicalEventType: candidate.canonicalEventType,
+  };
+}
+
+function mergeBatchPlan(
+  state: AggregatePlanState,
+  batchPlan: HistoricalEvidenceMaterializationPlan,
+) {
+  for (const sourceSummary of batchPlan.sources) {
+    if (sourceSummary.totalRows === 0) continue;
+
+    const summary = getSourceAccumulator(state, sourceSummary.sourceId);
+    summary.totalRows += sourceSummary.totalRows;
+    updateSourceWindow(summary, sourceSummary.firstObservedAt, sourceSummary.lastObservedAt);
+    for (const sample of sourceSummary.sampleTraceReferences) {
+      if (summary.sampleTraceReferences.length >= 5) break;
+      summary.sampleTraceReferences.push(sample);
+    }
+  }
+
+  for (const candidate of batchPlan.candidates) {
+    const summary = getSourceAccumulator(state, candidate.sourceId);
+    if (state.plannedSourceEventIds.has(candidate.stableSourceIdentity)) {
+      const skipped = duplicateSkipFromCandidate(candidate);
+      state.skipped.push(skipped);
+      addSkipToSummary(summary, skipped);
+      continue;
+    }
+
+    state.plannedSourceEventIds.add(candidate.stableSourceIdentity);
+    state.candidates.push(candidate);
+    addCandidateToSummary(summary, candidate);
+  }
+
+  for (const skipped of batchPlan.skipped) {
+    const summary = getSourceAccumulator(state, skipped.sourceId);
+    state.skipped.push(skipped);
+    addSkipToSummary(summary, skipped);
+  }
+}
+
+function finalizeAggregatePlan(state: AggregatePlanState): HistoricalEvidenceMaterializationPlan {
+  const sources = getEvidenceSourceCatalog().map((source) => {
+    const summary = getSourceAccumulator(state, source.id);
+    return {
+      sourceId: source.id,
+      totalRows: summary.totalRows,
+      candidateRows: summary.candidateRows,
+      newFactRows: summary.newFactRows,
+      alreadyMaterializedRows: summary.alreadyMaterializedRows,
+      excludedRows: summary.excludedRows,
+      unsupportedRows: summary.unsupportedRows,
+      lowConfidenceRows: summary.lowConfidenceRows,
+      affectedUsers: summary.affectedUsers.size,
+      firstObservedAt: summary.firstObservedAt,
+      lastObservedAt: summary.lastObservedAt,
+      sampleTraceReferences: summary.sampleTraceReferences,
+    };
+  });
+  const affectedUsers = new Set(state.candidates.map((candidate) => candidate.userId));
+  const totals = sources.reduce(
+    (accumulator, source) => ({
+      totalRows: accumulator.totalRows + source.totalRows,
+      candidateRows: accumulator.candidateRows + source.candidateRows,
+      newFactRows: accumulator.newFactRows + source.newFactRows,
+      alreadyMaterializedRows: accumulator.alreadyMaterializedRows + source.alreadyMaterializedRows,
+      excludedRows: accumulator.excludedRows + source.excludedRows,
+      unsupportedRows: accumulator.unsupportedRows + source.unsupportedRows,
+      lowConfidenceRows: accumulator.lowConfidenceRows + source.lowConfidenceRows,
+      affectedUsers: affectedUsers.size,
     }),
-    prisma.studentStepResponse.findMany({
-      select: {
-        id: true,
-        userId: true,
-        sessionId: true,
-        lessonKey: true,
-        stepId: true,
-        attemptKey: true,
-        sourceLogId: true,
-        clientEventId: true,
-        submittedAt: true,
-        responseData: true,
-      },
-    }),
-    prisma.simulationLog.findMany({
-      select: {
-        id: true,
-        userId: true,
-        missionId: true,
-        sessionId: true,
-        inputParams: true,
-        metrics: true,
-        score: true,
-        duration: true,
-        createdAt: true,
-      },
-    }),
-    prisma.userAnswer.findMany({
-      select: {
-        id: true,
-        userId: true,
-        questionId: true,
-        isCorrect: true,
-        timeSpent: true,
-        answerGiven: true,
-        createdAt: true,
-        question: {
-          select: {
-            source: true,
+    {
+      totalRows: 0,
+      candidateRows: 0,
+      newFactRows: 0,
+      alreadyMaterializedRows: 0,
+      excludedRows: 0,
+      unsupportedRows: 0,
+      lowConfidenceRows: 0,
+      affectedUsers: 0,
+    },
+  );
+
+  return {
+    generatedAt: state.generatedAt,
+    mode: 'dry-run',
+    candidates: state.candidates,
+    skipped: state.skipped,
+    sources,
+    totals,
+  };
+}
+
+async function* paginateCoverageRows<T extends { id: string }>(
+  fetchPage: (pagination: IdPageArgs) => Promise<T[]>,
+  mapRow: (row: T) => EvidenceCoverageRow,
+  batchSize: number,
+): AsyncGenerator<EvidenceCoverageRow[]> {
+  let cursor: string | undefined;
+
+  while (true) {
+    const rows = await fetchPage({
+      take: batchSize,
+      orderBy: { id: 'asc' },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+
+    if (rows.length === 0) return;
+    yield rows.map(mapRow);
+
+    cursor = rows[rows.length - 1]?.id;
+    if (rows.length < batchSize || !cursor) return;
+  }
+}
+
+async function* readSourceRowBatches(
+  sourceId: EvidenceSourceId,
+  batchSize: number,
+): AsyncGenerator<EvidenceCoverageRow[]> {
+  if (sourceId === 'InteractionLog') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.interactionLog.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          eventType: true,
+          eventData: true,
+          clientEventAt: true,
+          createdAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.clientEventAt ?? row.createdAt,
+        eventType: row.eventType,
+        eventData: row.eventData,
+        sourceLabel: compactSourceLabel(
+          readRecord(row.eventData).source,
+          readRecord(row.eventData).sourceType,
+          readRecord(row.eventData).sourceSystem,
+        ),
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'StudentStepResponse') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.studentStepResponse.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          sessionId: true,
+          lessonKey: true,
+          stepId: true,
+          attemptKey: true,
+          sourceLogId: true,
+          clientEventId: true,
+          submittedAt: true,
+          responseData: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.submittedAt,
+        eventData: {
+          ...readRecord(row.responseData),
+          sessionId: row.sessionId,
+          lessonKey: row.lessonKey,
+          stepId: row.stepId,
+          attemptKey: row.attemptKey,
+          sourceLogId: row.sourceLogId,
+          clientEventId: row.clientEventId,
+        },
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'SimulationLog') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.simulationLog.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          missionId: true,
+          sessionId: true,
+          inputParams: true,
+          metrics: true,
+          score: true,
+          duration: true,
+          createdAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.createdAt,
+        eventData: {
+          ...readRecord(row.inputParams),
+          ...readRecord(row.metrics),
+          missionId: row.missionId,
+          sessionId: row.sessionId,
+          score: row.score,
+          durationSeconds: row.duration,
+        },
+        sourceLabel: compactSourceLabel(
+          readRecord(row.inputParams).source,
+          readRecord(row.metrics).source,
+        ),
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'UserAnswer') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.userAnswer.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          questionId: true,
+          isCorrect: true,
+          timeSpent: true,
+          answerGiven: true,
+          createdAt: true,
+          question: {
+            select: {
+              source: true,
+            },
           },
         },
-      },
-    }),
-    prisma.abilityAssessment.findMany({
-      select: {
-        id: true,
-        userId: true,
-        computationalTheta: true,
-        crossDomainTheta: true,
-        designTheta: true,
-        assessedAt: true,
-      },
-    }),
-    prisma.promptAssessment.findMany({
-      select: {
-        id: true,
-        userId: true,
-        sessionId: true,
-        structuredData: true,
-        overallScore: true,
-        createdAt: true,
-      },
-    }),
-    prisma.designSession.findMany({
-      select: {
-        id: true,
-        userId: true,
-        taskType: true,
-        designActions: true,
-        finalResult: true,
-        consistencyScore: true,
-        startedAt: true,
-        completedAt: true,
-      },
-    }),
-    prisma.arenaSubmission.findMany({
-      select: {
-        id: true,
-        userId: true,
-        taskId: true,
-        classId: true,
-        seasonId: true,
-        publicationId: true,
-        method: true,
-        score: true,
-        valid: true,
-        submittedAt: true,
-      },
-    }),
-    prisma.arenaEvaluationRun.findMany({
-      select: {
-        id: true,
-        taskId: true,
-        metadata: true,
-        completedAt: true,
-      },
-    }),
-    prisma.learningFact.findMany({
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.createdAt,
+        eventData: {
+          questionId: row.questionId,
+          isCorrect: row.isCorrect,
+          score: row.isCorrect ? 100 : 0,
+          timeSpent: row.timeSpent,
+          answerGiven: row.answerGiven,
+        },
+        sourceLabel: row.question.source,
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'AbilityAssessment') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.abilityAssessment.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          computationalTheta: true,
+          crossDomainTheta: true,
+          designTheta: true,
+          assessedAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.assessedAt,
+        eventData: {
+          computationalTheta: row.computationalTheta,
+          crossDomainTheta: row.crossDomainTheta,
+          designTheta: row.designTheta,
+        },
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'PromptAssessment') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.promptAssessment.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          sessionId: true,
+          structuredData: true,
+          overallScore: true,
+          createdAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.createdAt,
+        eventData: {
+          ...readRecord(row.structuredData),
+          sessionId: row.sessionId,
+          overallScore: row.overallScore,
+          score: row.overallScore,
+        },
+        sourceLabel: compactSourceLabel(row.sessionId, readRecord(row.structuredData).source),
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'DesignSession') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.designSession.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          taskType: true,
+          designActions: true,
+          finalResult: true,
+          consistencyScore: true,
+          startedAt: true,
+          completedAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.completedAt ?? row.startedAt,
+        eventData: {
+          taskType: row.taskType,
+          designActions: row.designActions,
+          finalResult: row.finalResult,
+          consistencyScore: row.consistencyScore,
+          score: row.consistencyScore,
+        },
+        sourceLabel: row.taskType,
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'ArenaSubmission') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.arenaSubmission.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          userId: true,
+          taskId: true,
+          classId: true,
+          seasonId: true,
+          publicationId: true,
+          method: true,
+          score: true,
+          valid: true,
+          submittedAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        userId: row.userId,
+        occurredAt: row.submittedAt,
+        eventData: {
+          taskId: row.taskId,
+          classId: row.classId,
+          seasonId: row.seasonId,
+          publicationId: row.publicationId,
+          method: row.method,
+          score: row.score,
+          valid: row.valid,
+        },
+        sourceLabel: compactSourceLabel(row.publicationId ? 'classroom-publication' : null, row.classId, row.seasonId, row.taskId),
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  if (sourceId === 'ArenaEvaluationRun') {
+    yield* paginateCoverageRows(
+      (pagination) => prisma.arenaEvaluationRun.findMany({
+        ...pagination,
+        select: {
+          id: true,
+          taskId: true,
+          metadata: true,
+          completedAt: true,
+        },
+      }),
+      (row): EvidenceCoverageRow => ({
+        id: row.id,
+        occurredAt: row.completedAt,
+        eventData: row.metadata,
+        sourceLabel: compactSourceLabel(readRecord(row.metadata).source, row.taskId),
+      }),
+      batchSize,
+    );
+    return;
+  }
+
+  yield* paginateCoverageRows(
+    (pagination) => prisma.learningFact.findMany({
+      ...pagination,
       select: {
         id: true,
         userId: true,
@@ -212,139 +650,44 @@ async function collectRows() {
         startedAt: true,
       },
     }),
-  ]);
-
-  return {
-    InteractionLog: interactionLogs.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.clientEventAt ?? row.createdAt,
-      eventType: row.eventType,
-      eventData: row.eventData,
-      sourceLabel: compactSourceLabel(
-        readRecord(row.eventData).source,
-        readRecord(row.eventData).sourceType,
-        readRecord(row.eventData).sourceSystem,
-      ),
-    })),
-    StudentStepResponse: studentStepResponses.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.submittedAt,
-      eventData: {
-        ...readRecord(row.responseData),
-        sessionId: row.sessionId,
-        lessonKey: row.lessonKey,
-        stepId: row.stepId,
-        attemptKey: row.attemptKey,
-        sourceLogId: row.sourceLogId,
-        clientEventId: row.clientEventId,
-      },
-    })),
-    SimulationLog: simulationLogs.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.createdAt,
-      eventData: {
-        ...readRecord(row.inputParams),
-        ...readRecord(row.metrics),
-        missionId: row.missionId,
-        sessionId: row.sessionId,
-        score: row.score,
-        durationSeconds: row.duration,
-      },
-      sourceLabel: compactSourceLabel(
-        readRecord(row.inputParams).source,
-        readRecord(row.metrics).source,
-      ),
-    })),
-    UserAnswer: userAnswers.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.createdAt,
-      eventData: {
-        questionId: row.questionId,
-        isCorrect: row.isCorrect,
-        score: row.isCorrect ? 100 : 0,
-        timeSpent: row.timeSpent,
-        answerGiven: row.answerGiven,
-      },
-      sourceLabel: row.question.source,
-    })),
-    AbilityAssessment: abilityAssessments.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.assessedAt,
-      eventData: {
-        computationalTheta: row.computationalTheta,
-        crossDomainTheta: row.crossDomainTheta,
-        designTheta: row.designTheta,
-      },
-    })),
-    PromptAssessment: promptAssessments.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.createdAt,
-      eventData: {
-        ...readRecord(row.structuredData),
-        sessionId: row.sessionId,
-        overallScore: row.overallScore,
-        score: row.overallScore,
-      },
-      sourceLabel: compactSourceLabel(row.sessionId, readRecord(row.structuredData).source),
-    })),
-    DesignSession: designSessions.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.completedAt ?? row.startedAt,
-      eventData: {
-        taskType: row.taskType,
-        designActions: row.designActions,
-        finalResult: row.finalResult,
-        consistencyScore: row.consistencyScore,
-        score: row.consistencyScore,
-      },
-      sourceLabel: row.taskType,
-    })),
-    ArenaSubmission: arenaSubmissions.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      userId: row.userId,
-      occurredAt: row.submittedAt,
-      eventData: {
-        taskId: row.taskId,
-        classId: row.classId,
-        seasonId: row.seasonId,
-        publicationId: row.publicationId,
-        method: row.method,
-        score: row.score,
-        valid: row.valid,
-      },
-      sourceLabel: compactSourceLabel(row.publicationId ? 'classroom-publication' : null, row.classId, row.seasonId, row.taskId),
-    })),
-    ArenaEvaluationRun: arenaEvaluationRuns.map((row): EvidenceCoverageRow => ({
-      id: row.id,
-      occurredAt: row.completedAt,
-      eventData: row.metadata,
-      sourceLabel: compactSourceLabel(readRecord(row.metadata).source, row.taskId),
-    })),
-    LearningFact: learningFacts.map((row): EvidenceCoverageRow => ({
+    (row): EvidenceCoverageRow => ({
       id: row.id,
       userId: row.userId,
       occurredAt: row.startedAt,
       eventData: row.contextJson,
       sourceLabel: compactSourceLabel(row.factType, row.sourceEventId ?? undefined),
-    })),
-  };
+    }),
+    batchSize,
+  );
+}
+
+async function buildPlanFromSourceBatches(
+  existingSourceEventIds: Set<string>,
+  batchSize: number,
+) {
+  const state = createAggregatePlanState();
+
+  for (const sourceId of SOURCE_PROCESSING_ORDER) {
+    for await (const rows of readSourceRowBatches(sourceId, batchSize)) {
+      mergeBatchPlan(
+        state,
+        buildHistoricalEvidenceMaterializationPlan({
+          generatedAt: state.generatedAt,
+          existingSourceEventIds,
+          rowsBySource: { [sourceId]: rows },
+        }),
+      );
+    }
+  }
+
+  return finalizeAggregatePlan(state);
 }
 
 async function main() {
   const isApply = hasFlag('--apply');
-  const rowsBySource = await collectRows();
+  const batchSize = readBatchSize();
   const existingSourceEventIds = await collectExistingSourceEventIds();
-  const plan = buildHistoricalEvidenceMaterializationPlan({
-    rowsBySource,
-    existingSourceEventIds,
-  });
+  const plan = await buildPlanFromSourceBatches(existingSourceEventIds, batchSize);
   const applyResult = isApply
     ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan)
     : null;

@@ -141,6 +141,72 @@ describe('historical evidence materialization', () => {
     });
   });
 
+  it('deduplicates classroom submissions by their canonical source interaction log', () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        InteractionLog: [
+          {
+            id: 'log-submit',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:00:00.000Z',
+            eventType: 'submit',
+            eventData: {
+              eventType: 'lesson_submit',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              score: 75,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+        StudentStepResponse: [
+          {
+            id: 'response-1',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:00:01.000Z',
+            eventData: {
+              sessionId: 'session-1',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              sourceLogId: 'log-submit',
+              score: 75,
+              source: 'real-classroom',
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+
+    expect(plan.totals).toMatchObject({
+      totalRows: 2,
+      candidateRows: 1,
+      newFactRows: 1,
+      excludedRows: 1,
+      affectedUsers: 1,
+    });
+    expect(plan.candidates[0]).toMatchObject({
+      sourceId: 'StudentStepResponse',
+      sourceRecordId: 'response-1',
+      stableSourceIdentity: 'historical:InteractionLog:log-submit:lesson_submit',
+      evidenceSubtype: 'student_step_response',
+      fact: {
+        sourceEventId: 'historical:InteractionLog:log-submit:lesson_submit',
+        sourceLogId: 'log-submit',
+      },
+    });
+    expect(plan.skipped).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourceId: 'InteractionLog',
+        sourceRecordId: 'log-submit',
+        reason: 'duplicate_canonical_source',
+      }),
+    ]));
+  });
+
   it('applies only new facts and reports already materialized stable identities', async () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',
