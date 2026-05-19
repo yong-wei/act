@@ -92,6 +92,9 @@ OPENSPEC_BUDDY_PROJECT_NUMBER=<number>
 OPENSPEC_BUDDY_PROJECT_TITLE=<title>
 ```
 
+Project-local defaults should live in `.env.openspec-buddy`. Non-empty process
+environment values override that file for one-off repairs.
+
 ## Date Fields
 
 The default Project has `Start` and `End` date fields.

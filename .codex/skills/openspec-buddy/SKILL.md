@@ -13,14 +13,17 @@ Use this skill only when the user explicitly asks for `openspec-buddy propose`, 
 
 ## Required Configuration
 
-Before running Buddy commands in a repository, verify project-local environment
-variables:
+Before running Buddy commands in a repository, verify project-local
+configuration:
 
 ```bash
 .codex/skills/openspec-buddy/scripts/check-config.sh
 ```
 
-If a project stores these values in an env file, source that file first.
+The helper scripts automatically read `.env.openspec-buddy` from the repository
+root before checking the process environment. Set `OPENSPEC_BUDDY_ENV_FILE` to
+use a different dotenv-style file. Non-empty process environment values override
+file values.
 
 Required variables are:
 
@@ -30,8 +33,8 @@ Required variables are:
 - `OPENSPEC_BUDDY_PROJECT_NUMBER`
 - `OPENSPEC_BUDDY_PROJECT_TITLE`
 
-If any required variable is missing, stop and ask the user for the value. Do
-not fall back to another project's branch or GitHub Project.
+If any required variable is missing after file loading, stop and ask the user
+for the value. Do not fall back to another project's branch or GitHub Project.
 
 ## Core Rule
 

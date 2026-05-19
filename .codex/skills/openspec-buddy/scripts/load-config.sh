@@ -5,6 +5,84 @@
 
 openspec_buddy_missing_config=()
 
+openspec_buddy_trim() {
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+openspec_buddy_repo_root() {
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  if git -C "$script_dir" rev-parse --show-toplevel >/dev/null 2>&1; then
+    git -C "$script_dir" rev-parse --show-toplevel
+    return 0
+  fi
+
+  cd "$script_dir/../../../.." && pwd
+}
+
+openspec_buddy_decode_env_value() {
+  local value
+  value="$(openspec_buddy_trim "$1")"
+
+  if [[ "$value" == \"*\" && "$value" == *\" && "${#value}" -ge 2 ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ "$value" == \'*\' && "$value" == *\' && "${#value}" -ge 2 ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+
+  printf '%s' "$value"
+}
+
+openspec_buddy_load_env_file() {
+  local env_file="$1"
+  [[ -f "$env_file" ]] || return 0
+
+  local line trimmed name value line_number
+  line_number=0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line_number=$((line_number + 1))
+    line="${line%$'\r'}"
+    trimmed="$(openspec_buddy_trim "$line")"
+
+    if [[ -z "$trimmed" || "$trimmed" == \#* ]]; then
+      continue
+    fi
+
+    if [[ "$trimmed" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+      name="${BASH_REMATCH[2]}"
+      value="$(openspec_buddy_decode_env_value "${BASH_REMATCH[3]}")"
+    else
+      printf 'Invalid OpenSpec Buddy env file line: %s:%s\n' "$env_file" "$line_number" >&2
+      exit 2
+    fi
+
+    if [[ "$name" != OPENSPEC_BUDDY_* ]]; then
+      continue
+    fi
+
+    if [[ -z "${!name:-}" ]]; then
+      export "$name=$value"
+    fi
+  done <"$env_file"
+}
+
+openspec_buddy_load_project_env() {
+  local env_file="${OPENSPEC_BUDDY_ENV_FILE:-}"
+
+  if [[ -z "$env_file" ]]; then
+    env_file="$(openspec_buddy_repo_root)/.env.openspec-buddy"
+  fi
+
+  openspec_buddy_load_env_file "$env_file"
+}
+
+openspec_buddy_load_project_env
+
 openspec_buddy_require_var() {
   local name="$1"
   local value="${!name:-}"
@@ -24,7 +102,7 @@ openspec_buddy_print_missing_and_exit() {
       echo "- $name"
     done
     echo
-    echo "Provide these environment variables for this project, then rerun."
+    echo "Provide these variables in .env.openspec-buddy or the process environment, then rerun."
   } >&2
   exit 2
 }

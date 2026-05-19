@@ -24,13 +24,15 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 
 ## Required Configuration
 
-Before an auto run, verify the core and auto-specific environment variables:
+Before an auto run, verify the core and auto-specific configuration:
 
 ```bash
 .codex/skills/openspec-buddy/scripts/check-config.sh auto
 ```
 
-Auto mode additionally requires `OPENSPEC_BUDDY_PR_REVIEW_REQUEST`.
+The check reads `.env.openspec-buddy` automatically through OpenSpec Buddy's
+shared loader. Auto mode additionally requires
+`OPENSPEC_BUDDY_PR_REVIEW_REQUEST`.
 
 ## One-Change Run
 

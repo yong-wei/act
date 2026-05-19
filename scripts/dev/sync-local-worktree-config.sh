@@ -32,6 +32,7 @@ Options:
 
 Copied by default:
   .env
+  .env.openspec-buddy
   .envrc
   AGENTS.md
   GEMINI.md
@@ -123,6 +124,7 @@ require_command git
 
 FILES=(
   ".env"
+  ".env.openspec-buddy"
   ".envrc"
   "AGENTS.md"
   "GEMINI.md"

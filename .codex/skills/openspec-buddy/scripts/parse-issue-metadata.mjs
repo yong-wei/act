@@ -1,9 +1,47 @@
 #!/usr/bin/env node
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const source = process.argv[2] || "-";
 const body = source === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(source, "utf8");
 const listKeys = new Set(["depends_on", "blocked_by", "blocking"]);
+
+function decodeEnvValue(value) {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function loadOpenSpecBuddyEnv() {
+  const defaultEnvFile = fileURLToPath(new URL("../../../../.env.openspec-buddy", import.meta.url));
+  const envFile = process.env.OPENSPEC_BUDDY_ENV_FILE || defaultEnvFile;
+
+  if (!fs.existsSync(envFile)) return;
+
+  const lines = fs.readFileSync(envFile, "utf8").split(/\r?\n/);
+  lines.forEach((rawLine, index) => {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) return;
+
+    const match = line.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) {
+      throw new Error(`Invalid OpenSpec Buddy env file line: ${envFile}:${index + 1}`);
+    }
+
+    const [, name, rawValue] = match;
+    if (!name.startsWith("OPENSPEC_BUDDY_")) return;
+    if (!process.env[name]) {
+      process.env[name] = decodeEnvValue(rawValue);
+    }
+  });
+}
+
+loadOpenSpecBuddyEnv();
 
 function parseScalar(value) {
   const trimmed = value.trim();
