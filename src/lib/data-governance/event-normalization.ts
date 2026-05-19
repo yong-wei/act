@@ -152,6 +152,11 @@ export function deriveFactOutcome(
 export function deriveFactTimeSpent(
   payload: Record<string, unknown> = {},
 ): number | undefined {
+  const durationSeconds = getNumericPayloadValue(payload, ['durationSeconds']);
+  if (typeof durationSeconds === 'number') {
+    return Math.round(durationSeconds);
+  }
+
   const value = getNumericPayloadValue(payload, [
     'timeSpent',
     'duration',

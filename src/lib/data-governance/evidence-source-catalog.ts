@@ -61,6 +61,15 @@ export interface EvidenceCoverageRow {
   eventType?: string | null;
   eventData?: unknown;
   sourceLabel?: string | null;
+  resourceId?: string | null;
+  resourceKey?: string | null;
+  sessionId?: string | null;
+  lessonKey?: string | null;
+  stepId?: string | null;
+  attemptKey?: string | null;
+  clientEventId?: string | null;
+  learningContext?: string | null;
+  invalidContextReason?: string | null;
 }
 
 export interface InteractionLogEventTypeResolution {

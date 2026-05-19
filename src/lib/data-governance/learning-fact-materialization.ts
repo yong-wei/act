@@ -224,7 +224,7 @@ export function resolveLearningFactActionType(event: LearningEvent): string {
   return resolveCanonicalEventType(event.actionType, payload);
 }
 
-function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
+export function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
   if (payload.skipLearningFact === true) {
     return false;
   }
