@@ -79,6 +79,24 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('keeps second-based duration payloads as seconds in canonical facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'simulation-duration-seconds-001',
+      actionType: 'simulation_finish',
+      payload: {
+        eventType: 'simulation_finish',
+        moduleId: 'module-3',
+        durationSeconds: 140,
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'simulation-duration-seconds-001',
+      factType: 'simulation',
+      timeSpent: 140,
+    });
+  });
+
   it('does not materialize raw parameter ticks or sync errors', () => {
     const rawTick = eventToLearningFactInput(createEvent({
       actionType: 'param_change',

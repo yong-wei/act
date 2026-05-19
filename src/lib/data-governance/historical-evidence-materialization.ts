@@ -9,14 +9,11 @@ import {
   type EvidenceSourceId,
   type EvidenceValueLevel,
 } from './evidence-source-catalog';
+import type { LearningEvent } from './event-protocol';
 import {
-  deriveFactOutcome,
-  deriveFactScore,
-  deriveFactTimeSpent,
-  mapActionTypeToFactType,
-  resolveCompetencyContribution,
-} from './event-normalization';
-import { shouldMaterializeLearningFact } from './learning-fact-materialization';
+  eventToLearningFactInput,
+  shouldMaterializeLearningFact,
+} from './learning-fact-materialization';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -147,10 +144,6 @@ function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
-function readNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
-
 function compactJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
   return Object.fromEntries(
     Object.entries(value).filter(([, entry]) => entry !== undefined),
@@ -235,12 +228,6 @@ function buildStableSourceIdentity(
   return `historical:${sourceId}:${row.id}:${evidenceSubtype}`;
 }
 
-function resolveTimeSpent(payload: Record<string, unknown>) {
-  const durationSeconds = readNumber(payload.durationSeconds);
-  if (durationSeconds !== undefined) return Math.round(durationSeconds);
-  return deriveFactTimeSpent(payload);
-}
-
 function buildFactInput(
   row: EvidenceCoverageRow,
   sourceId: EvidenceSourceId,
@@ -257,9 +244,35 @@ function buildFactInput(
   const userId = readString(row.userId);
   if (!userId) return null;
 
-  const payload = readRecord(row.eventData);
-  const score = deriveFactScore(payload);
+  const rawPayload = readRecord(row.eventData);
+  const sourceLogId = sourceId === 'InteractionLog'
+    ? row.id
+    : readString(rawPayload.sourceLogId);
+  const payload = compactJsonObject({
+    ...rawPayload,
+    ...(sourceLogId ? { sourceLogId } : {}),
+  });
+  const event: LearningEvent = {
+    eventId: stableSourceIdentity,
+    occurredAt: originalTimestamp,
+    userId,
+    role: 'student',
+    courseId: readString(payload.courseId),
+    lessonId: readString(payload.lessonId) ?? readString(payload.lessonKey),
+    sessionId: readString(payload.sessionId),
+    pagePath: readString(payload.pagePath) ?? '/historical-evidence-materialization',
+    pageType: sourceId === 'SimulationLog' ? 'simulation' : 'classroom',
+    moduleId: readString(payload.moduleId) ?? readString(payload.taskId) ?? readString(payload.stepId),
+    actionType,
+    payload,
+    source: 'system',
+    priority: 'core',
+  };
+  const fact = eventToLearningFactInput(event);
+  if (!fact) return null;
+
   const contextJson = compactJsonObject({
+    ...readRecord(fact.contextJson),
     historicalMaterialization: compactJsonObject({
       sourceId,
       sourceRecordId: row.id,
@@ -275,20 +288,7 @@ function buildFactInput(
   });
 
   return {
-    userId,
-    factType: mapActionTypeToFactType(actionType),
-    moduleId: readString(payload.moduleId) ?? readString(payload.taskId) ?? readString(payload.stepId),
-    sessionId: readString(payload.sessionId),
-    startedAt: new Date(originalTimestamp),
-    finishedAt: new Date(originalTimestamp),
-    outcome: deriveFactOutcome(actionType, payload),
-    score,
-    timeSpent: resolveTimeSpent(payload),
-    competencyContribution: resolveCompetencyContribution(actionType, payload) as Prisma.InputJsonValue,
-    sourceEventId: stableSourceIdentity,
-    sourceLogId: sourceId === 'InteractionLog' ? row.id : readString(payload.sourceLogId),
-    courseId: readString(payload.courseId),
-    lessonId: readString(payload.lessonId) ?? readString(payload.lessonKey),
+    ...fact,
     contextJson,
   };
 }

@@ -322,6 +322,66 @@ describe('historical evidence materialization', () => {
     ]));
   });
 
+  it('uses canonical online scoring and context for historical lesson submissions', () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        StudentStepResponse: [
+          {
+            id: 'response-scored',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T11:10:01.000Z',
+            eventData: {
+              eventType: 'lesson_submit',
+              sessionId: 'session-1',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              sourceLogId: 'log-scored',
+              source: 'real-classroom',
+              questionSummaries: [
+                {
+                  questionId: 'model-order',
+                  studentAnswer: 'A',
+                  referenceAnswer: 'A',
+                },
+                {
+                  questionId: 'disturbance-boundary',
+                  studentAnswer: 'B',
+                  referenceAnswer: 'A',
+                },
+              ],
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+
+    expect(plan.candidates[0].fact).toMatchObject({
+      sourceEventId: 'historical:InteractionLog:log-scored:lesson_submit',
+      sourceLogId: 'log-scored',
+      score: 50,
+      outcome: 'partial',
+      contextJson: {
+        interactiveQuiz: {
+          scoring: {
+            supported: true,
+            correctCount: 1,
+            totalCount: 2,
+            score: 50,
+            basis: 'questionSummaries',
+          },
+        },
+        historicalMaterialization: {
+          sourceId: 'StudentStepResponse',
+          sourceRecordId: 'response-scored',
+          stableSourceIdentity: 'historical:InteractionLog:log-scored:lesson_submit',
+        },
+      },
+    });
+  });
+
   it('applies only new facts and reports already materialized stable identities', async () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',
