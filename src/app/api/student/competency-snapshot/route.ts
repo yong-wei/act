@@ -14,6 +14,7 @@ import {
   dedupeRecommendations,
   dedupeRiskFlags,
 } from '@/lib/data-governance/profile-center';
+import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 export const dynamic = 'force-dynamic';
@@ -55,6 +56,7 @@ export interface StudentSnapshotResponse {
     description: string;
     actionUrl?: string;
     priority: number;
+    rationale: RecommendationRationale;
   }>;
 }
 
@@ -131,7 +133,8 @@ export async function GET(_request: NextRequest) {
     const recommendations = generateSnapshotRecommendations(
       currentVector,
       riskFlags,
-      evidenceSummary
+      evidenceSummary,
+      currentSnapshot.factCount
     );
 
     const response: StudentSnapshotResponse = {
@@ -166,7 +169,8 @@ export async function GET(_request: NextRequest) {
 function generateSnapshotRecommendations(
   vector: CompetencyVector,
   riskFlags: RiskFlag[],
-  _evidenceSummary: Record<string, EvidenceSummaryItem[]>
+  _evidenceSummary: Record<string, EvidenceSummaryItem[]>,
+  factCount: number
 ): StudentSnapshotResponse['recommendations'] {
   const recommendations: StudentSnapshotResponse['recommendations'] = [];
 
@@ -188,6 +192,7 @@ function generateSnapshotRecommendations(
           description: '你近期频繁使用AI助手但问题解决率较低。建议先独立思考，再针对性地提问。',
           actionUrl: '/ai/copilot',
           priority: 90,
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount),
         });
         break;
       case 'constraint':
@@ -197,6 +202,7 @@ function generateSnapshotRecommendations(
           description: '仿真中多次忽视工程约束。建议在调整参数前明确安全边界。',
           actionUrl: '/simulations/destroyer',
           priority: 85,
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount),
         });
         break;
       case 'participation':
@@ -206,6 +212,7 @@ function generateSnapshotRecommendations(
           description: '近一周学习活跃度较低，建议每天保持至少30分钟的学习时间。',
           actionUrl: '/missions',
           priority: 95,
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount),
         });
         break;
       case 'cross_domain':
@@ -215,6 +222,7 @@ function generateSnapshotRecommendations(
           description: '单点知识掌握较好，但跨域迁移能力需要提升。',
           actionUrl: '/interactive-learning',
           priority: 80,
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount),
         });
         break;
     }
@@ -237,6 +245,7 @@ function generateSnapshotRecommendations(
       description: `这是你的薄弱领域（${Math.round(weakestDimension.score)}分），建议本周重点练习相关任务。`,
       actionUrl: '/missions',
       priority: 70,
+      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount),
     });
   }
 
@@ -247,6 +256,7 @@ function generateSnapshotRecommendations(
       description: '多维度能力有待提升，建议系统复习基础知识。',
       actionUrl: '/knowledge',
       priority: 60,
+      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount),
     });
   }
 
@@ -259,6 +269,7 @@ function generateSnapshotRecommendations(
       description: `你在${strongDimensions.map((d) => d.dimension).join('、')}方面表现优秀，可以尝试专家级任务。`,
       actionUrl: '/missions',
       priority: 50,
+      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount),
     });
   }
 
@@ -266,4 +277,47 @@ function generateSnapshotRecommendations(
   return dedupeRecommendations(
     recommendations.sort((a, b) => b.priority - a.priority)
   );
+}
+
+function buildSnapshotRecommendationRationale(
+  reasonCode: string,
+  evidenceRole: RecommendationRationale['evidenceRole'],
+  vector: CompetencyVector,
+  factCount: number
+): RecommendationRationale {
+  const confidenceValues = Object.values(vector)
+    .map((dimension) => dimension.confidence)
+    .filter((value) => Number.isFinite(value));
+  const confidenceScore = confidenceValues.length
+    ? roundTo(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length, 2)
+    : 0;
+
+  return {
+    reasonCode,
+    evidenceBasis: 'approved-snapshot',
+    evidenceRole,
+    contextOnly: evidenceRole === 'context',
+    evidenceWindow: {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    },
+    evidenceCount: factCount,
+    sourceCoverage: {
+      LearningFact: factCount > 0 ? 'available' : 'missing',
+      StudentCompetencySnapshot: 'available',
+      StudentProfileSummary: 'missing',
+    },
+    confidence: {
+      state: factCount > 0 ? 'ready' : 'missing',
+      level: confidenceScore >= 0.75 ? 'high' : confidenceScore >= 0.45 ? 'medium' : 'low',
+      score: confidenceScore,
+      markers: factCount > 0 ? [] : ['missing-source'],
+    },
+  };
+}
+
+function roundTo(value: number, digits: number) {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }

@@ -5,7 +5,10 @@ import {
   type CompetencyDimension,
   type CompetencyVector,
 } from '@/lib/data-governance/competency-model';
-import type { Recommendation } from '@/lib/data-governance/recommendation-engine';
+import type {
+  Recommendation,
+  RecommendationRationale,
+} from '@/lib/data-governance/recommendation-engine';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 export type ProfileActivityCategory = 'classroom' | 'interactive' | 'simulation' | 'assessment';
@@ -47,6 +50,7 @@ export interface PersonalizedResourceCard {
   priority: number;
   estimatedTime?: string;
   tags: string[];
+  rationale?: RecommendationRationale;
 }
 
 const ACTIVITY_CATEGORY_LABELS: Record<ProfileActivityCategory, string> = {
@@ -179,6 +183,7 @@ export function mapRecommendationsToResourceCards(
     priority: recommendation.priority,
     estimatedTime: recommendation.estimatedTime,
     tags: recommendation.tags,
+    rationale: recommendation.rationale,
   }));
 }
 

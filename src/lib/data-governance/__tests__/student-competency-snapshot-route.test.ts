@@ -101,5 +101,18 @@ describe('GET /api/student/competency-snapshot', () => {
       '提升自主学习能力',
       '巩固基础能力',
     ]);
+    expect(body.recommendations[0].rationale).toMatchObject({
+      reasonCode: 'snapshot-risk-participation',
+      evidenceBasis: 'approved-snapshot',
+      evidenceRole: 'risk',
+      evidenceCount: 14,
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+      },
+      confidence: {
+        state: 'ready',
+      },
+    });
   });
 });
