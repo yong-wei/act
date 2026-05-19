@@ -421,20 +421,23 @@ async function* readSourceRowBatches(
           responseData: true,
         },
       }),
-      (row): EvidenceCoverageRow => ({
-        id: row.id,
-        userId: row.userId,
-        occurredAt: row.submittedAt,
-        eventData: {
-          ...readRecord(row.responseData),
-          sessionId: row.sessionId,
-          lessonKey: row.lessonKey,
-          stepId: row.stepId,
-          attemptKey: row.attemptKey,
-          sourceLogId: row.sourceLogId,
-          clientEventId: row.clientEventId,
-        },
-      }),
+      (row): EvidenceCoverageRow => {
+        const responseData = readRecord(row.responseData);
+        return {
+          id: row.id,
+          userId: row.userId,
+          occurredAt: row.submittedAt,
+          eventData: {
+            ...responseData,
+            sessionId: row.sessionId,
+            lessonKey: row.lessonKey,
+            stepId: row.stepId,
+            attemptKey: row.attemptKey ?? readString(responseData.attemptKey),
+            sourceLogId: row.sourceLogId ?? readString(responseData.sourceLogId),
+            clientEventId: row.clientEventId ?? readString(responseData.clientEventId),
+          },
+        };
+      },
       batchSize,
     );
     return;
