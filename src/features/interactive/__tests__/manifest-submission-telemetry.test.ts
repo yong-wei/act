@@ -112,4 +112,50 @@ describe('buildManifestSubmissionTelemetry', () => {
       scoringSupported: true,
     });
   });
+
+  it('scores multi-select answers serialized with a single pipe', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-11',
+        submittedAt: 1778550643900,
+        answers: {
+          'multi-evidence': 'a|b',
+        },
+      },
+      {
+        id: 'step-11',
+        interactionSpec: {
+          interactionKind: 'quiz_group',
+          activityCards: [
+            {
+              id: 'multi-evidence',
+              title: '多选证据',
+              prompt: '哪些证据需要同时保留？',
+              responseKind: 'multi_select',
+              submitScope: 'per_card',
+              layoutSpan: 'half',
+              options: [
+                { value: 'a', label: '航迹偏离。' },
+                { value: 'b', label: '舵角边界。' },
+                { value: 'c', label: '文件名。' },
+              ],
+              referenceAnswer: '选 A、B。航迹与执行边界都需要保留。',
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      questionSummaries: [
+        {
+          questionId: 'multi-evidence',
+          studentAnswer: 'a|b',
+          referenceValue: ['a', 'b'],
+          answered: true,
+          isCorrect: true,
+        },
+      ],
+    });
+  });
 });

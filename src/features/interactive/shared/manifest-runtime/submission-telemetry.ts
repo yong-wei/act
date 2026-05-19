@@ -21,7 +21,7 @@ function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean 
 
 function splitAnswerTokens(value: string): string[] {
   return value
-    .split(/\s*(?:\|\||[,，、;；/])\s*/)
+    .split(/\s*(?:\|+|[,，、;；/])\s*/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
