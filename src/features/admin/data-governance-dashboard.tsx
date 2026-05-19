@@ -251,6 +251,64 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           </div>
         </section>
 
+        {overview.sourceCatalogPanel && (
+          <section className="admin-console-surface space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="admin-console-icon-badge">
+                <Database className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="admin-console-title text-xl font-semibold">{overview.sourceCatalogPanel.title}</h2>
+                <p className="admin-console-muted text-sm">
+                  dry-run 命令：<code>{overview.sourceCatalogPanel.coverageCommand}</code>
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">目录源</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.sourceCatalogPanel.totalSources}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">可贡献源</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.sourceCatalogPanel.eligibleSources}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">已就绪源</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.sourceCatalogPanel.readySources}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">暂不支持源</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.sourceCatalogPanel.unsupportedSources}</div>
+              </div>
+            </div>
+            <div className="admin-console-table-shell p-0">
+              <table className="admin-console-table">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3">来源</th>
+                    <th className="px-4 py-3">范围</th>
+                    <th className="px-4 py-3">价值</th>
+                    <th className="px-4 py-3">资格</th>
+                    <th className="px-4 py-3">物化</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overview.sourceCatalogPanel.sources.map((source) => (
+                    <tr key={source.id}>
+                      <td className="px-4 py-3 admin-console-title font-medium">{source.id}</td>
+                      <td className="px-4 py-3">{source.learningScope}</td>
+                      <td className="px-4 py-3">{source.valueLevel}</td>
+                      <td className="px-4 py-3">{source.eligibility}</td>
+                      <td className="px-4 py-3">{source.materializationReadiness}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">

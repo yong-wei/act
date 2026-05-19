@@ -24,6 +24,7 @@ export default defineConfig({
       'src/features/control-workbench/__tests__/**/*.test.ts',
       'src/app/api/classes/**/__tests__/**/*.test.ts',
       'src/app/api/arena/**/__tests__/**/*.test.ts',
+      'src/app/api/admin/**/__tests__/**/*.test.ts',
       'src/app/api/interactive/**/__tests__/**/*.test.ts',
       'src/app/api/teacher/**/__tests__/**/*.test.ts',
       'src/app/api/teacher/arena/**/__tests__/**/*.test.ts',

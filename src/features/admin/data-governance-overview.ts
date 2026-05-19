@@ -28,6 +28,17 @@ export type GovernanceStatusPayload = {
     label: string;
     count: number;
   }>;
+  sourceCatalog?: {
+    totalSources: number;
+    coverageCommand: string;
+    sources: Array<{
+      id: string;
+      learningScope: string;
+      valueLevel: string;
+      eligibility: string;
+      materializationReadiness: string;
+    }>;
+  };
   recentRiskFlags: Array<{
     id: string;
     userId: string;
@@ -152,6 +163,17 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
       title: '事实类型分布',
       items: payload.factTypeDistribution,
     },
+    sourceCatalogPanel: payload.sourceCatalog
+      ? {
+          title: '证据源目录',
+          totalSources: payload.sourceCatalog.totalSources,
+          coverageCommand: payload.sourceCatalog.coverageCommand,
+          eligibleSources: payload.sourceCatalog.sources.filter((source) => source.eligibility === 'eligible').length,
+          unsupportedSources: payload.sourceCatalog.sources.filter((source) => source.eligibility === 'unsupported').length,
+          readySources: payload.sourceCatalog.sources.filter((source) => source.materializationReadiness === 'ready').length,
+          sources: payload.sourceCatalog.sources,
+        }
+      : null,
     riskPanel: {
       title: '最新风险清单',
       rows: riskRows,

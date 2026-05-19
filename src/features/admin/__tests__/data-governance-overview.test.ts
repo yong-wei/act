@@ -27,6 +27,26 @@ describe('buildGovernanceOverview', () => {
         { label: '习题作答', count: 220 },
         { label: '仿真实验', count: 180 },
       ],
+      sourceCatalog: {
+        totalSources: 2,
+        coverageCommand: 'npm run db:evidence-source-coverage -- --text',
+        sources: [
+          {
+            id: 'InteractionLog',
+            learningScope: 'mixed',
+            valueLevel: 'medium',
+            eligibility: 'eligible',
+            materializationReadiness: 'partial',
+          },
+          {
+            id: 'ArenaEvaluationRun',
+            learningScope: 'historical',
+            valueLevel: 'medium',
+            eligibility: 'unsupported',
+            materializationReadiness: 'future',
+          },
+        ],
+      },
       recentRiskFlags: [
         {
           id: 'risk-1',
@@ -65,6 +85,13 @@ describe('buildGovernanceOverview', () => {
     );
     expect(overview.riskPanel.title).toBe('最新风险清单');
     expect(overview.factPanel.title).toBe('事实类型分布');
+    expect(overview.sourceCatalogPanel).toMatchObject({
+      title: '证据源目录',
+      totalSources: 2,
+      eligibleSources: 1,
+      unsupportedSources: 1,
+      coverageCommand: 'npm run db:evidence-source-coverage -- --text',
+    });
     expect(overview.snapshotPanel.title).toBe('最新快照明细');
     expect(overview.riskPanel.rows[0]?.userName).toBe('张三');
   });
