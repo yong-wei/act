@@ -18,3 +18,6 @@ export * from './risk-detector';
 
 // Worker client
 export * from './worker-client';
+
+// Student evidence feature cache
+export * from './student-evidence-feature-cache';
