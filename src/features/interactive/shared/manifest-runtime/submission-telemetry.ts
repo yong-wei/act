@@ -90,19 +90,20 @@ export function buildManifestSubmissionTelemetry(
     .filter(isObjectiveCard)
     .map((card) => {
       const studentAnswer = response.answers[card.id];
-      if (!studentAnswer?.trim()) return null;
+      const answered = Boolean(studentAnswer?.trim());
       const referenceValue = resolveReferenceValue(card);
       return {
         questionId: card.id,
         title: card.title,
         responseKind: card.responseKind,
-        studentAnswer,
+        studentAnswer: answered ? studentAnswer : null,
         referenceAnswer: card.referenceAnswer,
         referenceValue,
-        isCorrect: referenceValue ? answersMatch(studentAnswer, referenceValue) : undefined,
+        answered,
+        isCorrect: referenceValue ? (answered ? answersMatch(studentAnswer ?? '', referenceValue) : false) : undefined,
       };
     })
-    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+    .filter((item) => item.referenceValue !== undefined || item.answered);
 
   return {
     stepId: response.stepId,

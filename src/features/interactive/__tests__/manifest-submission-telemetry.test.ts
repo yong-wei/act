@@ -46,6 +46,19 @@ describe('buildManifestSubmissionTelemetry', () => {
               referenceAnswer: '选 A。扰动边界不能忽略。',
             },
             {
+              id: 'stability-margin',
+              title: '稳定裕度',
+              prompt: '稳定裕度是否可以省略？',
+              responseKind: 'single_choice',
+              submitScope: 'per_card',
+              layoutSpan: 'half',
+              options: [
+                { value: 'a', label: '不能省略。' },
+                { value: 'b', label: '可以省略。' },
+              ],
+              referenceAnswer: '选 A。稳定裕度必须纳入证据。',
+            },
+            {
               id: 'reflection',
               title: '边界反思',
               prompt: '写出一项边界证据。',
@@ -76,6 +89,7 @@ describe('buildManifestSubmissionTelemetry', () => {
           studentAnswer: 'a',
           referenceAnswer: '选 A。名义模型阶次应保留为二阶。',
           referenceValue: 'a',
+          answered: true,
           isCorrect: true,
         },
         {
@@ -83,6 +97,15 @@ describe('buildManifestSubmissionTelemetry', () => {
           studentAnswer: 'b',
           referenceAnswer: '选 A。扰动边界不能忽略。',
           referenceValue: 'a',
+          answered: true,
+          isCorrect: false,
+        },
+        {
+          questionId: 'stability-margin',
+          studentAnswer: null,
+          referenceAnswer: '选 A。稳定裕度必须纳入证据。',
+          referenceValue: 'a',
+          answered: false,
           isCorrect: false,
         },
       ],

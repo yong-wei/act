@@ -100,12 +100,18 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
       const selectedValue = readAnswerValue(record, ['studentAnswer', 'selectedValue', 'answer', 'value']);
       const referenceAnswer = readAnswerValue(record, ['referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
       const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
-      if (!cardId || selectedValue === undefined) return null;
+      if (!cardId) return null;
+      if (selectedValue === undefined && explicitCorrect === undefined && referenceAnswer === undefined) return null;
       return compactJsonObject({
         cardId,
-        selectedValue,
+        selectedValue: selectedValue ?? null,
         referenceAnswer,
-        isCorrect: explicitCorrect ?? (referenceAnswer !== undefined ? answersMatch(selectedValue, referenceAnswer) : undefined),
+        answered: selectedValue !== undefined,
+        isCorrect: explicitCorrect ?? (
+          referenceAnswer !== undefined
+            ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer)
+            : undefined
+        ),
       });
     })
     .filter((item): item is Prisma.InputJsonObject => Boolean(item));
@@ -116,12 +122,13 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
   if (scoreableCards.length === 0) return null;
   const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
   const totalCount = scoreableCards.length;
+  const answeredCount = cards.filter((card) => card.answered === true).length;
   const score = Math.round((correctCount / totalCount) * 1000) / 10;
 
   return {
     basis: 'questionSummaries',
     cards,
-    answeredCount: cards.length,
+    answeredCount,
     correctCount,
     totalCount,
     score,
