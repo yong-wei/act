@@ -11,6 +11,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
 import { summarizeLearningFactTypes } from '@/features/admin/states/system-usage-data';
+import { getEvidenceSourceCatalog } from '@/lib/data-governance/evidence-source-catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -194,6 +195,17 @@ export async function GET(request: NextRequest) {
         isResolved: risk.isResolved,
       })),
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
+      sourceCatalog: {
+        totalSources: getEvidenceSourceCatalog().length,
+        coverageCommand: 'npm run db:evidence-source-coverage -- --text',
+        sources: getEvidenceSourceCatalog().map((source) => ({
+          id: source.id,
+          learningScope: source.learningScope,
+          valueLevel: source.defaultValueLevel,
+          eligibility: source.defaultEligibility,
+          materializationReadiness: source.materializationReadiness,
+        })),
+      },
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
