@@ -7,8 +7,9 @@ import path from "node:path";
 const currentFile = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(currentFile), "../../../..");
 const selector = path.join(repoRoot, ".codex/skills/openspec-buddy/scripts/select-next-change.mjs");
+process.env.OPENSPEC_BUDDY_BASE_BRANCH = "develop";
 
-function issue({ number, changeId, series, labels = [], blockedBy = [], blocking = [], risk = "medium", baseBranch = "integration", bodyOverrides = "" }) {
+function issue({ number, changeId, series, labels = [], blockedBy = [], blocking = [], risk = "medium", baseBranch = "develop", bodyOverrides = "" }) {
   return {
     number,
     title: `OpenSpec: ${changeId}`,
@@ -26,7 +27,7 @@ required_branch:
 depends_on: []
 openspec_path: openspec/changes/${changeId}
 risk: ${risk}
-area: arena
+area: example-area
 ${bodyOverrides}---
 
 ## Goal
@@ -126,12 +127,12 @@ const baseInput = {
         number: 15,
         changeId: "wrong-base",
         series: "alpha",
-        baseBranch: "main",
+        baseBranch: "release",
       }),
     ],
   });
   assert.equal(result.selected, null);
-  assert.match(result.rejected[0].reason, /base_branch must be integration/);
+  assert.match(result.rejected[0].reason, /base_branch must be develop/);
 }
 
 console.log("select-next-change tests passed");

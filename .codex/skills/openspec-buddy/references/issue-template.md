@@ -6,10 +6,10 @@ Use this template when running `openspec-buddy propose`.
 ---
 change_id: example-change-id
 claim_branch: example-change-id
-series: arena-workbench
-coupling_group: workbench-context-chain
+series: example-series
+coupling_group: example-coupling-group
 execution_mode: isolated
-base_branch: integration
+base_branch: example-base-branch
 required_branch:
 depends_on: []
 parent_issue:
@@ -17,7 +17,7 @@ blocked_by: []
 blocking: []
 openspec_path: openspec/changes/example-change-id
 risk: medium
-area: arena
+area: example-area
 ---
 
 ## Goal

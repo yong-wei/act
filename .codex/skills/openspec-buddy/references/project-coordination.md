@@ -2,14 +2,22 @@
 
 `openspec-buddy propose` must add each newly created issue to the coordination Project.
 
-## Default Project
+## Project Configuration
 
-| Field | Value |
+OpenSpec Buddy does not have a built-in GitHub Project default. Configure the
+target project with environment variables before running any Project mutation:
+
+| Variable | Meaning |
 | --- | --- |
-| Owner | `yong-wei` |
-| Number | `1` |
-| Title | `ACT Openspec LTE` |
-| URL | `https://github.com/users/yong-wei/projects/1` |
+| `OPENSPEC_BUDDY_PROJECT_OWNER` | GitHub Project owner |
+| `OPENSPEC_BUDDY_PROJECT_NUMBER` | GitHub Project number |
+| `OPENSPEC_BUDDY_PROJECT_TITLE` | Human-readable Project title |
+| `OPENSPEC_BUDDY_PROJECT_STATUS_FIELD` | Status field name, default `Status` |
+| `OPENSPEC_BUDDY_PROJECT_STATUS_TODO` | Todo option name, default `Todo` |
+| `OPENSPEC_BUDDY_PROJECT_STATUS_IN_PROGRESS` | In-progress option name, default `In Progress` |
+| `OPENSPEC_BUDDY_PROJECT_STATUS_DONE` | Done option name, default `Done` |
+| `OPENSPEC_BUDDY_PROJECT_START_FIELD` | Start date field name, default `Start` |
+| `OPENSPEC_BUDDY_PROJECT_END_FIELD` | End date field name, default `End` |
 
 The Project is the human-visible coordination board. Labels and issue front matter remain the agent execution source of truth, but every issue status transition must also mirror to the Project `Status` field.
 
@@ -18,7 +26,7 @@ The Project is the human-visible coordination board. Labels and issue front matt
 Every Buddy implementation PR must be coordinated with the same Project and
 labels as its originating issue before the review wait starts.
 
-After creating a ready PR against `integration`, run:
+After creating a ready PR against `$OPENSPEC_BUDDY_BASE_BRANCH`, run:
 
 ```bash
 .codex/skills/openspec-buddy/scripts/configure-pr-metadata.sh <issue-number> <pr-number-or-url>
@@ -27,7 +35,7 @@ After creating a ready PR against `integration`, run:
 The helper must:
 
 - add `pr:openspec-buddy`
-- add `pr:base-<base-branch>`, normally `pr:base-integration`
+- add `pr:base-<base-branch>`
 - copy the issue's `area:*`, `series:*`, and `risk:*` labels to the PR
 - add the PR to the same Project as the issue
 - set the PR Project `Status` to `In Progress`
@@ -76,7 +84,7 @@ Project status mapping:
 
 ## Overrides
 
-Use these environment variables only when the user explicitly names another Project:
+Required Project variables:
 
 ```bash
 OPENSPEC_BUDDY_PROJECT_OWNER=<owner>

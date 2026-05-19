@@ -22,12 +22,22 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 - `references/review-waiting.md`: five-minute PR review wait loop
 - `references/failure-recovery.md`: stale claim, unsafe recovery, and stop conditions
 
+## Required Configuration
+
+Before an auto run, verify the core and auto-specific environment variables:
+
+```bash
+.codex/skills/openspec-buddy/scripts/check-config.sh auto
+```
+
+Auto mode additionally requires `OPENSPEC_BUDDY_PR_REVIEW_REQUEST`.
+
 ## One-Change Run
 
 1. Start from a clean worktree on the long-lived coordination branch.
-2. Fetch `origin/integration` and fast-forward local `integration`.
-3. List active OpenSpec changes from `origin/integration`.
-4. Read GitHub issues in Project `ACT Openspec LTE` through issue labels and front matter.
+2. Fetch `origin/$OPENSPEC_BUDDY_BASE_BRANCH` and fast-forward the local base branch.
+3. List active OpenSpec changes from `origin/$OPENSPEC_BUDDY_BASE_BRANCH`.
+4. Read GitHub issues in the configured Project through issue labels and front matter.
 5. Select one executable change using `references/selection-rules.md`.
    Relationship-aware selection must ignore series parent issues, skip issues with open `blockedBy`, prefer the current series when one is already in progress, and prefer issues that unblock downstream changes.
 6. Run `openspec-buddy apply` for the issue:
@@ -45,10 +55,10 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
    - `superpowers:requesting-code-review` before or after PR creation when applicable
    Before opening a PR, `openspec instructions apply --change <change_id> --json`
    must report `remaining: 0`; finish or explicitly reconcile incomplete tasks first.
-8. Commit, push, and open a ready PR against `integration` with `@codex审核，中文回复`.
+8. Commit, push, and open a ready PR against `$OPENSPEC_BUDDY_BASE_BRANCH` using `$OPENSPEC_BUDDY_PR_REVIEW_REQUEST` when the project requires a review prompt.
    The PR body must not use closing keywords for the Buddy issue.
 9. Configure PR metadata with `openspec-buddy/scripts/configure-pr-metadata.sh`:
-   - add PR-scoped labels such as `pr:openspec-buddy` and `pr:base-integration`
+   - add PR-scoped labels such as `pr:openspec-buddy` and `pr:base-<base-branch>`
    - copy the issue's `area:*`, `series:*`, and `risk:*` labels to the PR
    - add the PR to the same Project as the issue
    - set the PR Project `Status` to `In Progress`
@@ -59,8 +69,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     Do not use Codex automations, heartbeats, reminders, or background monitors for this wait.
 12. Check PR review, unresolved threads, requested changes, CI, mergeability, labels, Project membership, and origin issue traceability.
 13. If new actionable review exists, use `github:gh-address-comments` and `superpowers:receiving-code-review`, then push fixes. Before resolving any review thread, reply in that thread with the fix or non-actionable rationale and evidence; then resolve the thread and repeat from step 11.
-14. If no new review appears for three consecutive five-minute checks and checks are green, merge the PR without deleting the branch yet. If a Codex review explicitly says there are no significant issues or no major problems, and all merge gates pass, it may be merged without waiting for the remaining quiet checks.
-15. Fast-forward the claim branch to `origin/integration`.
+14. If no new review appears for the configured number of quiet checks and checks are green, merge the PR without deleting the branch yet. If the configured reviewer explicitly says there are no significant issues or no major problems, and all merge gates pass, it may be merged without waiting for the remaining quiet checks.
+15. Fast-forward the claim branch to `origin/$OPENSPEC_BUDDY_BASE_BRANCH`.
 16. Run `openspec-buddy achieve` or `openspec-buddy archive`.
     Recheck the OpenSpec task state before archiving; an issue must not reach
     `status:archived` while local `tasks.md` still contains incomplete items.
@@ -69,8 +79,8 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
     If the archived issue belongs to a series parent and all sibling changes are
     also archived, finalize the parent issue as `status:archived`, Project
     `Status: Done`, Project `End` set, and closed.
-17. Commit and push the archive update, merge it to `integration`, push `integration`, then delete the local and remote claim branch.
-18. Return to the coordination branch and fast-forward it to `integration`.
+17. Commit and push the archive update, merge it to `$OPENSPEC_BUDDY_BASE_BRANCH`, push the base branch, then delete the local and remote claim branch.
+18. Return to the coordination branch and fast-forward it to `$OPENSPEC_BUDDY_BASE_BRANCH`.
 19. Write an execution retrospective before final reporting.
 
 ## Goal Mode
@@ -78,7 +88,7 @@ Do not use for ordinary `openspec-propose`, manual `openspec-apply-change`, or i
 When the user asks to process all available changes, repeat one-change runs with these rules:
 
 - Claim only one issue per iteration.
-- After every merge/archive, fetch `origin/integration` and recalculate executable changes.
+- After every merge/archive, fetch `origin/$OPENSPEC_BUDDY_BASE_BRANCH` and recalculate executable changes.
 - If the previous iteration completed a series issue, prefer the same series until no issue in that series is executable.
 - Skip `status:blocked`, `status:claimed`, `status:in-progress`, `status:stale-claim`, `status:needs-human`, and `status:failed`.
 - Skip `type:series-parent` and any issue with open native `blockedBy` relationships.
@@ -102,8 +112,8 @@ If the limit is reached, set the issue to `status:needs-human`, comment with the
 Do not merge unless all are true:
 
 - PR is open and mergeable.
-- PR base is `integration`; if base is `main`, retarget it to `integration` before review/merge, and stop if it cannot be retargeted.
-- PR has `pr:openspec-buddy`, `pr:base-integration`, and the originating issue's applicable `area:*`, `series:*`, and `risk:*` labels.
+- PR base is `$OPENSPEC_BUDDY_BASE_BRANCH`; if base is `$OPENSPEC_BUDDY_RELEASE_BRANCH`, retarget it to the Buddy base branch before review/merge, and stop if it cannot be retargeted.
+- PR has `pr:openspec-buddy`, `pr:base-<base-branch>`, and the originating issue's applicable `area:*`, `series:*`, and `risk:*` labels.
 - PR is in the same Project as the originating issue, and its Project `Status` is `In Progress`.
 - PR body records the originating issue without a closing keyword.
 - CI/checks have completed successfully or the repository has no required checks.
@@ -115,10 +125,10 @@ Do not merge unless all are true:
 ## Learned Rules
 
 - Treat GitHub `reviewThreads` as the source of truth for actionable review state. `latestReviews` can lag behind the latest head commit or report an empty commit oid.
-- Keep the five-minute review wait separate from CI waiting. Use a foreground `rtk sleep 300` for review pauses; require three consecutive quiet review checks before merging unless Codex explicitly reports no significant issues. After review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
+- Keep the review wait separate from CI waiting. Use a foreground sleep for `$OPENSPEC_BUDDY_REVIEW_WAIT_SECONDS`; require `$OPENSPEC_BUDDY_REVIEW_QUIET_CHECKS` consecutive quiet review checks before merging unless the configured reviewer policy explicitly reports no significant issues. After review gates are clear, use foreground CI waiting such as `gh run watch --exit-status` when checks are still running.
 - Every review-thread resolve must be preceded by a reply in that same thread. The reply must state the fix commit or the reason the thread is non-actionable, plus the verification evidence. Do not silently resolve Codex review threads.
 - Do not merge while CI is `IN_PROGRESS`, even when every review thread is resolved and the PR is mergeable.
-- OpenSpec Buddy automation targets `integration`, not `main`. New changes use `base_branch: integration`, PRs use base `integration`, and archive commits land on `integration`. Merging `integration` to `main` is a manual release action outside Buddy Auto.
+- OpenSpec Buddy automation targets `$OPENSPEC_BUDDY_BASE_BRANCH`, not `$OPENSPEC_BUDDY_RELEASE_BRANCH`. New changes use the configured base branch, PRs use that base branch, and archive commits land on that base branch. Merging the Buddy base branch to the release branch is a manual release action outside Buddy Auto unless the project configures otherwise.
 - Buddy PRs must be configured with the `pr:*` namespace labels, inherited area/series/risk labels, the same Project as the issue, and a non-closing origin issue reference before review waiting begins. Do not use closing keywords to force a Development link, because Buddy issues close only during archive.
 - During archive, if a delta spec introduces a capability whose main spec does not exist, create the corresponding `openspec/specs/<capability>/spec.md`, validate that spec, then move the change to `openspec/changes/archive/`.
 - Treat OpenSpec tasks as part of the cross-system completion record, not as local notes. If code already satisfies a task but `tasks.md` is still unchecked, close the task in the implementation PR before review/merge/archive; otherwise GitHub issue state and local OpenSpec state drift permanently.

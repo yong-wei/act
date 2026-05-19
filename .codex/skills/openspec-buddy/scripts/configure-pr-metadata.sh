@@ -19,12 +19,14 @@ elif [[ -n "$mode" ]]; then
 fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
-project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
-project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
+project_owner="$OPENSPEC_BUDDY_PROJECT_OWNER"
+project_number="$OPENSPEC_BUDDY_PROJECT_NUMBER"
+project_title="$OPENSPEC_BUDDY_PROJECT_TITLE"
 
 issue_file="$tmp_dir/issue.json"
 pr_file="$tmp_dir/pr.json"

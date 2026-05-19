@@ -26,12 +26,12 @@ For the common case, use the wrapper:
 An issue is executable only when:
 
 ```text
-local active OpenSpec change exists on latest integration
+local active OpenSpec change exists on latest $OPENSPEC_BUDDY_BASE_BRANCH
 issue front matter parses successfully
 issue change_id equals the OpenSpec change name
 issue openspec_path exists
 claim_branch equals change_id
-base_branch equals integration
+base_branch equals $OPENSPEC_BUDDY_BASE_BRANCH
 issue has status:ready
 issue is not a type:series-parent tracking issue
 native blockedBy contains no open, unarchived issue

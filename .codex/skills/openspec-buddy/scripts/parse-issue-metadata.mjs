@@ -98,8 +98,10 @@ function validate(data) {
     errors.push("claim_branch must equal change_id.");
   }
 
-  const expectedBaseBranch = "integration";
-  if (data.base_branch !== expectedBaseBranch) {
+  const expectedBaseBranch = process.env.OPENSPEC_BUDDY_BASE_BRANCH;
+  if (!expectedBaseBranch) {
+    errors.push("Missing required environment variable: OPENSPEC_BUDDY_BASE_BRANCH.");
+  } else if (data.base_branch !== expectedBaseBranch) {
     errors.push(`base_branch must be ${expectedBaseBranch}.`);
   }
 

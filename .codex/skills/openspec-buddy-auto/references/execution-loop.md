@@ -7,8 +7,8 @@ Verify:
 ```bash
 git status --short --branch
 git fetch origin
-git switch integration
-git merge --ff-only origin/integration
+git switch "$OPENSPEC_BUDDY_BASE_BRANCH"
+git merge --ff-only "origin/$OPENSPEC_BUDDY_BASE_BRANCH"
 ```
 
 Stop if local unrelated changes exist.
@@ -41,13 +41,13 @@ Open a formal PR:
 
 ```text
 title: concise change title
-base: integration
+base: $OPENSPEC_BUDDY_BASE_BRANCH
 body: summary, verification, non-closing origin issue reference
-review request: @codex审核，中文回复
+review request: $OPENSPEC_BUDDY_PR_REVIEW_REQUEST
 ```
 
 Do not let `gh pr create` fall back to the repository default branch; pass
-`--base integration` explicitly.
+`--base "$OPENSPEC_BUDDY_BASE_BRANCH"` explicitly.
 Do not use closing keywords such as `Closes`, `Fixes`, or `Resolves` for the
 Buddy issue; issue closure belongs to the archive step.
 
@@ -72,7 +72,7 @@ Do this only after OpenSpec task progress is `complete == total`; otherwise fini
 After PR merge:
 
 1. Keep the claim branch until archive is complete.
-2. Fast-forward the claim branch to `origin/integration`.
+2. Fast-forward the claim branch to `origin/$OPENSPEC_BUDDY_BASE_BRANCH`.
 3. Recheck `openspec instructions apply --change <change_id> --json` or the archived `tasks.md` source before moving the change.
    Archive only when all tasks are checked. If the PR auto-closed the issue before tasks were complete, keep the branch, finish the task checklist, and merge that state before marking achieved.
 4. Before moving the change, inspect `openspec/changes/<change_id>/specs/**/spec.md`.
@@ -87,8 +87,8 @@ After PR merge:
    existing debt unless the claimed change caused it.
 6. Run `openspec-buddy achieve` / `archive`.
 7. Commit archive update.
-8. Merge archive commit into `integration`.
-9. Push `integration`.
+8. Merge archive commit into `$OPENSPEC_BUDDY_BASE_BRANCH`.
+9. Push `$OPENSPEC_BUDDY_BASE_BRANCH`.
 10. Verify the issue has exactly one `status:*` label and that it is `status:archived`.
    If the issue is already closed or the Project item is already `Done`, still rerun
    `mark-achieved.sh` to reconcile the label, archive comment, and Project `End`.
@@ -104,5 +104,6 @@ After PR merge:
 
 The archive step must set the issue to `status:archived`, close the issue, set Project `Status` to `Done`, and set Project `End` to the current local date.
 The same completion rule applies to a series parent after its last child change is archived.
-Buddy automation must not merge or push `main`; promoting `integration` to `main`
-is a manual release decision.
+Buddy automation must not merge or push `$OPENSPEC_BUDDY_RELEASE_BRANCH`;
+promoting `$OPENSPEC_BUDDY_BASE_BRANCH` to `$OPENSPEC_BUDDY_RELEASE_BRANCH`
+is a manual release decision unless the project configures otherwise.

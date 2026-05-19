@@ -13,13 +13,17 @@ if [[ "$target_status" != status:* ]]; then
   exit 2
 fi
 
-project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
-project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
-project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
-status_field_name="${OPENSPEC_BUDDY_PROJECT_STATUS_FIELD:-Status}"
-todo_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_TODO:-Todo}"
-in_progress_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_IN_PROGRESS:-In Progress}"
-done_option_name="${OPENSPEC_BUDDY_PROJECT_STATUS_DONE:-Done}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
+
+project_owner="$OPENSPEC_BUDDY_PROJECT_OWNER"
+project_number="$OPENSPEC_BUDDY_PROJECT_NUMBER"
+project_title="$OPENSPEC_BUDDY_PROJECT_TITLE"
+status_field_name="$OPENSPEC_BUDDY_PROJECT_STATUS_FIELD"
+todo_option_name="$OPENSPEC_BUDDY_PROJECT_STATUS_TODO"
+in_progress_option_name="$OPENSPEC_BUDDY_PROJECT_STATUS_IN_PROGRESS"
+done_option_name="$OPENSPEC_BUDDY_PROJECT_STATUS_DONE"
 
 case "$target_status" in
   status:claimed|status:in-progress|status:in-review)
