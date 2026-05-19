@@ -47,6 +47,20 @@ Describe the user-visible or engineering outcome.
 - Stop if GitHub blockedBy relationships still contain open blockers.
 ```
 
+For non-empty list fields, use YAML block lists:
+
+```yaml
+depends_on:
+  - upstream-change-id
+blocked_by:
+  - 123
+blocking:
+  - 456
+```
+
+Do not write non-empty lists inline as `[upstream-change-id]`; the Buddy
+metadata parser rejects that form. Empty lists should remain inline as `[]`.
+
 Labels to apply:
 
 ```text

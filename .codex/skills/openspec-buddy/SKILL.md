@@ -42,31 +42,39 @@ Steps:
 
 1. Derive or confirm a kebab-case `change_id`.
 2. Prepare an issue body from `references/issue-template.md`.
-3. Set `claim_branch: <change_id>`.
-4. Set `base_branch: integration`. Do not create new Buddy issues with
+3. In issue front matter, keep empty list fields as `[]`, but write every
+   non-empty `depends_on`, `blocked_by`, or `blocking` field as a YAML block
+   list. Do not use inline lists such as `[other-change]`; the metadata parser
+   rejects those so dependency metadata cannot be misread.
+4. Set `claim_branch: <change_id>`.
+5. Set `base_branch: integration`. Do not create new Buddy issues with
    `base_branch: main`; release from `integration` to `main` is manual.
-5. Add labels:
+6. Validate the prepared body before creating or updating the issue:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/parse-issue-metadata.mjs <issue-body-file>
+   ```
+7. Add labels:
    - `status:ready`
    - `area:<area>`
    - `series:<series>`
    - `risk:<low|medium|high>`
    - `mode:<isolated|fixed-branch|stacked|docs-only>`
-6. Create the issue with `gh issue create`.
-7. If this is a planned series, create or identify the series parent issue, then link the child issue:
+8. Create the issue with `gh issue create`.
+9. If this is a planned series, create or identify the series parent issue, then link the child issue:
    ```bash
    .codex/skills/openspec-buddy/scripts/create-series-parent.sh <series>
    .codex/skills/openspec-buddy/scripts/link-issue-parent.sh <parent-issue> <child-issue>
    ```
-8. If this issue depends on another change issue, link the native relationship:
+10. If this issue depends on another change issue, link the native relationship:
    ```bash
    .codex/skills/openspec-buddy/scripts/link-issue-dependencies.sh <blocked-issue> <blocking-issue>
    ```
-9. Add the created issue to the default GitHub Project:
+11. Add the created issue to the default GitHub Project:
    ```bash
    .codex/skills/openspec-buddy/scripts/add-issue-to-project.sh <issue-url>
    ```
    The script also sets the Project `Status` to `Todo`.
-10. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
+12. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
 
 Do not claim the issue or implement in `propose`.
 

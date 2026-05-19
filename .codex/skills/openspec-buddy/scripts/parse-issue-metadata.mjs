@@ -53,6 +53,15 @@ function parseFrontMatter(markdown) {
       continue;
     }
 
+    if (listKeys.has(key)) {
+      if (value.trim() === "[]") {
+        data[key] = [];
+        currentListKey = null;
+        continue;
+      }
+      throw new Error(`List field ${key} must use [] when empty or YAML block list items when non-empty.`);
+    }
+
     data[key] = parseScalar(value);
     currentListKey = Array.isArray(data[key]) ? key : null;
   }

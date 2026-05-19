@@ -34,6 +34,20 @@ GitHub Issue front matter is the machine-readable task record.
 - `openspec_path` should equal `openspec/changes/<change_id>`.
 - `depends_on` must parse as a list, including an empty list.
 - `blocked_by` and `blocking`, when present, must parse as lists.
+- Empty list fields should be written as `[]`.
+- Non-empty `depends_on`, `blocked_by`, and `blocking` fields must be written
+  as YAML block lists:
+  ```yaml
+  depends_on:
+    - upstream-change-id
+  blocked_by:
+    - 123
+  blocking:
+    - 456
+  ```
+- Do not write non-empty list fields inline as `[upstream-change-id]`; the
+  parser rejects that form so downstream dependency checks cannot misread the
+  metadata.
 - `execution_mode: fixed-branch` requires `required_branch` to equal `claim_branch`.
 - `execution_mode: stacked` requires `depends_on` to be non-empty.
 - A change can be claimed only from `status:ready`.
