@@ -274,6 +274,54 @@ describe('historical evidence materialization', () => {
     ]));
   });
 
+  it('respects learning-fact governance skip flags from the online pipeline', () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        SimulationLog: [
+          {
+            id: 'sim-skip',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T10:00:00.000Z',
+            sourceLabel: 'real-student-run',
+            eventData: {
+              source: 'real-student-run',
+              skipLearningFact: true,
+            },
+          },
+        ],
+        StudentStepResponse: [
+          {
+            id: 'response-after-end',
+            userId: 'student-2',
+            occurredAt: '2026-05-18T11:10:01.000Z',
+            eventData: {
+              eventType: 'lesson_submit',
+              sessionId: 'session-1',
+              lessonKey: 'unit-4-7-v1',
+              stepId: 'step-02',
+              sourceLogId: 'log-after-end',
+              source: 'real-classroom',
+              afterSessionEnd: true,
+            },
+            sourceLabel: 'real-classroom',
+          },
+        ],
+      },
+    });
+
+    expect(plan.totals).toMatchObject({
+      candidateRows: 0,
+      newFactRows: 0,
+      excludedRows: 2,
+    });
+    expect(plan.skipped.map((item) => item.reason)).toEqual(expect.arrayContaining([
+      'learning_fact_governance_skip',
+      'after_session_end',
+    ]));
+  });
+
   it('applies only new facts and reports already materialized stable identities', async () => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',
@@ -309,6 +357,58 @@ describe('historical evidence materialization', () => {
       createdRows: 1,
     });
     expect(createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          sourceEventId: 'historical:SimulationLog:sim-2:simulation_attempt',
+        }),
+      ],
+      skipDuplicates: true,
+    });
+  });
+
+  it('writes pending facts in bounded batches', async () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        SimulationLog: [
+          {
+            id: 'sim-1',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T10:00:00.000Z',
+            sourceLabel: 'real-student-run',
+          },
+          {
+            id: 'sim-2',
+            userId: 'student-2',
+            occurredAt: '2026-05-18T10:05:00.000Z',
+            sourceLabel: 'real-student-run',
+          },
+        ],
+      },
+    });
+    const createMany = vi.fn().mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({ count: 1 });
+
+    const result = await applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany } },
+      plan,
+      { batchSize: 1 },
+    );
+
+    expect(result).toMatchObject({
+      requestedCreateRows: 2,
+      createdRows: 2,
+    });
+    expect(createMany).toHaveBeenCalledTimes(2);
+    expect(createMany).toHaveBeenNthCalledWith(1, {
+      data: [
+        expect.objectContaining({
+          sourceEventId: 'historical:SimulationLog:sim-1:simulation_attempt',
+        }),
+      ],
+      skipDuplicates: true,
+    });
+    expect(createMany).toHaveBeenNthCalledWith(2, {
       data: [
         expect.objectContaining({
           sourceEventId: 'historical:SimulationLog:sim-2:simulation_attempt',

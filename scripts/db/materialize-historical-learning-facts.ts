@@ -716,7 +716,7 @@ async function main() {
   const batchSize = readBatchSize();
   const plan = await buildPlanFromSourceBatches(batchSize);
   const applyResult = isApply
-    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan)
+    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan, { batchSize })
     : null;
 
   if (hasFlag('--json')) {

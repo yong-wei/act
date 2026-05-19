@@ -16,6 +16,7 @@ import {
   mapActionTypeToFactType,
   resolveCompetencyContribution,
 } from './event-normalization';
+import { shouldMaterializeLearningFact } from './learning-fact-materialization';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -102,6 +103,12 @@ export interface HistoricalEvidenceMaterializationApplyResult {
   skippedRows: number;
   affectedUsers: number;
 }
+
+export interface HistoricalEvidenceMaterializationApplyOptions {
+  batchSize?: number;
+}
+
+const DEFAULT_APPLY_BATCH_SIZE = 1000;
 
 const SOURCE_ACTION_TYPES: Partial<Record<EvidenceSourceId, string>> = {
   StudentStepResponse: 'lesson_submit',
@@ -377,6 +384,24 @@ export function buildHistoricalEvidenceMaterializationPlan(
 
       const evidenceSubtype = resolveEvidenceSubtype(source.id, canonicalEventType);
       const actionType = resolveActionType(source.id, evidenceSubtype);
+      const payload = readRecord(row.eventData);
+
+      if (!shouldMaterializeLearningFact(actionType, payload)) {
+        sourceSkipped.push({
+          ...skipBase,
+          reason: 'learning_fact_governance_skip',
+        });
+        continue;
+      }
+
+      if (payload.afterSessionEnd === true && payload.countAfterSessionEnd !== true) {
+        sourceSkipped.push({
+          ...skipBase,
+          reason: 'after_session_end',
+        });
+        continue;
+      }
+
       const stableSourceIdentity = buildStableSourceIdentity(
         row,
         source.id,
@@ -493,23 +518,30 @@ export function buildHistoricalEvidenceMaterializationPlan(
 export async function applyHistoricalEvidenceMaterializationPlan(
   db: { learningFact: LearningFactCreateManyDelegate },
   plan: HistoricalEvidenceMaterializationPlan,
+  options: HistoricalEvidenceMaterializationApplyOptions = {},
 ): Promise<HistoricalEvidenceMaterializationApplyResult> {
   const factsToCreate = plan.candidates
     .filter((candidate) => !candidate.alreadyMaterialized)
     .map((candidate) => candidate.fact);
 
-  const result = factsToCreate.length > 0
-    ? await db.learningFact.createMany({
-        data: factsToCreate,
-        skipDuplicates: true,
-      })
-    : { count: 0 };
+  const batchSize = Number.isInteger(options.batchSize) && options.batchSize && options.batchSize > 0
+    ? options.batchSize
+    : DEFAULT_APPLY_BATCH_SIZE;
+  let createdRows = 0;
+
+  for (let offset = 0; offset < factsToCreate.length; offset += batchSize) {
+    const result = await db.learningFact.createMany({
+      data: factsToCreate.slice(offset, offset + batchSize),
+      skipDuplicates: true,
+    });
+    createdRows += result.count;
+  }
 
   return {
     candidateRows: plan.totals.candidateRows,
     alreadyMaterializedRows: plan.totals.alreadyMaterializedRows,
     requestedCreateRows: factsToCreate.length,
-    createdRows: result.count,
+    createdRows,
     skippedRows: plan.totals.excludedRows + plan.totals.unsupportedRows + plan.totals.lowConfidenceRows,
     affectedUsers: plan.totals.affectedUsers,
   };
