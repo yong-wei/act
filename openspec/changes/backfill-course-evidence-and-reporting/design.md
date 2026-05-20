@@ -43,3 +43,25 @@ Every enriched record must be guarded by stable source identity and evidence ver
 2. Add enrichment for recoverable final-state answers.
 3. Add report regeneration by session and date range.
 4. Add tests and operator documentation.
+
+## Operator Command
+
+The backfill command is dry-run by default:
+
+```bash
+npm run db:backfill-course-evidence -- --session-id=<class-session-id>
+```
+
+Apply mode must be explicit, and report regeneration must also be explicitly requested:
+
+```bash
+npm run db:backfill-course-evidence -- --session-id=<class-session-id> --apply --regenerate-reports
+```
+
+Lesson and date filters can be combined with session filters:
+
+```bash
+npm run db:backfill-course-evidence -- --lesson-key=<lesson-key> --from=2026-05-20T00:00:00.000Z --to=2026-05-21T00:00:00.000Z
+```
+
+Use `--json --compact` when the output is consumed by another script.
