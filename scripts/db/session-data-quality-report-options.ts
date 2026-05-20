@@ -19,10 +19,27 @@ function readListValues(args: string[], flag: string) {
     .filter(Boolean);
 }
 
+function hasValidIsoCalendarDate(raw: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(raw);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day
+  );
+}
+
 function readDateValue(args: string[], flag: string) {
   const prefix = `${flag}=`;
   const raw = args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
   if (!raw) return undefined;
+  if (!hasValidIsoCalendarDate(raw)) {
+    throw new Error(`Invalid ${flag} date: ${raw}`);
+  }
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) {
     throw new Error(`Invalid ${flag} date: ${raw}`);

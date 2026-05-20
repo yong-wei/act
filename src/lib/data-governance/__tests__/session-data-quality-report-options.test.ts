@@ -25,4 +25,18 @@ describe('parseSessionDataQualityReportOptions', () => {
       },
     });
   });
+
+  it('rejects non-ISO and impossible calendar dates', () => {
+    expect(() => parseSessionDataQualityReportOptions([
+      'node',
+      'report-session-data-quality.ts',
+      '--from=2026-02-31',
+    ])).toThrow('Invalid --from date: 2026-02-31');
+
+    expect(() => parseSessionDataQualityReportOptions([
+      'node',
+      'report-session-data-quality.ts',
+      '--to=05/20/2026',
+    ])).toThrow('Invalid --to date: 05/20/2026');
+  });
 });

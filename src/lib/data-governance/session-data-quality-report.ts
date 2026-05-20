@@ -539,7 +539,10 @@ export async function collectSessionDataQualityReport(
       },
     }),
     db.classSessionReport.findMany({
-      where: whereBySession,
+      where: {
+        ...whereBySession,
+        ...buildLessonWhere(filters, 'lessonKey'),
+      },
       select: {
         sessionId: true,
         lessonKey: true,
@@ -549,7 +552,10 @@ export async function collectSessionDataQualityReport(
       },
     }),
     db.studentSessionReport.findMany({
-      where: whereBySession,
+      where: {
+        ...whereBySession,
+        ...buildLessonWhere(filters, 'lessonKey'),
+      },
       select: {
         sessionId: true,
         userId: true,

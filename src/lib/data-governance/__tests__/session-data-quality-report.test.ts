@@ -214,4 +214,57 @@ describe('buildSessionDataQualityReport', () => {
     expect(db.studentSessionReport.findMany).not.toHaveBeenCalled();
     expect(db.studentCompetencySnapshot.findMany).not.toHaveBeenCalled();
   });
+
+  it('applies lesson filters to report freshness queries', async () => {
+    const db = {
+      interactionLog: {
+        findMany: vi.fn()
+          .mockResolvedValueOnce([{ sessionId: 'session-5-2' }])
+          .mockResolvedValueOnce([]),
+      },
+      studentState: {
+        findMany: vi.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([]),
+      },
+      learningFact: {
+        findMany: vi.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([]),
+      },
+      classSession: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'session-5-2',
+          classId: 'class-1',
+          status: 'FINISHED',
+          startTime: new Date('2026-05-20T08:00:00.000Z'),
+          endTime: new Date('2026-05-20T09:30:00.000Z'),
+          plan: { title: '5-2' },
+        }]),
+      },
+      studentCompetencySnapshot: { findMany: vi.fn() },
+      classSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      studentSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+
+    await collectSessionDataQualityReport(db, { lessonKeys: ['5-2'] });
+
+    expect(db.classSessionReport.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId: { in: ['session-5-2'] },
+        lessonKey: { in: ['5-2'] },
+      },
+    }));
+    expect(db.studentSessionReport.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId: { in: ['session-5-2'] },
+        lessonKey: { in: ['5-2'] },
+      },
+    }));
+  });
 });
