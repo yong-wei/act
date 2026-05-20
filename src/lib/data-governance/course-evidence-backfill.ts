@@ -212,16 +212,25 @@ function normalizeAnswers(value: unknown): Record<string, string> {
   );
 }
 
-function getResponseAnswersFromState(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
+function getStateStepResponse(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
   const responses = readRecord(readRecord(state?.data).responses);
-  const stepResponse = readRecord(responses[stepId]);
-  return normalizeAnswers(stepResponse.answers);
+  return readRecord(responses[stepId]);
+}
+
+function getResponseAnswersFromState(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
+  return normalizeAnswers(getStateStepResponse(state, stepId).answers);
+}
+
+function getStateStepSubmittedAt(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
+  return readNumber(getStateStepResponse(state, stepId).submittedAt);
+}
+
+function getStateStepAttemptKey(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
+  return readString(getStateStepResponse(state, stepId).attemptKey);
 }
 
 function getStateSubmittedAt(state: CourseEvidenceBackfillStudentStateRow | undefined, stepId: string) {
-  const responses = readRecord(readRecord(state?.data).responses);
-  const stepResponse = readRecord(responses[stepId]);
-  const submittedAt = readNumber(stepResponse.submittedAt);
+  const submittedAt = getStateStepSubmittedAt(state, stepId);
   return submittedAt ?? state?.lastClientEventAt?.getTime() ?? state?.submittedAt.getTime() ?? Date.now();
 }
 
@@ -352,6 +361,7 @@ function buildLegacyResponseData(
   response: CourseEvidenceBackfillResponseRow,
   state: CourseEvidenceBackfillStudentStateRow | undefined,
   generatedAt: string,
+  reason = 'missing_durable_answers',
 ) {
   return compactRecord({
     ...readRecord(response.responseData),
@@ -367,7 +377,7 @@ function buildLegacyResponseData(
       state,
       'legacy-unrecoverable',
       generatedAt,
-      'missing_durable_answers',
+      reason,
     ),
   });
 }
@@ -432,6 +442,90 @@ function buildResponseFallbackCounts(responses: CourseEvidenceBackfillResponseRo
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return counts;
+}
+
+function latestUniqueResponse(responses: CourseEvidenceBackfillResponseRow[]) {
+  let latest: CourseEvidenceBackfillResponseRow | null = null;
+  let tied = false;
+
+  for (const response of responses) {
+    const submittedAt = response.submittedAt.getTime();
+    const latestSubmittedAt = latest?.submittedAt.getTime();
+    if (!latest || latestSubmittedAt === undefined || submittedAt > latestSubmittedAt) {
+      latest = response;
+      tied = false;
+    } else if (submittedAt === latestSubmittedAt) {
+      tied = true;
+    }
+  }
+
+  return tied ? null : latest;
+}
+
+function closestUniqueResponse(
+  responses: CourseEvidenceBackfillResponseRow[],
+  targetSubmittedAt: number,
+) {
+  let closest: CourseEvidenceBackfillResponseRow | null = null;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  let tied = false;
+
+  for (const response of responses) {
+    const distance = Math.abs(response.submittedAt.getTime() - targetSubmittedAt);
+    if (distance < closestDistance) {
+      closest = response;
+      closestDistance = distance;
+      tied = false;
+    } else if (distance === closestDistance) {
+      tied = true;
+    }
+  }
+
+  return tied ? null : closest;
+}
+
+function findFinalStateResponse(
+  responses: CourseEvidenceBackfillResponseRow[],
+  state: CourseEvidenceBackfillStudentStateRow | undefined,
+) {
+  if (responses.length === 0) return null;
+  if (responses.length === 1) return responses[0];
+
+  const stepId = responses[0].stepId;
+  const stateAttemptKey = getStateStepAttemptKey(state, stepId);
+  if (stateAttemptKey) {
+    const attemptMatches = responses.filter((response) => response.attemptKey === stateAttemptKey);
+    const latestAttemptMatch = latestUniqueResponse(attemptMatches);
+    if (latestAttemptMatch) return latestAttemptMatch;
+  }
+
+  const stateSubmittedAt = getStateStepSubmittedAt(state, stepId);
+  if (stateSubmittedAt !== null) {
+    const notAfterState = responses.filter((response) => response.submittedAt.getTime() <= stateSubmittedAt);
+    const latestNotAfterState = latestUniqueResponse(notAfterState);
+    if (latestNotAfterState) return latestNotAfterState;
+    return closestUniqueResponse(responses, stateSubmittedAt);
+  }
+
+  return latestUniqueResponse(responses);
+}
+
+function buildFinalStateResponseIds(
+  responses: CourseEvidenceBackfillResponseRow[],
+  stateMap: Map<string, CourseEvidenceBackfillStudentStateRow>,
+) {
+  const responseGroups = new Map<string, CourseEvidenceBackfillResponseRow[]>();
+  for (const response of responses) {
+    const key = buildResponseFallbackKey(response);
+    responseGroups.set(key, [...(responseGroups.get(key) ?? []), response]);
+  }
+
+  const finalStateResponseIds = new Set<string>();
+  responseGroups.forEach((group) => {
+    const finalStateResponse = findFinalStateResponse(group, stateMap.get(createStateKey(group[0])));
+    if (finalStateResponse) finalStateResponseIds.add(finalStateResponse.id);
+  });
+  return finalStateResponseIds;
 }
 
 function findMatchingFacts(
@@ -527,6 +621,7 @@ export function buildCourseEvidenceBackfillPlan(
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const stateMap = buildStateMap(input.studentStates);
   const manifestMap = buildManifestMap(input.manifestsByLessonKey);
+  const finalStateResponseIds = buildFinalStateResponseIds(input.studentStepResponses, stateMap);
   const responseActions: CourseEvidenceBackfillResponseAction[] = [];
 
   for (const response of input.studentStepResponses) {
@@ -566,6 +661,22 @@ export function buildCourseEvidenceBackfillPlan(
 
     const answers = getResponseAnswersFromState(state, response.stepId);
     if (state && Object.keys(answers).length > 0) {
+      if (!finalStateResponseIds.has(response.id)) {
+        const reason = 'final_state_not_attempt_safe';
+        responseActions.push({
+          action: 'mark-unrecoverable',
+          responseId: response.id,
+          userId: response.userId,
+          sessionId: response.sessionId,
+          lessonKey: response.lessonKey,
+          stepId: response.stepId,
+          source: 'legacy-envelope',
+          reason,
+          nextResponseData: buildLegacyResponseData(response, state, generatedAt, reason),
+        });
+        continue;
+      }
+
       const manifest = getManifestForResponse(response, manifestMap);
       responseActions.push({
         action: 'enrich',

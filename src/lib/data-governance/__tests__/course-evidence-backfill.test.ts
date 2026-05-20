@@ -551,6 +551,126 @@ describe('course evidence backfill', () => {
     ]);
   });
 
+  it('uses final-state answers only for the terminal attempt in a repeated step', () => {
+    const plan = buildCourseEvidenceBackfillPlan({
+      manifestsByLessonKey: {
+        'unit-5-1-linear-backbone-boundaries-v1': lessonManifest,
+      },
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      studentStepResponses: [
+        {
+          id: 'response-early',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          stepId: 'step-03',
+          attemptKey: 'attempt-1',
+          sourceLogId: null,
+          clientEventId: null,
+          submittedAt: new Date('2026-05-20T02:00:00.000Z'),
+          responseData: { eventType: 'lesson_submit', evidenceQuality: 'legacy-envelope' },
+        },
+        {
+          id: 'response-final',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          stepId: 'step-03',
+          attemptKey: 'attempt-2',
+          sourceLogId: null,
+          clientEventId: null,
+          submittedAt: new Date('2026-05-20T02:05:00.000Z'),
+          responseData: { eventType: 'lesson_resubmit', evidenceQuality: 'legacy-envelope' },
+        },
+      ],
+      studentStates: [
+        {
+          sessionId: 'session-5-1',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          itemId: 'student:unit51:state',
+          data: {
+            responses: {
+              'step-03': {
+                stepId: 'step-03',
+                submittedAt: new Date('2026-05-20T02:05:00.000Z').getTime(),
+                answers: { 'linear-boundary': 'b' },
+              },
+            },
+          },
+          submittedAt: new Date('2026-05-20T02:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T02:06:00.000Z'),
+        },
+      ],
+      learningFacts: [
+        {
+          id: 'fact-early',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+          moduleId: 'step-03',
+          sourceEventId: 'historical:StudentStepResponse:response-early:lesson_submit',
+          sourceLogId: null,
+          score: null,
+          outcome: 'partial',
+          contextJson: {},
+        },
+        {
+          id: 'fact-final',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+          moduleId: 'step-03',
+          sourceEventId: 'historical:StudentStepResponse:response-final:lesson_resubmit',
+          sourceLogId: null,
+          score: null,
+          outcome: 'partial',
+          contextJson: {},
+        },
+      ],
+    });
+
+    expect(plan.responseActions.map((action) => ({
+      responseId: action.responseId,
+      action: action.action,
+      reason: action.reason,
+      score: action.nextResponseData?.score,
+    }))).toEqual([
+      {
+        responseId: 'response-early',
+        action: 'mark-unrecoverable',
+        reason: 'final_state_not_attempt_safe',
+        score: undefined,
+      },
+      {
+        responseId: 'response-final',
+        action: 'enrich',
+        reason: undefined,
+        score: 100,
+      },
+    ]);
+    expect(plan.factActions.map((action) => ({
+      factId: action.factId,
+      responseId: action.responseId,
+      action: action.action,
+      nextScore: action.nextScore,
+    }))).toEqual([
+      {
+        factId: 'fact-early',
+        responseId: 'response-early',
+        action: 'mark-legacy-context',
+        nextScore: undefined,
+      },
+      {
+        factId: 'fact-final',
+        responseId: 'response-final',
+        action: 'enrich-context',
+        nextScore: 100,
+      },
+    ]);
+  });
+
   it('regenerates class and student reports for selected sessions', async () => {
     const generateReports = vi.fn()
       .mockResolvedValueOnce({ classReports: 1, studentReports: 2, skipped: false })
