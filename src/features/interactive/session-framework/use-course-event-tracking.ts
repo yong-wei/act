@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { COURSE_EVENT_TYPES, type CourseEventType } from '@/lib/classroom-analytics/event-taxonomy';
-import { SYNC_RECOVERY_EVENT_NAME } from '@/lib/classroom-analytics/sync-incident-model';
+import {
+  buildSyncIncidentTelemetry,
+  SYNC_RECOVERY_EVENT_NAME,
+} from '@/lib/classroom-analytics/sync-incident-model';
 import { buildCourseEvent } from './build-course-event';
 import {
   createWorkspaceParameterTelemetryBuffer,
@@ -45,6 +48,10 @@ function mapCourseEventType(type: CourseEventType): BaseEmitType {
     default:
       return 'interact';
   }
+}
+
+function readNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 export function useCourseEventTracking({
@@ -158,15 +165,34 @@ export function useCourseEventTracking({
       if (sessionId && recoveredSessionId && recoveredSessionId !== sessionId) {
         return;
       }
+      const stepId = typeof data.stepId === 'string' ? data.stepId : null;
+      const scope = typeof data.scope === 'string'
+        ? data.scope
+        : actorRole
+          ? `${actorRole}-page`
+          : null;
       trackCourseEvent(COURSE_EVENT_TYPES.SYNC_RECOVERED, {
-        stepId: typeof data.stepId === 'string' ? data.stepId : null,
-        data,
+        stepId,
+        data: {
+          ...buildSyncIncidentTelemetry({
+            payload: { ...data, scope },
+            stepId,
+            scope,
+            occurrenceCount: readNumber(data.recoveredFailureCount) ?? readNumber(data.incidentOccurrenceCount) ?? 1,
+            firstSeenAt: readNumber(data.incidentFirstSeenAt),
+            lastSeenAt: readNumber(data.incidentLastSeenAt),
+            recovered: true,
+          }),
+          eventType: 'sync_recovered',
+          recoveredIncidentCount: readNumber(data.recoveredIncidentCount) ?? 1,
+          recoveredFailureCount: readNumber(data.recoveredFailureCount) ?? 1,
+        },
       });
     };
 
     window.addEventListener(SYNC_RECOVERY_EVENT_NAME, handleSyncRecovered);
     return () => window.removeEventListener(SYNC_RECOVERY_EVENT_NAME, handleSyncRecovered);
-  }, [sessionId, trackCourseEvent]);
+  }, [actorRole, sessionId, trackCourseEvent]);
 
   const trackStepView = useCallback((stepId: string, data: Record<string, unknown> = {}) => {
     // lesson_step_view
@@ -199,8 +225,24 @@ export function useCourseEventTracking({
 
   const trackSyncError = useCallback((stepId: string | null, data: Record<string, unknown> = {}) => {
     // sync_error
-    trackCourseEvent(COURSE_EVENT_TYPES.SYNC_ERROR, { stepId, data });
-  }, [trackCourseEvent]);
+    const scope = typeof data.scope === 'string'
+      ? data.scope
+      : actorRole
+        ? `${actorRole}-page`
+        : null;
+    trackCourseEvent(COURSE_EVENT_TYPES.SYNC_ERROR, {
+      stepId,
+      data: buildSyncIncidentTelemetry({
+        payload: { ...data, scope },
+        stepId,
+        scope,
+        consecutiveFailures: readNumber(data.incidentConsecutiveFailures) ?? 1,
+        occurrenceCount: readNumber(data.incidentOccurrenceCount) ?? 1,
+        firstSeenAt: readNumber(data.incidentFirstSeenAt),
+        lastSeenAt: readNumber(data.incidentLastSeenAt),
+      }),
+    });
+  }, [actorRole, trackCourseEvent]);
 
   const trackSessionFinalize = useCallback((data: Record<string, unknown> = {}) => {
     // session_finalize

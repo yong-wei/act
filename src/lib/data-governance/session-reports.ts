@@ -243,19 +243,27 @@ function isSyncRecoveryLog(log: InteractionLogSummaryItem) {
 
 function createSyncErrorIncidentKey(log: InteractionLogSummaryItem) {
   const data = readObject(log.eventData);
-  if (typeof data.incidentKey === 'string' && data.incidentKey.trim().length > 0) {
-    return data.incidentKey.trim();
-  }
+  const rawDiagnostics = readObject(data.rawDiagnostics);
+  const scope = typeof data.scope === 'string'
+    ? data.scope
+    : typeof data.actorRole === 'string'
+      ? `${data.actorRole}-page`
+      : null;
   const keyedPayload = {
+    ...rawDiagnostics,
     ...data,
     message: resolveSyncErrorSignature(log),
-    url: data.url ?? resolveSyncErrorSignature(log),
+    url: data.url ?? rawDiagnostics.url ?? resolveSyncErrorSignature(log),
+    method: data.method ?? rawDiagnostics.method,
+    source: data.source ?? rawDiagnostics.source,
+    failureKind: data.failureKind ?? rawDiagnostics.failureKind,
+    status: data.status ?? rawDiagnostics.status,
   };
   return buildSyncIncidentKey({
     payload: keyedPayload,
     userId: log.userId,
     stepId: log.stepId,
-    scope: typeof data.scope === 'string' ? data.scope : null,
+    scope,
   });
 }
 
@@ -342,14 +350,21 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
   const recoveryKeys = new Set(
     logs
       .filter(isSyncRecoveryLog)
-      .map((log) => {
-        const data = readObject(log.eventData);
-        return typeof data.incidentKey === 'string' && data.incidentKey.trim().length > 0
-          ? data.incidentKey.trim()
-          : null;
-      })
-      .filter((key): key is string => Boolean(key)),
+      .map((log) => createSyncErrorIncidentKey(log)),
   );
+  const recoveryEvents = logs
+    .filter(isSyncRecoveryLog)
+    .map((log, index) => ({
+      key: createSyncErrorIncidentKey(log),
+      time: log.clientEventAt instanceof Date ? log.clientEventAt.getTime() : null,
+      index,
+    }))
+    .sort((left, right) => {
+      if (left.key !== right.key) return left.key.localeCompare(right.key);
+      if (left.time !== null && right.time !== null && left.time !== right.time) return left.time - right.time;
+      return left.index - right.index;
+    });
+  const usedRecoveryIndexes = new Set<number>();
   const affectedUserIds = Array.from(new Set(incidents.map((incident) => incident.userId))).sort();
   const sourceCounts: Record<string, number> = {};
   const failureKindCounts: Record<string, number> = {};
@@ -365,10 +380,23 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     incrementIncidentField(sourceCounts, incident.source);
     incrementIncidentField(failureKindCounts, incident.failureKind);
     severityDistribution[incident.severity] += 1;
-    if (recoveryKeys.has(incident.key)) {
+    const recoveryIndex = recoveryEvents.findIndex((recovery, index) => (
+      !usedRecoveryIndexes.has(index)
+      && recovery.key === incident.key
+      && (
+        incident.lastSeenAt === null
+        || recovery.time === null
+        || recovery.time >= incident.lastSeenAt
+      )
+    ));
+    const isRecovered = recoveryIndex >= 0 || (incident.lastSeenAt === null && recoveryKeys.has(incident.key));
+    if (recoveryIndex >= 0) {
+      usedRecoveryIndexes.add(recoveryIndex);
+    }
+    if (isRecovered) {
       recoveredIncidentCount += 1;
     }
-    if (incident.transientClientNoise || (recoveryKeys.has(incident.key) && incident.severity === 'low')) {
+    if (incident.transientClientNoise || (isRecovered && incident.severity === 'low')) {
       transientClientNoiseCount += 1;
     }
   }
