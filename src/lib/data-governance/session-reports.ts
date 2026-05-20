@@ -344,6 +344,7 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     if (incident) {
       incident.count += 1;
       incident.lastSeenAt = item.time;
+      lastIncidentAtByKey.set(item.key, item.time);
       if (!incident.transientClientNoise) {
         incident.transientClientNoise = isTransientSyncClientNoise(data);
       }

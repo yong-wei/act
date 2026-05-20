@@ -464,4 +464,32 @@ describe('buildSyncErrorIncidentSummary', () => {
       unresolvedIncidentCount: 0,
     });
   });
+
+  it('keeps adjacent sync errors in one burst by advancing the burst anchor', () => {
+    const logs = [0, 25, 50].map((offsetSeconds) => ({
+      userId: 'student-1',
+      eventType: 'error',
+      stepId: 'step-03',
+      clientEventAt: new Date(Date.UTC(2026, 4, 9, 1, 0, offsetSeconds)),
+      lessonKey: '5-1',
+      learningContext: 'classroom_live',
+      invalidContextReason: null,
+      eventData: {
+        eventType: 'sync_error',
+        scope: 'student-page',
+        source: 'session_progress_get',
+        url: '/api/session/session-001',
+        method: 'GET',
+        failureKind: 'network',
+        incidentSeverity: 'medium',
+      },
+    }));
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 3,
+      incidentCount: 1,
+      recoveredIncidentCount: 0,
+      unresolvedIncidentCount: 1,
+    });
+  });
 });
