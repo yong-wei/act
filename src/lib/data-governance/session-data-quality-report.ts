@@ -30,6 +30,7 @@ interface InteractionLogQualityRow {
   eventType: string;
   stepId: string | null;
   lessonKey: string | null;
+  actorRole?: string | null;
   clientEventAt: Date | null;
   createdAt: Date;
   eventData: unknown;
@@ -351,7 +352,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const studentReports = input.studentSessionReports.filter((report) => report.sessionId === session.id);
     const participantUserIds = uniqueSorted([
       ...states.map((state) => state.userId),
-      ...logs.map((log) => log.userId),
+      ...logs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
       ...facts.map((fact) => fact.userId),
       ...submissions.map((submission) => submission.userId),
     ]);
@@ -502,6 +503,7 @@ export async function collectSessionDataQualityReport(
         eventType: true,
         stepId: true,
         lessonKey: true,
+        actorRole: true,
         clientEventAt: true,
         createdAt: true,
         eventData: true,
@@ -560,7 +562,7 @@ export async function collectSessionDataQualityReport(
   ]);
   const participantUserIds = uniqueSorted([
     ...studentStates.map((state) => state.userId),
-    ...interactionLogs.map((log) => log.userId),
+    ...interactionLogs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
     ...learningFacts.map((fact) => fact.userId),
     ...studentStepResponses.map((submission) => submission.userId),
   ]);
