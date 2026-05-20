@@ -69,17 +69,26 @@ function normalizeComparableAnswer(value: unknown): string[] {
   const raw = Array.isArray(value) ? value : [value];
   return raw
     .filter((item) => item !== undefined && item !== null)
-    .map((item) => String(item).trim())
-    .filter(Boolean)
-    .sort();
+    .flatMap((item) => String(item).split(/\s*(?:\|+|[,，、;；/])\s*/))
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
-function answersMatch(studentAnswer: unknown, referenceAnswer: unknown): boolean {
+function isOrderedObjectiveResponseKind(value: unknown): boolean {
+  return value === 'drag_match'
+    || value === 'triple_match'
+    || value === 'drag_sort'
+    || value === 'card_sort';
+}
+
+function answersMatch(studentAnswer: unknown, referenceAnswer: unknown, ordered: boolean): boolean {
   const studentValues = normalizeComparableAnswer(studentAnswer);
   const referenceValues = normalizeComparableAnswer(referenceAnswer);
+  const comparableStudentValues = ordered ? studentValues : [...studentValues].sort();
+  const comparableReferenceValues = ordered ? referenceValues : [...referenceValues].sort();
   if (studentValues.length === 0 || referenceValues.length === 0) return false;
-  return studentValues.length === referenceValues.length
-    && studentValues.every((value, index) => value === referenceValues[index]);
+  return comparableStudentValues.length === comparableReferenceValues.length
+    && comparableStudentValues.every((value, index) => value === comparableReferenceValues[index]);
 }
 
 function compactJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
@@ -98,10 +107,11 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
         ?? readString(record.cardId)
         ?? readString(record.id);
       const selectedValue = readAnswerValue(record, ['studentAnswer', 'selectedValue', 'answer', 'value']);
-      const referenceAnswer = readAnswerValue(record, ['referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
+      const referenceAnswer = readAnswerValue(record, ['referenceValue', 'referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
       const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
       if (!cardId) return null;
       if (selectedValue === undefined && explicitCorrect === undefined && referenceAnswer === undefined) return null;
+      const ordered = isOrderedObjectiveResponseKind(record.responseKind);
       return compactJsonObject({
         cardId,
         selectedValue: selectedValue ?? null,
@@ -109,7 +119,7 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
         answered: selectedValue !== undefined,
         isCorrect: explicitCorrect ?? (
           referenceAnswer !== undefined
-            ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer)
+            ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer, ordered)
             : undefined
         ),
       });
@@ -140,12 +150,24 @@ function countAnsweredAnswers(payload: Record<string, unknown>): number {
   return answers ? Object.keys(answers).length : 0;
 }
 
+function resolveEvidenceQuality(payload: Record<string, unknown>): string | undefined {
+  const explicit = readString(payload.evidenceQuality);
+  if (explicit) return explicit;
+  if (payload.schemaVersion === 'manifest-submission-v2') {
+    if (buildQuestionSummaryEvidence(payload)) return 'rich';
+    if (countAnsweredAnswers(payload) > 0) return 'partial';
+    return 'missing';
+  }
+  return undefined;
+}
+
 function buildInteractiveQuizContext(actionType: string, payload: Record<string, unknown>) {
   if (actionType !== 'lesson_submit' && actionType !== 'lesson_resubmit') {
     return null;
   }
 
   const questionSummaryEvidence = buildQuestionSummaryEvidence(payload);
+  const evidenceQuality = resolveEvidenceQuality(payload);
   const lessonKey = readString(payload.lessonKey);
   const stepId = readString(payload.stepId);
   const baseContext = {
@@ -163,6 +185,7 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
         ...baseContext,
         scoring: compactJsonObject({
           supported: true,
+          evidenceQuality,
           answeredCount: questionSummaryEvidence.answeredCount,
           correctCount: questionSummaryEvidence.correctCount,
           totalCount: questionSummaryEvidence.totalCount,
@@ -182,8 +205,25 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
         ...baseContext,
         scoring: compactJsonObject({
           supported: false,
+          evidenceQuality,
           reason: 'missing_objective_answer_keys',
           answeredCount,
+        }),
+      }),
+    };
+  }
+
+  if (evidenceQuality) {
+    return {
+      score: undefined,
+      context: compactJsonObject({
+        ...baseContext,
+        scoring: compactJsonObject({
+          supported: false,
+          evidenceQuality,
+          reason: evidenceQuality === 'legacy-envelope'
+            ? 'legacy_submit_envelope'
+            : 'missing_answer_evidence',
         }),
       }),
     };

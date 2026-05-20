@@ -74,6 +74,77 @@ function firstNonEmpty(values: Array<string | null | undefined>): string | null 
   return null;
 }
 
+type EvidenceQualityKey = 'rich' | 'partial' | 'legacy' | 'missing';
+
+function createEvidenceQualityCounts(): Record<EvidenceQualityKey, number> {
+  return {
+    rich: 0,
+    partial: 0,
+    legacy: 0,
+    missing: 0,
+  };
+}
+
+function hasRecordEntries(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
+}
+
+function hasArrayEntries(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function hasScoreableQuestionSummary(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  return value.some((item) => (
+    item
+    && typeof item === 'object'
+    && !Array.isArray(item)
+    && (
+      typeof (item as Record<string, unknown>).isCorrect === 'boolean'
+      || (item as Record<string, unknown>).referenceValue !== undefined
+      || (item as Record<string, unknown>).referenceAnswer !== undefined
+    )
+  ));
+}
+
+function classifySubmissionEvidence(responseData: unknown): EvidenceQualityKey {
+  const data = readObject(responseData);
+  if (data.schemaVersion === 'manifest-submission-v2') {
+    if (data.evidenceQuality === 'rich') return 'rich';
+    if (data.evidenceQuality === 'partial') return 'partial';
+    if (data.evidenceQuality === 'missing') return 'missing';
+    if (hasScoreableQuestionSummary(data.questionSummaries)) return 'rich';
+    if (
+      hasRecordEntries(data.answers)
+      || hasRecordEntries(data.answerDigest)
+      || hasRecordEntries(data.extraEvidence)
+      || hasRecordEntries(data.parameterSnapshots)
+      || hasArrayEntries(data.questionSummaries)
+    ) {
+      return 'partial';
+    }
+    return 'missing';
+  }
+  if (data.evidenceQuality === 'legacy-envelope') return 'legacy';
+  return 'legacy';
+}
+
+function summarizeSubmissionEvidence(submissions: StudentStepResponseSummaryItem[]) {
+  const evidenceQualityCounts = createEvidenceQualityCounts();
+  let scoreableObjectiveSubmissions = 0;
+  for (const submission of submissions) {
+    const quality = classifySubmissionEvidence(submission.responseData);
+    evidenceQualityCounts[quality] += 1;
+    if (hasScoreableQuestionSummary(readObject(submission.responseData).questionSummaries)) {
+      scoreableObjectiveSubmissions += 1;
+    }
+  }
+  return {
+    evidenceQualityCounts,
+    scoreableObjectiveSubmissions,
+  };
+}
+
 function buildStudentReportData(
   userId: string,
   logs: InteractionLogSummaryItem[],
@@ -93,6 +164,7 @@ function buildStudentReportData(
   for (const fact of facts) {
     increment(outcomes, fact.outcome);
   }
+  const evidenceSummary = summarizeSubmissionEvidence(submissions);
 
   return {
     userId,
@@ -105,6 +177,8 @@ function buildStudentReportData(
     learningContexts,
     outcomes,
     syncErrors: canonicalEventTypes.sync_error ?? 0,
+    evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
+    scoreableObjectiveSubmissions: evidenceSummary.scoreableObjectiveSubmissions,
   };
 }
 
@@ -259,6 +333,7 @@ export async function generateSessionSummaryReports(
   }
 
   const syncErrorIncidents = buildSyncErrorIncidentCount(logs);
+  const evidenceSummary = summarizeSubmissionEvidence(submissions);
 
   const snapshotWindowStart = session.endTime ?? session.startTime;
   const snapshotWindowEnd = new Date(snapshotWindowStart.getTime() + SESSION_SNAPSHOT_UPDATE_WINDOW_MS);
@@ -298,6 +373,8 @@ export async function generateSessionSummaryReports(
     learningFacts: facts.length,
     durableSubmissions: submissions.length,
     submittedParticipantsFromDurableResponses: durableSubmittedUserIds.size,
+    evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
+    scoreableObjectiveSubmissions: evidenceSummary.scoreableObjectiveSubmissions,
     eventTypes,
     legacyEventTypes: eventTypes,
     canonicalEventTypes,
@@ -313,6 +390,11 @@ export async function generateSessionSummaryReports(
       submittedParticipants: submittedUserIds.size,
       durableSubmittedParticipants: durableSubmittedUserIds.size,
       durableSubmissionAttempts: submissions.length,
+      evidenceRichSubmissions: evidenceSummary.evidenceQualityCounts.rich,
+      partialEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.partial,
+      legacyEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.legacy,
+      missingEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.missing,
+      scoreableObjectiveSubmissions: evidenceSummary.scoreableObjectiveSubmissions,
       snapshotUpdatedParticipants: snapshotUpdatedUserIds.size,
       syncErrorUsers: syncErrorUserIds.size,
       rawSyncErrors: canonicalEventTypes.sync_error ?? 0,
