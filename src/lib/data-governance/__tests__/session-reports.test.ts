@@ -492,4 +492,82 @@ describe('buildSyncErrorIncidentSummary', () => {
       unresolvedIncidentCount: 1,
     });
   });
+
+  it('matches null-timestamp recoveries one-to-one', () => {
+    const incidentKey = [
+      'student-1',
+      'student-page',
+      'step-03',
+      'session_progress_get',
+      '/api/session/session-001',
+      'GET',
+      'network',
+      'none',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: null,
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentSeverity: 'medium',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: null,
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentSeverity: 'medium',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:20.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentKey,
+          recoveredIncidentCount: 1,
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 2,
+      rawRecoveryCount: 1,
+      incidentCount: 2,
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 1,
+    });
+  });
 });

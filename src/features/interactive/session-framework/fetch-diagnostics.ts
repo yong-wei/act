@@ -275,14 +275,16 @@ export function createSyncIncidentTracker({
         && (method === null || record.latestTelemetry.method === method)
       );
       const recoveredRecords = Array.from(records.values()).filter(matchesRecoveryScope);
-      const recoveryTelemetry = recoveredRecords.map((record) => ({
+      const recoveryTelemetry = recoveredRecords.map((record) => {
+        const recoveryStepId = record.stepId ?? stepId;
+        return {
           eventType: 'sync_recovered',
           sessionId,
-          stepId: stepId ?? record.stepId,
+          stepId: recoveryStepId,
           incidentKey: record.key,
           incidentSeverity: buildSyncIncidentTelemetry({
             payload: record.latestTelemetry,
-            stepId: stepId ?? record.stepId,
+            stepId: recoveryStepId,
             occurrenceCount: record.occurrenceCount,
             firstSeenAt: record.firstSeenAt,
             lastSeenAt: record.lastSeenAt,
@@ -300,7 +302,8 @@ export function createSyncIncidentTracker({
           recoveredFailureCount: record.occurrenceCount,
           recoveryState: 'recovered',
           rawDiagnostics: { ...record.latestTelemetry },
-        }));
+        };
+      });
       for (const record of recoveredRecords) {
         records.delete(record.key);
       }

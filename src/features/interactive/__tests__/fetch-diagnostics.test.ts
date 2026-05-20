@@ -296,4 +296,38 @@ describe('buildFetchFailureTelemetry', () => {
       recoveryState: 'recovered',
     });
   });
+
+  it('preserves the failed step when recovery happens after the active step changes', () => {
+    const tracker = createSyncIncidentTracker();
+    const failure = tracker.recordFailure({
+      telemetry: {
+        source: 'session_progress_get',
+        url: '/api/session/session-001',
+        method: 'GET',
+        errorName: 'TypeError',
+        failureKind: 'network',
+      },
+      stepId: 'step-03',
+      consecutiveFailures: 3,
+      now: 1_776_307_900_000,
+    });
+
+    const recoveryTelemetry = tracker.recordRecovery({
+      sessionId: 'session-001',
+      stepId: 'step-04',
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      now: 1_776_307_910_000,
+    });
+
+    expect(recoveryTelemetry).toHaveLength(1);
+    expect(recoveryTelemetry[0]).toMatchObject({
+      eventType: 'sync_recovered',
+      sessionId: 'session-001',
+      stepId: 'step-03',
+      incidentKey: failure.telemetry.incidentKey,
+      recoveryState: 'recovered',
+    });
+  });
 });

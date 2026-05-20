@@ -351,11 +351,6 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     }
   }
 
-  const recoveryKeys = new Set(
-    logs
-      .filter(isSyncRecoveryLog)
-      .map((log) => createSyncErrorIncidentKey(log)),
-  );
   const recoveryEvents = logs
     .filter(isSyncRecoveryLog)
     .map((log, index) => ({
@@ -393,7 +388,7 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
         || recovery.time >= incident.lastSeenAt
       )
     ));
-    const isRecovered = recoveryIndex >= 0 || (incident.lastSeenAt === null && recoveryKeys.has(incident.recoveryKey));
+    const isRecovered = recoveryIndex >= 0;
     if (recoveryIndex >= 0) {
       usedRecoveryIndexes.add(recoveryIndex);
     }
