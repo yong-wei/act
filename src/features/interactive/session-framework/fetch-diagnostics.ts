@@ -274,7 +274,8 @@ export function createSyncIncidentTracker({
         && (url === null || record.latestTelemetry.url === url)
         && (method === null || record.latestTelemetry.method === method)
       );
-      const recoveredRecords = Array.from(records.values()).filter(matchesRecoveryScope);
+      const matchedRecords = Array.from(records.values()).filter(matchesRecoveryScope);
+      const recoveredRecords = matchedRecords.filter((record) => record.emitted);
       const recoveryTelemetry = recoveredRecords.map((record) => {
         const recoveryStepId = record.stepId ?? stepId;
         return {
@@ -306,7 +307,7 @@ export function createSyncIncidentTracker({
           rawDiagnostics: { ...record.latestTelemetry },
         };
       });
-      for (const record of recoveredRecords) {
+      for (const record of matchedRecords) {
         records.delete(record.key);
       }
       return recoveryTelemetry;

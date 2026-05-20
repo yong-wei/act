@@ -298,6 +298,39 @@ describe('buildFetchFailureTelemetry', () => {
     });
   });
 
+  it('does not emit recovery telemetry for unsurfaced transient failures', () => {
+    const tracker = createSyncIncidentTracker();
+    const transientFailure = tracker.recordFailure({
+      telemetry: {
+        source: 'session_progress_get',
+        url: '/api/session/session-001',
+        method: 'GET',
+        errorName: 'TypeError',
+        failureKind: 'network',
+      },
+      stepId: 'step-03',
+      consecutiveFailures: 1,
+      now: 1_776_307_900_000,
+    });
+
+    const recoveryTelemetry = tracker.recordRecovery({
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      now: 1_776_307_910_000,
+    });
+    const nextRecoveryTelemetry = tracker.recordRecovery({
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      now: 1_776_307_920_000,
+    });
+
+    expect(transientFailure.shouldEmit).toBe(false);
+    expect(recoveryTelemetry).toHaveLength(0);
+    expect(nextRecoveryTelemetry).toHaveLength(0);
+  });
+
   it('preserves the failed step when recovery happens after the active step changes', () => {
     const tracker = createSyncIncidentTracker();
     const failure = tracker.recordFailure({
