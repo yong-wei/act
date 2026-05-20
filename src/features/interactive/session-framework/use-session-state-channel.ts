@@ -73,7 +73,12 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
           );
         }
         const payload = (await response.json()) as T;
-        const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({ sessionId });
+        const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({
+          sessionId,
+          source,
+          url,
+          method,
+        });
         for (const telemetry of recoveryTelemetry) {
           dispatchSyncRecoveryTelemetry(telemetry);
         }

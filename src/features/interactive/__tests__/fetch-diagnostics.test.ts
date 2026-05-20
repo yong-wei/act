@@ -242,4 +242,58 @@ describe('buildFetchFailureTelemetry', () => {
       rawDiagnostics: telemetry,
     });
   });
+
+  it('only recovers incidents that match the successful sync source', () => {
+    const tracker = createSyncIncidentTracker();
+    tracker.recordFailure({
+      telemetry: {
+        source: 'student_state_get',
+        url: '/api/session/session-001/state?scope=student-view',
+        method: 'GET',
+        errorName: 'TypeError',
+        failureKind: 'network',
+      },
+      stepId: 'step-03',
+      consecutiveFailures: 3,
+      now: 1_776_307_900_000,
+    });
+    tracker.recordFailure({
+      telemetry: {
+        source: 'session_state_post',
+        url: '/api/session/session-001/state',
+        method: 'POST',
+        errorName: 'TypeError',
+        failureKind: 'network',
+      },
+      stepId: 'step-03',
+      consecutiveFailures: 3,
+      now: 1_776_307_900_000,
+    });
+
+    const postRecovery = tracker.recordRecovery({
+      source: 'session_state_post',
+      url: '/api/session/session-001/state',
+      method: 'POST',
+      now: 1_776_307_910_000,
+    });
+    const getRecovery = tracker.recordRecovery({
+      source: 'student_state_get',
+      url: '/api/session/session-001/state?scope=student-view',
+      method: 'GET',
+      now: 1_776_307_920_000,
+    });
+
+    expect(postRecovery).toHaveLength(1);
+    expect(postRecovery[0]).toMatchObject({
+      source: 'session_state_post',
+      method: 'POST',
+      recoveryState: 'recovered',
+    });
+    expect(getRecovery).toHaveLength(1);
+    expect(getRecovery[0]).toMatchObject({
+      source: 'student_state_get',
+      method: 'GET',
+      recoveryState: 'recovered',
+    });
+  });
 });

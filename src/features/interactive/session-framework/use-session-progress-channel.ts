@@ -237,6 +237,9 @@ export function useSessionProgressChannel({
         const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({
           sessionId,
           stepId: data.currentItemId ?? activeStepIdRef.current,
+          source: 'session_progress_get',
+          url,
+          method: 'GET',
         });
         for (const telemetry of recoveryTelemetry) {
           dispatchSyncRecoveryTelemetry(telemetry);

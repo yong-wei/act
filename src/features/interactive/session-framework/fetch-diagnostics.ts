@@ -187,6 +187,9 @@ export interface SyncIncidentFailureInput {
 export interface SyncIncidentRecoveryInput {
   sessionId?: string | null;
   stepId?: string | null;
+  source?: string | null;
+  url?: string | null;
+  method?: string | null;
   now?: number;
 }
 
@@ -261,33 +264,46 @@ export function createSyncIncidentTracker({
     recordRecovery({
       sessionId = null,
       stepId = null,
+      source = null,
+      url = null,
+      method = null,
       now = Date.now(),
     }: SyncIncidentRecoveryInput = {}) {
-      const recoveryTelemetry = Array.from(records.values()).map((record) => ({
-        eventType: 'sync_recovered',
-        sessionId,
-        stepId: stepId ?? record.stepId,
-        incidentKey: record.key,
-        incidentSeverity: buildSyncIncidentTelemetry({
-          payload: record.latestTelemetry,
+      const matchesRecoveryScope = (record: SyncIncidentTrackerRecord) => (
+        (source === null || record.latestTelemetry.source === source)
+        && (url === null || record.latestTelemetry.url === url)
+        && (method === null || record.latestTelemetry.method === method)
+      );
+      const recoveredRecords = Array.from(records.values()).filter(matchesRecoveryScope);
+      const recoveryTelemetry = recoveredRecords.map((record) => ({
+          eventType: 'sync_recovered',
+          sessionId,
           stepId: stepId ?? record.stepId,
-          occurrenceCount: record.occurrenceCount,
-          firstSeenAt: record.firstSeenAt,
-          lastSeenAt: record.lastSeenAt,
-          recovered: true,
-          burstWindowMs,
-        }).incidentSeverity,
-        source: record.latestTelemetry.source ?? null,
-        url: record.latestTelemetry.url ?? null,
-        method: record.latestTelemetry.method ?? null,
-        failureKind: record.latestTelemetry.failureKind ?? null,
-        recoveredAt: now,
-        recoveredIncidentCount: 1,
-        recoveredFailureCount: record.occurrenceCount,
-        recoveryState: 'recovered',
-        rawDiagnostics: { ...record.latestTelemetry },
-      }));
-      records.clear();
+          incidentKey: record.key,
+          incidentSeverity: buildSyncIncidentTelemetry({
+            payload: record.latestTelemetry,
+            stepId: stepId ?? record.stepId,
+            occurrenceCount: record.occurrenceCount,
+            firstSeenAt: record.firstSeenAt,
+            lastSeenAt: record.lastSeenAt,
+            recovered: true,
+            burstWindowMs,
+          }).incidentSeverity,
+          source: record.latestTelemetry.source ?? null,
+          url: record.latestTelemetry.url ?? null,
+          method: record.latestTelemetry.method ?? null,
+          failureKind: record.latestTelemetry.failureKind ?? null,
+          incidentFirstSeenAt: record.firstSeenAt,
+          incidentLastSeenAt: record.lastSeenAt,
+          recoveredAt: now,
+          recoveredIncidentCount: 1,
+          recoveredFailureCount: record.occurrenceCount,
+          recoveryState: 'recovered',
+          rawDiagnostics: { ...record.latestTelemetry },
+        }));
+      for (const record of recoveredRecords) {
+        records.delete(record.key);
+      }
       return recoveryTelemetry;
     },
     clear() {

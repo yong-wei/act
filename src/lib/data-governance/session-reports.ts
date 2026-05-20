@@ -226,6 +226,7 @@ interface SyncErrorIncidentSummary {
 
 interface SyncErrorIncidentBucket {
   key: string;
+  recoveryKey: string;
   userId: string;
   source: string;
   failureKind: string;
@@ -307,6 +308,7 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     if (item.time === null) {
       incidents.push({
         key: `${item.key}\u0000${item.index}`,
+        recoveryKey: item.key,
         userId: item.log.userId,
         source: resolveSyncIncidentSource(data),
         failureKind: resolveSyncIncidentFailureKind(data),
@@ -322,6 +324,7 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     if (lastIncidentAt === undefined || item.time - lastIncidentAt > SYNC_ERROR_BURST_WINDOW_MS) {
       const incident = {
         key: item.key,
+        recoveryKey: item.key,
         userId: item.log.userId,
         source: resolveSyncIncidentSource(data),
         failureKind: resolveSyncIncidentFailureKind(data),
@@ -382,14 +385,14 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
     severityDistribution[incident.severity] += 1;
     const recoveryIndex = recoveryEvents.findIndex((recovery, index) => (
       !usedRecoveryIndexes.has(index)
-      && recovery.key === incident.key
+      && recovery.key === incident.recoveryKey
       && (
         incident.lastSeenAt === null
         || recovery.time === null
         || recovery.time >= incident.lastSeenAt
       )
     ));
-    const isRecovered = recoveryIndex >= 0 || (incident.lastSeenAt === null && recoveryKeys.has(incident.key));
+    const isRecovered = recoveryIndex >= 0 || (incident.lastSeenAt === null && recoveryKeys.has(incident.recoveryKey));
     if (recoveryIndex >= 0) {
       usedRecoveryIndexes.add(recoveryIndex);
     }
