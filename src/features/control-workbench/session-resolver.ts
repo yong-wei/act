@@ -1,5 +1,6 @@
 import { resolveArenaWorkbenchContext } from '@/features/arena/workbench/context';
 import type { ArenaWorkbenchContext } from '@/features/arena/workbench/types';
+import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import {
   buildWorkbenchPlantTargetFromArenaObject,
   createDefaultWorkbenchSubmissionPolicy,
@@ -9,11 +10,13 @@ import {
   type WorkbenchSessionContext,
   type WorkbenchViewId,
 } from './contracts';
-import type { LeaderboardType } from '@/features/arena/types';
+import type { ChallengeObject, LeaderboardType } from '@/features/arena/types';
 import type {
   ControlWorkbenchResolutionResult,
   ControlWorkbenchRouteParams,
 } from './types';
+
+const DEFAULT_EXPLORE_OBJECT_ID = 'plant-second-order-underdamped';
 
 const WORKSPACE_PRESET_MAP: Record<string, WorkbenchPresetId> = {
   'classic-four-view': 'classic-whitebox',
@@ -31,7 +34,7 @@ const WORKSPACE_PRESET_MAP: Record<string, WorkbenchPresetId> = {
 };
 
 const WORKSPACE_VIEW_MAP: Record<string, WorkbenchViewId[]> = {
-  'multi-representation-linkage': ['time-domain', 'bode', 'root-locus', 'nyquist', 'metric-summary'],
+  'multi-representation-linkage': ['time-domain', 'bode', 'root-locus', 'nyquist'],
   'black-box-identification': ['experiment-dataset', 'identification', 'response-comparison', 'metric-summary'],
   'block-diagram-workbench': ['time-domain', 'response-comparison', 'control-effort', 'metric-summary'],
   'predictive-control': ['time-domain', 'control-effort', 'metric-summary'],
@@ -55,19 +58,19 @@ function resolveAllowedViews(arenaContext?: ArenaWorkbenchContext): WorkbenchVie
   return WORKSPACE_VIEW_MAP[arenaContext.recommendedWorkspaceMode] ?? ['time-domain', 'metric-summary'];
 }
 
-function buildWhiteBoxWorkingModel(arenaContext: ArenaWorkbenchContext): NominalModelArtifact | null {
-  const model = arenaContext.object.model;
-  if (arenaContext.object.visibility !== 'white-box' || !model) {
+function buildWhiteBoxWorkingModelFromObject(object: ChallengeObject, notes: string): NominalModelArtifact | null {
+  const model = object.model;
+  if (object.visibility !== 'white-box' || !model) {
     return null;
   }
 
-  const sourceObjectId = arenaContext.object.id;
-  const modelVersion = arenaContext.object.modelVersion ?? 'public';
+  const sourceObjectId = object.id;
+  const modelVersion = object.modelVersion ?? 'public';
 
   return {
     id: `working-model:${sourceObjectId}:${modelVersion}`,
     sourceObjectId,
-    sourceVisibility: arenaContext.object.visibility,
+    sourceVisibility: object.visibility,
     modelType: 'transfer-function',
     representation: {
       kind: 'transfer-function',
@@ -78,16 +81,44 @@ function buildWhiteBoxWorkingModel(arenaContext: ArenaWorkbenchContext): Nominal
     },
     validationMetrics: [],
     createdAt: 'public-model',
-    notes: '白箱对象的公开模型作为初始工作模型。',
+    notes,
   };
 }
 
+function buildWhiteBoxWorkingModel(arenaContext: ArenaWorkbenchContext): NominalModelArtifact | null {
+  return buildWhiteBoxWorkingModelFromObject(
+    arenaContext.object,
+    '白箱对象的公开模型作为初始工作模型。',
+  );
+}
+
+function resolveExploreObject(objectId: string | undefined): ChallengeObject {
+  const requested = objectId ? getArenaChallengeObject(objectId) : null;
+  const fallback = getArenaChallengeObject(DEFAULT_EXPLORE_OBJECT_ID);
+
+  if (requested?.visibility === 'white-box' && requested.model) {
+    return requested;
+  }
+  if (fallback?.visibility === 'white-box' && fallback.model) {
+    return fallback;
+  }
+
+  throw new Error('自由探索默认对象缺少白箱传递函数模型。');
+}
+
 function buildExploreSession(params: ControlWorkbenchRouteParams): WorkbenchSessionContext {
+  const object = resolveExploreObject(params.objectId);
+
   return {
     mode: 'explore',
-    title: '自由探索',
+    title: '综合仿真工作台',
+    object,
+    selectedObjectId: object.id,
     officialTarget: null,
-    workingModel: null,
+    workingModel: buildWhiteBoxWorkingModelFromObject(
+      object,
+      '自由探索模式使用所选白箱对象作为初始工作模型。',
+    ),
     allowedMethods: ['serial-compensator', 'pid'],
     allowedViews: resolveAllowedViews(),
     defaultPreset: normalizePreset(params.preset),

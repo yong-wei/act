@@ -44,6 +44,17 @@ export interface WorkbenchViewPlugin {
   getOptions: (session: WorkbenchSessionContext) => WorkbenchViewOption[];
 }
 
+export interface WorkbenchPanelInstance {
+  id: string;
+  viewId: WorkbenchViewId;
+  title: string;
+  enabled: boolean;
+  selectedOptions?: string[];
+  signalKinds?: WorkbenchViewConfig['signalKinds'];
+  signalSources?: WorkbenchViewConfig['signalSources'];
+  settings?: WorkbenchViewConfig['settings'];
+}
+
 function hasPublicTransferFunction(session: WorkbenchSessionContext) {
   return Boolean(session.officialTarget && 'transferFunction' in session.officialTarget);
 }
@@ -249,7 +260,7 @@ const CLASSIC_WHITEBOX_VIEW_CONFIGS: WorkbenchViewConfig[] = [
     id: 'root-locus',
     title: '根轨迹',
     enabled: true,
-    selectedOptions: ['corrected-root-locus'],
+    selectedOptions: ['uncorrected-root-locus', 'corrected-root-locus'],
   },
   {
     id: 'nyquist',
@@ -298,4 +309,108 @@ export function getPresetDefaultViewConfigs(presetId: WorkbenchPresetId) {
     signalSources: config.signalSources ? [...config.signalSources] : undefined,
     settings: config.settings ? { ...config.settings } : undefined,
   }));
+}
+
+function buildPanelId(presetId: WorkbenchPresetId, config: WorkbenchViewConfig, index: number) {
+  return `panel-${presetId}-${index + 1}-${config.id}`;
+}
+
+export function buildWorkbenchPanelInstance(
+  config: WorkbenchViewConfig,
+  id: string,
+): WorkbenchPanelInstance {
+  return {
+    id,
+    viewId: config.id,
+    title: config.title,
+    enabled: config.enabled,
+    selectedOptions: config.selectedOptions ? [...config.selectedOptions] : undefined,
+    signalKinds: config.signalKinds ? [...config.signalKinds] : undefined,
+    signalSources: config.signalSources ? [...config.signalSources] : undefined,
+    settings: config.settings ? { ...config.settings } : undefined,
+  };
+}
+
+export function buildDefaultWorkbenchPanelInstances(
+  session: WorkbenchSessionContext,
+): WorkbenchPanelInstance[] {
+  return getPresetDefaultViewConfigs(session.defaultPreset)
+    .filter((config) => session.allowedViews.includes(config.id))
+    .map((config, index) => {
+      const plugin = getWorkbenchViewPlugin(config.id);
+      const availability = plugin?.getAvailability(session) ?? { available: true };
+      return buildWorkbenchPanelInstance(
+        {
+          ...config,
+          enabled: config.enabled && availability.available,
+        },
+        buildPanelId(session.defaultPreset, config, index),
+      );
+    });
+}
+
+export function workbenchPanelToViewConfig(panel: WorkbenchPanelInstance): WorkbenchViewConfig {
+  return {
+    id: panel.viewId,
+    title: panel.title,
+    enabled: panel.enabled,
+    selectedOptions: panel.selectedOptions ? [...panel.selectedOptions] : undefined,
+    signalKinds: panel.signalKinds ? [...panel.signalKinds] : undefined,
+    signalSources: panel.signalSources ? [...panel.signalSources] : undefined,
+    settings: panel.settings ? { ...panel.settings } : undefined,
+  };
+}
+
+export function keyedViewConfigsFromPanels(
+  panels: WorkbenchPanelInstance[],
+  defaultConfigs: WorkbenchViewConfig[] = [],
+): Partial<Record<WorkbenchViewId, WorkbenchViewConfig>> {
+  const viewConfigs = Object.fromEntries(
+    panels.map((panel) => [panel.viewId, workbenchPanelToViewConfig(panel)]),
+  ) as Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
+  const activeViewIds = new Set(panels.map((panel) => panel.viewId));
+
+  for (const config of defaultConfigs) {
+    if (!activeViewIds.has(config.id)) {
+      viewConfigs[config.id] = {
+        ...config,
+        enabled: false,
+        selectedOptions: [],
+      };
+    }
+  }
+
+  return viewConfigs;
+}
+
+function isSingleSelectionView(viewId: WorkbenchViewId) {
+  return viewId === 'root-locus' || viewId === 'nyquist';
+}
+
+export function toggleWorkbenchPanelOption(
+  panels: WorkbenchPanelInstance[],
+  panelId: string,
+  optionId: string,
+): WorkbenchPanelInstance[] {
+  return panels.map((panel) => {
+    if (panel.id !== panelId) return panel;
+
+    if (isSingleSelectionView(panel.viewId)) {
+      return {
+        ...panel,
+        selectedOptions: [optionId],
+      };
+    }
+
+    const selected = new Set(panel.selectedOptions ?? []);
+    if (selected.has(optionId)) {
+      selected.delete(optionId);
+    } else {
+      selected.add(optionId);
+    }
+    return {
+      ...panel,
+      selectedOptions: Array.from(selected),
+    };
+  });
 }

@@ -10,10 +10,12 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { buildManifestSubmissionTelemetry } from '@/features/interactive/shared/manifest-runtime/submission-telemetry';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit47StepAIContext } from '@/lib/unit-4-7-ai-contexts';
 import {
+  getUNIT_4_7ManifestStepFromManifest,
   getUNIT_4_7PageContractFromManifest,
   UNIT_4_7_LESSON_KEY,
   UNIT_4_7_LESSON_STEPS,
@@ -163,7 +165,14 @@ export function UNIT_4_7StudentPage({
         updatedAt: Date.now(),
         responses: { ...prev.responses, [step.id]: response },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: buildManifestSubmissionTelemetry(
+          response,
+          getUNIT_4_7ManifestStepFromManifest(runtimeManifest, step.id),
+        ),
+      });
       return nextState;
     });
   };

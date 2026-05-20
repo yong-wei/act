@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { getArenaChallengeTask } from '@/features/arena/data/seed-challenges';
+import { getArenaChallengeObject, getArenaChallengeTask } from '@/features/arena/data/seed-challenges';
 import { resolveControlWorkbenchSession } from '../session-resolver';
 import { getPresetDefaultViewConfigs, getWorkbenchViewPlugin } from '../views';
 
@@ -23,6 +23,7 @@ describe('composite control workbench preset', () => {
     if (!result.ok) return;
 
     expect(result.session.defaultPreset).toBe('composite-control');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.recommendedWorkspaceMode).toBe('block-diagram-workbench');
     expect(result.session.allowedMethods).toContain('composite-compensation');
     expect(result.session.allowedViews).toEqual([
@@ -37,6 +38,9 @@ describe('composite control workbench preset', () => {
     const configs = getPresetDefaultViewConfigs('composite-control');
     const controlEffort = getWorkbenchViewPlugin('control-effort');
     const responseComparison = getWorkbenchViewPlugin('response-comparison');
+    const object = getArenaChallengeObject('plant-second-order-underdamped');
+    expect(object).toBeDefined();
+    if (!object) return;
 
     expect(configs.map((config) => config.id)).toEqual([
       'time-domain',
@@ -47,6 +51,8 @@ describe('composite control workbench preset', () => {
     expect(responseComparison?.getOptions({
       mode: 'explore',
       title: '复合校正',
+      object,
+      selectedObjectId: object.id,
       officialTarget: null,
       workingModel: null,
       allowedMethods: ['composite-compensation'],
@@ -55,7 +61,8 @@ describe('composite control workbench preset', () => {
       experimentPolicy: { enabled: false, signalTypes: [], requiresPersistedDataset: false },
       submissionPolicy: {
         officialEvaluationEnabled: false,
-        allowLocalPreview: true,
+        leaderboardEnabled: false,
+        requiresArtifactBridge: true,
         leaderboardTypes: [],
         disabledReason: 'test',
       },
@@ -76,6 +83,9 @@ describe('composite control workbench preset', () => {
     expect(shellSource).toContain('CompositeControlPreset');
     expect(shellSource).toContain("session.defaultPreset === 'composite-control'");
     expect(shellSource).toContain("session.defaultPreset !== 'composite-control'");
+    expect(shellSource).toContain('panelInstances={panels}');
+    expect(presetSource).toContain('panelInstances?: WorkbenchPanelInstance[]');
+    expect(presetSource).toContain('selectedPanelLabels(panelInstances)');
     expect(presetSource).toContain('prefilterGain');
     expect(presetSource).toContain('forwardGain');
     expect(presetSource).toContain('localFeedbackGain');

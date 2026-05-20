@@ -75,6 +75,8 @@ export interface OdysseyWorkbenchSessionContext extends ArenaBoundWorkbenchSessi
 
 export interface ExploreWorkbenchSessionContext extends WorkbenchSessionBase {
   mode: 'explore';
+  object: ChallengeObject;
+  selectedObjectId: ChallengeObject['id'];
   officialTarget: null;
 }
 

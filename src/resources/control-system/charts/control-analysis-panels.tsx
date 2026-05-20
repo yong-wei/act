@@ -36,11 +36,16 @@ import {
   type RootLocusMode,
 } from './control-bode-options';
 import { ControlChartPanel } from './control-chart-panel';
+import {
+  CONTROL_SIGNAL_CURVE_STYLES as SHARED_CONTROL_SIGNAL_CURVE_STYLES,
+  type ControlSignalCurveStyle,
+} from './control-signal-styles';
 
 // Shared axis presets must stay aligned with case ids like ship_heading/platform_pitch
 // and the root-locus variants rootLocusFull/rootLocusZoom used by the workspace.
 
 export { buildBodeTurnFrequencySeries };
+export const CONTROL_SIGNAL_CURVE_STYLES = SHARED_CONTROL_SIGNAL_CURVE_STYLES;
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
@@ -58,6 +63,14 @@ const ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH = 2.2;
 const ROOT_LOCUS_LEGEND_LINE_ICON = 'path://M0 -1.2 L28 -1.2 L28 1.2 L0 1.2 Z';
 const ROOT_LOCUS_LEGEND_DASHED_LINE_ICON = 'path://M0 -1 L6 -1 L6 1 L0 1 Z M10 -1 L17 -1 L17 1 L10 1 Z M21 -1 L28 -1 L28 1 L21 1 Z';
 
+export type TimeDomainCurveStyle = ControlSignalCurveStyle;
+
+export const TIME_DOMAIN_CURVE_STYLES = {
+  reference: CONTROL_SIGNAL_CURVE_STYLES.reference,
+  uncorrected: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput,
+  corrected: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput,
+} as const;
+
 export type RootLocusInteractiveHandle = {
   id: string;
   kind: 'pole' | 'zero';
@@ -74,6 +87,9 @@ interface CartesianRange {
 }
 
 type PartialAxisPreset = Partial<AxisPreset>;
+interface CartesianPanZoomOptions {
+  preserveAspectRatio?: boolean;
+}
 
 export interface CartesianDragRangeInput extends CartesianRange {
   width: number;
@@ -238,7 +254,11 @@ function shouldIgnoreCartesianPanZoom(event?: MouseEvent | WheelEvent): boolean 
   return target instanceof Element && Boolean(target.closest('[data-cartesian-pan-zoom-ignore="true"]'));
 }
 
-function installCartesianPanZoom(chart: ECharts, onRangeChange?: () => void): () => void {
+function installCartesianPanZoom(
+  chart: ECharts,
+  onRangeChange?: () => void,
+  options: CartesianPanZoomOptions = {},
+): () => void {
   const zr = chart.getZr();
   let dragState: {
     startX: number;
@@ -336,7 +356,9 @@ function installCartesianPanZoom(chart: ECharts, onRangeChange?: () => void): ()
   zr.on('mouseup', handleMouseUp);
   zr.on('globalout', handleMouseUp);
   zr.on('mousewheel', handleMouseWheel);
-  enforceEqualAspectOnChart(chart, onRangeChange);
+  if (options.preserveAspectRatio !== false) {
+    enforceEqualAspectOnChart(chart, onRangeChange);
+  }
 
   return () => {
     zr.off('mousedown', handleMouseDown);
@@ -684,15 +706,73 @@ export function calculateStableResponseAxisPreset(
   if (!isStable || points.length === 0) {
     return undefined;
   }
-  const maxAbs = points.reduce((max, point) => {
-    const value = Math.abs(point.y);
-    return Number.isFinite(value) ? Math.max(max, value) : max;
-  }, 0);
-  if (maxAbs <= 0) {
+  const values = points.map((point) => point.y).filter(Number.isFinite);
+  if (values.length === 0) {
     return undefined;
   }
-  const limit = roundRangeValue(maxAbs * 1.1);
-  return { y: [-limit, limit] };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const nearFlatBase = Math.max(Math.min(Math.abs(min), Math.abs(max)), 1);
+  const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
+  const margin = span > magnitudeBase * 0.05 ? span * 0.1 : nearFlatBase * 0.1;
+  return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
+}
+
+export function calculateTimeDomainVisibleAxisPreset(points: CurvePoint[]): { y: [number, number] } | undefined {
+  if (points.length === 0) {
+    return undefined;
+  }
+  const values = points.map((point) => point.y).filter(Number.isFinite);
+  if (values.length === 0) {
+    return undefined;
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const magnitudeBase = Math.max(Math.abs(min), Math.abs(max), 1);
+  const margin = span > magnitudeBase * 0.05 ? span * 0.1 : magnitudeBase * 0.1;
+  return { y: [roundRangeValue(min - margin), roundRangeValue(max + margin)] };
+}
+
+function buildCurvePointRangeSignature(points: CurvePoint[]): string {
+  const finitePoints = points.filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+  if (finitePoints.length === 0) {
+    return 'empty';
+  }
+  const yValues = finitePoints.map((point) => point.y);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const first = finitePoints[0];
+  const last = finitePoints[finitePoints.length - 1];
+  return [
+    finitePoints.length,
+    roundRangeValue(first.x),
+    roundRangeValue(first.y),
+    roundRangeValue(last.x),
+    roundRangeValue(last.y),
+    roundRangeValue(minY),
+    roundRangeValue(maxY),
+  ].join(':');
+}
+
+function buildTimeDomainResultRangeSignature(result: ControlAnalysisResult, caseId?: string): string {
+  return `${caseId ?? 'default'}|${buildCurvePointRangeSignature(result.stepResponse.points)}`;
+}
+
+function buildTimeDomainComparisonRangeSignature(
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>,
+  caseId?: string,
+): string {
+  return [
+    caseId ?? 'default',
+    ...panels.map((panel) => [
+      panel.label,
+      panel.style.color,
+      panel.style.lineType,
+      buildCurvePointRangeSignature(panel.result.stepResponse.points),
+    ].join(':')),
+  ].join('|');
 }
 
 export function buildLineOption(
@@ -1652,6 +1732,15 @@ export function TimeDomainPanel({
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const rangeSignatureRef = useRef<string | null>(null);
+  const rangeSignature = useMemo(
+    () => buildTimeDomainResultRangeSignature(result, caseId),
+    [caseId, result],
+  );
+  if (rangeSignatureRef.current !== rangeSignature) {
+    preservedRangeRef.current = null;
+    rangeSignatureRef.current = rangeSignature;
+  }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
@@ -1665,7 +1754,7 @@ export function TimeDomainPanel({
     const refreshRange = () => {
       preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
     };
-    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange, { preserveAspectRatio: false });
   }, []);
   const handleRefresh = useCallback(() => {
     const chart = chartRef.current;
@@ -1699,18 +1788,13 @@ export function TimeDomainPanel({
   );
 }
 
-function buildTimeDomainComparisonOption(
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>,
+export function buildTimeDomainComparisonOption(
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>,
   axisPreset?: PartialAxisPreset,
 ): EChartsCoreOption {
   return {
     animation: false,
-    legend: {
-      top: 0,
-      icon: ROOT_LOCUS_LEGEND_LINE_ICON,
-      data: panels.map((panel) => panel.label),
-    },
-    grid: { top: 34, right: 18, bottom: 42, left: 58 },
+    grid: { top: 18, right: 18, bottom: 42, left: 58 },
     tooltip: {
       trigger: 'axis',
       formatter: axisTooltipFormatter,
@@ -1740,7 +1824,7 @@ function buildTimeDomainComparisonOption(
       type: 'line',
       showSymbol: false,
       smooth: false,
-      lineStyle: { color: panel.color, width: CONTROL_CHART_MAIN_LINE_WIDTH },
+      lineStyle: { color: panel.style.color, type: panel.style.lineType, width: panel.style.width ?? CONTROL_CHART_MAIN_LINE_WIDTH },
       data: panel.result.stepResponse.points.map((point) => [point.x, point.y]),
     } satisfies ChartSeriesItem)),
   };
@@ -1751,18 +1835,26 @@ export function TimeDomainComparisonPanel({
   caseId,
   onRefreshRange,
 }: {
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  panels: Array<{ label: string; style: TimeDomainCurveStyle; result: ControlAnalysisResult }>;
   caseId?: string;
   onRefreshRange?: (range: CartesianRange) => void;
 }) {
   const axisPreset = getControlAxisPreset(caseId, 'step');
-  const stableAxisPreset = calculateStableResponseAxisPreset(
+  const stableAxisPreset = calculateTimeDomainVisibleAxisPreset(
     panels.flatMap((panel) => panel.result.stepResponse.points),
-    panels.every((panel) => panel.result.metrics.settlingTimeSec != null),
   );
   const chartRef = useRef<ECharts | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const preservedRangeRef = useRef<CartesianRange | null>(null);
+  const rangeSignatureRef = useRef<string | null>(null);
+  const rangeSignature = useMemo(
+    () => buildTimeDomainComparisonRangeSignature(panels, caseId),
+    [caseId, panels],
+  );
+  if (rangeSignatureRef.current !== rangeSignature) {
+    preservedRangeRef.current = null;
+    rangeSignatureRef.current = rangeSignature;
+  }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset ?? stableAxisPreset;
   const option = useMemo(
     () => buildTimeDomainComparisonOption(panels, displayedAxisPreset),
@@ -1774,7 +1866,7 @@ export function TimeDomainComparisonPanel({
     const refreshRange = () => {
       preservedRangeRef.current = getDisplayedCartesianRange(chart) ?? preservedRangeRef.current;
     };
-    cleanupRef.current = installCartesianPanZoom(chart, refreshRange);
+    cleanupRef.current = installCartesianPanZoom(chart, refreshRange, { preserveAspectRatio: false });
   }, []);
   const handleRefresh = useCallback(() => {
     const chart = chartRef.current;
@@ -2321,7 +2413,7 @@ export function BodeComparisonPanel({
   onTurnFrequencyCommit,
   onRefreshRange,
 }: {
-  panels: Array<{ label: string; color: string; result: ControlAnalysisResult }>;
+  panels: Array<{ label: string; color?: string; style?: ControlSignalCurveStyle; result: ControlAnalysisResult }>;
   caseId?: string;
   turnFrequencyHandles?: BodeTurnFrequencyHandle[];
   onTurnFrequencyCommit?: (id: string, frequency: number) => void;

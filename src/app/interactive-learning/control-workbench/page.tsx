@@ -16,6 +16,7 @@ function parseRouteParams(searchParams: SearchParams | undefined): ControlWorkbe
     seasonId: firstValue(searchParams?.seasonId),
     preset: firstValue(searchParams?.preset),
     mode: firstValue(searchParams?.mode),
+    objectId: firstValue(searchParams?.objectId),
   };
 }
 

@@ -1,9 +1,47 @@
 #!/usr/bin/env node
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const source = process.argv[2] || "-";
 const body = source === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(source, "utf8");
 const listKeys = new Set(["depends_on", "blocked_by", "blocking"]);
+
+function decodeEnvValue(value) {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function loadOpenSpecBuddyEnv() {
+  const defaultEnvFile = fileURLToPath(new URL("../../../../.env.openspec-buddy", import.meta.url));
+  const envFile = process.env.OPENSPEC_BUDDY_ENV_FILE || defaultEnvFile;
+
+  if (!fs.existsSync(envFile)) return;
+
+  const lines = fs.readFileSync(envFile, "utf8").split(/\r?\n/);
+  lines.forEach((rawLine, index) => {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) return;
+
+    const match = line.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) {
+      throw new Error(`Invalid OpenSpec Buddy env file line: ${envFile}:${index + 1}`);
+    }
+
+    const [, name, rawValue] = match;
+    if (!name.startsWith("OPENSPEC_BUDDY_")) return;
+    if (!process.env[name]) {
+      process.env[name] = decodeEnvValue(rawValue);
+    }
+  });
+}
+
+loadOpenSpecBuddyEnv();
 
 function parseScalar(value) {
   const trimmed = value.trim();
@@ -53,6 +91,15 @@ function parseFrontMatter(markdown) {
       continue;
     }
 
+    if (listKeys.has(key)) {
+      if (value.trim() === "[]") {
+        data[key] = [];
+        currentListKey = null;
+        continue;
+      }
+      throw new Error(`List field ${key} must use [] when empty or YAML block list items when non-empty.`);
+    }
+
     data[key] = parseScalar(value);
     currentListKey = Array.isArray(data[key]) ? key : null;
   }
@@ -87,6 +134,13 @@ function validate(data) {
 
   if (data.claim_branch !== data.change_id) {
     errors.push("claim_branch must equal change_id.");
+  }
+
+  const expectedBaseBranch = process.env.OPENSPEC_BUDDY_BASE_BRANCH;
+  if (!expectedBaseBranch) {
+    errors.push("Missing required environment variable: OPENSPEC_BUDDY_BASE_BRANCH.");
+  } else if (data.base_branch !== expectedBaseBranch) {
+    errors.push(`base_branch must be ${expectedBaseBranch}.`);
   }
 
   const expectedPath = `openspec/changes/${data.change_id}`;

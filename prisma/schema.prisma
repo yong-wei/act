@@ -1285,6 +1285,30 @@ model StudentCompetencySnapshot {
   @@index([snapshotAt])
 }
 
+model StudentEvidenceFeatureCache {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  payloadVersion    String
+  features          Json
+  evidenceWindow    Json
+  sourceCounts      Json
+  sourceCoverage    Json
+  freshness         Json
+  confidenceMarkers Json
+  statusMarkers     Json
+  sourceFactCount   Int       @default(0)
+  lastSourceFactAt  DateTime?
+  refreshedAt       DateTime
+  rebuiltAt         DateTime
+  rebuildCount      Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([refreshedAt])
+  @@index([lastSourceFactAt])
+  @@index([payloadVersion])
+}
+
 // Optimized profile summary for AI assistant
 model StudentProfileSummary {
   userId                 String   @id

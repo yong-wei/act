@@ -8,7 +8,10 @@ import {
   type CompetencyVector,
   type TrendVector,
 } from '@/lib/data-governance/competency-model';
-import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
+import {
+  generateRecommendations,
+  type RecommendationRationale,
+} from '@/lib/data-governance/recommendation-engine';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -46,6 +49,7 @@ type TeacherStudentRecommendationItem = {
   priority: number;
   estimatedTime?: string;
   tags: string[];
+  rationale: RecommendationRationale;
 };
 
 type TeacherStudentEvidenceItem = {
@@ -300,6 +304,7 @@ export async function GET(
         priority: recommendation.priority,
         estimatedTime: recommendation.estimatedTime,
         tags: recommendation.tags,
+        rationale: recommendation.rationale,
       })),
       evidenceSummary: COMPETENCY_DIMENSIONS.map((dimension) => ({
         dimension,

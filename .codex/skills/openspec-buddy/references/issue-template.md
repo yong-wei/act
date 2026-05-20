@@ -6,10 +6,10 @@ Use this template when running `openspec-buddy propose`.
 ---
 change_id: example-change-id
 claim_branch: example-change-id
-series: arena-workbench
-coupling_group: workbench-context-chain
+series: example-series
+coupling_group: example-coupling-group
 execution_mode: isolated
-base_branch: main
+base_branch: example-base-branch
 required_branch:
 depends_on: []
 parent_issue:
@@ -17,7 +17,7 @@ blocked_by: []
 blocking: []
 openspec_path: openspec/changes/example-change-id
 risk: medium
-area: arena
+area: example-area
 ---
 
 ## Goal
@@ -46,6 +46,20 @@ Describe the user-visible or engineering outcome.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
 ```
+
+For non-empty list fields, use YAML block lists:
+
+```yaml
+depends_on:
+  - upstream-change-id
+blocked_by:
+  - 123
+blocking:
+  - 456
+```
+
+Do not write non-empty lists inline as `[upstream-change-id]`; the Buddy
+metadata parser rejects that form. Empty lists should remain inline as `[]`.
 
 Labels to apply:
 

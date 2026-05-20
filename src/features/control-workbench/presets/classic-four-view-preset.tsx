@@ -3,13 +3,17 @@ import Link from 'next/link';
 import { MultiRepresentationLinkageClient } from '@/features/interactive/multi-representation-linkage/page-client';
 import type { WorkbenchSessionContext } from '../types';
 import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import type { WorkbenchPanelInstance } from '../views';
+import type {
+  MultiRepresentationInitialParams,
+  MultiRepresentationPanelOptionsChangeHandler,
+} from '@/features/interactive/multi-representation-linkage/model';
 
 type ClassicPresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 
 function hasClassicModel(session: WorkbenchSessionContext) {
   return Boolean(
-    'taskId' in session
-      && session.workingModel
+    session.workingModel
       && session.workingModel.representation.kind === 'transfer-function'
       && session.allowedViews.includes('time-domain')
       && session.allowedViews.includes('bode')
@@ -26,6 +30,28 @@ function mapClassicViewConfig(config: WorkbenchViewConfig | undefined) {
   };
 }
 
+function buildClassicPlantModel(
+  session: WorkbenchSessionContext,
+): MultiRepresentationInitialParams['plantModel'] {
+  const model = session.workingModel;
+  if (!model || model.representation.kind !== 'transfer-function') {
+    return undefined;
+  }
+
+  return {
+    id: model.id,
+    objectId: model.sourceObjectId,
+    name: 'object' in session ? session.object.name : '综合仿真对象',
+    display: model.representation.display,
+    latex: model.representation.latex,
+    numerator: [...model.representation.numerator],
+    denominator: [...model.representation.denominator],
+    timeRange: 'object' in session ? session.object.timeRange : undefined,
+    frequencyRange: 'object' in session ? session.object.frequencyRange : undefined,
+    workbenchSeed: 'object' in session ? session.object.workbenchSeed : undefined,
+  };
+}
+
 function mapClassicViewConfigs(viewConfigs: ClassicPresetViewConfigs | undefined) {
   if (!viewConfigs) return undefined;
   return {
@@ -39,11 +65,15 @@ function mapClassicViewConfigs(viewConfigs: ClassicPresetViewConfigs | undefined
 export function ClassicFourViewPreset({
   session,
   viewConfigs,
+  panelInstances,
+  onPanelSelectedOptionsChange,
 }: {
   session: WorkbenchSessionContext;
   viewConfigs?: ClassicPresetViewConfigs;
+  panelInstances?: WorkbenchPanelInstance[];
+  onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
 }) {
-  if (!('taskId' in session) || !hasClassicModel(session)) {
+  if (!hasClassicModel(session)) {
     return (
       <section className="rounded-lg border border-amber-400/40 bg-amber-950/20 p-5 text-sm text-amber-100">
         <p className="text-xs font-medium text-amber-200">工作台模式不匹配</p>
@@ -65,14 +95,31 @@ export function ClassicFourViewPreset({
     );
   }
 
+  const plantModel = buildClassicPlantModel(session);
+
   return (
     <section className="overflow-hidden rounded-lg border border-white/10 bg-slate-950/30">
       <MultiRepresentationLinkageClient
+        key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}
+        onPanelSelectedOptionsChange={onPanelSelectedOptionsChange}
         initialParams={{
-          arenaTaskId: session.taskId,
+          arenaTaskId: 'taskId' in session ? session.taskId : undefined,
           embed: true,
+          plantModel,
           publicationId: 'publicationId' in session ? session.publicationId : undefined,
           role: 'student',
+          panelInstances: panelInstances?.filter((panel) => (
+            panel.viewId === 'time-domain'
+            || panel.viewId === 'bode'
+            || panel.viewId === 'root-locus'
+            || panel.viewId === 'nyquist'
+          )).map((panel) => ({
+            id: panel.id,
+            viewId: panel.viewId as 'time-domain' | 'bode' | 'root-locus' | 'nyquist',
+            title: panel.title,
+            enabled: panel.enabled,
+            selectedOptions: panel.selectedOptions ? [...panel.selectedOptions] : undefined,
+          })),
           viewConfigs: mapClassicViewConfigs(viewConfigs),
         }}
       />

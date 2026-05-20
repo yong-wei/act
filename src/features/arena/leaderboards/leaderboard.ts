@@ -17,6 +17,7 @@ export interface ArenaLeaderboardEntry {
   rank: number;
   submissionId: string;
   studentLabel: string;
+  studentNumber?: string;
   taskId: string;
   method: ControllerMethod;
   score: number;
@@ -221,6 +222,7 @@ export function buildArenaLeaderboard(
         rank: index + 1,
         submissionId: submission.id,
         studentLabel: submission.studentLabel,
+        studentNumber: submission.studentNumber,
         taskId: submission.taskId,
         method: submission.artifact.method,
         score: submission.evaluation.score,

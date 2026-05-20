@@ -23,6 +23,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('challenge');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.task.id).toBe('task-second-order-lead-pid');
     expect(result.session.object.id).toBe('plant-second-order-underdamped');
     expect(result.session.metricProfile.id).toBe('metric-whitebox-time-domain-balanced');
@@ -42,11 +43,37 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('explore');
+    expect(result.session.object.id).toBe('plant-second-order-underdamped');
     expect(result.session.officialTarget).toBeNull();
-    expect(result.session.workingModel).toBeNull();
+    expect(result.session.workingModel?.sourceObjectId).toBe('plant-second-order-underdamped');
+    expect(result.session.workingModel?.representation.kind).toBe('transfer-function');
     expect(result.session.submissionPolicy.officialEvaluationEnabled).toBe(false);
     expect(result.session.submissionPolicy.leaderboardEnabled).toBe(false);
     expect(result.session.submissionPolicy.disabledReason).toContain('自由探索');
+  });
+
+  it('selects a configured free-explore object from objectId and falls back safely', () => {
+    const selected = resolveControlWorkbenchSession({
+      mode: 'explore',
+      preset: 'classic-four-view',
+      objectId: 'plant-first-order-lag',
+    });
+    const fallback = resolveControlWorkbenchSession({
+      mode: 'explore',
+      preset: 'classic-four-view',
+      objectId: 'missing-object',
+    });
+
+    expect(selected.ok).toBe(true);
+    expect(fallback.ok).toBe(true);
+    if (!selected.ok || !fallback.ok) return;
+
+    expect(selected.session.mode).toBe('explore');
+    expect(selected.session.object.id).toBe('plant-first-order-lag');
+    expect(selected.session.workingModel?.sourceObjectId).toBe('plant-first-order-lag');
+    expect(fallback.session.object.id).toBe('plant-second-order-underdamped');
+    expect('taskId' in selected.session).toBe(false);
+    expect(selected.session.officialTarget).toBeNull();
   });
 
   it('preserves publication id as assignment context', () => {
@@ -61,6 +88,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('assignment');
+    if (result.session.mode !== 'assignment') throw new Error('Expected assignment session');
     expect(result.session.publicationId).toBe('pub-1');
     expect(result.session.classId).toBe('class-1');
     expect(result.session.seasonId).toBe('season-1');
@@ -95,6 +123,7 @@ describe('control workbench session resolver', () => {
     if (!result.ok) return;
 
     expect(result.session.mode).toBe('challenge');
+    if (result.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(result.session.officialTarget.hiddenTarget).toBe(true);
     expect('transferFunction' in result.session.officialTarget).toBe(false);
     expect(result.session.workingModel).toBeNull();
@@ -121,12 +150,27 @@ describe('control workbench route boundary', () => {
     expect(routeSource).toContain('resolveControlWorkbenchSession');
     expect(shellSource).toContain('无法解析竞技场挑战');
     expect(shellSource).toContain('自由探索模式');
-    expect(shellSource).toContain('视图配置');
+    expect(shellSource).toContain('会话状态');
+    expect(shellSource).toContain('添加面板');
+    expect(shellSource).toContain('每个面板的配置在对应面板标题区调整');
     expect(shellSource).toContain('重置默认');
+    expect(shellSource).toContain('sessionStorage');
     expect(shellSource).toContain('ArenaWorkbenchSubmissionMount');
     expect(shellSource).toContain('showArenaSubmissionMount');
     expect(shellSource).toContain("session.defaultPreset !== 'classic-whitebox'");
     expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
+  });
+
+  it('keeps layout controls structural and leaves view-specific configuration inside panels', () => {
+    const shellSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
+
+    expect(shellSource).toContain("return viewId === 'root-locus' || viewId === 'nyquist';");
+    expect(shellSource).not.toContain('面板配置');
+    expect(shellSource).not.toContain("type={isSingleSelectionView(panel.viewId) ? 'radio' : 'checkbox'}");
+    expect(shellSource).not.toContain('togglePanelOption');
+    expect(shellSource).not.toContain("viewId === 'root-locus' ? 'radio' : 'checkbox'");
+    expect(shellSource).not.toContain("} else if (viewId === 'root-locus')");
+    expect(shellSource).not.toContain('selected.clear();');
   });
 
   it('preserves assignment publication id in the challenge return link', () => {
@@ -141,5 +185,14 @@ describe('control workbench route boundary', () => {
     expect(getControlWorkbenchReturnHref(result.session)).toBe(
       '/arena/challenges/task-second-order-lead-pid?publicationId=pub+1',
     );
+  });
+
+  it('returns free exploration to the cross-domain catalog', () => {
+    const result = resolveControlWorkbenchSession({});
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(getControlWorkbenchReturnHref(result.session)).toBe('/interactive-learning/cross-domain-exploration');
   });
 });

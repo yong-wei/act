@@ -119,6 +119,14 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
     expect(result.artifact!.params.gain).toBeCloseTo(2.5, 5);
   });
 
+  it('lead: serial compensator falls back to preview-safe positive frequencies before official submission', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...leadState, leadZeroFrequency: 0, leadPoleFrequency: -8 },
+    });
+    expect(result.artifact!.params).toMatchObject({ gain: 1, zero: 1, pole: 4 });
+  });
+
   it('lead: official analysis interprets serial gain as the same controller gain shown in the workbench', () => {
     const result = buildArenaArtifactFromMultiRepresentationState({
       task: baseTask,
@@ -156,6 +164,14 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
     expect(result.artifact!.params.gain).toBeCloseTo(0.4, 5);
   });
 
+  it('lag: serial compensator falls back to preview-safe positive frequencies before official submission', () => {
+    const result = buildArenaArtifactFromMultiRepresentationState({
+      task: baseTask,
+      correctionState: { ...lagState, lagZeroFrequency: -0.5, lagPoleFrequency: 0 },
+    });
+    expect(result.artifact!.params).toMatchObject({ gain: 1, zero: 0.2, pole: 0.05 });
+  });
+
   it('lead_lag: still blocked from official submission', () => {
     const result = buildArenaArtifactFromMultiRepresentationState({ task: baseTask, correctionState: leadLagState });
     expect(result.artifact).toBeNull();
@@ -172,7 +188,7 @@ describe('buildArenaArtifactFromMultiRepresentationState — gain equivalence', 
   });
 
   it('rejects method not in allowedMethods', () => {
-    const pidOnlyTask = { ...baseTask, allowedMethods: ['pid'] as const };
+    const pidOnlyTask = { ...baseTask, allowedMethods: ['pid'] as ChallengeTask['allowedMethods'] };
     const result = buildArenaArtifactFromMultiRepresentationState({
       task: pidOnlyTask,
       correctionState: leadState,

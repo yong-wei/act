@@ -79,6 +79,24 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('keeps second-based duration payloads as seconds in canonical facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'simulation-duration-seconds-001',
+      actionType: 'simulation_finish',
+      payload: {
+        eventType: 'simulation_finish',
+        moduleId: 'module-3',
+        durationSeconds: 140,
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'simulation-duration-seconds-001',
+      factType: 'simulation',
+      timeSpent: 140,
+    });
+  });
+
   it('does not materialize raw parameter ticks or sync errors', () => {
     const rawTick = eventToLearningFactInput(createEvent({
       actionType: 'param_change',
@@ -182,6 +200,161 @@ describe('eventToLearningFactInput', () => {
     expect(fact?.competencyContribution).toMatchObject({
       parameterDesign: 0.7,
       controlModeling: 0.4,
+    });
+  });
+
+  it('scores objective lesson submissions from per-card question summaries', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-001',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        attemptKey: 'step-02:response:1778550642900',
+        clientEventId: 'client-step-02-submit',
+        sourceLogId: 'log-step-02-submit',
+        questionSummaries: [
+          {
+            questionId: 'model-order',
+            studentAnswer: 'A',
+            referenceAnswer: 'A',
+          },
+          {
+            questionId: 'disturbance-boundary',
+            studentAnswer: 'B',
+            referenceAnswer: 'A',
+          },
+        ],
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      score: 50,
+      outcome: 'partial',
+      contextJson: {
+        interactiveQuiz: {
+          lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+          stepId: 'step-02',
+          attemptKey: 'step-02:response:1778550642900',
+          clientEventId: 'client-step-02-submit',
+          sourceLogId: 'log-step-02-submit',
+          scoring: {
+            supported: true,
+            answeredCount: 2,
+            correctCount: 1,
+            totalCount: 2,
+            score: 50,
+            basis: 'questionSummaries',
+          },
+          cards: [
+            {
+              cardId: 'model-order',
+              selectedValue: 'A',
+              referenceAnswer: 'A',
+              isCorrect: true,
+            },
+            {
+              cardId: 'disturbance-boundary',
+              selectedValue: 'B',
+              referenceAnswer: 'A',
+              isCorrect: false,
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  it('keeps unanswered objective cards in the scoring denominator', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-partial',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        questionSummaries: [
+          {
+            questionId: 'model-order',
+            studentAnswer: 'a',
+            referenceAnswer: '选 A。名义模型阶次应保留为二阶。',
+            referenceValue: 'a',
+            answered: true,
+            isCorrect: true,
+          },
+          {
+            questionId: 'disturbance-boundary',
+            studentAnswer: null,
+            referenceAnswer: '选 A。扰动边界不能忽略。',
+            referenceValue: 'a',
+            answered: false,
+            isCorrect: false,
+          },
+        ],
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      score: 50,
+      outcome: 'partial',
+      contextJson: {
+        interactiveQuiz: {
+          scoring: {
+            supported: true,
+            answeredCount: 1,
+            correctCount: 1,
+            totalCount: 2,
+            score: 50,
+          },
+          cards: [
+            {
+              cardId: 'model-order',
+              selectedValue: 'a',
+              answered: true,
+              isCorrect: true,
+            },
+            {
+              cardId: 'disturbance-boundary',
+              selectedValue: null,
+              answered: false,
+              isCorrect: false,
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  it('marks unsupported objective scoring explicitly instead of writing a zero score', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-unsupported',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        attemptKey: 'step-02:response:1778550642999',
+        answers: {
+          'model-order': 'A',
+        },
+      },
+    }));
+
+    expect(fact?.score).toBeUndefined();
+    expect(fact?.contextJson).toMatchObject({
+      interactiveQuiz: {
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        scoring: {
+          supported: false,
+          reason: 'missing_objective_answer_keys',
+          answeredCount: 1,
+        },
+      },
     });
   });
 

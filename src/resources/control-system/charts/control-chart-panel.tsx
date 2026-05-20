@@ -84,7 +84,7 @@ export function ControlChartPanel({
 
       const chart = init(containerRef.current, undefined, { renderer: 'canvas' });
       chartRef.current = chart;
-      chart.setOption(optionRef.current, { notMerge: false, lazyUpdate: true });
+      chart.setOption(optionRef.current, { notMerge: false, lazyUpdate: true, replaceMerge: ['series'] });
       onChartReadyRef.current?.(chart, containerRef.current);
 
       const observer = new ResizeObserver(() => {
@@ -109,7 +109,7 @@ export function ControlChartPanel({
   }, []);
 
   useEffect(() => {
-    chartRef.current?.setOption(themedOption, { notMerge: false, lazyUpdate: true });
+    chartRef.current?.setOption(themedOption, { notMerge: false, lazyUpdate: true, replaceMerge: ['series'] });
   }, [themedOption]);
 
   return (

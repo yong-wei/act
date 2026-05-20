@@ -61,10 +61,10 @@ export default function CrossDomainExplorationPage() {
     return [
       {
         key: 'multi-representation-linkage',
-        title: '多表征联动可视化引擎',
-        description: '根轨迹、Bode、Nyquist 与时域响应联动，支持跨域参数探索。',
-        href: '/interactive-learning/multi-representation-linkage',
-        tag: '跨域联动（置顶）',
+        title: '综合仿真工作台',
+        description: '时域响应、Bode、根轨迹与 Nyquist 视图共用同一对象上下文。',
+        href: '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view',
+        tag: '综合仿真（置顶）',
       },
       ...dynamicEntries,
     ];
@@ -77,7 +77,7 @@ export default function CrossDomainExplorationPage() {
       <main className="mx-auto max-w-[1280px] px-6 py-10">
         <header className="surface-card mb-8 p-6">
           <h1 className="text-3xl font-semibold">跨域探索</h1>
-          <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解。首个入口固定为“多表征联动可视化引擎”。</p>
+          <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解。首个入口固定为“综合仿真工作台”。</p>
         </header>
 
         {isLoading ? (

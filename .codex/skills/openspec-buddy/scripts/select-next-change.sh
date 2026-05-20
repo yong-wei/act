@@ -4,6 +4,8 @@ set -euo pipefail
 current_series="${1:-}"
 limit="${2:-100}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 

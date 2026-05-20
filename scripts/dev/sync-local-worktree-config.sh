@@ -32,6 +32,7 @@ Options:
 
 Copied by default:
   .env
+  .env.openspec-buddy
   .envrc
   AGENTS.md
   GEMINI.md
@@ -40,6 +41,9 @@ Copied by default:
   .claude/skills/
   .serena/project.yml
   .serena/memories/
+
+Linked by default:
+  node_modules -> <source>/node_modules
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
@@ -120,6 +124,7 @@ require_command git
 
 FILES=(
   ".env"
+  ".env.openspec-buddy"
   ".envrc"
   "AGENTS.md"
   "GEMINI.md"
@@ -131,6 +136,10 @@ DIRS=(
   ".claude/commands"
   ".claude/skills"
   ".serena/memories"
+)
+
+DEPENDENCY_LINKS=(
+  "node_modules"
 )
 
 if [[ "$INCLUDE_CODEX_PLANS" -eq 1 ]]; then
@@ -222,6 +231,68 @@ copy_dir() {
   fi
 }
 
+ensure_local_exclude() {
+  local rel="$1"
+  local exclude_file
+  exclude_file="$(git -C "$TARGET" rev-parse --git-path info/exclude)"
+
+  if grep -Fxq "$rel" "$exclude_file" 2>/dev/null; then
+    return
+  fi
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would add local exclude: $rel"
+    return
+  fi
+
+  mkdir -p "$(dirname "$exclude_file")"
+  printf '%s\n' "$rel" >> "$exclude_file"
+  echo "added local exclude: $rel"
+}
+
+link_dependency_dir() {
+  local rel="$1"
+  local src="$SOURCE/$rel"
+  local dest="$TARGET/$rel"
+  local current_target=""
+
+  if [[ ! -d "$src" ]]; then
+    echo "skip missing dependency dir: $rel"
+    return
+  fi
+
+  if [[ -L "$dest" ]]; then
+    current_target="$(readlink "$dest")"
+    if [[ "$current_target" == "$src" ]]; then
+      echo "dependency link already exists: $rel -> $src"
+      ensure_local_exclude "$rel"
+      return
+    fi
+  elif [[ -e "$dest" ]]; then
+    echo "skip existing dependency path: $rel"
+    ensure_local_exclude "$rel"
+    return
+  fi
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    if [[ -L "$dest" ]]; then
+      echo "would relink dependency dir: $rel -> $src"
+    else
+      echo "would link dependency dir: $rel -> $src"
+    fi
+    ensure_local_exclude "$rel"
+    return
+  fi
+
+  if [[ -L "$dest" ]]; then
+    rm "$dest"
+  fi
+
+  ln -s "$src" "$dest"
+  echo "linked dependency dir: $rel -> $src"
+  ensure_local_exclude "$rel"
+}
+
 warn_if_not_ignored_or_tracked() {
   local rel="$1"
   if git -C "$TARGET" ls-files --error-unmatch "$rel" >/dev/null 2>&1; then
@@ -250,13 +321,19 @@ for rel in "${DIRS[@]}"; do
 done
 
 echo
+echo "Dependency links:"
+for rel in "${DEPENDENCY_LINKS[@]}"; do
+  link_dependency_dir "$rel"
+done
+
+echo
 echo "Ignore/tracking check:"
-for rel in "${FILES[@]}" "${DIRS[@]}"; do
+for rel in "${FILES[@]}" "${DIRS[@]}" "${DEPENDENCY_LINKS[@]}"; do
   warn_if_not_ignored_or_tracked "$rel"
 done
 
 echo
 echo "Follow-up commands for a new long-lived worktree:"
-echo "  rtk npm install"
+echo "  scripts/dev/sync-local-worktree-config.sh --apply --target \"$TARGET\""
 echo "  rtk code-review-graph register \"$TARGET\" --alias <alias>"
 echo "  rtk code-review-graph build --repo \"$TARGET\""

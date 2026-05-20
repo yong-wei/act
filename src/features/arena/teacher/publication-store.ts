@@ -144,6 +144,25 @@ function isArenaPublicationVisibility(value: unknown): value is ArenaPublication
   return value === 'class' || value === 'course' || value === 'public';
 }
 
+function isMissingArenaPublicationSchema(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  const prismaError = error as {
+    code?: unknown;
+    meta?: {
+      modelName?: unknown;
+    };
+  };
+  return prismaError.code === 'P2021' ||
+    (
+      process.env.NODE_ENV !== 'production' &&
+      prismaError.code === 'P2022' &&
+      prismaError.meta?.modelName === 'ArenaChallengePublication'
+    );
+}
+
 function readDate(value: unknown): string {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') return new Date(value).toISOString();
@@ -322,16 +341,24 @@ export async function listArenaPublicationsForStudent(
     select: { userId: true, classId: true },
   });
   const classId = profile?.classId ?? undefined;
-  const rows = await db.arenaChallengePublication.findMany({
-    where: {
-      status: 'active',
-      OR: [
-        { visibility: { in: ['course', 'public'] } },
-        ...(classId ? [{ visibility: 'class', classId }] : []),
-      ],
-    },
-    orderBy: { deadline: 'asc' },
-  });
+  let rows: Record<string, unknown>[];
+  try {
+    rows = await db.arenaChallengePublication.findMany({
+      where: {
+        status: 'active',
+        OR: [
+          { visibility: { in: ['course', 'public'] } },
+          ...(classId ? [{ visibility: 'class', classId }] : []),
+        ],
+      },
+      orderBy: { deadline: 'asc' },
+    });
+  } catch (error) {
+    if (isMissingArenaPublicationSchema(error)) {
+      return [];
+    }
+    throw error;
+  }
   const now = input.now ?? new Date();
   return rows
     .map(toRecord)

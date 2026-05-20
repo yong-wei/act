@@ -9,8 +9,37 @@ import type { CompetencyVector, CompetencyDimension } from './competency-model';
 import { COMPETENCY_DIMENSIONS, getCompetencyLabel, getCompetencyLevel } from './competency-model';
 import type { RiskFlag } from './risk-detector';
 import { getRecommendedScaffolding } from './risk-detector';
+import {
+  readStudentEvidenceFeatures,
+  type StudentEvidenceCoverageState,
+  type StudentEvidenceStatusMarker,
+  type StudentEvidenceWindow,
+} from './student-evidence-feature-cache';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
+export type RecommendationEvidenceBasis =
+  | 'student-evidence-feature-cache'
+  | 'approved-snapshot'
+  | 'governed-facts'
+  | 'fallback';
+export type RecommendationEvidenceRole = 'direct' | 'risk' | 'aggregate' | 'context';
+export type RecommendationConfidenceState = 'ready' | 'stale' | 'missing' | 'partial' | 'low-confidence';
+
+export interface RecommendationRationale {
+  reasonCode: string;
+  evidenceBasis: RecommendationEvidenceBasis;
+  evidenceRole: RecommendationEvidenceRole;
+  contextOnly: boolean;
+  evidenceWindow: StudentEvidenceWindow;
+  evidenceCount: number;
+  sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
+  confidence: {
+    state: RecommendationConfidenceState;
+    level: 'none' | 'low' | 'medium' | 'high';
+    score: number;
+    markers: StudentEvidenceStatusMarker[];
+  };
+}
 
 export interface Recommendation {
   id: string;
@@ -18,6 +47,7 @@ export interface Recommendation {
   title: string;
   description: string;
   reason: string;
+  rationale: RecommendationRationale;
   actionUrl: string;
   actionLabel: string;
   priority: number; // 0-100
@@ -36,6 +66,7 @@ export interface RecommendationContext {
     startedAt: Date;
     score?: number;
   }>;
+  evidence: RecommendationEvidenceContext;
   learningHistory: {
     totalMissions: number;
     completedMissions: number;
@@ -44,12 +75,26 @@ export interface RecommendationContext {
   };
 }
 
+interface RecommendationEvidenceContext {
+  basis: RecommendationEvidenceBasis;
+  readState: 'ready' | 'stale' | 'missing';
+  evidenceWindow: StudentEvidenceWindow;
+  evidenceCount: number;
+  sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
+  confidence: {
+    level: 'none' | 'low' | 'medium' | 'high';
+    score: number;
+  };
+  statusMarkers: StudentEvidenceStatusMarker[];
+}
+
 // Recommendation rule definitions
 interface RecommendationRule {
   id: string;
   type: RecommendationType;
+  evidenceRole: RecommendationEvidenceRole;
   condition: (ctx: RecommendationContext) => boolean;
-  generate: (ctx: RecommendationContext) => Omit<Recommendation, 'id' | 'type' | 'priority'> & { priority: number };
+  generate: (ctx: RecommendationContext) => Omit<Recommendation, 'id' | 'type' | 'priority' | 'rationale'> & { priority: number };
 }
 
 // Rule set for generating recommendations
@@ -58,6 +103,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'ai-misuse-intervention',
     type: 'immediate',
+    evidenceRole: 'risk',
     condition: (ctx) => ctx.riskFlags.some(r => r.type === 'ai_misuse' && r.severity === 'high'),
     generate: () => ({
       title: '优化AI使用方式',
@@ -75,6 +121,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'participation-intervention',
     type: 'immediate',
+    evidenceRole: 'risk',
     condition: (ctx) => ctx.riskFlags.some(r => r.type === 'participation'),
     generate: () => ({
       title: '恢复学习节奏',
@@ -92,6 +139,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'constraint-intervention',
     type: 'immediate',
+    evidenceRole: 'risk',
     condition: (ctx) => ctx.riskFlags.some(r => r.type === 'constraint' && r.severity === 'high'),
     generate: () => ({
       title: '强化工程约束意识',
@@ -109,6 +157,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'cross-domain-boost',
     type: 'immediate',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       const crossScore = ctx.competencyVector.crossDomainTransfer.score;
       const controlScore = ctx.competencyVector.controlModeling.score;
@@ -130,6 +179,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'stagnation-recovery',
     type: 'immediate',
+    evidenceRole: 'risk',
     condition: (ctx) => ctx.riskFlags.some(r => r.type === 'stagnation'),
     generate: () => ({
       title: '突破学习瓶颈',
@@ -147,6 +197,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'weak-dimension-practice',
     type: 'weekly',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       const weakestScore = Math.min(...COMPETENCY_DIMENSIONS.map(d => ctx.competencyVector[d].score));
       return weakestScore < 60;
@@ -175,6 +226,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'prompt-design-improvement',
     type: 'weekly',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       const reflectionScore = ctx.competencyVector.inquiryReflection.score;
       return reflectionScore < 65 && reflectionScore > 40;
@@ -195,6 +247,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'engineering-decision-practice',
     type: 'weekly',
+    evidenceRole: 'direct',
     condition: (ctx) => ctx.competencyVector.engineeringDecision.score < 60,
     generate: () => ({
       title: '工程决策训练',
@@ -212,6 +265,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'knowledge-graph-exploration',
     type: 'weekly',
+    evidenceRole: 'context',
     condition: (ctx) => ctx.learningHistory.completedMissions < 5,
     generate: () => ({
       title: '探索知识图谱',
@@ -229,6 +283,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'expert-mission-challenge',
     type: 'challenge',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       const avgScore = COMPETENCY_DIMENSIONS.reduce((sum, d) => sum + ctx.competencyVector[d].score, 0)
         / COMPETENCY_DIMENSIONS.length;
@@ -250,6 +305,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'ethics-sandbox-challenge',
     type: 'challenge',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       return ctx.competencyVector.engineeringDecision.score > 70;
     },
@@ -269,6 +325,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'design-optimization-challenge',
     type: 'challenge',
+    evidenceRole: 'direct',
     condition: (ctx) => {
       return ctx.competencyVector.parameterDesign.score > 70
         && ctx.competencyVector.controlModeling.score > 65;
@@ -289,6 +346,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
   {
     id: 'self-directed-project',
     type: 'challenge',
+    evidenceRole: 'context',
     condition: (ctx) => {
       return ctx.competencyVector.selfDirectedLearning.score > 70
         && ctx.learningHistory.streakDays >= 7;
@@ -323,6 +381,7 @@ export async function generateRecommendations(userId: string): Promise<Recommend
         recommendations.push({
           id: `${rule.id}-${Date.now()}`,
           type: rule.type,
+          rationale: buildRecommendationRationale(rule, context),
           ...generated,
         });
       }
@@ -343,58 +402,69 @@ export async function generateRecommendations(userId: string): Promise<Recommend
  * Build recommendation context from database
  */
 async function buildRecommendationContext(userId: string): Promise<RecommendationContext> {
-  // Get latest competency snapshot
-  const snapshot = await prisma.studentCompetencySnapshot.findFirst({
-    where: { userId },
-    orderBy: { snapshotAt: 'desc' },
-  });
+  const featureRead = await readStudentEvidenceFeatures(prisma, userId);
+  const featureCache = normalizeFeatureCache(featureRead.cache);
+  const cachedVector = getCachedCompetencyVector(featureCache);
 
-  // Get risk flags
-  const riskFlags = await prisma.studentRiskFlag.findMany({
-    where: { userId, isResolved: false },
-  });
-
-  // Get recent learning facts
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const recentFacts = await prisma.learningFact.findMany({
-    where: {
-      userId,
-      startedAt: { gte: thirtyDaysAgo },
-    },
-    orderBy: { startedAt: 'desc' },
-    take: 50,
-    select: {
-      factType: true,
-      outcome: true,
-      startedAt: true,
-      score: true,
-    },
-  });
+  const [
+    snapshot,
+    riskFlags,
+    recentFacts,
+    totalMissions,
+    completedMissions,
+    lastFact,
+  ] = await Promise.all([
+    cachedVector
+      ? Promise.resolve(null)
+      : prisma.studentCompetencySnapshot.findFirst({
+          where: { userId },
+          orderBy: [
+            { snapshotAt: 'desc' },
+            { id: 'desc' },
+          ],
+        }),
+    prisma.studentRiskFlag.findMany({
+      where: { userId, isResolved: false },
+    }),
+    prisma.learningFact.findMany({
+      where: {
+        userId,
+        startedAt: { gte: thirtyDaysAgo },
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 50,
+      select: {
+        factType: true,
+        outcome: true,
+        startedAt: true,
+        score: true,
+      },
+    }),
+    prisma.userProgress.count({
+      where: { userId },
+    }),
+    prisma.userProgress.count({
+      where: { userId, status: 'COMPLETED' },
+    }),
+    prisma.learningFact.findFirst({
+      where: { userId },
+      orderBy: { startedAt: 'desc' },
+      select: { startedAt: true },
+    }),
+  ]);
 
-  // Calculate learning history stats
-  const totalMissions = await prisma.userProgress.count({
-    where: { userId },
-  });
-
-  const completedMissions = await prisma.userProgress.count({
-    where: { userId, status: 'COMPLETED' },
-  });
-
-  const lastFact = await prisma.learningFact.findFirst({
-    where: { userId },
-    orderBy: { startedAt: 'desc' },
-    select: { startedAt: true },
-  });
-
-  // Calculate streak (consecutive days with activity)
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
+  const competencyVector =
+    cachedVector ??
+    (snapshot?.competencyVector as unknown as CompetencyVector | null) ??
+    createEmptyVector();
 
   return {
     userId,
-    competencyVector: (snapshot?.competencyVector as unknown as CompetencyVector)
-      || createEmptyVector(),
+    competencyVector,
     riskFlags: riskFlags.map(rf => ({
       type: rf.flagType as RiskFlag['type'],
       severity: rf.severity as RiskFlag['severity'],
@@ -406,6 +476,12 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       ...f,
       score: f.score ?? undefined,
     })),
+    evidence: buildRecommendationEvidenceContext({
+      featureReadState: featureRead.state,
+      featureCache,
+      recentFacts,
+      hasSnapshot: Boolean(cachedVector || snapshot),
+    }),
     learningHistory: {
       totalMissions,
       completedMissions,
@@ -413,6 +489,211 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       streakDays,
     },
   };
+}
+
+function buildRecommendationRationale(
+  rule: RecommendationRule,
+  context: RecommendationContext
+): RecommendationRationale {
+  return {
+    reasonCode: rule.id,
+    evidenceBasis: context.evidence.basis,
+    evidenceRole: rule.evidenceRole,
+    contextOnly: rule.evidenceRole === 'context',
+    evidenceWindow: context.evidence.evidenceWindow,
+    evidenceCount: context.evidence.evidenceCount,
+    sourceCoverage: context.evidence.sourceCoverage,
+    confidence: {
+      state: resolveConfidenceState(context.evidence),
+      level: capContextOnlyConfidence(rule.evidenceRole, context.evidence.confidence.level),
+      score: context.evidence.confidence.score,
+      markers: context.evidence.statusMarkers,
+    },
+  };
+}
+
+function buildRecommendationEvidenceContext(input: {
+  featureReadState: 'ready' | 'stale' | 'missing';
+  featureCache: Record<string, unknown> | null;
+  recentFacts: Array<{ startedAt: Date }>;
+  hasSnapshot: boolean;
+}): RecommendationEvidenceContext {
+  if (input.featureCache) {
+    const sourceCounts = getObject(input.featureCache.sourceCounts);
+    const confidence = normalizeConfidence(input.featureCache.confidenceMarkers);
+    return {
+      basis: 'student-evidence-feature-cache',
+      readState: input.featureReadState,
+      evidenceWindow: normalizeEvidenceWindow(input.featureCache.evidenceWindow),
+      evidenceCount: confidence.evidenceCount || numberValue(sourceCounts.LearningFact),
+      sourceCoverage: normalizeSourceCoverage(input.featureCache.sourceCoverage),
+      confidence: {
+        level: confidence.level,
+        score: confidence.score,
+      },
+      statusMarkers: normalizeStatusMarkers(input.featureCache.statusMarkers),
+    };
+  }
+
+  const evidenceCount = input.recentFacts.length;
+  return {
+    basis: input.hasSnapshot
+      ? 'approved-snapshot'
+      : evidenceCount > 0
+        ? 'governed-facts'
+        : 'fallback',
+    readState: 'missing',
+    evidenceWindow: buildRecentFactWindow(input.recentFacts),
+    evidenceCount,
+    sourceCoverage: {
+      LearningFact: evidenceCount > 0 ? 'available' : 'missing',
+      StudentCompetencySnapshot: input.hasSnapshot ? 'available' : 'missing',
+      StudentProfileSummary: 'missing',
+    },
+    confidence: {
+      level: input.hasSnapshot || evidenceCount > 0 ? 'low' : 'none',
+      score: input.hasSnapshot || evidenceCount > 0 ? 0.25 : 0,
+    },
+    statusMarkers: ['missing-source'],
+  };
+}
+
+function normalizeFeatureCache(cache: Record<string, unknown> | null): Record<string, unknown> | null {
+  return isObject(cache) ? cache : null;
+}
+
+function getCachedCompetencyVector(cache: Record<string, unknown> | null): CompetencyVector | null {
+  const features = getObject(cache?.features);
+  const approvedAggregates = getObject(features.approvedAggregates);
+  const latestSnapshot = getObject(approvedAggregates.latestSnapshot);
+  const vector = latestSnapshot.competencyVector;
+
+  return isCompetencyVector(vector) ? vector as CompetencyVector : null;
+}
+
+function isCompetencyVector(value: unknown): value is CompetencyVector {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return COMPETENCY_DIMENSIONS.every((dimension) => {
+    const entry = value[dimension];
+    return isObject(entry) && Number.isFinite(entry.score);
+  });
+}
+
+function normalizeEvidenceWindow(value: unknown): StudentEvidenceWindow {
+  const window = getObject(value);
+  return {
+    firstStartedAt: stringOrNull(window.firstStartedAt),
+    lastStartedAt: stringOrNull(window.lastStartedAt),
+    daysCovered: numberValue(window.daysCovered),
+  };
+}
+
+function buildRecentFactWindow(facts: Array<{ startedAt: Date }>): StudentEvidenceWindow {
+  if (facts.length === 0) {
+    return {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    };
+  }
+
+  const sorted = [...facts].sort((left, right) => left.startedAt.getTime() - right.startedAt.getTime());
+  const first = sorted[0].startedAt;
+  const last = sorted[sorted.length - 1].startedAt;
+
+  return {
+    firstStartedAt: first.toISOString(),
+    lastStartedAt: last.toISOString(),
+    daysCovered: Math.ceil((last.getTime() - first.getTime()) / 86400000),
+  };
+}
+
+function normalizeSourceCoverage(
+  value: unknown
+): RecommendationEvidenceContext['sourceCoverage'] {
+  const coverage = getObject(value);
+  return {
+    LearningFact: normalizeCoverageState(coverage.LearningFact),
+    StudentCompetencySnapshot: normalizeCoverageState(coverage.StudentCompetencySnapshot),
+    StudentProfileSummary: normalizeCoverageState(coverage.StudentProfileSummary),
+  };
+}
+
+function normalizeCoverageState(value: unknown): StudentEvidenceCoverageState {
+  return value === 'available' || value === 'partial' || value === 'missing'
+    ? value
+    : 'missing';
+}
+
+function normalizeConfidence(value: unknown): {
+  level: RecommendationEvidenceContext['confidence']['level'];
+  score: number;
+  evidenceCount: number;
+} {
+  const confidence = getObject(value);
+  const level = confidence.level;
+  return {
+    level: level === 'none' || level === 'low' || level === 'medium' || level === 'high'
+      ? level
+      : 'none',
+    score: numberValue(confidence.score),
+    evidenceCount: numberValue(confidence.evidenceCount),
+  };
+}
+
+function normalizeStatusMarkers(value: unknown): StudentEvidenceStatusMarker[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is StudentEvidenceStatusMarker =>
+    item === 'stale' ||
+    item === 'partial' ||
+    item === 'low-confidence' ||
+    item === 'missing-source'
+  );
+}
+
+function resolveConfidenceState(evidence: RecommendationEvidenceContext): RecommendationConfidenceState {
+  if (evidence.readState === 'missing' || evidence.readState === 'stale') {
+    return evidence.readState;
+  }
+  if (evidence.statusMarkers.includes('partial')) {
+    return 'partial';
+  }
+  if (evidence.statusMarkers.includes('low-confidence') || evidence.statusMarkers.includes('missing-source')) {
+    return 'low-confidence';
+  }
+  return 'ready';
+}
+
+function capContextOnlyConfidence(
+  role: RecommendationEvidenceRole,
+  level: RecommendationRationale['confidence']['level']
+) {
+  if (role === 'context' && level === 'high') {
+    return 'medium';
+  }
+  return level;
+}
+
+function getObject(value: unknown): Record<string, unknown> {
+  return isObject(value) ? value : {};
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stringOrNull(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
 /**

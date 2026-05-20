@@ -20,6 +20,7 @@ export interface ControlWorkbenchRouteParams {
   seasonId?: string;
   preset?: string;
   mode?: string;
+  objectId?: string;
 }
 
 export interface ControlWorkbenchResolutionError {

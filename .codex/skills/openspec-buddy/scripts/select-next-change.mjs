@@ -132,7 +132,7 @@ for (const issue of issues) {
   }
 
   const metadata = parsed.metadata;
-  if (activeChanges.size > 0 && !activeChanges.has(metadata.change_id)) {
+  if (!activeChanges.has(metadata.change_id)) {
     rejected.push({ number: issue.number, change_id: metadata.change_id, reason: "no active OpenSpec change" });
     continue;
   }

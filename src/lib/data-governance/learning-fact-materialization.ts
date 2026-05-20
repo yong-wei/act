@@ -45,6 +45,153 @@ function readJsonObject(value: unknown): Prisma.InputJsonValue | undefined {
   }
 }
 
+function readRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function readArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function readAnswerValue(record: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    const value = record[key];
+    if (value !== undefined && value !== null && !(typeof value === 'string' && value.trim().length === 0)) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function normalizeComparableAnswer(value: unknown): string[] {
+  const raw = Array.isArray(value) ? value : [value];
+  return raw
+    .filter((item) => item !== undefined && item !== null)
+    .map((item) => String(item).trim())
+    .filter(Boolean)
+    .sort();
+}
+
+function answersMatch(studentAnswer: unknown, referenceAnswer: unknown): boolean {
+  const studentValues = normalizeComparableAnswer(studentAnswer);
+  const referenceValues = normalizeComparableAnswer(referenceAnswer);
+  if (studentValues.length === 0 || referenceValues.length === 0) return false;
+  return studentValues.length === referenceValues.length
+    && studentValues.every((value, index) => value === referenceValues[index]);
+}
+
+function compactJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as Prisma.InputJsonObject;
+}
+
+function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
+  const summaryEntries = readArray(payload.questionSummaries);
+  const cards = summaryEntries
+    .map((entry) => {
+      const record = readRecord(entry);
+      if (!record) return null;
+      const cardId = readString(record.questionId)
+        ?? readString(record.cardId)
+        ?? readString(record.id);
+      const selectedValue = readAnswerValue(record, ['studentAnswer', 'selectedValue', 'answer', 'value']);
+      const referenceAnswer = readAnswerValue(record, ['referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
+      const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
+      if (!cardId) return null;
+      if (selectedValue === undefined && explicitCorrect === undefined && referenceAnswer === undefined) return null;
+      return compactJsonObject({
+        cardId,
+        selectedValue: selectedValue ?? null,
+        referenceAnswer,
+        answered: selectedValue !== undefined,
+        isCorrect: explicitCorrect ?? (
+          referenceAnswer !== undefined
+            ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer)
+            : undefined
+        ),
+      });
+    })
+    .filter((item): item is Prisma.InputJsonObject => Boolean(item));
+
+  if (cards.length === 0) return null;
+
+  const scoreableCards = cards.filter((card) => typeof card.isCorrect === 'boolean');
+  if (scoreableCards.length === 0) return null;
+  const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
+  const totalCount = scoreableCards.length;
+  const answeredCount = cards.filter((card) => card.answered === true).length;
+  const score = Math.round((correctCount / totalCount) * 1000) / 10;
+
+  return {
+    basis: 'questionSummaries',
+    cards,
+    answeredCount,
+    correctCount,
+    totalCount,
+    score,
+  };
+}
+
+function countAnsweredAnswers(payload: Record<string, unknown>): number {
+  const answers = readRecord(payload.answers) ?? readRecord(payload.answerDigest) ?? readRecord(payload.answerKeys);
+  return answers ? Object.keys(answers).length : 0;
+}
+
+function buildInteractiveQuizContext(actionType: string, payload: Record<string, unknown>) {
+  if (actionType !== 'lesson_submit' && actionType !== 'lesson_resubmit') {
+    return null;
+  }
+
+  const questionSummaryEvidence = buildQuestionSummaryEvidence(payload);
+  const lessonKey = readString(payload.lessonKey);
+  const stepId = readString(payload.stepId);
+  const baseContext = {
+    lessonKey,
+    stepId,
+    attemptKey: readString(payload.attemptKey),
+    clientEventId: readString(payload.clientEventId),
+    sourceLogId: readString(payload.sourceLogId),
+  };
+
+  if (questionSummaryEvidence) {
+    return {
+      score: questionSummaryEvidence.score,
+      context: compactJsonObject({
+        ...baseContext,
+        scoring: compactJsonObject({
+          supported: true,
+          answeredCount: questionSummaryEvidence.answeredCount,
+          correctCount: questionSummaryEvidence.correctCount,
+          totalCount: questionSummaryEvidence.totalCount,
+          score: questionSummaryEvidence.score,
+          basis: questionSummaryEvidence.basis,
+        }),
+        cards: questionSummaryEvidence.cards,
+      }),
+    };
+  }
+
+  const answeredCount = countAnsweredAnswers(payload);
+  if (answeredCount > 0) {
+    return {
+      score: undefined,
+      context: compactJsonObject({
+        ...baseContext,
+        scoring: compactJsonObject({
+          supported: false,
+          reason: 'missing_objective_answer_keys',
+          answeredCount,
+        }),
+      }),
+    };
+  }
+
+  return null;
+}
+
 function buildArenaLearningContext(actionType: string, payload: Record<string, unknown>): Prisma.InputJsonValue | undefined {
   if (!actionType.startsWith('arena_')) return undefined;
   const taskId = readString(payload.taskId);
@@ -77,7 +224,7 @@ export function resolveLearningFactActionType(event: LearningEvent): string {
   return resolveCanonicalEventType(event.actionType, payload);
 }
 
-function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
+export function shouldMaterializeLearningFact(actionType: string, payload: Record<string, unknown>): boolean {
   if (payload.skipLearningFact === true) {
     return false;
   }
@@ -114,6 +261,12 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     return null;
   }
 
+  const interactiveQuizContext = buildInteractiveQuizContext(actionType, payload);
+  const score = interactiveQuizContext?.score ?? deriveFactScore(payload);
+  const payloadWithDerivedScore =
+    typeof score === 'number'
+      ? { ...payload, score }
+      : payload;
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),
@@ -121,8 +274,8 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     sessionId: event.sessionId ?? readString(payload.sessionId),
     startedAt: new Date(event.occurredAt),
     finishedAt: new Date(event.occurredAt),
-    outcome: deriveFactOutcome(actionType, payload),
-    score: deriveFactScore(payload),
+    outcome: deriveFactOutcome(actionType, payloadWithDerivedScore),
+    score,
     timeSpent: deriveFactTimeSpent(payload),
     competencyContribution: resolveCompetencyContribution(
       actionType,
@@ -135,8 +288,12 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     lessonId: event.lessonId ?? readString(payload.lessonId) ?? readString(payload.lessonKey),
   };
   const arenaContext = buildArenaLearningContext(actionType, payload);
-  if (arenaContext) {
-    fact.contextJson = arenaContext;
+  const contextJson = compactJsonObject({
+    ...(readRecord(arenaContext) ?? {}),
+    ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
+  });
+  if (Object.keys(contextJson).length > 0) {
+    fact.contextJson = contextJson;
   }
   return fact;
 }

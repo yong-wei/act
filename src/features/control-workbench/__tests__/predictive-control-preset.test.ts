@@ -36,6 +36,7 @@ describe('predictive control workbench preset', () => {
     if (!mpcResult.ok || !optimizedPidResult.ok) return;
 
     expect(mpcResult.session.defaultPreset).toBe('predictive-control');
+    if (mpcResult.session.mode !== 'challenge') throw new Error('Expected challenge session');
     expect(mpcResult.session.recommendedWorkspaceMode).toBe('predictive-control');
     expect(mpcResult.session.allowedMethods).toEqual(['mpc']);
     expect(mpcResult.session.allowedViews).toEqual([
@@ -83,6 +84,9 @@ describe('predictive control workbench preset', () => {
     expect(shellSource).toContain('PredictiveControlPreset');
     expect(shellSource).toContain("session.defaultPreset === 'predictive-control'");
     expect(shellSource).toContain("session.defaultPreset !== 'predictive-control'");
+    expect(shellSource).toContain('panelInstances={panels}');
+    expect(presetSource).toContain('panelInstances?: WorkbenchPanelInstance[]');
+    expect(presetSource).toContain('selectedPanelLabels(panelInstances)');
     expect(presetSource).toContain('predictionHorizon');
     expect(presetSource).toContain('controlHorizon');
     expect(presetSource).toContain('outputWeight');

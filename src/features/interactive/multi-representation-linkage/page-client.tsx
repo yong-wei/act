@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -8,15 +9,20 @@ import 'katex/dist/katex.min.css';
 import {
   BodeComparisonPanel,
   ControlPerformanceBar,
+  CONTROL_SIGNAL_CURVE_STYLES,
   NyquistPanel,
   RootLocusPanel,
   TimeDomainComparisonPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
+import type { ControlSignalCurveStyle } from '@/resources/control-system/charts/control-signal-styles';
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 
 import {
+  resolvePanelSelectedOptions,
   useMultiRepresentationLinkageModel,
   type MultiRepresentationInitialParams,
+  type MultiRepresentationPanelInstance,
+  type MultiRepresentationPanelOptionsChangeHandler,
   type MultiRepresentationViewConfigs,
   type MultiRepresentationViewId,
 } from './model';
@@ -39,6 +45,128 @@ function selectedViewOptions(
   if (!config) return new Set(fallbackOptions);
   if (config.enabled === false) return new Set<string>();
   return new Set(config.selectedOptions ?? []);
+}
+
+type ClassicRootLocusSourceId = 'uncorrected-root-locus' | 'corrected-root-locus';
+type ClassicNyquistSourceId = 'uncorrected-open-loop' | 'corrected-open-loop';
+type ClassicPanelSourceId = ClassicRootLocusSourceId | ClassicNyquistSourceId;
+type ClassicTimeDomainOptionId = 'reference' | 'uncorrected-output' | 'corrected-output';
+type ClassicBodeOptionId = 'uncorrected-open-loop' | 'corrected-open-loop' | 'correction-device';
+type ClassicPanelOptionId = ClassicTimeDomainOptionId | ClassicBodeOptionId;
+
+interface ClassicCurveOption<T extends string> {
+  id: T;
+  label: string;
+  style: ControlSignalCurveStyle;
+  enabled: boolean;
+  disabledReason?: string;
+}
+
+function ClassicSourceSwitch<T extends string>({
+  label,
+  options,
+  selectedId,
+  onSelect,
+}: {
+  label: string;
+  options: Array<{ id: T; label: string; style?: ControlSignalCurveStyle }>;
+  selectedId: T;
+  onSelect: (id: T) => void;
+}) {
+  if (options.length <= 1) {
+    return (
+      <div className="premium-lesson-caption px-1 text-xs" data-panel-local-configuration="source-switch">
+        {label}：{options[0]?.label ?? '无可用来源'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-1" data-panel-local-configuration="source-switch">
+      <span className="premium-lesson-caption text-xs">{label}</span>
+      <div className="flex flex-wrap gap-1" role="group" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onSelect(option.id)}
+            aria-pressed={selectedId === option.id}
+            className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs transition ${
+              selectedId === option.id
+                ? 'border-cyan-500 bg-cyan-50 text-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-100'
+                : 'border-border/60 bg-background/60 text-muted-foreground hover:border-cyan-400/70 hover:text-foreground'
+            }`}
+          >
+            {option.style ? <LineStyleSample style={option.style} /> : null}
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LineStyleSample({ style }: { style: ControlSignalCurveStyle }) {
+  const lineStyleSample = {
+    borderTopColor: style.color,
+    borderTopStyle: style.lineType,
+    borderTopWidth: style.width ?? 2.4,
+  };
+  return <span aria-hidden="true" className="block w-7 shrink-0 rounded-full" style={lineStyleSample} />;
+}
+
+function PanelCurveToggleGroup<T extends string>({
+  label,
+  mode,
+  options,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  mode: 'multiple' | 'single';
+  options: Array<ClassicCurveOption<T>>;
+  selected: Set<string>;
+  onToggle: (id: T, mode: 'multiple' | 'single') => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2" data-panel-local-configuration="curve-toggle-group">
+      <span className="premium-lesson-caption text-xs">{label}</span>
+      <div className="flex flex-wrap gap-1" role="group" aria-label={label}>
+        {options.map((option) => {
+          const pressed = selected.has(option.id);
+          return (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={pressed}
+              disabled={!option.enabled}
+              title={option.enabled ? option.label : option.disabledReason}
+              data-line-style={option.style.lineType}
+              onClick={() => onToggle(option.id, mode)}
+              className={`inline-flex h-8 items-center gap-2 rounded-md border px-2.5 text-xs transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                pressed
+                  ? 'border-cyan-500 bg-cyan-50 text-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-100'
+                  : 'border-border/60 bg-background/60 text-muted-foreground hover:border-cyan-400/70 hover:text-foreground'
+              }`}
+            >
+              <LineStyleSample style={option.style} />
+              <span className="max-w-[7.5rem] truncate">{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function selectPanelSource<T extends ClassicPanelSourceId, TOption extends { id: T }>(
+  sourceSelections: Record<string, ClassicPanelSourceId>,
+  panelId: string,
+  sourceOptions: TOption[],
+) {
+  return sourceOptions.find((option) => option.id === sourceSelections[panelId])
+    ?? sourceOptions[0]
+    ?? null;
 }
 
 function buildReferenceResponseResult(
@@ -70,10 +198,14 @@ function WorkbenchViewEmptyNotice({ title }: { title: string }) {
 
 export function MultiRepresentationLinkageClient({
   initialParams,
+  onPanelSelectedOptionsChange,
 }: {
   initialParams: MultiRepresentationInitialParams;
+  onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
+  const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
+  const [panelOptionOverrides, setPanelOptionOverrides] = useState<Record<string, string[]>>({});
   const result = model.analysisResult;
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
   const showCorrectionComparison = Boolean(
@@ -97,59 +229,241 @@ export function MultiRepresentationLinkageClient({
   const rootLocusOptions = selectedViewOptions(
     initialParams.viewConfigs,
     'root-locus',
-    ['corrected-root-locus'],
+    showCorrectionComparison ? ['uncorrected-root-locus', 'corrected-root-locus'] : ['corrected-root-locus'],
   );
   const nyquistOptions = selectedViewOptions(
     initialParams.viewConfigs,
     'nyquist',
-    ['corrected-open-loop'],
+    showCorrectionComparison ? ['uncorrected-open-loop', 'corrected-open-loop'] : ['corrected-open-loop'],
   );
   const baselineResult = result ? model.preCorrectionAnalysisResult ?? result : null;
-  const timeDomainPanels = result
+  const workbenchPanels: MultiRepresentationPanelInstance[] = initialParams.panelInstances?.length
+    ? initialParams.panelInstances.filter((panel) => panel.enabled !== false)
+    : [
+        { id: 'panel-time-domain', viewId: 'time-domain', title: '时域响应', selectedOptions: Array.from(timeDomainOptions) },
+        { id: 'panel-bode', viewId: 'bode', title: 'Bode 图', selectedOptions: Array.from(bodeOptions) },
+        { id: 'panel-root-locus', viewId: 'root-locus', title: '根轨迹', selectedOptions: Array.from(rootLocusOptions) },
+        { id: 'panel-nyquist', viewId: 'nyquist', title: 'Nyquist 图', selectedOptions: Array.from(nyquistOptions) },
+      ];
+  const panelSelectionSignature = workbenchPanels
+    .map((panel) => `${panel.id}:${(panel.selectedOptions ?? []).join(',')}`)
+    .join('|');
+  useEffect(() => {
+    setPanelOptionOverrides({});
+  }, [panelSelectionSignature]);
+  const buildTimeDomainPanels = (options: Set<string>) => result
     ? [
-        ...(timeDomainOptions.has('reference')
+        ...(options.has('reference')
           ? [{
               label: '参考输入',
-              color: '#22c55e',
+              style: CONTROL_SIGNAL_CURVE_STYLES.reference,
               result: buildReferenceResponseResult(result, model.responseType),
             }]
           : []),
-        ...(timeDomainOptions.has('uncorrected-output') && baselineResult
-          ? [{ label: '未校正输出', color: '#64748b', result: baselineResult }]
+        ...(options.has('uncorrected-output') && baselineResult
+          ? [{ label: '未校正输出', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput, result: baselineResult }]
           : []),
-        ...(timeDomainOptions.has('corrected-output')
-          ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', color: '#0ea5e9', result }]
+        ...(options.has('corrected-output')
+          ? [{ label: showCorrectionComparison ? '校正后输出' : '输出', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput, result }]
           : []),
       ]
     : [];
-  const bodePanels = result
+  const buildBodePanels = (options: Set<string>) => result
     ? [
-        ...(bodeOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
-          ? [{ label: '未校正开环', color: '#64748b', result: model.preCorrectionAnalysisResult }]
+        ...(options.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+          ? [{ label: '未校正开环', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop, result: model.preCorrectionAnalysisResult }]
           : []),
-        ...(bodeOptions.has('corrected-open-loop')
-          ? [{ label: '校正后开环', color: '#0ea5e9', result: frequencyResult }]
+        ...(options.has('corrected-open-loop')
+          ? [{ label: '校正后开环', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop, result: frequencyResult }]
           : []),
-        ...(bodeOptions.has('correction-device') && model.correctionDeviceAnalysisResult
-          ? [{ label: '校正装置', color: '#f97316', result: model.correctionDeviceAnalysisResult }]
-          : []),
-      ]
-    : [];
-  const rootLocusResult = result && rootLocusOptions.size > 0
-    ? rootLocusOptions.has('corrected-root-locus')
-      ? result
-      : baselineResult
-    : null;
-  const nyquistPanels = result
-    ? [
-        ...(nyquistOptions.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
-          ? [{ label: '未校正开环', result: model.preCorrectionAnalysisResult }]
-          : []),
-        ...(nyquistOptions.has('corrected-open-loop')
-          ? [{ label: '校正后开环', result: frequencyResult }]
+        ...(options.has('correction-device') && model.correctionDeviceAnalysisResult
+          ? [{ label: '校正装置', style: CONTROL_SIGNAL_CURVE_STYLES.correctionDevice, result: model.correctionDeviceAnalysisResult }]
           : []),
       ]
     : [];
+  const resolvePanelOptionsWithLocal = (
+    panel: MultiRepresentationPanelInstance,
+    fallbackOptions: Set<string>,
+  ) => new Set(panelOptionOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(panel, fallbackOptions)));
+  const togglePanelLocalOption = (panel: MultiRepresentationPanelInstance, optionId: ClassicPanelOptionId, mode: 'multiple' | 'single') => {
+    setPanelOptionOverrides((current) => {
+      const selected = new Set(current[panel.id] ?? Array.from(resolvePanelSelectedOptions(
+        panel,
+        panel.viewId === 'time-domain' ? timeDomainOptions : bodeOptions,
+      )));
+      if (mode === 'single') selected.clear();
+      if (mode === 'multiple' && selected.has(optionId)) {
+        selected.delete(optionId);
+      } else {
+        selected.add(optionId);
+      }
+      const nextOptions = Array.from(selected);
+      onPanelSelectedOptionsChange?.(panel.id, nextOptions);
+      return { ...current, [panel.id]: nextOptions };
+    });
+  };
+  const buildTimeDomainCurveOptions = (): Array<ClassicCurveOption<ClassicTimeDomainOptionId>> => [
+    { id: 'reference', label: '参考输入', style: CONTROL_SIGNAL_CURVE_STYLES.reference, enabled: Boolean(result) },
+    {
+      id: 'uncorrected-output',
+      label: '未校正输出',
+      style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput,
+      enabled: Boolean(baselineResult),
+      disabledReason: '当前会话没有未校正输出。',
+    },
+    {
+      id: 'corrected-output',
+      label: showCorrectionComparison ? '校正后输出' : '输出',
+      style: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput,
+      enabled: Boolean(result),
+    },
+  ];
+  const buildBodeCurveOptions = (): Array<ClassicCurveOption<ClassicBodeOptionId>> => [
+    {
+      id: 'uncorrected-open-loop',
+      label: '未校正开环',
+      style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop,
+      enabled: Boolean(model.preCorrectionAnalysisResult),
+      disabledReason: '当前会话没有未校正开环数据。',
+    },
+    {
+      id: 'corrected-open-loop',
+      label: '校正后开环',
+      style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop,
+      enabled: Boolean(frequencyResult),
+    },
+    {
+      id: 'correction-device',
+      label: '校正装置',
+      style: CONTROL_SIGNAL_CURVE_STYLES.correctionDevice,
+      enabled: Boolean(model.correctionDeviceAnalysisResult),
+      disabledReason: '当前会话没有独立校正装置曲线。',
+    },
+  ];
+  const updatePanelSourceSelection = (panelId: string, sourceId: ClassicPanelSourceId) => {
+    setPanelSourceSelections((current) => ({
+      ...current,
+      [panelId]: sourceId,
+    }));
+  };
+  const renderWorkbenchPanel = (panel: MultiRepresentationPanelInstance) => {
+    let panelControls: ReactNode = null;
+    let content: ReactNode;
+
+    if (panel.viewId === 'time-domain') {
+      const selectedOptions = resolvePanelOptionsWithLocal(panel, timeDomainOptions);
+      panelControls = (
+        <PanelCurveToggleGroup
+          label="时域信号"
+          mode="multiple"
+          options={buildTimeDomainCurveOptions()}
+          selected={selectedOptions}
+          onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}
+        />
+      );
+      const panels = buildTimeDomainPanels(selectedOptions);
+      content = panels.length > 0 ? (
+        <TimeDomainComparisonPanel panels={panels} onRefreshRange={model.refreshTimeRange} />
+      ) : (
+        <WorkbenchViewEmptyNotice title="时域响应" />
+      );
+    } else if (panel.viewId === 'bode') {
+      const selectedOptions = resolvePanelOptionsWithLocal(panel, bodeOptions);
+      panelControls = (
+        <PanelCurveToggleGroup
+          label="Bode 曲线"
+          mode="multiple"
+          options={buildBodeCurveOptions()}
+          selected={selectedOptions}
+          onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}
+        />
+      );
+      const panels = buildBodePanels(selectedOptions);
+      content = panels.length > 0 ? (
+        <BodeComparisonPanel
+          panels={panels}
+          turnFrequencyHandles={model.turnFrequencyHandles}
+          onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
+          onRefreshRange={model.refreshFrequencyRange}
+        />
+      ) : (
+        <WorkbenchViewEmptyNotice title="Bode 图" />
+      );
+    } else if (panel.viewId === 'root-locus') {
+      const options = resolvePanelSelectedOptions(panel, rootLocusOptions);
+      const rootLocusSourceOptions = result
+        ? [
+            ...(options.has('uncorrected-root-locus') && baselineResult
+              ? [{ id: 'uncorrected-root-locus' as const, label: '未校正根轨迹', result: baselineResult }]
+              : []),
+            ...(options.has('corrected-root-locus')
+              ? [{ id: 'corrected-root-locus' as const, label: '校正后根轨迹', result }]
+              : []),
+          ]
+        : [];
+      const selectedRootLocusSource = selectPanelSource(panelSourceSelections, panel.id, rootLocusSourceOptions);
+      panelControls = selectedRootLocusSource ? (
+        <ClassicSourceSwitch
+          label="根轨迹来源"
+          options={rootLocusSourceOptions}
+          selectedId={selectedRootLocusSource.id}
+          onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+        />
+      ) : null;
+      content = selectedRootLocusSource ? (
+        <RootLocusPanel
+          result={selectedRootLocusSource.result}
+          mode="full"
+          interactiveHandles={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.correctionRootHandles : []}
+          onInteractiveHandleCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.updateCorrectionRootHandle : undefined}
+          onClosedLoopGainCommit={selectedRootLocusSource?.id === 'corrected-root-locus' ? model.setGain : undefined}
+        />
+      ) : (
+        <WorkbenchViewEmptyNotice title="根轨迹" />
+      );
+    } else {
+      const options = resolvePanelSelectedOptions(panel, nyquistOptions);
+      const nyquistSourceOptions = result
+        ? [
+            ...(nyquistOptions.has('uncorrected-open-loop') && options.has('uncorrected-open-loop') && model.preCorrectionAnalysisResult
+              ? [{ id: 'uncorrected-open-loop' as const, label: '未校正开环', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop, result: model.preCorrectionAnalysisResult }]
+              : []),
+            ...(nyquistOptions.has('corrected-open-loop') && options.has('corrected-open-loop')
+              ? [{ id: 'corrected-open-loop' as const, label: '校正后开环', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop, result: frequencyResult }]
+              : []),
+          ]
+        : [];
+      const selectedNyquistSource = selectPanelSource(panelSourceSelections, panel.id, nyquistSourceOptions);
+      panelControls = selectedNyquistSource ? (
+        <ClassicSourceSwitch
+          label="Nyquist 来源"
+          options={nyquistSourceOptions}
+          selectedId={selectedNyquistSource.id}
+          onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
+        />
+      ) : null;
+      content = selectedNyquistSource ? (
+        selectedNyquistSource ? <NyquistPanel result={selectedNyquistSource.result} /> : null
+      ) : (
+        <WorkbenchViewEmptyNotice title="Nyquist 图" />
+      );
+    }
+
+    return (
+      <section key={panel.id} className="flex min-h-[660px] flex-col rounded-lg border border-border/70 bg-card/70 p-3" data-workbench-panel-id={panel.id}>
+        <header className="mb-3 flex min-h-[4.25rem] flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
+            <h3 className="text-sm font-semibold text-foreground">{panel.title}</h3>
+            {panelControls}
+          </div>
+          <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 text-[11px] text-subtle">
+            独立面板
+          </span>
+        </header>
+        <div className="min-h-0 flex-1">{content}</div>
+      </section>
+    );
+  };
 
   if (model.arenaContextIncompatible) {
     return (
@@ -321,6 +635,7 @@ export function MultiRepresentationLinkageClient({
         {model.arenaContext && model.isLockedByChallenge && (
           <ArenaSubmitPanel
             arenaContext={model.arenaContext}
+            previewSummary={model.arenaPreviewSummary}
             correctionState={model.correctionState}
             isLockedByChallenge={model.isLockedByChallenge}
             gain={model.gain}
@@ -356,49 +671,7 @@ export function MultiRepresentationLinkageClient({
             <div className="grid gap-4">
               <ControlPerformanceBar result={result} />
               <div className="grid auto-rows-fr gap-4 xl:grid-cols-2">
-                {timeDomainPanels.length > 0 ? (
-                  <TimeDomainComparisonPanel
-                    panels={timeDomainPanels}
-                    onRefreshRange={model.refreshTimeRange}
-                  />
-                ) : (
-                  <WorkbenchViewEmptyNotice title="时域响应" />
-                )}
-                {bodePanels.length > 0 ? (
-                  <BodeComparisonPanel
-                    panels={bodePanels}
-                    turnFrequencyHandles={model.turnFrequencyHandles}
-                    onTurnFrequencyCommit={model.updateTurnFrequencyHandle}
-                    onRefreshRange={model.refreshFrequencyRange}
-                  />
-                ) : (
-                  <WorkbenchViewEmptyNotice title="Bode 图" />
-                )}
-                {rootLocusResult ? (
-                  <RootLocusPanel
-                    result={rootLocusResult}
-                    mode="full"
-                    interactiveHandles={rootLocusOptions.has('corrected-root-locus') ? model.correctionRootHandles : []}
-                    onInteractiveHandleCommit={rootLocusOptions.has('corrected-root-locus') ? model.updateCorrectionRootHandle : undefined}
-                    onClosedLoopGainCommit={rootLocusOptions.has('corrected-root-locus') ? model.setGain : undefined}
-                  />
-                ) : (
-                  <WorkbenchViewEmptyNotice title="根轨迹" />
-                )}
-                {nyquistPanels.length === 1 ? (
-                  <NyquistPanel result={nyquistPanels[0].result} />
-                ) : nyquistPanels.length > 1 ? (
-                  <div className="grid gap-4">
-                    {nyquistPanels.map((panel) => (
-                      <div key={panel.label} className="space-y-2">
-                        <div className="premium-lesson-caption px-1 text-xs">{panel.label}</div>
-                        <NyquistPanel result={panel.result} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <WorkbenchViewEmptyNotice title="Nyquist 图" />
-                )}
+                {workbenchPanels.map(renderWorkbenchPanel)}
               </div>
             </div>
           ) : (

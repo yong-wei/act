@@ -13,11 +13,14 @@ import {
 } from '@/resources/control-system/charts/control-bode-options';
 import {
   buildBodeTurnFrequencySeries,
+  buildTimeDomainComparisonOption,
   buildLineOption,
   buildNyquistOption,
   buildRootLocusOption,
   ControlPerformanceBar,
+  CONTROL_SIGNAL_CURVE_STYLES,
   calculateStableResponseAxisPreset,
+  calculateTimeDomainVisibleAxisPreset,
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
 } from '@/resources/control-system/charts/control-analysis-panels';
@@ -25,6 +28,23 @@ import { applyControlChartTheme } from '@/resources/control-system/charts/contro
 
 const LOW_FREQUENCY_CASE_ID = 'unit37_low_frequency_bode';
 const repoRoot = process.cwd();
+
+type ChartSeriesLike = {
+  name?: string;
+  data?: unknown[];
+  lineStyle?: { color?: string; type?: string; width?: number };
+  itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  label?: { formatter?: string };
+  symbol?: string;
+  symbolSize?: number;
+  xAxisIndex?: number;
+  yAxisIndex?: number;
+  z?: number;
+};
+
+function getTooltipFormatter(option: unknown): unknown {
+  return (option as { tooltip?: { formatter?: unknown } }).tooltip?.formatter;
+}
 
 const SAMPLE_RESULT: ControlAnalysisResult = {
   metrics: {
@@ -338,8 +358,8 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '虚轴交点')?.symbol).toBe('diamond');
     expect(series.find((item) => item.name === '虚轴交点')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
-    expect(String(option.tooltip?.formatter)).toContain('阻尼比');
-    expect(String(option.tooltip?.formatter)).toContain('自然频率');
+    expect(String(getTooltipFormatter(option))).toContain('阻尼比');
+    expect(String(getTooltipFormatter(option))).toContain('自然频率');
     expect((option.graphic as Array<{ type?: string; style?: { text?: string } }>).some((item) =>
       item.type === 'text' && item.style?.text?.includes('K=2.000')
     )).toBe(true);
@@ -493,7 +513,7 @@ describe('control chart shared presets and themes', () => {
         ],
       },
     });
-    const getSeries = (option: { series?: unknown }) => option.series as Array<{
+    const getSeries = (option: unknown) => (option as { series?: unknown }).series as Array<{
       name?: string;
       lineStyle?: { width?: number; type?: string };
     }>;
@@ -557,9 +577,9 @@ describe('control chart shared presets and themes', () => {
     expect(series.find((item) => item.name === '-1+j0')?.symbol).toBe('circle');
     expect(series.find((item) => item.name === '-1+j0')?.symbolSize).toBe(15);
     expect(option.dataZoom).toBeUndefined();
-    expect(String(option.tooltip?.formatter)).toContain('|L(jω)|');
+    expect(String(getTooltipFormatter(option))).toContain('|L(jω)|');
     expect(series.find((item) => item.name === 'Nyquist 正频率支')?.data).toContainEqual([0, 0, 0.1, 0, 0]);
-    const tooltipFormatter = option.tooltip?.formatter as (params: { seriesName: string; value: number[] }) => string;
+    const tooltipFormatter = getTooltipFormatter(option) as (params: { seriesName: string; value: number[] }) => string;
     const tooltip = tooltipFormatter({ seriesName: 'Nyquist 正频率支', value: [0, 0, 0.1, 0, 0] });
     expect(tooltip).toContain('ω: 0.10 rad/s');
     expect(tooltip).toContain('|L(jω)|');
@@ -570,7 +590,7 @@ describe('control chart shared presets and themes', () => {
     const turnSeries = buildBodeTurnFrequencySeries([
       { id: 'lead-zero', label: '超前零点', frequency: 1.2 },
       { id: 'lead-pole', label: '超前极点', frequency: 6 },
-    ]);
+    ]) as ChartSeriesLike[];
     const panelSource = readFileSync(
       join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
       'utf8',
@@ -599,15 +619,142 @@ describe('control chart shared presets and themes', () => {
     expect(panelSource).toContain('按当前时域范围刷新');
   });
 
-  it('computes a stable-response default y range from 1.1 times the response maximum', () => {
+  it('computes a stable-response default y range from visible extrema with margin', () => {
     const preset = calculateStableResponseAxisPreset([
       { x: 0, y: 0 },
       { x: 1, y: 0.8 },
       { x: 2, y: 1.2 },
     ], true);
 
-    expect(preset).toEqual({ y: [-1.32, 1.32] });
+    expect(preset).toEqual({ y: [-0.12, 1.32] });
+    expect(calculateStableResponseAxisPreset([{ x: 0, y: 5 }, { x: 1, y: 5.001 }], true)).toEqual({
+      y: [4.5, 5.501],
+    });
     expect(calculateStableResponseAxisPreset([{ x: 0, y: 3 }], false)).toBeUndefined();
+  });
+
+  it('uses shared curve styles for time-domain rendered lines and panel-local legend controls', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(CONTROL_SIGNAL_CURVE_STYLES.reference).toMatchObject({ color: '#22c55e', lineType: 'dashed' });
+    expect(CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOutput).toMatchObject({ color: '#64748b', lineType: 'solid' });
+    expect(CONTROL_SIGNAL_CURVE_STYLES.correctedOutput).toMatchObject({ color: '#0ea5e9', lineType: 'solid' });
+    expect(panelSource).toContain('export const CONTROL_SIGNAL_CURVE_STYLES');
+    expect(panelSource).toContain('lineStyle: { color: panel.style.color, type: panel.style.lineType');
+    expect(panelSource).not.toContain('legend: {\\n      top: 0');
+  });
+
+  it('builds time-domain comparison options without a chart-area legend and ranges all visible signals', () => {
+    const preset = calculateTimeDomainVisibleAxisPreset([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1.2 },
+    ]);
+    const option = buildTimeDomainComparisonOption([
+      {
+        label: '参考输入',
+        style: CONTROL_SIGNAL_CURVE_STYLES.reference,
+        result: {
+          ...SAMPLE_RESULT,
+          stepResponse: { points: [{ x: 0, y: 1 }, { x: 1, y: 1 }] },
+        },
+      },
+      {
+        label: '校正后输出',
+        style: CONTROL_SIGNAL_CURVE_STYLES.correctedOutput,
+        result: {
+          ...SAMPLE_RESULT,
+          stepResponse: { points: [{ x: 0, y: 0 }, { x: 1, y: 1.2 }] },
+        },
+      },
+    ], preset);
+    const series = option.series as Array<{ name: string; lineStyle: { color: string; type: string } }>;
+    const yAxis = option.yAxis as { min?: number; max?: number };
+
+    expect(option.legend).toBeUndefined();
+    expect(yAxis).toMatchObject({ min: -0.12, max: 1.32 });
+    expect(series.find((item) => item.name === '参考输入')?.lineStyle).toMatchObject({
+      color: CONTROL_SIGNAL_CURVE_STYLES.reference.color,
+      type: CONTROL_SIGNAL_CURVE_STYLES.reference.lineType,
+    });
+  });
+
+  it('keeps time-domain y ranges independent from equal-aspect cartesian expansion', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+    const preset = calculateTimeDomainVisibleAxisPreset([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1.2 },
+    ]);
+    const equalAspectRange = calculateEqualAspectCartesianRange({
+      x: [0, 12],
+      y: preset!.y,
+      width: 720,
+      height: 420,
+    });
+    const timeDomainPanZoomOptOuts = panelSource.match(
+      /installCartesianPanZoom\(chart, refreshRange, \{ preserveAspectRatio: false \}\)/g,
+    ) ?? [];
+
+    expect(preset).toEqual({ y: [-0.12, 1.32] });
+    expect(equalAspectRange.y[1] - equalAspectRange.y[0]).toBeGreaterThan(6);
+    expect(timeDomainPanZoomOptOuts).toHaveLength(2);
+  });
+
+  it('replaces stale ECharts series when selectable chart curves change', () => {
+    const chartPanelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
+      'utf8',
+    );
+
+    expect(chartPanelSource).toContain("replaceMerge: ['series']");
+  });
+
+  it('builds Bode comparison options from shared source styles without a chart-area legend', () => {
+    const option = buildBodeComparisonOption([
+      { label: '未校正开环', style: CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop, result: SAMPLE_RESULT },
+      { label: '校正后开环', style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop, result: SAMPLE_RESULT },
+      { label: '校正装置', style: CONTROL_SIGNAL_CURVE_STYLES.correctionDevice, result: SAMPLE_RESULT },
+    ]);
+    const series = option.series as Array<{ name: string; lineStyle: { color: string; type?: string } }>;
+
+    expect(option.legend).toBeUndefined();
+    expect(option.color).toEqual([
+      CONTROL_SIGNAL_CURVE_STYLES.uncorrectedOpenLoop.color,
+      CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop.color,
+      CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+    ]);
+    expect(series.filter((item) => item.name === '校正装置').map((item) => item.lineStyle.color))
+      .toEqual([
+        CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+        CONTROL_SIGNAL_CURVE_STYLES.correctionDevice.color,
+      ]);
+  });
+
+  it('keeps workbench curve configuration local to each panel header', () => {
+    const pageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/multi-representation-linkage/page-client.tsx'),
+      'utf8',
+    );
+
+    expect(pageSource).toContain('data-panel-local-configuration="curve-toggle-group"');
+    expect(pageSource).toContain('function PanelCurveToggleGroup');
+    expect(pageSource).toContain('const [panelOptionOverrides, setPanelOptionOverrides]');
+    expect(pageSource).toContain('onPanelSelectedOptionsChange?.(panel.id, nextOptions)');
+    expect(pageSource).toContain('setPanelOptionOverrides({});');
+    expect(pageSource).toContain('onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}');
+    expect(pageSource).toContain('data-line-style={option.style.lineType}');
+    expect(pageSource).toContain('<LineStyleSample style={option.style} />');
+    expect(pageSource).toContain('label="时域信号"');
+    expect(pageSource).toContain('label="Bode 曲线"');
+    expect(pageSource).toContain('label="Nyquist 来源"');
+    expect(pageSource).toContain('style: CONTROL_SIGNAL_CURVE_STYLES.correctedOpenLoop');
   });
 
   it('lets time-domain charts apply a y-only stable-response preset', () => {

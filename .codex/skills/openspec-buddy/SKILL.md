@@ -11,6 +11,31 @@ GitHub Issues are the cross-worktree task record. OpenSpec remains the local spe
 
 Use this skill only when the user explicitly asks for `openspec-buddy propose`, `openspec-buddy apply`, `openspec-buddy achieve`, or asks to coordinate OpenSpec changes through GitHub Issues.
 
+## Required Configuration
+
+Before running Buddy commands in a repository, verify project-local
+configuration:
+
+```bash
+.codex/skills/openspec-buddy/scripts/check-config.sh
+```
+
+The helper scripts automatically read `.env.openspec-buddy` from the repository
+root before checking the process environment. Set `OPENSPEC_BUDDY_ENV_FILE` to
+use a different dotenv-style file. Non-empty process environment values override
+file values.
+
+Required variables are:
+
+- `OPENSPEC_BUDDY_BASE_BRANCH`
+- `OPENSPEC_BUDDY_RELEASE_BRANCH`
+- `OPENSPEC_BUDDY_PROJECT_OWNER`
+- `OPENSPEC_BUDDY_PROJECT_NUMBER`
+- `OPENSPEC_BUDDY_PROJECT_TITLE`
+
+If any required variable is missing after file loading, stop and ask the user
+for the value. Do not fall back to another project's branch or GitHub Project.
+
 ## Core Rule
 
 One coordinated change maps to:
@@ -42,29 +67,41 @@ Steps:
 
 1. Derive or confirm a kebab-case `change_id`.
 2. Prepare an issue body from `references/issue-template.md`.
-3. Set `claim_branch: <change_id>`.
-4. Add labels:
+3. In issue front matter, keep empty list fields as `[]`, but write every
+   non-empty `depends_on`, `blocked_by`, or `blocking` field as a YAML block
+   list. Do not use inline lists such as `[other-change]`; the metadata parser
+   rejects those so dependency metadata cannot be misread.
+4. Set `claim_branch: <change_id>`.
+5. Set `base_branch` to `$OPENSPEC_BUDDY_BASE_BRANCH`. Do not create new Buddy
+   issues against `$OPENSPEC_BUDDY_RELEASE_BRANCH`; release from the Buddy base
+   branch to the release branch is a manual action unless the project
+   explicitly configures otherwise.
+6. Validate the prepared body before creating or updating the issue:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/parse-issue-metadata.mjs <issue-body-file>
+   ```
+7. Add labels:
    - `status:ready`
    - `area:<area>`
    - `series:<series>`
    - `risk:<low|medium|high>`
    - `mode:<isolated|fixed-branch|stacked|docs-only>`
-5. Create the issue with `gh issue create`.
-6. If this is a planned series, create or identify the series parent issue, then link the child issue:
+8. Create the issue with `gh issue create`.
+9. If this is a planned series, create or identify the series parent issue, then link the child issue:
    ```bash
    .codex/skills/openspec-buddy/scripts/create-series-parent.sh <series>
    .codex/skills/openspec-buddy/scripts/link-issue-parent.sh <parent-issue> <child-issue>
    ```
-7. If this issue depends on another change issue, link the native relationship:
+10. If this issue depends on another change issue, link the native relationship:
    ```bash
    .codex/skills/openspec-buddy/scripts/link-issue-dependencies.sh <blocked-issue> <blocking-issue>
    ```
-8. Add the created issue to the default GitHub Project:
+11. Add the created issue to the default GitHub Project:
    ```bash
    .codex/skills/openspec-buddy/scripts/add-issue-to-project.sh <issue-url>
    ```
    The script also sets the Project `Status` to `Todo`.
-9. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
+12. If the user also asked to create local OpenSpec artifacts, invoke `openspec-propose` after issue creation.
 
 Do not claim the issue or implement in `propose`.
 
@@ -87,6 +124,7 @@ Steps:
    - front matter `depends_on` entries are not active unfinished changes
    - no open issue in the same `coupling_group` has `status:claimed` or `status:in-progress`
    - `claim_branch` equals `change_id`
+   - `base_branch` equals `$OPENSPEC_BUDDY_BASE_BRANCH`
    - execution mode and branch constraints are satisfiable
 5. Claim the issue with a remote branch lock:
    ```bash
@@ -102,11 +140,27 @@ Steps:
    ```
    This must leave the Project `Status` as `In Progress`.
 9. Invoke `openspec-apply-change` for the matching local OpenSpec change.
-10. After opening a PR, mark the issue in review:
+10. Open a ready PR against `$OPENSPEC_BUDDY_BASE_BRANCH`, never a draft PR. The PR body must
+    not use closing keywords such as `Closes`, `Fixes`, or `Resolves` for the
+    Buddy issue, because the issue must stay open until OpenSpec archive.
+11. After opening the ready PR, configure PR metadata before review:
+   ```bash
+   .codex/skills/openspec-buddy/scripts/configure-pr-metadata.sh <issue-number> <pr-url>
+   ```
+   This must add PR-scoped labels such as `pr:openspec-buddy` and
+   `pr:base-<base-branch>`, copy the issue's `area:*`, `series:*`, and `risk:*`
+   labels to the PR, add the PR to the same Project as the issue, set the PR
+   Project `Status` to `In Progress`, and add a non-closing origin issue
+   reference to the PR body for Development traceability.
+12. Mark the issue in review:
    ```bash
    .codex/skills/openspec-buddy/scripts/mark-review.sh <issue-number> <pr-url>
    ```
-   This must leave the Project `Status` as `In Progress`.
+   This first verifies the PR targets `$OPENSPEC_BUDDY_BASE_BRANCH`. If the PR
+   targets `$OPENSPEC_BUDDY_RELEASE_BRANCH`, the script attempts to retarget it
+   to the Buddy base branch; if retargeting fails, stop before review/merge.
+   The script also rejects draft PRs and runs the PR metadata configuration
+   helper. This must leave the issue Project `Status` as `In Progress`.
 
 If claim verification fails, stop before editing files.
 
@@ -117,7 +171,7 @@ Use after the PR for a GitHub-tracked OpenSpec change has been merged and the us
 Steps:
 
 1. Confirm the PR is merged.
-2. Confirm the target branch contains the merge.
+2. Confirm the target branch `$OPENSPEC_BUDDY_BASE_BRANCH` contains the merge.
 3. Confirm local OpenSpec tasks are complete:
    ```bash
    openspec instructions apply --change <change_id> --json
@@ -157,6 +211,10 @@ Read only the reference needed for the current mode:
 - Do not claim an issue while GitHub `blockedBy` contains any open, unarchived issue.
 - Do not treat GitHub Projects as the agent execution source of truth; use issue front matter, labels, assignee, and comments.
 - Do not update `status:*` labels without the Buddy wrapper scripts; Project `Status` must stay synchronized for human-visible coordination.
+- Do not open, review, or merge Buddy PRs against `$OPENSPEC_BUDDY_RELEASE_BRANCH`. Retarget them to `$OPENSPEC_BUDDY_BASE_BRANCH` or stop.
+- Do not create or submit draft PRs for Buddy changes; PRs must be ready for review when they are handed to the review loop.
+- Do not leave Buddy PRs without PR-scoped labels, copied area/series/risk labels, the same Project as the originating issue, and a non-closing origin issue reference.
+- Do not use closing keywords to link Buddy PRs to issues; issue closure is reserved for the archive step.
 - Do not use a branch whose name differs from `change_id` unless the user explicitly cancels OpenSpec Buddy coordination for this change.
 - Do not bypass the remote branch lock in `claim-change.sh`; label changes alone are not a reliable lock.
 - Do not reclaim `status:claimed` or `status:in-progress` work unless the lease is stale and the branch/PR recovery checks prove it is safe.
@@ -168,7 +226,7 @@ Read only the reference needed for the current mode:
 For `propose`, report the issue URL, `change_id`, labels, OpenSpec path, parent issue link, and dependency relationship links.
 Also report the GitHub Project item id or state that the issue was already present in the Project, plus the Project `Status`.
 
-For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, and the OpenSpec change being applied.
+For `apply`, report the issue, claim branch, blockedBy status, downstream blocking count when known, coupling-group result, Project `Start`, PR metadata labels, PR Project membership, and the OpenSpec change being applied.
 
 For `achieve`, report the PR, merge state, archive path, Project `End`, final labels, issue close state, any finalized series parent issue, and any follow-up issues that were unblocked.
 

@@ -1,0 +1,43 @@
+# evidence-driven-personalization Specification
+
+## Purpose
+Define the governed evidence contract for visible profile and recommendation personalization so recommendations remain explainable, traceable, and honest about confidence without introducing a new recommendation engine.
+
+## Requirements
+### Requirement: Personalization reads governed evidence
+The system SHALL use governed evidence, snapshots, summaries, or student evidence feature cache data for core profile and recommendation decisions.
+
+#### Scenario: Recommendation consumer reads governed feature data
+- **WHEN** a recommendation or profile consumer needs student learning evidence
+- **THEN** it SHALL read governed facts, snapshots, summaries, or evidence feature cache data for core profile computation
+- **AND** raw source-table reads SHALL be limited to audit, debug, migration, or drilldown paths.
+
+#### Scenario: Existing scope is preserved
+- **WHEN** personalization consumers are upgraded to governed evidence
+- **THEN** the change SHALL preserve the existing recommendation scope and competency model
+- **AND** it SHALL NOT introduce a new AI recommendation engine.
+
+### Requirement: Recommendations expose evidence rationale
+The system SHALL expose reason metadata for evidence-driven profile and recommendation outputs.
+
+#### Scenario: Recommendation includes reason metadata
+- **WHEN** the system returns a recommendation or profile claim based on governed evidence
+- **THEN** it SHALL include reason code, evidence window, evidence count, and source coverage metadata where relevant
+- **AND** the rationale SHALL be derived from the same governed evidence used for the decision.
+
+#### Scenario: Context-only evidence is not overstated
+- **WHEN** passive views, navigation, leaderboard browsing, or other context-only activity appears in a recommendation rationale
+- **THEN** the output SHALL identify it as context rather than direct competency improvement evidence
+- **AND** it SHALL NOT present context-only events as the sole basis for a high-confidence competency claim.
+
+### Requirement: Low-confidence personalization is explicit
+The system SHALL mark missing, stale, partial, or low-confidence evidence in profile and recommendation outputs.
+
+#### Scenario: Missing or stale features produce fallback state
+- **WHEN** governed evidence features are missing, stale, partial, or low confidence for a student
+- **THEN** personalization output SHALL expose a low-confidence or fallback state
+- **AND** it SHALL NOT present the output as a complete precise diagnosis.
+
+#### Scenario: Teacher/admin explanation can inspect confidence
+- **WHEN** teacher or admin-facing services expose recommendation or profile rationale
+- **THEN** they SHALL include enough confidence and source coverage metadata to explain why the recommendation is strong, weak, stale, or incomplete.

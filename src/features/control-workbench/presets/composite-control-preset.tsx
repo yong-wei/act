@@ -5,14 +5,12 @@ import { Gauge, Network, SlidersHorizontal } from 'lucide-react';
 
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import type { WorkbenchSessionContext } from '../types';
-import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import type { WorkbenchPanelInstance } from '../views';
 import {
   buildCompositeCompensationArtifactFromDraft,
   DEFAULT_COMPOSITE_CONTROL_DRAFT,
   type CompositeControlDraft,
 } from './composite-control-draft';
-
-type CompositePresetViewConfigs = Partial<Record<WorkbenchViewId, WorkbenchViewConfig>>;
 
 const parameterLabels: Record<keyof CompositeControlDraft, string> = {
   prefilterGain: '前置滤波增益',
@@ -58,22 +56,21 @@ function NumberInput({
   );
 }
 
-function selectedViewLabels(viewConfigs?: CompositePresetViewConfigs) {
-  if (!viewConfigs) return [];
-  return Object.values(viewConfigs)
-    .filter((config): config is WorkbenchViewConfig => Boolean(config?.enabled))
-    .map((config) => config.title);
+function selectedPanelLabels(panelInstances?: WorkbenchPanelInstance[]) {
+  return panelInstances
+    ?.filter((panel) => panel.enabled)
+    .map((panel) => panel.title) ?? [];
 }
 
 export function CompositeControlPreset({
   session,
-  viewConfigs,
+  panelInstances,
 }: {
   session: WorkbenchSessionContext;
-  viewConfigs?: CompositePresetViewConfigs;
+  panelInstances?: WorkbenchPanelInstance[];
 }) {
   const [draft, setDraft] = useState<CompositeControlDraft>(DEFAULT_COMPOSITE_CONTROL_DRAFT);
-  const viewLabels = selectedViewLabels(viewConfigs);
+  const viewLabels = selectedPanelLabels(panelInstances);
   const artifactPreview = useMemo(() => {
     if (!('task' in session)) return null;
     try {

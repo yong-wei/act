@@ -6,7 +6,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
-import { generateRecommendations, type RecommendationType } from '@/lib/data-governance/recommendation-engine';
+import {
+  generateRecommendations,
+  type RecommendationRationale,
+  type RecommendationType,
+} from '@/lib/data-governance/recommendation-engine';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +27,7 @@ export interface RecommendationsResponse {
     priority: number;
     estimatedTime?: string;
     tags: string[];
+    rationale: RecommendationRationale;
   }>;
   total: number;
   byType: Record<RecommendationType, number>;
@@ -79,6 +84,7 @@ export async function GET(request: NextRequest) {
         priority: r.priority,
         estimatedTime: r.estimatedTime,
         tags: r.tags,
+        rationale: r.rationale,
       })),
       total,
       byType,

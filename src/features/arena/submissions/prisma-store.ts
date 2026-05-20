@@ -81,6 +81,8 @@ function toStoredEvaluation(row: Record<string, unknown>): StoredArenaEvaluation
 function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord {
   const artifactRow = row.controllerArtifact as Record<string, unknown>;
   const evaluationRow = row.evaluationRun as Record<string, unknown>;
+  const userRow = row.user as { profile?: { studentNumber?: string | null } | null } | undefined;
+  const studentNumber = userRow?.profile?.studentNumber;
 
   return {
     id: String(row.id),
@@ -91,6 +93,7 @@ function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord
     publicationId: typeof row.publicationId === 'string' ? row.publicationId : undefined,
     isLate: Boolean(row.isLate),
     studentLabel: String(row.studentLabel),
+    studentNumber: typeof studentNumber === 'string' && studentNumber.trim() ? studentNumber : undefined,
     artifactHash: String(row.artifactHash),
     artifact: artifactRow.payload as ControllerArtifact,
     evaluation: toEvaluationResult(evaluationRow),
@@ -252,6 +255,15 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         include: {
           controllerArtifact: true,
           evaluationRun: true,
+          user: {
+            select: {
+              profile: {
+                select: {
+                  studentNumber: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
           submittedAt: 'asc',

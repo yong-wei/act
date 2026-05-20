@@ -8,6 +8,8 @@ if [[ -z "$issue_number" ]]; then
 fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
 tmp_dir="$(mktemp -d)"
 created_branch_lock=""
 
@@ -111,7 +113,7 @@ created_branch_lock="$claim_branch"
 
 viewer="$(gh api user --jq .login)"
 claim_id="$(uuidgen 2>/dev/null || node -e 'console.log(crypto.randomUUID())')"
-lease_until="$(node -e 'const hours=Number(process.env.OPENSPEC_BUDDY_CLAIM_TTL_HOURS || 6); console.log(new Date(Date.now()+hours*3600*1000).toISOString())')"
+lease_until="$(node -e 'const hours=Number(process.env.OPENSPEC_BUDDY_CLAIM_TTL_HOURS); console.log(new Date(Date.now()+hours*3600*1000).toISOString())')"
 gh issue edit "$issue_number" --add-assignee "$viewer"
 "$script_dir/set-status-label.sh" "$issue_number" "status:claimed"
 

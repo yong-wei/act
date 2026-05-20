@@ -7,10 +7,13 @@ if [[ -z "$issue_url" ]]; then
   exit 2
 fi
 
-project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
-project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
-project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
+
+project_owner="$OPENSPEC_BUDDY_PROJECT_OWNER"
+project_number="$OPENSPEC_BUDDY_PROJECT_NUMBER"
+project_title="$OPENSPEC_BUDDY_PROJECT_TITLE"
 
 tmp_file="$(mktemp)"
 trap 'rm -f "$tmp_file"' EXIT

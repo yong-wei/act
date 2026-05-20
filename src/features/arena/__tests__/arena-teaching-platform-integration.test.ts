@@ -9,6 +9,7 @@ import {
 } from '../leaderboards/publication-leaderboard';
 import {
   createArenaPublicationRecord,
+  listArenaPublicationsForStudent,
   resolveAccessibleArenaPublicationForStudent,
   updateArenaPublicationStatus,
 } from '../teacher/publication-store';
@@ -99,6 +100,23 @@ function submission(overrides: Partial<ArenaSubmissionRecord>): ArenaSubmissionR
 }
 
 describe('arena teaching platform integration', () => {
+  it('returns an empty student publication list when Arena publication tables have not been migrated yet', async () => {
+    const db = {
+      arenaChallengePublication: {
+        findMany: vi.fn().mockRejectedValueOnce(Object.assign(new Error('missing ArenaChallengePublication table'), {
+          code: 'P2021',
+        })),
+      },
+      studentProfile: {
+        findUnique: vi.fn(async () => ({ userId: 'student-a', classId: 'class-a' })),
+      },
+    };
+
+    await expect(listArenaPublicationsForStudent(db as any, {
+      studentId: 'student-a',
+    })).resolves.toEqual([]);
+  });
+
   it('persists publications only for the teacher owning the target class or an admin', async () => {
     const db = createMockDb();
 
@@ -284,10 +302,9 @@ describe('arena teaching platform integration', () => {
       classId: 'class-a',
       publicationId: 'publication-1',
       submissions: [
-        submission({ id: 'valid-a', valid: true } as any),
+        submission({ id: 'valid-a' }),
         submission({
           id: 'invalid-a',
-          valid: false,
           evaluation: {
             valid: false,
             score: 35,

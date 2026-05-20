@@ -1,19 +1,19 @@
 # PR Review Waiting
 
-Use a serial foreground wait for each five-minute review pause. Do not use
+Use a serial foreground wait for each configured review pause. Do not use
 Codex automations, heartbeat automations, reminders, or background monitors:
 they run in parallel and can break the one-change-at-a-time workflow.
 
 The wait should block the current execution flow, for example:
 
 ```bash
-sleep 300
+sleep "$OPENSPEC_BUDDY_REVIEW_WAIT_SECONDS"
 ```
 
-In this repository, follow the local shell rule and run:
+If the project configures `OPENSPEC_BUDDY_COMMAND_PREFIX`, prefix the command:
 
 ```bash
-rtk sleep 300
+$OPENSPEC_BUDDY_COMMAND_PREFIX sleep "$OPENSPEC_BUDDY_REVIEW_WAIT_SECONDS"
 ```
 
 ## State To Remember
@@ -27,6 +27,7 @@ last_seen_review_ids
 last_seen_review_thread_ids
 last_seen_comment_ids
 review_round
+quiet_review_checks
 ```
 
 ## Post-Wait Check
@@ -34,7 +35,7 @@ review_round
 After the foreground wait finishes:
 
 ```bash
-gh pr view <pr> --json state,mergeable,reviewDecision,reviews,comments,commits,statusCheckRollup
+gh pr view <pr> --json state,baseRefName,mergeable,reviewDecision,reviews,comments,commits,statusCheckRollup
 gh api graphql ... # required for reviewThreads and isResolved state
 ```
 
@@ -43,11 +44,25 @@ Check:
 ```text
 new review comments
 new requested changes
+PR base branch is $OPENSPEC_BUDDY_BASE_BRANCH
+PR has pr:* metadata labels and copied area/series/risk labels
+PR is in the same Project as the originating issue
+PR body records the origin issue without closing keywords
 unresolved review threads
 CI/check failures
 mergeability
 new commits not created by this run
 ```
+
+If `baseRefName` is `$OPENSPEC_BUDDY_RELEASE_BRANCH`, retarget the PR before any review or merge gate:
+
+```bash
+.codex/skills/openspec-buddy/scripts/ensure-pr-base.sh <pr-number-or-url>
+```
+
+If the script cannot retarget the PR to `$OPENSPEC_BUDDY_BASE_BRANCH`, stop and
+mark the issue `status:needs-human` rather than merging a Buddy change to the
+release branch.
 
 ## Thread-Aware Review Rule
 
@@ -58,13 +73,34 @@ not enough to decide whether inline review feedback is still actionable.
 Observed failure mode: `latestReviews` may point at a prior commit or omit the
 commit oid, while `reviewThreads` still shows the current unresolved thread.
 
-If there is actionable feedback, fix it, reply, resolve corresponding review threads, push, and perform another serial foreground five-minute wait before checking again.
+## Three-Check Merge Rule
 
-If there is no new actionable feedback and all merge gates pass, merge.
+After the latest head commit or latest review-handling push, check for new
+review after each configured foreground wait. Merge only after the configured
+number of consecutive checks with no new review, no new review comments, and no
+new unresolved threads.
+
+Reset `quiet_review_checks` to `0` whenever a new review, review comment, PR
+comment, requested-changes review, or follow-up fix push appears.
+
+Exception: if the latest configured reviewer explicitly says there are no
+significant issues, no major problems, or equivalent wording, and all other
+merge gates pass, the PR may be merged without waiting for the remaining quiet
+checks.
+
+## Thread Resolution Rule
+
+If there is actionable feedback, fix it, push, and reply in the corresponding
+review thread with the fix commit or evidence. Resolve the thread only after the
+reply exists. For non-actionable feedback, reply with the rationale and evidence
+before resolving. Silent thread resolution is not allowed.
+
+After resolving threads, perform another foreground review wait before
+checking again, unless the no-significant-issues exception applies.
 
 ## CI Waiting
 
-The five-minute wait is for review latency, not for CI. If no actionable review
+The configured review wait is for review latency, not for CI. If no actionable review
 remains but `statusCheckRollup` still shows an in-progress check, wait for that
 check in the foreground, for example:
 
@@ -72,10 +108,10 @@ check in the foreground, for example:
 gh run watch <run-id> --exit-status
 ```
 
-In this repository, follow the local shell rule:
+If the project configures `OPENSPEC_BUDDY_COMMAND_PREFIX`, prefix the command:
 
 ```bash
-rtk gh run watch <run-id> --exit-status
+$OPENSPEC_BUDDY_COMMAND_PREFIX gh run watch <run-id> --exit-status
 ```
 
 Do not merge until CI is completed successfully or the repository has no required checks.

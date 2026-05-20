@@ -20,9 +20,18 @@ if [[ ! "$date_value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
   exit 2
 fi
 
-project_owner="${OPENSPEC_BUDDY_PROJECT_OWNER:-yong-wei}"
-project_number="${OPENSPEC_BUDDY_PROJECT_NUMBER:-1}"
-project_title="${OPENSPEC_BUDDY_PROJECT_TITLE:-ACT Openspec LTE}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/load-config.sh"
+openspec_buddy_require_core_config
+
+project_owner="$OPENSPEC_BUDDY_PROJECT_OWNER"
+project_number="$OPENSPEC_BUDDY_PROJECT_NUMBER"
+project_title="$OPENSPEC_BUDDY_PROJECT_TITLE"
+if [[ "$field_name" == "Start" ]]; then
+  field_name="$OPENSPEC_BUDDY_PROJECT_START_FIELD"
+elif [[ "$field_name" == "End" ]]; then
+  field_name="$OPENSPEC_BUDDY_PROJECT_END_FIELD"
+fi
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
