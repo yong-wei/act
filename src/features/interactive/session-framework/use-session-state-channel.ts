@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type {
   SelfViewStatePayload,
@@ -11,8 +11,11 @@ import type {
 import {
   buildFetchFailureTelemetry,
   buildHttpFailureTelemetry,
+  createSyncIncidentTracker,
   createFetchTimeout,
   DEFAULT_SYNC_FETCH_TIMEOUT_MS,
+  dispatchSyncRecoveryTelemetry,
+  getFetchFailureTelemetry,
   toFetchTelemetryError,
   type FetchTelemetrySource,
 } from './fetch-diagnostics';
@@ -40,6 +43,11 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
   const [teacherStates, setTeacherStates] = useState<SessionStateRecord[]>([]);
   const [summary, setSummary] = useState(emptyViewPayload().summary);
   const [teacherViewHydrated, setTeacherViewHydrated] = useState(isDemo);
+  const syncIncidentTrackerRef = useRef<ReturnType<typeof createSyncIncidentTracker> | null>(null);
+
+  if (!syncIncidentTrackerRef.current) {
+    syncIncidentTrackerRef.current = createSyncIncidentTracker();
+  }
 
   const fetchJson = useCallback(
     async <T,>(url: string, source: FetchTelemetrySource, init?: RequestInit): Promise<T> => {
@@ -64,13 +72,15 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
             buildHttpFailureTelemetry({ source, url, method, startedAt, response }),
           );
         }
-        return (await response.json()) as T;
-      } catch (error) {
-        if (error instanceof Error && 'telemetry' in error) {
-          throw error;
+        const payload = (await response.json()) as T;
+        const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({ sessionId });
+        for (const telemetry of recoveryTelemetry) {
+          dispatchSyncRecoveryTelemetry(telemetry);
         }
-        throw toFetchTelemetryError(
-          error instanceof Error ? error.message : '课堂状态读取失败',
+        return payload;
+      } catch (error) {
+        const telemetry =
+          getFetchFailureTelemetry(error) ??
           buildFetchFailureTelemetry({
             source,
             url,
@@ -78,13 +88,20 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
             startedAt,
             error,
             timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
-          }),
+          });
+        const incident = syncIncidentTrackerRef.current!.recordFailure({
+          telemetry,
+          consecutiveFailures: 1,
+        });
+        throw toFetchTelemetryError(
+          error instanceof Error ? error.message : '课堂状态读取失败',
+          incident.telemetry,
         );
       } finally {
         timeout?.clear();
       }
     },
-    [],
+    [sessionId],
   );
 
   const applyViewPayload = useCallback((payload: TeacherViewStatePayload | StudentViewStatePayload | SelfViewStatePayload) => {

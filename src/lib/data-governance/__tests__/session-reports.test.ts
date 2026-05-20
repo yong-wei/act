@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { generateSessionSummaryReports } from '../session-reports';
+import { buildSyncErrorIncidentSummary, generateSessionSummaryReports } from '../session-reports';
 
 describe('generateSessionSummaryReports', () => {
   const prisma = {
@@ -263,5 +263,121 @@ describe('generateSessionSummaryReports', () => {
         }),
       }),
     }));
+  });
+});
+
+describe('buildSyncErrorIncidentSummary', () => {
+  it('deduplicates bursts, keeps raw counts, and classifies recovered transient noise', () => {
+    const incidentKey = [
+      'student-1',
+      'student-page',
+      'step-03',
+      'session_progress_get',
+      '/api/session/session-001',
+      'GET',
+      'aborted',
+      'none',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'aborted',
+          errorName: 'AbortError',
+          documentVisibilityState: 'hidden',
+          incidentKey,
+          incidentSeverity: 'low',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:10.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'aborted',
+          errorName: 'AbortError',
+          documentVisibilityState: 'hidden',
+          incidentKey,
+          incidentSeverity: 'low',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:20.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          incidentKey,
+          source: 'session_progress_get',
+          failureKind: 'aborted',
+          recoveredIncidentCount: 1,
+          recoveredFailureCount: 2,
+        },
+      },
+      {
+        userId: 'student-2',
+        eventType: 'error',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:03:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          status: 503,
+          statusText: 'Service Unavailable',
+          incidentSeverity: 'high',
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 3,
+      rawRecoveryCount: 1,
+      incidentCount: 2,
+      affectedUsers: 2,
+      affectedUserIds: ['student-1', 'student-2'],
+      dominantSource: 'session_progress_get',
+      dominantFailureKind: 'aborted',
+      severityDistribution: {
+        low: 1,
+        medium: 0,
+        high: 1,
+      },
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 1,
+      transientClientNoiseCount: 1,
+      broadServiceIncidentCount: 0,
+      concentratedUserIncidentCount: 2,
+    });
   });
 });

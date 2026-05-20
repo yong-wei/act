@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  buildHttpFailureTelemetry,
   buildFetchFailureTelemetry,
+  buildSyncIncidentTelemetry,
+  createSyncIncidentTracker,
   shouldSurfaceSyncFailure,
+  SYNC_INCIDENT_BURST_WINDOW_MS,
 } from '../session-framework/fetch-diagnostics';
 
 describe('buildFetchFailureTelemetry', () => {
@@ -131,5 +135,111 @@ describe('buildFetchFailureTelemetry', () => {
         consecutiveFailures: 3,
       }),
     ).toBe(true);
+  });
+
+  it('builds incident telemetry with a stable key, severity, and raw diagnostics', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_776_307_900_250);
+
+    const rawTelemetry = buildHttpFailureTelemetry({
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      startedAt: 1_776_307_900_000,
+      response: new Response('{}', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'content-type': 'application/json' },
+      }),
+    });
+
+    const incidentTelemetry = buildSyncIncidentTelemetry({
+      telemetry: rawTelemetry,
+      stepId: 'step-03',
+      scope: 'teacher-page',
+      userId: 'student-1',
+      consecutiveFailures: 1,
+      occurrenceCount: 1,
+      firstSeenAt: 1_776_307_900_250,
+      lastSeenAt: 1_776_307_900_250,
+    });
+
+    expect(incidentTelemetry).toMatchObject({
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      status: 503,
+      statusText: 'Service Unavailable',
+      failureKind: 'http',
+      incidentKey: 'student-1\u0000teacher-page\u0000step-03\u0000session_progress_get\u0000/api/session/session-001\u0000GET\u0000http\u0000503',
+      incidentSeverity: 'high',
+      incidentBurstWindowMs: SYNC_INCIDENT_BURST_WINDOW_MS,
+      incidentOccurrenceCount: 1,
+      incidentFirstSeenAt: 1_776_307_900_250,
+      incidentLastSeenAt: 1_776_307_900_250,
+      recoveryState: 'unresolved',
+      rawDiagnostics: rawTelemetry,
+    });
+  });
+
+  it('suppresses repeated bursts but emits recovery telemetry after a later success', () => {
+    const tracker = createSyncIncidentTracker();
+    const telemetry = {
+      source: 'session_progress_get',
+      url: '/api/session/session-001',
+      method: 'GET',
+      errorName: 'HttpError',
+      failureKind: 'http',
+      status: 503,
+      timedOut: false,
+    };
+
+    const firstFailure = tracker.recordFailure({
+      telemetry,
+      stepId: 'step-03',
+      scope: 'student-page',
+      userId: 'student-1',
+      consecutiveFailures: 1,
+      now: 1_776_307_900_000,
+    });
+    const repeatedFailure = tracker.recordFailure({
+      telemetry,
+      stepId: 'step-03',
+      scope: 'student-page',
+      userId: 'student-1',
+      consecutiveFailures: 2,
+      now: 1_776_307_910_000,
+    });
+
+    expect(firstFailure.shouldEmit).toBe(true);
+    expect(firstFailure.telemetry).toMatchObject({
+      incidentOccurrenceCount: 1,
+      incidentSuppressed: false,
+      incidentSeverity: 'high',
+    });
+    expect(repeatedFailure.shouldEmit).toBe(false);
+    expect(repeatedFailure.telemetry).toMatchObject({
+      incidentOccurrenceCount: 2,
+      incidentSuppressed: true,
+      incidentSeverity: 'high',
+    });
+
+    const recoveryTelemetry = tracker.recordRecovery({
+      sessionId: 'session-001',
+      stepId: 'step-03',
+      now: 1_776_307_920_000,
+    });
+
+    expect(recoveryTelemetry).toHaveLength(1);
+    expect(recoveryTelemetry[0]).toMatchObject({
+      eventType: 'sync_recovered',
+      sessionId: 'session-001',
+      stepId: 'step-03',
+      incidentKey: firstFailure.telemetry.incidentKey,
+      recoveredIncidentCount: 1,
+      recoveredFailureCount: 2,
+      recoveryState: 'recovered',
+      incidentSeverity: 'high',
+      rawDiagnostics: telemetry,
+    });
   });
 });

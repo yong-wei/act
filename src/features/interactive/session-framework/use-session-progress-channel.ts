@@ -6,8 +6,10 @@ import type { SessionInfo } from './session-contract';
 import {
   buildFetchFailureTelemetry,
   buildHttpFailureTelemetry,
+  createSyncIncidentTracker,
   createFetchTimeout,
   DEFAULT_SYNC_FETCH_TIMEOUT_MS,
+  dispatchSyncRecoveryTelemetry,
   getFetchFailureTelemetry,
   shouldSurfaceSyncFailure,
   toFetchTelemetryError,
@@ -117,6 +119,13 @@ export function useSessionProgressChannel({
   const isPausedRef = useRef<boolean>(false);
   const isSyncingRef = useRef<boolean>(false);
   const lastHiddenPollAtRef = useRef<number>(0);
+  const activeStepIdRef = useRef<string | null>(null);
+  const syncIncidentTrackerRef = useRef<ReturnType<typeof createSyncIncidentTracker> | null>(null);
+
+  activeStepIdRef.current = stableStepIds[activeIndex] ?? null;
+  if (!syncIncidentTrackerRef.current) {
+    syncIncidentTrackerRef.current = createSyncIncidentTracker();
+  }
 
   /**
    * 获取服务器状态的时间戳（毫秒）
@@ -225,6 +234,13 @@ export function useSessionProgressChannel({
 
       // 成功时重置错误计数
       if (errorCountRef.current > 0) {
+        const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({
+          sessionId,
+          stepId: data.currentItemId ?? activeStepIdRef.current,
+        });
+        for (const telemetry of recoveryTelemetry) {
+          dispatchSyncRecoveryTelemetry(telemetry);
+        }
         errorCountRef.current = 0;
       }
 
@@ -259,8 +275,18 @@ export function useSessionProgressChannel({
         telemetry,
         consecutiveFailures: errorCountRef.current,
       });
-      setError(shouldSurface ? errorMessage : null);
-      setErrorTelemetry(shouldSurface ? telemetry : null);
+      const incident = syncIncidentTrackerRef.current!.recordFailure({
+        telemetry,
+        stepId: activeStepIdRef.current,
+        consecutiveFailures: errorCountRef.current,
+      });
+      if (incident.shouldEmit) {
+        setError(errorMessage);
+        setErrorTelemetry(incident.telemetry);
+      } else if (!shouldSurface) {
+        setError(null);
+        setErrorTelemetry(null);
+      }
       setLoadingSession(false);
 
       // 连续错误超过5次，暂停轮询5秒
