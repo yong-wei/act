@@ -59,7 +59,10 @@ export function useTeacherLessonSession<
     teacherViewHydrated,
     fetchTeacherViewStates,
     postState,
-  } = useSessionStateChannel({ sessionId });
+  } = useSessionStateChannel({
+    sessionId,
+    currentStepId: steps[teacherIndex]?.id ?? steps[activeIndex]?.id ?? null,
+  });
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const isSyncingStatesRef = useRef(false);

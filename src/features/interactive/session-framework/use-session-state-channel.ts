@@ -23,6 +23,7 @@ import {
 interface UseSessionStateChannelOptions {
   sessionId: string;
   isDemo?: boolean;
+  currentStepId?: string | null;
 }
 
 function emptyViewPayload(): TeacherViewStatePayload {
@@ -37,7 +38,7 @@ function emptyViewPayload(): TeacherViewStatePayload {
   };
 }
 
-export function useSessionStateChannel({ sessionId, isDemo = false }: UseSessionStateChannelOptions) {
+export function useSessionStateChannel({ sessionId, isDemo = false, currentStepId = null }: UseSessionStateChannelOptions) {
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [courseStates, setCourseStates] = useState<SessionStateRecord[]>([]);
   const [teacherStates, setTeacherStates] = useState<SessionStateRecord[]>([]);
@@ -75,6 +76,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
         const payload = (await response.json()) as T;
         const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({
           sessionId,
+          stepId: currentStepId,
           source,
           url,
           method,
@@ -96,6 +98,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
           });
         const incident = syncIncidentTrackerRef.current!.recordFailure({
           telemetry,
+          stepId: currentStepId,
           consecutiveFailures: 1,
         });
         throw toFetchTelemetryError(
@@ -106,7 +109,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
         timeout?.clear();
       }
     },
-    [sessionId],
+    [currentStepId, sessionId],
   );
 
   const applyViewPayload = useCallback((payload: TeacherViewStatePayload | StudentViewStatePayload | SelfViewStatePayload) => {

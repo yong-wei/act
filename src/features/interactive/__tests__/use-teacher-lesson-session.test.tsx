@@ -2,6 +2,7 @@ import { renderToString } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { TeacherLessonSessionResult } from '../session-framework/session-contract';
+import { getFetchFailureTelemetry } from '../session-framework/fetch-diagnostics';
 import { useTeacherLessonSession } from '../session-framework/use-teacher-lesson-session';
 
 type StudentState = { name: string };
@@ -72,5 +73,45 @@ describe('useTeacherLessonSession', () => {
     });
 
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('tags state sync failures with the current lesson step', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      JSON.stringify({ error: 'state write failed' }),
+      {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'content-type': 'application/json' },
+      },
+    )));
+    let session: TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> | null = null;
+
+    function Harness() {
+      session = useTeacherLessonSession({
+        sessionId: 'session-001',
+        steps: [{ id: 'step-04' }, { id: 'step-05' }],
+        adapter,
+      });
+      return null;
+    }
+
+    renderToString(<Harness />);
+
+    const teacherSession = session as unknown as TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> | null;
+    if (!teacherSession) throw new Error('Expected teacher lesson session');
+
+    let caughtError: unknown;
+    try {
+      await teacherSession.postTeacherSyncState({
+        activeStepId: 'step-04',
+        revealedAnswers: { 'step-04': true },
+        updatedAt: 1_776_307_900_000,
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+
+    const telemetry = getFetchFailureTelemetry(caughtError);
+    expect(telemetry?.incidentKey).toContain('\u0000step-04\u0000');
   });
 });

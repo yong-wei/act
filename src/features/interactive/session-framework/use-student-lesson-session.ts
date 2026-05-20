@@ -97,7 +97,11 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     teacherStates,
     fetchStudentViewStates,
     postState,
-  } = useSessionStateChannel({ sessionId, isDemo });
+  } = useSessionStateChannel({
+    sessionId,
+    isDemo,
+    currentStepId: steps[activeIndex]?.id ?? null,
+  });
   const [courseState, setCourseState] = useState<StudentState>(() => adapter.createEmptyStudentState(currentStudentName));
   const [error, setError] = useState<string | null>(null);
   const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
