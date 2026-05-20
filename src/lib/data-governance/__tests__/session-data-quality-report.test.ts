@@ -19,6 +19,7 @@ describe('buildSessionDataQualityReport', () => {
         {
           sessionId: 'session-5-2',
           userId: 'student-1',
+          stateKey: 'course',
           lessonKey: '5-2',
           submittedAt: new Date('2026-05-20T08:05:00.000Z'),
           lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
@@ -26,9 +27,18 @@ describe('buildSessionDataQualityReport', () => {
         {
           sessionId: 'session-5-2',
           userId: 'student-2',
+          stateKey: 'course',
           lessonKey: '5-2',
           submittedAt: new Date('2026-05-20T08:06:00.000Z'),
           lastClientEventAt: new Date('2026-05-20T09:21:00.000Z'),
+        },
+        {
+          sessionId: 'session-5-2',
+          userId: 'teacher-1',
+          stateKey: 'teacher-sync',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:07:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:22:00.000Z'),
         },
       ],
       interactionLogs: [
@@ -265,6 +275,19 @@ describe('buildSessionDataQualityReport', () => {
         sessionId: { in: ['session-5-2'] },
         lessonKey: { in: ['5-2'] },
       },
+    }));
+    expect(db.studentState.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        NOT: { stateKey: { startsWith: 'teacher' } },
+        lessonKey: { in: ['5-2'] },
+      }),
+    }));
+    expect(db.studentState.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        sessionId: { in: ['session-5-2'] },
+        NOT: { stateKey: { startsWith: 'teacher' } },
+        lessonKey: { in: ['5-2'] },
+      }),
     }));
   });
 });

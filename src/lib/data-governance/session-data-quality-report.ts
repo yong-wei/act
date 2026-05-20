@@ -19,6 +19,7 @@ interface ClassSessionQualityRow {
 interface StudentStateQualityRow {
   sessionId: string;
   userId: string;
+  stateKey?: string | null;
   lessonKey: string | null;
   submittedAt: Date;
   lastClientEventAt: Date | null;
@@ -218,6 +219,10 @@ function buildSessionWhere(sessionIds: string[]) {
   return sessionIds.length ? { sessionId: { in: sessionIds } } : {};
 }
 
+function isStudentStateRow(state: StudentStateQualityRow) {
+  return !state.stateKey?.startsWith('teacher');
+}
+
 async function collectSessionIdsFromLessonFilters(
   db: SessionDataQualityDb,
   filters: SessionDataQualityFilters,
@@ -236,6 +241,7 @@ async function collectSessionIdsFromLessonFilters(
     }) as Promise<Array<{ sessionId: string | null }>>,
     db.studentState.findMany({
       where: {
+        NOT: { stateKey: { startsWith: 'teacher' } },
         ...buildLessonWhere(filters, 'lessonKey'),
         ...buildDateWhere(filters, 'submittedAt'),
       },
@@ -351,7 +357,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const classReports = input.classSessionReports.filter((report) => report.sessionId === session.id);
     const studentReports = input.studentSessionReports.filter((report) => report.sessionId === session.id);
     const participantUserIds = uniqueSorted([
-      ...states.map((state) => state.userId),
+      ...states.filter(isStudentStateRow).map((state) => state.userId),
       ...logs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
       ...facts.map((fact) => fact.userId),
       ...submissions.map((submission) => submission.userId),
@@ -482,11 +488,13 @@ export async function collectSessionDataQualityReport(
     db.studentState.findMany({
       where: {
         ...whereBySession,
+        NOT: { stateKey: { startsWith: 'teacher' } },
         ...buildLessonWhere(filters, 'lessonKey'),
       },
       select: {
         sessionId: true,
         userId: true,
+        stateKey: true,
         lessonKey: true,
         submittedAt: true,
         lastClientEventAt: true,
@@ -567,7 +575,7 @@ export async function collectSessionDataQualityReport(
     }),
   ]);
   const participantUserIds = uniqueSorted([
-    ...studentStates.map((state) => state.userId),
+    ...studentStates.filter(isStudentStateRow).map((state) => state.userId),
     ...interactionLogs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
     ...learningFacts.map((fact) => fact.userId),
     ...studentStepResponses.map((submission) => submission.userId),
