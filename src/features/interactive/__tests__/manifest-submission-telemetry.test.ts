@@ -76,6 +76,8 @@ describe('buildManifestSubmissionTelemetry', () => {
     expect(telemetry).toMatchObject({
       stepId: 'step-02',
       submittedAt: 1778550642900,
+      schemaVersion: 'manifest-submission-v2',
+      evidenceQuality: 'rich',
       responseKind: 'manifest_step_response',
       interactionKind: 'quiz_group',
       answers: {
@@ -110,6 +112,14 @@ describe('buildManifestSubmissionTelemetry', () => {
         },
       ],
       scoringSupported: true,
+      correctCount: 1,
+      objectiveTotal: 3,
+      score: 33.3,
+      subjectiveCompleteness: {
+        answeredCount: 1,
+        totalCount: 1,
+        complete: true,
+      },
     });
   });
 
@@ -156,6 +166,119 @@ describe('buildManifestSubmissionTelemetry', () => {
           isCorrect: true,
         },
       ],
+    });
+  });
+
+  it('scores drag-match answers against manifest reference matches', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-04',
+        submittedAt: 1778550644500,
+        answers: {
+          assumptions: 'linear|small-signal',
+        },
+      },
+      {
+        id: 'step-04',
+        interactionSpec: {
+          interactionKind: 'activity_card_set',
+          activityCards: [
+            {
+              id: 'assumptions',
+              title: '默认条件配对',
+              prompt: '把条件和解释配对。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [],
+              matchItems: [
+                { value: 'proportional', label: '比例叠加' },
+                { value: 'disturbance', label: '小扰动' },
+              ],
+              matchOptions: [
+                { value: 'linear', label: '线性叠加仍成立' },
+                { value: 'small-signal', label: '只在工作点附近成立' },
+              ],
+              referenceMatches: [
+                { item: 'proportional', option: 'linear' },
+                { item: 'disturbance', option: 'small-signal' },
+              ],
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 1,
+      objectiveTotal: 1,
+      score: 100,
+      questionSummaries: [
+        {
+          questionId: 'assumptions',
+          studentAnswer: 'linear|small-signal',
+          referenceValue: ['linear', 'small-signal'],
+          isCorrect: true,
+        },
+      ],
+    });
+  });
+
+  it('keeps custom extra evidence under a structured namespace', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-06',
+        submittedAt: 1778550644900,
+        answers: {
+          boundary: '局部线性化仅在小扰动附近有效。',
+        },
+      },
+      {
+        id: 'step-06',
+        interactionSpec: {
+          interactionKind: 'curve_compare_panel',
+          activityCards: [
+            {
+              id: 'boundary',
+              title: '边界判断',
+              prompt: '写出边界。',
+              responseKind: 'fill_text',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [],
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+      {
+        extraEvidence: {
+          parameterSnapshots: {
+            saturationLimit: '0.35',
+          },
+          panelResult: {
+            boundaryTouched: true,
+          },
+        },
+      },
+    );
+
+    expect(telemetry).toMatchObject({
+      schemaVersion: 'manifest-submission-v2',
+      evidenceQuality: 'partial',
+      parameterSnapshots: {
+        saturationLimit: '0.35',
+      },
+      extraEvidence: {
+        panelResult: {
+          boundaryTouched: true,
+        },
+      },
+      subjectiveCompleteness: {
+        answeredCount: 1,
+        totalCount: 1,
+        complete: true,
+      },
     });
   });
 });

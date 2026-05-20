@@ -140,12 +140,24 @@ function countAnsweredAnswers(payload: Record<string, unknown>): number {
   return answers ? Object.keys(answers).length : 0;
 }
 
+function resolveEvidenceQuality(payload: Record<string, unknown>): string | undefined {
+  const explicit = readString(payload.evidenceQuality);
+  if (explicit) return explicit;
+  if (payload.schemaVersion === 'manifest-submission-v2') {
+    if (buildQuestionSummaryEvidence(payload)) return 'rich';
+    if (countAnsweredAnswers(payload) > 0) return 'partial';
+    return 'missing';
+  }
+  return undefined;
+}
+
 function buildInteractiveQuizContext(actionType: string, payload: Record<string, unknown>) {
   if (actionType !== 'lesson_submit' && actionType !== 'lesson_resubmit') {
     return null;
   }
 
   const questionSummaryEvidence = buildQuestionSummaryEvidence(payload);
+  const evidenceQuality = resolveEvidenceQuality(payload);
   const lessonKey = readString(payload.lessonKey);
   const stepId = readString(payload.stepId);
   const baseContext = {
@@ -163,6 +175,7 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
         ...baseContext,
         scoring: compactJsonObject({
           supported: true,
+          evidenceQuality,
           answeredCount: questionSummaryEvidence.answeredCount,
           correctCount: questionSummaryEvidence.correctCount,
           totalCount: questionSummaryEvidence.totalCount,
@@ -182,8 +195,25 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
         ...baseContext,
         scoring: compactJsonObject({
           supported: false,
+          evidenceQuality,
           reason: 'missing_objective_answer_keys',
           answeredCount,
+        }),
+      }),
+    };
+  }
+
+  if (evidenceQuality) {
+    return {
+      score: undefined,
+      context: compactJsonObject({
+        ...baseContext,
+        scoring: compactJsonObject({
+          supported: false,
+          evidenceQuality,
+          reason: evidenceQuality === 'legacy-envelope'
+            ? 'legacy_submit_envelope'
+            : 'missing_answer_evidence',
         }),
       }),
     };

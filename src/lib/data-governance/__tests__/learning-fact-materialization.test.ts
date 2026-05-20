@@ -210,6 +210,8 @@ describe('eventToLearningFactInput', () => {
       sessionId: 'session-4-7',
       payload: {
         eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        evidenceQuality: 'rich',
         lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
         stepId: 'step-02',
         attemptKey: 'step-02:response:1778550642900',
@@ -242,6 +244,7 @@ describe('eventToLearningFactInput', () => {
           sourceLogId: 'log-step-02-submit',
           scoring: {
             supported: true,
+            evidenceQuality: 'rich',
             answeredCount: 2,
             correctCount: 1,
             totalCount: 2,
@@ -335,6 +338,8 @@ describe('eventToLearningFactInput', () => {
       sessionId: 'session-4-7',
       payload: {
         eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        evidenceQuality: 'partial',
         lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
         stepId: 'step-02',
         attemptKey: 'step-02:response:1778550642999',
@@ -351,6 +356,7 @@ describe('eventToLearningFactInput', () => {
         stepId: 'step-02',
         scoring: {
           supported: false,
+          evidenceQuality: 'partial',
           reason: 'missing_objective_answer_keys',
           answeredCount: 1,
         },

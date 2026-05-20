@@ -113,6 +113,67 @@ function readPayloadString(payload: Record<string, unknown>, key: string): strin
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function hasRecordEntries(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
+}
+
+function hasArrayEntries(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function questionSummariesAreScoreable(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  return value.some((item) => (
+    item
+    && typeof item === 'object'
+    && !Array.isArray(item)
+    && (
+      typeof (item as Record<string, unknown>).isCorrect === 'boolean'
+      || (item as Record<string, unknown>).referenceValue !== undefined
+      || (item as Record<string, unknown>).referenceAnswer !== undefined
+    )
+  ));
+}
+
+function resolveSubmissionEvidenceQuality(
+  payload: Record<string, unknown>,
+  canonicalEventType: string,
+): string | undefined {
+  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
+    return undefined;
+  }
+
+  if (payload.schemaVersion === 'manifest-submission-v2') {
+    const explicit = readPayloadString(payload, 'evidenceQuality');
+    if (explicit === 'rich' || explicit === 'partial' || explicit === 'missing') {
+      return explicit;
+    }
+    if (questionSummariesAreScoreable(payload.questionSummaries)) {
+      return 'rich';
+    }
+    if (
+      hasRecordEntries(payload.answers)
+      || hasRecordEntries(payload.answerDigest)
+      || hasRecordEntries(payload.extraEvidence)
+      || hasRecordEntries(payload.parameterSnapshots)
+      || hasArrayEntries(payload.questionSummaries)
+    ) {
+      return 'partial';
+    }
+    return 'missing';
+  }
+
+  return 'legacy-envelope';
+}
+
+function withSubmissionEvidenceQuality(
+  payload: Record<string, unknown>,
+  canonicalEventType: string,
+): Record<string, unknown> {
+  const evidenceQuality = resolveSubmissionEvidenceQuality(payload, canonicalEventType);
+  return evidenceQuality ? { ...payload, evidenceQuality } : payload;
+}
+
 function buildStudentStepResponseRows(
   events: NormalizedInteractionEvent[],
   userId: string,
@@ -125,6 +186,7 @@ function buildStudentStepResponseRows(
         ? eventData.event.data
         : {};
     const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+    const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
 
     if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
       continue;
@@ -151,7 +213,7 @@ function buildStudentStepResponseRows(
       clientEventId,
       submittedAt,
       responseData: {
-        ...payload,
+        ...normalizedPayload,
         eventType: canonicalEventType,
         resourceKey: eventData.event.resourceKey,
         lessonKey: eventData.event.lessonKey ?? null,
@@ -319,6 +381,8 @@ export async function POST(request: NextRequest) {
     // retain a direct InteractionLog sourceLogId.
     const interactionLogEvents = dedupedEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
+      const canonicalEventType = resolveCanonicalEventType(item.event.type, eventData);
+      const normalizedEventData = withSubmissionEvidenceQuality(eventData, canonicalEventType);
       return {
         userId: session.user.id,
         resourceId: item.resourceId,
@@ -332,7 +396,7 @@ export async function POST(request: NextRequest) {
         clientEventId: item.clientEventId,
         learningContext: item.learningContext,
         invalidContextReason: item.invalidContextReason,
-        eventData,
+        eventData: normalizedEventData,
         clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
       };
     });
@@ -400,13 +464,14 @@ export async function POST(request: NextRequest) {
           ? eventData.event.data
           : {};
       const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+      const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
           eventId: typeof eventData.event.id === 'string' ? eventData.event.id : undefined,
           actionType: canonicalEventType,
           payload: {
-            ...payload,
+            ...normalizedPayload,
             ...(resolveClientEventId(eventData.event) ? { clientEventId: resolveClientEventId(eventData.event) } : {}),
             learningContext: eventData.learningContext,
             ...(eventData.invalidContextReason ? { invalidContextReason: eventData.invalidContextReason } : {}),

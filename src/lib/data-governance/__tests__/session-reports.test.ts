@@ -102,7 +102,12 @@ describe('generateSessionSummaryReports', () => {
         stepId: 'step-02',
         submittedAt: new Date('2026-05-09T00:35:00.000Z'),
         responseData: {
+          schemaVersion: 'manifest-submission-v2',
+          evidenceQuality: 'rich',
           answers: { q1: 'A' },
+          questionSummaries: [
+            { questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true },
+          ],
         },
       },
       {
@@ -110,7 +115,18 @@ describe('generateSessionSummaryReports', () => {
         stepId: 'step-02',
         submittedAt: new Date('2026-05-09T00:36:00.000Z'),
         responseData: {
+          schemaVersion: 'manifest-submission-v2',
+          evidenceQuality: 'partial',
           answers: { q1: 'B' },
+        },
+      },
+      {
+        userId: 'student-2',
+        stepId: 'step-05',
+        submittedAt: new Date('2026-05-09T00:37:00.000Z'),
+        responseData: {
+          evidenceQuality: 'legacy-envelope',
+          stepId: 'step-05',
         },
       },
     ]);
@@ -144,8 +160,15 @@ describe('generateSessionSummaryReports', () => {
       interactionLogs: 5,
       learningFacts: 2,
       syncErrors: 3,
-      durableSubmissions: 2,
-      submittedParticipantsFromDurableResponses: 1,
+      durableSubmissions: 3,
+      submittedParticipantsFromDurableResponses: 2,
+      evidenceQualityCounts: {
+        rich: 1,
+        partial: 1,
+        legacy: 1,
+        missing: 0,
+      },
+      scoreableObjectiveSubmissions: 1,
       syncErrorIncidents: 2,
       legacyEventTypes: {
         lesson_submit: 1,
@@ -167,8 +190,12 @@ describe('generateSessionSummaryReports', () => {
         loggedParticipants: 2,
         factParticipants: 2,
         submittedParticipants: 1,
-        durableSubmittedParticipants: 1,
-        durableSubmissionAttempts: 2,
+        durableSubmittedParticipants: 2,
+        durableSubmissionAttempts: 3,
+        evidenceRichSubmissions: 1,
+        partialEvidenceSubmissions: 1,
+        legacyEvidenceSubmissions: 1,
+        scoreableObjectiveSubmissions: 1,
         snapshotUpdatedParticipants: 1,
         syncErrorUsers: 2,
         rawSyncErrors: 3,
@@ -227,6 +254,12 @@ describe('generateSessionSummaryReports', () => {
           learningFacts: 0,
           syncErrors: 0,
           durableSubmissions: 0,
+          evidenceQualityCounts: {
+            rich: 0,
+            partial: 0,
+            legacy: 0,
+            missing: 0,
+          },
         }),
       }),
     }));

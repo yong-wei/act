@@ -9,15 +9,27 @@ interface ManifestResponseLike {
   answers: Record<string, string>;
 }
 
+interface ManifestSubmissionTelemetryOptions {
+  extraEvidence?: Record<string, unknown>;
+}
+
 const OBJECTIVE_RESPONSE_KINDS = new Set([
   'single_choice',
   'binary_choice',
   'multi_choice',
   'multi_select',
+  'drag_match',
+  'triple_match',
+  'drag_sort',
+  'card_sort',
 ]);
 
 function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
   return OBJECTIVE_RESPONSE_KINDS.has(card.responseKind);
+}
+
+function isSubjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
+  return !isObjectiveCard(card);
 }
 
 function splitAnswerTokens(value: string): string[] {
@@ -51,6 +63,15 @@ function extractReferenceChoiceTokens(referenceAnswer: string): string[] {
 }
 
 function resolveReferenceValue(card: InteractiveRuntimeActivityCardManifest): string | string[] | undefined {
+  if ((card.responseKind === 'drag_match' || card.responseKind === 'triple_match') && card.referenceMatches?.length) {
+    const itemOrder = (card.matchItems?.length ? card.matchItems : card.options).map((item) => item.value);
+    const optionByItem = new Map(card.referenceMatches.map((item) => [item.item, item.option]));
+    const orderedOptions = itemOrder.map((item) => optionByItem.get(item));
+    if (orderedOptions.every((value): value is string => Boolean(value))) {
+      return orderedOptions;
+    }
+  }
+
   const referenceAnswer = card.referenceAnswer?.trim();
   if (!referenceAnswer) return undefined;
 
@@ -79,9 +100,32 @@ function answersMatch(studentAnswer: string, referenceValue: string | string[]):
     && studentTokens.every((value, index) => value === referenceTokens[index]);
 }
 
+function roundScore(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function hasAnswerValue(value: string | undefined): boolean {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function buildSubjectiveCompleteness(
+  cards: InteractiveRuntimeActivityCardManifest[],
+  answers: Record<string, string>,
+) {
+  const subjectiveCards = cards.filter(isSubjectiveCard);
+  if (subjectiveCards.length === 0) return undefined;
+  const answeredCount = subjectiveCards.filter((card) => hasAnswerValue(answers[card.id])).length;
+  return {
+    answeredCount,
+    totalCount: subjectiveCards.length,
+    complete: answeredCount === subjectiveCards.length,
+  };
+}
+
 export function buildManifestSubmissionTelemetry(
   response: ManifestResponseLike,
   stepManifest: InteractiveRuntimeStepManifest | null | undefined,
+  options: ManifestSubmissionTelemetryOptions = {},
 ): Record<string, unknown> {
   const cards = stepManifest?.interactionSpec.activityCards ?? [];
   const answerDigest = Object.fromEntries(
@@ -105,15 +149,35 @@ export function buildManifestSubmissionTelemetry(
       };
     })
     .filter((item) => item.referenceValue !== undefined || item.answered);
+  const scoreableQuestionSummaries = questionSummaries.filter((item) => typeof item.isCorrect === 'boolean');
+  const scoringSupported = scoreableQuestionSummaries.length > 0;
+  const correctCount = scoreableQuestionSummaries.filter((item) => item.isCorrect === true).length;
+  const objectiveTotal = scoreableQuestionSummaries.length;
+  const score = scoringSupported ? roundScore((correctCount / objectiveTotal) * 100) : undefined;
+  const subjectiveCompleteness = buildSubjectiveCompleteness(cards, answerDigest);
+  const extraEvidence = options.extraEvidence ?? {};
+  const { parameterSnapshots, ...nestedExtraEvidence } = extraEvidence;
+  const hasExtraEvidence = Object.keys(extraEvidence).length > 0;
+  const evidenceQuality = scoringSupported
+    ? 'rich'
+    : Object.keys(answerDigest).length > 0 || hasExtraEvidence
+      ? 'partial'
+      : 'missing';
 
   return {
+    schemaVersion: 'manifest-submission-v2',
     stepId: response.stepId,
     submittedAt: response.submittedAt,
+    evidenceQuality,
     responseKind: 'manifest_step_response',
     interactionKind: stepManifest?.interactionSpec.interactionKind,
     answers: answerDigest,
     answerDigest,
     questionSummaries,
-    scoringSupported: questionSummaries.some((item) => item.referenceValue !== undefined),
+    scoringSupported,
+    ...(scoringSupported ? { correctCount, objectiveTotal, score } : {}),
+    ...(subjectiveCompleteness ? { subjectiveCompleteness } : {}),
+    ...(parameterSnapshots !== undefined ? { parameterSnapshots } : {}),
+    ...(Object.keys(nestedExtraEvidence).length > 0 ? { extraEvidence: nestedExtraEvidence } : {}),
   };
 }

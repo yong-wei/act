@@ -77,6 +77,8 @@ describe('unit 5-1 interactive course', () => {
     expect(courseSource).not.toContain('UNIT_5_1_PAGE_CONTRACTS');
     expect(courseSource).not.toContain('fallbackManifestStep');
     expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
+    expect(studentPageSource).toContain('useManifestSubmissionController');
+    expect(studentPageSource).toContain('submitManifestStepResponse({');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
     expect(stepPanelsSource).toContain('onInlineReveal: onAdvanceReveal');
@@ -90,6 +92,7 @@ describe('unit 5-1 interactive course', () => {
     expect(studentPageSource).toContain('__boundary_parameters');
     expect(studentPageSource).toContain('boundaryParameterSnapshots');
     expect(studentPageSource).toContain('parameterSubmitted');
+    expect(studentPageSource).toContain('parameterSnapshots: currentBoundaryParameters');
     expect(studentPageSource).toContain('const handleBoundaryParameterChange = useCallback');
     expect(studentPageSource).toContain('onParameterChange={handleBoundaryParameterChange}');
     expect(studentPageSource).not.toContain('AI 助手');
