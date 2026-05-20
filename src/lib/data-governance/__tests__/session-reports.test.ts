@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { generateSessionSummaryReports } from '../session-reports';
+import { buildSyncErrorIncidentSummary, generateSessionSummaryReports } from '../session-reports';
 
 describe('generateSessionSummaryReports', () => {
   const prisma = {
@@ -263,5 +263,372 @@ describe('generateSessionSummaryReports', () => {
         }),
       }),
     }));
+  });
+});
+
+describe('buildSyncErrorIncidentSummary', () => {
+  it('deduplicates bursts, keeps raw counts, and classifies recovered transient noise', () => {
+    const incidentKey = [
+      'student-1',
+      'student-page',
+      'step-03',
+      'session_progress_get',
+      '/api/session/session-001',
+      'GET',
+      'aborted',
+      'none',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'aborted',
+          errorName: 'AbortError',
+          documentVisibilityState: 'hidden',
+          incidentKey: 'unknown\u0000unknown\u0000step-03\u0000session_progress_get\u0000/api/session/session-001\u0000GET\u0000aborted\u0000none',
+          incidentSeverity: 'low',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:10.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'aborted',
+          errorName: 'AbortError',
+          documentVisibilityState: 'hidden',
+          incidentKey: 'unknown\u0000unknown\u0000step-03\u0000session_progress_get\u0000/api/session/session-001\u0000GET\u0000aborted\u0000none',
+          incidentSeverity: 'low',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:20.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          incidentKey,
+          scope: 'student-page',
+          source: 'session_progress_get',
+          failureKind: 'aborted',
+          url: '/api/session/session-001',
+          method: 'GET',
+          recoveredIncidentCount: 1,
+          recoveredFailureCount: 2,
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:01:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'aborted',
+          errorName: 'AbortError',
+          documentVisibilityState: 'hidden',
+          incidentKey,
+          incidentSeverity: 'low',
+        },
+      },
+      {
+        userId: 'student-2',
+        eventType: 'error',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:03:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          status: 503,
+          statusText: 'Service Unavailable',
+          incidentSeverity: 'high',
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 4,
+      rawRecoveryCount: 1,
+      incidentCount: 3,
+      affectedUsers: 2,
+      affectedUserIds: ['student-1', 'student-2'],
+      dominantSource: 'session_progress_get',
+      dominantFailureKind: 'aborted',
+      severityDistribution: {
+        low: 2,
+        medium: 0,
+        high: 1,
+      },
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 2,
+      transientClientNoiseCount: 2,
+      broadServiceIncidentCount: 0,
+      concentratedUserIncidentCount: 3,
+    });
+  });
+
+  it('can match recovered incidents when the sync error timestamp is missing', () => {
+    const incidentKey = [
+      'student-1',
+      'student-page',
+      'step-03',
+      'session_progress_get',
+      '/api/session/session-001',
+      'GET',
+      'network',
+      'none',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: null,
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentSeverity: 'medium',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:20.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentKey,
+          recoveredIncidentCount: 1,
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 1,
+      rawRecoveryCount: 1,
+      incidentCount: 1,
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 0,
+    });
+  });
+
+  it('keeps adjacent sync errors in one burst by advancing the burst anchor', () => {
+    const logs = [0, 25, 50].map((offsetSeconds) => ({
+      userId: 'student-1',
+      eventType: 'error',
+      stepId: 'step-03',
+      clientEventAt: new Date(Date.UTC(2026, 4, 9, 1, 0, offsetSeconds)),
+      lessonKey: '5-1',
+      learningContext: 'classroom_live',
+      invalidContextReason: null,
+      eventData: {
+        eventType: 'sync_error',
+        scope: 'student-page',
+        source: 'session_progress_get',
+        url: '/api/session/session-001',
+        method: 'GET',
+        failureKind: 'network',
+        incidentSeverity: 'medium',
+      },
+    }));
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 3,
+      incidentCount: 1,
+      recoveredIncidentCount: 0,
+      unresolvedIncidentCount: 1,
+    });
+  });
+
+  it('matches null-timestamp recoveries one-to-one', () => {
+    const incidentKey = [
+      'student-1',
+      'student-page',
+      'step-03',
+      'session_progress_get',
+      '/api/session/session-001',
+      'GET',
+      'network',
+      'none',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: null,
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentSeverity: 'medium',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-03',
+        clientEventAt: null,
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentSeverity: 'medium',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-03',
+        clientEventAt: new Date('2026-05-09T01:00:20.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          scope: 'student-page',
+          source: 'session_progress_get',
+          url: '/api/session/session-001',
+          method: 'GET',
+          failureKind: 'network',
+          incidentKey,
+          recoveredIncidentCount: 1,
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 2,
+      rawRecoveryCount: 1,
+      incidentCount: 2,
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 1,
+    });
+  });
+
+  it('uses the original recovery incident status when top-level recovery status is missing', () => {
+    const incidentKey = [
+      'student-1',
+      'teacher-page',
+      'step-04',
+      'teacher_state_get',
+      '/api/session/session-001/state?scope=teacher-view',
+      'GET',
+      'http',
+      '503',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:00:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          status: 503,
+          incidentSeverity: 'high',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:00:15.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          incidentKey,
+          recoveredIncidentCount: 1,
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 1,
+      rawRecoveryCount: 1,
+      incidentCount: 1,
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 0,
+    });
   });
 });

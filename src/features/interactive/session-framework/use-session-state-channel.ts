@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type {
   SelfViewStatePayload,
@@ -11,8 +11,11 @@ import type {
 import {
   buildFetchFailureTelemetry,
   buildHttpFailureTelemetry,
+  createSyncIncidentTracker,
   createFetchTimeout,
   DEFAULT_SYNC_FETCH_TIMEOUT_MS,
+  dispatchSyncRecoveryTelemetry,
+  getFetchFailureTelemetry,
   toFetchTelemetryError,
   type FetchTelemetrySource,
 } from './fetch-diagnostics';
@@ -20,6 +23,7 @@ import {
 interface UseSessionStateChannelOptions {
   sessionId: string;
   isDemo?: boolean;
+  currentStepId?: string | null;
 }
 
 function emptyViewPayload(): TeacherViewStatePayload {
@@ -34,16 +38,23 @@ function emptyViewPayload(): TeacherViewStatePayload {
   };
 }
 
-export function useSessionStateChannel({ sessionId, isDemo = false }: UseSessionStateChannelOptions) {
+export function useSessionStateChannel({ sessionId, isDemo = false, currentStepId = null }: UseSessionStateChannelOptions) {
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [courseStates, setCourseStates] = useState<SessionStateRecord[]>([]);
   const [teacherStates, setTeacherStates] = useState<SessionStateRecord[]>([]);
   const [summary, setSummary] = useState(emptyViewPayload().summary);
   const [teacherViewHydrated, setTeacherViewHydrated] = useState(isDemo);
+  const syncIncidentTrackerRef = useRef<ReturnType<typeof createSyncIncidentTracker> | null>(null);
+  const failureCountByRequestRef = useRef<Map<string, number>>(new Map());
+
+  if (!syncIncidentTrackerRef.current) {
+    syncIncidentTrackerRef.current = createSyncIncidentTracker();
+  }
 
   const fetchJson = useCallback(
     async <T,>(url: string, source: FetchTelemetrySource, init?: RequestInit): Promise<T> => {
       const method = init?.method ?? 'GET';
+      const requestKey = `${source}\u0000${method}\u0000${url}`;
       const startedAt = Date.now();
       const timeout = init?.signal ? null : createFetchTimeout();
       const requestInit = timeout
@@ -64,13 +75,24 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
             buildHttpFailureTelemetry({ source, url, method, startedAt, response }),
           );
         }
-        return (await response.json()) as T;
-      } catch (error) {
-        if (error instanceof Error && 'telemetry' in error) {
-          throw error;
+        const payload = (await response.json()) as T;
+        const recoveryTelemetry = syncIncidentTrackerRef.current!.recordRecovery({
+          sessionId,
+          stepId: currentStepId,
+          source,
+          url,
+          method,
+        });
+        for (const telemetry of recoveryTelemetry) {
+          dispatchSyncRecoveryTelemetry(telemetry);
         }
-        throw toFetchTelemetryError(
-          error instanceof Error ? error.message : '课堂状态读取失败',
+        failureCountByRequestRef.current.delete(requestKey);
+        return payload;
+      } catch (error) {
+        const consecutiveFailures = (failureCountByRequestRef.current.get(requestKey) ?? 0) + 1;
+        failureCountByRequestRef.current.set(requestKey, consecutiveFailures);
+        const telemetry =
+          getFetchFailureTelemetry(error) ??
           buildFetchFailureTelemetry({
             source,
             url,
@@ -78,13 +100,21 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
             startedAt,
             error,
             timeoutMs: DEFAULT_SYNC_FETCH_TIMEOUT_MS,
-          }),
+          });
+        const incident = syncIncidentTrackerRef.current!.recordFailure({
+          telemetry,
+          stepId: currentStepId,
+          consecutiveFailures,
+        });
+        throw toFetchTelemetryError(
+          error instanceof Error ? error.message : '课堂状态读取失败',
+          incident.telemetry,
         );
       } finally {
         timeout?.clear();
       }
     },
-    [],
+    [currentStepId, sessionId],
   );
 
   const applyViewPayload = useCallback((payload: TeacherViewStatePayload | StudentViewStatePayload | SelfViewStatePayload) => {
