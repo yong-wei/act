@@ -638,6 +638,10 @@ description: Use when implementing or upgrading this repository's interactive le
 - 推导型页面若使用公式卡、公式栈或渐进揭示组件，必须让组件顺序直接对齐设计稿；若当前组件无法表达推导链，应先扩展组件或拆分步骤，而不是退回“一次性平铺全部公式”。
 - 页面埋点必须优先复用统一互动采集框架；课堂内事件走 `useCourseEventTracking / useInteractiveTracking`，课堂外资源事件走 `useResourceInteractionTracking`，不得把两套语义混写。
 - 参数滑块、参数联动曲线和工作区调参事件必须走共享 `workspace-parameter-telemetry` 缓冲器，由 `useCourseEventTracking.trackWorkspaceParamChange` 统一合并、空闲消化，并在 `step_leave`、`lesson_submit`、`lesson_resubmit`、`session_finalize` 前刷新；不得在单课组件里对每一次拖动直接发送 `workspace_param_change`。
+- manifest 驱动的新课若存在 `activity_cards`、`parameter_slider`、`interactive_figure_submit`、训练面板或其他学生响应产物，学生页必须通过 `useManifestSubmissionController` / `submitManifestStepResponse` 进入共享 `manifest-submission-v2` 证据路径，并传入当前 step 的 manifest getter；不得在课程页直接发送 `COURSE_EVENT_TYPES.LESSON_SUBMIT` 或 `COURSE_EVENT_TYPES.LESSON_RESUBMIT`。
+- 模块 5 从 `5-2` 起的 response-producing 页面已经纳入仓库级 gate。新增或迁移后必须运行 `npm run test:course-data-quality-gates`，该命令会枚举库存中的 response-producing steps，检查共享提交路径，并用失败 fixture 保证绕过共享提交会被拦截。
+- 课后数据可用性验收必须运行只读报告命令：`npm run db:session-data-quality -- --session-id=<class-session-id>`；需要机器消费时加 `--json --compact`。报告必须能看到答案可用率、分数可用率、题目摘要可用率、`rich/partial/legacy/missing` 证据等级、报告新鲜度、快照新鲜度，以及 sync raw error、incident、dominant source / failure kind 和 severity。
+- 若报告显示新课提交仍主要是 `legacy` 或 `missing`，或 sync error 只有原始错误没有可分类 incident，不得把该课标为数据治理闭环完成；应先修共享提交、事件分类或会话同步错误治理，再重新跑报告。
 - 若实现偏离设计稿，必须在课程笔记中写清楚：来自哪份设计稿、偏离原因、为何更适合平台。
 
 ## 闭环验证
@@ -663,7 +667,9 @@ description: Use when implementing or upgrading this repository's interactive le
 - 推导型页面已验证“起点公式 -> 中间推导 -> 目标公式 -> 结论解释”的阅读节奏，不是只剩结果式
 - 学生提交后有明确提交态、等待态、答案反馈或修正反馈
 - 教师端统计、词云、答案揭示、结束课堂都可用
-- 课程事件与治理映射没有脱节
+- 课程事件与治理映射没有脱节；manifest 响应产物必须进入共享 `manifest-submission-v2` 路径，不允许课程页直接发送 submit event 绕过共享证据构造器
+- 对 5-2 及后续模块 5 课程，`npm run test:course-data-quality-gates` 必须通过；新增 response-producing 课程应先加入库存，再让 gate 约束实现
+- 课后或回归验收必须用 `npm run db:session-data-quality -- --session-id=<class-session-id>` 检查数据质量，报告中的 evidence coverage、report freshness、snapshot freshness 和 sync quality 必须作为验收证据写入课程笔记
 - 课堂外资源行为没有漏掉；入口页媒体、讲义、知识图谱、知识卡片与跨域入口均已进入统一追踪链
 - 课程使用统一 session / Redis / SSE 能力，没有单课私有同步方案
 - 原生示意图在亮色/深色、桌面/移动口径下都可读，没有退化成糊图或裁切错位
@@ -804,6 +810,9 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已区分课堂内事件与课堂外资源事件，未把入口资源误记成课堂步骤事件
 - [ ] 已确认是否需要 `SubmissionStatus`、等待释放态和防连续提交策略
 - [ ] 已确认教师端统计、词云、答案揭示和结束课堂链路
+- [ ] 若页面会产生学生响应，已接入 `useManifestSubmissionController` / `submitManifestStepResponse`，没有直接发送 `COURSE_EVENT_TYPES.LESSON_SUBMIT` 或 `COURSE_EVENT_TYPES.LESSON_RESUBMIT`
+- [ ] 已运行 `npm run test:course-data-quality-gates`，并确认本课或库存覆盖范围内的 response-producing 页面全部通过共享提交 gate
+- [ ] 课后验收已运行 `npm run db:session-data-quality -- --session-id=<class-session-id>` 或等价过滤命令，且报告中证据等级、报告新鲜度、快照新鲜度、sync incident 分类可解释
 - [ ] 若课程入口页含预习台/媒体卡/知识图谱/知识卡/跨域入口，已设计并保留统一课堂外资源追踪链
 - [ ] 已判断媒体缺口应通过 `media/raw` / `media/processed` 补齐，而不是继续 ASCII 或长期占位
 - [ ] 已区分“运行时互动曲线使用 Rust/WASM 统一引擎”与“作者态静态图/离线校核使用 `python3 + control` 或 `Octave`”
