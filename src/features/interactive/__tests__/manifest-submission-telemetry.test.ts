@@ -225,6 +225,80 @@ describe('buildManifestSubmissionTelemetry', () => {
     });
   });
 
+  it('requires ordered answers for drag-match and sort cards', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-07',
+        submittedAt: 1778550644700,
+        answers: {
+          assumptions: 'small-signal|linear',
+          workflow: 'validate|model|deploy',
+        },
+      },
+      {
+        id: 'step-07',
+        interactionSpec: {
+          interactionKind: 'activity_card_set',
+          activityCards: [
+            {
+              id: 'assumptions',
+              title: '默认条件配对',
+              prompt: '把条件和解释配对。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [],
+              matchItems: [
+                { value: 'proportional', label: '比例叠加' },
+                { value: 'disturbance', label: '小扰动' },
+              ],
+              matchOptions: [
+                { value: 'linear', label: '线性叠加仍成立' },
+                { value: 'small-signal', label: '只在工作点附近成立' },
+              ],
+              referenceMatches: [
+                { item: 'proportional', option: 'linear' },
+                { item: 'disturbance', option: 'small-signal' },
+              ],
+            },
+            {
+              id: 'workflow',
+              title: '治理流程排序',
+              prompt: '按证据进入治理链路的顺序排序。',
+              responseKind: 'drag_sort',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [
+                { value: 'model', label: '建模' },
+                { value: 'validate', label: '验证' },
+                { value: 'deploy', label: '发布' },
+              ],
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 0,
+      objectiveTotal: 2,
+      score: 0,
+      questionSummaries: [
+        {
+          questionId: 'assumptions',
+          referenceValue: ['linear', 'small-signal'],
+          isCorrect: false,
+        },
+        {
+          questionId: 'workflow',
+          referenceValue: ['model', 'validate', 'deploy'],
+          isCorrect: false,
+        },
+      ],
+    });
+  });
+
   it('keeps custom extra evidence under a structured namespace', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {

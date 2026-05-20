@@ -32,6 +32,13 @@ function isSubjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean
   return !isObjectiveCard(card);
 }
 
+function isOrderedObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
+  return card.responseKind === 'drag_match'
+    || card.responseKind === 'triple_match'
+    || card.responseKind === 'drag_sort'
+    || card.responseKind === 'card_sort';
+}
+
 function splitAnswerTokens(value: string): string[] {
   return value
     .split(/\s*(?:\|+|[,，、;；/])\s*/)
@@ -72,6 +79,10 @@ function resolveReferenceValue(card: InteractiveRuntimeActivityCardManifest): st
     }
   }
 
+  if (isOrderedObjectiveCard(card) && card.options.length) {
+    return card.options.map((option) => option.value);
+  }
+
   const referenceAnswer = card.referenceAnswer?.trim();
   if (!referenceAnswer) return undefined;
 
@@ -89,15 +100,16 @@ function resolveReferenceValue(card: InteractiveRuntimeActivityCardManifest): st
   return referenceAnswer;
 }
 
-function answersMatch(studentAnswer: string, referenceValue: string | string[]): boolean {
-  const studentTokens = splitAnswerTokens(studentAnswer).map(normalizeAnswerToken).sort();
+function answersMatch(studentAnswer: string, referenceValue: string | string[], ordered: boolean): boolean {
+  const studentTokens = splitAnswerTokens(studentAnswer).map(normalizeAnswerToken);
   const referenceTokens = (Array.isArray(referenceValue) ? referenceValue : splitAnswerTokens(referenceValue))
-    .map(normalizeAnswerToken)
-    .sort();
+    .map(normalizeAnswerToken);
+  const comparableStudentTokens = ordered ? studentTokens : [...studentTokens].sort();
+  const comparableReferenceTokens = ordered ? referenceTokens : [...referenceTokens].sort();
 
-  return studentTokens.length > 0
-    && studentTokens.length === referenceTokens.length
-    && studentTokens.every((value, index) => value === referenceTokens[index]);
+  return comparableStudentTokens.length > 0
+    && comparableStudentTokens.length === comparableReferenceTokens.length
+    && comparableStudentTokens.every((value, index) => value === comparableReferenceTokens[index]);
 }
 
 function roundScore(value: number): number {
@@ -145,7 +157,7 @@ export function buildManifestSubmissionTelemetry(
         referenceAnswer: card.referenceAnswer,
         referenceValue,
         answered,
-        isCorrect: referenceValue ? (answered ? answersMatch(studentAnswer ?? '', referenceValue) : false) : undefined,
+        isCorrect: referenceValue ? (answered ? answersMatch(studentAnswer ?? '', referenceValue, isOrderedObjectiveCard(card)) : false) : undefined,
       };
     })
     .filter((item) => item.referenceValue !== undefined || item.answered);
