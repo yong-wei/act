@@ -45,6 +45,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
   const [summary, setSummary] = useState(emptyViewPayload().summary);
   const [teacherViewHydrated, setTeacherViewHydrated] = useState(isDemo);
   const syncIncidentTrackerRef = useRef<ReturnType<typeof createSyncIncidentTracker> | null>(null);
+  const failureCountByRequestRef = useRef<Map<string, number>>(new Map());
 
   if (!syncIncidentTrackerRef.current) {
     syncIncidentTrackerRef.current = createSyncIncidentTracker();
@@ -53,6 +54,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
   const fetchJson = useCallback(
     async <T,>(url: string, source: FetchTelemetrySource, init?: RequestInit): Promise<T> => {
       const method = init?.method ?? 'GET';
+      const requestKey = `${source}\u0000${method}\u0000${url}`;
       const startedAt = Date.now();
       const timeout = init?.signal ? null : createFetchTimeout();
       const requestInit = timeout
@@ -84,8 +86,11 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
         for (const telemetry of recoveryTelemetry) {
           dispatchSyncRecoveryTelemetry(telemetry);
         }
+        failureCountByRequestRef.current.delete(requestKey);
         return payload;
       } catch (error) {
+        const consecutiveFailures = (failureCountByRequestRef.current.get(requestKey) ?? 0) + 1;
+        failureCountByRequestRef.current.set(requestKey, consecutiveFailures);
         const telemetry =
           getFetchFailureTelemetry(error) ??
           buildFetchFailureTelemetry({
@@ -99,7 +104,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
         const incident = syncIncidentTrackerRef.current!.recordFailure({
           telemetry,
           stepId: currentStepId,
-          consecutiveFailures: 1,
+          consecutiveFailures,
         });
         throw toFetchTelemetryError(
           error instanceof Error ? error.message : '课堂状态读取失败',
