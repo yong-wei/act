@@ -397,17 +397,63 @@ function summarizeCoverage(rows: JsonRecord[]): CourseEvidenceBackfillCoverageMe
   return metrics;
 }
 
+function resolveResponseEventType(response: CourseEvidenceBackfillResponseRow) {
+  const eventType = readString(readRecord(response.responseData).eventType);
+  return eventType === 'lesson_resubmit' ? 'lesson_resubmit' : 'lesson_submit';
+}
+
+function buildStableResponseSourceEventIds(response: CourseEvidenceBackfillResponseRow) {
+  const eventType = resolveResponseEventType(response);
+  return new Set([
+    response.clientEventId,
+    response.sourceLogId ? `interaction-log:${response.sourceLogId}` : null,
+    response.sourceLogId ? `historical:InteractionLog:${response.sourceLogId}:${eventType}` : null,
+    `historical:StudentStepResponse:${response.id}:${eventType}`,
+    `historical:StudentStepResponse:${response.id}:student_step_response`,
+  ].filter((value): value is string => Boolean(value)));
+}
+
+function buildResponseFallbackKey(response: Pick<
+  CourseEvidenceBackfillResponseRow,
+  'sessionId' | 'userId' | 'lessonKey' | 'stepId'
+>) {
+  return [
+    response.sessionId,
+    response.userId,
+    response.lessonKey ?? '',
+    response.stepId,
+  ].join('\u0000');
+}
+
+function buildResponseFallbackCounts(responses: CourseEvidenceBackfillResponseRow[]) {
+  const counts = new Map<string, number>();
+  for (const response of responses) {
+    const key = buildResponseFallbackKey(response);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
 function findMatchingFacts(
   response: CourseEvidenceBackfillResponseRow,
   learningFacts: CourseEvidenceBackfillLearningFactRow[],
+  fallbackResponseCount: number,
 ) {
-  return learningFacts.filter((fact) => {
-    if (response.sourceLogId && fact.sourceLogId === response.sourceLogId) return true;
+  const stableSourceEventIds = buildStableResponseSourceEventIds(response);
+  const preciseMatches = learningFacts.filter((fact) => (
+    Boolean(response.sourceLogId && fact.sourceLogId === response.sourceLogId)
+    || Boolean(fact.sourceEventId && stableSourceEventIds.has(fact.sourceEventId))
+  ));
+  if (preciseMatches.length > 0) return preciseMatches;
+  if (fallbackResponseCount !== 1) return [];
+
+  const fallbackMatches = learningFacts.filter((fact) => {
     return fact.sessionId === response.sessionId
       && fact.userId === response.userId
       && fact.moduleId === response.stepId
       && (!response.lessonKey || fact.lessonId === response.lessonKey);
   });
+  return fallbackMatches.length === 1 ? fallbackMatches : [];
 }
 
 function buildInteractiveQuizContext(responseData: JsonRecord) {
@@ -548,6 +594,7 @@ export function buildCourseEvidenceBackfillPlan(
   }
 
   const responseById = new Map(input.studentStepResponses.map((response) => [response.id, response]));
+  const responseFallbackCounts = buildResponseFallbackCounts(input.studentStepResponses);
   const factActions: CourseEvidenceBackfillFactAction[] = [];
   const seenFactIds = new Set<string>();
 
@@ -561,7 +608,11 @@ export function buildCourseEvidenceBackfillPlan(
     }
     const response = responseById.get(action.responseId);
     if (!response) continue;
-    for (const fact of findMatchingFacts(response, input.learningFacts)) {
+    for (const fact of findMatchingFacts(
+      response,
+      input.learningFacts,
+      responseFallbackCounts.get(buildResponseFallbackKey(response)) ?? 0,
+    )) {
       if (seenFactIds.has(fact.id)) continue;
       const factAction = createFactAction(action, fact);
       if (!factAction) continue;

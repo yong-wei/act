@@ -465,6 +465,92 @@ describe('course evidence backfill', () => {
     });
   });
 
+  it('matches source-log-missing facts by stable response sourceEventId before broad step fallback', () => {
+    const plan = buildCourseEvidenceBackfillPlan({
+      manifestsByLessonKey: {
+        'unit-5-1-linear-backbone-boundaries-v1': lessonManifest,
+      },
+      studentStepResponses: [
+        {
+          id: 'response-1',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          stepId: 'step-03',
+          attemptKey: 'attempt-1',
+          sourceLogId: null,
+          clientEventId: 'client-1',
+          submittedAt: new Date('2026-05-20T02:00:00.000Z'),
+          responseData: { eventType: 'lesson_submit', evidenceQuality: 'legacy-envelope' },
+        },
+        {
+          id: 'response-2',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          stepId: 'step-03',
+          attemptKey: 'attempt-2',
+          sourceLogId: null,
+          clientEventId: 'client-2',
+          submittedAt: new Date('2026-05-20T02:05:00.000Z'),
+          responseData: { eventType: 'lesson_submit', evidenceQuality: 'legacy-envelope' },
+        },
+      ],
+      studentStates: [
+        {
+          sessionId: 'session-5-1',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          itemId: 'student:unit51:state',
+          data: {
+            responses: {
+              'step-03': {
+                stepId: 'step-03',
+                submittedAt: 1779242700000,
+                answers: { 'linear-boundary': 'b' },
+              },
+            },
+          },
+          submittedAt: new Date('2026-05-20T02:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T02:06:00.000Z'),
+        },
+      ],
+      learningFacts: [
+        {
+          id: 'fact-1',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+          moduleId: 'step-03',
+          sourceEventId: 'historical:StudentStepResponse:response-1:lesson_submit',
+          sourceLogId: null,
+          score: null,
+          outcome: 'partial',
+          contextJson: {},
+        },
+        {
+          id: 'fact-2',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+          moduleId: 'step-03',
+          sourceEventId: 'historical:StudentStepResponse:response-2:lesson_submit',
+          sourceLogId: null,
+          score: null,
+          outcome: 'partial',
+          contextJson: {},
+        },
+      ],
+    });
+
+    expect(plan.factActions).toHaveLength(2);
+    expect(plan.factActions.map((action) => [action.factId, action.responseId])).toEqual([
+      ['fact-1', 'response-1'],
+      ['fact-2', 'response-2'],
+    ]);
+  });
+
   it('regenerates class and student reports for selected sessions', async () => {
     const generateReports = vi.fn()
       .mockResolvedValueOnce({ classReports: 1, studentReports: 2, skipped: false })
