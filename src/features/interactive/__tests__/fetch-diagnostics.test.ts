@@ -239,6 +239,7 @@ describe('buildFetchFailureTelemetry', () => {
       recoveredFailureCount: 2,
       recoveryState: 'recovered',
       incidentSeverity: 'high',
+      status: 503,
       rawDiagnostics: telemetry,
     });
   });

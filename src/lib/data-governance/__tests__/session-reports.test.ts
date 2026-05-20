@@ -570,4 +570,65 @@ describe('buildSyncErrorIncidentSummary', () => {
       unresolvedIncidentCount: 1,
     });
   });
+
+  it('uses the original recovery incident status when top-level recovery status is missing', () => {
+    const incidentKey = [
+      'student-1',
+      'teacher-page',
+      'step-04',
+      'teacher_state_get',
+      '/api/session/session-001/state?scope=teacher-view',
+      'GET',
+      'http',
+      '503',
+    ].join('\u0000');
+    const logs = [
+      {
+        userId: 'student-1',
+        eventType: 'error',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:00:00.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_error',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          status: 503,
+          incidentSeverity: 'high',
+        },
+      },
+      {
+        userId: 'student-1',
+        eventType: 'interact',
+        stepId: 'step-04',
+        clientEventAt: new Date('2026-05-09T01:00:15.000Z'),
+        lessonKey: '5-1',
+        learningContext: 'classroom_live',
+        invalidContextReason: null,
+        eventData: {
+          eventType: 'sync_recovered',
+          scope: 'teacher-page',
+          source: 'teacher_state_get',
+          url: '/api/session/session-001/state?scope=teacher-view',
+          method: 'GET',
+          failureKind: 'http',
+          incidentKey,
+          recoveredIncidentCount: 1,
+        },
+      },
+    ];
+
+    expect(buildSyncErrorIncidentSummary(logs)).toMatchObject({
+      rawErrorCount: 1,
+      rawRecoveryCount: 1,
+      incidentCount: 1,
+      recoveredIncidentCount: 1,
+      unresolvedIncidentCount: 0,
+    });
+  });
 });

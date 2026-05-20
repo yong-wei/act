@@ -242,9 +242,28 @@ function isSyncRecoveryLog(log: InteractionLogSummaryItem) {
   return resolveReportEventType(log) === 'sync_recovered' || data.eventType === 'sync_recovered';
 }
 
+function readIncidentKeyPayload(value: unknown) {
+  if (typeof value !== 'string') {
+    return {};
+  }
+  const parts = value.split('\u0000');
+  if (parts.length !== 8) {
+    return {};
+  }
+  const status = parts[7] === 'none' ? null : Number(parts[7]);
+  return {
+    source: parts[3],
+    url: parts[4],
+    method: parts[5],
+    failureKind: parts[6],
+    status: status !== null && Number.isFinite(status) ? status : undefined,
+  };
+}
+
 function createSyncErrorIncidentKey(log: InteractionLogSummaryItem) {
   const data = readObject(log.eventData);
   const rawDiagnostics = readObject(data.rawDiagnostics);
+  const originalKeyPayload = readIncidentKeyPayload(data.incidentKey);
   const scope = typeof data.scope === 'string'
     ? data.scope
     : typeof data.actorRole === 'string'
@@ -254,11 +273,11 @@ function createSyncErrorIncidentKey(log: InteractionLogSummaryItem) {
     ...rawDiagnostics,
     ...data,
     message: resolveSyncErrorSignature(log),
-    url: data.url ?? rawDiagnostics.url ?? resolveSyncErrorSignature(log),
-    method: data.method ?? rawDiagnostics.method,
-    source: data.source ?? rawDiagnostics.source,
-    failureKind: data.failureKind ?? rawDiagnostics.failureKind,
-    status: data.status ?? rawDiagnostics.status,
+    url: data.url ?? rawDiagnostics.url ?? originalKeyPayload.url ?? resolveSyncErrorSignature(log),
+    method: data.method ?? rawDiagnostics.method ?? originalKeyPayload.method,
+    source: data.source ?? rawDiagnostics.source ?? originalKeyPayload.source,
+    failureKind: data.failureKind ?? rawDiagnostics.failureKind ?? originalKeyPayload.failureKind,
+    status: data.status ?? rawDiagnostics.status ?? originalKeyPayload.status,
   };
   return buildSyncIncidentKey({
     payload: keyedPayload,

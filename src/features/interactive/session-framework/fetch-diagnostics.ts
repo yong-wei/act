@@ -295,6 +295,8 @@ export function createSyncIncidentTracker({
           url: record.latestTelemetry.url ?? null,
           method: record.latestTelemetry.method ?? null,
           failureKind: record.latestTelemetry.failureKind ?? null,
+          status: record.latestTelemetry.status ?? null,
+          statusText: record.latestTelemetry.statusText ?? null,
           incidentFirstSeenAt: record.firstSeenAt,
           incidentLastSeenAt: record.lastSeenAt,
           recoveredAt: now,
