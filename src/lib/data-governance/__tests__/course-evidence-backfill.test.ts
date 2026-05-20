@@ -133,6 +133,13 @@ describe('course evidence backfill', () => {
         },
       },
     }));
+    expect(db.studentStepResponse.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        sessionId: { in: ['session-5-1'] },
+        userId: { in: ['student-1'] },
+        lessonKey: { in: ['unit-5-1-linear-backbone-boundaries-v1'] },
+      },
+    }));
     expect(plan.mode).toBe('dry-run');
     expect(plan.totals).toMatchObject({
       candidateRows: 1,
@@ -669,6 +676,130 @@ describe('course evidence backfill', () => {
         nextScore: 100,
       },
     ]);
+  });
+
+  it('does not enrich a filtered historical slice with a later final state', () => {
+    const earlyResponse = {
+      id: 'response-early',
+      userId: 'student-1',
+      sessionId: 'session-5-1',
+      lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+      stepId: 'step-03',
+      attemptKey: 'attempt-1',
+      sourceLogId: null,
+      clientEventId: null,
+      submittedAt: new Date('2026-05-20T02:00:00.000Z'),
+      responseData: { eventType: 'lesson_submit', evidenceQuality: 'legacy-envelope' },
+    };
+    const finalResponse = {
+      id: 'response-final',
+      userId: 'student-1',
+      sessionId: 'session-5-1',
+      lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+      stepId: 'step-03',
+      attemptKey: 'attempt-2',
+      sourceLogId: null,
+      clientEventId: null,
+      submittedAt: new Date('2026-05-20T02:05:00.000Z'),
+      responseData: { eventType: 'lesson_resubmit', evidenceQuality: 'legacy-envelope' },
+    };
+
+    const plan = buildCourseEvidenceBackfillPlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-1-linear-backbone-boundaries-v1': lessonManifest,
+      },
+      studentStepResponses: [earlyResponse],
+      studentStepResponseHistory: [earlyResponse, finalResponse],
+      studentStates: [
+        {
+          sessionId: 'session-5-1',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          itemId: 'student:unit51:state',
+          data: {
+            responses: {
+              'step-03': {
+                stepId: 'step-03',
+                submittedAt: new Date('2026-05-20T02:05:00.000Z').getTime(),
+                answers: { 'linear-boundary': 'b' },
+              },
+            },
+          },
+          submittedAt: new Date('2026-05-20T02:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T02:06:00.000Z'),
+        },
+      ],
+      learningFacts: [],
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({
+      action: 'mark-unrecoverable',
+      responseId: 'response-early',
+      reason: 'final_state_not_attempt_safe',
+      nextResponseData: {
+        evidenceQuality: 'legacy-envelope',
+        backfill: expect.objectContaining({
+          status: 'legacy-unrecoverable',
+          reason: 'final_state_not_attempt_safe',
+        }),
+      },
+    });
+    expect(plan.responseActions[0].nextResponseData).not.toHaveProperty('score');
+  });
+
+  it('uses full response history to disable broad fact fallback for partial slices', () => {
+    const selectedResponse = {
+      id: 'response-early',
+      userId: 'student-1',
+      sessionId: 'session-5-1',
+      lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+      stepId: 'step-03',
+      attemptKey: 'attempt-1',
+      sourceLogId: null,
+      clientEventId: null,
+      submittedAt: new Date('2026-05-20T02:00:00.000Z'),
+      responseData: { eventType: 'lesson_submit', evidenceQuality: 'legacy-envelope' },
+    };
+
+    const plan = buildCourseEvidenceBackfillPlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-1-linear-backbone-boundaries-v1': lessonManifest,
+      },
+      studentStepResponses: [selectedResponse],
+      studentStepResponseHistory: [
+        selectedResponse,
+        {
+          ...selectedResponse,
+          id: 'response-final',
+          attemptKey: 'attempt-2',
+          submittedAt: new Date('2026-05-20T02:05:00.000Z'),
+        },
+      ],
+      studentStates: [],
+      learningFacts: [
+        {
+          id: 'fact-without-source-id',
+          userId: 'student-1',
+          sessionId: 'session-5-1',
+          lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+          moduleId: 'step-03',
+          sourceEventId: null,
+          sourceLogId: null,
+          score: null,
+          outcome: 'partial',
+          contextJson: {},
+        },
+      ],
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({
+      action: 'mark-unrecoverable',
+      responseId: 'response-early',
+    });
+    expect(plan.factActions).toEqual([]);
   });
 
   it('regenerates class and student reports for selected sessions', async () => {

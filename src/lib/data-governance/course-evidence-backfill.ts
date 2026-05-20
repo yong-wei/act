@@ -125,6 +125,7 @@ export interface BuildCourseEvidenceBackfillPlanInput {
   filters?: CourseEvidenceBackfillFilters;
   manifestsByLessonKey?: Record<string, InteractiveRuntimeManifest>;
   studentStepResponses: CourseEvidenceBackfillResponseRow[];
+  studentStepResponseHistory?: CourseEvidenceBackfillResponseRow[];
   studentStates: CourseEvidenceBackfillStudentStateRow[];
   learningFacts: CourseEvidenceBackfillLearningFactRow[];
 }
@@ -462,34 +463,11 @@ function latestUniqueResponse(responses: CourseEvidenceBackfillResponseRow[]) {
   return tied ? null : latest;
 }
 
-function closestUniqueResponse(
-  responses: CourseEvidenceBackfillResponseRow[],
-  targetSubmittedAt: number,
-) {
-  let closest: CourseEvidenceBackfillResponseRow | null = null;
-  let closestDistance = Number.POSITIVE_INFINITY;
-  let tied = false;
-
-  for (const response of responses) {
-    const distance = Math.abs(response.submittedAt.getTime() - targetSubmittedAt);
-    if (distance < closestDistance) {
-      closest = response;
-      closestDistance = distance;
-      tied = false;
-    } else if (distance === closestDistance) {
-      tied = true;
-    }
-  }
-
-  return tied ? null : closest;
-}
-
 function findFinalStateResponse(
   responses: CourseEvidenceBackfillResponseRow[],
   state: CourseEvidenceBackfillStudentStateRow | undefined,
 ) {
   if (responses.length === 0) return null;
-  if (responses.length === 1) return responses[0];
 
   const stepId = responses[0].stepId;
   const stateAttemptKey = getStateStepAttemptKey(state, stepId);
@@ -501,13 +479,11 @@ function findFinalStateResponse(
 
   const stateSubmittedAt = getStateStepSubmittedAt(state, stepId);
   if (stateSubmittedAt !== null) {
-    const notAfterState = responses.filter((response) => response.submittedAt.getTime() <= stateSubmittedAt);
-    const latestNotAfterState = latestUniqueResponse(notAfterState);
-    if (latestNotAfterState) return latestNotAfterState;
-    return closestUniqueResponse(responses, stateSubmittedAt);
+    const submittedAtMatches = responses.filter((response) => response.submittedAt.getTime() === stateSubmittedAt);
+    return latestUniqueResponse(submittedAtMatches);
   }
 
-  return latestUniqueResponse(responses);
+  return null;
 }
 
 function buildFinalStateResponseIds(
@@ -621,7 +597,8 @@ export function buildCourseEvidenceBackfillPlan(
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const stateMap = buildStateMap(input.studentStates);
   const manifestMap = buildManifestMap(input.manifestsByLessonKey);
-  const finalStateResponseIds = buildFinalStateResponseIds(input.studentStepResponses, stateMap);
+  const responseHistory = input.studentStepResponseHistory ?? input.studentStepResponses;
+  const finalStateResponseIds = buildFinalStateResponseIds(responseHistory, stateMap);
   const responseActions: CourseEvidenceBackfillResponseAction[] = [];
 
   for (const response of input.studentStepResponses) {
@@ -705,7 +682,7 @@ export function buildCourseEvidenceBackfillPlan(
   }
 
   const responseById = new Map(input.studentStepResponses.map((response) => [response.id, response]));
-  const responseFallbackCounts = buildResponseFallbackCounts(input.studentStepResponses);
+  const responseFallbackCounts = buildResponseFallbackCounts(responseHistory);
   const factActions: CourseEvidenceBackfillFactAction[] = [];
   const seenFactIds = new Set<string>();
 
@@ -807,9 +784,13 @@ export async function collectCourseEvidenceBackfillPlan(
   });
   const sessionIds = uniqueSorted(studentStepResponses.map((response) => response.sessionId));
   const userIds = uniqueSorted(studentStepResponses.map((response) => response.userId));
-  const [studentStates, learningFacts] = sessionIds.length === 0 || userIds.length === 0
-    ? [[], []]
-    : await Promise.all([
+  let studentStepResponseHistory = studentStepResponses;
+  let studentStates: CourseEvidenceBackfillStudentStateRow[] = [];
+  let learningFacts: CourseEvidenceBackfillLearningFactRow[] = [];
+
+  if (sessionIds.length > 0 && userIds.length > 0) {
+    const shouldLoadFullResponseHistory = Boolean(filters.from || filters.to || filters.lessonKeys?.length);
+    const [loadedStates, loadedFacts, loadedResponseHistory] = await Promise.all([
       db.studentState.findMany({
         where: {
           sessionId: { in: sessionIds },
@@ -846,13 +827,40 @@ export async function collectCourseEvidenceBackfillPlan(
           contextJson: true,
         },
       }),
+      shouldLoadFullResponseHistory
+        ? db.studentStepResponse.findMany({
+          where: compactRecord({
+            sessionId: { in: sessionIds },
+            userId: { in: userIds },
+            ...(filters.lessonKeys?.length ? { lessonKey: { in: filters.lessonKeys } } : {}),
+          }),
+          orderBy: { submittedAt: 'asc' },
+          select: {
+            id: true,
+            userId: true,
+            sessionId: true,
+            lessonKey: true,
+            stepId: true,
+            attemptKey: true,
+            sourceLogId: true,
+            clientEventId: true,
+            submittedAt: true,
+            responseData: true,
+          },
+        })
+        : Promise.resolve(studentStepResponses),
     ]);
+    studentStates = loadedStates;
+    learningFacts = loadedFacts;
+    studentStepResponseHistory = loadedResponseHistory;
+  }
 
   return buildCourseEvidenceBackfillPlan({
     generatedAt: input.generatedAt,
     filters,
     manifestsByLessonKey: input.manifestsByLessonKey,
     studentStepResponses,
+    studentStepResponseHistory,
     studentStates,
     learningFacts,
   });
