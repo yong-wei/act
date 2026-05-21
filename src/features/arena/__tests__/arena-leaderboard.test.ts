@@ -6,6 +6,7 @@ import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { StoredArenaEvaluation } from '../submissions/persistence';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import { getChallengeLeaderboardBrowserViewModel } from '../leaderboards/leaderboard-service';
+import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from '../leaderboards/honors-showcase';
 import { buildArenaTaskStats, filterArenaSubmissionsForHallStats } from '../stats';
 import { ARENA_CORE_EVENT_TYPES, buildArenaCoreEvent, buildArenaInteractionEvent } from '../telemetry';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
@@ -499,6 +500,204 @@ describe('arena submissions and leaderboards', () => {
       expect.objectContaining({ id: 'itae', value: 3 }),
     ]);
     expect(metricView.current.entries.map((entry) => entry.studentName)).not.toContain('无效学生');
+  });
+
+  it('builds challenge-detail browser views for Pareto, class, and season contexts', async () => {
+    const paretoFront = {
+      id: 'submission-browser-pareto-front',
+      taskId: 'task-delay-robust-pareto',
+      studentLabel: 'Pareto 前沿',
+      artifactHash: 'artifact-hash-pareto-front',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-browser-pareto-front',
+        taskId: 'task-delay-robust-pareto',
+        params: { kp: 2.4, ki: 0.4, kd: 0.2 },
+      },
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      reusedEvaluation: false,
+      evaluation: {
+        taskId: 'task-delay-robust-pareto',
+        artifact: pidArtifact,
+        valid: true,
+        score: 80,
+        metrics: { settlingTime: 2, overshoot: 8, steadyStateError: 0.02, itae: 3, controlEnergy: 6 },
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: [],
+      },
+    };
+    const dominated = {
+      ...paretoFront,
+      id: 'submission-browser-pareto-dominated',
+      studentLabel: '被支配',
+      artifactHash: 'artifact-hash-pareto-dominated',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-browser-pareto-dominated',
+        taskId: 'task-delay-robust-pareto',
+        params: { kp: 0.6, ki: 0.05, kd: 0 },
+      },
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      evaluation: {
+        ...paretoFront.evaluation,
+        score: 99,
+        metrics: { settlingTime: 7, overshoot: 18, steadyStateError: 0.08, itae: 9, controlEnergy: 16 },
+      },
+    };
+
+    const paretoView = getChallengeLeaderboardBrowserViewModel({
+      taskId: 'task-delay-robust-pareto',
+      submissions: [dominated, paretoFront],
+      selectedType: 'pareto',
+    });
+
+    const classA = {
+      ...(await createArenaSubmission({
+        taskId: 'task-integrator-low-frequency-balance',
+        artifact: {
+          ...pidArtifact,
+          id: 'artifact-browser-class-a',
+          taskId: 'task-integrator-low-frequency-balance',
+        },
+        studentLabel: '甲班学生',
+        classId: 'class-a',
+        submittedAt: '2026-05-10T10:01:00.000Z',
+        existingSubmissions: [],
+      })),
+      classId: 'class-a',
+    };
+    const classB = {
+      ...(await createArenaSubmission({
+        taskId: 'task-integrator-low-frequency-balance',
+        artifact: {
+          ...pidArtifact,
+          id: 'artifact-browser-class-b',
+          taskId: 'task-integrator-low-frequency-balance',
+          params: { kp: 1.4, ki: 0.2, kd: 0.05 },
+        },
+        studentLabel: '乙班学生',
+        classId: 'class-b',
+        submittedAt: '2026-05-10T10:02:00.000Z',
+        existingSubmissions: [classA],
+      })),
+      classId: 'class-b',
+    };
+    const classView = getChallengeLeaderboardBrowserViewModel({
+      taskId: 'task-integrator-low-frequency-balance',
+      submissions: [classA, classB],
+      selectedType: 'class',
+      classId: 'class-a',
+    });
+
+    const spring = {
+      ...classA,
+      id: 'submission-browser-season-spring',
+      taskId: 'task-odyssey-level-one-growth',
+      artifact: {
+        ...classA.artifact,
+        id: 'artifact-browser-season-spring',
+        taskId: 'task-odyssey-level-one-growth',
+      },
+      studentLabel: '春季学生',
+      seasonId: 'spring-2026',
+    };
+    const winter = { ...spring, id: 'submission-browser-season-winter', studentLabel: '冬季学生', seasonId: 'winter-2025' };
+    const seasonView = getChallengeLeaderboardBrowserViewModel({
+      taskId: 'task-odyssey-level-one-growth',
+      submissions: [spring, winter],
+      selectedType: 'season',
+      seasonId: 'spring-2026',
+    });
+
+    expect(paretoView.categories.map((category) => category.type)).toContain('pareto');
+    expect(paretoView.current.type).toBe('pareto');
+    expect(paretoView.current.entries[0]).toMatchObject({ studentName: 'Pareto 前沿', paretoTier: 1 });
+    expect(classView.categories.map((category) => category.type)).toContain('class');
+    expect(classView.current.entries.map((entry) => entry.studentName)).toEqual(['甲班学生']);
+    expect(seasonView.categories.map((category) => category.type)).toContain('season');
+    expect(seasonView.current.entries.map((entry) => entry.studentName)).toEqual(['春季学生']);
+  });
+
+  it('derives honors only from official valid submission evidence', async () => {
+    const firstPass = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '首个通过',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const lowEnergy = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-honor-low-energy',
+        params: { kp: 1.1, ki: 0.2, kd: 0.05 },
+      },
+      studentLabel: '低能耗',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [firstPass],
+    });
+    const draft = {
+      ...lowEnergy,
+      id: 'submission-draft-low-energy',
+      studentLabel: '草稿低能耗',
+      official: false,
+      evaluation: {
+        ...lowEnergy.evaluation,
+        metrics: { ...lowEnergy.evaluation.metrics, controlEnergy: 0.1, settlingTime: 1.2 },
+      },
+    };
+    firstPass.evaluation.metrics.controlEnergy = 8;
+    firstPass.evaluation.metrics.settlingTime = 4.5;
+    lowEnergy.evaluation.metrics.controlEnergy = 2.4;
+    lowEnergy.evaluation.metrics.settlingTime = 3.2;
+
+    const honors = buildArenaLeaderboardHonors([draft, lowEnergy, firstPass], {
+      taskId: 'task-second-order-lead-pid',
+    });
+
+    expect(honors.find((honor) => honor.id === 'first-pass')).toMatchObject({
+      submissionId: firstPass.id,
+      studentLabel: '首个通过',
+    });
+    expect(honors.find((honor) => honor.id === 'low-energy')).toMatchObject({
+      submissionId: lowEnergy.id,
+      evidenceMetricId: 'controlEnergy',
+      evidenceValue: 2.4,
+    });
+    expect(honors.map((honor) => honor.studentLabel)).not.toContain('草稿低能耗');
+  });
+
+  it('builds excellent-solution showcase summaries without private controller payloads by default', async () => {
+    const showcased = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '展示学生',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    showcased.evaluation.score = 96;
+    showcased.evaluation.explanation = ['调节时间和控制能量保持了较好平衡。'];
+
+    const defaultShowcase = buildArenaShowcaseSummaries([showcased], {
+      taskId: 'task-second-order-lead-pid',
+    });
+    const detailedShowcase = buildArenaShowcaseSummaries([showcased], {
+      taskId: 'task-second-order-lead-pid',
+      includePrivatePayload: true,
+    });
+
+    expect(defaultShowcase[0]).toMatchObject({
+      submissionId: showcased.id,
+      studentLabel: '展示学生',
+      method: 'pid',
+      score: 96,
+      explanationSummary: '调节时间和控制能量保持了较好平衡。',
+    });
+    expect(defaultShowcase[0]).not.toHaveProperty('privateControllerPayload');
+    expect(detailedShowcase[0]?.privateControllerPayload).toEqual(showcased.artifact);
   });
 
   it('defines core Arena telemetry events compatible with the L0 event boundary', async () => {
