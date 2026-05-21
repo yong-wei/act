@@ -312,7 +312,7 @@ describe('generateSessionSummaryReports', () => {
         lessonKey: '5-2',
         learningContext: 'teacher_live',
         invalidContextReason: null,
-        actorRole: 'teacher',
+        actorRole: null,
         eventData: {
           eventType: 'sync_error',
           source: 'teacher_state_get',

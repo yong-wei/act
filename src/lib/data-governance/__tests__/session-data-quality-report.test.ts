@@ -402,7 +402,8 @@ describe('buildSessionDataQualityReport', () => {
           eventType: 'error',
           stepId: 'step-03',
           lessonKey: '5-2',
-          actorRole: 'teacher',
+          actorRole: null,
+          userRole: 'TEACHER',
           clientEventAt: new Date('2026-05-20T08:12:00.000Z'),
           createdAt: new Date('2026-05-20T08:12:01.000Z'),
           eventData: {

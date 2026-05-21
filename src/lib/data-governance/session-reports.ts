@@ -39,6 +39,7 @@ interface InteractionLogSummaryItem {
   learningContext?: string | null;
   invalidContextReason?: string | null;
   actorRole?: string | null;
+  userRole?: string | null;
   eventData: unknown;
 }
 
@@ -93,7 +94,10 @@ function resolveReportEventType(log: InteractionLogSummaryItem): string {
 }
 
 function isStudentInteractionLog(log: InteractionLogSummaryItem) {
-  return log.actorRole !== 'teacher';
+  const actorRole = typeof log.actorRole === 'string' ? log.actorRole.trim().toLowerCase() : null;
+  if (actorRole === 'student') return true;
+  if (actorRole === 'teacher' || actorRole === 'admin') return false;
+  return isStudentUserRole(log.userRole);
 }
 
 function isStudentUserRole(role: string | null | undefined) {
@@ -492,6 +496,7 @@ export async function generateSessionSummaryReports(
   ]);
 
   const roleUserIds = Array.from(new Set([
+    ...logs.map((log) => log.userId),
     ...facts.map((fact) => fact.userId),
     ...submissions.map((submission) => submission.userId),
   ])).sort();
@@ -502,6 +507,10 @@ export async function generateSessionSummaryReports(
     }) as UserRoleSummaryItem[]
     : [];
   const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
+  const logsWithRoles = logs.map((log) => ({
+    ...log,
+    userRole: resolveQueriedUserRole(roleByUserId, log.userId),
+  }));
   const factsWithRoles = facts.map((fact) => ({
     ...fact,
     userRole: resolveQueriedUserRole(roleByUserId, fact.userId),
@@ -510,9 +519,9 @@ export async function generateSessionSummaryReports(
     ...submission,
     userRole: resolveQueriedUserRole(roleByUserId, submission.userId),
   }));
-  const studentLogs = logs.filter(isStudentInteractionLog);
+  const studentLogs = logsWithRoles.filter(isStudentInteractionLog);
   const teacherUserIds = new Set([
-    ...logs.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+    ...logsWithRoles.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
     ...factsWithRoles.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
     ...submissionsWithRoles.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
   ]);

@@ -40,6 +40,7 @@ interface InteractionLogQualityRow {
   stepId: string | null;
   lessonKey: string | null;
   actorRole?: string | null;
+  userRole?: string | null;
   clientEventAt: Date | null;
   createdAt: Date;
   eventData: unknown;
@@ -167,7 +168,10 @@ function isStudentStateRow(state: StudentStateQualityRow) {
 }
 
 function isStudentInteractionLog(log: InteractionLogQualityRow) {
-  return log.actorRole !== 'teacher';
+  const actorRole = typeof log.actorRole === 'string' ? log.actorRole.trim().toLowerCase() : null;
+  if (actorRole === 'student') return true;
+  if (actorRole === 'teacher' || actorRole === 'admin') return false;
+  return isStudentUserRole(log.userRole);
 }
 
 function isStudentUserRole(role: string | null | undefined) {
@@ -583,6 +587,7 @@ export async function collectSessionDataQualityReport(
     }),
   ]);
   const roleUserIds = uniqueSorted([
+    ...interactionLogs.map((log) => log.userId),
     ...learningFacts.map((fact) => fact.userId),
     ...studentStepResponses.map((submission) => submission.userId),
   ]);
@@ -593,6 +598,10 @@ export async function collectSessionDataQualityReport(
     })
     : [];
   const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
+  const interactionLogsWithRoles = interactionLogs.map((log) => ({
+    ...log,
+    userRole: resolveQueriedUserRole(roleByUserId, log.userId),
+  }));
   const learningFactsWithRoles = learningFacts.map((fact) => ({
     ...fact,
     userRole: resolveQueriedUserRole(roleByUserId, fact.userId),
@@ -643,7 +652,7 @@ export async function collectSessionDataQualityReport(
     filters,
     sessions,
     studentStates,
-    interactionLogs,
+    interactionLogs: interactionLogsWithRoles,
     learningFacts: learningFactsWithRoles,
     studentStepResponses: studentStepResponsesWithRoles,
     studentCompetencySnapshots,
