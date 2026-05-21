@@ -163,6 +163,9 @@ function buildIssueTags(input: BuildArenaSubmissionFeedbackInput, weakest?: Aren
   }
   if (input.mode === 'black-box') {
     tags.push('black-box-aggregate');
+    if (weakest?.officialOnly && weakest.satisfaction < 0.6) {
+      tags.push('hidden-generalization-risk');
+    }
   }
   return tags;
 }
@@ -186,6 +189,10 @@ function buildSuggestion(
 
   if (issueTags.includes('energy-heavy')) {
     return '当前方案控制能量/能耗偏重，建议降低控制增益或提高能量权重后再提交。';
+  }
+
+  if (issueTags.includes('hidden-generalization-risk')) {
+    return '官方隐藏评测暴露聚合泛化风险，建议扩大公开实验覆盖并降低对单一预演场景的参数依赖。';
   }
 
   if (weakest) {
@@ -219,22 +226,34 @@ function resolveProtocolVersion(input: BuildArenaSubmissionFeedbackInput): strin
     (typeof metadataProtocol === 'string' ? metadataProtocol : undefined);
 }
 
-function buildBoundaryNotes(protocolVersion?: string, hasOfficialOnlyMetrics = false): string[] {
+function buildBoundaryNotes(
+  mode: ArenaFeedbackMode,
+  protocolVersion?: string,
+  hasOfficialOnlyMetrics = false,
+): string[] {
   const notes = [
     '工作台预览只用于提交前检查，不进入正式排行榜。',
     protocolVersion
       ? `官方评测使用 ${protocolVersion} 协议生成得分、硬约束和排行榜记录。`
       : '官方评测会重新生成得分、硬约束和排行榜记录。',
   ];
+  if (mode === 'black-box') {
+    notes.push('虚拟仿真预演不是官方隐藏评测；正式结果来自隐藏场景批量评测的聚合指标。');
+  }
   if (hasOfficialOnlyMetrics) {
     notes.push('官方专属指标可能不会出现在工作台预览中，只在官方评测后参与解释。');
   }
   return notes;
 }
 
-function buildOfficialOnlyMetricNotes(officialOnlyMetricIds: readonly string[]): string[] {
+function buildOfficialOnlyMetricNotes(
+  officialOnlyMetricIds: readonly string[],
+  mode: ArenaFeedbackMode,
+): string[] {
   return officialOnlyMetricIds.map((metricId) => (
-    `${formatArenaMetric(metricId)} 仅官方评测后显示，用于解释正式排名，不从工作台预览泄露。`
+    mode === 'black-box'
+      ? `${formatArenaMetric(metricId)} 仅官方隐藏评测后显示，用于解释正式排名，不公开隐藏场景细节。`
+      : `${formatArenaMetric(metricId)} 仅官方评测后显示，用于解释正式排名，不从工作台预览泄露。`
   ));
 }
 
@@ -259,7 +278,7 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
   const weakest = weakestMetric(input.latest, officialOnlyMetricIds);
   const comparison = comparePersonalBest(input);
   const issueTags = buildIssueTags(input, weakest);
-  const officialOnlyMetricNotes = buildOfficialOnlyMetricNotes(officialOnlyMetricIds);
+  const officialOnlyMetricNotes = buildOfficialOnlyMetricNotes(officialOnlyMetricIds, input.mode);
 
   return {
     rankingStatus,
@@ -275,7 +294,7 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
     weakestMetricGuidance: buildWeakestMetricGuidance(weakest),
     personalBestComparison: comparison,
     issueTags,
-    boundaryNotes: buildBoundaryNotes(protocolVersion, officialOnlyMetricNotes.length > 0),
+    boundaryNotes: buildBoundaryNotes(input.mode, protocolVersion, officialOnlyMetricNotes.length > 0),
     officialOnlyMetricNotes,
     nextStepSuggestion: buildSuggestion(
       input,

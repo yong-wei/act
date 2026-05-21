@@ -119,4 +119,17 @@ describe('black-box identification control workbench preset', () => {
     expect(presetSource).toContain('{showExperimentDataset ? (');
     expect(presetSource).toContain('{showMetricSummary ? (');
   });
+
+  it('surfaces engineering evidence for budget, coverage, confidence, and official preview boundaries', () => {
+    const presetSource = readRepoFile('src/features/control-workbench/presets/blackbox-identification-preset.tsx');
+
+    expect(presetSource).toContain('BlackBoxExperimentEvidence');
+    expect(presetSource).toContain('BlackBoxNominalEvidence');
+    expect(presetSource).toContain('buildBlackBoxExperimentBudgetCoverageEvidence');
+    expect(presetSource).toContain('buildBlackBoxNominalModelConfidenceEvidence');
+    expect(presetSource).toContain('实验预算');
+    expect(presetSource).toContain('覆盖证据');
+    expect(presetSource).toContain('虚拟仿真预演不是官方隐藏评测');
+    expect(presetSource).toContain('officialOnlyMetricIds={blackBoxOfficialOnlyMetricIds}');
+  });
 });
