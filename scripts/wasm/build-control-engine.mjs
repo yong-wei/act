@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdtempSync, mkdirSync, rmSync, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
@@ -52,6 +53,8 @@ if (!existsSync(path.join(repoRoot, 'rust/control-engine/Cargo.toml'))) {
   throw new Error('缺少 rust/control-engine/Cargo.toml，无法构建控制分析 Wasm。');
 }
 
+const wasmBuildOutDir = mkdtempSync(path.join(tmpdir(), 'control-engine-wasm-pack-'));
+
 execFileSync(
   'wasm-pack',
   [
@@ -61,7 +64,7 @@ execFileSync(
     'web',
     '--release',
     '--out-dir',
-    wasmOutDir,
+    wasmBuildOutDir,
     '--out-name',
     'index',
   ],
@@ -71,3 +74,20 @@ execFileSync(
     stdio: 'inherit',
   },
 );
+
+if (existsSync(wasmOutDir)) {
+  if (lstatSync(wasmOutDir).isSymbolicLink()) {
+    unlinkSync(wasmOutDir);
+  } else {
+    rmSync(wasmOutDir, { recursive: true, force: true });
+  }
+}
+
+mkdirSync(wasmOutDir, { recursive: true });
+cpSync(wasmBuildOutDir, wasmOutDir, { recursive: true });
+rmSync(wasmBuildOutDir, { recursive: true, force: true });
+
+const missing = wasmPackageFiles.filter((file) => !existsSync(path.join(wasmOutDir, file)));
+if (missing.length) {
+  throw new Error(`控制分析 Wasm 构建完成后缺少输出文件：${missing.join(', ')}`);
+}

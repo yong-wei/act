@@ -13,7 +13,7 @@ import {
 } from '@/features/arena/display-labels';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
-import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
+import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
   buildDefaultWorkbenchPanelInstances,
   buildWorkbenchPanelInstance,
@@ -158,6 +158,66 @@ function ObjectLabels({ labels }: { labels: WorkbenchObjectOption['labels'] }) {
         </span>
       ))}
     </div>
+  );
+}
+
+function designStepStatusText(status: WorkbenchDesignFlow['steps'][number]['status']) {
+  if (status === 'active') return '当前';
+  if (status === 'locked') return '待解锁';
+  return '可进入';
+}
+
+function designStepClass(status: WorkbenchDesignFlow['steps'][number]['status']) {
+  if (status === 'active') {
+    return 'border-cyan-500 bg-cyan-50 text-cyan-950 dark:border-cyan-300/70 dark:bg-cyan-950/50 dark:text-cyan-50';
+  }
+  if (status === 'locked') {
+    return 'border-slate-200 bg-slate-50 text-slate-500 dark:border-white/10 dark:bg-slate-950/30 dark:text-slate-500';
+  }
+  return 'border-slate-200 bg-white text-slate-800 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-100';
+}
+
+function WorkbenchDesignFlowSection({ flow }: { flow: WorkbenchDesignFlow }) {
+  return (
+    <section className="surface-card rounded-lg p-4" aria-label="设计流程">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-sm text-primary">{flow.modeLabel} · {flow.contextLabel}</p>
+          <h2 className="mt-1 text-base font-semibold text-foreground">设计流程</h2>
+        </div>
+        <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:min-w-[640px]">
+          <div>
+            <dt className="text-subtle">当前步骤</dt>
+            <dd className="mt-1 font-medium text-foreground">{flow.currentStep.title}</dd>
+          </div>
+          <div>
+            <dt className="text-subtle">下一行动</dt>
+            <dd className="mt-1 text-foreground">{flow.nextAction}</dd>
+          </div>
+          <div>
+            <dt className="text-subtle">对象边界</dt>
+            <dd className="mt-1 text-foreground">{flow.objectLabel}</dd>
+          </div>
+          <div>
+            <dt className="text-subtle">方法边界</dt>
+            <dd className="mt-1 text-foreground">{flow.methodBoundary}</dd>
+          </div>
+        </dl>
+      </div>
+      <ol className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+        {flow.steps.map((step, index) => (
+          <li
+            key={step.id}
+            aria-current={step.status === 'active' ? 'step' : undefined}
+            className={`rounded-md border px-3 py-3 ${designStepClass(step.status)}`}
+          >
+            <span className="text-[11px] font-medium">{index + 1}. {designStepStatusText(step.status)}</span>
+            <span className="mt-1 block text-sm font-semibold">{step.title}</span>
+            <span className="mt-1 block text-xs leading-5 opacity-80">{step.description}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -403,6 +463,8 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       </section>
 
       <section className="mx-auto grid max-w-[1600px] gap-4 px-4 py-5 sm:px-6 lg:px-8">
+        <WorkbenchDesignFlowSection flow={session.designFlow} />
+
         <section className="surface-card rounded-lg p-4">
           <h2 className="text-base font-semibold text-foreground">会话状态</h2>
           <dl className="mt-3 grid gap-3 text-sm md:grid-cols-4">

@@ -281,10 +281,12 @@ export function MultiRepresentationLinkageClient({
           : []),
       ]
     : [];
-  const resolvePanelOptionsWithLocal = (
-    panel: MultiRepresentationPanelInstance,
-    fallbackOptions: Set<string>,
-  ) => new Set(panelOptionOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(panel, fallbackOptions)));
+  const resolveTimeDomainPanelOptions = (panel: MultiRepresentationPanelInstance) => (
+    new Set(panelOptionOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(panel, timeDomainOptions)))
+  );
+  const resolveBodePanelOptions = (panel: MultiRepresentationPanelInstance) => (
+    new Set(panelOptionOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(panel, bodeOptions)))
+  );
   const togglePanelLocalOption = (panel: MultiRepresentationPanelInstance, optionId: ClassicPanelOptionId, mode: 'multiple' | 'single') => {
     setPanelOptionOverrides((current) => {
       const selected = new Set(current[panel.id] ?? Array.from(resolvePanelSelectedOptions(
@@ -351,7 +353,7 @@ export function MultiRepresentationLinkageClient({
     let content: ReactNode;
 
     if (panel.viewId === 'time-domain') {
-      const selectedOptions = resolvePanelOptionsWithLocal(panel, timeDomainOptions);
+      const selectedOptions = resolveTimeDomainPanelOptions(panel);
       panelControls = (
         <PanelCurveToggleGroup
           label="时域信号"
@@ -368,7 +370,7 @@ export function MultiRepresentationLinkageClient({
         <WorkbenchViewEmptyNotice title="时域响应" />
       );
     } else if (panel.viewId === 'bode') {
-      const selectedOptions = resolvePanelOptionsWithLocal(panel, bodeOptions);
+      const selectedOptions = resolveBodePanelOptions(panel);
       panelControls = (
         <PanelCurveToggleGroup
           label="Bode 曲线"
@@ -401,11 +403,12 @@ export function MultiRepresentationLinkageClient({
               : []),
           ]
         : [];
-      const selectedRootLocusSource = selectPanelSource(panelSourceSelections, panel.id, rootLocusSourceOptions);
+      const sourceOptions = rootLocusSourceOptions;
+      const selectedRootLocusSource = selectPanelSource(panelSourceSelections, panel.id, sourceOptions);
       panelControls = selectedRootLocusSource ? (
         <ClassicSourceSwitch
           label="根轨迹来源"
-          options={rootLocusSourceOptions}
+          options={sourceOptions}
           selectedId={selectedRootLocusSource.id}
           onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
         />
@@ -433,11 +436,12 @@ export function MultiRepresentationLinkageClient({
               : []),
           ]
         : [];
-      const selectedNyquistSource = selectPanelSource(panelSourceSelections, panel.id, nyquistSourceOptions);
+      const sourceOptions = nyquistSourceOptions;
+      const selectedNyquistSource = selectPanelSource(panelSourceSelections, panel.id, sourceOptions);
       panelControls = selectedNyquistSource ? (
         <ClassicSourceSwitch
           label="Nyquist 来源"
-          options={nyquistSourceOptions}
+          options={sourceOptions}
           selectedId={selectedNyquistSource.id}
           onSelect={(id) => updatePanelSourceSelection(panel.id, id)}
         />

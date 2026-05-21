@@ -9,6 +9,7 @@ import type {
   WorkbenchSessionContext,
   WorkbenchViewId,
 } from './contracts';
+import { buildWorkbenchDesignFlow } from './design-flow';
 
 export interface WorkbenchObjectLabel {
   label: string;
@@ -138,12 +139,17 @@ export function selectControlWorkbenchObject(
     return { session };
   }
 
+  const nextSession = {
+    ...session,
+    object,
+    selectedObjectId: object.id,
+    workingModel: buildWhiteBoxWorkingModelFromObject(object),
+  };
+
   return {
     session: {
-      ...session,
-      object,
-      selectedObjectId: object.id,
-      workingModel: buildWhiteBoxWorkingModelFromObject(object),
+      ...nextSession,
+      designFlow: buildWorkbenchDesignFlow(nextSession),
     },
   };
 }

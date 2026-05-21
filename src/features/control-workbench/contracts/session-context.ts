@@ -12,6 +12,7 @@ import type { WorkbenchExperimentSignalType } from './signals';
 import type { WorkbenchPlantTarget } from './targets';
 import type { NominalModelArtifact } from './nominal-model';
 import type { WorkbenchViewId } from './views';
+import type { WorkbenchDesignFlow } from './design-flow';
 
 export type WorkbenchMode = 'challenge' | 'assignment' | 'explore' | 'odyssey';
 
@@ -42,6 +43,7 @@ interface WorkbenchSessionBase {
   allowedViews: WorkbenchViewId[];
   defaultPreset: WorkbenchPresetId;
   layoutPreset?: WorkbenchLayoutPreset;
+  designFlow: WorkbenchDesignFlow;
   experimentPolicy: WorkbenchExperimentPolicy;
   submissionPolicy: WorkbenchSubmissionPolicy;
 }
