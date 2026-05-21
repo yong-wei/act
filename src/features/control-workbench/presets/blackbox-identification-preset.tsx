@@ -514,6 +514,7 @@ export function BlackBoxIdentificationPanel({
               latest={latest}
               previousSubmissions={personalSubmissions.slice(0, -1)}
               mode="black-box"
+              officialOnlyMetricIds={task.primaryMetrics.filter((metricId) => /hidden/i.test(metricId))}
             />
           ) : null}
 

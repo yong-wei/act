@@ -12,15 +12,18 @@ export function ArenaPersonalFeedback({
   latest,
   previousSubmissions = [],
   mode,
+  officialOnlyMetricIds = [],
 }: {
   latest: ArenaSubmissionRecord;
   previousSubmissions?: readonly ArenaSubmissionRecord[];
   mode: ArenaFeedbackMode;
+  officialOnlyMetricIds?: readonly string[];
 }) {
   const feedback = buildArenaSubmissionFeedback({
     latest,
     previousSubmissions,
     mode,
+    officialOnlyMetricIds,
   });
 
   return (
@@ -39,11 +42,38 @@ export function ArenaPersonalFeedback({
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {feedback.strongestMetric ? (
-          <FeedbackMetric label="优势指标" value={`${feedback.strongestMetric.metricId} ${Math.round(feedback.strongestMetric.satisfaction * 100)}%`} />
+          <FeedbackMetric label="优势指标" value={`${feedback.strongestMetric.label} ${Math.round(feedback.strongestMetric.satisfaction * 100)}%`} />
         ) : null}
         {feedback.weakestMetric ? (
-          <FeedbackMetric label="薄弱指标" value={`${feedback.weakestMetric.metricId} ${Math.round(feedback.weakestMetric.satisfaction * 100)}%`} />
+          <FeedbackMetric label="薄弱指标" value={`${feedback.weakestMetric.label} ${Math.round(feedback.weakestMetric.satisfaction * 100)}%`} />
         ) : null}
+      </div>
+
+      <div className="mt-3 rounded-md border border-border/60 bg-background/45 px-3 py-2">
+        <div className="text-xs font-medium text-foreground">官方结果解释</div>
+        {feedback.protocolVersion ? (
+          <div className="mt-1 text-[11px] text-muted-foreground">协议版本：{feedback.protocolVersion}</div>
+        ) : null}
+        {feedback.scoreComposition.length > 0 ? (
+          <div className="mt-2 grid gap-1">
+            {feedback.scoreComposition.map((metric) => (
+              <div key={metric.metricId} className="flex items-center justify-between gap-3 text-xs">
+                <span className="text-subtle">
+                  {metric.label}{metric.officialOnly ? '（仅官方评测）' : ''}
+                </span>
+                <span className="font-medium text-foreground">{Math.round(metric.satisfaction * 100)}%</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <div className="mt-2 grid gap-1 text-[11px] leading-5 text-muted-foreground">
+          {feedback.boundaryNotes.map((note) => (
+            <span key={note}>{note}</span>
+          ))}
+          {feedback.officialOnlyMetricNotes.map((note) => (
+            <span key={note}>{note}</span>
+          ))}
+        </div>
       </div>
 
       {feedback.hardConstraintFailures.length > 0 ? (
@@ -60,6 +90,10 @@ export function ArenaPersonalFeedback({
         <TrendingUp className="mt-0.5 h-3.5 w-3.5 text-primary" />
         <span>{feedback.nextStepSuggestion}</span>
       </div>
+
+      {feedback.weakestMetricGuidance ? (
+        <div className="mt-2 text-xs text-muted-foreground">{feedback.weakestMetricGuidance}</div>
+      ) : null}
 
       {feedback.privacyNote ? (
         <div className="mt-2 text-xs text-muted-foreground">{feedback.privacyNote}</div>
