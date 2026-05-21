@@ -155,6 +155,14 @@ describe('buildSessionDataQualityReport', () => {
           status: 'READY',
           updatedAt: new Date('2026-05-20T09:41:00.000Z'),
         },
+        {
+          sessionId: 'session-5-2',
+          userId: 'teacher-1',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:42:00.000Z'),
+        },
       ],
     });
 
@@ -224,6 +232,46 @@ describe('buildSessionDataQualityReport', () => {
         dominantSource: 'state',
         dominantFailureKind: 'network',
         severityClassification: 'low',
+      },
+    });
+  });
+
+  it('keeps unfinished sessions out of final red quality classification', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-live'] },
+      sessions: [{
+        id: 'session-live',
+        classId: 'class-1',
+        status: 'ACTIVE',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: null,
+        plan: { title: 'live session' },
+      }],
+      studentStates: [{
+        sessionId: 'session-live',
+        userId: 'student-1',
+        stateKey: 'course',
+        lessonKey: '5-2',
+        submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+        lastClientEventAt: new Date('2026-05-20T08:10:00.000Z'),
+      }],
+      interactionLogs: [],
+      learningFacts: [],
+      studentStepResponses: [],
+      studentCompetencySnapshots: [],
+      classSessionReports: [],
+      studentSessionReports: [],
+    });
+
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'yellow',
+      reasons: ['session_not_finished'],
+      metrics: {
+        participants: 1,
+        durableSubmissionCoverage: 0,
+        reportFresh: false,
+        snapshotFresh: false,
       },
     });
   });

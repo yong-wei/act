@@ -354,7 +354,14 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const submissionCoverage = summarizeSubmissions(studentSubmissions);
     const syncHealth = buildSyncErrorIncidentSummary(logs.map(toSyncIncidentSummaryLog));
     const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs.map(toSyncIncidentSummaryLog));
-    const reportFreshness = buildReportFreshness(session, classReports, studentReports, participantUserIds.length);
+    const participantUserIdSet = new Set(participantUserIds);
+    const participantStudentReports = studentReports.filter((report) => participantUserIdSet.has(report.userId ?? ''));
+    const reportFreshness = buildReportFreshness(
+      session,
+      classReports,
+      participantStudentReports,
+      participantUserIds.length,
+    );
     const snapshotFreshness = buildSnapshotFreshness(
       session,
       participantUserIds,
@@ -386,6 +393,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       syncSeverity: qualitySyncSeverity,
       unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
       syncAffectedUsers: qualitySyncHealth.affectedUsers,
+      finalized: session.status === 'FINISHED',
     });
 
     return {

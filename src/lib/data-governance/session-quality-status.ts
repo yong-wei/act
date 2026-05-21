@@ -14,7 +14,8 @@ export type SessionQualityReason =
   | 'legacy_or_missing_ratio_warning'
   | 'durable_submission_coverage_partial'
   | 'snapshot_partially_missing'
-  | 'medium_sync_incident';
+  | 'medium_sync_incident'
+  | 'session_not_finished';
 
 export interface ComputeSessionQualityStatusInput {
   participants: number;
@@ -26,6 +27,7 @@ export interface ComputeSessionQualityStatusInput {
   syncSeverity: SessionQualitySyncSeverity;
   unresolvedSyncIncidents: number;
   syncAffectedUsers: number;
+  finalized?: boolean;
 }
 
 export interface SessionQualityDecision {
@@ -100,6 +102,14 @@ export function computeSessionQualityStatus(
     syncAffectedUsers: Math.max(0, input.syncAffectedUsers),
     syncAffectedUserRatio,
   };
+
+  if (input.finalized === false) {
+    return {
+      status: 'yellow',
+      reasons: ['session_not_finished'],
+      metrics,
+    };
+  }
 
   const redReasons: SessionQualityReason[] = [];
   if (durableSubmissions === 0) redReasons.push('no_durable_submissions');

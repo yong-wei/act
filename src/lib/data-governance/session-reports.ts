@@ -591,6 +591,7 @@ export async function generateSessionSummaryReports(
     syncSeverity: resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution),
     unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
     syncAffectedUsers: qualitySyncHealth.affectedUsers,
+    finalized: session.status === 'FINISHED',
   });
   const qualityStatusData = {
     status: qualityStatus.status,

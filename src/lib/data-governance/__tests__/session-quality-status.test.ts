@@ -38,6 +38,37 @@ describe('computeSessionQualityStatus', () => {
     });
   });
 
+  it('marks unfinished sessions as pending yellow instead of final red', () => {
+    const decision = computeSessionQualityStatus({
+      participants: 5,
+      durableSubmittedParticipants: 0,
+      durableSubmissions: 0,
+      evidenceQualityCounts: {
+        rich: 0,
+        partial: 0,
+        legacy: 0,
+        missing: 0,
+      },
+      reportFresh: false,
+      snapshotFresh: false,
+      syncSeverity: 'none',
+      unresolvedSyncIncidents: 0,
+      syncAffectedUsers: 0,
+      finalized: false,
+    });
+
+    expect(decision).toMatchObject({
+      status: 'yellow',
+      reasons: ['session_not_finished'],
+      metrics: {
+        participants: 5,
+        durableSubmissionCoverage: 0,
+        reportFresh: false,
+        snapshotFresh: false,
+      },
+    });
+  });
+
   it('marks partial evidence and missing snapshots as yellow', () => {
     const decision = computeSessionQualityStatus({
       participants: 10,
