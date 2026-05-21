@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
+import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
+import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
 
 interface UserProfile {
   user: {
@@ -77,6 +79,7 @@ interface UserProfile {
       priority: number;
       estimatedTime?: string;
       tags: string[];
+      rationale?: RecommendationRationale;
     }>;
     adaptivePractice: {
       estimatedAbility: number | null;
@@ -87,6 +90,7 @@ interface UserProfile {
       actionUrl: string;
     };
   };
+  evidenceStatus: StudentProfileEvidenceStatus;
   arenaPortfolio: ArenaStudentPortfolio;
 }
 
@@ -179,6 +183,7 @@ export default function ProfilePage() {
       ? (profile.missionProgress.completed / profile.missionProgress.total) * 100
       : 0;
   const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
+  const evidenceStatusMeta = getEvidenceStatusMeta(profile.evidenceStatus);
 
   return (
     <div className="surface-page">
@@ -223,6 +228,13 @@ export default function ProfilePage() {
               <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore}</div>
               <p className="text-lg font-medium text-foreground">{profile.competency.level}</p>
               <p className="text-sm text-subtle">六维能力综合得分</p>
+              <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${evidenceStatusMeta.className}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <span>证据状态</span>
+                  <span className="font-medium">{evidenceStatusMeta.label}</span>
+                </div>
+                <p className="mt-1">{formatEvidenceStatusSummary(profile.evidenceStatus)}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -508,6 +520,11 @@ export default function ProfilePage() {
                           {resource.estimatedTime && (
                             <span className="text-xs text-subtle">{resource.estimatedTime}</span>
                           )}
+                          {recommendationConfidenceLabel(resource.rationale) && (
+                            <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">
+                              {recommendationConfidenceLabel(resource.rationale)}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-2 font-medium text-foreground">{resource.title}</p>
                         <p className="mt-1 text-sm text-subtle">{resource.description}</p>
@@ -740,6 +757,70 @@ function formatDate(dateStr: string) {
   if (diffHours < 24) return `${diffHours} 小时前`;
   if (diffDays < 7) return `${diffDays} 天前`;
   return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function formatShortDate(dateStr: string | null) {
+  if (!dateStr) {
+    return '未刷新';
+  }
+  return new Date(dateStr).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function getEvidenceStatusMeta(status: StudentProfileEvidenceStatus) {
+  if (status.state === 'ready' && status.confidence.state === 'ready') {
+    return {
+      label: '可用',
+      className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+    };
+  }
+
+  if (status.state === 'stale') {
+    return {
+      label: '待刷新',
+      className: 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+    };
+  }
+
+  return {
+    label: '证据不足',
+    className: 'border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300',
+  };
+}
+
+function formatEvidenceStatusSummary(status: StudentProfileEvidenceStatus) {
+  const evidenceCount = status.confidence.evidenceCount || status.sourceCounts.LearningFact;
+
+  if (status.state === 'missing') {
+    return `缓存缺失 · ${evidenceCount} 条事实`;
+  }
+
+  if (status.state === 'stale') {
+    return `最近刷新 ${formatShortDate(status.refreshedAt)} · ${evidenceCount} 条证据`;
+  }
+
+  return `覆盖 ${status.evidenceWindow.daysCovered} 天 · ${evidenceCount} 条证据`;
+}
+
+function recommendationConfidenceLabel(rationale?: RecommendationRationale) {
+  const confidence = rationale?.confidence;
+  if (!confidence) {
+    return null;
+  }
+
+  if (confidence.state === 'missing') {
+    return '证据不足';
+  }
+  if (confidence.state === 'stale') {
+    return '证据待刷新';
+  }
+  if (confidence.state === 'partial') {
+    return '证据不完整';
+  }
+  if (confidence.state === 'low-confidence' || confidence.level === 'low') {
+    return '证据置信度低';
+  }
+
+  return null;
 }
 
 function trendText(trend: 'up' | 'stable' | 'down') {
