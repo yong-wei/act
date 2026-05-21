@@ -3,7 +3,10 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildManifestSubmissionEventPayload } from '@/features/interactive/shared/manifest-runtime/submission-controller';
+import {
+  buildManifestSubmissionEventPayload,
+  normalizeManifestSubmissionAnswers,
+} from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import {
   assertRequiredLessonsInGateInventory,
   collectManifestResponseProducingSteps,
@@ -19,6 +22,7 @@ import {
   normalizeInteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import { getUNIT_5_2ManifestStepFromManifest } from '@/lib/unit-5-2-course';
+import { getUNIT_5_3ManifestStepFromManifest } from '@/lib/unit-5-3-course';
 import { getUNIT_5_5ManifestStepFromManifest } from '@/lib/unit-5-5-course';
 
 const repoRoot = process.cwd();
@@ -156,6 +160,39 @@ describe('manifest submission migration gates', () => {
         'sine-meaning': '幅值和角频率',
       },
       scoringSupported: true,
+    });
+  });
+
+  it('normalizes array answers without JSON wrapping before objective scoring', () => {
+    const manifest = readManifest('5-3');
+    const answers = normalizeManifestSubmissionAnswers({
+      'role-match': ['perception', 'estimation', 'planning', 'control', 'actuation', 'supervision'],
+    });
+    const payload = buildManifestSubmissionEventPayload({
+      stepId: 'step-04',
+      response: {
+        stepId: 'step-04',
+        submittedAt: 1778550652000,
+        answers,
+      },
+      stepManifest: getUNIT_5_3ManifestStepFromManifest(manifest, 'step-04'),
+      submittedAt: 1778550652000,
+      attemptKey: 'step-04:response:1778550652000',
+    });
+
+    expect(answers['role-match']).toBe('perception|estimation|planning|control|actuation|supervision');
+    expect(payload.data).toMatchObject({
+      evidenceQuality: 'rich',
+      correctCount: 1,
+      objectiveTotal: 1,
+      score: 100,
+      questionSummaries: [
+        expect.objectContaining({
+          questionId: 'role-match',
+          answered: true,
+          isCorrect: true,
+        }),
+      ],
     });
   });
 

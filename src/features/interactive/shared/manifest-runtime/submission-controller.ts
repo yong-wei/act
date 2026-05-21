@@ -49,9 +49,28 @@ export function normalizeManifestSubmissionAnswers(
   return Object.fromEntries(
     Object.entries(answers).map(([key, value]) => [
       key,
-      value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value),
+      normalizeManifestSubmissionAnswerValue(value),
     ]),
   );
+}
+
+function normalizeManifestSubmissionAnswerValue(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeManifestSubmissionAnswerValue(item))
+      .filter(Boolean)
+      .join('|');
+  }
+  if (typeof value === 'object') {
+    return Object.values(value)
+      .map((item) => normalizeManifestSubmissionAnswerValue(item))
+      .filter(Boolean)
+      .join('|');
+  }
+  return String(value);
 }
 
 export function buildManifestSubmissionEventPayload({
