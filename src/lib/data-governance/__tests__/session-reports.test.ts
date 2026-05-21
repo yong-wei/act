@@ -286,6 +286,82 @@ describe('generateSessionSummaryReports', () => {
       }),
     }));
   });
+
+  it('excludes teacher logs from participant coverage for quality status', async () => {
+    prisma.classSession.findUnique.mockResolvedValue({
+      id: 'session-teacher-log',
+      classId: 'class-1',
+      status: 'FINISHED',
+      startTime: new Date('2026-05-20T08:00:00.000Z'),
+      endTime: new Date('2026-05-20T09:30:00.000Z'),
+      plan: { title: '5-2：非线性系统的最小分析入口' },
+    });
+    prisma.interactionLog.findMany.mockResolvedValue([
+      {
+        userId: 'teacher-1',
+        eventType: 'view',
+        stepId: 'step-01',
+        clientEventAt: new Date('2026-05-20T08:05:00.000Z'),
+        lessonKey: '5-2',
+        learningContext: 'teacher_live',
+        invalidContextReason: null,
+        actorRole: 'teacher',
+        eventData: {},
+      },
+    ]);
+    prisma.studentState.findMany.mockResolvedValue([
+      { userId: 'student-1', lessonKey: '5-2' },
+    ]);
+    prisma.learningFact.findMany.mockResolvedValue([]);
+    prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        stepId: 'step-02',
+        submittedAt: new Date('2026-05-20T08:20:00.000Z'),
+        responseData: {
+          schemaVersion: 'manifest-submission-v2',
+          evidenceQuality: 'rich',
+          answers: { q1: 'A' },
+          questionSummaries: [
+            { questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true },
+          ],
+        },
+      },
+    ]);
+    prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+      { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:45:00.000Z') },
+    ]);
+    prisma.classSessionReport.upsert.mockResolvedValue({});
+    prisma.studentSessionReport.upsert.mockResolvedValue({});
+
+    await generateSessionSummaryReports(prisma as never, 'session-teacher-log');
+
+    const reportData = prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData;
+    expect(reportData).toMatchObject({
+      participants: 1,
+      sessionGovernanceSummary: {
+        sessionParticipants: 1,
+        loggedParticipants: 0,
+        qualityStatus: {
+          status: 'green',
+          metrics: expect.objectContaining({
+            durableSubmissionCoverage: 1,
+            richOrPartialEvidenceRatio: 1,
+          }),
+        },
+      },
+    });
+    expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(1);
+    expect(prisma.studentSessionReport.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_userId_reportType: {
+          sessionId: 'session-teacher-log',
+          userId: 'student-1',
+          reportType: 'student-summary',
+        },
+      },
+    }));
+  });
 });
 
 describe('buildSyncErrorIncidentSummary', () => {

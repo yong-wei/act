@@ -37,6 +37,7 @@ interface InteractionLogSummaryItem {
   lessonKey: string | null;
   learningContext?: string | null;
   invalidContextReason?: string | null;
+  actorRole?: string | null;
   eventData: unknown;
 }
 
@@ -80,6 +81,10 @@ function readObject(value: unknown): Record<string, unknown> {
 
 function resolveReportEventType(log: InteractionLogSummaryItem): string {
   return resolveCanonicalEventType(log.eventType, readObject(log.eventData));
+}
+
+function isStudentInteractionLog(log: InteractionLogSummaryItem) {
+  return log.actorRole !== 'teacher';
 }
 
 function firstNonEmpty(values: Array<string | null | undefined>): string | null {
@@ -440,6 +445,7 @@ export async function generateSessionSummaryReports(
         lessonKey: true,
         learningContext: true,
         invalidContextReason: true,
+        actorRole: true,
         eventData: true,
       },
     }) as Promise<InteractionLogSummaryItem[]>,
@@ -463,12 +469,13 @@ export async function generateSessionSummaryReports(
     }) as Promise<StudentStepResponseSummaryItem[]>,
   ]);
 
-  const loggedUserIds = new Set(logs.map((log) => log.userId));
+  const studentLogs = logs.filter(isStudentInteractionLog);
+  const loggedUserIds = new Set(studentLogs.map((log) => log.userId));
   const factUserIds = new Set(facts.map((fact) => fact.userId));
   const durableSubmittedUserIds = new Set(submissions.map((submission) => submission.userId));
   const sessionParticipantUserIds = Array.from(new Set([
     ...studentStates.map((state) => state.userId),
-    ...logs.map((log) => log.userId),
+    ...studentLogs.map((log) => log.userId),
     ...facts.map((fact) => fact.userId),
     ...submissions.map((submission) => submission.userId),
   ])).sort();
