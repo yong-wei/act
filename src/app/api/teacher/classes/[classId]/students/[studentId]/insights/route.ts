@@ -17,6 +17,13 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
+import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
+import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  buildTeacherStudentEvidenceStatus,
+  type TeacherSessionQualityStatus,
+  type TeacherStudentEvidenceStatus,
+} from '@/lib/data-governance/teacher-evidence-governance';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +75,62 @@ type TeacherStudentEvidenceItem = {
     referenceAnswer?: string;
     isCorrect?: boolean;
   }>;
+};
+
+type TeacherStudentEvidenceDrawer = {
+  featureCache: TeacherStudentEvidenceStatus & {
+    rawReadExceptions: string[];
+  };
+  recentFacts: Array<{
+    id: string;
+    factType: string;
+    moduleId: string | null;
+    lessonId: string | null;
+    sessionId: string | null;
+    outcome: string;
+    score: number | null;
+    startedAt: string;
+    finishedAt: string | null;
+    timeSpent: number | null;
+  }>;
+  durableSubmissions: Array<{
+    id: string;
+    sessionId: string;
+    lessonKey: string | null;
+    stepId: string;
+    attemptKey: string | null;
+    submittedAt: string;
+    sessionTitle: string;
+    quality: string;
+    reason: string;
+    sourceState: string;
+    schemaVersion: string | null;
+    scoreableObjectiveSubmissions: number;
+    answerCount: number;
+    questionSummaryCount: number;
+    score: number | null;
+  }>;
+  sessionQuality: Array<{
+    sessionId: string;
+    lessonKey: string | null;
+    title: string;
+    startTime: string | null;
+    endTime: string | null;
+    updatedAt: string | null;
+    qualityStatus: TeacherSessionQualityStatus;
+    qualityReasons: string[];
+    summary: string | null;
+    studentReport: {
+      interactionLogs: number;
+      learningFacts: number;
+      durableSubmissions: number;
+    };
+  }>;
+  limits: {
+    recentFacts: number;
+    durableSubmissions: number;
+    sessionQuality: number;
+  };
 };
 
 export interface TeacherStudentInsightsPayload {
@@ -122,6 +185,7 @@ export interface TeacherStudentInsightsPayload {
     label: string;
     items: TeacherStudentEvidenceItem[];
   }>;
+  evidenceDrawer: TeacherStudentEvidenceDrawer;
 }
 
 export async function GET(
@@ -173,6 +237,12 @@ export async function GET(
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
     }
 
+    const scopedClassSessions = await prisma.classSession.findMany({
+      where: { classId },
+      select: { id: true },
+    });
+    const scopedSessionIds = scopedClassSessions.map((session) => session.id);
+
     const [
       currentSnapshot,
       previousSnapshot,
@@ -181,6 +251,10 @@ export async function GET(
       growthRecords,
       recommendations,
       classSnapshot,
+      studentEvidenceFeatureRead,
+      recentFacts,
+      durableSubmissions,
+      studentSessionReports,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.findFirst({
         where: { userId: studentId },
@@ -213,6 +287,83 @@ export async function GET(
         where: { classId },
         orderBy: { snapshotAt: 'desc' },
       }),
+      readStudentEvidenceFeatures(prisma, studentId),
+      scopedSessionIds.length
+        ? prisma.learningFact.findMany({
+            where: {
+              userId: studentId,
+              sessionId: { in: scopedSessionIds },
+            },
+            orderBy: { startedAt: 'desc' },
+            take: 8,
+            select: {
+              id: true,
+              factType: true,
+              moduleId: true,
+              lessonId: true,
+              sessionId: true,
+              outcome: true,
+              score: true,
+              startedAt: true,
+              finishedAt: true,
+              timeSpent: true,
+            },
+          })
+        : Promise.resolve([]),
+      prisma.studentStepResponse.findMany({
+        where: {
+          userId: studentId,
+          session: { classId },
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: 8,
+        select: {
+          id: true,
+          sessionId: true,
+          lessonKey: true,
+          stepId: true,
+          attemptKey: true,
+          submittedAt: true,
+          responseData: true,
+          session: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              plan: {
+                select: { title: true },
+              },
+            },
+          },
+        },
+      }),
+      prisma.studentSessionReport.findMany({
+        where: {
+          userId: studentId,
+          reportType: 'student-summary',
+          session: { classId },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 6,
+        select: {
+          sessionId: true,
+          lessonKey: true,
+          status: true,
+          summary: true,
+          reportData: true,
+          updatedAt: true,
+          session: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              plan: {
+                select: { title: true },
+              },
+            },
+          },
+        },
+      }),
     ]);
 
     const currentVector = currentSnapshot?.competencyVector as CompetencyVector | null;
@@ -227,7 +378,37 @@ export async function GET(
         null
     );
     const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, { mean?: number }>;
-    const evidenceSummary = (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>;
+    const evidenceSummary = sanitizeEvidenceSummary(
+      (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>
+    );
+    const drawerSessionIds = Array.from(new Set([
+      ...recentFacts.map((fact) => fact.sessionId).filter(isNonEmptyString),
+      ...durableSubmissions.map((submission) => submission.sessionId),
+      ...studentSessionReports.map((report) => report.sessionId),
+    ]));
+    const classSessionReports = drawerSessionIds.length
+      ? await prisma.classSessionReport.findMany({
+          where: {
+            sessionId: { in: drawerSessionIds },
+            reportType: 'class-summary',
+          },
+          select: {
+            sessionId: true,
+            status: true,
+            summary: true,
+            reportData: true,
+            updatedAt: true,
+          },
+        })
+      : [];
+    const evidenceDrawer = buildEvidenceDrawer({
+      studentId,
+      featureRead: studentEvidenceFeatureRead,
+      recentFacts,
+      durableSubmissions,
+      studentSessionReports,
+      classSessionReports,
+    });
 
     const payload: TeacherStudentInsightsPayload = {
       student: {
@@ -311,6 +492,7 @@ export async function GET(
         label: getCompetencyLabel(dimension),
         items: evidenceSummary[dimension] ?? [],
       })),
+      evidenceDrawer,
     };
 
     return NextResponse.json(payload);
@@ -399,6 +581,184 @@ function summarizeRiskFlags(
       return right.occurrenceCount - left.occurrenceCount;
     })
     .slice(0, 6);
+}
+
+function buildEvidenceDrawer(input: {
+  studentId: string;
+  featureRead: Awaited<ReturnType<typeof readStudentEvidenceFeatures>>;
+  recentFacts: Array<{
+    id: string;
+    factType: string;
+    moduleId: string | null;
+    lessonId: string | null;
+    sessionId: string | null;
+    outcome: string;
+    score: number | null;
+    startedAt: Date;
+    finishedAt: Date | null;
+    timeSpent: number | null;
+  }>;
+  durableSubmissions: Array<{
+    id: string;
+    sessionId: string;
+    lessonKey: string | null;
+    stepId: string;
+    attemptKey: string | null;
+    submittedAt: Date;
+    responseData: unknown;
+    session: {
+      id: string;
+      startTime: Date;
+      endTime: Date | null;
+      plan: { title: string };
+    };
+  }>;
+  studentSessionReports: Array<{
+    sessionId: string;
+    lessonKey: string | null;
+    summary: string | null;
+    reportData: unknown;
+    updatedAt: Date;
+    session: {
+      id: string;
+      startTime: Date;
+      endTime: Date | null;
+      plan: { title: string };
+    };
+  }>;
+  classSessionReports: Array<{
+    sessionId: string;
+    summary: string | null;
+    reportData: unknown;
+    updatedAt: Date;
+  }>;
+}): TeacherStudentEvidenceDrawer {
+  const featureCache = buildTeacherStudentEvidenceStatus(input.studentId, input.featureRead.cache, {
+    readState: input.featureRead.state,
+    now: new Date(),
+  });
+  const classReportMap = new Map(input.classSessionReports.map((report) => [report.sessionId, report]));
+
+  return {
+    featureCache: {
+      ...featureCache,
+      rawReadExceptions: input.featureRead.rawReadExceptions,
+    },
+    recentFacts: input.recentFacts.map((fact) => ({
+      id: fact.id,
+      factType: fact.factType,
+      moduleId: fact.moduleId,
+      lessonId: fact.lessonId,
+      sessionId: fact.sessionId,
+      outcome: fact.outcome,
+      score: fact.score,
+      startedAt: fact.startedAt.toISOString(),
+      finishedAt: fact.finishedAt?.toISOString() ?? null,
+      timeSpent: fact.timeSpent,
+    })),
+    durableSubmissions: input.durableSubmissions.map((submission) => {
+      const quality = summarizeSubmissionEvidencePayload(submission.responseData);
+      return {
+        id: submission.id,
+        sessionId: submission.sessionId,
+        lessonKey: submission.lessonKey,
+        stepId: submission.stepId,
+        attemptKey: submission.attemptKey,
+        submittedAt: submission.submittedAt.toISOString(),
+        sessionTitle: submission.session.plan.title,
+        quality: quality.quality,
+        reason: quality.reason,
+        sourceState: quality.sourceState,
+        schemaVersion: quality.schemaVersion,
+        scoreableObjectiveSubmissions: quality.scoreableObjectiveSubmissions,
+        answerCount: quality.answerCount,
+        questionSummaryCount: quality.questionSummaryCount,
+        score: quality.score,
+      };
+    }),
+    sessionQuality: input.studentSessionReports.map((report) => {
+      const classReport = classReportMap.get(report.sessionId);
+      const classReportData = readObject(classReport?.reportData);
+      const qualityStatus = readObject(classReportData.qualityStatus);
+      const studentReport = readObject(report.reportData);
+
+      return {
+        sessionId: report.sessionId,
+        lessonKey: report.lessonKey,
+        title: report.session.plan.title,
+        startTime: report.session.startTime.toISOString(),
+        endTime: report.session.endTime?.toISOString() ?? null,
+        updatedAt: report.updatedAt.toISOString(),
+        qualityStatus: normalizeSessionQualityStatus(qualityStatus.status),
+        qualityReasons: stringArray(qualityStatus.reasons),
+        summary: classReport?.summary ?? report.summary,
+        studentReport: {
+          interactionLogs: numberValue(studentReport.interactionLogs),
+          learningFacts: numberValue(studentReport.learningFacts),
+          durableSubmissions: numberValue(studentReport.durableSubmissions),
+        },
+      };
+    }),
+    limits: {
+      recentFacts: 8,
+      durableSubmissions: 8,
+      sessionQuality: 6,
+    },
+  };
+}
+
+function sanitizeEvidenceSummary(
+  summary: Record<string, TeacherStudentEvidenceItem[]>
+): Record<string, TeacherStudentEvidenceItem[]> {
+  return Object.fromEntries(
+    Object.entries(summary).map(([dimension, items]) => [
+      dimension,
+      Array.isArray(items)
+        ? items.slice(0, 6).map((item) => ({
+            ...item,
+            questionSummaries: item.questionSummaries?.slice(0, 3).map((question) => ({
+              ...question,
+              prompt: truncateOptionalText(question.prompt),
+              studentAnswer: truncateNullableText(question.studentAnswer),
+              referenceAnswer: truncateOptionalText(question.referenceAnswer),
+            })),
+          }))
+        : [],
+    ]),
+  );
+}
+
+function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
+  if (typeof value !== 'string') return undefined;
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function truncateNullableText(value: string | null | undefined, maxLength: number = 96) {
+  if (typeof value !== 'string') return value ?? null;
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function normalizeSessionQualityStatus(value: unknown): TeacherSessionQualityStatus {
+  return value === 'green' || value === 'yellow' || value === 'red' ? value : 'unknown';
+}
+
+function isNonEmptyString(value: string | null): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function readObject(value: unknown): Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
 function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
