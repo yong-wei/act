@@ -129,6 +129,7 @@ export type SessionDataQualityDb = {
 };
 
 const SNAPSHOT_FRESHNESS_WINDOW_MS = 2 * 60 * 60 * 1000;
+const UNKNOWN_USER_ROLE = 'UNKNOWN';
 
 function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -170,11 +171,16 @@ function isStudentInteractionLog(log: InteractionLogQualityRow) {
 }
 
 function isStudentUserRole(role: string | null | undefined) {
-  return role !== 'TEACHER' && role !== 'ADMIN';
+  if (role === undefined || role === null) return true;
+  return role === 'STUDENT';
 }
 
 function isStudentQualityRow(row: { userId: string; userRole?: string | null }, teacherUserIds: Set<string>) {
   return isStudentUserRole(row.userRole) && !teacherUserIds.has(row.userId);
+}
+
+function resolveQueriedUserRole(roleByUserId: Map<string, string | null>, userId: string) {
+  return roleByUserId.has(userId) ? roleByUserId.get(userId) ?? UNKNOWN_USER_ROLE : UNKNOWN_USER_ROLE;
 }
 
 function toSyncIncidentSummaryLog(log: InteractionLogQualityRow) {
@@ -589,11 +595,11 @@ export async function collectSessionDataQualityReport(
   const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
   const learningFactsWithRoles = learningFacts.map((fact) => ({
     ...fact,
-    userRole: roleByUserId.get(fact.userId) ?? null,
+    userRole: resolveQueriedUserRole(roleByUserId, fact.userId),
   }));
   const studentStepResponsesWithRoles = studentStepResponses.map((submission) => ({
     ...submission,
-    userRole: roleByUserId.get(submission.userId) ?? null,
+    userRole: resolveQueriedUserRole(roleByUserId, submission.userId),
   }));
   const teacherUserIds = new Set([
     ...studentStates.filter((state) => !isStudentStateRow(state)).map((state) => state.userId),

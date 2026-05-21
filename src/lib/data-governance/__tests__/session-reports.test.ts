@@ -17,7 +17,12 @@ describe('generateSessionSummaryReports', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    prisma.user.findMany.mockResolvedValue([]);
+    prisma.user.findMany.mockImplementation(async (args: { where?: { id?: { in?: string[] } } }) => (
+      args.where?.id?.in ?? []
+    ).map((id) => ({
+      id,
+      role: id.startsWith('teacher') ? 'TEACHER' : 'STUDENT',
+    })));
   });
 
   it('creates deterministic class and student reports for a finished session', async () => {

@@ -75,6 +75,7 @@ interface StudentSnapshotSummaryItem {
 
 const SESSION_SNAPSHOT_UPDATE_WINDOW_MS = 2 * 60 * 60 * 1000;
 const SYNC_ERROR_BURST_WINDOW_MS = SYNC_INCIDENT_BURST_WINDOW_MS;
+const UNKNOWN_USER_ROLE = 'UNKNOWN';
 
 function increment(map: Record<string, number>, key: string | null | undefined) {
   if (!key) return;
@@ -96,11 +97,16 @@ function isStudentInteractionLog(log: InteractionLogSummaryItem) {
 }
 
 function isStudentUserRole(role: string | null | undefined) {
-  return role !== 'TEACHER' && role !== 'ADMIN';
+  if (role === undefined || role === null) return true;
+  return role === 'STUDENT';
 }
 
 function isStudentQualityRow(row: { userId: string; userRole?: string | null }, teacherUserIds: Set<string>) {
   return isStudentUserRole(row.userRole) && !teacherUserIds.has(row.userId);
+}
+
+function resolveQueriedUserRole(roleByUserId: Map<string, string | null>, userId: string) {
+  return roleByUserId.has(userId) ? roleByUserId.get(userId) ?? UNKNOWN_USER_ROLE : UNKNOWN_USER_ROLE;
 }
 
 function firstNonEmpty(values: Array<string | null | undefined>): string | null {
@@ -498,11 +504,11 @@ export async function generateSessionSummaryReports(
   const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
   const factsWithRoles = facts.map((fact) => ({
     ...fact,
-    userRole: roleByUserId.get(fact.userId) ?? null,
+    userRole: resolveQueriedUserRole(roleByUserId, fact.userId),
   }));
   const submissionsWithRoles = submissions.map((submission) => ({
     ...submission,
-    userRole: roleByUserId.get(submission.userId) ?? null,
+    userRole: resolveQueriedUserRole(roleByUserId, submission.userId),
   }));
   const studentLogs = logs.filter(isStudentInteractionLog);
   const teacherUserIds = new Set([

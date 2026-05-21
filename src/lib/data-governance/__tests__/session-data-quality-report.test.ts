@@ -424,6 +424,16 @@ describe('buildSessionDataQualityReport', () => {
           startedAt: new Date('2026-05-20T08:13:00.000Z'),
           contextJson: {},
         },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'ghost-1',
+          userRole: 'UNKNOWN',
+          lessonId: '5-2',
+          score: null,
+          outcome: 'partial',
+          startedAt: new Date('2026-05-20T08:14:00.000Z'),
+          contextJson: {},
+        },
       ],
       studentStepResponses: [
         {
@@ -457,6 +467,15 @@ describe('buildSessionDataQualityReport', () => {
           lessonKey: '5-2',
           stepId: 'step-03',
           submittedAt: new Date('2026-05-20T08:12:00.000Z'),
+          responseData: { evidenceQuality: 'legacy-envelope' },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'ghost-1',
+          userRole: 'UNKNOWN',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:13:00.000Z'),
           responseData: { evidenceQuality: 'legacy-envelope' },
         },
       ],
