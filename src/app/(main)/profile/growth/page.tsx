@@ -599,7 +599,12 @@ export default function GrowthPage() {
         {/* Evidence Summary */}
         {snapshot?.evidenceSummary && Object.keys(snapshot.evidenceSummary).length > 0 && (
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-foreground">能力证据链</h3>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-lg font-semibold text-foreground">能力证据链</h3>
+              <Link href="/profile/evidence" className="btn-ghost-themed inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
+                查看全部证据
+              </Link>
+            </div>
             <div className="grid gap-4 md:grid-cols-2">
               {Object.entries(snapshot.evidenceSummary).slice(0, 4).map(([dimension, evidence]) => (
                 <div key={dimension} className="surface-card-soft p-4">
