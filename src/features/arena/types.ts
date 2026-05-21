@@ -18,6 +18,29 @@ export type ControllerMethod =
 
 export type LeaderboardType = 'main' | 'method' | 'metric' | 'pareto' | 'class' | 'season';
 
+export type ArenaTrainingStageId =
+  | 'foundation'
+  | 'analysis-integration'
+  | 'structured-design'
+  | 'robust-advanced'
+  | 'blackbox-project';
+
+export type ArenaTrainingCapabilityId =
+  | 'time-domain-shaping'
+  | 'steady-state-accuracy'
+  | 'frequency-comfort'
+  | 'stability-margin'
+  | 'root-locus-reasoning'
+  | 'structured-compensation'
+  | 'black-box-identification'
+  | 'constraint-optimization'
+  | 'robustness-tradeoff'
+  | 'hidden-scenario-robustness'
+  | 'control-energy-tradeoff'
+  | 'mpc-template-design';
+
+export type ArenaHiddenTestSignal = 'none' | 'metric-only' | 'hidden-scenarios' | 'black-box-batch';
+
 export type WorkspaceMode =
   | 'multi-representation-linkage'
   | 'block-diagram-workbench'
@@ -115,6 +138,16 @@ export interface LeaderboardPolicy {
   visibility: 'class' | 'course' | 'public';
 }
 
+export interface ArenaTrainingMetadata {
+  stage: ArenaTrainingStageId;
+  capabilityTags: ArenaTrainingCapabilityId[];
+  prerequisiteCapabilityTags: ArenaTrainingCapabilityId[];
+  goal: string;
+  estimatedEffortMinutes: number;
+  hiddenTestSignal: ArenaHiddenTestSignal;
+  commonFailurePoints: string[];
+}
+
 export interface ChallengeTask {
   id: string;
   objectId: string;
@@ -130,6 +163,7 @@ export interface ChallengeTask {
   homeworkPolicy: string;
   homeworkEligible: boolean;
   practiceMode: 'open' | 'guided' | 'project';
+  training: ArenaTrainingMetadata;
 }
 
 export interface ControllerArtifact {

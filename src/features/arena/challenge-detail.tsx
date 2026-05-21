@@ -12,6 +12,11 @@ import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
 import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import {
+  ARENA_HIDDEN_TEST_SIGNAL_LABELS,
+  ARENA_TRAINING_CAPABILITY_LABELS,
+  ARENA_TRAINING_STAGE_LABELS,
+} from './data/seed-challenges';
+import {
   ARENA_STUDENT_LEADERBOARD_TYPES,
   arenaMethodLabels,
   arenaSourceLabels,
@@ -55,6 +60,9 @@ export function ChallengeDetail({
     submissions,
     leaderboardPolicyId: leaderboardPolicy.id,
   });
+  const prerequisiteLabels = task.training.prerequisiteCapabilityTags.map((item) =>
+    ARENA_TRAINING_CAPABILITY_LABELS[item],
+  );
 
   return (
     <ArenaPageShell
@@ -119,6 +127,42 @@ export function ChallengeDetail({
                     {tag}
                   </span>
                 ))}
+              </div>
+            </div>
+
+            <div className="surface-card rounded-lg p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-foreground">训练意图</h2>
+              <p className="mt-3 text-sm leading-6 text-subtle">{task.training.goal}</p>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <DetailItem label="训练阶段" value={ARENA_TRAINING_STAGE_LABELS[task.training.stage]} />
+                <DetailItem label="预计用时" value={`${task.training.estimatedEffortMinutes} 分钟`} />
+                <DetailItem label="隐藏评测信号" value={ARENA_HIDDEN_TEST_SIGNAL_LABELS[task.training.hiddenTestSignal]} />
+              </div>
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                <section className="rounded-lg border border-border/70 bg-background/60 p-4">
+                  <div className="text-sm font-semibold text-foreground">训练能力</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {task.training.capabilityTags.map((item) => (
+                      <span key={item} className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs text-primary">
+                        {ARENA_TRAINING_CAPABILITY_LABELS[item]}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+                <section className="rounded-lg border border-border/70 bg-background/60 p-4">
+                  <div className="text-sm font-semibold text-foreground">前置能力</div>
+                  <div className="mt-3 text-sm leading-6 text-subtle">
+                    {prerequisiteLabels.length > 0 ? prerequisiteLabels.join(' / ') : '无硬性前置能力'}
+                  </div>
+                </section>
+              </div>
+              <div className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/10 p-4">
+                <div className="text-sm font-semibold text-amber-700 dark:text-amber-200">常见失误</div>
+                <ul className="mt-3 grid gap-2 text-sm leading-6 text-foreground">
+                  {task.training.commonFailurePoints.map((item) => (
+                    <li key={item}>• {item}</li>
+                  ))}
+                </ul>
               </div>
             </div>
 

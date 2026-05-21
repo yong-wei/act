@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it } from 'vitest';
 
+import { ArenaHall } from '../arena-hall';
 import { ChallengeDetail } from '../challenge-detail';
 import {
   getArenaChallengeObject,
@@ -179,6 +180,39 @@ describe('arena student entry UI boundaries', () => {
     expect(html).toContain('publicationId=publication-a');
     expect(html).not.toContain('ArenaSubmissionPanel');
     expect(html).not.toContain('ArenaBlackBoxSubmissionPanel');
+  });
+
+  it('renders the Arena hall as a capability training map with existing filters', () => {
+    const html = renderToStaticMarkup(createElement(ArenaHall, {
+      taskStats: {},
+      studentPublications: [],
+    }));
+
+    expect(html).toContain('能力训练地图');
+    expect(html).toContain('训练阶段');
+    expect(html).toContain('训练能力');
+    expect(html).toContain('时域整形');
+    expect(html).toContain('隐藏场景鲁棒性');
+    expect(html).toContain('预计');
+    expect(html).toContain('常见失误');
+    expect(html).toContain('对象来源');
+    expect(html).toContain('允许方法');
+  });
+
+  it('renders challenge detail training intent, prerequisites, effort, and failure points', () => {
+    const props = getChallengeDetailFixture('task-ship-roll-mpc-hidden-scenarios');
+    const html = renderToStaticMarkup(createElement(ChallengeDetail, {
+      ...props,
+      submissions: [],
+    }));
+
+    expect(html).toContain('训练意图');
+    expect(html).toContain('训练能力');
+    expect(html).toContain('前置能力');
+    expect(html).toContain('预计用时');
+    expect(html).toContain('常见失误');
+    expect(html).toContain('隐藏场景');
+    expect(html).toContain('约束优化');
   });
 
   it('renders white-box models, Chinese rule modules, constrained leaderboards, and knowledge preview affordances', () => {
