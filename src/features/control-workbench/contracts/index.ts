@@ -1,5 +1,6 @@
 export * from './artifact-bridge';
 export * from './controller-draft';
+export * from './design-flow';
 export * from './layout';
 export * from './methods';
 export * from './nominal-model';

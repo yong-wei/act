@@ -14,6 +14,7 @@ import {
   type WorkbenchSessionContext,
   type WorkbenchSignal,
 } from '../contracts';
+import { buildWorkbenchDesignFlow, type WorkbenchDesignFlowSource } from '../design-flow';
 import { ARENA_CHALLENGE_OBJECTS, ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import type { ChallengeObject, ControllerArtifact, LeaderboardPolicy, MetricProfile } from '@/features/arena/types';
 
@@ -65,7 +66,7 @@ describe('control workbench shared contracts', () => {
 
   it('keeps explore sessions free of official targets and official leaderboard submission', () => {
     const policy = createDefaultWorkbenchSubmissionPolicy('explore');
-    const session: WorkbenchSessionContext = {
+    const sessionBase: WorkbenchDesignFlowSource = {
       mode: 'explore',
       title: '自由探索',
       object: getObject('plant-second-order-underdamped'),
@@ -81,6 +82,10 @@ describe('control workbench shared contracts', () => {
         requiresPersistedDataset: false,
       },
       submissionPolicy: policy,
+    };
+    const session: WorkbenchSessionContext = {
+      ...sessionBase,
+      designFlow: buildWorkbenchDesignFlow(sessionBase),
     };
 
     expect(session.officialTarget).toBeNull();
@@ -163,7 +168,7 @@ describe('control workbench shared contracts', () => {
       tieBreakers: ['score'],
       visibility: 'course',
     };
-    const session: WorkbenchSessionContext = {
+    const sessionBase: WorkbenchDesignFlowSource = {
       mode: 'assignment',
       publicationId: 'publication-1',
       classId: 'class-1',
@@ -187,6 +192,10 @@ describe('control workbench shared contracts', () => {
       submissionPolicy: createDefaultWorkbenchSubmissionPolicy('assignment', {
         leaderboardTypes: task.leaderboardTypes,
       }),
+    };
+    const session: WorkbenchSessionContext = {
+      ...sessionBase,
+      designFlow: buildWorkbenchDesignFlow(sessionBase),
     };
 
     expect(session.publicationId).toBe('publication-1');
