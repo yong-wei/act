@@ -10,9 +10,10 @@ import {
   evaluateManifestSubmissionPageGate,
 } from '@/features/interactive/shared/manifest-runtime/submission-gate';
 import {
-  MODULE5_RESPONSE_PRODUCING_LESSON_INVENTORY,
-  REQUIRED_MODULE5_GATE_LESSONS,
-} from '@/features/interactive/module5-submission-gate-inventory';
+  COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY,
+  REQUIRED_RUNTIME_FIRST_GATE_LESSONS,
+} from '@/features/interactive/course-submission-gate-inventory';
+import { resolveCourseEvidenceSpec } from '@/lib/data-governance/course-evidence-specs';
 import {
   type InteractiveRuntimeManifest,
   normalizeInteractiveRuntimeManifest,
@@ -31,23 +32,34 @@ function readManifest(lessonId: string): InteractiveRuntimeManifest {
   return manifest;
 }
 
-describe('module 5 submission migration', () => {
-  it('enumerates response-producing steps and classifies their evidence shape', () => {
+describe('manifest submission migration gates', () => {
+  it('enumerates all runtime-first response-producing lessons through CourseEvidenceSpec', () => {
     const inventory = Object.fromEntries(
-      MODULE5_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => [
-        lesson.lessonId,
-        collectManifestResponseProducingSteps(readManifest(lesson.lessonId), lesson.lessonId),
-      ]),
+      COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => {
+        const manifest = readManifest(lesson.lessonId);
+        const evidenceSpec = resolveCourseEvidenceSpec({ manifest });
+        if (evidenceSpec.status !== 'supported') {
+          throw new Error(`${lesson.lessonId} evidence spec is ${evidenceSpec.reason}`);
+        }
+        return [
+          lesson.lessonId,
+          collectManifestResponseProducingSteps(manifest, lesson.lessonId)
+            .filter((step) => evidenceSpec.spec.responseProducingStepIds.includes(step.stepId)),
+        ];
+      }),
     );
 
     expect(assertRequiredLessonsInGateInventory(
-      [...MODULE5_RESPONSE_PRODUCING_LESSON_INVENTORY],
-      [...REQUIRED_MODULE5_GATE_LESSONS],
+      [...COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY],
+      [...REQUIRED_RUNTIME_FIRST_GATE_LESSONS],
     )).toEqual([]);
 
-    for (const lesson of MODULE5_RESPONSE_PRODUCING_LESSON_INVENTORY) {
+    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY) {
       expect(inventory[lesson.lessonId].length).toBeGreaterThanOrEqual(lesson.minimumResponseSteps);
     }
+    expect(inventory['2-1'].some((step) => step.categories.includes('objective'))).toBe(true);
+    expect(inventory['3-8'].some((step) => step.categories.includes('objective'))).toBe(true);
+    expect(inventory['4-1'].some((step) => step.categories.includes('parameter'))).toBe(true);
     expect(inventory['5-2'].some((step) => step.categories.includes('parameter'))).toBe(true);
     expect(inventory['5-3'].some((step) => step.categories.includes('drag-match-sort'))).toBe(true);
     expect(inventory['5-4'].some((step) => step.categories.includes('simulation'))).toBe(true);
@@ -55,14 +67,20 @@ describe('module 5 submission migration', () => {
     expect(inventory['5-6'].some((step) => step.categories.includes('simulation'))).toBe(true);
   });
 
-  it('guards module 5 student pages against bypassing the shared submission path', () => {
-    for (const lesson of MODULE5_RESPONSE_PRODUCING_LESSON_INVENTORY) {
+  it('guards runtime-first student pages against bypassing the shared submission path', () => {
+    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY) {
+      const manifest = readManifest(lesson.lessonId);
+      const evidenceSpec = resolveCourseEvidenceSpec({ manifest });
+      if (evidenceSpec.status !== 'supported') {
+        throw new Error(`${lesson.lessonId} evidence spec is ${evidenceSpec.reason}`);
+      }
       const result = evaluateManifestSubmissionPageGate({
         lessonId: lesson.lessonId,
         routeSegment: lesson.routeSegment,
         manifestGetterName: lesson.manifestGetterName,
         studentPageSource: readFileSync(join(repoRoot, lesson.studentPagePath), 'utf8'),
-        responseSteps: collectManifestResponseProducingSteps(readManifest(lesson.lessonId), lesson.lessonId),
+        responseSteps: collectManifestResponseProducingSteps(manifest, lesson.lessonId)
+          .filter((step) => evidenceSpec.spec.responseProducingStepIds.includes(step.stepId)),
         minimumResponseSteps: lesson.minimumResponseSteps,
       });
 

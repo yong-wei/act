@@ -9,13 +9,16 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  findManifestStepForSubmission,
+  normalizeManifestSubmissionAnswers,
+  useManifestSubmissionController,
+} from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { buildManifestSubmissionTelemetry } from '@/features/interactive/shared/manifest-runtime/submission-telemetry';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit47StepAIContext } from '@/lib/unit-4-7-ai-contexts';
 import {
-  getUNIT_4_7ManifestStepFromManifest,
   getUNIT_4_7PageContractFromManifest,
   UNIT_4_7_LESSON_KEY,
   UNIT_4_7_LESSON_STEPS,
@@ -79,9 +82,28 @@ export function UNIT_4_7StudentPage({
     actorRole: 'student',
     emit: interactiveTracking.emit,
   });
+  const { submitManifestStepResponse } = useManifestSubmissionController({ trackCourseEvent });
 
   const step = UNIT_4_7_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
+  const submitCurrentManifestResponse = useCallback(
+    (input: {
+      response: { stepId: string; submittedAt: number; answers: Record<string, unknown> };
+      isResubmit: boolean;
+      dataOverrides?: Record<string, unknown>;
+    }) => submitManifestStepResponse({
+      stepId: step.id,
+      isResubmit: input.isResubmit,
+      response: {
+        stepId: step.id,
+        submittedAt: input.response.submittedAt,
+        answers: normalizeManifestSubmissionAnswers(input.response.answers),
+      },
+      stepManifest: findManifestStepForSubmission(runtimeManifest, step.id),
+      dataOverrides: input.dataOverrides,
+    }),
+    [runtimeManifest, step.id, submitManifestStepResponse],
+  );
   const pageContract = getUNIT_4_7PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
@@ -143,19 +165,6 @@ export function UNIT_4_7StudentPage({
     if (error) trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
-  const trackSubmission = useCallback(
-    (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {
-      const submittedAt = Date.now();
-      const attemptKey = `${input.stepId}:response:${submittedAt}`;
-      trackCourseEvent(
-        input.isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        { stepId: input.stepId, attemptKey, clientEventAt: submittedAt, data: input.data },
-      );
-      return submittedAt;
-    },
-    [trackCourseEvent],
-  );
-
   const handleSubmitResponse = (response: UNIT_4_7StepResponse) => {
     const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
@@ -165,14 +174,7 @@ export function UNIT_4_7StudentPage({
         updatedAt: Date.now(),
         responses: { ...prev.responses, [step.id]: response },
       };
-      trackSubmission({
-        stepId: step.id,
-        isResubmit,
-        data: buildManifestSubmissionTelemetry(
-          response,
-          getUNIT_4_7ManifestStepFromManifest(runtimeManifest, step.id),
-        ),
-      });
+      submitCurrentManifestResponse({ response, isResubmit });
       return nextState;
     });
   };
