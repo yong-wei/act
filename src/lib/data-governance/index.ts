@@ -12,6 +12,7 @@ export * from './event-buffer';
 // Competency system
 export * from './competency-model';
 export * from './competency-engine';
+export * from './learning-fact-quality-weight';
 
 // Risk detection
 export * from './risk-detector';

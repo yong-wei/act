@@ -17,6 +17,7 @@ import {
   calculateTrendDirection,
   getCompetencyLabel,
 } from './competency-model';
+import { resolveLearningFactProfileWeight } from './learning-fact-quality-weight';
 
 export interface EvidenceQuestionSummary {
   questionId?: string;
@@ -92,9 +93,11 @@ function groupFactsByCompetency(
 
   for (const fact of facts) {
     const contribution = fact.competencyContribution as Record<string, number> || {};
+    const profileWeight = resolveLearningFactProfileWeight(fact.contextJson);
+    if (profileWeight <= 0) continue;
 
     for (const [competency, value] of Object.entries(contribution)) {
-      if (!Number.isFinite(value) || value === 0) {
+      if (!Number.isFinite(value) || value * profileWeight === 0) {
         continue;
       }
 
@@ -184,7 +187,7 @@ function calculateFactWeight(fact: LearningFact): number {
  */
 function getFactCompetencyContribution(fact: LearningFact, dimension: CompetencyDimension): number {
   const contribution = fact.competencyContribution as Record<string, number> || {};
-  return contribution[dimension] || 0;
+  return (contribution[dimension] || 0) * resolveLearningFactProfileWeight(fact.contextJson);
 }
 
 /**

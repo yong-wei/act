@@ -92,6 +92,52 @@ describe('calculateCompetencyVector', () => {
     expect(vector.selfDirectedLearning.score).toBeGreaterThan(0);
   });
 
+  it('should ignore facts marked as context-only evidence in competency profiles', () => {
+    const facts: LearningFact[] = [
+      createMockFact({
+        factType: 'question',
+        outcome: 'success',
+        score: 90,
+        competencyContribution: { controlModeling: 0.8 },
+        contextJson: {
+          evidenceGovernance: {
+            profileWeight: 0,
+            skipProfileContribution: true,
+            evidenceQuality: 'legacy',
+          },
+        },
+      }),
+    ];
+
+    const vector = calculateCompetencyVector(facts, '1m');
+
+    expect(vector.controlModeling.score).toBe(0);
+    expect(vector.controlModeling.evidenceCount).toBe(0);
+  });
+
+  it('should downgrade partial evidence through profile weight metadata', () => {
+    const facts: LearningFact[] = [
+      createMockFact({
+        factType: 'question',
+        outcome: 'success',
+        score: 90,
+        competencyContribution: { controlModeling: 0.8 },
+        contextJson: {
+          evidenceGovernance: {
+            profileWeight: 0.25,
+            skipProfileContribution: false,
+            evidenceQuality: 'partial',
+          },
+        },
+      }),
+    ];
+
+    const vector = calculateCompetencyVector(facts, '1m');
+
+    expect(vector.controlModeling.score).toBe(20);
+    expect(vector.controlModeling.evidenceCount).toBe(1);
+  });
+
   it('should filter facts by time window', () => {
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - 40); // 40 days ago

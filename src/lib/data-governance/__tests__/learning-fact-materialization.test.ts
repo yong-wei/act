@@ -42,6 +42,14 @@ describe('eventToLearningFactInput', () => {
       controlModeling: 0.5,
       selfDirectedLearning: 0.3,
     });
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        evidenceQuality: 'legacy',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'legacy_evidence_context_only',
+      },
+    });
   });
 
   it('ignores low-value secondary events that should not update student competency facts', () => {
@@ -236,6 +244,12 @@ describe('eventToLearningFactInput', () => {
       score: 50,
       outcome: 'partial',
       contextJson: {
+        evidenceGovernance: {
+          evidenceQuality: 'rich',
+          profileWeight: 1,
+          skipProfileContribution: false,
+          policyReason: 'rich_objective_evidence',
+        },
         interactiveQuiz: {
           lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
           stepId: 'step-02',
@@ -364,6 +378,63 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('downgrades partial manifest submissions while keeping fact traceability', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-answer-only',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        answers: {
+          'model-order': 'A',
+        },
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'unit-4-7-step-02-submit-answer-only',
+      factType: 'question',
+      lessonId: 'unit-4-7-destroyer-hifi-design-closure-v1',
+    });
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        evidenceQuality: 'partial',
+        profileWeight: 0.25,
+        skipProfileContribution: false,
+        policyReason: 'partial_evidence_low_weight',
+      },
+    });
+  });
+
+  it('keeps missing manifest submissions traceable without profile contribution', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-5-1-missing-submit-001',
+      actionType: 'submit',
+      payload: {
+        eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+        stepId: 'step-05',
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'unit-5-1-missing-submit-001',
+      lessonId: 'unit-5-1-linear-backbone-boundaries-v1',
+    });
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        evidenceQuality: 'missing',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'missing_evidence_context_only',
+      },
+    });
+  });
+
   it('does not materialize classroom completion facts from after-session events by default', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'late-submit-001',
@@ -418,6 +489,14 @@ describe('eventToLearningFactInput', () => {
       parameterDesign: 0.9,
       engineeringDecision: 0.6,
       selfDirectedLearning: 0.3,
+    });
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        evidenceQuality: 'rich',
+        profileWeight: 1,
+        skipProfileContribution: false,
+        policyReason: 'official_arena_evaluation',
+      },
     });
   });
 
