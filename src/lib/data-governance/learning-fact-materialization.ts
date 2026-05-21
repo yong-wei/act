@@ -10,6 +10,7 @@ import {
   resolveCanonicalEventType,
   resolveCompetencyContribution,
 } from './event-normalization';
+import { resolveLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -328,9 +329,11 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     lessonId: event.lessonId ?? readString(payload.lessonId) ?? readString(payload.lessonKey),
   };
   const arenaContext = buildArenaLearningContext(actionType, payload);
+  const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
   const contextJson = compactJsonObject({
     ...(readRecord(arenaContext) ?? {}),
     ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
+    ...(evidenceGovernance ? { evidenceGovernance } : {}),
   });
   if (Object.keys(contextJson).length > 0) {
     fact.contextJson = contextJson;
