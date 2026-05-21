@@ -21,3 +21,6 @@ export * from './worker-client';
 
 // Student evidence feature cache
 export * from './student-evidence-feature-cache';
+
+// Submission evidence quality
+export * from './submission-evidence-quality';

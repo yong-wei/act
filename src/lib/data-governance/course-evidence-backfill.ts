@@ -6,6 +6,7 @@ import {
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import { generateSessionSummaryReports } from './session-reports';
+import { summarizeSubmissionEvidencePayload } from './submission-evidence-quality';
 
 export const COURSE_EVIDENCE_BACKFILL_VERSION = 'course-evidence-backfill-v1';
 
@@ -196,14 +197,6 @@ function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value)))).sort();
 }
 
-function hasEntries(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
-}
-
-function hasQuestionSummaries(value: unknown): boolean {
-  return Array.isArray(value) && value.length > 0;
-}
-
 function normalizeAnswers(value: unknown): Record<string, string> {
   const record = readRecord(value);
   return Object.fromEntries(
@@ -283,10 +276,8 @@ function isManifestSubmissionV2(data: JsonRecord) {
 }
 
 function hasUsableSubmissionEvidence(data: JsonRecord) {
-  return hasEntries(data.answers)
-    || hasEntries(data.answerDigest)
-    || hasQuestionSummaries(data.questionSummaries)
-    || typeof data.score === 'number';
+  const summary = summarizeSubmissionEvidencePayload(data);
+  return summary.quality === 'rich' || summary.quality === 'partial';
 }
 
 function isAlreadyBackfilled(data: JsonRecord, status?: string) {
@@ -321,6 +312,16 @@ function buildBackfillMetadata(
   });
 }
 
+function withSubmissionEvidenceSummaryFields(data: JsonRecord): JsonRecord {
+  const summary = summarizeSubmissionEvidencePayload(data);
+  return compactRecord({
+    ...data,
+    evidenceQuality: summary.payloadEvidenceQuality,
+    evidenceQualityReason: summary.reason,
+    evidenceSourceState: summary.sourceState,
+  });
+}
+
 function buildEnrichedResponseData(
   response: CourseEvidenceBackfillResponseRow,
   state: CourseEvidenceBackfillStudentStateRow,
@@ -345,7 +346,7 @@ function buildEnrichedResponseData(
     },
   );
 
-  return compactRecord({
+  return withSubmissionEvidenceSummaryFields(compactRecord({
     ...readRecord(response.responseData),
     ...telemetry,
     eventType: readString(readRecord(response.responseData).eventType) ?? 'lesson_submit',
@@ -355,7 +356,7 @@ function buildEnrichedResponseData(
     clientEventId: response.clientEventId,
     sourceLogId: response.sourceLogId,
     backfill,
-  });
+  }));
 }
 
 function buildLegacyResponseData(
@@ -364,7 +365,7 @@ function buildLegacyResponseData(
   generatedAt: string,
   reason = 'missing_durable_answers',
 ) {
-  return compactRecord({
+  return withSubmissionEvidenceSummaryFields(compactRecord({
     ...readRecord(response.responseData),
     eventType: readString(readRecord(response.responseData).eventType) ?? 'lesson_submit',
     evidenceQuality: 'legacy-envelope',
@@ -380,7 +381,7 @@ function buildLegacyResponseData(
       generatedAt,
       reason,
     ),
-  });
+  }));
 }
 
 function summarizeCoverage(rows: JsonRecord[]): CourseEvidenceBackfillCoverageMetrics {
@@ -396,12 +397,13 @@ function summarizeCoverage(rows: JsonRecord[]): CourseEvidenceBackfillCoverageMe
   };
 
   for (const row of rows) {
-    if (hasEntries(row.answers) || hasEntries(row.answerDigest)) metrics.answerAvailableRows += 1;
-    if (typeof row.score === 'number') metrics.scoreAvailableRows += 1;
-    if (hasQuestionSummaries(row.questionSummaries)) metrics.questionSummaryAvailableRows += 1;
-    if (row.evidenceQuality === 'rich') metrics.richRows += 1;
-    else if (row.evidenceQuality === 'partial') metrics.partialRows += 1;
-    else if (row.evidenceQuality === 'missing') metrics.missingRows += 1;
+    const summary = summarizeSubmissionEvidencePayload(row);
+    if (summary.hasAnswerEvidence) metrics.answerAvailableRows += 1;
+    if (summary.hasScoreEvidence) metrics.scoreAvailableRows += 1;
+    if (summary.hasQuestionSummaryEvidence) metrics.questionSummaryAvailableRows += 1;
+    if (summary.quality === 'rich') metrics.richRows += 1;
+    else if (summary.quality === 'partial') metrics.partialRows += 1;
+    else if (summary.quality === 'missing') metrics.missingRows += 1;
     else metrics.legacyRows += 1;
   }
 
@@ -527,9 +529,12 @@ function findMatchingFacts(
 }
 
 function buildInteractiveQuizContext(responseData: JsonRecord) {
+  const summary = summarizeSubmissionEvidencePayload(responseData);
   return compactRecord({
     schemaVersion: responseData.schemaVersion,
-    evidenceQuality: responseData.evidenceQuality,
+    evidenceQuality: summary.payloadEvidenceQuality,
+    evidenceQualityReason: summary.reason,
+    evidenceSourceState: summary.sourceState,
     answers: responseData.answers,
     answerDigest: responseData.answerDigest,
     questionSummaries: responseData.questionSummaries,

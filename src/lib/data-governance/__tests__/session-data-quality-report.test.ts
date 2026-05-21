@@ -179,6 +179,11 @@ describe('buildSessionDataQualityReport', () => {
           legacy: 1,
           missing: 0,
         },
+        evidenceQualityReasonCounts: {
+          scoreable_objective_evidence: 1,
+          subjective_or_answer_evidence_without_score: 1,
+          unsupported_legacy_envelope: 1,
+        },
       },
       reportFreshness: {
         classReportAvailable: true,

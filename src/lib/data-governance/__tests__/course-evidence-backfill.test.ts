@@ -218,6 +218,8 @@ describe('course evidence backfill', () => {
     expect(plan.responseActions[0].nextResponseData).toMatchObject({
       schemaVersion: 'manifest-submission-v2',
       evidenceQuality: 'rich',
+      evidenceQualityReason: 'scoreable_objective_evidence',
+      evidenceSourceState: 'final-state-enriched',
       responseKind: 'manifest_step_response',
       answers: { 'linear-boundary': 'b' },
       questionSummaries: [
@@ -275,7 +277,11 @@ describe('course evidence backfill', () => {
           sourceLogId: 'log-2',
           clientEventId: 'client-2',
           submittedAt: new Date('2026-05-20T02:02:00.000Z'),
-          responseData: { eventType: 'lesson_submit' },
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            eventType: 'lesson_submit',
+            evidenceQuality: 'partial',
+          },
         },
       ],
       studentStates: [
@@ -316,6 +322,8 @@ describe('course evidence backfill', () => {
       nextResponseData: {
         eventType: 'lesson_submit',
         evidenceQuality: 'legacy-envelope',
+        evidenceQualityReason: 'legacy_unrecoverable',
+        evidenceSourceState: 'legacy-unrecoverable',
         backfill: expect.objectContaining({
           status: 'legacy-unrecoverable',
           reason: 'missing_durable_answers',
@@ -332,6 +340,52 @@ describe('course evidence backfill', () => {
         }),
       },
     });
+  });
+
+  it('keeps score-only manifest submissions usable during backfill', () => {
+    const plan = buildCourseEvidenceBackfillPlan({
+      manifestsByLessonKey: {
+        'unit-5-1-linear-backbone-boundaries-v1': lessonManifest,
+      },
+      studentStepResponses: [
+        {
+          id: 'response-score-only',
+          userId: 'student-score-only',
+          sessionId: 'session-5-1',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          stepId: 'step-03',
+          attemptKey: null,
+          sourceLogId: 'log-score-only',
+          clientEventId: 'client-score-only',
+          submittedAt: new Date('2026-05-20T02:04:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            eventType: 'lesson_submit',
+            score: 72.5,
+          },
+        },
+      ],
+      studentStates: [],
+      learningFacts: [],
+    });
+
+    expect(plan.totals).toMatchObject({
+      candidateRows: 1,
+      recoverableRows: 0,
+      newlyEnrichableRows: 0,
+      alreadyEnrichedRows: 1,
+      unrecoverableRows: 0,
+    });
+    expect(plan.responseActions[0]).toMatchObject({
+      action: 'already-enriched',
+      nextResponseData: {
+        schemaVersion: 'manifest-submission-v2',
+        score: 72.5,
+      },
+    });
+    expect(plan.coverage.before.scoreAvailableRows).toBe(1);
+    expect(plan.coverage.before.partialRows).toBe(1);
+    expect(plan.coverage.before.missingRows).toBe(0);
   });
 
   it('keeps repeated apply runs idempotent and reports already enriched rows separately', async () => {

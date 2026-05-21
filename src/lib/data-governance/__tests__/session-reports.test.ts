@@ -168,6 +168,11 @@ describe('generateSessionSummaryReports', () => {
         legacy: 1,
         missing: 0,
       },
+      evidenceQualityReasonCounts: {
+        scoreable_objective_evidence: 1,
+        subjective_or_answer_evidence_without_score: 1,
+        unsupported_legacy_envelope: 1,
+      },
       scoreableObjectiveSubmissions: 1,
       syncErrorIncidents: 2,
       legacyEventTypes: {
@@ -195,6 +200,7 @@ describe('generateSessionSummaryReports', () => {
         evidenceRichSubmissions: 1,
         partialEvidenceSubmissions: 1,
         legacyEvidenceSubmissions: 1,
+        missingEvidenceSubmissions: 0,
         scoreableObjectiveSubmissions: 1,
         snapshotUpdatedParticipants: 1,
         syncErrorUsers: 2,
