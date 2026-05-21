@@ -118,4 +118,17 @@ describe('control workbench design flow shell', () => {
     expect(html).toContain('添加时域响应');
     expect(html).toContain('重置默认');
   });
+
+  it('renders panel evidence explanations inside the workbench shell', () => {
+    const result = resolveControlWorkbenchSession({
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'classic-four-view',
+    });
+
+    const html = renderToStaticMarkup(createElement(ControlWorkbenchShell, { result }));
+
+    expect(html).toContain('设计证据说明');
+    expect(html).toContain('时域响应证据');
+    expect(html).toContain('官方评价以提交后的 Arena 评测为准');
+  });
 });
