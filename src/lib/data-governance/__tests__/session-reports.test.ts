@@ -287,7 +287,7 @@ describe('generateSessionSummaryReports', () => {
     }));
   });
 
-  it('excludes teacher logs from participant coverage for quality status', async () => {
+  it('excludes teacher logs from participant and sync coverage for quality status', async () => {
     prisma.classSession.findUnique.mockResolvedValue({
       id: 'session-teacher-log',
       classId: 'class-1',
@@ -299,14 +299,19 @@ describe('generateSessionSummaryReports', () => {
     prisma.interactionLog.findMany.mockResolvedValue([
       {
         userId: 'teacher-1',
-        eventType: 'view',
+        eventType: 'error',
         stepId: 'step-01',
         clientEventAt: new Date('2026-05-20T08:05:00.000Z'),
         lessonKey: '5-2',
         learningContext: 'teacher_live',
         invalidContextReason: null,
         actorRole: 'teacher',
-        eventData: {},
+        eventData: {
+          eventType: 'sync_error',
+          source: 'teacher_state_get',
+          failureKind: 'network',
+          message: 'teacher poll failed',
+        },
       },
     ]);
     prisma.studentState.findMany.mockResolvedValue([
@@ -347,8 +352,13 @@ describe('generateSessionSummaryReports', () => {
           metrics: expect.objectContaining({
             durableSubmissionCoverage: 1,
             richOrPartialEvidenceRatio: 1,
+            syncSeverity: 'none',
+            syncAffectedUsers: 0,
+            syncAffectedUserRatio: 0,
           }),
         },
+        syncErrorIncidents: 1,
+        syncAffectedUsers: 1,
       },
     });
     expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(1);

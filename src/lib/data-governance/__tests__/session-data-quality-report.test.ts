@@ -345,7 +345,24 @@ describe('buildSessionDataQualityReport', () => {
           lastClientEventAt: new Date('2026-05-20T09:21:00.000Z'),
         },
       ],
-      interactionLogs: [],
+      interactionLogs: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-1',
+          eventType: 'error',
+          stepId: 'step-03',
+          lessonKey: '5-2',
+          actorRole: 'teacher',
+          clientEventAt: new Date('2026-05-20T08:12:00.000Z'),
+          createdAt: new Date('2026-05-20T08:12:01.000Z'),
+          eventData: {
+            eventType: 'sync_error',
+            source: 'teacher_state_get',
+            failureKind: 'network',
+            message: 'teacher poll failed',
+          },
+        },
+      ],
       learningFacts: [],
       studentStepResponses: [
         {
@@ -418,7 +435,14 @@ describe('buildSessionDataQualityReport', () => {
         reportFresh: true,
         snapshotFresh: true,
         syncSeverity: 'none',
+        syncAffectedUsers: 0,
+        syncAffectedUserRatio: 0,
       },
+    });
+    expect(report.sessions[0].syncQuality).toMatchObject({
+      incidentCount: 1,
+      affectedUsers: 1,
+      severityClassification: 'low',
     });
   });
 });

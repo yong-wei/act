@@ -510,6 +510,7 @@ export async function generateSessionSummaryReports(
   }
 
   const syncHealth = buildSyncErrorIncidentSummary(logs);
+  const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs);
   const syncErrorIncidents = syncHealth.incidentCount;
   const evidenceSummary = summarizeSubmissionEvidence(submissions);
 
@@ -545,9 +546,9 @@ export async function generateSessionSummaryReports(
     evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
     reportFresh: true,
     snapshotFresh: sessionParticipantUserIds.length === snapshotUpdatedUserIds.size,
-    syncSeverity: resolveSessionQualitySyncSeverity(syncHealth.severityDistribution),
-    unresolvedSyncIncidents: syncHealth.unresolvedIncidentCount,
-    syncAffectedUsers: syncHealth.affectedUsers,
+    syncSeverity: resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution),
+    unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
+    syncAffectedUsers: qualitySyncHealth.affectedUsers,
   });
   const qualityStatusData = {
     status: qualityStatus.status,

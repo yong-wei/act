@@ -155,6 +155,21 @@ function isStudentStateRow(state: StudentStateQualityRow) {
   return !state.stateKey?.startsWith('teacher');
 }
 
+function isStudentInteractionLog(log: InteractionLogQualityRow) {
+  return log.actorRole !== 'teacher';
+}
+
+function toSyncIncidentSummaryLog(log: InteractionLogQualityRow) {
+  return {
+    userId: log.userId,
+    eventType: log.eventType,
+    stepId: log.stepId,
+    clientEventAt: log.clientEventAt,
+    lessonKey: log.lessonKey,
+    eventData: log.eventData,
+  };
+}
+
 async function collectSessionIdsFromLessonFilters(
   db: SessionDataQualityDb,
   filters: SessionDataQualityFilters,
@@ -290,6 +305,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const sessions = input.sessions.map((session) => {
     const logs = input.interactionLogs.filter((log) => log.sessionId === session.id);
+    const studentLogs = logs.filter(isStudentInteractionLog);
     const states = input.studentStates.filter((state) => state.sessionId === session.id);
     const facts = input.learningFacts.filter((fact) => fact.sessionId === session.id);
     const submissions = input.studentStepResponses.filter((submission) => submission.sessionId === session.id);
@@ -297,7 +313,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const studentReports = input.studentSessionReports.filter((report) => report.sessionId === session.id);
     const participantUserIds = uniqueSorted([
       ...states.filter(isStudentStateRow).map((state) => state.userId),
-      ...logs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
+      ...studentLogs.map((log) => log.userId),
       ...facts.map((fact) => fact.userId),
       ...submissions.map((submission) => submission.userId),
     ]);
@@ -310,14 +326,8 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       ...studentReports.map((report) => report.lessonKey),
     ]);
     const submissionCoverage = summarizeSubmissions(submissions);
-    const syncHealth = buildSyncErrorIncidentSummary(logs.map((log) => ({
-      userId: log.userId,
-      eventType: log.eventType,
-      stepId: log.stepId,
-      clientEventAt: log.clientEventAt,
-      lessonKey: log.lessonKey,
-      eventData: log.eventData,
-    })));
+    const syncHealth = buildSyncErrorIncidentSummary(logs.map(toSyncIncidentSummaryLog));
+    const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs.map(toSyncIncidentSummaryLog));
     const reportFreshness = buildReportFreshness(session, classReports, studentReports, participantUserIds.length);
     const snapshotFreshness = buildSnapshotFreshness(
       session,
@@ -325,6 +335,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       input.studentCompetencySnapshots,
     );
     const syncSeverity = resolveSessionQualitySyncSeverity(syncHealth.severityDistribution);
+    const qualitySyncSeverity = resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution);
     const syncQuality = {
       rawSyncErrors: syncHealth.rawErrorCount,
       rawSyncRecoveries: syncHealth.rawRecoveryCount,
@@ -346,9 +357,9 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
         && reportFreshness.classReportFresh
         && reportFreshness.studentReportsFresh,
       snapshotFresh: snapshotFreshness.fresh,
-      syncSeverity,
-      unresolvedSyncIncidents: syncHealth.unresolvedIncidentCount,
-      syncAffectedUsers: syncHealth.affectedUsers,
+      syncSeverity: qualitySyncSeverity,
+      unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
+      syncAffectedUsers: qualitySyncHealth.affectedUsers,
     });
 
     return {
