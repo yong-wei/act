@@ -238,6 +238,7 @@ describe('buildSessionDataQualityReport', () => {
       studentCompetencySnapshot: { findMany: vi.fn() },
       classSessionReport: { findMany: vi.fn() },
       studentSessionReport: { findMany: vi.fn() },
+      user: { findMany: vi.fn() },
     };
 
     const report = await collectSessionDataQualityReport(db, { lessonKeys: ['5-99'] });
@@ -284,6 +285,7 @@ describe('buildSessionDataQualityReport', () => {
       studentCompetencySnapshot: { findMany: vi.fn() },
       classSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
       studentSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      user: { findMany: vi.fn().mockResolvedValue([]) },
     };
 
     await collectSessionDataQualityReport(db, { lessonKeys: ['5-2'] });
@@ -363,7 +365,18 @@ describe('buildSessionDataQualityReport', () => {
           },
         },
       ],
-      learningFacts: [],
+      learningFacts: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-2',
+          userRole: 'TEACHER',
+          lessonId: '5-2',
+          score: null,
+          outcome: 'partial',
+          startedAt: new Date('2026-05-20T08:13:00.000Z'),
+          contextJson: {},
+        },
+      ],
       studentStepResponses: [
         {
           sessionId: 'session-green-5-2',
@@ -389,6 +402,14 @@ describe('buildSessionDataQualityReport', () => {
             evidenceQuality: 'partial',
             answers: { q1: '描述函数适用条件' },
           },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-1',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:12:00.000Z'),
+          responseData: { evidenceQuality: 'legacy-envelope' },
         },
       ],
       studentCompetencySnapshots: [
@@ -439,6 +460,8 @@ describe('buildSessionDataQualityReport', () => {
         syncAffectedUserRatio: 0,
       },
     });
+    expect(report.sessions[0].learningFacts).toBe(0);
+    expect(report.sessions[0].submissionCoverage.totalRows).toBe(2);
     expect(report.sessions[0].syncQuality).toMatchObject({
       incidentCount: 1,
       affectedUsers: 1,

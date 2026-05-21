@@ -48,6 +48,7 @@ interface InteractionLogQualityRow {
 interface LearningFactQualityRow {
   sessionId: string | null;
   userId: string;
+  userRole?: string | null;
   lessonId: string | null;
   score: number | null;
   outcome: string;
@@ -58,10 +59,16 @@ interface LearningFactQualityRow {
 interface StudentStepResponseQualityRow {
   sessionId: string;
   userId: string;
+  userRole?: string | null;
   lessonKey: string | null;
   stepId: string;
   submittedAt: Date;
   responseData: unknown;
+}
+
+interface UserRoleQualityRow {
+  id: string;
+  role: string | null;
 }
 
 interface StudentSnapshotQualityRow {
@@ -116,6 +123,9 @@ export type SessionDataQualityDb = {
   studentSessionReport: {
     findMany(args: unknown): Promise<SessionReportQualityRow[]>;
   };
+  user: {
+    findMany(args: unknown): Promise<UserRoleQualityRow[]>;
+  };
 };
 
 const SNAPSHOT_FRESHNESS_WINDOW_MS = 2 * 60 * 60 * 1000;
@@ -157,6 +167,14 @@ function isStudentStateRow(state: StudentStateQualityRow) {
 
 function isStudentInteractionLog(log: InteractionLogQualityRow) {
   return log.actorRole !== 'teacher';
+}
+
+function isStudentUserRole(role: string | null | undefined) {
+  return role !== 'TEACHER' && role !== 'ADMIN';
+}
+
+function isStudentQualityRow(row: { userId: string; userRole?: string | null }, teacherUserIds: Set<string>) {
+  return isStudentUserRole(row.userRole) && !teacherUserIds.has(row.userId);
 }
 
 function toSyncIncidentSummaryLog(log: InteractionLogQualityRow) {
@@ -311,21 +329,29 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const submissions = input.studentStepResponses.filter((submission) => submission.sessionId === session.id);
     const classReports = input.classSessionReports.filter((report) => report.sessionId === session.id);
     const studentReports = input.studentSessionReports.filter((report) => report.sessionId === session.id);
+    const teacherUserIds = new Set([
+      ...states.filter((state) => !isStudentStateRow(state)).map((state) => state.userId),
+      ...logs.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+      ...facts.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
+      ...submissions.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
+    ]);
+    const studentFacts = facts.filter((fact) => isStudentQualityRow(fact, teacherUserIds));
+    const studentSubmissions = submissions.filter((submission) => isStudentQualityRow(submission, teacherUserIds));
     const participantUserIds = uniqueSorted([
       ...states.filter(isStudentStateRow).map((state) => state.userId),
       ...studentLogs.map((log) => log.userId),
-      ...facts.map((fact) => fact.userId),
-      ...submissions.map((submission) => submission.userId),
+      ...studentFacts.map((fact) => fact.userId),
+      ...studentSubmissions.map((submission) => submission.userId),
     ]);
     const lessonKeys = uniqueSorted([
       ...states.map((state) => state.lessonKey),
       ...logs.map((log) => log.lessonKey),
-      ...facts.map((fact) => fact.lessonId),
-      ...submissions.map((submission) => submission.lessonKey),
+      ...studentFacts.map((fact) => fact.lessonId),
+      ...studentSubmissions.map((submission) => submission.lessonKey),
       ...classReports.map((report) => report.lessonKey),
       ...studentReports.map((report) => report.lessonKey),
     ]);
-    const submissionCoverage = summarizeSubmissions(submissions);
+    const submissionCoverage = summarizeSubmissions(studentSubmissions);
     const syncHealth = buildSyncErrorIncidentSummary(logs.map(toSyncIncidentSummaryLog));
     const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs.map(toSyncIncidentSummaryLog));
     const reportFreshness = buildReportFreshness(session, classReports, studentReports, participantUserIds.length);
@@ -372,7 +398,7 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       lessonKeys,
       participants: participantUserIds.length,
       interactionLogs: logs.length,
-      learningFacts: facts.length,
+      learningFacts: studentFacts.length,
       qualityStatus,
       submissionCoverage,
       reportFreshness,
@@ -542,11 +568,36 @@ export async function collectSessionDataQualityReport(
       },
     }),
   ]);
-  const participantUserIds = uniqueSorted([
-    ...studentStates.filter(isStudentStateRow).map((state) => state.userId),
-    ...interactionLogs.filter((log) => log.actorRole !== 'teacher').map((log) => log.userId),
+  const roleUserIds = uniqueSorted([
     ...learningFacts.map((fact) => fact.userId),
     ...studentStepResponses.map((submission) => submission.userId),
+  ]);
+  const userRoles = roleUserIds.length > 0
+    ? await db.user.findMany({
+      where: { id: { in: roleUserIds } },
+      select: { id: true, role: true },
+    })
+    : [];
+  const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
+  const learningFactsWithRoles = learningFacts.map((fact) => ({
+    ...fact,
+    userRole: roleByUserId.get(fact.userId) ?? null,
+  }));
+  const studentStepResponsesWithRoles = studentStepResponses.map((submission) => ({
+    ...submission,
+    userRole: roleByUserId.get(submission.userId) ?? null,
+  }));
+  const teacherUserIds = new Set([
+    ...studentStates.filter((state) => !isStudentStateRow(state)).map((state) => state.userId),
+    ...interactionLogs.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+    ...learningFactsWithRoles.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
+    ...studentStepResponsesWithRoles.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
+  ]);
+  const participantUserIds = uniqueSorted([
+    ...studentStates.filter(isStudentStateRow).map((state) => state.userId),
+    ...interactionLogs.filter(isStudentInteractionLog).map((log) => log.userId),
+    ...learningFactsWithRoles.filter((fact) => isStudentQualityRow(fact, teacherUserIds)).map((fact) => fact.userId),
+    ...studentStepResponsesWithRoles.filter((submission) => isStudentQualityRow(submission, teacherUserIds)).map((submission) => submission.userId),
   ]);
   const sessionTimes = sessions.flatMap((session) => [
     session.startTime,
@@ -579,8 +630,8 @@ export async function collectSessionDataQualityReport(
     sessions,
     studentStates,
     interactionLogs,
-    learningFacts,
-    studentStepResponses,
+    learningFacts: learningFactsWithRoles,
+    studentStepResponses: studentStepResponsesWithRoles,
     studentCompetencySnapshots,
     classSessionReports,
     studentSessionReports,

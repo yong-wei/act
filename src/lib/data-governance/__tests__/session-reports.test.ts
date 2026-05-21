@@ -12,10 +12,12 @@ describe('generateSessionSummaryReports', () => {
     studentCompetencySnapshot: { findMany: vi.fn() },
     classSessionReport: { upsert: vi.fn() },
     studentSessionReport: { upsert: vi.fn() },
+    user: { findMany: vi.fn() },
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma.user.findMany.mockResolvedValue([]);
   });
 
   it('creates deterministic class and student reports for a finished session', async () => {
@@ -317,7 +319,14 @@ describe('generateSessionSummaryReports', () => {
     prisma.studentState.findMany.mockResolvedValue([
       { userId: 'student-1', lessonKey: '5-2' },
     ]);
-    prisma.learningFact.findMany.mockResolvedValue([]);
+    prisma.learningFact.findMany.mockResolvedValue([
+      {
+        userId: 'teacher-1',
+        factType: 'interactive',
+        outcome: 'partial',
+        lessonId: '5-2',
+      },
+    ]);
     prisma.studentStepResponse.findMany.mockResolvedValue([
       {
         userId: 'student-1',
@@ -331,6 +340,12 @@ describe('generateSessionSummaryReports', () => {
             { questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true },
           ],
         },
+      },
+      {
+        userId: 'teacher-1',
+        stepId: 'step-02',
+        submittedAt: new Date('2026-05-20T08:21:00.000Z'),
+        responseData: { evidenceQuality: 'legacy-envelope' },
       },
     ]);
     prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
@@ -352,6 +367,7 @@ describe('generateSessionSummaryReports', () => {
           metrics: expect.objectContaining({
             durableSubmissionCoverage: 1,
             richOrPartialEvidenceRatio: 1,
+            legacyOrMissingRatio: 0,
             syncSeverity: 'none',
             syncAffectedUsers: 0,
             syncAffectedUserRatio: 0,
@@ -359,6 +375,9 @@ describe('generateSessionSummaryReports', () => {
         },
         syncErrorIncidents: 1,
         syncAffectedUsers: 1,
+        factParticipants: 0,
+        durableSubmittedParticipants: 1,
+        durableSubmissionAttempts: 1,
       },
     });
     expect(prisma.studentSessionReport.upsert).toHaveBeenCalledTimes(1);

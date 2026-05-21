@@ -27,6 +27,7 @@ type ReportPrisma = Pick<PrismaClient,
   | 'studentCompetencySnapshot'
   | 'classSessionReport'
   | 'studentSessionReport'
+  | 'user'
 >;
 
 interface InteractionLogSummaryItem {
@@ -43,6 +44,7 @@ interface InteractionLogSummaryItem {
 
 interface LearningFactSummaryItem {
   userId: string;
+  userRole?: string | null;
   factType: string;
   outcome: string;
   lessonId: string | null;
@@ -55,9 +57,15 @@ interface StudentStateSummaryItem {
 
 interface StudentStepResponseSummaryItem {
   userId: string;
+  userRole?: string | null;
   stepId: string;
   submittedAt: Date;
   responseData: unknown;
+}
+
+interface UserRoleSummaryItem {
+  id: string;
+  role: string | null;
 }
 
 interface StudentSnapshotSummaryItem {
@@ -85,6 +93,14 @@ function resolveReportEventType(log: InteractionLogSummaryItem): string {
 
 function isStudentInteractionLog(log: InteractionLogSummaryItem) {
   return log.actorRole !== 'teacher';
+}
+
+function isStudentUserRole(role: string | null | undefined) {
+  return role !== 'TEACHER' && role !== 'ADMIN';
+}
+
+function isStudentQualityRow(row: { userId: string; userRole?: string | null }, teacherUserIds: Set<string>) {
+  return isStudentUserRole(row.userRole) && !teacherUserIds.has(row.userId);
 }
 
 function firstNonEmpty(values: Array<string | null | undefined>): string | null {
@@ -469,19 +485,45 @@ export async function generateSessionSummaryReports(
     }) as Promise<StudentStepResponseSummaryItem[]>,
   ]);
 
-  const studentLogs = logs.filter(isStudentInteractionLog);
-  const loggedUserIds = new Set(studentLogs.map((log) => log.userId));
-  const factUserIds = new Set(facts.map((fact) => fact.userId));
-  const durableSubmittedUserIds = new Set(submissions.map((submission) => submission.userId));
-  const sessionParticipantUserIds = Array.from(new Set([
-    ...studentStates.map((state) => state.userId),
-    ...studentLogs.map((log) => log.userId),
+  const roleUserIds = Array.from(new Set([
     ...facts.map((fact) => fact.userId),
     ...submissions.map((submission) => submission.userId),
   ])).sort();
+  const userRoles = roleUserIds.length > 0
+    ? await db.user.findMany({
+      where: { id: { in: roleUserIds } },
+      select: { id: true, role: true },
+    }) as UserRoleSummaryItem[]
+    : [];
+  const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
+  const factsWithRoles = facts.map((fact) => ({
+    ...fact,
+    userRole: roleByUserId.get(fact.userId) ?? null,
+  }));
+  const submissionsWithRoles = submissions.map((submission) => ({
+    ...submission,
+    userRole: roleByUserId.get(submission.userId) ?? null,
+  }));
+  const studentLogs = logs.filter(isStudentInteractionLog);
+  const teacherUserIds = new Set([
+    ...logs.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+    ...factsWithRoles.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
+    ...submissionsWithRoles.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
+  ]);
+  const studentFacts = factsWithRoles.filter((fact) => isStudentQualityRow(fact, teacherUserIds));
+  const studentSubmissions = submissionsWithRoles.filter((submission) => isStudentQualityRow(submission, teacherUserIds));
+  const loggedUserIds = new Set(studentLogs.map((log) => log.userId));
+  const factUserIds = new Set(studentFacts.map((fact) => fact.userId));
+  const durableSubmittedUserIds = new Set(studentSubmissions.map((submission) => submission.userId));
+  const sessionParticipantUserIds = Array.from(new Set([
+    ...studentStates.map((state) => state.userId),
+    ...studentLogs.map((log) => log.userId),
+    ...studentFacts.map((fact) => fact.userId),
+    ...studentSubmissions.map((submission) => submission.userId),
+  ])).sort();
   const lessonKey = firstNonEmpty([
     logs.find((log) => log.lessonKey)?.lessonKey,
-    facts.find((fact) => fact.lessonId)?.lessonId,
+    studentFacts.find((fact) => fact.lessonId)?.lessonId,
     studentStates.find((state) => state.lessonKey)?.lessonKey,
   ]);
   const eventTypes: Record<string, number> = {};
@@ -512,7 +554,7 @@ export async function generateSessionSummaryReports(
   const syncHealth = buildSyncErrorIncidentSummary(logs);
   const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs);
   const syncErrorIncidents = syncHealth.incidentCount;
-  const evidenceSummary = summarizeSubmissionEvidence(submissions);
+  const evidenceSummary = summarizeSubmissionEvidence(studentSubmissions);
 
   const snapshotWindowStart = session.endTime ?? session.startTime;
   const snapshotWindowEnd = new Date(snapshotWindowStart.getTime() + SESSION_SNAPSHOT_UPDATE_WINDOW_MS);
@@ -542,7 +584,7 @@ export async function generateSessionSummaryReports(
   const qualityStatus = computeSessionQualityStatus({
     participants: sessionParticipantUserIds.length,
     durableSubmittedParticipants: durableSubmittedUserIds.size,
-    durableSubmissions: submissions.length,
+    durableSubmissions: studentSubmissions.length,
     evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
     reportFresh: true,
     snapshotFresh: sessionParticipantUserIds.length === snapshotUpdatedUserIds.size,
@@ -565,8 +607,8 @@ export async function generateSessionSummaryReports(
     endTime: session.endTime?.toISOString() ?? null,
     participants: sessionParticipantUserIds.length,
     interactionLogs: logs.length,
-    learningFacts: facts.length,
-    durableSubmissions: submissions.length,
+    learningFacts: studentFacts.length,
+    durableSubmissions: studentSubmissions.length,
     submittedParticipantsFromDurableResponses: durableSubmittedUserIds.size,
     evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
     evidenceQualityReasonCounts: evidenceSummary.evidenceQualityReasonCounts,
@@ -588,7 +630,7 @@ export async function generateSessionSummaryReports(
       factParticipants: factUserIds.size,
       submittedParticipants: submittedUserIds.size,
       durableSubmittedParticipants: durableSubmittedUserIds.size,
-      durableSubmissionAttempts: submissions.length,
+      durableSubmissionAttempts: studentSubmissions.length,
       evidenceRichSubmissions: evidenceSummary.evidenceQualityCounts.rich,
       partialEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.partial,
       legacyEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.legacy,
@@ -632,7 +674,7 @@ export async function generateSessionSummaryReports(
     },
   };
   const classReportJson = classReportData as Prisma.InputJsonValue;
-  const summary = `${sessionParticipantUserIds.length} 名学生产生 ${logs.length} 条互动日志，沉淀 ${facts.length} 条学习事实。`;
+  const summary = `${sessionParticipantUserIds.length} 名学生产生 ${studentLogs.length} 条互动日志，沉淀 ${studentFacts.length} 条学习事实。`;
 
   await db.classSessionReport.upsert({
     where: {
@@ -659,15 +701,15 @@ export async function generateSessionSummaryReports(
 
   for (const userId of sessionParticipantUserIds) {
     const studentLogs = logs.filter((log) => log.userId === userId);
-    const studentFacts = facts.filter((fact) => fact.userId === userId);
-    const studentSubmissions = submissions.filter((submission) => submission.userId === userId);
+    const userFacts = studentFacts.filter((fact) => fact.userId === userId);
+    const userSubmissions = studentSubmissions.filter((submission) => submission.userId === userId);
     const studentLessonKey = firstNonEmpty([
       studentLogs.find((log) => log.lessonKey)?.lessonKey,
-      studentFacts.find((fact) => fact.lessonId)?.lessonId,
+      userFacts.find((fact) => fact.lessonId)?.lessonId,
       studentStates.find((state) => state.userId === userId)?.lessonKey,
       lessonKey,
     ]);
-    const reportData = buildStudentReportData(userId, studentLogs, studentFacts, studentSubmissions);
+    const reportData = buildStudentReportData(userId, studentLogs, userFacts, userSubmissions);
     const reportDataJson = reportData as Prisma.InputJsonValue;
     await db.studentSessionReport.upsert({
       where: {
@@ -683,13 +725,13 @@ export async function generateSessionSummaryReports(
         lessonKey: studentLessonKey,
         reportType: 'student-summary',
         status: 'READY',
-        summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
+        summary: `${studentLogs.length} 条互动日志，${userFacts.length} 条学习事实。`,
         reportData: reportDataJson,
       },
       update: {
         lessonKey: studentLessonKey,
         status: 'READY',
-        summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
+        summary: `${studentLogs.length} 条互动日志，${userFacts.length} 条学习事实。`,
         reportData: reportDataJson,
       },
     });
