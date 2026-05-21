@@ -46,6 +46,9 @@ const mocks = vi.hoisted(() => {
       learningFact: {
         findMany: vi.fn(),
       },
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn(),
+      },
       studentState: {
         findMany: vi.fn(),
       },
@@ -158,6 +161,37 @@ function arenaSubmission(overrides: Record<string, unknown> = {}) {
     },
     submittedAt: overrides.submittedAt ?? '2026-05-16T08:20:00.000Z',
     reusedEvaluation: false,
+  };
+}
+
+function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
+  return {
+    userId: 'student-1',
+    refreshedAt: new Date('2026-05-19T00:00:00.000Z'),
+    evidenceWindow: {
+      firstStartedAt: '2026-05-01T00:00:00.000Z',
+      lastStartedAt: '2026-05-18T00:00:00.000Z',
+      daysCovered: 17,
+    },
+    sourceCounts: {
+      LearningFact: 7,
+      StudentCompetencySnapshot: 1,
+      StudentProfileSummary: 1,
+      byFactType: { question: 4, design: 3 },
+    },
+    sourceCoverage: {
+      LearningFact: 'available',
+      StudentCompetencySnapshot: 'available',
+      StudentProfileSummary: 'available',
+    },
+    confidenceMarkers: {
+      level: 'medium',
+      score: 0.66,
+      evidenceCount: 7,
+      sourceCompleteness: 0.86,
+    },
+    statusMarkers: [],
+    ...overrides,
   };
 }
 
@@ -280,7 +314,26 @@ describe('GET /api/user/profile', () => {
         timeSpent: 300,
         contextJson: { arena: { taskId: 'task-integrator-low-frequency-balance', valid: true } },
       },
+      {
+        id: 'fact-unit-5-2-rich-evidence',
+        factType: 'course-evidence',
+        moduleId: 'unit-5-2-nonlinear-analysis-entry',
+        sessionId: 'session-unit-5-2',
+        startedAt: new Date('2026-05-18T09:00:00.000Z'),
+        outcome: 'partial',
+        score: null,
+        timeSpent: 240,
+        contextJson: {
+          courseEvidence: {
+            lessonId: '5-2',
+            source: 'student-interactive-submission',
+            evidenceKind: 'rich-evidence',
+          },
+        },
+      },
     ]);
+
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
 
     mocks.prisma.studentState.findMany.mockResolvedValue([
       {
@@ -422,6 +475,33 @@ describe('GET /api/user/profile', () => {
       ])
     );
     expect(body.personalizedReinforcement.resources).toHaveLength(2);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'ready',
+      evidenceBasis: 'student-evidence-feature-cache',
+      refreshedAt: '2026-05-19T00:00:00.000Z',
+      evidenceWindow: {
+        firstStartedAt: '2026-05-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-18T00:00:00.000Z',
+        daysCovered: 17,
+      },
+      sourceCounts: {
+        LearningFact: 7,
+        StudentCompetencySnapshot: 1,
+        StudentProfileSummary: 1,
+      },
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'available',
+      },
+      confidence: {
+        state: 'ready',
+        level: 'medium',
+        score: 0.66,
+        evidenceCount: 7,
+      },
+      statusMarkers: [],
+    });
     expect(body.personalizedReinforcement.adaptivePractice).toMatchObject({
       estimatedAbility: 0.64,
       weakAreas: ['phase-margin', 'controller-tuning'],
@@ -436,6 +516,121 @@ describe('GET /api/user/profile', () => {
       methodPreference: 'pid',
       improvementCount: 1,
       learningFactContextCount: 1,
+    });
+  });
+
+  it('marks profile evidence status missing when the governed feature cache is absent', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'missing',
+      evidenceBasis: 'governed-facts',
+      confidence: {
+        state: 'missing',
+        level: 'low',
+        evidenceCount: 3,
+      },
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'missing',
+      },
+      statusMarkers: ['missing-source'],
+    });
+  });
+
+  it('marks profile evidence status stale when the governed feature cache is stale or low confidence', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache({
+      refreshedAt: new Date('2026-01-01T00:00:00.000Z'),
+      confidenceMarkers: {
+        level: 'low',
+        score: 0.24,
+        evidenceCount: 1,
+        sourceCompleteness: 0.25,
+      },
+      statusMarkers: ['stale', 'low-confidence'],
+      sourceCoverage: {
+        LearningFact: 'partial',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'missing',
+      },
+    }));
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'stale',
+      evidenceBasis: 'student-evidence-feature-cache',
+      confidence: {
+        state: 'stale',
+        level: 'low',
+        score: 0.24,
+        evidenceCount: 1,
+      },
+      sourceCoverage: {
+        LearningFact: 'partial',
+        StudentProfileSummary: 'missing',
+      },
+      statusMarkers: ['stale', 'low-confidence'],
+    });
+  });
+
+  it('preserves low-confidence recommendation rationale in profile resource cards', async () => {
+    mocks.generateRecommendations.mockResolvedValue([
+      {
+        id: 'low-confidence-rec',
+        type: 'weekly',
+        title: '补强跨域迁移',
+        description: '建议先完成三域联动模块。',
+        reason: '跨域迁移偏弱',
+        actionUrl: '/interactive-learning/courses/l2d-three-domain-linkage-practice',
+        actionLabel: '进入三域联动',
+        priority: 88,
+        estimatedTime: '25分钟',
+        tags: ['跨域迁移', '互动模块'],
+        rationale: {
+          reasonCode: 'weak-dimension-practice',
+          evidenceBasis: 'student-evidence-feature-cache',
+          evidenceRole: 'direct',
+          contextOnly: false,
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-18T00:00:00.000Z',
+            daysCovered: 17,
+          },
+          evidenceCount: 1,
+          sourceCoverage: {
+            LearningFact: 'partial',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'missing',
+          },
+          confidence: {
+            state: 'low-confidence',
+            level: 'low',
+            score: 0.24,
+            markers: ['low-confidence'],
+          },
+        },
+      },
+    ]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources[0].rationale).toMatchObject({
+      evidenceBasis: 'student-evidence-feature-cache',
+      evidenceCount: 1,
+      confidence: {
+        state: 'low-confidence',
+        level: 'low',
+      },
     });
   });
 });
