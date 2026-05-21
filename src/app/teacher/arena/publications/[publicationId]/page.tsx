@@ -172,6 +172,54 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
             </section>
           </div>
 
+          <section className="surface-card mt-6 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">课堂复盘</h2>
+                <p className="mt-2 text-sm leading-6 text-subtle">{report.classroomReview.privacyNote}</p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-xs text-subtle">
+                {report.classroomReview.participationSummary}
+              </div>
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              <ReviewBlock title="典型问题">
+                {report.classroomReview.typicalFailures.length === 0 ? (
+                  <EmptyLine text="暂无可复盘的典型问题" />
+                ) : report.classroomReview.typicalFailures.slice(0, 5).map((failure) => (
+                  <SignalRow key={`${failure.kind}-${failure.id}`} label={failure.label} value={`${failure.count} 次`} />
+                ))}
+              </ReviewBlock>
+              <ReviewBlock title="方法模式">
+                {report.classroomReview.methodPatterns.length === 0 ? (
+                  <EmptyLine text="暂无方法模式数据" />
+                ) : report.classroomReview.methodPatterns.map((pattern) => (
+                  <SignalRow
+                    key={pattern.method}
+                    label={pattern.method}
+                    value={`${pattern.validCount}/${pattern.count} 有效 · 均分 ${formatScore(pattern.averageScore)}`}
+                  />
+                ))}
+              </ReviewBlock>
+              <ReviewBlock title="匿名方案候选">
+                {report.classroomReview.showcaseCandidates.length === 0 ? (
+                  <EmptyLine text="暂无匿名方案候选" />
+                ) : report.classroomReview.showcaseCandidates.map((candidate) => (
+                  <ResultRow
+                    key={candidate.submissionId}
+                    label={candidate.anonymousLabel}
+                    score={candidate.score}
+                    detail={candidate.evidenceSummary}
+                  />
+                ))}
+              </ReviewBlock>
+            </div>
+            <div className="mt-4 grid gap-2 text-sm text-subtle lg:grid-cols-2">
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">{report.classroomReview.gradingMessage}</div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">{report.classroomReview.leaderboardVisibilityMessage}</div>
+            </div>
+          </section>
+
           {report.submissions.submissionCount === 0 ? (
             <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-subtle">
               <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
@@ -187,6 +235,15 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
     }
     throw error;
   }
+}
+
+function ReviewBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <div className="mt-3 grid gap-2">{children}</div>
+    </div>
+  );
 }
 
 function MetricPanel({
