@@ -196,6 +196,125 @@ describe('arena student portfolio', () => {
       expect.objectContaining({ metricId: 'steadyStateError', firstSatisfaction: 0.3, latestSatisfaction: 0.82, delta: 0.52 }),
       expect.objectContaining({ metricId: 'controlEnergy', firstSatisfaction: 0.25, latestSatisfaction: 0.62, delta: 0.37 }),
     ]);
+    expect(portfolio.growth.evidenceAvailable).toBe(true);
+    expect(portfolio.growth.weakCapabilities).toEqual(expect.arrayContaining([
+      '黑箱辨识',
+    ]));
+    expect(portfolio.growth.improvingCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(portfolio.growth.nextChallenges[0].reason).toMatch(/薄弱|指标|阶段|补齐/);
+  });
+
+  it('keeps improved but still weak capability evidence in the weak bucket', () => {
+    const weakEarly = submission({
+      id: 'target-weak-early',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-early', taskId: 'task-second-order-lead-pid' }),
+      score: 25,
+      valid: false,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.2,
+        overshoot: 0.25,
+        steadyStateError: 0.3,
+        controlEnergy: 0.28,
+      },
+    });
+    const weakImproved = submission({
+      id: 'target-weak-improved',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-improved', taskId: 'task-second-order-lead-pid' }),
+      score: 58,
+      valid: true,
+      submittedAt: '2026-05-11T08:20:00.000Z',
+      satisfaction: {
+        settlingTime: 0.55,
+        overshoot: 0.52,
+        steadyStateError: 0.58,
+        controlEnergy: 0.5,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([weakEarly, weakImproved], targetUserId);
+    const shapingSignal = portfolio.growth.capabilitySignals.find((signal) => signal.label === '时域整形');
+
+    expect(shapingSignal?.status).toBe('needs-work');
+    expect(portfolio.growth.weakCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.improvingCapabilities).not.toEqual(expect.arrayContaining([
+      '时域整形',
+    ]));
+  });
+
+  it('does not count weak capability exposure as ready prerequisite evidence', () => {
+    const weakButValid = submission({
+      id: 'target-weak-valid',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-valid', taskId: 'task-second-order-lead-pid' }),
+      score: 58,
+      valid: true,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.82,
+        overshoot: 0.8,
+        steadyStateError: 0.85,
+        controlEnergy: 0.81,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([weakButValid], targetUserId);
+    const shapingSignal = portfolio.growth.capabilitySignals.find((signal) => signal.label === '时域整形');
+    const lowFrequencyChallenge = portfolio.growth.nextChallenges.find(
+      (challenge) => challenge.taskId === 'task-integrator-low-frequency-balance',
+    );
+
+    expect(shapingSignal?.status).toBe('needs-work');
+    expect(lowFrequencyChallenge).toEqual(expect.objectContaining({
+      evidenceLevel: 'capability-gap',
+    }));
+    expect(lowFrequencyChallenge?.reason).toContain('先补齐时域整形');
+  });
+
+  it('marks strong Arena capability evidence and recommends next-stage challenges', () => {
+    const strong = submission({
+      id: 'target-strong',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-strong', taskId: 'task-second-order-lead-pid' }),
+      score: 91,
+      valid: true,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.88,
+        overshoot: 0.9,
+        steadyStateError: 0.92,
+        controlEnergy: 0.86,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([strong], targetUserId);
+
+    expect(portfolio.growth.strongCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.nextChallenges[0]).toEqual(expect.objectContaining({
+      taskId: 'task-integrator-low-frequency-balance',
+      evidenceLevel: 'next-stage',
+    }));
+    expect(portfolio.growth.nextChallenges[0].reason).toContain('分析整合');
   });
 
   it('connects the portfolio summary to the student profile API and page', () => {
@@ -214,6 +333,9 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');
+    expect(pageSource).toContain('能力成长');
+    expect(pageSource).toContain('下一项挑战');
+    expect(pageSource).toContain('growth.nextChallenges');
   });
 
   it('returns an empty portfolio without inventing controller or leaderboard data', () => {
@@ -234,5 +356,17 @@ describe('arena student portfolio', () => {
       frequentFailureObjects: [],
       improvingMetrics: [],
     });
+    expect(portfolio.growth).toMatchObject({
+      evidenceAvailable: false,
+      capabilityCoverage: {
+        covered: 0,
+      },
+      weakCapabilities: [],
+      improvingCapabilities: [],
+      strongCapabilities: [],
+    });
+    expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(portfolio.growth.nextChallenges.every((item) => item.evidenceLevel === 'beginner-safe')).toBe(true);
+    expect(portfolio.growth.nextChallenges[0].reason).toContain('暂无官方 Arena 提交证据');
   });
 });

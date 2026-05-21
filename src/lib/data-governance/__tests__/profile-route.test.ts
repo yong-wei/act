@@ -429,6 +429,18 @@ describe('GET /api/user/profile', () => {
       actionUrl: '/assessment/adaptive-practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
+    expect(body.arenaPortfolio.growth).toMatchObject({
+      evidenceAvailable: true,
+      capabilityCoverage: {
+        covered: expect.any(Number),
+        total: expect.any(Number),
+      },
+    });
+    expect(body.arenaPortfolio.growth.improvingCapabilities).toEqual(expect.arrayContaining([
+      '稳态精度',
+    ]));
+    expect(body.arenaPortfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(body.arenaPortfolio.growth.nextChallenges[0].reason).toMatch(/薄弱|指标|阶段|补齐/);
     expect(body.arenaSummary).toMatchObject({
       submissionCount: 2,
       bestScore: 86,

@@ -1,16 +1,23 @@
 import {
+  ARENA_CHALLENGE_TASKS,
+  ARENA_TRAINING_CAPABILITY_LABELS,
+  ARENA_TRAINING_STAGE_LABELS,
   getArenaChallengeObject,
   getArenaChallengeTask,
   getArenaMetricProfile,
 } from './data/seed-challenges';
 import { buildArenaLeaderboard } from './leaderboards/leaderboard';
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
-import type { ChallengeObjectSource, ControllerMethod } from './types';
+import type { ArenaTrainingCapabilityId, ArenaTrainingStageId, ChallengeObjectSource, ControllerMethod } from './types';
 
 const FAILURE_SCORE_THRESHOLD = 50;
 const IMPROVEMENT_THRESHOLD = 0.15;
 const PORTFOLIO_RECENT_LIMIT = 5;
 const PORTFOLIO_SIGNAL_LIMIT = 3;
+const STRONG_CAPABILITY_SCORE = 80;
+const WEAK_CAPABILITY_SCORE = 60;
+const WEAK_METRIC_SATISFACTION = 0.6;
+const stageOrder = Object.keys(ARENA_TRAINING_STAGE_LABELS) as ArenaTrainingStageId[];
 
 export interface ArenaPortfolioMethodCount {
   method: ControllerMethod;
@@ -69,6 +76,43 @@ export interface ArenaPortfolioImprovingMetric {
   delta: number;
 }
 
+export interface ArenaPortfolioCapabilityGrowth {
+  capability: ArenaTrainingCapabilityId;
+  label: string;
+  submissionCount: number;
+  validSubmissionCount: number;
+  bestScore: number | null;
+  averageScore: number | null;
+  weakMetricIds: string[];
+  latestSubmittedAt?: string;
+  status: 'no-evidence' | 'needs-work' | 'developing' | 'improving' | 'strong';
+  evidenceSummary: string;
+}
+
+export interface ArenaNextChallengeRecommendation {
+  taskId: string;
+  taskTitle: string;
+  stage: ArenaTrainingStageId;
+  stageLabel: string;
+  capabilityLabels: string[];
+  reason: string;
+  evidenceLevel: 'beginner-safe' | 'capability-gap' | 'weak-metric' | 'next-stage';
+  href: string;
+}
+
+export interface ArenaPortfolioGrowthSummary {
+  evidenceAvailable: boolean;
+  capabilityCoverage: {
+    covered: number;
+    total: number;
+  };
+  weakCapabilities: string[];
+  improvingCapabilities: string[];
+  strongCapabilities: string[];
+  capabilitySignals: ArenaPortfolioCapabilityGrowth[];
+  nextChallenges: ArenaNextChallengeRecommendation[];
+}
+
 export interface ArenaStudentPortfolio {
   userId: string;
   controllerCount: number;
@@ -79,6 +123,7 @@ export interface ArenaStudentPortfolio {
   personalBestByTask: ArenaPortfolioTaskRank[];
   frequentFailureObjects: ArenaPortfolioFailureObject[];
   improvingMetrics: ArenaPortfolioImprovingMetric[];
+  growth: ArenaPortfolioGrowthSummary;
 }
 
 function sortBySubmittedAtAsc(left: ArenaSubmissionRecord, right: ArenaSubmissionRecord): number {
@@ -244,6 +289,212 @@ function buildImprovingMetrics(submissions: ArenaSubmissionRecord[]): ArenaPortf
     .slice(0, PORTFOLIO_SIGNAL_LIMIT);
 }
 
+function averageScore(submissions: readonly ArenaSubmissionRecord[]): number | null {
+  if (submissions.length === 0) return null;
+  return roundSignal(submissions.reduce((sum, submission) => sum + submission.evaluation.score, 0) / submissions.length);
+}
+
+function bestScore(submissions: readonly ArenaSubmissionRecord[]): number | null {
+  if (submissions.length === 0) return null;
+  return Math.max(...submissions.map((submission) => submission.evaluation.score));
+}
+
+function latestSubmittedAt(submissions: readonly ArenaSubmissionRecord[]): string | undefined {
+  return submissions.slice().sort(sortBySubmittedAtDesc)[0]?.submittedAt;
+}
+
+function scoreImproved(submissions: readonly ArenaSubmissionRecord[]): boolean {
+  if (submissions.length < 2) return false;
+  const sorted = submissions.slice().sort(sortBySubmittedAtAsc);
+  return sorted[sorted.length - 1].evaluation.score - sorted[0].evaluation.score >= 15;
+}
+
+function weakMetricIds(submissions: readonly ArenaSubmissionRecord[]): string[] {
+  const latestMetricValues = new Map<string, number>();
+  for (const submission of submissions.slice().sort(sortBySubmittedAtAsc)) {
+    for (const [metricId, satisfaction] of Object.entries(submission.evaluation.satisfaction)) {
+      if (Number.isFinite(satisfaction)) {
+        latestMetricValues.set(metricId, satisfaction);
+      }
+    }
+  }
+  return Array.from(latestMetricValues.entries())
+    .filter(([, satisfaction]) => satisfaction < WEAK_METRIC_SATISFACTION)
+    .map(([metricId]) => metricId)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function capabilityStatus(
+  submissions: readonly ArenaSubmissionRecord[],
+  weakMetrics: readonly string[],
+): ArenaPortfolioCapabilityGrowth['status'] {
+  if (submissions.length === 0) return 'no-evidence';
+  const best = bestScore(submissions) ?? 0;
+  const hasValid = submissions.some((submission) => submission.evaluation.valid);
+  if (!hasValid || best < WEAK_CAPABILITY_SCORE || weakMetrics.length > 0) return 'needs-work';
+  if (scoreImproved(submissions)) return 'improving';
+  if (hasValid && best >= STRONG_CAPABILITY_SCORE) return 'strong';
+  return 'developing';
+}
+
+function buildCapabilityGrowth(submissions: ArenaSubmissionRecord[]): ArenaPortfolioCapabilityGrowth[] {
+  const allCapabilityIds = Object.keys(ARENA_TRAINING_CAPABILITY_LABELS) as ArenaTrainingCapabilityId[];
+
+  return allCapabilityIds.map((capability) => {
+    const capabilitySubmissions = submissions.filter((submission) => {
+      const task = getArenaChallengeTask(submission.taskId);
+      return task?.training.capabilityTags.includes(capability) ?? false;
+    });
+    const weakMetrics = weakMetricIds(capabilitySubmissions);
+    const status = capabilityStatus(capabilitySubmissions, weakMetrics);
+    const capabilityBestScore = bestScore(capabilitySubmissions);
+
+    return {
+      capability,
+      label: ARENA_TRAINING_CAPABILITY_LABELS[capability],
+      submissionCount: capabilitySubmissions.length,
+      validSubmissionCount: capabilitySubmissions.filter((submission) => submission.evaluation.valid).length,
+      bestScore: capabilityBestScore === null ? null : roundSignal(capabilityBestScore),
+      averageScore: averageScore(capabilitySubmissions),
+      weakMetricIds: weakMetrics,
+      latestSubmittedAt: latestSubmittedAt(capabilitySubmissions),
+      status,
+      evidenceSummary: capabilitySubmissions.length === 0
+        ? '暂无官方提交证据'
+        : `${capabilitySubmissions.length} 次官方提交，最好 ${roundSignal(capabilityBestScore ?? 0)} 分`,
+    } satisfies ArenaPortfolioCapabilityGrowth;
+  });
+}
+
+function capabilityLabels(capabilities: readonly ArenaTrainingCapabilityId[]): string[] {
+  return capabilities.map((capability) => ARENA_TRAINING_CAPABILITY_LABELS[capability]);
+}
+
+function stageIndex(stage: ArenaTrainingStageId): number {
+  return stageOrder.indexOf(stage);
+}
+
+function buildBeginnerRecommendations(): ArenaNextChallengeRecommendation[] {
+  return ARENA_CHALLENGE_TASKS
+    .filter((task) => task.training.stage === 'foundation')
+    .slice(0, 3)
+    .map((task) => ({
+      taskId: task.id,
+      taskTitle: task.title,
+      stage: task.training.stage,
+      stageLabel: ARENA_TRAINING_STAGE_LABELS[task.training.stage],
+      capabilityLabels: capabilityLabels(task.training.capabilityTags),
+      reason: '暂无官方 Arena 提交证据，先从基础阶段建立可评价的第一条记录。',
+      evidenceLevel: 'beginner-safe',
+      href: `/arena/challenges/${task.id}`,
+    }));
+}
+
+function buildNextChallengeRecommendations(
+  submissions: ArenaSubmissionRecord[],
+  capabilitySignals: readonly ArenaPortfolioCapabilityGrowth[],
+): ArenaNextChallengeRecommendation[] {
+  if (submissions.length === 0) return buildBeginnerRecommendations();
+
+  const attemptedTaskIds = new Set(submissions.map((submission) => submission.taskId));
+  const prerequisiteReadyCapabilities = new Set(
+    capabilitySignals
+      .filter((signal) => !['no-evidence', 'needs-work'].includes(signal.status))
+      .map((signal) => signal.capability),
+  );
+  const weakCapabilities = new Set(
+    capabilitySignals
+      .filter((signal) => signal.status === 'needs-work')
+      .map((signal) => signal.capability),
+  );
+  const weakMetrics = new Set(capabilitySignals.flatMap((signal) => signal.weakMetricIds));
+  const highestStageIndex = Math.max(
+    0,
+    ...submissions
+      .map((submission) => getArenaChallengeTask(submission.taskId)?.training.stage)
+      .filter((stage): stage is ArenaTrainingStageId => Boolean(stage))
+      .map(stageIndex),
+  );
+
+  const candidates = ARENA_CHALLENGE_TASKS
+    .filter((task) => !attemptedTaskIds.has(task.id))
+    .map((task) => {
+      const missingPrerequisites = task.training.prerequisiteCapabilityTags.filter(
+        (capability) => !prerequisiteReadyCapabilities.has(capability),
+      );
+      const weakOverlap = task.training.capabilityTags.filter((capability) => weakCapabilities.has(capability));
+      const taskStageIndex = stageIndex(task.training.stage);
+      const metricReason = task.primaryMetrics.find((metricId) => weakMetrics.has(metricId));
+      let priority = 5;
+      let evidenceLevel: ArenaNextChallengeRecommendation['evidenceLevel'] = 'next-stage';
+      let reason = `进入${ARENA_TRAINING_STAGE_LABELS[task.training.stage]}阶段，延伸${capabilityLabels(task.training.capabilityTags).join('、')}训练。`;
+
+      if (missingPrerequisites.length > 0) {
+        priority = 6;
+        evidenceLevel = 'capability-gap';
+        reason = `先补齐${capabilityLabels(missingPrerequisites).join('、')}，再进入该挑战。`;
+      } else if (weakOverlap.length > 0) {
+        priority = 2;
+        evidenceLevel = 'capability-gap';
+        reason = `针对${capabilityLabels(weakOverlap).join('、')}的薄弱证据继续练习。`;
+      } else if (metricReason) {
+        priority = 3;
+        evidenceLevel = 'weak-metric';
+        reason = `围绕薄弱指标 ${metricReason} 选择下一项挑战。`;
+      } else if (taskStageIndex > highestStageIndex) {
+        priority = 4;
+      }
+
+      return {
+        recommendation: {
+          taskId: task.id,
+          taskTitle: task.title,
+          stage: task.training.stage,
+          stageLabel: ARENA_TRAINING_STAGE_LABELS[task.training.stage],
+          capabilityLabels: capabilityLabels(task.training.capabilityTags),
+          reason,
+          evidenceLevel,
+          href: `/arena/challenges/${task.id}`,
+        } satisfies ArenaNextChallengeRecommendation,
+        priority,
+        stageIndex: taskStageIndex,
+      };
+    })
+    .sort((left, right) => (
+      left.priority - right.priority
+      || left.stageIndex - right.stageIndex
+      || left.recommendation.taskTitle.localeCompare(right.recommendation.taskTitle, 'zh-Hans-CN')
+    ));
+
+  return candidates.slice(0, 3).map((candidate) => candidate.recommendation);
+}
+
+function buildGrowthSummary(submissions: ArenaSubmissionRecord[]): ArenaPortfolioGrowthSummary {
+  const capabilitySignals = buildCapabilityGrowth(submissions);
+  const weakCapabilities = capabilitySignals
+    .filter((signal) => signal.status === 'needs-work')
+    .map((signal) => signal.label);
+  const improvingCapabilities = capabilitySignals
+    .filter((signal) => signal.status === 'improving')
+    .map((signal) => signal.label);
+  const strongCapabilities = capabilitySignals
+    .filter((signal) => signal.status === 'strong')
+    .map((signal) => signal.label);
+
+  return {
+    evidenceAvailable: submissions.length > 0,
+    capabilityCoverage: {
+      covered: capabilitySignals.filter((signal) => signal.submissionCount > 0).length,
+      total: capabilitySignals.length,
+    },
+    weakCapabilities,
+    improvingCapabilities,
+    strongCapabilities,
+    capabilitySignals,
+    nextChallenges: buildNextChallengeRecommendations(submissions, capabilitySignals),
+  };
+}
+
 export function buildArenaStudentPortfolio(
   submissions: readonly ArenaSubmissionRecord[],
   userId: string,
@@ -254,11 +505,15 @@ export function buildArenaStudentPortfolio(
     .sort(sortBySubmittedAtAsc);
   const latestSubmission = userSubmissions[userSubmissions.length - 1];
 
+  const methodDistribution = buildMethodDistribution(userSubmissions);
+  const identificationModels = buildIdentificationModels(userSubmissions);
+  const improvingMetrics = buildImprovingMetrics(userSubmissions);
+
   return {
     userId,
     controllerCount: new Set(userSubmissions.map((submission) => submission.artifactHash)).size,
-    methodDistribution: buildMethodDistribution(userSubmissions),
-    identificationModels: buildIdentificationModels(userSubmissions),
+    methodDistribution,
+    identificationModels,
     submissionSummary: {
       total: userSubmissions.length,
       valid: userSubmissions.filter((submission) => submission.evaluation.valid).length,
@@ -277,9 +532,10 @@ export function buildArenaStudentPortfolio(
         score: submission.evaluation.score,
         valid: submission.evaluation.valid,
         submittedAt: submission.submittedAt,
-      })),
+    })),
     personalBestByTask: buildPersonalBestByTask(submissions, userSubmissions),
     frequentFailureObjects: buildFailureObjects(userSubmissions),
-    improvingMetrics: buildImprovingMetrics(userSubmissions),
+    improvingMetrics,
+    growth: buildGrowthSummary(userSubmissions),
   };
 }
