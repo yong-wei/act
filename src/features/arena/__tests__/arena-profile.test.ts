@@ -255,6 +255,37 @@ describe('arena student portfolio', () => {
     ]));
   });
 
+  it('does not count weak capability exposure as ready prerequisite evidence', () => {
+    const weakButValid = submission({
+      id: 'target-weak-valid',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-valid', taskId: 'task-second-order-lead-pid' }),
+      score: 58,
+      valid: true,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.82,
+        overshoot: 0.8,
+        steadyStateError: 0.85,
+        controlEnergy: 0.81,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([weakButValid], targetUserId);
+    const shapingSignal = portfolio.growth.capabilitySignals.find((signal) => signal.label === '时域整形');
+    const lowFrequencyChallenge = portfolio.growth.nextChallenges.find(
+      (challenge) => challenge.taskId === 'task-integrator-low-frequency-balance',
+    );
+
+    expect(shapingSignal?.status).toBe('needs-work');
+    expect(lowFrequencyChallenge).toEqual(expect.objectContaining({
+      evidenceLevel: 'capability-gap',
+    }));
+    expect(lowFrequencyChallenge?.reason).toContain('先补齐时域整形');
+  });
+
   it('marks strong Arena capability evidence and recommends next-stage challenges', () => {
     const strong = submission({
       id: 'target-strong',

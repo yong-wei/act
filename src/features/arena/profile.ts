@@ -397,9 +397,9 @@ function buildNextChallengeRecommendations(
   if (submissions.length === 0) return buildBeginnerRecommendations();
 
   const attemptedTaskIds = new Set(submissions.map((submission) => submission.taskId));
-  const coveredCapabilities = new Set(
+  const prerequisiteReadyCapabilities = new Set(
     capabilitySignals
-      .filter((signal) => signal.submissionCount > 0)
+      .filter((signal) => !['no-evidence', 'needs-work'].includes(signal.status))
       .map((signal) => signal.capability),
   );
   const weakCapabilities = new Set(
@@ -420,7 +420,7 @@ function buildNextChallengeRecommendations(
     .filter((task) => !attemptedTaskIds.has(task.id))
     .map((task) => {
       const missingPrerequisites = task.training.prerequisiteCapabilityTags.filter(
-        (capability) => !coveredCapabilities.has(capability),
+        (capability) => !prerequisiteReadyCapabilities.has(capability),
       );
       const weakOverlap = task.training.capabilityTags.filter((capability) => weakCapabilities.has(capability));
       const taskStageIndex = stageIndex(task.training.stage);
