@@ -130,6 +130,11 @@ describe('black-box identification control workbench preset', () => {
     expect(presetSource).toContain('实验预算');
     expect(presetSource).toContain('覆盖证据');
     expect(presetSource).toContain('虚拟仿真预演不是官方隐藏评测');
+    expect(presetSource).toContain("const BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS = new Set(['trackingError', 'controlEnergy'])");
+    expect(presetSource).toContain('function getBlackBoxOfficialOnlyMetricIds(task: ChallengeTask)');
+    expect(presetSource).toContain('!BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS.has(metricId)');
+    expect(presetSource).toContain('const blackBoxOfficialOnlyMetricIds = getBlackBoxOfficialOnlyMetricIds(task);');
     expect(presetSource).toContain('officialOnlyMetricIds={blackBoxOfficialOnlyMetricIds}');
+    expect(presetSource).not.toContain('const blackBoxOfficialOnlyMetricIds = task.primaryMetrics;');
   });
 });

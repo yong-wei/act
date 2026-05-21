@@ -26,6 +26,8 @@ import type {
 import type { WorkbenchPanelInstance } from '../views';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
+const BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS = new Set(['trackingError', 'controlEnergy']);
+
 interface BlackBoxIdentificationPanelProps {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
@@ -157,6 +159,10 @@ function isBlackBoxWorkbenchOptionSelected(
   return panels.some((panel) => !panel.selectedOptions || panel.selectedOptions.includes(optionId));
 }
 
+function getBlackBoxOfficialOnlyMetricIds(task: ChallengeTask) {
+  return task.primaryMetrics.filter((metricId) => !BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS.has(metricId));
+}
+
 export function BlackBoxIdentificationPanel({
   task,
   initialSubmissions,
@@ -226,7 +232,7 @@ export function BlackBoxIdentificationPanel({
       preview: previewRun,
     })
     : null;
-  const blackBoxOfficialOnlyMetricIds = task.primaryMetrics;
+  const blackBoxOfficialOnlyMetricIds = getBlackBoxOfficialOnlyMetricIds(task);
 
   const runExperiment = async () => {
     setStatus('正在运行黑箱实验...');
