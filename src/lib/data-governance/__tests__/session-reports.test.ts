@@ -191,6 +191,22 @@ describe('generateSessionSummaryReports', () => {
         classroom_review: 1,
       },
       sessionGovernanceSummary: {
+        qualityStatus: {
+          status: 'red',
+          reasons: [
+            'sync_affected_user_ratio_high',
+          ],
+          metrics: expect.objectContaining({
+            participants: 3,
+            durableSubmissionCoverage: 2 / 3,
+            richOrPartialEvidenceRatio: 2 / 3,
+            legacyOrMissingRatio: 1 / 3,
+            reportFresh: true,
+            snapshotFresh: false,
+            syncSeverity: 'medium',
+            syncAffectedUserRatio: 2 / 3,
+          }),
+        },
         sessionParticipants: 3,
         loggedParticipants: 2,
         factParticipants: 2,

@@ -10,6 +10,10 @@ import {
 } from '@/lib/classroom-analytics/sync-incident-model';
 import { resolveCanonicalEventType } from './event-normalization';
 import {
+  computeSessionQualityStatus,
+  resolveSessionQualitySyncSeverity,
+} from './session-quality-status';
+import {
   createSubmissionEvidenceQualityCounts,
   summarizeSubmissionEvidencePayload,
 } from './submission-evidence-quality';
@@ -527,6 +531,22 @@ export async function generateSessionSummaryReports(
       )
       .map((snapshot) => snapshot.userId),
   );
+  const qualityStatus = computeSessionQualityStatus({
+    participants: sessionParticipantUserIds.length,
+    durableSubmittedParticipants: durableSubmittedUserIds.size,
+    durableSubmissions: submissions.length,
+    evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
+    reportFresh: true,
+    snapshotFresh: sessionParticipantUserIds.length === snapshotUpdatedUserIds.size,
+    syncSeverity: resolveSessionQualitySyncSeverity(syncHealth.severityDistribution),
+    unresolvedSyncIncidents: syncHealth.unresolvedIncidentCount,
+    syncAffectedUsers: syncHealth.affectedUsers,
+  });
+  const qualityStatusData = {
+    status: qualityStatus.status,
+    reasons: [...qualityStatus.reasons],
+    metrics: { ...qualityStatus.metrics },
+  };
 
   const classReportData = {
     sessionId,
@@ -551,8 +571,10 @@ export async function generateSessionSummaryReports(
     syncErrors: canonicalEventTypes.sync_error ?? 0,
     syncErrorIncidents,
     syncHealth,
+    qualityStatus: qualityStatusData,
     afterSessionEndEvents,
     sessionGovernanceSummary: {
+      qualityStatus: qualityStatusData,
       sessionParticipants: sessionParticipantUserIds.length,
       loggedParticipants: loggedUserIds.size,
       factParticipants: factUserIds.size,

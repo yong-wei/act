@@ -16,6 +16,45 @@ import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governanc
 
 export const dynamic = 'force-dynamic';
 
+type SessionQualityStatus = 'green' | 'yellow' | 'red';
+
+function readObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readSessionQualityStatus(reportData: unknown): SessionQualityStatus | null {
+  const report = readObject(reportData);
+  const summary = readObject(report.sessionGovernanceSummary);
+  const qualityStatus = readObject(summary.qualityStatus);
+  const status = qualityStatus.status;
+  return status === 'green' || status === 'yellow' || status === 'red'
+    ? status
+    : null;
+}
+
+function summarizeSessionQuality(
+  reports: Array<{ reportData: unknown }>,
+) {
+  const summary = {
+    recentSessions: reports.length,
+    green: 0,
+    yellow: 0,
+    red: 0,
+    unknown: 0,
+  };
+  for (const report of reports) {
+    const status = readSessionQualityStatus(report.reportData);
+    if (status) {
+      summary[status] += 1;
+    } else {
+      summary.unknown += 1;
+    }
+  }
+  return summary;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -57,6 +96,7 @@ export async function GET(request: NextRequest) {
       recentRiskFlags,
       learningFacts,
       featureCache,
+      recentSessionQualityReports,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.count(),
       prisma.classCompetencySnapshot.count(),
@@ -110,6 +150,19 @@ export async function GET(request: NextRequest) {
         },
       }),
       getStudentEvidenceFeatureCacheAdminSummary(prisma),
+      prisma.classSessionReport.findMany({
+        where: {
+          reportType: 'class-summary',
+          status: 'READY',
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: 20,
+        select: {
+          reportData: true,
+        },
+      }),
     ]);
 
     // Get Redis buffer stats
@@ -198,6 +251,7 @@ export async function GET(request: NextRequest) {
         isResolved: risk.isResolved,
       })),
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
+      sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,
       sourceCatalog: {
         totalSources: getEvidenceSourceCatalog().length,

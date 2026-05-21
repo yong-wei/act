@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => ({
       count: vi.fn(),
       findMany: vi.fn(),
     },
+    classSessionReport: {
+      findMany: vi.fn(),
+    },
     studentRiskFlag: {
       count: vi.fn(),
       findMany: vi.fn(),
@@ -110,6 +113,29 @@ describe('GET /api/admin/data-governance/status', () => {
         rebuildCount: 1,
       },
     ]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([
+      {
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'green' },
+          },
+        },
+      },
+      {
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'yellow' },
+          },
+        },
+      },
+      {
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'red' },
+          },
+        },
+      },
+    ]);
     mocks.prisma.user.findMany.mockResolvedValue([
       { id: 'student-1', name: '张三', email: 'student@example.test' },
     ]);
@@ -150,6 +176,13 @@ describe('GET /api/admin/data-governance/status', () => {
       totalSourceFacts: 4,
       payloadVersion: 'student-evidence-features.v1',
     });
+    expect(payload.sessionQuality).toEqual({
+      recentSessions: 3,
+      green: 1,
+      yellow: 1,
+      red: 1,
+      unknown: 0,
+    });
   });
 
   it('rejects non-admin users before reading governance data', async () => {
@@ -163,6 +196,7 @@ describe('GET /api/admin/data-governance/status', () => {
     expect(response.status).toBe(401);
     expect(payload).toEqual({ error: 'Unauthorized' });
     expect(mocks.prisma.studentCompetencySnapshot.count).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSessionReport.findMany).not.toHaveBeenCalled();
     expect(mocks.redisClient.getClient).not.toHaveBeenCalled();
   });
 });

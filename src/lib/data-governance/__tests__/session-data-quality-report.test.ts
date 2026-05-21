@@ -171,6 +171,25 @@ describe('buildSessionDataQualityReport', () => {
     expect(report.sessions[0]).toMatchObject({
       sessionId: 'session-5-2',
       lessonKeys: ['5-2'],
+      qualityStatus: {
+        status: 'red',
+        reasons: [
+          'report_missing_or_stale',
+          'sync_affected_user_ratio_high',
+        ],
+        metrics: {
+          participants: 2,
+          durableSubmissionCoverage: 1,
+          richEvidenceRatio: 1 / 3,
+          richOrPartialEvidenceRatio: 2 / 3,
+          legacyOrMissingRatio: 1 / 3,
+          reportFresh: false,
+          snapshotFresh: false,
+          syncSeverity: 'low',
+          unresolvedSyncIncidents: 1,
+          syncAffectedUserRatio: 0.5,
+        },
+      },
       submissionCoverage: {
         totalRows: 3,
         evidenceQualityCounts: {
@@ -294,5 +313,112 @@ describe('buildSessionDataQualityReport', () => {
         lessonKey: { in: ['5-2'] },
       }),
     }));
+  });
+
+  it('exposes a green quality status for a fully refreshed 5-2 report fixture', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-green-5-2'] },
+      sessions: [{
+        id: 'session-green-5-2',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-2' },
+      }],
+      studentStates: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:21:00.000Z'),
+        },
+      ],
+      interactionLogs: [],
+      learningFacts: [],
+      studentStepResponses: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:10:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            evidenceQuality: 'rich',
+            answers: { q1: 'A' },
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true }],
+          },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:11:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            evidenceQuality: 'partial',
+            answers: { q1: '描述函数适用条件' },
+          },
+        },
+      ],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:40:00.000Z') },
+        { userId: 'student-2', snapshotAt: new Date('2026-05-20T09:41:00.000Z') },
+      ],
+      classSessionReports: [
+        {
+          sessionId: 'session-green-5-2',
+          lessonKey: '5-2',
+          reportType: 'class-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+        },
+      ],
+      studentSessionReports: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:42:00.000Z'),
+        },
+      ],
+    });
+
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'green',
+      reasons: ['healthy_quality_gate'],
+      metrics: {
+        participants: 2,
+        durableSubmissionCoverage: 1,
+        richOrPartialEvidenceRatio: 1,
+        legacyOrMissingRatio: 0,
+        reportFresh: true,
+        snapshotFresh: true,
+        syncSeverity: 'none',
+      },
+    });
   });
 });

@@ -1,5 +1,9 @@
 import { buildSyncErrorIncidentSummary } from './session-reports';
 import {
+  computeSessionQualityStatus,
+  resolveSessionQualitySyncSeverity,
+} from './session-quality-status';
+import {
   createSubmissionEvidenceQualityCounts,
   summarizeSubmissionEvidencePayload,
 } from './submission-evidence-quality';
@@ -114,8 +118,6 @@ export type SessionDataQualityDb = {
   };
 };
 
-type SyncSeverity = 'none' | 'low' | 'medium' | 'high';
-
 const SNAPSHOT_FRESHNESS_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 function readObject(value: unknown): Record<string, unknown> {
@@ -132,13 +134,6 @@ function latestDate(dates: Date[]) {
 
 function uniqueSorted(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value)))).sort();
-}
-
-function topSeverity(distribution: Record<'low' | 'medium' | 'high', number>): SyncSeverity {
-  if (distribution.high > 0) return 'high';
-  if (distribution.medium > 0) return 'medium';
-  if (distribution.low > 0) return 'low';
-  return 'none';
 }
 
 function buildDateWhere(filters: SessionDataQualityFilters, field: string) {
@@ -265,11 +260,13 @@ function buildSnapshotFreshness(
 function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
   const evidenceQualityCounts = createSubmissionEvidenceQualityCounts();
   const evidenceQualityReasonCounts: Record<string, number> = {};
+  const submittedUserIds = new Set<string>();
   let answerAvailableRows = 0;
   let scoreAvailableRows = 0;
   let questionSummaryAvailableRows = 0;
 
   for (const submission of submissions) {
+    submittedUserIds.add(submission.userId);
     const summary = summarizeSubmissionEvidencePayload(submission.responseData);
     evidenceQualityCounts[summary.quality] += 1;
     evidenceQualityReasonCounts[summary.reason] = (evidenceQualityReasonCounts[summary.reason] ?? 0) + 1;
@@ -280,6 +277,7 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
 
   return {
     totalRows: submissions.length,
+    submittedParticipants: submittedUserIds.size,
     answerAvailableRows,
     scoreAvailableRows,
     questionSummaryAvailableRows,
@@ -320,6 +318,38 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       lessonKey: log.lessonKey,
       eventData: log.eventData,
     })));
+    const reportFreshness = buildReportFreshness(session, classReports, studentReports, participantUserIds.length);
+    const snapshotFreshness = buildSnapshotFreshness(
+      session,
+      participantUserIds,
+      input.studentCompetencySnapshots,
+    );
+    const syncSeverity = resolveSessionQualitySyncSeverity(syncHealth.severityDistribution);
+    const syncQuality = {
+      rawSyncErrors: syncHealth.rawErrorCount,
+      rawSyncRecoveries: syncHealth.rawRecoveryCount,
+      incidentCount: syncHealth.incidentCount,
+      affectedUsers: syncHealth.affectedUsers,
+      dominantSource: syncHealth.dominantSource,
+      dominantFailureKind: syncHealth.dominantFailureKind,
+      severityClassification: syncSeverity,
+      severityDistribution: syncHealth.severityDistribution,
+      recoveredIncidentCount: syncHealth.recoveredIncidentCount,
+      unresolvedIncidentCount: syncHealth.unresolvedIncidentCount,
+    };
+    const qualityStatus = computeSessionQualityStatus({
+      participants: participantUserIds.length,
+      durableSubmittedParticipants: submissionCoverage.submittedParticipants,
+      durableSubmissions: submissionCoverage.totalRows,
+      evidenceQualityCounts: submissionCoverage.evidenceQualityCounts,
+      reportFresh: reportFreshness.classReportAvailable
+        && reportFreshness.classReportFresh
+        && reportFreshness.studentReportsFresh,
+      snapshotFresh: snapshotFreshness.fresh,
+      syncSeverity,
+      unresolvedSyncIncidents: syncHealth.unresolvedIncidentCount,
+      syncAffectedUsers: syncHealth.affectedUsers,
+    });
 
     return {
       sessionId: session.id,
@@ -332,25 +362,11 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       participants: participantUserIds.length,
       interactionLogs: logs.length,
       learningFacts: facts.length,
+      qualityStatus,
       submissionCoverage,
-      reportFreshness: buildReportFreshness(session, classReports, studentReports, participantUserIds.length),
-      snapshotFreshness: buildSnapshotFreshness(
-        session,
-        participantUserIds,
-        input.studentCompetencySnapshots,
-      ),
-      syncQuality: {
-        rawSyncErrors: syncHealth.rawErrorCount,
-        rawSyncRecoveries: syncHealth.rawRecoveryCount,
-        incidentCount: syncHealth.incidentCount,
-        affectedUsers: syncHealth.affectedUsers,
-        dominantSource: syncHealth.dominantSource,
-        dominantFailureKind: syncHealth.dominantFailureKind,
-        severityClassification: topSeverity(syncHealth.severityDistribution),
-        severityDistribution: syncHealth.severityDistribution,
-        recoveredIncidentCount: syncHealth.recoveredIncidentCount,
-        unresolvedIncidentCount: syncHealth.unresolvedIncidentCount,
-      },
+      reportFreshness,
+      snapshotFreshness,
+      syncQuality,
     };
   });
 
