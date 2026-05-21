@@ -612,13 +612,13 @@ export async function collectSessionDataQualityReport(
   }));
   const teacherUserIds = new Set([
     ...studentStates.filter((state) => !isStudentStateRow(state)).map((state) => state.userId),
-    ...interactionLogs.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+    ...interactionLogsWithRoles.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
     ...learningFactsWithRoles.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
     ...studentStepResponsesWithRoles.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
   ]);
   const participantUserIds = uniqueSorted([
     ...studentStates.filter(isStudentStateRow).map((state) => state.userId),
-    ...interactionLogs.filter(isStudentInteractionLog).map((log) => log.userId),
+    ...interactionLogsWithRoles.filter(isStudentInteractionLog).map((log) => log.userId),
     ...learningFactsWithRoles.filter((fact) => isStudentQualityRow(fact, teacherUserIds)).map((fact) => fact.userId),
     ...studentStepResponsesWithRoles.filter((submission) => isStudentQualityRow(submission, teacherUserIds)).map((submission) => submission.userId),
   ]);

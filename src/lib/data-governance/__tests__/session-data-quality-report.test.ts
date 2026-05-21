@@ -365,6 +365,80 @@ describe('buildSessionDataQualityReport', () => {
     }));
   });
 
+  it('uses queried user roles before deriving snapshot participants from interaction logs', async () => {
+    const db = {
+      interactionLog: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-role-fallback',
+          userId: 'teacher-1',
+          eventType: 'error',
+          stepId: 'step-01',
+          lessonKey: '5-2',
+          actorRole: null,
+          clientEventAt: new Date('2026-05-20T08:10:00.000Z'),
+          createdAt: new Date('2026-05-20T08:10:01.000Z'),
+          eventData: {
+            eventType: 'sync_error',
+            source: 'teacher_state_get',
+            failureKind: 'network',
+            message: 'teacher poll failed',
+          },
+        }]),
+      },
+      studentState: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-role-fallback',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:15:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T08:20:00.000Z'),
+        }]),
+      },
+      learningFact: { findMany: vi.fn().mockResolvedValue([]) },
+      studentStepResponse: { findMany: vi.fn().mockResolvedValue([]) },
+      classSession: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'session-role-fallback',
+          classId: 'class-1',
+          status: 'FINISHED',
+          startTime: new Date('2026-05-20T08:00:00.000Z'),
+          endTime: new Date('2026-05-20T09:30:00.000Z'),
+          plan: { title: '5-2' },
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-20T09:40:00.000Z'),
+        }]),
+      },
+      classSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      studentSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      user: {
+        findMany: vi.fn().mockResolvedValue([{ id: 'teacher-1', role: 'TEACHER' }]),
+      },
+    };
+
+    const report = await collectSessionDataQualityReport(db, { sessionIds: ['session-role-fallback'] });
+
+    expect(db.studentCompetencySnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: { in: ['student-1'] },
+      }),
+    }));
+    expect(report.sessions[0].participants).toBe(1);
+    expect(report.sessions[0].qualityStatus.metrics).toMatchObject({
+      syncSeverity: 'none',
+      syncAffectedUsers: 0,
+      syncAffectedUserRatio: 0,
+    });
+    expect(report.sessions[0].syncQuality).toMatchObject({
+      incidentCount: 1,
+      affectedUsers: 1,
+    });
+  });
+
   it('exposes a green quality status for a fully refreshed 5-2 report fixture', () => {
     const report = buildSessionDataQualityReport({
       generatedAt: '2026-05-20T15:00:00.000Z',
