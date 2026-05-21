@@ -469,6 +469,7 @@ export function ArenaSubmissionPanel({
           latest={latest}
           previousSubmissions={personalSubmissions.slice(0, -1)}
           mode="white-box"
+          officialOnlyMetricIds={officialOnlyMetricIds}
         />
       ) : null}
       <div className="mt-4 grid gap-2">
