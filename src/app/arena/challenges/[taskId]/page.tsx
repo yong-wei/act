@@ -104,6 +104,8 @@ export default async function ArenaChallengePage({
       leaderboardPolicy={leaderboardPolicy}
       submissions={visibleSubmissions}
       publicationId={publicationId}
+      classId={publicationContext?.classId}
+      seasonId={publicationContext?.seasonId}
     />
   );
 }

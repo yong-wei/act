@@ -11,6 +11,7 @@ import { ArenaPageShell } from './arena-page-shell';
 import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
 import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
+import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from './leaderboards/honors-showcase';
 import {
   ARENA_HIDDEN_TEST_SIGNAL_LABELS,
   ARENA_TRAINING_CAPABILITY_LABELS,
@@ -36,6 +37,8 @@ interface ChallengeDetailProps {
   leaderboardPolicy: LeaderboardPolicy;
   submissions: ArenaSubmissionRecord[];
   publicationId?: string;
+  classId?: string;
+  seasonId?: string;
 }
 
 export function ChallengeDetail({
@@ -45,6 +48,8 @@ export function ChallengeDetail({
   leaderboardPolicy,
   submissions,
   publicationId,
+  classId,
+  seasonId,
 }: ChallengeDetailProps) {
   const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
     participantCount: 0,
@@ -52,14 +57,18 @@ export function ChallengeDetail({
     topScore: null,
   };
   const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
-  const studentLeaderboardTypes = task.leaderboardTypes.filter((type) =>
-    ARENA_STUDENT_LEADERBOARD_TYPES.includes(type),
-  );
   const leaderboardBrowser = getChallengeLeaderboardBrowserData({
     taskId: task.id,
     submissions,
     leaderboardPolicyId: leaderboardPolicy.id,
+    classId,
+    seasonId,
   });
+  const studentLeaderboardTypes = leaderboardBrowser.categories
+    .map((category) => category.type)
+    .filter((type) => ARENA_STUDENT_LEADERBOARD_TYPES.includes(type));
+  const honors = buildArenaLeaderboardHonors(submissions, { taskId: task.id });
+  const showcase = buildArenaShowcaseSummaries(submissions, { taskId: task.id });
   const prerequisiteLabels = task.training.prerequisiteCapabilityTags.map((item) =>
     ARENA_TRAINING_CAPABILITY_LABELS[item],
   );
@@ -235,7 +244,7 @@ export function ChallengeDetail({
                 ))}
               </div>
               <div className="mt-5 rounded-lg bg-primary/10 p-3 text-sm text-primary">
-                提交后通过真实指标验证的数据会自动进入主榜、方法榜和指标榜。
+                提交后通过真实指标验证的数据会自动进入已开放的榜单视图。
               </div>
               <ArenaWorkspaceLink
                 href={workspaceHref}
@@ -258,8 +267,10 @@ export function ChallengeDetail({
                 <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
                 <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
                 <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
+                <DetailItem label="荣誉记录" value={honors.length === 0 ? '暂无荣誉' : `${honors.length} 项`} />
               </div>
               <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
+              <ArenaShowcaseList showcase={showcase} />
             </div>
           </aside>
         </div>
@@ -275,4 +286,56 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <div className="mt-1 text-sm font-medium text-foreground">{value}</div>
     </div>
   );
+}
+
+function ArenaShowcaseList({ showcase }: { showcase: ReturnType<typeof buildArenaShowcaseSummaries> }) {
+  return (
+    <section className="mt-5 border-t border-border/70 pt-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold text-foreground">优秀方案展示</h3>
+        <span className="text-xs text-subtle">摘要展示</span>
+      </div>
+      {showcase.length > 0 ? (
+        <div className="mt-3 grid gap-3">
+          {showcase.map((item) => (
+            <article key={item.submissionId} className="rounded-lg border border-border/70 bg-background/60 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-foreground">{item.studentLabel}</div>
+                  <div className="mt-0.5 text-xs text-subtle">{item.methodLabel} · {item.score.toFixed(1)} 分</div>
+                </div>
+                {item.honors.length > 0 ? (
+                  <div className="flex flex-wrap justify-end gap-1">
+                    {item.honors.map((honor) => (
+                      <span key={honor.id} className="rounded-full border border-primary/25 bg-primary/10 px-2 py-1 text-[11px] text-primary">
+                        {honor.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs leading-5 text-subtle">{item.explanationSummary}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {item.metrics.slice(0, 3).map((metric) => (
+                  <span key={metric.id} className="rounded-full border border-border/70 bg-card px-2 py-1 text-[11px] text-subtle">
+                    {metric.label} {formatShowcaseMetric(metric.value, metric.unit)}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-lg border border-border/70 bg-background/60 px-3 py-4 text-sm text-subtle">
+          暂无可展示的官方有效提交。
+        </p>
+      )}
+    </section>
+  );
+}
+
+function formatShowcaseMetric(value: number | undefined, unit?: string): string {
+  if (!Number.isFinite(value)) return '暂无';
+  const formatted = Math.abs(value as number) >= 100 ? (value as number).toFixed(0) : (value as number).toFixed(3).replace(/\.?0+$/, '');
+  return `${formatted}${unit ?? ''}`;
 }

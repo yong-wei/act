@@ -7,9 +7,9 @@ import {
   type ChallengeLeaderboardCategoryModel,
   type ChallengeLeaderboardOption,
 } from './leaderboards/leaderboard-service';
-import type { ControllerMethod } from './types';
+import type { ControllerMethod, LeaderboardType } from './types';
 
-type ChallengeLeaderboardType = 'main' | 'method' | 'metric';
+type ChallengeLeaderboardType = LeaderboardType;
 
 interface ChallengeLeaderboardBrowserProps {
   browser: ChallengeLeaderboardBrowserData;
@@ -39,7 +39,7 @@ export function ChallengeLeaderboardBrowser({
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {browser.categories.map((category) => (
           <button
             key={category.type}
@@ -87,6 +87,9 @@ export function ChallengeLeaderboardBrowser({
                   {current.showMethodColumn ? (
                     <th className="whitespace-nowrap px-3 py-2 font-medium">方法</th>
                   ) : null}
+                  {current.showParetoColumn ? (
+                    <th className="whitespace-nowrap px-3 py-2 font-medium">Pareto</th>
+                  ) : null}
                   <th className="whitespace-nowrap px-3 py-2 font-medium">得分</th>
                   <th className="whitespace-nowrap px-3 py-2 font-medium">具体指标</th>
                   <th className="whitespace-nowrap px-3 py-2 font-medium">提交时间</th>
@@ -102,6 +105,14 @@ export function ChallengeLeaderboardBrowser({
                     </td>
                     {current.showMethodColumn ? (
                       <td className="whitespace-nowrap px-3 py-3 text-subtle">{entry.methodLabel}</td>
+                    ) : null}
+                    {current.showParetoColumn ? (
+                      <td className="whitespace-nowrap px-3 py-3 text-subtle">
+                        {entry.paretoTier ? `第 ${entry.paretoTier} 层` : '未分层'}
+                        {typeof entry.dominanceCount === 'number' ? (
+                          <span className="ml-1 text-xs">被支配 {entry.dominanceCount}</span>
+                        ) : null}
+                      </td>
                     ) : null}
                     <td className="whitespace-nowrap px-3 py-3 font-medium text-foreground">{entry.score.toFixed(1)}</td>
                     <td className="px-3 py-3 text-subtle">
@@ -146,6 +157,7 @@ function selectCurrentView(
       label: '主榜',
       subOptions: [],
       showMethodColumn: true,
+      showParetoColumn: false,
       entries: [],
       metricColumns: [],
       emptyMessage: '当前还没有官方提交。',
