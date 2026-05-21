@@ -242,6 +242,24 @@ function normalizeReferenceMatches(value: unknown): InteractiveRuntimeReferenceM
     .filter((item): item is InteractiveRuntimeReferenceMatchManifest => Boolean(item));
 }
 
+function normalizeParameterFields(value: unknown): Array<{ key: string; label: string; unit?: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const field = asRecord(item);
+      const key = [field.key, field.id, field.field, field.name].find(
+        (candidate): candidate is string => typeof candidate === 'string' && candidate.trim().length > 0,
+      );
+      if (!key) return null;
+      const label = [field.label, field.title].find(
+        (candidate): candidate is string => typeof candidate === 'string' && candidate.trim().length > 0,
+      ) ?? key;
+      const unit = typeof field.unit === 'string' && field.unit.trim() ? field.unit : undefined;
+      return { key, label, ...(unit ? { unit } : {}) };
+    })
+    .filter((item): item is { key: string; label: string; unit?: string } => Boolean(item));
+}
+
 function normalizeReferenceAnswer(value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined;
   if (Array.isArray(value)) {
@@ -269,6 +287,7 @@ function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardMa
     matchOptions: normalizeChoiceOptions(card.match_options ?? card.matchOptions),
     referenceMatches: normalizeReferenceMatches(card.reference_matches ?? card.referenceMatches),
     structuredFields: asStringArray(card.structured_fields ?? card.structuredFields),
+    parameterFields: normalizeParameterFields(card.parameter_fields ?? card.parameterFields),
   };
 }
 
