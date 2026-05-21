@@ -50,11 +50,11 @@ export function getArenaNextChallengeCandidates(
     .filter((task) => task.id !== currentTask.id)
     .filter((task) => {
       const taskStageIndex = stageOrder.indexOf(task.training.stage);
-      const hasPrerequisiteOverlap = task.training.prerequisiteCapabilityTags.some((capability) =>
+      const hasRequiredPrerequisites = task.training.prerequisiteCapabilityTags.every((capability) =>
         currentCapabilities.has(capability),
       );
 
-      return taskStageIndex >= currentStageIndex && hasPrerequisiteOverlap;
+      return taskStageIndex >= currentStageIndex && hasRequiredPrerequisites;
     })
     .slice(0, 3);
 }

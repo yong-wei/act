@@ -205,6 +205,10 @@ describe('arena domain model', () => {
     ]));
     expect(capabilityGroups.find((group) => group.capability === 'hidden-scenario-robustness')?.tasks.length).toBeGreaterThanOrEqual(3);
     expect(nextCandidates.map((task) => task.id)).toContain('task-integrator-low-frequency-balance');
+    expect(nextCandidates.map((task) => task.id)).not.toContain('task-delay-robust-pareto');
+
+    const delayTask = getArenaChallengeTask('task-delay-robust-pareto') as ChallengeTask;
+    expect(getArenaNextChallengeCandidates(foundationTask, [foundationTask, delayTask])).toEqual([]);
   });
 
   it('links related knowledge to real runtime knowledge graph nodes', () => {
