@@ -66,6 +66,11 @@ export function EvidenceTimelineBrowser({
     try {
       setLoading(true);
       setError(null);
+      if (!cursor) {
+        setItems([]);
+        setNextCursor(null);
+      }
+
       const response = await fetch(buildUrl(cursor));
       if (!response.ok) {
         throw new Error('获取证据失败');

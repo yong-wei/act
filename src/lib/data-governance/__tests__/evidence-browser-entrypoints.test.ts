@@ -43,4 +43,13 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('requestSequenceRef');
     expect(source).toContain('requestId !== requestSequenceRef.current');
   });
+
+  it('clears stale first-page evidence before refetching while preserving loaded pages on pagination failures', () => {
+    const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    expect(source).toContain('if (!cursor) {');
+    expect(source).toContain('setItems([]);');
+    expect(source).toContain('setNextCursor(null);');
+    expect(source).toContain('setItems((previous) => cursor ? [...previous, ...payload.items] : payload.items);');
+  });
 });
