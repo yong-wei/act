@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
@@ -195,8 +195,25 @@ function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function learningFact(overrides: Record<string, unknown> = {}) {
+  const id = typeof overrides.id === 'string' ? overrides.id : 'fact-1';
+  return {
+    id,
+    factType: overrides.factType ?? 'question',
+    moduleId: overrides.moduleId ?? 'adaptive-practice',
+    sessionId: overrides.sessionId ?? null,
+    startedAt: overrides.startedAt ?? new Date('2026-03-19T10:30:00.000Z'),
+    outcome: overrides.outcome ?? 'success',
+    score: overrides.score ?? 0.86,
+    timeSpent: overrides.timeSpent ?? 420,
+    contextJson: overrides.contextJson ?? null,
+  };
+}
+
 describe('GET /api/user/profile', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-21T00:00:00.000Z'));
     vi.clearAllMocks();
 
     mocks.getServerAuthSession.mockResolvedValue({
@@ -292,29 +309,22 @@ describe('GET /api/user/profile', () => {
     ]);
 
     mocks.prisma.learningFact.findMany.mockResolvedValue([
-      {
+      learningFact({
         id: 'fact-1',
         factType: 'question',
         moduleId: 'adaptive-practice',
-        sessionId: null,
         startedAt: new Date('2026-03-19T10:30:00.000Z'),
-        outcome: 'success',
-        score: 0.86,
-        timeSpent: 420,
-        competencyContribution: { crossDomainTransfer: 0.5 },
-      },
-      {
+        contextJson: { competencyContribution: { crossDomainTransfer: 0.5 } },
+      }),
+      learningFact({
         id: 'fact-arena-1',
         factType: 'design',
         moduleId: 'task-integrator-low-frequency-balance',
-        sessionId: null,
         startedAt: new Date('2026-05-16T08:30:00.000Z'),
-        outcome: 'success',
-        score: 0.86,
         timeSpent: 300,
         contextJson: { arena: { taskId: 'task-integrator-low-frequency-balance', valid: true } },
-      },
-      {
+      }),
+      learningFact({
         id: 'fact-unit-5-2-rich-evidence',
         factType: 'course-evidence',
         moduleId: 'unit-5-2-nonlinear-analysis-entry',
@@ -330,7 +340,7 @@ describe('GET /api/user/profile', () => {
             evidenceKind: 'rich-evidence',
           },
         },
-      },
+      }),
     ]);
 
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
@@ -445,6 +455,10 @@ describe('GET /api/user/profile', () => {
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('returns six-dimension competency, preview activities, and adaptive reinforcement summary', async () => {
     const response = await GET();
     const body = await response.json();
@@ -540,6 +554,51 @@ describe('GET /api/user/profile', () => {
         StudentProfileSummary: 'missing',
       },
       statusMarkers: ['missing-source'],
+    });
+  });
+
+  it('uses full governed fact history for missing cache evidence status', async () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const recentStart = Date.UTC(2026, 4, 1);
+    const fullHistoryStart = Date.UTC(2026, 3, 1);
+    const recentFacts = Array.from({ length: 40 }, (_, index) => learningFact({
+      id: `recent-fact-${index + 1}`,
+      factType: 'question',
+      startedAt: new Date(recentStart + index * dayMs),
+    }));
+    const fullFactHistory = Array.from({ length: 45 }, (_, index) => ({
+      factType: index % 2 === 0 ? 'question' : 'course-evidence',
+      startedAt: new Date(fullHistoryStart + index * dayMs),
+    }));
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce(recentFacts)
+      .mockResolvedValueOnce(fullFactHistory);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'missing',
+      evidenceBasis: 'governed-facts',
+      sourceCounts: {
+        LearningFact: 45,
+        byFactType: {
+          question: 23,
+          'course-evidence': 22,
+        },
+      },
+      evidenceWindow: {
+        firstStartedAt: '2026-04-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-15T00:00:00.000Z',
+        daysCovered: 44,
+      },
+      confidence: {
+        state: 'missing',
+        level: 'low',
+        evidenceCount: 45,
+      },
     });
   });
 

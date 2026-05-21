@@ -220,7 +220,7 @@ export function mapRecommendationsToResourceCards(
 
 export function buildStudentProfileEvidenceStatus(input: {
   featureRead: StudentEvidenceFeatureReadResult;
-  learningFacts: Array<{ startedAt: Date }>;
+  learningFacts: Array<{ startedAt: Date; factType?: string | null }>;
   hasLatestSnapshot: boolean;
 }): StudentProfileEvidenceStatus {
   if (input.featureRead.cache) {
@@ -259,7 +259,7 @@ export function buildStudentProfileEvidenceStatus(input: {
       LearningFact: evidenceCount,
       StudentCompetencySnapshot: input.hasLatestSnapshot ? 1 : 0,
       StudentProfileSummary: 0,
-      byFactType: {},
+      byFactType: countFactsByType(input.learningFacts),
     },
     sourceCoverage: {
       LearningFact: evidenceCount > 0 ? 'available' : 'missing',
@@ -321,6 +321,16 @@ function buildLearningFactWindow(facts: Array<{ startedAt: Date }>): StudentEvid
     lastStartedAt: last.toISOString(),
     daysCovered: Math.ceil((last.getTime() - first.getTime()) / 86400000),
   };
+}
+
+function countFactsByType(facts: Array<{ factType?: string | null }>): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const fact of facts) {
+    if (fact.factType) {
+      counts[fact.factType] = (counts[fact.factType] ?? 0) + 1;
+    }
+  }
+  return counts;
 }
 
 function normalizeSourceCounts(value: unknown): StudentProfileEvidenceStatus['sourceCounts'] {

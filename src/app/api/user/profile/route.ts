@@ -483,9 +483,19 @@ export async function GET() {
     const recommendationCards = mapRecommendationsToResourceCards(
       dedupeRecommendations(await generateRecommendations(userId))
     ).slice(0, 4);
+    const evidenceStatusFacts = studentEvidenceFeatureRead.cache
+      ? learningFacts
+      : await prisma.learningFact.findMany({
+          where: { userId },
+          orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
+          select: {
+            factType: true,
+            startedAt: true,
+          },
+        });
     const evidenceStatus = buildStudentProfileEvidenceStatus({
       featureRead: studentEvidenceFeatureRead,
-      learningFacts,
+      learningFacts: evidenceStatusFacts,
       hasLatestSnapshot: Boolean(latestSnapshot),
     });
 
