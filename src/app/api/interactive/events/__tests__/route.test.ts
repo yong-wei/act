@@ -326,6 +326,8 @@ describe('POST /api/interactive/events', () => {
           responseData: expect.objectContaining({
             eventType: 'lesson_submit',
             evidenceQuality: 'legacy-envelope',
+            evidenceQualityReason: 'unsupported_legacy_envelope',
+            evidenceSourceState: 'legacy-envelope',
           }),
         }),
       ],
@@ -378,6 +380,8 @@ describe('POST /api/interactive/events', () => {
           responseData: expect.objectContaining({
             schemaVersion: 'manifest-submission-v2',
             evidenceQuality: 'rich',
+            evidenceQualityReason: 'scoreable_objective_evidence',
+            evidenceSourceState: 'manifest-submission-v2',
             answers: { boundary: 'A' },
           }),
         }),

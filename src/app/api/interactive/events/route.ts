@@ -18,6 +18,10 @@ import {
   normalizeInteractionContexts,
   resolveClientEventId,
 } from '@/lib/data-governance/interactive-event-ingestion';
+import {
+  resolveSubmissionPayloadEvidenceQuality,
+  summarizeSubmissionEvidencePayload,
+} from '@/lib/data-governance/submission-evidence-quality';
 import type { NormalizedInteractionEvent } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
@@ -113,65 +117,19 @@ function readPayloadString(payload: Record<string, unknown>, key: string): strin
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function hasRecordEntries(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
-}
-
-function hasArrayEntries(value: unknown): boolean {
-  return Array.isArray(value) && value.length > 0;
-}
-
-function questionSummariesAreScoreable(value: unknown): boolean {
-  if (!Array.isArray(value)) return false;
-  return value.some((item) => (
-    item
-    && typeof item === 'object'
-    && !Array.isArray(item)
-    && (
-      typeof (item as Record<string, unknown>).isCorrect === 'boolean'
-      || (item as Record<string, unknown>).referenceValue !== undefined
-      || (item as Record<string, unknown>).referenceAnswer !== undefined
-    )
-  ));
-}
-
-function resolveSubmissionEvidenceQuality(
-  payload: Record<string, unknown>,
-  canonicalEventType: string,
-): string | undefined {
-  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
-    return undefined;
-  }
-
-  if (payload.schemaVersion === 'manifest-submission-v2') {
-    const explicit = readPayloadString(payload, 'evidenceQuality');
-    if (explicit === 'rich' || explicit === 'partial' || explicit === 'missing') {
-      return explicit;
-    }
-    if (questionSummariesAreScoreable(payload.questionSummaries)) {
-      return 'rich';
-    }
-    if (
-      hasRecordEntries(payload.answers)
-      || hasRecordEntries(payload.answerDigest)
-      || hasRecordEntries(payload.extraEvidence)
-      || hasRecordEntries(payload.parameterSnapshots)
-      || hasArrayEntries(payload.questionSummaries)
-    ) {
-      return 'partial';
-    }
-    return 'missing';
-  }
-
-  return 'legacy-envelope';
-}
-
 function withSubmissionEvidenceQuality(
   payload: Record<string, unknown>,
   canonicalEventType: string,
 ): Record<string, unknown> {
-  const evidenceQuality = resolveSubmissionEvidenceQuality(payload, canonicalEventType);
-  return evidenceQuality ? { ...payload, evidenceQuality } : payload;
+  const evidenceQuality = resolveSubmissionPayloadEvidenceQuality(payload, canonicalEventType);
+  if (!evidenceQuality) return payload;
+  const summary = summarizeSubmissionEvidencePayload(payload);
+  return {
+    ...payload,
+    evidenceQuality,
+    evidenceQualityReason: summary.reason,
+    evidenceSourceState: summary.sourceState,
+  };
 }
 
 function buildStudentStepResponseRows(

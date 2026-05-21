@@ -1,4 +1,8 @@
 import { buildSyncErrorIncidentSummary } from './session-reports';
+import {
+  createSubmissionEvidenceQualityCounts,
+  summarizeSubmissionEvidencePayload,
+} from './submission-evidence-quality';
 
 export interface SessionDataQualityFilters {
   sessionIds?: string[];
@@ -110,7 +114,6 @@ export type SessionDataQualityDb = {
   };
 };
 
-type EvidenceQualityKey = 'rich' | 'partial' | 'legacy' | 'missing';
 type SyncSeverity = 'none' | 'low' | 'medium' | 'high';
 
 const SNAPSHOT_FRESHNESS_WINDOW_MS = 2 * 60 * 60 * 1000;
@@ -119,72 +122,6 @@ function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
-}
-
-function hasRecordEntries(value: unknown): boolean {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
-}
-
-function hasArrayEntries(value: unknown): boolean {
-  return Array.isArray(value) && value.length > 0;
-}
-
-function hasScoreableQuestionSummary(value: unknown): boolean {
-  if (!Array.isArray(value)) return false;
-  return value.some((item) => (
-    item
-    && typeof item === 'object'
-    && !Array.isArray(item)
-    && (
-      typeof (item as Record<string, unknown>).isCorrect === 'boolean'
-      || (item as Record<string, unknown>).referenceValue !== undefined
-      || (item as Record<string, unknown>).referenceAnswer !== undefined
-    )
-  ));
-}
-
-function createEvidenceQualityCounts(): Record<EvidenceQualityKey, number> {
-  return {
-    rich: 0,
-    partial: 0,
-    legacy: 0,
-    missing: 0,
-  };
-}
-
-function classifySubmissionEvidence(responseData: unknown): EvidenceQualityKey {
-  const data = readObject(responseData);
-  if (data.schemaVersion === 'manifest-submission-v2') {
-    if (data.evidenceQuality === 'rich') return 'rich';
-    if (data.evidenceQuality === 'partial') return 'partial';
-    if (data.evidenceQuality === 'missing') return 'missing';
-    if (hasScoreableQuestionSummary(data.questionSummaries)) return 'rich';
-    if (
-      hasRecordEntries(data.answers)
-      || hasRecordEntries(data.answerDigest)
-      || hasRecordEntries(data.extraEvidence)
-      || hasRecordEntries(data.parameterSnapshots)
-      || hasArrayEntries(data.questionSummaries)
-    ) {
-      return 'partial';
-    }
-    return 'missing';
-  }
-  if (data.evidenceQuality === 'legacy-envelope') return 'legacy';
-  return 'legacy';
-}
-
-function answerAvailable(responseData: unknown) {
-  const data = readObject(responseData);
-  return hasRecordEntries(data.answers) || hasRecordEntries(data.answerDigest);
-}
-
-function scoreAvailable(responseData: unknown) {
-  return typeof readObject(responseData).score === 'number';
-}
-
-function questionSummaryAvailable(responseData: unknown) {
-  return hasArrayEntries(readObject(responseData).questionSummaries);
 }
 
 function latestDate(dates: Date[]) {
@@ -326,16 +263,19 @@ function buildSnapshotFreshness(
 }
 
 function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
-  const evidenceQualityCounts = createEvidenceQualityCounts();
+  const evidenceQualityCounts = createSubmissionEvidenceQualityCounts();
+  const evidenceQualityReasonCounts: Record<string, number> = {};
   let answerAvailableRows = 0;
   let scoreAvailableRows = 0;
   let questionSummaryAvailableRows = 0;
 
   for (const submission of submissions) {
-    evidenceQualityCounts[classifySubmissionEvidence(submission.responseData)] += 1;
-    if (answerAvailable(submission.responseData)) answerAvailableRows += 1;
-    if (scoreAvailable(submission.responseData)) scoreAvailableRows += 1;
-    if (questionSummaryAvailable(submission.responseData)) questionSummaryAvailableRows += 1;
+    const summary = summarizeSubmissionEvidencePayload(submission.responseData);
+    evidenceQualityCounts[summary.quality] += 1;
+    evidenceQualityReasonCounts[summary.reason] = (evidenceQualityReasonCounts[summary.reason] ?? 0) + 1;
+    if (summary.hasAnswerEvidence) answerAvailableRows += 1;
+    if (summary.hasScoreEvidence) scoreAvailableRows += 1;
+    if (summary.hasQuestionSummaryEvidence) questionSummaryAvailableRows += 1;
   }
 
   return {
@@ -344,6 +284,7 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
     scoreAvailableRows,
     questionSummaryAvailableRows,
     evidenceQualityCounts,
+    evidenceQualityReasonCounts,
   };
 }
 
