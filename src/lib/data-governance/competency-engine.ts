@@ -34,12 +34,20 @@ export interface EvidenceDetail {
 }
 
 export interface CompetencyEvidenceSummaryItem {
+  id: string;
   factType: string;
   outcome: string;
   score?: number;
   moduleId?: string | null;
   lessonId?: string | null;
+  sessionId?: string | null;
   sourceLogId?: string | null;
+  sourceEventId?: string | null;
+  startedAt: string;
+  finishedAt?: string | null;
+  createdAt: string;
+  timeSpent?: number | null;
+  quality?: string;
   evidenceTitle?: string;
   stepId?: string;
   questionSummaries?: EvidenceQuestionSummary[];
@@ -265,25 +273,61 @@ export function generateEvidenceSummary(
   for (const dimension of COMPETENCY_DIMENSIONS) {
     const dimensionFacts = grouped[dimension] || [];
     summary[dimension] = dimensionFacts
-      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .sort(compareLearningFactRecencyDesc)
       .slice(0, topN)
       .map(f => {
         const detail = f.sourceLogId ? evidenceDetails[f.sourceLogId] : undefined;
+        const context = readEvidenceContext(f.contextJson);
         return {
+          id: f.id,
           factType: f.factType,
           outcome: f.outcome,
-          score: f.score || undefined,
+          score: typeof f.score === 'number' ? f.score : undefined,
           moduleId: f.moduleId,
           lessonId: f.lessonId,
+          sessionId: f.sessionId,
           sourceLogId: f.sourceLogId,
+          sourceEventId: f.sourceEventId,
+          startedAt: f.startedAt.toISOString(),
+          finishedAt: f.finishedAt?.toISOString() ?? null,
+          createdAt: f.createdAt.toISOString(),
+          timeSpent: f.timeSpent,
+          quality: context.quality,
           evidenceTitle: detail?.evidenceTitle,
-          stepId: detail?.stepId,
+          stepId: detail?.stepId ?? context.stepId ?? (f.moduleId?.startsWith('step-') ? f.moduleId : undefined),
           questionSummaries: detail?.questionSummaries,
         };
       });
   }
 
   return summary;
+}
+
+function compareLearningFactRecencyDesc(a: LearningFact, b: LearningFact): number {
+  const startedDiff = b.startedAt.getTime() - a.startedAt.getTime();
+  if (startedDiff !== 0) return startedDiff;
+  const createdDiff = b.createdAt.getTime() - a.createdAt.getTime();
+  if (createdDiff !== 0) return createdDiff;
+  return b.id.localeCompare(a.id);
+}
+
+function readEvidenceContext(value: unknown): { quality?: string; stepId?: string } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  const context = value as Record<string, unknown>;
+  const scoring = context.scoring && typeof context.scoring === 'object' && !Array.isArray(context.scoring)
+    ? context.scoring as Record<string, unknown>
+    : {};
+  const quality = typeof scoring.evidenceQuality === 'string'
+    ? scoring.evidenceQuality
+    : typeof context.evidenceQuality === 'string'
+      ? context.evidenceQuality
+      : undefined;
+  const stepId = typeof context.stepId === 'string' ? context.stepId : undefined;
+
+  return { quality, stepId };
 }
 
 /**

@@ -322,9 +322,17 @@ export default function TeacherStudentInsightsPage() {
         </section>
 
         <section className="surface-card p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">证据摘要</h2>
-            <p className="mt-1 text-sm text-subtle">按能力维度查看当前画像背后的证据，便于教师理解判断来源。</p>
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">证据摘要</h2>
+              <p className="mt-1 text-sm text-subtle">按能力维度查看当前画像背后的证据，便于教师理解判断来源。</p>
+            </div>
+            <Link
+              href={`/teacher/classes/${classId}/students/${studentId}/evidence`}
+              className="btn-ghost-themed inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm"
+            >
+              查看完整证据
+            </Link>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             {data.evidenceSummary.map((group) => (

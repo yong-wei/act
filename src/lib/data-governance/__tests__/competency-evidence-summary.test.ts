@@ -66,4 +66,21 @@ describe('generateEvidenceSummary', () => {
       isCorrect: true,
     });
   });
+
+  it('keeps zero-score evidence as an explicit score', () => {
+    const summary = generateEvidenceSummary([
+      fact({
+        score: 0,
+        outcome: 'failure',
+        competencyContribution: {
+          engineeringDecision: 0.9,
+        },
+      }),
+    ]);
+
+    expect(summary.engineeringDecision[0]).toMatchObject({
+      outcome: 'failure',
+      score: 0,
+    });
+  });
 });
