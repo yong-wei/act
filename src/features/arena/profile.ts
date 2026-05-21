@@ -310,15 +310,18 @@ function scoreImproved(submissions: readonly ArenaSubmissionRecord[]): boolean {
 }
 
 function weakMetricIds(submissions: readonly ArenaSubmissionRecord[]): string[] {
-  const weak = new Set<string>();
-  for (const submission of submissions) {
+  const latestMetricValues = new Map<string, number>();
+  for (const submission of submissions.slice().sort(sortBySubmittedAtAsc)) {
     for (const [metricId, satisfaction] of Object.entries(submission.evaluation.satisfaction)) {
-      if (Number.isFinite(satisfaction) && satisfaction < WEAK_METRIC_SATISFACTION) {
-        weak.add(metricId);
+      if (Number.isFinite(satisfaction)) {
+        latestMetricValues.set(metricId, satisfaction);
       }
     }
   }
-  return Array.from(weak).sort((left, right) => left.localeCompare(right));
+  return Array.from(latestMetricValues.entries())
+    .filter(([, satisfaction]) => satisfaction < WEAK_METRIC_SATISFACTION)
+    .map(([metricId]) => metricId)
+    .sort((left, right) => left.localeCompare(right));
 }
 
 function capabilityStatus(
@@ -328,9 +331,9 @@ function capabilityStatus(
   if (submissions.length === 0) return 'no-evidence';
   const best = bestScore(submissions) ?? 0;
   const hasValid = submissions.some((submission) => submission.evaluation.valid);
-  if (hasValid && best >= STRONG_CAPABILITY_SCORE && weakMetrics.length === 0) return 'strong';
-  if (scoreImproved(submissions)) return 'improving';
   if (!hasValid || best < WEAK_CAPABILITY_SCORE || weakMetrics.length > 0) return 'needs-work';
+  if (scoreImproved(submissions)) return 'improving';
+  if (hasValid && best >= STRONG_CAPABILITY_SCORE) return 'strong';
   return 'developing';
 }
 

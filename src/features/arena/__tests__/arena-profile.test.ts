@@ -208,6 +208,53 @@ describe('arena student portfolio', () => {
     expect(portfolio.growth.nextChallenges[0].reason).toMatch(/薄弱|指标|阶段|补齐/);
   });
 
+  it('keeps improved but still weak capability evidence in the weak bucket', () => {
+    const weakEarly = submission({
+      id: 'target-weak-early',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-early', taskId: 'task-second-order-lead-pid' }),
+      score: 25,
+      valid: false,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.2,
+        overshoot: 0.25,
+        steadyStateError: 0.3,
+        controlEnergy: 0.28,
+      },
+    });
+    const weakImproved = submission({
+      id: 'target-weak-improved',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-weak-improved', taskId: 'task-second-order-lead-pid' }),
+      score: 58,
+      valid: true,
+      submittedAt: '2026-05-11T08:20:00.000Z',
+      satisfaction: {
+        settlingTime: 0.55,
+        overshoot: 0.52,
+        steadyStateError: 0.58,
+        controlEnergy: 0.5,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([weakEarly, weakImproved], targetUserId);
+    const shapingSignal = portfolio.growth.capabilitySignals.find((signal) => signal.label === '时域整形');
+
+    expect(shapingSignal?.status).toBe('needs-work');
+    expect(portfolio.growth.weakCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.improvingCapabilities).not.toEqual(expect.arrayContaining([
+      '时域整形',
+    ]));
+  });
+
   it('marks strong Arena capability evidence and recommends next-stage challenges', () => {
     const strong = submission({
       id: 'target-strong',
