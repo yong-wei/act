@@ -13,7 +13,13 @@ import {
 } from 'lucide-react';
 
 import { ArenaPageShell } from './arena-page-shell';
-import { ARENA_CHALLENGE_TASKS, getArenaChallengeObject } from './data/seed-challenges';
+import {
+  ARENA_HIDDEN_TEST_SIGNAL_LABELS,
+  ARENA_TRAINING_CAPABILITY_LABELS,
+  ARENA_TRAINING_STAGE_LABELS,
+  ARENA_CHALLENGE_TASKS,
+  getArenaChallengeObject,
+} from './data/seed-challenges';
 import {
   arenaMethodLabels,
   arenaSourceLabels,
@@ -21,6 +27,12 @@ import {
 } from './display-labels';
 import { filterArenaChallengeTasks } from './filtering';
 import {
+  getArenaTrainingCapabilityGroups,
+  getArenaTrainingStageGroups,
+} from './training-map';
+import {
+  type ArenaTrainingCapabilityId,
+  type ArenaTrainingStageId,
   type ChallengeObjectSource,
   type ControllerMethod,
   type LeaderboardType,
@@ -63,6 +75,22 @@ const leaderboardOptions: Array<{ value: LeaderboardType | 'all'; label: string 
   { value: 'metric', label: '指标榜' },
 ];
 
+const trainingStageOptions: Array<{ value: ArenaTrainingStageId | 'all'; label: string }> = [
+  { value: 'all', label: '全部训练阶段' },
+  ...Object.entries(ARENA_TRAINING_STAGE_LABELS).map(([value, label]) => ({
+    value: value as ArenaTrainingStageId,
+    label,
+  })),
+];
+
+const capabilityOptions: Array<{ value: ArenaTrainingCapabilityId | 'all'; label: string }> = [
+  { value: 'all', label: '全部训练能力' },
+  ...Object.entries(ARENA_TRAINING_CAPABILITY_LABELS).map(([value, label]) => ({
+    value: value as ArenaTrainingCapabilityId,
+    label,
+  })),
+];
+
 const phaseItems = [
   { label: '对象来源', value: '典型、作业、奥德赛、仿真', icon: FlaskConical },
   { label: '挑战任务', value: '对象 + 目标 + 方法 + 评测', icon: ListChecks },
@@ -90,6 +118,8 @@ export function ArenaHall({
   const [visibility, setVisibility] = useState<ModelVisibility | 'all'>('all');
   const [homework, setHomework] = useState<'all' | 'homework-capable' | 'open-practice'>('all');
   const [leaderboard, setLeaderboard] = useState<LeaderboardType | 'all'>('all');
+  const [trainingStage, setTrainingStage] = useState<ArenaTrainingStageId | 'all'>('all');
+  const [capability, setCapability] = useState<ArenaTrainingCapabilityId | 'all'>('all');
   const filteredTasks = useMemo(
     () => filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
       query,
@@ -99,9 +129,13 @@ export function ArenaHall({
       visibility,
       homework,
       leaderboard,
+      trainingStage,
+      capability,
     }),
-    [difficulty, homework, leaderboard, method, query, source, visibility],
+    [capability, difficulty, homework, leaderboard, method, query, source, trainingStage, visibility],
   );
+  const stageGroups = useMemo(() => getArenaTrainingStageGroups(filteredTasks), [filteredTasks]);
+  const capabilityGroups = useMemo(() => getArenaTrainingCapabilityGroups(filteredTasks), [filteredTasks]);
 
   return (
     <ArenaPageShell
@@ -117,11 +151,11 @@ export function ArenaHall({
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                任务清单与评价方案覆盖
+                能力训练地图
               </div>
               <h1 className="mt-4 text-3xl font-semibold tracking-normal text-foreground md:text-4xl">竞技场大厅</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-subtle">
-                从挑战任务进入控制设计：每个任务由被控对象、任务目标、允许方法、官方评测和榜单规则共同定义。
+                从训练阶段进入控制设计：每个任务标明训练能力、前置能力、预计用时和官方隐藏评测边界。
               </p>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -170,6 +204,8 @@ export function ArenaHall({
                 label="难度"
               />
               <FilterSelect value={visibility} onChange={(value) => setVisibility(value as ModelVisibility | 'all')} options={visibilityOptions} label="公开程度" />
+              <FilterSelect value={trainingStage} onChange={(value) => setTrainingStage(value as ArenaTrainingStageId | 'all')} options={trainingStageOptions} label="训练阶段" />
+              <FilterSelect value={capability} onChange={(value) => setCapability(value as ArenaTrainingCapabilityId | 'all')} options={capabilityOptions} label="训练能力" />
               <FilterSelect
                 value={homework}
                 onChange={(value) => setHomework(value as typeof homework)}
@@ -188,74 +224,108 @@ export function ArenaHall({
         <div className="mt-5">
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <div className="text-sm font-semibold text-foreground">推荐挑战任务</div>
-              <div className="mt-1 text-xs text-subtle">覆盖典型对象、作业对象、控制奥德赛和虚拟仿真对象</div>
+              <div className="text-sm font-semibold text-foreground">能力训练地图</div>
+              <div className="mt-1 text-xs text-subtle">按训练阶段组织，同时保留对象、方法、难度和榜单筛选</div>
             </div>
             <div className="text-xs text-subtle">{filteredTasks.length} 个任务</div>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {filteredTasks.map((challenge) => {
-              const object = getArenaChallengeObject(challenge.objectId);
-              const stats = taskStats[challenge.id] ?? {
-                participantCount: 0,
-                submissionCount: 0,
-                topScore: null,
-              };
-              const publication = selectArenaHallPublicationForTask(studentPublications, challenge.id);
-              const challengeHref = publication
-                ? `/arena/challenges/${challenge.id}?publicationId=${publication.id}`
-                : `/arena/challenges/${challenge.id}`;
-
-              return (
-              <article key={challenge.id} className="surface-card rounded-lg p-5">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-subtle">
-                      <span>{object ? arenaSourceLabels[object.source] : '未知对象来源'}</span>
-                      <span>·</span>
-                      <span>{challenge.difficulty}</span>
-                      <span>·</span>
-                      <span>{challenge.homeworkPolicy}</span>
-                    </div>
-                    <h2 className="mt-2 text-xl font-semibold text-foreground">{challenge.title}</h2>
-                    {object ? (
-                      <p className="mt-1 text-xs text-muted-foreground">对象：{object.name}</p>
-                    ) : null}
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.goal}</p>
-                    {publication ? (
-                      <div className="mt-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-                        班级发布 · 截止 {new Date(publication.deadline).toLocaleString('zh-CN')}
-                      </div>
-                    ) : null}
+          <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
+            <div className="space-y-5">
+              {stageGroups.map((group) => (
+                <section key={group.stage} className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-base font-semibold text-foreground">{group.label}</h2>
+                    <span className="rounded-full border border-border/70 px-2 py-1 text-xs text-subtle">{group.tasks.length} 个任务</span>
                   </div>
-                  <div className="min-w-28 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-right">
-                    <div className="text-xs text-subtle">当前最高分</div>
-                    <div className="mt-1 text-2xl font-semibold text-primary">
-                      {stats.topScore === null ? '暂无' : stats.topScore.toFixed(1)}
-                    </div>
-                  </div>
-                </div>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {group.tasks.map((challenge) => {
+                      const object = getArenaChallengeObject(challenge.objectId);
+                      const stats = taskStats[challenge.id] ?? {
+                        participantCount: 0,
+                        submissionCount: 0,
+                        topScore: null,
+                      };
+                      const publication = selectArenaHallPublicationForTask(studentPublications, challenge.id);
+                      const challengeHref = publication
+                        ? `/arena/challenges/${challenge.id}?publicationId=${publication.id}`
+                        : `/arena/challenges/${challenge.id}`;
 
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {challenge.allowedMethods.map((method) => (
-                    <span key={method} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
-                      {arenaMethodLabels[method]}
-                    </span>
-                  ))}
-                </div>
+                      return (
+                        <article key={challenge.id} className="surface-card rounded-lg p-5">
+                          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-subtle">
+                                <span>{object ? arenaSourceLabels[object.source] : '未知对象来源'}</span>
+                                <span>·</span>
+                                <span>{challenge.difficulty}</span>
+                                <span>·</span>
+                                <span>预计 {challenge.training.estimatedEffortMinutes} 分钟</span>
+                                <span>·</span>
+                                <span>{ARENA_HIDDEN_TEST_SIGNAL_LABELS[challenge.training.hiddenTestSignal]}</span>
+                              </div>
+                              <h3 className="mt-2 text-xl font-semibold text-foreground">{challenge.title}</h3>
+                              {object ? (
+                                <p className="mt-1 text-xs text-muted-foreground">对象：{object.name}</p>
+                              ) : null}
+                              <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.training.goal}</p>
+                              {publication ? (
+                                <div className="mt-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
+                                  班级发布 · 截止 {new Date(publication.deadline).toLocaleString('zh-CN')}
+                                </div>
+                              ) : null}
+                            </div>
+                            <div className="min-w-28 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-right">
+                              <div className="text-xs text-subtle">当前最高分</div>
+                              <div className="mt-1 text-2xl font-semibold text-primary">
+                                {stats.topScore === null ? '暂无' : stats.topScore.toFixed(1)}
+                              </div>
+                            </div>
+                          </div>
 
-                <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-subtle md:flex-row md:items-center md:justify-between">
-                  <div>
-                    {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入{getArenaHallEntryLabel(object?.source, challenge.workspaceMode)}
+                          <div className="mt-5 flex flex-wrap items-center gap-2">
+                            {challenge.training.capabilityTags.map((item) => (
+                              <span key={item} className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs text-primary">
+                                {ARENA_TRAINING_CAPABILITY_LABELS[item]}
+                              </span>
+                            ))}
+                            {challenge.allowedMethods.map((method) => (
+                              <span key={method} className="rounded-full border border-border/70 bg-accent/45 px-3 py-1 text-xs text-muted-foreground">
+                                {arenaMethodLabels[method]}
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="mt-4 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-xs leading-5 text-subtle">
+                            常见失误：{challenge.training.commonFailurePoints[0]}
+                          </div>
+
+                          <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-subtle md:flex-row md:items-center md:justify-between">
+                            <div>
+                              {stats.participantCount} 人参与 · {stats.submissionCount} 次提交 · 推荐进入{getArenaHallEntryLabel(object?.source, challenge.workspaceMode)}
+                            </div>
+                            <Link href={challengeHref} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                              查看挑战
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
-                  <Link href={challengeHref} className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                    查看挑战
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </article>
-              );
-            })}
+                </section>
+              ))}
+            </div>
+            <aside className="surface-card h-fit rounded-lg p-5">
+              <h2 className="text-sm font-semibold text-foreground">训练能力覆盖</h2>
+              <div className="mt-4 grid gap-3">
+                {capabilityGroups.map((group) => (
+                  <div key={group.capability} className="rounded-lg border border-border/70 bg-background/60 p-3">
+                    <div className="text-sm font-medium text-foreground">{group.label}</div>
+                    <div className="mt-1 text-xs text-subtle">{group.tasks.length} 个任务</div>
+                  </div>
+                ))}
+              </div>
+            </aside>
             {filteredTasks.length === 0 ? (
               <div className="surface-card p-8 text-center">
                 <div className="text-sm font-semibold text-foreground">暂无匹配的挑战任务</div>

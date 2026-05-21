@@ -80,4 +80,22 @@ describe('arena task filtering', () => {
       method: 'optimized-pid',
     }).map((task) => task.id)).toEqual(['task-ship-roll-optimized-pid-robust']);
   });
+
+  it('filters training-map tasks by stage and capability while preserving existing filters', () => {
+    expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      source: 'typical',
+      trainingStage: 'foundation',
+      capability: 'time-domain-shaping',
+      method: 'pid',
+    }).map((task) => task.id)).toEqual(['task-second-order-lead-pid']);
+
+    expect(filterArenaChallengeTasks(ARENA_CHALLENGE_TASKS, {
+      trainingStage: 'robust-advanced',
+      capability: 'hidden-scenario-robustness',
+    }).map((task) => task.id)).toEqual(expect.arrayContaining([
+      'task-ship-roll-mpc-hidden-scenarios',
+      'task-ship-roll-optimized-pid-robust',
+      'task-ship-roll-robust-disturbance',
+    ]));
+  });
 });

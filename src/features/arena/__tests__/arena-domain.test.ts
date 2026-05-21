@@ -8,10 +8,17 @@ import {
   ARENA_CHALLENGE_TASKS,
   ARENA_LEADERBOARD_POLICIES,
   ARENA_METRIC_PROFILES,
+  ARENA_TRAINING_CAPABILITY_LABELS,
+  ARENA_TRAINING_STAGE_LABELS,
   getArenaChallengeObject,
   getArenaChallengeTask,
 } from '../data/seed-challenges';
 import type { ChallengeTask } from '../types';
+import {
+  getArenaNextChallengeCandidates,
+  getArenaTrainingCapabilityGroups,
+  getArenaTrainingStageGroups,
+} from '../training-map';
 
 describe('arena domain model', () => {
   it('keeps controlled objects separate from challenge tasks', () => {
@@ -161,6 +168,43 @@ describe('arena domain model', () => {
       'controlEnergy',
       'overshoot',
     ]));
+  });
+
+  it('defines complete training metadata for every challenge task', () => {
+    const stageIds = new Set(Object.keys(ARENA_TRAINING_STAGE_LABELS));
+    const capabilityIds = new Set(Object.keys(ARENA_TRAINING_CAPABILITY_LABELS));
+
+    for (const task of ARENA_CHALLENGE_TASKS) {
+      expect(task.training.stage, `${task.id} training stage`).toSatisfy((stage: string) => stageIds.has(stage));
+      expect(task.training.estimatedEffortMinutes, `${task.id} effort`).toBeGreaterThan(0);
+      expect(task.training.goal, `${task.id} training goal`).toEqual(expect.any(String));
+      expect(task.training.capabilityTags.length, `${task.id} capability tags`).toBeGreaterThan(0);
+      expect(task.training.commonFailurePoints.length, `${task.id} failure points`).toBeGreaterThan(0);
+      expect(task.training.hiddenTestSignal, `${task.id} hidden test signal`).toEqual(expect.any(String));
+
+      for (const capability of task.training.capabilityTags) {
+        expect(capabilityIds.has(capability), `${task.id} capability ${capability} is registered`).toBe(true);
+      }
+      for (const prerequisite of task.training.prerequisiteCapabilityTags) {
+        expect(capabilityIds.has(prerequisite), `${task.id} prerequisite ${prerequisite} is registered`).toBe(true);
+      }
+    }
+  });
+
+  it('derives training stage groups, capability groups, and next challenge candidates', () => {
+    const stageGroups = getArenaTrainingStageGroups(ARENA_CHALLENGE_TASKS);
+    const capabilityGroups = getArenaTrainingCapabilityGroups(ARENA_CHALLENGE_TASKS);
+    const foundationTask = getArenaChallengeTask('task-second-order-lead-pid') as ChallengeTask;
+    const nextCandidates = getArenaNextChallengeCandidates(foundationTask, ARENA_CHALLENGE_TASKS);
+
+    expect(stageGroups.map((group) => group.stage)).toContain('foundation');
+    expect(stageGroups.find((group) => group.stage === 'robust-advanced')?.tasks.map((task) => task.id)).toEqual(expect.arrayContaining([
+      'task-ship-roll-mpc-hidden-scenarios',
+      'task-ship-roll-optimized-pid-robust',
+      'task-ship-roll-robust-disturbance',
+    ]));
+    expect(capabilityGroups.find((group) => group.capability === 'hidden-scenario-robustness')?.tasks.length).toBeGreaterThanOrEqual(3);
+    expect(nextCandidates.map((task) => task.id)).toContain('task-integrator-low-frequency-balance');
   });
 
   it('links related knowledge to real runtime knowledge graph nodes', () => {

@@ -1,9 +1,42 @@
 import type {
+  ArenaHiddenTestSignal,
+  ArenaTrainingCapabilityId,
+  ArenaTrainingStageId,
   ChallengeObject,
   ChallengeTask,
   LeaderboardPolicy,
   MetricProfile,
 } from '../types';
+
+export const ARENA_TRAINING_STAGE_LABELS: Record<ArenaTrainingStageId, string> = {
+  foundation: '基础起步',
+  'analysis-integration': '分析整合',
+  'structured-design': '结构化设计',
+  'robust-advanced': '鲁棒进阶',
+  'blackbox-project': '黑箱项目',
+};
+
+export const ARENA_TRAINING_CAPABILITY_LABELS: Record<ArenaTrainingCapabilityId, string> = {
+  'time-domain-shaping': '时域整形',
+  'steady-state-accuracy': '稳态精度',
+  'frequency-comfort': '频域舒适度',
+  'stability-margin': '稳定裕度',
+  'root-locus-reasoning': '根轨迹判断',
+  'structured-compensation': '结构化补偿',
+  'black-box-identification': '黑箱辨识',
+  'constraint-optimization': '约束优化',
+  'robustness-tradeoff': '鲁棒取舍',
+  'hidden-scenario-robustness': '隐藏场景鲁棒性',
+  'control-energy-tradeoff': '控制能量取舍',
+  'mpc-template-design': 'MPC 模板设计',
+};
+
+export const ARENA_HIDDEN_TEST_SIGNAL_LABELS: Record<ArenaHiddenTestSignal, string> = {
+  none: '无隐藏评测',
+  'metric-only': '官方指标复核',
+  'hidden-scenarios': '隐藏场景复核',
+  'black-box-batch': '黑箱批量场景',
+};
 
 export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
   {
@@ -418,6 +451,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '可作为作业挑战',
     homeworkEligible: true,
     practiceMode: 'open',
+    training: {
+      stage: 'foundation',
+      capabilityTags: ['time-domain-shaping', 'steady-state-accuracy'],
+      prerequisiteCapabilityTags: [],
+      goal: '用二阶对象建立调节时间、超调量和稳态误差的第一轮控制设计直觉。',
+      estimatedEffortMinutes: 25,
+      hiddenTestSignal: 'none',
+      commonFailurePoints: ['只追求调节时间导致超调过大', '忽略稳态误差是否已经进入目标范围'],
+    },
   },
   {
     id: 'task-integrator-low-frequency-balance',
@@ -434,6 +476,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '可作为作业挑战',
     homeworkEligible: true,
     practiceMode: 'guided',
+    training: {
+      stage: 'analysis-integration',
+      capabilityTags: ['steady-state-accuracy', 'control-energy-tradeoff', 'time-domain-shaping'],
+      prerequisiteCapabilityTags: ['time-domain-shaping'],
+      goal: '在积分对象上同时处理稳态精度、响应速度和控制能量的权衡。',
+      estimatedEffortMinutes: 35,
+      hiddenTestSignal: 'none',
+      commonFailurePoints: ['积分增益过强造成振荡', '只看稳态误差而忽略控制能量'],
+    },
   },
   {
     id: 'task-ship-roll-comfort',
@@ -450,6 +501,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '课程项目候选',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'robust-advanced',
+      capabilityTags: ['frequency-comfort', 'control-energy-tradeoff', 'robustness-tradeoff'],
+      prerequisiteCapabilityTags: ['time-domain-shaping', 'stability-margin'],
+      goal: '把频域舒适度约束转化为白箱控制设计中的响应和能量取舍。',
+      estimatedEffortMinutes: 50,
+      hiddenTestSignal: 'metric-only',
+      commonFailurePoints: ['压低舒适频段峰值时放大控制能量', '只看时域曲线而漏掉频域峰值约束'],
+    },
   },
   {
     id: 'task-homework-margin-correction',
@@ -466,6 +526,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '作业评分候选',
     homeworkEligible: true,
     practiceMode: 'guided',
+    training: {
+      stage: 'analysis-integration',
+      capabilityTags: ['stability-margin', 'steady-state-accuracy', 'control-energy-tradeoff'],
+      prerequisiteCapabilityTags: ['time-domain-shaping'],
+      goal: '围绕作业对象把裕度改善、响应速度和稳态精度放入同一轮方案判断。',
+      estimatedEffortMinutes: 40,
+      hiddenTestSignal: 'none',
+      commonFailurePoints: ['裕度提高后没有复查时域响应', '校正参数导致稳态精度回退'],
+    },
   },
   {
     id: 'task-odyssey-level-one-growth',
@@ -482,6 +551,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '赛季练习任务',
     homeworkEligible: false,
     practiceMode: 'guided',
+    training: {
+      stage: 'foundation',
+      capabilityTags: ['time-domain-shaping', 'root-locus-reasoning'],
+      prerequisiteCapabilityTags: [],
+      goal: '在游戏化对象中练习闭环稳定、偏差峰值和操作强度之间的基本取舍。',
+      estimatedEffortMinutes: 30,
+      hiddenTestSignal: 'metric-only',
+      commonFailurePoints: ['过度追求通关速度造成偏差峰值过大', '忽略操作强度导致控制输入不平滑'],
+    },
   },
   {
     id: 'task-cruise-roll-blackbox-identification',
@@ -498,6 +576,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '项目展示候选',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'blackbox-project',
+      capabilityTags: ['black-box-identification', 'hidden-scenario-robustness', 'control-energy-tradeoff'],
+      prerequisiteCapabilityTags: ['time-domain-shaping', 'robustness-tradeoff'],
+      goal: '只利用实验接口形成名义模型判断，并提交能跨隐藏海况工作的闭环方案。',
+      estimatedEffortMinutes: 70,
+      hiddenTestSignal: 'black-box-batch',
+      commonFailurePoints: ['把预览场景当成正式隐藏评测', '实验覆盖不足导致名义模型偏差过大'],
+    },
   },
   {
     id: 'task-delay-robust-pareto',
@@ -514,6 +601,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '开放项目任务',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'robust-advanced',
+      capabilityTags: ['robustness-tradeoff', 'control-energy-tradeoff', 'time-domain-shaping'],
+      prerequisiteCapabilityTags: ['stability-margin', 'time-domain-shaping'],
+      goal: '在带时滞近似的对象上识别速度、超调、能量与稳态误差的 Pareto 边界。',
+      estimatedEffortMinutes: 55,
+      hiddenTestSignal: 'metric-only',
+      commonFailurePoints: ['补偿过激导致右半平面零点效应放大', '只比较单一指标而忽略 Pareto 取舍'],
+    },
   },
   {
     id: 'task-unstable-first-order-stabilization',
@@ -530,6 +626,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '镇定练习任务',
     homeworkEligible: false,
     practiceMode: 'guided',
+    training: {
+      stage: 'structured-design',
+      capabilityTags: ['stability-margin', 'root-locus-reasoning', 'time-domain-shaping'],
+      prerequisiteCapabilityTags: ['time-domain-shaping'],
+      goal: '先完成不稳定对象镇定，再进入响应速度、超调和控制能量的二次调节。',
+      estimatedEffortMinutes: 45,
+      hiddenTestSignal: 'metric-only',
+      commonFailurePoints: ['未先确认闭环稳定就比较指标', '增益方向判断错误导致极点继续留在右半平面'],
+    },
   },
   {
     id: 'task-third-order-block-diagram',
@@ -546,6 +651,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '结构练习任务',
     homeworkEligible: false,
     practiceMode: 'guided',
+    training: {
+      stage: 'structured-design',
+      capabilityTags: ['structured-compensation', 'root-locus-reasoning', 'stability-margin'],
+      prerequisiteCapabilityTags: ['time-domain-shaping', 'stability-margin'],
+      goal: '从结构表达进入补偿方案，比较串联与复合结构对稳定边界和响应指标的影响。',
+      estimatedEffortMinutes: 50,
+      hiddenTestSignal: 'none',
+      commonFailurePoints: ['结构块方向正确但等效控制器参数不一致', '没有复查补偿结构对稳定边界的影响'],
+    },
   },
   {
     id: 'task-ship-roll-mpc-hidden-scenarios',
@@ -562,6 +676,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '研究型项目候选',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'robust-advanced',
+      capabilityTags: ['mpc-template-design', 'constraint-optimization', 'hidden-scenario-robustness'],
+      prerequisiteCapabilityTags: ['frequency-comfort', 'control-energy-tradeoff'],
+      goal: '用固定参数化 MPC 模板处理舒适度、能耗和隐藏扰动场景的约束优化。',
+      estimatedEffortMinutes: 65,
+      hiddenTestSignal: 'hidden-scenarios',
+      commonFailurePoints: ['把公开白箱预览等同于隐藏扰动表现', '约束权重设置过窄导致可行域太小'],
+    },
   },
   {
     id: 'task-ship-roll-optimized-pid-robust',
@@ -578,6 +701,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '研究型项目候选',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'robust-advanced',
+      capabilityTags: ['constraint-optimization', 'hidden-scenario-robustness', 'control-energy-tradeoff'],
+      prerequisiteCapabilityTags: ['time-domain-shaping', 'frequency-comfort'],
+      goal: '把优化辅助 PID 视为受限模板，在目标权重和隐藏扰动鲁棒性之间形成可复现取舍。',
+      estimatedEffortMinutes: 60,
+      hiddenTestSignal: 'hidden-scenarios',
+      commonFailurePoints: ['优化目标只覆盖公开场景', '权重选择让控制能量或超调被单项指标牺牲'],
+    },
   },
   {
     id: 'task-ship-roll-robust-disturbance',
@@ -594,6 +726,15 @@ export const ARENA_CHALLENGE_TASKS: ChallengeTask[] = [
     homeworkPolicy: '鲁棒控制项目候选',
     homeworkEligible: false,
     practiceMode: 'project',
+    training: {
+      stage: 'robust-advanced',
+      capabilityTags: ['hidden-scenario-robustness', 'robustness-tradeoff', 'control-energy-tradeoff'],
+      prerequisiteCapabilityTags: ['frequency-comfort', 'stability-margin'],
+      goal: '在横摇白箱对象上把隐藏扰动最差表现、控制能量和超调放入同一组鲁棒权衡。',
+      estimatedEffortMinutes: 55,
+      hiddenTestSignal: 'hidden-scenarios',
+      commonFailurePoints: ['只优化标称对象导致隐藏扰动退化', '控制能量约束被忽略后引发不可接受输入'],
+    },
   },
 ];
 
