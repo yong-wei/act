@@ -8,6 +8,13 @@ import { ArenaPersonalFeedback } from '@/features/arena/student/arena-personal-f
 import { sendArenaCoreEvent } from '@/features/arena/telemetry';
 import type { ArenaBlackBoxExperimentDataset, ArenaBlackBoxSignalType } from '@/features/arena/blackbox/experiment';
 import type { ArenaVirtualSimulationPreviewRun } from '@/features/arena/blackbox/controller-preview';
+import {
+  buildBlackBoxExperimentBudgetCoverageEvidence,
+  buildBlackBoxNominalModelConfidenceEvidence,
+  type ArenaBlackBoxExperimentBudget,
+  type BlackBoxExperimentBudgetCoverageEvidence,
+  type BlackBoxNominalModelConfidenceEvidence,
+} from '@/features/arena/blackbox/engineering-evidence';
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
 import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
 import type { ChallengeTask } from '@/features/arena/types';
@@ -19,6 +26,8 @@ import type {
 import type { WorkbenchPanelInstance } from '../views';
 
 type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
+const BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS = new Set(['trackingError', 'controlEnergy']);
+
 interface BlackBoxIdentificationPanelProps {
   task: ChallengeTask;
   initialSubmissions: ArenaSubmissionRecord[];
@@ -99,6 +108,42 @@ function NumberInput({
   );
 }
 
+function BlackBoxExperimentEvidence({
+  evidence,
+}: {
+  evidence: BlackBoxExperimentBudgetCoverageEvidence;
+}) {
+  return (
+    <div className="mt-4 grid gap-2 rounded-lg border border-cyan-300/20 bg-cyan-950/20 p-3 text-xs text-cyan-50">
+      <div className="font-medium text-cyan-100">实验预算与覆盖证据</div>
+      <div>{evidence.summary}</div>
+      <div>
+        信号 {evidence.signalType} · 输入覆盖 {evidence.inputRange.toFixed(2)} · 输出覆盖 {evidence.outputRange.toFixed(2)}
+      </div>
+      {evidence.suggestions.length > 0 ? (
+        <div className="text-cyan-100">{evidence.suggestions[0]}</div>
+      ) : null}
+    </div>
+  );
+}
+
+function BlackBoxNominalEvidence({
+  evidence,
+}: {
+  evidence: BlackBoxNominalModelConfidenceEvidence;
+}) {
+  return (
+    <div className="mt-4 grid gap-2 rounded-lg border border-white/10 bg-slate-950/50 p-3 text-xs text-slate-300">
+      <div className="font-medium text-slate-100">名义模型置信度与预演偏差</div>
+      <div>{evidence.summary}</div>
+      <div>{evidence.boundaryNote}</div>
+      {evidence.suggestions.length > 0 ? (
+        <div className="text-amber-100">{evidence.suggestions[0]}</div>
+      ) : null}
+    </div>
+  );
+}
+
 function activePanelLabels(panelInstances?: WorkbenchPanelInstance[]) {
   return panelInstances
     ?.filter((panel) => panel.enabled)
@@ -112,6 +157,10 @@ function isBlackBoxWorkbenchOptionSelected(
 ) {
   const panels = panelInstances?.filter((panel) => panel.enabled && panel.viewId === viewId) ?? [];
   return panels.some((panel) => !panel.selectedOptions || panel.selectedOptions.includes(optionId));
+}
+
+function getBlackBoxOfficialOnlyMetricIds(task: ChallengeTask) {
+  return task.primaryMetrics.filter((metricId) => !BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS.has(metricId));
 }
 
 export function BlackBoxIdentificationPanel({
@@ -133,6 +182,7 @@ export function BlackBoxIdentificationPanel({
   const [dampingCompensation, setDampingCompensation] = useState('0.72');
   const [energyBudget, setEnergyBudget] = useState('12');
   const [latestDataset, setLatestDataset] = useState<ExperimentDatasetResponse | null>(null);
+  const [latestBudget, setLatestBudget] = useState<ArenaBlackBoxExperimentBudget | null>(null);
   const [nominalModel, setNominalModel] = useState<NominalModelArtifact | null>(null);
   const [previewRun, setPreviewRun] = useState<(ArenaVirtualSimulationPreviewRun & { id: string }) | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -172,6 +222,17 @@ export function BlackBoxIdentificationPanel({
     'leaderboard-official-metrics',
   );
   const showModelAndResponse = showIdentificationModel || showNominalResponse || showPreviewResponse;
+  const experimentEvidence = latestDataset && latestBudget
+    ? buildBlackBoxExperimentBudgetCoverageEvidence(latestDataset, latestBudget)
+    : null;
+  const nominalEvidence = latestDataset
+    ? buildBlackBoxNominalModelConfidenceEvidence({
+      dataset: latestDataset,
+      budget: latestBudget ?? undefined,
+      preview: previewRun,
+    })
+    : null;
+  const blackBoxOfficialOnlyMetricIds = getBlackBoxOfficialOnlyMetricIds(task);
 
   const runExperiment = async () => {
     setStatus('正在运行黑箱实验...');
@@ -207,6 +268,7 @@ export function BlackBoxIdentificationPanel({
     }
 
     setLatestDataset(payload.dataset);
+    setLatestBudget(payload.budget);
     setExperimentCount(String(payload.budget.used));
     setIdentificationQuality(payload.dataset.summary.dataQuality.toFixed(2));
     setNominalModel(null);
@@ -227,7 +289,7 @@ export function BlackBoxIdentificationPanel({
 
     const model = buildClientNominalModelFromDataset(latestDataset);
     setNominalModel(model);
-    setStatus('学生名义模型已保存，可用于工作台响应对照、控制器草稿和虚拟仿真预演。');
+    setStatus('学生名义模型已保存，可用于工作台响应对照、控制器草稿和虚拟仿真预演；该模型不代表官方隐藏对象。');
     void sendArenaCoreEvent('arena_identification_model_save', {
       taskId: task.id,
       datasetHash: latestDataset.datasetHash,
@@ -293,7 +355,7 @@ export function BlackBoxIdentificationPanel({
     }
 
     setPreviewRun(payload.preview);
-    setStatus('虚拟仿真预演已完成，该结果仅用于提交前检查，不进入榜单。');
+    setStatus('虚拟仿真预演已完成，该结果仅用于提交前检查，不进入榜单；虚拟仿真预演不是官方隐藏评测。');
   };
 
   const submitController = async () => {
@@ -337,7 +399,9 @@ export function BlackBoxIdentificationPanel({
     }
 
     setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
-    setStatus(payload.submission.reusedEvaluation ? '重复黑箱控制器已复用官方评测结果。' : '黑箱官方评测已完成。');
+    setStatus(payload.submission.reusedEvaluation
+      ? '重复黑箱控制器已复用官方隐藏评测聚合结果。'
+      : '黑箱官方隐藏评测已完成，仅展示聚合指标。');
     void sendArenaCoreEvent('arena_evaluation_complete', {
       taskId: task.id,
       method: payload.submission.artifact.method,
@@ -428,6 +492,9 @@ export function BlackBoxIdentificationPanel({
                 数据集 {latestDataset.datasetHash} · {latestDataset.samples.length} 个采样点 · 数据质量 {latestDataset.summary.dataQuality.toFixed(2)}
               </div>
             ) : null}
+            {experimentEvidence ? (
+              <BlackBoxExperimentEvidence evidence={experimentEvidence} />
+            ) : null}
           </section>
           ) : null}
 
@@ -456,6 +523,9 @@ export function BlackBoxIdentificationPanel({
                 <span>来源数据集：{nominalModel.sourceDatasetHash}</span>
                 <span>{nominalModel.notes}</span>
               </div>
+            ) : null}
+            {nominalModel && nominalEvidence ? (
+              <BlackBoxNominalEvidence evidence={nominalEvidence} />
             ) : null}
           </section>
           ) : null}
@@ -506,6 +576,9 @@ export function BlackBoxIdentificationPanel({
               <div className="mt-2 text-xs text-cyan-50">
                 最大偏差 {previewRun.summary.maxDeviation.toFixed(3)} · 能耗 {previewRun.summary.controlEnergy.toFixed(2)} · 安全违反 {previewRun.summary.safetyViolations}
               </div>
+              <div className="mt-2 text-xs text-cyan-100">
+                虚拟仿真预演不是官方隐藏评测，正式提交会重新执行隐藏场景批量评测。
+              </div>
             </section>
           ) : null}
 
@@ -514,7 +587,7 @@ export function BlackBoxIdentificationPanel({
               latest={latest}
               previousSubmissions={personalSubmissions.slice(0, -1)}
               mode="black-box"
-              officialOnlyMetricIds={task.primaryMetrics.filter((metricId) => /hidden/i.test(metricId))}
+              officialOnlyMetricIds={blackBoxOfficialOnlyMetricIds}
             />
           ) : null}
 

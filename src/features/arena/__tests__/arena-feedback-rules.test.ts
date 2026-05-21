@@ -292,6 +292,33 @@ describe('arena student diagnostic feedback rules', () => {
     expect(JSON.stringify(feedback)).not.toContain('quartering-sea-private');
     expect(JSON.stringify(feedback)).not.toContain('private-wave-height');
   });
+
+  it('states that black-box preview is not official hidden evaluation', () => {
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'blackbox-preview-boundary',
+        score: 68,
+        valid: true,
+        method: 'black-box-control',
+        submittedAt: '2026-05-16T08:50:00.000Z',
+        satisfaction: { trackingError: 0.74, worstCaseDeviation: 0.43, controlEnergy: 0.64 },
+        evaluationProtocolVersion: 'blackbox-official-v1',
+        metadata: {
+          hiddenScenarioOrder: ['private-head-sea'],
+          hiddenTrace: [{ t: 0, output: 0.4 }],
+        },
+      }),
+      mode: 'black-box',
+      officialOnlyMetricIds: ['trackingError', 'worstCaseDeviation', 'controlEnergy'],
+    });
+
+    expect(feedback.boundaryNotes.join('\n')).toContain('虚拟仿真预演不是官方隐藏评测');
+    expect(feedback.boundaryNotes.join('\n')).toContain('聚合指标');
+    expect(feedback.issueTags).toContain('hidden-generalization-risk');
+    expect(feedback.nextStepSuggestion).toContain('泛化风险');
+    expect(JSON.stringify(feedback)).not.toContain('private-head-sea');
+    expect(JSON.stringify(feedback)).not.toContain('hiddenTrace');
+  });
 });
 
 describe('arena personal feedback component', () => {
@@ -357,6 +384,7 @@ describe('arena personal feedback component', () => {
     expect(source).toContain('submissions.filter((submission) => submission.userId === viewerUserId)');
     expect(source).toContain('previousSubmissions={personalSubmissions.slice(0, -1)}');
     expect(source).toContain('mode="black-box"');
+    expect(source).toContain('officialOnlyMetricIds={blackBoxOfficialOnlyMetricIds}');
   });
 
   it('passes viewer identity from Arena submission entry points to personal feedback panels', () => {
