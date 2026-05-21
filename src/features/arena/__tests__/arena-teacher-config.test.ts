@@ -9,6 +9,8 @@ import {
   getArenaChallengeTemplate,
   resolvePublishedArenaTasksForStudent,
 } from '../teacher/configuration';
+import { buildTeacherArenaChallengeRecommendation } from '../teacher/challenge-recommendations';
+import { getArenaChallengeTask } from '../domain';
 
 describe('arena teacher configuration', () => {
   it('publishes an existing challenge to a class scope with visibility and deadline', () => {
@@ -207,5 +209,36 @@ describe('arena teacher configuration', () => {
     expect(uiSource).toContain('setScoringMetricWeightsText');
     expect(uiSource).toContain('目标信号');
     expect(uiSource).toContain('埋点级别');
+  });
+
+  it('builds teacher challenge recommendations from training metadata and class context', () => {
+    const task = getArenaChallengeTask('task-cruise-roll-blackbox-identification');
+    expect(task).toBeDefined();
+
+    const recommendation = buildTeacherArenaChallengeRecommendation(task!, {
+      classId: 'class-2026-control',
+      visibility: 'class',
+      homeworkBinding: true,
+    });
+
+    expect(recommendation.stageLabel).toBe('黑箱项目');
+    expect(recommendation.capabilityLabels).toContain('黑箱辨识');
+    expect(recommendation.methodLabels).toContain('black-box-control');
+    expect(recommendation.classContext).toContain('class-2026-control');
+    expect(recommendation.classContext).toContain('未提交');
+    expect(recommendation.suitabilityEvidence.join('\n')).toContain('适合作业成绩构成');
+    expect(recommendation.optionLabel).toContain('黑箱项目');
+  });
+
+  it('surfaces challenge recommendation evidence in the teacher configuration UI', () => {
+    const uiSource = readFileSync(
+      join(process.cwd(), 'src/features/arena/teacher/teacher-arena-config.tsx'),
+      'utf8',
+    );
+
+    expect(uiSource).toContain('buildTeacherArenaChallengeRecommendations');
+    expect(uiSource).toContain('训练阶段');
+    expect(uiSource).toContain('适配证据');
+    expect(uiSource).toContain('selectedRecommendation.classContext');
   });
 });

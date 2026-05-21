@@ -17,6 +17,7 @@ import {
   type ArenaChallengePublication,
   type ArenaTelemetryLevel,
 } from './configuration';
+import { buildTeacherArenaChallengeRecommendations } from './challenge-recommendations';
 
 type ArenaPublicationStatus = 'draft' | 'active' | 'paused' | 'archived' | 'closed';
 type PublishedArenaPublication = ArenaChallengePublication & {
@@ -61,6 +62,18 @@ export function TeacherArenaConfig() {
   const selectedTask = useMemo(
     () => ARENA_CHALLENGE_TASKS.find((task) => task.id === taskId),
     [taskId],
+  );
+  const challengeRecommendations = useMemo(
+    () => buildTeacherArenaChallengeRecommendations(ARENA_CHALLENGE_TASKS, {
+      classId,
+      visibility,
+      homeworkBinding,
+    }),
+    [classId, homeworkBinding, visibility],
+  );
+  const selectedRecommendation = useMemo(
+    () => challengeRecommendations.find((recommendation) => recommendation.taskId === taskId),
+    [challengeRecommendations, taskId],
   );
 
   useEffect(() => {
@@ -302,16 +315,32 @@ export function TeacherArenaConfig() {
             <label className="grid gap-1 text-sm text-subtle">
               挑战任务
               <select value={taskId} onChange={(event) => setTaskId(event.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground">
-                {ARENA_CHALLENGE_TASKS.map((task) => {
-                  const object = getArenaChallengeObject(task.objectId);
+                {challengeRecommendations.map((recommendation) => {
+                  const task = ARENA_CHALLENGE_TASKS.find((item) => item.id === recommendation.taskId);
+                  const object = task ? getArenaChallengeObject(task.objectId) : null;
                   return (
-                    <option key={task.id} value={task.id}>
-                      {task.title} · {object?.name ?? task.objectId}
+                    <option key={recommendation.taskId} value={recommendation.taskId}>
+                      {recommendation.optionLabel} · {object?.name ?? recommendation.objectName}
                     </option>
                   );
                 })}
               </select>
             </label>
+            {selectedRecommendation ? (
+              <div className="rounded-lg border border-border/70 bg-card/55 p-3 text-sm">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-md border border-border/70 px-2 py-1 text-xs text-subtle">训练阶段：{selectedRecommendation.stageLabel}</span>
+                  <span className="rounded-md border border-border/70 px-2 py-1 text-xs text-subtle">能力：{selectedRecommendation.capabilityLabels.join('、')}</span>
+                  <span className="rounded-md border border-border/70 px-2 py-1 text-xs text-subtle">方法：{selectedRecommendation.methodLabels.join('、')}</span>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-subtle">{selectedRecommendation.classContext}</p>
+                <ul className="mt-3 grid gap-1 text-xs leading-5 text-subtle">
+                  {selectedRecommendation.suitabilityEvidence.map((item) => (
+                    <li key={item}>适配证据：{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-1 text-sm text-subtle">
                 班级范围
