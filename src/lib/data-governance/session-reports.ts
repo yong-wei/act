@@ -555,14 +555,17 @@ export async function generateSessionSummaryReports(
     increment(canonicalEventTypes, canonicalEventType);
     increment(learningContexts, log.learningContext);
     increment(invalidContextReasons, log.invalidContextReason);
-    if (canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit') {
-      submittedUserIds.add(log.userId);
-    }
     if (canonicalEventType === 'sync_error') {
       syncErrorUserIds.add(log.userId);
     }
     if (readObject(log.eventData).afterSessionEnd === true) {
       afterSessionEndEvents += 1;
+    }
+  }
+  for (const log of studentLogs) {
+    const canonicalEventType = resolveReportEventType(log);
+    if (canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit') {
+      submittedUserIds.add(log.userId);
     }
   }
 

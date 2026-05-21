@@ -320,6 +320,19 @@ describe('generateSessionSummaryReports', () => {
           message: 'teacher poll failed',
         },
       },
+      {
+        userId: 'teacher-1',
+        eventType: 'lesson_submit',
+        stepId: 'step-02',
+        clientEventAt: new Date('2026-05-20T08:06:00.000Z'),
+        lessonKey: '5-2',
+        learningContext: 'teacher_live',
+        invalidContextReason: null,
+        actorRole: null,
+        eventData: {
+          eventType: 'lesson_submit',
+        },
+      },
     ]);
     prisma.studentState.findMany.mockResolvedValue([
       { userId: 'student-1', lessonKey: '5-2' },
@@ -381,6 +394,7 @@ describe('generateSessionSummaryReports', () => {
         syncErrorIncidents: 1,
         syncAffectedUsers: 1,
         factParticipants: 0,
+        submittedParticipants: 0,
         durableSubmittedParticipants: 1,
         durableSubmissionAttempts: 1,
       },
