@@ -1,4 +1,9 @@
 export interface SessionGovernanceSummary {
+  qualityStatus: {
+    status: 'green' | 'yellow' | 'red';
+    reasons: string[];
+    metrics: Record<string, unknown>;
+  } | null;
   sessionParticipants: number | null;
   loggedParticipants: number | null;
   factParticipants: number | null;
@@ -31,6 +36,21 @@ function toCount(value: unknown): number | null {
   return null;
 }
 
+function parseQualityStatus(value: unknown): SessionGovernanceSummary['qualityStatus'] {
+  const qualityStatus = asObject(value);
+  const status = qualityStatus.status;
+  if (status !== 'green' && status !== 'yellow' && status !== 'red') {
+    return null;
+  }
+  return {
+    status,
+    reasons: Array.isArray(qualityStatus.reasons)
+      ? qualityStatus.reasons.filter((reason): reason is string => typeof reason === 'string')
+      : [],
+    metrics: asObject(qualityStatus.metrics),
+  };
+}
+
 export function formatClassroomSessionDate(value: Date) {
   return new Intl.DateTimeFormat('zh-CN', {
     timeZone: 'Asia/Shanghai',
@@ -52,6 +72,7 @@ export function parseSessionGovernanceSummary(reportData: unknown): SessionGover
   }
 
   const parsed: SessionGovernanceSummary = {
+    qualityStatus: parseQualityStatus(summary.qualityStatus),
     sessionParticipants: toCount(summary.sessionParticipants),
     loggedParticipants: toCount(summary.loggedParticipants),
     factParticipants: toCount(summary.factParticipants),

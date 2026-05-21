@@ -27,6 +27,13 @@ describe('buildGovernanceOverview', () => {
         { label: '习题作答', count: 220 },
         { label: '仿真实验', count: 180 },
       ],
+      sessionQuality: {
+        recentSessions: 20,
+        green: 12,
+        yellow: 5,
+        red: 3,
+        unknown: 0,
+      },
       sourceCatalog: {
         totalSources: 2,
         coverageCommand: 'npm run db:evidence-source-coverage -- --text',
@@ -78,8 +85,13 @@ describe('buildGovernanceOverview', () => {
     });
 
     expect(overview.summaryCards.map((card) => card.title)).toEqual(
-      expect.arrayContaining(['系统状态', '数据新鲜度', '学习事实总量', '待处理风险'])
+      expect.arrayContaining(['系统状态', '数据新鲜度', '学习事实总量', '待处理风险', '课堂质量'])
     );
+    expect(overview.summaryCards.find((card) => card.title === '课堂质量')).toMatchObject({
+      value: '12/20',
+      detail: '黄 5 · 红 3 · 未识别 0',
+      tone: 'danger',
+    });
     expect(overview.queueCards.map((card) => card.title)).toEqual(
       expect.arrayContaining(['事件入池队列', '学生快照队列', '班级快照队列'])
     );

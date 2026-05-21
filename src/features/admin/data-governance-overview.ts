@@ -28,6 +28,13 @@ export type GovernanceStatusPayload = {
     label: string;
     count: number;
   }>;
+  sessionQuality?: {
+    recentSessions: number;
+    green: number;
+    yellow: number;
+    red: number;
+    unknown: number;
+  };
   sourceCatalog?: {
     totalSources: number;
     coverageCommand: string;
@@ -114,6 +121,21 @@ function formatFreshness(minutes: number | null) {
   return `${minutes} 分钟前`;
 }
 
+function buildSessionQualityCard(payload: GovernanceStatusPayload): SummaryCard | null {
+  const quality = payload.sessionQuality;
+  if (!quality) return null;
+  return {
+    title: '课堂质量',
+    value: `${quality.green}/${quality.recentSessions}`,
+    detail: `黄 ${quality.yellow} · 红 ${quality.red} · 未识别 ${quality.unknown}`,
+    tone: quality.red > 0 || quality.unknown > 0
+      ? 'danger'
+      : quality.yellow > 0
+        ? 'default'
+        : 'success',
+  };
+}
+
 export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   const summaryCards: SummaryCard[] = [
     {
@@ -141,6 +163,10 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
       tone: payload.data.activeRiskFlags > 0 ? 'danger' : 'success',
     },
   ];
+  const sessionQualityCard = buildSessionQualityCard(payload);
+  if (sessionQualityCard) {
+    summaryCards.push(sessionQualityCard);
+  }
 
   const queueCards: QueueCard[] = Object.entries(payload.queues).map(([key, stats]) => ({
     title: QUEUE_LABELS[key as keyof GovernanceStatusPayload['queues']],

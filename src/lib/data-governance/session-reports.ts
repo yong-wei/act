@@ -10,6 +10,10 @@ import {
 } from '@/lib/classroom-analytics/sync-incident-model';
 import { resolveCanonicalEventType } from './event-normalization';
 import {
+  computeSessionQualityStatus,
+  resolveSessionQualitySyncSeverity,
+} from './session-quality-status';
+import {
   createSubmissionEvidenceQualityCounts,
   summarizeSubmissionEvidencePayload,
 } from './submission-evidence-quality';
@@ -23,6 +27,7 @@ type ReportPrisma = Pick<PrismaClient,
   | 'studentCompetencySnapshot'
   | 'classSessionReport'
   | 'studentSessionReport'
+  | 'user'
 >;
 
 interface InteractionLogSummaryItem {
@@ -33,11 +38,14 @@ interface InteractionLogSummaryItem {
   lessonKey: string | null;
   learningContext?: string | null;
   invalidContextReason?: string | null;
+  actorRole?: string | null;
+  userRole?: string | null;
   eventData: unknown;
 }
 
 interface LearningFactSummaryItem {
   userId: string;
+  userRole?: string | null;
   factType: string;
   outcome: string;
   lessonId: string | null;
@@ -50,9 +58,15 @@ interface StudentStateSummaryItem {
 
 interface StudentStepResponseSummaryItem {
   userId: string;
+  userRole?: string | null;
   stepId: string;
   submittedAt: Date;
   responseData: unknown;
+}
+
+interface UserRoleSummaryItem {
+  id: string;
+  role: string | null;
 }
 
 interface StudentSnapshotSummaryItem {
@@ -62,6 +76,7 @@ interface StudentSnapshotSummaryItem {
 
 const SESSION_SNAPSHOT_UPDATE_WINDOW_MS = 2 * 60 * 60 * 1000;
 const SYNC_ERROR_BURST_WINDOW_MS = SYNC_INCIDENT_BURST_WINDOW_MS;
+const UNKNOWN_USER_ROLE = 'UNKNOWN';
 
 function increment(map: Record<string, number>, key: string | null | undefined) {
   if (!key) return;
@@ -76,6 +91,26 @@ function readObject(value: unknown): Record<string, unknown> {
 
 function resolveReportEventType(log: InteractionLogSummaryItem): string {
   return resolveCanonicalEventType(log.eventType, readObject(log.eventData));
+}
+
+function isStudentInteractionLog(log: InteractionLogSummaryItem) {
+  const actorRole = typeof log.actorRole === 'string' ? log.actorRole.trim().toLowerCase() : null;
+  if (actorRole === 'student') return true;
+  if (actorRole === 'teacher' || actorRole === 'admin') return false;
+  return isStudentUserRole(log.userRole);
+}
+
+function isStudentUserRole(role: string | null | undefined) {
+  if (role === undefined || role === null) return true;
+  return role === 'STUDENT';
+}
+
+function isStudentQualityRow(row: { userId: string; userRole?: string | null }, teacherUserIds: Set<string>) {
+  return isStudentUserRole(row.userRole) && !teacherUserIds.has(row.userId);
+}
+
+function resolveQueriedUserRole(roleByUserId: Map<string, string | null>, userId: string) {
+  return roleByUserId.has(userId) ? roleByUserId.get(userId) ?? UNKNOWN_USER_ROLE : UNKNOWN_USER_ROLE;
 }
 
 function firstNonEmpty(values: Array<string | null | undefined>): string | null {
@@ -436,6 +471,7 @@ export async function generateSessionSummaryReports(
         lessonKey: true,
         learningContext: true,
         invalidContextReason: true,
+        actorRole: true,
         eventData: true,
       },
     }) as Promise<InteractionLogSummaryItem[]>,
@@ -459,18 +495,50 @@ export async function generateSessionSummaryReports(
     }) as Promise<StudentStepResponseSummaryItem[]>,
   ]);
 
-  const loggedUserIds = new Set(logs.map((log) => log.userId));
-  const factUserIds = new Set(facts.map((fact) => fact.userId));
-  const durableSubmittedUserIds = new Set(submissions.map((submission) => submission.userId));
-  const sessionParticipantUserIds = Array.from(new Set([
-    ...studentStates.map((state) => state.userId),
+  const roleUserIds = Array.from(new Set([
     ...logs.map((log) => log.userId),
     ...facts.map((fact) => fact.userId),
     ...submissions.map((submission) => submission.userId),
   ])).sort();
+  const userRoles = roleUserIds.length > 0
+    ? await db.user.findMany({
+      where: { id: { in: roleUserIds } },
+      select: { id: true, role: true },
+    }) as UserRoleSummaryItem[]
+    : [];
+  const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
+  const logsWithRoles = logs.map((log) => ({
+    ...log,
+    userRole: resolveQueriedUserRole(roleByUserId, log.userId),
+  }));
+  const factsWithRoles = facts.map((fact) => ({
+    ...fact,
+    userRole: resolveQueriedUserRole(roleByUserId, fact.userId),
+  }));
+  const submissionsWithRoles = submissions.map((submission) => ({
+    ...submission,
+    userRole: resolveQueriedUserRole(roleByUserId, submission.userId),
+  }));
+  const studentLogs = logsWithRoles.filter(isStudentInteractionLog);
+  const teacherUserIds = new Set([
+    ...logsWithRoles.filter((log) => !isStudentInteractionLog(log)).map((log) => log.userId),
+    ...factsWithRoles.filter((fact) => !isStudentUserRole(fact.userRole)).map((fact) => fact.userId),
+    ...submissionsWithRoles.filter((submission) => !isStudentUserRole(submission.userRole)).map((submission) => submission.userId),
+  ]);
+  const studentFacts = factsWithRoles.filter((fact) => isStudentQualityRow(fact, teacherUserIds));
+  const studentSubmissions = submissionsWithRoles.filter((submission) => isStudentQualityRow(submission, teacherUserIds));
+  const loggedUserIds = new Set(studentLogs.map((log) => log.userId));
+  const factUserIds = new Set(studentFacts.map((fact) => fact.userId));
+  const durableSubmittedUserIds = new Set(studentSubmissions.map((submission) => submission.userId));
+  const sessionParticipantUserIds = Array.from(new Set([
+    ...studentStates.map((state) => state.userId),
+    ...studentLogs.map((log) => log.userId),
+    ...studentFacts.map((fact) => fact.userId),
+    ...studentSubmissions.map((submission) => submission.userId),
+  ])).sort();
   const lessonKey = firstNonEmpty([
     logs.find((log) => log.lessonKey)?.lessonKey,
-    facts.find((fact) => fact.lessonId)?.lessonId,
+    studentFacts.find((fact) => fact.lessonId)?.lessonId,
     studentStates.find((state) => state.lessonKey)?.lessonKey,
   ]);
   const eventTypes: Record<string, number> = {};
@@ -487,9 +555,6 @@ export async function generateSessionSummaryReports(
     increment(canonicalEventTypes, canonicalEventType);
     increment(learningContexts, log.learningContext);
     increment(invalidContextReasons, log.invalidContextReason);
-    if (canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit') {
-      submittedUserIds.add(log.userId);
-    }
     if (canonicalEventType === 'sync_error') {
       syncErrorUserIds.add(log.userId);
     }
@@ -497,10 +562,17 @@ export async function generateSessionSummaryReports(
       afterSessionEndEvents += 1;
     }
   }
+  for (const log of studentLogs) {
+    const canonicalEventType = resolveReportEventType(log);
+    if (canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit') {
+      submittedUserIds.add(log.userId);
+    }
+  }
 
   const syncHealth = buildSyncErrorIncidentSummary(logs);
+  const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs);
   const syncErrorIncidents = syncHealth.incidentCount;
-  const evidenceSummary = summarizeSubmissionEvidence(submissions);
+  const evidenceSummary = summarizeSubmissionEvidence(studentSubmissions);
 
   const snapshotWindowStart = session.endTime ?? session.startTime;
   const snapshotWindowEnd = new Date(snapshotWindowStart.getTime() + SESSION_SNAPSHOT_UPDATE_WINDOW_MS);
@@ -527,6 +599,23 @@ export async function generateSessionSummaryReports(
       )
       .map((snapshot) => snapshot.userId),
   );
+  const qualityStatus = computeSessionQualityStatus({
+    participants: sessionParticipantUserIds.length,
+    durableSubmittedParticipants: durableSubmittedUserIds.size,
+    durableSubmissions: studentSubmissions.length,
+    evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
+    reportFresh: true,
+    snapshotFresh: sessionParticipantUserIds.length === snapshotUpdatedUserIds.size,
+    syncSeverity: resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution),
+    unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
+    syncAffectedUsers: qualitySyncHealth.affectedUsers,
+    finalized: session.status === 'FINISHED',
+  });
+  const qualityStatusData = {
+    status: qualityStatus.status,
+    reasons: [...qualityStatus.reasons],
+    metrics: { ...qualityStatus.metrics },
+  };
 
   const classReportData = {
     sessionId,
@@ -537,8 +626,8 @@ export async function generateSessionSummaryReports(
     endTime: session.endTime?.toISOString() ?? null,
     participants: sessionParticipantUserIds.length,
     interactionLogs: logs.length,
-    learningFacts: facts.length,
-    durableSubmissions: submissions.length,
+    learningFacts: studentFacts.length,
+    durableSubmissions: studentSubmissions.length,
     submittedParticipantsFromDurableResponses: durableSubmittedUserIds.size,
     evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
     evidenceQualityReasonCounts: evidenceSummary.evidenceQualityReasonCounts,
@@ -551,14 +640,16 @@ export async function generateSessionSummaryReports(
     syncErrors: canonicalEventTypes.sync_error ?? 0,
     syncErrorIncidents,
     syncHealth,
+    qualityStatus: qualityStatusData,
     afterSessionEndEvents,
     sessionGovernanceSummary: {
+      qualityStatus: qualityStatusData,
       sessionParticipants: sessionParticipantUserIds.length,
       loggedParticipants: loggedUserIds.size,
       factParticipants: factUserIds.size,
       submittedParticipants: submittedUserIds.size,
       durableSubmittedParticipants: durableSubmittedUserIds.size,
-      durableSubmissionAttempts: submissions.length,
+      durableSubmissionAttempts: studentSubmissions.length,
       evidenceRichSubmissions: evidenceSummary.evidenceQualityCounts.rich,
       partialEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.partial,
       legacyEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.legacy,
@@ -602,7 +693,7 @@ export async function generateSessionSummaryReports(
     },
   };
   const classReportJson = classReportData as Prisma.InputJsonValue;
-  const summary = `${sessionParticipantUserIds.length} 名学生产生 ${logs.length} 条互动日志，沉淀 ${facts.length} 条学习事实。`;
+  const summary = `${sessionParticipantUserIds.length} 名学生产生 ${studentLogs.length} 条互动日志，沉淀 ${studentFacts.length} 条学习事实。`;
 
   await db.classSessionReport.upsert({
     where: {
@@ -629,15 +720,15 @@ export async function generateSessionSummaryReports(
 
   for (const userId of sessionParticipantUserIds) {
     const studentLogs = logs.filter((log) => log.userId === userId);
-    const studentFacts = facts.filter((fact) => fact.userId === userId);
-    const studentSubmissions = submissions.filter((submission) => submission.userId === userId);
+    const userFacts = studentFacts.filter((fact) => fact.userId === userId);
+    const userSubmissions = studentSubmissions.filter((submission) => submission.userId === userId);
     const studentLessonKey = firstNonEmpty([
       studentLogs.find((log) => log.lessonKey)?.lessonKey,
-      studentFacts.find((fact) => fact.lessonId)?.lessonId,
+      userFacts.find((fact) => fact.lessonId)?.lessonId,
       studentStates.find((state) => state.userId === userId)?.lessonKey,
       lessonKey,
     ]);
-    const reportData = buildStudentReportData(userId, studentLogs, studentFacts, studentSubmissions);
+    const reportData = buildStudentReportData(userId, studentLogs, userFacts, userSubmissions);
     const reportDataJson = reportData as Prisma.InputJsonValue;
     await db.studentSessionReport.upsert({
       where: {
@@ -653,13 +744,13 @@ export async function generateSessionSummaryReports(
         lessonKey: studentLessonKey,
         reportType: 'student-summary',
         status: 'READY',
-        summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
+        summary: `${studentLogs.length} 条互动日志，${userFacts.length} 条学习事实。`,
         reportData: reportDataJson,
       },
       update: {
         lessonKey: studentLessonKey,
         status: 'READY',
-        summary: `${studentLogs.length} 条互动日志，${studentFacts.length} 条学习事实。`,
+        summary: `${studentLogs.length} 条互动日志，${userFacts.length} 条学习事实。`,
         reportData: reportDataJson,
       },
     });

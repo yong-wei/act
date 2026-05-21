@@ -155,6 +155,14 @@ describe('buildSessionDataQualityReport', () => {
           status: 'READY',
           updatedAt: new Date('2026-05-20T09:41:00.000Z'),
         },
+        {
+          sessionId: 'session-5-2',
+          userId: 'teacher-1',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:42:00.000Z'),
+        },
       ],
     });
 
@@ -171,6 +179,25 @@ describe('buildSessionDataQualityReport', () => {
     expect(report.sessions[0]).toMatchObject({
       sessionId: 'session-5-2',
       lessonKeys: ['5-2'],
+      qualityStatus: {
+        status: 'red',
+        reasons: [
+          'report_missing_or_stale',
+          'sync_affected_user_ratio_high',
+        ],
+        metrics: {
+          participants: 2,
+          durableSubmissionCoverage: 1,
+          richEvidenceRatio: 1 / 3,
+          richOrPartialEvidenceRatio: 2 / 3,
+          legacyOrMissingRatio: 1 / 3,
+          reportFresh: false,
+          snapshotFresh: false,
+          syncSeverity: 'low',
+          unresolvedSyncIncidents: 1,
+          syncAffectedUserRatio: 0.5,
+        },
+      },
       submissionCoverage: {
         totalRows: 3,
         evidenceQualityCounts: {
@@ -209,6 +236,46 @@ describe('buildSessionDataQualityReport', () => {
     });
   });
 
+  it('keeps unfinished sessions out of final red quality classification', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-live'] },
+      sessions: [{
+        id: 'session-live',
+        classId: 'class-1',
+        status: 'ACTIVE',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: null,
+        plan: { title: 'live session' },
+      }],
+      studentStates: [{
+        sessionId: 'session-live',
+        userId: 'student-1',
+        stateKey: 'course',
+        lessonKey: '5-2',
+        submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+        lastClientEventAt: new Date('2026-05-20T08:10:00.000Z'),
+      }],
+      interactionLogs: [],
+      learningFacts: [],
+      studentStepResponses: [],
+      studentCompetencySnapshots: [],
+      classSessionReports: [],
+      studentSessionReports: [],
+    });
+
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'yellow',
+      reasons: ['session_not_finished'],
+      metrics: {
+        participants: 1,
+        durableSubmissionCoverage: 0,
+        reportFresh: false,
+        snapshotFresh: false,
+      },
+    });
+  });
+
   it('does not broaden a lesson-filtered report when no matching session exists', async () => {
     const db = {
       interactionLog: { findMany: vi.fn().mockResolvedValue([]) },
@@ -219,6 +286,7 @@ describe('buildSessionDataQualityReport', () => {
       studentCompetencySnapshot: { findMany: vi.fn() },
       classSessionReport: { findMany: vi.fn() },
       studentSessionReport: { findMany: vi.fn() },
+      user: { findMany: vi.fn() },
     };
 
     const report = await collectSessionDataQualityReport(db, { lessonKeys: ['5-99'] });
@@ -265,6 +333,7 @@ describe('buildSessionDataQualityReport', () => {
       studentCompetencySnapshot: { findMany: vi.fn() },
       classSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
       studentSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      user: { findMany: vi.fn().mockResolvedValue([]) },
     };
 
     await collectSessionDataQualityReport(db, { lessonKeys: ['5-2'] });
@@ -294,5 +363,251 @@ describe('buildSessionDataQualityReport', () => {
         lessonKey: { in: ['5-2'] },
       }),
     }));
+  });
+
+  it('uses queried user roles before deriving snapshot participants from interaction logs', async () => {
+    const db = {
+      interactionLog: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-role-fallback',
+          userId: 'teacher-1',
+          eventType: 'error',
+          stepId: 'step-01',
+          lessonKey: '5-2',
+          actorRole: null,
+          clientEventAt: new Date('2026-05-20T08:10:00.000Z'),
+          createdAt: new Date('2026-05-20T08:10:01.000Z'),
+          eventData: {
+            eventType: 'sync_error',
+            source: 'teacher_state_get',
+            failureKind: 'network',
+            message: 'teacher poll failed',
+          },
+        }]),
+      },
+      studentState: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-role-fallback',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:15:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T08:20:00.000Z'),
+        }]),
+      },
+      learningFact: { findMany: vi.fn().mockResolvedValue([]) },
+      studentStepResponse: { findMany: vi.fn().mockResolvedValue([]) },
+      classSession: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'session-role-fallback',
+          classId: 'class-1',
+          status: 'FINISHED',
+          startTime: new Date('2026-05-20T08:00:00.000Z'),
+          endTime: new Date('2026-05-20T09:30:00.000Z'),
+          plan: { title: '5-2' },
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-20T09:40:00.000Z'),
+        }]),
+      },
+      classSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      studentSessionReport: { findMany: vi.fn().mockResolvedValue([]) },
+      user: {
+        findMany: vi.fn().mockResolvedValue([{ id: 'teacher-1', role: 'TEACHER' }]),
+      },
+    };
+
+    const report = await collectSessionDataQualityReport(db, { sessionIds: ['session-role-fallback'] });
+
+    expect(db.studentCompetencySnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: { in: ['student-1'] },
+      }),
+    }));
+    expect(report.sessions[0].participants).toBe(1);
+    expect(report.sessions[0].qualityStatus.metrics).toMatchObject({
+      syncSeverity: 'none',
+      syncAffectedUsers: 0,
+      syncAffectedUserRatio: 0,
+    });
+    expect(report.sessions[0].syncQuality).toMatchObject({
+      incidentCount: 1,
+      affectedUsers: 1,
+    });
+  });
+
+  it('exposes a green quality status for a fully refreshed 5-2 report fixture', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-green-5-2'] },
+      sessions: [{
+        id: 'session-green-5-2',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-2' },
+      }],
+      studentStates: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          stateKey: 'course',
+          lessonKey: '5-2',
+          submittedAt: new Date('2026-05-20T08:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:21:00.000Z'),
+        },
+      ],
+      interactionLogs: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-1',
+          eventType: 'error',
+          stepId: 'step-03',
+          lessonKey: '5-2',
+          actorRole: null,
+          userRole: 'TEACHER',
+          clientEventAt: new Date('2026-05-20T08:12:00.000Z'),
+          createdAt: new Date('2026-05-20T08:12:01.000Z'),
+          eventData: {
+            eventType: 'sync_error',
+            source: 'teacher_state_get',
+            failureKind: 'network',
+            message: 'teacher poll failed',
+          },
+        },
+      ],
+      learningFacts: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-2',
+          userRole: 'TEACHER',
+          lessonId: '5-2',
+          score: null,
+          outcome: 'partial',
+          startedAt: new Date('2026-05-20T08:13:00.000Z'),
+          contextJson: {},
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'ghost-1',
+          userRole: 'UNKNOWN',
+          lessonId: '5-2',
+          score: null,
+          outcome: 'partial',
+          startedAt: new Date('2026-05-20T08:14:00.000Z'),
+          contextJson: {},
+        },
+      ],
+      studentStepResponses: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:10:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            evidenceQuality: 'rich',
+            answers: { q1: 'A' },
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true }],
+          },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:11:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            evidenceQuality: 'partial',
+            answers: { q1: '描述函数适用条件' },
+          },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'teacher-1',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:12:00.000Z'),
+          responseData: { evidenceQuality: 'legacy-envelope' },
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'ghost-1',
+          userRole: 'UNKNOWN',
+          lessonKey: '5-2',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-20T08:13:00.000Z'),
+          responseData: { evidenceQuality: 'legacy-envelope' },
+        },
+      ],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:40:00.000Z') },
+        { userId: 'student-2', snapshotAt: new Date('2026-05-20T09:41:00.000Z') },
+      ],
+      classSessionReports: [
+        {
+          sessionId: 'session-green-5-2',
+          lessonKey: '5-2',
+          reportType: 'class-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+        },
+      ],
+      studentSessionReports: [
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-1',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        },
+        {
+          sessionId: 'session-green-5-2',
+          userId: 'student-2',
+          lessonKey: '5-2',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:42:00.000Z'),
+        },
+      ],
+    });
+
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'green',
+      reasons: ['healthy_quality_gate'],
+      metrics: {
+        participants: 2,
+        durableSubmissionCoverage: 1,
+        richOrPartialEvidenceRatio: 1,
+        legacyOrMissingRatio: 0,
+        reportFresh: true,
+        snapshotFresh: true,
+        syncSeverity: 'none',
+        syncAffectedUsers: 0,
+        syncAffectedUserRatio: 0,
+      },
+    });
+    expect(report.sessions[0].learningFacts).toBe(0);
+    expect(report.sessions[0].submissionCoverage.totalRows).toBe(2);
+    expect(report.sessions[0].syncQuality).toMatchObject({
+      incidentCount: 1,
+      affectedUsers: 1,
+      severityClassification: 'low',
+    });
   });
 });

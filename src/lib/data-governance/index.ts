@@ -13,6 +13,7 @@ export * from './event-buffer';
 export * from './competency-model';
 export * from './competency-engine';
 export * from './learning-fact-quality-weight';
+export * from './session-quality-status';
 
 // Risk detection
 export * from './risk-detector';
