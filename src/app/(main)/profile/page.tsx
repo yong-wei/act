@@ -356,6 +356,57 @@ export default function ProfilePage() {
                       )}
                     </div>
                   </div>
+
+                  <div className="surface-card-soft p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-subtle">能力成长</p>
+                        <p className="mt-1 text-sm text-foreground">
+                          覆盖 {profile.arenaPortfolio.growth.capabilityCoverage.covered}/{profile.arenaPortfolio.growth.capabilityCoverage.total} 项竞技能力
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-300">
+                        {profile.arenaPortfolio.growth.evidenceAvailable ? '已有官方证据' : '暂无官方证据'}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {profile.arenaPortfolio.growth.weakCapabilities.slice(0, 3).map((capability) => (
+                        <span key={capability} className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300">
+                          待补强 · {capability}
+                        </span>
+                      ))}
+                      {profile.arenaPortfolio.growth.improvingCapabilities.slice(0, 3).map((capability) => (
+                        <span key={capability} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-300">
+                          提升中 · {capability}
+                        </span>
+                      ))}
+                      {profile.arenaPortfolio.growth.strongCapabilities.slice(0, 3).map((capability) => (
+                        <span key={capability} className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-600 dark:text-blue-300">
+                          稳定 · {capability}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-subtle">下一项挑战</p>
+                    <div className="mt-2 grid gap-2">
+                      {profile.arenaPortfolio.growth.nextChallenges.length > 0 ? (
+                        profile.arenaPortfolio.growth.nextChallenges.map((challenge) => (
+                          <Link
+                            key={challenge.taskId}
+                            href={challenge.href}
+                            className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm transition hover:border-amber-500/40"
+                          >
+                            <span className="font-medium text-foreground">{challenge.taskTitle}</span>
+                            <span className="mt-1 block text-xs text-subtle">{challenge.reason}</span>
+                          </Link>
+                        ))
+                      ) : (
+                        <span className="text-xs text-subtle">暂无可推荐挑战</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

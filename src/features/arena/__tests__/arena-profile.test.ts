@@ -196,6 +196,47 @@ describe('arena student portfolio', () => {
       expect.objectContaining({ metricId: 'steadyStateError', firstSatisfaction: 0.3, latestSatisfaction: 0.82, delta: 0.52 }),
       expect.objectContaining({ metricId: 'controlEnergy', firstSatisfaction: 0.25, latestSatisfaction: 0.62, delta: 0.37 }),
     ]);
+    expect(portfolio.growth.evidenceAvailable).toBe(true);
+    expect(portfolio.growth.weakCapabilities).toEqual(expect.arrayContaining([
+      '黑箱辨识',
+    ]));
+    expect(portfolio.growth.improvingCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(portfolio.growth.nextChallenges[0].reason).toMatch(/薄弱|指标|阶段|补齐/);
+  });
+
+  it('marks strong Arena capability evidence and recommends next-stage challenges', () => {
+    const strong = submission({
+      id: 'target-strong',
+      taskId: 'task-second-order-lead-pid',
+      userId: targetUserId,
+      studentLabel: '目标学生',
+      artifact: artifact({ id: 'target-strong', taskId: 'task-second-order-lead-pid' }),
+      score: 91,
+      valid: true,
+      submittedAt: '2026-05-11T08:00:00.000Z',
+      satisfaction: {
+        settlingTime: 0.88,
+        overshoot: 0.9,
+        steadyStateError: 0.92,
+        controlEnergy: 0.86,
+      },
+    });
+
+    const portfolio = buildArenaStudentPortfolio([strong], targetUserId);
+
+    expect(portfolio.growth.strongCapabilities).toEqual(expect.arrayContaining([
+      '时域整形',
+      '稳态精度',
+    ]));
+    expect(portfolio.growth.nextChallenges[0]).toEqual(expect.objectContaining({
+      taskId: 'task-integrator-low-frequency-balance',
+      evidenceLevel: 'next-stage',
+    }));
+    expect(portfolio.growth.nextChallenges[0].reason).toContain('分析整合');
   });
 
   it('connects the portfolio summary to the student profile API and page', () => {
@@ -214,6 +255,9 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('竞技场画像');
+    expect(pageSource).toContain('能力成长');
+    expect(pageSource).toContain('下一项挑战');
+    expect(pageSource).toContain('growth.nextChallenges');
   });
 
   it('returns an empty portfolio without inventing controller or leaderboard data', () => {
@@ -234,5 +278,17 @@ describe('arena student portfolio', () => {
       frequentFailureObjects: [],
       improvingMetrics: [],
     });
+    expect(portfolio.growth).toMatchObject({
+      evidenceAvailable: false,
+      capabilityCoverage: {
+        covered: 0,
+      },
+      weakCapabilities: [],
+      improvingCapabilities: [],
+      strongCapabilities: [],
+    });
+    expect(portfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(portfolio.growth.nextChallenges.every((item) => item.evidenceLevel === 'beginner-safe')).toBe(true);
+    expect(portfolio.growth.nextChallenges[0].reason).toContain('暂无官方 Arena 提交证据');
   });
 });
