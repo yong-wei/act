@@ -16,6 +16,7 @@ import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '
 import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
   buildDefaultWorkbenchPanelInstances,
+  buildWorkbenchPanelExplanations,
   buildWorkbenchPanelInstance,
   getPresetDefaultViewConfigs,
   getWorkbenchViewPlugin,
@@ -410,6 +411,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   const renderPanelConfiguration = (panel: WorkbenchPanelInstance) => {
     const plugin = getWorkbenchViewPlugin(panel.viewId);
     const availability = plugin?.getAvailability(session) ?? { available: true };
+    const explanations = buildWorkbenchPanelExplanations(session, panel);
     return (
       <article key={panel.id} className="rounded-lg border border-border/70 bg-background/60 p-3" data-workbench-panel-config-id={panel.id}>
         <div className="flex items-start justify-between gap-2">
@@ -440,6 +442,19 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           </div>
         </div>
         <p className="mt-3 text-xs text-subtle">每个面板的配置在对应面板标题区调整。</p>
+        {explanations.length > 0 ? (
+          <div className="mt-3 space-y-3 border-t border-border/70 pt-3">
+            <p className="text-xs font-semibold text-foreground">设计证据说明</p>
+            {explanations.map((item) => (
+              <div key={item.id} className="space-y-1 text-xs leading-5">
+                <p className="font-medium text-foreground">{item.title}</p>
+                <p className="text-subtle">{item.summary}</p>
+                <p className="text-subtle">依据：{item.evidenceBasis.join(' / ')}</p>
+                <p className="text-primary">{item.boundary}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </article>
     );
   };
