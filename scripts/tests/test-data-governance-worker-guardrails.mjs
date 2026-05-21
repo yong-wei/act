@@ -38,5 +38,22 @@ assert.match(
   'data governance worker 必须对同类基础设施错误做日志节流或聚合',
 );
 
-console.log('data governance worker guardrails contract passed');
+assert.match(
+  workerSource,
+  /refreshStudentEvidenceFeatureCache/,
+  'student snapshot worker 必须在快照处理闭环中刷新 StudentEvidenceFeatureCache',
+);
 
+assert.match(
+  workerSource,
+  /rebuildStudentEvidenceFeatureCache/,
+  'data governance worker 必须支持 StudentEvidenceFeatureCache 全量重建任务',
+);
+
+assert.match(
+  workerSource,
+  /evidence-feature-cache/,
+  'data governance worker 必须注册 evidence-feature-cache 队列',
+);
+
+console.log('data governance worker guardrails contract passed');
