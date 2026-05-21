@@ -30,6 +30,12 @@ assert.match(
   'scheduler 必须把班级快照改为每天一次的凌晨任务',
 );
 
+assert.match(
+  schedulerSource,
+  /EVIDENCE_FEATURE_CACHE_REBUILD|evidence.*45 4 \* \* \*/is,
+  'scheduler 必须注册每日 evidence feature cache 重建任务',
+);
+
 assert.doesNotMatch(
   schedulerSource,
   /take:\s*100[\s\S]*studentQueue\.add/,
@@ -49,4 +55,3 @@ assert.match(
 );
 
 console.log('data governance scheduling contract passed');
-

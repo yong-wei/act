@@ -82,6 +82,57 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
+  it('separates thirty-day learner windows from all-time audit windows', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'older-rich-fact',
+          startedAt: new Date('2026-03-01T10:00:00.000Z'),
+          finishedAt: new Date('2026-03-01T10:04:00.000Z'),
+          score: 50,
+          competencyContribution: { controlModeling: 0.4 },
+        }),
+        fact({
+          id: 'recent-rich-fact',
+          startedAt: new Date('2026-05-18T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-18T10:06:00.000Z'),
+          score: 90,
+          competencyContribution: { parameterDesign: 0.9 },
+        }),
+      ],
+    });
+
+    expect(payload.features.activity30d).toMatchObject({
+      totalFacts: 1,
+      averageScore: 90,
+    });
+    expect(payload.features.activityAll).toMatchObject({
+      totalFacts: 2,
+      averageScore: 70,
+    });
+    expect(payload.features.activity).toEqual(payload.features.activityAll);
+    expect(payload.features.competencyContributions30d.parameterDesign).toMatchObject({
+      evidenceCount: 1,
+      averageContribution: 0.9,
+    });
+    expect(payload.features.competencyContributionsAll.controlModeling).toMatchObject({
+      evidenceCount: 1,
+      averageContribution: 0.4,
+    });
+    expect(payload.sourceWindows.activity30d).toEqual({
+      firstStartedAt: '2026-05-18T10:00:00.000Z',
+      lastStartedAt: '2026-05-18T10:00:00.000Z',
+      daysCovered: 0,
+    });
+    expect(payload.sourceWindows.activityAll).toEqual({
+      firstStartedAt: '2026-03-01T10:00:00.000Z',
+      lastStartedAt: '2026-05-18T10:00:00.000Z',
+      daysCovered: 78,
+    });
+  });
+
   it('marks missing, partial, low-confidence, and stale evidence explicitly', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -151,6 +202,16 @@ describe('student evidence feature cache service', () => {
     expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: 'student-1' },
+        create: expect.objectContaining({
+          freshness: expect.objectContaining({
+            sourceWindows: expect.objectContaining({
+              activity30d: expect.any(Object),
+              activityAll: expect.any(Object),
+              competencyContributions30d: expect.any(Object),
+              competencyContributionsAll: expect.any(Object),
+            }),
+          }),
+        }),
       })
     );
   });

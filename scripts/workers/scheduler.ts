@@ -7,7 +7,12 @@
 
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
-import type { ClassSnapshotJob, EventIngestionJob, StudentSnapshotJob } from './types';
+import type {
+  ClassSnapshotJob,
+  EventIngestionJob,
+  EvidenceFeatureCacheJob,
+  StudentSnapshotJob,
+} from './types';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
@@ -16,6 +21,7 @@ const SCHEDULES = {
   EVENT_INGESTION_NIGHTLY: '10 2 * * *',
   ACTIVE_STUDENT_SNAPSHOT: '15 * * * *',
   CLASS_SNAPSHOT: '30 3 * * *',
+  EVIDENCE_FEATURE_CACHE_REBUILD: '45 4 * * *',
 } as const;
 
 const JOB_HISTORY_OPTIONS = {
@@ -36,10 +42,12 @@ async function scheduleJobs() {
   const eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection: redis });
   const studentQueue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
   const classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
+  const evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
 
   await clearRepeatableJobs(eventQueue);
   await clearRepeatableJobs(studentQueue);
   await clearRepeatableJobs(classQueue);
+  await clearRepeatableJobs(evidenceFeatureCacheQueue);
 
   await eventQueue.add(
     'event-ingestion-coordinator',
@@ -71,13 +79,25 @@ async function scheduleJobs() {
     },
   );
 
+  await evidenceFeatureCacheQueue.add(
+    'evidence-feature-cache-rebuild',
+    { coordinator: true, rebuildAll: true },
+    {
+      repeat: { cron: SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD },
+      jobId: 'coordinator-evidence-feature-cache-rebuild',
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+
   console.log(`[Scheduler] Event ingestion scheduled: ${SCHEDULES.EVENT_INGESTION_NIGHTLY}`);
   console.log(`[Scheduler] Active student snapshots scheduled: ${SCHEDULES.ACTIVE_STUDENT_SNAPSHOT}`);
   console.log(`[Scheduler] Class snapshots scheduled: ${SCHEDULES.CLASS_SNAPSHOT}`);
+  console.log(`[Scheduler] Evidence feature cache rebuild scheduled: ${SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD}`);
 
   await eventQueue.close();
   await studentQueue.close();
   await classQueue.close();
+  await evidenceFeatureCacheQueue.close();
   await redis.quit();
 
   console.log('[Scheduler] Recurring coordinator jobs refreshed successfully');
