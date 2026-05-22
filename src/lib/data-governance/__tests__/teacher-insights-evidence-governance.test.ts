@@ -169,6 +169,7 @@ describe('teacher evidence governance insights', () => {
     });
     mocks.prismaArenaSubmissionStore.listSubmissions.mockResolvedValue([]);
     mocks.generateRecommendations.mockResolvedValue([]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -205,6 +206,12 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
     mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
     mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
+      evidenceCache('student-ready'),
+      evidenceCache('student-stale'),
+      evidenceCache('student-low'),
+      evidenceCache('student-missing'),
+    ]);
     mocks.prisma.classSession.findMany.mockResolvedValue([
       { id: 'session-current' },
     ]);
@@ -258,7 +265,14 @@ describe('teacher evidence governance insights', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentEvidenceFeatureCache.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentEvidenceFeatureCache.findMany).toHaveBeenCalledWith({
+      where: { userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] } },
+      select: {
+        userId: true,
+        refreshedAt: true,
+        statusMarkers: true,
+      },
+    });
     expect(mocks.prisma.classSession.findMany).toHaveBeenCalledWith({
       where: { classId: 'class-1' },
       select: { id: true },
@@ -302,6 +316,70 @@ describe('teacher evidence governance insights', () => {
       state: 'missing',
       confidence: { level: 'none', evidenceCount: 0 },
       lastEvidenceAt: null,
+    });
+  });
+
+  it('uses cache health to avoid marking stale feature data as ready', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [
+        enrolledStudent('student-stale-cache', '缓存过期'),
+      ],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      { id: 'session-current' },
+    ]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([
+      evidenceFactGroup(
+        'student-stale-cache',
+        'course-evidence',
+        12,
+        '2026-05-20T08:00:00.000Z',
+        '2026-05-20T08:30:00.000Z',
+      ),
+    ]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
+      {
+        userId: 'student-stale-cache',
+        refreshedAt: new Date('2026-03-01T00:00:00.000Z'),
+        statusMarkers: ['stale'],
+      },
+    ]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0].evidenceStatus).toMatchObject({
+      state: 'stale',
+      refreshedAt: '2026-03-01T00:00:00.000Z',
+      lastEvidenceAt: '2026-05-20T08:30:00.000Z',
+      sourceCounts: {
+        LearningFact: 12,
+      },
+      statusMarkers: expect.arrayContaining(['stale']),
+    });
+    expect(body.governance.evidenceCoverage).toMatchObject({
+      readyStudents: 0,
+      staleStudents: 1,
+      missingStudents: 0,
     });
   });
 

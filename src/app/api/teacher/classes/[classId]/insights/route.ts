@@ -152,6 +152,7 @@ export async function GET(
       recommendationCounts,
       arenaSubmissions,
       arenaLearningFacts,
+      studentEvidenceFeatureCaches,
       classScopedEvidenceFactGroups,
       recentSessionQualityReports,
     ] = await Promise.all([
@@ -216,6 +217,16 @@ export async function GET(
           })
         : Promise.resolve([]),
       studentIds.length
+        ? prisma.studentEvidenceFeatureCache.findMany({
+            where: { userId: { in: studentIds } },
+            select: {
+              userId: true,
+              refreshedAt: true,
+              statusMarkers: true,
+            },
+          })
+        : Promise.resolve([]),
+      studentIds.length
         ? prisma.learningFact.groupBy({
             by: ['userId', 'factType'],
             where: {
@@ -267,8 +278,12 @@ export async function GET(
       accumulator.set(flag.userId, current);
       return accumulator;
     }, new Map<string, typeof riskFlags>());
+    const cacheHealthByUserId = new Map(
+      studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
+    );
     const evidenceStatusMap = buildTeacherClassScopedEvidenceStatusMap(studentIds, classScopedEvidenceFactGroups, {
       now: new Date(),
+      cacheHealthByUserId,
     });
     const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
     const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);

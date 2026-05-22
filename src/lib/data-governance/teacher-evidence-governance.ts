@@ -71,6 +71,12 @@ export interface TeacherClassScopedEvidenceFactGroup {
   _max?: { startedAt?: Date | string | null };
 }
 
+export interface TeacherClassScopedEvidenceCacheHealth {
+  userId: string;
+  refreshedAt?: Date | string | null;
+  statusMarkers?: unknown;
+}
+
 const DEFAULT_STALE_AFTER_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -136,7 +142,11 @@ export function buildTeacherStudentEvidenceStatusMap(
 export function buildTeacherClassScopedEvidenceStatusMap(
   userIds: string[],
   factGroups: TeacherClassScopedEvidenceFactGroup[],
-  options: { now?: Date; staleAfterDays?: number } = {},
+  options: {
+    now?: Date;
+    staleAfterDays?: number;
+    cacheHealthByUserId?: Map<string, TeacherClassScopedEvidenceCacheHealth>;
+  } = {},
 ): Map<string, TeacherStudentEvidenceStatus> {
   const aggregates = new Map<string, {
     count: number;
@@ -163,10 +173,17 @@ export function buildTeacherClassScopedEvidenceStatusMap(
   }
 
   return new Map(
-    userIds.map((userId) => [
-      userId,
-      buildClassScopedEvidenceStatus(aggregates.get(userId), options),
-    ]),
+    userIds.map((userId) => {
+      const classScopedStatus = buildClassScopedEvidenceStatus(aggregates.get(userId), options);
+      return [
+        userId,
+        applyClassScopedCacheHealth(
+          classScopedStatus,
+          options.cacheHealthByUserId?.get(userId) ?? null,
+          options,
+        ),
+      ];
+    }),
   );
 }
 
@@ -296,6 +313,52 @@ function buildClassScopedEvidenceStatus(
   };
 }
 
+function applyClassScopedCacheHealth(
+  status: TeacherStudentEvidenceStatus,
+  cacheHealth: TeacherClassScopedEvidenceCacheHealth | null,
+  options: { now?: Date; staleAfterDays?: number },
+): TeacherStudentEvidenceStatus {
+  if (!cacheHealth) {
+    if (status.state === 'missing') {
+      return status;
+    }
+    return {
+      ...status,
+      state: 'stale',
+      refreshedAt: null,
+      statusMarkers: mergeStatusMarkers(status.statusMarkers, ['missing-source', 'stale']),
+    };
+  }
+
+  const cacheMarkers = normalizeStatusMarkers(cacheHealth.statusMarkers);
+  const cacheState = resolveEvidenceState(
+    { refreshedAt: cacheHealth.refreshedAt },
+    cacheMarkers,
+    options,
+  );
+  const refreshedAt = dateToIso(cacheHealth.refreshedAt);
+  const statusMarkers = mergeStatusMarkers(
+    status.statusMarkers,
+    cacheMarkers,
+    cacheState === 'stale' ? ['stale'] : [],
+  );
+
+  if (status.state === 'missing') {
+    return {
+      ...status,
+      refreshedAt,
+      statusMarkers,
+    };
+  }
+
+  return {
+    ...status,
+    state: cacheState === 'stale' ? 'stale' : status.state,
+    refreshedAt: refreshedAt ?? status.refreshedAt,
+    statusMarkers,
+  };
+}
+
 function createMissingStudentEvidenceStatus(): TeacherStudentEvidenceStatus {
   return {
     state: 'missing',
@@ -325,6 +388,12 @@ function createMissingStudentEvidenceStatus(): TeacherStudentEvidenceStatus {
     },
     statusMarkers: ['missing-source'],
   };
+}
+
+function mergeStatusMarkers(
+  ...groups: Array<readonly StudentEvidenceStatusMarker[]>
+): StudentEvidenceStatusMarker[] {
+  return Array.from(new Set(groups.flat()));
 }
 
 function resolveEvidenceState(
