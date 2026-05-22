@@ -7,6 +7,7 @@ import {
 } from '@/lib/interactive-lesson-manifest';
 import { generateSessionSummaryReports } from './session-reports';
 import { summarizeSubmissionEvidencePayload } from './submission-evidence-quality';
+import { refreshStudentEvidenceFeatureCache } from './student-evidence-feature-cache';
 
 export const COURSE_EVIDENCE_BACKFILL_VERSION = 'course-evidence-backfill-v1';
 
@@ -171,6 +172,11 @@ export interface CourseEvidenceReportRegenerationResult {
   sessionsSkipped: number;
   classReports: number;
   studentReports: number;
+}
+
+export interface CourseEvidenceCacheRefreshResult {
+  usersRequested: number;
+  usersRefreshed: number;
 }
 
 function readRecord(value: unknown): JsonRecord {
@@ -939,5 +945,27 @@ export async function regenerateCourseEvidenceReports(
     sessionsSkipped,
     classReports,
     studentReports,
+  };
+}
+
+export async function refreshCourseEvidenceAffectedStudentCaches(
+  db: Parameters<typeof refreshStudentEvidenceFeatureCache>[0],
+  plan: Pick<CourseEvidenceBackfillPlan, 'affectedUserIds'>,
+  options: {
+    refreshStudentCache?: typeof refreshStudentEvidenceFeatureCache;
+  } = {},
+): Promise<CourseEvidenceCacheRefreshResult> {
+  const refreshStudentCache = options.refreshStudentCache ?? refreshStudentEvidenceFeatureCache;
+  const userIds = uniqueSorted(plan.affectedUserIds);
+  let usersRefreshed = 0;
+
+  for (const userId of userIds) {
+    await refreshStudentCache(db, userId);
+    usersRefreshed += 1;
+  }
+
+  return {
+    usersRequested: userIds.length,
+    usersRefreshed,
   };
 }

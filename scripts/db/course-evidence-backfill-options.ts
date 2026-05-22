@@ -5,6 +5,7 @@ export interface CourseEvidenceBackfillCliOptions {
   json: boolean;
   compact: boolean;
   regenerateReports: boolean;
+  refreshCache: boolean;
   filters: CourseEvidenceBackfillFilters;
 }
 
@@ -50,6 +51,7 @@ export function parseCourseEvidenceBackfillOptions(argv: string[]): CourseEviden
     json: readFlag(args, '--json'),
     compact: readFlag(args, '--compact'),
     regenerateReports: readFlag(args, '--regenerate-reports'),
+    refreshCache: readFlag(args, '--refresh-cache'),
     filters,
   };
 }

@@ -5,6 +5,7 @@ import {
   applyCourseEvidenceBackfillPlan,
   buildCourseEvidenceBackfillPlan,
   collectCourseEvidenceBackfillPlan,
+  refreshCourseEvidenceAffectedStudentCaches,
   regenerateCourseEvidenceReports,
 } from '../course-evidence-backfill';
 
@@ -874,6 +875,28 @@ describe('course evidence backfill', () => {
       sessionsSkipped: 1,
       classReports: 1,
       studentReports: 2,
+    });
+  });
+
+  it('refreshes feature caches only for affected students after apply', async () => {
+    const refreshStudentCache = vi.fn()
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    const result = await refreshCourseEvidenceAffectedStudentCaches(
+      {} as never,
+      {
+        affectedUserIds: ['student-b', 'student-a', 'student-b'],
+      },
+      { refreshStudentCache },
+    );
+
+    expect(refreshStudentCache).toHaveBeenCalledTimes(2);
+    expect(refreshStudentCache).toHaveBeenNthCalledWith(1, {}, 'student-a');
+    expect(refreshStudentCache).toHaveBeenNthCalledWith(2, {}, 'student-b');
+    expect(result).toEqual({
+      usersRequested: 2,
+      usersRefreshed: 2,
     });
   });
 });
