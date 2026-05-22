@@ -73,6 +73,18 @@ interface CourseReviewRecord {
   }
 }
 
+interface CourseReviewStateCandidate {
+  stateData?: unknown
+  lessonKey?: string | null
+}
+
+interface CourseReviewParticipant {
+  user: CourseReviewPrepostUser
+  lessonKey?: string | null
+  stateCandidates: CourseReviewStateCandidate[]
+  submissions: CourseReviewPrepostSubmissionRow[]
+}
+
 const DIMENSIONS: AbilityDimensionKey[] = [
   'computational',
   'crossDomain',
@@ -253,6 +265,43 @@ function inferLessonIdFromLessonKey(lessonKey: string | null | undefined) {
   const match = lessonKey.match(/^unit-(\d+)-(\d+)-/)
   if (!match) return null
   return `${match[1]}-${match[2]}`
+}
+
+function inferLessonIdFromStateCandidate(
+  candidate: CourseReviewStateCandidate,
+  fallbackLessonKey?: string | null,
+) {
+  return inferCourseReviewLessonIdFromStateData(candidate.stateData)
+    ?? inferLessonIdFromLessonKey(candidate.lessonKey ?? fallbackLessonKey)
+}
+
+function rankCourseReviewPrepostRecord(record: CourseReviewPrepostRecord) {
+  const recoverabilityScore = record.recoverability === 'complete'
+    ? 3
+    : record.recoverability === 'partial'
+      ? 2
+      : 1
+  const evidenceScore = record.evidenceQuality === 'rich'
+    ? 4
+    : record.evidenceQuality === 'partial'
+      ? 3
+      : record.evidenceQuality === 'legacy'
+        ? 2
+        : 1
+  const numericScoreCount = [record.pre?.score, record.post?.score]
+    .filter((score): score is number => typeof score === 'number')
+    .length
+
+  return recoverabilityScore * 100 + evidenceScore * 10 + numericScoreCount
+}
+
+function chooseBestCourseReviewPrepostRecord(records: CourseReviewPrepostRecord[]) {
+  return records.reduce<CourseReviewPrepostRecord | null>((best, record) => {
+    if (!best) return record
+    return rankCourseReviewPrepostRecord(record) > rankCourseReviewPrepostRecord(best)
+      ? record
+      : best
+  }, null)
 }
 
 async function loadInteractiveManifestForLesson(lessonId: string): Promise<InteractiveRuntimeManifest | null> {
@@ -572,20 +621,21 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     )
   }
 
-  const participants = new Map<string, {
-    user: CourseReviewPrepostUser
-    stateData?: unknown
-    lessonKey?: string | null
-    submissions: CourseReviewPrepostSubmissionRow[]
-  }>()
+  const participants = new Map<string, CourseReviewParticipant>()
 
   for (const state of session.studentStates) {
-    participants.set(state.user.id, {
+    const participant = participants.get(state.user.id) ?? {
       user: state.user,
+      lessonKey: state.lessonKey,
+      stateCandidates: [],
+      submissions: [],
+    }
+    participant.lessonKey = participant.lessonKey ?? state.lessonKey
+    participant.stateCandidates.push({
       stateData: state.data,
       lessonKey: state.lessonKey,
-      submissions: [],
     })
+    participants.set(state.user.id, participant)
   }
 
   for (const response of studentStepResponses) {
@@ -606,10 +656,12 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
 
   const lessonIds = Array.from(new Set(
     Array.from(participants.values())
-      .map((participant) => (
-        inferCourseReviewLessonIdFromStateData(participant.stateData)
-        ?? inferLessonIdFromLessonKey(participant.lessonKey)
-      ))
+      .flatMap((participant) => [
+        ...participant.stateCandidates.map((candidate) => (
+          inferLessonIdFromStateCandidate(candidate, participant.lessonKey)
+        )),
+        inferLessonIdFromLessonKey(participant.lessonKey),
+      ])
       .filter((lessonId): lessonId is string => Boolean(lessonId))
   ))
   const manifests = new Map(
@@ -619,24 +671,30 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   )
   const parsedReviewRecords = Array.from(participants.values())
     .map((participant) => {
-      const lessonId = inferCourseReviewLessonIdFromStateData(participant.stateData)
-        ?? inferLessonIdFromLessonKey(participant.lessonKey)
-      const manifest = lessonId ? manifests.get(lessonId) ?? null : null
-      const resolution = lessonId || manifest
-        ? resolveCourseEvidenceSpec({
-          lessonId: lessonId ?? undefined,
-          lessonKey: participant.lessonKey ?? undefined,
-          manifest,
+      const records = participant.stateCandidates
+        .map((candidate) => {
+          const lessonKey = candidate.lessonKey ?? participant.lessonKey
+          const lessonId = inferLessonIdFromStateCandidate(candidate, participant.lessonKey)
+          const manifest = lessonId ? manifests.get(lessonId) ?? null : null
+          const resolution = lessonId || manifest
+            ? resolveCourseEvidenceSpec({
+              lessonId: lessonId ?? undefined,
+              lessonKey: lessonKey ?? undefined,
+              manifest,
+            })
+            : null
+          return parseCourseReviewPrepostRecord({
+            user: participant.user,
+            stateData: candidate.stateData,
+            lessonKey,
+            spec: resolution?.status === 'supported' ? resolution.spec : null,
+            manifest,
+            submissions: participant.submissions,
+          })
         })
-        : null
-      return parseCourseReviewPrepostRecord({
-        user: participant.user,
-        stateData: participant.stateData,
-        lessonKey: participant.lessonKey,
-        spec: resolution?.status === 'supported' ? resolution.spec : null,
-        manifest,
-        submissions: participant.submissions,
-      })
+        .filter((item): item is CourseReviewPrepostRecord => Boolean(item))
+
+      return chooseBestCourseReviewPrepostRecord(records)
     })
     .filter((item): item is CourseReviewPrepostRecord => Boolean(item))
 
