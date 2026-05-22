@@ -59,9 +59,9 @@ interface CourseReviewRecord {
   spotlight: boolean
   weakTag: string
   focusDimensions: AbilityDimensionKey[]
-  pre: AbilityVector
-  post: AbilityVector
-  delta: AbilityVector
+  pre: AbilityVector | null
+  post: AbilityVector | null
+  delta: AbilityVector | null
   reinforcementPaths: ReinforcementPath[]
   recommendedQuestions: RecommendedQuestion[]
   evidenceQuality?: string
@@ -127,10 +127,12 @@ function createZeroVector(): AbilityVector {
   }
 }
 
-function scoreToVector(score: number | null | undefined): AbilityVector {
-  const value = typeof score === 'number' && Number.isFinite(score)
-    ? Math.round(clamp(score, 0, 100))
-    : 0
+function scoreToVector(score: number | null | undefined): AbilityVector | null {
+  if (typeof score !== 'number' || !Number.isFinite(score)) {
+    return null
+  }
+
+  const value = Math.round(clamp(score, 0, 100))
   return {
     computational: value,
     crossDomain: value,
@@ -140,13 +142,17 @@ function scoreToVector(score: number | null | undefined): AbilityVector {
   }
 }
 
-function diffVector(post: AbilityVector, pre: AbilityVector): AbilityVector {
+function deltaToVector(delta: number | null | undefined): AbilityVector | null {
+  if (typeof delta !== 'number' || !Number.isFinite(delta)) {
+    return null
+  }
+
   return {
-    computational: post.computational - pre.computational,
-    crossDomain: post.crossDomain - pre.crossDomain,
-    designTradeoff: post.designTradeoff - pre.designTradeoff,
-    poleTimeMapping: post.poleTimeMapping - pre.poleTimeMapping,
-    frequencyStability: post.frequencyStability - pre.frequencyStability,
+    computational: delta,
+    crossDomain: delta,
+    designTradeoff: delta,
+    poleTimeMapping: delta,
+    frequencyStability: delta,
   }
 }
 
@@ -222,7 +228,7 @@ function parseRecommendedQuestions(value: unknown): RecommendedQuestion[] {
 function adaptCourseReviewPrepostRecord(record: CourseReviewPrepostRecord): CourseReviewRecord {
   const pre = record.compatibilityTracking?.pre ?? scoreToVector(record.pre?.score)
   const post = record.compatibilityTracking?.post ?? scoreToVector(record.post?.score)
-  const delta = record.compatibilityTracking?.delta ?? diffVector(post, pre)
+  const delta = record.compatibilityTracking?.delta ?? deltaToVector(record.delta)
 
   return {
     userId: record.userId,
@@ -260,12 +266,19 @@ async function loadInteractiveManifestForLesson(lessonId: string): Promise<Inter
 }
 
 function averageTracking(records: CourseReviewRecord[]) {
-  if (records.length === 0) {
+  const numericRecords = records.filter((
+    record
+  ): record is CourseReviewRecord & { pre: AbilityVector; post: AbilityVector; delta: AbilityVector } => (
+    Boolean(record.pre && record.post && record.delta)
+  ))
+
+  if (numericRecords.length === 0) {
     return {
-      pre: createZeroVector(),
-      post: createZeroVector(),
-      delta: createZeroVector(),
-      weakTag: 'cross-domain-mapping',
+      pre: null,
+      post: null,
+      delta: null,
+      weakTag: null,
+      sampleCount: 0,
     }
   }
 
@@ -273,7 +286,7 @@ function averageTracking(records: CourseReviewRecord[]) {
   const post = createZeroVector()
   const delta = createZeroVector()
 
-  for (const record of records) {
+  for (const record of numericRecords) {
     for (const key of DIMENSIONS) {
       pre[key] += record.pre[key]
       post[key] += record.post[key]
@@ -282,9 +295,9 @@ function averageTracking(records: CourseReviewRecord[]) {
   }
 
   for (const key of DIMENSIONS) {
-    pre[key] = Math.round(pre[key] / records.length)
-    post[key] = Math.round(post[key] / records.length)
-    delta[key] = Math.round(delta[key] / records.length)
+    pre[key] = Math.round(pre[key] / numericRecords.length)
+    post[key] = Math.round(post[key] / numericRecords.length)
+    delta[key] = Math.round(delta[key] / numericRecords.length)
   }
 
   return {
@@ -292,6 +305,7 @@ function averageTracking(records: CourseReviewRecord[]) {
     post,
     delta,
     weakTag: getWeakTagFromPost(post),
+    sampleCount: numericRecords.length,
   }
 }
 
@@ -358,6 +372,10 @@ function chooseFocusStudents(
 
 function getTagLabel(tag: string) {
   return TAG_LABEL[tag] || tag
+}
+
+function formatTrackingValue(value: number | null) {
+  return typeof value === 'number' ? String(value) : '-'
 }
 
 function valueArray(vector: AbilityVector) {
@@ -514,10 +532,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   }
 
   const studentStepResponses = session.studentStepResponses ?? []
-  const participantClassIds = [
-    ...session.studentStates.map((state) => state.user.profile?.classId),
-    ...studentStepResponses.map((response) => response.user?.profile?.classId),
-  ]
+  const participantClassIds = session.studentStates.map((state) => state.user.profile?.classId)
 
   const directClassContext = resolveSessionClassContext({
     sessionClassId: session.classId,
@@ -575,15 +590,9 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
 
   for (const response of studentStepResponses) {
     const responseUserId = response.user?.id
-    const existingParticipant = responseUserId ? participants.get(responseUserId) : undefined
-    const participantUser = existingParticipant?.user ?? response.user
-    if (!participantUser) {
+    const participant = responseUserId ? participants.get(responseUserId) : undefined
+    if (!participant) {
       continue
-    }
-    const participant = existingParticipant ?? {
-      user: participantUser,
-      lessonKey: response.lessonKey,
-      submissions: [],
     }
     participant.lessonKey = participant.lessonKey ?? response.lessonKey
     participant.submissions.push({
@@ -592,7 +601,6 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       submittedAt: response.submittedAt,
       createdAt: response.createdAt,
     })
-    participants.set(participantUser.id, participant)
   }
 
   const lessonIds = Array.from(new Set(
@@ -664,9 +672,9 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   const trackingRows = DIMENSIONS.map((key) => ({
     key,
     label: DIMENSION_LABEL[key],
-    pre: trackingSummary.pre[key],
-    post: trackingSummary.post[key],
-    delta: trackingSummary.delta[key],
+    pre: trackingSummary.pre?.[key] ?? null,
+    post: trackingSummary.post?.[key] ?? null,
+    delta: trackingSummary.delta?.[key] ?? null,
   }))
   const focusDimensionLabels = Array.from(
     new Set(reviewRecords.flatMap((item) => item.focusDimensions))
@@ -730,17 +738,21 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
           <h2 className="text-lg font-semibold text-foreground">课前 vs 课后能力追踪</h2>
         </div>
         <p className="mb-4 text-xs text-slate-400">
-          能力维度已按《{session.plan.title}》课程内容聚焦，班级均值短板：{getTagLabel(trackingSummary.weakTag)}
+          能力维度已按《{session.plan.title}》课程内容聚焦，班级均值短板：{trackingSummary.weakTag ? getTagLabel(trackingSummary.weakTag) : '暂无可计算数据'}
         </p>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {trackingRows.map((row) => (
             <div key={row.key} className="surface-card-soft p-4">
               <p className="text-sm text-slate-300">{row.label}</p>
               <p className="mt-1 text-xs text-slate-400">
-                课前 {row.pre} → 课后 {row.post}
-                <span className={`ml-2 font-semibold ${row.delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
-                  {row.delta >= 0 ? '+' : ''}{row.delta}
-                </span>
+                课前 {formatTrackingValue(row.pre)} → 课后 {formatTrackingValue(row.post)}
+                {row.delta === null ? (
+                  <span className="ml-2 font-semibold text-slate-500">-</span>
+                ) : (
+                  <span className={`ml-2 font-semibold ${row.delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                    {row.delta >= 0 ? '+' : ''}{row.delta}
+                  </span>
+                )}
               </p>
             </div>
           ))}
@@ -825,13 +837,13 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
           <div className="surface-card-soft p-4">
             <p className="text-sm text-slate-400">课前能力雷达</p>
             <div className="mt-3 flex items-center justify-center">
-              <MiniRadar values={valueArray(trackingSummary.pre)} color="rgb(148,163,184)" />
+              <MiniRadar values={valueArray(trackingSummary.pre ?? createZeroVector())} color="rgb(148,163,184)" />
             </div>
           </div>
           <div className="surface-card-soft p-4">
             <p className="text-sm text-slate-400">课后能力雷达</p>
             <div className="mt-3 flex items-center justify-center">
-              <MiniRadar values={valueArray(trackingSummary.post)} color="rgb(16,185,129)" />
+              <MiniRadar values={valueArray(trackingSummary.post ?? createZeroVector())} color="rgb(16,185,129)" />
             </div>
           </div>
         </div>
