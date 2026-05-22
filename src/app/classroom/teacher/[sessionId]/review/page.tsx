@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
@@ -7,8 +9,16 @@ import {
   formatClassroomSessionDate,
 } from '@/lib/classroom-session-statistics'
 import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
-import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry'
+import { resolveCourseEvidenceSpec } from '@/lib/data-governance/course-evidence-specs'
+import {
+  inferCourseReviewLessonIdFromStateData,
+  parseCourseReviewPrepostRecord,
+  type CourseReviewPrepostRecord,
+  type CourseReviewPrepostSubmissionRow,
+  type CourseReviewPrepostUser,
+} from '@/lib/data-governance/course-review-prepost-tracking'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
+import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest'
 import { prisma } from '@/lib/prisma'
 
 interface PageProps {
@@ -49,11 +59,30 @@ interface CourseReviewRecord {
   spotlight: boolean
   weakTag: string
   focusDimensions: AbilityDimensionKey[]
-  pre: AbilityVector
-  post: AbilityVector
-  delta: AbilityVector
+  pre: AbilityVector | null
+  post: AbilityVector | null
+  delta: AbilityVector | null
   reinforcementPaths: ReinforcementPath[]
   recommendedQuestions: RecommendedQuestion[]
+  evidenceQuality?: string
+  recoverability?: string
+  stepIds?: {
+    pre?: string
+    post?: string
+    summary?: string
+  }
+}
+
+interface CourseReviewStateCandidate {
+  stateData?: unknown
+  lessonKey?: string | null
+}
+
+interface CourseReviewParticipant {
+  user: CourseReviewPrepostUser
+  lessonKey?: string | null
+  stateCandidates: CourseReviewStateCandidate[]
+  submissions: CourseReviewPrepostSubmissionRow[]
 }
 
 const DIMENSIONS: AbilityDimensionKey[] = [
@@ -110,23 +139,32 @@ function createZeroVector(): AbilityVector {
   }
 }
 
-function normalizeVector(value: unknown): AbilityVector {
-  const obj = asObject(value)
-  const base = createZeroVector()
-  for (const key of DIMENSIONS) {
-    const raw = toNumber(obj[key])
-    base[key] = raw === null ? 0 : Math.round(clamp(raw, 0, 100))
+function scoreToVector(score: number | null | undefined): AbilityVector | null {
+  if (typeof score !== 'number' || !Number.isFinite(score)) {
+    return null
   }
-  return base
+
+  const value = Math.round(clamp(score, 0, 100))
+  return {
+    computational: value,
+    crossDomain: value,
+    designTradeoff: value,
+    poleTimeMapping: value,
+    frequencyStability: value,
+  }
 }
 
-function diffVector(post: AbilityVector, pre: AbilityVector): AbilityVector {
+function deltaToVector(delta: number | null | undefined): AbilityVector | null {
+  if (typeof delta !== 'number' || !Number.isFinite(delta)) {
+    return null
+  }
+
   return {
-    computational: post.computational - pre.computational,
-    crossDomain: post.crossDomain - pre.crossDomain,
-    designTradeoff: post.designTradeoff - pre.designTradeoff,
-    poleTimeMapping: post.poleTimeMapping - pre.poleTimeMapping,
-    frequencyStability: post.frequencyStability - pre.frequencyStability,
+    computational: delta,
+    crossDomain: delta,
+    designTradeoff: delta,
+    poleTimeMapping: delta,
+    frequencyStability: delta,
   }
 }
 
@@ -199,129 +237,97 @@ function parseRecommendedQuestions(value: unknown): RecommendedQuestion[] {
     .filter((item): item is RecommendedQuestion => Boolean(item))
 }
 
-function parseCourseReviewState(input: {
-  user: {
-    id: string
-    name: string | null
-    profile: {
-      studentNumber: string | null
-    } | null
-  }
-  data: unknown
-}): CourseReviewRecord | null {
-  const payload = asObject(input.data)
-  const kind = payload.kind
-
-  if (kind !== 'course_review' && kind !== 'showcase_review') {
-    return null
-  }
-
-  const trackingObj = asObject(payload.tracking)
-  const pre = normalizeVector(trackingObj.pre)
-  const post = normalizeVector(trackingObj.post)
-  const deltaFromData = normalizeVector(trackingObj.delta)
-  const computedDelta = diffVector(post, pre)
-  const deltaHasData = DIMENSIONS.some((key) => deltaFromData[key] !== 0)
-  const weakTag = typeof trackingObj.weakTag === 'string' ? trackingObj.weakTag : getWeakTagFromPost(post)
-  const focusDimensions = parseFocusDimensions(trackingObj.focusDimensions)
+function adaptCourseReviewPrepostRecord(record: CourseReviewPrepostRecord): CourseReviewRecord {
+  const pre = record.compatibilityTracking?.pre ?? scoreToVector(record.pre?.score)
+  const post = record.compatibilityTracking?.post ?? scoreToVector(record.post?.score)
+  const delta = record.compatibilityTracking?.delta ?? deltaToVector(record.delta)
 
   return {
-    userId: input.user.id,
-    userName: input.user.name || '未命名学生',
-    studentNumber: input.user.profile?.studentNumber || '-',
-    spotlight: Boolean(payload.spotlight),
-    weakTag,
-    focusDimensions,
+    userId: record.userId,
+    userName: record.userName,
+    studentNumber: record.studentNumber,
+    spotlight: record.spotlight,
+    weakTag: record.weakTag,
+    focusDimensions: parseFocusDimensions(record.focusDimensions),
     pre,
     post,
-    delta: deltaHasData ? deltaFromData : computedDelta,
-    reinforcementPaths: parseReinforcementPaths(payload.reinforcementPaths),
-    recommendedQuestions: parseRecommendedQuestions(payload.recommendedQuestions),
+    delta,
+    reinforcementPaths: parseReinforcementPaths(record.reinforcementPaths),
+    recommendedQuestions: parseRecommendedQuestions(record.recommendedQuestions),
+    evidenceQuality: record.evidenceQuality,
+    recoverability: record.recoverability,
+    stepIds: record.stepIds,
   }
 }
 
-function parseUnit41ReviewState(input: {
-  user: {
-    id: string
-    name: string | null
-    profile: {
-      studentNumber: string | null
-    } | null
-  }
-  data: unknown
-}): CourseReviewRecord | null {
-  const payload = asObject(input.data)
-  if (payload.kind !== 'unit41_student_state') {
+function inferLessonIdFromLessonKey(lessonKey: string | null | undefined) {
+  if (!lessonKey) return null
+  const match = lessonKey.match(/^unit-(\d+)-(\d+)-/)
+  if (!match) return null
+  return `${match[1]}-${match[2]}`
+}
+
+function inferLessonIdFromStateCandidate(
+  candidate: CourseReviewStateCandidate,
+  fallbackLessonKey?: string | null,
+) {
+  return inferCourseReviewLessonIdFromStateData(candidate.stateData)
+    ?? inferLessonIdFromLessonKey(candidate.lessonKey ?? fallbackLessonKey)
+}
+
+function rankCourseReviewPrepostRecord(record: CourseReviewPrepostRecord) {
+  const recoverabilityScore = record.recoverability === 'complete'
+    ? 3
+    : record.recoverability === 'partial'
+      ? 2
+      : 1
+  const evidenceScore = record.evidenceQuality === 'rich'
+    ? 4
+    : record.evidenceQuality === 'partial'
+      ? 3
+      : record.evidenceQuality === 'legacy'
+        ? 2
+        : 1
+  const numericScoreCount = [record.pre?.score, record.post?.score]
+    .filter((score): score is number => typeof score === 'number')
+    .length
+
+  return recoverabilityScore * 100 + evidenceScore * 10 + numericScoreCount
+}
+
+function chooseBestCourseReviewPrepostRecord(records: CourseReviewPrepostRecord[]) {
+  return records.reduce<CourseReviewPrepostRecord | null>((best, record) => {
+    if (!best) return record
+    return rankCourseReviewPrepostRecord(record) > rankCourseReviewPrepostRecord(best)
+      ? record
+      : best
+  }, null)
+}
+
+async function loadInteractiveManifestForLesson(lessonId: string): Promise<InteractiveRuntimeManifest | null> {
+  try {
+    const manifestPath = path.join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json')
+    const raw = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+    return normalizeInteractiveRuntimeManifest(raw)
+  } catch {
     return null
-  }
-
-  const responses = asObject(payload.responses)
-  const preResponse = asObject(responses['step-03'])
-  const postResponse = asObject(responses['step-12'])
-  const preAnswers = asObject(preResponse.answers) as Record<string, string>
-  const postAnswers = asObject(postResponse.answers) as Record<string, string>
-  const preTelemetry = Object.keys(preAnswers).length > 0
-    ? buildUNIT41SubmissionTelemetry({
-      stepId: 'step-03',
-      submittedAt: toNumber(preResponse.submittedAt) ?? Date.now(),
-      answers: preAnswers,
-    })
-    : null
-  const postTelemetry = Object.keys(postAnswers).length > 0
-    ? buildUNIT41SubmissionTelemetry({
-      stepId: 'step-12',
-      submittedAt: toNumber(postResponse.submittedAt) ?? Date.now(),
-      answers: postAnswers,
-    })
-    : null
-
-  if (!preTelemetry && !postTelemetry) {
-    return null
-  }
-
-  const preScore = preTelemetry?.score ?? 0
-  const postScore = postTelemetry?.score ?? preScore
-  const pre = {
-    computational: Math.round(preScore * 0.35),
-    crossDomain: Math.round(preScore * 0.55),
-    designTradeoff: preScore,
-    poleTimeMapping: 0,
-    frequencyStability: 0,
-  }
-  const post = {
-    computational: Math.round(postScore * 0.35),
-    crossDomain: Math.round(postScore * 0.65),
-    designTradeoff: postScore,
-    poleTimeMapping: 0,
-    frequencyStability: 0,
-  }
-
-  return {
-    userId: input.user.id,
-    userName: input.user.name || '未命名学生',
-    studentNumber: input.user.profile?.studentNumber || '-',
-    spotlight: postScore < 60 || postScore - preScore >= 30,
-    weakTag: postScore < 60 ? 'design-tradeoff' : 'cross-domain-mapping',
-    focusDimensions: ['designTradeoff', 'crossDomain'],
-    pre,
-    post,
-    delta: diffVector(post, pre),
-    reinforcementPaths: [{
-      title: '补写任务表达证据链',
-      description: '围绕目标、硬约束、软目标和证据来源重写一张任务表达卡。',
-      estimatedTime: 12,
-    }],
-    recommendedQuestions: [],
   }
 }
 
 function averageTracking(records: CourseReviewRecord[]) {
-  if (records.length === 0) {
+  const numericRecords = records.filter((
+    record
+  ): record is CourseReviewRecord & { pre: AbilityVector; post: AbilityVector; delta: AbilityVector } => (
+    Boolean(record.pre && record.post && record.delta)
+  ))
+
+  if (numericRecords.length === 0) {
     return {
-      pre: createZeroVector(),
-      post: createZeroVector(),
-      delta: createZeroVector(),
-      weakTag: 'cross-domain-mapping',
+      pre: null,
+      post: null,
+      delta: null,
+      weakTag: null,
+      sampleCount: 0,
     }
   }
 
@@ -329,7 +335,7 @@ function averageTracking(records: CourseReviewRecord[]) {
   const post = createZeroVector()
   const delta = createZeroVector()
 
-  for (const record of records) {
+  for (const record of numericRecords) {
     for (const key of DIMENSIONS) {
       pre[key] += record.pre[key]
       post[key] += record.post[key]
@@ -338,9 +344,9 @@ function averageTracking(records: CourseReviewRecord[]) {
   }
 
   for (const key of DIMENSIONS) {
-    pre[key] = Math.round(pre[key] / records.length)
-    post[key] = Math.round(post[key] / records.length)
-    delta[key] = Math.round(delta[key] / records.length)
+    pre[key] = Math.round(pre[key] / numericRecords.length)
+    post[key] = Math.round(post[key] / numericRecords.length)
+    delta[key] = Math.round(delta[key] / numericRecords.length)
   }
 
   return {
@@ -348,6 +354,7 @@ function averageTracking(records: CourseReviewRecord[]) {
     post,
     delta,
     weakTag: getWeakTagFromPost(post),
+    sampleCount: numericRecords.length,
   }
 }
 
@@ -414,6 +421,10 @@ function chooseFocusStudents(
 
 function getTagLabel(tag: string) {
   return TAG_LABEL[tag] || tag
+}
+
+function formatTrackingValue(value: number | null) {
+  return typeof value === 'number' ? String(value) : '-'
 }
 
 function valueArray(vector: AbilityVector) {
@@ -512,6 +523,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       },
       studentStates: {
         select: {
+          lessonKey: true,
           user: {
             select: {
               id: true,
@@ -525,6 +537,27 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
             },
           },
           data: true,
+        },
+      },
+      studentStepResponses: {
+        select: {
+          lessonKey: true,
+          stepId: true,
+          submittedAt: true,
+          createdAt: true,
+          responseData: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              profile: {
+                select: {
+                  classId: true,
+                  studentNumber: true,
+                },
+              },
+            },
+          },
         },
       },
       classSessionReports: {
@@ -547,10 +580,13 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     redirect('/teacher/classes')
   }
 
+  const studentStepResponses = session.studentStepResponses ?? []
+  const participantClassIds = session.studentStates.map((state) => state.user.profile?.classId)
+
   const directClassContext = resolveSessionClassContext({
     sessionClassId: session.classId,
     sessionClass: session.class,
-    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+    participantClassIds,
   })
   const inferredClass = directClassContext.classId && !directClassContext.class
     ? await prisma.class.findUnique({
@@ -570,7 +606,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   const classContext = resolveSessionClassContext({
     sessionClassId: session.classId,
     sessionClass: session.class,
-    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+    participantClassIds,
     classesById: effectiveClass
       ? new Map([[effectiveClass.id, effectiveClass]])
       : undefined,
@@ -585,22 +621,89 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     )
   }
 
-  const originalReviewRecords = session.studentStates
-    .map(parseCourseReviewState)
-    .filter((item): item is CourseReviewRecord => Boolean(item))
+  const participants = new Map<string, CourseReviewParticipant>()
 
-  const unit41ReviewRecords = originalReviewRecords.length === 0
-    ? session.studentStates
-      .map(parseUnit41ReviewState)
-      .filter((item): item is CourseReviewRecord => Boolean(item))
-    : []
+  for (const state of session.studentStates) {
+    const participant = participants.get(state.user.id) ?? {
+      user: state.user,
+      lessonKey: state.lessonKey,
+      stateCandidates: [],
+      submissions: [],
+    }
+    participant.lessonKey = participant.lessonKey ?? state.lessonKey
+    participant.stateCandidates.push({
+      stateData: state.data,
+      lessonKey: state.lessonKey,
+    })
+    participants.set(state.user.id, participant)
+  }
 
-  let reviewRecords = originalReviewRecords.length > 0 ? originalReviewRecords : unit41ReviewRecords
+  for (const response of studentStepResponses) {
+    const responseUserId = response.user?.id
+    const participant = responseUserId ? participants.get(responseUserId) : undefined
+    if (!participant) {
+      continue
+    }
+    participant.lessonKey = participant.lessonKey ?? response.lessonKey
+    participant.submissions.push({
+      lessonKey: response.lessonKey,
+      stepId: response.stepId,
+      responseData: response.responseData,
+      submittedAt: response.submittedAt,
+      createdAt: response.createdAt,
+    })
+  }
+
+  const lessonIds = Array.from(new Set(
+    Array.from(participants.values())
+      .flatMap((participant) => [
+        ...participant.stateCandidates.map((candidate) => (
+          inferLessonIdFromStateCandidate(candidate, participant.lessonKey)
+        )),
+        inferLessonIdFromLessonKey(participant.lessonKey),
+      ])
+      .filter((lessonId): lessonId is string => Boolean(lessonId))
+  ))
+  const manifests = new Map(
+    await Promise.all(
+      lessonIds.map(async (lessonId) => [lessonId, await loadInteractiveManifestForLesson(lessonId)] as const)
+    )
+  )
+  const parsedReviewRecords = Array.from(participants.values())
+    .map((participant) => {
+      const records = participant.stateCandidates
+        .map((candidate) => {
+          const lessonKey = candidate.lessonKey ?? participant.lessonKey
+          const lessonId = inferLessonIdFromStateCandidate(candidate, participant.lessonKey)
+          const manifest = lessonId ? manifests.get(lessonId) ?? null : null
+          const resolution = lessonId || manifest
+            ? resolveCourseEvidenceSpec({
+              lessonId: lessonId ?? undefined,
+              lessonKey: lessonKey ?? undefined,
+              manifest,
+            })
+            : null
+          return parseCourseReviewPrepostRecord({
+            user: participant.user,
+            stateData: candidate.stateData,
+            lessonKey,
+            spec: resolution?.status === 'supported' ? resolution.spec : null,
+            manifest,
+            submissions: participant.submissions,
+          })
+        })
+        .filter((item): item is CourseReviewPrepostRecord => Boolean(item))
+
+      return chooseBestCourseReviewPrepostRecord(records)
+    })
+    .filter((item): item is CourseReviewPrepostRecord => Boolean(item))
+
+  let reviewRecords = parsedReviewRecords.map(adaptCourseReviewPrepostRecord)
 
   if (session.plan.title.includes('柔性之海')) {
     const analytics = await getClassExtracurricularAnalytics(classContext.class.id)
     const focusMap = new Map(analytics.focusStudents.map((student) => [student.studentNumber, student]))
-    reviewRecords = originalReviewRecords.map((record) => {
+    reviewRecords = reviewRecords.map((record) => {
       const focus = focusMap.get(record.studentNumber)
       if (!focus) {
         return record
@@ -629,9 +732,9 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   const trackingRows = DIMENSIONS.map((key) => ({
     key,
     label: DIMENSION_LABEL[key],
-    pre: trackingSummary.pre[key],
-    post: trackingSummary.post[key],
-    delta: trackingSummary.delta[key],
+    pre: trackingSummary.pre?.[key] ?? null,
+    post: trackingSummary.post?.[key] ?? null,
+    delta: trackingSummary.delta?.[key] ?? null,
   }))
   const focusDimensionLabels = Array.from(
     new Set(reviewRecords.flatMap((item) => item.focusDimensions))
@@ -695,17 +798,21 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
           <h2 className="text-lg font-semibold text-foreground">课前 vs 课后能力追踪</h2>
         </div>
         <p className="mb-4 text-xs text-slate-400">
-          能力维度已按《{session.plan.title}》课程内容聚焦，班级均值短板：{getTagLabel(trackingSummary.weakTag)}
+          能力维度已按《{session.plan.title}》课程内容聚焦，班级均值短板：{trackingSummary.weakTag ? getTagLabel(trackingSummary.weakTag) : '暂无可计算数据'}
         </p>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {trackingRows.map((row) => (
             <div key={row.key} className="surface-card-soft p-4">
               <p className="text-sm text-slate-300">{row.label}</p>
               <p className="mt-1 text-xs text-slate-400">
-                课前 {row.pre} → 课后 {row.post}
-                <span className={`ml-2 font-semibold ${row.delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
-                  {row.delta >= 0 ? '+' : ''}{row.delta}
-                </span>
+                课前 {formatTrackingValue(row.pre)} → 课后 {formatTrackingValue(row.post)}
+                {row.delta === null ? (
+                  <span className="ml-2 font-semibold text-slate-500">-</span>
+                ) : (
+                  <span className={`ml-2 font-semibold ${row.delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                    {row.delta >= 0 ? '+' : ''}{row.delta}
+                  </span>
+                )}
               </p>
             </div>
           ))}
@@ -790,13 +897,13 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
           <div className="surface-card-soft p-4">
             <p className="text-sm text-slate-400">课前能力雷达</p>
             <div className="mt-3 flex items-center justify-center">
-              <MiniRadar values={valueArray(trackingSummary.pre)} color="rgb(148,163,184)" />
+              <MiniRadar values={valueArray(trackingSummary.pre ?? createZeroVector())} color="rgb(148,163,184)" />
             </div>
           </div>
           <div className="surface-card-soft p-4">
             <p className="text-sm text-slate-400">课后能力雷达</p>
             <div className="mt-3 flex items-center justify-center">
-              <MiniRadar values={valueArray(trackingSummary.post)} color="rgb(16,185,129)" />
+              <MiniRadar values={valueArray(trackingSummary.post ?? createZeroVector())} color="rgb(16,185,129)" />
             </div>
           </div>
         </div>
