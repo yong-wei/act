@@ -5,8 +5,10 @@ import { PrismaClient } from '@prisma/client';
 import {
   applyCourseEvidenceBackfillPlan,
   collectCourseEvidenceBackfillPlan,
+  refreshCourseEvidenceAffectedStudentCaches,
   regenerateCourseEvidenceReports,
   type CourseEvidenceBackfillApplyResult,
+  type CourseEvidenceCacheRefreshResult,
   type CourseEvidenceBackfillPlan,
   type CourseEvidenceReportRegenerationResult,
 } from '@/lib/data-governance/course-evidence-backfill';
@@ -79,6 +81,7 @@ function printTextReport(
   plan: CourseEvidenceBackfillPlan,
   applyResult: CourseEvidenceBackfillApplyResult | null,
   reportResult: CourseEvidenceReportRegenerationResult | null,
+  cacheResult: CourseEvidenceCacheRefreshResult | null,
 ) {
   console.log(`Course evidence backfill report (${plan.generatedAt})`);
   console.log(`Mode: ${applyResult ? 'apply' : 'dry-run'}`);
@@ -109,6 +112,12 @@ function printTextReport(
     console.log(`Class reports refreshed: ${reportResult.classReports}`);
     console.log(`Student reports refreshed: ${reportResult.studentReports}`);
   }
+
+  if (cacheResult) {
+    console.log('');
+    console.log(`Feature cache users requested: ${cacheResult.usersRequested}`);
+    console.log(`Feature cache users refreshed: ${cacheResult.usersRefreshed}`);
+  }
 }
 
 async function main() {
@@ -124,13 +133,16 @@ async function main() {
   const reportResult = options.apply && options.regenerateReports
     ? await regenerateCourseEvidenceReports(prisma, plan.affectedSessionIds)
     : null;
+  const cacheResult = options.apply && options.refreshCache
+    ? await refreshCourseEvidenceAffectedStudentCaches(prisma, plan)
+    : null;
 
   if (options.json) {
-    console.log(JSON.stringify({ plan, applyResult, reportResult }, null, options.compact ? 0 : 2));
+    console.log(JSON.stringify({ plan, applyResult, reportResult, cacheResult }, null, options.compact ? 0 : 2));
     return;
   }
 
-  printTextReport(plan, applyResult, reportResult);
+  printTextReport(plan, applyResult, reportResult, cacheResult);
 }
 
 main()

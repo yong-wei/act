@@ -14,6 +14,7 @@ describe('parseCourseEvidenceBackfillOptions', () => {
       '--to=2026-05-21T00:00:00.000Z',
       '--apply',
       '--regenerate-reports',
+      '--refresh-cache',
       '--json',
       '--compact',
     ])).toEqual({
@@ -21,6 +22,7 @@ describe('parseCourseEvidenceBackfillOptions', () => {
       json: true,
       compact: true,
       regenerateReports: true,
+      refreshCache: true,
       filters: {
         sessionIds: ['session-a', 'session-b'],
         lessonKeys: ['unit-5-1-linear-backbone-boundaries-v1', '5-2'],
@@ -40,6 +42,7 @@ describe('parseCourseEvidenceBackfillOptions', () => {
       json: false,
       compact: false,
       regenerateReports: false,
+      refreshCache: false,
       filters: {
         sessionIds: ['session-a'],
       },
