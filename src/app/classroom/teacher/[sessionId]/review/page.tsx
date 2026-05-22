@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
@@ -7,8 +9,16 @@ import {
   formatClassroomSessionDate,
 } from '@/lib/classroom-session-statistics'
 import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
-import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry'
+import { resolveCourseEvidenceSpec } from '@/lib/data-governance/course-evidence-specs'
+import {
+  inferCourseReviewLessonIdFromStateData,
+  parseCourseReviewPrepostRecord,
+  type CourseReviewPrepostRecord,
+  type CourseReviewPrepostSubmissionRow,
+  type CourseReviewPrepostUser,
+} from '@/lib/data-governance/course-review-prepost-tracking'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
+import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest'
 import { prisma } from '@/lib/prisma'
 
 interface PageProps {
@@ -54,6 +64,13 @@ interface CourseReviewRecord {
   delta: AbilityVector
   reinforcementPaths: ReinforcementPath[]
   recommendedQuestions: RecommendedQuestion[]
+  evidenceQuality?: string
+  recoverability?: string
+  stepIds?: {
+    pre?: string
+    post?: string
+    summary?: string
+  }
 }
 
 const DIMENSIONS: AbilityDimensionKey[] = [
@@ -110,14 +127,17 @@ function createZeroVector(): AbilityVector {
   }
 }
 
-function normalizeVector(value: unknown): AbilityVector {
-  const obj = asObject(value)
-  const base = createZeroVector()
-  for (const key of DIMENSIONS) {
-    const raw = toNumber(obj[key])
-    base[key] = raw === null ? 0 : Math.round(clamp(raw, 0, 100))
+function scoreToVector(score: number | null | undefined): AbilityVector {
+  const value = typeof score === 'number' && Number.isFinite(score)
+    ? Math.round(clamp(score, 0, 100))
+    : 0
+  return {
+    computational: value,
+    crossDomain: value,
+    designTradeoff: value,
+    poleTimeMapping: value,
+    frequencyStability: value,
   }
-  return base
 }
 
 function diffVector(post: AbilityVector, pre: AbilityVector): AbilityVector {
@@ -199,119 +219,43 @@ function parseRecommendedQuestions(value: unknown): RecommendedQuestion[] {
     .filter((item): item is RecommendedQuestion => Boolean(item))
 }
 
-function parseCourseReviewState(input: {
-  user: {
-    id: string
-    name: string | null
-    profile: {
-      studentNumber: string | null
-    } | null
-  }
-  data: unknown
-}): CourseReviewRecord | null {
-  const payload = asObject(input.data)
-  const kind = payload.kind
-
-  if (kind !== 'course_review' && kind !== 'showcase_review') {
-    return null
-  }
-
-  const trackingObj = asObject(payload.tracking)
-  const pre = normalizeVector(trackingObj.pre)
-  const post = normalizeVector(trackingObj.post)
-  const deltaFromData = normalizeVector(trackingObj.delta)
-  const computedDelta = diffVector(post, pre)
-  const deltaHasData = DIMENSIONS.some((key) => deltaFromData[key] !== 0)
-  const weakTag = typeof trackingObj.weakTag === 'string' ? trackingObj.weakTag : getWeakTagFromPost(post)
-  const focusDimensions = parseFocusDimensions(trackingObj.focusDimensions)
+function adaptCourseReviewPrepostRecord(record: CourseReviewPrepostRecord): CourseReviewRecord {
+  const pre = record.compatibilityTracking?.pre ?? scoreToVector(record.pre?.score)
+  const post = record.compatibilityTracking?.post ?? scoreToVector(record.post?.score)
+  const delta = record.compatibilityTracking?.delta ?? diffVector(post, pre)
 
   return {
-    userId: input.user.id,
-    userName: input.user.name || '未命名学生',
-    studentNumber: input.user.profile?.studentNumber || '-',
-    spotlight: Boolean(payload.spotlight),
-    weakTag,
-    focusDimensions,
+    userId: record.userId,
+    userName: record.userName,
+    studentNumber: record.studentNumber,
+    spotlight: record.spotlight,
+    weakTag: record.weakTag,
+    focusDimensions: parseFocusDimensions(record.focusDimensions),
     pre,
     post,
-    delta: deltaHasData ? deltaFromData : computedDelta,
-    reinforcementPaths: parseReinforcementPaths(payload.reinforcementPaths),
-    recommendedQuestions: parseRecommendedQuestions(payload.recommendedQuestions),
+    delta,
+    reinforcementPaths: parseReinforcementPaths(record.reinforcementPaths),
+    recommendedQuestions: parseRecommendedQuestions(record.recommendedQuestions),
+    evidenceQuality: record.evidenceQuality,
+    recoverability: record.recoverability,
+    stepIds: record.stepIds,
   }
 }
 
-function parseUnit41ReviewState(input: {
-  user: {
-    id: string
-    name: string | null
-    profile: {
-      studentNumber: string | null
-    } | null
-  }
-  data: unknown
-}): CourseReviewRecord | null {
-  const payload = asObject(input.data)
-  if (payload.kind !== 'unit41_student_state') {
+function inferLessonIdFromLessonKey(lessonKey: string | null | undefined) {
+  if (!lessonKey) return null
+  const match = lessonKey.match(/^unit-(\d+)-(\d+)-/)
+  if (!match) return null
+  return `${match[1]}-${match[2]}`
+}
+
+async function loadInteractiveManifestForLesson(lessonId: string): Promise<InteractiveRuntimeManifest | null> {
+  try {
+    const manifestPath = path.join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json')
+    const raw = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+    return normalizeInteractiveRuntimeManifest(raw)
+  } catch {
     return null
-  }
-
-  const responses = asObject(payload.responses)
-  const preResponse = asObject(responses['step-03'])
-  const postResponse = asObject(responses['step-12'])
-  const preAnswers = asObject(preResponse.answers) as Record<string, string>
-  const postAnswers = asObject(postResponse.answers) as Record<string, string>
-  const preTelemetry = Object.keys(preAnswers).length > 0
-    ? buildUNIT41SubmissionTelemetry({
-      stepId: 'step-03',
-      submittedAt: toNumber(preResponse.submittedAt) ?? Date.now(),
-      answers: preAnswers,
-    })
-    : null
-  const postTelemetry = Object.keys(postAnswers).length > 0
-    ? buildUNIT41SubmissionTelemetry({
-      stepId: 'step-12',
-      submittedAt: toNumber(postResponse.submittedAt) ?? Date.now(),
-      answers: postAnswers,
-    })
-    : null
-
-  if (!preTelemetry && !postTelemetry) {
-    return null
-  }
-
-  const preScore = preTelemetry?.score ?? 0
-  const postScore = postTelemetry?.score ?? preScore
-  const pre = {
-    computational: Math.round(preScore * 0.35),
-    crossDomain: Math.round(preScore * 0.55),
-    designTradeoff: preScore,
-    poleTimeMapping: 0,
-    frequencyStability: 0,
-  }
-  const post = {
-    computational: Math.round(postScore * 0.35),
-    crossDomain: Math.round(postScore * 0.65),
-    designTradeoff: postScore,
-    poleTimeMapping: 0,
-    frequencyStability: 0,
-  }
-
-  return {
-    userId: input.user.id,
-    userName: input.user.name || '未命名学生',
-    studentNumber: input.user.profile?.studentNumber || '-',
-    spotlight: postScore < 60 || postScore - preScore >= 30,
-    weakTag: postScore < 60 ? 'design-tradeoff' : 'cross-domain-mapping',
-    focusDimensions: ['designTradeoff', 'crossDomain'],
-    pre,
-    post,
-    delta: diffVector(post, pre),
-    reinforcementPaths: [{
-      title: '补写任务表达证据链',
-      description: '围绕目标、硬约束、软目标和证据来源重写一张任务表达卡。',
-      estimatedTime: 12,
-    }],
-    recommendedQuestions: [],
   }
 }
 
@@ -512,6 +456,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       },
       studentStates: {
         select: {
+          lessonKey: true,
           user: {
             select: {
               id: true,
@@ -525,6 +470,27 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
             },
           },
           data: true,
+        },
+      },
+      studentStepResponses: {
+        select: {
+          lessonKey: true,
+          stepId: true,
+          submittedAt: true,
+          createdAt: true,
+          responseData: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              profile: {
+                select: {
+                  classId: true,
+                  studentNumber: true,
+                },
+              },
+            },
+          },
         },
       },
       classSessionReports: {
@@ -547,10 +513,16 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     redirect('/teacher/classes')
   }
 
+  const studentStepResponses = session.studentStepResponses ?? []
+  const participantClassIds = [
+    ...session.studentStates.map((state) => state.user.profile?.classId),
+    ...studentStepResponses.map((response) => response.user?.profile?.classId),
+  ]
+
   const directClassContext = resolveSessionClassContext({
     sessionClassId: session.classId,
     sessionClass: session.class,
-    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+    participantClassIds,
   })
   const inferredClass = directClassContext.classId && !directClassContext.class
     ? await prisma.class.findUnique({
@@ -570,7 +542,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   const classContext = resolveSessionClassContext({
     sessionClassId: session.classId,
     sessionClass: session.class,
-    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+    participantClassIds,
     classesById: effectiveClass
       ? new Map([[effectiveClass.id, effectiveClass]])
       : undefined,
@@ -585,22 +557,85 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     )
   }
 
-  const originalReviewRecords = session.studentStates
-    .map(parseCourseReviewState)
-    .filter((item): item is CourseReviewRecord => Boolean(item))
+  const participants = new Map<string, {
+    user: CourseReviewPrepostUser
+    stateData?: unknown
+    lessonKey?: string | null
+    submissions: CourseReviewPrepostSubmissionRow[]
+  }>()
 
-  const unit41ReviewRecords = originalReviewRecords.length === 0
-    ? session.studentStates
-      .map(parseUnit41ReviewState)
-      .filter((item): item is CourseReviewRecord => Boolean(item))
-    : []
+  for (const state of session.studentStates) {
+    participants.set(state.user.id, {
+      user: state.user,
+      stateData: state.data,
+      lessonKey: state.lessonKey,
+      submissions: [],
+    })
+  }
 
-  let reviewRecords = originalReviewRecords.length > 0 ? originalReviewRecords : unit41ReviewRecords
+  for (const response of studentStepResponses) {
+    const responseUserId = response.user?.id
+    const existingParticipant = responseUserId ? participants.get(responseUserId) : undefined
+    const participantUser = existingParticipant?.user ?? response.user
+    if (!participantUser) {
+      continue
+    }
+    const participant = existingParticipant ?? {
+      user: participantUser,
+      lessonKey: response.lessonKey,
+      submissions: [],
+    }
+    participant.lessonKey = participant.lessonKey ?? response.lessonKey
+    participant.submissions.push({
+      stepId: response.stepId,
+      responseData: response.responseData,
+      submittedAt: response.submittedAt,
+      createdAt: response.createdAt,
+    })
+    participants.set(participantUser.id, participant)
+  }
+
+  const lessonIds = Array.from(new Set(
+    Array.from(participants.values())
+      .map((participant) => (
+        inferCourseReviewLessonIdFromStateData(participant.stateData)
+        ?? inferLessonIdFromLessonKey(participant.lessonKey)
+      ))
+      .filter((lessonId): lessonId is string => Boolean(lessonId))
+  ))
+  const manifests = new Map(
+    await Promise.all(
+      lessonIds.map(async (lessonId) => [lessonId, await loadInteractiveManifestForLesson(lessonId)] as const)
+    )
+  )
+  const parsedReviewRecords = Array.from(participants.values())
+    .map((participant) => {
+      const lessonId = inferCourseReviewLessonIdFromStateData(participant.stateData)
+        ?? inferLessonIdFromLessonKey(participant.lessonKey)
+      const manifest = lessonId ? manifests.get(lessonId) ?? null : null
+      const resolution = lessonId || manifest
+        ? resolveCourseEvidenceSpec({
+          lessonId: lessonId ?? undefined,
+          lessonKey: participant.lessonKey ?? undefined,
+          manifest,
+        })
+        : null
+      return parseCourseReviewPrepostRecord({
+        user: participant.user,
+        stateData: participant.stateData,
+        spec: resolution?.status === 'supported' ? resolution.spec : null,
+        manifest,
+        submissions: participant.submissions,
+      })
+    })
+    .filter((item): item is CourseReviewPrepostRecord => Boolean(item))
+
+  let reviewRecords = parsedReviewRecords.map(adaptCourseReviewPrepostRecord)
 
   if (session.plan.title.includes('柔性之海')) {
     const analytics = await getClassExtracurricularAnalytics(classContext.class.id)
     const focusMap = new Map(analytics.focusStudents.map((student) => [student.studentNumber, student]))
-    reviewRecords = originalReviewRecords.map((record) => {
+    reviewRecords = reviewRecords.map((record) => {
       const focus = focusMap.get(record.studentNumber)
       if (!focus) {
         return record
