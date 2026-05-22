@@ -27,7 +27,10 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-import { enqueueSessionSummaryReportRefresh } from '../session-finalization-snapshots';
+import {
+  enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
+  enqueueSessionSummaryReportRefresh,
+} from '../session-finalization-snapshots';
 
 describe('session finalization queues', () => {
   beforeEach(() => {
@@ -59,5 +62,34 @@ describe('session finalization queues', () => {
       }),
     );
     expect(mocks.queueClose).toHaveBeenCalled();
+  });
+
+  it('enqueues evidence feature cache refreshes for finalized session participants', async () => {
+    mocks.prisma.studentState.findMany.mockResolvedValue([
+      { userId: 'student-1' },
+      { userId: 'student-2' },
+    ]);
+
+    const result = await enqueueSessionFinalizationEvidenceFeatureCacheRefresh('session-5-3');
+
+    expect(result).toEqual({
+      evidenceFeatureCacheJobs: 2,
+      skipped: false,
+    });
+    expect(mocks.Queue).toHaveBeenCalledWith('evidence-feature-cache', { connection: { status: 'ready' } });
+    expect(mocks.queueAdd).toHaveBeenCalledWith(
+      'evidence-feature-cache-refresh-student-1',
+      { userId: 'student-1' },
+      expect.objectContaining({
+        jobId: 'evidence-feature-cache-student-1-session-finalize-session-5-3',
+      }),
+    );
+    expect(mocks.queueAdd).toHaveBeenCalledWith(
+      'evidence-feature-cache-refresh-student-2',
+      { userId: 'student-2' },
+      expect.objectContaining({
+        jobId: 'evidence-feature-cache-student-2-session-finalize-session-5-3',
+      }),
+    );
   });
 });

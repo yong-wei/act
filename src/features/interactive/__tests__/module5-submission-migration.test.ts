@@ -96,6 +96,14 @@ describe('manifest submission migration gates', () => {
     }
   });
 
+  it('keeps module 5 teacher finalizers on the shared finalization path', () => {
+    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.filter((item) => item.lessonId.startsWith('5-'))) {
+      const courseSource = readFileSync(join(repoRoot, 'src/lib', `unit-${lesson.lessonId}-course.ts`), 'utf8');
+
+      expect(courseSource, lesson.lessonId).toContain('finalizeInteractiveLessonSession');
+    }
+  });
+
   it('reports a deliberately invalid student page fixture with missing shared evidence integration', () => {
     const fixtureSource = `
       import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';

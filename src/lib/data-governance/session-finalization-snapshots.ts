@@ -21,6 +21,11 @@ interface SessionReportJob {
   sessionId?: string;
 }
 
+interface EvidenceFeatureCacheJob {
+  userId?: string;
+  coordinator?: boolean;
+}
+
 export interface SessionFinalizationSnapshotResult {
   studentSnapshotJobs: number;
   classSnapshotJobs: number;
@@ -35,6 +40,7 @@ const JOB_HISTORY_OPTIONS = {
 const CLASS_SNAPSHOT_DELAY_MS = 60_000;
 const EVENT_INGESTION_DELAY_MS = 5_000;
 const SESSION_REPORT_REFRESH_DELAY_MS = 90_000;
+const EVIDENCE_FEATURE_CACHE_DELAY_MS = 120_000;
 
 export async function enqueueSessionFinalizationEventIngestion(
   sessionId: string,
@@ -122,6 +128,65 @@ export async function enqueueSessionSummaryReportRefresh(
     };
   } catch (error) {
     console.error('[SessionSummaryReportRefresh] Failed to enqueue report refresh:', error);
+    return emptyResult;
+  }
+}
+
+export async function enqueueSessionFinalizationEvidenceFeatureCacheRefresh(
+  sessionId: string,
+): Promise<{ evidenceFeatureCacheJobs: number; skipped: boolean }> {
+  const emptyResult = {
+    evidenceFeatureCacheJobs: 0,
+    skipped: true,
+  };
+
+  try {
+    if (!redisClient.isReady()) {
+      return emptyResult;
+    }
+
+    const connection = redisClient.getClient();
+    if (!connection) {
+      return emptyResult;
+    }
+
+    const studentStates = await prisma.studentState.findMany({
+      where: {
+        sessionId,
+        stateKey: 'course',
+      },
+      distinct: ['userId'],
+      select: {
+        userId: true,
+      },
+    });
+    const userIds = studentStates.map((state) => state.userId);
+    const cacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection });
+
+    try {
+      for (const userId of userIds) {
+        await cacheQueue.add(
+          `evidence-feature-cache-refresh-${userId}`,
+          { userId },
+          {
+            attempts: 2,
+            backoff: { type: 'exponential', delay: 10000 },
+            delay: EVIDENCE_FEATURE_CACHE_DELAY_MS,
+            jobId: `evidence-feature-cache-${userId}-session-finalize-${sessionId}`,
+            ...JOB_HISTORY_OPTIONS,
+          },
+        );
+      }
+    } finally {
+      await cacheQueue.close();
+    }
+
+    return {
+      evidenceFeatureCacheJobs: userIds.length,
+      skipped: false,
+    };
+  } catch (error) {
+    console.error('[SessionFinalizationEvidenceFeatureCache] Failed to enqueue feature cache refresh:', error);
     return emptyResult;
   }
 }
