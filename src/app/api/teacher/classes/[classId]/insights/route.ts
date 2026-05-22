@@ -166,7 +166,7 @@ export async function GET(
             distinct: ['userId'],
           })
         : Promise.resolve([]),
-      studentIds.length && classSessionIds.length
+      studentIds.length
         ? prisma.studentProfileSummary.findMany({
             where: { userId: { in: studentIds } },
           })

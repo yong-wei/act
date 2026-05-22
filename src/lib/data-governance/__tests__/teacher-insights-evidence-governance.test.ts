@@ -305,6 +305,62 @@ describe('teacher evidence governance insights', () => {
     });
   });
 
+  it('keeps existing profile summaries when a class has no sessions yet', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '新建班级',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [
+        enrolledStudent('student-onboarding', '已有画像'),
+      ],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([
+      {
+        userId: 'student-onboarding',
+        overallScore: 88.4,
+        overallLevel: '优秀',
+        riskLevel: 'low',
+        trendDirection: 'up',
+        recentTrend: '近期表现稳定提升',
+        strengthsJson: ['模型表达'],
+        weaknessesJson: [],
+        riskFlagsJson: [],
+      },
+    ]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentProfileSummary.findMany).toHaveBeenCalledWith({
+      where: { userId: { in: ['student-onboarding'] } },
+    });
+    expect(body.students[0]).toMatchObject({
+      id: 'student-onboarding',
+      overallScore: 88.4,
+      overallLevel: '优秀',
+      riskLevel: 'low',
+      trendDirection: 'up',
+      recentTrend: '近期表现稳定提升',
+    });
+  });
+
   it('returns scoped student drawer evidence without raw answers or full logs', async () => {
     const classId = 'class-1';
     const longAnswer = '5-2 富证据主观作答。'.repeat(40);
