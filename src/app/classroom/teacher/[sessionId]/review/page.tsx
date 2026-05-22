@@ -596,6 +596,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     }
     participant.lessonKey = participant.lessonKey ?? response.lessonKey
     participant.submissions.push({
+      lessonKey: response.lessonKey,
       stepId: response.stepId,
       responseData: response.responseData,
       submittedAt: response.submittedAt,
@@ -631,6 +632,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       return parseCourseReviewPrepostRecord({
         user: participant.user,
         stateData: participant.stateData,
+        lessonKey: participant.lessonKey,
         spec: resolution?.status === 'supported' ? resolution.spec : null,
         manifest,
         submissions: participant.submissions,

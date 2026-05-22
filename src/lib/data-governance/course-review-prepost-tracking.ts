@@ -30,6 +30,7 @@ export interface CourseReviewPrepostUser {
 }
 
 export interface CourseReviewPrepostSubmissionRow {
+  lessonKey?: string | null;
   stepId: string;
   responseData: unknown;
   submittedAt?: Date | string | number | null;
@@ -74,6 +75,7 @@ export interface CourseReviewPrepostRecord {
 export interface ParseCourseReviewPrepostInput {
   user: CourseReviewPrepostUser;
   stateData?: unknown;
+  lessonKey?: string | null;
   spec?: CourseEvidenceSpec | null;
   manifest?: InteractiveRuntimeManifest | null;
   submissions: CourseReviewPrepostSubmissionRow[];
@@ -182,11 +184,16 @@ function latestTimestamp(value: CourseReviewPrepostSubmissionRow, index: number)
 function latestSubmissionForStep(
   submissions: CourseReviewPrepostSubmissionRow[],
   stepId: string,
+  lessonKey?: string | null,
 ): CourseReviewPrepostSubmissionRow | null {
   return submissions
     .map((submission, index) => ({ submission, timestamp: latestTimestamp(submission, index) }))
-    .filter((item) => item.submission.stepId === stepId)
+    .filter((item) => item.submission.stepId === stepId && submissionMatchesLessonKey(item.submission, lessonKey))
     .sort((a, b) => b.timestamp - a.timestamp)[0]?.submission ?? null;
+}
+
+function submissionMatchesLessonKey(row: CourseReviewPrepostSubmissionRow, lessonKey?: string | null) {
+  return !lessonKey || !row.lessonKey || row.lessonKey === lessonKey;
 }
 
 function buildAssessmentFromSubmission(row: CourseReviewPrepostSubmissionRow): CourseReviewPrepostAssessment {
@@ -239,12 +246,13 @@ function buildAssessmentFromState(input: {
 function buildAssessment(input: {
   stateData: Record<string, unknown>;
   stepId?: string;
+  lessonKey?: string | null;
   manifest?: InteractiveRuntimeManifest | null;
   submissions: CourseReviewPrepostSubmissionRow[];
 }): CourseReviewPrepostAssessment | null {
   if (!input.stepId) return null;
 
-  const durable = latestSubmissionForStep(input.submissions, input.stepId);
+  const durable = latestSubmissionForStep(input.submissions, input.stepId, input.lessonKey);
   if (durable) return buildAssessmentFromSubmission(durable);
 
   const stateAssessment = buildAssessmentFromState({
@@ -281,10 +289,14 @@ function resolveRecoverability(pre: CourseReviewPrepostAssessment | null, post: 
   return 'limited';
 }
 
-function collectQuestionSummaries(submissions: CourseReviewPrepostSubmissionRow[], stepIds: Array<string | undefined>) {
+function collectQuestionSummaries(
+  submissions: CourseReviewPrepostSubmissionRow[],
+  stepIds: Array<string | undefined>,
+  lessonKey?: string | null,
+) {
   return stepIds.flatMap((stepId) => {
     if (!stepId) return [];
-    const row = latestSubmissionForStep(submissions, stepId);
+    const row = latestSubmissionForStep(submissions, stepId, lessonKey);
     return readQuestionSummaries(readRecord(row?.responseData).questionSummaries);
   });
 }
@@ -363,9 +375,11 @@ export function parseCourseReviewPrepostRecord(
   if (!spec) return null;
 
   const stateData = readRecord(input.stateData);
+  const lessonKey = readString(input.lessonKey);
   const kindMatches = stateData.kind === spec.studentStateKind;
   const hasRelevantSubmission = input.submissions.some((submission) => (
-    submission.stepId === spec.preAssessmentStepId || submission.stepId === spec.postAssessmentStepId
+    (submission.stepId === spec.preAssessmentStepId || submission.stepId === spec.postAssessmentStepId)
+      && submissionMatchesLessonKey(submission, lessonKey)
   ));
 
   if (!kindMatches && !hasRelevantSubmission) {
@@ -375,12 +389,14 @@ export function parseCourseReviewPrepostRecord(
   const pre = buildAssessment({
     stateData,
     stepId: spec.preAssessmentStepId,
+    lessonKey,
     manifest: input.manifest,
     submissions: input.submissions,
   });
   const post = buildAssessment({
     stateData,
     stepId: spec.postAssessmentStepId,
+    lessonKey,
     manifest: input.manifest,
     submissions: input.submissions,
   });
@@ -412,7 +428,7 @@ export function parseCourseReviewPrepostRecord(
       ...(spec.postAssessmentStepId ? { post: spec.postAssessmentStepId } : {}),
       ...(spec.summaryStepId ? { summary: spec.summaryStepId } : {}),
     },
-    questionSummaries: collectQuestionSummaries(input.submissions, [spec.preAssessmentStepId, spec.postAssessmentStepId]),
+    questionSummaries: collectQuestionSummaries(input.submissions, [spec.preAssessmentStepId, spec.postAssessmentStepId], lessonKey),
     reinforcementPaths: [],
     recommendedQuestions: [],
   };

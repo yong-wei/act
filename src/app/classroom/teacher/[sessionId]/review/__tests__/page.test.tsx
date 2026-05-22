@@ -146,6 +146,27 @@ describe('TeacherSessionReviewPage', () => {
           },
         },
         {
+          lessonKey: 'unit-5-4-data-driven-mpc-transition-v1',
+          stepId: 'step-03',
+          submittedAt: new Date('2026-05-12T00:35:00.000Z'),
+          createdAt: new Date('2026-05-12T00:35:00.000Z'),
+          user: {
+            id: 'student-1',
+            name: '张同学',
+            profile: {
+              classId: 'class-1',
+              studentNumber: '20260001',
+            },
+          },
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            stepId: 'step-03',
+            answers: { q1: 'B' },
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'B', referenceValue: 'A', isCorrect: false }],
+            score: 10,
+          },
+        },
+        {
           lessonKey: 'unit-5-3-mass-coordination-chain-v1',
           stepId: 'step-14',
           submittedAt: new Date('2026-05-12T01:40:00.000Z'),
