@@ -213,4 +213,32 @@ describe('course review pre/post tracking parser', () => {
       evidenceQuality: 'rich',
     });
   });
+
+  it('infers compatibility weak tag from the post ability vector when no legacy weakTag is stored', () => {
+    const record = parseCourseReviewPrepostRecord({
+      user,
+      stateData: {
+        kind: 'course_review',
+        tracking: {
+          pre: {
+            computational: 45,
+            crossDomain: 55,
+            designTradeoff: 35,
+            poleTimeMapping: 50,
+            frequencyStability: 60,
+          },
+          post: {
+            computational: 80,
+            crossDomain: 65,
+            designTradeoff: 10,
+            poleTimeMapping: 70,
+            frequencyStability: 75,
+          },
+        },
+      },
+      submissions: [],
+    });
+
+    expect(record?.weakTag).toBe('design-tradeoff');
+  });
 });

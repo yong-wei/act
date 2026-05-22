@@ -142,6 +142,18 @@ function scoreVector(vector: CourseReviewAbilityVector): number | null {
     : null;
 }
 
+function inferWeakTagFromPost(vector: CourseReviewAbilityVector) {
+  const pairs: Array<[string, number]> = [
+    ['computational', vector.computational],
+    ['cross-domain-mapping', vector.crossDomain],
+    ['design-tradeoff', vector.designTradeoff],
+    ['pole-time-mapping', vector.poleTimeMapping],
+    ['frequency-stability-judgement', vector.frequencyStability],
+  ];
+  pairs.sort((a, b) => a[1] - b[1]);
+  return pairs[0]?.[0] ?? 'cross-domain-mapping';
+}
+
 function normalizeAnswers(value: unknown): Record<string, string> {
   return Object.fromEntries(
     Object.entries(readRecord(value))
@@ -298,7 +310,7 @@ function parseCompatibilityRecord(input: ParseCourseReviewPrepostInput): CourseR
     userName: input.user.name || '未命名学生',
     studentNumber: input.user.profile?.studentNumber || '-',
     spotlight: Boolean(payload.spotlight),
-    weakTag: readString(tracking.weakTag) ?? 'cross-domain-mapping',
+    weakTag: readString(tracking.weakTag) ?? inferWeakTagFromPost(postVector),
     focusDimensions: Array.isArray(tracking.focusDimensions)
       ? tracking.focusDimensions.filter((item): item is string => typeof item === 'string')
       : [],
