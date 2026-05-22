@@ -8,6 +8,7 @@ import {
   type SessionClassInfo,
 } from '@/lib/data-governance/class-session-attribution';
 import {
+  enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionFinalizationEventIngestion,
   enqueueSessionFinalizationSnapshots,
   enqueueSessionSummaryReportRefresh,
@@ -222,6 +223,7 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
       await Promise.all([
         enqueueSessionFinalizationEventIngestion(sessionId),
         enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId),
+        enqueueSessionFinalizationEvidenceFeatureCacheRefresh(sessionId),
         enqueueSessionSummaryReportRefresh(sessionId),
         generateSessionSummaryReportsSafely(sessionId),
       ]);

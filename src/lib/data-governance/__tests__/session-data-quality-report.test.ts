@@ -276,6 +276,257 @@ describe('buildSessionDataQualityReport', () => {
     });
   });
 
+  it('exposes post-class closure phases including missing feature cache refresh', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-closure-5-3'] },
+      sessions: [{
+        id: 'session-closure-5-3',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-3：从单回路控制到复杂自主系统链路' },
+      }],
+      studentStates: [
+        {
+          sessionId: 'session-closure-5-3',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-3',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        },
+      ],
+      interactionLogs: [
+        {
+          sessionId: 'session-closure-5-3',
+          userId: 'teacher-1',
+          eventType: 'session_finalize',
+          stepId: 'step-15',
+          lessonKey: '5-3',
+          actorRole: 'teacher',
+          userRole: 'TEACHER',
+          clientEventAt: new Date('2026-05-20T09:31:00.000Z'),
+          createdAt: new Date('2026-05-20T09:31:01.000Z'),
+          eventData: {
+            eventType: 'session_finalize',
+            countAfterSessionEnd: true,
+            finalStepId: 'step-15',
+            completionRatio: 1,
+            outcome: 'success',
+          },
+        },
+      ],
+      learningFacts: [
+        {
+          sessionId: 'session-closure-5-3',
+          userId: 'student-1',
+          lessonId: '5-3',
+          score: 100,
+          outcome: 'success',
+          startedAt: new Date('2026-05-20T09:31:00.000Z'),
+          contextJson: {},
+        },
+      ],
+      studentStepResponses: [],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:40:00.000Z') },
+      ],
+      classSessionReports: [
+        {
+          sessionId: 'session-closure-5-3',
+          lessonKey: '5-3',
+          reportType: 'class-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+        },
+      ],
+      studentSessionReports: [
+        {
+          sessionId: 'session-closure-5-3',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        },
+      ],
+      studentEvidenceFeatureCaches: [],
+    });
+
+    expect(report.sessions[0].postClassClosure).toMatchObject({
+      captured: { complete: true },
+      materialized: { complete: true },
+      summarized: { complete: true },
+      cached: {
+        complete: false,
+        refreshedParticipants: 0,
+        expectedParticipants: 1,
+        missingParticipants: 1,
+      },
+    });
+  });
+
+  it('marks post-class closure complete when reports and feature cache cover session facts', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-closure-ready-5-3'] },
+      sessions: [{
+        id: 'session-closure-ready-5-3',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-3：从单回路控制到复杂自主系统链路' },
+      }],
+      studentStates: [{
+        sessionId: 'session-closure-ready-5-3',
+        userId: 'student-1',
+        stateKey: 'course',
+        lessonKey: '5-3',
+        submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+        lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+      }],
+      interactionLogs: [{
+        sessionId: 'session-closure-ready-5-3',
+        userId: 'teacher-1',
+        eventType: 'session_finalize',
+        stepId: 'step-15',
+        lessonKey: '5-3',
+        actorRole: 'teacher',
+        userRole: 'TEACHER',
+        clientEventAt: new Date('2026-05-20T09:31:00.000Z'),
+        createdAt: new Date('2026-05-20T09:31:01.000Z'),
+        eventData: { eventType: 'session_finalize' },
+      }],
+      learningFacts: [{
+        sessionId: 'session-closure-ready-5-3',
+        userId: 'student-1',
+        lessonId: '5-3',
+        score: 100,
+        outcome: 'success',
+        startedAt: new Date('2026-05-20T09:21:00.000Z'),
+        contextJson: {},
+      }],
+      studentStepResponses: [],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:40:00.000Z') },
+      ],
+      classSessionReports: [{
+        sessionId: 'session-closure-ready-5-3',
+        lessonKey: '5-3',
+        reportType: 'class-summary',
+        status: 'READY',
+        updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+      }],
+      studentSessionReports: [{
+        sessionId: 'session-closure-ready-5-3',
+        userId: 'student-1',
+        lessonKey: '5-3',
+        reportType: 'student-summary',
+        status: 'READY',
+        updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+      }],
+      studentEvidenceFeatureCaches: [{
+        userId: 'student-1',
+        refreshedAt: new Date('2026-05-20T09:45:00.000Z'),
+        lastSourceFactAt: new Date('2026-05-20T09:21:00.000Z'),
+        statusMarkers: [],
+      }],
+    });
+
+    expect(report.sessions[0].postClassClosure).toMatchObject({
+      captured: { complete: true },
+      materialized: { complete: true },
+      summarized: { complete: true },
+      cached: {
+        complete: true,
+        refreshedParticipants: 1,
+        expectedParticipants: 1,
+        missingParticipants: 0,
+        staleParticipants: 0,
+      },
+    });
+  });
+
+  it('marks an existing feature cache incomplete when it does not cover session facts', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-closure-stale-5-3'] },
+      sessions: [{
+        id: 'session-closure-stale-5-3',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-3：从单回路控制到复杂自主系统链路' },
+      }],
+      studentStates: [{
+        sessionId: 'session-closure-stale-5-3',
+        userId: 'student-1',
+        stateKey: 'course',
+        lessonKey: '5-3',
+        submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+        lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+      }],
+      interactionLogs: [{
+        sessionId: 'session-closure-stale-5-3',
+        userId: 'teacher-1',
+        eventType: 'session_finalize',
+        stepId: 'step-15',
+        lessonKey: '5-3',
+        actorRole: 'teacher',
+        userRole: 'TEACHER',
+        clientEventAt: new Date('2026-05-20T09:31:00.000Z'),
+        createdAt: new Date('2026-05-20T09:31:01.000Z'),
+        eventData: { eventType: 'session_finalize' },
+      }],
+      learningFacts: [{
+        sessionId: 'session-closure-stale-5-3',
+        userId: 'student-1',
+        lessonId: '5-3',
+        score: 100,
+        outcome: 'success',
+        startedAt: new Date('2026-05-20T09:21:00.000Z'),
+        contextJson: {},
+      }],
+      studentStepResponses: [],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:40:00.000Z') },
+      ],
+      classSessionReports: [{
+        sessionId: 'session-closure-stale-5-3',
+        lessonKey: '5-3',
+        reportType: 'class-summary',
+        status: 'READY',
+        updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+      }],
+      studentSessionReports: [{
+        sessionId: 'session-closure-stale-5-3',
+        userId: 'student-1',
+        lessonKey: '5-3',
+        reportType: 'student-summary',
+        status: 'READY',
+        updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+      }],
+      studentEvidenceFeatureCaches: [{
+        userId: 'student-1',
+        refreshedAt: new Date('2026-05-20T09:45:00.000Z'),
+        lastSourceFactAt: new Date('2026-05-20T09:10:00.000Z'),
+        statusMarkers: [],
+      }],
+    });
+
+    expect(report.sessions[0].postClassClosure.cached).toMatchObject({
+      complete: false,
+      refreshedParticipants: 0,
+      expectedParticipants: 1,
+      missingParticipants: 0,
+      staleParticipants: 1,
+    });
+  });
+
   it('does not broaden a lesson-filtered report when no matching session exists', async () => {
     const db = {
       interactionLog: { findMany: vi.fn().mockResolvedValue([]) },

@@ -24,6 +24,7 @@ function printTextReport(report: Awaited<ReturnType<typeof collectSessionDataQua
     console.log(`  evidenceQuality: ${JSON.stringify(coverage.evidenceQualityCounts)}`);
     console.log(`  reports: class=${session.reportFreshness.classReportAvailable ? 'ready' : 'missing'}, students=${session.reportFreshness.studentReportCount}/${session.reportFreshness.expectedStudentReports}, fresh=${session.reportFreshness.classReportFresh && session.reportFreshness.studentReportsFresh}`);
     console.log(`  snapshots: ${session.snapshotFreshness.updatedParticipants}/${session.snapshotFreshness.expectedParticipants}, fresh=${session.snapshotFreshness.fresh}`);
+    console.log(`  closure: captured=${session.postClassClosure.captured.complete}, materialized=${session.postClassClosure.materialized.complete}, summarized=${session.postClassClosure.summarized.complete}, cached=${session.postClassClosure.cached.complete}`);
     console.log(`  sync: raw=${session.syncQuality.rawSyncErrors}, incidents=${session.syncQuality.incidentCount}, affectedUsers=${session.syncQuality.affectedUsers}, dominant=${session.syncQuality.dominantSource ?? '-'}/${session.syncQuality.dominantFailureKind ?? '-'}, severity=${session.syncQuality.severityClassification}`);
     console.log(`  qualityStatus: ${session.qualityStatus.status}, reasons=${session.qualityStatus.reasons.join(',') || '-'}`);
   }

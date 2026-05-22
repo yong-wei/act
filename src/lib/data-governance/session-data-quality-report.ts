@@ -86,6 +86,13 @@ interface SessionReportQualityRow {
   updatedAt: Date;
 }
 
+interface StudentEvidenceFeatureCacheQualityRow {
+  userId: string;
+  refreshedAt: Date;
+  lastSourceFactAt: Date | null;
+  statusMarkers: unknown;
+}
+
 export interface BuildSessionDataQualityReportInput {
   generatedAt?: string;
   filters?: SessionDataQualityFilters;
@@ -97,6 +104,7 @@ export interface BuildSessionDataQualityReportInput {
   studentCompetencySnapshots: StudentSnapshotQualityRow[];
   classSessionReports: SessionReportQualityRow[];
   studentSessionReports: SessionReportQualityRow[];
+  studentEvidenceFeatureCaches?: StudentEvidenceFeatureCacheQualityRow[];
 }
 
 export type SessionDataQualityDb = {
@@ -124,6 +132,9 @@ export type SessionDataQualityDb = {
   studentSessionReport: {
     findMany(args: unknown): Promise<SessionReportQualityRow[]>;
   };
+  studentEvidenceFeatureCache?: {
+    findMany(args: unknown): Promise<StudentEvidenceFeatureCacheQualityRow[]>;
+  };
   user: {
     findMany(args: unknown): Promise<UserRoleQualityRow[]>;
   };
@@ -136,6 +147,10 @@ function readObject(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 function latestDate(dates: Date[]) {
@@ -300,6 +315,61 @@ function buildSnapshotFreshness(
   };
 }
 
+function hasSessionFinalizeCapture(logs: InteractionLogQualityRow[]) {
+  return logs.some((log) => (
+    log.eventType === 'session_finalize'
+    || readString(readObject(log.eventData).eventType) === 'session_finalize'
+  ));
+}
+
+function buildCacheFreshness(
+  session: ClassSessionQualityRow,
+  participantUserIds: string[],
+  caches: StudentEvidenceFeatureCacheQualityRow[],
+  latestFactAtByUserId: Map<string, Date>,
+) {
+  const windowStart = session.endTime ?? session.startTime;
+  const participantSet = new Set(participantUserIds);
+  const cacheByUserId = new Map(
+    caches
+      .filter((cache) => participantSet.has(cache.userId))
+      .map((cache) => [cache.userId, cache] as const),
+  );
+  const freshUserIds = new Set<string>();
+  const staleUserIds = new Set<string>();
+
+  for (const userId of participantUserIds) {
+    const cache = cacheByUserId.get(userId);
+    if (!cache) continue;
+    const markers = Array.isArray(cache.statusMarkers) ? cache.statusMarkers : [];
+    const staleByMarker = markers.includes('stale');
+    const refreshedAt = cache.refreshedAt;
+    const refreshedAfterSession = refreshedAt.getTime() >= windowStart.getTime();
+    const latestFactAt = latestFactAtByUserId.get(userId) ?? null;
+    const cacheIncludesLatestFact = !latestFactAt
+      || Boolean(cache.lastSourceFactAt && cache.lastSourceFactAt.getTime() >= latestFactAt.getTime());
+
+    if (staleByMarker || !refreshedAfterSession || !cacheIncludesLatestFact) {
+      staleUserIds.add(userId);
+    } else {
+      freshUserIds.add(userId);
+    }
+  }
+
+  return {
+    windowStart: windowStart.toISOString(),
+    minimumRefreshedAt: windowStart.toISOString(),
+    refreshedParticipants: freshUserIds.size,
+    expectedParticipants: participantUserIds.length,
+    missingParticipants: Math.max(0, participantUserIds.length - cacheByUserId.size),
+    staleParticipants: staleUserIds.size,
+    latestRefreshedAt: latestDate(
+      Array.from(cacheByUserId.values()).map((cache) => cache.refreshedAt),
+    )?.toISOString() ?? null,
+    fresh: participantUserIds.length === freshUserIds.size,
+  };
+}
+
 function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
   const evidenceQualityCounts = createSubmissionEvidenceQualityCounts();
   const evidenceQualityReasonCounts: Record<string, number> = {};
@@ -327,6 +397,19 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
     evidenceQualityCounts,
     evidenceQualityReasonCounts,
   };
+}
+
+function latestFactAtByUserId(facts: LearningFactQualityRow[]) {
+  const latestByUserId = new Map<string, Date>();
+
+  for (const fact of facts) {
+    const current = latestByUserId.get(fact.userId);
+    if (!current || fact.startedAt.getTime() > current.getTime()) {
+      latestByUserId.set(fact.userId, fact.startedAt);
+    }
+  }
+
+  return latestByUserId;
 }
 
 export function buildSessionDataQualityReport(input: BuildSessionDataQualityReportInput) {
@@ -377,6 +460,12 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       participantUserIds,
       input.studentCompetencySnapshots,
     );
+    const cacheFreshness = buildCacheFreshness(
+      session,
+      participantUserIds,
+      input.studentEvidenceFeatureCaches ?? [],
+      latestFactAtByUserId(studentFacts),
+    );
     const syncSeverity = resolveSessionQualitySyncSeverity(syncHealth.severityDistribution);
     const qualitySyncSeverity = resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution);
     const syncQuality = {
@@ -421,6 +510,31 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       submissionCoverage,
       reportFreshness,
       snapshotFreshness,
+      postClassClosure: {
+        captured: {
+          complete: hasSessionFinalizeCapture(logs),
+          sessionFinalizeEvents: logs.filter((log) => (
+            log.eventType === 'session_finalize'
+            || readString(readObject(log.eventData).eventType) === 'session_finalize'
+          )).length,
+        },
+        materialized: {
+          complete: facts.length > 0,
+          learningFacts: facts.length,
+        },
+        summarized: {
+          complete: reportFreshness.classReportAvailable
+            && reportFreshness.classReportFresh
+            && reportFreshness.studentReportsFresh,
+          classReportAvailable: reportFreshness.classReportAvailable,
+          studentReportCount: reportFreshness.studentReportCount,
+          expectedStudentReports: reportFreshness.expectedStudentReports,
+        },
+        cached: {
+          complete: cacheFreshness.fresh,
+          ...cacheFreshness,
+        },
+      },
       syncQuality,
     };
   });
@@ -647,6 +761,19 @@ export async function collectSessionDataQualityReport(
       },
     })
     : [];
+  const studentEvidenceFeatureCaches = participantUserIds.length > 0 && db.studentEvidenceFeatureCache
+    ? await db.studentEvidenceFeatureCache.findMany({
+      where: {
+        userId: { in: participantUserIds },
+      },
+      select: {
+        userId: true,
+        refreshedAt: true,
+        lastSourceFactAt: true,
+        statusMarkers: true,
+      },
+    })
+    : [];
 
   return buildSessionDataQualityReport({
     filters,
@@ -658,5 +785,6 @@ export async function collectSessionDataQualityReport(
     studentCompetencySnapshots,
     classSessionReports,
     studentSessionReports,
+    studentEvidenceFeatureCaches,
   });
 }

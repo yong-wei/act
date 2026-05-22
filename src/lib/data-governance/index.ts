@@ -29,3 +29,6 @@ export * from './submission-evidence-quality';
 
 // Course evidence specifications
 export * from './course-evidence-specs';
+
+// Interactive session finalization
+export * from './interactive-session-finalization';
