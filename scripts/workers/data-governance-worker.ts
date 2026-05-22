@@ -28,6 +28,10 @@ import {
   eventToLearningFactInput,
 } from '@/lib/data-governance/learning-fact-materialization';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
+import {
+  rebuildStudentEvidenceFeatureCache,
+  refreshStudentEvidenceFeatureCache,
+} from '@/lib/data-governance/student-evidence-feature-cache';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -35,7 +39,13 @@ import {
   getRecommendedScaffolding,
   getRiskLevelDescription,
 } from '@/lib/data-governance/risk-detector';
-import type { ClassSnapshotJob, EventIngestionJob, SessionReportJob, StudentSnapshotJob } from './types';
+import type {
+  ClassSnapshotJob,
+  EventIngestionJob,
+  EvidenceFeatureCacheJob,
+  SessionReportJob,
+  StudentSnapshotJob,
+} from './types';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -66,10 +76,12 @@ let eventQueue: Queue<EventIngestionJob> | null = null;
 let studentQueue: Queue<StudentSnapshotJob> | null = null;
 let classQueue: Queue<ClassSnapshotJob> | null = null;
 let reportQueue: Queue<SessionReportJob> | null = null;
+let evidenceFeatureCacheQueue: Queue<EvidenceFeatureCacheJob> | null = null;
 let eventIngestionWorker: Worker<EventIngestionJob> | null = null;
 let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
+let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -566,8 +578,9 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   }, null);
 
   if (facts.length === 0) {
+    await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
     logWithThrottle(`student-snapshot:${userId}:no-facts`, 'info', `[StudentSnapshot] Skip ${userId}: no learning facts in current window`);
-    return { skipped: true, reason: 'no_facts', userId };
+    return { skipped: true, reason: 'no_facts', userId, featureCacheRefreshed: true };
   }
 
   if (
@@ -576,8 +589,9 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     latestFactCreatedAt &&
     latestFactCreatedAt.getTime() <= previousSnapshot.snapshotAt.getTime()
   ) {
+    await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
     logWithThrottle(`student-snapshot:${userId}:unchanged`, 'info', `[StudentSnapshot] Skip ${userId}: no new facts since latest snapshot`);
-    return { skipped: true, reason: 'unchanged_facts', userId };
+    return { skipped: true, reason: 'unchanged_facts', userId, featureCacheRefreshed: true };
   }
 
   const evidenceDetails = await loadEvidenceDetails(db, facts);
@@ -623,6 +637,7 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       evidenceSummary: snapshot.evidenceSummary,
     },
   });
+  await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
 
   await db.studentRiskFlag.updateMany({
     where: {
@@ -653,6 +668,7 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     snapshotId: snapshot.id,
     factCount: facts.length,
     riskCount: risks.length,
+    featureCacheRefreshed: true,
   };
 }
 
@@ -906,6 +922,27 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
   return generateSessionSummaryReports(db, job.data.sessionId);
 }
 
+async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>) {
+  const db = getPrismaClient();
+
+  if (job.data.coordinator || job.data.rebuildAll) {
+    const result = await rebuildStudentEvidenceFeatureCache(db);
+    logWithThrottle(
+      'evidence-feature-cache:rebuild',
+      'info',
+      `[EvidenceFeatureCache] Rebuilt ${result.processedStudents} student feature cache entries`,
+    );
+    return result;
+  }
+
+  if (!job.data.userId) {
+    throw new Error('evidence-feature-cache job requires userId unless it is a coordinator rebuild job');
+  }
+
+  await refreshStudentEvidenceFeatureCache(db, job.data.userId);
+  return { userId: job.data.userId, refreshed: true };
+}
+
 async function startWorkers() {
   await respectCooldown();
 
@@ -931,6 +968,7 @@ async function startWorkers() {
   studentQueue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
   classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
   reportQueue = new Queue<SessionReportJob>('session-report', { connection: redis });
+  evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
 
   eventIngestionWorker = new Worker<EventIngestionJob>('event-ingestion', processEventIngestionJob, {
     connection: redis,
@@ -948,11 +986,16 @@ async function startWorkers() {
     connection: redis,
     concurrency: 1,
   });
+  evidenceFeatureCacheWorker = new Worker<EvidenceFeatureCacheJob>('evidence-feature-cache', processEvidenceFeatureCacheJob, {
+    connection: redis,
+    concurrency: 1,
+  });
 
   registerWorkerHandlers('EventIngestion', eventIngestionWorker);
   registerWorkerHandlers('StudentSnapshot', studentSnapshotWorker);
   registerWorkerHandlers('ClassSnapshot', classSnapshotWorker);
   registerWorkerHandlers('SessionReport', sessionReportWorker);
+  registerWorkerHandlers('EvidenceFeatureCache', evidenceFeatureCacheWorker);
 
   process.on('SIGTERM', () => {
     void shutdown(0);
@@ -985,10 +1028,12 @@ async function shutdown(exitCode: number) {
   if (studentSnapshotWorker) cleanupTasks.push(studentSnapshotWorker.close());
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
+  if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());
   if (reportQueue) cleanupTasks.push(reportQueue.close());
+  if (evidenceFeatureCacheQueue) cleanupTasks.push(evidenceFeatureCacheQueue.close());
   if (prisma) cleanupTasks.push(prisma.$disconnect());
   if (redis) {
     cleanupTasks.push(

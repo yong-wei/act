@@ -7,7 +7,7 @@ import type {
   WorkspaceMode,
 } from './types';
 
-export const ARENA_STUDENT_LEADERBOARD_TYPES: LeaderboardType[] = ['main', 'method', 'metric'];
+export const ARENA_STUDENT_LEADERBOARD_TYPES: LeaderboardType[] = ['main', 'method', 'metric', 'pareto', 'class', 'season'];
 
 export const arenaSourceLabels: Record<ChallengeObjectSource, string> = {
   typical: '典型对象',

@@ -9,11 +9,12 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit53StepAIContext } from '@/lib/unit-5-3-ai-contexts';
 import {
+  getUNIT_5_3ManifestStepFromManifest,
   getUNIT_5_3PageContractFromManifest,
   UNIT_5_3_LESSON_KEY,
   UNIT_5_3_LESSON_STEPS,
@@ -81,6 +82,7 @@ export function UNIT_5_3StudentPage({
     actorRole: 'student',
     emit: interactiveTracking.emit,
   });
+  const { submitManifestStepResponse } = useManifestSubmissionController({ trackCourseEvent });
 
   const step = UNIT_5_3_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
@@ -174,9 +176,19 @@ export function UNIT_5_3StudentPage({
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const handleSubmitResponse = (response: UNIT_5_3StepResponse) => {
-    const submittedAt = Date.now();
     void enqueueCourseStateSave((prev) => {
       const parameters = localParameters[step.id] ?? prev.turningParameterSnapshots?.[step.id];
+      const answers = parameters ? { ...response.answers, __turning_parameters: JSON.stringify(parameters) } : response.answers;
+      const submittedAt = submitManifestStepResponse({
+        stepId: step.id,
+        isResubmit: Boolean(prev.responses[step.id]),
+        response: { ...response, submittedAt: response.submittedAt, answers },
+        stepManifest: getUNIT_5_3ManifestStepFromManifest(runtimeManifest, step.id),
+        extraEvidence: {
+          parameterSubmitted: Boolean(parameters),
+          ...(parameters ? { parameterSnapshots: parameters } : {}),
+        },
+      });
       const nextState: UNIT_5_3StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
@@ -190,19 +202,11 @@ export function UNIT_5_3StudentPage({
           ...prev.responses,
           [step.id]: {
             ...response,
-            answers: parameters ? { ...response.answers, __turning_parameters: JSON.stringify(parameters) } : response.answers,
+            submittedAt,
+            answers,
           },
         },
       };
-      trackCourseEvent(
-        savedResponse ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        {
-          stepId: step.id,
-          attemptKey: `${step.id}:response:${submittedAt}`,
-          clientEventAt: submittedAt,
-          data: { stepId: step.id, parameterSubmitted: Boolean(parameters) },
-        },
-      );
       return nextState;
     });
   };

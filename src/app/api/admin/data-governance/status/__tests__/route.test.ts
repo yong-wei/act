@@ -22,8 +22,38 @@ const mocks = vi.hoisted(() => ({
       count: vi.fn(),
       findMany: vi.fn(),
     },
+    interactionLog: {
+      findMany: vi.fn(),
+    },
+    studentStepResponse: {
+      findMany: vi.fn(),
+    },
+    simulationLog: {
+      findMany: vi.fn(),
+    },
+    userAnswer: {
+      findMany: vi.fn(),
+    },
+    abilityAssessment: {
+      findMany: vi.fn(),
+    },
+    promptAssessment: {
+      findMany: vi.fn(),
+    },
+    designSession: {
+      findMany: vi.fn(),
+    },
+    arenaSubmission: {
+      findMany: vi.fn(),
+    },
+    arenaEvaluationRun: {
+      findMany: vi.fn(),
+    },
     studentEvidenceFeatureCache: {
       count: vi.fn(),
+      findMany: vi.fn(),
+    },
+    classSessionReport: {
       findMany: vi.fn(),
     },
     studentRiskFlag: {
@@ -92,9 +122,52 @@ describe('GET /api/admin/data-governance/status', () => {
         },
       ]);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
-    mocks.prisma.learningFact.findMany.mockResolvedValue([
-      { factType: 'question' },
-      { factType: 'simulation' },
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce([
+        { factType: 'question' },
+        { factType: 'simulation' },
+      ])
+      .mockResolvedValueOnce([]);
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([
+      {
+        id: 'log-demo-5-2',
+        userId: 'student-demo',
+        eventType: 'lesson_submit',
+        eventData: { eventType: 'lesson_submit', source: 'demo' },
+        clientEventAt: new Date('2026-05-20T08:00:00.000Z'),
+        createdAt: new Date('2026-05-20T08:01:00.000Z'),
+      },
+      {
+        id: 'log-page-view',
+        userId: 'student-1',
+        eventType: 'page_view',
+        eventData: { eventType: 'page_view', source: 'real' },
+        clientEventAt: new Date('2026-05-20T08:02:00.000Z'),
+        createdAt: new Date('2026-05-20T08:02:30.000Z'),
+      },
+      {
+        id: 'log-5-2-submit',
+        userId: 'student-1',
+        eventType: 'lesson_submit',
+        eventData: { eventType: 'lesson_submit', lessonKey: 'unit-5-2-nonlinear-analysis-entry' },
+        clientEventAt: new Date('2026-05-20T08:10:00.000Z'),
+        createdAt: new Date('2026-05-20T08:10:10.000Z'),
+      },
+    ]);
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
+    mocks.prisma.userAnswer.findMany.mockResolvedValue([]);
+    mocks.prisma.abilityAssessment.findMany.mockResolvedValue([]);
+    mocks.prisma.promptAssessment.findMany.mockResolvedValue([]);
+    mocks.prisma.designSession.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaEvaluationRun.findMany.mockResolvedValue([
+      {
+        id: 'arena-eval-support-only',
+        taskId: 'unit-5-2-regression-fixture',
+        metadata: { source: 'real' },
+        completedAt: new Date('2026-05-20T08:20:00.000Z'),
+      },
     ]);
     mocks.prisma.studentEvidenceFeatureCache.count.mockResolvedValue(2);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
@@ -108,6 +181,44 @@ describe('GET /api/admin/data-governance/status', () => {
         },
         sourceFactCount: 4,
         rebuildCount: 1,
+      },
+    ]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([
+      {
+        sessionId: 'session-green',
+        lessonKey: 'unit-5-2-nonlinear-analysis-entry',
+        status: 'READY',
+        summary: '5-2 富证据课堂',
+        updatedAt: new Date('2026-05-20T09:00:00.000Z'),
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'green', reasons: ['healthy_quality_gate'] },
+          },
+        },
+      },
+      {
+        sessionId: 'session-yellow',
+        lessonKey: 'unit-5-1-linear-backbone-boundaries',
+        status: 'READY',
+        summary: '5-1 部分旧证据课堂',
+        updatedAt: new Date('2026-05-20T10:00:00.000Z'),
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'yellow', reasons: ['missing_post_assessment'] },
+          },
+        },
+      },
+      {
+        sessionId: 'session-red',
+        lessonKey: 'unit-5-3-mass-coordination-chain',
+        status: 'READY',
+        summary: '5-3 缺证据课堂',
+        updatedAt: new Date('2026-05-20T11:00:00.000Z'),
+        reportData: {
+          sessionGovernanceSummary: {
+            qualityStatus: { status: 'red', reasons: ['low_fact_coverage'] },
+          },
+        },
       },
     ]);
     mocks.prisma.user.findMany.mockResolvedValue([
@@ -131,13 +242,47 @@ describe('GET /api/admin/data-governance/status', () => {
           learningScope: 'mixed',
           eligibility: 'eligible',
           materializationReadiness: 'partial',
+          totalRows: 3,
+          eligibleRows: 1,
+          excludedRows: 2,
+          unsupportedRows: 0,
+          exclusionReasons: expect.arrayContaining(['low_value_activity_context', 'non_real_provenance']),
         }),
         expect.objectContaining({
           id: 'ArenaEvaluationRun',
           eligibility: 'unsupported',
+          totalRows: 1,
+          unsupportedRows: 1,
+          exclusionReasons: ['source_not_profile_ready'],
         }),
       ])
     );
+    expect(payload.sourceCoverage).toMatchObject({
+      totals: {
+        totalRows: 4,
+        eligibleRows: 1,
+        excludedRows: 2,
+        unsupportedRows: 1,
+      },
+      exclusions: expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: 'InteractionLog',
+          reason: 'non_real_provenance',
+          rowCount: 1,
+          sampleSourceReference: 'InteractionLog:log-demo-5-2',
+        }),
+        expect.objectContaining({
+          sourceId: 'InteractionLog',
+          reason: 'low_value_activity_context',
+          rowCount: 1,
+        }),
+        expect.objectContaining({
+          sourceId: 'ArenaEvaluationRun',
+          reason: 'source_not_profile_ready',
+          rowCount: 1,
+        }),
+      ]),
+    });
     expect(payload.recentSnapshots[0]).toMatchObject({
       userId: 'student-1',
       userName: '张三',
@@ -149,6 +294,31 @@ describe('GET /api/admin/data-governance/status', () => {
       latestRefreshAt: '2026-05-19T08:10:00.000Z',
       totalSourceFacts: 4,
       payloadVersion: 'student-evidence-features.v1',
+    });
+    expect(payload.sessionQuality).toEqual({
+      recentSessions: 3,
+      green: 1,
+      yellow: 1,
+      red: 1,
+      unknown: 0,
+      latestReports: [
+        expect.objectContaining({
+          sessionId: 'session-green',
+          lessonKey: 'unit-5-2-nonlinear-analysis-entry',
+          qualityStatus: 'green',
+          qualityReasons: ['healthy_quality_gate'],
+        }),
+        expect.objectContaining({
+          sessionId: 'session-yellow',
+          qualityStatus: 'yellow',
+          qualityReasons: ['missing_post_assessment'],
+        }),
+        expect.objectContaining({
+          sessionId: 'session-red',
+          qualityStatus: 'red',
+          qualityReasons: ['low_fact_coverage'],
+        }),
+      ],
     });
   });
 
@@ -163,6 +333,8 @@ describe('GET /api/admin/data-governance/status', () => {
     expect(response.status).toBe(401);
     expect(payload).toEqual({ error: 'Unauthorized' });
     expect(mocks.prisma.studentCompetencySnapshot.count).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSessionReport.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.interactionLog.findMany).not.toHaveBeenCalled();
     expect(mocks.redisClient.getClient).not.toHaveBeenCalled();
   });
 });

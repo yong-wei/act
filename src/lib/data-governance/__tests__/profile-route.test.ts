@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
@@ -45,6 +45,9 @@ const mocks = vi.hoisted(() => {
       },
       learningFact: {
         findMany: vi.fn(),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn(),
       },
       studentState: {
         findMany: vi.fn(),
@@ -161,8 +164,56 @@ function arenaSubmission(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
+  return {
+    userId: 'student-1',
+    refreshedAt: new Date('2026-05-19T00:00:00.000Z'),
+    evidenceWindow: {
+      firstStartedAt: '2026-05-01T00:00:00.000Z',
+      lastStartedAt: '2026-05-18T00:00:00.000Z',
+      daysCovered: 17,
+    },
+    sourceCounts: {
+      LearningFact: 7,
+      StudentCompetencySnapshot: 1,
+      StudentProfileSummary: 1,
+      byFactType: { question: 4, design: 3 },
+    },
+    sourceCoverage: {
+      LearningFact: 'available',
+      StudentCompetencySnapshot: 'available',
+      StudentProfileSummary: 'available',
+    },
+    confidenceMarkers: {
+      level: 'medium',
+      score: 0.66,
+      evidenceCount: 7,
+      sourceCompleteness: 0.86,
+    },
+    statusMarkers: [],
+    ...overrides,
+  };
+}
+
+function learningFact(overrides: Record<string, unknown> = {}) {
+  const id = typeof overrides.id === 'string' ? overrides.id : 'fact-1';
+  return {
+    id,
+    factType: overrides.factType ?? 'question',
+    moduleId: overrides.moduleId ?? 'adaptive-practice',
+    sessionId: overrides.sessionId ?? null,
+    startedAt: overrides.startedAt ?? new Date('2026-03-19T10:30:00.000Z'),
+    outcome: overrides.outcome ?? 'success',
+    score: overrides.score ?? 0.86,
+    timeSpent: overrides.timeSpent ?? 420,
+    contextJson: overrides.contextJson ?? null,
+  };
+}
+
 describe('GET /api/user/profile', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-21T00:00:00.000Z'));
     vi.clearAllMocks();
 
     mocks.getServerAuthSession.mockResolvedValue({
@@ -258,29 +309,41 @@ describe('GET /api/user/profile', () => {
     ]);
 
     mocks.prisma.learningFact.findMany.mockResolvedValue([
-      {
+      learningFact({
         id: 'fact-1',
         factType: 'question',
         moduleId: 'adaptive-practice',
-        sessionId: null,
         startedAt: new Date('2026-03-19T10:30:00.000Z'),
-        outcome: 'success',
-        score: 0.86,
-        timeSpent: 420,
-        competencyContribution: { crossDomainTransfer: 0.5 },
-      },
-      {
+        contextJson: { competencyContribution: { crossDomainTransfer: 0.5 } },
+      }),
+      learningFact({
         id: 'fact-arena-1',
         factType: 'design',
         moduleId: 'task-integrator-low-frequency-balance',
-        sessionId: null,
         startedAt: new Date('2026-05-16T08:30:00.000Z'),
-        outcome: 'success',
-        score: 0.86,
         timeSpent: 300,
         contextJson: { arena: { taskId: 'task-integrator-low-frequency-balance', valid: true } },
-      },
+      }),
+      learningFact({
+        id: 'fact-unit-5-2-rich-evidence',
+        factType: 'course-evidence',
+        moduleId: 'unit-5-2-nonlinear-analysis-entry',
+        sessionId: 'session-unit-5-2',
+        startedAt: new Date('2026-05-18T09:00:00.000Z'),
+        outcome: 'partial',
+        score: null,
+        timeSpent: 240,
+        contextJson: {
+          courseEvidence: {
+            lessonId: '5-2',
+            source: 'student-interactive-submission',
+            evidenceKind: 'rich-evidence',
+          },
+        },
+      }),
     ]);
+
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
 
     mocks.prisma.studentState.findMany.mockResolvedValue([
       {
@@ -392,6 +455,10 @@ describe('GET /api/user/profile', () => {
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('returns six-dimension competency, preview activities, and adaptive reinforcement summary', async () => {
     const response = await GET();
     const body = await response.json();
@@ -422,6 +489,33 @@ describe('GET /api/user/profile', () => {
       ])
     );
     expect(body.personalizedReinforcement.resources).toHaveLength(2);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'ready',
+      evidenceBasis: 'student-evidence-feature-cache',
+      refreshedAt: '2026-05-19T00:00:00.000Z',
+      evidenceWindow: {
+        firstStartedAt: '2026-05-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-18T00:00:00.000Z',
+        daysCovered: 17,
+      },
+      sourceCounts: {
+        LearningFact: 7,
+        StudentCompetencySnapshot: 1,
+        StudentProfileSummary: 1,
+      },
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'available',
+      },
+      confidence: {
+        state: 'ready',
+        level: 'medium',
+        score: 0.66,
+        evidenceCount: 7,
+      },
+      statusMarkers: [],
+    });
     expect(body.personalizedReinforcement.adaptivePractice).toMatchObject({
       estimatedAbility: 0.64,
       weakAreas: ['phase-margin', 'controller-tuning'],
@@ -429,6 +523,18 @@ describe('GET /api/user/profile', () => {
       actionUrl: '/assessment/adaptive-practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
+    expect(body.arenaPortfolio.growth).toMatchObject({
+      evidenceAvailable: true,
+      capabilityCoverage: {
+        covered: expect.any(Number),
+        total: expect.any(Number),
+      },
+    });
+    expect(body.arenaPortfolio.growth.improvingCapabilities).toEqual(expect.arrayContaining([
+      '稳态精度',
+    ]));
+    expect(body.arenaPortfolio.growth.nextChallenges.length).toBeGreaterThan(0);
+    expect(body.arenaPortfolio.growth.nextChallenges[0].reason).toMatch(/薄弱|指标|阶段|补齐/);
     expect(body.arenaSummary).toMatchObject({
       submissionCount: 2,
       bestScore: 86,
@@ -436,6 +542,166 @@ describe('GET /api/user/profile', () => {
       methodPreference: 'pid',
       improvementCount: 1,
       learningFactContextCount: 1,
+    });
+  });
+
+  it('marks profile evidence status missing when the governed feature cache is absent', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'missing',
+      evidenceBasis: 'governed-facts',
+      confidence: {
+        state: 'missing',
+        level: 'low',
+        evidenceCount: 3,
+      },
+      sourceCoverage: {
+        LearningFact: 'available',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'missing',
+      },
+      statusMarkers: ['missing-source'],
+    });
+  });
+
+  it('uses full governed fact history for missing cache evidence status', async () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const recentStart = Date.UTC(2026, 4, 1);
+    const fullHistoryStart = Date.UTC(2026, 3, 1);
+    const recentFacts = Array.from({ length: 40 }, (_, index) => learningFact({
+      id: `recent-fact-${index + 1}`,
+      factType: 'question',
+      startedAt: new Date(recentStart + index * dayMs),
+    }));
+    const fullFactHistory = Array.from({ length: 45 }, (_, index) => ({
+      factType: index % 2 === 0 ? 'question' : 'course-evidence',
+      startedAt: new Date(fullHistoryStart + index * dayMs),
+    }));
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce(recentFacts)
+      .mockResolvedValueOnce(fullFactHistory);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'missing',
+      evidenceBasis: 'governed-facts',
+      sourceCounts: {
+        LearningFact: 45,
+        byFactType: {
+          question: 23,
+          'course-evidence': 22,
+        },
+      },
+      evidenceWindow: {
+        firstStartedAt: '2026-04-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-15T00:00:00.000Z',
+        daysCovered: 44,
+      },
+      confidence: {
+        state: 'missing',
+        level: 'low',
+        evidenceCount: 45,
+      },
+    });
+  });
+
+  it('marks profile evidence status stale when the governed feature cache is stale or low confidence', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache({
+      refreshedAt: new Date('2026-01-01T00:00:00.000Z'),
+      confidenceMarkers: {
+        level: 'low',
+        score: 0.24,
+        evidenceCount: 1,
+        sourceCompleteness: 0.25,
+      },
+      statusMarkers: ['stale', 'low-confidence'],
+      sourceCoverage: {
+        LearningFact: 'partial',
+        StudentCompetencySnapshot: 'available',
+        StudentProfileSummary: 'missing',
+      },
+    }));
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'stale',
+      evidenceBasis: 'student-evidence-feature-cache',
+      confidence: {
+        state: 'stale',
+        level: 'low',
+        score: 0.24,
+        evidenceCount: 1,
+      },
+      sourceCoverage: {
+        LearningFact: 'partial',
+        StudentProfileSummary: 'missing',
+      },
+      statusMarkers: ['stale', 'low-confidence'],
+    });
+  });
+
+  it('preserves low-confidence recommendation rationale in profile resource cards', async () => {
+    mocks.generateRecommendations.mockResolvedValue([
+      {
+        id: 'low-confidence-rec',
+        type: 'weekly',
+        title: '补强跨域迁移',
+        description: '建议先完成三域联动模块。',
+        reason: '跨域迁移偏弱',
+        actionUrl: '/interactive-learning/courses/l2d-three-domain-linkage-practice',
+        actionLabel: '进入三域联动',
+        priority: 88,
+        estimatedTime: '25分钟',
+        tags: ['跨域迁移', '互动模块'],
+        rationale: {
+          reasonCode: 'weak-dimension-practice',
+          evidenceBasis: 'student-evidence-feature-cache',
+          evidenceRole: 'direct',
+          contextOnly: false,
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-18T00:00:00.000Z',
+            daysCovered: 17,
+          },
+          evidenceCount: 1,
+          sourceCoverage: {
+            LearningFact: 'partial',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'missing',
+          },
+          confidence: {
+            state: 'low-confidence',
+            level: 'low',
+            score: 0.24,
+            markers: ['low-confidence'],
+          },
+        },
+      },
+    ]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources[0].rationale).toMatchObject({
+      evidenceBasis: 'student-evidence-feature-cache',
+      evidenceCount: 1,
+      confidence: {
+        state: 'low-confidence',
+        level: 'low',
+      },
     });
   });
 });

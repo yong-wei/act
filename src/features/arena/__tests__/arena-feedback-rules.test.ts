@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { buildArenaSubmissionFeedback } from '../student/arena-feedback-rules';
+import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ControllerArtifact, ControllerMethod } from '../types';
 
@@ -31,6 +34,7 @@ function submission(input: {
   hardConstraintResults?: Array<{ id: string; label: string; passed: boolean; reason?: string }>;
   params?: Record<string, number | string | boolean>;
   metadata?: Record<string, unknown>;
+  evaluationProtocolVersion?: string;
 }): ArenaSubmissionRecord {
   const currentArtifact = artifact({ id: `artifact-${input.id}`, method: input.method, params: input.params });
 
@@ -65,6 +69,7 @@ function submission(input: {
       explanation: ['官方评测完成'],
       metadata: input.metadata,
     },
+    evaluationProtocolVersion: input.evaluationProtocolVersion,
     submittedAt: input.submittedAt,
     reusedEvaluation: false,
   };
@@ -82,7 +87,7 @@ describe('arena student diagnostic feedback rules', () => {
     expect(feedback.summary).toContain('86');
     expect(feedback.strongestMetric).toMatchObject({ metricId: 'steadyStateError', satisfaction: 0.92 });
     expect(feedback.weakestMetric).toMatchObject({ metricId: 'controlEnergy', satisfaction: 0.63 });
-    expect(feedback.nextStepSuggestion).toContain('controlEnergy');
+    expect(feedback.nextStepSuggestion).toContain('控制能量');
   });
 
   it('explains hard-constraint failures as not ranked with Chinese repair suggestions', () => {
@@ -103,7 +108,7 @@ describe('arena student diagnostic feedback rules', () => {
     expect(feedback.rankingStatus).toBe('not_ranked');
     expect(feedback.title).toContain('未进入正式排名');
     expect(feedback.hardConstraintFailures).toEqual(['闭环稳定：闭环极点位于右半平面', '响应有界']);
-    expect(feedback.nextStepSuggestion).toContain('先修复硬约束');
+    expect(feedback.nextStepSuggestion).toContain('先让闭环稳定达标');
   });
 
   it('compares the latest submission with the previous personal best', () => {
@@ -134,7 +139,7 @@ describe('arena student diagnostic feedback rules', () => {
     expect(improved.personalBestComparison).toEqual({ state: 'improved', delta: 13.5, previousBestScore: 70 });
     expect(improved.summary).toContain('提升 13.5 分');
     expect(regressed.personalBestComparison).toEqual({ state: 'regressed', delta: -9, previousBestScore: 70 });
-    expect(regressed.nextStepSuggestion).toContain('overshoot');
+    expect(regressed.nextStepSuggestion).toContain('超调量');
   });
 
   it('keeps personal-best regression metric scoped to the same student', () => {
@@ -170,7 +175,7 @@ describe('arena student diagnostic feedback rules', () => {
     });
 
     expect(feedback.personalBestComparison).toEqual({ state: 'regressed', delta: -9, previousBestScore: 70 });
-    expect(feedback.nextStepSuggestion).toContain('overshoot');
+    expect(feedback.nextStepSuggestion).toContain('超调量');
     expect(feedback.nextStepSuggestion).not.toContain('controlEnergy');
   });
 
@@ -199,6 +204,121 @@ describe('arena student diagnostic feedback rules', () => {
     expect(JSON.stringify(feedback)).not.toContain('do-not-leak');
     expect(JSON.stringify(feedback)).not.toContain('hiddenTrace');
   });
+
+  it('explains score composition, protocol version, and preview-official boundaries', () => {
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'official-explained',
+        score: 88,
+        valid: true,
+        submittedAt: '2026-05-16T08:40:00.000Z',
+        satisfaction: {
+          settlingTime: 0.84,
+          overshoot: 0.79,
+          hiddenScenarioWorst: 0.51,
+        },
+        evaluationProtocolVersion: 'analysis-whitebox-v1',
+      }),
+      mode: 'white-box',
+      officialOnlyMetricIds: ['hiddenScenarioWorst'],
+    });
+
+    expect(feedback.protocolVersion).toBe('analysis-whitebox-v1');
+    expect(feedback.scoreComposition.map((item) => item.metricId)).toEqual([
+      'settlingTime',
+      'overshoot',
+      'hiddenScenarioWorst',
+    ]);
+    expect(feedback.scoreComposition.find((item) => item.metricId === 'hiddenScenarioWorst')).toMatchObject({
+      label: '隐藏场景最差表现',
+      officialOnly: true,
+    });
+    expect(feedback.officialOnlyMetricNotes.join('\n')).toContain('隐藏场景最差表现');
+    expect(feedback.officialOnlyMetricNotes.join('\n')).toContain('仅官方评测后显示');
+    expect(feedback.boundaryNotes.join('\n')).toContain('工作台预览');
+    expect(feedback.boundaryNotes.join('\n')).toContain('官方评测');
+  });
+
+  it('keeps unchanged personal-best comparison and gives labeled weakest-metric guidance', () => {
+    const previousBest = submission({
+      id: 'same-score-best',
+      score: 82,
+      valid: true,
+      submittedAt: '2026-05-16T08:00:00.000Z',
+      satisfaction: { settlingTime: 0.72, overshoot: 0.82, steadyStateError: 0.91, controlEnergy: 0.66 },
+    });
+
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'same-score-latest',
+        score: 82,
+        valid: true,
+        submittedAt: '2026-05-16T08:40:00.000Z',
+        satisfaction: { settlingTime: 0.72, overshoot: 0.8, steadyStateError: 0.91, controlEnergy: 0.42 },
+      }),
+      previousSubmissions: [previousBest],
+      mode: 'white-box',
+    });
+
+    expect(feedback.personalBestComparison).toEqual({ state: 'unchanged', delta: 0, previousBestScore: 82 });
+    expect(feedback.summary).toContain('持平');
+    expect(feedback.weakestMetricGuidance).toContain('控制能量');
+    expect(feedback.nextStepSuggestion).toContain('控制能量');
+    expect(feedback.nextStepSuggestion).not.toContain('controlEnergy');
+  });
+
+  it('keeps black-box official-only explanations aggregate without hidden scenario leakage', () => {
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'blackbox-official-explained',
+        score: 74,
+        valid: true,
+        method: 'black-box-control',
+        submittedAt: '2026-05-16T08:45:00.000Z',
+        satisfaction: { trackingError: 0.76, hiddenScenarioWorst: 0.49, controlEnergy: 0.61 },
+        evaluationProtocolVersion: 'blackbox-official-v1',
+        metadata: {
+          hiddenScenarioOrder: ['quartering-sea-private'],
+          scenarioParameter: 'private-wave-height',
+        },
+      }),
+      mode: 'black-box',
+      officialOnlyMetricIds: ['hiddenScenarioWorst'],
+    });
+
+    expect(feedback.protocolVersion).toBe('blackbox-official-v1');
+    expect(feedback.officialOnlyMetricNotes.join('\n')).toContain('隐藏场景最差表现');
+    expect(feedback.privacyNote).toContain('隐藏场景');
+    expect(JSON.stringify(feedback)).not.toContain('quartering-sea-private');
+    expect(JSON.stringify(feedback)).not.toContain('private-wave-height');
+  });
+
+  it('states that black-box preview is not official hidden evaluation', () => {
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'blackbox-preview-boundary',
+        score: 68,
+        valid: true,
+        method: 'black-box-control',
+        submittedAt: '2026-05-16T08:50:00.000Z',
+        satisfaction: { trackingError: 0.74, worstCaseDeviation: 0.43, controlEnergy: 0.64 },
+        evaluationProtocolVersion: 'blackbox-official-v1',
+        metadata: {
+          hiddenScenarioOrder: ['private-head-sea'],
+          hiddenTrace: [{ t: 0, output: 0.4 }],
+        },
+      }),
+      mode: 'black-box',
+      officialOnlyMetricIds: ['trackingError', 'worstCaseDeviation', 'controlEnergy'],
+    });
+
+    expect(feedback.boundaryNotes.join('\n')).toContain('虚拟仿真预演不是官方隐藏评测');
+    expect(feedback.boundaryNotes.join('\n')).toContain('聚合指标');
+    expect(feedback.issueTags).toContain('hidden-generalization-risk');
+    expect(feedback.nextStepSuggestion).toContain('泛化风险');
+    expect(JSON.stringify(feedback)).not.toContain('private-head-sea');
+    expect(JSON.stringify(feedback)).not.toContain('hiddenTrace');
+  });
 });
 
 describe('arena personal feedback component', () => {
@@ -214,6 +334,30 @@ describe('arena personal feedback component', () => {
     expect(source).toContain('feedback.nextStepSuggestion');
     expect(source).toContain('feedback.hardConstraintFailures');
     expect(source).toContain('feedback.privacyNote');
+  });
+
+  it('renders a result explainer section with official protocol and boundary notes', () => {
+    const latest = submission({
+      id: 'ui-latest',
+      score: 88,
+      valid: true,
+      submittedAt: '2026-05-16T08:50:00.000Z',
+      satisfaction: { settlingTime: 0.84, overshoot: 0.79, hiddenScenarioWorst: 0.51 },
+      evaluationProtocolVersion: 'analysis-whitebox-v1',
+    });
+    const html = renderToStaticMarkup(createElement(ArenaPersonalFeedback as any, {
+      latest,
+      previousSubmissions: [],
+      mode: 'white-box',
+      officialOnlyMetricIds: ['hiddenScenarioWorst'],
+    }));
+
+    expect(html).toContain('官方结果解释');
+    expect(html).toContain('analysis-whitebox-v1');
+    expect(html).toContain('工作台预览');
+    expect(html).toContain('官方评测');
+    expect(html).toContain('隐藏场景最差表现');
+    expect(html).toContain('仅官方评测后显示');
   });
 
   it('uses the shared feedback component in the white-box submission panel', () => {
@@ -240,6 +384,7 @@ describe('arena personal feedback component', () => {
     expect(source).toContain('submissions.filter((submission) => submission.userId === viewerUserId)');
     expect(source).toContain('previousSubmissions={personalSubmissions.slice(0, -1)}');
     expect(source).toContain('mode="black-box"');
+    expect(source).toContain('officialOnlyMetricIds={blackBoxOfficialOnlyMetricIds}');
   });
 
   it('passes viewer identity from Arena submission entry points to personal feedback panels', () => {

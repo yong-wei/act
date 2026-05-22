@@ -294,6 +294,102 @@ describe('POST /api/interactive/events', () => {
     consoleError.mockRestore();
   });
 
+  it('marks legacy lesson submissions as lower-quality evidence instead of full diagnostics', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-legacy-submit', clientEventId: 'client-legacy-submit', eventData: { clientEventId: 'client-legacy-submit' } },
+    ]);
+    mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-legacy-submit',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:57:42.900Z'),
+          resourceKey: 'unit-5-1-linear-backbone-boundaries',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-03',
+          data: {
+            eventType: 'lesson_submit',
+            stepId: 'step-03',
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          responseData: expect.objectContaining({
+            eventType: 'lesson_submit',
+            evidenceQuality: 'legacy-envelope',
+            evidenceQualityReason: 'unsupported_legacy_envelope',
+            evidenceSourceState: 'legacy-envelope',
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    });
+    expect(mocks.persistCoreLearningFact.mock.calls[0][1].payload).toMatchObject({
+      evidenceQuality: 'legacy-envelope',
+    });
+  });
+
+  it('preserves v2 evidence quality for immutable student step responses', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-v2-submit', clientEventId: 'client-v2-submit', eventData: { clientEventId: 'client-v2-submit' } },
+    ]);
+    mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-v2-submit',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:58:42.900Z'),
+          resourceKey: 'unit-5-1-linear-backbone-boundaries',
+          lessonKey: 'unit-5-1-linear-backbone-boundaries-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-03',
+          data: {
+            schemaVersion: 'manifest-submission-v2',
+            eventType: 'lesson_submit',
+            stepId: 'step-03',
+            answers: { boundary: 'A' },
+            questionSummaries: [
+              {
+                questionId: 'boundary',
+                studentAnswer: 'A',
+                referenceValue: 'A',
+                isCorrect: true,
+              },
+            ],
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          responseData: expect.objectContaining({
+            schemaVersion: 'manifest-submission-v2',
+            evidenceQuality: 'rich',
+            evidenceQualityReason: 'scoreable_objective_evidence',
+            evidenceSourceState: 'manifest-submission-v2',
+            answers: { boundary: 'A' },
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    });
+  });
+
   it('persists lesson resubmissions when the client event id is carried in the payload', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([

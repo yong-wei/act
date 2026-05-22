@@ -5,6 +5,7 @@ import {
 } from './competency-model';
 
 export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v1';
+export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
 export const STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS = [
   'audit',
@@ -25,10 +26,34 @@ export interface StudentEvidenceWindow {
   daysCovered: number;
 }
 
+export interface StudentEvidenceActivitySummary {
+  totalFacts: number;
+  successfulFacts: number;
+  partialFacts: number;
+  failedFacts: number;
+  averageScore: number | null;
+  totalTimeSpentSeconds: number;
+  distinctLessons: string[];
+  distinctModules: string[];
+}
+
+export type StudentEvidenceCompetencyContributions = Record<CompetencyDimension, {
+  averageContribution: number;
+  evidenceCount: number;
+  latestEvidenceAt: string | null;
+}>;
+
+export type StudentEvidenceSourceWindowKey =
+  | 'activity30d'
+  | 'activityAll'
+  | 'competencyContributions30d'
+  | 'competencyContributionsAll';
+
 export interface StudentEvidenceFeaturePayload {
   userId: string;
   payloadVersion: string;
   evidenceWindow: StudentEvidenceWindow;
+  sourceWindows: Record<StudentEvidenceSourceWindowKey, StudentEvidenceWindow>;
   sourceCounts: {
     LearningFact: number;
     StudentCompetencySnapshot: number;
@@ -44,21 +69,12 @@ export interface StudentEvidenceFeaturePayload {
   };
   statusMarkers: StudentEvidenceStatusMarker[];
   features: {
-    activity: {
-      totalFacts: number;
-      successfulFacts: number;
-      partialFacts: number;
-      failedFacts: number;
-      averageScore: number | null;
-      totalTimeSpentSeconds: number;
-      distinctLessons: string[];
-      distinctModules: string[];
-    };
-    competencyContributions: Record<CompetencyDimension, {
-      averageContribution: number;
-      evidenceCount: number;
-      latestEvidenceAt: string | null;
-    }>;
+    activity: StudentEvidenceActivitySummary;
+    activity30d: StudentEvidenceActivitySummary;
+    activityAll: StudentEvidenceActivitySummary;
+    competencyContributions: StudentEvidenceCompetencyContributions;
+    competencyContributions30d: StudentEvidenceCompetencyContributions;
+    competencyContributionsAll: StudentEvidenceCompetencyContributions;
     latestEvidence: {
       factType: string;
       outcome: string;
@@ -165,11 +181,21 @@ export function buildStudentEvidenceFeaturePayload(
   const now = input.now ?? new Date();
   const staleAfterDays = input.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
   const facts = [...input.facts].sort(compareFacts);
-  const scoredFacts = facts.filter((item) => Number.isFinite(item.score));
   const factsWithSource = facts.filter((item) => Boolean(item.sourceEventId || item.sourceLogId));
+  const recentFacts = filterRecentFacts(facts, now, STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS);
   const firstFact = facts[0] ?? null;
   const lastFact = facts[facts.length - 1] ?? null;
   const evidenceWindow = buildEvidenceWindow(firstFact, lastFact);
+  const activityAll = buildActivitySummary(facts);
+  const activity30d = buildActivitySummary(recentFacts);
+  const competencyContributionsAll = buildCompetencyContributions(facts);
+  const competencyContributions30d = buildCompetencyContributions(recentFacts);
+  const sourceWindows = {
+    activity30d: buildFactsWindow(recentFacts),
+    activityAll: evidenceWindow,
+    competencyContributions30d: buildFactsWindow(filterContributionFacts(recentFacts)),
+    competencyContributionsAll: buildFactsWindow(filterContributionFacts(facts)),
+  } satisfies StudentEvidenceFeaturePayload['sourceWindows'];
   const byFactType = countByFactType(facts);
   const sourceCoverage = {
     LearningFact: resolveLearningFactCoverage(facts.length, factsWithSource.length),
@@ -190,6 +216,7 @@ export function buildStudentEvidenceFeaturePayload(
     userId: input.userId,
     payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     evidenceWindow,
+    sourceWindows,
     sourceCounts: {
       LearningFact: facts.length,
       StudentCompetencySnapshot: input.latestSnapshot ? 1 : 0,
@@ -200,19 +227,12 @@ export function buildStudentEvidenceFeaturePayload(
     confidence,
     statusMarkers,
     features: {
-      activity: {
-        totalFacts: facts.length,
-        successfulFacts: facts.filter((item) => item.outcome === 'success').length,
-        partialFacts: facts.filter((item) => item.outcome === 'partial').length,
-        failedFacts: facts.filter((item) => ['failure', 'abandoned'].includes(item.outcome)).length,
-        averageScore: scoredFacts.length
-          ? round(scoredFacts.reduce((sum, item) => sum + (item.score ?? 0), 0) / scoredFacts.length)
-          : null,
-        totalTimeSpentSeconds: facts.reduce((sum, item) => sum + (item.timeSpent ?? 0), 0),
-        distinctLessons: uniqueSorted(facts.map((item) => item.lessonId).filter(isPresent)),
-        distinctModules: uniqueSorted(facts.map((item) => item.moduleId).filter(isPresent)),
-      },
-      competencyContributions: buildCompetencyContributions(facts),
+      activity: activityAll,
+      activity30d,
+      activityAll,
+      competencyContributions: competencyContributionsAll,
+      competencyContributions30d,
+      competencyContributionsAll,
       latestEvidence: lastFact
         ? {
             factType: lastFact.factType,
@@ -305,6 +325,7 @@ export async function refreshStudentEvidenceFeatureCache(
     freshness: {
       refreshedAt: refreshedAt.toISOString(),
       sourceLastUpdatedAt: payload.evidenceWindow.lastStartedAt,
+      sourceWindows: payload.sourceWindows,
       staleAfterDays: options.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS,
     },
     confidenceMarkers: payload.confidence,
@@ -479,6 +500,27 @@ function buildEvidenceWindow(firstFact: LearningFact | null, lastFact: LearningF
   };
 }
 
+function buildFactsWindow(facts: LearningFact[]): StudentEvidenceWindow {
+  return buildEvidenceWindow(facts[0] ?? null, facts.at(-1) ?? null);
+}
+
+function buildActivitySummary(facts: LearningFact[]): StudentEvidenceActivitySummary {
+  const scoredFacts = facts.filter((item) => Number.isFinite(item.score));
+
+  return {
+    totalFacts: facts.length,
+    successfulFacts: facts.filter((item) => item.outcome === 'success').length,
+    partialFacts: facts.filter((item) => item.outcome === 'partial').length,
+    failedFacts: facts.filter((item) => ['failure', 'abandoned'].includes(item.outcome)).length,
+    averageScore: scoredFacts.length
+      ? round(scoredFacts.reduce((sum, item) => sum + (item.score ?? 0), 0) / scoredFacts.length)
+      : null,
+    totalTimeSpentSeconds: facts.reduce((sum, item) => sum + (item.timeSpent ?? 0), 0),
+    distinctLessons: uniqueSorted(facts.map((item) => item.lessonId).filter(isPresent)),
+    distinctModules: uniqueSorted(facts.map((item) => item.moduleId).filter(isPresent)),
+  };
+}
+
 function buildCompetencyContributions(
   facts: LearningFact[]
 ): StudentEvidenceFeaturePayload['features']['competencyContributions'] {
@@ -508,6 +550,18 @@ function buildCompetencyContributions(
   }
 
   return contributions;
+}
+
+function filterRecentFacts(facts: LearningFact[], now: Date, windowDays: number): LearningFact[] {
+  const cutoff = new Date(now.getTime() - windowDays * DAY_MS);
+  return facts.filter((fact) => fact.startedAt >= cutoff);
+}
+
+function filterContributionFacts(facts: LearningFact[]): LearningFact[] {
+  return facts.filter((fact) => {
+    const contribution = isObject(fact.competencyContribution) ? fact.competencyContribution : {};
+    return COMPETENCY_DIMENSIONS.some((dimension) => numberValue(contribution[dimension]) !== 0);
+  });
 }
 
 function buildConfidence(facts: LearningFact[], factsWithSourceCount: number): StudentEvidenceFeaturePayload['confidence'] {

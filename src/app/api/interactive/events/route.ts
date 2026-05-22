@@ -18,6 +18,10 @@ import {
   normalizeInteractionContexts,
   resolveClientEventId,
 } from '@/lib/data-governance/interactive-event-ingestion';
+import {
+  resolveSubmissionPayloadEvidenceQuality,
+  summarizeSubmissionEvidencePayload,
+} from '@/lib/data-governance/submission-evidence-quality';
 import type { NormalizedInteractionEvent } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
@@ -113,6 +117,21 @@ function readPayloadString(payload: Record<string, unknown>, key: string): strin
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function withSubmissionEvidenceQuality(
+  payload: Record<string, unknown>,
+  canonicalEventType: string,
+): Record<string, unknown> {
+  const evidenceQuality = resolveSubmissionPayloadEvidenceQuality(payload, canonicalEventType);
+  if (!evidenceQuality) return payload;
+  const summary = summarizeSubmissionEvidencePayload(payload);
+  return {
+    ...payload,
+    evidenceQuality,
+    evidenceQualityReason: summary.reason,
+    evidenceSourceState: summary.sourceState,
+  };
+}
+
 function buildStudentStepResponseRows(
   events: NormalizedInteractionEvent[],
   userId: string,
@@ -125,6 +144,7 @@ function buildStudentStepResponseRows(
         ? eventData.event.data
         : {};
     const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+    const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
 
     if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
       continue;
@@ -151,7 +171,7 @@ function buildStudentStepResponseRows(
       clientEventId,
       submittedAt,
       responseData: {
-        ...payload,
+        ...normalizedPayload,
         eventType: canonicalEventType,
         resourceKey: eventData.event.resourceKey,
         lessonKey: eventData.event.lessonKey ?? null,
@@ -319,6 +339,8 @@ export async function POST(request: NextRequest) {
     // retain a direct InteractionLog sourceLogId.
     const interactionLogEvents = dedupedEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
+      const canonicalEventType = resolveCanonicalEventType(item.event.type, eventData);
+      const normalizedEventData = withSubmissionEvidenceQuality(eventData, canonicalEventType);
       return {
         userId: session.user.id,
         resourceId: item.resourceId,
@@ -332,7 +354,7 @@ export async function POST(request: NextRequest) {
         clientEventId: item.clientEventId,
         learningContext: item.learningContext,
         invalidContextReason: item.invalidContextReason,
-        eventData,
+        eventData: normalizedEventData,
         clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
       };
     });
@@ -400,13 +422,14 @@ export async function POST(request: NextRequest) {
           ? eventData.event.data
           : {};
       const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+      const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
           eventId: typeof eventData.event.id === 'string' ? eventData.event.id : undefined,
           actionType: canonicalEventType,
           payload: {
-            ...payload,
+            ...normalizedPayload,
             ...(resolveClientEventId(eventData.event) ? { clientEventId: resolveClientEventId(eventData.event) } : {}),
             learningContext: eventData.learningContext,
             ...(eventData.invalidContextReason ? { invalidContextReason: eventData.invalidContextReason } : {}),

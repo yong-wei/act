@@ -14,6 +14,14 @@ describe('classroom session statistics', () => {
       studentStateCount: 0,
       reportData: {
         sessionGovernanceSummary: {
+          qualityStatus: {
+            status: 'yellow',
+            reasons: ['snapshot_partially_missing'],
+            metrics: {
+              participants: 77,
+              durableSubmissionCoverage: 0.82,
+            },
+          },
           sessionParticipants: 77,
           loggedParticipants: '73',
           factParticipants: 50,
@@ -31,6 +39,10 @@ describe('classroom session statistics', () => {
       loggedParticipants: 73,
       submittedParticipants: 49,
       syncErrorUsers: 11,
+      qualityStatus: {
+        status: 'yellow',
+        reasons: ['snapshot_partially_missing'],
+      },
     });
   });
 

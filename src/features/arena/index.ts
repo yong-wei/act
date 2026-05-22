@@ -12,6 +12,7 @@ export * from './evaluation/metric-extraction';
 export * from './evaluation/metric-profile-evaluator';
 export * from './leaderboards/leaderboard';
 export * from './leaderboards/leaderboard-service';
+export * from './leaderboards/honors-showcase';
 export * from './leaderboards/publication-leaderboard';
 export * from './submissions/artifact-hash';
 export * from './submissions/submission-service';

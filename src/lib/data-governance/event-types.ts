@@ -549,6 +549,12 @@ export const SECONDARY_EVENTS: EventTypeMetadata[] = [
     description: '课堂同步错误',
   },
   {
+    eventType: 'sync_recovered',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '课堂同步恢复',
+  },
+  {
     eventType: 'knowledge_graph_node_focus',
     category: 'interaction',
     priority: 'secondary',

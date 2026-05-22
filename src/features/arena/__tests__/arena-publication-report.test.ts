@@ -307,6 +307,120 @@ describe('arena publication report analytics', () => {
     expect(report.scores).toEqual({ average: 80, median: 80, highest: 90 });
     expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a', 'student-c']);
   });
+
+  it('keeps public publication reports scoped to publication and detached from class roster', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-public',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'public',
+        leaderboardPolicyId: 'leaderboard-public',
+        gradingPolicy: {},
+      },
+      roster: [
+        { userId: 'student-a', studentLabel: '学生甲' },
+      ],
+      submissions: [
+        submission({
+          id: 'public-a',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 78,
+          valid: true,
+          publicationId: 'publication-public',
+          classId: 'class-a',
+          submittedAt: '2026-05-16T08:00:00.000Z',
+        }),
+        submission({
+          id: 'public-b',
+          userId: 'student-b',
+          studentLabel: '学生乙',
+          score: 88,
+          valid: true,
+          publicationId: 'publication-public',
+          classId: 'class-b',
+          submittedAt: '2026-05-16T08:10:00.000Z',
+        }),
+      ],
+    });
+
+    expect(report.participation).toMatchObject({
+      expectedStudentCount: 0,
+      participantCount: 2,
+      nonSubmitterCount: 0,
+      nonSubmitters: [],
+    });
+    expect(report.submissions.submissionCount).toBe(2);
+    expect(report.scores).toEqual({ average: 83, median: 83, highest: 88 });
+  });
+
+  it('builds anonymized classroom review evidence without raw controller payloads', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-a',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      roster: [
+        { userId: 'student-a', studentLabel: '学生甲' },
+        { userId: 'student-b', studentLabel: '学生乙' },
+      ],
+      submissions: [
+        submission({
+          id: 'a-failed',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 42,
+          valid: false,
+          submittedAt: '2026-05-16T08:00:00.000Z',
+          satisfaction: { settlingTime: 0.2, overshoot: 0.5, controlEnergy: 0.3 },
+          hardConstraintResults: [
+            { id: 'closed_loop_stable', label: '闭环稳定', passed: false },
+          ],
+        }),
+        submission({
+          id: 'b-excellent',
+          userId: 'student-b',
+          studentLabel: '学生乙',
+          score: 94,
+          valid: true,
+          method: 'serial-compensator',
+          submittedAt: '2026-05-16T08:10:00.000Z',
+        }),
+      ],
+      excellentSolutionLimit: 1,
+    });
+
+    expect(report.classroomReview.anonymizedByDefault).toBe(true);
+    expect(report.classroomReview.typicalFailures.map((item) => item.label)).toEqual(expect.arrayContaining([
+      '闭环稳定',
+      'controlEnergy',
+    ]));
+    expect(report.classroomReview.methodPatterns).toEqual([
+      { method: 'pid', count: 1, validCount: 0, averageScore: 42 },
+      { method: 'serial-compensator', count: 1, validCount: 1, averageScore: 94 },
+    ]);
+    expect(report.classroomReview.showcaseCandidates).toEqual([
+      expect.objectContaining({
+        anonymousLabel: '匿名方案 1',
+        submissionId: 'b-excellent',
+        score: 94,
+        method: 'serial-compensator',
+      }),
+    ]);
+    const reviewText = JSON.stringify(report.classroomReview);
+    expect(reviewText).not.toContain('学生乙');
+    expect(reviewText).not.toContain('"kp"');
+    expect(reviewText).not.toContain('"ki"');
+    expect(reviewText).toContain('不展示原始控制器参数');
+    expect(reviewText).toContain('排行榜名次只作为比较反馈');
+  });
 });
 
 function publicationRow(overrides: Record<string, unknown> = {}) {
@@ -495,6 +609,9 @@ describe('arena publication report route', () => {
     expect(pageSource).toContain('薄弱指标');
     expect(pageSource).toContain('个人最佳');
     expect(pageSource).toContain('优秀方案');
+    expect(pageSource).toContain('课堂复盘');
+    expect(pageSource).toContain('匿名方案候选');
+    expect(pageSource).toContain('privacyNote');
     expect(pageSource).toContain('leaderboardPolicyId');
     expect(pageSource).toContain('截止前隐藏完整同伴榜单');
   });

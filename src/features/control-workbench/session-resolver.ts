@@ -15,6 +15,7 @@ import type {
   ControlWorkbenchResolutionResult,
   ControlWorkbenchRouteParams,
 } from './types';
+import { buildWorkbenchDesignFlow, type WorkbenchDesignFlowSource } from './design-flow';
 
 const DEFAULT_EXPLORE_OBJECT_ID = 'plant-second-order-underdamped';
 
@@ -40,6 +41,13 @@ const WORKSPACE_VIEW_MAP: Record<string, WorkbenchViewId[]> = {
   'predictive-control': ['time-domain', 'control-effort', 'metric-summary'],
   'control-odyssey': ['time-domain', 'metric-summary'],
 };
+
+function withDesignFlow(session: WorkbenchDesignFlowSource): WorkbenchSessionContext {
+  return {
+    ...session,
+    designFlow: buildWorkbenchDesignFlow(session),
+  } as WorkbenchSessionContext;
+}
 
 function normalizePreset(preset: string | undefined, arenaContext?: ArenaWorkbenchContext): WorkbenchPresetId {
   if (preset && WORKSPACE_PRESET_MAP[preset]) {
@@ -109,7 +117,7 @@ function resolveExploreObject(objectId: string | undefined): ChallengeObject {
 function buildExploreSession(params: ControlWorkbenchRouteParams): WorkbenchSessionContext {
   const object = resolveExploreObject(params.objectId);
 
-  return {
+  return withDesignFlow({
     mode: 'explore',
     title: '综合仿真工作台',
     object,
@@ -128,7 +136,7 @@ function buildExploreSession(params: ControlWorkbenchRouteParams): WorkbenchSess
       requiresPersistedDataset: false,
     },
     submissionPolicy: createDefaultWorkbenchSubmissionPolicy('explore'),
-  };
+  });
 }
 
 function buildArenaBoundSession(
@@ -167,19 +175,19 @@ function buildArenaBoundSession(
   };
 
   if (isAssignment) {
-    return {
+    return withDesignFlow({
       ...base,
       mode: 'assignment',
       publicationId: params.publicationId!,
       classId: params.classId,
       seasonId: params.seasonId,
-    };
+    });
   }
 
-  return {
+  return withDesignFlow({
     ...base,
     mode: arenaContext.entryMode === 'odyssey' ? 'odyssey' : 'challenge',
-  };
+  });
 }
 
 export function resolveControlWorkbenchSession(

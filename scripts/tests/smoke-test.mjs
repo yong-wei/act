@@ -73,8 +73,23 @@ if (!ciWorkflowContent.includes('dtolnay/rust-toolchain@stable')) {
 if (!ciWorkflowContent.includes('targets: wasm32-unknown-unknown')) {
   throw new Error('CI workflow must add the wasm32-unknown-unknown target before build.');
 }
-if (!ciWorkflowContent.includes('cargo install wasm-pack --locked --version 0.13.1')) {
-  throw new Error('CI workflow must install wasm-pack 0.13.1 before npm run build.');
+if (!ciWorkflowContent.includes('cargo install wasm-pack --locked --version 0.15.0')) {
+  throw new Error('CI workflow must install wasm-pack 0.15.0 before npm run build.');
+}
+
+const wasmBuildScriptPath = path.join(rootDir, 'scripts', 'wasm', 'build-control-engine.mjs');
+const wasmBuildScriptContent = fs.readFileSync(wasmBuildScriptPath, 'utf8');
+if (!wasmBuildScriptContent.includes('FORCE_WASM_BUILD')) {
+  throw new Error('Wasm build script must support FORCE_WASM_BUILD for explicit rebuilds.');
+}
+if (!wasmBuildScriptContent.includes('.build-hash')) {
+  throw new Error('Wasm build script must persist a build hash for smart rebuild skipping.');
+}
+if (!wasmBuildScriptContent.includes('rust/control-engine/src')) {
+  throw new Error('Wasm build script must include Rust source files in the input hash.');
+}
+if (!wasmBuildScriptContent.includes('wasm-pack --version')) {
+  throw new Error('Wasm build script must include wasm-pack version in the input hash.');
 }
 
 console.log('Smoke test passed.');

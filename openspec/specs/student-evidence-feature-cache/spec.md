@@ -2,7 +2,6 @@
 
 ## Purpose
 Define the governed per-student evidence feature cache used by profile, recommendation, and teacher-insight consumers so derived evidence can be rebuilt deterministically from approved source facts and aggregates.
-
 ## Requirements
 ### Requirement: Student evidence feature cache is rebuildable
 The system SHALL maintain a per-student evidence feature cache that is deterministically rebuildable from governed evidence.
@@ -41,3 +40,17 @@ The system SHALL provide a governed read boundary for student evidence features 
 - **WHEN** a consumer requests features for a student whose cache is missing
 - **THEN** the read service SHALL return an explicit missing or stale state
 - **AND** it SHALL NOT silently synthesize high-confidence personalization features from incomplete evidence.
+
+### Requirement: Feature cache refreshes after governed evidence changes
+The system SHALL refresh or enqueue refresh of a student evidence feature cache entry after governed facts or snapshots change for that student.
+
+#### Scenario: Snapshot job refreshes cache
+- **WHEN** a student snapshot job completes successfully
+- **THEN** the corresponding StudentEvidenceFeatureCache entry is refreshed with updated timestamp and source windows
+
+### Requirement: Feature cache exposes recent and all-time windows
+The cache SHALL distinguish recent learner-facing evidence windows from all-time audit windows.
+
+#### Scenario: Thirty-day and all-time features are present
+- **WHEN** a cache entry is rebuilt
+- **THEN** it includes recent and all-time activity and competency contribution summaries

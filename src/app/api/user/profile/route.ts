@@ -12,6 +12,7 @@ import {
   buildAdaptivePracticeSummary,
   buildCompetencyDimensions,
   buildProfileActivityFeed,
+  buildStudentProfileEvidenceStatus,
   dedupeRecommendations,
   getCompetencyLevelLabel,
   mapRecommendationsToResourceCards,
@@ -19,6 +20,7 @@ import {
   type PersonalizedResourceCard,
   type ProfileActivityGroup,
   type ProfileActivityItem,
+  type StudentProfileEvidenceStatus,
 } from '@/lib/data-governance/profile-center';
 import {
   calculateOverallScore,
@@ -28,6 +30,7 @@ import {
   type CompetencyVector,
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
+import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
 import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
@@ -90,6 +93,7 @@ export interface UserProfileResponse {
     resources: PersonalizedResourceCard[];
     adaptivePractice: AdaptivePracticeSummary;
   };
+  evidenceStatus: StudentProfileEvidenceStatus;
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
 }
@@ -242,6 +246,7 @@ export async function GET() {
       missionProgress,
       interactionLogs,
       learningFacts,
+      studentEvidenceFeatureRead,
       studentStates,
       userArenaSubmissions,
     ] = await Promise.all([
@@ -329,6 +334,7 @@ export async function GET() {
           contextJson: true,
         },
       }),
+      readStudentEvidenceFeatures(prisma, userId),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },
@@ -477,6 +483,21 @@ export async function GET() {
     const recommendationCards = mapRecommendationsToResourceCards(
       dedupeRecommendations(await generateRecommendations(userId))
     ).slice(0, 4);
+    const evidenceStatusFacts = studentEvidenceFeatureRead.cache
+      ? learningFacts
+      : await prisma.learningFact.findMany({
+          where: { userId },
+          orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
+          select: {
+            factType: true,
+            startedAt: true,
+          },
+        });
+    const evidenceStatus = buildStudentProfileEvidenceStatus({
+      featureRead: studentEvidenceFeatureRead,
+      learningFacts: evidenceStatusFacts,
+      hasLatestSnapshot: Boolean(latestSnapshot),
+    });
 
     const response: UserProfileResponse = {
       user: {
@@ -526,6 +547,7 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
+      evidenceStatus,
       arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,

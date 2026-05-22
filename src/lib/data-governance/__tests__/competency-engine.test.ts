@@ -92,6 +92,52 @@ describe('calculateCompetencyVector', () => {
     expect(vector.selfDirectedLearning.score).toBeGreaterThan(0);
   });
 
+  it('should ignore facts marked as context-only evidence in competency profiles', () => {
+    const facts: LearningFact[] = [
+      createMockFact({
+        factType: 'question',
+        outcome: 'success',
+        score: 90,
+        competencyContribution: { controlModeling: 0.8 },
+        contextJson: {
+          evidenceGovernance: {
+            profileWeight: 0,
+            skipProfileContribution: true,
+            evidenceQuality: 'legacy',
+          },
+        },
+      }),
+    ];
+
+    const vector = calculateCompetencyVector(facts, '1m');
+
+    expect(vector.controlModeling.score).toBe(0);
+    expect(vector.controlModeling.evidenceCount).toBe(0);
+  });
+
+  it('should downgrade partial evidence through profile weight metadata', () => {
+    const facts: LearningFact[] = [
+      createMockFact({
+        factType: 'question',
+        outcome: 'success',
+        score: 90,
+        competencyContribution: { controlModeling: 0.8 },
+        contextJson: {
+          evidenceGovernance: {
+            profileWeight: 0.25,
+            skipProfileContribution: false,
+            evidenceQuality: 'partial',
+          },
+        },
+      }),
+    ];
+
+    const vector = calculateCompetencyVector(facts, '1m');
+
+    expect(vector.controlModeling.score).toBe(20);
+    expect(vector.controlModeling.evidenceCount).toBe(1);
+  });
+
   it('should filter facts by time window', () => {
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - 40); // 40 days ago
@@ -392,32 +438,54 @@ describe('generateEvidenceSummary', () => {
     expect(summary.controlModeling).toHaveLength(3);
   });
 
-  it('should sort by score descending', () => {
+  it('should sort by newest evidence before older high-score evidence', () => {
     const facts: LearningFact[] = [
       createMockFact({
+        id: 'old-high-score',
         factType: 'question',
         outcome: 'success',
-        score: 60,
+        score: 95,
+        lessonId: 'unit-4-4-fixed-structure-optimization',
+        startedAt: new Date('2026-05-01T08:00:00.000Z'),
+        createdAt: new Date('2026-05-01T08:00:01.000Z'),
         competencyContribution: { controlModeling: 1.0 },
       }),
       createMockFact({
+        id: 'newer-5-2-lower-score',
         factType: 'question',
-        outcome: 'success',
-        score: 90,
+        outcome: 'partial',
+        score: 55,
+        lessonId: 'unit-5-2-phase-plane-disturbance-boundary',
+        startedAt: new Date('2026-05-21T08:00:00.000Z'),
+        createdAt: new Date('2026-05-21T08:00:01.000Z'),
         competencyContribution: { controlModeling: 1.0 },
       }),
       createMockFact({
+        id: 'middle-score',
         factType: 'question',
         outcome: 'success',
         score: 75,
+        lessonId: 'unit-5-1-controller-parameter-observation',
+        startedAt: new Date('2026-05-12T08:00:00.000Z'),
+        createdAt: new Date('2026-05-12T08:00:01.000Z'),
         competencyContribution: { controlModeling: 1.0 },
       }),
     ];
 
     const summary = generateEvidenceSummary(facts, 3);
 
-    expect(summary.controlModeling[0].score).toBe(90);
+    expect(summary.controlModeling.map((item) => item.lessonId)).toEqual([
+      'unit-5-2-phase-plane-disturbance-boundary',
+      'unit-5-1-controller-parameter-observation',
+      'unit-4-4-fixed-structure-optimization',
+    ]);
+    expect(summary.controlModeling[0]).toMatchObject({
+      id: 'newer-5-2-lower-score',
+      startedAt: '2026-05-21T08:00:00.000Z',
+      createdAt: '2026-05-21T08:00:01.000Z',
+      score: 55,
+    });
     expect(summary.controlModeling[1].score).toBe(75);
-    expect(summary.controlModeling[2].score).toBe(60);
+    expect(summary.controlModeling[2].score).toBe(95);
   });
 });

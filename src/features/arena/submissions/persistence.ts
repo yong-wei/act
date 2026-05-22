@@ -220,6 +220,7 @@ export async function createPersistedArenaSubmission(
     artifactHash: storedSubmission.artifactHash,
     artifact: storedSubmission.artifact,
     evaluation: storedSubmission.evaluation,
+    evaluationProtocolVersion: protocolVersion,
     submittedAt: storedSubmission.submittedAt,
     reusedEvaluation: Boolean(existingEvaluation),
   };

@@ -9,11 +9,13 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
+import { collectStructuredSubmissionAnswers } from '@/features/interactive/shared/manifest-runtime/submission-extra-evidence';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit55StepAIContext } from '@/lib/unit-5-5-ai-contexts';
 import {
+  getUNIT_5_5ManifestStepFromManifest,
   getUNIT_5_5PageContractFromManifest,
   UNIT_5_5_LESSON_KEY,
   UNIT_5_5_LESSON_STEPS,
@@ -27,6 +29,18 @@ import {
   UNIT_5_5StepContentPanel,
   UNIT_5_5StudentActivityForm,
 } from './step-panels';
+
+function buildTrainingExtraEvidence(answers: Record<string, string>) {
+  const trainingResults = collectStructuredSubmissionAnswers(
+    answers,
+    (key) => key === '__rl_training_result' || key.startsWith('rl_result:'),
+  );
+
+  return {
+    trainingSubmitted: Object.keys(trainingResults).length > 0,
+    ...(Object.keys(trainingResults).length > 0 ? { trainingResults } : {}),
+  };
+}
 
 export function UNIT_5_5StudentPage({
   sessionId,
@@ -80,6 +94,7 @@ export function UNIT_5_5StudentPage({
     actorRole: 'student',
     emit: interactiveTracking.emit,
   });
+  const { submitManifestStepResponse } = useManifestSubmissionController({ trackCourseEvent });
 
   const step = UNIT_5_5_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
@@ -170,10 +185,20 @@ export function UNIT_5_5StudentPage({
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const handleSubmitResponse = (response: UNIT_5_5StepResponse) => {
-    const submittedAt = Date.now();
     const targetStepId = response.stepId || step.id;
     void enqueueCourseStateSave((prev) => {
       const previousResponse = prev.responses[targetStepId];
+      const answers = {
+        ...(previousResponse?.answers ?? {}),
+        ...response.answers,
+      };
+      const submittedAt = submitManifestStepResponse({
+        stepId: targetStepId,
+        isResubmit: Boolean(previousResponse),
+        response: { ...response, stepId: targetStepId, submittedAt: response.submittedAt, answers },
+        stepManifest: getUNIT_5_5ManifestStepFromManifest(runtimeManifest, targetStepId),
+        extraEvidence: buildTrainingExtraEvidence(answers),
+      });
       const nextState: UNIT_5_5StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
@@ -183,25 +208,12 @@ export function UNIT_5_5StudentPage({
           ...prev.responses,
           [targetStepId]: {
             ...response,
-            answers: {
-              ...(previousResponse?.answers ?? {}),
-              ...response.answers,
-            },
+            stepId: targetStepId,
+            submittedAt,
+            answers,
           },
         },
       };
-      trackCourseEvent(
-        savedResponse ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        {
-          stepId: step.id,
-          attemptKey: `${step.id}:response:${submittedAt}`,
-          clientEventAt: submittedAt,
-          data: {
-            stepId: targetStepId,
-            trainingSubmitted: Boolean(response.answers.__rl_training_result),
-          },
-        },
-      );
       return nextState;
     });
   };

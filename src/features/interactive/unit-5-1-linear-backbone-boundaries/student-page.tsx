@@ -9,11 +9,12 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit51StepAIContext } from '@/lib/unit-5-1-ai-contexts';
 import {
+  getUNIT_5_1ManifestStepFromManifest,
   getUNIT_5_1PageContractFromManifest,
   UNIT_5_1_LESSON_KEY,
   UNIT_5_1_LESSON_STEPS,
@@ -83,6 +84,7 @@ export function UNIT_5_1StudentPage({
     actorRole: 'student',
     emit: interactiveTracking.emit,
   });
+  const { submitManifestStepResponse } = useManifestSubmissionController({ trackCourseEvent });
 
   const step = UNIT_5_1_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
@@ -168,19 +170,6 @@ export function UNIT_5_1StudentPage({
     if (error) trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
-  const trackSubmission = useCallback(
-    (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {
-      const submittedAt = Date.now();
-      const attemptKey = `${input.stepId}:response:${submittedAt}`;
-      trackCourseEvent(
-        input.isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        { stepId: input.stepId, attemptKey, clientEventAt: submittedAt, data: input.data },
-      );
-      return submittedAt;
-    },
-    [trackCourseEvent],
-  );
-
   const handleSubmitResponse = (response: UNIT_5_1StepResponse) => {
     const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
@@ -188,6 +177,16 @@ export function UNIT_5_1StudentPage({
       const answers = currentBoundaryParameters
         ? { ...response.answers, __boundary_parameters: JSON.stringify(currentBoundaryParameters) }
         : response.answers;
+      const submittedAt = submitManifestStepResponse({
+        stepId: step.id,
+        isResubmit,
+        response: { ...response, answers },
+        stepManifest: getUNIT_5_1ManifestStepFromManifest(runtimeManifest, step.id),
+        extraEvidence: {
+          parameterSubmitted: Boolean(currentBoundaryParameters),
+          ...(currentBoundaryParameters ? { parameterSnapshots: currentBoundaryParameters } : {}),
+        },
+      });
       const nextState: UNIT_5_1StudentCourseState = {
         ...prev,
         studentName: currentStudentName,
@@ -197,13 +196,8 @@ export function UNIT_5_1StudentPage({
           ...(prev.boundaryParameterSnapshots ?? {}),
           ...(currentBoundaryParameters ? { [step.id]: currentBoundaryParameters } : {}),
         },
-        responses: { ...prev.responses, [step.id]: { ...response, answers } },
+        responses: { ...prev.responses, [step.id]: { ...response, submittedAt, answers } },
       };
-      trackSubmission({
-        stepId: step.id,
-        isResubmit,
-        data: { stepId: step.id, parameterSubmitted: Boolean(currentBoundaryParameters) },
-      });
       return nextState;
     });
   };

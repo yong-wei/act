@@ -1,6 +1,6 @@
 import type { ControllerMethod, LeaderboardType, MetricDefinition } from '../types';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
-import { getArenaChallengeTask, getArenaMetricProfile } from '../data/seed-challenges';
+import { getArenaChallengeTask, getArenaLeaderboardPolicy, getArenaMetricProfile } from '../data/seed-challenges';
 import {
   ARENA_STUDENT_LEADERBOARD_TYPES,
   arenaMethodLabels,
@@ -24,7 +24,7 @@ export interface LeaderboardViewModel {
   availableMethods: string[];
 }
 
-type ChallengeLeaderboardType = Extract<LeaderboardType, 'main' | 'method' | 'metric'>;
+type ChallengeLeaderboardType = LeaderboardType;
 
 export interface ChallengeLeaderboardOption {
   id: string;
@@ -52,6 +52,8 @@ export interface ChallengeLeaderboardDetailRow {
   methodLabel: string;
   score: number;
   submittedAt: string;
+  paretoTier?: number;
+  dominanceCount?: number;
   metrics: ChallengeLeaderboardMetricCell[];
 }
 
@@ -61,6 +63,7 @@ export interface ChallengeLeaderboardCategoryModel {
   subOptions: ChallengeLeaderboardOption[];
   selectedSubId?: string;
   showMethodColumn: boolean;
+  showParetoColumn: boolean;
   entries: ChallengeLeaderboardDetailRow[];
   metricColumns: ChallengeLeaderboardOption[];
   emptyMessage: string;
@@ -143,9 +146,16 @@ export function getEmptyLeaderboardViewModel(
 }
 
 function isStudentLeaderboardType(type: LeaderboardType): type is ChallengeLeaderboardType {
-  return ARENA_STUDENT_LEADERBOARD_TYPES.includes(type) && (
-    type === 'main' || type === 'method' || type === 'metric'
-  );
+  return ARENA_STUDENT_LEADERBOARD_TYPES.includes(type);
+}
+
+function isLeaderboardTypeAvailableForContext(
+  type: LeaderboardType,
+  input: { classId?: string; seasonId?: string },
+): boolean {
+  if (type === 'class') return Boolean(input.classId);
+  if (type === 'season') return Boolean(input.seasonId);
+  return true;
 }
 
 function metricDefinitionsById(metrics: readonly MetricDefinition[]): Map<string, MetricDefinition> {
@@ -183,7 +193,7 @@ function metricColumnsForType(
   if (selectedType === 'metric' && selectedMetricId) {
     return metricOptions.filter((option) => option.id === selectedMetricId);
   }
-  return metricOptions.slice(0, 3);
+  return metricOptions.slice(0, selectedType === 'pareto' ? 4 : 3);
 }
 
 function formatStudentNumber(studentNumber?: string): string {
@@ -213,6 +223,8 @@ function toDetailRows(
       methodLabel: arenaMethodLabels[entry.method],
       score: entry.score,
       submittedAt: entry.submittedAt,
+      paretoTier: entry.paretoTier,
+      dominanceCount: entry.dominanceCount,
       metrics: metricColumns.map((column) => {
         const metric = metricById.get(column.id);
         return {
@@ -232,10 +244,16 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
   selectedType?: ChallengeLeaderboardType;
   selectedMethod?: ControllerMethod;
   selectedMetricId?: string;
+  classId?: string;
+  seasonId?: string;
   leaderboardPolicyId?: string;
 }): ChallengeLeaderboardBrowserViewModel {
   const task = getArenaChallengeTask(input.taskId);
+  const policy = getArenaLeaderboardPolicy(input.leaderboardPolicyId ?? task?.leaderboardPolicyId ?? '');
+  const policyTypes = policy?.types ?? task?.leaderboardTypes ?? ['main'];
   const categories = (task?.leaderboardTypes ?? ['main'])
+    .filter((type) => policyTypes.includes(type))
+    .filter((type) => isLeaderboardTypeAvailableForContext(type, input))
     .filter(isStudentLeaderboardType)
     .map((type) => ({
       id: type,
@@ -259,6 +277,9 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
     leaderboardPolicyId: input.leaderboardPolicyId,
     ...(selectedType === 'method' && selectedMethod ? { method: selectedMethod } : {}),
     ...(selectedType === 'metric' && selectedMetricId ? { metricId: selectedMetricId } : {}),
+    ...(selectedType === 'pareto' && task?.primaryMetrics?.length ? { metricIds: task.primaryMetrics } : {}),
+    ...(selectedType === 'class' && input.classId ? { classId: input.classId } : {}),
+    ...(selectedType === 'season' && input.seasonId ? { seasonId: input.seasonId } : {}),
   };
   const leaderboard = buildArenaLeaderboard(input.submissions, leaderboardOptions);
   const metricColumns = metricColumnsForType(selectedType, metricOptions, selectedMetricId);
@@ -269,6 +290,7 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
       : [];
   const selectedSubId = selectedType === 'method' ? selectedMethod : selectedType === 'metric' ? selectedMetricId : undefined;
   const showMethodColumn = !(selectedType === 'method' && selectedSubId);
+  const showParetoColumn = selectedType === 'pareto';
 
   return {
     taskId: input.taskId,
@@ -282,6 +304,7 @@ export function getChallengeLeaderboardBrowserViewModel(input: {
       subOptions,
       selectedSubId,
       showMethodColumn,
+      showParetoColumn,
       entries: toDetailRows(input.submissions, leaderboard.entries, metricColumns),
       metricColumns,
       emptyMessage: input.submissions.length === 0
@@ -295,11 +318,15 @@ export function getChallengeLeaderboardBrowserData(input: {
   taskId: string;
   submissions: readonly ArenaSubmissionRecord[];
   leaderboardPolicyId?: string;
+  classId?: string;
+  seasonId?: string;
 }): ChallengeLeaderboardBrowserData {
   const baseView = getChallengeLeaderboardBrowserViewModel({
     taskId: input.taskId,
     submissions: input.submissions,
     leaderboardPolicyId: input.leaderboardPolicyId,
+    classId: input.classId,
+    seasonId: input.seasonId,
   });
   const views = baseView.categories.flatMap((category) => {
     if (category.type === 'method') {
@@ -309,6 +336,8 @@ export function getChallengeLeaderboardBrowserData(input: {
           submissions: input.submissions,
           selectedType: 'method',
           leaderboardPolicyId: input.leaderboardPolicyId,
+          classId: input.classId,
+          seasonId: input.seasonId,
         }).current];
       }
       return baseView.methodOptions.map((option) => getChallengeLeaderboardBrowserViewModel({
@@ -317,6 +346,8 @@ export function getChallengeLeaderboardBrowserData(input: {
         selectedType: 'method',
         selectedMethod: option.id as ControllerMethod,
         leaderboardPolicyId: input.leaderboardPolicyId,
+        classId: input.classId,
+        seasonId: input.seasonId,
       }).current);
     }
     if (category.type === 'metric') {
@@ -326,6 +357,8 @@ export function getChallengeLeaderboardBrowserData(input: {
           submissions: input.submissions,
           selectedType: 'metric',
           leaderboardPolicyId: input.leaderboardPolicyId,
+          classId: input.classId,
+          seasonId: input.seasonId,
         }).current];
       }
       return baseView.metricOptions.map((option) => getChallengeLeaderboardBrowserViewModel({
@@ -334,13 +367,17 @@ export function getChallengeLeaderboardBrowserData(input: {
         selectedType: 'metric',
         selectedMetricId: option.id,
         leaderboardPolicyId: input.leaderboardPolicyId,
+        classId: input.classId,
+        seasonId: input.seasonId,
       }).current);
     }
     return [getChallengeLeaderboardBrowserViewModel({
       taskId: input.taskId,
       submissions: input.submissions,
-      selectedType: 'main',
+      selectedType: category.type,
       leaderboardPolicyId: input.leaderboardPolicyId,
+      classId: input.classId,
+      seasonId: input.seasonId,
     }).current];
   });
 

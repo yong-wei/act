@@ -7,6 +7,7 @@ export const COURSE_EVENT_TYPES = {
   AI_PANEL_OPEN: 'ai_panel_open',
   AI_QUERY_SUBMIT: 'ai_query_submit',
   SYNC_ERROR: 'sync_error',
+  SYNC_RECOVERED: 'sync_recovered',
   SESSION_FINALIZE: 'session_finalize',
   RESOURCE_VIEW: 'resource_view',
   RESOURCE_OPEN: 'resource_open',

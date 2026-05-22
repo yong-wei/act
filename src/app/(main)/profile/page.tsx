@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
+import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
+import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
 
 interface UserProfile {
   user: {
@@ -77,6 +79,7 @@ interface UserProfile {
       priority: number;
       estimatedTime?: string;
       tags: string[];
+      rationale?: RecommendationRationale;
     }>;
     adaptivePractice: {
       estimatedAbility: number | null;
@@ -87,6 +90,7 @@ interface UserProfile {
       actionUrl: string;
     };
   };
+  evidenceStatus: StudentProfileEvidenceStatus;
   arenaPortfolio: ArenaStudentPortfolio;
 }
 
@@ -179,6 +183,7 @@ export default function ProfilePage() {
       ? (profile.missionProgress.completed / profile.missionProgress.total) * 100
       : 0;
   const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
+  const evidenceStatusMeta = getEvidenceStatusMeta(profile.evidenceStatus);
 
   return (
     <div className="surface-page">
@@ -223,6 +228,13 @@ export default function ProfilePage() {
               <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore}</div>
               <p className="text-lg font-medium text-foreground">{profile.competency.level}</p>
               <p className="text-sm text-subtle">六维能力综合得分</p>
+              <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${evidenceStatusMeta.className}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <span>证据状态</span>
+                  <span className="font-medium">{evidenceStatusMeta.label}</span>
+                </div>
+                <p className="mt-1">{formatEvidenceStatusSummary(profile.evidenceStatus)}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -303,61 +315,114 @@ export default function ProfilePage() {
                 </Link>
               </div>
 
-              {profile.arenaPortfolio.submissionSummary.total === 0 ? (
-                <p className="mt-4 text-sm text-subtle">暂无竞技场提交记录。</p>
-              ) : (
-                <div className="mt-4 space-y-4">
-                  <div className="grid grid-cols-3 gap-3">
-                    <ArenaStat label="控制器" value={profile.arenaPortfolio.controllerCount} />
-                    <ArenaStat label="辨识模型" value={profile.arenaPortfolio.identificationModels.length} />
-                    <ArenaStat label="有效提交" value={profile.arenaPortfolio.submissionSummary.valid} />
-                  </div>
+              <div className="mt-4 space-y-4">
+                {profile.arenaPortfolio.submissionSummary.total === 0 ? (
+                  <p className="text-sm text-subtle">暂无竞技场提交记录。</p>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-3 gap-3">
+                      <ArenaStat label="控制器" value={profile.arenaPortfolio.controllerCount} />
+                      <ArenaStat label="辨识模型" value={profile.arenaPortfolio.identificationModels.length} />
+                      <ArenaStat label="有效提交" value={profile.arenaPortfolio.submissionSummary.valid} />
+                    </div>
 
-                  <div className="surface-card-soft p-4">
-                    <p className="text-xs text-subtle">最好榜单位置</p>
-                    {topArenaRank ? (
-                      <div className="mt-2">
-                        <p className="font-medium text-foreground">{topArenaRank.taskTitle}</p>
-                        <p className="mt-1 text-sm text-subtle">
-                          第 {topArenaRank.rank} 名 · {Math.round(topArenaRank.bestScore)} 分
-                        </p>
+                    <div className="surface-card-soft p-4">
+                      <p className="text-xs text-subtle">最好榜单位置</p>
+                      {topArenaRank ? (
+                        <div className="mt-2">
+                          <p className="font-medium text-foreground">{topArenaRank.taskTitle}</p>
+                          <p className="mt-1 text-sm text-subtle">
+                            第 {topArenaRank.rank} 名 · {Math.round(topArenaRank.bestScore)} 分
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm text-subtle">尚无进入正式榜单的有效方案</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-subtle">常失败对象</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {profile.arenaPortfolio.frequentFailureObjects.length > 0 ? (
+                          profile.arenaPortfolio.frequentFailureObjects.map((object) => (
+                            <span key={object.objectId} className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300">
+                              {object.objectName} · {object.failureCount} 次
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-subtle">暂无明显失败对象</span>
+                        )}
                       </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-subtle">尚无进入正式榜单的有效方案</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-subtle">常失败对象</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {profile.arenaPortfolio.frequentFailureObjects.length > 0 ? (
-                        profile.arenaPortfolio.frequentFailureObjects.map((object) => (
-                          <span key={object.objectId} className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300">
-                            {object.objectName} · {object.failureCount} 次
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-subtle">暂无明显失败对象</span>
-                      )}
                     </div>
-                  </div>
 
-                  <div>
-                    <p className="text-xs text-subtle">提升明显指标</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {profile.arenaPortfolio.improvingMetrics.length > 0 ? (
-                        profile.arenaPortfolio.improvingMetrics.map((metric) => (
-                          <span key={`${metric.taskId}-${metric.metricId}`} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-300">
-                            {metric.metricLabel} +{Math.round(metric.delta * 100)}%
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-subtle">暂无可判定的指标提升</span>
-                      )}
+                    <div>
+                      <p className="text-xs text-subtle">提升明显指标</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {profile.arenaPortfolio.improvingMetrics.length > 0 ? (
+                          profile.arenaPortfolio.improvingMetrics.map((metric) => (
+                            <span key={`${metric.taskId}-${metric.metricId}`} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-300">
+                              {metric.metricLabel} +{Math.round(metric.delta * 100)}%
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-subtle">暂无可判定的指标提升</span>
+                        )}
+                      </div>
                     </div>
+                  </>
+                )}
+
+                <div className="surface-card-soft p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-subtle">能力成长</p>
+                      <p className="mt-1 text-sm text-foreground">
+                        覆盖 {profile.arenaPortfolio.growth.capabilityCoverage.covered}/{profile.arenaPortfolio.growth.capabilityCoverage.total} 项竞技能力
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-300">
+                      {profile.arenaPortfolio.growth.evidenceAvailable ? '已有官方证据' : '暂无官方证据'}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {profile.arenaPortfolio.growth.weakCapabilities.slice(0, 3).map((capability) => (
+                      <span key={capability} className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-600 dark:text-red-300">
+                        待补强 · {capability}
+                      </span>
+                    ))}
+                    {profile.arenaPortfolio.growth.improvingCapabilities.slice(0, 3).map((capability) => (
+                      <span key={capability} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-600 dark:text-emerald-300">
+                        提升中 · {capability}
+                      </span>
+                    ))}
+                    {profile.arenaPortfolio.growth.strongCapabilities.slice(0, 3).map((capability) => (
+                      <span key={capability} className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-600 dark:text-blue-300">
+                        稳定 · {capability}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              )}
+
+                <div>
+                  <p className="text-xs text-subtle">下一项挑战</p>
+                  <div className="mt-2 grid gap-2">
+                    {profile.arenaPortfolio.growth.nextChallenges.length > 0 ? (
+                      profile.arenaPortfolio.growth.nextChallenges.map((challenge) => (
+                        <Link
+                          key={challenge.taskId}
+                          href={challenge.href}
+                          className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm transition hover:border-amber-500/40"
+                        >
+                          <span className="font-medium text-foreground">{challenge.taskTitle}</span>
+                          <span className="mt-1 block text-xs text-subtle">{challenge.reason}</span>
+                        </Link>
+                      ))
+                    ) : (
+                      <span className="text-xs text-subtle">暂无可推荐挑战</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="surface-card p-6">
@@ -454,6 +519,11 @@ export default function ProfilePage() {
                           <span className="text-xs text-subtle">优先级 {resource.priority}</span>
                           {resource.estimatedTime && (
                             <span className="text-xs text-subtle">{resource.estimatedTime}</span>
+                          )}
+                          {recommendationConfidenceLabel(resource.rationale) && (
+                            <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">
+                              {recommendationConfidenceLabel(resource.rationale)}
+                            </span>
                           )}
                         </div>
                         <p className="mt-2 font-medium text-foreground">{resource.title}</p>
@@ -687,6 +757,70 @@ function formatDate(dateStr: string) {
   if (diffHours < 24) return `${diffHours} 小时前`;
   if (diffDays < 7) return `${diffDays} 天前`;
   return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function formatShortDate(dateStr: string | null) {
+  if (!dateStr) {
+    return '未刷新';
+  }
+  return new Date(dateStr).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+}
+
+function getEvidenceStatusMeta(status: StudentProfileEvidenceStatus) {
+  if (status.state === 'ready' && status.confidence.state === 'ready') {
+    return {
+      label: '可用',
+      className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+    };
+  }
+
+  if (status.state === 'stale') {
+    return {
+      label: '待刷新',
+      className: 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+    };
+  }
+
+  return {
+    label: '证据不足',
+    className: 'border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300',
+  };
+}
+
+function formatEvidenceStatusSummary(status: StudentProfileEvidenceStatus) {
+  const evidenceCount = status.confidence.evidenceCount || status.sourceCounts.LearningFact;
+
+  if (status.state === 'missing') {
+    return `缓存缺失 · ${evidenceCount} 条事实`;
+  }
+
+  if (status.state === 'stale') {
+    return `最近刷新 ${formatShortDate(status.refreshedAt)} · ${evidenceCount} 条证据`;
+  }
+
+  return `覆盖 ${status.evidenceWindow.daysCovered} 天 · ${evidenceCount} 条证据`;
+}
+
+function recommendationConfidenceLabel(rationale?: RecommendationRationale) {
+  const confidence = rationale?.confidence;
+  if (!confidence) {
+    return null;
+  }
+
+  if (confidence.state === 'missing') {
+    return '证据不足';
+  }
+  if (confidence.state === 'stale') {
+    return '证据待刷新';
+  }
+  if (confidence.state === 'partial') {
+    return '证据不完整';
+  }
+  if (confidence.state === 'low-confidence' || confidence.level === 'low') {
+    return '证据置信度低';
+  }
+
+  return null;
 }
 
 function trendText(trend: 'up' | 'stable' | 'down') {

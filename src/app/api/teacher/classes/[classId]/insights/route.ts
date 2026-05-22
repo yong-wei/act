@@ -23,6 +23,13 @@ import {
   type ArenaClassEvidenceSummary,
 } from '@/features/arena/evidence-summary';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  buildTeacherClassScopedEvidenceStatusMap,
+  summarizeTeacherEvidenceCoverage,
+  summarizeTeacherSessionQualityReports,
+  type TeacherRecentSessionQualitySummary,
+  type TeacherStudentEvidenceStatus,
+} from '@/lib/data-governance/teacher-evidence-governance';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +53,7 @@ interface TeacherClassInsightStudent {
   recommendationCount: number;
   factCount: number;
   lastSnapshotAt: string | null;
+  evidenceStatus: TeacherStudentEvidenceStatus;
 }
 
 export interface TeacherClassInsightsPayload {
@@ -64,6 +72,8 @@ export interface TeacherClassInsightsPayload {
     pendingStudents: number;
     classSnapshotAt: string | null;
     latestStudentSnapshotAt: string | null;
+    evidenceCoverage: ReturnType<typeof summarizeTeacherEvidenceCoverage>;
+    recentSessionQuality: TeacherRecentSessionQualitySummary;
   };
   overview: {
     overallIndex: number;
@@ -126,6 +136,12 @@ export async function GET(
 
     const studentIds = classData.students.map((student) => student.userId);
     const totalStudents = studentIds.length;
+    const classSessionIds = studentIds.length
+      ? (await prisma.classSession.findMany({
+          where: { classId },
+          select: { id: true },
+        })).map((session) => session.id)
+      : [];
 
     const [
       classSnapshot,
@@ -136,6 +152,9 @@ export async function GET(
       recommendationCounts,
       arenaSubmissions,
       arenaLearningFacts,
+      studentEvidenceFeatureCaches,
+      classScopedEvidenceFactGroups,
+      recentSessionQualityReports,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
         where: { classId },
@@ -197,6 +216,54 @@ export async function GET(
             },
           })
         : Promise.resolve([]),
+      studentIds.length
+        ? prisma.studentEvidenceFeatureCache.findMany({
+            where: { userId: { in: studentIds } },
+            select: {
+              userId: true,
+              refreshedAt: true,
+              statusMarkers: true,
+            },
+          })
+        : Promise.resolve([]),
+      studentIds.length
+        ? prisma.learningFact.groupBy({
+            by: ['userId', 'factType'],
+            where: {
+              userId: { in: studentIds },
+              sessionId: { in: classSessionIds },
+            },
+            _count: { _all: true },
+            _min: { startedAt: true },
+            _max: { startedAt: true },
+          })
+        : Promise.resolve([]),
+      prisma.classSessionReport.findMany({
+        where: {
+          reportType: 'class-summary',
+          session: { classId },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 8,
+        select: {
+          sessionId: true,
+          lessonKey: true,
+          status: true,
+          summary: true,
+          reportData: true,
+          updatedAt: true,
+          session: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              plan: {
+                select: { title: true },
+              },
+            },
+          },
+        },
+      }),
     ]);
 
     const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
@@ -211,6 +278,15 @@ export async function GET(
       accumulator.set(flag.userId, current);
       return accumulator;
     }, new Map<string, typeof riskFlags>());
+    const cacheHealthByUserId = new Map(
+      studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
+    );
+    const evidenceStatusMap = buildTeacherClassScopedEvidenceStatusMap(studentIds, classScopedEvidenceFactGroups, {
+      now: new Date(),
+      cacheHealthByUserId,
+    });
+    const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
+    const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
 
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const snapshot = snapshotMap.get(studentProfile.userId);
@@ -251,6 +327,7 @@ export async function GET(
         recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
         factCount: snapshot?.factCount ?? 0,
         lastSnapshotAt: snapshot?.snapshotAt.toISOString() ?? null,
+        evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
 
@@ -313,6 +390,8 @@ export async function GET(
         pendingStudents: Math.max(totalStudents - coverageStudents, 0),
         classSnapshotAt: classSnapshot?.snapshotAt.toISOString() ?? null,
         latestStudentSnapshotAt,
+        evidenceCoverage,
+        recentSessionQuality,
       },
       overview: {
         overallIndex: roundTo(

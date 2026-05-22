@@ -1,3 +1,12 @@
+import {
+  buildSyncIncidentKey,
+  buildSyncIncidentTelemetry,
+  SYNC_INCIDENT_BURST_WINDOW_MS,
+  SYNC_INCIDENT_MINIMUM_CONSECUTIVE_FAILURES,
+  SYNC_RECOVERY_EVENT_NAME,
+  type SyncIncidentSeverity,
+} from '@/lib/classroom-analytics/sync-incident-model';
+
 export type FetchTelemetrySource =
   | 'session_progress_get'
   | 'session_progress_patch'
@@ -21,9 +30,17 @@ export interface HttpTelemetryInput extends Omit<FetchTelemetryInput, 'error'> {
   response: Response;
 }
 
-export type FetchFailureTelemetry = Record<string, string | number | boolean | null>;
+export type FetchFailureTelemetry = Record<string, unknown>;
 
 export const DEFAULT_SYNC_FETCH_TIMEOUT_MS = 20_000;
+export {
+  buildSyncIncidentKey,
+  buildSyncIncidentTelemetry,
+  SYNC_INCIDENT_BURST_WINDOW_MS,
+  SYNC_INCIDENT_MINIMUM_CONSECUTIVE_FAILURES,
+  SYNC_RECOVERY_EVENT_NAME,
+  type SyncIncidentSeverity,
+};
 
 export class FetchTelemetryError extends Error {
   telemetry: FetchFailureTelemetry;
@@ -108,6 +125,8 @@ export function buildHttpFailureTelemetry(input: HttpTelemetryInput): FetchFailu
     ...baseTelemetry(input),
     errorName: 'HttpError',
     errorMessage: `HTTP ${input.response.status}`,
+    failureKind: 'http',
+    timedOut: false,
     status: input.response.status,
     statusText: input.response.statusText,
     responseContentType: input.response.headers.get('content-type') ?? null,
@@ -125,7 +144,7 @@ export function toFetchTelemetryError(message: string, telemetry: FetchFailureTe
 export function shouldSurfaceSyncFailure({
   telemetry,
   consecutiveFailures,
-  minimumConsecutiveFailures = 3,
+  minimumConsecutiveFailures = SYNC_INCIDENT_MINIMUM_CONSECUTIVE_FAILURES,
 }: {
   telemetry: FetchFailureTelemetry | null | undefined;
   consecutiveFailures: number;
@@ -144,6 +163,166 @@ export function shouldSurfaceSyncFailure({
   }
 
   return consecutiveFailures >= minimumConsecutiveFailures;
+}
+
+interface SyncIncidentTrackerRecord {
+  key: string;
+  stepId: string | null;
+  firstSeenAt: number;
+  lastSeenAt: number;
+  occurrenceCount: number;
+  emitted: boolean;
+  latestTelemetry: FetchFailureTelemetry;
+}
+
+export interface SyncIncidentFailureInput {
+  telemetry: FetchFailureTelemetry;
+  stepId?: string | null;
+  scope?: string | null;
+  userId?: string | null;
+  consecutiveFailures: number;
+  now?: number;
+}
+
+export interface SyncIncidentRecoveryInput {
+  sessionId?: string | null;
+  stepId?: string | null;
+  source?: string | null;
+  url?: string | null;
+  method?: string | null;
+  now?: number;
+}
+
+export function createSyncIncidentTracker({
+  burstWindowMs = SYNC_INCIDENT_BURST_WINDOW_MS,
+  minimumConsecutiveFailures = SYNC_INCIDENT_MINIMUM_CONSECUTIVE_FAILURES,
+}: {
+  burstWindowMs?: number;
+  minimumConsecutiveFailures?: number;
+} = {}) {
+  const records = new Map<string, SyncIncidentTrackerRecord>();
+
+  return {
+    recordFailure({
+      telemetry,
+      stepId = null,
+      scope = null,
+      userId = null,
+      consecutiveFailures,
+      now = Date.now(),
+    }: SyncIncidentFailureInput) {
+      const key = buildSyncIncidentKey({ payload: telemetry, userId, stepId, scope });
+      const previous = records.get(key);
+      const isSameBurst = previous ? now - previous.lastSeenAt <= burstWindowMs : false;
+      const record: SyncIncidentTrackerRecord = isSameBurst && previous
+        ? {
+          ...previous,
+          lastSeenAt: now,
+          occurrenceCount: previous.occurrenceCount + 1,
+          latestTelemetry: telemetry,
+          stepId: stepId ?? previous.stepId,
+        }
+        : {
+          key,
+          stepId,
+          firstSeenAt: now,
+          lastSeenAt: now,
+          occurrenceCount: 1,
+          emitted: false,
+          latestTelemetry: telemetry,
+        };
+
+      const shouldSurface = shouldSurfaceSyncFailure({
+        telemetry,
+        consecutiveFailures,
+        minimumConsecutiveFailures,
+      });
+      const shouldEmit = shouldSurface && !record.emitted;
+      const incidentTelemetry = buildSyncIncidentTelemetry({
+        payload: telemetry,
+        userId,
+        stepId: record.stepId,
+        scope,
+        consecutiveFailures,
+        occurrenceCount: record.occurrenceCount,
+        firstSeenAt: record.firstSeenAt,
+        lastSeenAt: record.lastSeenAt,
+        suppressed: !shouldEmit,
+        burstWindowMs,
+      });
+
+      record.emitted = record.emitted || shouldEmit;
+      records.set(key, record);
+
+      return {
+        key,
+        shouldSurface,
+        shouldEmit,
+        telemetry: incidentTelemetry,
+      };
+    },
+    recordRecovery({
+      sessionId = null,
+      stepId = null,
+      source = null,
+      url = null,
+      method = null,
+      now = Date.now(),
+    }: SyncIncidentRecoveryInput = {}) {
+      const matchesRecoveryScope = (record: SyncIncidentTrackerRecord) => (
+        (source === null || record.latestTelemetry.source === source)
+        && (url === null || record.latestTelemetry.url === url)
+        && (method === null || record.latestTelemetry.method === method)
+      );
+      const matchedRecords = Array.from(records.values()).filter(matchesRecoveryScope);
+      const recoveredRecords = matchedRecords.filter((record) => record.emitted);
+      const recoveryTelemetry = recoveredRecords.map((record) => {
+        const recoveryStepId = record.stepId ?? stepId;
+        return {
+          eventType: 'sync_recovered',
+          sessionId,
+          stepId: recoveryStepId,
+          incidentKey: record.key,
+          incidentSeverity: buildSyncIncidentTelemetry({
+            payload: record.latestTelemetry,
+            stepId: recoveryStepId,
+            occurrenceCount: record.occurrenceCount,
+            firstSeenAt: record.firstSeenAt,
+            lastSeenAt: record.lastSeenAt,
+            recovered: true,
+            burstWindowMs,
+          }).incidentSeverity,
+          source: record.latestTelemetry.source ?? null,
+          url: record.latestTelemetry.url ?? null,
+          method: record.latestTelemetry.method ?? null,
+          failureKind: record.latestTelemetry.failureKind ?? null,
+          status: record.latestTelemetry.status ?? null,
+          statusText: record.latestTelemetry.statusText ?? null,
+          incidentFirstSeenAt: record.firstSeenAt,
+          incidentLastSeenAt: record.lastSeenAt,
+          recoveredAt: now,
+          recoveredIncidentCount: 1,
+          recoveredFailureCount: record.occurrenceCount,
+          recoveryState: 'recovered',
+          rawDiagnostics: { ...record.latestTelemetry },
+        };
+      });
+      for (const record of matchedRecords) {
+        records.delete(record.key);
+      }
+      return recoveryTelemetry;
+    },
+    clear() {
+      records.clear();
+    },
+  };
+}
+
+export function dispatchSyncRecoveryTelemetry(telemetry: Record<string, unknown>) {
+  if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent(SYNC_RECOVERY_EVENT_NAME, { detail: telemetry }));
 }
 
 export function createFetchTimeout(timeoutMs = DEFAULT_SYNC_FETCH_TIMEOUT_MS) {

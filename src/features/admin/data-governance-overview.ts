@@ -28,6 +28,50 @@ export type GovernanceStatusPayload = {
     label: string;
     count: number;
   }>;
+  sessionQuality?: {
+    recentSessions: number;
+    green: number;
+    yellow: number;
+    red: number;
+    unknown: number;
+    latestReports?: Array<{
+      sessionId: string;
+      lessonKey: string | null;
+      reportStatus: string;
+      summary: string | null;
+      updatedAt: string;
+      qualityStatus: 'green' | 'yellow' | 'red' | 'unknown';
+      qualityReasons: string[];
+    }>;
+  };
+  featureCache?: {
+    payloadVersion: string;
+    totalEntries: number;
+    staleEntries: number;
+    latestRefreshAt: string | null;
+    totalSourceFacts: number;
+    totalRebuilds: number;
+    coverage: Record<string, Partial<Record<string, number>>>;
+  };
+  sourceCoverage?: {
+    generatedAt: string;
+    catalogVersion: string;
+    totals: {
+      totalRows: number;
+      eligibleRows: number;
+      excludedRows: number;
+      unsupportedRows: number;
+      affectedUsers: number;
+    };
+    sources: unknown[];
+    exclusions: Array<{
+      sourceId: string;
+      reason: string;
+      rowCount: number;
+      affectedUsers: number;
+      sampleSourceReference: string | null;
+    }>;
+  };
   sourceCatalog?: {
     totalSources: number;
     coverageCommand: string;
@@ -37,6 +81,13 @@ export type GovernanceStatusPayload = {
       valueLevel: string;
       eligibility: string;
       materializationReadiness: string;
+      totalRows?: number;
+      eligibleRows?: number;
+      excludedRows?: number;
+      unsupportedRows?: number;
+      affectedUsers?: number;
+      provenanceCounts?: Record<string, number>;
+      exclusionReasons?: string[];
     }>;
   };
   recentRiskFlags: Array<{
@@ -78,6 +129,11 @@ type QueueCard = {
   failed: number;
 };
 
+type GovernanceTab = {
+  id: 'overview' | 'sessions' | 'sources' | 'cache';
+  label: string;
+};
+
 type RiskRow = GovernanceStatusPayload['recentRiskFlags'][number] & {
   severityLabel: string;
   flagLabel: string;
@@ -114,7 +170,28 @@ function formatFreshness(minutes: number | null) {
   return `${minutes} 分钟前`;
 }
 
+function buildSessionQualityCard(payload: GovernanceStatusPayload): SummaryCard | null {
+  const quality = payload.sessionQuality;
+  if (!quality) return null;
+  return {
+    title: '课堂质量',
+    value: `${quality.green}/${quality.recentSessions}`,
+    detail: `黄 ${quality.yellow} · 红 ${quality.red} · 未识别 ${quality.unknown}`,
+    tone: quality.red > 0 || quality.unknown > 0
+      ? 'danger'
+      : quality.yellow > 0
+        ? 'default'
+        : 'success',
+  };
+}
+
 export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
+  const tabs: GovernanceTab[] = [
+    { id: 'overview', label: '总览' },
+    { id: 'sessions', label: '课堂质量' },
+    { id: 'sources', label: '证据源' },
+    { id: 'cache', label: '缓存健康' },
+  ];
   const summaryCards: SummaryCard[] = [
     {
       title: '系统状态',
@@ -141,6 +218,10 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
       tone: payload.data.activeRiskFlags > 0 ? 'danger' : 'success',
     },
   ];
+  const sessionQualityCard = buildSessionQualityCard(payload);
+  if (sessionQualityCard) {
+    summaryCards.push(sessionQualityCard);
+  }
 
   const queueCards: QueueCard[] = Object.entries(payload.queues).map(([key, stats]) => ({
     title: QUEUE_LABELS[key as keyof GovernanceStatusPayload['queues']],
@@ -157,6 +238,7 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   }));
 
   return {
+    tabs,
     summaryCards,
     queueCards,
     factPanel: {
@@ -172,6 +254,34 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
           unsupportedSources: payload.sourceCatalog.sources.filter((source) => source.eligibility === 'unsupported').length,
           readySources: payload.sourceCatalog.sources.filter((source) => source.materializationReadiness === 'ready').length,
           sources: payload.sourceCatalog.sources,
+        }
+      : null,
+    sourceCoveragePanel: payload.sourceCoverage
+      ? {
+          title: '证据源覆盖',
+          generatedAt: payload.sourceCoverage.generatedAt,
+          catalogVersion: payload.sourceCoverage.catalogVersion,
+          totals: payload.sourceCoverage.totals,
+          exclusions: payload.sourceCoverage.exclusions,
+        }
+      : null,
+    sessionQualityPanel: payload.sessionQuality
+      ? {
+          title: '课堂质量分布',
+          summary: {
+            recentSessions: payload.sessionQuality.recentSessions,
+            green: payload.sessionQuality.green,
+            yellow: payload.sessionQuality.yellow,
+            red: payload.sessionQuality.red,
+            unknown: payload.sessionQuality.unknown,
+          },
+          rows: payload.sessionQuality.latestReports ?? [],
+        }
+      : null,
+    cachePanel: payload.featureCache
+      ? {
+          title: '特征缓存健康',
+          ...payload.featureCache,
         }
       : null,
     riskPanel: {

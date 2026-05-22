@@ -1,4 +1,6 @@
 import type {
+  ArenaTrainingCapabilityId,
+  ArenaTrainingStageId,
   ChallengeObjectSource,
   ChallengeTask,
   ControllerMethod,
@@ -18,6 +20,8 @@ export interface ArenaTaskFilters {
   visibility?: ModelVisibility | 'all';
   homework?: HomeworkFilter;
   leaderboard?: LeaderboardType | 'all';
+  trainingStage?: ArenaTrainingStageId | 'all';
+  capability?: ArenaTrainingCapabilityId | 'all';
 }
 
 function normalize(value: string): string {
@@ -56,6 +60,8 @@ export function filterArenaChallengeTasks(
     if (filters.difficulty && filters.difficulty !== 'all' && task.difficulty !== filters.difficulty) return false;
     if (filters.visibility && filters.visibility !== 'all' && object.visibility !== filters.visibility) return false;
     if (filters.leaderboard && filters.leaderboard !== 'all' && !task.leaderboardTypes.includes(filters.leaderboard)) return false;
+    if (filters.trainingStage && filters.trainingStage !== 'all' && task.training.stage !== filters.trainingStage) return false;
+    if (filters.capability && filters.capability !== 'all' && !task.training.capabilityTags.includes(filters.capability)) return false;
     if (filters.homework === 'homework-capable' && !task.homeworkEligible) return false;
     if (filters.homework === 'open-practice' && task.practiceMode !== 'open') return false;
 

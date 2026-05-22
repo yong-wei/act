@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { COURSE_EVENT_TYPES, type CourseEventType } from '@/lib/classroom-analytics/event-taxonomy';
+import {
+  buildSyncIncidentTelemetry,
+  SYNC_RECOVERY_EVENT_NAME,
+} from '@/lib/classroom-analytics/sync-incident-model';
 import { buildCourseEvent } from './build-course-event';
 import {
   createWorkspaceParameterTelemetryBuffer,
@@ -37,11 +41,17 @@ function mapCourseEventType(type: CourseEventType): BaseEmitType {
       return 'complete';
     case COURSE_EVENT_TYPES.SYNC_ERROR:
       return 'error';
+    case COURSE_EVENT_TYPES.SYNC_RECOVERED:
+      return 'interact';
     case COURSE_EVENT_TYPES.LESSON_STEP_LEAVE:
     case COURSE_EVENT_TYPES.AI_PANEL_OPEN:
     default:
       return 'interact';
   }
+}
+
+function readNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 export function useCourseEventTracking({
@@ -140,6 +150,50 @@ export function useCourseEventTracking({
     clearWorkspaceParamFlushTimer();
   }, [clearWorkspaceParamFlushTimer]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleSyncRecovered = (event: Event) => {
+      const detail = (event as CustomEvent<unknown>).detail;
+      if (!detail || typeof detail !== 'object' || Array.isArray(detail)) {
+        return;
+      }
+      const data = detail as Record<string, unknown>;
+      const recoveredSessionId = typeof data.sessionId === 'string' ? data.sessionId : null;
+      if (sessionId && recoveredSessionId && recoveredSessionId !== sessionId) {
+        return;
+      }
+      const stepId = typeof data.stepId === 'string' ? data.stepId : null;
+      const scope = typeof data.scope === 'string'
+        ? data.scope
+        : actorRole
+          ? `${actorRole}-page`
+          : null;
+      trackCourseEvent(COURSE_EVENT_TYPES.SYNC_RECOVERED, {
+        stepId,
+        data: {
+          ...buildSyncIncidentTelemetry({
+            payload: { ...data, scope },
+            stepId,
+            scope,
+            occurrenceCount: readNumber(data.recoveredFailureCount) ?? readNumber(data.incidentOccurrenceCount) ?? 1,
+            firstSeenAt: readNumber(data.incidentFirstSeenAt),
+            lastSeenAt: readNumber(data.incidentLastSeenAt),
+            recovered: true,
+          }),
+          eventType: 'sync_recovered',
+          recoveredIncidentCount: readNumber(data.recoveredIncidentCount) ?? 1,
+          recoveredFailureCount: readNumber(data.recoveredFailureCount) ?? 1,
+        },
+      });
+    };
+
+    window.addEventListener(SYNC_RECOVERY_EVENT_NAME, handleSyncRecovered);
+    return () => window.removeEventListener(SYNC_RECOVERY_EVENT_NAME, handleSyncRecovered);
+  }, [actorRole, sessionId, trackCourseEvent]);
+
   const trackStepView = useCallback((stepId: string, data: Record<string, unknown> = {}) => {
     // lesson_step_view
     trackCourseEvent(COURSE_EVENT_TYPES.LESSON_STEP_VIEW, { stepId, data });
@@ -171,8 +225,24 @@ export function useCourseEventTracking({
 
   const trackSyncError = useCallback((stepId: string | null, data: Record<string, unknown> = {}) => {
     // sync_error
-    trackCourseEvent(COURSE_EVENT_TYPES.SYNC_ERROR, { stepId, data });
-  }, [trackCourseEvent]);
+    const scope = typeof data.scope === 'string'
+      ? data.scope
+      : actorRole
+        ? `${actorRole}-page`
+        : null;
+    trackCourseEvent(COURSE_EVENT_TYPES.SYNC_ERROR, {
+      stepId,
+      data: buildSyncIncidentTelemetry({
+        payload: { ...data, scope },
+        stepId,
+        scope,
+        consecutiveFailures: readNumber(data.incidentConsecutiveFailures) ?? 1,
+        occurrenceCount: readNumber(data.incidentOccurrenceCount) ?? 1,
+        firstSeenAt: readNumber(data.incidentFirstSeenAt),
+        lastSeenAt: readNumber(data.incidentLastSeenAt),
+      }),
+    });
+  }, [actorRole, trackCourseEvent]);
 
   const trackSessionFinalize = useCallback((data: Record<string, unknown> = {}) => {
     // session_finalize

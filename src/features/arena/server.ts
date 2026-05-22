@@ -1,6 +1,7 @@
 export * from './domain';
 export * from './leaderboards/leaderboard';
 export * from './leaderboards/leaderboard-service';
+export * from './leaderboards/honors-showcase';
 export * from './leaderboards/publication-leaderboard';
 export * from './evaluation/types';
 export * from './evaluation/scoring';
