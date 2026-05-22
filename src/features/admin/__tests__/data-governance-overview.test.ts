@@ -33,6 +33,58 @@ describe('buildGovernanceOverview', () => {
         yellow: 5,
         red: 3,
         unknown: 0,
+        latestReports: [
+          {
+            sessionId: 'session-5-2',
+            lessonKey: 'unit-5-2-nonlinear-analysis-entry',
+            reportStatus: 'READY',
+            summary: '5-2 富证据课堂',
+            updatedAt: '2026-03-19T08:30:00.000Z',
+            qualityStatus: 'green',
+            qualityReasons: ['healthy_quality_gate'],
+          },
+          {
+            sessionId: 'session-5-1',
+            lessonKey: 'unit-5-1-linear-backbone-boundaries',
+            reportStatus: 'READY',
+            summary: '5-1 旧证据课堂',
+            updatedAt: '2026-03-19T08:20:00.000Z',
+            qualityStatus: 'red',
+            qualityReasons: ['low_fact_coverage'],
+          },
+        ],
+      },
+      featureCache: {
+        payloadVersion: 'student-evidence-features.v1',
+        totalEntries: 9,
+        staleEntries: 2,
+        latestRefreshAt: '2026-03-19T08:40:00.000Z',
+        totalSourceFacts: 42,
+        totalRebuilds: 11,
+        coverage: {
+          LearningFact: { available: 8, missing: 1 },
+        },
+      },
+      sourceCoverage: {
+        generatedAt: '2026-03-19T08:45:00.000Z',
+        catalogVersion: '2026-05-19',
+        totals: {
+          totalRows: 4,
+          eligibleRows: 1,
+          excludedRows: 2,
+          unsupportedRows: 1,
+          affectedUsers: 2,
+        },
+        sources: [],
+        exclusions: [
+          {
+            sourceId: 'InteractionLog',
+            reason: 'non_real_provenance',
+            rowCount: 1,
+            affectedUsers: 1,
+            sampleSourceReference: 'InteractionLog:log-demo-5-2',
+          },
+        ],
       },
       sourceCatalog: {
         totalSources: 2,
@@ -44,6 +96,13 @@ describe('buildGovernanceOverview', () => {
             valueLevel: 'medium',
             eligibility: 'eligible',
             materializationReadiness: 'partial',
+            totalRows: 3,
+            eligibleRows: 1,
+            excludedRows: 2,
+            unsupportedRows: 0,
+            affectedUsers: 2,
+            provenanceCounts: { demo: 1, real: 2 },
+            exclusionReasons: ['non_real_provenance', 'low_value_activity_context'],
           },
           {
             id: 'ArenaEvaluationRun',
@@ -51,6 +110,13 @@ describe('buildGovernanceOverview', () => {
             valueLevel: 'medium',
             eligibility: 'unsupported',
             materializationReadiness: 'future',
+            totalRows: 1,
+            eligibleRows: 0,
+            excludedRows: 0,
+            unsupportedRows: 1,
+            affectedUsers: 0,
+            provenanceCounts: { real: 1 },
+            exclusionReasons: ['source_not_profile_ready'],
           },
         ],
       },
@@ -103,6 +169,45 @@ describe('buildGovernanceOverview', () => {
       eligibleSources: 1,
       unsupportedSources: 1,
       coverageCommand: 'npm run db:evidence-source-coverage -- --text',
+    });
+    expect(overview.tabs.map((tab) => tab.label)).toEqual(['总览', '课堂质量', '证据源', '缓存健康']);
+    expect(overview.sessionQualityPanel).toMatchObject({
+      title: '课堂质量分布',
+      rows: [
+        expect.objectContaining({
+          sessionId: 'session-5-2',
+          qualityStatus: 'green',
+          qualityReasons: ['healthy_quality_gate'],
+        }),
+        expect.objectContaining({
+          sessionId: 'session-5-1',
+          qualityStatus: 'red',
+          qualityReasons: ['low_fact_coverage'],
+        }),
+      ],
+    });
+    expect(overview.sourceCoveragePanel).toMatchObject({
+      title: '证据源覆盖',
+      totals: {
+        totalRows: 4,
+        eligibleRows: 1,
+        excludedRows: 2,
+        unsupportedRows: 1,
+      },
+      exclusions: [
+        expect.objectContaining({
+          sourceId: 'InteractionLog',
+          reason: 'non_real_provenance',
+          rowCount: 1,
+        }),
+      ],
+    });
+    expect(overview.cachePanel).toMatchObject({
+      title: '特征缓存健康',
+      totalEntries: 9,
+      staleEntries: 2,
+      latestRefreshAt: '2026-03-19T08:40:00.000Z',
+      totalSourceFacts: 42,
     });
     expect(overview.snapshotPanel.title).toBe('最新快照明细');
     expect(overview.riskPanel.rows[0]?.userName).toBe('张三');

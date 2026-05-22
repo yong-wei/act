@@ -24,6 +24,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>('overview');
 
   const fetchStatus = async () => {
     try {
@@ -164,6 +165,24 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           ))}
         </section>
 
+        <nav className="admin-console-surface flex flex-wrap gap-2 p-2">
+          {overview.tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                activeTab === tab.id
+                  ? 'bg-cyan-500 text-slate-950'
+                  : 'admin-console-muted hover:bg-slate-500/10'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'overview' && (
         <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
@@ -250,8 +269,9 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
             </div>
           </div>
         </section>
+        )}
 
-        {overview.sourceCatalogPanel && (
+        {activeTab === 'sources' && overview.sourceCatalogPanel && (
           <section className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
               <span className="admin-console-icon-badge">
@@ -282,6 +302,34 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                 <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.sourceCatalogPanel.unsupportedSources}</div>
               </div>
             </div>
+            {overview.sourceCoveragePanel && (
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="admin-console-surface-soft">
+                  <div className="admin-console-muted text-sm">样本行数</div>
+                  <div className="admin-console-title mt-2 text-2xl font-semibold">
+                    {overview.sourceCoveragePanel.totals.totalRows.toLocaleString()}
+                  </div>
+                </div>
+                <div className="admin-console-surface-soft">
+                  <div className="admin-console-muted text-sm">可纳入</div>
+                  <div className="admin-console-title mt-2 text-2xl font-semibold">
+                    {overview.sourceCoveragePanel.totals.eligibleRows.toLocaleString()}
+                  </div>
+                </div>
+                <div className="admin-console-surface-soft">
+                  <div className="admin-console-muted text-sm">已排除</div>
+                  <div className="admin-console-title mt-2 text-2xl font-semibold">
+                    {overview.sourceCoveragePanel.totals.excludedRows.toLocaleString()}
+                  </div>
+                </div>
+                <div className="admin-console-surface-soft">
+                  <div className="admin-console-muted text-sm">不支持</div>
+                  <div className="admin-console-title mt-2 text-2xl font-semibold">
+                    {overview.sourceCoveragePanel.totals.unsupportedRows.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="admin-console-table-shell p-0">
               <table className="admin-console-table">
                 <thead>
@@ -291,6 +339,8 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                     <th className="px-4 py-3">价值</th>
                     <th className="px-4 py-3">资格</th>
                     <th className="px-4 py-3">物化</th>
+                    <th className="px-4 py-3">行数</th>
+                    <th className="px-4 py-3">排除原因</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -301,14 +351,164 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                       <td className="px-4 py-3">{source.valueLevel}</td>
                       <td className="px-4 py-3">{source.eligibility}</td>
                       <td className="px-4 py-3">{source.materializationReadiness}</td>
+                      <td className="px-4 py-3">
+                        {(source.totalRows ?? 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 admin-console-table-subtle">
+                        {source.exclusionReasons && source.exclusionReasons.length > 0
+                          ? source.exclusionReasons.join(' / ')
+                          : '-'}
+                      </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+            {overview.sourceCoveragePanel && overview.sourceCoveragePanel.exclusions.length > 0 && (
+              <div className="admin-console-surface-soft">
+                <h3 className="admin-console-title text-base font-semibold">排除明细</h3>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  {overview.sourceCoveragePanel.exclusions.map((exclusion) => (
+                    <div
+                      key={`${exclusion.sourceId}-${exclusion.reason}`}
+                      className="rounded-md border border-slate-400/10 p-3"
+                    >
+                      <div className="admin-console-title text-sm font-semibold">
+                        {exclusion.sourceId} · {exclusion.reason}
+                      </div>
+                      <div className="admin-console-muted mt-2 text-xs">
+                        {exclusion.rowCount.toLocaleString()} 行 · {exclusion.affectedUsers.toLocaleString()} 名用户 · 样本 {exclusion.sampleSourceReference ?? '-'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'sessions' && overview.sessionQualityPanel && (
+          <section className="admin-console-surface space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="admin-console-icon-badge">
+                <Workflow className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="admin-console-title text-xl font-semibold">{overview.sessionQualityPanel.title}</h2>
+                <p className="admin-console-muted text-sm">
+                  使用课堂报告中的集中质量状态，不从零散日志临时推断。
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              {[
+                ['绿色', overview.sessionQualityPanel.summary.green],
+                ['黄色', overview.sessionQualityPanel.summary.yellow],
+                ['红色', overview.sessionQualityPanel.summary.red],
+                ['未识别', overview.sessionQualityPanel.summary.unknown],
+              ].map(([label, value]) => (
+                <div key={label} className="admin-console-surface-soft">
+                  <div className="admin-console-muted text-sm">{label}</div>
+                  <div className="admin-console-title mt-2 text-2xl font-semibold">{value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="admin-console-table-shell p-0">
+              <table className="admin-console-table">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3">课堂</th>
+                    <th className="px-4 py-3">质量</th>
+                    <th className="px-4 py-3">原因</th>
+                    <th className="px-4 py-3">更新时间</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overview.sessionQualityPanel.rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center admin-console-table-subtle">
+                        暂无课堂质量报告。
+                      </td>
+                    </tr>
+                  ) : (
+                    overview.sessionQualityPanel.rows.map((report) => (
+                      <tr key={report.sessionId}>
+                        <td className="px-4 py-3">
+                          <div className="admin-console-title font-medium">{report.lessonKey ?? report.sessionId}</div>
+                          <div className="admin-console-table-subtle text-xs">{report.summary ?? report.sessionId}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="admin-console-chip">{report.qualityStatus}</span>
+                        </td>
+                        <td className="px-4 py-3 admin-console-table-subtle">
+                          {report.qualityReasons.length > 0 ? report.qualityReasons.join(' / ') : '-'}
+                        </td>
+                        <td className="px-4 py-3 admin-console-table-subtle">
+                          {new Date(report.updatedAt).toLocaleString('zh-CN')}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </section>
         )}
 
+        {activeTab === 'cache' && overview.cachePanel && (
+          <section className="admin-console-surface space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="admin-console-icon-badge">
+                <Database className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="admin-console-title text-xl font-semibold">{overview.cachePanel.title}</h2>
+                <p className="admin-console-muted text-sm">
+                  查看学生证据特征缓存是否 stale、是否持续重建，以及各来源覆盖状态。
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">缓存条目</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.cachePanel.totalEntries.toLocaleString()}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">待刷新</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.cachePanel.staleEntries.toLocaleString()}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">源事实</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.cachePanel.totalSourceFacts.toLocaleString()}</div>
+              </div>
+              <div className="admin-console-surface-soft">
+                <div className="admin-console-muted text-sm">重建次数</div>
+                <div className="admin-console-title mt-2 text-2xl font-semibold">{overview.cachePanel.totalRebuilds.toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="admin-console-surface-soft">
+              <div className="admin-console-muted text-sm">最近刷新</div>
+              <div className="admin-console-title mt-2 text-base font-semibold">
+                {overview.cachePanel.latestRefreshAt
+                  ? new Date(overview.cachePanel.latestRefreshAt).toLocaleString('zh-CN')
+                  : '暂无刷新记录'}
+              </div>
+              <div className="admin-console-muted mt-2 text-xs">版本 {overview.cachePanel.payloadVersion}</div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {Object.entries(overview.cachePanel.coverage).map(([source, counts]) => (
+                <div key={source} className="admin-console-surface-soft">
+                  <div className="admin-console-title text-sm font-semibold">{source}</div>
+                  <div className="admin-console-muted mt-2 text-xs">
+                    {Object.entries(counts).map(([state, count]) => `${state}: ${count}`).join(' / ') || '暂无覆盖数据'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'overview' && (
         <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
@@ -427,6 +627,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
             </div>
           </div>
         </section>
+        )}
       </main>
     </div>
   );
