@@ -151,6 +151,27 @@ describe('course review pre/post tracking parser', () => {
     });
   });
 
+  it('excludes initialized student state when no pre/post evidence exists', () => {
+    const manifest = readManifest('5-3');
+    const resolved = resolveCourseEvidenceSpec({ manifest });
+    expect(resolved.status).toBe('supported');
+    if (resolved.status !== 'supported') throw new Error('5-3 did not resolve');
+
+    const record = parseCourseReviewPrepostRecord({
+      user,
+      stateData: {
+        kind: 'unit53_student_state',
+        version: 1,
+        responses: {},
+      },
+      manifest,
+      spec: resolved.spec,
+      submissions: [],
+    });
+
+    expect(record).toBeNull();
+  });
+
   it('keeps course_review and showcase_review compatibility tracking paths', () => {
     const courseReview = parseCourseReviewPrepostRecord({
       user,

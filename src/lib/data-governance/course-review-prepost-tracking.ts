@@ -142,10 +142,6 @@ function scoreVector(vector: CourseReviewAbilityVector): number | null {
     : null;
 }
 
-function hasRecordEntries(value: unknown): boolean {
-  return Object.keys(readRecord(value)).length > 0;
-}
-
 function normalizeAnswers(value: unknown): Record<string, string> {
   return Object.fromEntries(
     Object.entries(readRecord(value))
@@ -383,7 +379,7 @@ export function parseCourseReviewPrepostRecord(
   const recoverability = resolveRecoverability(pre, post);
 
   const hasSourceEvidence = [pre, post].some((assessment) => assessment && assessment.source !== 'missing');
-  if (!hasSourceEvidence && !hasRecordEntries(stateData)) {
+  if (!hasSourceEvidence) {
     return null;
   }
 
