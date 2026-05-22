@@ -360,7 +360,7 @@ function parseCompatibilityRecord(input: ParseCourseReviewPrepostInput): CourseR
 
 export function inferCourseReviewLessonIdFromStateData(value: unknown): string | null {
   const kind = readString(readRecord(value).kind);
-  const match = kind?.match(/^unit(\d+)(\d+)_student_state$/);
+  const match = kind?.match(/^unit(\d)(\d+)_student_state$/);
   if (!match) return null;
   return `${match[1]}-${match[2]}`;
 }
@@ -376,11 +376,16 @@ export function parseCourseReviewPrepostRecord(
 
   const stateData = readRecord(input.stateData);
   const lessonKey = readString(input.lessonKey);
-  const kindMatches = stateData.kind === spec.studentStateKind;
+  const stateKind = readString(stateData.kind);
+  const kindMatches = stateKind === spec.studentStateKind;
   const hasRelevantSubmission = input.submissions.some((submission) => (
     (submission.stepId === spec.preAssessmentStepId || submission.stepId === spec.postAssessmentStepId)
       && submissionMatchesLessonKey(submission, lessonKey)
   ));
+
+  if (stateKind && !kindMatches) {
+    return null;
+  }
 
   if (!kindMatches && !hasRelevantSubmission) {
     return null;

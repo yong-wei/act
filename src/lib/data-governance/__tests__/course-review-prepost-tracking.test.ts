@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { resolveCourseEvidenceSpec } from '../course-evidence-specs';
 import {
+  inferCourseReviewLessonIdFromStateData,
   parseCourseReviewPrepostRecord,
   type CourseReviewPrepostSubmissionRow,
 } from '../course-review-prepost-tracking';
@@ -170,6 +171,35 @@ describe('course review pre/post tracking parser', () => {
     });
 
     expect(record).toBeNull();
+  });
+
+  it('ignores teacher sync state even when durable submissions use matching step ids', () => {
+    const manifest = readManifest('5-3');
+    const resolved = resolveCourseEvidenceSpec({ manifest });
+    expect(resolved.status).toBe('supported');
+    if (resolved.status !== 'supported') throw new Error('5-3 did not resolve');
+
+    const record = parseCourseReviewPrepostRecord({
+      user,
+      stateData: {
+        kind: 'teacher_sync_unit53',
+        activeStepId: 'step-03',
+      },
+      lessonKey: 'unit-5-3-mass-coordination-chain-v1',
+      manifest,
+      spec: resolved.spec,
+      submissions: [
+        { ...richSubmission('step-03', 40), lessonKey: 'unit-5-3-mass-coordination-chain-v1' },
+        { ...richSubmission('step-14', 85), lessonKey: 'unit-5-3-mass-coordination-chain-v1' },
+      ],
+    });
+
+    expect(record).toBeNull();
+  });
+
+  it('infers lesson id from two-digit lesson student state kinds', () => {
+    expect(inferCourseReviewLessonIdFromStateData({ kind: 'unit53_student_state' })).toBe('5-3');
+    expect(inferCourseReviewLessonIdFromStateData({ kind: 'unit410_student_state' })).toBe('4-10');
   });
 
   it('keeps course_review and showcase_review compatibility tracking paths', () => {
