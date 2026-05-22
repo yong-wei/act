@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react';
 import {
   ArrowLeft,
   BookOpen,
+  ClipboardList,
+  Database,
   RefreshCw,
   ShieldAlert,
   Sparkles,
@@ -173,6 +175,101 @@ export default function TeacherStudentInsightsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-8 grid gap-4 lg:grid-cols-[0.95fr,1.05fr]">
+          <div className="surface-card p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">证据治理</h2>
+              <p className="mt-1 text-sm text-subtle">只展示画像诊断所需的近期摘要和缓存置信度。</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="teacher-insight-metric">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Database className="h-4 w-4 text-sky-500 dark:text-sky-300" />
+                  证据缓存
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={getEvidenceStateChipClass(data.evidenceDrawer.featureCache)}>
+                    {formatEvidenceState(data.evidenceDrawer.featureCache)}
+                  </span>
+                  <span className="teacher-insight-chip teacher-insight-chip-pending">
+                    {formatEvidenceConfidence(data.evidenceDrawer.featureCache)}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs text-subtle">
+                  最近证据 {data.evidenceDrawer.featureCache.lastEvidenceAt
+                    ? new Date(data.evidenceDrawer.featureCache.lastEvidenceAt).toLocaleString('zh-CN')
+                    : '暂无'}
+                </p>
+              </div>
+              <div className="teacher-insight-metric">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <ClipboardList className="h-4 w-4 text-emerald-500" />
+                  持久提交
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-foreground">
+                  {data.evidenceDrawer.durableSubmissions.length}
+                </p>
+                <p className="mt-2 text-xs text-subtle">
+                  最近 {data.evidenceDrawer.limits.durableSubmissions} 条内，富证据 {data.evidenceDrawer.durableSubmissions.filter((item) => item.quality === 'rich').length} 条。
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-3">
+              {data.evidenceDrawer.recentFacts.length > 0 ? (
+                data.evidenceDrawer.recentFacts.slice(0, 4).map((fact) => (
+                  <div key={fact.id} className="rounded-xl border border-border/70 bg-card/80 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-foreground">{formatFactTitle(fact)}</p>
+                      <span className={getOutcomeBadgeClass(fact.outcome)}>{formatOutcome(fact.outcome)}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-subtle">
+                      {new Date(fact.startedAt).toLocaleString('zh-CN')}
+                      {typeof fact.score === 'number' ? ` · 评分 ${fact.score}` : ''}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-subtle">暂无近期治理事实。</p>
+              )}
+            </div>
+          </div>
+
+          <div className="surface-card p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">近期会话质量</h2>
+              <p className="mt-1 text-sm text-subtle">按课堂报告展示证据质量状态和该学生在课堂中的持久记录。</p>
+            </div>
+            <div className="space-y-3">
+              {data.evidenceDrawer.sessionQuality.length > 0 ? (
+                data.evidenceDrawer.sessionQuality.map((session) => (
+                  <div key={session.sessionId} className="teacher-insight-entry">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium text-foreground">{session.title}</p>
+                          <span className={getSessionQualityChipClass(session.qualityStatus)}>
+                            {formatSessionQuality(session.qualityStatus)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-subtle">
+                          学习事实 {session.studentReport.learningFacts} · 持久提交 {session.studentReport.durableSubmissions}
+                        </p>
+                      </div>
+                      <span className="text-xs text-subtle">
+                        {session.updatedAt ? new Date(session.updatedAt).toLocaleDateString('zh-CN') : '待更新'}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="teacher-insight-metric">
+                  <p className="text-sm text-subtle">暂无可展示的近期课堂质量报告。</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -393,6 +490,63 @@ function MetricCard({
 }
 
 type EvidenceSummaryItem = TeacherStudentInsightsPayload['evidenceSummary'][number]['items'][number];
+type EvidenceDrawerFeatureCache = TeacherStudentInsightsPayload['evidenceDrawer']['featureCache'];
+type RecentFactItem = TeacherStudentInsightsPayload['evidenceDrawer']['recentFacts'][number];
+type SessionQualityStatus = TeacherStudentInsightsPayload['evidenceDrawer']['sessionQuality'][number]['qualityStatus'];
+
+function formatEvidenceState(status: EvidenceDrawerFeatureCache): string {
+  if (status.state === 'missing') return '缺少证据';
+  if (status.state === 'stale') return '待刷新';
+  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
+    return '低置信';
+  }
+  return '可使用';
+}
+
+function getEvidenceStateChipClass(status: EvidenceDrawerFeatureCache): string {
+  const base = 'teacher-insight-chip';
+  if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
+  if (status.state === 'stale') return `${base} teacher-insight-chip-warning`;
+  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
+    return `${base} teacher-insight-chip-warning`;
+  }
+  return `${base} teacher-insight-chip-healthy`;
+}
+
+function formatEvidenceConfidence(status: EvidenceDrawerFeatureCache): string {
+  const label = status.confidence.level === 'high'
+    ? '高置信'
+    : status.confidence.level === 'medium'
+      ? '中置信'
+      : status.confidence.level === 'low'
+        ? '低置信'
+        : '无置信';
+  return `${label} · ${status.confidence.evidenceCount} 条`;
+}
+
+function formatFactTitle(fact: RecentFactItem): string {
+  if (fact.lessonId) return fact.lessonId;
+  if (fact.moduleId) return fact.moduleId;
+  if (fact.factType === 'course-evidence') return '课堂证据';
+  if (fact.factType === 'question') return '题目证据';
+  if (fact.factType === 'simulation') return '仿真证据';
+  return fact.factType;
+}
+
+function formatSessionQuality(status: SessionQualityStatus): string {
+  if (status === 'green') return '绿灯';
+  if (status === 'yellow') return '黄灯';
+  if (status === 'red') return '红灯';
+  return '待判定';
+}
+
+function getSessionQualityChipClass(status: SessionQualityStatus): string {
+  const base = 'teacher-insight-chip';
+  if (status === 'green') return `${base} teacher-insight-chip-healthy`;
+  if (status === 'yellow') return `${base} teacher-insight-chip-warning`;
+  if (status === 'red') return `${base} teacher-insight-risk-high`;
+  return `${base} teacher-insight-chip-pending`;
+}
 
 function formatEvidenceTitle(item: EvidenceSummaryItem): string {
   if (item.evidenceTitle) {

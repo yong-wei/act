@@ -23,6 +23,7 @@ import {
   Loader2,
   BarChart3,
   ShieldAlert,
+  Database,
 } from 'lucide-react';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
@@ -287,6 +288,8 @@ export default function ClassDetailPage() {
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
+  const evidenceCoverage = governance?.evidenceCoverage;
+  const recentSessionQuality = governance?.recentSessionQuality;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
 
   const handleRegenerateJoinCode = async () => {
@@ -506,7 +509,7 @@ export default function ClassDetailPage() {
       </section>
 
       {insights && (
-        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">班级总体指数</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.overallIndex}</p>
@@ -526,6 +529,22 @@ export default function ClassDetailPage() {
             <p className="text-sm text-subtle">人均学习事实</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.averageFactCount}</p>
             <p className="mt-2 text-xs text-subtle">反映治理链路沉淀下来的过程证据密度。</p>
+          </div>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">证据充分</p>
+            <p className="mt-2 text-3xl font-semibold text-emerald-500">
+              {evidenceCoverage?.readyStudents ?? 0}/{evidenceCoverage?.totalStudents ?? 0}
+            </p>
+            <p className="mt-2 text-xs text-subtle">
+              {evidenceCoverage?.staleStudents ?? 0} 名待刷新，{evidenceCoverage?.missingStudents ?? 0} 名缺少证据。
+            </p>
+          </div>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">近期会话质量</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">{recentSessionQuality?.green ?? 0}/{recentSessionQuality?.totalReports ?? 0}</p>
+            <p className="mt-2 text-xs text-subtle">
+              黄灯 {recentSessionQuality?.yellow ?? 0}，红灯 {recentSessionQuality?.red ?? 0}。
+            </p>
           </div>
         </section>
       )}
@@ -719,6 +738,7 @@ export default function ClassDetailPage() {
                   <th className="px-4 py-3 font-medium">学生</th>
                   <th className="px-4 py-3 font-medium">画像等级</th>
                   <th className="px-4 py-3 font-medium">综合指数</th>
+                  <th className="px-4 py-3 font-medium">证据状态</th>
                   <th className="px-4 py-3 font-medium">风险状态</th>
                   <th className="px-4 py-3 font-medium">近期趋势</th>
                   <th className="px-4 py-3 font-medium">成长档案</th>
@@ -763,6 +783,21 @@ export default function ClassDetailPage() {
                           </span>
                         ) : (
                           <span className="text-subtle">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 align-top">
+                        {insight ? (
+                          <div className="min-w-[150px]">
+                            <span className={getTeacherEvidenceStateChipClass(insight.evidenceStatus)}>
+                              {formatTeacherEvidenceState(insight.evidenceStatus)}
+                            </span>
+                            <p className="mt-2 flex items-center gap-1 text-xs text-subtle">
+                              <Database className="h-3.5 w-3.5" />
+                              {formatTeacherEvidenceConfidence(insight.evidenceStatus)}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
                         )}
                       </td>
                       <td className="px-4 py-4 align-top">
@@ -901,4 +936,36 @@ export default function ClassDetailPage() {
       />
     </main>
   );
+}
+
+type TeacherEvidenceStatus = TeacherClassInsightsPayload['students'][number]['evidenceStatus'];
+
+function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
+  if (status.state === 'missing') return '缺少证据';
+  if (status.state === 'stale') return '待刷新';
+  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
+    return '低置信';
+  }
+  return '可使用';
+}
+
+function getTeacherEvidenceStateChipClass(status: TeacherEvidenceStatus): string {
+  const base = 'teacher-insight-chip';
+  if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
+  if (status.state === 'stale') return `${base} teacher-insight-chip-warning`;
+  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
+    return `${base} teacher-insight-chip-warning`;
+  }
+  return `${base} teacher-insight-chip-healthy`;
+}
+
+function formatTeacherEvidenceConfidence(status: TeacherEvidenceStatus): string {
+  const levelLabel = status.confidence.level === 'high'
+    ? '高'
+    : status.confidence.level === 'medium'
+      ? '中'
+      : status.confidence.level === 'low'
+        ? '低'
+        : '无';
+  return `${levelLabel}置信 · ${status.confidence.evidenceCount} 条证据`;
 }
