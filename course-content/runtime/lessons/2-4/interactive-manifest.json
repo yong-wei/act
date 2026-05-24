@@ -1,0 +1,1599 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-4",
+  "course_title": "2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别",
+  "course_route_segment": "unit-2-4-nyquist-margin-entry",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "manifest-submission-v2",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从 Bode 骨架走向图形对象",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "回到地图——从 Bode 骨架走向图形对象",
+          "body": "把 2-3 的 Bode 图骨架推进到 2-4 的 Nyquist、裕度与反向识别。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "teacherFollowSync"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把 2-3 的 Bode 图骨架推进到 2-4 的 Nyquist、裕度与反向识别。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-02": {
+      "title": "情境引入——为什么同一条频率特性还要换一张图",
+      "layout": {
+        "template": "dual_view_question_slide",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "情境引入——为什么同一条频率特性还要换一张图",
+          "body": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。"
+        }
+      },
+      "evidence_sequence": [
+        "step-02:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-02:response",
+            "title": "情境引入——为什么同一条频率特性还要换一张图",
+            "prompt": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。",
+            "response_kind": "binary_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "nyquist_is_new_object"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "misconception_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-03": {
+      "title": "学习目标与边界——本课负责什么、不负责什么",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "boundary",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "学习目标与边界——本课负责什么、不负责什么",
+          "body": "明确本课只到 Nyquist 入口、指标读取、绘图入口与最小反向识别。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "明确本课只到 Nyquist 入口、指标读取、绘图入口与最小反向识别。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-04": {
+      "title": "前测——起点、对象与指标三类误区",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          {
+            "id": "question-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "submit-bar",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "前测——起点、对象与指标三类误区",
+          "body": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。"
+        }
+      },
+      "evidence_sequence": [
+        "step-04:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-04:response",
+            "title": "前测——起点、对象与指标三类误区",
+            "prompt": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "nyquist_is_new_object",
+          "wrong_start_point_reasoning",
+          "margin_means_closed_loop_conclusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-05": {
+      "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
+      "layout": {
+        "template": "formula_media_compare",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
+          "body": "把双图职责、复数表达与观察问题一一配对。"
+        }
+      },
+      "evidence_sequence": [
+        "step-05:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把双图职责、复数表达与观察问题一一配对。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-05:response",
+            "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
+            "prompt": "把双图职责、复数表达与观察问题一一配对。",
+            "response_kind": "triple_match",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "match_items": [
+              {
+                "value": "item-a",
+                "label": "Item A"
+              },
+              {
+                "value": "item-b",
+                "label": "Item B"
+              },
+              {
+                "value": "item-c",
+                "label": "Item C"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "item-a",
+                "option": "a"
+              },
+              {
+                "item": "item-b",
+                "option": "b"
+              },
+              {
+                "item": "item-c",
+                "option": "c"
+              }
+            ]
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "matchAttempted",
+          "matchCorrected",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "dual_graph_role_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_mismatch_pairs",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把双图职责、复数表达与观察问题一一配对。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-06": {
+      "title": "Nyquist 四步读法——起点、终点、方向、总转角",
+      "layout": {
+        "template": "workflow_card_with_reason_check",
+        "regions": [
+          {
+            "id": "workflow",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "meaning",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "Nyquist 四步读法——起点、终点、方向、总转角",
+          "body": "固定“四步读法”的观察顺序，不跳步。"
+        }
+      },
+      "evidence_sequence": [
+        "step-06:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "固定“四步读法”的观察顺序，不跳步。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-06:response",
+            "title": "Nyquist 四步读法——起点、终点、方向、总转角",
+            "prompt": "固定“四步读法”的观察顺序，不跳步。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectionState",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "skip_endpoint_before_direction"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "confusion_matrix",
+          "correction_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定“四步读法”的观察顺序，不跳步。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-07": {
+      "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
+      "layout": {
+        "template": "courseware_top_slider_bottom",
+        "regions": [
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
+          "body": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。"
+        }
+      },
+      "evidence_sequence": [
+        "step-07:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-07:response",
+            "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
+            "prompt": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "sliderChanged",
+          "stateSnapshot",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "parameter_distribution",
+          "final_shape_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-08": {
+      "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
+      "layout": {
+        "template": "comparison_panel_with_sort",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
+          "body": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。"
+        }
+      },
+      "evidence_sequence": [
+        "step-08:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-08:response",
+            "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
+            "prompt": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。",
+            "response_kind": "card_sort",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "first",
+                "label": "First"
+              },
+              {
+                "value": "second",
+                "label": "Second"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest records ordered evidence without original rubric expansion"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "sortAttempted",
+          "sortCorrected",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "pure_pole_track_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_sort_errors",
+          "misconception_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-09": {
+      "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
+      "layout": {
+        "template": "formula_table_match",
+        "regions": [
+          {
+            "id": "formula-strip",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "definition-matrix",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
+          "body": "把五个指标的定义、图上锚点和回答的问题对应起来。"
+        }
+      },
+      "evidence_sequence": [
+        "step-09:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把五个指标的定义、图上锚点和回答的问题对应起来。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-09:response",
+            "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
+            "prompt": "把五个指标的定义、图上锚点和回答的问题对应起来。",
+            "response_kind": "triple_match",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "match_items": [
+              {
+                "value": "item-a",
+                "label": "Item A"
+              },
+              {
+                "value": "item-b",
+                "label": "Item B"
+              },
+              {
+                "value": "item-c",
+                "label": "Item C"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "item-a",
+                "option": "a"
+              },
+              {
+                "item": "item-b",
+                "option": "b"
+              },
+              {
+                "item": "item-c",
+                "option": "c"
+              }
+            ]
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "matchAttempted",
+          "matchCorrected",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "indicator_definition_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_mismatch_pairs",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把五个指标的定义、图上锚点和回答的问题对应起来。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-10": {
+      "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
+      "layout": {
+        "template": "dual_graph_indicator_locator",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
+          "body": "把单位圆、负实轴和指标锚点连回双图对应关系。"
+        }
+      },
+      "evidence_sequence": [
+        "step-10:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "把单位圆、负实轴和指标锚点连回双图对应关系。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-10:response",
+            "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
+            "prompt": "把单位圆、负实轴和指标锚点连回双图对应关系。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "hotspotPlaced",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "indicator_anchor_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "hotspot_error_heatmap",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把单位圆、负实轴和指标锚点连回双图对应关系。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-11": {
+      "title": "手工绘图入口一——Bode 基线、折点与斜率",
+      "layout": {
+        "template": "sketch_workflow_workspace",
+        "regions": [
+          {
+            "id": "workflow",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "手工绘图入口一——Bode 基线、折点与斜率",
+          "body": "只做基线、折点与斜率的第一轮骨架工作区。"
+        }
+      },
+      "evidence_sequence": [
+        "step-11:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "只做基线、折点与斜率的第一轮骨架工作区。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-11:response",
+            "title": "手工绘图入口一——Bode 基线、折点与斜率",
+            "prompt": "只做基线、折点与斜率的第一轮骨架工作区。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "checkpointSaved",
+          "errorBucket",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "wrong_baseline_with_integrator",
+          "missing_break_frequency"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "baseline_error_rate",
+          "missing_break_frequency_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "只做基线、折点与斜率的第一轮骨架工作区。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-12": {
+      "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
+      "layout": {
+        "template": "workflow_graph_workspace",
+        "regions": [
+          {
+            "id": "workflow",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "rules",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
+          "body": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。"
+        }
+      },
+      "evidence_sequence": [
+        "step-12:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-12:response",
+            "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
+            "prompt": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "highlightVisited",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "skip_asymptote_for_integrator"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "rule_focus_heatmap",
+          "common_missed_anchor"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-13": {
+      "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "method",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "result",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
+          "body": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。"
+        }
+      },
+      "evidence_sequence": [
+        "step-13:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-13:response",
+            "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
+            "prompt": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepCompletion",
+          "errorBucket",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "draw_horizontal_first",
+          "skip_nyquist_anchor"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "stuck_step_distribution"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-14": {
+      "title": "例题二——读取频域指标，暂不作闭环结论",
+      "layout": {
+        "template": "worked_example_metric_panel",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "definition",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "result",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "例题二——读取频域指标，暂不作闭环结论",
+          "body": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。"
+        }
+      },
+      "evidence_sequence": [
+        "step-14:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-14:response",
+            "title": "例题二——读取频域指标，暂不作闭环结论",
+            "prompt": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "indicatorLocated",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "jump_to_closed_loop_conclusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "indicator_error_rate",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-15": {
+      "title": "基础反向识别——先认对象轮廓，再估参数量级",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          {
+            "id": "media",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "logic",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "ai-panel",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "基础反向识别——先认对象轮廓，再估参数量级",
+          "body": "先独立判断对象与参数量级，再用页内 AI 核对线索链。"
+        }
+      },
+      "evidence_sequence": [
+        "step-15:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "先独立判断对象与参数量级，再用页内 AI 核对线索链。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-15:response",
+            "title": "基础反向识别——先认对象轮廓，再估参数量级",
+            "prompt": "先独立判断对象与参数量级，再用页内 AI 核对线索链。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selfAnswerSubmitted",
+          "aiUsed",
+          "compareCompleted"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "ai_usage_rate",
+          "common_reason_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先独立判断对象与参数量级，再用页内 AI 核对线索链。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-15"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-16": {
+      "title": "后测——图会看，更要会守边界",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          {
+            "id": "question-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "submit-bar",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "后测——图会看，更要会守边界",
+          "body": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。"
+        }
+      },
+      "evidence_sequence": [
+        "step-16:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-16:response",
+            "title": "后测——图会看，更要会守边界",
+            "prompt": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "jump_to_closed_loop_conclusion",
+          "wrong_phase_margin_calc"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-16"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-17": {
+      "title": "总结与后续预告——从图形对象走向结构机理",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "bridge",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "resources",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "总结与后续预告——从图形对象走向结构机理",
+          "body": "用五条结论收束 2-4，并把视角推进到模块 3 的结构机理。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用五条结论收束 2-4，并把视角推进到模块 3 的结构机理。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-17"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    }
+  }
+}

@@ -330,7 +330,13 @@ describe('unit 3-3 interactive course', () => {
     expect(chartPanelSource).toContain("getInteractiveSvgEChartsPointMarker('pole-cross'");
     expect(sharedMarkerSource).toContain('ECHARTS_POLE_CROSS_SYMBOL');
     expect(chartPanelSource).toContain('show: true');
-    expect(chartPanelSource).toContain("data: ['根轨迹', '当前闭环极点', '开环极点', '开环零点']");
+    expect(chartPanelSource).toContain('const legendNames = Array.from(new Set(');
+    expect(chartPanelSource).toContain('const legendData = legendNames.map((name) => {');
+    expect(chartPanelSource).toContain("name: '根轨迹'");
+    expect(chartPanelSource).toContain("name: '当前闭环极点'");
+    expect(chartPanelSource).toContain("name: '开环极点'");
+    expect(chartPanelSource).toContain("name: '开环零点'");
+    expect(chartPanelSource).toContain('data: legendData');
   });
 
   it('deduplicates step-08 and restores the full breakaway plus imaginary-axis derivation chain', () => {

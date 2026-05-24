@@ -8,6 +8,11 @@ import { Loader2 } from 'lucide-react';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  findManifestStepForSubmission,
+  normalizeManifestSubmissionAnswers,
+  useManifestSubmissionController,
+} from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
@@ -87,8 +92,10 @@ export function UNIT_2_4StudentPage({
       actorRole: 'student',
       emit: interactiveTracking.emit,
     });
+  const { submitManifestStepResponse } = useManifestSubmissionController({ trackCourseEvent });
 
   const step = UNIT_2_4_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -137,19 +144,6 @@ export function UNIT_2_4StudentPage({
     trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
-  const trackSubmission = useCallback(
-    (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {
-      const submittedAt = Date.now();
-      const attemptKey = `${input.stepId}:response:${submittedAt}`;
-      trackCourseEvent(
-        input.isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        { stepId: input.stepId, attemptKey, clientEventAt: submittedAt, data: input.data },
-      );
-      return submittedAt;
-    },
-    [trackCourseEvent],
-  );
-
   const handleSubmitResponse = (response: UNIT_2_4StepResponse) => {
     const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
@@ -162,7 +156,17 @@ export function UNIT_2_4StudentPage({
           [step.id]: response,
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      submitManifestStepResponse({
+        stepId: step.id,
+        isResubmit,
+        response: {
+          stepId: step.id,
+          submittedAt: response.submittedAt,
+          answers: normalizeManifestSubmissionAnswers(response.answers),
+        },
+        stepManifest: findManifestStepForSubmission(runtimeManifest, step.id),
+        dataOverrides: { stepId: step.id },
+      });
       return nextState;
     });
   };
