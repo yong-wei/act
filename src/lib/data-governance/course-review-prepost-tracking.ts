@@ -89,6 +89,14 @@ const DIMENSION_KEYS = [
   'frequencyStability',
 ] as const;
 
+const SPECIAL_LESSON_ID_BY_STUDENT_STATE_KIND: Record<string, string> = {
+  cruise_student_state: 'cruise-comfort-boppps',
+};
+
+const SPECIAL_LESSON_ID_BY_LESSON_KEY: Record<string, string> = {
+  'cruise-comfort-v1': 'cruise-comfort-boppps',
+};
+
 function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -360,7 +368,21 @@ function parseCompatibilityRecord(input: ParseCourseReviewPrepostInput): CourseR
 
 export function inferCourseReviewLessonIdFromStateData(value: unknown): string | null {
   const kind = readString(readRecord(value).kind);
+  if (kind && SPECIAL_LESSON_ID_BY_STUDENT_STATE_KIND[kind]) {
+    return SPECIAL_LESSON_ID_BY_STUDENT_STATE_KIND[kind];
+  }
   const match = kind?.match(/^unit(\d)(\d+)_student_state$/);
+  if (!match) return null;
+  return `${match[1]}-${match[2]}`;
+}
+
+export function inferCourseReviewLessonIdFromLessonKey(lessonKey: string | null | undefined) {
+  const normalized = readString(lessonKey);
+  if (!normalized) return null;
+  if (SPECIAL_LESSON_ID_BY_LESSON_KEY[normalized]) {
+    return SPECIAL_LESSON_ID_BY_LESSON_KEY[normalized];
+  }
+  const match = normalized.match(/^unit-(\d+)-(\d+)-/);
   if (!match) return null;
   return `${match[1]}-${match[2]}`;
 }
