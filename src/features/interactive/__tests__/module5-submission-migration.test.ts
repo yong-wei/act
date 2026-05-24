@@ -11,6 +11,7 @@ import {
   assertRequiredLessonsInGateInventory,
   collectManifestResponseProducingSteps,
   evaluateManifestSubmissionPageGate,
+  evaluateStandardCourseFinalizationGate,
 } from '@/features/interactive/shared/manifest-runtime/submission-gate';
 import {
   COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY,
@@ -107,12 +108,49 @@ describe('manifest submission migration gates', () => {
     }
   });
 
-  it('keeps module 5 teacher finalizers on the shared finalization path', () => {
-    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.filter((item) => item.lessonId.startsWith('5-'))) {
+  it('keeps standard teacher finalizers on the shared finalization path', () => {
+    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY) {
       const courseSource = readFileSync(join(repoRoot, 'src/lib', `unit-${lesson.lessonId}-course.ts`), 'utf8');
+      const result = evaluateStandardCourseFinalizationGate({
+        lessonId: lesson.lessonId,
+        routeSegment: lesson.routeSegment,
+        courseSource,
+      });
 
-      expect(courseSource, lesson.lessonId).toContain('finalizeInteractiveLessonSession');
+      expect(result, lesson.lessonId).toMatchObject({
+        lessonId: lesson.lessonId,
+        passed: true,
+        violations: [],
+      });
     }
+  });
+
+  it('reports a deliberately invalid teacher finalizer fixture with handwritten finalization', () => {
+    const fixtureSource = `
+      import { buildSessionFinalizeTelemetry } from '@/lib/data-governance/session-finalize-telemetry';
+
+      export async function finalizeBrokenTeacherSession(input) {
+        await input.finishSession();
+        input.trackSessionFinalize(buildSessionFinalizeTelemetry({
+          currentStepId: input.currentStepId,
+          steps: BROKEN_LESSON_STEPS,
+        }));
+      }
+    `;
+
+    const result = evaluateStandardCourseFinalizationGate({
+      lessonId: 'fixture-4-1',
+      routeSegment: 'fixture-handwritten-finalization',
+      courseSource: fixtureSource,
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.map((item) => item.code)).toEqual([
+      'missing-shared-finalization-adapter',
+      'legacy-finalization-telemetry-builder',
+      'direct-finish-session-call',
+      'direct-session-finalize-call',
+    ]);
   });
 
   it('reports a deliberately invalid student page fixture with missing shared evidence integration', () => {
