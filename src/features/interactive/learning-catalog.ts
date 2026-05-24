@@ -10,7 +10,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { LSUM_PREMIUM_LESSON_CARD } from '@/lib/lsum-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
@@ -152,7 +151,6 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 );
 
 export const FEATURED_LESSONS = [
-  LSUM_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
   UNIT_2_2_PREMIUM_LESSON_CARD,
   UNIT_2_3_PREMIUM_LESSON_CARD,
@@ -195,7 +193,6 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
-    lesson.id !== 'lsum-design-feasible-domain' &&
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
     lesson.id !== 'unit-2-2-time-domain-response' &&
