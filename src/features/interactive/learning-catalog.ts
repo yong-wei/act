@@ -179,8 +179,8 @@ export const FEATURED_LESSONS = [
   UNIT_5_6_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
-    title: '柔性之海：豪华邮轮舒适度控制课堂实录',
-    description: '45 分钟精品课程：基于 BOPPPS 的教师端/学生端联动课堂实录流程。',
+    title: '柔性之海：豪华邮轮舒适度控制',
+    description: '45 分钟标准互动课：围绕舒适度约束、PID 参数整定、AI 诊断和工程取舍形成可提交的 BOPPPS 学习链。',
     duration: '45 分钟',
     href: '/interactive-learning/courses/cruise-comfort-boppps',
     badge: '精品课程',

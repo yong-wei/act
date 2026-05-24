@@ -21,7 +21,7 @@ export function resolveRuntimeLessonKeyFromRouteSegment(routeSegment: string | n
   }
 
   if (routeSegment === 'cruise-comfort-boppps') {
-    return 'legacy/cruise-comfort-boppps';
+    return 'cruise-comfort-boppps';
   }
 
   return null;

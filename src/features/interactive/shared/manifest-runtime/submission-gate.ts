@@ -18,6 +18,7 @@ export interface ManifestSubmissionGateInventoryItem {
   studentPagePath: string;
   manifestGetterName: string;
   minimumResponseSteps: number;
+  courseSourcePath?: string;
 }
 
 export interface ManifestResponseProducingStep {

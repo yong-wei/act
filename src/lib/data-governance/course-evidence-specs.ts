@@ -105,7 +105,22 @@ const MODULE5_COURSE_EVIDENCE_OVERRIDES: readonly CourseEvidenceSpecOverride[] =
   },
 ] as const;
 
-export const COURSE_EVIDENCE_SPEC_OVERRIDES = MODULE5_COURSE_EVIDENCE_OVERRIDES;
+const SPECIAL_COURSE_EVIDENCE_OVERRIDES: readonly CourseEvidenceSpecOverride[] = [
+  {
+    lessonId: 'cruise-comfort-boppps',
+    routeSegment: 'cruise-comfort-boppps',
+    studentStateKind: 'cruise_student_state',
+    teacherSyncKind: 'teacher_sync_cruise',
+    preAssessmentStepId: 'precheck',
+    postAssessmentStepId: 'consistency',
+    summaryStepId: 'summary',
+  },
+] as const;
+
+export const COURSE_EVIDENCE_SPEC_OVERRIDES = [
+  ...MODULE5_COURSE_EVIDENCE_OVERRIDES,
+  ...SPECIAL_COURSE_EVIDENCE_OVERRIDES,
+] as const;
 
 const OBJECTIVE_RESPONSE_KINDS = new Set([
   'single_choice',

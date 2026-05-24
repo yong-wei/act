@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { resolveCourseEvidenceSpec } from '../course-evidence-specs';
 import {
+  inferCourseReviewLessonIdFromLessonKey,
   inferCourseReviewLessonIdFromStateData,
   parseCourseReviewPrepostRecord,
   type CourseReviewPrepostSubmissionRow,
@@ -200,6 +201,52 @@ describe('course review pre/post tracking parser', () => {
   it('infers lesson id from two-digit lesson student state kinds', () => {
     expect(inferCourseReviewLessonIdFromStateData({ kind: 'unit53_student_state' })).toBe('5-3');
     expect(inferCourseReviewLessonIdFromStateData({ kind: 'unit410_student_state' })).toBe('4-10');
+  });
+
+  it('infers the cruise comfort lesson id from standard-course state and lesson keys', () => {
+    expect(inferCourseReviewLessonIdFromStateData({ kind: 'cruise_student_state' })).toBe('cruise-comfort-boppps');
+    expect(inferCourseReviewLessonIdFromLessonKey('cruise-comfort-v1')).toBe('cruise-comfort-boppps');
+    expect(inferCourseReviewLessonIdFromLessonKey('unit-5-3-mass-coordination-chain-v1')).toBe('5-3');
+  });
+
+  it('derives cruise comfort pre/post delta after inferring the standard-course lesson id', () => {
+    const lessonId = inferCourseReviewLessonIdFromStateData({ kind: 'cruise_student_state' });
+    expect(lessonId).toBe('cruise-comfort-boppps');
+    if (!lessonId) throw new Error('cruise comfort lesson id did not resolve');
+
+    const manifest = readManifest(lessonId);
+    const resolved = resolveCourseEvidenceSpec({ manifest });
+    expect(resolved.status).toBe('supported');
+    if (resolved.status !== 'supported') throw new Error('cruise comfort did not resolve');
+
+    const record = parseCourseReviewPrepostRecord({
+      user,
+      lessonKey: 'cruise-comfort-v1',
+      stateData: {
+        kind: 'cruise_student_state',
+        version: 1,
+        responses: {},
+      },
+      manifest,
+      spec: resolved.spec,
+      submissions: [
+        { ...richSubmission('precheck', 35), lessonKey: 'cruise-comfort-v1' },
+        { ...richSubmission('consistency', 82), lessonKey: 'cruise-comfort-v1' },
+      ],
+    });
+
+    expect(record).toMatchObject({
+      pre: { stepId: 'precheck', score: 35, evidenceQuality: 'rich' },
+      post: { stepId: 'consistency', score: 82, evidenceQuality: 'rich' },
+      delta: 47,
+      recoverability: 'complete',
+      evidenceQuality: 'rich',
+      stepIds: {
+        pre: 'precheck',
+        post: 'consistency',
+        summary: 'summary',
+      },
+    });
   });
 
   it('keeps course_review and showcase_review compatibility tracking paths', () => {
