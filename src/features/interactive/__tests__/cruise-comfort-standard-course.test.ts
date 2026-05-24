@@ -115,4 +115,23 @@ describe('cruise comfort standard course migration', () => {
     }
     expect(existsSync(join(repoRoot, 'src/features/interactive/cruise-classroom'))).toBe(false);
   });
+
+  it('keeps role guards on cruise student and teacher session routes', () => {
+    const studentRoute = readFileSync(
+      join(repoRoot, 'src/app/interactive-learning/courses/cruise-comfort-boppps/student/[sessionId]/page.tsx'),
+      'utf8',
+    );
+    const teacherRoute = readFileSync(
+      join(repoRoot, 'src/app/interactive-learning/courses/cruise-comfort-boppps/teacher/[sessionId]/page.tsx'),
+      'utf8',
+    );
+
+    expect(studentRoute).toContain('getServerSession(authOptions)');
+    expect(studentRoute).toContain("role === 'TEACHER' || role === 'ADMIN'");
+    expect(studentRoute).toContain('cruise-comfort-boppps/teacher/${params.sessionId}');
+
+    expect(teacherRoute).toContain('getServerSession(authOptions)');
+    expect(teacherRoute).toContain("role !== 'TEACHER' && role !== 'ADMIN'");
+    expect(teacherRoute).toContain('cruise-comfort-boppps/student/${params.sessionId}');
+  });
 });
