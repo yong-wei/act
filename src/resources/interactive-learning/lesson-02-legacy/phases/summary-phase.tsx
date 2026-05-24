@@ -252,7 +252,7 @@ export function SummaryPhase({
               这是频域分析的基础。
             </p>
             <Link
-              href="/interactive-learning/lesson-03"
+              href="/interactive-learning/courses/unit-2-1-modeling-language"
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-400"
             >
               预览下一课
