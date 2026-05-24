@@ -1,0 +1,1416 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "3-1",
+  "course_title": "3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解",
+  "course_route_segment": "unit-3-1-pure-pole-stability-and-dynamics",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "manifest-submission-v2",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言",
+          "body": "先标定 3-1 在模块 3 中的位置，明确本课是从低阶直觉走向极点语言的入口。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "teacherFollowSync"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先标定 3-1 在模块 3 中的位置，明确本课是从低阶直觉走向极点语言的入口。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-02": {
+      "title": "情境引入：同主导极点，为什么响应仍会分家",
+      "layout": {
+        "template": "triple_model_conflict",
+        "regions": [
+          {
+            "id": "formula-strip",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "root-locus",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "response",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "metrics",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "情境引入：同主导极点，为什么响应仍会分家",
+          "body": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。"
+        }
+      },
+      "evidence_sequence": [
+        "step-02:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-02:response",
+            "title": "情境引入：同主导极点，为什么响应仍会分家",
+            "prompt": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
+            "response_kind": "binary_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "misconception_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-03": {
+      "title": "学习目标与课堂边界：本课负责什么，不负责什么",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "chain",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "boundary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "学习目标与课堂边界：本课负责什么，不负责什么",
+          "body": "把稳定底线、模态语言、时域筛选和频域复核串成一条本课主线。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把稳定底线、模态语言、时域筛选和频域复核串成一条本课主线。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-04": {
+      "title": "前测：稳定、主导极点与“可忽略”直觉判断",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          {
+            "id": "prompt",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "notes",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "前测：稳定、主导极点与“可忽略”直觉判断",
+          "body": "用三道前测题先暴露起点误解，建立后续纠偏需要。"
+        }
+      },
+      "evidence_sequence": [
+        "step-04:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-04:response",
+            "title": "前测：稳定、主导极点与“可忽略”直觉判断",
+            "prompt": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "stable_not_equal_good",
+          "same_dominant_not_same_response",
+          "left_more_not_absolute"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-05": {
+      "title": "稳定底线：先回答“能不能谈近似”",
+      "layout": {
+        "template": "formula_plane_reason",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "稳定底线：先回答“能不能谈近似”",
+          "body": "先判断系统能否收敛，后面的近似和证据链才有前提。"
+        }
+      },
+      "evidence_sequence": [
+        "step-05:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "先判断系统能否收敛，后面的近似和证据链才有前提。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-05:response",
+            "title": "稳定底线：先回答“能不能谈近似”",
+            "prompt": "先判断系统能否收敛，后面的近似和证据链才有前提。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "predictionSubmitted",
+          "reasonLength",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "prediction_distribution",
+          "reason_tag_cloud"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先判断系统能否收敛，后面的近似和证据链才有前提。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-06": {
+      "title": "从极点到模态：极点为什么会直接写进响应",
+      "layout": {
+        "template": "formula_story_board",
+        "regions": [
+          {
+            "id": "decomposition",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "response",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "meaning",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "从极点到模态：极点为什么会直接写进响应",
+          "body": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。"
+        }
+      },
+      "evidence_sequence": [
+        "step-06:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-06:response",
+            "title": "从极点到模态：极点为什么会直接写进响应",
+            "prompt": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
+            "response_kind": "triple_match",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "match_items": [
+              {
+                "value": "item-a",
+                "label": "Item A"
+              },
+              {
+                "value": "item-b",
+                "label": "Item B"
+              },
+              {
+                "value": "item-c",
+                "label": "Item C"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "item-a",
+                "option": "a"
+              },
+              {
+                "item": "item-b",
+                "option": "b"
+              },
+              {
+                "item": "item-c",
+                "option": "c"
+              }
+            ]
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "matchAttempted",
+          "matchCorrected",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_mismatch_pairs",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-07": {
+      "title": "三类极点与重根：响应形态为什么不止一种",
+      "layout": {
+        "template": "classification_board",
+        "regions": [
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "compare",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "三类极点与重根：响应形态为什么不止一种",
+          "body": "区分极点类型与重根效应，避免把不同形态混成一句经验话。"
+        }
+      },
+      "evidence_sequence": [
+        "step-07:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-07:response",
+            "title": "三类极点与重根：响应形态为什么不止一种",
+            "prompt": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "complex_pair_means_two_outputs",
+          "repeated_root_can_be_ignored"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-08": {
+      "title": "最小例题：三模型时域对照与主导模态近似",
+      "layout": {
+        "template": "worked_example_reveal_lab",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formulas",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "exploration",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "最小例题：三模型时域对照与主导模态近似",
+          "body": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。"
+        }
+      },
+      "evidence_sequence": [
+        "step-08:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-08:response",
+            "title": "最小例题：三模型时域对照与主导模态近似",
+            "prompt": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "revealProgress",
+          "attemptCount",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "fast_mode_effect_ignored",
+          "same_dominant_equals_same_response"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "reveal_completion_rate",
+          "answer_quality_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-09": {
+      "title": "时域筛选：更靠左为什么只是第一轮判断",
+      "layout": {
+        "template": "evidence_table_plus_cards",
+        "regions": [
+          {
+            "id": "rules",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "risks",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "时域筛选：更靠左为什么只是第一轮判断",
+          "body": "把经验句退回到筛选层，补上权重、重根与可视证据。"
+        }
+      },
+      "evidence_sequence": [
+        "step-09:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "把经验句退回到筛选层，补上权重、重根与可视证据。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-09:response",
+            "title": "时域筛选：更靠左为什么只是第一轮判断",
+            "prompt": "把经验句退回到筛选层，补上权重、重根与可视证据。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "rule_as_theorem",
+          "skip_visual_evidence"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "reason_tag_cloud",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把经验句退回到筛选层，补上权重、重根与可视证据。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-10": {
+      "title": "转向频域：时域相近为什么还不够",
+      "layout": {
+        "template": "transition_question_board",
+        "regions": [
+          {
+            "id": "question",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "task",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "转向频域：时域相近为什么还不够",
+          "body": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。"
+        }
+      },
+      "evidence_sequence": [
+        "step-10:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-10:response",
+            "title": "转向频域：时域相近为什么还不够",
+            "prompt": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
+            "response_kind": "binary_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-11": {
+      "title": "Bode 对照：附加极点何时侵入主要带宽",
+      "layout": {
+        "template": "curve_compare_lab",
+        "regions": [
+          {
+            "id": "formulas",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "root-locus",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "bode",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "metrics",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "Bode 对照：附加极点何时侵入主要带宽",
+          "body": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。"
+        }
+      },
+      "evidence_sequence": [
+        "step-11:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-11:response",
+            "title": "Bode 对照：附加极点何时侵入主要带宽",
+            "prompt": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "panelExplored",
+          "markerToggled",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "break_frequency_outside_bandwidth_ignored",
+          "frequency_check_skipped"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "panel_usage_heatmap",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-12": {
+      "title": "双域判断表：先自判，再问 AI，再回到图上核验",
+      "layout": {
+        "template": "double_domain_judgment_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "ai",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "双域判断表：先自判，再问 AI，再回到图上核验",
+          "body": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。"
+        }
+      },
+      "evidence_sequence": [
+        "step-12:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-12:response",
+            "title": "双域判断表：先自判，再问 AI，再回到图上核验",
+            "prompt": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "aiCompareOpened",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "ai_before_self_judgment",
+          "single_domain_reasoning"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "ai_compare_usage",
+          "reason_tag_cloud"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-13": {
+      "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
+      "layout": {
+        "template": "convolution_modal_board",
+        "regions": [
+          {
+            "id": "convolution",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure-06",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "example",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "figure-07",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
+          "body": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。"
+        }
+      },
+      "evidence_sequence": [
+        "step-13:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-13:response",
+            "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
+            "prompt": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState"
+        ],
+        "misconception_tags": [
+          "negative_residue_means_unstable",
+          "input_changes_poles"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-14": {
+      "title": "后测：会不会发散、能不能近似、为什么能解释",
+      "layout": {
+        "template": "posttest_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "notes",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "后测：会不会发散、能不能近似、为什么能解释",
+          "body": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。"
+        }
+      },
+      "evidence_sequence": [
+        "step-14:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-14:response",
+            "title": "后测：会不会发散、能不能近似、为什么能解释",
+            "prompt": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "rhp_can_still_approximate",
+          "bandwidth_intrusion_ignored",
+          "step_from_nothing"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "reason_tag_cloud"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-15": {
+      "title": "总结与去向：先守底线，再谈模态，再谈后续方法",
+      "layout": {
+        "template": "summary_exit_board",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "infographic",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "next",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "总结与去向：先守底线，再谈模态，再谈后续方法",
+          "body": "把 3-1 的判断链收束为出口句，并把视角推进到 3-2 的稳定边界可视化。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把 3-1 的判断链收束为出口句，并把视角推进到 3-2 的稳定边界可视化。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-15"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    }
+  }
+}

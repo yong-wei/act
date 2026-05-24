@@ -26,6 +26,7 @@ import { getUNIT_5_3ManifestStepFromManifest } from '@/lib/unit-5-3-course';
 import { getUNIT_5_5ManifestStepFromManifest } from '@/lib/unit-5-5-course';
 
 const repoRoot = process.cwd();
+const EARLY_MANIFEST_SUBMISSION_LESSONS = ['2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'] as const;
 
 function readManifest(lessonId: string): InteractiveRuntimeManifest {
   const raw = JSON.parse(
@@ -37,6 +38,16 @@ function readManifest(lessonId: string): InteractiveRuntimeManifest {
 }
 
 describe('manifest submission migration gates', () => {
+  it('requires early runtime-first lessons in the manifest submission gate', () => {
+    expect([...REQUIRED_RUNTIME_FIRST_GATE_LESSONS]).toEqual(
+      expect.arrayContaining([...EARLY_MANIFEST_SUBMISSION_LESSONS]),
+    );
+
+    expect(COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => lesson.lessonId)).toEqual(
+      expect.arrayContaining([...EARLY_MANIFEST_SUBMISSION_LESSONS]),
+    );
+  });
+
   it('enumerates all runtime-first response-producing lessons through CourseEvidenceSpec', () => {
     const inventory = Object.fromEntries(
       COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => {
