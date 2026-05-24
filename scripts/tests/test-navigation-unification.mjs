@@ -22,7 +22,6 @@ const targets = [
   'src/app/interactive-learning/courses/page.tsx',
   'src/app/interactive-learning/cross-domain-exploration/page.tsx',
   'src/app/interactive-learning/chapter-components/page.tsx',
-  'src/app/interactive-learning/lesson-02/page.tsx',
 ];
 
 for (const relativePath of targets) {

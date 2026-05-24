@@ -381,7 +381,7 @@ describe('GET /api/user/profile', () => {
         title: '复习频域稳定卡片',
         description: '补看稳定裕度知识卡片，巩固频域判读。',
         reason: '频域稳定相关题目波动较大',
-        actionUrl: '/interactive-learning/lesson-14',
+        actionUrl: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment',
         actionLabel: '打开知识卡片',
         priority: 72,
         estimatedTime: '12分钟',

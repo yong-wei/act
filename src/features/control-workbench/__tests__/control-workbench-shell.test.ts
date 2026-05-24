@@ -135,7 +135,7 @@ describe('control workbench route boundary', () => {
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/control-workbench/page.tsx'))).toBe(true);
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/multi-representation-linkage/page.tsx'))).toBe(true);
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/control-odyssey/page.tsx'))).toBe(true);
-    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/lesson-05/page.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/lesson-05/page.tsx'))).toBe(false);
     expect(existsSync(join(repoRoot, 'src/app/simulations/cruise/page.tsx'))).toBe(true);
   });
 

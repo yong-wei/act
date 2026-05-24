@@ -167,7 +167,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
       title: '练习跨域知识迁移',
       description: '单点知识掌握较好但跨域迁移能力薄弱。推荐进行联动练习，建立知识联系。',
       reason: '跨域迁移能力显著落后于其他能力',
-      actionUrl: '/interactive-learning/lesson-02',
+      actionUrl: '/interactive-learning/courses/unit-2-1-modeling-language',
       actionLabel: '开始联动练习',
       priority: 85,
       estimatedTime: '25分钟',
