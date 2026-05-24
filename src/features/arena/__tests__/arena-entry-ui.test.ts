@@ -119,7 +119,6 @@ describe('arena student entry UI boundaries', () => {
     const legacyRouteSource = readRepoFile('src/app/interactive-learning/multi-representation-linkage/page.tsx');
     const controlWorkbenchRouteSource = readRepoFile('src/app/interactive-learning/control-workbench/page.tsx');
     const controlOdysseySource = readRepoFile('src/app/interactive-learning/control-odyssey/page.tsx');
-    const blockDiagramSource = readRepoFile('src/app/interactive-learning/lesson-05/page.tsx');
     const predictiveControlSource = readRepoFile('src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx');
     const cruiseSource = readRepoFile('src/app/simulations/cruise/page.tsx');
     const genericMountSource = readRepoFile('src/features/arena/workbench/arena-workbench-submission-mount.tsx');
@@ -145,7 +144,7 @@ describe('arena student entry UI boundaries', () => {
     expect(controlWorkbenchRouteSource).toContain('arenaTask: firstValue(searchParams?.arenaTask)');
     expect(controlOdysseySource).toContain('<OdysseyArenaBridgeShell />');
     expect(controlOdysseySource).not.toContain('<ArenaWorkbenchSubmissionMount workspaceMode="control-odyssey"');
-    expect(blockDiagramSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="block-diagram-workbench"');
+    expect(controlWorkbenchRouteSource).toContain('resolveControlWorkbenchSession');
     expect(predictiveControlSource).toContain('<ArenaWorkbenchSubmissionMount workspaceMode="predictive-control"');
     expect(genericMountSource).toContain('/api/arena/submissions');
     expect(genericMountSource).toContain("searchParams.get('publicationId')");

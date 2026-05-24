@@ -11,6 +11,7 @@ import {
 import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
 import { resolveCourseEvidenceSpec } from '@/lib/data-governance/course-evidence-specs'
 import {
+  inferCourseReviewLessonIdFromLessonKey,
   inferCourseReviewLessonIdFromStateData,
   parseCourseReviewPrepostRecord,
   type CourseReviewPrepostRecord,
@@ -260,19 +261,12 @@ function adaptCourseReviewPrepostRecord(record: CourseReviewPrepostRecord): Cour
   }
 }
 
-function inferLessonIdFromLessonKey(lessonKey: string | null | undefined) {
-  if (!lessonKey) return null
-  const match = lessonKey.match(/^unit-(\d+)-(\d+)-/)
-  if (!match) return null
-  return `${match[1]}-${match[2]}`
-}
-
 function inferLessonIdFromStateCandidate(
   candidate: CourseReviewStateCandidate,
   fallbackLessonKey?: string | null,
 ) {
   return inferCourseReviewLessonIdFromStateData(candidate.stateData)
-    ?? inferLessonIdFromLessonKey(candidate.lessonKey ?? fallbackLessonKey)
+    ?? inferCourseReviewLessonIdFromLessonKey(candidate.lessonKey ?? fallbackLessonKey)
 }
 
 function rankCourseReviewPrepostRecord(record: CourseReviewPrepostRecord) {
@@ -660,7 +654,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
         ...participant.stateCandidates.map((candidate) => (
           inferLessonIdFromStateCandidate(candidate, participant.lessonKey)
         )),
-        inferLessonIdFromLessonKey(participant.lessonKey),
+        inferCourseReviewLessonIdFromLessonKey(participant.lessonKey),
       ])
       .filter((lessonId): lessonId is string => Boolean(lessonId))
   ))

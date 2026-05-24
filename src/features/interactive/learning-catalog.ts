@@ -10,7 +10,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { LSUM_PREMIUM_LESSON_CARD } from '@/lib/lsum-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
@@ -152,7 +151,6 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 );
 
 export const FEATURED_LESSONS = [
-  LSUM_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
   UNIT_2_2_PREMIUM_LESSON_CARD,
   UNIT_2_3_PREMIUM_LESSON_CARD,
@@ -181,147 +179,11 @@ export const FEATURED_LESSONS = [
   UNIT_5_6_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
-    title: '柔性之海：豪华邮轮舒适度控制课堂实录',
-    description: '45 分钟精品课程：基于 BOPPPS 的教师端/学生端联动课堂实录流程。',
+    title: '柔性之海：豪华邮轮舒适度控制',
+    description: '45 分钟标准互动课：围绕舒适度约束、PID 参数整定、AI 诊断和工程取舍形成可提交的 BOPPPS 学习链。',
     duration: '45 分钟',
     href: '/interactive-learning/courses/cruise-comfort-boppps',
     badge: '精品课程',
-  },
-  {
-    id: 'lesson-01',
-    title: '反馈：控制原理的核心思想',
-    description: '90 分钟互动课程：反馈、闭环与控制系统结构。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-01',
-    badge: 'Lesson 01',
-  },
-  {
-    id: 'lesson-02',
-    title: '拉氏变换：工程直觉的数学实现',
-    description: '90 分钟互动课程：s 域直觉、常用定理与反变换路径。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-02',
-    badge: 'Lesson 02',
-  },
-  {
-    id: 'lesson-03',
-    title: '微分方程与控制系统基础模型',
-    description: '90 分钟互动课程：微分方程建模方法与典型案例。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-03',
-    badge: 'Lesson 03',
-  },
-  {
-    id: 'lesson-04',
-    title: '传递函数与控制系统数学模型',
-    description: '90 分钟互动课程：传递函数定义、推导与零极点判读。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-04',
-    badge: 'Lesson 04',
-  },
-  {
-    id: 'lesson-05',
-    title: '方框图、信号流图与梅森公式',
-    description: '90 分钟互动课程：结构图化简、信号流图建模与梅森公式。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-05',
-    badge: 'Lesson 05',
-  },
-  {
-    id: 'lesson-06',
-    title: '指标裁判席：时域性能的量尺',
-    description: '90 分钟互动课程：时域指标速判、裁判手册与计分实训。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-06',
-    badge: 'Lesson 06',
-  },
-  {
-    id: 'lesson-07',
-    title: '衰减振荡：欠阻尼二阶系统',
-    description: '90 分钟互动课程：二阶系统标准型、极点位置与响应指标。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-07',
-    badge: 'Lesson 07',
-  },
-  {
-    id: 'lesson-08',
-    title: '稳定性与稳态误差',
-    description: '90 分钟互动课程：劳斯判据、终值定理与静态误差系数。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-08',
-    badge: 'Lesson 08',
-  },
-  {
-    id: 'lesson-09',
-    title: '校正与时域综合：验证路径',
-    description: '90 分钟互动课程：校正手段、补偿策略与时域综合验证。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-09',
-    badge: 'Lesson 09',
-  },
-  {
-    id: 'lesson-10',
-    title: '根轨迹法：从全局到细节',
-    description: '90 分钟互动课程：模值/相角条件、分离点与渐近线判读。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-10',
-    badge: 'Lesson 10',
-  },
-  {
-    id: 'lesson-11',
-    title: '参数根轨迹与图形化思考',
-    description: '90 分钟互动课程：广义定义、稳定范围与主导极点选择。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-11',
-    badge: 'Lesson 11',
-  },
-  {
-    id: 'lesson-12',
-    title: '频率特性与伯德图',
-    description: '90 分钟互动课程：对数频率特性、斜率叠加与读图反推。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-12',
-    badge: 'Lesson 12',
-  },
-  {
-    id: 'lesson-13',
-    title: '幅相特性与稳定判据：频域的启示',
-    description: '90 分钟互动课程：Nyquist 图、对数判据与频域判稳链路。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-13',
-    badge: 'Lesson 13',
-  },
-  {
-    id: 'lesson-14',
-    title: '稳定裕度与三频段：宽备窄用',
-    description: '90 分钟互动课程：稳定裕度评估与三频段性能分工。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-14',
-    badge: 'Lesson 14',
-  },
-  {
-    id: 'lesson-15',
-    title: '串联校正与滞后超前：双管齐下',
-    description: '90 分钟互动课程：超前/滞后校正与联合设计流程。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-15',
-    badge: 'Lesson 15',
-  },
-  {
-    id: 'lesson-16',
-    title: '非线性系统与描述函数基础',
-    description: '90 分钟互动课程：非线性现象、谐波线性化与描述函数基础。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-16',
-    badge: 'Lesson 16',
-  },
-  {
-    id: 'lesson-17',
-    title: '描述函数分析法与自振判别',
-    description: '90 分钟互动课程：负倒描述函数与交点判别流程。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-17',
-    badge: 'Lesson 17',
   },
 ] as const;
 
@@ -331,7 +193,6 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
-    lesson.id !== 'lsum-design-feasible-domain' &&
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
     lesson.id !== 'unit-2-2-time-domain-response' &&
@@ -357,7 +218,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-5-2-nonlinear-analysis-entry' &&
     lesson.id !== 'unit-5-3-mass-coordination-chain' &&
     lesson.id !== 'unit-5-4-data-driven-mpc-transition' &&
-    lesson.id !== 'unit-5-5-policy-learning-entry-risk'
+    lesson.id !== 'unit-5-5-policy-learning-entry-risk' &&
+    lesson.id !== 'unit-5-6-method-comparison-cold-chain'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;

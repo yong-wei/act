@@ -1,3 +1,10 @@
+import type { BopppsStage } from '@prisma/client';
+import { finalizeInteractiveLessonSession } from '@/lib/data-governance/interactive-session-finalization';
+import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import type {
+  InteractiveRuntimeManifest,
+  InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import { CRUISE_ADORA_PARAMS, CRUISE_DEFAULT_PID } from '@/resources/simulations/core/constants';
 
 export { CRUISE_DEFAULT_PID };
@@ -10,6 +17,64 @@ export interface CruiseLessonStep {
   stage: CruiseStageCode;
   title: string;
   hint: string;
+}
+
+export type CruiseTeacherControlMode =
+  | 'not_applicable'
+  | 'page_load_open'
+  | 'teacher_toggle'
+  | 'teacher_only'
+  | 'enabled';
+export type CruisePageType = 'display' | 'summary' | 'quiz_group' | 'activity_card_set';
+
+export interface CruiseStandardLessonStep extends CruiseLessonStep {
+  duration: string;
+  pageType: CruisePageType;
+}
+
+export interface CruiseStepResponse {
+  stepId: string;
+  submittedAt: number;
+  answers: Record<string, string>;
+}
+
+export interface CruiseStudentCourseState {
+  kind: 'cruise_student_state';
+  version: 1;
+  studentName: string;
+  updatedAt: number;
+  responses: Record<string, CruiseStepResponse>;
+  viewedStepIds: string[];
+}
+
+export interface CruiseTeacherCourseSyncState {
+  kind: 'teacher_sync_cruise';
+  activeStepId: string;
+  revealedAnswers: Record<string, boolean>;
+  releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
+  updatedAt: number;
+}
+
+export interface CruiseTeacherSyncInput {
+  activeStepId: string;
+  revealedAnswers: Record<string, boolean>;
+  releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
+  updatedAt?: number;
+  [key: string]: unknown;
+}
+
+export interface CruisePageContract {
+  interactionKind: 'none' | 'quiz_group' | 'activity_card_set';
+  teacherControls: {
+    releaseActivity: CruiseTeacherControlMode;
+    openBrowse: CruiseTeacherControlMode;
+    teacherStepReveal: CruiseTeacherControlMode;
+    revealReferenceAnswer: CruiseTeacherControlMode;
+  };
 }
 
 export interface AdaptiveQuestion {
@@ -73,8 +138,18 @@ export interface CruiseTeacherStepCopy {
 }
 
 export const CRUISE_COURSE_TITLE = '柔性之海：豪华邮轮舒适度控制';
+export const CRUISE_COURSE_SUBTITLE = 'Cruise Comfort BOPPPS';
+export const CRUISE_COURSE_DESCRIPTION =
+  '围绕豪华邮轮航向-舒适度耦合对象，把舒适度约束、PID 参数整定、AI 诊断与工程取舍组织为一条可提交、可汇总、可复盘的互动课堂链。';
+export const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 export const CRUISE_PRESET_KEY = 'cruise-comfort-v1';
 export const CRUISE_COURSE_MODE = 'cruise-boppps';
+export const CRUISE_RESOURCE_KEY = CRUISE_ROUTE_SEGMENT;
+export const CRUISE_LESSON_KEY = CRUISE_PRESET_KEY;
+export const CRUISE_STUDENT_ITEM_ID = 'student:cruise:state';
+export const CRUISE_TEACHER_SYNC_ITEM_ID = 'teacher:course-sync';
+export const CRUISE_STUDENT_STATE_KEY = 'course';
+export const CRUISE_TEACHER_STATE_KEY = 'teacher-sync';
 
 export const CRUISE_STAGE_LABEL: Record<CruiseStageCode, string> = {
   B: 'B - 导入',
@@ -92,6 +167,15 @@ export const CRUISE_STAGE_COLOR: Record<CruiseStageCode, string> = {
   P2: 'bg-cyan-500/20 text-cyan-100 border-cyan-300/30',
   P3: 'bg-orange-500/20 text-orange-100 border-orange-300/30',
   S: 'bg-indigo-500/20 text-indigo-100 border-indigo-300/30',
+};
+
+export const CRUISE_STAGE_MAP: Record<CruiseStageCode, BopppsStage> = {
+  B: 'BRIDGE_IN',
+  O: 'OBJECTIVE',
+  P1: 'PRE_ASSESSMENT',
+  P2: 'PARTICIPATORY',
+  P3: 'POST_ASSESSMENT',
+  S: 'SUMMARY',
 };
 
 export const BLOOM_VERBS = ['识别', '解释', '分析', '设计', '评估', '优化'];
@@ -203,6 +287,143 @@ export const CRUISE_STEP_DURATION: Record<string, string> = {
   'group-compare': '4 min',
   summary: '3 min',
 };
+
+const CRUISE_STEP_INTERACTION_KIND: Record<string, CruisePageType> = {
+  precheck: 'quiz_group',
+  'engineering-target': 'activity_card_set',
+  'first-exploration': 'activity_card_set',
+  'ai-analysis': 'activity_card_set',
+  'prompt-refine': 'activity_card_set',
+  'pause-reflection': 'activity_card_set',
+  adjustment: 'activity_card_set',
+  consistency: 'quiz_group',
+  'group-compare': 'activity_card_set',
+  summary: 'summary',
+};
+
+export const CRUISE_STANDARD_LESSON_STEPS: readonly CruiseStandardLessonStep[] = CRUISE_LESSON_STEPS.map((step) => ({
+  ...step,
+  duration: CRUISE_STEP_DURATION[step.id] ?? '3 min',
+  pageType: CRUISE_STEP_INTERACTION_KIND[step.id] ?? 'display',
+}));
+
+function normalizeCruiseInteractionKind(kind: string): CruisePageContract['interactionKind'] {
+  if (kind === 'quiz_group' || kind === 'activity_card_set') return kind;
+  return 'none';
+}
+
+function cruisePageContractFromManifestStep(step: InteractiveRuntimeStepManifest): CruisePageContract {
+  return {
+    interactionKind: normalizeCruiseInteractionKind(step.interactionSpec.interactionKind),
+    teacherControls: {
+      releaseActivity: step.teacherControls.releaseActivity as CruiseTeacherControlMode,
+      openBrowse: step.teacherControls.openBrowse as CruiseTeacherControlMode,
+      teacherStepReveal: step.teacherControls.teacherStepReveal as CruiseTeacherControlMode,
+      revealReferenceAnswer: step.teacherControls.revealReferenceAnswer as CruiseTeacherControlMode,
+    },
+  };
+}
+
+export function getCruiseManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  if (!manifest) {
+    throw new Error('Cruise comfort runtime manifest is required for page rendering.');
+  }
+  return manifest.steps.find((step) => step.id === stepId) ?? manifest.steps[0];
+}
+
+export function getCruisePageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return cruisePageContractFromManifestStep(getCruiseManifestStepFromManifest(manifest, stepId));
+}
+
+export function createEmptyCruiseStudentState(studentName: string): CruiseStudentCourseState {
+  return {
+    kind: 'cruise_student_state',
+    version: 1,
+    studentName,
+    updatedAt: Date.now(),
+    responses: {},
+    viewedStepIds: [],
+  };
+}
+
+export function isCruiseStudentState(value: unknown): value is CruiseStudentCourseState {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<CruiseStudentCourseState>;
+  return data.kind === 'cruise_student_state' && data.version === 1;
+}
+
+export function isCruiseTeacherSyncState(value: unknown): value is CruiseTeacherCourseSyncState {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<CruiseTeacherCourseSyncState>;
+  return data.kind === 'teacher_sync_cruise' && typeof data.activeStepId === 'string';
+}
+
+export const CRUISE_SESSION_ADAPTER: LessonSessionAdapter<
+  CruiseStudentCourseState,
+  CruiseTeacherCourseSyncState,
+  CruiseTeacherSyncInput
+> = {
+  lessonKey: CRUISE_LESSON_KEY,
+  studentItemId: CRUISE_STUDENT_ITEM_ID,
+  teacherItemId: CRUISE_TEACHER_SYNC_ITEM_ID,
+  studentStateKey: CRUISE_STUDENT_STATE_KEY,
+  teacherStateKey: CRUISE_TEACHER_STATE_KEY,
+  createEmptyStudentState: createEmptyCruiseStudentState,
+  isStudentState: isCruiseStudentState,
+  isTeacherSyncState: isCruiseTeacherSyncState,
+  buildTeacherSyncPayload(input) {
+    return {
+      kind: 'teacher_sync_cruise',
+      activeStepId: input.activeStepId,
+      revealedAnswers: input.revealedAnswers,
+      releasedActivities: input.releasedActivities,
+      browseEnabled: input.browseEnabled,
+      teacherRevealProgress: input.teacherRevealProgress,
+      updatedAt: input.updatedAt ?? Date.now(),
+    };
+  },
+};
+
+export function shouldPostCruiseTeacherSync(input: {
+  loadingSession: boolean;
+  teacherViewHydrated: boolean;
+}) {
+  return !input.loadingSession && input.teacherViewHydrated;
+}
+
+export function resolveCruiseTeacherSyncDraft(input: {
+  localRevealedAnswers: Record<string, boolean> | null;
+  localReleasedActivities: Record<string, boolean> | null;
+  localBrowseEnabled: Record<string, boolean> | null;
+  localTeacherRevealProgress: Record<string, number> | null;
+  teacherSyncState: CruiseTeacherCourseSyncState | null;
+}) {
+  return {
+    revealedAnswers: input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {},
+    releasedActivities: input.localReleasedActivities ?? input.teacherSyncState?.releasedActivities ?? {},
+    browseEnabled: input.localBrowseEnabled ?? input.teacherSyncState?.browseEnabled ?? {},
+    teacherRevealProgress: input.localTeacherRevealProgress ?? input.teacherSyncState?.teacherRevealProgress ?? {},
+  };
+}
+
+export async function finalizeCruiseTeacherSession(input: {
+  finishSession: () => Promise<void>;
+  trackSessionFinalize: (data: { currentStepId: string }) => void;
+  currentStepId: string;
+}) {
+  await finalizeInteractiveLessonSession({
+    finishSession: input.finishSession,
+    trackSessionFinalize: input.trackSessionFinalize,
+    currentStepId: input.currentStepId,
+    steps: CRUISE_STANDARD_LESSON_STEPS,
+  });
+}
 
 export const QUESTION_BANK: AdaptiveQuestion[] = [
   {

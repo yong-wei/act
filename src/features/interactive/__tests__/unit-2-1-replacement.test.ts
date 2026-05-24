@@ -45,7 +45,7 @@ describe('2-1 mainline replacement', () => {
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2b-root-locus-fasttrack-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2c-frequency-bode-fasttrack-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2d-three-domain-linkage-practice-v1')).toBe(false);
-    expect(ALL_PRESETS.some((preset) => preset.key === 'lsum-design-feasible-domain-v1')).toBe(true);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'lsum-design-feasible-domain-v1')).toBe(false);
   });
 
   it('routes current mainline titles and stops treating module 1 titles as premium aliases', () => {
@@ -85,8 +85,8 @@ describe('2-1 mainline replacement', () => {
     });
 
     expect(resolveSessionRouteFromPlanTitle('L-∑：设计可行域——让约束成为指南针')).toEqual({
-      routeSegment: 'lsum-design-feasible-domain',
-      isPremiumCourse: true,
+      routeSegment: null,
+      isPremiumCourse: false,
     });
   });
 

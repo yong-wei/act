@@ -206,7 +206,7 @@ describe('unit 3-9 interactive course', () => {
     expect(workspaceSource).toContain('TABLE_BUILDER_FIELDS');
   });
 
-  it('tracks session finalization before marking the classroom as finished', async () => {
+  it('uses the shared finalization order before tracking session finalization', async () => {
     const courseModule = await import('@/lib/unit-3-9-course');
     const calls: string[] = [];
 
@@ -220,7 +220,7 @@ describe('unit 3-9 interactive course', () => {
       },
     });
 
-    expect(calls).toEqual(['track:step-11', 'finish']);
+    expect(calls).toEqual(['finish', 'track:step-11']);
   });
 
   it('sends full student response details in 3-9 lesson submit telemetry', () => {

@@ -11,6 +11,7 @@ import {
   assertRequiredLessonsInGateInventory,
   collectManifestResponseProducingSteps,
   evaluateManifestSubmissionPageGate,
+  evaluateStandardCourseFinalizationGate,
 } from '@/features/interactive/shared/manifest-runtime/submission-gate';
 import {
   COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY,
@@ -26,6 +27,7 @@ import { getUNIT_5_3ManifestStepFromManifest } from '@/lib/unit-5-3-course';
 import { getUNIT_5_5ManifestStepFromManifest } from '@/lib/unit-5-5-course';
 
 const repoRoot = process.cwd();
+const EARLY_MANIFEST_SUBMISSION_LESSONS = ['2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'] as const;
 
 function readManifest(lessonId: string): InteractiveRuntimeManifest {
   const raw = JSON.parse(
@@ -37,6 +39,16 @@ function readManifest(lessonId: string): InteractiveRuntimeManifest {
 }
 
 describe('manifest submission migration gates', () => {
+  it('requires early runtime-first lessons in the manifest submission gate', () => {
+    expect([...REQUIRED_RUNTIME_FIRST_GATE_LESSONS]).toEqual(
+      expect.arrayContaining([...EARLY_MANIFEST_SUBMISSION_LESSONS]),
+    );
+
+    expect(COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => lesson.lessonId)).toEqual(
+      expect.arrayContaining([...EARLY_MANIFEST_SUBMISSION_LESSONS]),
+    );
+  });
+
   it('enumerates all runtime-first response-producing lessons through CourseEvidenceSpec', () => {
     const inventory = Object.fromEntries(
       COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.map((lesson) => {
@@ -96,12 +108,50 @@ describe('manifest submission migration gates', () => {
     }
   });
 
-  it('keeps module 5 teacher finalizers on the shared finalization path', () => {
-    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.filter((item) => item.lessonId.startsWith('5-'))) {
-      const courseSource = readFileSync(join(repoRoot, 'src/lib', `unit-${lesson.lessonId}-course.ts`), 'utf8');
+  it('keeps standard teacher finalizers on the shared finalization path', () => {
+    for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY) {
+      const courseSourcePath = lesson.courseSourcePath ?? `src/lib/unit-${lesson.lessonId}-course.ts`;
+      const courseSource = readFileSync(join(repoRoot, courseSourcePath), 'utf8');
+      const result = evaluateStandardCourseFinalizationGate({
+        lessonId: lesson.lessonId,
+        routeSegment: lesson.routeSegment,
+        courseSource,
+      });
 
-      expect(courseSource, lesson.lessonId).toContain('finalizeInteractiveLessonSession');
+      expect(result, lesson.lessonId).toMatchObject({
+        lessonId: lesson.lessonId,
+        passed: true,
+        violations: [],
+      });
     }
+  });
+
+  it('reports a deliberately invalid teacher finalizer fixture with handwritten finalization', () => {
+    const fixtureSource = `
+      import { buildSessionFinalizeTelemetry } from '@/lib/data-governance/session-finalize-telemetry';
+
+      export async function finalizeBrokenTeacherSession(input) {
+        await input.finishSession();
+        input.trackSessionFinalize(buildSessionFinalizeTelemetry({
+          currentStepId: input.currentStepId,
+          steps: BROKEN_LESSON_STEPS,
+        }));
+      }
+    `;
+
+    const result = evaluateStandardCourseFinalizationGate({
+      lessonId: 'fixture-4-1',
+      routeSegment: 'fixture-handwritten-finalization',
+      courseSource: fixtureSource,
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.map((item) => item.code)).toEqual([
+      'missing-shared-finalization-adapter',
+      'legacy-finalization-telemetry-builder',
+      'direct-finish-session-call',
+      'direct-session-finalize-call',
+    ]);
   });
 
   it('reports a deliberately invalid student page fixture with missing shared evidence integration', () => {

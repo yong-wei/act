@@ -1,0 +1,93 @@
+{
+  "lesson_id": "cruise-comfort-boppps",
+  "title": "柔性之海：豪华邮轮舒适度控制",
+  "focus_node_ids": [
+    "cruise_comfort_constraint",
+    "cruise_pid_tuning",
+    "cruise_control_responsibility"
+  ],
+  "entry_nodes": [
+    "cruise_comfort_constraint"
+  ],
+  "summary_nodes": [
+    "cruise_control_responsibility"
+  ],
+  "card_order": [
+    "cruise_comfort_constraint",
+    "cruise_pid_tuning",
+    "cruise_control_responsibility"
+  ],
+  "groups": [
+    {
+      "title": "场景与目标",
+      "step_ids": ["class-code", "bridge", "objective", "precheck"],
+      "node_ids": ["cruise_comfort_constraint"]
+    },
+    {
+      "title": "参数探索与 AI 介入",
+      "step_ids": ["engineering-target", "first-exploration", "neural-ode", "ai-analysis", "prompt-refine"],
+      "node_ids": ["cruise_pid_tuning"]
+    },
+    {
+      "title": "一致性校验与责任收束",
+      "step_ids": ["pause-reflection", "adjustment", "consistency", "group-compare", "summary"],
+      "node_ids": ["cruise_control_responsibility"]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "cruise_comfort_constraint",
+      "name": "舒适度约束",
+      "nodeType": "APPLICATION",
+      "description": "豪华邮轮航向控制需要同时限制响应速度、超调、稳态偏差和侧向加速度，把乘客舒适度作为硬约束。",
+      "positionX": -2,
+      "positionY": 0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "tags": ["cruise", "comfort", "constraint"]
+    },
+    {
+      "id": "cruise_pid_tuning",
+      "name": "PID 参数整定与跨域证据",
+      "nodeType": "METHOD",
+      "description": "PID 参数调整必须同时观察极点、响应曲线、频域裕度和舒适度指标，避免只追求单一得分。",
+      "positionX": 0,
+      "positionY": 1,
+      "positionZ": 1,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "tags": ["pid", "tuning", "evidence"]
+    },
+    {
+      "id": "cruise_control_responsibility",
+      "name": "控制决策责任",
+      "nodeType": "VALUE",
+      "description": "控制方案需要说明目标、行为和结果的一致性，并把安全余量和乘客体验作为工程责任的一部分。",
+      "positionX": 2,
+      "positionY": 0,
+      "positionZ": 1,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "METACOGNITIVE",
+      "tags": ["responsibility", "safety", "tradeoff"]
+    }
+  ],
+  "links": [
+    {
+      "id": "cruise_constraint_to_tuning",
+      "sourceId": "cruise_comfort_constraint",
+      "targetId": "cruise_pid_tuning",
+      "relation": "约束驱动参数整定",
+      "relationType": "supports",
+      "strength": 0.9
+    },
+    {
+      "id": "cruise_tuning_to_responsibility",
+      "sourceId": "cruise_pid_tuning",
+      "targetId": "cruise_control_responsibility",
+      "relation": "参数证据支撑工程取舍",
+      "relationType": "supports",
+      "strength": 0.85
+    }
+  ]
+}

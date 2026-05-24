@@ -1,0 +1,1514 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-2",
+  "course_title": "2-2：时域响应基础——从响应曲线到动态性能指标",
+  "course_route_segment": "unit-2-2-time-domain-response",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "manifest-submission-v2",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从传函走向响应曲线",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "回到地图——从传函走向响应曲线",
+          "body": "前两课解决系统怎么写出来，这一课开始解决系统会怎样表现。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "teacherFollowSync"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "前两课解决系统怎么写出来，这一课开始解决系统会怎样表现。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-02": {
+      "title": "情境引入——稳定并不等于表现一样",
+      "layout": {
+        "template": "dual_response_vote",
+        "regions": [
+          {
+            "id": "chart",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "情境引入——稳定并不等于表现一样",
+          "body": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。"
+        }
+      },
+      "evidence_sequence": [
+        "step-02:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-02:response",
+            "title": "情境引入——稳定并不等于表现一样",
+            "prompt": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。",
+            "response_kind": "binary_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "teacherRevealSeen",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "stability_equals_good_performance"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "reveal_correction_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-03": {
+      "title": "学习目标——本课要建立哪套语言",
+      "layout": {
+        "template": "goal_chain_slide",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "学习目标——本课要建立哪套语言",
+          "body": "明确会看、会算、会连这三类目标。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "明确会看、会算、会连这三类目标。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    },
+    "step-04": {
+      "title": "前测——快、稳、冲分别看什么",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          {
+            "id": "question-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "submit-bar",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "前测——快、稳、冲分别看什么",
+          "body": "用三道速测题暴露“稳定、快速、超调”之间的混淆。"
+        }
+      },
+      "evidence_sequence": [
+        "step-04:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "用三道速测题暴露“稳定、快速、超调”之间的混淆。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-04:response",
+            "title": "前测——快、稳、冲分别看什么",
+            "prompt": "用三道速测题暴露“稳定、快速、超调”之间的混淆。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": [
+          "time_constant_direction_confusion",
+          "overshoot_metric_confusion",
+          "stability_vs_no_overshoot"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用三道速测题暴露“稳定、快速、超调”之间的混淆。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-05": {
+      "title": "时域分析对象与典型输入",
+      "layout": {
+        "template": "table_plus_formula_plus_short_response",
+        "regions": [
+          {
+            "id": "formula-strip",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "contrast-table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reflection",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "时域分析对象与典型输入",
+          "body": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。"
+        }
+      },
+      "evidence_sequence": [
+        "step-05:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-05:response",
+            "title": "时域分析对象与典型输入",
+            "prompt": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "responseSubmitted",
+          "responseLength",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "response_word_cloud",
+          "common_reason_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-06": {
+      "title": "一阶系统阶跃响应与时间常数",
+      "layout": {
+        "template": "courseware_top_slider_bottom",
+        "regions": [
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "一阶系统阶跃响应与时间常数",
+          "body": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。"
+        }
+      },
+      "evidence_sequence": [
+        "step-06:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-06:response",
+            "title": "一阶系统阶跃响应与时间常数",
+            "prompt": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "sliderChanged",
+          "anchorViewed",
+          "predictionSubmitted"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "time_constant_distribution",
+          "prediction_summary"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-07": {
+      "title": "二阶系统标准型：ωn、ζ、ωd",
+      "layout": {
+        "template": "parameter_role_match",
+        "regions": [
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "role-table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "match-zone",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "二阶系统标准型：ωn、ζ、ωd",
+          "body": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。"
+        }
+      },
+      "evidence_sequence": [
+        "step-07:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-07:response",
+            "title": "二阶系统标准型：ωn、ζ、ωd",
+            "prompt": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。",
+            "response_kind": "triple_match",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "match_items": [
+              {
+                "value": "item-a",
+                "label": "Item A"
+              },
+              {
+                "value": "item-b",
+                "label": "Item B"
+              },
+              {
+                "value": "item-c",
+                "label": "Item C"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "a",
+                "label": "A"
+              },
+              {
+                "value": "b",
+                "label": "B"
+              },
+              {
+                "value": "c",
+                "label": "C"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "item-a",
+                "option": "a"
+              },
+              {
+                "item": "item-b",
+                "option": "b"
+              },
+              {
+                "item": "item-c",
+                "option": "c"
+              }
+            ]
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "matchAttempted",
+          "matchCorrected",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_mismatch_pairs",
+          "completion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-08": {
+      "title": "四种响应家族对比",
+      "layout": {
+        "template": "family_compare_switcher",
+        "regions": [
+          {
+            "id": "family-summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "shared-chart",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "switcher",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "四种响应家族对比",
+          "body": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。"
+        }
+      },
+      "evidence_sequence": [
+        "step-08:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-08:response",
+            "title": "四种响应家族对比",
+            "prompt": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "familySwitched",
+          "compareViewToggled"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "family_focus_distribution"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-09": {
+      "title": "动态性能指标总览",
+      "layout": {
+        "template": "metric_overview_overlay",
+        "regions": [
+          {
+            "id": "summary-table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "overlay-chart",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "动态性能指标总览",
+          "body": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。"
+        }
+      },
+      "evidence_sequence": [
+        "step-09:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-09:response",
+            "title": "动态性能指标总览",
+            "prompt": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "metricToggled",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "metric_attention_distribution"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-10": {
+      "title": "上升时间的定义与推导",
+      "layout": {
+        "template": "formula_explain_checklist",
+        "regions": [
+          {
+            "id": "definition-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reason-check",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "上升时间的定义与推导",
+          "body": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。"
+        }
+      },
+      "evidence_sequence": [
+        "step-10:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-10:response",
+            "title": "上升时间的定义与推导",
+            "prompt": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "predictionSubmitted",
+          "reasonLength",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "prediction_distribution",
+          "reason_tag_cloud"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-11": {
+      "title": "峰值时间与超调量",
+      "layout": {
+        "template": "dual_formula_reason_check",
+        "regions": [
+          {
+            "id": "formula-pair",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "key-claim",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "check-zone",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "峰值时间与超调量",
+          "body": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。"
+        }
+      },
+      "evidence_sequence": [
+        "step-11:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-11:response",
+            "title": "峰值时间与超调量",
+            "prompt": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "formulaMatched",
+          "claimViewed"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "formula_confusion_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-12": {
+      "title": "调节时间与误差带",
+      "layout": {
+        "template": "error_band_workspace",
+        "regions": [
+          {
+            "id": "definition-card",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula-card",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "调节时间与误差带",
+          "body": "区分严格定义与工程近似，并把注意力转到极点实部。"
+        }
+      },
+      "evidence_sequence": [
+        "step-12:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "区分严格定义与工程近似，并把注意力转到极点实部。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-12:response",
+            "title": "调节时间与误差带",
+            "prompt": "区分严格定义与工程近似，并把注意力转到极点实部。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "bandChanged",
+          "parameterChanged",
+          "teacherRevealAdvanced"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "band_selection_distribution",
+          "common_reason_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "区分严格定义与工程近似，并把注意力转到极点实部。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-13": {
+      "title": "例题一——已知参数求指标",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "method",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "workspace",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "chart",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "例题一——已知参数求指标",
+          "body": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。"
+        }
+      },
+      "evidence_sequence": [
+        "step-13:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-13:response",
+            "title": "例题一——已知参数求指标",
+            "prompt": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "methodCompleted",
+          "intermediateValueEdited",
+          "resultChecked"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "wrong_step_distribution",
+          "common_error_fields"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-14": {
+      "title": "例题二——由指标反推参数区域 + AI 对照",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          {
+            "id": "method",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "constraints",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "ai-panel",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "pole-region",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "例题二——由指标反推参数区域 + AI 对照",
+          "body": "先独立判断参数约束，再让 AI 帮你核对推理链。"
+        }
+      },
+      "evidence_sequence": [
+        "step-14:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "先独立判断参数约束，再让 AI 帮你核对推理链。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-14:response",
+            "title": "例题二——由指标反推参数区域 + AI 对照",
+            "prompt": "先独立判断参数约束，再让 AI 帮你核对推理链。",
+            "response_kind": "parameter_set",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "parameter_fields": [
+              {
+                "key": "response",
+                "label": "Submitted parameter or workspace evidence"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: parameter evidence is preserved for review rather than auto-scored"
+          }
+        ],
+        "submit_fields": [
+          "response"
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "draftSubmitted",
+          "aiOpened",
+          "aiRoundCompleted",
+          "revisionConfirmed"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "draft_completion_rate",
+          "ai_usage_rate",
+          "common_logic_gaps"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先独立判断参数约束，再让 AI 帮你核对推理链。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-15": {
+      "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
+      "layout": {
+        "template": "mapping_table_with_plane",
+        "regions": [
+          {
+            "id": "method-links",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "mapping-table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "highlight-plane",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
+          "body": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。"
+        }
+      },
+      "evidence_sequence": [
+        "step-15:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-15:response",
+            "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
+            "prompt": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。",
+            "response_kind": "short_response",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "structured_fields": [
+              "response"
+            ],
+            "reference_answer": "unsupported-scoring: subjective evidence is preserved for teacher review"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "mappingRowSelected",
+          "hoverFormula"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "mapping_focus_distribution"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-15"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-16": {
+      "title": "后测——公式会算，更要会解释",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          {
+            "id": "quiz-stack",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "submit-bar",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "后测——公式会算，更要会解释",
+          "body": "检验你是否能把公式结果翻译回系统品质语言。"
+        }
+      },
+      "evidence_sequence": [
+        "step-16:response"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "检验你是否能把公式结果翻译回系统品质语言。",
+        "answer_reveal": "teacher_controlled",
+        "activity_cards": [
+          {
+            "id": "step-16:response",
+            "title": "后测——公式会算，更要会解释",
+            "prompt": "检验你是否能把公式结果翻译回系统品质语言。",
+            "response_kind": "single_choice",
+            "submit_scope": "step",
+            "layout_span": "full",
+            "options": [
+              {
+                "value": "A",
+                "label": "A"
+              },
+              {
+                "value": "B",
+                "label": "B"
+              }
+            ],
+            "reference_answer": "unsupported-scoring: migrated manifest does not encode the original answer key yet"
+          }
+        ],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "teacherRevealSeen"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "explanation_tag_summary"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "检验你是否能把公式结果翻译回系统品质语言。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-16"
+      },
+      "acceptance_checks": [
+        "学生提交后产生 manifest-submission-v2 证据。"
+      ]
+    },
+    "step-17": {
+      "title": "总结与后续预告",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          {
+            "id": "takeaways",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "cheatsheet",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "next-links",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [],
+      "content_blocks": {
+        "summary": {
+          "type": "plain_text",
+          "title": "总结与后续预告",
+          "body": "用关键词收束时域分析，并把视角推进到极点与性能映射。"
+        }
+      },
+      "evidence_sequence": [],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none",
+        "activity_cards": [],
+        "submit_fields": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {},
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "quickReferenceOpened"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "quick_reference_open_rate"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用关键词收束时域分析，并把视角推进到极点与性能映射。",
+        "delivery_mode": "hidden_page_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-17"
+      },
+      "acceptance_checks": [
+        "本页不产生学生提交。"
+      ]
+    }
+  }
+}

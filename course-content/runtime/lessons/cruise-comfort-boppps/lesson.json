@@ -1,0 +1,56 @@
+{
+  "lesson_id": "cruise-comfort-boppps",
+  "title": "柔性之海：豪华邮轮舒适度控制",
+  "layer": "跨域探索",
+  "unit_type": "实践",
+  "hours": 1,
+  "knowledge_type": "X",
+  "graph_version": "cruise-comfort-v1",
+  "focus_node_ids": [
+    "cruise_comfort_constraint",
+    "cruise_pid_tuning",
+    "cruise_control_responsibility"
+  ],
+  "entry_nodes": [
+    "cruise_comfort_constraint"
+  ],
+  "summary_nodes": [
+    "cruise_control_responsibility"
+  ],
+  "card_order": [
+    "cruise_comfort_constraint",
+    "cruise_pid_tuning",
+    "cruise_control_responsibility"
+  ],
+  "sequence": {
+    "lesson_id": "cruise-comfort-boppps",
+    "status": "standard_manifest_runtime",
+    "card_order": [
+      "cruise_comfort_constraint",
+      "cruise_pid_tuning",
+      "cruise_control_responsibility"
+    ],
+    "groups": [
+      {
+        "title": "场景与目标",
+        "step_ids": ["class-code", "bridge", "objective", "precheck"],
+        "node_ids": ["cruise_comfort_constraint"]
+      },
+      {
+        "title": "参数探索与 AI 介入",
+        "step_ids": ["engineering-target", "first-exploration", "neural-ode", "ai-analysis", "prompt-refine"],
+        "node_ids": ["cruise_pid_tuning"]
+      },
+      {
+        "title": "一致性校验与责任收束",
+        "step_ids": ["pause-reflection", "adjustment", "consistency", "group-compare", "summary"],
+        "node_ids": ["cruise_control_responsibility"]
+      }
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/cruise-comfort-boppps/cruise-comfort-boppps-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/cruise-comfort-boppps/cruise-comfort-boppps-handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/cruise-comfort-boppps/graph-overlay.json",
+  "interactive_manifest_path": "/course-runtime/lessons/cruise-comfort-boppps/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/cruise-comfort-boppps/interactive-manifest.json"
+}

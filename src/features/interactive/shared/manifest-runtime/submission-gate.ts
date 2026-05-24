@@ -18,6 +18,7 @@ export interface ManifestSubmissionGateInventoryItem {
   studentPagePath: string;
   manifestGetterName: string;
   minimumResponseSteps: number;
+  courseSourcePath?: string;
 }
 
 export interface ManifestResponseProducingStep {
@@ -47,6 +48,23 @@ export interface ManifestSubmissionPageGateInput {
   studentPageSource: string;
   responseSteps: ManifestResponseProducingStep[];
   minimumResponseSteps?: number;
+}
+
+export interface StandardCourseFinalizationGateViolation {
+  lessonId: string;
+  routeSegment: string;
+  code:
+    | 'missing-shared-finalization-adapter'
+    | 'legacy-finalization-telemetry-builder'
+    | 'direct-finish-session-call'
+    | 'direct-session-finalize-call';
+  message: string;
+}
+
+export interface StandardCourseFinalizationGateInput {
+  lessonId: string;
+  routeSegment: string;
+  courseSource: string;
 }
 
 const OBJECTIVE_RESPONSE_KINDS = new Set([
@@ -208,4 +226,58 @@ export function assertRequiredLessonsInGateInventory(
       code: 'missing-response-step-inventory',
       message: `${lessonId} is missing from the response-producing lesson inventory.`,
     }));
+}
+
+export function evaluateStandardCourseFinalizationGate({
+  lessonId,
+  routeSegment,
+  courseSource,
+}: StandardCourseFinalizationGateInput) {
+  const violations: StandardCourseFinalizationGateViolation[] = [];
+
+  if (!courseSource.includes('finalizeInteractiveLessonSession')) {
+    violations.push({
+      lessonId,
+      routeSegment,
+      code: 'missing-shared-finalization-adapter',
+      message: `${lessonId} ${routeSegment} does not use the shared interactive session finalization adapter.`,
+    });
+  }
+
+  if (
+    courseSource.includes('buildSessionFinalizeTelemetry')
+    || courseSource.includes('session-finalize-telemetry')
+  ) {
+    violations.push({
+      lessonId,
+      routeSegment,
+      code: 'legacy-finalization-telemetry-builder',
+      message: `${lessonId} ${routeSegment} still depends on the legacy session finalization telemetry builder.`,
+    });
+  }
+
+  if (/\bawait\s+input\.finishSession\s*\(/.test(courseSource)) {
+    violations.push({
+      lessonId,
+      routeSegment,
+      code: 'direct-finish-session-call',
+      message: `${lessonId} ${routeSegment} finishes the session directly instead of delegating closure sequencing.`,
+    });
+  }
+
+  if (/\binput\.trackSessionFinalize\s*\(/.test(courseSource)) {
+    violations.push({
+      lessonId,
+      routeSegment,
+      code: 'direct-session-finalize-call',
+      message: `${lessonId} ${routeSegment} emits session finalization telemetry directly instead of delegating payload assembly.`,
+    });
+  }
+
+  return {
+    lessonId,
+    routeSegment,
+    passed: violations.length === 0,
+    violations,
+  };
 }

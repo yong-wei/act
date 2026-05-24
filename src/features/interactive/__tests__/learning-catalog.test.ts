@@ -1,10 +1,15 @@
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
-import { INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '../learning-catalog';
+import { FEATURED_LESSONS, INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '../learning-catalog';
 import { UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET } from '@/features/teacher/preset-lessons/presets/unit-2-2-time-domain-response';
 import { UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET } from '@/features/teacher/preset-lessons/presets/unit-2-3-frequency-response-bode-intro';
 import { UNIT_2_4_NYQUIST_MARGIN_ENTRY_PRESET } from '@/features/teacher/preset-lessons/presets/unit-2-4-nyquist-margin-entry';
 import { UNIT_3_1_PURE_POLE_STABILITY_AND_DYNAMICS_PRESET } from '@/features/teacher/preset-lessons/presets/unit-3-1-pure-pole-stability-and-dynamics';
+
+const repoRoot = process.cwd();
 
 describe('INTERACTIVE_COURSE_MODULES', () => {
   it('keeps only cruise comfort in the premium section', () => {
@@ -32,6 +37,20 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
         module.lessons.some((lesson) => retiredLessonIds.includes(lesson.id))
       )
     ).toBe(false);
+  });
+
+  it('does not expose retired one-page lesson routes', () => {
+    const appRouterDirs = readdirSync(join(repoRoot, 'src/app/interactive-learning'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && /^lesson-\d+/.test(entry.name))
+      .map((entry) => entry.name);
+
+    const catalogHrefs = [
+      ...FEATURED_LESSONS.map((lesson) => lesson.href),
+      ...INTERACTIVE_COURSE_MODULES.flatMap((module) => module.lessons.map((lesson) => lesson.href)),
+    ].filter((href) => href.startsWith('/interactive-learning/lesson-'));
+
+    expect(appRouterDirs).toEqual([]);
+    expect(catalogHrefs).toEqual([]);
   });
 
   it('exposes unit 2-1, unit 2-2, unit 2-3, and unit 2-4 in module 2', () => {
