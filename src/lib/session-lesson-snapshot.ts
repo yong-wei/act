@@ -20,10 +20,6 @@ export function resolveRuntimeLessonKeyFromRouteSegment(routeSegment: string | n
     return `${unitMatch[1]}-${unitMatch[2]}`;
   }
 
-  if (routeSegment === 'lsum-design-feasible-domain') {
-    return 'lsum';
-  }
-
   if (routeSegment === 'cruise-comfort-boppps') {
     return 'legacy/cruise-comfort-boppps';
   }
