@@ -63,3 +63,16 @@ The system SHALL include 2-2, 2-3, 2-4, 3-1, 3-2, 3-3, and 3-4 in the runtime-fi
 - **WHEN** a migrated early unit student page directly emits a lesson submit event or lacks a manifest step getter
 - **THEN** the gate SHALL fail with the lesson id and missing integration code
 - **AND** the failure SHALL identify the bypass rather than allowing legacy evidence to pass as rich evidence.
+
+### Requirement: Standard course finalization bypasses are gated
+The system SHALL provide a guard that detects standard interactive courses bypassing the shared finalization adapter.
+
+#### Scenario: Handwritten finalization is detected
+- **WHEN** a standard course file imports `buildSessionFinalizeTelemetry` or directly calls `trackSessionFinalize` as the session closure path
+- **THEN** the gate SHALL fail with the course identifier
+- **AND** the failure SHALL require migration to the shared finalization adapter.
+
+#### Scenario: Finalization inventory covers all standard lessons
+- **WHEN** the finalization gate runs
+- **THEN** it SHALL cover the same standard runtime-first lesson inventory used by submission governance
+- **AND** it SHALL include the early units after `migrate-early-units-to-manifest-submission` is complete.
