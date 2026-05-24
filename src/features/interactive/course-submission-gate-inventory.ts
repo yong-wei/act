@@ -4,6 +4,15 @@ const GENERIC_MANIFEST_STEP_HELPER = 'findManifestStepForSubmission';
 
 export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmissionGateInventoryItem[] = [
   {
+    lessonId: 'cruise-comfort-boppps',
+    routeSegment: 'cruise-comfort-boppps',
+    manifestPath: 'course-content/runtime/lessons/cruise-comfort-boppps/interactive-manifest.json',
+    studentPagePath: 'src/features/interactive/cruise-comfort-standard-course/student-page.tsx',
+    courseSourcePath: 'src/lib/cruise-course.ts',
+    manifestGetterName: GENERIC_MANIFEST_STEP_HELPER,
+    minimumResponseSteps: 6,
+  },
+  {
     lessonId: '2-1',
     routeSegment: 'unit-2-1-modeling-language',
     manifestPath: 'course-content/runtime/lessons/2-1/interactive-manifest.json',
@@ -214,6 +223,7 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
 ] as const;
 
 export const REQUIRED_RUNTIME_FIRST_GATE_LESSONS = [
+  'cruise-comfort-boppps',
   '2-1',
   '2-2',
   '2-3',

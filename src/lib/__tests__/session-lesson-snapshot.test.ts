@@ -7,6 +7,10 @@ describe('session lesson snapshot helpers', () => {
     expect(resolveRuntimeLessonKeyFromRouteSegment('unit-4-3-initial-scheme-practice-first-validation')).toBe('4-3');
   });
 
+  it('resolves cruise comfort as a standard runtime lesson key', () => {
+    expect(resolveRuntimeLessonKeyFromRouteSegment('cruise-comfort-boppps')).toBe('cruise-comfort-boppps');
+  });
+
   it('summarizes runtime manifest version, hash and step count', () => {
     const snapshot = summarizeRuntimeLessonManifest(JSON.stringify({
       contract_version: '2.2',

@@ -110,7 +110,8 @@ describe('manifest submission migration gates', () => {
 
   it('keeps standard teacher finalizers on the shared finalization path', () => {
     for (const lesson of COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY) {
-      const courseSource = readFileSync(join(repoRoot, 'src/lib', `unit-${lesson.lessonId}-course.ts`), 'utf8');
+      const courseSourcePath = lesson.courseSourcePath ?? `src/lib/unit-${lesson.lessonId}-course.ts`;
+      const courseSource = readFileSync(join(repoRoot, courseSourcePath), 'utf8');
       const result = evaluateStandardCourseFinalizationGate({
         lessonId: lesson.lessonId,
         routeSegment: lesson.routeSegment,

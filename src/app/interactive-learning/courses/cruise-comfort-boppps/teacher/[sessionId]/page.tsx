@@ -1,7 +1,5 @@
-import { CruiseTeacherPage } from '@/features/interactive/cruise-classroom/teacher-page';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { CruiseStandardTeacherPage } from '@/features/interactive/cruise-comfort-standard-course/teacher-page';
+import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 
 interface PageProps {
   params: {
@@ -10,16 +8,6 @@ interface PageProps {
 }
 
 export default async function CruiseTeacherRoute({ params }: PageProps) {
-  const session = await getServerSession(authOptions);
-  const role = session?.user?.role;
-
-  if (!session) {
-    redirect('/interactive-learning/courses/cruise-comfort-boppps');
-  }
-
-  if (role !== 'TEACHER' && role !== 'ADMIN') {
-    redirect(`/interactive-learning/courses/cruise-comfort-boppps/student/${params.sessionId}`);
-  }
-
-  return <CruiseTeacherPage sessionId={params.sessionId} />;
+  const lessonRuntime = await loadLessonRuntimeEntry('cruise-comfort-boppps');
+  return <CruiseStandardTeacherPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }
