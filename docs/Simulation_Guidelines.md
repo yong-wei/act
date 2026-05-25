@@ -73,3 +73,53 @@ PID 仿真器、指标裁判席、极点操纵器、欠阻尼响应探索、台�
 - 禁止恢复 `src/resources/simulations/physics/models/*`、`src/resources/simulations/lib/simulation-engine.ts`、`src/resources/simulations/hooks/useShipSimulation.ts` 或 `src/resources/interactive-learning/hooks/useControlSystem.ts`。
 - 禁止新增 `createLinearPlant`、`createNonlinearPlant`、`discretizeTransferFunctionTustin` 这类前端仿真主干。
 - 禁止把实现语言或 WASM 细节写入学生可见文案。
+
+## 7. SceneSpec v1 与 SimulationTrace v1 协议
+
+本节定义平台级仿真场景描述协议和追踪协议，类型定义见 `src/resources/simulations/core/protocol-types.ts`。
+
+### 7.1 SceneSpec v1 字段
+
+| 域 | 字段 | 必需 | 说明 |
+|----|------|------|------|
+| scene | id, title, route, launchModes | 必需 | 场景身份、路由、支持的启动模式 |
+| scene | resourceId, courseAlignment | 可选 | 课程资源 id、单元对齐 |
+| model | family, runtimeModelId, parameterSchema, version, unitPolicy | 必需 | 模型族、Rust/WASM runtimeModelId、参数 schema、版本、单位策略 |
+| disturbance | environmentFamilies, stochasticPolicy, seedRequirement | 必需 | 环境族、随机策略、种子需求 |
+| evaluation | metrics, hardConstraints, successCriteria, evaluationProtocol | 必需 | 评价指标、硬约束、成功条件、EvaluationSpec 引用 |
+| assets | assetIds, visualLayers, version | 必需 | 资源 id、视觉层、资源版本 |
+| telemetry | sampleChannels, defaultRecordInterval, summaryMetrics | 必需 | 遥测通道、默认记录间隔（建议 0.05s）、汇总指标 |
+| replay | seedFields, runtimeVersion, modelVersion, checksumPolicy | 必需 | 回放种子字段、运行时版本、模型版本、校验策略 |
+| governance | evidenceSource, privacyLevel, retentionClass, contextFields | 必需 | 证据源、隐私级别、保留类别、上下文字段 |
+
+### 7.2 EvaluationSpec v1 字段
+
+| 字段 | 必需 | 说明 |
+|------|------|------|
+| id | 必需 | 评价协议标识，如 "eval/cruise-official" |
+| metrics | 必需 | 评价指标 id 列表 |
+| hardConstraints | 必需 | 硬约束 id 列表 |
+| visibility | 必需 | preview / official / both |
+| modelRelation | 必需 | 记录 Arena 对象与 3D 场景对象的模型关系（same / simplified / surrogate）、教学语义和评价边界 |
+| prohibitsMixedClaims | 必需 | 是否禁止混合 preview 和 official 声明 |
+
+### 7.3 SimulationTrace v1 字段
+
+| 域 | 字段 | 必需 | 说明 |
+|----|------|------|------|
+| envelope | runId, sceneId, scenarioId, protocolVersion, seed, startedAt, completedAt | 必需 | 运行身份与时间边界 |
+| envelope | runtimeVersion, modelVersion, sampleCadence, checksum | 必需 | 版本、采样节奏与校验 |
+| samples | path, frameCount, channels | 必需 | 高频采样引用 |
+| summary | metrics, passed, durationSeconds | 必需 | 聚合指标、通过/失败、时长 |
+
+### 7.4 派生字段
+
+从上述必需字段派生的值（如 `TrajectoryPoint[]`、`ChartData`、`SimulationMetrics`、伦理违规列表）属于运行时产物，不在协议中重复定义。协议只规定场景配置和追踪信封，运行时数据结构沿用 `src/resources/simulations/core/types.ts`。
+
+### 7.5 与 Rust/WASM 基线的关系
+
+- 本协议是**描述层**，不替代 Rust/WASM 运行时（第 2 节）。
+- `model.runtimeModelId` 必须对应 `compute_virtual_simulation_step` 中已注册的 `modelId`。
+- `telemetry.defaultRecordInterval` 默认 0.05s，与第 5 节要求一致。
+- `replay.seedFields` 为后续回放功能预留，当前不改变固定步长调度逻辑（第 3 节）。
+- 新增场景时，先扩展 `SceneSpec v1` 描述，再在 Rust 侧新增 `modelId` 分支和 TypeScript 适配函数。
