@@ -1,11 +1,14 @@
 export type EvidenceSourceId =
   | 'InteractionLog'
   | 'StudentStepResponse'
+  | 'SimulationSession'
   | 'SimulationLog'
   | 'UserAnswer'
   | 'AbilityAssessment'
   | 'PromptAssessment'
   | 'DesignSession'
+  | 'ArenaBlackBoxExperiment'
+  | 'ArenaVirtualSimulationRun'
   | 'ArenaSubmission'
   | 'ArenaEvaluationRun'
   | 'LearningFact';
@@ -135,7 +138,7 @@ export interface BuildEvidenceSourceCoverageReportInput {
   rowsBySource: Partial<Record<EvidenceSourceId, EvidenceCoverageRow[]>>;
 }
 
-const CATALOG_VERSION = '2026-05-19';
+const CATALOG_VERSION = '2026-05-25';
 
 const HIGH_VALUE_INTERACTION_EVENTS = new Set([
   'answer_submit',
@@ -154,6 +157,10 @@ const HIGH_VALUE_INTERACTION_EVENTS = new Set([
   'arena_controller_save',
   'arena_identification_model_save',
   'arena_virtual_simulation_import',
+  'arena_virtual_simulation_start',
+  'arena_blackbox_experiment_create',
+  'simulation_session_start',
+  'simulation_session_complete',
 ]);
 
 const LOW_VALUE_INTERACTION_EVENTS = new Set([
@@ -170,6 +177,8 @@ const LOW_VALUE_INTERACTION_EVENTS = new Set([
   'arena_result_view',
   'arena_leaderboard_view',
   'arena_feedback_view',
+  'simulation_scene_view',
+  'simulation_help_open',
 ]);
 
 const CATALOG: EvidenceSourceCatalogEntry[] = [
@@ -198,6 +207,19 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'submittedAt',
     traceabilityFields: ['id', 'sourceLogId', 'clientEventId', 'sessionId', 'lessonKey', 'stepId'],
     provenancePolicy: 'Classroom submission provenance follows the linked session and source interaction log.',
+  },
+  {
+    id: 'SimulationSession',
+    tableName: 'SimulationSession',
+    description: 'Simulation run/session envelope stored with module, type, params, output summary, and artifacts.',
+    learningScope: 'mixed',
+    defaultValueLevel: 'high',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'partial',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'module', 'simType'],
+    provenancePolicy: 'Sessions inherit provenance from module context and input params payload.',
   },
   {
     id: 'SimulationLog',
@@ -265,6 +287,32 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     provenancePolicy: 'Design rows are unknown provenance unless action payloads identify a seed or demo source.',
   },
   {
+    id: 'ArenaBlackBoxExperiment',
+    tableName: 'ArenaBlackBoxExperiment',
+    description: 'Arena public experiment datasets and budget evidence.',
+    learningScope: 'standalone',
+    defaultValueLevel: 'medium',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'ready',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'taskId', 'datasetHash', 'signalType', 'budgetCost'],
+    provenancePolicy: 'Experiment rows mark seed, demo, or real datasets through signalType and payload metadata.',
+  },
+  {
+    id: 'ArenaVirtualSimulationRun',
+    tableName: 'ArenaVirtualSimulationRun',
+    description: 'Arena preview traces and controller exploration evidence.',
+    learningScope: 'standalone',
+    defaultValueLevel: 'high',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'ready',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'taskId', 'datasetHash', 'controllerHash', 'scenarioId'],
+    provenancePolicy: 'Preview runs derive provenance from task and dataset context.',
+  },
+  {
     id: 'ArenaSubmission',
     tableName: 'ArenaSubmission',
     description: 'Arena controller submissions with score, task, class, season, and publication scope.',
@@ -280,14 +328,14 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
   {
     id: 'ArenaEvaluationRun',
     tableName: 'ArenaEvaluationRun',
-    description: 'Arena evaluation artifacts without direct user ownership.',
+    description: 'Arena evaluation artifacts with protocol version and trace reference. No direct user ownership.',
     learningScope: 'historical',
     defaultValueLevel: 'medium',
     defaultEligibility: 'unsupported',
     materializationReadiness: 'future',
     timestampField: 'completedAt',
     traceabilityFields: ['id', 'taskId', 'artifactHash', 'protocolVersion'],
-    provenancePolicy: 'Evaluation runs support submissions but are not profile evidence without a user submission.',
+    provenancePolicy: 'Evaluation runs lack user ownership; user attribution comes through a linked ArenaSubmission. Kept unsupported until submission-to-evaluation linking is materialized.',
   },
   {
     id: 'LearningFact',
