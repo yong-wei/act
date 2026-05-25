@@ -8,6 +8,7 @@ import type {
   SeaStateConfig,
   WaveComponent,
 } from './types';
+import type { RandomNumberGenerator } from './seeded-rng';
 
 // ============ 数学常量 ============
 
@@ -255,8 +256,11 @@ export const lerp = (a: number, b: number, t: number): number =>
   a + (b - a) * clamp(t, 0, 1);
 
 /** 随机数 (指定范围) */
-export const randomInRange = (min: number, max: number): number =>
-  Math.random() * (max - min) + min;
+export const randomInRange = (
+  min: number,
+  max: number,
+  rng: RandomNumberGenerator = Math.random,
+): number => rng() * (max - min) + min;
 
 // ============ LNG 船特定参数 ============
 

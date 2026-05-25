@@ -1,6 +1,15 @@
 import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import {
+  createSimulationRunContext,
+  normalizeSeed,
+  type SimulationReplayMetadata,
+} from '@/resources/simulations/core/seeded-rng';
+import {
+  buildSimulationReplayMetadata,
+  computeReplayChecksum,
+} from '@/resources/simulations/lib/replay-checksum';
 
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from '../submissions/artifact-hash';
@@ -29,7 +38,15 @@ export interface ArenaVirtualSimulationPreviewRun {
     safetyViolations: number;
     smoothness: number;
   };
+  replay?: SimulationReplayMetadata;
+  replaySource?: ArenaVirtualSimulationReplaySource;
   createdAt: string;
+}
+
+export interface ArenaVirtualSimulationReplaySource {
+  version: 'arena-virtual-preview-v1';
+  artifact: ControllerArtifact;
+  experiment: StoredArenaBlackBoxExperiment;
 }
 
 export interface StoredArenaVirtualSimulationRun {
@@ -68,6 +85,34 @@ function numberParam(artifact: ControllerArtifact, key: string): number {
 
 function expectedIdentificationModelId(datasetHash: string): string {
   return `arena-identification-${datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
+}
+
+function previewChecksumPayload(preview: ArenaVirtualSimulationPreviewRun) {
+  if (!preview.replay) {
+    throw new Error('Arena preview replay metadata is missing.');
+  }
+  return {
+    taskId: preview.taskId,
+    datasetHash: preview.datasetHash,
+    controllerHash: preview.controllerHash,
+    scenarioId: preview.scenarioId,
+    trace: preview.trace,
+    summary: preview.summary,
+    replay: {
+      sceneId: preview.replay.sceneId,
+      scenarioId: preview.replay.scenarioId,
+      seed: preview.replay.seed,
+      protocolVersion: preview.replay.protocolVersion,
+      runtimeVersion: preview.replay.runtimeVersion,
+      modelVersion: preview.replay.modelVersion,
+    },
+  };
+}
+
+export function computeArenaVirtualSimulationPreviewChecksum(
+  preview: ArenaVirtualSimulationPreviewRun,
+): string {
+  return computeReplayChecksum(previewChecksumPayload(preview));
 }
 
 async function getOwnedExperiment(input: {
@@ -154,7 +199,12 @@ export function buildArenaVirtualSimulationPreview({
   const maxDeviation = Math.max(...trace.map((point) => Math.abs(point.output - point.reference)));
   const smoothness = Math.max(0, 1 - controlDelta / Math.max(1, trace.length * 2));
 
-  return {
+  const replaySource: ArenaVirtualSimulationReplaySource = {
+    version: 'arena-virtual-preview-v1',
+    artifact,
+    experiment,
+  };
+  const previewWithoutReplay = {
     taskId,
     datasetHash: experiment.datasetHash,
     controllerHash,
@@ -168,6 +218,50 @@ export function buildArenaVirtualSimulationPreview({
       smoothness: round(smoothness),
     },
     createdAt: now,
+  };
+  const seed = normalizeSeed(
+    experiment.dataset.replay?.seed,
+    `${experiment.datasetHash}:${controllerHash}:${taskId}:preview`
+  );
+  const runContext = createSimulationRunContext({
+    runId: `arena-preview-${controllerHash.replace('artifact-', '').slice(0, 16)}`,
+    sceneId: `arena/${taskId}/virtual-preview`,
+    scenarioId: previewWithoutReplay.scenarioId,
+    seed,
+    runtimeVersion: 'arena-virtual-preview-runtime-v1',
+    modelVersion: 'cruise-roll-controller-preview-v1',
+  });
+  const replay = buildSimulationReplayMetadata(runContext, {
+    taskId: previewWithoutReplay.taskId,
+    datasetHash: previewWithoutReplay.datasetHash,
+    controllerHash: previewWithoutReplay.controllerHash,
+    scenarioId: previewWithoutReplay.scenarioId,
+    trace: previewWithoutReplay.trace,
+    summary: previewWithoutReplay.summary,
+  });
+
+  return {
+    ...previewWithoutReplay,
+    replay: {
+      ...replay,
+      checksum: computeReplayChecksum({
+        taskId: previewWithoutReplay.taskId,
+        datasetHash: previewWithoutReplay.datasetHash,
+        controllerHash: previewWithoutReplay.controllerHash,
+        scenarioId: previewWithoutReplay.scenarioId,
+        trace: previewWithoutReplay.trace,
+        summary: previewWithoutReplay.summary,
+        replay: {
+          sceneId: replay.sceneId,
+          scenarioId: replay.scenarioId,
+          seed: replay.seed,
+          protocolVersion: replay.protocolVersion,
+          runtimeVersion: replay.runtimeVersion,
+          modelVersion: replay.modelVersion,
+        },
+      }),
+    },
+    replaySource,
   };
 }
 

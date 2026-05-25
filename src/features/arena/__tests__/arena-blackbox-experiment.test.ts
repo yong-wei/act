@@ -25,7 +25,7 @@ describe('arena black-box experiment interface', () => {
   it('returns a bounded black-box input-output dataset without exposing the hidden model', () => {
     const dataset = runArenaBlackBoxExperiment({
       taskId: 'task-cruise-roll-blackbox-identification',
-      input: experimentInput,
+      input: { ...experimentInput, seed: 20260525 },
       now: '2026-05-11T10:20:00.000Z',
     });
 
@@ -37,8 +37,33 @@ describe('arena black-box experiment interface', () => {
       output: expect.any(Number),
     }));
     expect(dataset.summary.dataQuality).toBeGreaterThan(0);
+    expect(dataset.replay).toEqual(expect.objectContaining({
+      sceneId: 'arena/task-cruise-roll-blackbox-identification/public-experiment',
+      scenarioId: 'cruise-roll-public-identification',
+      seed: 20260525,
+      protocolVersion: '1.0',
+      runtimeVersion: expect.any(String),
+      modelVersion: expect.any(String),
+      checksum: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
+    }));
     expect(JSON.stringify(dataset)).not.toContain('transferFunction');
     expect(JSON.stringify(dataset)).not.toContain('G(s)');
+  });
+
+  it('replays black-box PRBS experiments deterministically for the same seed', () => {
+    const first = runArenaBlackBoxExperiment({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      input: { ...experimentInput, signalType: 'prbs', seed: 77 },
+      now: '2026-05-11T10:20:00.000Z',
+    });
+    const second = runArenaBlackBoxExperiment({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      input: { ...experimentInput, signalType: 'prbs', seed: 77 },
+      now: '2026-05-11T10:21:00.000Z',
+    });
+
+    expect(first.samples).toEqual(second.samples);
+    expect(first.replay.checksum).toBe(second.replay.checksum);
   });
 
   it('rejects non-black-box Arena tasks before generating a dataset', () => {

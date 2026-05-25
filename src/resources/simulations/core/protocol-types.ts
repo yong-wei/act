@@ -205,3 +205,8 @@ export interface TraceSummaryV1 {
   /** Duration in seconds */
   durationSeconds: number;
 }
+
+export type {
+  SimulationRunContext,
+  SimulationReplayMetadata,
+} from './seeded-rng';

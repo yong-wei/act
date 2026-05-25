@@ -67,6 +67,12 @@ describe('arena virtual simulation controller preview', () => {
     expect(preview.trace.length).toBeGreaterThan(20);
     expect(preview.summary.trackingError).toBeGreaterThanOrEqual(0);
     expect(preview.summary.controlEnergy).toBeGreaterThan(0);
+    expect(preview.replay).toEqual(expect.objectContaining({
+      sceneId: 'arena/task-cruise-roll-blackbox-identification/virtual-preview',
+      scenarioId: 'cruise-roll-controller-preview',
+      seed: expect.any(Number),
+      checksum: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
+    }));
     expect(JSON.stringify(preview)).not.toContain('ArenaSubmission');
   });
 

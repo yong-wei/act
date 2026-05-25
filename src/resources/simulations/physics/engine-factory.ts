@@ -14,6 +14,11 @@ import type {
   EthicalViolation,
   Vector2,
 } from '../core/types';
+import {
+  createSimulationRng,
+  type RandomNumberGenerator,
+  type SimulationRunContext,
+} from '../core/seeded-rng';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   nomotoStepRK4,
@@ -262,6 +267,10 @@ export interface SimulationEngine {
   setDisturbanceEnabled?(enabled: boolean): void;
 }
 
+export interface SimulationEngineOptions {
+  runContext?: SimulationRunContext;
+}
+
 // ============ Nomoto 引擎实现 ============
 
 /** Nomoto 一阶模型引擎 */
@@ -412,9 +421,11 @@ export class MMG3DOFEngine implements SimulationEngine {
   private maxRudderRate: number = 0;
   private maxPositionError: number = 0;
   private violations: EthicalViolation[] = [];
+  private runContext?: SimulationRunContext;
 
-  constructor(profile: ShipProfile) {
+  constructor(profile: ShipProfile, options: SimulationEngineOptions = {}) {
     this.profile = profile;
+    this.runContext = options.runContext;
     this.state = createMMG3DOFState();
     this.pidController = new PIDController({
       gains: profile.control.defaultPID ?? DEFAULT_PID_GAINS,
@@ -429,8 +440,14 @@ export class MMG3DOFEngine implements SimulationEngine {
 
     // 如果配置了挖掘扰动模式，创建扰动模型
     if (profile.dynamics.modifications.disturbancePattern === 'step_impulse_mixed') {
-      this.dredgingModel = new DredgingImpactModel();
+      this.dredgingModel = new DredgingImpactModel({}, () => this.createDredgingRng());
     }
+  }
+
+  private createDredgingRng(): RandomNumberGenerator {
+    return this.runContext
+      ? createSimulationRng(this.runContext, 'engine/mmg-dredging').next
+      : Math.random;
   }
 
   initialize(startX: number, startZ: number, startHeading: number): void {
@@ -1621,12 +1638,14 @@ export class DrillingPlatformEngine implements SimulationEngine {
   private state: SemiSub3DOFInternalState;
   private dpControllerConfig: DPControllerConfig;
   private dpState: DPDecouplingState;
-  private currentEnv: CurrentEnvironment;
-  private windEnv: CurrentWindEnvironment;
+  private currentEnv!: CurrentEnvironment;
+  private windEnv!: CurrentWindEnvironment;
   private performanceTracker: ReturnType<typeof createPerformanceTracker>;
 
   // 配置选项
   private decouplingEnabled: boolean = true;
+  private disturbanceEnabled: boolean = true;
+  private seaStateLevel: number = 3;
   private waveHeight: number = 1.5;
   private waveDirection: number = 0;
 
@@ -1639,9 +1658,15 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
   // 推进器故障列表
   private thrusterFailures: Array<{ thrusterId: number; failureTime: number; type: string }> = [];
+  private runContext?: SimulationRunContext;
+  private currentRng: RandomNumberGenerator;
+  private windRng: RandomNumberGenerator;
 
-  constructor(profile: ShipProfile) {
+  constructor(profile: ShipProfile, options: SimulationEngineOptions = {}) {
     this.profile = profile;
+    this.runContext = options.runContext;
+    this.currentRng = this.createCurrentRng();
+    this.windRng = this.createWindRng();
 
     // 初始化平台状态
     this.state = createSemiSub3DOFState(0, 0, 0);
@@ -1651,15 +1676,42 @@ export class DrillingPlatformEngine implements SimulationEngine {
     this.dpState = createDPDecouplingState();
 
     // 初始化环境
-    const env = getTypicalEnvironment(3);
-    this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
-    this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
+    this.resetEnvironmentState();
 
     // 初始化性能跟踪器
     this.performanceTracker = createPerformanceTracker();
   }
 
+  private createCurrentRng(): RandomNumberGenerator {
+    return this.runContext
+      ? createSimulationRng(this.runContext, 'engine/drilling-current').next
+      : Math.random;
+  }
+
+  private createWindRng(): RandomNumberGenerator {
+    return this.runContext
+      ? createSimulationRng(this.runContext, 'engine/drilling-wind').next
+      : Math.random;
+  }
+
+  private resetEnvironmentState(): void {
+    if (!this.disturbanceEnabled) {
+      this.currentEnv = createCurrentEnvironment(0, 0, 0);
+      this.windEnv = createCurrentWindEnvironment(0, 0, 1.0);
+      this.waveHeight = 0;
+      return;
+    }
+
+    const env = getTypicalEnvironment(this.seaStateLevel);
+    this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
+    this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
+    this.waveHeight = env.waveHeight;
+  }
+
   initialize(startX: number, startZ: number, startHeading: number): void {
+    this.currentRng = this.createCurrentRng();
+    this.windRng = this.createWindRng();
+    this.resetEnvironmentState();
     this.state = createSemiSub3DOFState(startX, startZ, toRadians(startHeading));
 
     // 设置目标位置
@@ -1696,8 +1748,8 @@ export class DrillingPlatformEngine implements SimulationEngine {
     this.state.targetPsi = toRadians(targetHeading);
 
     // 更新环境
-    this.currentEnv = updateCurrentEnvironment(this.currentEnv, dt);
-    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.windEnv.speed);
+    this.currentEnv = updateCurrentEnvironment(this.currentEnv, dt, this.currentRng);
+    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.windEnv.speed, this.windRng);
 
     // 计算环境力
     const envForces = computeTotalEnvironmentalForces(
@@ -1947,16 +1999,8 @@ export class DrillingPlatformEngine implements SimulationEngine {
   }
 
   setDisturbanceEnabled(enabled: boolean): void {
-    if (!enabled) {
-      this.currentEnv = createCurrentEnvironment(0, 0, 0);
-      this.windEnv = createCurrentWindEnvironment(0, 0, 1.0);
-      this.waveHeight = 0;
-    } else {
-      const env = getTypicalEnvironment(3);
-      this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
-      this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
-      this.waveHeight = env.waveHeight;
-    }
+    this.disturbanceEnabled = enabled;
+    this.resetEnvironmentState();
   }
 
   // ========== 钻井平台特有方法 ==========
@@ -1973,11 +2017,10 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
   /** 设置海况等级 */
   setSeaState(level: number, waveDirection: number = 0): void {
-    const env = getTypicalEnvironment(level);
-    this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
-    this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
-    this.waveHeight = env.waveHeight;
+    this.disturbanceEnabled = true;
+    this.seaStateLevel = level;
     this.waveDirection = waveDirection;
+    this.resetEnvironmentState();
   }
 
   /** 获取推进器状态 */
@@ -2060,22 +2103,33 @@ export class IcebreakerEngine implements SimulationEngine {
   // 诊断数据
   private lastAzipodDiagnostics: ReturnType<typeof getAzipodControllerDiagnostics> | null = null;
   private lastIceSummary: ReturnType<typeof getIceBreakingSummary> | null = null;
+  private runContext?: SimulationRunContext;
+  private iceRng: RandomNumberGenerator;
 
-  constructor(profile: ShipProfile) {
+  constructor(profile: ShipProfile, options: SimulationEngineOptions = {}) {
     this.profile = profile as IcebreakerProfile;
+    this.runContext = options.runContext;
+    this.iceRng = this.createIceRng();
 
     // 使用默认 Azipod 3DOF 参数
     this.azipodParams = DEFAULT_AZIPOD_3DOF_PARAMS;
 
     // 初始化状态
     this.state = createAzipod3DOFState(0, 0, 0, this.azipodParams);
-    this.iceState = createIceBreakingState();
+    this.iceState = createIceBreakingState(this.iceRng);
     this.controllerState = createAzipodCourseKeeperState();
   }
 
+  private createIceRng(): RandomNumberGenerator {
+    return this.runContext
+      ? createSimulationRng(this.runContext, 'engine/ice-breaking').next
+      : Math.random;
+  }
+
   initialize(startX: number, startZ: number, startHeading: number): void {
+    this.iceRng = this.createIceRng();
     this.state = createAzipod3DOFState(startX, startZ, toRadians(startHeading), this.azipodParams);
-    this.iceState = createIceBreakingState();
+    this.iceState = createIceBreakingState(this.iceRng);
     this.controllerState = createAzipodCourseKeeperState();
 
     this.totalError = 0;
@@ -2111,7 +2165,7 @@ export class IcebreakerEngine implements SimulationEngine {
         iceThickness: this.iceThickness,
       };
 
-      this.iceState = iceBreakingStep(this.iceState, iceParams, speed, dt);
+      this.iceState = iceBreakingStep(this.iceState, iceParams, speed, dt, this.iceRng);
       iceResistance = this.iceState.resistanceForce;
       perturbedK = this.iceState.currentK;
 
@@ -2325,7 +2379,7 @@ export class IcebreakerEngine implements SimulationEngine {
     this.iceModeEnabled = enabled;
     this.iceThickness = enabled ? iceThickness : 0;
     if (!enabled) {
-      this.iceState = createIceBreakingState();
+      this.iceState = createIceBreakingState(this.iceRng);
     }
   }
 
@@ -2415,19 +2469,22 @@ export class IcebreakerEngine implements SimulationEngine {
 /**
  * 根据船舶配置创建仿真引擎
  */
-export function createSimulationEngine(profile: ShipProfile): SimulationEngine {
+export function createSimulationEngine(
+  profile: ShipProfile,
+  options: SimulationEngineOptions = {}
+): SimulationEngine {
   const modelType = profile.dynamics.modelType;
 
   // 检查是否是破冰船 (通过 ID 或模型类型)
   if (profile.id === 'fleet-icebreaker-xuelong2' ||
       modelType === 'Azipod3DOF') {
-    return new IcebreakerEngine(profile);
+    return new IcebreakerEngine(profile, options);
   }
 
   // 检查是否是钻井平台 (通过 ID 或模型类型)
   if (profile.id === 'fleet-drill-hysy981' ||
       modelType === 'SemiSubmersible3DOF') {
-    return new DrillingPlatformEngine(profile);
+    return new DrillingPlatformEngine(profile, options);
   }
 
   // 检查是否是邮轮 (通过 ID 或配置特征)
@@ -2458,7 +2515,7 @@ export function createSimulationEngine(profile: ShipProfile): SimulationEngine {
   }
 
   if (modelType === 'MMG3DOF' || modelType === '3DOF_Coupled') {
-    return new MMG3DOFEngine(profile);
+    return new MMG3DOFEngine(profile, options);
   }
 
   throw new Error(`Unknown physics model type: ${modelType}`);
@@ -2469,7 +2526,8 @@ export function createSimulationEngine(profile: ShipProfile): SimulationEngine {
  * 需要先加载船舶配置
  */
 export async function createSimulationEngineById(
-  shipId: string
+  shipId: string,
+  options: SimulationEngineOptions = {}
 ): Promise<SimulationEngine> {
   // 动态加载船舶配置
   let profile: ShipProfile;
@@ -2514,5 +2572,5 @@ export async function createSimulationEngineById(
       throw new Error(`Unknown ship ID: ${shipId}`);
   }
 
-  return createSimulationEngine(profile);
+  return createSimulationEngine(profile, options);
 }

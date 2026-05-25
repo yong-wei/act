@@ -5,6 +5,15 @@
  */
 
 import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
+import {
+  createSimulationRng,
+  createSimulationRunContext,
+  normalizeSeed,
+  type RandomNumberGenerator,
+  type SimulationReplayMetadata,
+  type SimulationRunContext,
+} from '../core/seeded-rng';
+import { buildSimulationReplayMetadata } from './replay-checksum';
 import type { Position } from '../types';
 
 export interface OptimizationTarget {
@@ -41,6 +50,12 @@ export interface OptimizationResult {
     score: number;
     params: { kp: number; ki: number; kd: number };
   }>;
+  replay?: SimulationReplayMetadata;
+}
+
+export interface OptimizePIDParamsOptions {
+  runContext?: SimulationRunContext;
+  seed?: number | string;
 }
 
 // 简化的仿真配置
@@ -207,11 +222,14 @@ function evaluateParams(
 /**
  * 随机采样参数
  */
-function sampleParams(constraints: OptimizationConstraints): { kp: number; ki: number; kd: number } {
+function sampleParams(
+  constraints: OptimizationConstraints,
+  rng: RandomNumberGenerator
+): { kp: number; ki: number; kd: number } {
   return {
-    kp: constraints.kpRange[0] + Math.random() * (constraints.kpRange[1] - constraints.kpRange[0]),
-    ki: constraints.kiRange[0] + Math.random() * (constraints.kiRange[1] - constraints.kiRange[0]),
-    kd: constraints.kdRange[0] + Math.random() * (constraints.kdRange[1] - constraints.kdRange[0]),
+    kp: constraints.kpRange[0] + rng() * (constraints.kpRange[1] - constraints.kpRange[0]),
+    ki: constraints.kiRange[0] + rng() * (constraints.kiRange[1] - constraints.kiRange[0]),
+    kd: constraints.kdRange[0] + rng() * (constraints.kdRange[1] - constraints.kdRange[0]),
   };
 }
 
@@ -221,23 +239,24 @@ function sampleParams(constraints: OptimizationConstraints): { kp: number; ki: n
 function sampleNearby(
   bestParams: { kp: number; ki: number; kd: number },
   constraints: OptimizationConstraints,
+  rng: RandomNumberGenerator,
   radius: number = 0.1
 ): { kp: number; ki: number; kd: number } {
   const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
   return {
     kp: clamp(
-      bestParams.kp + (Math.random() * 2 - 1) * radius * (constraints.kpRange[1] - constraints.kpRange[0]),
+      bestParams.kp + (rng() * 2 - 1) * radius * (constraints.kpRange[1] - constraints.kpRange[0]),
       constraints.kpRange[0],
       constraints.kpRange[1]
     ),
     ki: clamp(
-      bestParams.ki + (Math.random() * 2 - 1) * radius * (constraints.kiRange[1] - constraints.kiRange[0]),
+      bestParams.ki + (rng() * 2 - 1) * radius * (constraints.kiRange[1] - constraints.kiRange[0]),
       constraints.kiRange[0],
       constraints.kiRange[1]
     ),
     kd: clamp(
-      bestParams.kd + (Math.random() * 2 - 1) * radius * (constraints.kdRange[1] - constraints.kdRange[0]),
+      bestParams.kd + (rng() * 2 - 1) * radius * (constraints.kdRange[1] - constraints.kdRange[0]),
       constraints.kdRange[0],
       constraints.kdRange[1]
     ),
@@ -252,12 +271,26 @@ export function optimizePIDParams(
   target: OptimizationTarget,
   constraints: OptimizationConstraints = DEFAULT_CONSTRAINTS,
   maxIterations: number = 100,
-  earlyStopThreshold: number = 20
+  earlyStopThreshold: number = 20,
+  options: OptimizePIDParamsOptions = {}
 ): OptimizationResult {
   const startTime = Date.now();
   const convergenceHistory: OptimizationResult['convergenceHistory'] = [];
+  const replaySeed = normalizeSeed(
+    options.seed,
+    JSON.stringify({ config, target, constraints, maxIterations, earlyStopThreshold })
+  );
+  const runContext = options.runContext ?? createSimulationRunContext({
+    runId: `optimizer-${replaySeed.toString(16)}`,
+    sceneId: 'simulation/optimizer/nomoto-quick-sim',
+    scenarioId: 'turn90',
+    seed: replaySeed,
+    runtimeVersion: 'simulation-optimizer-runtime-v1',
+    modelVersion: 'nomoto-quick-sim-v1',
+  });
+  const rng = createSimulationRng(runContext, 'monte-carlo-search').next;
 
-  let bestParams = sampleParams(constraints);
+  let bestParams = sampleParams(constraints, rng);
   let bestResult = evaluateParams(bestParams, config, target);
   let noImprovementCount = 0;
   let currentMaxIterations = maxIterations;
@@ -271,9 +304,9 @@ export function optimizePIDParams(
 
   for (let i = 1; i <= currentMaxIterations; i++) {
     // 混合策略：80% 局部搜索 + 20% 全局探索
-    const params = Math.random() < 0.8
-      ? sampleNearby(bestParams, constraints, 0.15)
-      : sampleParams(constraints);
+    const params = rng() < 0.8
+      ? sampleNearby(bestParams, constraints, rng, 0.15)
+      : sampleParams(constraints, rng);
 
     const result = evaluateParams(params, config, target);
 
@@ -302,7 +335,7 @@ export function optimizePIDParams(
     }
   }
 
-  return {
+  const result = {
     bestParams: {
       kp: Math.round(bestParams.kp * 1000) / 1000,
       ki: Math.round(bestParams.ki * 10000) / 10000,
@@ -313,6 +346,17 @@ export function optimizePIDParams(
     iterations: convergenceHistory.length,
     searchTime: Date.now() - startTime,
     convergenceHistory,
+  } satisfies Omit<OptimizationResult, 'replay'>;
+
+  return {
+    ...result,
+    replay: buildSimulationReplayMetadata(runContext, {
+      bestParams: result.bestParams,
+      score: result.score,
+      metrics: result.metrics,
+      iterations: result.iterations,
+      convergenceHistory: result.convergenceHistory,
+    }),
   };
 }
 
