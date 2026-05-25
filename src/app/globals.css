@@ -37,7 +37,7 @@
     --platform-border-strong: 214 20% 34%;
     --platform-action-primary: 196 82% 56%;
     --platform-action-hover: 196 62% 18%;
-    --platform-action-subtle: 196 82% 56% / 0.14;
+    --platform-action-subtle: 196 62% 16%;
     --platform-evidence-eligible: 153 68% 45%;
     --platform-evidence-context: 42 88% 58%;
     --platform-evidence-unsupported: 0 72% 58%;
@@ -85,7 +85,7 @@
     --platform-border-strong: 206 24% 76%;
     --platform-action-primary: 203 88% 42%;
     --platform-action-hover: 203 72% 91%;
-    --platform-action-subtle: 203 88% 42% / 0.12;
+    --platform-action-subtle: 203 72% 94%;
     --platform-evidence-eligible: 154 62% 36%;
     --platform-evidence-context: 38 88% 45%;
     --platform-evidence-unsupported: 0 74% 50%;

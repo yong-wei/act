@@ -23,8 +23,27 @@ import {
 
 const rootDir = path.resolve(__dirname, '../../..');
 
+interface ReactElementLike {
+  type?: unknown;
+  props?: Record<string, unknown>;
+}
+
 function readSource(relativePath: string) {
   return readFileSync(path.join(rootDir, relativePath), 'utf8');
+}
+
+function asElement(value: unknown): ReactElementLike {
+  return value as ReactElementLike;
+}
+
+function childElements(children: unknown): ReactElementLike[] {
+  const values = Array.isArray(children) ? children : [children];
+  return values.filter((child): child is ReactElementLike => Boolean(child) && typeof child === 'object');
+}
+
+function classNameOf(element: ReactElementLike) {
+  const className = element.props?.className;
+  return typeof className === 'string' ? className : '';
 }
 
 describe('platform UI contracts', () => {
@@ -51,6 +70,15 @@ describe('platform UI contracts', () => {
       expect(globals).toContain(`--${tokenName}:`);
       expect(tailwindConfig).toContain(`'${tokenName}'`);
       expect(tailwindConfig).toContain(`hsl(var(--${tokenName}))`);
+    }
+
+    const subtleActionValues = Array.from(
+      globals.matchAll(/--platform-action-subtle:\s*([^;]+);/g),
+      (match) => match[1].trim(),
+    );
+    expect(subtleActionValues).toHaveLength(2);
+    for (const value of subtleActionValues) {
+      expect(value).not.toContain('/');
     }
   });
 
@@ -140,5 +168,54 @@ describe('platform UI contracts', () => {
 
     expect(sidebar?.type).toBe(AppSidebar);
     expect(sidebar?.props.activeHref).toBe('/teacher/classes');
+  });
+
+  it('marks only the deepest matching sidebar route active', () => {
+    const sidebar = asElement(
+      AppSidebar({
+        activeHref: '/teacher/classes',
+        navigation: [
+          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
+          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        ],
+      }),
+    );
+    const nav = asElement(sidebar.props?.children);
+    const links = childElements(nav.props?.children);
+
+    expect(links).toHaveLength(2);
+    expect(classNameOf(links[0])).not.toContain('bg-platform-action-subtle');
+    expect(classNameOf(links[1])).toContain('bg-platform-action-subtle');
+  });
+
+  it('keeps role navigation reachable in the mobile shell', () => {
+    const shell = asElement(
+      AppShell({
+        role: 'teacher',
+        title: '教师工作台',
+        activeHref: '/teacher/classes',
+        navigation: [
+          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
+          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        ],
+        children: null,
+      }),
+    );
+    const grid = asElement(shell.props?.children);
+    const content = childElements(grid.props?.children)[1];
+    const mobileNav = childElements(content.props?.children).find(
+      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
+    );
+
+    if (!mobileNav) {
+      throw new Error('Expected AppShell to render mobile role navigation.');
+    }
+
+    expect(classNameOf(mobileNav)).toContain('lg:hidden');
+    const linkContainer = asElement(mobileNav.props?.children);
+    expect(childElements(linkContainer.props?.children).map((link) => link.props?.href)).toEqual([
+      '/teacher',
+      '/teacher/classes',
+    ]);
   });
 });
