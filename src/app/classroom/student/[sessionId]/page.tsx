@@ -53,7 +53,8 @@ export default async function StudentSessionPage({ params }: PageProps) {
     status: session.status,
     currentItemId: session.currentItemId,
     currentStage: session.currentStage,
-    plan: { title: session.plan.title }
+    classId: session.classId,
+    plan: { id: session.plan.id, title: session.plan.title }
   };
 
   return <StudentPlayer session={sessionInfo} items={sortedItems} />;
