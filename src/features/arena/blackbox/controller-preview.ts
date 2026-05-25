@@ -14,6 +14,7 @@ import {
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from '../submissions/artifact-hash';
 import type {
+  ArenaIdentificationModelStore,
   ArenaBlackBoxExperimentStore,
   StoredArenaBlackBoxExperiment,
 } from './experiment-service';
@@ -83,10 +84,6 @@ function numberParam(artifact: ControllerArtifact, key: string): number {
   return value;
 }
 
-function expectedIdentificationModelId(datasetHash: string): string {
-  return `arena-identification-${datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
-}
-
 function previewChecksumPayload(preview: ArenaVirtualSimulationPreviewRun) {
   if (!preview.replay) {
     throw new Error('Arena preview replay metadata is missing.');
@@ -120,6 +117,7 @@ async function getOwnedExperiment(input: {
   taskId: string;
   artifact: ControllerArtifact;
   blackBoxExperimentStore: ArenaBlackBoxExperimentStore;
+  identificationModelStore: ArenaIdentificationModelStore;
 }): Promise<StoredArenaBlackBoxExperiment> {
   if (input.artifact.method !== 'black-box-control') {
     throw new ArenaVirtualSimulationRunInputError('Only black-box control artifacts can run virtual simulation preview.');
@@ -131,14 +129,28 @@ async function getOwnedExperiment(input: {
   if (typeof datasetHash !== 'string' || !datasetHash.startsWith('arena-blackbox-dataset-')) {
     throw new ArenaVirtualSimulationRunInputError('Black-box preview requires a persisted experiment dataset.');
   }
-  if (typeof identificationModelId !== 'string' || identificationModelId !== expectedIdentificationModelId(datasetHash)) {
-    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires the identification model derived from the experiment dataset.');
+  if (typeof identificationModelId !== 'string' || !identificationModelId.trim()) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires a server registered identification model.');
+  }
+
+  const registeredModel = await input.identificationModelStore.findOwnedIdentificationModel({
+    userId: input.userId,
+    taskId: input.taskId,
+    modelId: identificationModelId,
+  });
+
+  if (!registeredModel) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires a server registered identification model owned by the current student.');
+  }
+  if (registeredModel.datasetHash !== datasetHash) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview registered model does not match the experiment dataset.');
   }
 
   const experiment = await input.blackBoxExperimentStore.findOwnedExperiment({
     userId: input.userId,
     taskId: input.taskId,
     datasetHash,
+    experimentId: registeredModel.sourceExperimentId,
   });
 
   if (!experiment) {
@@ -271,6 +283,7 @@ export async function createArenaVirtualSimulationPreviewRun({
   artifact,
   now = new Date().toISOString(),
   blackBoxExperimentStore,
+  identificationModelStore,
   runStore,
 }: {
   userId: string;
@@ -278,6 +291,7 @@ export async function createArenaVirtualSimulationPreviewRun({
   artifact: ControllerArtifact;
   now?: string;
   blackBoxExperimentStore: ArenaBlackBoxExperimentStore;
+  identificationModelStore: ArenaIdentificationModelStore;
   runStore: ArenaVirtualSimulationRunStore;
 }): Promise<ArenaVirtualSimulationPreviewRun & { id: string }> {
   const experiment = await getOwnedExperiment({
@@ -285,6 +299,7 @@ export async function createArenaVirtualSimulationPreviewRun({
     taskId,
     artifact,
     blackBoxExperimentStore,
+    identificationModelStore,
   });
   const preview = buildArenaVirtualSimulationPreview({
     taskId,

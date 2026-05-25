@@ -15,6 +15,29 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+function isPendingArenaDatabaseMigration(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+  const prismaError = error as {
+    code?: unknown;
+    meta?: {
+      modelName?: unknown;
+      column?: unknown;
+      table?: unknown;
+    };
+  };
+  if (prismaError.code !== 'P2021' && prismaError.code !== 'P2022') {
+    return false;
+  }
+  const modelName = typeof prismaError.meta?.modelName === 'string' ? prismaError.meta.modelName : '';
+  const column = typeof prismaError.meta?.column === 'string' ? prismaError.meta.column : '';
+  const table = typeof prismaError.meta?.table === 'string' ? prismaError.meta.table : '';
+  return [modelName, column, table].some((value) => (
+    value.split(/[^A-Za-z0-9_]+/).some((part) => part.startsWith('Arena'))
+  ));
+}
+
 export async function POST(request: Request) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
@@ -40,6 +63,7 @@ export async function POST(request: Request) {
       taskId: body.taskId,
       artifact: body.artifact,
       blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+      identificationModelStore: prismaArenaBlackBoxExperimentStore,
       runStore: prismaArenaVirtualSimulationRunStore,
     });
 
@@ -51,6 +75,13 @@ export async function POST(request: Request) {
       error instanceof ArenaPlantAdapterSelectionError
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (isPendingArenaDatabaseMigration(error)) {
+      console.error('Arena virtual simulation preview schema migration pending', error);
+      return NextResponse.json(
+        { error: '竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。' },
+        { status: 503 },
+      );
     }
     console.error('Arena virtual simulation preview failed', error);
     return NextResponse.json({ error: 'Arena virtual simulation preview failed' }, { status: 500 });

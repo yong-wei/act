@@ -7,6 +7,10 @@ import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/ex
 import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
+  ArenaPlantAdapterSelectionError,
+  getArenaPlantAdapterForOfficialEvaluationTaskId,
+} from '@/features/arena/adapters/registry';
+import {
   ArenaPublicationAccessError,
   resolveAccessibleArenaPublicationForStudent,
 } from '@/features/arena/teacher/publication-store';
@@ -23,6 +27,7 @@ function isPendingArenaDatabaseMigration(error: unknown): boolean {
     meta?: {
       modelName?: unknown;
       column?: unknown;
+      table?: unknown;
     };
   };
   if (prismaError.code !== 'P2021' && prismaError.code !== 'P2022') {
@@ -30,7 +35,10 @@ function isPendingArenaDatabaseMigration(error: unknown): boolean {
   }
   const modelName = typeof prismaError.meta?.modelName === 'string' ? prismaError.meta.modelName : '';
   const column = typeof prismaError.meta?.column === 'string' ? prismaError.meta.column : '';
-  return modelName.startsWith('Arena') || column.startsWith('Arena');
+  const table = typeof prismaError.meta?.table === 'string' ? prismaError.meta.table : '';
+  return [modelName, column, table].some((value) => (
+    value.split(/[^A-Za-z0-9_]+/).some((part) => part.startsWith('Arena'))
+  ));
 }
 
 export async function POST(request: Request) {
@@ -53,6 +61,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
+    getArenaPlantAdapterForOfficialEvaluationTaskId(body.taskId);
+
     const publicationContext = typeof body.publicationId === 'string' && body.publicationId.trim().length > 0
       ? await resolveAccessibleArenaPublicationForStudent(prisma as any, {
         publicationId: body.publicationId,
@@ -74,6 +84,7 @@ export async function POST(request: Request) {
       submittedAt: new Date().toISOString(),
       store: prismaArenaSubmissionStore,
       blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+      identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
 
     return NextResponse.json({ submission });
@@ -83,6 +94,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     if (error instanceof ArenaSubmissionInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof ArenaPlantAdapterSelectionError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     if (isPendingArenaDatabaseMigration(error)) {

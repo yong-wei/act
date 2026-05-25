@@ -18,6 +18,18 @@ function supportsCruiseRollBlackBox(task: ChallengeTask, object: ChallengeObject
 export const cruiseRollBlackBoxAdapter: ArenaPlantAdapter = {
   id: 'cruise-roll-blackbox-production',
 
+  describeSupport(task, object) {
+    const supported = supportsCruiseRollBlackBox(task, object);
+    const reason = supported
+      ? undefined
+      : 'Cruise-roll black-box adapter only supports the cruise-roll virtual simulation identification task.';
+    return {
+      publicExperiment: supported ? { supported: true } : { supported: false, reason },
+      virtualPreview: supported ? { supported: true } : { supported: false, reason },
+      officialEvaluation: supported ? { supported: true } : { supported: false, reason },
+    };
+  },
+
   canRunPublicExperiment(task, object) {
     return supportsCruiseRollBlackBox(task, object);
   },
@@ -32,5 +44,9 @@ export const cruiseRollBlackBoxAdapter: ArenaPlantAdapter = {
 
   runVirtualPreview(input) {
     return createArenaVirtualSimulationPreviewRun(input);
+  },
+
+  canRunOfficialEvaluation(task, object) {
+    return supportsCruiseRollBlackBox(task, object);
   },
 };
