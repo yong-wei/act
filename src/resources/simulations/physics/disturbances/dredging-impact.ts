@@ -10,6 +10,7 @@
 
 import type { DisturbanceVector } from '../../core/types';
 import { randomInRange, DREDGING_IMPACT_CONFIG } from '../../core/constants';
+import type { RandomNumberGenerator } from '../../core/seeded-rng';
 
 // ============ 类型定义 ============
 
@@ -50,12 +51,15 @@ export const DEFAULT_DREDGING_CONFIG: DredgingImpactConfig = {
 // ============ 状态管理 ============
 
 /** 创建初始扰动状态 */
-export function createDredgingImpactState(): DredgingImpactState {
+export function createDredgingImpactState(
+  rng: RandomNumberGenerator = Math.random
+): DredgingImpactState {
   return {
     lastImpactTime: 0,
     nextInterval: randomInRange(
       DEFAULT_DREDGING_CONFIG.minInterval,
-      DEFAULT_DREDGING_CONFIG.maxInterval
+      DEFAULT_DREDGING_CONFIG.maxInterval,
+      rng
     ),
     isImpactActive: false,
     impactStartTime: 0,
@@ -136,13 +140,14 @@ function computeMixedResponse(
 export function computeDredgingDisturbance(
   time: number,
   state: DredgingImpactState,
-  config: DredgingImpactConfig = DEFAULT_DREDGING_CONFIG
+  config: DredgingImpactConfig = DEFAULT_DREDGING_CONFIG,
+  rng: RandomNumberGenerator = Math.random
 ): { disturbance: DisturbanceVector; newState: DredgingImpactState } {
   let newState = { ...state };
 
   // 检查是否触发新冲击
   if (!state.isImpactActive && time - state.lastImpactTime >= state.nextInterval) {
-    newState = triggerNewImpact(time, config);
+    newState = triggerNewImpact(time, config, rng);
   }
 
   // 计算当前扰动力
@@ -155,7 +160,7 @@ export function computeDredgingDisturbance(
     if (force < config.maxForce * 0.01) {
       newState.isImpactActive = false;
       newState.lastImpactTime = time;
-      newState.nextInterval = randomInRange(config.minInterval, config.maxInterval);
+      newState.nextInterval = randomInRange(config.minInterval, config.maxInterval, rng);
       force = 0;
     }
   }
@@ -182,10 +187,11 @@ export function computeDredgingDisturbance(
  */
 function triggerNewImpact(
   time: number,
-  config: DredgingImpactConfig
+  config: DredgingImpactConfig,
+  rng: RandomNumberGenerator = Math.random
 ): DredgingImpactState {
   // 随机选择冲击类型
-  const rand = Math.random();
+  const rand = rng();
   let impactType: 'step' | 'impulse' | 'mixed';
   if (rand < 0.3) {
     impactType = 'step';
@@ -196,11 +202,11 @@ function triggerNewImpact(
   }
 
   // 随机力方向 (主要向后，略有偏差)
-  const direction = Math.PI + randomInRange(-config.directionVariance, config.directionVariance);
+  const direction = Math.PI + randomInRange(-config.directionVariance, config.directionVariance, rng);
 
   return {
     lastImpactTime: time,
-    nextInterval: randomInRange(config.minInterval, config.maxInterval),
+    nextInterval: randomInRange(config.minInterval, config.maxInterval, rng),
     isImpactActive: true,
     impactStartTime: time,
     currentForce: 0,
@@ -219,10 +225,17 @@ export class DredgingImpactModel {
   private state: DredgingImpactState;
   private config: DredgingImpactConfig;
   private enabled: boolean = true;
+  private createRng: () => RandomNumberGenerator;
+  private rng: RandomNumberGenerator;
 
-  constructor(config: Partial<DredgingImpactConfig> = {}) {
+  constructor(
+    config: Partial<DredgingImpactConfig> = {},
+    createRng: () => RandomNumberGenerator = () => Math.random
+  ) {
     this.config = { ...DEFAULT_DREDGING_CONFIG, ...config };
-    this.state = createDredgingImpactState();
+    this.createRng = createRng;
+    this.rng = this.createRng();
+    this.state = createDredgingImpactState(this.rng);
   }
 
   /** 启用/禁用扰动 */
@@ -241,7 +254,8 @@ export class DredgingImpactModel {
 
   /** 重置状态 */
   reset(): void {
-    this.state = createDredgingImpactState();
+    this.rng = this.createRng();
+    this.state = createDredgingImpactState(this.rng);
   }
 
   /** 计算扰动 */
@@ -250,7 +264,7 @@ export class DredgingImpactModel {
       return { forceX: 0, forceY: 0, momentN: 0 };
     }
 
-    const result = computeDredgingDisturbance(time, this.state, this.config);
+    const result = computeDredgingDisturbance(time, this.state, this.config, this.rng);
     this.state = result.newState;
     return result.disturbance;
   }
@@ -262,7 +276,7 @@ export class DredgingImpactModel {
 
   /** 手动触发冲击 (用于测试/演示) */
   triggerImpact(): void {
-    this.state = triggerNewImpact(this.state.lastImpactTime + this.state.nextInterval, this.config);
+    this.state = triggerNewImpact(this.state.lastImpactTime + this.state.nextInterval, this.config, this.rng);
   }
 }
 

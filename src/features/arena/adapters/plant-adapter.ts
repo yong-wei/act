@@ -1,3 +1,9 @@
+import {
+  createSeededRng,
+  createSimulationRunContext,
+  normalizeSeed,
+} from '@/resources/simulations/core/seeded-rng';
+import { buildSimulationReplayMetadata } from '@/resources/simulations/lib/replay-checksum';
 import type { ChallengeObject, ChallengeTask } from '../types';
 import type { ArenaBlackBoxExperimentDataset } from '../blackbox/experiment';
 
@@ -18,19 +24,21 @@ export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaTestPlantAda
         && task.allowedMethods.includes('black-box-control');
     },
 
-    async runPublicExperiment({ task, object, signalType }) {
+    async runPublicExperiment({ task, object, signalType, seed }) {
       const sampleTime = 0.05;
       const duration = 8;
       const sampleCount = Math.floor(duration / sampleTime);
-      const datasetHash = `arena-blackbox-dataset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
       const scenarioId = 'default';
+      const normalizedSeed = normalizeSeed(seed, `${task.id}:${object.id}:${signalType}:${scenarioId}`);
+      const rng = createSeededRng(normalizedSeed, `arena-test-plant/${task.id}/${scenarioId}`);
+      const datasetHash = `arena-blackbox-dataset-${normalizedSeed.toString(36)}-${task.id.slice(0, 8)}`;
 
       const samples = Array.from({ length: sampleCount }, (_, i) => {
         const t = i * sampleTime;
         const noise = Math.sin(t * 0.7) * 0.05 + Math.cos(t * 1.3) * 0.03;
         const input = signalType === 'step' ? 1.0
           : signalType === 'sine' ? Math.sin(t)
-            : signalType === 'prbs' ? (Math.random() > 0.5 ? 1 : -1)
+            : signalType === 'prbs' ? (rng.next() > 0.5 ? 1 : -1)
               : signalType === 'impulse' ? (t < 0.1 ? 10 : 0)
                 : 1.0;
         return { t, input, output: input * 0.8 + noise };
@@ -41,7 +49,7 @@ export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaTestPlantAda
       const meanAbsOutput = samples.reduce((sum, s) => sum + Math.abs(s.output), 0) / samples.length;
       const inputEnergy = samples.reduce((sum, s) => sum + (s.input * s.input * sampleTime), 0);
 
-      return {
+      const payloadWithoutReplay = {
         taskId: task.id,
         objectId: object.id,
         datasetHash,
@@ -56,9 +64,22 @@ export function createMockCruiseRollBlackBoxAdapterForTests(): ArenaTestPlantAda
           finalOutput,
           meanAbsOutput,
           inputEnergy,
-          dataQuality: Math.min(1, 0.7 + 0.3 * Math.random()),
+          dataQuality: Math.min(1, 0.7 + 0.3 * rng.next()),
         },
         createdAt: new Date().toISOString(),
+      };
+      const replay = buildSimulationReplayMetadata(createSimulationRunContext({
+        runId: datasetHash,
+        sceneId: `arena/${task.id}/test-plant`,
+        scenarioId,
+        seed: normalizedSeed,
+        runtimeVersion: 'arena-test-plant-runtime-v1',
+        modelVersion: 'mock-cruise-roll-blackbox-v1',
+      }), payloadWithoutReplay);
+
+      return {
+        ...payloadWithoutReplay,
+        replay,
       };
     },
 

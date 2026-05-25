@@ -18,6 +18,7 @@ import {
   AIR_DENSITY,
   DEG_TO_RAD,
 } from '../../core/constants';
+import type { RandomNumberGenerator } from '../../core/seeded-rng';
 
 const P = HYSY981_PLATFORM_PARAMS;
 const C_current = CURRENT_FORCE_COEFFICIENTS;
@@ -78,15 +79,16 @@ export function createCurrentEnvironment(
  */
 export function updateCurrentEnvironment(
   env: CurrentEnvironment,
-  dt: number
+  dt: number,
+  rng: RandomNumberGenerator = Math.random
 ): CurrentEnvironment {
   // 随机漂移时间常数 (较慢变化)
   const tau = 300; // 5分钟时间常数
   const alpha = 1 - Math.exp(-dt / tau);
 
   // Ornstein-Uhlenbeck 过程
-  const speedNoise = (Math.random() - 0.5) * env.variability * 0.5;
-  const dirNoise = (Math.random() - 0.5) * env.variability * 0.2;
+  const speedNoise = (rng() - 0.5) * env.variability * 0.5;
+  const dirNoise = (rng() - 0.5) * env.variability * 0.2;
 
   // 趋向均值 + 随机扰动
   const newSpeed = Math.max(
@@ -171,16 +173,17 @@ export function createWindEnvironment(
 export function updateWindEnvironment(
   env: WindEnvironment,
   dt: number,
-  meanSpeed: number
+  meanSpeed: number,
+  rng: RandomNumberGenerator = Math.random
 ): WindEnvironment {
   // 阵风周期 ~10秒
   const gustPeriod = 10;
 
   // 简化的阵风模型: 随机脉冲
-  if (Math.random() < dt / gustPeriod) {
+  if (rng() < dt / gustPeriod) {
     // 阵风事件
-    const gustSpeed = meanSpeed * env.gustFactor * (0.9 + Math.random() * 0.2);
-    const dirVariation = (Math.random() - 0.5) * 0.2; // ±~6°
+    const gustSpeed = meanSpeed * env.gustFactor * (0.9 + rng() * 0.2);
+    const dirVariation = (rng() - 0.5) * 0.2; // ±~6°
 
     return {
       ...env,

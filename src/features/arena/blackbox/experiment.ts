@@ -1,6 +1,14 @@
 import { createHash } from 'node:crypto';
 
 import {
+  createSeededRng,
+  createSimulationRunContext,
+  normalizeSeed,
+  type RandomNumberGenerator,
+  type SimulationReplayMetadata,
+} from '@/resources/simulations/core/seeded-rng';
+import { buildSimulationReplayMetadata } from '@/resources/simulations/lib/replay-checksum';
+import {
   getArenaChallengeObject,
   getArenaChallengeTask,
 } from '../data/seed-challenges';
@@ -15,6 +23,7 @@ export interface ArenaBlackBoxExperimentInput {
   initialRoll?: number;
   disturbanceLevel?: number;
   scenarioId?: string;
+  seed?: number | string;
 }
 
 export interface ArenaBlackBoxExperimentSample {
@@ -33,6 +42,7 @@ export interface ArenaBlackBoxExperimentDataset {
   duration: number;
   budgetCost: number;
   samples: ArenaBlackBoxExperimentSample[];
+  replay?: SimulationReplayMetadata;
   summary: {
     peakOutput: number;
     finalOutput: number;
@@ -65,13 +75,18 @@ function round(value: number, scale = 1000): number {
   return Math.round(value * scale) / scale;
 }
 
-function inputValue(signalType: ArenaBlackBoxSignalType, amplitude: number, t: number, sampleTime: number): number {
+function inputValue(
+  signalType: ArenaBlackBoxSignalType,
+  amplitude: number,
+  t: number,
+  sampleTime: number,
+  rng: RandomNumberGenerator,
+): number {
   if (signalType === 'step') return t >= sampleTime ? amplitude : 0;
   if (signalType === 'impulse') return t < sampleTime ? amplitude / sampleTime : 0;
   if (signalType === 'sine') return amplitude * Math.sin(2 * Math.PI * 0.25 * t);
 
-  const bucket = Math.floor(t / Math.max(sampleTime * 5, 0.5));
-  return ((bucket * 1103515245 + 12345) % 7) >= 3 ? amplitude : -amplitude;
+  return rng() >= 0.5 ? amplitude : -amplitude;
 }
 
 function hashDataset(payload: Omit<ArenaBlackBoxExperimentDataset, 'datasetHash' | 'createdAt'>): string {
@@ -111,6 +126,12 @@ export function runArenaBlackBoxExperiment({
   const initialRoll = assertFiniteInRange('initialRoll', input.initialRoll ?? 0, -0.8, 0.8);
   const disturbanceLevel = assertFiniteInRange('disturbanceLevel', input.disturbanceLevel ?? 0.2, 0, 1);
   const sampleCount = Math.floor(duration / sampleTime) + 1;
+  const scenarioId = input.scenarioId ?? 'cruise-roll-public-identification';
+  const seed = normalizeSeed(
+    input.seed,
+    `${task.id}:${scenarioId}:${input.signalType}:${amplitude}:${duration}:${sampleTime}:${initialRoll}:${disturbanceLevel}`
+  );
+  const rng = createSeededRng(seed, `arena-blackbox/${task.id}/${scenarioId}/${input.signalType}`);
 
   if (sampleCount > 260) {
     throw new Error('Black-box experiment sample count exceeds 260.');
@@ -122,7 +143,7 @@ export function runArenaBlackBoxExperiment({
 
   for (let index = 0; index < sampleCount; index += 1) {
     const t = round(index * sampleTime);
-    const u = inputValue(input.signalType, amplitude, t, sampleTime);
+    const u = inputValue(input.signalType, amplitude, t, sampleTime, rng.next);
     const wave = disturbanceLevel * 0.08 * Math.sin(0.7 * t + 0.4) +
       disturbanceLevel * 0.035 * Math.sin(1.9 * t);
     const acceleration = -0.62 * rollRate - 1.32 * roll + 0.74 * u + wave;
@@ -144,9 +165,8 @@ export function runArenaBlackBoxExperiment({
   const inputEnergy = inputs.reduce((sum, value) => sum + (value * value * sampleTime), 0);
   const dataQuality = Math.max(0.1, Math.min(1, 0.45 + duration / 40 + amplitude / 6 - disturbanceLevel / 8));
   const budgetCost = Math.max(1, Math.ceil(duration / 10));
-  const scenarioId = input.scenarioId ?? 'cruise-roll-public-identification';
 
-  const payload = {
+  const payloadWithoutReplay = {
     taskId: task.id,
     objectId: object.id,
     scenarioId,
@@ -162,6 +182,19 @@ export function runArenaBlackBoxExperiment({
       inputEnergy: round(inputEnergy),
       dataQuality: round(dataQuality),
     },
+  };
+  const runContext = createSimulationRunContext({
+    runId: `arena-blackbox-${task.id}-${scenarioId}`,
+    sceneId: `arena/${task.id}/public-experiment`,
+    scenarioId,
+    seed,
+    runtimeVersion: 'arena-blackbox-runtime-v1',
+    modelVersion: 'cruise-roll-blackbox-public-v1',
+  });
+  const replay = buildSimulationReplayMetadata(runContext, payloadWithoutReplay);
+  const payload = {
+    ...payloadWithoutReplay,
+    replay,
   };
 
   return {
