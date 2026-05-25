@@ -72,6 +72,7 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
       data: {
         eventType: getSimulationCourseCompletionEventType(config),
         ...evidencePayload,
+        score: 100,
       },
     });
   };

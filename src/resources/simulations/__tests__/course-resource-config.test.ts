@@ -189,12 +189,14 @@ describe('simulation course resource config', () => {
       expect(getEventMetadata(eventType)).toBeDefined();
     }
 
-    expect(buildSimulationCourseEvidencePayload(arenaConfig, courseLaunchContext)).toMatchObject({
+    const payload = buildSimulationCourseEvidencePayload(arenaConfig, courseLaunchContext);
+    expect(payload).toMatchObject({
       taskId: 'task-second-order-lead-pid',
       publicationId: 'publication-1',
       seasonId: 'season-2026',
       classId: 'class-1',
       sessionId: 'session-1',
     });
+    expect(payload).not.toHaveProperty('score');
   });
 });

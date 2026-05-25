@@ -215,7 +215,6 @@ export function buildSimulationCourseEvidencePayload(
     publicationId,
     seasonId,
     courseId,
-    score: 100,
     telemetryPolicy: config.telemetryPolicy,
     governanceContext: config.governanceContext,
     launchContext,
