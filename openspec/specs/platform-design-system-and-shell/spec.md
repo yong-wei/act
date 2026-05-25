@@ -36,4 +36,3 @@ The system SHALL keep legacy surfaces available while unified shell migration is
 #### Scenario: Unified shell flag is disabled
 - **WHEN** the unified shell feature flag is disabled
 - **THEN** affected pages SHALL continue to expose the previous navigation and user action paths without losing access to role cockpits or module entries.
-
