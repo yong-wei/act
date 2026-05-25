@@ -80,13 +80,26 @@ describe('arena black-box experiment interface', () => {
       createExperimentWithinBudget: vi.fn(async (input) => ({
         usedBefore: ARENA_BLACKBOX_DAILY_EXPERIMENT_BUDGET - 1,
         experiment: { ...input, id: 'experiment-row-1' },
+        registeredModel: {
+          id: 'registered-identification-model-1',
+          userId: input.userId,
+          taskId: input.taskId,
+          datasetHash: input.datasetHash,
+          sourceExperimentId: 'experiment-row-1',
+          modelType: 'second-order-fit',
+          validationSummary: {
+            validationFit: input.dataset.summary.dataQuality,
+            dataQuality: input.dataset.summary.dataQuality,
+            sampleCount: input.dataset.samples.length,
+            signalType: input.signalType,
+          },
+          protocolVersion: 'arena-identification-model-v1',
+          createdAt: input.createdAt,
+        },
       })),
     };
     const identificationModelStore = {
-      createOrResolveIdentificationModel: vi.fn(async (input) => ({
-        ...input,
-        id: 'registered-identification-model-1',
-      })),
+      createOrResolveIdentificationModel: vi.fn(),
       findOwnedIdentificationModel: vi.fn(),
     };
 
@@ -117,12 +130,7 @@ describe('arena black-box experiment interface', () => {
       budgetCost: 1,
       dailyBudget: ARENA_BLACKBOX_DAILY_EXPERIMENT_BUDGET,
     }));
-    expect(identificationModelStore.createOrResolveIdentificationModel).toHaveBeenCalledWith(expect.objectContaining({
-      userId: 'student-blackbox',
-      taskId: 'task-cruise-roll-blackbox-identification',
-      datasetHash: result.dataset.datasetHash,
-      sourceExperimentId: 'experiment-row-1',
-    }));
+    expect(identificationModelStore.createOrResolveIdentificationModel).not.toHaveBeenCalled();
   });
 
   it('blocks experiment creation when the student daily budget is exhausted', async () => {
@@ -131,6 +139,7 @@ describe('arena black-box experiment interface', () => {
       createExperimentWithinBudget: vi.fn(async () => ({
         usedBefore: ARENA_BLACKBOX_DAILY_EXPERIMENT_BUDGET,
         experiment: null,
+        registeredModel: null,
       })),
     };
 
