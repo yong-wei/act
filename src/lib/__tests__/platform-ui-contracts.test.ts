@@ -122,4 +122,23 @@ describe('platform UI contracts', () => {
       }
     }
   });
+
+  it('forwards the active route from AppShell to AppSidebar', () => {
+    const shell = AppShell({
+      role: 'teacher',
+      title: '教师工作台',
+      activeHref: '/teacher/classes',
+      navigation: [
+        { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
+        { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+      ],
+      children: null,
+    });
+
+    const grid = shell.props.children;
+    const sidebar = Array.isArray(grid.props.children) ? grid.props.children[0] : null;
+
+    expect(sidebar?.type).toBe(AppSidebar);
+    expect(sidebar?.props.activeHref).toBe('/teacher/classes');
+  });
 });

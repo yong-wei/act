@@ -22,6 +22,7 @@ export interface AppShellProps {
   subtitle?: string;
   actions?: ReactNode;
   userMenu?: ReactNode;
+  activeHref?: string;
   sidebarMode?: 'fixed' | 'collapsible' | 'hidden';
   children: ReactNode;
   className?: string;
@@ -183,6 +184,7 @@ export function AppShell({
   subtitle,
   actions,
   userMenu,
+  activeHref,
   sidebarMode = 'fixed',
   children,
   className,
@@ -191,7 +193,7 @@ export function AppShell({
   return (
     <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
       <div className={cn('grid min-h-screen', showSidebar && 'lg:grid-cols-[248px_1fr]')}>
-        {showSidebar ? <AppSidebar navigation={navigation} className="hidden lg:block" /> : null}
+        {showSidebar ? <AppSidebar navigation={navigation} activeHref={activeHref} className="hidden lg:block" /> : null}
         <div className="min-w-0">
           <AppHeader
             role={role}
