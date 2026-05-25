@@ -135,6 +135,11 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
                   resource={currentItem.resource}
                   knowledgeNode={currentItem.knowledgeNode}
                   overrideConfig={currentItem.overrideConfig}
+                  sessionId={session.id}
+                  lessonItemId={currentItem.id}
+                  lessonPlanId={session.plan?.id}
+                  classId={session.classId ?? null}
+                  stage={currentItem.stage}
                 />
             ) : (
                 <div className="flex items-center justify-center h-full text-slate-500">

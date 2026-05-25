@@ -9,6 +9,10 @@ import { useInteractiveTracking } from './hooks/useInteractiveTracking';
 import { useInteractiveProgress } from './hooks/useInteractiveProgress';
 import { useInteractiveAI } from './hooks/useInteractiveAI';
 import { inferStandaloneCompletionEventType } from './hooks/resource-interaction-utils';
+import {
+  buildInteractiveCompletionPayload,
+  readWidgetResultData,
+} from './completion-event';
 import type {
   InteractiveProviderProps,
   InteractiveContextValue,
@@ -71,15 +75,19 @@ export function InteractiveProvider({
   // 初始化进度钩子
   const progress = useInteractiveProgress({
     onComplete: (result) => {
-      tracking.emit('complete', {
+      tracking.emit('complete', buildInteractiveCompletionPayload({
         result,
-        pageType: isStandaloneResource ? 'resource' : 'classroom',
-        surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
-        targetType: 'interactive_resource',
-        targetId: config.registryId,
-        targetLabel: config.title,
-        eventType: isStandaloneResource ? completionEventType : 'assessment_complete',
-      });
+        resultData: readWidgetResultData(result),
+        isStandaloneResource,
+        standaloneCompletionEventType: completionEventType,
+        basePayload: {
+          pageType: isStandaloneResource ? 'resource' : 'classroom',
+          surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
+          targetType: 'interactive_resource',
+          targetId: config.registryId,
+          targetLabel: config.title,
+        },
+      }));
       onComplete?.(result);
     },
     onProgressChange: (value) => {

@@ -648,6 +648,11 @@ const ControlOdysseyGame = dynamic(
     { ssr: false, loading: loadingFallback('Control Odyssey') }
 );
 
+const SimulationCourseResource = dynamic(
+    () => import('@/resources/simulations/course-resource').then(mod => mod.SimulationCourseResource),
+    { ssr: false, loading: loadingFallback('虚拟仿真课程资源') }
+);
+
 // 注册表
 const registry: Record<string, ResourceComponentConfig> = {
     'sim-pid-v1': {
@@ -656,6 +661,125 @@ const registry: Record<string, ResourceComponentConfig> = {
         type: 'SIMULATION_APP',
         defaultConfig: { kp: 1, ki: 0.1, kd: 0.5, model: 'ship' },
         component: PidSimulator
+    },
+    'sim-scene-cruise': {
+        id: 'sim-scene-cruise',
+        label: '邮轮横摇控制仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'cruise',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-destroyer': {
+        id: 'sim-scene-destroyer',
+        label: '驱逐舰航向控制仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'destroyer',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-dredger': {
+        id: 'sim-scene-dredger',
+        label: '挖泥船动力定位仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'dredger',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-drilling': {
+        id: 'sim-scene-drilling',
+        label: '钻井平台定位仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'drilling',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-icebreaker': {
+        id: 'sim-scene-icebreaker',
+        label: '破冰船航行控制仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'icebreaker',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-lng': {
+        id: 'sim-scene-lng',
+        label: 'LNG 船晃荡抑制仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'lng',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'sim-scene-container': {
+        id: 'sim-scene-container',
+        label: '集装箱船航迹保持仿真课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'simulation-scene',
+            sceneId: 'container',
+            launchMode: 'route',
+            telemetryPolicy: 'course-context',
+            governanceContext: { source: 'simulation-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'arena-challenge-workbench': {
+        id: 'arena-challenge-workbench',
+        label: 'Arena 挑战工作台课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'arena-workbench',
+            arenaTaskId: 'task-second-order-lead-pid',
+            launchMode: 'route',
+            telemetryPolicy: 'arena-course-context',
+            governanceContext: { source: 'arena-course-resource' }
+        },
+        component: SimulationCourseResource
+    },
+    'arena-cruise-blackbox-workbench': {
+        id: 'arena-cruise-blackbox-workbench',
+        label: '邮轮黑箱辨识 Arena 课程资源',
+        type: 'SIMULATION_APP',
+        defaultConfig: {
+            resourceKind: 'arena-workbench',
+            sceneId: 'cruise',
+            arenaTaskId: 'task-cruise-roll-blackbox-identification',
+            routeHref: '/simulations/cruise',
+            launchMode: 'route',
+            telemetryPolicy: 'arena-course-context',
+            governanceContext: { source: 'arena-course-resource' }
+        },
+        component: SimulationCourseResource
     },
     'ethics-arctic-v1': {
         id: 'ethics-arctic-v1',

@@ -53,7 +53,9 @@ export default async function TeacherSessionPage({ params }: PageProps) {
     status: session.status,
     currentItemId: session.currentItemId,
     currentStage: session.currentStage,
+    classId: session.classId,
     plan: {
+      id: session.plan.id,
       title: session.plan.title,
     },
   };
