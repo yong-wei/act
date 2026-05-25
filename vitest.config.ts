@@ -12,6 +12,7 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 30000,
     include: [
+      'src/resources/simulations/__tests__/**/*.test.ts',
       'src/lib/__tests__/**/*.test.ts',
       'src/lib/data-governance/__tests__/**/*.test.ts',
       'src/app/__tests__/**/*.test.ts',
