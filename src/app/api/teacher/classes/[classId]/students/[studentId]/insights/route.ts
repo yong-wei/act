@@ -299,7 +299,6 @@ export async function GET(
           OR: buildTeacherScopedLearningFactScopeFilters(classId, scopedSessionIds),
         },
         orderBy: { startedAt: 'desc' },
-        take: 500,
       }),
       prisma.studentStepResponse.findMany({
         where: {

@@ -558,8 +558,8 @@ describe('teacher evidence governance insights', () => {
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
         ]),
       },
-      take: 1000,
     }));
+    expect(mocks.prisma.learningFact.findMany.mock.calls[1][0]).not.toHaveProperty('take');
     expect(body.governance.evidenceCoverage).toMatchObject({
       totalStudents: 4,
       readyStudents: 2,
@@ -1066,8 +1066,8 @@ describe('teacher evidence governance insights', () => {
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
         ]),
       },
-      take: 500,
     }));
+    expect(mocks.prisma.learningFact.findMany.mock.calls[0][0]).not.toHaveProperty('take');
     expect(mocks.prisma.studentStepResponse.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         userId: 'student-1',

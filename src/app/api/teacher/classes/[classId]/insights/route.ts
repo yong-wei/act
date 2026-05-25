@@ -251,7 +251,6 @@ export async function GET(
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
-            take: 1000,
           })
         : Promise.resolve([]),
       prisma.classSessionReport.findMany({
