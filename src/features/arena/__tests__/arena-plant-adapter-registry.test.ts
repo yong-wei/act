@@ -7,6 +7,7 @@ import {
   ArenaPlantAdapterSelectionError,
   getArenaPlantAdapterForPublicExperimentTaskId,
   getArenaPlantAdapterForObject,
+  getArenaPlantAdapterForOfficialEvaluationTaskId,
   getArenaPlantAdapterForTaskId,
   getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '../adapters/registry';
@@ -28,6 +29,12 @@ describe('Arena PlantAdapter registry', () => {
     expect(adapter.id).toBe('cruise-roll-blackbox-production');
     expect(adapter.canRunPublicExperiment(task!, object!)).toBe(true);
     expect(adapter.canRunVirtualPreview(task!, object!)).toBe(true);
+    expect(adapter.canRunOfficialEvaluation(task!, object!)).toBe(true);
+    expect(adapter.describeSupport(task!, object!)).toEqual({
+      publicExperiment: { supported: true },
+      virtualPreview: { supported: true },
+      officialEvaluation: { supported: true },
+    });
   });
 
   it('selects a white-box transfer-function adapter placeholder for inspectable objects', () => {
@@ -42,6 +49,28 @@ describe('Arena PlantAdapter registry', () => {
     expect(adapter.id).toBe('whitebox-transfer-function');
     expect(adapter.canRunPublicExperiment(task!, object!)).toBe(false);
     expect(adapter.canRunVirtualPreview(task!, object!)).toBe(false);
+    expect(adapter.canRunOfficialEvaluation(task!, object!)).toBe(true);
+    expect(adapter.describeSupport(task!, object!)).toEqual({
+      publicExperiment: {
+        supported: false,
+        reason: 'White-box transfer-function objects do not expose black-box public experiment datasets.',
+      },
+      virtualPreview: {
+        supported: false,
+        reason: 'White-box transfer-function objects use direct analytical previews instead of Arena virtual simulation preview runs.',
+      },
+      officialEvaluation: { supported: true },
+    });
+  });
+
+  it('selects official evaluation support for white-box virtual simulation tasks', () => {
+    const adapter = getArenaPlantAdapterForOfficialEvaluationTaskId('task-ship-roll-mpc-hidden-scenarios');
+
+    expect(adapter.id).toBe('whitebox-transfer-function');
+    expect(adapter.canRunOfficialEvaluation(
+      getArenaChallengeTask('task-ship-roll-mpc-hidden-scenarios')!,
+      getArenaChallengeObject('plant-ship-roll-whitebox')!,
+    )).toBe(true);
   });
 
   it('rejects unsupported task ids before falling back to mock data', () => {
@@ -50,9 +79,9 @@ describe('Arena PlantAdapter registry', () => {
 
   it('rejects white-box tasks for black-box public experiment and preview operations', () => {
     expect(() => getArenaPlantAdapterForPublicExperimentTaskId('task-second-order-lead-pid'))
-      .toThrow(ArenaPlantAdapterSelectionError);
+      .toThrow('do not expose black-box public experiment datasets');
     expect(() => getArenaPlantAdapterForVirtualPreviewTaskId('task-second-order-lead-pid'))
-      .toThrow(ArenaPlantAdapterSelectionError);
+      .toThrow('use direct analytical previews');
   });
 
   it('keeps production API routes away from the test-only mock adapter', () => {

@@ -6,6 +6,7 @@ import type { ArenaBlackBoxExperimentDataset, ArenaBlackBoxExperimentInput } fro
 import { runArenaBlackBoxExperiment } from './experiment';
 
 export const ARENA_BLACKBOX_DAILY_EXPERIMENT_BUDGET = 20;
+export const ARENA_IDENTIFICATION_MODEL_PROTOCOL_VERSION = 'arena-identification-model-v1';
 
 export class ArenaBlackBoxExperimentInputError extends Error {
   constructor(message: string) {
@@ -25,11 +26,31 @@ export interface StoredArenaBlackBoxExperiment {
   createdAt: string;
 }
 
+export interface ArenaIdentificationModelValidationSummary {
+  validationFit: number;
+  dataQuality: number;
+  sampleCount: number;
+  signalType: string;
+}
+
+export interface StoredArenaIdentificationModel {
+  id: string;
+  userId: string;
+  taskId: string;
+  datasetHash: string;
+  sourceExperimentId: string;
+  modelType: 'second-order-fit';
+  validationSummary: ArenaIdentificationModelValidationSummary;
+  protocolVersion: typeof ARENA_IDENTIFICATION_MODEL_PROTOCOL_VERSION;
+  createdAt: string;
+}
+
 export interface ArenaBlackBoxExperimentStore {
   findOwnedExperiment(input: {
     userId: string;
     taskId: string;
     datasetHash: string;
+    experimentId?: string;
   }): Promise<StoredArenaBlackBoxExperiment | null>;
   countOwnedExperiments?(input: {
     userId: string;
@@ -45,16 +66,31 @@ export interface ArenaBlackBoxExperimentStore {
   ): Promise<{ experiment: StoredArenaBlackBoxExperiment | null; usedBefore: number }>;
 }
 
+export interface ArenaIdentificationModelStore {
+  createOrResolveIdentificationModel(
+    input: Omit<StoredArenaIdentificationModel, 'id'>,
+  ): Promise<StoredArenaIdentificationModel>;
+  findOwnedIdentificationModel(input: {
+    userId: string;
+    taskId: string;
+    modelId: string;
+  }): Promise<StoredArenaIdentificationModel | null>;
+}
+
 export interface CreateArenaBlackBoxExperimentInput {
   userId: string;
   taskId: string;
   experimentInput: ArenaBlackBoxExperimentInput;
   now?: string;
   store: ArenaBlackBoxExperimentStore;
+  identificationModelStore: ArenaIdentificationModelStore;
 }
 
 export interface CreateArenaBlackBoxExperimentResult {
-  dataset: ArenaBlackBoxExperimentDataset & { id: string };
+  dataset: ArenaBlackBoxExperimentDataset & {
+    id: string;
+    registeredModel: StoredArenaIdentificationModel;
+  };
   budget: {
     limit: number;
     used: number;
@@ -65,6 +101,38 @@ export interface CreateArenaBlackBoxExperimentResult {
 export function startOfUtcDay(isoDate: string): Date {
   const date = new Date(isoDate);
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function buildValidationSummary(
+  experiment: StoredArenaBlackBoxExperiment,
+): ArenaIdentificationModelValidationSummary {
+  return {
+    validationFit: experiment.dataset.summary.dataQuality,
+    dataQuality: experiment.dataset.summary.dataQuality,
+    sampleCount: experiment.dataset.samples.length,
+    signalType: experiment.signalType,
+  };
+}
+
+export async function createOrResolveArenaIdentificationModel({
+  experiment,
+  now = new Date().toISOString(),
+  store,
+}: {
+  experiment: StoredArenaBlackBoxExperiment;
+  now?: string;
+  store: ArenaIdentificationModelStore;
+}): Promise<StoredArenaIdentificationModel> {
+  return store.createOrResolveIdentificationModel({
+    userId: experiment.userId,
+    taskId: experiment.taskId,
+    datasetHash: experiment.datasetHash,
+    sourceExperimentId: experiment.id,
+    modelType: 'second-order-fit',
+    validationSummary: buildValidationSummary(experiment),
+    protocolVersion: ARENA_IDENTIFICATION_MODEL_PROTOCOL_VERSION,
+    createdAt: now,
+  });
 }
 
 export async function createArenaBlackBoxExperiment(
@@ -101,11 +169,17 @@ export async function createArenaBlackBoxExperiment(
   }
 
   const budgetUsed = reservation.usedBefore + dataset.budgetCost;
+  const registeredModel = await createOrResolveArenaIdentificationModel({
+    experiment: reservation.experiment,
+    now,
+    store: input.identificationModelStore,
+  });
 
   return {
     dataset: {
       ...reservation.experiment.dataset,
       id: reservation.experiment.id,
+      registeredModel,
     },
     budget: {
       limit: ARENA_BLACKBOX_DAILY_EXPERIMENT_BUDGET,
@@ -115,13 +189,14 @@ export async function createArenaBlackBoxExperiment(
   };
 }
 
-export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore = {
+export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore & ArenaIdentificationModelStore = {
   async findOwnedExperiment(input) {
     const row = await prisma.arenaBlackBoxExperiment.findFirst({
       where: {
         userId: input.userId,
         taskId: input.taskId,
         datasetHash: input.datasetHash,
+        ...(input.experimentId ? { id: input.experimentId } : {}),
       },
     });
 
@@ -156,15 +231,41 @@ export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore = 
 
   async createExperimentWithinBudget(input) {
     return prisma.$transaction(async (tx) => {
+      const existingToday = await tx.arenaBlackBoxExperiment.findFirst({
+        where: {
+          userId: input.userId,
+          taskId: input.taskId,
+          datasetHash: input.datasetHash,
+          createdAt: { gte: input.since },
+        },
+      });
       const rows = await tx.arenaBlackBoxExperiment.findMany({
         where: {
           userId: input.userId,
           taskId: input.taskId,
           createdAt: { gte: input.since },
         },
-        select: { budgetCost: true },
+        select: { id: true, budgetCost: true },
       });
-      const usedBefore = rows.reduce((sum, row) => sum + row.budgetCost, 0);
+      const usedBefore = rows.reduce((sum, row) => (
+        existingToday?.id === row.id ? sum : sum + row.budgetCost
+      ), 0);
+
+      if (existingToday) {
+        return {
+          usedBefore,
+          experiment: {
+            id: existingToday.id,
+            userId: existingToday.userId,
+            taskId: existingToday.taskId,
+            datasetHash: existingToday.datasetHash,
+            signalType: existingToday.signalType,
+            dataset: existingToday.payload as unknown as ArenaBlackBoxExperimentDataset,
+            budgetCost: existingToday.budgetCost,
+            createdAt: existingToday.createdAt.toISOString(),
+          },
+        };
+      }
 
       if (usedBefore + input.budgetCost > input.dailyBudget) {
         return { experiment: null, usedBefore };
@@ -198,5 +299,69 @@ export const prismaArenaBlackBoxExperimentStore: ArenaBlackBoxExperimentStore = 
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
+  },
+
+  async createOrResolveIdentificationModel(input) {
+    const row = await prisma.arenaIdentificationModel.upsert({
+      where: {
+        userId_taskId_sourceExperimentId: {
+          userId: input.userId,
+          taskId: input.taskId,
+          sourceExperimentId: input.sourceExperimentId,
+        },
+      },
+      create: {
+        userId: input.userId,
+        taskId: input.taskId,
+        datasetHash: input.datasetHash,
+        sourceExperimentId: input.sourceExperimentId,
+        modelType: input.modelType,
+        validationSummary: input.validationSummary as unknown as Prisma.InputJsonValue,
+        protocolVersion: input.protocolVersion,
+        createdAt: new Date(input.createdAt),
+      },
+      update: {
+        datasetHash: input.datasetHash,
+        modelType: input.modelType,
+        validationSummary: input.validationSummary as unknown as Prisma.InputJsonValue,
+        protocolVersion: input.protocolVersion,
+      },
+    });
+
+    return {
+      id: row.id,
+      userId: row.userId,
+      taskId: row.taskId,
+      datasetHash: row.datasetHash,
+      sourceExperimentId: row.sourceExperimentId,
+      modelType: row.modelType as StoredArenaIdentificationModel['modelType'],
+      validationSummary: row.validationSummary as unknown as ArenaIdentificationModelValidationSummary,
+      protocolVersion: row.protocolVersion as StoredArenaIdentificationModel['protocolVersion'],
+      createdAt: row.createdAt.toISOString(),
+    };
+  },
+
+  async findOwnedIdentificationModel(input) {
+    const row = await prisma.arenaIdentificationModel.findFirst({
+      where: {
+        id: input.modelId,
+        userId: input.userId,
+        taskId: input.taskId,
+      },
+    });
+
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      userId: row.userId,
+      taskId: row.taskId,
+      datasetHash: row.datasetHash,
+      sourceExperimentId: row.sourceExperimentId,
+      modelType: row.modelType as StoredArenaIdentificationModel['modelType'],
+      validationSummary: row.validationSummary as unknown as ArenaIdentificationModelValidationSummary,
+      protocolVersion: row.protocolVersion as StoredArenaIdentificationModel['protocolVersion'],
+      createdAt: row.createdAt.toISOString(),
+    };
   },
 };

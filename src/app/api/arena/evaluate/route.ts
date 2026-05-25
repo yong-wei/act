@@ -7,6 +7,10 @@ import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/ex
 import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
+  ArenaPlantAdapterSelectionError,
+  getArenaPlantAdapterForOfficialEvaluationTaskId,
+} from '@/features/arena/adapters/registry';
+import {
   ArenaPublicationAccessError,
   resolveAccessibleArenaPublicationForStudent,
 } from '@/features/arena/teacher/publication-store';
@@ -53,6 +57,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
     }
 
+    getArenaPlantAdapterForOfficialEvaluationTaskId(body.taskId);
+
     const publicationContext = typeof body.publicationId === 'string' && body.publicationId.trim().length > 0
       ? await resolveAccessibleArenaPublicationForStudent(prisma as any, {
         publicationId: body.publicationId,
@@ -74,6 +80,7 @@ export async function POST(request: Request) {
       submittedAt: new Date().toISOString(),
       store: prismaArenaSubmissionStore,
       blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+      identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
 
     return NextResponse.json({ submission });
@@ -83,6 +90,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     if (error instanceof ArenaSubmissionInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof ArenaPlantAdapterSelectionError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     if (isPendingArenaDatabaseMigration(error)) {

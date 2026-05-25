@@ -112,6 +112,7 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
       taskId: artifact.taskId,
       artifact,
       blackBoxExperimentStore: { marker: 'blackbox-store' },
+      identificationModelStore: { marker: 'blackbox-store' },
       runStore: { marker: 'preview-store' },
     }));
   });

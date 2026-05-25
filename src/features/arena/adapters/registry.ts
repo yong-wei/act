@@ -59,9 +59,10 @@ export function getArenaPlantAdapterForTaskId(taskId: string): ArenaPlantAdapter
 export function getArenaPlantAdapterForPublicExperimentTaskId(taskId: string): ArenaPlantAdapter {
   const { task, object } = getArenaTaskAndObject(taskId);
   const adapter = getArenaPlantAdapterForObject(object, task);
-  if (!adapter.canRunPublicExperiment(task, object)) {
+  const support = adapter.describeSupport(task, object).publicExperiment;
+  if (!support.supported) {
     throw new ArenaPlantAdapterSelectionError(
-      `No production Arena plant adapter supports public experiments for task ${task.id}.`,
+      support.reason ?? `No production Arena plant adapter supports public experiments for task ${task.id}.`,
     );
   }
   return adapter;
@@ -70,9 +71,22 @@ export function getArenaPlantAdapterForPublicExperimentTaskId(taskId: string): A
 export function getArenaPlantAdapterForVirtualPreviewTaskId(taskId: string): ArenaPlantAdapter {
   const { task, object } = getArenaTaskAndObject(taskId);
   const adapter = getArenaPlantAdapterForObject(object, task);
-  if (!adapter.canRunVirtualPreview(task, object)) {
+  const support = adapter.describeSupport(task, object).virtualPreview;
+  if (!support.supported) {
     throw new ArenaPlantAdapterSelectionError(
-      `No production Arena plant adapter supports virtual previews for task ${task.id}.`,
+      support.reason ?? `No production Arena plant adapter supports virtual previews for task ${task.id}.`,
+    );
+  }
+  return adapter;
+}
+
+export function getArenaPlantAdapterForOfficialEvaluationTaskId(taskId: string): ArenaPlantAdapter {
+  const { task, object } = getArenaTaskAndObject(taskId);
+  const adapter = getArenaPlantAdapterForObject(object, task);
+  const support = adapter.describeSupport(task, object).officialEvaluation;
+  if (!support.supported) {
+    throw new ArenaPlantAdapterSelectionError(
+      support.reason ?? `No production Arena plant adapter supports official evaluation for task ${task.id}.`,
     );
   }
   return adapter;

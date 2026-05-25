@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       taskId: body.taskId,
       artifact: body.artifact,
       blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
+      identificationModelStore: prismaArenaBlackBoxExperimentStore,
       runStore: prismaArenaVirtualSimulationRunStore,
     });
 

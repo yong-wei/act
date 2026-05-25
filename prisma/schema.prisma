@@ -110,6 +110,7 @@ model User {
   arenaControllerArtifacts ArenaControllerArtifact[]
   arenaSubmissions         ArenaSubmission[]
   arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
+  arenaIdentificationModels ArenaIdentificationModel[]
   arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
   arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
 }
@@ -1237,9 +1238,30 @@ model ArenaBlackBoxExperiment {
   createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identificationModels ArenaIdentificationModel[]
 
   @@index([userId, taskId, createdAt])
   @@index([taskId, datasetHash])
+}
+
+model ArenaIdentificationModel {
+  id                 String   @id @default(cuid())
+  userId             String
+  taskId             String
+  datasetHash        String
+  sourceExperimentId String
+  modelType          String
+  validationSummary  Json
+  protocolVersion    String
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceExperiment ArenaBlackBoxExperiment @relation(fields: [sourceExperimentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId, sourceExperimentId])
+  @@index([userId, taskId, createdAt])
+  @@index([taskId, datasetHash])
+  @@index([sourceExperimentId])
 }
 
 model ArenaVirtualSimulationRun {

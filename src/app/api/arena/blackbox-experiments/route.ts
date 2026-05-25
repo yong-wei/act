@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       experimentInput: body.experimentInput,
       userId: session.user.id,
       store: prismaArenaBlackBoxExperimentStore,
+      identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
 
     return NextResponse.json(result);

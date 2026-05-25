@@ -1,7 +1,11 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
-import { startOfUtcDay, type ArenaBlackBoxExperimentStore } from '../blackbox/experiment-service';
+import {
+  startOfUtcDay,
+  type ArenaBlackBoxExperimentStore,
+  type ArenaIdentificationModelStore,
+} from '../blackbox/experiment-service';
 import { getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
 import {
   normalizeCodeControllerManifest,
@@ -9,6 +13,7 @@ import {
 } from './controller-artifact-builder';
 import { hashControllerArtifact } from './artifact-hash';
 import type { ArenaSubmissionRecord } from './submission-service';
+import { getArenaPlantAdapterForOfficialEvaluationTaskId } from '../adapters/registry';
 
 export class ArenaSubmissionInputError extends Error {
   constructor(message: string) {
@@ -71,11 +76,8 @@ export interface CreatePersistedArenaSubmissionInput {
   submittedAt: string;
   store: ArenaSubmissionStore;
   blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
+  identificationModelStore?: ArenaIdentificationModelStore;
   source?: 'odyssey-bridge';
-}
-
-function expectedIdentificationModelId(datasetHash: string): string {
-  return `arena-identification-${datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
 }
 
 async function assertBlackBoxExperimentOwnership(input: {
@@ -83,6 +85,7 @@ async function assertBlackBoxExperimentOwnership(input: {
   taskId: string;
   artifact: ControllerArtifact;
   blackBoxExperimentStore?: ArenaBlackBoxExperimentStore;
+  identificationModelStore?: ArenaIdentificationModelStore;
   submittedAt: string;
 }): Promise<ControllerArtifact> {
   if (input.artifact.method !== 'black-box-control') return input.artifact;
@@ -93,17 +96,34 @@ async function assertBlackBoxExperimentOwnership(input: {
   if (typeof datasetHash !== 'string' || !datasetHash.startsWith('arena-blackbox-dataset-')) {
     throw new ArenaSubmissionInputError('Black-box submissions must reference a persisted experiment dataset.');
   }
-  if (typeof identificationModelId !== 'string' || identificationModelId !== expectedIdentificationModelId(datasetHash)) {
-    throw new ArenaSubmissionInputError('Black-box submissions must reference the identification model derived from the experiment dataset.');
+  if (typeof identificationModelId !== 'string' || !identificationModelId.trim()) {
+    throw new ArenaSubmissionInputError('Black-box submissions must reference a server registered identification model.');
   }
   if (!input.blackBoxExperimentStore) {
     throw new ArenaSubmissionInputError('Black-box experiment ownership store is required.');
+  }
+  if (!input.identificationModelStore) {
+    throw new ArenaSubmissionInputError('Black-box identification model registry store is required.');
+  }
+
+  const registeredModel = await input.identificationModelStore.findOwnedIdentificationModel({
+    userId: input.userId,
+    taskId: input.taskId,
+    modelId: identificationModelId,
+  });
+
+  if (!registeredModel) {
+    throw new ArenaSubmissionInputError('Black-box submissions must reference a server registered identification model owned by the current student.');
+  }
+  if (registeredModel.datasetHash !== datasetHash) {
+    throw new ArenaSubmissionInputError('Black-box submission registered model does not match the experiment dataset.');
   }
 
   const experiment = await input.blackBoxExperimentStore.findOwnedExperiment({
     userId: input.userId,
     taskId: input.taskId,
     datasetHash,
+    experimentId: registeredModel.sourceExperimentId,
   });
 
   if (!experiment) {
@@ -123,8 +143,14 @@ async function assertBlackBoxExperimentOwnership(input: {
   return {
     ...input.artifact,
     params: {
-      ...input.artifact.params,
+      representation: 'identified-model-controller',
+      experimentDatasetHash: datasetHash,
+      identificationModelId,
+      identificationQuality: registeredModel.validationSummary.validationFit,
       experimentCount,
+      controllerGain: input.artifact.params.controllerGain,
+      dampingCompensation: input.artifact.params.dampingCompensation,
+      energyBudget: input.artifact.params.energyBudget,
     },
   };
 }
@@ -161,11 +187,13 @@ export async function createPersistedArenaSubmission(
   input: CreatePersistedArenaSubmissionInput,
 ): Promise<ArenaSubmissionRecord> {
   assertTrustedOdysseySubmissionSource(input);
+  getArenaPlantAdapterForOfficialEvaluationTaskId(input.taskId);
   const artifact = await assertBlackBoxExperimentOwnership({
     userId: input.userId,
     taskId: input.taskId,
     artifact: normalizeSubmissionArtifact(input.taskId, input.artifact),
     blackBoxExperimentStore: input.blackBoxExperimentStore,
+    identificationModelStore: input.identificationModelStore,
     submittedAt: input.submittedAt,
   });
   const artifactHash = hashControllerArtifact(artifact);

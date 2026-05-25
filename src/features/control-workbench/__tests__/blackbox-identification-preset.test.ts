@@ -62,10 +62,12 @@ describe('black-box identification control workbench preset', () => {
     expect(presetSource).toContain('buildClientNominalModelFromDataset');
     expect(presetSource).toContain('sourceDatasetHash: dataset.datasetHash');
     expect(presetSource).toContain('sourceExperimentId: dataset.id');
+    expect(presetSource).toContain('const identificationModelId = dataset.registeredModel.id');
     expect(presetSource).toContain("sourceVisibility: 'black-box'");
     expect(presetSource).toContain("modelType: 'data-driven'");
     expect(presetSource).toContain('学生名义模型');
     expect(presetSource).toContain('不代表官方隐藏对象');
+    expect(presetSource).not.toContain("dataset.datasetHash.replace('arena-blackbox-dataset-'");
     expect(presetSource).not.toContain('官方目标模型');
   });
 
