@@ -64,6 +64,10 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
+import {
+  buildCruiseTelemetryBridgeSummary,
+  type CruiseTelemetryBridgeSummary,
+} from './cruise/telemetry-bridge';
 
 // ============ 类型定义 ============
 
@@ -131,6 +135,10 @@ const CRUISE_HEADING_PRIMARY = '#0ea5e9';
 const CRUISE_HEADING_SECONDARY = '#38bdf8';
 const CRUISE_HULL_SINK_OFFSET = 2.5;
 const CRUISE_EVALUATION_DURATION_SEC = 300;
+
+function createCruiseTraceRunId(): string {
+  return `cruise-${Date.now().toString(36)}`;
+}
 
 function getCruiseMissionTargetHeading(position: Vector2): number {
   const traveled = Math.hypot(position.x - CRUISE_ROUTE_START.x, position.z - CRUISE_ROUTE_START.z);
@@ -640,7 +648,7 @@ function NotchFilterPanel({
 
 // ============ 控制面板 ============
 
-function ControlPanel({
+function ControllerPanel({
   state,
   isCourseMode,
   virtualModeEnabled,
@@ -1315,6 +1323,174 @@ function CruiseAIPanel({
   );
 }
 
+function SceneShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={simulationUi.root} data-sim-ui data-scene-shell="cruise">
+      {children}
+    </div>
+  );
+}
+
+function VisualizationLayer({
+  state,
+  virtualModeEnabled,
+  showGrid,
+  desiredRoutePoints,
+  trajectoryPoints,
+  cameraMode,
+  controlsRef,
+  onRequestFreeMode,
+}: {
+  state: CruiseSimulationState;
+  virtualModeEnabled: boolean;
+  showGrid: boolean;
+  desiredRoutePoints: Vector2[];
+  trajectoryPoints: Vector2[];
+  cameraMode: CameraMode;
+  controlsRef: React.RefObject<OrbitControlsImpl>;
+  onRequestFreeMode: () => void;
+}) {
+  return (
+    <Canvas shadows camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+      <MaritimeEnvironment shipPosition={state.position} seaState={virtualModeEnabled ? state.seaState : 1} />
+      {showGrid ? (
+        <Grid
+          args={[20000, 20000]}
+          cellSize={100}
+          cellThickness={0.5}
+          cellColor="#1e3a5f"
+          sectionSize={500}
+          sectionThickness={1}
+          sectionColor="#2563eb"
+          fadeDistance={9000}
+          fadeStrength={1}
+          position={[0, 0.35, 0]}
+        />
+      ) : null}
+      <Suspense
+        fallback={(
+          <ModelLoadingPlaceholder
+            label="邮轮模型加载中"
+            sublabel="场景已就绪，可先查看海况与参考航迹"
+          />
+        )}
+      >
+        <CruiseShipModel
+          position={state.position}
+          heading={toRadians(state.heading)}
+          rollAngle={state.rollAngle}
+        />
+      </Suspense>
+      <DesiredRouteLine points={desiredRoutePoints} />
+      <TrajectoryLine points={trajectoryPoints} />
+      <HeadingIndicator
+        position={state.position}
+        targetHeading={state.targetHeading}
+        currentHeading={state.heading}
+      />
+      <OrbitControls
+        ref={controlsRef}
+        enablePan
+        enableZoom
+        enableRotate
+        maxPolarAngle={Math.PI / 2.2}
+        minDistance={200}
+        maxDistance={3000}
+      />
+      <RightClickFreeModeBridge onRequestFreeMode={onRequestFreeMode} />
+      <UnifiedCameraController
+        position={state.position}
+        headingRad={toRadians(state.heading)}
+        cameraMode={cameraMode}
+        controlsRef={controlsRef}
+      />
+    </Canvas>
+  );
+}
+
+function TelemetryBridge({
+  state,
+  performance,
+  consistencyScore,
+  hasRuntimeData,
+  runId,
+  startedAt,
+  sampleFrameCount,
+  virtualModeEnabled,
+}: {
+  state: CruiseSimulationState;
+  performance: RuntimeConsistencyPerformance | null;
+  consistencyScore: ReturnType<typeof computeConsistencyScore> | null;
+  hasRuntimeData: boolean;
+  runId: string;
+  startedAt: string;
+  sampleFrameCount: number;
+  virtualModeEnabled: boolean;
+}) {
+  const emittedRunIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!hasRuntimeData || !performance || emittedRunIdRef.current === runId) {
+      return;
+    }
+
+    const summary = buildCruiseTelemetryBridgeSummary({
+      runId,
+      startedAt,
+      completedAt: new Date().toISOString(),
+      seed: `${runId}:${startedAt}`,
+      state: {
+        time: state.time,
+        heading: state.heading,
+        targetHeading: state.targetHeading,
+        yawRate: state.yawRate,
+        rudder: state.rudder,
+        speed: state.speed,
+        rollAngle: state.rollAngle,
+        seaState: state.seaState,
+        waveDirection: state.waveDirection,
+        finStabilizerEnabled: state.finStabilizerEnabled,
+        notchFilterEnabled: state.notchFilterEnabled,
+        comfort: state.comfort,
+        finPower: state.finPower,
+        controlMode: state.controlMode,
+        pidGains: state.pidGains,
+        targetForm: state.targetForm,
+      },
+      performance,
+      consistencyScore: consistencyScore ? { score: consistencyScore.score } : null,
+      sampleFrameCount,
+      virtualModeEnabled,
+    });
+
+    emittedRunIdRef.current = runId;
+    window.dispatchEvent(new CustomEvent<CruiseTelemetryBridgeSummary>('simulation:trace-summary', { detail: summary }));
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: 'simulation-trace-summary',
+          source: 'simulation',
+          payload: summary,
+        },
+        window.location.origin,
+      );
+    }
+  }, [
+    consistencyScore,
+    hasRuntimeData,
+    performance,
+    runId,
+    sampleFrameCount,
+    startedAt,
+    state,
+    virtualModeEnabled,
+  ]);
+
+  return null;
+}
+
 // ============ 主仿真组件 ============
 
 export default function CruiseSimulation() {
@@ -1336,6 +1512,8 @@ export default function CruiseSimulation() {
     })
   );
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const telemetryRunIdRef = useRef(createCruiseTraceRunId());
+  const telemetryStartedAtRef = useRef(new Date().toISOString());
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -1545,9 +1723,13 @@ export default function CruiseSimulation() {
   // 启动仿真
   const handleStart = useCallback(() => {
     if (state.isRunning) return;
+    if (state.time <= 0) {
+      telemetryRunIdRef.current = createCruiseTraceRunId();
+      telemetryStartedAtRef.current = new Date().toISOString();
+    }
     clockRef.current.reset();
     setState((prev) => ({ ...prev, isRunning: true, isPaused: false, isCompleted: false }));
-  }, [state.isRunning]);
+  }, [state.isRunning, state.time]);
 
   // 暂停/继续
   const handlePause = useCallback(() => {
@@ -1568,6 +1750,8 @@ export default function CruiseSimulation() {
     settleWindowStartRef.current = null;
     settlingTimeRef.current = null;
     maxLateralAccelRef.current = 0;
+    telemetryRunIdRef.current = createCruiseTraceRunId();
+    telemetryStartedAtRef.current = new Date().toISOString();
     clockRef.current.reset();
     setState({
       isRunning: false,
@@ -1873,63 +2057,27 @@ export default function CruiseSimulation() {
   }, [isCourseMode, state.controlMode]);
 
   return (
-    <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
-        <MaritimeEnvironment shipPosition={state.position} seaState={virtualModeEnabled ? state.seaState : 1} />
-        {showGrid ? (
-          <Grid
-            args={[20000, 20000]}
-            cellSize={100}
-            cellThickness={0.5}
-            cellColor="#1e3a5f"
-            sectionSize={500}
-            sectionThickness={1}
-            sectionColor="#2563eb"
-            fadeDistance={9000}
-            fadeStrength={1}
-            position={[0, 0.35, 0]}
-          />
-        ) : null}
-        <Suspense
-          fallback={(
-            <ModelLoadingPlaceholder
-              label="邮轮模型加载中"
-              sublabel="场景已就绪，可先查看海况与参考航迹"
-            />
-          )}
-        >
-          <CruiseShipModel
-            position={state.position}
-            heading={toRadians(state.heading)}
-            rollAngle={state.rollAngle}
-          />
-        </Suspense>
-        <DesiredRouteLine points={desiredRoutePoints} />
-        <TrajectoryLine points={trajectoryRef.current} />
-        <HeadingIndicator
-          position={state.position}
-          targetHeading={state.targetHeading}
-          currentHeading={state.heading}
-        />
-        <OrbitControls
-          ref={controlsRef}
-          enablePan
-          enableZoom
-          enableRotate
-          maxPolarAngle={Math.PI / 2.2}
-          minDistance={200}
-          maxDistance={3000}
-        />
-        <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
-        <UnifiedCameraController
-          position={state.position}
-          headingRad={toRadians(state.heading)}
-          cameraMode={cameraMode}
-          controlsRef={controlsRef}
-        />
-      </Canvas>
+    <SceneShell>
+      <TelemetryBridge
+        state={state}
+        performance={runtimePerformance}
+        consistencyScore={consistencyScore}
+        hasRuntimeData={hasRuntimeData}
+        runId={telemetryRunIdRef.current}
+        startedAt={telemetryStartedAtRef.current}
+        sampleFrameCount={trajectoryRef.current.length}
+        virtualModeEnabled={virtualModeEnabled}
+      />
+      <VisualizationLayer
+        state={state}
+        virtualModeEnabled={virtualModeEnabled}
+        showGrid={showGrid}
+        desiredRoutePoints={desiredRoutePoints}
+        trajectoryPoints={trajectoryRef.current}
+        cameraMode={cameraMode}
+        controlsRef={controlsRef}
+        onRequestFreeMode={() => setCameraMode('free')}
+      />
 
       <CameraViewSwitcher
         currentMode={cameraMode}
@@ -1958,7 +2106,7 @@ export default function CruiseSimulation() {
             id: 'control',
             label: '控制',
             content: (
-              <ControlPanel
+              <ControllerPanel
                 state={state}
                 isCourseMode={isCourseMode}
                 virtualModeEnabled={virtualModeEnabled}
@@ -2031,6 +2179,6 @@ export default function CruiseSimulation() {
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
         </div>
       </div>
-    </div>
+    </SceneShell>
   );
 }
