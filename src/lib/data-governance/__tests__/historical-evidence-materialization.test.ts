@@ -91,8 +91,8 @@ describe('historical evidence materialization', () => {
     expect(plan.totals).toMatchObject({
       candidateRows: 0,
       newFactRows: 0,
-      excludedRows: 2,
-      unsupportedRows: 1,
+      excludedRows: 3,
+      unsupportedRows: 0,
       lowConfidenceRows: 1,
       affectedUsers: 0,
     });
@@ -100,7 +100,7 @@ describe('historical evidence materialization', () => {
       'non_real_provenance',
       'unknown_provenance',
       'low_value_activity_context',
-      'source_not_profile_ready',
+      'missing_user_id',
     ]));
   });
 

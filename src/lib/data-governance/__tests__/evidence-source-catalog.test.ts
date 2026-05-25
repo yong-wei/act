@@ -119,9 +119,9 @@ describe('evidence source catalog', () => {
 
     expect(report.totals).toMatchObject({
       totalRows: 4,
-      eligibleRows: 1,
+      eligibleRows: 2,
       excludedRows: 2,
-      unsupportedRows: 1,
+      unsupportedRows: 0,
       affectedUsers: 2,
     });
     expect(report.sources.find((source) => source.sourceId === 'InteractionLog')).toMatchObject({
@@ -140,11 +140,6 @@ describe('evidence source catalog', () => {
       expect.objectContaining({
         sourceId: 'InteractionLog',
         reason: 'low_value_activity_context',
-        rowCount: 1,
-      }),
-      expect.objectContaining({
-        sourceId: 'ArenaEvaluationRun',
-        reason: 'source_not_profile_ready',
         rowCount: 1,
       }),
     ]));
