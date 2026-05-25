@@ -84,6 +84,7 @@ vi.mock('@/lib/data-governance/recommendation-engine', () => ({
 import { GET as getClassInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { GET as getStudentInsights } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 import {
+  buildTeacherScopedSimulationArenaFeatureMap,
   summarizeTeacherEvidenceCoverage,
   type TeacherStudentEvidenceStatus,
 } from '../teacher-evidence-governance';
@@ -364,6 +365,28 @@ describe('teacher evidence governance insights', () => {
       average: 0.28,
       lowConfidenceStudents: 1,
     });
+  });
+
+  it('does not linearly scan user ids while grouping scoped simulation Arena facts', () => {
+    const userIds = ['student-ready', 'student-low'];
+    const includesSpy = vi.spyOn(userIds, 'includes');
+
+    const scopedFeatureMap = buildTeacherScopedSimulationArenaFeatureMap(
+      userIds,
+      [
+        scopedSimulationArenaFact('student-ready', { id: 'ready-sim-1' }),
+        scopedSimulationArenaFact('student-low', { id: 'low-sim-1' }),
+      ] as any,
+      {
+        classId: 'class-1',
+        sessionIds: ['session-current'],
+        now: new Date('2026-05-21T00:00:00.000Z'),
+      },
+    );
+
+    expect(includesSpy).not.toHaveBeenCalled();
+    expect(scopedFeatureMap.get('student-ready')?.allTime.evidenceCount).toBe(1);
+    expect(scopedFeatureMap.get('student-low')?.allTime.evidenceCount).toBe(1);
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {

@@ -322,12 +322,18 @@ export function buildTeacherScopedSimulationArenaFeatureMap(
   options: TeacherScopedSimulationArenaOptions,
 ): Map<string, StudentSimulationArenaFeatureSummary> {
   const sessionIds = new Set(options.sessionIds ?? []);
+  const userIdSet = new Set(userIds);
   const grouped = new Map<string, LearningFact[]>();
 
   for (const fact of facts) {
-    if (!userIds.includes(fact.userId)) continue;
+    if (!userIdSet.has(fact.userId)) continue;
     if (!isSimulationArenaFactInTeacherScope(fact, options.classId, sessionIds)) continue;
-    grouped.set(fact.userId, [...(grouped.get(fact.userId) ?? []), fact]);
+    const userFacts = grouped.get(fact.userId);
+    if (userFacts) {
+      userFacts.push(fact);
+    } else {
+      grouped.set(fact.userId, [fact]);
+    }
   }
 
   return new Map(
