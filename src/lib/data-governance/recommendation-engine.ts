@@ -13,6 +13,8 @@ import {
   readStudentEvidenceFeatures,
   type StudentEvidenceCoverageState,
   type StudentEvidenceStatusMarker,
+  type StudentSimulationArenaFeatureSummary,
+  type StudentSimulationArenaWeakMetric,
   type StudentEvidenceWindow,
 } from './student-evidence-feature-cache';
 
@@ -39,6 +41,18 @@ export interface RecommendationRationale {
     score: number;
     markers: StudentEvidenceStatusMarker[];
   };
+  simulationArena?: RecommendationSimulationArenaRationale;
+}
+
+export interface RecommendationSimulationArenaRationale {
+  readiness: 'ready' | 'partial' | 'low-confidence' | 'missing';
+  evidenceKinds: Array<'official-evaluation' | 'course-launched' | 'standalone' | 'preview-only'>;
+  evidenceCount: number;
+  traceReferenceCount: number;
+  sourceCoverage: StudentSimulationArenaFeatureSummary['allTime']['sourceCoverage'];
+  replayConfidence: StudentSimulationArenaFeatureSummary['allTime']['replayConfidence'];
+  weakMetrics: StudentSimulationArenaWeakMetric[];
+  qualityMarkers: StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'];
 }
 
 export interface Recommendation {
@@ -86,6 +100,7 @@ interface RecommendationEvidenceContext {
     score: number;
   };
   statusMarkers: StudentEvidenceStatusMarker[];
+  simulationArena?: StudentSimulationArenaFeatureSummary;
 }
 
 // Recommendation rule definitions
@@ -495,6 +510,12 @@ function buildRecommendationRationale(
   rule: RecommendationRule,
   context: RecommendationContext
 ): RecommendationRationale {
+  const simulationArena = buildRecommendationSimulationArenaRationale(context.evidence.simulationArena);
+  const confidenceState = resolveRationaleConfidenceState(
+    resolveConfidenceState(context.evidence),
+    simulationArena,
+  );
+
   return {
     reasonCode: rule.id,
     evidenceBasis: context.evidence.basis,
@@ -504,11 +525,12 @@ function buildRecommendationRationale(
     evidenceCount: context.evidence.evidenceCount,
     sourceCoverage: context.evidence.sourceCoverage,
     confidence: {
-      state: resolveConfidenceState(context.evidence),
+      state: confidenceState,
       level: capContextOnlyConfidence(rule.evidenceRole, context.evidence.confidence.level),
       score: context.evidence.confidence.score,
       markers: context.evidence.statusMarkers,
     },
+    ...(simulationArena ? { simulationArena } : {}),
   };
 }
 
@@ -532,6 +554,7 @@ function buildRecommendationEvidenceContext(input: {
         score: confidence.score,
       },
       statusMarkers: normalizeStatusMarkers(input.featureCache.statusMarkers),
+      simulationArena: normalizeSimulationArenaFeature(input.featureCache.features),
     };
   }
 
@@ -569,6 +592,142 @@ function getCachedCompetencyVector(cache: Record<string, unknown> | null): Compe
   const vector = latestSnapshot.competencyVector;
 
   return isCompetencyVector(vector) ? vector as CompetencyVector : null;
+}
+
+function normalizeSimulationArenaFeature(value: unknown): StudentSimulationArenaFeatureSummary | undefined {
+  const features = getObject(value);
+  const simulationArena = getObject(features.simulationArena);
+  if (Object.keys(simulationArena).length === 0) {
+    return undefined;
+  }
+
+  return {
+    recent30d: normalizeSimulationArenaWindow(simulationArena.recent30d),
+    allTime: normalizeSimulationArenaWindow(simulationArena.allTime),
+  };
+}
+
+function normalizeSimulationArenaWindow(
+  value: unknown
+): StudentSimulationArenaFeatureSummary['allTime'] {
+  const window = getObject(value);
+  const sourceCoverage = getObject(window.sourceCoverage);
+  return {
+    window: normalizeEvidenceWindow(window.window),
+    evidenceCount: numberValue(window.evidenceCount),
+    completedCount: numberValue(window.completedCount),
+    officialCount: numberValue(window.officialCount),
+    previewCount: numberValue(window.previewCount),
+    courseLaunchedCount: numberValue(window.courseLaunchedCount),
+    standaloneCount: numberValue(window.standaloneCount),
+    traceReferenceCount: numberValue(window.traceReferenceCount),
+    sourceCoverage: {
+      simulation: normalizeCoverageState(sourceCoverage.simulation),
+      arena: normalizeCoverageState(sourceCoverage.arena),
+      traceReferences: normalizeCoverageState(sourceCoverage.traceReferences),
+      replayConfidence: normalizeCoverageState(sourceCoverage.replayConfidence),
+    },
+    replayConfidence: normalizeSimulationArenaReplayConfidence(window.replayConfidence),
+    weakMetrics: normalizeSimulationArenaWeakMetrics(window.weakMetrics),
+    qualityMarkers: normalizeSimulationArenaQualityMarkers(window.qualityMarkers),
+    traceReferences: [],
+  };
+}
+
+function normalizeSimulationArenaReplayConfidence(
+  value: unknown
+): StudentSimulationArenaFeatureSummary['allTime']['replayConfidence'] {
+  const replayConfidence = getObject(value);
+  return {
+    average: typeof replayConfidence.average === 'number' && Number.isFinite(replayConfidence.average)
+      ? replayConfidence.average
+      : null,
+    highConfidenceCount: numberValue(replayConfidence.highConfidenceCount),
+    lowConfidenceCount: numberValue(replayConfidence.lowConfidenceCount),
+    missingCount: numberValue(replayConfidence.missingCount),
+  };
+}
+
+function normalizeSimulationArenaWeakMetrics(value: unknown): StudentSimulationArenaWeakMetric[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      const metric = getObject(item);
+      const metricId = stringOrNull(metric.metricId);
+      if (!metricId) return null;
+      return {
+        metricId,
+        affectedFactCount: numberValue(metric.affectedFactCount),
+        lowestValue: numberValue(metric.lowestValue),
+      };
+    })
+    .filter((item): item is StudentSimulationArenaWeakMetric => Boolean(item));
+}
+
+function normalizeSimulationArenaQualityMarkers(
+  value: unknown
+): StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'][number] =>
+    item === 'low-confidence' ||
+    item === 'preview-only' ||
+    item === 'standalone-only' ||
+    item === 'stale' ||
+    item === 'partial'
+  );
+}
+
+function buildRecommendationSimulationArenaRationale(
+  simulationArena: StudentSimulationArenaFeatureSummary | undefined
+): RecommendationSimulationArenaRationale | undefined {
+  if (!simulationArena) {
+    return undefined;
+  }
+
+  const allTime = simulationArena.allTime;
+  const evidenceKinds: RecommendationSimulationArenaRationale['evidenceKinds'] = [];
+  if (allTime.officialCount > 0) evidenceKinds.push('official-evaluation');
+  if (allTime.courseLaunchedCount > 0) evidenceKinds.push('course-launched');
+  if (allTime.previewCount > 0) evidenceKinds.push('preview-only');
+  if (allTime.standaloneCount > 0) evidenceKinds.push('standalone');
+
+  return {
+    readiness: resolveSimulationArenaReadiness(allTime),
+    evidenceKinds,
+    evidenceCount: allTime.evidenceCount,
+    traceReferenceCount: allTime.traceReferenceCount,
+    sourceCoverage: allTime.sourceCoverage,
+    replayConfidence: allTime.replayConfidence,
+    weakMetrics: allTime.weakMetrics,
+    qualityMarkers: allTime.qualityMarkers,
+  };
+}
+
+function resolveSimulationArenaReadiness(
+  window: StudentSimulationArenaFeatureSummary['allTime']
+): RecommendationSimulationArenaRationale['readiness'] {
+  if (window.evidenceCount === 0) {
+    return 'missing';
+  }
+  if (
+    window.qualityMarkers.includes('low-confidence') ||
+    window.qualityMarkers.includes('preview-only') ||
+    window.qualityMarkers.includes('standalone-only')
+  ) {
+    return 'low-confidence';
+  }
+  if (
+    window.qualityMarkers.includes('partial') ||
+    window.sourceCoverage.traceReferences !== 'available' ||
+    window.sourceCoverage.replayConfidence !== 'available'
+  ) {
+    return 'partial';
+  }
+  return 'ready';
 }
 
 function isCompetencyVector(value: unknown): value is CompetencyVector {
@@ -668,6 +827,22 @@ function resolveConfidenceState(evidence: RecommendationEvidenceContext): Recomm
     return 'low-confidence';
   }
   return 'ready';
+}
+
+function resolveRationaleConfidenceState(
+  baseState: RecommendationConfidenceState,
+  simulationArena: RecommendationSimulationArenaRationale | undefined
+): RecommendationConfidenceState {
+  if (!simulationArena) {
+    return baseState;
+  }
+  if (simulationArena.readiness === 'low-confidence') {
+    return 'low-confidence';
+  }
+  if (simulationArena.readiness === 'partial' && baseState === 'ready') {
+    return 'partial';
+  }
+  return baseState;
 }
 
 function capContextOnlyConfidence(

@@ -4,7 +4,7 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v1';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v2';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
 export const STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS = [
@@ -19,6 +19,37 @@ export type StudentEvidenceRawReadException =
 
 export type StudentEvidenceCoverageState = 'available' | 'partial' | 'missing';
 export type StudentEvidenceStatusMarker = 'stale' | 'partial' | 'low-confidence' | 'missing-source';
+export type StudentSimulationArenaEvidenceSource = 'simulation' | 'arena';
+export type StudentSimulationArenaEvidenceMarker =
+  | 'low-confidence'
+  | 'preview-only'
+  | 'standalone-only'
+  | 'stale'
+  | 'partial';
+
+export interface StudentSimulationArenaWeakMetric {
+  metricId: string;
+  affectedFactCount: number;
+  lowestValue: number;
+}
+
+export interface StudentSimulationArenaReplayConfidence {
+  average: number | null;
+  highConfidenceCount: number;
+  lowConfidenceCount: number;
+  missingCount: number;
+}
+
+export interface StudentSimulationArenaTraceReference {
+  source: StudentSimulationArenaEvidenceSource;
+  traceReference: string;
+  factId: string;
+  sourceEventId: string | null;
+  sourceLogId: string | null;
+  startedAt: string;
+  protocolVersion?: string;
+  checksum?: string;
+}
 
 export interface StudentEvidenceWindow {
   firstStartedAt: string | null;
@@ -49,6 +80,30 @@ export type StudentEvidenceSourceWindowKey =
   | 'competencyContributions30d'
   | 'competencyContributionsAll';
 
+export interface StudentSimulationArenaFeatureWindow {
+  window: StudentEvidenceWindow;
+  evidenceCount: number;
+  completedCount: number;
+  officialCount: number;
+  previewCount: number;
+  courseLaunchedCount: number;
+  standaloneCount: number;
+  traceReferenceCount: number;
+  sourceCoverage: Record<
+    'simulation' | 'arena' | 'traceReferences' | 'replayConfidence',
+    StudentEvidenceCoverageState
+  >;
+  replayConfidence: StudentSimulationArenaReplayConfidence;
+  weakMetrics: StudentSimulationArenaWeakMetric[];
+  qualityMarkers: StudentSimulationArenaEvidenceMarker[];
+  traceReferences: StudentSimulationArenaTraceReference[];
+}
+
+export interface StudentSimulationArenaFeatureSummary {
+  recent30d: StudentSimulationArenaFeatureWindow;
+  allTime: StudentSimulationArenaFeatureWindow;
+}
+
 export interface StudentEvidenceFeaturePayload {
   userId: string;
   payloadVersion: string;
@@ -75,6 +130,7 @@ export interface StudentEvidenceFeaturePayload {
     competencyContributions: StudentEvidenceCompetencyContributions;
     competencyContributions30d: StudentEvidenceCompetencyContributions;
     competencyContributionsAll: StudentEvidenceCompetencyContributions;
+    simulationArena: StudentSimulationArenaFeatureSummary;
     latestEvidence: {
       factType: string;
       outcome: string;
@@ -190,6 +246,12 @@ export function buildStudentEvidenceFeaturePayload(
   const activity30d = buildActivitySummary(recentFacts);
   const competencyContributionsAll = buildCompetencyContributions(facts);
   const competencyContributions30d = buildCompetencyContributions(recentFacts);
+  const simulationArena = buildSimulationArenaFeatures({
+    facts,
+    recentFacts,
+    now,
+    staleAfterDays,
+  });
   const sourceWindows = {
     activity30d: buildFactsWindow(recentFacts),
     activityAll: evidenceWindow,
@@ -233,6 +295,7 @@ export function buildStudentEvidenceFeaturePayload(
       competencyContributions: competencyContributionsAll,
       competencyContributions30d,
       competencyContributionsAll,
+      simulationArena,
       latestEvidence: lastFact
         ? {
             factType: lastFact.factType,
@@ -412,9 +475,10 @@ export async function readStudentEvidenceFeatures(
     ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
     : true;
   const markers = Array.isArray(cache.statusMarkers) ? cache.statusMarkers : [];
+  const staleBySchema = !hasCurrentFeaturePayloadSchema(cache);
 
   return {
-    state: staleByAge || markers.includes('stale') ? 'stale' : 'ready',
+    state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
     cache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
@@ -552,6 +616,379 @@ function buildCompetencyContributions(
   return contributions;
 }
 
+interface BuildSimulationArenaFeaturesInput {
+  facts: LearningFact[];
+  recentFacts: LearningFact[];
+  now: Date;
+  staleAfterDays: number;
+}
+
+interface SimulationArenaFactEvidence {
+  fact: LearningFact;
+  source: StudentSimulationArenaEvidenceSource;
+  completed: boolean;
+  official: boolean;
+  preview: boolean;
+  courseLaunched: boolean;
+  standalone: boolean;
+  replayConfidence: number | null;
+  weakMetrics: Array<{ metricId: string; value: number }>;
+  traceReference: StudentSimulationArenaTraceReference | null;
+}
+
+function buildSimulationArenaFeatures(
+  input: BuildSimulationArenaFeaturesInput
+): StudentSimulationArenaFeatureSummary {
+  const allEvidence = input.facts
+    .map(extractSimulationArenaFactEvidence)
+    .filter((item): item is SimulationArenaFactEvidence => Boolean(item));
+  const recentIds = new Set(input.recentFacts.map((fact) => fact.id));
+  const recentEvidence = allEvidence.filter((item) => recentIds.has(item.fact.id));
+
+  return {
+    recent30d: buildSimulationArenaFeatureWindow(recentEvidence, input.now, input.staleAfterDays),
+    allTime: buildSimulationArenaFeatureWindow(allEvidence, input.now, input.staleAfterDays),
+  };
+}
+
+function buildSimulationArenaFeatureWindow(
+  evidence: SimulationArenaFactEvidence[],
+  now: Date,
+  staleAfterDays: number
+): StudentSimulationArenaFeatureWindow {
+  const sorted = [...evidence].sort((left, right) => compareFacts(left.fact, right.fact));
+  const evidenceCount = sorted.length;
+  const traceReferences = sorted
+    .map((item) => item.traceReference)
+    .filter((item): item is StudentSimulationArenaTraceReference => Boolean(item));
+  const replayValues = sorted
+    .map((item) => item.replayConfidence)
+    .filter((item): item is number => item !== null);
+  const replayConfidence = {
+    average: replayValues.length
+      ? round(replayValues.reduce((sum, value) => sum + value, 0) / replayValues.length, 2)
+      : null,
+    highConfidenceCount: replayValues.filter((value) => value >= 0.75).length,
+    lowConfidenceCount: replayValues.filter((value) => value < 0.5).length,
+    missingCount: evidenceCount - replayValues.length,
+  };
+  const qualityMarkers = buildSimulationArenaQualityMarkers({
+    evidence: sorted,
+    replayConfidence,
+    now,
+    staleAfterDays,
+  });
+
+  return {
+    window: buildFactsWindow(sorted.map((item) => item.fact)),
+    evidenceCount,
+    completedCount: sorted.filter((item) => item.completed).length,
+    officialCount: sorted.filter((item) => item.official).length,
+    previewCount: sorted.filter((item) => item.preview).length,
+    courseLaunchedCount: sorted.filter((item) => item.courseLaunched).length,
+    standaloneCount: sorted.filter((item) => item.standalone).length,
+    traceReferenceCount: traceReferences.length,
+    sourceCoverage: {
+      simulation: resolveCoverageCount(sorted.filter((item) => item.source === 'simulation').length),
+      arena: resolveCoverageCount(sorted.filter((item) => item.source === 'arena').length),
+      traceReferences: resolveRequiredCoverage(evidenceCount, traceReferences.length),
+      replayConfidence: resolveRequiredCoverage(evidenceCount, replayValues.length),
+    },
+    replayConfidence,
+    weakMetrics: buildSimulationArenaWeakMetrics(sorted),
+    qualityMarkers,
+    traceReferences,
+  };
+}
+
+function extractSimulationArenaFactEvidence(fact: LearningFact): SimulationArenaFactEvidence | null {
+  const context = isObject(fact.contextJson) ? fact.contextJson : {};
+  const arenaContext = isObject(context.arena) ? context.arena : null;
+  const simulationContext =
+    isObject(context.simulation) ? context.simulation :
+    isObject(context.simulationTrace) ? context.simulationTrace :
+    null;
+  const historicalMaterialization = isObject(context.historicalMaterialization)
+    ? context.historicalMaterialization
+    : {};
+  const source: StudentSimulationArenaEvidenceSource | null = arenaContext
+    ? 'arena'
+    : simulationContext || fact.factType === 'simulation' || historicalMaterialization.sourceId === 'SimulationLog'
+      ? 'simulation'
+      : null;
+
+  if (!source) {
+    return null;
+  }
+
+  const sourceContext = source === 'arena'
+    ? arenaContext ?? {}
+    : simulationContext ?? context;
+  const trace = isObject(sourceContext.trace)
+    ? sourceContext.trace
+    : isObject(context.trace)
+      ? context.trace
+      : {};
+  const envelope = isObject(trace.envelope) ? trace.envelope : {};
+  const summary = isObject(sourceContext.summary)
+    ? sourceContext.summary
+    : isObject(trace.summary)
+      ? trace.summary
+      : {};
+  const launchMode = readString(sourceContext.launchMode) ?? readString(context.launchMode);
+  const official = resolveSimulationArenaOfficial(sourceContext, context, fact);
+  const preview = resolveSimulationArenaPreview(sourceContext, fact, official);
+  const courseLaunched = resolveSimulationArenaCourseLaunched(fact, sourceContext, context, launchMode);
+  const standalone = launchMode === 'standalone' || sourceContext.standalone === true || !courseLaunched;
+  const traceReference = buildSimulationArenaTraceReference({
+    source,
+    fact,
+    sourceContext,
+    context,
+    historicalMaterialization,
+    envelope,
+  });
+
+  return {
+    fact,
+    source,
+    completed: fact.outcome === 'success',
+    official,
+    preview,
+    courseLaunched,
+    standalone,
+    replayConfidence: resolveReplayConfidence(sourceContext, context, historicalMaterialization, envelope),
+    weakMetrics: extractWeakMetrics(sourceContext, summary),
+    traceReference,
+  };
+}
+
+function resolveSimulationArenaOfficial(
+  sourceContext: Record<string, unknown>,
+  context: Record<string, unknown>,
+  fact: LearningFact
+): boolean {
+  const governance = isObject(context.evidenceGovernance) ? context.evidenceGovernance : {};
+  return sourceContext.official === true ||
+    sourceContext.evaluationMode === 'official' ||
+    sourceContext.evaluationVisibility === 'official' ||
+    governance.policyReason === 'official_arena_evaluation' ||
+    (fact.sourceEventId ?? '').includes('arena_evaluation_complete');
+}
+
+function resolveSimulationArenaPreview(
+  sourceContext: Record<string, unknown>,
+  fact: LearningFact,
+  official: boolean
+): boolean {
+  if (official) {
+    return false;
+  }
+  const sourceEventId = fact.sourceEventId ?? '';
+  return sourceContext.preview === true ||
+    sourceContext.previewOnly === true ||
+    sourceContext.evaluationMode === 'preview' ||
+    sourceContext.evaluationVisibility === 'preview' ||
+    sourceEventId.includes('arena_simulation_run') ||
+    sourceEventId.includes('arena_virtual_simulation_import');
+}
+
+function resolveSimulationArenaCourseLaunched(
+  fact: LearningFact,
+  sourceContext: Record<string, unknown>,
+  context: Record<string, unknown>,
+  launchMode: string | null
+): boolean {
+  if (launchMode === 'standalone') {
+    return false;
+  }
+  if (launchMode === 'course-resource') {
+    return true;
+  }
+  return Boolean(
+    fact.sessionId ||
+    fact.lessonId ||
+    fact.courseId ||
+    readString(sourceContext.classId) ||
+    readString(context.classId) ||
+    readString(sourceContext.courseId) ||
+    readString(context.courseId)
+  );
+}
+
+function buildSimulationArenaTraceReference(input: {
+  source: StudentSimulationArenaEvidenceSource;
+  fact: LearningFact;
+  sourceContext: Record<string, unknown>;
+  context: Record<string, unknown>;
+  historicalMaterialization: Record<string, unknown>;
+  envelope: Record<string, unknown>;
+}): StudentSimulationArenaTraceReference | null {
+  const traceReference =
+    readString(input.sourceContext.traceReference) ??
+    readString(input.context.traceReference) ??
+    readString(input.historicalMaterialization.traceReference) ??
+    readString(input.envelope.runId);
+
+  if (!traceReference) {
+    return null;
+  }
+
+  return compactObject({
+    source: input.source,
+    traceReference,
+    factId: input.fact.id,
+    sourceEventId: input.fact.sourceEventId,
+    sourceLogId: input.fact.sourceLogId,
+    startedAt: input.fact.startedAt.toISOString(),
+    protocolVersion:
+      readString(input.sourceContext.protocolVersion) ??
+      readString(input.context.protocolVersion) ??
+      readString(input.envelope.protocolVersion) ??
+      undefined,
+    checksum:
+      readString(input.sourceContext.checksum) ??
+      readString(input.context.checksum) ??
+      readString(input.envelope.checksum) ??
+      undefined,
+  }) as unknown as StudentSimulationArenaTraceReference;
+}
+
+function resolveReplayConfidence(
+  sourceContext: Record<string, unknown>,
+  context: Record<string, unknown>,
+  historicalMaterialization: Record<string, unknown>,
+  envelope: Record<string, unknown>
+): number | null {
+  const explicit =
+    finiteNumber(sourceContext.replayConfidence) ??
+    finiteNumber(context.replayConfidence);
+  if (explicit !== null) {
+    return clamp01(explicit);
+  }
+
+  const historicalConfidence = readString(historicalMaterialization.confidence);
+  if (historicalConfidence === 'high') return 0.85;
+  if (historicalConfidence === 'low') return 0.35;
+
+  if (readString(envelope.checksum) && readString(envelope.protocolVersion)) {
+    return 0.8;
+  }
+
+  return null;
+}
+
+function extractWeakMetrics(
+  sourceContext: Record<string, unknown>,
+  summary: Record<string, unknown>
+): Array<{ metricId: string; value: number }> {
+  const explicitWeakMetrics = Array.isArray(sourceContext.weakMetrics)
+    ? sourceContext.weakMetrics
+    : Array.isArray(summary.weakMetrics)
+      ? summary.weakMetrics
+      : [];
+  const weakMetrics: Array<{ metricId: string; value: number }> = [];
+
+  for (const entry of explicitWeakMetrics) {
+    if (!isObject(entry)) continue;
+    const metricId = readString(entry.metricId) ?? readString(entry.id);
+    const value =
+      finiteNumber(entry.lowestValue) ??
+      finiteNumber(entry.value) ??
+      finiteNumber(entry.satisfaction);
+    if (metricId && value !== null) {
+      weakMetrics.push({ metricId, value: round(value, 2) });
+    }
+  }
+
+  const satisfaction = isObject(sourceContext.satisfaction)
+    ? sourceContext.satisfaction
+    : isObject(summary.satisfaction)
+      ? summary.satisfaction
+      : {};
+  for (const [metricId, value] of Object.entries(satisfaction)) {
+    const numeric = finiteNumber(value);
+    if (numeric !== null && numeric < 0.6) {
+      weakMetrics.push({ metricId, value: round(numeric, 2) });
+    }
+  }
+
+  return weakMetrics;
+}
+
+function buildSimulationArenaWeakMetrics(
+  evidence: SimulationArenaFactEvidence[]
+): StudentSimulationArenaWeakMetric[] {
+  const metrics = new Map<string, { affectedFactIds: Set<string>; lowestValue: number }>();
+
+  for (const item of evidence) {
+    for (const metric of item.weakMetrics) {
+      const current = metrics.get(metric.metricId) ?? {
+        affectedFactIds: new Set<string>(),
+        lowestValue: metric.value,
+      };
+      current.affectedFactIds.add(item.fact.id);
+      current.lowestValue = Math.min(current.lowestValue, metric.value);
+      metrics.set(metric.metricId, current);
+    }
+  }
+
+  return Array.from(metrics.entries())
+    .map(([metricId, entry]) => ({
+      metricId,
+      affectedFactCount: entry.affectedFactIds.size,
+      lowestValue: round(entry.lowestValue, 2),
+    }))
+    .sort((left, right) => left.metricId.localeCompare(right.metricId));
+}
+
+function buildSimulationArenaQualityMarkers(input: {
+  evidence: SimulationArenaFactEvidence[];
+  replayConfidence: StudentSimulationArenaReplayConfidence;
+  now: Date;
+  staleAfterDays: number;
+}): StudentSimulationArenaEvidenceMarker[] {
+  const markers = new Set<StudentSimulationArenaEvidenceMarker>();
+  const { evidence } = input;
+  if (evidence.length === 0) {
+    return [];
+  }
+
+  const lastFact = evidence[evidence.length - 1]?.fact;
+  if (lastFact && input.now.getTime() - lastFact.startedAt.getTime() > input.staleAfterDays * DAY_MS) {
+    markers.add('stale');
+  }
+  if (evidence.some((item) => ['partial', 'failure', 'abandoned'].includes(item.fact.outcome))) {
+    markers.add('partial');
+  }
+  if (
+    input.replayConfidence.lowConfidenceCount > 0 ||
+    input.replayConfidence.missingCount > 0 ||
+    (input.replayConfidence.average !== null && input.replayConfidence.average < 0.5)
+  ) {
+    markers.add('low-confidence');
+  }
+  if (evidence.every((item) => item.preview)) {
+    markers.add('preview-only');
+  }
+  if (evidence.every((item) => item.standalone)) {
+    markers.add('standalone-only');
+  }
+
+  return Array.from(markers).sort();
+}
+
+function resolveCoverageCount(count: number): StudentEvidenceCoverageState {
+  return count > 0 ? 'available' : 'missing';
+}
+
+function resolveRequiredCoverage(total: number, available: number): StudentEvidenceCoverageState {
+  if (total === 0 || available === 0) {
+    return 'missing';
+  }
+  return available === total ? 'available' : 'partial';
+}
+
 function filterRecentFacts(facts: LearningFact[], now: Date, windowDays: number): LearningFact[] {
   const cutoff = new Date(now.getTime() - windowDays * DAY_MS);
   return facts.filter((fact) => fact.startedAt >= cutoff);
@@ -656,6 +1093,24 @@ function numberValue(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
+function finiteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function compactObject(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined)
+  );
+}
+
 function round(value: number, digits = 1): number {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
@@ -667,6 +1122,126 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function isCoverageState(value: unknown): value is StudentEvidenceCoverageState {
   return value === 'available' || value === 'partial' || value === 'missing';
+}
+
+function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean {
+  if (cache.payloadVersion !== STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION) {
+    return false;
+  }
+  const features = isObject(cache.features) ? cache.features : {};
+  const simulationArena = isObject(features.simulationArena) ? features.simulationArena : {};
+  return hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
+    hasSimulationArenaFeatureWindowSchema(simulationArena.allTime);
+}
+
+function hasSimulationArenaFeatureWindowSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  const sourceCoverage = isObject(value.sourceCoverage) ? value.sourceCoverage : {};
+  const replayConfidence = isObject(value.replayConfidence) ? value.replayConfidence : {};
+
+  return hasEvidenceWindowSchema(value.window) &&
+    hasFiniteNumber(value.evidenceCount) &&
+    hasFiniteNumber(value.completedCount) &&
+    hasFiniteNumber(value.officialCount) &&
+    hasFiniteNumber(value.previewCount) &&
+    hasFiniteNumber(value.courseLaunchedCount) &&
+    hasFiniteNumber(value.standaloneCount) &&
+    hasFiniteNumber(value.traceReferenceCount) &&
+    isCoverageState(sourceCoverage.simulation) &&
+    isCoverageState(sourceCoverage.arena) &&
+    isCoverageState(sourceCoverage.traceReferences) &&
+    isCoverageState(sourceCoverage.replayConfidence) &&
+    (replayConfidence.average === null || hasFiniteNumber(replayConfidence.average)) &&
+    hasFiniteNumber(replayConfidence.highConfidenceCount) &&
+    hasFiniteNumber(replayConfidence.lowConfidenceCount) &&
+    hasFiniteNumber(replayConfidence.missingCount) &&
+    hasWeakMetricsSchema(value.weakMetrics) &&
+    hasQualityMarkersSchema(value.qualityMarkers) &&
+    hasTraceReferencesSchema(value.traceReferences);
+}
+
+function hasEvidenceWindowSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return hasOptionalNonEmptyStringOrNull(value.firstStartedAt) &&
+    hasOptionalNonEmptyStringOrNull(value.lastStartedAt) &&
+    hasFiniteNumber(value.daysCovered);
+}
+
+function hasWeakMetricsSchema(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  return value.every((item) => {
+    if (!isObject(item)) {
+      return false;
+    }
+
+    return Boolean(readString(item.metricId)) &&
+      hasFiniteNumber(item.affectedFactCount) &&
+      hasFiniteNumber(item.lowestValue);
+  });
+}
+
+function hasQualityMarkersSchema(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  return value.every((item) =>
+    item === 'low-confidence' ||
+    item === 'preview-only' ||
+    item === 'standalone-only' ||
+    item === 'stale' ||
+    item === 'partial'
+  );
+}
+
+function hasTraceReferencesSchema(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  const allowedKeys = new Set([
+    'source',
+    'traceReference',
+    'factId',
+    'sourceEventId',
+    'sourceLogId',
+    'startedAt',
+    'protocolVersion',
+    'checksum',
+  ]);
+
+  return value.every((item) => {
+    if (!isObject(item)) {
+      return false;
+    }
+
+    return Object.keys(item).every((key) => allowedKeys.has(key)) &&
+      (item.source === 'simulation' || item.source === 'arena') &&
+      Boolean(readString(item.traceReference)) &&
+      Boolean(readString(item.factId)) &&
+      hasOptionalNonEmptyStringOrNull(item.sourceEventId) &&
+      hasOptionalNonEmptyStringOrNull(item.sourceLogId) &&
+      Boolean(readString(item.startedAt)) &&
+      hasOptionalNonEmptyStringOrNull(item.protocolVersion) &&
+      hasOptionalNonEmptyStringOrNull(item.checksum);
+  });
+}
+
+function hasOptionalNonEmptyStringOrNull(value: unknown): boolean {
+  return value === null || value === undefined || Boolean(readString(value));
+}
+
+function hasFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 function isStaleCacheEntry(entry: Record<string, unknown>, staleCutoff: Date): boolean {

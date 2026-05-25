@@ -83,6 +83,10 @@ vi.mock('@/lib/data-governance/recommendation-engine', () => ({
 
 import { GET as getClassInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { GET as getStudentInsights } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
+import {
+  summarizeTeacherEvidenceCoverage,
+  type TeacherStudentEvidenceStatus,
+} from '../teacher-evidence-governance';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -101,6 +105,7 @@ function enrolledStudent(userId: string, name: string) {
 function evidenceCache(userId: string, overrides: Record<string, unknown> = {}) {
   return {
     userId,
+    payloadVersion: 'student-evidence-features.v2',
     refreshedAt: new Date('2026-05-20T00:00:00.000Z'),
     lastSourceFactAt: new Date('2026-05-20T08:00:00.000Z'),
     sourceFactCount: 12,
@@ -128,6 +133,157 @@ function evidenceCache(userId: string, overrides: Record<string, unknown> = {}) 
     },
     statusMarkers: [],
     ...overrides,
+  };
+}
+
+function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
+  return {
+    recent30d: {
+      evidenceCount: 2,
+      completedCount: 1,
+      officialCount: 1,
+      previewCount: 0,
+      courseLaunchedCount: 2,
+      standaloneCount: 0,
+      traceReferenceCount: 2,
+      sourceCoverage: {
+        simulation: 'available',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'available',
+      },
+      replayConfidence: {
+        average: 0.86,
+        highConfidenceCount: 2,
+        lowConfidenceCount: 0,
+        missingCount: 0,
+      },
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
+      ],
+      qualityMarkers: [],
+      traceReferences: [
+        {
+          source: 'arena',
+          traceReference: 'ArenaEvaluationRun:official-run-1',
+          factId: 'fact-arena-1',
+          startedAt: '2026-05-20T08:00:00.000Z',
+          protocolVersion: 'arena-eval-v1',
+          checksum: 'checksum-safe',
+        },
+      ],
+    },
+    allTime: {
+      evidenceCount: 2,
+      completedCount: 1,
+      officialCount: 1,
+      previewCount: 0,
+      courseLaunchedCount: 2,
+      standaloneCount: 0,
+      traceReferenceCount: 2,
+      sourceCoverage: {
+        simulation: 'available',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'available',
+      },
+      replayConfidence: {
+        average: 0.86,
+        highConfidenceCount: 2,
+        lowConfidenceCount: 0,
+        missingCount: 0,
+      },
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
+      ],
+      qualityMarkers: [],
+      traceReferences: [
+        {
+          source: 'arena',
+          traceReference: 'ArenaEvaluationRun:official-run-1',
+          factId: 'fact-arena-1',
+          startedAt: '2026-05-20T08:00:00.000Z',
+          protocolVersion: 'arena-eval-v1',
+          checksum: 'checksum-safe',
+        },
+      ],
+    },
+    ...overrides,
+  };
+}
+
+function scopedSimulationArenaFact(
+  userId: string,
+  overrides: Record<string, unknown> = {},
+) {
+  const id = typeof overrides.id === 'string' ? overrides.id : `sim-fact-${userId}`;
+  return {
+    id,
+    userId,
+    factType: overrides.factType ?? 'simulation',
+    moduleId: overrides.moduleId ?? 'unit-5-2-nonlinear-analysis-entry',
+    sessionId: overrides.sessionId ?? 'session-current',
+    startedAt: overrides.startedAt ?? new Date('2026-05-20T08:00:00.000Z'),
+    finishedAt: overrides.finishedAt ?? new Date('2026-05-20T08:10:00.000Z'),
+    outcome: overrides.outcome ?? 'partial',
+    score: overrides.score ?? 62,
+    timeSpent: overrides.timeSpent ?? 600,
+    competencyContribution: overrides.competencyContribution ?? {},
+    sourceEventId: overrides.sourceEventId ?? `${id}:event`,
+    sourceLogId: overrides.sourceLogId ?? `${id}:log`,
+    courseId: overrides.courseId ?? 'course-1',
+    lessonId: overrides.lessonId ?? 'unit-5-2-nonlinear-analysis-entry',
+    contextJson: overrides.contextJson ?? {
+      arena: {
+        classId: 'class-1',
+        taskId: 'task-cruise-roll',
+        official: true,
+        valid: false,
+        traceReference: `ArenaEvaluationRun:${id}`,
+        replayConfidence: 0.86,
+        satisfaction: {
+          trackingError: 0.42,
+        },
+      },
+      evidenceGovernance: {
+        policyReason: 'official_arena_evaluation',
+      },
+    },
+    createdAt: overrides.createdAt ?? new Date('2026-05-20T08:10:00.000Z'),
+  };
+}
+
+function teacherStatusWithSimulationArena(
+  simulationArena: ReturnType<typeof simulationArenaFeature>,
+): TeacherStudentEvidenceStatus {
+  return {
+    state: 'ready',
+    refreshedAt: '2026-05-20T00:00:00.000Z',
+    lastEvidenceAt: '2026-05-20T08:00:00.000Z',
+    evidenceWindow: {
+      firstStartedAt: '2026-05-20T08:00:00.000Z',
+      lastStartedAt: '2026-05-20T08:00:00.000Z',
+      daysCovered: 0,
+    },
+    sourceCounts: {
+      LearningFact: 1,
+      StudentCompetencySnapshot: 0,
+      StudentProfileSummary: 0,
+      byFactType: { simulation: 1 },
+    },
+    sourceCoverage: {
+      LearningFact: 'available',
+      StudentCompetencySnapshot: 'missing',
+      StudentProfileSummary: 'missing',
+    },
+    confidence: {
+      level: 'high',
+      score: 0.9,
+      evidenceCount: 1,
+      sourceCompleteness: 1,
+    },
+    statusMarkers: [],
+    simulationArena: simulationArena as TeacherStudentEvidenceStatus['simulationArena'],
   };
 }
 
@@ -176,6 +332,40 @@ describe('teacher evidence governance insights', () => {
     vi.useRealTimers();
   });
 
+  it('weights class replay confidence by available replay evidence count', () => {
+    const summary = summarizeTeacherEvidenceCoverage([
+      teacherStatusWithSimulationArena(simulationArenaFeature({
+        allTime: {
+          ...simulationArenaFeature().allTime,
+          evidenceCount: 1,
+          replayConfidence: {
+            average: 0.95,
+            highConfidenceCount: 1,
+            lowConfidenceCount: 0,
+            missingCount: 0,
+          },
+        },
+      })),
+      teacherStatusWithSimulationArena(simulationArenaFeature({
+        allTime: {
+          ...simulationArenaFeature().allTime,
+          evidenceCount: 9,
+          replayConfidence: {
+            average: 0.2,
+            highConfidenceCount: 0,
+            lowConfidenceCount: 9,
+            missingCount: 0,
+          },
+        },
+      })),
+    ]);
+
+    expect(summary.simulationArena.replayConfidence).toMatchObject({
+      average: 0.28,
+      lowConfidenceStudents: 1,
+    });
+  });
+
   it('returns class evidence coverage counts and per-student cache state', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
@@ -205,11 +395,81 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
     mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
-    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        scopedSimulationArenaFact('student-ready', { id: 'ready-sim-1' }),
+        scopedSimulationArenaFact('student-ready', { id: 'ready-sim-2' }),
+        scopedSimulationArenaFact('student-low', {
+          id: 'low-sim-1',
+          contextJson: {
+            arena: {
+              classId: 'class-1',
+              taskId: 'task-cruise-roll',
+              official: true,
+              valid: false,
+              traceReference: 'ArenaEvaluationRun:low-sim-1',
+              replayConfidence: 0.34,
+              satisfaction: {
+                trackingError: 0.42,
+              },
+            },
+            evidenceGovernance: {
+              policyReason: 'official_arena_evaluation',
+            },
+          },
+        }),
+        scopedSimulationArenaFact('student-low', {
+          id: 'low-sim-2',
+          contextJson: {
+            arena: {
+              classId: 'class-1',
+              taskId: 'task-cruise-roll',
+              official: true,
+              valid: false,
+              traceReference: 'ArenaEvaluationRun:low-sim-2',
+              replayConfidence: 0.34,
+              satisfaction: {
+                trackingError: 0.42,
+              },
+            },
+            evidenceGovernance: {
+              policyReason: 'official_arena_evaluation',
+            },
+          },
+        }),
+      ]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
-      evidenceCache('student-ready'),
+      evidenceCache('student-ready', {
+        features: { simulationArena: simulationArenaFeature() },
+      }),
       evidenceCache('student-stale'),
-      evidenceCache('student-low'),
+      evidenceCache('student-low', {
+        features: {
+          simulationArena: simulationArenaFeature({
+            allTime: {
+              ...simulationArenaFeature().allTime,
+              replayConfidence: {
+                average: 0.34,
+                highConfidenceCount: 0,
+                lowConfidenceCount: 2,
+                missingCount: 0,
+              },
+              qualityMarkers: ['low-confidence', 'partial'],
+            },
+            recent30d: {
+              ...simulationArenaFeature().recent30d,
+              replayConfidence: {
+                average: 0.34,
+                highConfidenceCount: 0,
+                lowConfidenceCount: 2,
+                missingCount: 0,
+              },
+              qualityMarkers: ['low-confidence', 'partial'],
+            },
+          }),
+        },
+      }),
       evidenceCache('student-missing'),
     ]);
     mocks.prisma.classSession.findMany.mockResolvedValue([
@@ -269,8 +529,10 @@ describe('teacher evidence governance insights', () => {
       where: { userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] } },
       select: {
         userId: true,
+        payloadVersion: true,
         refreshedAt: true,
         statusMarkers: true,
+        features: true,
       },
     });
     expect(mocks.prisma.classSession.findMany).toHaveBeenCalledWith({
@@ -281,8 +543,22 @@ describe('teacher evidence governance insights', () => {
       by: ['userId', 'factType'],
       where: {
         userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] },
-        sessionId: { in: ['session-current'] },
+        OR: expect.arrayContaining([
+          { sessionId: { in: ['session-current'] } },
+          { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+        ]),
       },
+    }));
+    expect(mocks.prisma.learningFact.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] },
+        factType: { in: ['simulation', 'design'] },
+        OR: expect.arrayContaining([
+          { sessionId: { in: ['session-current'] } },
+          { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+        ]),
+      },
+      take: 1000,
     }));
     expect(body.governance.evidenceCoverage).toMatchObject({
       totalStudents: 4,
@@ -291,6 +567,20 @@ describe('teacher evidence governance insights', () => {
       missingStudents: 1,
       lowConfidenceStudents: 1,
       cacheCoverageRatio: 0.75,
+      simulationArena: {
+        totalStudents: 4,
+        studentsWithEvidence: 2,
+        lowConfidenceStudents: 1,
+        officialStudents: 2,
+        courseLaunchedStudents: 2,
+        replayConfidence: {
+          average: 0.6,
+          lowConfidenceStudents: 1,
+        },
+        weakMetricDistribution: [
+          { metricId: 'trackingError', affectedStudentCount: 2, affectedFactCount: 4 },
+        ],
+      },
     });
     expect(body.governance.recentSessionQuality).toMatchObject({
       totalReports: 1,
@@ -311,12 +601,101 @@ describe('teacher evidence governance insights', () => {
         StudentProfileSummary: 'missing',
       },
       lastEvidenceAt: '2026-05-20T08:00:00.000Z',
+      simulationArena: {
+        allTime: {
+          evidenceCount: 2,
+          traceReferenceCount: 2,
+        },
+      },
     });
     expect(body.students.find((student: { id: string }) => student.id === 'student-missing').evidenceStatus).toMatchObject({
       state: 'missing',
       confidence: { level: 'none', evidenceCount: 0 },
       lastEvidenceAt: null,
     });
+  });
+
+  it('does not count global simulation Arena cache entries outside the current class scope', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [
+        enrolledStudent('student-cross-class', '跨班证据'),
+      ],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
+      evidenceCache('student-cross-class', {
+        features: {
+          simulationArena: simulationArenaFeature({
+            allTime: {
+              ...simulationArenaFeature().allTime,
+              traceReferences: [
+                {
+                  source: 'arena',
+                  traceReference: 'ArenaEvaluationRun:other-class-run',
+                  factId: 'other-class-fact',
+                  startedAt: '2026-05-20T08:00:00.000Z',
+                },
+              ],
+            },
+          }),
+        },
+      }),
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      { id: 'session-current' },
+    ]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        scopedSimulationArenaFact('student-cross-class', {
+          id: 'other-class-fact',
+          sessionId: 'other-session',
+          contextJson: {
+            arena: {
+              classId: 'other-class',
+              taskId: 'task-cruise-roll',
+              official: true,
+              traceReference: 'ArenaEvaluationRun:other-class-run',
+              replayConfidence: 0.91,
+            },
+          },
+        }),
+      ]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.governance.evidenceCoverage.simulationArena).toMatchObject({
+      totalStudents: 1,
+      studentsWithEvidence: 0,
+      missingStudents: 1,
+      officialStudents: 0,
+      courseLaunchedStudents: 0,
+    });
+    expect(body.students[0].evidenceStatus.simulationArena.allTime).toMatchObject({
+      evidenceCount: 0,
+      traceReferenceCount: 0,
+      traceReferences: [],
+    });
+    expect(JSON.stringify(body)).not.toContain('other-class-run');
   });
 
   it('uses cache health to avoid marking stale feature data as ready', async () => {
@@ -374,6 +753,66 @@ describe('teacher evidence governance insights', () => {
       sourceCounts: {
         LearningFact: 12,
       },
+      statusMarkers: expect.arrayContaining(['stale']),
+    });
+    expect(body.governance.evidenceCoverage).toMatchObject({
+      readyStudents: 0,
+      staleStudents: 1,
+      missingStudents: 0,
+    });
+  });
+
+  it('treats outdated class cache-health payloads as stale even when recently refreshed', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [
+        enrolledStudent('student-v1-cache', '旧缓存'),
+      ],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      { id: 'session-current' },
+    ]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([
+      evidenceFactGroup(
+        'student-v1-cache',
+        'course-evidence',
+        12,
+        '2026-05-20T08:00:00.000Z',
+        '2026-05-20T08:30:00.000Z',
+      ),
+    ]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([
+      {
+        userId: 'student-v1-cache',
+        payloadVersion: 'student-evidence-features.v1',
+        refreshedAt: new Date('2026-05-20T09:00:00.000Z'),
+        statusMarkers: [],
+      },
+    ]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0].evidenceStatus).toMatchObject({
+      state: 'stale',
       statusMarkers: expect.arrayContaining(['stale']),
     });
     expect(body.governance.evidenceCoverage).toMatchObject({
@@ -485,24 +924,68 @@ describe('teacher evidence governance insights', () => {
         evidenceCount: 9,
         sourceCompleteness: 0.7,
       },
+      features: {
+        simulationArena: simulationArenaFeature({
+          allTime: {
+            ...simulationArenaFeature().allTime,
+            hiddenOfficialEvaluation: 'official-secret',
+            traceReferences: [
+              {
+                source: 'arena',
+                traceReference: 'ArenaEvaluationRun:official-run-1',
+                factId: 'fact-arena-1',
+                startedAt: '2026-05-20T08:00:00.000Z',
+                rawTracePayload: [{ t: 0, hidden: true }],
+              },
+            ],
+          },
+        }),
+      },
     }));
     mocks.prisma.classSession.findMany.mockResolvedValue([
       { id: 'session-5-2' },
     ]);
-    mocks.prisma.learningFact.findMany.mockResolvedValue([
-      {
-        id: 'fact-5-2',
-        factType: 'course-evidence',
-        moduleId: 'unit-5-2-nonlinear-analysis-entry',
-        lessonId: 'unit-5-2-nonlinear-analysis-entry',
-        sessionId: 'session-5-2',
-        startedAt: new Date('2026-05-20T08:10:00.000Z'),
-        finishedAt: new Date('2026-05-20T08:16:00.000Z'),
-        outcome: 'partial',
-        score: null,
-        timeSpent: 360,
-      },
-    ]);
+    mocks.prisma.learningFact.findMany.mockResolvedValueOnce([
+        {
+          id: 'fact-5-2',
+          userId: 'student-1',
+          factType: 'course-evidence',
+          moduleId: 'unit-5-2-nonlinear-analysis-entry',
+          lessonId: 'unit-5-2-nonlinear-analysis-entry',
+          sessionId: 'session-5-2',
+          startedAt: new Date('2026-05-20T08:10:00.000Z'),
+          finishedAt: new Date('2026-05-20T08:16:00.000Z'),
+          outcome: 'partial',
+          score: null,
+          timeSpent: 360,
+          competencyContribution: {},
+          sourceEventId: 'fact-5-2:event',
+          sourceLogId: 'fact-5-2:log',
+          courseId: 'course-1',
+          contextJson: {},
+          createdAt: new Date('2026-05-20T08:16:00.000Z'),
+        },
+        scopedSimulationArenaFact('student-1', {
+          id: 'scoped-arena-fact',
+          sessionId: 'session-5-2',
+          contextJson: {
+            arena: {
+              classId: 'class-1',
+              taskId: 'task-cruise-roll',
+              official: true,
+              valid: false,
+              traceReference: 'ArenaEvaluationRun:scoped-run-1',
+              replayConfidence: 0.86,
+              satisfaction: {
+                trackingError: 0.42,
+              },
+            },
+            evidenceGovernance: {
+              policyReason: 'official_arena_evaluation',
+            },
+          },
+        }),
+      ]);
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
       {
         id: 'response-1',
@@ -578,10 +1061,12 @@ describe('teacher evidence governance insights', () => {
     expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         userId: 'student-1',
-        sessionId: { in: ['session-5-2'] },
+        OR: expect.arrayContaining([
+          { sessionId: { in: ['session-5-2'] } },
+          { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+        ]),
       },
-      take: 8,
-      select: expect.not.objectContaining({ contextJson: true }),
+      take: 500,
     }));
     expect(mocks.prisma.studentStepResponse.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
@@ -600,18 +1085,40 @@ describe('teacher evidence governance insights', () => {
     }));
     expect(body.evidenceDrawer.featureCache).toMatchObject({
       state: 'ready',
+      sourceCounts: {
+        LearningFact: 2,
+        byFactType: {
+          'course-evidence': 1,
+          simulation: 1,
+        },
+      },
+      evidenceWindow: {
+        firstStartedAt: '2026-05-20T08:00:00.000Z',
+        lastStartedAt: '2026-05-20T08:10:00.000Z',
+      },
       confidence: {
         level: 'medium',
-        score: 0.64,
-        evidenceCount: 9,
+        evidenceCount: 2,
+      },
+      simulationArena: {
+        allTime: {
+          evidenceCount: 1,
+          traceReferences: [
+            {
+              source: 'arena',
+              traceReference: 'ArenaEvaluationRun:scoped-run-1',
+              factId: 'scoped-arena-fact',
+            },
+          ],
+        },
       },
     });
-    expect(body.evidenceDrawer.recentFacts).toEqual([
+    expect(body.evidenceDrawer.recentFacts).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'fact-5-2',
         lessonId: 'unit-5-2-nonlinear-analysis-entry',
       }),
-    ]);
+    ]));
     expect(body.evidenceDrawer.durableSubmissions[0]).toMatchObject({
       id: 'response-1',
       lessonKey: 'unit-5-2-nonlinear-analysis-entry',
@@ -627,6 +1134,9 @@ describe('teacher evidence governance insights', () => {
       },
     });
     expect(JSON.stringify(body)).not.toContain(longAnswer);
+    expect(JSON.stringify(body)).not.toContain('official-secret');
+    expect(JSON.stringify(body)).not.toContain('official-run-1');
+    expect(JSON.stringify(body)).not.toContain('rawTracePayload');
     expect(body.evidenceSummary[3].items[0].questionSummaries[0].studentAnswer.length).toBeLessThanOrEqual(120);
   });
 

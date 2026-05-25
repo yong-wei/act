@@ -1,7 +1,13 @@
-import type {
-  StudentEvidenceCoverageState,
-  StudentEvidenceStatusMarker,
-  StudentEvidenceWindow,
+import type { LearningFact, Prisma } from '@prisma/client';
+import {
+  buildStudentEvidenceFeaturePayload,
+  STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+  type StudentEvidenceCoverageState,
+  type StudentEvidenceStatusMarker,
+  type StudentEvidenceWindow,
+  type StudentSimulationArenaFeatureSummary,
+  type StudentSimulationArenaWeakMetric,
+  type StudentSimulationArenaTraceReference,
 } from './student-evidence-feature-cache';
 
 export type TeacherEvidenceState = 'ready' | 'stale' | 'missing';
@@ -26,6 +32,7 @@ export interface TeacherStudentEvidenceStatus {
     sourceCompleteness: number;
   };
   statusMarkers: StudentEvidenceStatusMarker[];
+  simulationArena: StudentSimulationArenaFeatureSummary;
 }
 
 export interface TeacherEvidenceCoverageSummary {
@@ -39,6 +46,34 @@ export interface TeacherEvidenceCoverageSummary {
     available: number;
     partial: number;
     missing: number;
+  }>;
+  simulationArena: TeacherSimulationArenaCoverageSummary;
+}
+
+export interface TeacherSimulationArenaCoverageSummary {
+  totalStudents: number;
+  studentsWithEvidence: number;
+  missingStudents: number;
+  lowConfidenceStudents: number;
+  previewOnlyStudents: number;
+  standaloneOnlyStudents: number;
+  officialStudents: number;
+  courseLaunchedStudents: number;
+  replayConfidence: {
+    average: number | null;
+    lowConfidenceStudents: number;
+    missingStudents: number;
+  };
+  sourceCoverage: Record<'simulation' | 'arena' | 'traceReferences' | 'replayConfidence', {
+    available: number;
+    partial: number;
+    missing: number;
+  }>;
+  weakMetricDistribution: Array<{
+    metricId: string;
+    affectedStudentCount: number;
+    affectedFactCount: number;
+    lowestValue: number;
   }>;
 }
 
@@ -73,8 +108,17 @@ export interface TeacherClassScopedEvidenceFactGroup {
 
 export interface TeacherClassScopedEvidenceCacheHealth {
   userId: string;
+  payloadVersion?: string | null;
   refreshedAt?: Date | string | null;
   statusMarkers?: unknown;
+  features?: unknown;
+}
+
+export interface TeacherScopedSimulationArenaOptions {
+  classId: string;
+  sessionIds?: string[];
+  now?: Date;
+  staleAfterDays?: number;
 }
 
 const DEFAULT_STALE_AFTER_DAYS = 30;
@@ -87,10 +131,14 @@ export function buildTeacherStudentEvidenceStatus(
     now?: Date;
     staleAfterDays?: number;
     readState?: TeacherEvidenceState;
+    simulationArena?: StudentSimulationArenaFeatureSummary;
   } = {},
 ): TeacherStudentEvidenceStatus {
   if (!cache) {
-    return createMissingStudentEvidenceStatus();
+    return {
+      ...createMissingStudentEvidenceStatus(),
+      simulationArena: options.simulationArena ?? createEmptySimulationArenaFeature(),
+    };
   }
 
   const sourceCounts = normalizeSourceCounts(cache.sourceCounts);
@@ -117,6 +165,9 @@ export function buildTeacherStudentEvidenceStatus(
     statusMarkers: state === 'stale' && !statusMarkers.includes('stale')
       ? [...statusMarkers, 'stale']
       : statusMarkers,
+    simulationArena:
+      options.simulationArena ??
+      normalizeSimulationArenaFeature(readObject(cache.features).simulationArena),
   };
 }
 
@@ -146,6 +197,7 @@ export function buildTeacherClassScopedEvidenceStatusMap(
     now?: Date;
     staleAfterDays?: number;
     cacheHealthByUserId?: Map<string, TeacherClassScopedEvidenceCacheHealth>;
+    scopedSimulationArenaByUserId?: Map<string, StudentSimulationArenaFeatureSummary>;
   } = {},
 ): Map<string, TeacherStudentEvidenceStatus> {
   const aggregates = new Map<string, {
@@ -180,7 +232,10 @@ export function buildTeacherClassScopedEvidenceStatusMap(
         applyClassScopedCacheHealth(
           classScopedStatus,
           options.cacheHealthByUserId?.get(userId) ?? null,
-          options,
+          {
+            ...options,
+            simulationArena: options.scopedSimulationArenaByUserId?.get(userId),
+          },
         ),
       ];
     }),
@@ -224,6 +279,7 @@ export function summarizeTeacherEvidenceCoverage(
       ? roundTo((readyStudents + staleStudents) / totalStudents, 2)
       : 0,
     sourceCoverage,
+    simulationArena: summarizeTeacherSimulationArenaCoverage(items),
   };
 }
 
@@ -257,6 +313,315 @@ export function summarizeTeacherSessionQualityReports(
     red: latestReports.filter((item) => item.qualityStatus === 'red').length,
     unknown: latestReports.filter((item) => item.qualityStatus === 'unknown').length,
     latestReports,
+  };
+}
+
+export function buildTeacherScopedSimulationArenaFeatureMap(
+  userIds: string[],
+  facts: LearningFact[],
+  options: TeacherScopedSimulationArenaOptions,
+): Map<string, StudentSimulationArenaFeatureSummary> {
+  const sessionIds = new Set(options.sessionIds ?? []);
+  const grouped = new Map<string, LearningFact[]>();
+
+  for (const fact of facts) {
+    if (!userIds.includes(fact.userId)) continue;
+    if (!isSimulationArenaFactInTeacherScope(fact, options.classId, sessionIds)) continue;
+    grouped.set(fact.userId, [...(grouped.get(fact.userId) ?? []), fact]);
+  }
+
+  return new Map(
+    userIds.map((userId) => {
+      const payload = buildStudentEvidenceFeaturePayload({
+        userId,
+        facts: grouped.get(userId) ?? [],
+        now: options.now,
+        staleAfterDays: options.staleAfterDays,
+      });
+      return [userId, payload.features.simulationArena] as const;
+    }),
+  );
+}
+
+export function buildTeacherScopedLearningFactScopeFilters(
+  classId: string,
+  sessionIds: string[],
+): Prisma.LearningFactWhereInput[] {
+  return [
+    ...(sessionIds.length > 0 ? [{ sessionId: { in: sessionIds } }] : []),
+    { contextJson: { path: ['classId'], equals: classId } },
+    { contextJson: { path: ['arena', 'classId'], equals: classId } },
+    { contextJson: { path: ['simulation', 'classId'], equals: classId } },
+    { contextJson: { path: ['governanceContext', 'classId'], equals: classId } },
+    { contextJson: { path: ['arena', 'governanceContext', 'classId'], equals: classId } },
+    { contextJson: { path: ['simulation', 'governanceContext', 'classId'], equals: classId } },
+  ];
+}
+
+function isSimulationArenaFactInTeacherScope(
+  fact: LearningFact,
+  classId: string,
+  sessionIds: Set<string>,
+): boolean {
+  if (fact.sessionId && sessionIds.has(fact.sessionId)) {
+    return true;
+  }
+
+  const context = readObject(fact.contextJson);
+  return hasScopedClassId(context, classId);
+}
+
+function hasScopedClassId(record: Record<string, unknown>, classId: string): boolean {
+  if (stringValue(record.classId) === classId) {
+    return true;
+  }
+
+  const arena = readObject(record.arena);
+  const simulation = readObject(record.simulation);
+  const governanceContext = readObject(record.governanceContext);
+  const arenaGovernanceContext = readObject(arena.governanceContext);
+  const simulationGovernanceContext = readObject(simulation.governanceContext);
+
+  return stringValue(arena.classId) === classId ||
+    stringValue(simulation.classId) === classId ||
+    stringValue(governanceContext.classId) === classId ||
+    stringValue(arenaGovernanceContext.classId) === classId ||
+    stringValue(simulationGovernanceContext.classId) === classId;
+}
+
+function summarizeTeacherSimulationArenaCoverage(
+  statuses: TeacherStudentEvidenceStatus[],
+): TeacherSimulationArenaCoverageSummary {
+  const sourceCoverage = {
+    simulation: createSourceCoverageCounts(),
+    arena: createSourceCoverageCounts(),
+    traceReferences: createSourceCoverageCounts(),
+    replayConfidence: createSourceCoverageCounts(),
+  };
+  const weakMetrics = new Map<string, {
+    affectedStudentCount: number;
+    affectedFactCount: number;
+    lowestValue: number;
+  }>();
+  let replayWeightedSum = 0;
+  let replayWeight = 0;
+  let studentsWithEvidence = 0;
+  let lowConfidenceStudents = 0;
+  let previewOnlyStudents = 0;
+  let standaloneOnlyStudents = 0;
+  let officialStudents = 0;
+  let courseLaunchedStudents = 0;
+  let replayLowConfidenceStudents = 0;
+  let replayMissingStudents = 0;
+
+  for (const status of statuses) {
+    const allTime = status.simulationArena.allTime;
+    if (allTime.evidenceCount > 0) studentsWithEvidence += 1;
+    if (allTime.qualityMarkers.includes('low-confidence')) lowConfidenceStudents += 1;
+    if (allTime.qualityMarkers.includes('preview-only')) previewOnlyStudents += 1;
+    if (allTime.qualityMarkers.includes('standalone-only')) standaloneOnlyStudents += 1;
+    if (allTime.officialCount > 0) officialStudents += 1;
+    if (allTime.courseLaunchedCount > 0) courseLaunchedStudents += 1;
+    if (allTime.replayConfidence.lowConfidenceCount > 0) replayLowConfidenceStudents += 1;
+    if (allTime.evidenceCount > 0 && allTime.replayConfidence.missingCount > 0) replayMissingStudents += 1;
+    if (allTime.replayConfidence.average !== null) {
+      const availableReplayCount = Math.max(
+        allTime.evidenceCount - allTime.replayConfidence.missingCount,
+        0,
+      );
+      replayWeightedSum += allTime.replayConfidence.average * availableReplayCount;
+      replayWeight += availableReplayCount;
+    }
+
+    sourceCoverage.simulation[allTime.sourceCoverage.simulation] += 1;
+    sourceCoverage.arena[allTime.sourceCoverage.arena] += 1;
+    sourceCoverage.traceReferences[allTime.sourceCoverage.traceReferences] += 1;
+    sourceCoverage.replayConfidence[allTime.sourceCoverage.replayConfidence] += 1;
+
+    for (const metric of allTime.weakMetrics) {
+      const current = weakMetrics.get(metric.metricId) ?? {
+        affectedStudentCount: 0,
+        affectedFactCount: 0,
+        lowestValue: metric.lowestValue,
+      };
+      weakMetrics.set(metric.metricId, {
+        affectedStudentCount: current.affectedStudentCount + 1,
+        affectedFactCount: current.affectedFactCount + metric.affectedFactCount,
+        lowestValue: Math.min(current.lowestValue, metric.lowestValue),
+      });
+    }
+  }
+
+  return {
+    totalStudents: statuses.length,
+    studentsWithEvidence,
+    missingStudents: statuses.length - studentsWithEvidence,
+    lowConfidenceStudents,
+    previewOnlyStudents,
+    standaloneOnlyStudents,
+    officialStudents,
+    courseLaunchedStudents,
+    replayConfidence: {
+      average: replayWeight > 0
+        ? roundTo(replayWeightedSum / replayWeight, 2)
+        : null,
+      lowConfidenceStudents: replayLowConfidenceStudents,
+      missingStudents: replayMissingStudents,
+    },
+    sourceCoverage,
+    weakMetricDistribution: Array.from(weakMetrics.entries())
+      .map(([metricId, metric]) => ({ metricId, ...metric }))
+      .sort((left, right) => (
+        right.affectedStudentCount - left.affectedStudentCount ||
+        left.metricId.localeCompare(right.metricId)
+      )),
+  };
+}
+
+function normalizeSimulationArenaFeature(value: unknown): StudentSimulationArenaFeatureSummary {
+  const feature = readObject(value);
+  return {
+    recent30d: normalizeSimulationArenaWindow(feature.recent30d),
+    allTime: normalizeSimulationArenaWindow(feature.allTime),
+  };
+}
+
+function normalizeSimulationArenaWindow(value: unknown): StudentSimulationArenaFeatureSummary['allTime'] {
+  const window = readObject(value);
+  const sourceCoverage = readObject(window.sourceCoverage);
+  return {
+    window: normalizeEvidenceWindow(window.window),
+    evidenceCount: numberValue(window.evidenceCount),
+    completedCount: numberValue(window.completedCount),
+    officialCount: numberValue(window.officialCount),
+    previewCount: numberValue(window.previewCount),
+    courseLaunchedCount: numberValue(window.courseLaunchedCount),
+    standaloneCount: numberValue(window.standaloneCount),
+    traceReferenceCount: numberValue(window.traceReferenceCount),
+    sourceCoverage: {
+      simulation: normalizeCoverageState(sourceCoverage.simulation),
+      arena: normalizeCoverageState(sourceCoverage.arena),
+      traceReferences: normalizeCoverageState(sourceCoverage.traceReferences),
+      replayConfidence: normalizeCoverageState(sourceCoverage.replayConfidence),
+    },
+    replayConfidence: normalizeSimulationArenaReplayConfidence(window.replayConfidence),
+    weakMetrics: normalizeSimulationArenaWeakMetrics(window.weakMetrics),
+    qualityMarkers: normalizeSimulationArenaQualityMarkers(window.qualityMarkers),
+    traceReferences: normalizeSimulationArenaTraceReferences(window.traceReferences),
+  };
+}
+
+function normalizeSimulationArenaReplayConfidence(
+  value: unknown,
+): StudentSimulationArenaFeatureSummary['allTime']['replayConfidence'] {
+  const replayConfidence = readObject(value);
+  return {
+    average: typeof replayConfidence.average === 'number' && Number.isFinite(replayConfidence.average)
+      ? replayConfidence.average
+      : null,
+    highConfidenceCount: numberValue(replayConfidence.highConfidenceCount),
+    lowConfidenceCount: numberValue(replayConfidence.lowConfidenceCount),
+    missingCount: numberValue(replayConfidence.missingCount),
+  };
+}
+
+function normalizeSimulationArenaWeakMetrics(value: unknown): StudentSimulationArenaWeakMetric[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const metric = readObject(item);
+      const metricId = stringValue(metric.metricId);
+      if (!metricId) return null;
+      return {
+        metricId,
+        affectedFactCount: numberValue(metric.affectedFactCount),
+        lowestValue: numberValue(metric.lowestValue),
+      };
+    })
+    .filter((item): item is StudentSimulationArenaWeakMetric => Boolean(item));
+}
+
+function normalizeSimulationArenaQualityMarkers(
+  value: unknown,
+): StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'][number] =>
+    item === 'low-confidence' ||
+    item === 'preview-only' ||
+    item === 'standalone-only' ||
+    item === 'stale' ||
+    item === 'partial'
+  );
+}
+
+function normalizeSimulationArenaTraceReferences(value: unknown): StudentSimulationArenaTraceReference[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const trace = readObject(item);
+      const source = trace.source === 'simulation' || trace.source === 'arena' ? trace.source : null;
+      const traceReference = stringValue(trace.traceReference);
+      const factId = stringValue(trace.factId);
+      const startedAt = stringValue(trace.startedAt);
+      if (!source || !traceReference || !factId || !startedAt) return null;
+      return compactTraceReference({
+        source,
+        traceReference,
+        factId,
+        sourceEventId: stringValue(trace.sourceEventId),
+        sourceLogId: stringValue(trace.sourceLogId),
+        startedAt,
+        protocolVersion: stringValue(trace.protocolVersion) ?? undefined,
+        checksum: stringValue(trace.checksum) ?? undefined,
+      });
+    })
+    .filter((item): item is StudentSimulationArenaTraceReference => Boolean(item));
+}
+
+function compactTraceReference(
+  value: StudentSimulationArenaTraceReference,
+): StudentSimulationArenaTraceReference {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as unknown as StudentSimulationArenaTraceReference;
+}
+
+function createEmptySimulationArenaFeature(): StudentSimulationArenaFeatureSummary {
+  return {
+    recent30d: createEmptySimulationArenaWindow(),
+    allTime: createEmptySimulationArenaWindow(),
+  };
+}
+
+function createEmptySimulationArenaWindow(): StudentSimulationArenaFeatureSummary['allTime'] {
+  return {
+    window: {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    },
+    evidenceCount: 0,
+    completedCount: 0,
+    officialCount: 0,
+    previewCount: 0,
+    courseLaunchedCount: 0,
+    standaloneCount: 0,
+    traceReferenceCount: 0,
+    sourceCoverage: {
+      simulation: 'missing',
+      arena: 'missing',
+      traceReferences: 'missing',
+      replayConfidence: 'missing',
+    },
+    replayConfidence: {
+      average: null,
+      highConfidenceCount: 0,
+      lowConfidenceCount: 0,
+      missingCount: 0,
+    },
+    weakMetrics: [],
+    qualityMarkers: [],
+    traceReferences: [],
   };
 }
 
@@ -310,44 +675,61 @@ function buildClassScopedEvidenceStatus(
       sourceCompleteness: 1,
     },
     statusMarkers,
+    simulationArena: createEmptySimulationArenaFeature(),
   };
 }
 
 function applyClassScopedCacheHealth(
   status: TeacherStudentEvidenceStatus,
   cacheHealth: TeacherClassScopedEvidenceCacheHealth | null,
-  options: { now?: Date; staleAfterDays?: number },
+  options: {
+    now?: Date;
+    staleAfterDays?: number;
+    simulationArena?: StudentSimulationArenaFeatureSummary;
+  },
 ): TeacherStudentEvidenceStatus {
+  const simulationArena = options.simulationArena ?? createEmptySimulationArenaFeature();
+
   if (!cacheHealth) {
     if (status.state === 'missing') {
-      return status;
+      return {
+        ...status,
+        simulationArena,
+      };
     }
     return {
       ...status,
       state: 'stale',
       refreshedAt: null,
       statusMarkers: mergeStatusMarkers(status.statusMarkers, ['missing-source', 'stale']),
+      simulationArena,
     };
   }
 
-  const cacheMarkers = normalizeStatusMarkers(cacheHealth.statusMarkers);
-  const cacheState = resolveEvidenceState(
-    { refreshedAt: cacheHealth.refreshedAt },
-    cacheMarkers,
-    options,
+  const cacheVersionIsCurrent = cacheHealth.payloadVersion === STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION;
+  const cacheMarkers = mergeStatusMarkers(
+    normalizeStatusMarkers(cacheHealth.statusMarkers),
+    cacheVersionIsCurrent ? [] : ['stale'],
   );
+  const cacheState = cacheVersionIsCurrent
+    ? resolveEvidenceState(
+        { refreshedAt: cacheHealth.refreshedAt },
+        cacheMarkers,
+        options,
+      )
+    : 'stale';
   const refreshedAt = dateToIso(cacheHealth.refreshedAt);
   const statusMarkers = mergeStatusMarkers(
     status.statusMarkers,
     cacheMarkers,
     cacheState === 'stale' ? ['stale'] : [],
   );
-
   if (status.state === 'missing') {
     return {
       ...status,
       refreshedAt,
       statusMarkers,
+      simulationArena,
     };
   }
 
@@ -356,6 +738,7 @@ function applyClassScopedCacheHealth(
     state: cacheState === 'stale' ? 'stale' : status.state,
     refreshedAt: refreshedAt ?? status.refreshedAt,
     statusMarkers,
+    simulationArena,
   };
 }
 
@@ -387,6 +770,7 @@ function createMissingStudentEvidenceStatus(): TeacherStudentEvidenceStatus {
       sourceCompleteness: 0,
     },
     statusMarkers: ['missing-source'],
+    simulationArena: createEmptySimulationArenaFeature(),
   };
 }
 

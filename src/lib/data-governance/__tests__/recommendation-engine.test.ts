@@ -46,9 +46,49 @@ const cacheVector: CompetencyVector = {
   selfDirectedLearning: { score: 61, trend: 'stable', confidence: 0.64, evidenceCount: 4, lastUpdated: '2026-05-18T00:00:00.000Z' },
 };
 
+function emptySimulationArenaWindow() {
+  return {
+    window: {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    },
+    evidenceCount: 0,
+    completedCount: 0,
+    officialCount: 0,
+    previewCount: 0,
+    courseLaunchedCount: 0,
+    standaloneCount: 0,
+    traceReferenceCount: 0,
+    sourceCoverage: {
+      simulation: 'missing',
+      arena: 'missing',
+      traceReferences: 'missing',
+      replayConfidence: 'missing',
+    },
+    replayConfidence: {
+      average: null,
+      highConfidenceCount: 0,
+      lowConfidenceCount: 0,
+      missingCount: 0,
+    },
+    weakMetrics: [],
+    qualityMarkers: [],
+    traceReferences: [],
+  };
+}
+
+function emptySimulationArenaFeature() {
+  return {
+    recent30d: emptySimulationArenaWindow(),
+    allTime: emptySimulationArenaWindow(),
+  };
+}
+
 function evidenceCache(overrides: Record<string, unknown> = {}) {
   return {
     userId: 'student-1',
+    payloadVersion: 'student-evidence-features.v2',
     refreshedAt: new Date('2026-05-19T00:00:00.000Z'),
     evidenceWindow: {
       firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -88,8 +128,90 @@ function evidenceCache(overrides: Record<string, unknown> = {}) {
           trendDirection: 'down',
         },
       },
+      simulationArena: emptySimulationArenaFeature(),
     },
     ...overrides,
+  };
+}
+
+function previewOnlySimulationArenaFeature() {
+  return {
+    recent30d: {
+      window: {
+        firstStartedAt: '2026-05-18T08:00:00.000Z',
+        lastStartedAt: '2026-05-18T08:00:00.000Z',
+        daysCovered: 0,
+      },
+      evidenceCount: 2,
+      completedCount: 0,
+      officialCount: 0,
+      previewCount: 2,
+      courseLaunchedCount: 0,
+      standaloneCount: 2,
+      traceReferenceCount: 2,
+      sourceCoverage: {
+        simulation: 'available',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'partial',
+      },
+      replayConfidence: {
+        average: 0.39,
+        highConfidenceCount: 0,
+        lowConfidenceCount: 2,
+        missingCount: 0,
+      },
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.32 },
+      ],
+      qualityMarkers: ['low-confidence', 'preview-only', 'standalone-only'],
+      traceReferences: [
+        {
+          source: 'arena',
+          traceReference: 'ArenaVirtualSimulationRun:preview-1',
+          factId: 'fact-preview-1',
+          startedAt: '2026-05-18T08:00:00.000Z',
+        },
+      ],
+    },
+    allTime: {
+      window: {
+        firstStartedAt: '2026-05-18T08:00:00.000Z',
+        lastStartedAt: '2026-05-18T08:00:00.000Z',
+        daysCovered: 0,
+      },
+      evidenceCount: 2,
+      completedCount: 0,
+      officialCount: 0,
+      previewCount: 2,
+      courseLaunchedCount: 0,
+      standaloneCount: 2,
+      traceReferenceCount: 2,
+      sourceCoverage: {
+        simulation: 'available',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'partial',
+      },
+      replayConfidence: {
+        average: 0.39,
+        highConfidenceCount: 0,
+        lowConfidenceCount: 2,
+        missingCount: 0,
+      },
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.32 },
+      ],
+      qualityMarkers: ['low-confidence', 'preview-only', 'standalone-only'],
+      traceReferences: [
+        {
+          source: 'arena',
+          traceReference: 'ArenaVirtualSimulationRun:preview-1',
+          factId: 'fact-preview-1',
+          startedAt: '2026-05-18T08:00:00.000Z',
+        },
+      ],
+    },
   };
 }
 
@@ -158,6 +280,133 @@ describe('generateRecommendations', () => {
         state: 'missing',
         level: 'low',
       },
+    });
+  });
+
+  it('exposes simulation and Arena rationale without treating preview-only context as high-confidence competency evidence', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      confidenceMarkers: {
+        level: 'high',
+        score: 0.91,
+        evidenceCount: 8,
+        sourceCompleteness: 1,
+      },
+      features: {
+        approvedAggregates: {
+          latestSnapshot: {
+            snapshotAt: '2026-05-18T00:00:00.000Z',
+            factCount: 8,
+            calculationVersion: 'v1',
+            competencyVector: cacheVector,
+          },
+          profileSummary: {
+            updatedAt: '2026-05-18T00:00:00.000Z',
+            overallScore: 65,
+            riskLevel: 'medium',
+            trendDirection: 'down',
+          },
+        },
+        simulationArena: previewOnlySimulationArenaFeature(),
+      },
+    }));
+    mocks.prisma.userProgress.count.mockResolvedValue(0);
+
+    const recommendations = await generateRecommendations('student-1');
+    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    const contextOnly = recommendations.find((item) => item.title === '探索知识图谱');
+
+    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
+      readiness: 'low-confidence',
+      evidenceKinds: ['preview-only', 'standalone'],
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.32 },
+      ],
+      replayConfidence: {
+        average: 0.39,
+        lowConfidenceCount: 2,
+      },
+      qualityMarkers: ['low-confidence', 'preview-only', 'standalone-only'],
+    });
+    expect(contextOnly?.rationale.contextOnly).toBe(true);
+    expect(contextOnly?.rationale.confidence.level).toBe('medium');
+    expect((contextOnly?.rationale as any).simulationArena).toMatchObject({
+      readiness: 'low-confidence',
+      evidenceKinds: ['preview-only', 'standalone'],
+    });
+  });
+
+  it('downgrades top-level rationale state when simulation Arena evidence is partial', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      confidenceMarkers: {
+        level: 'high',
+        score: 0.91,
+        evidenceCount: 8,
+        sourceCompleteness: 1,
+      },
+      features: {
+        approvedAggregates: {
+          latestSnapshot: {
+            snapshotAt: '2026-05-18T00:00:00.000Z',
+            factCount: 8,
+            calculationVersion: 'v1',
+            competencyVector: cacheVector,
+          },
+          profileSummary: null,
+        },
+        simulationArena: {
+          recent30d: {
+            ...previewOnlySimulationArenaFeature().recent30d,
+            previewCount: 0,
+            courseLaunchedCount: 2,
+            standaloneCount: 0,
+            traceReferenceCount: 1,
+            sourceCoverage: {
+              simulation: 'available',
+              arena: 'available',
+              traceReferences: 'partial',
+              replayConfidence: 'partial',
+            },
+            replayConfidence: {
+              average: 0.76,
+              highConfidenceCount: 1,
+              lowConfidenceCount: 0,
+              missingCount: 1,
+            },
+            qualityMarkers: ['partial'],
+          },
+          allTime: {
+            ...previewOnlySimulationArenaFeature().allTime,
+            previewCount: 0,
+            courseLaunchedCount: 2,
+            standaloneCount: 0,
+            traceReferenceCount: 1,
+            sourceCoverage: {
+              simulation: 'available',
+              arena: 'available',
+              traceReferences: 'partial',
+              replayConfidence: 'partial',
+            },
+            replayConfidence: {
+              average: 0.76,
+              highConfidenceCount: 1,
+              lowConfidenceCount: 0,
+              missingCount: 1,
+            },
+            qualityMarkers: ['partial'],
+          },
+        },
+      },
+    }));
+
+    const recommendations = await generateRecommendations('student-1');
+    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+
+    expect(weakDimension?.rationale.confidence).toMatchObject({
+      state: 'partial',
+      level: 'high',
+    });
+    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
+      readiness: 'partial',
     });
   });
 });
