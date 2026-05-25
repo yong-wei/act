@@ -57,23 +57,47 @@ const roleLabels: Record<PlatformRole, string> = {
   audit: '审计',
 };
 
+interface NavigationRenderItem {
+  item: PlatformNavigationItem;
+  depth: number;
+}
+
+function normalizeRoutePath(href: string) {
+  const path = href.split(/[?#]/, 1)[0];
+  return path || '/';
+}
+
+function flattenNavigationItems(
+  navigation: readonly PlatformNavigationItem[],
+  depth = 0,
+): NavigationRenderItem[] {
+  return navigation.flatMap((item) => [
+    { item, depth },
+    ...(item.children ? flattenNavigationItems(item.children, depth + 1) : []),
+  ]);
+}
+
 function isNavigationMatch(itemHref: string, activeHref?: string) {
   if (!activeHref) return false;
-  if (activeHref === itemHref) return true;
-  if (itemHref === '/') return false;
-  return activeHref.startsWith(`${itemHref}/`);
+  const itemPath = normalizeRoutePath(itemHref);
+  const activePath = normalizeRoutePath(activeHref);
+  if (activePath === itemPath) return true;
+  if (itemPath === '/') return false;
+  return activePath.startsWith(`${itemPath}/`);
 }
 
 function getActiveNavigationItemId(navigation: readonly PlatformNavigationItem[], activeHref?: string) {
-  return navigation
+  return flattenNavigationItems(navigation)
+    .map(({ item }) => item)
     .filter((item) => isNavigationMatch(item.href, activeHref))
-    .sort((left, right) => right.href.length - left.href.length)[0]?.id;
+    .sort((left, right) => normalizeRoutePath(right.href).length - normalizeRoutePath(left.href).length)[0]?.id;
 }
 
 function renderNavigationLink(
   item: PlatformNavigationItem,
   activeItemId: string | undefined,
   variant: 'sidebar' | 'mobile',
+  depth = 0,
 ) {
   const active = item.id === activeItemId;
   return (
@@ -84,6 +108,7 @@ function renderNavigationLink(
         variant === 'sidebar'
           ? 'block rounded-md px-3 py-2 text-sm font-medium transition'
           : 'inline-flex h-9 shrink-0 items-center rounded-md px-3 text-sm font-medium transition',
+        variant === 'sidebar' && depth > 0 && 'ml-3 border-l border-platform-border pl-3',
         active
           ? 'bg-platform-action-subtle text-platform-action-primary'
           : 'text-platform-fg-secondary hover:bg-platform-action-hover hover:text-platform-fg-primary',
@@ -189,10 +214,11 @@ export function AppHeader({
 
 export function AppSidebar({ navigation, activeHref, className }: AppSidebarProps) {
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
+  const renderItems = flattenNavigationItems(navigation);
   return (
     <aside className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', className)}>
       <nav className="space-y-1">
-        {navigation.map((item) => renderNavigationLink(item, activeItemId, 'sidebar'))}
+        {renderItems.map(({ item, depth }) => renderNavigationLink(item, activeItemId, 'sidebar', depth))}
       </nav>
     </aside>
   );
@@ -213,6 +239,7 @@ export function AppShell({
 }: AppShellProps) {
   const showSidebar = sidebarMode !== 'hidden';
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
+  const renderItems = flattenNavigationItems(navigation);
   return (
     <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
       <div className={cn('grid min-h-screen', showSidebar && 'lg:grid-cols-[248px_1fr]')}>
@@ -229,7 +256,7 @@ export function AppShell({
           {showSidebar && navigation.length > 0 ? (
             <nav aria-label="平台导航" className="border-b border-platform-border bg-platform-surface px-4 py-2 lg:hidden">
               <div className="flex gap-2 overflow-x-auto">
-                {navigation.map((item) => renderNavigationLink(item, activeItemId, 'mobile'))}
+                {renderItems.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
               </div>
             </nav>
           ) : null}

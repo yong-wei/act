@@ -46,6 +46,23 @@ function classNameOf(element: ReactElementLike) {
   return typeof className === 'string' ? className : '';
 }
 
+function collectElementsByType(element: unknown, type: unknown): ReactElementLike[] {
+  if (!element || typeof element !== 'object') return [];
+  const current = element as ReactElementLike;
+  const currentMatch = current.type === type ? [current] : [];
+  return [
+    ...currentMatch,
+    ...childElements(current.props?.children).flatMap((child) => collectElementsByType(child, type)),
+  ];
+}
+
+function collectLinks(element: unknown): ReactElementLike[] {
+  if (!element || typeof element !== 'object') return [];
+  const current = element as ReactElementLike;
+  const currentMatch = typeof current.props?.href === 'string' ? [current] : [];
+  return [...currentMatch, ...childElements(current.props?.children).flatMap((child) => collectLinks(child))];
+}
+
 describe('platform UI contracts', () => {
   it('defines semantic tokens in contracts, globals, and Tailwind', () => {
     const globals = readSource('src/app/globals.css');
@@ -186,6 +203,66 @@ describe('platform UI contracts', () => {
     expect(links).toHaveLength(2);
     expect(classNameOf(links[0])).not.toContain('bg-platform-action-subtle');
     expect(classNameOf(links[1])).toContain('bg-platform-action-subtle');
+  });
+
+  it('keeps active route matching stable when the current route has query or hash', () => {
+    const sidebar = asElement(
+      AppSidebar({
+        activeHref: '/teacher/classes?tab=all#roster',
+        navigation: [
+          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
+          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        ],
+      }),
+    );
+    const links = collectLinks(sidebar);
+
+    expect(links).toHaveLength(2);
+    expect(classNameOf(links[1])).toContain('bg-platform-action-subtle');
+  });
+
+  it('renders nested navigation children in sidebar and mobile shell links', () => {
+    const navigation: PlatformNavigationItem[] = [
+      {
+        id: 'teacher-home',
+        label: '教师首页',
+        href: '/teacher',
+        role: 'teacher',
+        order: 10,
+        children: [
+          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        ],
+      },
+    ];
+    const sidebar = asElement(AppSidebar({ activeHref: '/teacher/classes', navigation }));
+    const shell = asElement(
+      AppShell({
+        role: 'teacher',
+        title: '教师工作台',
+        activeHref: '/teacher/classes',
+        navigation,
+        children: null,
+      }),
+    );
+    const grid = asElement(shell.props?.children);
+    const content = childElements(grid.props?.children)[1];
+    const mobileNav = childElements(content.props?.children).find(
+      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
+    );
+
+    if (!mobileNav) {
+      throw new Error('Expected AppShell to render mobile role navigation.');
+    }
+
+    expect(collectLinks(sidebar).map((link) => link.props?.href)).toEqual([
+      '/teacher',
+      '/teacher/classes',
+    ]);
+    expect(collectLinks(mobileNav).map((link) => link.props?.href)).toEqual([
+      '/teacher',
+      '/teacher/classes',
+    ]);
+    expect(classNameOf(collectLinks(sidebar)[1])).toContain('bg-platform-action-subtle');
   });
 
   it('keeps role navigation reachable in the mobile shell', () => {
