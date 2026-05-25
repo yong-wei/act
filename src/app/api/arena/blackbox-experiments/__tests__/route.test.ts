@@ -149,6 +149,24 @@ describe('POST /api/arena/blackbox-experiments', () => {
     expect(payload.error).toContain('budget exceeded');
   });
 
+  it('reports pending Arena model registry migrations as a specific Chinese error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The table `ArenaIdentificationModel` does not exist in the current database.'),
+      { code: 'P2021', meta: { modelName: 'ArenaIdentificationModel' } },
+    );
+    mocks.runPublicExperiment.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      experimentInput,
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
   it('maps unsupported adapter selection to 400 without falling back to mock data', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');

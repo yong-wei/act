@@ -129,6 +129,21 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     expect(payload.error).toContain('does not belong');
   });
 
+  it('reports pending Arena model registry migrations as a specific Chinese error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The column `ArenaIdentificationModel.validationSummary` does not exist in the current database.'),
+      { code: 'P2022', meta: { modelName: 'ArenaIdentificationModel', column: 'ArenaIdentificationModel.validationSummary' } },
+    );
+    mocks.runVirtualPreview.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
   it('maps unsupported adapter selection to 400 without storing a preview run', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
