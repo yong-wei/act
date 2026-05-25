@@ -69,7 +69,8 @@ export interface EvaluationCriterion {
   metricId: string;
   operator: 'lt' | 'lte' | 'gt' | 'gte' | 'between';
   value: number;
-  value2?: number; // for 'between'
+  /** Required and must be > value when operator is 'between' */
+  value2?: number;
 }
 
 /**

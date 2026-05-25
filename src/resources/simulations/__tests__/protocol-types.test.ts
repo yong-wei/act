@@ -186,3 +186,13 @@ describe('Governance', () => {
     expect(spec.governance.contextFields).toContain('userId');
   });
 });
+
+describe('EvaluationCriterion between operator', () => {
+  it('requires value2 when operator is between, and value2 must exceed value', () => {
+    const criterion = buildSceneSpec().evaluation.successCriteria[0]!;
+    if (criterion.operator === 'between') {
+      expect(criterion.value2).toBeDefined();
+      expect(criterion.value2! > criterion.value).toBe(true);
+    }
+  });
+});

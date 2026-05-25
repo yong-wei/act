@@ -11,7 +11,7 @@
 | 域 | 状态 | 说明 |
 |----|------|------|
 | scene | ✓ 已有 | route: `/simulations/destroyer`, standalone 模式 |
-| model | ✓ 已有 | Nomoto1stOrder (runtime: nomoto_step_rk4), K=0.08, T=55 |
+| model | ✓ 已有 | Nomoto1stOrder (runtime: destroyer_hifi), K=0.08, T=55 |
 | disturbance | ⚠ 部分 | 默认海况 config，无显式 seed；`disturbancePattern: 'normal'`，含波浪/风/流 |
 | evaluation | ⚠ 部分 | 有 SimulationMetrics 和 EthicalViolation 阈值，但未包装为 EvaluationSpec v1 |
 | assets | ⚠ 部分 | 3D 船模 + 海面着色器，版本管理为隐式 |
