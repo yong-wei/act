@@ -24,6 +24,32 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 196 82% 56%;
     --radius: 0.5rem;
+    --platform-canvas: 222.2 84% 4.9%;
+    --platform-canvas-muted: 220 34% 10%;
+    --platform-surface: 222.2 84% 6.5%;
+    --platform-surface-raised: 220 34% 12%;
+    --platform-surface-overlay: 220 32% 14%;
+    --platform-fg-primary: 210 40% 98%;
+    --platform-fg-secondary: 214 20% 72%;
+    --platform-fg-muted: 215 16% 58%;
+    --platform-fg-inverse: 222.2 47.4% 11.2%;
+    --platform-border: 217.2 32.6% 17.5%;
+    --platform-border-strong: 214 20% 34%;
+    --platform-action-primary: 196 82% 56%;
+    --platform-action-hover: 196 62% 18%;
+    --platform-action-subtle: 196 82% 56% / 0.14;
+    --platform-evidence-eligible: 153 68% 45%;
+    --platform-evidence-context: 42 88% 58%;
+    --platform-evidence-unsupported: 0 72% 58%;
+    --platform-privacy-public: 196 82% 56%;
+    --platform-privacy-restricted: 264 66% 66%;
+    --platform-privacy-private: 340 72% 60%;
+    --platform-replay-ready: 153 68% 45%;
+    --platform-replay-partial: 42 88% 58%;
+    --platform-replay-missing: 215 16% 58%;
+    --platform-evaluation-official: 196 82% 56%;
+    --platform-evaluation-preview: 42 88% 58%;
+    --platform-evaluation-hidden: 264 66% 66%;
   }
 
   .light {
@@ -46,6 +72,32 @@
     --border: 205 28% 86%;
     --input: 205 28% 86%;
     --ring: 203 88% 42%;
+    --platform-canvas: 210 40% 98%;
+    --platform-canvas-muted: 204 42% 95%;
+    --platform-surface: 0 0% 100%;
+    --platform-surface-raised: 200 36% 97%;
+    --platform-surface-overlay: 0 0% 100%;
+    --platform-fg-primary: 222.2 47.4% 11.2%;
+    --platform-fg-secondary: 215 22% 32%;
+    --platform-fg-muted: 215 16% 48%;
+    --platform-fg-inverse: 210 40% 98%;
+    --platform-border: 205 28% 86%;
+    --platform-border-strong: 206 24% 76%;
+    --platform-action-primary: 203 88% 42%;
+    --platform-action-hover: 203 72% 91%;
+    --platform-action-subtle: 203 88% 42% / 0.12;
+    --platform-evidence-eligible: 154 62% 36%;
+    --platform-evidence-context: 38 88% 45%;
+    --platform-evidence-unsupported: 0 74% 50%;
+    --platform-privacy-public: 203 88% 42%;
+    --platform-privacy-restricted: 262 62% 54%;
+    --platform-privacy-private: 340 70% 48%;
+    --platform-replay-ready: 154 62% 36%;
+    --platform-replay-partial: 38 88% 45%;
+    --platform-replay-missing: 215 16% 48%;
+    --platform-evaluation-official: 203 88% 42%;
+    --platform-evaluation-preview: 38 88% 45%;
+    --platform-evaluation-hidden: 262 62% 54%;
   }
 }
 
