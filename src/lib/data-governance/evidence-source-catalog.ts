@@ -231,7 +231,7 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     materializationReadiness: 'ready',
     userIdField: 'userId',
     timestampField: 'createdAt',
-    traceabilityFields: ['id', 'missionId', 'sessionId', 'runId'],
+    traceabilityFields: ['id', 'missionId', 'sessionId'],
     provenancePolicy: 'Infer from payload markers when present; historical rows without markers remain unknown.',
   },
   {
@@ -322,7 +322,7 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     materializationReadiness: 'ready',
     userIdField: 'userId',
     timestampField: 'submittedAt',
-    traceabilityFields: ['id', 'taskId', 'classId', 'seasonId', 'publicationId', 'evaluationRunId', 'runId'],
+    traceabilityFields: ['id', 'taskId', 'classId', 'seasonId', 'publicationId', 'evaluationRunId'],
     provenancePolicy: 'Challenge publication and task metadata distinguish classroom-bound from standalone usage.',
   },
   {
