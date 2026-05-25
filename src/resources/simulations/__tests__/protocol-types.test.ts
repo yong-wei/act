@@ -197,9 +197,9 @@ describe('EvaluationCriterion between operator', () => {
   });
 
   it('validates a between criterion with explicit bounds', () => {
-    const betweenCriterion = {
+    const betweenCriterion: import('../core/protocol-types').EvaluationCriterion = {
       metricId: 'avgError',
-      operator: 'between' as const,
+      operator: 'between',
       value: 2,
       value2: 10,
     };
