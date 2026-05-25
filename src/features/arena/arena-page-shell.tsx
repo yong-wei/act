@@ -1,14 +1,21 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import {
-  BookOpen,
   ChevronRight,
   FlaskConical,
   Home,
   Map,
+  Sparkles,
   Trophy,
   User,
+  Wrench,
+  type LucideIcon,
 } from 'lucide-react';
+
+import {
+  getStudentCoreNavigationEntries,
+  type PlatformNavigationIconKey,
+} from '@/lib/platform-role-navigation';
 
 interface ArenaBreadcrumb {
   label: string;
@@ -21,12 +28,16 @@ interface ArenaPageShellProps {
   children: ReactNode;
 }
 
-const projectEntries = [
-  { label: '虚拟仿真', href: '/simulations', icon: FlaskConical },
-  { label: '竞技场', href: '/arena', icon: Trophy },
-  { label: '知识图谱', href: '/knowledge', icon: Map },
-  { label: '互动学习', href: '/interactive-learning', icon: BookOpen },
-];
+const projectEntries = getStudentCoreNavigationEntries();
+
+const projectEntryIcons: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
+  adaptive: Sparkles,
+  arena: Trophy,
+  knowledge: Map,
+  profile: User,
+  ship: FlaskConical,
+  workbench: Wrench,
+};
 
 export function ArenaPageShell({ breadcrumbs, activePath, children }: ArenaPageShellProps) {
   return (
@@ -44,7 +55,7 @@ export function ArenaPageShell({ breadcrumbs, activePath, children }: ArenaPageS
           </div>
           <nav className="flex-1 space-y-2 px-3 py-5">
             {projectEntries.map((entry) => {
-              const Icon = entry.icon;
+              const Icon = projectEntryIcons[entry.iconKey as PlatformNavigationIconKey] ?? Home;
               const active = activePath === entry.href || (entry.href !== '/arena' && activePath.startsWith(entry.href));
               return (
                 <Link
@@ -63,17 +74,6 @@ export function ArenaPageShell({ breadcrumbs, activePath, children }: ArenaPageS
               );
             })}
           </nav>
-          <div className="px-5 py-5">
-            <Link
-              href="/profile"
-              className="flex items-center gap-3 rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-sm text-foreground hover:bg-accent"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/12 text-primary">
-                <User className="h-4 w-4" />
-              </span>
-              个人中心
-            </Link>
-          </div>
         </aside>
 
         <div className="min-w-0">

@@ -1,4 +1,6 @@
 export type PlatformRole = 'student' | 'teacher' | 'admin' | 'audit';
+export type PlatformNavigationAudience = PlatformRole | 'guest' | 'all';
+export type PlatformNavigationAvailability = 'enabled' | 'disabled' | 'hidden';
 
 export type PlatformTokenCategory =
   | 'canvas'
@@ -21,15 +23,25 @@ export interface PlatformNavigationItem {
   id: string;
   label: string;
   href: string;
-  role: PlatformRole | 'all';
+  role: PlatformNavigationAudience;
   order: number;
+  group?: string;
+  description?: string;
+  iconKey?: string;
+  actionLabel?: string;
+  actionPriority?: number;
   featureFlag?: string;
+  availability?: PlatformNavigationAvailability;
+  disabledReason?: string;
+  aliasHrefs?: readonly string[];
   children?: PlatformNavigationItem[];
 }
 
 export interface PlatformNavigationFilter {
-  role: PlatformRole;
+  role: PlatformRole | 'guest';
   enabledFeatureFlags?: readonly string[];
+  includeDisabled?: boolean;
+  includeHidden?: boolean;
 }
 
 export interface PlatformShellAdapter {
@@ -135,7 +147,19 @@ export function filterPlatformNavigation(
   const enabledFlags = new Set(filter.enabledFeatureFlags ?? []);
   return sortNavigationItems(items)
     .filter((item) => item.role === 'all' || item.role === filter.role)
-    .filter((item) => !item.featureFlag || enabledFlags.has(item.featureFlag))
+    .map((item) => {
+      const featureEnabled = item.featureFlag ? enabledFlags.has(item.featureFlag) : true;
+      const fallbackAvailability = item.featureFlag ? 'hidden' : 'enabled';
+      const availability = item.featureFlag && !featureEnabled
+        ? item.availability ?? fallbackAvailability
+        : item.availability ?? 'enabled';
+      return {
+        ...item,
+        availability,
+      } satisfies PlatformNavigationItem;
+    })
+    .filter((item) => filter.includeHidden || item.availability !== 'hidden')
+    .filter((item) => filter.includeDisabled || item.availability !== 'disabled')
     .map((item) => ({
       ...item,
       children: item.children
