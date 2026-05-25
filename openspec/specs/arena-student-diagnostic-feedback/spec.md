@@ -1,4 +1,9 @@
-## ADDED Requirements
+# arena-student-diagnostic-feedback Specification
+
+## Purpose
+Define reusable student-facing Arena diagnostic feedback rules for official submissions, personal-best comparison, hard-constraint failures, and black-box secrecy boundaries.
+
+## Requirements
 
 ### Requirement: Student feedback explains official Arena submission outcomes
 The system SHALL generate student-facing diagnostic feedback from official Arena submission results.

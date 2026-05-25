@@ -1,4 +1,9 @@
-## ADDED Requirements
+# arena-learning-evidence-consumption Specification
+
+## Purpose
+Define how persisted Arena submissions and Arena learning-fact context are consumed by student profiles and teacher class insights without reconstructing official evaluation meaning in the front end.
+
+## Requirements
 
 ### Requirement: Student profile consumes Arena summaries
 The student profile API SHALL expose Arena summary fields derived from persisted official submissions and Arena LearningFact context.

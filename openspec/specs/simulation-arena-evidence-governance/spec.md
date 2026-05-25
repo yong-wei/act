@@ -1,7 +1,8 @@
 # simulation-arena-evidence-governance Specification
 
 ## Purpose
-TBD - created by archiving change govern-simulation-and-arena-evidence-sources. Update Purpose after archive.
+Define how simulation and Arena runtime records are cataloged, audited, and materialized as governed learning evidence while preserving source context and keeping high-frequency trace samples out of `LearningFact`.
+
 ## Requirements
 ### Requirement: Simulation and Arena evidence sources are cataloged
 The system SHALL catalog simulation sessions/logs and Arena public experiments, virtual previews, official submissions, and official evaluation runs as governed evidence sources.
@@ -31,4 +32,3 @@ The system SHALL preserve course, class, session, publication, and standalone la
 #### Scenario: Simulation launches from a lesson
 - **WHEN** a simulation is launched from a DB BOPPPS lesson item
 - **THEN** materialized evidence SHALL include the available course/class/session context
-

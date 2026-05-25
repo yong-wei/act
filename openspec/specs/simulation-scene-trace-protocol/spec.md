@@ -1,7 +1,8 @@
 # simulation-scene-trace-protocol Specification
 
 ## Purpose
-TBD - created by archiving change standardize-simulation-scene-and-trace-protocol. Update Purpose after archive.
+Define the canonical scene, trace, and evaluation contracts that let standalone simulations, course resources, and Arena evaluation paths share model identity, replay metadata, summary metrics, and evidence governance semantics without reintroducing page-local numerical engines.
+
 ## Requirements
 ### Requirement: SceneSpec v1 describes simulation scenes
 The system SHALL define `SceneSpec v1` as the canonical description for a virtual simulation scene, including scene identity, model identity, disturbance policy, evaluation policy, assets, telemetry, replay metadata, and evidence governance metadata.
@@ -42,4 +43,3 @@ The system SHALL keep Rust/WASM model ownership and fixed-step `SimulationClock`
 #### Scenario: Protocol is added
 - **WHEN** `SceneSpec v1` and `SimulationTrace v1` are introduced
 - **THEN** the system SHALL NOT reintroduce front-end physics steppers, variable-delta model progression, or page-local numerical integrators
-
