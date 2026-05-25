@@ -27,6 +27,7 @@ function isPendingArenaDatabaseMigration(error: unknown): boolean {
     meta?: {
       modelName?: unknown;
       column?: unknown;
+      table?: unknown;
     };
   };
   if (prismaError.code !== 'P2021' && prismaError.code !== 'P2022') {
@@ -34,7 +35,10 @@ function isPendingArenaDatabaseMigration(error: unknown): boolean {
   }
   const modelName = typeof prismaError.meta?.modelName === 'string' ? prismaError.meta.modelName : '';
   const column = typeof prismaError.meta?.column === 'string' ? prismaError.meta.column : '';
-  return modelName.startsWith('Arena') || column.startsWith('Arena');
+  const table = typeof prismaError.meta?.table === 'string' ? prismaError.meta.table : '';
+  return [modelName, column, table].some((value) => (
+    value.split(/[^A-Za-z0-9_]+/).some((part) => part.startsWith('Arena'))
+  ));
 }
 
 export async function POST(request: Request) {

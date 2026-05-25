@@ -153,7 +153,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     const migrationError = Object.assign(
       new Error('The table `ArenaIdentificationModel` does not exist in the current database.'),
-      { code: 'P2021', meta: { modelName: 'ArenaIdentificationModel' } },
+      { code: 'P2021', meta: { table: 'public.ArenaIdentificationModel' } },
     );
     mocks.runPublicExperiment.mockRejectedValueOnce(migrationError);
 
