@@ -1,3 +1,7 @@
+import { getPlatformNavigationHref } from '@/lib/platform-role-navigation';
+
+const teacherHref = (id: string, fallback: string) => getPlatformNavigationHref(id) ?? fallback;
+
 export type TeacherDashboardStatKey =
   | 'totalClasses'
   | 'totalStudents'
@@ -35,7 +39,7 @@ export const TEACHER_DASHBOARD_PRIMARY_STATS: TeacherDashboardPrimaryStat[] = [
   {
     key: 'totalClasses',
     label: '我的班级',
-    href: '/teacher/classes',
+    href: teacherHref('teacher-classes', '/teacher/classes'),
     icon: 'users',
     tone: 'sky',
   },
@@ -60,7 +64,7 @@ export const TEACHER_DASHBOARD_PRIMARY_STATS: TeacherDashboardPrimaryStat[] = [
   {
     key: 'finishedSessions',
     label: '上课历史',
-    href: '/teacher/history',
+    href: teacherHref('teacher-history', '/teacher/history'),
     icon: 'history',
     tone: 'violet',
   },
@@ -70,35 +74,35 @@ export const TEACHER_DASHBOARD_QUICK_ACTIONS: TeacherDashboardQuickAction[] = [
   {
     title: '新建班级',
     description: '创建班级并生成加入码',
-    href: '/teacher/classes/new',
+    href: `${teacherHref('teacher-classes', '/teacher/classes')}/new`,
     icon: 'plus',
     tone: 'sky',
   },
   {
     title: '新建教案',
     description: '创建 BOPPPS 教学设计',
-    href: '/teacher/lesson-plans/new',
+    href: `${teacherHref('teacher-lesson-plans', '/teacher/lesson-plans')}/new`,
     icon: 'book-open',
     tone: 'amber',
   },
   {
     title: '预置教案',
     description: '浏览系统预置的教学模板',
-    href: '/teacher/preset-lessons',
+    href: teacherHref('teacher-preset-lessons', '/teacher/preset-lessons'),
     icon: 'file-text',
     tone: 'cyan',
   },
   {
     title: '教学资源管理',
     description: '管理互动组件与知识卡片',
-    href: '/teacher/resources',
+    href: teacherHref('teacher-resources', '/teacher/resources'),
     icon: 'library',
     tone: 'violet',
   },
   {
     title: '上课历史',
     description: '查看全部已结束课堂并归档到班级',
-    href: '/teacher/history',
+    href: teacherHref('teacher-history', '/teacher/history'),
     icon: 'history',
     tone: 'emerald',
   },
