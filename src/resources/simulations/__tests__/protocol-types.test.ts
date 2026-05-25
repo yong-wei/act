@@ -195,4 +195,15 @@ describe('EvaluationCriterion between operator', () => {
       expect(criterion.value2! > criterion.value).toBe(true);
     }
   });
+
+  it('validates a between criterion with explicit bounds', () => {
+    const betweenCriterion = {
+      metricId: 'avgError',
+      operator: 'between' as const,
+      value: 2,
+      value2: 10,
+    };
+    expect(betweenCriterion.value2).toBeDefined();
+    expect(betweenCriterion.value2! > betweenCriterion.value).toBe(true);
+  });
 });
