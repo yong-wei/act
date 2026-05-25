@@ -295,4 +295,25 @@ describe('platform UI contracts', () => {
       '/teacher/classes',
     ]);
   });
+
+  it('does not reserve sidebar layout space when shell navigation is empty', () => {
+    const shell = asElement(
+      AppShell({
+        role: 'teacher',
+        title: '教师工作台',
+        navigation: [],
+        children: null,
+      }),
+    );
+    const grid = asElement(shell.props?.children);
+    const gridChildren = childElements(grid.props?.children);
+
+    expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');
+    expect(gridChildren.some((child) => child.type === AppSidebar)).toBe(false);
+    expect(
+      childElements(gridChildren[0].props?.children).some(
+        (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
+      ),
+    ).toBe(false);
+  });
 });

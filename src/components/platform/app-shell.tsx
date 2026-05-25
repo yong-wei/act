@@ -237,9 +237,9 @@ export function AppShell({
   children,
   className,
 }: AppShellProps) {
-  const showSidebar = sidebarMode !== 'hidden';
-  const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   const renderItems = flattenNavigationItems(navigation);
+  const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
+  const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   return (
     <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
       <div className={cn('grid min-h-screen', showSidebar && 'lg:grid-cols-[248px_1fr]')}>
