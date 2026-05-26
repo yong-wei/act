@@ -310,6 +310,48 @@ describe('interactive evidence scoring recompute', () => {
     expect(plan.factActions).toEqual([]);
   });
 
+  it('matches question facts when lesson ids use canonical aliases', () => {
+    const rows = buildRows();
+    const lessonKey = 'unit-5-3-mass-coordination-chain-v1';
+    rows.studentStepResponses[0] = { ...rows.studentStepResponses[0], lessonKey };
+    rows.interactionLogs[0] = { ...rows.interactionLogs[0], lessonKey };
+    rows.learningFacts[0] = { ...rows.learningFacts[0], lessonId: '5-3' };
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: { [lessonKey]: lesson53Manifest },
+      studentStepResponses: rows.studentStepResponses,
+      interactionLogs: rows.interactionLogs,
+      learningFacts: rows.learningFacts,
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
+    expect(plan.factActions).toHaveLength(1);
+    expect(plan.factActions[0]).toMatchObject({
+      action: 'update-derived-context',
+      factId: 'fact-53',
+    });
+  });
+
+  it('does not match question facts from a different lesson alias even when trace ids match', () => {
+    const rows = buildRows();
+    const lessonKey = 'unit-5-3-mass-coordination-chain-v1';
+    rows.studentStepResponses[0] = { ...rows.studentStepResponses[0], lessonKey };
+    rows.interactionLogs[0] = { ...rows.interactionLogs[0], lessonKey };
+    rows.learningFacts[0] = { ...rows.learningFacts[0], lessonId: '5-2' };
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: { [lessonKey]: lesson53Manifest },
+      studentStepResponses: rows.studentStepResponses,
+      interactionLogs: rows.interactionLogs,
+      learningFacts: rows.learningFacts,
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
+    expect(plan.factActions).toEqual([]);
+  });
+
   it('does not repair sourceLogId from an interaction log that belongs to another user or session', () => {
     const rows = buildRows();
     const sharedEventId = 'shared-client-event';

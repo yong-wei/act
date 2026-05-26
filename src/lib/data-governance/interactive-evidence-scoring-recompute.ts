@@ -5,6 +5,7 @@ import {
   getInteractiveRuntimeStep,
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
+import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 import { MANIFEST_OBJECTIVE_SCORING_VERSION } from '@/lib/manifest-objective-scoring';
 import { deriveFactOutcome } from './event-normalization';
 import { summarizeSubmissionEvidencePayload } from './submission-evidence-quality';
@@ -405,19 +406,46 @@ function buildResponseFallbackCounts(responses: InteractiveEvidenceScoringRespon
   return counts;
 }
 
+function addLessonAlias(aliases: Set<string>, value: string | null | undefined) {
+  const alias = String(value ?? '').trim();
+  if (alias) aliases.add(alias);
+}
+
+function buildLessonAliases(lessonKey: string | null) {
+  const aliases = new Set<string>();
+  addLessonAlias(aliases, lessonKey);
+  if (!lessonKey) return aliases;
+
+  const resolved = resolveInteractiveLessonIdentity(lessonKey);
+  if (resolved.status === 'resolved') {
+    addLessonAlias(aliases, resolved.record.canonicalId);
+    addLessonAlias(aliases, resolved.record.runtimeLessonDir);
+    for (const alias of resolved.record.routeSegments) addLessonAlias(aliases, alias);
+    for (const alias of resolved.record.lessonKeys) addLessonAlias(aliases, alias);
+    for (const alias of resolved.record.presetKeys) addLessonAlias(aliases, alias);
+    for (const alias of resolved.record.evidenceAliases) addLessonAlias(aliases, alias);
+  }
+
+  return aliases;
+}
+
 function findMatchingFacts(
   response: InteractiveEvidenceScoringResponseRow,
   learningFacts: InteractiveEvidenceScoringLearningFactRow[],
   fallbackResponseCount: number,
 ) {
   const stableSourceEventIds = buildStableResponseSourceEventIds(response);
+  const lessonAliases = buildLessonAliases(response.lessonKey);
   const belongsToResponse = (fact: InteractiveEvidenceScoringLearningFactRow) => (
     fact.userId === response.userId && fact.sessionId === response.sessionId
+  );
+  const matchesLesson = (fact: InteractiveEvidenceScoringLearningFactRow) => (
+    !response.lessonKey || lessonAliases.has(String(fact.lessonId ?? '').trim())
   );
   const isInteractiveQuestionFact = (fact: InteractiveEvidenceScoringLearningFactRow) => (
     fact.factType === 'question'
     && fact.moduleId === response.stepId
-    && (!response.lessonKey || fact.lessonId === response.lessonKey)
+    && matchesLesson(fact)
   );
   const preciseMatches = learningFacts.filter((fact) => (
     belongsToResponse(fact)
