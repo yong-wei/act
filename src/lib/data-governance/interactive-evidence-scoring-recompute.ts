@@ -411,9 +411,15 @@ function addLessonAlias(aliases: Set<string>, value: string | null | undefined) 
   if (alias) aliases.add(alias);
 }
 
-function buildLessonAliases(lessonKey: string | null) {
+function buildLessonAliases(
+  lessonKey: string | null,
+  manifest: InteractiveRuntimeManifest | null | undefined,
+) {
   const aliases = new Set<string>();
   addLessonAlias(aliases, lessonKey);
+  addLessonAlias(aliases, manifest?.lessonId);
+  addLessonAlias(aliases, manifest?.courseRouteSegment);
+  addLessonAlias(aliases, manifest?.courseRouteSegment ? `${manifest.courseRouteSegment}-v1` : null);
   if (!lessonKey) return aliases;
 
   const resolved = resolveInteractiveLessonIdentity(lessonKey);
@@ -433,9 +439,10 @@ function findMatchingFacts(
   response: InteractiveEvidenceScoringResponseRow,
   learningFacts: InteractiveEvidenceScoringLearningFactRow[],
   fallbackResponseCount: number,
+  manifest: InteractiveRuntimeManifest | null | undefined,
 ) {
   const stableSourceEventIds = buildStableResponseSourceEventIds(response);
-  const lessonAliases = buildLessonAliases(response.lessonKey);
+  const lessonAliases = buildLessonAliases(response.lessonKey, manifest);
   const belongsToResponse = (fact: InteractiveEvidenceScoringLearningFactRow) => (
     fact.userId === response.userId && fact.sessionId === response.sessionId
   );
@@ -555,7 +562,7 @@ function buildFactAction(
   const context = readRecord(fact.contextJson);
   const nextScore = readNumber(responseData.score);
   const oldScore = fact.score;
-  const newOutcome = nextScore === null ? fact.outcome : deriveFactOutcome('lesson_submit', { score: nextScore });
+  const newOutcome = nextScore === null ? 'unknown' : deriveFactOutcome('lesson_submit', { score: nextScore });
   const matchingLog = fact.sourceLogId
     ? null
     : findOwnedInteractionLog(response, fact, sourceIndex);
@@ -573,7 +580,7 @@ function buildFactAction(
   });
   const contextChanged = !sameJson(context.interactiveQuiz, nextContextJson.interactiveQuiz)
     || !sameJson(context.interactiveEvidenceScoringRecompute, nextContextJson.interactiveEvidenceScoringRecompute);
-  const scoreChanged = nextScore !== null && oldScore !== nextScore;
+  const scoreChanged = oldScore !== nextScore;
   const outcomeChanged = fact.outcome !== newOutcome;
   const sourceLogChanged = Boolean(nextSourceLogId && fact.sourceLogId !== nextSourceLogId);
 
@@ -808,6 +815,7 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
         response,
         input.learningFacts,
         responseFallbackCounts.get(buildResponseFallbackKey(response)) ?? 0,
+        response.lessonKey ? manifestMap.get(response.lessonKey) : null,
       )) {
         const sourceLogDiagnostic = buildSourceLogDiagnostic(response, fact, sourceIndex);
         if (sourceLogDiagnostic && !seenSourceLogDiagnosticFactIds.has(fact.id)) {
@@ -981,7 +989,7 @@ export async function applyInteractiveEvidenceScoringRecomputePlan(
     const data: JsonRecord = {
       contextJson: action.nextContextJson as Prisma.InputJsonValue,
     };
-    if (action.newScore !== null && action.oldScore !== action.newScore) {
+    if (action.oldScore !== action.newScore) {
       data.score = action.newScore;
     }
     if (action.oldOutcome !== action.newOutcome) {

@@ -352,6 +352,34 @@ describe('interactive evidence scoring recompute', () => {
     expect(plan.factActions).toEqual([]);
   });
 
+  it('uses runtime manifest aliases for courses outside the static lesson registry', () => {
+    const rows = buildRows();
+    const lessonKey = 'unit-6-1-new-course-v1';
+    const runtimeManifest = {
+      ...lesson53Manifest,
+      lessonId: '6-1',
+      courseRouteSegment: 'unit-6-1-new-course',
+    };
+    rows.studentStepResponses[0] = { ...rows.studentStepResponses[0], lessonKey };
+    rows.interactionLogs[0] = { ...rows.interactionLogs[0], lessonKey };
+    rows.learningFacts[0] = { ...rows.learningFacts[0], lessonId: '6-1' };
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: { [lessonKey]: runtimeManifest },
+      studentStepResponses: rows.studentStepResponses,
+      interactionLogs: rows.interactionLogs,
+      learningFacts: rows.learningFacts,
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
+    expect(plan.factActions).toHaveLength(1);
+    expect(plan.factActions[0]).toMatchObject({
+      action: 'update-derived-context',
+      factId: 'fact-53',
+    });
+  });
+
   it('does not repair sourceLogId from an interaction log that belongs to another user or session', () => {
     const rows = buildRows();
     const sharedEventId = 'shared-client-event';
@@ -580,6 +608,63 @@ describe('interactive evidence scoring recompute', () => {
     expect(secondPlan.totals.factRowsChanged).toBe(0);
     expect(secondPlan.responseActions[0]).toMatchObject({ action: 'already-current' });
     expect(secondPlan.factActions).toEqual([]);
+  });
+
+  it('clears learning fact score when recomputed response is no longer scoreable', async () => {
+    const unsupportedManifest = {
+      ...lesson53Manifest,
+      steps: [
+        {
+          ...lesson53Manifest.steps[0],
+          interactionSpec: {
+            ...lesson53Manifest.steps[0].interactionSpec,
+            activityCards: lesson53Manifest.steps[0].interactionSpec.activityCards?.map((card) => ({
+              ...card,
+              responseKind: 'free_text',
+            })),
+          },
+        },
+      ],
+    };
+    const rows = buildRows();
+    rows.learningFacts[0] = {
+      ...rows.learningFacts[0],
+      score: 80,
+      outcome: 'success',
+    };
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': unsupportedManifest,
+      },
+      ...rows,
+    });
+    const db = {
+      studentStepResponse: { update: vi.fn().mockResolvedValue({}) },
+      learningFact: { update: vi.fn().mockResolvedValue({}) },
+    };
+
+    expect(plan.responseActions[0]).toMatchObject({
+      action: 'update-derived-scoring',
+      oldScore: 0,
+      newScore: null,
+    });
+    expect(plan.factActions[0]).toMatchObject({
+      oldScore: 80,
+      newScore: null,
+      oldOutcome: 'success',
+      newOutcome: 'unknown',
+    });
+
+    await applyInteractiveEvidenceScoringRecomputePlan(db as never, plan);
+
+    expect(db.learningFact.update).toHaveBeenCalledWith({
+      where: { id: 'fact-53' },
+      data: expect.objectContaining({
+        score: null,
+        outcome: 'unknown',
+      }),
+    });
   });
 
   it('blocks apply when lesson identity cannot resolve to a manifest', async () => {
