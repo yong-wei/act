@@ -4,7 +4,7 @@
 Define the governed per-student evidence feature cache used by profile, recommendation, and teacher-insight consumers so derived evidence can be rebuilt deterministically from approved source facts and aggregates.
 ## Requirements
 ### Requirement: Student evidence feature cache is rebuildable
-The system SHALL maintain a per-student evidence feature cache that is deterministically rebuildable from governed evidence.
+The system SHALL maintain a per-student evidence feature cache that is deterministically rebuildable from governed evidence, including governed simulation and Arena learning facts and compact trace summaries.
 
 #### Scenario: Full rebuild produces stable payload
 - **WHEN** a full feature-cache rebuild is run against unchanged governed evidence
@@ -15,6 +15,10 @@ The system SHALL maintain a per-student evidence feature cache that is determini
 - **WHEN** governed evidence changes for a student
 - **THEN** the system SHALL support refreshing that student's cache entry without requiring unrelated student entries to be rewritten
 - **AND** the refreshed entry SHALL expose the refresh timestamp.
+
+#### Scenario: Simulation summary evidence is rebuilt
+- **WHEN** governed simulation or Arena learning facts contain trace references, summary metrics, source ids, protocol versions, and replay confidence
+- **THEN** the rebuilt feature payload SHALL derive deterministic compact simulation/Arena features without scanning raw high-frequency trace payloads
 
 ### Requirement: Cache exposes freshness and evidence coverage
 The system SHALL expose freshness, coverage, and confidence metadata with each student evidence feature cache entry.
@@ -29,7 +33,7 @@ The system SHALL expose freshness, coverage, and confidence metadata with each s
 - **AND** downstream consumers SHALL be able to distinguish low-confidence features from complete evidence.
 
 ### Requirement: Normal consumers use governed feature reads
-The system SHALL provide a governed read boundary for student evidence features so profile and personalization consumers do not rescan raw source tables for core profile computation.
+The system SHALL provide a governed read boundary for student evidence features so profile, recommendation, and teacher-insight consumers do not rescan raw source tables or raw simulation traces for core profile computation.
 
 #### Scenario: Consumer reads feature service
 - **WHEN** a profile, recommendation, or teacher-insight consumer needs student evidence features
@@ -40,6 +44,10 @@ The system SHALL provide a governed read boundary for student evidence features 
 - **WHEN** a consumer requests features for a student whose cache is missing
 - **THEN** the read service SHALL return an explicit missing or stale state
 - **AND** it SHALL NOT silently synthesize high-confidence personalization features from incomplete evidence.
+
+#### Scenario: Raw trace is not a normal feature source
+- **WHEN** a normal profile, recommendation, or teacher-insight consumer needs simulation-derived features
+- **THEN** it SHALL use governed summaries, facts, or feature cache entries instead of directly scanning high-frequency trace samples
 
 ### Requirement: Feature cache refreshes after governed evidence changes
 The system SHALL refresh or enqueue refresh of a student evidence feature cache entry after governed facts or snapshots change for that student.

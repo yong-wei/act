@@ -25,11 +25,14 @@ import {
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
   buildTeacherClassScopedEvidenceStatusMap,
+  buildTeacherScopedLearningFactScopeFilters,
+  buildTeacherScopedSimulationArenaFeatureMap,
   summarizeTeacherEvidenceCoverage,
   summarizeTeacherSessionQualityReports,
   type TeacherRecentSessionQualitySummary,
   type TeacherStudentEvidenceStatus,
 } from '@/lib/data-governance/teacher-evidence-governance';
+import { STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -154,6 +157,7 @@ export async function GET(
       arenaLearningFacts,
       studentEvidenceFeatureCaches,
       classScopedEvidenceFactGroups,
+      classScopedSimulationArenaFacts,
       recentSessionQualityReports,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
@@ -221,8 +225,10 @@ export async function GET(
             where: { userId: { in: studentIds } },
             select: {
               userId: true,
+              payloadVersion: true,
               refreshedAt: true,
               statusMarkers: true,
+              features: true,
             },
           })
         : Promise.resolve([]),
@@ -231,11 +237,21 @@ export async function GET(
             by: ['userId', 'factType'],
             where: {
               userId: { in: studentIds },
-              sessionId: { in: classSessionIds },
+              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             _count: { _all: true },
             _min: { startedAt: true },
             _max: { startedAt: true },
+          })
+        : Promise.resolve([]),
+      studentIds.length
+        ? prisma.learningFact.findMany({
+            where: {
+              userId: { in: studentIds },
+              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
+            },
+            orderBy: { startedAt: 'desc' },
+            select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
           })
         : Promise.resolve([]),
       prisma.classSessionReport.findMany({
@@ -281,9 +297,20 @@ export async function GET(
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
+    const now = new Date();
+    const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
+      studentIds,
+      classScopedSimulationArenaFacts,
+      {
+        classId,
+        sessionIds: classSessionIds,
+        now,
+      },
+    );
     const evidenceStatusMap = buildTeacherClassScopedEvidenceStatusMap(studentIds, classScopedEvidenceFactGroups, {
-      now: new Date(),
+      now,
       cacheHealthByUserId,
+      scopedSimulationArenaByUserId,
     });
     const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
     const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
