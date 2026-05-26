@@ -531,6 +531,7 @@ describe('buildSessionDataQualityReport', () => {
       ],
       studentCompetencySnapshots: [
         { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:20:00.000Z') },
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T12:30:00.000Z') },
         { userId: 'student-2', snapshotAt: new Date('2026-05-20T09:45:00.000Z') },
       ],
       classSessionReports: [{
@@ -622,6 +623,98 @@ describe('buildSessionDataQualityReport', () => {
       },
     });
     expect(report.sessions[0].qualityStatus.reasons).not.toContain('snapshot_partially_missing');
+  });
+
+  it('does not degrade collect reports when the feature-cache table is unavailable', async () => {
+    const db = {
+      interactionLog: { findMany: vi.fn().mockResolvedValue([]) },
+      studentState: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-3',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        }]),
+      },
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonId: '5-3',
+          score: 100,
+          outcome: 'success',
+          startedAt: new Date('2026-05-20T09:10:00.000Z'),
+          contextJson: {},
+        }]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          stepId: 'step-10',
+          submittedAt: new Date('2026-05-20T09:10:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            answers: { q1: 'A' },
+            score: 100,
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true }],
+          },
+        }]),
+      },
+      classSession: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'session-no-cache-model',
+          classId: 'class-1',
+          status: 'FINISHED',
+          startTime: new Date('2026-05-20T08:00:00.000Z'),
+          endTime: new Date('2026-05-20T09:30:00.000Z'),
+          plan: { title: '5-3' },
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-20T09:45:00.000Z'),
+        }]),
+      },
+      classSessionReport: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          lessonKey: '5-3',
+          reportType: 'class-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+        }]),
+      },
+      studentSessionReport: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        }]),
+      },
+      user: { findMany: vi.fn().mockResolvedValue([{ id: 'student-1', role: 'STUDENT' }]) },
+    };
+
+    const report = await collectSessionDataQualityReport(db, { sessionIds: ['session-no-cache-model'] });
+
+    expect(report.sessions[0].featureCacheFreshness).toMatchObject({
+      evaluated: false,
+      fresh: false,
+    });
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'green',
+      reasons: ['healthy_quality_gate'],
+      metrics: {
+        featureCacheFresh: true,
+      },
+    });
   });
 
   it('marks an existing feature cache incomplete when it does not cover session facts', () => {

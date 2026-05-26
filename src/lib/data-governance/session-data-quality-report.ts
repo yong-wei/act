@@ -304,6 +304,7 @@ function buildSnapshotFreshness(
 
   for (const snapshot of snapshots) {
     if (!participantSet.has(snapshot.userId)) continue;
+    if (snapshot.snapshotAt.getTime() > windowEnd.getTime()) continue;
     const current = latestSnapshotAtByUserId.get(snapshot.userId);
     if (!current || snapshot.snapshotAt.getTime() > current.getTime()) {
       latestSnapshotAtByUserId.set(snapshot.userId, snapshot.snapshotAt);
@@ -921,7 +922,7 @@ export async function collectSessionDataQualityReport(
         statusMarkers: true,
       },
     })
-    : [];
+    : undefined;
 
   return buildSessionDataQualityReport({
     filters,
