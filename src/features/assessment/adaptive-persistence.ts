@@ -28,6 +28,7 @@ import {
   rebuildMasteryUpdatesFromAnswers,
   type AdaptiveAssessmentBktParameters,
 } from './adaptive-mastery';
+import type { QuestionDomain, QuestionType } from './adaptive-question-bank';
 
 type CreateManyResult = { count: number };
 
@@ -44,8 +45,15 @@ type PersistedAssessmentAnswerRow = {
   };
   questionRef?: {
     difficulty?: number;
+    questionType?: string;
+    domains?: string[];
     knowledgeTags?: string[];
   };
+};
+
+type PersistedAssessmentSessionRow = {
+  id: string;
+  selectedQuestionIds?: string[];
 };
 
 type AdaptiveAssessmentPersistenceTx = {
@@ -53,7 +61,8 @@ type AdaptiveAssessmentPersistenceTx = {
     upsert(args: Record<string, unknown>): Promise<{ version: string; parameters?: unknown }>;
   };
   adaptiveAssessmentSession: {
-    upsert(args: Record<string, unknown>): Promise<{ id: string }>;
+    upsert(args: Record<string, unknown>): Promise<PersistedAssessmentSessionRow>;
+    update(args: Record<string, unknown>): Promise<PersistedAssessmentSessionRow>;
   };
   adaptiveAssessmentItemRef: {
     upsert(args: Record<string, unknown>): Promise<{ id: string }>;
@@ -113,6 +122,37 @@ function questionSource(questionId: string): string {
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
 }
 
+const QUESTION_TYPES = new Set<QuestionType>([
+  'pole-to-behavior',
+  'bode-to-stability',
+  'design-tradeoff',
+  'multi-criteria',
+]);
+
+const QUESTION_DOMAINS = new Set<QuestionDomain>([
+  'time',
+  'frequency',
+  'complex',
+  'physical',
+]);
+
+function toQuestionType(value: unknown): QuestionType | undefined {
+  return typeof value === 'string' && QUESTION_TYPES.has(value as QuestionType)
+    ? value as QuestionType
+    : undefined;
+}
+
+function toQuestionDomains(value: unknown): QuestionDomain[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const domains = value.filter((entry): entry is QuestionDomain => (
+    typeof entry === 'string' && QUESTION_DOMAINS.has(entry as QuestionDomain)
+  ));
+  return domains.length > 0 ? domains : undefined;
+}
+
 function abilityConfidenceInterval(theta: number, answerCount: number): [number, number] {
   const width = clamp(1 / Math.sqrt(Math.max(answerCount, 1)), 0.18, 1.2);
   return [
@@ -122,18 +162,25 @@ function abilityConfidenceInterval(theta: number, answerCount: number): [number,
 }
 
 function toAdaptiveAnswerRecords(rows: PersistedAssessmentAnswerRow[]): AdaptiveAnswerRecord[] {
-  return rows.map((row) => ({
-    sessionId: row.session?.sessionKey ?? 'adaptive-assessment',
-    userId: row.userId ?? 'unknown',
-    id: row.id,
-    questionId: row.questionId,
-    isCorrect: row.isCorrect,
-    timeSpent: Math.max(1, Math.round(row.responseTimeSeconds ?? 1)),
-    selectedOption: row.selectedOptionKey ?? 'UNKNOWN',
-    difficulty: typeof row.questionRef?.difficulty === 'number' ? row.questionRef.difficulty : 0.5,
-    knowledgeTags: Array.isArray(row.questionRef?.knowledgeTags) ? row.questionRef.knowledgeTags : [],
-    createdAt: row.answeredAt.getTime(),
-  }));
+  return rows.map((row) => {
+    const questionType = toQuestionType(row.questionRef?.questionType);
+    const domains = toQuestionDomains(row.questionRef?.domains);
+
+    return {
+      sessionId: row.session?.sessionKey ?? 'adaptive-assessment',
+      userId: row.userId ?? 'unknown',
+      id: row.id,
+      questionId: row.questionId,
+      isCorrect: row.isCorrect,
+      timeSpent: Math.max(1, Math.round(row.responseTimeSeconds ?? 1)),
+      selectedOption: row.selectedOptionKey ?? 'UNKNOWN',
+      difficulty: typeof row.questionRef?.difficulty === 'number' ? row.questionRef.difficulty : 0.5,
+      knowledgeTags: Array.isArray(row.questionRef?.knowledgeTags) ? row.questionRef.knowledgeTags : [],
+      questionType,
+      domains,
+      createdAt: row.answeredAt.getTime(),
+    };
+  });
 }
 
 function toMasteryAnswers(rows: PersistedAssessmentAnswerRow[]) {
@@ -167,6 +214,23 @@ function readBktParameters(value: unknown): AdaptiveAssessmentBktParameters {
   return Object.values(next).every((entry) => typeof entry === 'number' && Number.isFinite(entry))
     ? next as AdaptiveAssessmentBktParameters
     : ADAPTIVE_ASSESSMENT_BKT_PARAMETERS;
+}
+
+async function upsertAdaptiveAssessmentAlgorithmVersion(
+  db: Pick<AdaptiveAssessmentPersistenceTx, 'adaptiveAssessmentAlgorithmVersion'>,
+  releasedAt: Date,
+) {
+  return db.adaptiveAssessmentAlgorithmVersion.upsert({
+    where: { version: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION },
+    update: {},
+    create: {
+      version: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      family: 'bkt-compatible',
+      parameters: ADAPTIVE_ASSESSMENT_BKT_PARAMETERS,
+      status: 'active',
+      releasedAt,
+    },
+  });
 }
 
 function buildAssessmentLearningEvent(params: {
@@ -226,17 +290,7 @@ async function persistAdaptiveAssessmentSubmission(
   const answeredAt = new Date(details.record.createdAt);
   const score = details.record.isCorrect ? 100 : 0;
 
-  const algorithm = await tx.adaptiveAssessmentAlgorithmVersion.upsert({
-    where: { version: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION },
-    update: {},
-    create: {
-      version: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      family: 'bkt-compatible',
-      parameters: ADAPTIVE_ASSESSMENT_BKT_PARAMETERS,
-      status: 'active',
-      releasedAt: answeredAt,
-    },
-  });
+  const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
 
   const session = await tx.adaptiveAssessmentSession.upsert({
     where: {
@@ -301,6 +355,8 @@ async function persistAdaptiveAssessmentSubmission(
       questionRef: {
         select: {
           difficulty: true,
+          questionType: true,
+          domains: true,
           knowledgeTags: true,
         },
       },
@@ -466,6 +522,8 @@ async function loadPersistedAnswerRecords(
       questionRef: {
         select: {
           difficulty: true,
+          questionType: true,
+          domains: true,
           knowledgeTags: true,
         },
       },
@@ -477,6 +535,61 @@ async function loadPersistedAnswerRecords(
   });
 
   return toAdaptiveAnswerRecords(rows);
+}
+
+async function loadPersistedSessionSelection(
+  params: { userId: string; sessionId: string },
+  db: AdaptiveAssessmentPersistenceDb,
+): Promise<PersistedAssessmentSessionRow> {
+  const now = new Date();
+  await upsertAdaptiveAssessmentAlgorithmVersion(db, now);
+
+  const session = await db.adaptiveAssessmentSession.upsert({
+    where: {
+      userId_sessionKey: {
+        userId: params.userId,
+        sessionKey: params.sessionId,
+      },
+    },
+    update: {
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    },
+    create: {
+      userId: params.userId,
+      sessionKey: params.sessionId,
+      selectedQuestionIds: [],
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      startedAt: now,
+    },
+    select: {
+      id: true,
+      selectedQuestionIds: true,
+    },
+  });
+
+  return {
+    id: session.id,
+    selectedQuestionIds: Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [],
+  };
+}
+
+async function recordPersistedQuestionSelection(
+  session: PersistedAssessmentSessionRow,
+  questionIds: Iterable<string>,
+  db: AdaptiveAssessmentPersistenceDb,
+): Promise<void> {
+  await db.adaptiveAssessmentSession.update({
+    where: {
+      id: session.id,
+    },
+    data: {
+      selectedQuestionIds: Array.from(new Set(questionIds)),
+    },
+    select: {
+      id: true,
+      selectedQuestionIds: true,
+    },
+  });
 }
 
 export async function getAbilityReportWithPersistenceFallback(
@@ -517,5 +630,20 @@ export async function selectNextQuestionWithPersistenceFallback(
   }
 
   const answers = await loadPersistedAnswerRecords(params.userId, db);
-  return selectNextQuestionFromAnswers(params, answers);
+  const session = await loadPersistedSessionSelection(params, db);
+  const askedQuestionIds = new Set([
+    ...(session.selectedQuestionIds ?? []),
+    ...answers
+      .filter((answer) => answer.sessionId === params.sessionId)
+      .map((answer) => answer.questionId),
+  ]);
+  const result = selectNextQuestionFromAnswers(params, answers, askedQuestionIds);
+
+  await recordPersistedQuestionSelection(
+    session,
+    [...Array.from(askedQuestionIds), result.question.id],
+    db,
+  );
+
+  return result;
 }

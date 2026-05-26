@@ -3,6 +3,7 @@ import {
   buildGeneratedQuestion,
   type CrossDomainQuestion,
   type QuestionDomain,
+  type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
 
 export interface AdaptiveAnswerRecord {
@@ -14,6 +15,8 @@ export interface AdaptiveAnswerRecord {
   selectedOption: string;
   difficulty: number;
   knowledgeTags: string[];
+  questionType?: QuestionType;
+  domains?: QuestionDomain[];
   createdAt: number;
 }
 
@@ -206,13 +209,15 @@ function classifyDimensions(answers: AdaptiveAnswerRecord[]) {
 
   for (const answer of answers) {
     const question = questionMap.get(answer.questionId) ?? getAdaptiveQuestionById(answer.questionId);
-    if (!question) {
+    const domains = answer.domains ?? question?.domains;
+    const questionType = answer.questionType ?? question?.type;
+    if (!domains || !questionType) {
       continue;
     }
 
-    const isCross = question.domains.length >= 2;
-    const isDesign = question.type === 'design-tradeoff' || question.type === 'multi-criteria';
-    const isComputational = question.type === 'pole-to-behavior' || question.type === 'bode-to-stability';
+    const isCross = domains.length >= 2;
+    const isDesign = questionType === 'design-tradeoff' || questionType === 'multi-criteria';
+    const isComputational = questionType === 'pole-to-behavior' || questionType === 'bode-to-stability';
 
     if (isComputational) {
       counters.computational.total += 1;
@@ -335,11 +340,12 @@ export function selectNextQuestionFromAnswers(
   const targetDifficulty = clamp((theta + 3) / 6, 0, 1);
 
   const candidates = allQuestions();
-  const scored = candidates.map((question) => {
+  const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
+  const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
+  const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
     const weakBoost = question.knowledgeTags.reduce((sum, tag) => sum + (weakAreas.has(tag) ? 0.15 : 0), 0);
-    const noveltyBoost = askedQuestionIds.has(question.id) ? -0.2 : 0.2;
-    const score = closeness + weakBoost + noveltyBoost;
+    const score = closeness + weakBoost;
 
     return {
       question,
@@ -421,6 +427,8 @@ export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAn
     selectedOption: params.selectedOption,
     difficulty: question.difficulty,
     knowledgeTags: question.knowledgeTags,
+    questionType: question.type,
+    domains: question.domains,
     createdAt: Date.now(),
   };
 
@@ -485,6 +493,8 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
     selectedOption: params.selectedOption,
     difficulty: question.difficulty,
     knowledgeTags: question.knowledgeTags,
+    questionType: question.type,
+    domains: question.domains,
     createdAt: Date.now(),
   };
   const details = {

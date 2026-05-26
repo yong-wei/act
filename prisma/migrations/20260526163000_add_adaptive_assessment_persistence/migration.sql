@@ -15,6 +15,7 @@ CREATE TABLE "AdaptiveAssessmentSession" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "sessionKey" TEXT NOT NULL,
+    "selectedQuestionIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "algorithmVersion" TEXT NOT NULL,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastAnsweredAt" TIMESTAMP(3),

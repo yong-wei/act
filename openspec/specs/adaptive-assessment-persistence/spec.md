@@ -10,6 +10,16 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **THEN** the system SHALL persist the session id, question reference, answer record, score or correctness, response time, algorithm version, and timestamp
 - **AND** the submission SHALL remain readable after application restart.
 
+#### Scenario: Student requests the next adaptive question before submitting
+- **WHEN** a student requests the next adaptive question for a durable assessment session
+- **THEN** the system SHALL persist the selected question id as session-level asked state
+- **AND** a later next-question request for the same session SHALL account for both answered questions and previously selected unanswered questions.
+
+#### Scenario: Generated question history is restored
+- **WHEN** persisted adaptive answers are restored for diagnostics or ability reporting
+- **THEN** the system SHALL restore question difficulty, knowledge tags, question type, and domains from the durable item reference
+- **AND** generated or changed questions SHALL still contribute to computational, cross-domain, and design dimensions without relying on in-memory question state.
+
 ### Requirement: Assessment evidence enters governed facts
 The system SHALL materialize adaptive assessment outcomes into governed learning evidence.
 

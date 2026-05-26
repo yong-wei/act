@@ -998,6 +998,7 @@ model AdaptiveAssessmentSession {
   id               String    @id @default(cuid())
   userId           String
   sessionKey       String
+  selectedQuestionIds String[]  @default([])
   algorithmVersion String
   startedAt        DateTime  @default(now())
   lastAnsweredAt   DateTime?

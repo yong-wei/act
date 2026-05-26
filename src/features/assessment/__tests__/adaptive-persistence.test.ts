@@ -3,12 +3,20 @@ import { describe, expect, it, vi } from 'vitest';
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
 import {
   getAbilityReportWithPersistenceFallback,
+  getDiagnosticWithPersistenceFallback,
+  selectNextQuestionWithPersistenceFallback,
   submitAnswerDurably,
   submitAnswerWithPersistenceFallback,
 } from '../adaptive-persistence';
 
 function createMockDb() {
   const answeredAt = new Date('2026-05-26T02:30:00.000Z');
+  const sessionState = {
+    id: 'durable-session-1',
+    userId: 'student-1',
+    sessionKey: 'session-1',
+    selectedQuestionIds: [] as string[],
+  };
   const db = {
     adaptiveAssessmentAlgorithmVersion: {
       upsert: vi.fn().mockResolvedValue({
@@ -16,10 +24,18 @@ function createMockDb() {
       }),
     },
     adaptiveAssessmentSession: {
-      upsert: vi.fn().mockResolvedValue({
-        id: 'durable-session-1',
-        userId: 'student-1',
-        sessionKey: 'session-1',
+      upsert: vi.fn().mockImplementation(async () => ({
+        ...sessionState,
+        selectedQuestionIds: [...sessionState.selectedQuestionIds],
+      })),
+      update: vi.fn().mockImplementation(async (args: { data?: { selectedQuestionIds?: string[] } }) => {
+        if (Array.isArray(args.data?.selectedQuestionIds)) {
+          sessionState.selectedQuestionIds = [...args.data.selectedQuestionIds];
+        }
+        return {
+          ...sessionState,
+          selectedQuestionIds: [...sessionState.selectedQuestionIds],
+        };
       }),
     },
     adaptiveAssessmentItemRef: {
@@ -53,6 +69,8 @@ function createMockDb() {
           answeredAt,
           questionRef: {
             difficulty: 0.1,
+            questionType: 'pole-to-behavior',
+            domains: ['complex', 'time'],
             knowledgeTags: ['pole-stability', 'gain-margin'],
           },
         },
@@ -160,6 +178,8 @@ describe('submitAnswerDurably', () => {
         answeredAt: new Date('2026-05-26T02:30:00.000Z'),
         questionRef: {
           difficulty: 0.1,
+          questionType: 'pole-to-behavior',
+          domains: ['complex', 'time'],
           knowledgeTags: ['pole-stability', 'gain-margin'],
         },
       },
@@ -174,6 +194,8 @@ describe('submitAnswerDurably', () => {
         answeredAt: new Date('2026-05-26T02:35:00.000Z'),
         questionRef: {
           difficulty: 0.2,
+          questionType: 'bode-to-stability',
+          domains: ['frequency', 'time'],
           knowledgeTags: ['damping-ratio', 'overshoot'],
         },
       },
@@ -187,6 +209,55 @@ describe('submitAnswerDurably', () => {
       Date.parse('2026-05-26T02:35:00.000Z'),
     ]);
     expect(report.estimatedAbility).not.toBe(0);
+  });
+
+  it('keeps persisted next-question selections from repeating before the answer is submitted', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    const selectedQuestionIds: string[] = [];
+    for (let index = 0; index < PRESET_QUESTIONS.length; index += 1) {
+      const next = await selectNextQuestionWithPersistenceFallback({
+        userId: 'student-next',
+        sessionId: 'session-next',
+      }, db);
+      selectedQuestionIds.push(next.question.id);
+    }
+
+    expect(new Set(selectedQuestionIds).size).toBe(PRESET_QUESTIONS.length);
+    expect(db.adaptiveAssessmentSession.update).toHaveBeenCalledTimes(PRESET_QUESTIONS.length);
+    expect(db.adaptiveAssessmentSession.update.mock.calls.at(-1)?.[0].data.selectedQuestionIds)
+      .toHaveLength(PRESET_QUESTIONS.length);
+  });
+
+  it('uses persisted generated question metadata for diagnostic dimensions after restart', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
+      {
+        id: 'answer-generated',
+        userId: 'student-generated',
+        session: { sessionKey: 'session-generated' },
+        questionId: 'generated-q-review-1',
+        selectedOptionKey: 'A',
+        isCorrect: true,
+        responseTimeSeconds: 55,
+        answeredAt: new Date('2026-05-26T03:00:00.000Z'),
+        questionRef: {
+          difficulty: 0.7,
+          questionType: 'multi-criteria',
+          domains: ['time', 'frequency'],
+          knowledgeTags: ['robustness', 'controller-tuning'],
+        },
+      },
+    ]);
+
+    const diagnostic = await getDiagnosticWithPersistenceFallback('student-generated', db);
+
+    expect(diagnostic.knowledgeDimensions).toMatchObject({
+      computational: 55,
+      crossDomain: 100,
+      design: 100,
+    });
   });
 
   it('wraps durable writes in one transaction and rejects late materialization failures', async () => {
