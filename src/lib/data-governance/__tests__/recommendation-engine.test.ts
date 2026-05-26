@@ -335,6 +335,46 @@ describe('generateRecommendations', () => {
     });
   });
 
+  it('keeps stale evidence state ahead of simulation Arena low-confidence downgrade', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      refreshedAt: new Date('2026-04-01T00:00:00.000Z'),
+      confidenceMarkers: {
+        level: 'high',
+        score: 0.91,
+        evidenceCount: 8,
+        sourceCompleteness: 1,
+      },
+      features: {
+        approvedAggregates: {
+          latestSnapshot: {
+            snapshotAt: '2026-05-18T00:00:00.000Z',
+            factCount: 8,
+            calculationVersion: 'v1',
+            competencyVector: cacheVector,
+          },
+          profileSummary: {
+            updatedAt: '2026-05-18T00:00:00.000Z',
+            overallScore: 65,
+            riskLevel: 'medium',
+            trendDirection: 'down',
+          },
+        },
+        simulationArena: previewOnlySimulationArenaFeature(),
+      },
+    }));
+
+    const recommendations = await generateRecommendations('student-1');
+    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+
+    expect(weakDimension?.rationale.confidence).toMatchObject({
+      state: 'stale',
+      level: 'high',
+    });
+    expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
+      readiness: 'low-confidence',
+    });
+  });
+
   it('downgrades top-level rationale state when simulation Arena evidence is partial', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
       confidenceMarkers: {

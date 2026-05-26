@@ -836,10 +836,13 @@ function resolveRationaleConfidenceState(
   if (!simulationArena) {
     return baseState;
   }
+  if (baseState !== 'ready') {
+    return baseState;
+  }
   if (simulationArena.readiness === 'low-confidence') {
     return 'low-confidence';
   }
-  if (simulationArena.readiness === 'partial' && baseState === 'ready') {
+  if (simulationArena.readiness === 'partial') {
     return 'partial';
   }
   return baseState;
