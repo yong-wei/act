@@ -358,9 +358,11 @@ export function buildTeacherScopedLearningFactScopeFilters(
     { contextJson: { path: ['classId'], equals: classId } },
     { contextJson: { path: ['arena', 'classId'], equals: classId } },
     { contextJson: { path: ['simulation', 'classId'], equals: classId } },
+    { contextJson: { path: ['simulationTrace', 'classId'], equals: classId } },
     { contextJson: { path: ['governanceContext', 'classId'], equals: classId } },
     { contextJson: { path: ['arena', 'governanceContext', 'classId'], equals: classId } },
     { contextJson: { path: ['simulation', 'governanceContext', 'classId'], equals: classId } },
+    { contextJson: { path: ['simulationTrace', 'governanceContext', 'classId'], equals: classId } },
   ];
 }
 
@@ -384,15 +386,19 @@ function hasScopedClassId(record: Record<string, unknown>, classId: string): boo
 
   const arena = readObject(record.arena);
   const simulation = readObject(record.simulation);
+  const simulationTrace = readObject(record.simulationTrace);
   const governanceContext = readObject(record.governanceContext);
   const arenaGovernanceContext = readObject(arena.governanceContext);
   const simulationGovernanceContext = readObject(simulation.governanceContext);
+  const simulationTraceGovernanceContext = readObject(simulationTrace.governanceContext);
 
   return stringValue(arena.classId) === classId ||
     stringValue(simulation.classId) === classId ||
+    stringValue(simulationTrace.classId) === classId ||
     stringValue(governanceContext.classId) === classId ||
     stringValue(arenaGovernanceContext.classId) === classId ||
-    stringValue(simulationGovernanceContext.classId) === classId;
+    stringValue(simulationGovernanceContext.classId) === classId ||
+    stringValue(simulationTraceGovernanceContext.classId) === classId;
 }
 
 function summarizeTeacherSimulationArenaCoverage(

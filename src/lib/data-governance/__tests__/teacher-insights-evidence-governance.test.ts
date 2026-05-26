@@ -84,6 +84,7 @@ vi.mock('@/lib/data-governance/recommendation-engine', () => ({
 import { GET as getClassInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { GET as getStudentInsights } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 import {
+  buildTeacherScopedLearningFactScopeFilters,
   buildTeacherScopedSimulationArenaFeatureMap,
   summarizeTeacherEvidenceCoverage,
   type TeacherStudentEvidenceStatus,
@@ -387,6 +388,48 @@ describe('teacher evidence governance insights', () => {
     expect(includesSpy).not.toHaveBeenCalled();
     expect(scopedFeatureMap.get('student-ready')?.allTime.evidenceCount).toBe(1);
     expect(scopedFeatureMap.get('student-low')?.allTime.evidenceCount).toBe(1);
+  });
+
+  it('keeps simulationTrace class scope in teacher evidence filters and in-memory grouping', () => {
+    expect(buildTeacherScopedLearningFactScopeFilters('class-1', [])).toEqual(
+      expect.arrayContaining([
+        { contextJson: { path: ['simulationTrace', 'classId'], equals: 'class-1' } },
+        { contextJson: { path: ['simulationTrace', 'governanceContext', 'classId'], equals: 'class-1' } },
+      ]),
+    );
+
+    const scopedFeatureMap = buildTeacherScopedSimulationArenaFeatureMap(
+      ['student-ready'],
+      [
+        scopedSimulationArenaFact('student-ready', {
+          id: 'trace-scoped-sim',
+          sessionId: null,
+          contextJson: {
+            simulationTrace: {
+              classId: 'class-1',
+              traceReference: 'SimulationLog:trace-scoped-sim',
+            },
+          },
+        }),
+        scopedSimulationArenaFact('student-ready', {
+          id: 'trace-other-class-sim',
+          sessionId: null,
+          contextJson: {
+            simulationTrace: {
+              classId: 'class-other',
+              traceReference: 'SimulationLog:trace-other-class-sim',
+            },
+          },
+        }),
+      ] as any,
+      {
+        classId: 'class-1',
+        sessionIds: [],
+        now: new Date('2026-05-21T00:00:00.000Z'),
+      },
+    );
+
+    expect(scopedFeatureMap.get('student-ready')?.allTime.evidenceCount).toBe(1);
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {
