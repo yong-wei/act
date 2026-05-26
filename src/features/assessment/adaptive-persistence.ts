@@ -64,13 +64,24 @@ type AdaptiveAssessmentPersistenceTx = {
   };
   adaptiveAssessmentSession: {
     upsert(args: Record<string, unknown>): Promise<PersistedAssessmentSessionRow>;
-    update(args: Record<string, unknown>): Promise<PersistedAssessmentSessionRow>;
+    updateMany(args: Record<string, unknown>): Promise<CreateManyResult>;
   };
   adaptiveAssessmentItemRef: {
     upsert(args: Record<string, unknown>): Promise<{ id: string }>;
   };
   adaptiveAssessmentAnswer: {
-    create(args: Record<string, unknown>): Promise<{
+    findUnique(args: Record<string, unknown>): Promise<{
+      id: string;
+      userId: string;
+      questionId: string;
+      isCorrect: boolean;
+      score: number;
+      responseTimeSeconds: number;
+      abilityEstimate: number;
+      algorithmVersion: string;
+      answeredAt: Date;
+    } | null>;
+    upsert(args: Record<string, unknown>): Promise<{
       id: string;
       userId: string;
       questionId: string;
@@ -378,14 +389,30 @@ async function persistAdaptiveAssessmentSubmission(
       { id: 'asc' },
     ],
   });
-  const answerHistory = [
-    ...toAdaptiveAnswerRecords(persistedAnswersBefore),
-    details.record,
-  ];
+
+  const existingAnswer = await tx.adaptiveAssessmentAnswer.findUnique({
+    where: {
+      sessionId_questionId: {
+        sessionId: session.id,
+        questionId: details.question.id,
+      },
+    },
+  });
+  const persistedAnswerRecords = toAdaptiveAnswerRecords(persistedAnswersBefore);
+  const answerHistory = existingAnswer
+    ? persistedAnswerRecords
+    : [...persistedAnswerRecords, details.record];
   const result = buildSubmitAnswerResult(details, answerHistory);
 
-  const answer = await tx.adaptiveAssessmentAnswer.create({
-    data: {
+  const answer = await tx.adaptiveAssessmentAnswer.upsert({
+    where: {
+      sessionId_questionId: {
+        sessionId: session.id,
+        questionId: details.question.id,
+      },
+    },
+    update: {},
+    create: {
       userId: details.record.userId,
       sessionId: session.id,
       questionRefId: questionRef.id,
@@ -400,6 +427,16 @@ async function persistAdaptiveAssessmentSubmission(
       answeredAt,
     },
   });
+  const createdAnswer = !existingAnswer && answer.answeredAt.getTime() === answeredAt.getTime();
+  if (!createdAnswer) {
+    return {
+      durableSessionId: session.id,
+      durableAnswerId: answer.id,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      masteryUpdateCount: 0,
+      result,
+    };
+  }
 
   const confidenceInterval = abilityConfidenceInterval(result.estimatedAbility, answerHistory.length);
 
@@ -587,21 +624,23 @@ async function loadPersistedSessionSelection(
 
 async function recordPersistedQuestionSelection(
   session: PersistedAssessmentSessionRow,
+  previousQuestionIds: string[],
   questionIds: Iterable<string>,
   db: AdaptiveAssessmentPersistenceDb,
-): Promise<void> {
-  await db.adaptiveAssessmentSession.update({
+): Promise<boolean> {
+  const result = await db.adaptiveAssessmentSession.updateMany({
     where: {
       id: session.id,
+      selectedQuestionIds: {
+        equals: previousQuestionIds,
+      },
     },
     data: {
       selectedQuestionIds: Array.from(new Set(questionIds)),
     },
-    select: {
-      id: true,
-      selectedQuestionIds: true,
-    },
   });
+
+  return result.count === 1;
 }
 
 export async function getAbilityReportWithPersistenceFallback(
@@ -641,21 +680,28 @@ export async function selectNextQuestionWithPersistenceFallback(
     return selectNextQuestion(params);
   }
 
-  const answers = await loadPersistedAnswerRecords(params.userId, db);
-  const session = await loadPersistedSessionSelection(params, db);
-  const askedQuestionIds = new Set([
-    ...(session.selectedQuestionIds ?? []),
-    ...answers
-      .filter((answer) => answer.sessionId === params.sessionId)
-      .map((answer) => answer.questionId),
-  ]);
-  const result = selectNextQuestionFromAnswers(params, answers, askedQuestionIds);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const answers = await loadPersistedAnswerRecords(params.userId, db);
+    const session = await loadPersistedSessionSelection(params, db);
+    const persistedQuestionIds = session.selectedQuestionIds ?? [];
+    const askedQuestionIds = new Set([
+      ...persistedQuestionIds,
+      ...answers
+        .filter((answer) => answer.sessionId === params.sessionId)
+        .map((answer) => answer.questionId),
+    ]);
+    const result = selectNextQuestionFromAnswers(params, answers, askedQuestionIds);
+    const persisted = await recordPersistedQuestionSelection(
+      session,
+      persistedQuestionIds,
+      [...Array.from(askedQuestionIds), result.question.id],
+      db,
+    );
 
-  await recordPersistedQuestionSelection(
-    session,
-    [...Array.from(askedQuestionIds), result.question.id],
-    db,
-  );
+    if (persisted) {
+      return result;
+    }
+  }
 
-  return result;
+  throw new Error('题目选择状态发生并发更新，请重试获取下一题');
 }

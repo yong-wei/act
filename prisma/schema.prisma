@@ -1062,6 +1062,7 @@ model AdaptiveAssessmentAnswer {
 
   @@index([userId, answeredAt])
   @@index([sessionId, answeredAt])
+  @@unique([sessionId, questionId])
   @@index([questionId])
   @@index([questionRefId])
   @@index([algorithmVersion])

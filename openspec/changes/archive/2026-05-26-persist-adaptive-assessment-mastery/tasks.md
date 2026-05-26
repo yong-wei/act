@@ -12,5 +12,5 @@
 
 ## 3. Validation
 
-- [x] 3.1 Add tests for restart survival, immutable item reference snapshots, assessment API auth boundaries, non-repeating durable next-question selection, generated question metadata restoration, reproducible ability/mastery updates, privacy-safe payloads, and LearningFact materialization.
+- [x] 3.1 Add tests for restart survival, immutable item reference snapshots, assessment API auth boundaries, idempotent durable submissions, concurrent next-question selection retry, non-repeating durable next-question selection, generated question metadata restoration, reproducible ability/mastery updates, privacy-safe payloads, and LearningFact materialization.
 - [x] 3.2 Validate with `rtk proxy openspec validate persist-adaptive-assessment-mastery --strict`.

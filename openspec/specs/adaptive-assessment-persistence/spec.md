@@ -10,10 +10,20 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **THEN** the system SHALL persist the session id, question reference, answer record, score or correctness, response time, algorithm version, and timestamp
 - **AND** the submission SHALL remain readable after application restart.
 
+#### Scenario: Student retries the same adaptive answer submission
+- **WHEN** a durable adaptive answer submission is retried for the same session and question
+- **THEN** the system SHALL return the existing durable answer reference
+- **AND** it SHALL NOT create duplicate answers, ability estimates, mastery updates, or LearningFacts for the same user action.
+
 #### Scenario: Student requests the next adaptive question before submitting
 - **WHEN** a student requests the next adaptive question for a durable assessment session
 - **THEN** the system SHALL persist the selected question id as session-level asked state
 - **AND** a later next-question request for the same session SHALL account for both answered questions and previously selected unanswered questions.
+
+#### Scenario: Concurrent next-question requests update asked state
+- **WHEN** multiple next-question requests race for the same durable assessment session
+- **THEN** the system SHALL detect stale asked-state writes and retry selection from the latest persisted asked set
+- **AND** it SHALL NOT return the same question while unasked candidates remain available.
 
 #### Scenario: Generated question history is restored
 - **WHEN** persisted adaptive answers are restored for diagnostics or ability reporting

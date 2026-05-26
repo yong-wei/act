@@ -128,6 +128,9 @@ CREATE INDEX "AdaptiveAssessmentAnswer_userId_answeredAt_idx" ON "AdaptiveAssess
 CREATE INDEX "AdaptiveAssessmentAnswer_sessionId_answeredAt_idx" ON "AdaptiveAssessmentAnswer"("sessionId", "answeredAt");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AdaptiveAssessmentAnswer_sessionId_questionId_key" ON "AdaptiveAssessmentAnswer"("sessionId", "questionId");
+
+-- CreateIndex
 CREATE INDEX "AdaptiveAssessmentAnswer_questionId_idx" ON "AdaptiveAssessmentAnswer"("questionId");
 
 -- CreateIndex

@@ -28,14 +28,22 @@ function createMockDb() {
         ...sessionState,
         selectedQuestionIds: [...sessionState.selectedQuestionIds],
       })),
-      update: vi.fn().mockImplementation(async (args: { data?: { selectedQuestionIds?: string[] } }) => {
+      updateMany: vi.fn().mockImplementation(async (args: {
+        where?: { selectedQuestionIds?: { equals?: string[] } };
+        data?: { selectedQuestionIds?: string[] };
+      }) => {
+        const expectedQuestionIds = args.where?.selectedQuestionIds?.equals;
+        if (
+          Array.isArray(expectedQuestionIds)
+          && JSON.stringify(expectedQuestionIds) !== JSON.stringify(sessionState.selectedQuestionIds)
+        ) {
+          return { count: 0 };
+        }
+
         if (Array.isArray(args.data?.selectedQuestionIds)) {
           sessionState.selectedQuestionIds = [...args.data.selectedQuestionIds];
         }
-        return {
-          ...sessionState,
-          selectedQuestionIds: [...sessionState.selectedQuestionIds],
-        };
+        return { count: 1 };
       }),
     },
     adaptiveAssessmentItemRef: {
@@ -45,7 +53,8 @@ function createMockDb() {
       }),
     },
     adaptiveAssessmentAnswer: {
-      create: vi.fn().mockResolvedValue({
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockImplementation(async (args: { create?: Record<string, unknown> }) => ({
         id: 'answer-1',
         userId: 'student-1',
         sessionId: 'durable-session-1',
@@ -56,7 +65,8 @@ function createMockDb() {
         abilityEstimate: 2.1,
         algorithmVersion: 'adaptive-assessment-bkt-v1',
         answeredAt,
-      }),
+        ...(args.create ?? {}),
+      })),
       findMany: vi.fn().mockResolvedValue([
         {
           id: 'answer-1',
@@ -119,14 +129,14 @@ describe('submitAnswerDurably', () => {
       algorithmVersion: 'adaptive-assessment-bkt-v1',
     });
 
-    expect(db.adaptiveAssessmentAnswer.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
         selectedOptionKey: expect.stringMatching(/^[A-D]$/),
         correctOptionKey: expect.stringMatching(/^[A-D]$/),
       }),
     }));
 
-    const answerPayload = JSON.stringify(db.adaptiveAssessmentAnswer.create.mock.calls[0][0].data);
+    const answerPayload = JSON.stringify(db.adaptiveAssessmentAnswer.upsert.mock.calls[0][0].create);
     const factPayload = JSON.stringify(db.learningFact.createMany.mock.calls[0][0].data);
 
     expect(answerPayload).not.toContain(correctOptionText);
@@ -134,6 +144,58 @@ describe('submitAnswerDurably', () => {
     expect(factPayload).toContain('adaptiveAssessment');
     expect(factPayload).toContain('privacyLevel');
     expect(db.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps retried durable submissions idempotent for the same session question', async () => {
+    const db = createMockDb();
+    const answeredAt = new Date('2026-05-26T02:30:00.000Z');
+    db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
+      id: 'answer-existing',
+      userId: 'student-1',
+      questionId: 'preset-q-01',
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt,
+    });
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-existing',
+      userId: 'student-1',
+      questionId: 'preset-q-01',
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt,
+    });
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'session-1',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+    }, db);
+
+    expect(result.durableAnswerId).toBe('answer-existing');
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'durable-session-1',
+          questionId: question.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('stores immutable item reference snapshots for question metadata', async () => {
@@ -193,7 +255,7 @@ describe('submitAnswerDurably', () => {
       recommendedFocus: expect.any(Array),
     });
     expect(result).not.toHaveProperty('durableSessionId');
-    expect(db.adaptiveAssessmentAnswer.create).not.toHaveBeenCalled();
+    expect(db.adaptiveAssessmentAnswer.upsert).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
@@ -258,9 +320,34 @@ describe('submitAnswerDurably', () => {
     }
 
     expect(new Set(selectedQuestionIds).size).toBe(PRESET_QUESTIONS.length);
-    expect(db.adaptiveAssessmentSession.update).toHaveBeenCalledTimes(PRESET_QUESTIONS.length);
-    expect(db.adaptiveAssessmentSession.update.mock.calls.at(-1)?.[0].data.selectedQuestionIds)
+    expect(db.adaptiveAssessmentSession.updateMany).toHaveBeenCalledTimes(PRESET_QUESTIONS.length);
+    expect(db.adaptiveAssessmentSession.updateMany.mock.calls.at(-1)?.[0].data.selectedQuestionIds)
       .toHaveLength(PRESET_QUESTIONS.length);
+  });
+
+  it('retries next-question selection when the persisted asked set changed concurrently', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    db.adaptiveAssessmentSession.upsert
+      .mockResolvedValueOnce({
+        id: 'durable-session-1',
+        selectedQuestionIds: [],
+      })
+      .mockResolvedValueOnce({
+        id: 'durable-session-1',
+        selectedQuestionIds: [PRESET_QUESTIONS[0].id],
+      });
+    db.adaptiveAssessmentSession.updateMany
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+    }, db);
+
+    expect(next.question.id).not.toBe(PRESET_QUESTIONS[0].id);
+    expect(db.adaptiveAssessmentSession.updateMany).toHaveBeenCalledTimes(2);
   });
 
   it('uses persisted generated question metadata for diagnostic dimensions after restart', async () => {
