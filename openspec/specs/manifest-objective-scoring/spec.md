@@ -48,6 +48,12 @@ opaque answer text alone.
 - **AND** correctness SHALL be based on each prompt-side item paired with the
   submitted answer-side item.
 
+#### Scenario: Hyphenated option values remain slot answers
+- **WHEN** a matching submission contains option values with hyphens such as
+  `few-errors-insufficient|rules-hard-cover`
+- **THEN** those option values SHALL be treated as slot answers unless both
+  sides of a parsed pair match the question's known item and option structure.
+
 #### Scenario: Legacy matching answer preserves slot positions
 - **WHEN** a `drag_match` card uses ordered `options` without explicit
   `referenceMatches`

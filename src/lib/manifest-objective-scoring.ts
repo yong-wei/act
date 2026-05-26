@@ -268,6 +268,24 @@ function parsePairToken(token: string): [string, string] | null {
   return [match[1].trim(), match[2].trim()];
 }
 
+function isRecognizedMatchPair(card: ManifestObjectiveCardLike, pair: [string, string]): boolean {
+  const [item, option] = pair;
+  const itemOptions = card.matchItems?.length ? card.matchItems : card.options;
+  const optionOptions = card.matchOptions ?? card.options;
+  const referenceEntries = resolveReferenceMatchEntries(card);
+  const itemRecognized = Boolean(findOptionValue(itemOptions, item))
+    || referenceEntries.some(([referenceItem]) => normalizeToken(referenceItem) === normalizeToken(item));
+  const optionRecognized = Boolean(findOptionValue(optionOptions, option))
+    || referenceEntries.some(([, referenceOption]) => normalizeToken(referenceOption) === normalizeToken(option));
+  return itemRecognized && optionRecognized;
+}
+
+function shouldUsePairSyntax(card: ManifestObjectiveCardLike, parsedPairs: Array<[string, string] | null>): parsedPairs is Array<[string, string]> {
+  return parsedPairs.length > 0
+    && parsedPairs.every((pair): pair is [string, string] => Boolean(pair))
+    && parsedPairs.some((pair) => isRecognizedMatchPair(card, pair));
+}
+
 function normalizeMatchPairsFromAnswer(
   card: ManifestObjectiveCardLike,
   submittedAnswer: unknown,
@@ -278,7 +296,7 @@ function normalizeMatchPairsFromAnswer(
   const itemOrder = itemOptions.map((item) => item.value);
   const parsedPairs = pairTokens.map(parsePairToken);
 
-  if (pairTokens.length > 0 && parsedPairs.every((pair): pair is [string, string] => Boolean(pair))) {
+  if (shouldUsePairSyntax(card, parsedPairs)) {
     return Object.fromEntries(parsedPairs.map(([item, option]) => [
       findOptionValue(itemOptions, item) ?? item,
       findOptionValue(card.matchOptions ?? card.options, option) ?? option,
@@ -355,7 +373,7 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
   const submittedSlots = splitAnswerSlotTokens(submittedAnswer);
   const pairTokens = splitAnswerTokens(submittedAnswer);
   const parsedPairs = pairTokens.map(parsePairToken);
-  const usesPairSyntax = pairTokens.length > 0 && parsedPairs.every((pair): pair is [string, string] => Boolean(pair));
+  const usesPairSyntax = shouldUsePairSyntax(card, parsedPairs);
   const itemOptions = card.matchItems?.length ? card.matchItems : card.options;
   const referenceItemSet = new Set(referenceEntries.map(([item]) => normalizeToken(item)));
   const seenPairItems = new Set<string>();

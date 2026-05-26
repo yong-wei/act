@@ -234,6 +234,46 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('does not treat hyphenated option values as pair syntax', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q5-hyphenated-options',
+      responseKind: 'drag_match',
+      options: [],
+      matchItems: [
+        { value: 'errorPattern', label: '错误类型' },
+        { value: 'ruleCoverage', label: '规则覆盖' },
+      ],
+      matchOptions: [
+        { value: 'few-errors-insufficient', label: '错误样本不足' },
+        { value: 'rules-hard-cover', label: '规则难以覆盖' },
+      ],
+      referenceMatches: [
+        { item: 'errorPattern', option: 'few-errors-insufficient' },
+        { item: 'ruleCoverage', option: 'rules-hard-cover' },
+      ],
+    }, 'few-errors-insufficient|rules-hard-cover');
+
+    expect(result).toMatchObject({
+      score: 1,
+      isCorrect: true,
+      normalizedSubmitted: {
+        errorPattern: 'few-errors-insufficient',
+        ruleCoverage: 'rules-hard-cover',
+      },
+      normalizedReference: {
+        errorPattern: 'few-errors-insufficient',
+        ruleCoverage: 'rules-hard-cover',
+      },
+      detail: {
+        correctPairs: [
+          { item: 'errorPattern', option: 'few-errors-insufficient' },
+          { item: 'ruleCoverage', option: 'rules-hard-cover' },
+        ],
+        extraItems: [],
+      },
+    });
+  });
+
   it('preserves legacy drag-match scoring when only options define slot order', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q6',
