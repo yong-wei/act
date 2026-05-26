@@ -18,6 +18,7 @@ function createMockDb() {
     selectedQuestionIds: [] as string[],
   };
   const db = {
+    $executeRawUnsafe: vi.fn().mockResolvedValue(1),
     adaptiveAssessmentAlgorithmVersion: {
       upsert: vi.fn().mockResolvedValue({
         version: 'adaptive-assessment-bkt-v1',
@@ -144,6 +145,10 @@ describe('submitAnswerDurably', () => {
     expect(factPayload).toContain('adaptiveAssessment');
     expect(factPayload).toContain('privacyLevel');
     expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.$executeRawUnsafe).toHaveBeenCalledWith(
+      'SELECT pg_advisory_xact_lock(hashtext($1))',
+      'adaptive-assessment:adaptive-assessment-bkt-v1:student-1',
+    );
   });
 
   it('keeps retried durable submissions idempotent for the same session question', async () => {

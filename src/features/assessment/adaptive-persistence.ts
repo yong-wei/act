@@ -59,6 +59,7 @@ type PersistedAssessmentSessionRow = {
 };
 
 type AdaptiveAssessmentPersistenceTx = {
+  $executeRawUnsafe?<T = unknown>(query: string, ...values: unknown[]): Promise<T>;
   adaptiveAssessmentAlgorithmVersion: {
     upsert(args: Record<string, unknown>): Promise<{ version: string; parameters?: unknown }>;
   };
@@ -259,6 +260,20 @@ async function upsertAdaptiveAssessmentAlgorithmVersion(
   });
 }
 
+async function lockAdaptiveAssessmentUserWrites(
+  db: Pick<AdaptiveAssessmentPersistenceTx, '$executeRawUnsafe'>,
+  userId: string,
+): Promise<void> {
+  if (!db.$executeRawUnsafe) {
+    return;
+  }
+
+  await db.$executeRawUnsafe(
+    'SELECT pg_advisory_xact_lock(hashtext($1))',
+    `adaptive-assessment:${ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION}:${userId}`,
+  );
+}
+
 function buildAssessmentLearningEvent(params: {
   details: SubmittedAnswerDetails;
   answerId: string;
@@ -317,6 +332,7 @@ async function persistAdaptiveAssessmentSubmission(
   const score = details.record.isCorrect ? 100 : 0;
 
   const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
+  await lockAdaptiveAssessmentUserWrites(tx, details.record.userId);
 
   const session = await tx.adaptiveAssessmentSession.upsert({
     where: {

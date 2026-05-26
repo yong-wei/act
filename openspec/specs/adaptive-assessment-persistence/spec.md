@@ -15,6 +15,11 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **THEN** the system SHALL return the existing durable answer reference
 - **AND** it SHALL NOT create duplicate answers, ability estimates, mastery updates, or LearningFacts for the same user action.
 
+#### Scenario: Student submits answers concurrently
+- **WHEN** multiple durable adaptive answer submissions for the same student arrive concurrently
+- **THEN** the system SHALL serialize the student's ability and mastery write path before reading historical answers
+- **AND** ability estimates and mastery updates SHALL be computed from a consistent submitted-answer order.
+
 #### Scenario: Student requests the next adaptive question before submitting
 - **WHEN** a student requests the next adaptive question for a durable assessment session
 - **THEN** the system SHALL persist the selected question id as session-level asked state
