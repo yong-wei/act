@@ -361,36 +361,53 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
   const answered = Object.keys(submitted).length > 0;
   if (referenceEntries.length === 0) return unsupported(card.responseKind, answered, submitted, 'missing_reference');
 
-  const correctPairs = referenceEntries
-    .filter(([item, option]) => normalizeToken(submitted[item]) === normalizeToken(option))
-    .map(([item, option]) => ({ item, option }));
-  const incorrectPairs = referenceEntries
-    .filter(([item, option]) => submitted[item] !== undefined && normalizeToken(submitted[item]) !== normalizeToken(option))
-    .map(([item, option]) => ({ item, expected: option, submitted: submitted[item] }));
-  const missedItems = referenceEntries
-    .filter(([item]) => submitted[item] === undefined)
-    .map(([item]) => item);
   const submittedSlots = splitAnswerSlotTokens(submittedAnswer);
   const pairTokens = splitAnswerTokens(submittedAnswer);
   const parsedPairs = pairTokens.map(parsePairToken);
   const usesPairSyntax = shouldUsePairSyntax(card, parsedPairs);
   const itemOptions = card.matchItems?.length ? card.matchItems : card.options;
-  const referenceItemSet = new Set(referenceEntries.map(([item]) => normalizeToken(item)));
-  const seenPairItems = new Set<string>();
-  const extraItems = usesPairSyntax
+  const normalizedPairEntries = usesPairSyntax
     ? parsedPairs
       .filter((pair): pair is [string, string] => Boolean(pair))
       .map(([item, option]) => ({
         item: findOptionValue(itemOptions, item) ?? item,
         option: findOptionValue(card.matchOptions ?? card.options, option) ?? option,
       }))
-      .filter(({ item }) => {
+    : [];
+  const referenceItemSet = new Set(referenceEntries.map(([item]) => normalizeToken(item)));
+  const duplicateItemKeys = new Set<string>();
+  const seenPairItems = new Set<string>();
+  const extraItems = usesPairSyntax
+    ? normalizedPairEntries.filter(({ item }) => {
         const itemKey = normalizeToken(item);
-        const isExtra = !referenceItemSet.has(itemKey) || seenPairItems.has(itemKey);
+        const isDuplicate = seenPairItems.has(itemKey);
+        if (isDuplicate) duplicateItemKeys.add(itemKey);
+        const isExtra = !referenceItemSet.has(itemKey) || isDuplicate;
         seenPairItems.add(itemKey);
         return isExtra;
       })
     : submittedSlots.slice(referenceEntries.length).filter(Boolean);
+  const duplicateItems = referenceEntries
+    .map(([item]) => item)
+    .filter((item) => duplicateItemKeys.has(normalizeToken(item)));
+  const correctPairs = referenceEntries
+    .filter(([item, option]) => (
+      !duplicateItemKeys.has(normalizeToken(item))
+      && normalizeToken(submitted[item]) === normalizeToken(option)
+    ))
+    .map(([item, option]) => ({ item, option }));
+  const incorrectPairs = referenceEntries
+    .filter(([item, option]) => (
+      submitted[item] !== undefined
+      && (
+        duplicateItemKeys.has(normalizeToken(item))
+        || normalizeToken(submitted[item]) !== normalizeToken(option)
+      )
+    ))
+    .map(([item, option]) => ({ item, expected: option, submitted: submitted[item] }));
+  const missedItems = referenceEntries
+    .filter(([item]) => submitted[item] === undefined)
+    .map(([item]) => item);
   const score = correctPairs.length / (referenceEntries.length + extraItems.length);
 
   return {
@@ -406,6 +423,7 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
       correctPairs,
       incorrectPairs,
       missedItems,
+      duplicateItems,
       extraItems,
     },
   };

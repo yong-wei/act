@@ -48,6 +48,13 @@ opaque answer text alone.
 - **AND** correctness SHALL be based on each prompt-side item paired with the
   submitted answer-side item.
 
+#### Scenario: Duplicate matching items are order independent
+- **WHEN** a matching submission repeats the same prompt-side item with
+  conflicting answer-side items
+- **THEN** the repeated item SHALL be treated as a conflict rather than allowing
+  the last submitted pair to decide correctness
+- **AND** the score SHALL not change when those duplicate pairs are reordered.
+
 #### Scenario: Hyphenated option values remain slot answers
 - **WHEN** a matching submission contains option values with hyphens such as
   `few-errors-insufficient|rules-hard-cover`

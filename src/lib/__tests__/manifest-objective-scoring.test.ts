@@ -257,6 +257,44 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('scores duplicate pair-syntax items independent of submitted pair order', () => {
+    const card = {
+      id: 'q5-duplicate-pair',
+      responseKind: 'drag_match',
+      options: [],
+      matchItems: [
+        { value: '1', label: '感知' },
+      ],
+      matchOptions: [
+        { value: '3', label: '状态估计' },
+        { value: '9', label: '无关项' },
+      ],
+      referenceMatches: [
+        { item: '1', option: '3' },
+      ],
+    };
+    const wrongThenCorrect = scoreManifestObjectiveCard(card, '1-9,1-3');
+    const correctThenWrong = scoreManifestObjectiveCard(card, '1-3,1-9');
+
+    expect(wrongThenCorrect.score).toBe(correctThenWrong.score);
+    expect(wrongThenCorrect).toMatchObject({
+      score: 0,
+      isCorrect: false,
+      detail: {
+        correctPairs: [],
+        duplicateItems: ['1'],
+      },
+    });
+    expect(correctThenWrong).toMatchObject({
+      score: 0,
+      isCorrect: false,
+      detail: {
+        correctPairs: [],
+        duplicateItems: ['1'],
+      },
+    });
+  });
+
   it('does not treat hyphenated option values as pair syntax', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q5-hyphenated-options',
