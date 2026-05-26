@@ -1,4 +1,8 @@
 import type { ManifestSubmissionGateInventoryItem } from './shared/manifest-runtime/submission-gate';
+import {
+  listInteractiveLessonIdentityRecords,
+  resolveInteractiveLessonIdentity,
+} from '@/lib/interactive-lesson-identity';
 
 const GENERIC_MANIFEST_STEP_HELPER = 'findManifestStepForSubmission';
 
@@ -222,32 +226,15 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
   },
 ] as const;
 
-export const REQUIRED_RUNTIME_FIRST_GATE_LESSONS = [
-  'cruise-comfort-boppps',
-  '2-1',
-  '2-2',
-  '2-3',
-  '2-4',
-  '3-1',
-  '3-2',
-  '3-3',
-  '3-4',
-  '3-5',
-  '3-6',
-  '3-7',
-  '3-8',
-  '3-9',
-  '4-1',
-  '4-2',
-  '4-3',
-  '4-4',
-  '4-5',
-  '4-6',
-  '4-7',
-  '5-1',
-  '5-2',
-  '5-3',
-  '5-4',
-  '5-5',
-  '5-6',
-] as const;
+export const REQUIRED_RUNTIME_FIRST_GATE_LESSONS =
+  listInteractiveLessonIdentityRecords().map((record) => record.canonicalId);
+
+export function resolveCourseResponseProducingLessonInventoryItem(
+  lessonIdentity: string | null | undefined,
+): ManifestSubmissionGateInventoryItem | null {
+  const resolved = resolveInteractiveLessonIdentity(lessonIdentity ?? '');
+  if (resolved.status !== 'resolved') return null;
+  return COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY.find(
+    (item) => item.lessonId === resolved.record.canonicalId,
+  ) ?? null;
+}

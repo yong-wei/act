@@ -12,6 +12,7 @@
  */
 
 import type { AIContextConfig } from '@/types/ai-context';
+import { resolveInteractiveLessonIdentity } from './interactive-lesson-identity';
 import {
   getUnit21StepAIContext as getUnit21StepAIContextLocal,
   getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
@@ -651,6 +652,13 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
   },
 };
 
+function resolveAIContextRegistryKey(courseId: string): string | null {
+  if (courseId in COURSE_AI_CONTEXT_REGISTRY) return courseId;
+  const resolved = resolveInteractiveLessonIdentity(courseId);
+  if (resolved.status !== 'resolved') return null;
+  return resolved.record.lessonKeys.find((lessonKey) => lessonKey in COURSE_AI_CONTEXT_REGISTRY) ?? null;
+}
+
 /**
  * 根据课程ID和步骤ID获取AI上下文配置
  */
@@ -658,7 +666,8 @@ export function getStepAIContext(
   courseId: string,
   stepId: string
 ): AIContextConfig | null {
-  const courseRegistry = COURSE_AI_CONTEXT_REGISTRY[courseId];
+  const registryKey = resolveAIContextRegistryKey(courseId);
+  const courseRegistry = registryKey ? COURSE_AI_CONTEXT_REGISTRY[registryKey] : null;
   if (!courseRegistry) return null;
   return courseRegistry.getStepContext(stepId);
 }
@@ -670,7 +679,8 @@ export function getStepQuickQuestions(
   courseId: string,
   stepId: string
 ): Array<{ label: string; question: string }> {
-  const courseRegistry = COURSE_AI_CONTEXT_REGISTRY[courseId];
+  const registryKey = resolveAIContextRegistryKey(courseId);
+  const courseRegistry = registryKey ? COURSE_AI_CONTEXT_REGISTRY[registryKey] : null;
   if (!courseRegistry) return [];
   return courseRegistry.getQuickQuestions(stepId);
 }
@@ -679,7 +689,7 @@ export function getStepQuickQuestions(
  * 检查课程是否已注册AI上下文
  */
 export function isCourseAIContextRegistered(courseId: string): boolean {
-  return courseId in COURSE_AI_CONTEXT_REGISTRY;
+  return resolveAIContextRegistryKey(courseId) !== null;
 }
 
 /**

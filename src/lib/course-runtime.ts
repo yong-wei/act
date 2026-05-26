@@ -13,6 +13,7 @@ import {
   normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
+import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 
 type RuntimeNode = {
   id: string;
@@ -186,6 +187,11 @@ async function loadRuntimeLessonDirIndex() {
 }
 
 async function resolveLessonRuntimeFragment(lessonId: string) {
+  const resolved = resolveInteractiveLessonIdentity(lessonId);
+  if (resolved.status === 'resolved') {
+    return resolved.record.runtimeLessonDir;
+  }
+
   const index = await loadRuntimeLessonDirIndex();
   return index[lessonId] ?? lessonId;
 }
