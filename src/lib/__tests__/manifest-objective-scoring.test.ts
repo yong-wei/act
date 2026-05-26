@@ -295,6 +295,42 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('allows hyphenated match item keys with explicit pair separators', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q5-hyphenated-items',
+      responseKind: 'drag_match',
+      options: [],
+      matchItems: [
+        { value: 'target-outline', label: '目标轮廓' },
+        { value: 'target-speed', label: '目标速度' },
+      ],
+      matchOptions: [
+        { value: 'planner', label: '规划器' },
+        { value: 'controller', label: '控制器' },
+      ],
+      referenceMatches: [
+        { item: 'target-outline', option: 'planner' },
+        { item: 'target-speed', option: 'controller' },
+      ],
+    }, 'target-outline->planner,target-speed->controller');
+
+    expect(result).toMatchObject({
+      score: 1,
+      isCorrect: true,
+      normalizedSubmitted: {
+        'target-outline': 'planner',
+        'target-speed': 'controller',
+      },
+      detail: {
+        correctPairs: [
+          { item: 'target-outline', option: 'planner' },
+          { item: 'target-speed', option: 'controller' },
+        ],
+        extraItems: [],
+      },
+    });
+  });
+
   it('does not treat hyphenated option values as pair syntax', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q5-hyphenated-options',

@@ -61,6 +61,12 @@ opaque answer text alone.
 - **THEN** those option values SHALL be treated as slot answers unless both
   sides of a parsed pair match the question's known item and option structure.
 
+#### Scenario: Hyphenated item keys use explicit pair separators
+- **WHEN** a matching submission uses explicit pair syntax such as
+  `target-outline->planner`
+- **THEN** the hyphenated prompt-side item key SHALL be parsed as the pair item
+  rather than rejected because it contains a hyphen.
+
 #### Scenario: Legacy matching answer preserves slot positions
 - **WHEN** a `drag_match` card uses ordered `options` without explicit
   `referenceMatches`

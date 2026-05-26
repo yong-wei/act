@@ -263,9 +263,14 @@ function resolveReferenceMatchEntries(card: ManifestObjectiveCardLike): Array<[s
 }
 
 function parsePairToken(token: string): [string, string] | null {
-  const match = token.match(/^\s*([^-:=→>]+?)\s*(?:->|=>|:|=|-|→)\s*(.+?)\s*$/);
-  if (!match?.[1] || !match[2]) return null;
-  return [match[1].trim(), match[2].trim()];
+  const explicitSeparator = token.match(/^\s*(.+?)\s*(?:->|=>|:|=|→)\s*(.+?)\s*$/);
+  if (explicitSeparator?.[1] && explicitSeparator[2]) {
+    return [explicitSeparator[1].trim(), explicitSeparator[2].trim()];
+  }
+
+  const hyphenSeparator = token.match(/^\s*([^-:=→>]+?)\s*-\s*([^-:=→>]+?)\s*$/);
+  if (!hyphenSeparator?.[1] || !hyphenSeparator[2]) return null;
+  return [hyphenSeparator[1].trim(), hyphenSeparator[2].trim()];
 }
 
 function isRecognizedMatchPair(card: ManifestObjectiveCardLike, pair: [string, string]): boolean {
