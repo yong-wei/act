@@ -103,7 +103,7 @@ export interface InteractiveEvidenceScoringSourceLogDiagnostic {
   sessionId: string;
   stepId: string;
   sourceEventId: string | null;
-  reason: 'missing_source_event_id' | 'missing_matching_interaction_log';
+  reason: 'missing_source_event_id' | 'missing_matching_interaction_log' | 'ambiguous_matching_interaction_log';
 }
 
 export interface InteractiveEvidenceScoringAuditDelta {
@@ -173,6 +173,11 @@ type ApplyInteractiveEvidenceScoringRecomputeDb = {
     update(args: unknown): Promise<unknown>;
   };
 };
+
+interface InteractiveEvidenceScoringInteractionLogSourceIndex {
+  logsBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>;
+  ambiguousSourceIds: Set<string>;
+}
 
 export interface CollectInteractiveEvidenceScoringRecomputePlanInput {
   generatedAt?: string;
@@ -428,8 +433,11 @@ function findMatchingFacts(
   return fallbackMatches.length === 1 ? fallbackMatches : [];
 }
 
-function buildInteractionLogSourceMap(logs: InteractiveEvidenceScoringInteractionLogRow[]) {
-  const map = new Map<string, InteractiveEvidenceScoringInteractionLogRow>();
+function buildInteractionLogSourceIndex(
+  logs: InteractiveEvidenceScoringInteractionLogRow[],
+): InteractiveEvidenceScoringInteractionLogSourceIndex {
+  const logsBySourceId = new Map<string, InteractiveEvidenceScoringInteractionLogRow>();
+  const ambiguousSourceIds = new Set<string>();
   for (const log of logs) {
     const payload = readRecord(log.eventData);
     const canonicalEventType = readString(payload.eventType) ?? (log.eventType === 'submit' ? 'lesson_submit' : log.eventType);
@@ -440,10 +448,17 @@ function buildInteractionLogSourceMap(logs: InteractiveEvidenceScoringInteractio
       log.clientEventId,
       readString(payload.clientEventId),
     ]) {
-      if (key && !map.has(key)) map.set(key, log);
+      if (!key || ambiguousSourceIds.has(key)) continue;
+      const existingLog = logsBySourceId.get(key);
+      if (!existingLog) {
+        logsBySourceId.set(key, log);
+      } else if (existingLog.id !== log.id) {
+        logsBySourceId.delete(key);
+        ambiguousSourceIds.add(key);
+      }
     }
   }
-  return map;
+  return { logsBySourceId, ambiguousSourceIds };
 }
 
 function buildInteractiveQuizContext(responseData: JsonRecord) {
@@ -487,10 +502,11 @@ function buildInteractiveQuizContext(responseData: JsonRecord) {
 function findOwnedInteractionLog(
   response: InteractiveEvidenceScoringResponseRow,
   fact: InteractiveEvidenceScoringLearningFactRow,
-  logBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>,
+  sourceIndex: InteractiveEvidenceScoringInteractionLogSourceIndex,
 ) {
   if (!fact.sourceEventId) return null;
-  const log = logBySourceId.get(fact.sourceEventId);
+  if (sourceIndex.ambiguousSourceIds.has(fact.sourceEventId)) return null;
+  const log = sourceIndex.logsBySourceId.get(fact.sourceEventId);
   if (!log) return null;
   return log.userId === response.userId && log.sessionId === response.sessionId ? log : null;
 }
@@ -499,7 +515,7 @@ function buildFactAction(
   response: InteractiveEvidenceScoringResponseRow,
   responseData: JsonRecord,
   fact: InteractiveEvidenceScoringLearningFactRow,
-  logBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>,
+  sourceIndex: InteractiveEvidenceScoringInteractionLogSourceIndex,
 ): InteractiveEvidenceScoringFactAction | null {
   const context = readRecord(fact.contextJson);
   const nextScore = readNumber(responseData.score);
@@ -507,7 +523,7 @@ function buildFactAction(
   const newOutcome = nextScore === null ? fact.outcome : deriveFactOutcome('lesson_submit', { score: nextScore });
   const matchingLog = fact.sourceLogId
     ? null
-    : findOwnedInteractionLog(response, fact, logBySourceId);
+    : findOwnedInteractionLog(response, fact, sourceIndex);
   const nextSourceLogId = matchingLog?.id;
   const nextContextJson = compactRecord({
     ...context,
@@ -547,7 +563,7 @@ function buildFactAction(
 function buildSourceLogDiagnostic(
   response: InteractiveEvidenceScoringResponseRow,
   fact: InteractiveEvidenceScoringLearningFactRow,
-  logBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>,
+  sourceIndex: InteractiveEvidenceScoringInteractionLogSourceIndex,
 ): InteractiveEvidenceScoringSourceLogDiagnostic | null {
   if (fact.sourceLogId) return null;
   if (!fact.sourceEventId) {
@@ -561,7 +577,18 @@ function buildSourceLogDiagnostic(
       reason: 'missing_source_event_id',
     };
   }
-  if (findOwnedInteractionLog(response, fact, logBySourceId)) return null;
+  if (sourceIndex.ambiguousSourceIds.has(fact.sourceEventId)) {
+    return {
+      factId: fact.id,
+      responseId: response.id,
+      lessonKey: response.lessonKey,
+      sessionId: response.sessionId,
+      stepId: response.stepId,
+      sourceEventId: fact.sourceEventId,
+      reason: 'ambiguous_matching_interaction_log',
+    };
+  }
+  if (findOwnedInteractionLog(response, fact, sourceIndex)) return null;
   return {
     factId: fact.id,
     responseId: response.id,
@@ -729,7 +756,7 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
     }
   }
 
-  const logBySourceId = buildInteractionLogSourceMap(input.interactionLogs);
+  const sourceIndex = buildInteractionLogSourceIndex(input.interactionLogs);
   const factActions: InteractiveEvidenceScoringFactAction[] = [];
   const seenFactIds = new Set<string>();
   const sourceLogDiagnostics: InteractiveEvidenceScoringSourceLogDiagnostic[] = [];
@@ -746,13 +773,13 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
         input.learningFacts,
         responseFallbackCounts.get(buildResponseFallbackKey(response)) ?? 0,
       )) {
-        const sourceLogDiagnostic = buildSourceLogDiagnostic(response, fact, logBySourceId);
+        const sourceLogDiagnostic = buildSourceLogDiagnostic(response, fact, sourceIndex);
         if (sourceLogDiagnostic && !seenSourceLogDiagnosticFactIds.has(fact.id)) {
           seenSourceLogDiagnosticFactIds.add(fact.id);
           sourceLogDiagnostics.push(sourceLogDiagnostic);
         }
         if (seenFactIds.has(fact.id)) continue;
-        const factAction = buildFactAction(response, responseData, fact, logBySourceId);
+        const factAction = buildFactAction(response, responseData, fact, sourceIndex);
         if (!factAction) continue;
         seenFactIds.add(fact.id);
         factActions.push(factAction);

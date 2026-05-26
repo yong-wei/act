@@ -328,6 +328,50 @@ describe('interactive evidence scoring recompute', () => {
     ]);
   });
 
+  it('does not repair sourceLogId when sourceEventId matches multiple logs', () => {
+    const rows = buildRows();
+    const sharedEventId = 'duplicated-client-event';
+    const [log] = rows.interactionLogs;
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: rows.studentStepResponses.map((response) => ({
+        ...response,
+        sourceLogId: null,
+        clientEventId: sharedEventId,
+      })),
+      interactionLogs: [
+        {
+          ...log,
+          id: 'log-duplicate-a',
+          clientEventId: sharedEventId,
+        },
+        {
+          ...log,
+          id: 'log-duplicate-b',
+          clientEventId: sharedEventId,
+        },
+      ],
+      learningFacts: rows.learningFacts.map((fact) => ({
+        ...fact,
+        sourceEventId: sharedEventId,
+        sourceLogId: null,
+      })),
+    });
+
+    expect(plan.factActions[0]?.nextSourceLogId).toBeUndefined();
+    expect(plan.sourceLogDiagnostics).toEqual([
+      expect.objectContaining({
+        factId: 'fact-53',
+        responseId: 'response-53',
+        sourceEventId: sharedEventId,
+        reason: 'ambiguous_matching_interaction_log',
+      }),
+    ]);
+  });
+
   it('counts only explicit answered cards when rebuilding interactive quiz context', () => {
     const seedRows = buildRows({
       schemaVersion: 'manifest-submission-v2',
