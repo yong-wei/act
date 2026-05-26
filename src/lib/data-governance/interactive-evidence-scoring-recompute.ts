@@ -406,9 +406,15 @@ function findMatchingFacts(
   fallbackResponseCount: number,
 ) {
   const stableSourceEventIds = buildStableResponseSourceEventIds(response);
+  const belongsToResponse = (fact: InteractiveEvidenceScoringLearningFactRow) => (
+    fact.userId === response.userId && fact.sessionId === response.sessionId
+  );
   const preciseMatches = learningFacts.filter((fact) => (
-    Boolean(response.sourceLogId && fact.sourceLogId === response.sourceLogId)
-    || Boolean(fact.sourceEventId && stableSourceEventIds.has(fact.sourceEventId))
+    belongsToResponse(fact)
+    && (
+      Boolean(response.sourceLogId && fact.sourceLogId === response.sourceLogId)
+      || Boolean(fact.sourceEventId && stableSourceEventIds.has(fact.sourceEventId))
+    )
   ));
   if (preciseMatches.length > 0) return preciseMatches;
   if (fallbackResponseCount !== 1) return [];

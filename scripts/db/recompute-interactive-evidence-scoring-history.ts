@@ -44,6 +44,13 @@ function parseDate(value: string | undefined): Date | undefined {
   return date;
 }
 
+function readRequiredOptionValue(option: string, value: string | undefined): string {
+  if (!value || value.startsWith('--')) {
+    throw new Error(`Missing value for ${option}`);
+  }
+  return value;
+}
+
 function parseOptions(argv: string[]): RecomputeOptions {
   const options: RecomputeOptions = {
     apply: false,
@@ -64,16 +71,16 @@ function parseOptions(argv: string[]): RecomputeOptions {
     } else if (arg === '--compact') {
       options.compact = true;
     } else if (arg === '--session-id' || arg === '--session-ids') {
-      options.filters.sessionIds = parseList(next);
+      options.filters.sessionIds = parseList(readRequiredOptionValue(arg, next));
       index += 1;
     } else if (arg === '--lesson-key' || arg === '--lesson-keys') {
-      options.filters.lessonKeys = parseList(next);
+      options.filters.lessonKeys = parseList(readRequiredOptionValue(arg, next));
       index += 1;
     } else if (arg === '--from') {
-      options.filters.from = parseDate(next);
+      options.filters.from = parseDate(readRequiredOptionValue(arg, next));
       index += 1;
     } else if (arg === '--to') {
-      options.filters.to = parseDate(next);
+      options.filters.to = parseDate(readRequiredOptionValue(arg, next));
       index += 1;
     } else {
       throw new Error(`Unknown argument: ${arg}`);

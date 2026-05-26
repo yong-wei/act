@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 import {
@@ -266,6 +267,29 @@ describe('interactive evidence scoring recompute', () => {
     });
   });
 
+  it('does not match learning facts across users or sessions when source ids collide', () => {
+    const rows = buildRows();
+    const crossUserFact = {
+      ...rows.learningFacts[0],
+      id: 'fact-other-student',
+      userId: 'student-other',
+      sessionId: 'session-other',
+    };
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: rows.studentStepResponses,
+      interactionLogs: rows.interactionLogs,
+      learningFacts: [crossUserFact],
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
+    expect(plan.factActions).toEqual([]);
+  });
+
   it('applies updates idempotently without creating repeated changes', async () => {
     const rows = buildRows();
     const plan = buildInteractiveEvidenceScoringRecomputePlan({
@@ -362,5 +386,20 @@ describe('interactive evidence scoring recompute', () => {
         reason: 'missing_matching_interaction_log',
       }),
     ]);
+  });
+
+  it('rejects filter flags without values before a recompute can fall back to all rows', () => {
+    const result = spawnSync('npx', [
+      'tsx',
+      './scripts/db/recompute-interactive-evidence-scoring-history.ts',
+      '--apply',
+      '--session-id',
+    ], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('Missing value for --session-id');
   });
 });
