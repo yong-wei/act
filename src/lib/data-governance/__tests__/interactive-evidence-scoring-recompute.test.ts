@@ -140,6 +140,7 @@ function buildRows(responseData = staleResponseData()) {
       {
         id: 'fact-53',
         userId: 'student-53',
+        factType: 'question',
         sessionId: 'session-53',
         lessonId: 'unit-5-3-state-feedback-observer-coordination-v1',
         moduleId: 'step-08',
@@ -284,6 +285,25 @@ describe('interactive evidence scoring recompute', () => {
       studentStepResponses: rows.studentStepResponses,
       interactionLogs: rows.interactionLogs,
       learningFacts: [crossUserFact],
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
+    expect(plan.factActions).toEqual([]);
+  });
+
+  it('does not update non-question facts even when trace ids match', () => {
+    const rows = buildRows();
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: rows.studentStepResponses,
+      interactionLogs: rows.interactionLogs,
+      learningFacts: rows.learningFacts.map((fact) => ({
+        ...fact,
+        factType: 'simulation',
+      })),
     });
 
     expect(plan.responseActions[0]).toMatchObject({ action: 'update-derived-scoring' });
@@ -534,6 +554,7 @@ describe('interactive evidence scoring recompute', () => {
         lessonKey: 'unit-5-3-state-feedback-observer-coordination-v1',
       }),
     ]);
+    expect(plan.totals.scoreChanges).toBe(0);
     await expect(applyInteractiveEvidenceScoringRecomputePlan({
       studentStepResponse: { update: vi.fn() },
       learningFact: { update: vi.fn() },

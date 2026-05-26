@@ -50,6 +50,7 @@ export interface InteractiveEvidenceScoringInteractionLogRow {
 export interface InteractiveEvidenceScoringLearningFactRow {
   id: string;
   userId: string;
+  factType: string;
   sessionId: string | null;
   lessonId: string | null;
   moduleId: string | null;
@@ -413,8 +414,14 @@ function findMatchingFacts(
   const belongsToResponse = (fact: InteractiveEvidenceScoringLearningFactRow) => (
     fact.userId === response.userId && fact.sessionId === response.sessionId
   );
+  const isInteractiveQuestionFact = (fact: InteractiveEvidenceScoringLearningFactRow) => (
+    fact.factType === 'question'
+    && fact.moduleId === response.stepId
+    && (!response.lessonKey || fact.lessonId === response.lessonKey)
+  );
   const preciseMatches = learningFacts.filter((fact) => (
     belongsToResponse(fact)
+    && isInteractiveQuestionFact(fact)
     && (
       Boolean(response.sourceLogId && fact.sourceLogId === response.sourceLogId)
       || Boolean(fact.sourceEventId && stableSourceEventIds.has(fact.sourceEventId))
@@ -424,10 +431,8 @@ function findMatchingFacts(
   if (fallbackResponseCount !== 1) return [];
 
   const fallbackMatches = learningFacts.filter((fact) => (
-    fact.sessionId === response.sessionId
-    && fact.userId === response.userId
-    && fact.moduleId === response.stepId
-    && (!response.lessonKey || fact.lessonId === response.lessonKey)
+    belongsToResponse(fact)
+    && isInteractiveQuestionFact(fact)
   ));
   return fallbackMatches.length === 1 ? fallbackMatches : [];
 }
@@ -814,7 +819,9 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
       responseRowsSkipped: responseActions.filter((action) => action.action === 'skip').length,
       factRowsChanged: factActions.length,
       sourceLogRepairs: factActions.filter((action) => action.nextSourceLogId && action.oldSourceLogId !== action.nextSourceLogId).length,
-      scoreChanges: responseActions.filter((action) => action.oldScore !== action.newScore).length,
+      scoreChanges: responseActions.filter((action) => (
+        action.action === 'update-derived-scoring' && action.oldScore !== action.newScore
+      )).length,
       affectedLessons: affectedLessonKeys.length,
       affectedSessions: affectedSessionIds.length,
       affectedUsers: affectedUserIds.length,
@@ -896,6 +903,7 @@ export async function collectInteractiveEvidenceScoringRecomputePlan(
         select: {
           id: true,
           userId: true,
+          factType: true,
           sessionId: true,
           lessonId: true,
           moduleId: true,
