@@ -105,7 +105,11 @@ export interface InteractiveEvidenceScoringSourceLogDiagnostic {
   sessionId: string;
   stepId: string;
   sourceEventId: string | null;
-  reason: 'missing_source_event_id' | 'missing_matching_interaction_log' | 'ambiguous_matching_interaction_log';
+  reason:
+    | 'missing_source_event_id'
+    | 'missing_matching_interaction_log'
+    | 'ambiguous_matching_interaction_log'
+    | 'ambiguous_matching_response';
 }
 
 export interface InteractiveEvidenceScoringAuditDelta {
@@ -805,6 +809,13 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
   const sourceLogDiagnostics: InteractiveEvidenceScoringSourceLogDiagnostic[] = [];
   const seenSourceLogDiagnosticFactIds = new Set<string>();
   if (prerequisiteErrors.length === 0) {
+    const factMatchCandidates: Array<{
+      response: InteractiveEvidenceScoringResponseRow;
+      responseData: JsonRecord;
+      fact: InteractiveEvidenceScoringLearningFactRow;
+    }> = [];
+    const responseIdsByFactId = new Map<string, Set<string>>();
+
     for (const action of responseActions) {
       if (action.action !== 'update-derived-scoring' && action.action !== 'already-current') continue;
       const response = responseById.get(action.responseId);
@@ -817,17 +828,46 @@ export function buildInteractiveEvidenceScoringRecomputePlan(
         responseFallbackCounts.get(buildResponseFallbackKey(response)) ?? 0,
         response.lessonKey ? manifestMap.get(response.lessonKey) : null,
       )) {
-        const sourceLogDiagnostic = buildSourceLogDiagnostic(response, fact, sourceIndex);
-        if (sourceLogDiagnostic && !seenSourceLogDiagnosticFactIds.has(fact.id)) {
-          seenSourceLogDiagnosticFactIds.add(fact.id);
-          sourceLogDiagnostics.push(sourceLogDiagnostic);
-        }
-        if (seenFactIds.has(fact.id)) continue;
-        const factAction = buildFactAction(response, responseData, fact, sourceIndex);
-        if (!factAction) continue;
-        seenFactIds.add(fact.id);
-        factActions.push(factAction);
+        factMatchCandidates.push({ response, responseData, fact });
+        const responseIds = responseIdsByFactId.get(fact.id) ?? new Set<string>();
+        responseIds.add(response.id);
+        responseIdsByFactId.set(fact.id, responseIds);
       }
+    }
+
+    const ambiguousFactIds = new Set(
+      Array.from(responseIdsByFactId.entries())
+        .filter(([, responseIds]) => responseIds.size > 1)
+        .map(([factId]) => factId),
+    );
+
+    for (const { response, responseData, fact } of factMatchCandidates) {
+      if (ambiguousFactIds.has(fact.id)) {
+        if (!seenSourceLogDiagnosticFactIds.has(fact.id)) {
+          seenSourceLogDiagnosticFactIds.add(fact.id);
+          sourceLogDiagnostics.push({
+            factId: fact.id,
+            responseId: response.id,
+            lessonKey: response.lessonKey,
+            sessionId: response.sessionId,
+            stepId: response.stepId,
+            sourceEventId: fact.sourceEventId,
+            reason: 'ambiguous_matching_response',
+          });
+        }
+        continue;
+      }
+
+      const sourceLogDiagnostic = buildSourceLogDiagnostic(response, fact, sourceIndex);
+      if (sourceLogDiagnostic && !seenSourceLogDiagnosticFactIds.has(fact.id)) {
+        seenSourceLogDiagnosticFactIds.add(fact.id);
+        sourceLogDiagnostics.push(sourceLogDiagnostic);
+      }
+      if (seenFactIds.has(fact.id)) continue;
+      const factAction = buildFactAction(response, responseData, fact, sourceIndex);
+      if (!factAction) continue;
+      seenFactIds.add(fact.id);
+      factActions.push(factAction);
     }
   }
 

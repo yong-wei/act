@@ -352,6 +352,35 @@ describe('interactive evidence scoring recompute', () => {
     expect(plan.factActions).toEqual([]);
   });
 
+  it('skips fact updates when multiple responses match the same learning fact', () => {
+    const rows = buildRows();
+    const newerResponse = {
+      ...rows.studentStepResponses[0],
+      id: 'response-53-newer',
+      submittedAt: new Date('2026-05-20T02:05:00.000Z'),
+    };
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: [rows.studentStepResponses[0], newerResponse],
+      interactionLogs: rows.interactionLogs,
+      learningFacts: rows.learningFacts,
+    });
+
+    expect(plan.responseActions).toHaveLength(2);
+    expect(plan.factActions).toEqual([]);
+    expect(plan.sourceLogDiagnostics).toEqual([
+      expect.objectContaining({
+        factId: 'fact-53',
+        responseId: 'response-53',
+        reason: 'ambiguous_matching_response',
+      }),
+    ]);
+  });
+
   it('uses runtime manifest aliases for courses outside the static lesson registry', () => {
     const rows = buildRows();
     const lessonKey = 'unit-6-1-new-course-v1';
