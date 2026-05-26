@@ -27,6 +27,10 @@ describe('classroom session statistics', () => {
           factParticipants: 50,
           submittedParticipants: 49,
           snapshotUpdatedParticipants: 50,
+          snapshotCoveredParticipants: 63,
+          snapshotCoverageExpectedParticipants: 63,
+          postClassUpdatedParticipants: 50,
+          postClassUpdateWindowExpectedParticipants: 77,
           syncErrorUsers: 11,
         },
       },
@@ -38,6 +42,8 @@ describe('classroom session statistics', () => {
     expect(statistics.governanceSummary).toMatchObject({
       loggedParticipants: 73,
       submittedParticipants: 49,
+      snapshotCoveredParticipants: 63,
+      postClassUpdatedParticipants: 50,
       syncErrorUsers: 11,
       qualityStatus: {
         status: 'yellow',

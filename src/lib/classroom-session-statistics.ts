@@ -9,6 +9,10 @@ export interface SessionGovernanceSummary {
   factParticipants: number | null;
   submittedParticipants: number | null;
   snapshotUpdatedParticipants: number | null;
+  snapshotCoveredParticipants: number | null;
+  snapshotCoverageExpectedParticipants: number | null;
+  postClassUpdatedParticipants: number | null;
+  postClassUpdateWindowExpectedParticipants: number | null;
   syncErrorUsers: number | null;
 }
 
@@ -78,6 +82,10 @@ export function parseSessionGovernanceSummary(reportData: unknown): SessionGover
     factParticipants: toCount(summary.factParticipants),
     submittedParticipants: toCount(summary.submittedParticipants),
     snapshotUpdatedParticipants: toCount(summary.snapshotUpdatedParticipants),
+    snapshotCoveredParticipants: toCount(summary.snapshotCoveredParticipants),
+    snapshotCoverageExpectedParticipants: toCount(summary.snapshotCoverageExpectedParticipants),
+    postClassUpdatedParticipants: toCount(summary.postClassUpdatedParticipants),
+    postClassUpdateWindowExpectedParticipants: toCount(summary.postClassUpdateWindowExpectedParticipants),
     syncErrorUsers: toCount(summary.syncErrorUsers),
   };
 

@@ -159,6 +159,10 @@ function latestDate(dates: Date[]) {
     .sort((left, right) => right.getTime() - left.getTime())[0] ?? null;
 }
 
+function ratio(numerator: number, denominator: number) {
+  return denominator > 0 ? numerator / denominator : null;
+}
+
 function uniqueSorted(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value)))).sort();
 }
@@ -291,11 +295,22 @@ function buildSnapshotFreshness(
   session: ClassSessionQualityRow,
   participantUserIds: string[],
   snapshots: StudentSnapshotQualityRow[],
+  latestFactAtByUserId: Map<string, Date>,
 ) {
   const windowStart = session.endTime ?? session.startTime;
   const windowEnd = new Date(windowStart.getTime() + SNAPSHOT_FRESHNESS_WINDOW_MS);
   const participantSet = new Set(participantUserIds);
-  const freshUserIds = new Set(
+  const latestSnapshotAtByUserId = new Map<string, Date>();
+
+  for (const snapshot of snapshots) {
+    if (!participantSet.has(snapshot.userId)) continue;
+    const current = latestSnapshotAtByUserId.get(snapshot.userId);
+    if (!current || snapshot.snapshotAt.getTime() > current.getTime()) {
+      latestSnapshotAtByUserId.set(snapshot.userId, snapshot.snapshotAt);
+    }
+  }
+
+  const postClassUpdatedUserIds = new Set(
     snapshots
       .filter((snapshot) => (
         participantSet.has(snapshot.userId)
@@ -304,14 +319,45 @@ function buildSnapshotFreshness(
       ))
       .map((snapshot) => snapshot.userId),
   );
+  const expectedSnapshotCoverageUserIds = participantUserIds.filter((userId) => latestFactAtByUserId.has(userId));
+  const snapshotCoveredUserIds = expectedSnapshotCoverageUserIds.filter((userId) => {
+    const latestFactAt = latestFactAtByUserId.get(userId);
+    const latestSnapshotAt = latestSnapshotAtByUserId.get(userId);
+    return Boolean(
+      latestFactAt
+      && latestSnapshotAt
+      && latestSnapshotAt.getTime() >= latestFactAt.getTime()
+      && latestSnapshotAt.getTime() <= windowEnd.getTime()
+    );
+  });
+  const snapshotCoverageFresh = expectedSnapshotCoverageUserIds.length === snapshotCoveredUserIds.length;
+  const postClassWindowFresh = participantUserIds.length === postClassUpdatedUserIds.size;
 
   return {
-    windowStart: windowStart.toISOString(),
-    windowEnd: windowEnd.toISOString(),
-    updatedParticipants: freshUserIds.size,
-    expectedParticipants: participantUserIds.length,
-    missingParticipants: Math.max(0, participantUserIds.length - freshUserIds.size),
-    fresh: participantUserIds.length === freshUserIds.size,
+    snapshotCoverage: {
+      coveredParticipants: snapshotCoveredUserIds.length,
+      expectedParticipants: expectedSnapshotCoverageUserIds.length,
+      missingParticipants: Math.max(0, expectedSnapshotCoverageUserIds.length - snapshotCoveredUserIds.length),
+      latestSnapshotAt: latestDate(Array.from(latestSnapshotAtByUserId.values()))?.toISOString() ?? null,
+      fresh: snapshotCoverageFresh,
+    },
+    postClassUpdateWindowCoverage: {
+      windowStart: windowStart.toISOString(),
+      windowEnd: windowEnd.toISOString(),
+      updatedParticipants: postClassUpdatedUserIds.size,
+      expectedParticipants: participantUserIds.length,
+      missingParticipants: Math.max(0, participantUserIds.length - postClassUpdatedUserIds.size),
+      fresh: postClassWindowFresh,
+    },
+    compatibilitySnapshotFreshness: {
+      windowStart: windowStart.toISOString(),
+      windowEnd: windowEnd.toISOString(),
+      updatedParticipants: postClassUpdatedUserIds.size,
+      expectedParticipants: participantUserIds.length,
+      missingParticipants: Math.max(0, participantUserIds.length - postClassUpdatedUserIds.size),
+      coverageFresh: snapshotCoverageFresh,
+      fresh: postClassWindowFresh,
+    },
   };
 }
 
@@ -330,24 +376,50 @@ function buildCacheFreshness(
 ) {
   const windowStart = session.endTime ?? session.startTime;
   const participantSet = new Set(participantUserIds);
-  const cacheByUserId = new Map(
-    caches
-      .filter((cache) => participantSet.has(cache.userId))
-      .map((cache) => [cache.userId, cache] as const),
-  );
+  const cacheByUserId = new Map<string, StudentEvidenceFeatureCacheQualityRow>();
+  for (const cache of caches) {
+    if (!participantSet.has(cache.userId)) continue;
+    const current = cacheByUserId.get(cache.userId);
+    if (!current || cache.refreshedAt.getTime() > current.refreshedAt.getTime()) {
+      cacheByUserId.set(cache.userId, cache);
+    }
+  }
   const freshUserIds = new Set<string>();
   const staleUserIds = new Set<string>();
+  const postClassRefreshedUserIds = new Set<string>();
+  const latestFactCoveredUserIds = new Set<string>();
+  const reasonCounts: Record<string, number> = {};
+
+  function addReason(reason: string) {
+    reasonCounts[reason] = (reasonCounts[reason] ?? 0) + 1;
+  }
 
   for (const userId of participantUserIds) {
     const cache = cacheByUserId.get(userId);
-    if (!cache) continue;
+    const latestFactAt = latestFactAtByUserId.get(userId) ?? null;
+    if (!cache) {
+      addReason('feature_cache_missing');
+      if (latestFactAt) addReason('feature_cache_missing_latest_fact');
+      continue;
+    }
     const markers = Array.isArray(cache.statusMarkers) ? cache.statusMarkers : [];
     const staleByMarker = markers.includes('stale');
     const refreshedAt = cache.refreshedAt;
     const refreshedAfterSession = refreshedAt.getTime() >= windowStart.getTime();
-    const latestFactAt = latestFactAtByUserId.get(userId) ?? null;
     const cacheIncludesLatestFact = !latestFactAt
       || Boolean(cache.lastSourceFactAt && cache.lastSourceFactAt.getTime() >= latestFactAt.getTime());
+
+    if (refreshedAfterSession) {
+      postClassRefreshedUserIds.add(userId);
+    } else {
+      addReason('feature_cache_not_post_class_refreshed');
+    }
+    if (latestFactAt && cacheIncludesLatestFact) {
+      latestFactCoveredUserIds.add(userId);
+    } else if (latestFactAt) {
+      addReason('feature_cache_missing_latest_fact');
+    }
+    if (staleByMarker) addReason('feature_cache_stale_marker');
 
     if (staleByMarker || !refreshedAfterSession || !cacheIncludesLatestFact) {
       staleUserIds.add(userId);
@@ -360,9 +432,13 @@ function buildCacheFreshness(
     windowStart: windowStart.toISOString(),
     minimumRefreshedAt: windowStart.toISOString(),
     refreshedParticipants: freshUserIds.size,
+    postClassRefreshedParticipants: postClassRefreshedUserIds.size,
+    latestFactCoveredParticipants: latestFactCoveredUserIds.size,
+    expectedParticipantsWithFacts: latestFactAtByUserId.size,
     expectedParticipants: participantUserIds.length,
     missingParticipants: Math.max(0, participantUserIds.length - cacheByUserId.size),
     staleParticipants: staleUserIds.size,
+    reasonCounts,
     latestRefreshedAt: latestDate(
       Array.from(cacheByUserId.values()).map((cache) => cache.refreshedAt),
     )?.toISOString() ?? null,
@@ -377,6 +453,7 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
   let answerAvailableRows = 0;
   let scoreAvailableRows = 0;
   let questionSummaryAvailableRows = 0;
+  let scoreableObjectiveSubmissions = 0;
 
   for (const submission of submissions) {
     submittedUserIds.add(submission.userId);
@@ -386,6 +463,7 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
     if (summary.hasAnswerEvidence) answerAvailableRows += 1;
     if (summary.hasScoreEvidence) scoreAvailableRows += 1;
     if (summary.hasQuestionSummaryEvidence) questionSummaryAvailableRows += 1;
+    scoreableObjectiveSubmissions += summary.scoreableObjectiveSubmissions;
   }
 
   return {
@@ -394,6 +472,7 @@ function summarizeSubmissions(submissions: StudentStepResponseQualityRow[]) {
     answerAvailableRows,
     scoreAvailableRows,
     questionSummaryAvailableRows,
+    scoreableObjectiveSubmissions,
     evidenceQualityCounts,
     evidenceQualityReasonCounts,
   };
@@ -410,6 +489,52 @@ function latestFactAtByUserId(facts: LearningFactQualityRow[]) {
   }
 
   return latestByUserId;
+}
+
+function buildReadinessMetrics(input: {
+  participantCount: number;
+  loggedParticipantCount: number;
+  submissionCoverage: ReturnType<typeof summarizeSubmissions>;
+  snapshotCoverage: ReturnType<typeof buildSnapshotFreshness>['snapshotCoverage'];
+  postClassUpdateWindowCoverage: ReturnType<typeof buildSnapshotFreshness>['postClassUpdateWindowCoverage'];
+  featureCacheFreshness: ReturnType<typeof buildCacheFreshness>;
+}) {
+  const totalRows = input.submissionCoverage.totalRows;
+  const scoreableRows = input.submissionCoverage.scoreableObjectiveSubmissions;
+  return {
+    participants: {
+      count: input.participantCount,
+    },
+    loggedUsers: {
+      count: input.loggedParticipantCount,
+      expectedParticipants: input.participantCount,
+      coverage: ratio(input.loggedParticipantCount, input.participantCount),
+    },
+    durableSubmissionCoverage: {
+      submittedParticipants: input.submissionCoverage.submittedParticipants,
+      expectedParticipants: input.participantCount,
+      totalRows,
+      coverage: ratio(input.submissionCoverage.submittedParticipants, input.participantCount),
+    },
+    requiredEvidenceCoverage: {
+      availableRows: input.submissionCoverage.answerAvailableRows,
+      submittedRows: totalRows,
+      coverage: ratio(input.submissionCoverage.answerAvailableRows, totalRows),
+    },
+    scoreableEvidenceCoverage: {
+      scoreableRows,
+      submittedRows: totalRows,
+      coverage: ratio(scoreableRows, totalRows),
+    },
+    scoringCoverage: {
+      scoredRows: input.submissionCoverage.scoreAvailableRows,
+      scoreableRows,
+      coverage: ratio(input.submissionCoverage.scoreAvailableRows, scoreableRows),
+    },
+    snapshotCoverage: input.snapshotCoverage,
+    postClassUpdateWindowCoverage: input.postClassUpdateWindowCoverage,
+    featureCacheFreshness: input.featureCacheFreshness,
+  };
 }
 
 export function buildSessionDataQualityReport(input: BuildSessionDataQualityReportInput) {
@@ -447,6 +572,8 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
     const submissionCoverage = summarizeSubmissions(studentSubmissions);
     const syncHealth = buildSyncErrorIncidentSummary(logs.map(toSyncIncidentSummaryLog));
     const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs.map(toSyncIncidentSummaryLog));
+    const loggedUserIds = new Set(studentLogs.map((log) => log.userId));
+    const latestStudentFactAtByUserId = latestFactAtByUserId(studentFacts);
     const participantUserIdSet = new Set(participantUserIds);
     const participantStudentReports = studentReports.filter((report) => participantUserIdSet.has(report.userId ?? ''));
     const reportFreshness = buildReportFreshness(
@@ -459,13 +586,27 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       session,
       participantUserIds,
       input.studentCompetencySnapshots,
+      latestStudentFactAtByUserId,
     );
     const cacheFreshness = buildCacheFreshness(
       session,
       participantUserIds,
       input.studentEvidenceFeatureCaches ?? [],
-      latestFactAtByUserId(studentFacts),
+      latestStudentFactAtByUserId,
     );
+    const featureCacheEvaluated = input.studentEvidenceFeatureCaches !== undefined;
+    const featureCacheFreshness = {
+      ...cacheFreshness,
+      evaluated: featureCacheEvaluated,
+    };
+    const readinessMetrics = buildReadinessMetrics({
+      participantCount: participantUserIds.length,
+      loggedParticipantCount: loggedUserIds.size,
+      submissionCoverage,
+      snapshotCoverage: snapshotFreshness.snapshotCoverage,
+      postClassUpdateWindowCoverage: snapshotFreshness.postClassUpdateWindowCoverage,
+      featureCacheFreshness,
+    });
     const syncSeverity = resolveSessionQualitySyncSeverity(syncHealth.severityDistribution);
     const qualitySyncSeverity = resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution);
     const syncQuality = {
@@ -488,7 +629,10 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       reportFresh: reportFreshness.classReportAvailable
         && reportFreshness.classReportFresh
         && reportFreshness.studentReportsFresh,
-      snapshotFresh: snapshotFreshness.fresh,
+      snapshotFresh: snapshotFreshness.snapshotCoverage.fresh,
+      snapshotCoverageFresh: snapshotFreshness.snapshotCoverage.fresh,
+      postClassUpdateWindowFresh: snapshotFreshness.postClassUpdateWindowCoverage.fresh,
+      featureCacheFresh: featureCacheEvaluated ? featureCacheFreshness.fresh : true,
       syncSeverity: qualitySyncSeverity,
       unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
       syncAffectedUsers: qualitySyncHealth.affectedUsers,
@@ -509,7 +653,11 @@ export function buildSessionDataQualityReport(input: BuildSessionDataQualityRepo
       qualityStatus,
       submissionCoverage,
       reportFreshness,
-      snapshotFreshness,
+      snapshotCoverage: snapshotFreshness.snapshotCoverage,
+      postClassUpdateWindowCoverage: snapshotFreshness.postClassUpdateWindowCoverage,
+      featureCacheFreshness,
+      readinessMetrics,
+      snapshotFreshness: snapshotFreshness.compatibilitySnapshotFreshness,
       postClassClosure: {
         captured: {
           complete: hasSessionFinalizeCapture(logs),
