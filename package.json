@@ -52,6 +52,7 @@
     "db:session-data-quality": "tsx ./scripts/db/report-session-data-quality.ts",
     "db:materialize-historical-learning-facts": "tsx ./scripts/db/materialize-historical-learning-facts.ts",
     "db:backfill-course-evidence": "tsx ./scripts/db/backfill-course-evidence-and-reporting.ts",
+    "db:recompute-interactive-scoring": "tsx ./scripts/db/recompute-interactive-evidence-scoring-history.ts",
     "db:rebuild-student-evidence-feature-cache": "tsx ./scripts/db/rebuild-student-evidence-feature-cache.ts",
     "migrate:events": "npx tsx scripts/migrations/001-seed-event-dictionary.ts",
     "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
