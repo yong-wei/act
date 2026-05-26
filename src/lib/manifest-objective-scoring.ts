@@ -356,7 +356,23 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
   const pairTokens = splitAnswerTokens(submittedAnswer);
   const parsedPairs = pairTokens.map(parsePairToken);
   const usesPairSyntax = pairTokens.length > 0 && parsedPairs.every((pair): pair is [string, string] => Boolean(pair));
-  const extraItems = usesPairSyntax ? [] : submittedSlots.slice(referenceEntries.length).filter(Boolean);
+  const itemOptions = card.matchItems?.length ? card.matchItems : card.options;
+  const referenceItemSet = new Set(referenceEntries.map(([item]) => normalizeToken(item)));
+  const seenPairItems = new Set<string>();
+  const extraItems = usesPairSyntax
+    ? parsedPairs
+      .filter((pair): pair is [string, string] => Boolean(pair))
+      .map(([item, option]) => ({
+        item: findOptionValue(itemOptions, item) ?? item,
+        option: findOptionValue(card.matchOptions ?? card.options, option) ?? option,
+      }))
+      .filter(({ item }) => {
+        const itemKey = normalizeToken(item);
+        const isExtra = !referenceItemSet.has(itemKey) || seenPairItems.has(itemKey);
+        seenPairItems.add(itemKey);
+        return isExtra;
+      })
+    : submittedSlots.slice(referenceEntries.length).filter(Boolean);
   const score = correctPairs.length / (referenceEntries.length + extraItems.length);
 
   return {

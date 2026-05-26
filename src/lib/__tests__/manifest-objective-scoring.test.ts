@@ -193,6 +193,47 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('penalizes extra pair-syntax entries in matching answers', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q5-extra-pair',
+      responseKind: 'drag_match',
+      options: [],
+      matchItems: [
+        { value: '1', label: '感知' },
+        { value: '2', label: '规划' },
+        { value: '5', label: '监督' },
+      ],
+      matchOptions: [
+        { value: '3', label: '状态估计' },
+        { value: '4', label: '路径生成' },
+        { value: '1', label: '安全接管' },
+        { value: '9', label: '无关项' },
+      ],
+      referenceMatches: [
+        { item: '1', option: '3' },
+        { item: '2', option: '4' },
+        { item: '5', option: '1' },
+      ],
+    }, '1-3,2-4,5-1,9-9');
+
+    expect(result).toMatchObject({
+      score: 3 / 4,
+      isCorrect: false,
+      normalizedSubmitted: { '1': '3', '2': '4', '5': '1', '9': '9' },
+      normalizedReference: { '1': '3', '2': '4', '5': '1' },
+      detail: {
+        correctPairs: [
+          { item: '1', option: '3' },
+          { item: '2', option: '4' },
+          { item: '5', option: '1' },
+        ],
+        extraItems: [
+          { item: '9', option: '9' },
+        ],
+      },
+    });
+  });
+
   it('preserves legacy drag-match scoring when only options define slot order', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q6',
