@@ -18,10 +18,6 @@ The current platform mostly produces recommendation-card jumps, not explicit per
 ### Modified Capabilities
 - None.
 
-## Governance Contract Dependency
-
-This change consumes `establish-adaptive-learning-governance-contracts` through learner-state and ResourceNode prerequisites, and directly for path-event envelope fields, privacy-safe path explanations, feature flag fallback behavior, and API/example handoff requirements.
-
 ## Impact
 
 - Affects lesson/learning center routes, path services/APIs, ResourceNode consumers, and evaluation-event emission.

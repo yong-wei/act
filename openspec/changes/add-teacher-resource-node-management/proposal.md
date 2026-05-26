@@ -17,10 +17,6 @@ The platform needs a teacher-facing management entrance for unified resources. R
 ### Modified Capabilities
 - None.
 
-## Governance Contract Dependency
-
-This change consumes `establish-adaptive-learning-governance-contracts` for teacher-scoped/admin-scoped visibility, privileged audit attribution, ResourceNode warning redaction, feature flag rollback behavior, and API handoff examples.
-
 ## Impact
 
 - Affects teacher resource/admin routes and ResourceNode registry APIs.

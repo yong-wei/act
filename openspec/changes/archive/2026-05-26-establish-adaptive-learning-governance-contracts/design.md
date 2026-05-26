@@ -42,6 +42,21 @@ Feature flags are part of the review contract, not a late implementation detail.
 
 Each downstream implementation that adds a data model, API, or evaluation event must include enough contract material for the next change to consume it without reverse-engineering code. The minimum handoff is an ER or ownership boundary note, data dictionary, privacy class per field family, source-of-truth statement, retention or rollback note, and at least one request/response or event example when an API or event is involved.
 
+### Downstream reference audit
+
+The downstream split proposals that directly consume this contract already record `establish-adaptive-learning-governance-contracts` in their dependency metadata or proposal impact sections:
+
+- `persist-adaptive-assessment-mastery`
+- `build-adaptive-learner-state-service`
+- `register-path-plannable-resource-nodes`
+- `add-teacher-resource-node-management`
+
+The remaining Stage 1/Stage 2 adaptive-learning changes consume the contract through those direct dependencies and must cite this contract when they add their own privacy, evaluation, feature-flag, or handoff fields:
+
+- `implement-rule-graph-learning-path-mvp`
+- `upgrade-konling-adaptive-agent-runtime`
+- `add-adaptive-optimization-experiments`
+
 ## Risks / Trade-offs
 
 - This change has little visible product value by itself, but it prevents later changes from inventing incompatible payload shapes.
