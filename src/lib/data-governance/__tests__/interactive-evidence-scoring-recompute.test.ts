@@ -7,6 +7,7 @@ import {
   buildInteractiveEvidenceScoringRecomputePlan,
   collectInteractiveEvidenceScoringRecomputePlan,
 } from '../interactive-evidence-scoring-recompute';
+import { parseInteractiveEvidenceScoringRecomputeOptions } from '../../../../scripts/db/recompute-interactive-evidence-scoring-options';
 
 const lesson53Manifest: InteractiveRuntimeManifest = {
   lessonId: '5-3',
@@ -737,6 +738,36 @@ describe('interactive evidence scoring recompute', () => {
         reason: 'missing_matching_interaction_log',
       }),
     ]);
+  });
+
+  it('rejects calendar-invalid recompute date filters', () => {
+    expect(() => parseInteractiveEvidenceScoringRecomputeOptions([
+      'node',
+      'recompute-interactive-evidence-scoring-history.ts',
+      '--from',
+      '2026-02-31',
+    ])).toThrow('Invalid date: 2026-02-31');
+
+    expect(() => parseInteractiveEvidenceScoringRecomputeOptions([
+      'node',
+      'recompute-interactive-evidence-scoring-history.ts',
+      '--to',
+      '2026-04-31T00:00:00.000Z',
+    ])).toThrow('Invalid date: 2026-04-31T00:00:00.000Z');
+  });
+
+  it('expands date-only recompute filters to UTC day boundaries', () => {
+    const options = parseInteractiveEvidenceScoringRecomputeOptions([
+      'node',
+      'recompute-interactive-evidence-scoring-history.ts',
+      '--from',
+      '2026-05-20',
+      '--to',
+      '2026-05-20',
+    ]);
+
+    expect(options.filters.from?.toISOString()).toBe('2026-05-20T00:00:00.000Z');
+    expect(options.filters.to?.toISOString()).toBe('2026-05-20T23:59:59.999Z');
   });
 
   it('rejects filter flags without values before a recompute can fall back to all rows', () => {

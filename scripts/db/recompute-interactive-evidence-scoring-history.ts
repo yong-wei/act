@@ -5,7 +5,6 @@ import { PrismaClient } from '@prisma/client';
 import {
   applyInteractiveEvidenceScoringRecomputePlan,
   collectInteractiveEvidenceScoringRecomputePlan,
-  type InteractiveEvidenceScoringRecomputeFilters,
   type InteractiveEvidenceScoringRecomputePlan,
   type InteractiveEvidenceScoringApplyResult,
 } from '@/lib/data-governance/interactive-evidence-scoring-recompute';
@@ -13,84 +12,10 @@ import {
   normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
-
-const prisma = new PrismaClient();
-
-interface RecomputeOptions {
-  apply: boolean;
-  json: boolean;
-  compact: boolean;
-  filters: InteractiveEvidenceScoringRecomputeFilters;
-}
+import { parseInteractiveEvidenceScoringRecomputeOptions } from './recompute-interactive-evidence-scoring-options';
 
 function readJsonFile(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-}
-
-function parseList(option: string, value: string): string[] {
-  const values = value
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-  if (values.length === 0) {
-    throw new Error(`No values provided for ${option}`);
-  }
-  return values;
-}
-
-function parseDate(value: string | undefined): Date | undefined {
-  if (!value) return undefined;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error(`Invalid date: ${value}`);
-  }
-  return date;
-}
-
-function readRequiredOptionValue(option: string, value: string | undefined): string {
-  if (!value || value.startsWith('--')) {
-    throw new Error(`Missing value for ${option}`);
-  }
-  return value;
-}
-
-function parseOptions(argv: string[]): RecomputeOptions {
-  const options: RecomputeOptions = {
-    apply: false,
-    json: false,
-    compact: false,
-    filters: {},
-  };
-
-  for (let index = 2; index < argv.length; index += 1) {
-    const arg = argv[index];
-    const next = argv[index + 1];
-    if (arg === '--apply') {
-      options.apply = true;
-    } else if (arg === '--dry-run') {
-      options.apply = false;
-    } else if (arg === '--json') {
-      options.json = true;
-    } else if (arg === '--compact') {
-      options.compact = true;
-    } else if (arg === '--session-id' || arg === '--session-ids') {
-      options.filters.sessionIds = parseList(arg, readRequiredOptionValue(arg, next));
-      index += 1;
-    } else if (arg === '--lesson-key' || arg === '--lesson-keys') {
-      options.filters.lessonKeys = parseList(arg, readRequiredOptionValue(arg, next));
-      index += 1;
-    } else if (arg === '--from') {
-      options.filters.from = parseDate(readRequiredOptionValue(arg, next));
-      index += 1;
-    } else if (arg === '--to') {
-      options.filters.to = parseDate(readRequiredOptionValue(arg, next));
-      index += 1;
-    } else {
-      throw new Error(`Unknown argument: ${arg}`);
-    }
-  }
-
-  return options;
 }
 
 function addManifestAliases(
@@ -189,29 +114,30 @@ function printTextReport(
 }
 
 async function main() {
-  const options = parseOptions(process.argv);
+  const options = parseInteractiveEvidenceScoringRecomputeOptions(process.argv);
+  const prisma = new PrismaClient();
   const manifestsByLessonKey = loadRuntimeManifests();
-  const plan = await collectInteractiveEvidenceScoringRecomputePlan(prisma, {
-    filters: options.filters,
-    manifestsByLessonKey,
-  });
-  const applyResult = options.apply
-    ? await applyInteractiveEvidenceScoringRecomputePlan(prisma, plan)
-    : null;
+  try {
+    const plan = await collectInteractiveEvidenceScoringRecomputePlan(prisma, {
+      filters: options.filters,
+      manifestsByLessonKey,
+    });
+    const applyResult = options.apply
+      ? await applyInteractiveEvidenceScoringRecomputePlan(prisma, plan)
+      : null;
 
-  if (options.json) {
-    console.log(JSON.stringify({ plan, applyResult }, null, options.compact ? 0 : 2));
-    return;
+    if (options.json) {
+      console.log(JSON.stringify({ plan, applyResult }, null, options.compact ? 0 : 2));
+      return;
+    }
+
+    printTextReport(plan, applyResult);
+  } finally {
+    await prisma.$disconnect();
   }
-
-  printTextReport(plan, applyResult);
 }
 
-main()
-  .catch((error) => {
-    console.error('[InteractiveEvidenceScoringRecompute] failed:', error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((error) => {
+  console.error('[InteractiveEvidenceScoringRecompute] failed:', error);
+  process.exitCode = 1;
+});
