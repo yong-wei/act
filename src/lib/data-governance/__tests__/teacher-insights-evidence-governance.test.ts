@@ -623,6 +623,12 @@ describe('teacher evidence governance insights', () => {
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
         ]),
       },
+      select: expect.objectContaining({
+        id: true,
+        userId: true,
+        factType: true,
+        contextJson: true,
+      }),
     }));
     expect(mocks.prisma.learningFact.findMany.mock.calls[1][0].where).not.toHaveProperty('factType');
     expect(mocks.prisma.learningFact.findMany.mock.calls[1][0]).not.toHaveProperty('take');
@@ -1132,6 +1138,12 @@ describe('teacher evidence governance insights', () => {
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
         ]),
       },
+      select: expect.objectContaining({
+        id: true,
+        userId: true,
+        factType: true,
+        contextJson: true,
+      }),
     }));
     expect(mocks.prisma.learningFact.findMany.mock.calls[0][0]).not.toHaveProperty('take');
     expect(mocks.prisma.studentStepResponse.findMany).toHaveBeenCalledWith(expect.objectContaining({

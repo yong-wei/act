@@ -1,7 +1,8 @@
-import type { LearningFact, Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import {
   buildStudentEvidenceFeaturePayload,
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+  type StudentEvidenceFeatureLearningFact,
   type StudentEvidenceCoverageState,
   type StudentEvidenceStatusMarker,
   type StudentEvidenceWindow,
@@ -318,12 +319,12 @@ export function summarizeTeacherSessionQualityReports(
 
 export function buildTeacherScopedSimulationArenaFeatureMap(
   userIds: string[],
-  facts: LearningFact[],
+  facts: StudentEvidenceFeatureLearningFact[],
   options: TeacherScopedSimulationArenaOptions,
 ): Map<string, StudentSimulationArenaFeatureSummary> {
   const sessionIds = new Set(options.sessionIds ?? []);
   const userIdSet = new Set(userIds);
-  const grouped = new Map<string, LearningFact[]>();
+  const grouped = new Map<string, StudentEvidenceFeatureLearningFact[]>();
 
   for (const fact of facts) {
     if (!userIdSet.has(fact.userId)) continue;
@@ -367,7 +368,7 @@ export function buildTeacherScopedLearningFactScopeFilters(
 }
 
 function isSimulationArenaFactInTeacherScope(
-  fact: LearningFact,
+  fact: StudentEvidenceFeatureLearningFact,
   classId: string,
   sessionIds: Set<string>,
 ): boolean {

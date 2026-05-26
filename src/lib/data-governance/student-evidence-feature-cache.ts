@@ -7,6 +7,27 @@ import {
 export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v2';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
+export type StudentEvidenceFeatureLearningFact = Omit<LearningFact, 'createdAt'>;
+
+export const STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT = {
+  id: true,
+  userId: true,
+  factType: true,
+  moduleId: true,
+  sessionId: true,
+  startedAt: true,
+  finishedAt: true,
+  outcome: true,
+  score: true,
+  timeSpent: true,
+  competencyContribution: true,
+  sourceEventId: true,
+  sourceLogId: true,
+  courseId: true,
+  lessonId: true,
+  contextJson: true,
+} satisfies Record<keyof StudentEvidenceFeatureLearningFact, true>;
+
 export const STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS = [
   'audit',
   'debug',
@@ -172,7 +193,7 @@ interface StudentProfileSummaryAggregate {
 
 interface BuildStudentEvidenceFeaturePayloadInput {
   userId: string;
-  facts: LearningFact[];
+  facts: StudentEvidenceFeatureLearningFact[];
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
   profileSummary?: StudentProfileSummaryAggregate | null;
   now?: Date;
@@ -188,7 +209,7 @@ interface StudentEvidenceFeatureCacheDelegate {
 
 interface StudentEvidenceFeatureCacheDb {
   learningFact?: {
-    findMany: (args?: Record<string, unknown>) => Promise<Array<LearningFact | { userId: string }>>;
+    findMany: (args?: Record<string, unknown>) => Promise<Array<StudentEvidenceFeatureLearningFact | { userId: string }>>;
   };
   studentCompetencySnapshot?: {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
@@ -342,7 +363,8 @@ export async function refreshStudentEvidenceFeatureCache(
     db.learningFact.findMany({
       where: { userId },
       orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
-    }) as Promise<LearningFact[]>,
+      select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
+    }) as Promise<StudentEvidenceFeatureLearningFact[]>,
     db.studentCompetencySnapshot?.findFirst({
       where: { userId },
       orderBy: [
@@ -548,7 +570,10 @@ export async function getStudentEvidenceFeatureCacheAdminSummary(
   };
 }
 
-function buildEvidenceWindow(firstFact: LearningFact | null, lastFact: LearningFact | null): StudentEvidenceWindow {
+function buildEvidenceWindow(
+  firstFact: StudentEvidenceFeatureLearningFact | null,
+  lastFact: StudentEvidenceFeatureLearningFact | null
+): StudentEvidenceWindow {
   if (!firstFact || !lastFact) {
     return {
       firstStartedAt: null,
@@ -564,11 +589,11 @@ function buildEvidenceWindow(firstFact: LearningFact | null, lastFact: LearningF
   };
 }
 
-function buildFactsWindow(facts: LearningFact[]): StudentEvidenceWindow {
+function buildFactsWindow(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceWindow {
   return buildEvidenceWindow(facts[0] ?? null, facts.at(-1) ?? null);
 }
 
-function buildActivitySummary(facts: LearningFact[]): StudentEvidenceActivitySummary {
+function buildActivitySummary(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceActivitySummary {
   const scoredFacts = facts.filter((item) => Number.isFinite(item.score));
 
   return {
@@ -586,7 +611,7 @@ function buildActivitySummary(facts: LearningFact[]): StudentEvidenceActivitySum
 }
 
 function buildCompetencyContributions(
-  facts: LearningFact[]
+  facts: StudentEvidenceFeatureLearningFact[]
 ): StudentEvidenceFeaturePayload['features']['competencyContributions'] {
   const contributions = {} as StudentEvidenceFeaturePayload['features']['competencyContributions'];
 
@@ -617,14 +642,14 @@ function buildCompetencyContributions(
 }
 
 interface BuildSimulationArenaFeaturesInput {
-  facts: LearningFact[];
-  recentFacts: LearningFact[];
+  facts: StudentEvidenceFeatureLearningFact[];
+  recentFacts: StudentEvidenceFeatureLearningFact[];
   now: Date;
   staleAfterDays: number;
 }
 
 interface SimulationArenaFactEvidence {
-  fact: LearningFact;
+  fact: StudentEvidenceFeatureLearningFact;
   source: StudentSimulationArenaEvidenceSource;
   completed: boolean;
   official: boolean;
@@ -701,7 +726,7 @@ function buildSimulationArenaFeatureWindow(
   };
 }
 
-function extractSimulationArenaFactEvidence(fact: LearningFact): SimulationArenaFactEvidence | null {
+function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearningFact): SimulationArenaFactEvidence | null {
   const context = isObject(fact.contextJson) ? fact.contextJson : {};
   const arenaContext = isObject(context.arena) ? context.arena : null;
   const simulationContext =
@@ -766,7 +791,7 @@ function extractSimulationArenaFactEvidence(fact: LearningFact): SimulationArena
 function resolveSimulationArenaOfficial(
   sourceContext: Record<string, unknown>,
   context: Record<string, unknown>,
-  fact: LearningFact
+  fact: StudentEvidenceFeatureLearningFact
 ): boolean {
   const governance = isObject(context.evidenceGovernance) ? context.evidenceGovernance : {};
   return sourceContext.official === true ||
@@ -778,7 +803,7 @@ function resolveSimulationArenaOfficial(
 
 function resolveSimulationArenaPreview(
   sourceContext: Record<string, unknown>,
-  fact: LearningFact,
+  fact: StudentEvidenceFeatureLearningFact,
   official: boolean
 ): boolean {
   if (official) {
@@ -794,7 +819,7 @@ function resolveSimulationArenaPreview(
 }
 
 function resolveSimulationArenaCourseLaunched(
-  fact: LearningFact,
+  fact: StudentEvidenceFeatureLearningFact,
   sourceContext: Record<string, unknown>,
   context: Record<string, unknown>,
   launchMode: string | null
@@ -818,7 +843,7 @@ function resolveSimulationArenaCourseLaunched(
 
 function buildSimulationArenaTraceReference(input: {
   source: StudentSimulationArenaEvidenceSource;
-  fact: LearningFact;
+  fact: StudentEvidenceFeatureLearningFact;
   sourceContext: Record<string, unknown>;
   context: Record<string, unknown>;
   historicalMaterialization: Record<string, unknown>;
@@ -989,19 +1014,26 @@ function resolveRequiredCoverage(total: number, available: number): StudentEvide
   return available === total ? 'available' : 'partial';
 }
 
-function filterRecentFacts(facts: LearningFact[], now: Date, windowDays: number): LearningFact[] {
+function filterRecentFacts(
+  facts: StudentEvidenceFeatureLearningFact[],
+  now: Date,
+  windowDays: number
+): StudentEvidenceFeatureLearningFact[] {
   const cutoff = new Date(now.getTime() - windowDays * DAY_MS);
   return facts.filter((fact) => fact.startedAt >= cutoff);
 }
 
-function filterContributionFacts(facts: LearningFact[]): LearningFact[] {
+function filterContributionFacts(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceFeatureLearningFact[] {
   return facts.filter((fact) => {
     const contribution = isObject(fact.competencyContribution) ? fact.competencyContribution : {};
     return COMPETENCY_DIMENSIONS.some((dimension) => numberValue(contribution[dimension]) !== 0);
   });
 }
 
-function buildConfidence(facts: LearningFact[], factsWithSourceCount: number): StudentEvidenceFeaturePayload['confidence'] {
+function buildConfidence(
+  facts: StudentEvidenceFeatureLearningFact[],
+  factsWithSourceCount: number
+): StudentEvidenceFeaturePayload['confidence'] {
   if (facts.length === 0) {
     return {
       level: 'none',
@@ -1029,7 +1061,7 @@ function buildConfidence(facts: LearningFact[], factsWithSourceCount: number): S
 }
 
 function buildStatusMarkers(input: {
-  facts: LearningFact[];
+  facts: StudentEvidenceFeatureLearningFact[];
   confidenceLevel: StudentEvidenceFeaturePayload['confidence']['level'];
   sourceCoverage: StudentEvidenceFeaturePayload['sourceCoverage'];
   lastFactStartedAt: Date | null;
@@ -1054,7 +1086,7 @@ function buildStatusMarkers(input: {
   return Array.from(markers).sort();
 }
 
-function countByFactType(facts: LearningFact[]): Record<string, number> {
+function countByFactType(facts: StudentEvidenceFeatureLearningFact[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const fact of facts) {
     counts[fact.factType] = (counts[fact.factType] ?? 0) + 1;
@@ -1073,7 +1105,7 @@ function resolveLearningFactCoverage(totalFacts: number, factsWithSourceCount: n
   return 'available';
 }
 
-function compareFacts(left: LearningFact, right: LearningFact): number {
+function compareFacts(left: StudentEvidenceFeatureLearningFact, right: StudentEvidenceFeatureLearningFact): number {
   const timeDifference = left.startedAt.getTime() - right.startedAt.getTime();
   if (timeDifference !== 0) {
     return timeDifference;

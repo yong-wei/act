@@ -32,6 +32,7 @@ import {
   type TeacherRecentSessionQualitySummary,
   type TeacherStudentEvidenceStatus,
 } from '@/lib/data-governance/teacher-evidence-governance';
+import { STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -250,6 +251,7 @@ export async function GET(
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
+            select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
           })
         : Promise.resolve([]),
       prisma.classSessionReport.findMany({

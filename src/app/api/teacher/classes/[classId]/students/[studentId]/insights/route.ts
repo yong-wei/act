@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import type { LearningFact } from '@prisma/client';
 
 import {
   COMPETENCY_DIMENSIONS,
@@ -20,8 +19,10 @@ import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '
 import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
 import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
 import {
+  STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
   buildStudentEvidenceFeaturePayload,
   readStudentEvidenceFeatures,
+  type StudentEvidenceFeatureLearningFact,
 } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
   buildTeacherScopedLearningFactScopeFilters,
@@ -299,6 +300,7 @@ export async function GET(
           OR: buildTeacherScopedLearningFactScopeFilters(classId, scopedSessionIds),
         },
         orderBy: { startedAt: 'desc' },
+        select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
       }),
       prisma.studentStepResponse.findMany({
         where: {
@@ -712,7 +714,7 @@ function buildEvidenceDrawer(input: {
 
 function buildTeacherScopedFeatureCacheRecord(
   studentId: string,
-  facts: LearningFact[],
+  facts: StudentEvidenceFeatureLearningFact[],
   now: Date,
 ): Record<string, unknown> {
   const payload = buildStudentEvidenceFeaturePayload({
