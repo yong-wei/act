@@ -19,6 +19,7 @@ export default defineConfig({
       'src/features/admin/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.tsx',
       'src/features/ai/__tests__/**/*.test.ts',
+      'src/features/assessment/__tests__/**/*.test.ts',
       'src/features/knowledge/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.tsx',

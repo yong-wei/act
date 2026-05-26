@@ -979,6 +979,144 @@ model AbilityAssessment {
   @@index([userId, assessedAt])
 }
 
+model AdaptiveAssessmentAlgorithmVersion {
+  version    String   @id
+  family     String
+  parameters Json
+  status     String   @default("active")
+  releasedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  sessions         AdaptiveAssessmentSession[]
+  itemRefs         AdaptiveAssessmentItemRef[]
+  answers          AdaptiveAssessmentAnswer[]
+  abilityEstimates AdaptiveAssessmentAbilityEstimate[]
+  masteryUpdates   AdaptiveMasteryUpdate[]
+}
+
+model AdaptiveAssessmentSession {
+  id               String    @id @default(cuid())
+  userId           String
+  sessionKey       String
+  selectedQuestionIds String[]  @default([])
+  algorithmVersion String
+  startedAt        DateTime  @default(now())
+  lastAnsweredAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  algorithm        AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  answers          AdaptiveAssessmentAnswer[]
+  abilityEstimates AdaptiveAssessmentAbilityEstimate[]
+  masteryUpdates   AdaptiveMasteryUpdate[]
+
+  @@unique([userId, sessionKey])
+  @@index([userId, startedAt])
+  @@index([sessionKey])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentItemRef {
+  id               String   @id @default(cuid())
+  questionId       String
+  contentHash      String
+  source           String
+  questionType     String
+  domains          String[]
+  knowledgeTags    String[]
+  difficulty       Float
+  optionCount      Int
+  algorithmVersion String
+  metadata         Json     @default("{}")
+  createdAt        DateTime @default(now())
+
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  answers   AdaptiveAssessmentAnswer[]
+
+  @@unique([questionId, algorithmVersion, contentHash])
+  @@index([questionId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentAnswer {
+  id                  String   @id @default(cuid())
+  userId              String
+  sessionId           String
+  questionRefId       String
+  questionId          String
+  selectedOptionKey   String
+  correctOptionKey    String
+  isCorrect           Boolean
+  score               Float
+  responseTimeSeconds Int
+  abilityEstimate     Float
+  algorithmVersion    String
+  answeredAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+
+  session                 AdaptiveAssessmentSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionRef             AdaptiveAssessmentItemRef           @relation(fields: [questionRefId], references: [id], onDelete: Restrict)
+  algorithm               AdaptiveAssessmentAlgorithmVersion  @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  abilityEstimateSnapshot AdaptiveAssessmentAbilityEstimate?
+  masteryUpdates          AdaptiveMasteryUpdate[]
+
+  @@index([userId, answeredAt])
+  @@index([sessionId, answeredAt])
+  @@unique([sessionId, questionId])
+  @@index([questionId])
+  @@index([questionRefId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentAbilityEstimate {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionId        String
+  answerId         String   @unique
+  theta            Float
+  confidenceLow    Float
+  confidenceHigh   Float
+  dimensions       Json
+  algorithmVersion String
+  estimatedAt      DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+
+  @@index([userId, estimatedAt])
+  @@index([sessionId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveMasteryUpdate {
+  id                String   @id @default(cuid())
+  userId            String
+  sessionId         String
+  answerId          String
+  questionId        String
+  knowledgeTag      String
+  priorMastery      Float
+  posteriorMastery  Float
+  confidence        Float
+  evidenceKind      String
+  algorithmVersion  String
+  updateReason      String
+  prerequisiteState Json     @default("{}")
+  createdAt         DateTime @default(now())
+
+  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+
+  @@unique([answerId, knowledgeTag, algorithmVersion])
+  @@index([userId, knowledgeTag, createdAt])
+  @@index([sessionId])
+  @@index([questionId])
+  @@index([algorithmVersion])
+}
+
 model AIIntervention {
   id               String   @id @default(cuid())
   userId           String

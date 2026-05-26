@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { selectNextQuestion } from '@/features/assessment/adaptive-engine';
+import { selectNextQuestionWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -13,12 +13,19 @@ interface NextQuestionRequest {
 export async function POST(request: Request) {
   try {
     const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '请先登录后再获取自适应评测题目' },
+        { status: 401 },
+      );
+    }
+
     const body = (await request.json()) as NextQuestionRequest;
 
-    const userId = session?.user?.id ?? body.userId ?? 'demo-user';
+    const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
 
-    const result = selectNextQuestion({ userId, sessionId });
+    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId });
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);

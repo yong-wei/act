@@ -56,6 +56,11 @@ function readArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function readStringArray(value: unknown): string[] {
+  return readArray(value)
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
 function readFiniteNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
@@ -131,8 +136,6 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
       const scoringDetail = readRecord(record.scoringDetail) ?? readRecord(record.detail);
       return compactJsonObject({
         cardId,
-        selectedValue: selectedValue ?? null,
-        referenceAnswer,
         answered: selectedValue !== undefined,
         isCorrect: explicitCorrect ?? (
           referenceAnswer !== undefined
@@ -306,6 +309,39 @@ function buildArenaLearningContext(actionType: string, payload: Record<string, u
   };
 }
 
+function buildAdaptiveAssessmentContext(
+  actionType: string,
+  payload: Record<string, unknown>,
+): Prisma.InputJsonValue | undefined {
+  if (actionType !== 'answer_submit' || payload.assessmentSource !== 'adaptive_assessment') {
+    return undefined;
+  }
+
+  const questionId = readString(payload.questionId);
+  const answerId = readString(payload.answerId);
+  if (!questionId || !answerId) {
+    return undefined;
+  }
+
+  return {
+    adaptiveAssessment: compactJsonObject({
+      answerId,
+      questionId,
+      questionRefId: readString(payload.questionRefId),
+      selectedOptionKey: readString(payload.selectedOptionKey),
+      correctOptionKey: readString(payload.correctOptionKey),
+      knowledgeTags: readStringArray(payload.knowledgeTags),
+      algorithmVersion: readString(payload.algorithmVersion),
+      abilityEstimate: typeof payload.abilityEstimate === 'number' ? payload.abilityEstimate : undefined,
+      derivedScore: typeof payload.score === 'number' ? payload.score : undefined,
+      masteryPosterior: typeof payload.masteryPosterior === 'number' ? payload.masteryPosterior : undefined,
+      masteryConfidence: typeof payload.masteryConfidence === 'number' ? payload.masteryConfidence : undefined,
+      confidence: typeof payload.confidence === 'number' ? payload.confidence : undefined,
+      privacyLevel: readString(payload.privacyLevel) ?? 'restricted',
+    }),
+  };
+}
+
 export function resolveLearningFactActionType(event: LearningEvent): string {
   const payload =
     event.payload && typeof event.payload === 'object'
@@ -379,9 +415,11 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     lessonId: event.lessonId ?? readString(payload.lessonId) ?? readString(payload.lessonKey),
   };
   const arenaContext = buildArenaLearningContext(actionType, payload);
+  const adaptiveAssessmentContext = buildAdaptiveAssessmentContext(actionType, payload);
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
   const contextJson = compactJsonObject({
     ...(readRecord(arenaContext) ?? {}),
+    ...(readRecord(adaptiveAssessmentContext) ?? {}),
     ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
     ...(evidenceGovernance ? { evidenceGovernance } : {}),
   });

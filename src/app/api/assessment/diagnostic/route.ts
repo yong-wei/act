@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDiagnostic } from '@/features/assessment/adaptive-engine';
+import { getDiagnosticWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -8,10 +8,14 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const session = await getServerAuthSession();
-    const { searchParams } = new URL(request.url);
-    const userId = session?.user?.id ?? searchParams.get('userId') ?? 'demo-user';
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '请先登录后再查看自适应评测诊断' },
+        { status: 401 },
+      );
+    }
 
-    const diagnostic = getDiagnostic(userId);
+    const diagnostic = await getDiagnosticWithPersistenceFallback(session.user.id);
     return NextResponse.json(diagnostic);
   } catch (error) {
     rethrowIfNextDynamicError(error);

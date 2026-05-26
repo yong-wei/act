@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 
 interface AssessResponse {
@@ -107,8 +108,12 @@ function mean(values: number[]): number {
 
 export default function PromptAssessmentPage() {
   const searchParams = useSearchParams();
+  const { data: session, status: sessionStatus } = useSession();
   const autoDemo = searchParams.get('autodemo') === '1';
   const [autoSeeded, setAutoSeeded] = useState(false);
+  const currentUserId = session?.user?.id;
+  const activeUserId = currentUserId ?? DEMO_USER_ID;
+  const activeSessionId = currentUserId ? `report-${currentUserId}` : DEMO_SESSION_ID;
 
   const [structured, setStructured] = useState<Record<string, string>>({
     'control-object': '',
@@ -143,20 +148,28 @@ export default function PromptAssessmentPage() {
     .filter((score): score is number => typeof score === 'number');
 
   const loadTrendData = useCallback(async () => {
+    if (sessionStatus === 'loading') {
+      return;
+    }
+
     setTrendLoading(true);
 
     try {
       const [historyResponse, abilityResponse] = await Promise.all([
-        fetch(`/api/evaluation/prompt-history/${encodeURIComponent(DEMO_USER_ID)}`),
-        fetch(`/api/assessment/ability-report/${encodeURIComponent(DEMO_USER_ID)}`),
+        fetch(`/api/evaluation/prompt-history/${encodeURIComponent(activeUserId)}`),
+        currentUserId
+          ? fetch(`/api/assessment/ability-report/${encodeURIComponent(currentUserId)}`)
+          : Promise.resolve(null),
       ]);
 
-      if (!historyResponse.ok || !abilityResponse.ok) {
+      if (!historyResponse.ok || (abilityResponse && !abilityResponse.ok)) {
         throw new Error('趋势数据拉取失败');
       }
 
       const historyJson = (await historyResponse.json()) as PromptHistoryApiResponse;
-      const abilityJson = (await abilityResponse.json()) as AbilityReportResponse;
+      const abilityJson = abilityResponse
+        ? (await abilityResponse.json()) as AbilityReportResponse
+        : null;
 
       setHistoryRecords(historyJson.history ?? []);
       setAbilityReport(abilityJson);
@@ -165,7 +178,7 @@ export default function PromptAssessmentPage() {
     } finally {
       setTrendLoading(false);
     }
-  }, []);
+  }, [activeUserId, currentUserId, sessionStatus]);
 
   useEffect(() => {
     void loadTrendData();
@@ -179,8 +192,8 @@ export default function PromptAssessmentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: DEMO_USER_ID,
-          sessionId: DEMO_SESSION_ID,
+          userId: activeUserId,
+          sessionId: activeSessionId,
           prompt: compiledPrompt,
           structuredData: structured,
           context: {
@@ -213,8 +226,8 @@ export default function PromptAssessmentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: DEMO_USER_ID,
-          designSessionId: DEMO_SESSION_ID,
+          userId: activeUserId,
+          designSessionId: activeSessionId,
           promptVersion: latestRecord?.version ?? 1,
           promptContent: compiledPrompt,
           designActions: [
@@ -298,8 +311,8 @@ export default function PromptAssessmentPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: DEMO_USER_ID,
-            sessionId: DEMO_SESSION_ID,
+            userId: activeUserId,
+            sessionId: activeSessionId,
             prompt,
             structuredData: item.structuredData,
             context: { taskType: 'controller-design', difficulty: 'intermediate' },
@@ -315,8 +328,8 @@ export default function PromptAssessmentPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: DEMO_USER_ID,
-            designSessionId: DEMO_SESSION_ID,
+            userId: activeUserId,
+            designSessionId: activeSessionId,
             promptVersion: index + 1,
             promptContent: prompt,
             designActions: [
@@ -350,7 +363,7 @@ export default function PromptAssessmentPage() {
     } finally {
       setLoading(false);
     }
-  }, [loadTrendData]);
+  }, [activeSessionId, activeUserId, loadTrendData]);
 
   useEffect(() => {
     if (!autoDemo || autoSeeded) {
