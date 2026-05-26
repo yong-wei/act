@@ -125,9 +125,60 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('preserves legacy drag-match scoring when only options define slot order', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q6',
+      responseKind: 'drag_match',
+      options: [
+        { value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' },
+        { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' },
+        { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' },
+      ],
+      referenceAnswer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。',
+    }, 'flattened-output|return-residual|protection-logic');
+
+    expect(result).toMatchObject({
+      answered: true,
+      score: 1,
+      isCorrect: true,
+      normalizedSubmitted: ['flattened-output', 'return-residual', 'protection-logic'],
+      normalizedReference: ['flattened-output', 'return-residual', 'protection-logic'],
+      detail: {
+        fallback: 'legacy_slot_order',
+      },
+    });
+  });
+
+  it('keeps empty drag-match slots when calculating partial credit', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q7',
+      responseKind: 'drag_match',
+      options: [
+        { value: 'A', label: 'A -> 一阶对象' },
+        { value: 'B', label: 'B -> 二阶对象' },
+        { value: 'C', label: 'C -> 非线性对象' },
+      ],
+    }, 'A||C');
+
+    expect(result).toMatchObject({
+      answered: true,
+      score: 2 / 3,
+      isCorrect: false,
+      normalizedSubmitted: ['A', '', 'C'],
+      normalizedReference: ['A', 'B', 'C'],
+      detail: {
+        correctPositions: ['A', 'C'],
+        missedPositions: [
+          { index: 1, expected: 'B', submitted: '' },
+        ],
+        fallback: 'legacy_slot_order',
+      },
+    });
+  });
+
   it('keeps missing references explicit instead of emitting a zero score', () => {
     expect(scoreManifestObjectiveCard({
-      id: 'q6',
+      id: 'q8',
       responseKind: 'single_choice',
       options: [
         { value: 'A', label: '选项 A' },

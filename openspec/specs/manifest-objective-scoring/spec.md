@@ -42,6 +42,13 @@ opaque answer text alone.
 - **AND** correctness SHALL be based on each prompt-side item paired with the
   submitted answer-side item.
 
+#### Scenario: Legacy matching answer preserves slot positions
+- **WHEN** a `drag_match` card uses ordered `options` without explicit
+  `referenceMatches`
+- **AND** the student submission contains an empty slot such as `A||C`
+- **THEN** the empty slot SHALL remain aligned to its original prompt-side
+  position when partial credit is calculated.
+
 ### Requirement: Scoring evidence is versioned and traceable
 The system SHALL store scoring results with enough context to explain and
 recompute objective evidence.

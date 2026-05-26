@@ -225,6 +225,61 @@ describe('buildManifestSubmissionTelemetry', () => {
     });
   });
 
+  it('keeps legacy drag-match option-order scoring and empty slot positions', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-05',
+        submittedAt: 1778550644550,
+        answers: {
+          assumptionMatch: 'flattened-output||protection-logic',
+        },
+      },
+      {
+        id: 'step-05',
+        interactionSpec: {
+          interactionKind: 'activity_card_set',
+          activityCards: [
+            {
+              id: 'assumptionMatch',
+              title: '失效信号匹配',
+              prompt: '把失效信号匹配到被破坏的线性默认条件。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [
+                { value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' },
+                { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' },
+                { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' },
+              ],
+              referenceAnswer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。',
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 0,
+      objectiveTotal: 1,
+      score: 66.7,
+      questionSummaries: [
+        {
+          questionId: 'assumptionMatch',
+          referenceValue: ['flattened-output', 'return-residual', 'protection-logic'],
+          score: 2 / 3,
+          isCorrect: false,
+          normalizedSubmitted: ['flattened-output', '', 'protection-logic'],
+          normalizedReference: ['flattened-output', 'return-residual', 'protection-logic'],
+          scoringDetail: {
+            correctPositions: ['flattened-output', 'protection-logic'],
+            fallback: 'legacy_slot_order',
+          },
+        },
+      ],
+    });
+  });
+
   it('scores drag-match pair text by structure independent of submitted pair order', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {
