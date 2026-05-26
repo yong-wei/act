@@ -37,6 +37,27 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('penalizes extra tokens in single choice instead of taking only the first answer', () => {
+    expect(scoreManifestObjectiveCard({
+      id: 'q1-extra',
+      responseKind: 'single_choice',
+      options: [
+        { value: 'A', label: '保留模型阶次' },
+        { value: 'B', label: '忽略模型阶次' },
+      ],
+      referenceAnswer: 'A',
+    }, 'A|B')).toMatchObject({
+      answered: true,
+      score: 0,
+      isCorrect: false,
+      normalizedSubmitted: ['A', 'B'],
+      normalizedReference: 'A',
+      detail: {
+        extraSubmittedOptions: ['B'],
+      },
+    });
+  });
+
   it('scores multi-select answers with hit, missed, and extra detail', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q3',
@@ -63,6 +84,29 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('penalizes duplicated correct options in multi-select answers', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q3-duplicate',
+      responseKind: 'multi_select',
+      options: [
+        { value: 'A', label: '航迹偏离' },
+        { value: 'B', label: '舵角边界' },
+      ],
+      referenceAnswer: '选 A、B。',
+    }, 'A|A|B');
+
+    expect(result).toMatchObject({
+      score: 2 / 3,
+      isCorrect: false,
+      normalizedSubmitted: ['A', 'A', 'B'],
+      normalizedReference: ['A', 'B'],
+      detail: {
+        correctHits: ['A', 'B'],
+        duplicateSubmittedOptions: ['A'],
+      },
+    });
+  });
+
   it('scores ordering answers with partial absolute-position credit', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q4',
@@ -82,6 +126,30 @@ describe('scoreManifestObjectiveCard', () => {
       detail: {
         correctPositions: ['model'],
         misplacedItems: ['deploy', 'validate'],
+      },
+    });
+  });
+
+  it('penalizes extra ordering tokens instead of deduplicating to full credit', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q4-extra',
+      responseKind: 'drag_sort',
+      options: [
+        { value: 'A', label: '建模' },
+        { value: 'B', label: '验证' },
+        { value: 'C', label: '发布' },
+      ],
+    }, 'A|B|B|C');
+
+    expect(result).toMatchObject({
+      score: 0.5,
+      isCorrect: false,
+      normalizedSubmitted: ['A', 'B', 'B', 'C'],
+      normalizedReference: ['A', 'B', 'C'],
+      detail: {
+        correctPositions: ['A', 'B'],
+        misplacedItems: ['B'],
+        extraItems: ['C'],
       },
     });
   });

@@ -69,7 +69,39 @@ function splitAnswerSlotTokens(value: unknown): string[] {
 }
 
 function unique(values: string[]): string[] {
-  return Array.from(new Set(values.filter(Boolean)));
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    if (!value) continue;
+    const key = normalizeToken(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+  }
+  return result;
+}
+
+function duplicateValues(values: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const value of values) {
+    if (!value) continue;
+    const key = normalizeToken(value);
+    if (seen.has(key)) {
+      duplicates.push(value);
+      continue;
+    }
+    seen.add(key);
+  }
+  return duplicates;
+}
+
+function effectiveSlotLength(tokens: string[], minimumLength: number): number {
+  let lastNonEmptyIndex = -1;
+  tokens.forEach((token, index) => {
+    if (token) lastNonEmptyIndex = index;
+  });
+  return Math.max(minimumLength, lastNonEmptyIndex + 1);
 }
 
 function findOptionValue(options: readonly InteractiveRuntimeChoiceOptionManifest[], token: string): string | undefined {
@@ -85,7 +117,7 @@ function normalizeSubmittedOptions(
   answer: unknown,
   options: readonly InteractiveRuntimeChoiceOptionManifest[],
 ): string[] {
-  return unique(splitAnswerTokens(answer).map((token) => findOptionValue(options, token) ?? token));
+  return splitAnswerTokens(answer).map((token) => findOptionValue(options, token) ?? token);
 }
 
 function extractReferenceChoiceTokens(referenceAnswer: string): string[] {
@@ -136,11 +168,12 @@ function unsupported(
 }
 
 function scoreChoice(card: ManifestObjectiveCardLike, submittedAnswer: unknown): ManifestObjectiveScoringResult {
-  const submitted = normalizeSubmittedOptions(submittedAnswer, card.options)[0] ?? null;
-  const answered = Boolean(submitted);
+  const submittedOptions = normalizeSubmittedOptions(submittedAnswer, card.options);
+  const submitted = submittedOptions.length === 1 ? submittedOptions[0] : submittedOptions;
+  const answered = submittedOptions.length > 0;
   const reference = resolveReferenceOptions(card)[0];
   if (!reference) return unsupported(card.responseKind, answered, submitted, 'missing_reference');
-  const isCorrect = answered && normalizeToken(submitted) === normalizeToken(reference);
+  const isCorrect = submittedOptions.length === 1 && normalizeToken(submittedOptions[0]) === normalizeToken(reference);
   return {
     scoringVersion: MANIFEST_OBJECTIVE_SCORING_VERSION,
     kind: card.responseKind,
@@ -150,7 +183,7 @@ function scoreChoice(card: ManifestObjectiveCardLike, submittedAnswer: unknown):
     normalizedSubmitted: submitted,
     normalizedReference: reference,
     referenceValue: reference,
-    detail: {},
+    detail: submittedOptions.length > 1 ? { extraSubmittedOptions: submittedOptions.slice(1) } : {},
   };
 }
 
@@ -165,7 +198,9 @@ function scoreMultiSelect(card: ManifestObjectiveCardLike, submittedAnswer: unkn
   const correctHits = reference.filter((value) => submittedSet.has(normalizeToken(value)));
   const missedCorrectOptions = reference.filter((value) => !submittedSet.has(normalizeToken(value)));
   const extraWrongOptions = submitted.filter((value) => !referenceSet.has(normalizeToken(value)));
-  const denominator = reference.length + extraWrongOptions.length;
+  const duplicateSubmittedOptions = duplicateValues(submitted);
+  const duplicateCorrectOptions = duplicateSubmittedOptions.filter((value) => referenceSet.has(normalizeToken(value)));
+  const denominator = reference.length + extraWrongOptions.length + duplicateCorrectOptions.length;
   const score = denominator > 0 ? correctHits.length / denominator : 0;
 
   return {
@@ -181,6 +216,7 @@ function scoreMultiSelect(card: ManifestObjectiveCardLike, submittedAnswer: unkn
       correctHits,
       missedCorrectOptions,
       extraWrongOptions,
+      duplicateSubmittedOptions,
     },
   };
 }
@@ -196,8 +232,12 @@ function scoreOrdering(card: ManifestObjectiveCardLike, submittedAnswer: unknown
   if (reference.length === 0) return unsupported(card.responseKind, answered, submitted, 'missing_reference');
 
   const correctPositions = reference.filter((value, index) => normalizeToken(submitted[index]) === normalizeToken(value));
-  const misplacedItems = submitted.filter((value, index) => normalizeToken(reference[index]) !== normalizeToken(value));
-  const score = correctPositions.length / reference.length;
+  const misplacedItems = submitted
+    .slice(0, reference.length)
+    .filter((value, index) => normalizeToken(reference[index]) !== normalizeToken(value));
+  const extraItems = submitted.slice(reference.length);
+  const denominator = Math.max(reference.length, submitted.length);
+  const score = correctPositions.length / denominator;
 
   return {
     scoringVersion: MANIFEST_OBJECTIVE_SCORING_VERSION,
@@ -211,6 +251,7 @@ function scoreOrdering(card: ManifestObjectiveCardLike, submittedAnswer: unknown
     detail: {
       correctPositions,
       misplacedItems,
+      extraItems,
     },
   };
 }
@@ -255,9 +296,10 @@ function scoreLegacyMatchingBySlotOrder(
   submittedAnswer: unknown,
 ): ManifestObjectiveScoringResult {
   const reference = resolveOrderReference(card);
-  const submitted = splitAnswerSlotTokens(submittedAnswer)
-    .slice(0, reference.length)
+  const allSubmittedSlots = splitAnswerSlotTokens(submittedAnswer)
     .map((token) => token ? findOptionValue(card.options, token) ?? token : '');
+  const submittedLength = effectiveSlotLength(allSubmittedSlots, reference.length);
+  const submitted = allSubmittedSlots.slice(0, submittedLength);
   const answered = submitted.some(Boolean);
   if (reference.length === 0) return unsupported(card.responseKind, answered, submitted, 'missing_reference');
 
@@ -265,8 +307,11 @@ function scoreLegacyMatchingBySlotOrder(
   const missedPositions = reference
     .map((value, index) => ({ index, expected: value, submitted: submitted[index] ?? '' }))
     .filter((item) => !item.submitted);
-  const misplacedItems = submitted.filter((value, index) => value && normalizeToken(reference[index]) !== normalizeToken(value));
-  const score = correctPositions.length / reference.length;
+  const misplacedItems = submitted
+    .slice(0, reference.length)
+    .filter((value, index) => value && normalizeToken(reference[index]) !== normalizeToken(value));
+  const extraItems = submitted.slice(reference.length).filter(Boolean);
+  const score = correctPositions.length / submittedLength;
 
   return {
     scoringVersion: MANIFEST_OBJECTIVE_SCORING_VERSION,
@@ -281,6 +326,7 @@ function scoreLegacyMatchingBySlotOrder(
       correctPositions,
       misplacedItems,
       missedPositions,
+      extraItems,
       fallback: 'legacy_slot_order',
     },
   };
@@ -306,7 +352,12 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
   const missedItems = referenceEntries
     .filter(([item]) => submitted[item] === undefined)
     .map(([item]) => item);
-  const score = correctPairs.length / referenceEntries.length;
+  const submittedSlots = splitAnswerSlotTokens(submittedAnswer);
+  const pairTokens = splitAnswerTokens(submittedAnswer);
+  const parsedPairs = pairTokens.map(parsePairToken);
+  const usesPairSyntax = pairTokens.length > 0 && parsedPairs.every((pair): pair is [string, string] => Boolean(pair));
+  const extraItems = usesPairSyntax ? [] : submittedSlots.slice(referenceEntries.length).filter(Boolean);
+  const score = correctPairs.length / (referenceEntries.length + extraItems.length);
 
   return {
     scoringVersion: MANIFEST_OBJECTIVE_SCORING_VERSION,
@@ -321,6 +372,7 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
       correctPairs,
       incorrectPairs,
       missedItems,
+      extraItems,
     },
   };
 }

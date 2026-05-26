@@ -35,6 +35,12 @@ opaque answer text alone.
 - **THEN** the scoring detail SHALL identify the matched structure and partial
   credit instead of treating every non-identical text answer as equally wrong.
 
+#### Scenario: Extra objective tokens are not hidden by normalization
+- **WHEN** a student submission contains duplicate or extra tokens such as
+  `A|B|B|C`
+- **THEN** scoring SHALL preserve the submitted token cardinality
+- **AND** duplicate or extra tokens SHALL not be deduplicated into full credit.
+
 #### Scenario: Matching answer ignores pair order
 - **WHEN** the reference pairs are `1-3,2-4,5-1` and the student submits
   `5-1,1-3,2-4`
