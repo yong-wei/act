@@ -5,7 +5,7 @@ import {
   type QuestionDomain,
 } from '@/features/assessment/adaptive-question-bank';
 
-interface AnswerRecord {
+export interface AdaptiveAnswerRecord {
   sessionId: string;
   userId: string;
   questionId: string;
@@ -17,6 +17,30 @@ interface AnswerRecord {
   createdAt: number;
 }
 
+export interface SubmitAnswerParams {
+  userId: string;
+  sessionId: string;
+  questionId: string;
+  selectedOption: string;
+  timeSpent: number;
+}
+
+export interface SubmitAnswerResult {
+  isCorrect: boolean;
+  correctOption: string;
+  explanation: string;
+  estimatedAbility: number;
+  recommendedFocus: string[];
+}
+
+export interface SubmittedAnswerDetails {
+  result: SubmitAnswerResult;
+  record: AdaptiveAnswerRecord;
+  question: CrossDomainQuestion;
+  selectedOptionKey: string;
+  correctOptionKey: string;
+}
+
 interface SessionState {
   userId: string;
   askedQuestionIds: Set<string>;
@@ -24,11 +48,11 @@ interface SessionState {
 
 interface AdaptiveStore {
   sessions: Map<string, SessionState>;
-  answersByUser: Map<string, AnswerRecord[]>;
+  answersByUser: Map<string, AdaptiveAnswerRecord[]>;
   generatedQuestions: Map<string, CrossDomainQuestion>;
 }
 
-interface DiagnosticResult {
+export interface DiagnosticResult {
   knowledgeDimensions: {
     computational: number;
     crossDomain: number;
@@ -38,11 +62,11 @@ interface DiagnosticResult {
   recommendedFocus: string[];
 }
 
-interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
+export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
-interface AbilityReport {
+export interface AbilityReport {
   userId: string;
   estimatedAbility: number;
   confidenceInterval: [number, number];
@@ -63,7 +87,7 @@ function createStore(): AdaptiveStore {
   if (!globalThis.__adaptiveAssessmentStore) {
     globalThis.__adaptiveAssessmentStore = {
       sessions: new Map<string, SessionState>(),
-      answersByUser: new Map<string, AnswerRecord[]>(),
+      answersByUser: new Map<string, AdaptiveAnswerRecord[]>(),
       generatedQuestions: new Map<string, CrossDomainQuestion>(),
     };
   }
@@ -85,7 +109,7 @@ function toPublicQuestion(question: CrossDomainQuestion): PublicQuestion {
   };
 }
 
-function getQuestionById(questionId: string): CrossDomainQuestion | null {
+export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion | null {
   const store = createStore();
   const preset = PRESET_QUESTIONS.find((question) => question.id === questionId);
   if (preset) {
@@ -109,12 +133,12 @@ function getSession(sessionId: string, userId: string): SessionState {
   return created;
 }
 
-function getAnswers(userId: string): AnswerRecord[] {
+function getAnswers(userId: string): AdaptiveAnswerRecord[] {
   const store = createStore();
   return store.answersByUser.get(userId) ?? [];
 }
 
-function pushAnswer(record: AnswerRecord): void {
+function pushAnswer(record: AdaptiveAnswerRecord): void {
   const store = createStore();
   const answers = store.answersByUser.get(record.userId) ?? [];
   answers.push(record);
@@ -124,7 +148,7 @@ function pushAnswer(record: AnswerRecord): void {
   session.askedQuestionIds.add(record.questionId);
 }
 
-function estimateAbility(answers: AnswerRecord[]): number {
+export function estimateAdaptiveAbility(answers: AdaptiveAnswerRecord[]): number {
   if (answers.length === 0) {
     return 0;
   }
@@ -140,12 +164,12 @@ function estimateAbility(answers: AnswerRecord[]): number {
   return clamp(correctnessFactor + difficultyFactor + efficiencyFactor, -3, 3);
 }
 
-function estimateConfidence(answers: AnswerRecord[], theta: number): [number, number] {
+export function estimateAdaptiveConfidence(answers: AdaptiveAnswerRecord[], theta: number): [number, number] {
   const width = clamp(1 / Math.sqrt(Math.max(answers.length, 1)), 0.18, 1.2);
   return [Number((theta - width).toFixed(2)), Number((theta + width).toFixed(2))];
 }
 
-function tagStats(answers: AnswerRecord[]) {
+function tagStats(answers: AdaptiveAnswerRecord[]) {
   const byTag = new Map<string, { total: number; correct: number }>();
   for (const answer of answers) {
     for (const tag of answer.knowledgeTags) {
@@ -160,7 +184,7 @@ function tagStats(answers: AnswerRecord[]) {
   return byTag;
 }
 
-function classifyDimensions(answers: AnswerRecord[]) {
+function classifyDimensions(answers: AdaptiveAnswerRecord[]) {
   if (answers.length === 0) {
     return {
       computational: 55,
@@ -181,7 +205,7 @@ function classifyDimensions(answers: AnswerRecord[]) {
   };
 
   for (const answer of answers) {
-    const question = questionMap.get(answer.questionId) ?? getQuestionById(answer.questionId);
+    const question = questionMap.get(answer.questionId) ?? getAdaptiveQuestionById(answer.questionId);
     if (!question) {
       continue;
     }
@@ -220,7 +244,7 @@ function classifyDimensions(answers: AnswerRecord[]) {
   };
 }
 
-function buildWeakAreas(answers: AnswerRecord[]): string[] {
+export function buildAdaptiveWeakAreas(answers: AdaptiveAnswerRecord[]): string[] {
   if (answers.length === 0) {
     return ['phase-margin', 'disturbance-rejection'];
   }
@@ -240,7 +264,7 @@ function buildWeakAreas(answers: AnswerRecord[]): string[] {
   return sorted.length > 0 ? sorted : ['controller-tuning', 'robustness'];
 }
 
-function pickRecommendedFocus(weakAreas: string[]): string[] {
+export function pickAdaptiveRecommendedFocus(weakAreas: string[]): string[] {
   const mapping: Record<string, string> = {
     'phase-margin': '优先练习“相位裕度-超调量”映射题',
     'disturbance-rejection': '补强扰动抑制与鲁棒性分析',
@@ -259,9 +283,13 @@ function allQuestions(): CrossDomainQuestion[] {
 
 export function getDiagnostic(userId: string): DiagnosticResult {
   const answers = getAnswers(userId);
+  return getDiagnosticFromAnswers(answers);
+}
+
+export function getDiagnosticFromAnswers(answers: AdaptiveAnswerRecord[]): DiagnosticResult {
   const knowledgeDimensions = classifyDimensions(answers);
-  const weakAreas = buildWeakAreas(answers);
-  const recommendedFocus = pickRecommendedFocus(weakAreas);
+  const weakAreas = buildAdaptiveWeakAreas(answers);
+  const recommendedFocus = pickAdaptiveRecommendedFocus(weakAreas);
 
   return {
     knowledgeDimensions,
@@ -279,18 +307,38 @@ export function selectNextQuestion(params: {
   confidenceInterval: [number, number];
 } {
   const answers = getAnswers(params.userId);
-  const theta = estimateAbility(answers);
-  const confidenceInterval = estimateConfidence(answers, theta);
-
   const session = getSession(params.sessionId, params.userId);
-  const weakAreas = new Set(buildWeakAreas(answers));
+  const result = selectNextQuestionFromAnswers(params, answers, session.askedQuestionIds);
+  session.askedQuestionIds.add(result.question.id);
+  return result;
+}
+
+export function selectNextQuestionFromAnswers(
+  params: {
+    userId: string;
+    sessionId: string;
+  },
+  answers: AdaptiveAnswerRecord[],
+  askedQuestionIds = new Set(
+    answers
+      .filter((answer) => answer.sessionId === params.sessionId)
+      .map((answer) => answer.questionId),
+  ),
+): {
+  question: PublicQuestion;
+  estimatedAbility: number;
+  confidenceInterval: [number, number];
+} {
+  const theta = estimateAdaptiveAbility(answers);
+  const confidenceInterval = estimateAdaptiveConfidence(answers, theta);
+  const weakAreas = new Set(buildAdaptiveWeakAreas(answers));
   const targetDifficulty = clamp((theta + 3) / 6, 0, 1);
 
   const candidates = allQuestions();
   const scored = candidates.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
     const weakBoost = question.knowledgeTags.reduce((sum, tag) => sum + (weakAreas.has(tag) ? 0.15 : 0), 0);
-    const noveltyBoost = session.askedQuestionIds.has(question.id) ? -0.2 : 0.2;
+    const noveltyBoost = askedQuestionIds.has(question.id) ? -0.2 : 0.2;
     const score = closeness + weakBoost + noveltyBoost;
 
     return {
@@ -301,8 +349,6 @@ export function selectNextQuestion(params: {
 
   scored.sort((a, b) => b.score - a.score);
   const selected = scored[0]?.question ?? PRESET_QUESTIONS[0];
-
-  session.askedQuestionIds.add(selected.id);
 
   return {
     question: toPublicQuestion(selected),
@@ -330,22 +376,43 @@ export function generateQuestion(params: {
   return toPublicQuestion(question);
 }
 
-export function submitAnswer(params: {
-  userId: string;
-  sessionId: string;
-  questionId: string;
-  selectedOption: string;
-  timeSpent: number;
-}) {
-  const question = getQuestionById(params.questionId);
+const OPTION_KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function optionKeyAt(index: number): string {
+  return OPTION_KEYS[index] ?? `OPTION_${index + 1}`;
+}
+
+function findSelectedOption(question: CrossDomainQuestion, selectedOption: string) {
+  const optionIndex = question.options.findIndex(
+    (option) => option.label === selectedOption || option.text === selectedOption,
+  );
+
+  return {
+    option: optionIndex >= 0 ? question.options[optionIndex] : undefined,
+    optionKey: optionIndex >= 0 ? optionKeyAt(optionIndex) : 'UNKNOWN',
+  };
+}
+
+function findCorrectOption(question: CrossDomainQuestion) {
+  const optionIndex = question.options.findIndex((option) => option.isCorrect);
+
+  return {
+    option: optionIndex >= 0 ? question.options[optionIndex] : undefined,
+    optionKey: optionIndex >= 0 ? optionKeyAt(optionIndex) : 'UNKNOWN',
+  };
+}
+
+export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
+  const question = getAdaptiveQuestionById(params.questionId);
   if (!question) {
     throw new Error('题目不存在');
   }
 
-  const answer = question.options.find((option) => option.label === params.selectedOption || option.text === params.selectedOption);
+  const selected = findSelectedOption(question, params.selectedOption);
+  const correct = findCorrectOption(question);
+  const answer = selected.option;
   const isCorrect = Boolean(answer?.isCorrect);
-
-  pushAnswer({
+  const record: AdaptiveAnswerRecord = {
     sessionId: params.sessionId,
     userId: params.userId,
     questionId: question.id,
@@ -355,24 +422,103 @@ export function submitAnswer(params: {
     difficulty: question.difficulty,
     knowledgeTags: question.knowledgeTags,
     createdAt: Date.now(),
-  });
+  };
+
+  pushAnswer(record);
 
   const answers = getAnswers(params.userId);
-  const theta = estimateAbility(answers);
+  const details = {
+    result: {
+      isCorrect,
+      correctOption: correct.option?.label ?? '',
+      explanation: answer?.explanation ?? '请关注题干中的“域间映射”和“约束优先级”。',
+      estimatedAbility: 0,
+      recommendedFocus: [],
+    },
+    record,
+    question,
+    selectedOptionKey: selected.optionKey,
+    correctOptionKey: correct.optionKey,
+  };
 
   return {
-    isCorrect,
-    correctOption: question.options.find((option) => option.isCorrect)?.label ?? '',
+    ...details,
+    result: buildSubmitAnswerResult(details, answers),
+  };
+}
+
+export function buildSubmitAnswerResult(
+  details: Omit<SubmittedAnswerDetails, 'result'>,
+  answers: AdaptiveAnswerRecord[],
+): SubmitAnswerResult {
+  const answer = details.question.options.find(
+    (option) => option.label === details.record.selectedOption || option.text === details.record.selectedOption,
+  );
+  const correct = findCorrectOption(details.question);
+  const theta = estimateAdaptiveAbility(answers);
+
+  return {
+    isCorrect: details.record.isCorrect,
+    correctOption: correct.option?.label ?? '',
     explanation: answer?.explanation ?? '请关注题干中的“域间映射”和“约束优先级”。',
     estimatedAbility: Number(theta.toFixed(2)),
-    recommendedFocus: pickRecommendedFocus(buildWeakAreas(answers)),
+    recommendedFocus: pickAdaptiveRecommendedFocus(buildAdaptiveWeakAreas(answers)),
   };
+}
+
+export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
+  const question = getAdaptiveQuestionById(params.questionId);
+  if (!question) {
+    throw new Error('题目不存在');
+  }
+
+  const selected = findSelectedOption(question, params.selectedOption);
+  const correct = findCorrectOption(question);
+  const answer = selected.option;
+  const isCorrect = Boolean(answer?.isCorrect);
+  const record: AdaptiveAnswerRecord = {
+    sessionId: params.sessionId,
+    userId: params.userId,
+    questionId: question.id,
+    isCorrect,
+    timeSpent: Math.max(1, Math.round(params.timeSpent || 1)),
+    selectedOption: params.selectedOption,
+    difficulty: question.difficulty,
+    knowledgeTags: question.knowledgeTags,
+    createdAt: Date.now(),
+  };
+  const details = {
+    result: {
+      isCorrect,
+      correctOption: correct.option?.label ?? '',
+      explanation: answer?.explanation ?? '请关注题干中的“域间映射”和“约束优先级”。',
+      estimatedAbility: 0,
+      recommendedFocus: [],
+    },
+    record,
+    question,
+    selectedOptionKey: selected.optionKey,
+    correctOptionKey: correct.optionKey,
+  };
+
+  return {
+    ...details,
+    result: buildSubmitAnswerResult(details, [record]),
+  };
+}
+
+export function submitAnswer(params: SubmitAnswerParams): SubmitAnswerResult {
+  return submitAnswerWithDetails(params).result;
 }
 
 export function getAbilityReport(userId: string): AbilityReport {
   const answers = getAnswers(userId);
-  const theta = estimateAbility(answers);
-  const confidenceInterval = estimateConfidence(answers, theta);
+  return getAbilityReportFromAnswers(userId, answers);
+}
+
+export function getAbilityReportFromAnswers(userId: string, answers: AdaptiveAnswerRecord[]): AbilityReport {
+  const theta = estimateAdaptiveAbility(answers);
+  const confidenceInterval = estimateAdaptiveConfidence(answers, theta);
 
   const timeline: Array<{ timestamp: number; theta: number; accuracy: number }> = [];
   let correct = 0;
@@ -384,7 +530,7 @@ export function getAbilityReport(userId: string): AbilityReport {
     }
     timeline.push({
       timestamp: answers[i].createdAt,
-      theta: Number(estimateAbility(slice).toFixed(2)),
+      theta: Number(estimateAdaptiveAbility(slice).toFixed(2)),
       accuracy: Number((correct / (i + 1)).toFixed(2)),
     });
   }

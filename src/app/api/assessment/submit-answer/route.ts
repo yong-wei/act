@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { submitAnswer } from '@/features/assessment/adaptive-engine';
+import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const userId = session?.user?.id ?? body.userId ?? 'demo-user';
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
 
-    const result = submitAnswer({
+    const result = await submitAnswerWithPersistenceFallback({
       userId,
       sessionId,
       questionId: body.questionId,

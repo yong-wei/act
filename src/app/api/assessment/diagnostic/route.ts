@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDiagnostic } from '@/features/assessment/adaptive-engine';
+import { getDiagnosticWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = session?.user?.id ?? searchParams.get('userId') ?? 'demo-user';
 
-    const diagnostic = getDiagnostic(userId);
+    const diagnostic = await getDiagnosticWithPersistenceFallback(userId);
     return NextResponse.json(diagnostic);
   } catch (error) {
     rethrowIfNextDynamicError(error);

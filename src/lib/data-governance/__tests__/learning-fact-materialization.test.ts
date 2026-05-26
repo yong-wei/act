@@ -126,6 +126,100 @@ describe('eventToLearningFactInput', () => {
     expect(syncError).toBeNull();
   });
 
+  it('materializes adaptive assessment evidence with privacy-safe references only', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'adaptive-assessment:answer-1',
+      actionType: 'answer_submit',
+      sessionId: 'adaptive-student-1',
+      payload: {
+        eventType: 'answer_submit',
+        assessmentSource: 'adaptive_assessment',
+        moduleId: 'adaptive-assessment',
+        sessionId: 'adaptive-student-1',
+        answerId: 'answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-1',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        isCorrect: true,
+        score: 100,
+        durationSeconds: 42,
+        knowledgeTags: ['pole-stability'],
+        abilityEstimate: 2.1,
+        masteryPosterior: 0.74,
+        masteryConfidence: 0.82,
+        confidence: 0.82,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        privacyLevel: 'restricted',
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'adaptive-assessment:answer-1',
+      factType: 'question',
+      moduleId: 'adaptive-assessment',
+      score: 100,
+      outcome: 'success',
+    });
+    expect(fact?.contextJson).toMatchObject({
+      adaptiveAssessment: {
+        answerId: 'answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-1',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        privacyLevel: 'restricted',
+      },
+      evidenceGovernance: {
+        evidenceQuality: 'rich',
+        policyReason: 'adaptive_assessment_evidence',
+      },
+    });
+    expect(JSON.stringify(fact)).not.toContain('超调增大且振荡衰减变慢');
+  });
+
+  it('redacts raw interactive quiz answers from LearningFact context', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'interactive-quiz-redaction-001',
+      actionType: 'submit',
+      payload: {
+        eventType: 'lesson_submit',
+        stepId: 'step-04',
+        lessonKey: 'unit-3-6-zero-design-workshop-v1',
+        questionSummaries: [
+          {
+            questionId: 'card-1',
+            stem: '完整中文题干：请解释相位裕度与超调量之间的关系。',
+            studentAnswer: '学生原文：我认为应该直接提高比例系数。',
+            referenceAnswer: '参考答案：相位裕度降低通常会增加超调风险。',
+            isCorrect: false,
+          },
+        ],
+      },
+    }));
+
+    const serialized = JSON.stringify(fact);
+    expect(fact?.contextJson).toMatchObject({
+      interactiveQuiz: {
+        scoring: {
+          supported: true,
+          correctCount: 0,
+          totalCount: 1,
+        },
+        cards: [
+          {
+            cardId: 'card-1',
+            answered: true,
+            isCorrect: false,
+          },
+        ],
+      },
+    });
+    expect(serialized).not.toContain('完整中文题干');
+    expect(serialized).not.toContain('学生原文');
+    expect(serialized).not.toContain('参考答案');
+  });
+
   it('marks unfinished session finalization as partial instead of success', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'client-event-finalize-001',
@@ -268,20 +362,18 @@ describe('eventToLearningFactInput', () => {
           cards: [
             {
               cardId: 'model-order',
-              selectedValue: 'A',
-              referenceAnswer: 'A',
               isCorrect: true,
             },
             {
               cardId: 'disturbance-boundary',
-              selectedValue: 'B',
-              referenceAnswer: 'A',
               isCorrect: false,
             },
           ],
         },
       },
     });
+    expect(JSON.stringify(fact)).not.toContain('studentAnswer');
+    expect(JSON.stringify(fact)).not.toContain('referenceAnswer');
   });
 
   it('keeps unanswered objective cards in the scoring denominator', () => {
@@ -329,13 +421,11 @@ describe('eventToLearningFactInput', () => {
           cards: [
             {
               cardId: 'model-order',
-              selectedValue: 'a',
               answered: true,
               isCorrect: true,
             },
             {
               cardId: 'disturbance-boundary',
-              selectedValue: null,
               answered: false,
               isCorrect: false,
             },
@@ -343,6 +433,9 @@ describe('eventToLearningFactInput', () => {
         },
       },
     });
+    const serialized = JSON.stringify(fact);
+    expect(serialized).not.toContain('名义模型阶次');
+    expect(serialized).not.toContain('扰动边界不能忽略');
   });
 
   it('marks unsupported objective scoring explicitly instead of writing a zero score', () => {

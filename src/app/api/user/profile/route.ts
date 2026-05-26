@@ -31,7 +31,10 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
-import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
+import {
+  getAbilityReportWithPersistenceFallback,
+  getDiagnosticWithPersistenceFallback,
+} from '@/features/assessment/adaptive-persistence';
 import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
@@ -116,6 +119,14 @@ function describeFactOutcome(outcome: string) {
     default:
       return '已记录一次练习';
   }
+}
+
+function isAdaptiveAssessmentModule(moduleId: string | null | undefined): boolean {
+  return moduleId === 'adaptive-practice' || moduleId === 'adaptive-assessment';
+}
+
+function formatFactScore(score: number): number {
+  return Math.round(score > 1 ? score : score * 100);
 }
 
 function inferInteractionTitle(event: {
@@ -461,10 +472,10 @@ export async function GET() {
         id: fact.id,
         category: 'assessment',
         title:
-          fact.moduleId === 'adaptive-practice'
+          isAdaptiveAssessmentModule(fact.moduleId)
             ? '完成自适应练习'
             : '完成一次题目练习',
-        description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${Math.round(fact.score * 100)}` : ''}`,
+        description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${formatFactScore(fact.score)}` : ''}`,
         timestamp: fact.startedAt.toISOString(),
         href: '/assessment/adaptive-practice',
         badge: '评测',
@@ -478,8 +489,8 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = getAbilityReport(userId);
-    const adaptiveDiagnostic = getDiagnostic(userId);
+    const adaptiveReport = await getAbilityReportWithPersistenceFallback(userId);
+    const adaptiveDiagnostic = await getDiagnosticWithPersistenceFallback(userId);
     const recommendationCards = mapRecommendationsToResourceCards(
       dedupeRecommendations(await generateRecommendations(userId))
     ).slice(0, 4);

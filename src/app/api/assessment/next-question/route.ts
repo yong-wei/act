@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { selectNextQuestion } from '@/features/assessment/adaptive-engine';
+import { selectNextQuestionWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const userId = session?.user?.id ?? body.userId ?? 'demo-user';
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
 
-    const result = selectNextQuestion({ userId, sessionId });
+    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId });
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAbilityReport } from '@/features/assessment/adaptive-engine';
+import { getAbilityReportWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 
 interface RouteContext {
   params: {
@@ -9,7 +9,7 @@ interface RouteContext {
 
 export async function GET(_: Request, context: RouteContext) {
   try {
-    const report = getAbilityReport(context.params.userId);
+    const report = await getAbilityReportWithPersistenceFallback(context.params.userId);
     return NextResponse.json(report);
   } catch (error) {
     return NextResponse.json(
