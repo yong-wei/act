@@ -618,13 +618,13 @@ describe('teacher evidence governance insights', () => {
     expect(mocks.prisma.learningFact.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
       where: {
         userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] },
-        factType: { in: ['simulation', 'design'] },
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-current'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
         ]),
       },
     }));
+    expect(mocks.prisma.learningFact.findMany.mock.calls[1][0].where).not.toHaveProperty('factType');
     expect(mocks.prisma.learningFact.findMany.mock.calls[1][0]).not.toHaveProperty('take');
     expect(body.governance.evidenceCoverage).toMatchObject({
       totalStudents: 4,

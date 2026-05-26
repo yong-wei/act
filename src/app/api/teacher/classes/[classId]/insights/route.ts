@@ -247,7 +247,6 @@ export async function GET(
         ? prisma.learningFact.findMany({
             where: {
               userId: { in: studentIds },
-              factType: { in: ['simulation', 'design'] },
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
