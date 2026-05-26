@@ -92,7 +92,7 @@ describe('computeSessionQualityStatus', () => {
       'usable_evidence_ratio_partial',
       'legacy_or_missing_ratio_warning',
       'durable_submission_coverage_partial',
-      'snapshot_partially_missing',
+      'snapshot_coverage_partial',
       'medium_sync_incident',
     ]);
     expect(decision.metrics).toMatchObject({
@@ -156,5 +156,61 @@ describe('computeSessionQualityStatus', () => {
 
     expect(decision.status).toBe('red');
     expect(decision.reasons).toEqual(['no_durable_submissions']);
+  });
+
+  it('does not report snapshot missing when only post-class refresh is partial', () => {
+    const decision = computeSessionQualityStatus({
+      participants: 2,
+      durableSubmittedParticipants: 2,
+      durableSubmissions: 2,
+      evidenceQualityCounts: {
+        rich: 2,
+        partial: 0,
+        legacy: 0,
+        missing: 0,
+      },
+      reportFresh: true,
+      snapshotFresh: true,
+      postClassUpdateWindowFresh: false,
+      featureCacheFresh: true,
+      syncSeverity: 'none',
+      unresolvedSyncIncidents: 0,
+      syncAffectedUsers: 0,
+    });
+
+    expect(decision.status).toBe('yellow');
+    expect(decision.reasons).toEqual(['post_class_update_window_partial']);
+    expect(decision.reasons).not.toContain('snapshot_partially_missing');
+    expect(decision.metrics).toMatchObject({
+      snapshotFresh: true,
+      snapshotCoverageFresh: true,
+      postClassUpdateWindowFresh: false,
+      featureCacheFresh: true,
+    });
+  });
+
+  it('uses feature-cache freshness reasons independently from snapshot coverage', () => {
+    const decision = computeSessionQualityStatus({
+      participants: 2,
+      durableSubmittedParticipants: 2,
+      durableSubmissions: 2,
+      evidenceQualityCounts: {
+        rich: 2,
+        partial: 0,
+        legacy: 0,
+        missing: 0,
+      },
+      reportFresh: true,
+      snapshotFresh: true,
+      postClassUpdateWindowFresh: true,
+      featureCacheFresh: false,
+      syncSeverity: 'none',
+      unresolvedSyncIncidents: 0,
+      syncAffectedUsers: 0,
+    });
+
+    expect(decision.status).toBe('yellow');
+    expect(decision.reasons).toEqual(['feature_cache_stale']);
+    expect(decision.reasons).not.toContain('snapshot_partially_missing');
   });
 });
