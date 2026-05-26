@@ -171,13 +171,19 @@ type CollectInteractiveEvidenceScoringRecomputeDb = {
   };
 };
 
-type ApplyInteractiveEvidenceScoringRecomputeDb = {
+type ApplyInteractiveEvidenceScoringRecomputeWriteDb = {
   studentStepResponse: {
     update(args: unknown): Promise<unknown>;
   };
   learningFact: {
     update(args: unknown): Promise<unknown>;
   };
+};
+
+type ApplyInteractiveEvidenceScoringRecomputeDb = ApplyInteractiveEvidenceScoringRecomputeWriteDb & {
+  $transaction?<Result>(
+    fn: (tx: ApplyInteractiveEvidenceScoringRecomputeWriteDb) => Promise<Result>,
+  ): Promise<Result>;
 };
 
 interface InteractiveEvidenceScoringInteractionLogSourceIndex {
@@ -1012,43 +1018,58 @@ export async function applyInteractiveEvidenceScoringRecomputePlan(
     throw new Error(`Cannot apply interactive evidence scoring recompute: ${reasons.join(', ')}`);
   }
 
-  let responseRowsUpdated = 0;
-  let factRowsUpdated = 0;
-  let sourceLogIdsRepaired = 0;
+  const applyWrites = async (
+    writeDb: ApplyInteractiveEvidenceScoringRecomputeWriteDb,
+  ): Promise<InteractiveEvidenceScoringApplyResult> => {
+    let responseRowsUpdated = 0;
+    let factRowsUpdated = 0;
+    let sourceLogIdsRepaired = 0;
 
-  for (const action of plan.responseActions) {
-    if (action.action !== 'update-derived-scoring' || !action.nextResponseData) continue;
-    await db.studentStepResponse.update({
-      where: { id: action.responseId },
-      data: { responseData: action.nextResponseData as Prisma.InputJsonValue },
-    });
-    responseRowsUpdated += 1;
-  }
+    for (const action of plan.responseActions) {
+      if (action.action !== 'update-derived-scoring' || !action.nextResponseData) continue;
+      await writeDb.studentStepResponse.update({
+        where: { id: action.responseId },
+        data: { responseData: action.nextResponseData as Prisma.InputJsonValue },
+      });
+      responseRowsUpdated += 1;
+    }
 
-  for (const action of plan.factActions) {
-    const data: JsonRecord = {
-      contextJson: action.nextContextJson as Prisma.InputJsonValue,
+    for (const action of plan.factActions) {
+      const data: JsonRecord = {
+        contextJson: action.nextContextJson as Prisma.InputJsonValue,
+      };
+      if (action.oldScore !== action.newScore) {
+        data.score = action.newScore;
+      }
+      if (action.oldOutcome !== action.newOutcome) {
+        data.outcome = action.newOutcome;
+      }
+      const repairsSourceLogId = Boolean(
+        action.nextSourceLogId && action.oldSourceLogId !== action.nextSourceLogId,
+      );
+      if (repairsSourceLogId) {
+        data.sourceLogId = action.nextSourceLogId;
+      }
+      await writeDb.learningFact.update({
+        where: { id: action.factId },
+        data,
+      });
+      factRowsUpdated += 1;
+      if (repairsSourceLogId) {
+        sourceLogIdsRepaired += 1;
+      }
+    }
+
+    return {
+      responseRowsUpdated,
+      factRowsUpdated,
+      sourceLogIdsRepaired,
     };
-    if (action.oldScore !== action.newScore) {
-      data.score = action.newScore;
-    }
-    if (action.oldOutcome !== action.newOutcome) {
-      data.outcome = action.newOutcome;
-    }
-    if (action.nextSourceLogId && action.oldSourceLogId !== action.nextSourceLogId) {
-      data.sourceLogId = action.nextSourceLogId;
-      sourceLogIdsRepaired += 1;
-    }
-    await db.learningFact.update({
-      where: { id: action.factId },
-      data,
-    });
-    factRowsUpdated += 1;
+  };
+
+  if (db.$transaction) {
+    return db.$transaction((tx) => applyWrites(tx));
   }
 
-  return {
-    responseRowsUpdated,
-    factRowsUpdated,
-    sourceLogIdsRepaired,
-  };
+  return applyWrites(db);
 }

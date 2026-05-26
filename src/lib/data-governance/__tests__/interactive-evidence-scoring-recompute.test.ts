@@ -640,6 +640,49 @@ describe('interactive evidence scoring recompute', () => {
     expect(secondPlan.factActions).toEqual([]);
   });
 
+  it('applies write actions inside one transaction when the database supports it', async () => {
+    const rows = buildRows();
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      ...rows,
+    });
+    const tx = {
+      studentStepResponse: { update: vi.fn().mockResolvedValue({}) },
+      learningFact: { update: vi.fn().mockResolvedValue({}) },
+    };
+    const db = {
+      studentStepResponse: { update: vi.fn().mockResolvedValue({}) },
+      learningFact: { update: vi.fn().mockResolvedValue({}) },
+      $transaction: vi.fn(async (callback: (transactionDb: typeof tx) => Promise<unknown>) => callback(tx)),
+    };
+
+    const applyResult = await applyInteractiveEvidenceScoringRecomputePlan(db as never, plan);
+
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.studentStepResponse.update).not.toHaveBeenCalled();
+    expect(db.learningFact.update).not.toHaveBeenCalled();
+    expect(tx.studentStepResponse.update).toHaveBeenCalledWith({
+      where: { id: 'response-53' },
+      data: { responseData: plan.responseActions[0].nextResponseData },
+    });
+    expect(tx.learningFact.update).toHaveBeenCalledWith({
+      where: { id: 'fact-53' },
+      data: expect.objectContaining({
+        score: 100,
+        outcome: 'success',
+        sourceLogId: 'log-53',
+      }),
+    });
+    expect(applyResult).toMatchObject({
+      responseRowsUpdated: 1,
+      factRowsUpdated: 1,
+      sourceLogIdsRepaired: 1,
+    });
+  });
+
   it('clears learning fact score when recomputed response is no longer scoreable', async () => {
     const unsupportedManifest = {
       ...lesson53Manifest,
