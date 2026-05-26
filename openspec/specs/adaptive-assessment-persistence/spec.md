@@ -40,3 +40,12 @@ The system SHALL preserve existing assessment response compatibility during pers
 - **WHEN** an existing assessment client calls the submission API
 - **THEN** the response shape SHALL remain compatible with the previous caller contract
 - **AND** new durable identifiers MAY be added as optional fields.
+
+#### Scenario: Authenticated student writes or reads persisted assessment data
+- **WHEN** an assessment API persists answers, durable next-question state, diagnostic data, or ability reports
+- **THEN** the system SHALL derive the target student from the authenticated server session instead of a client-supplied user id
+- **AND** unauthenticated requests SHALL be rejected before any durable assessment write or cross-user report read.
+
+#### Scenario: Student requests another user's ability report
+- **WHEN** an authenticated student requests an ability report for a different user id
+- **THEN** the system SHALL reject the request unless the actor has an explicit administrative authorization path.

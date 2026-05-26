@@ -16,9 +16,16 @@ interface SubmitAnswerRequest {
 export async function POST(request: Request) {
   try {
     const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '请先登录后再提交自适应评测答案' },
+        { status: 401 },
+      );
+    }
+
     const body = (await request.json()) as SubmitAnswerRequest;
 
-    const userId = session?.user?.id ?? body.userId ?? 'demo-user';
+    const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
 
     const result = await submitAnswerWithPersistenceFallback({
