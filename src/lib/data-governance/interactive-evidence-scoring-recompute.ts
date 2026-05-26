@@ -449,7 +449,7 @@ function buildInteractionLogSourceMap(logs: InteractiveEvidenceScoringInteractio
 function buildInteractiveQuizContext(responseData: JsonRecord) {
   const summaries = readArray(responseData.questionSummaries).map(readRecord);
   const scoreableCards = summaries.filter((card) => typeof card.score === 'number' || typeof card.isCorrect === 'boolean');
-  const answeredCount = summaries.filter((card) => card.answered === true || card.studentAnswer !== null).length;
+  const answeredCount = summaries.filter((card) => card.answered === true || card.studentAnswer != null).length;
   const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
   const totalScore = scoreableCards.reduce((sum, card) => sum + (readNumber(card.score) ?? (card.isCorrect === true ? 1 : 0)), 0);
   const scoringVersion = summaries
@@ -484,6 +484,17 @@ function buildInteractiveQuizContext(responseData: JsonRecord) {
   });
 }
 
+function findOwnedInteractionLog(
+  response: InteractiveEvidenceScoringResponseRow,
+  fact: InteractiveEvidenceScoringLearningFactRow,
+  logBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>,
+) {
+  if (!fact.sourceEventId) return null;
+  const log = logBySourceId.get(fact.sourceEventId);
+  if (!log) return null;
+  return log.userId === response.userId && log.sessionId === response.sessionId ? log : null;
+}
+
 function buildFactAction(
   response: InteractiveEvidenceScoringResponseRow,
   responseData: JsonRecord,
@@ -496,9 +507,7 @@ function buildFactAction(
   const newOutcome = nextScore === null ? fact.outcome : deriveFactOutcome('lesson_submit', { score: nextScore });
   const matchingLog = fact.sourceLogId
     ? null
-    : fact.sourceEventId
-      ? logBySourceId.get(fact.sourceEventId) ?? null
-      : null;
+    : findOwnedInteractionLog(response, fact, logBySourceId);
   const nextSourceLogId = matchingLog?.id;
   const nextContextJson = compactRecord({
     ...context,
@@ -552,7 +561,7 @@ function buildSourceLogDiagnostic(
       reason: 'missing_source_event_id',
     };
   }
-  if (logBySourceId.has(fact.sourceEventId)) return null;
+  if (findOwnedInteractionLog(response, fact, logBySourceId)) return null;
   return {
     factId: fact.id,
     responseId: response.id,

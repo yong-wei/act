@@ -290,6 +290,97 @@ describe('interactive evidence scoring recompute', () => {
     expect(plan.factActions).toEqual([]);
   });
 
+  it('does not repair sourceLogId from an interaction log that belongs to another user or session', () => {
+    const rows = buildRows();
+    const sharedEventId = 'shared-client-event';
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: rows.studentStepResponses.map((response) => ({
+        ...response,
+        sourceLogId: null,
+        clientEventId: sharedEventId,
+      })),
+      interactionLogs: rows.interactionLogs.map((log) => ({
+        ...log,
+        id: 'other-user-log',
+        userId: 'student-other',
+        sessionId: 'session-other',
+        clientEventId: sharedEventId,
+      })),
+      learningFacts: rows.learningFacts.map((fact) => ({
+        ...fact,
+        sourceEventId: sharedEventId,
+        sourceLogId: null,
+      })),
+    });
+
+    expect(plan.factActions[0]?.nextSourceLogId).toBeUndefined();
+    expect(plan.sourceLogDiagnostics).toEqual([
+      expect.objectContaining({
+        factId: 'fact-53',
+        responseId: 'response-53',
+        sourceEventId: sharedEventId,
+        reason: 'missing_matching_interaction_log',
+      }),
+    ]);
+  });
+
+  it('counts only explicit answered cards when rebuilding interactive quiz context', () => {
+    const seedRows = buildRows({
+      schemaVersion: 'manifest-submission-v2',
+      stepId: 'step-08',
+      submittedAt: submittedAt.getTime(),
+      evidenceQuality: 'partial',
+      responseKind: 'manifest_step_response',
+      answers: {
+        unrelated: 'value',
+      },
+      answerDigest: {
+        unrelated: 'value',
+      },
+      questionSummaries: [],
+      scoringSupported: true,
+      correctCount: 0,
+      objectiveTotal: 1,
+      score: 0,
+    });
+    const seedPlan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      ...seedRows,
+    });
+    const currentResponseData = {
+      ...seedPlan.responseActions[0].nextResponseData,
+      questionSummaries: [
+        {
+          ...(seedPlan.responseActions[0].nextResponseData?.questionSummaries as Record<string, unknown>[])[0],
+          studentAnswer: undefined,
+        },
+      ],
+    };
+    const currentRows = buildRows(currentResponseData);
+
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T04:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      ...currentRows,
+    });
+
+    expect(plan.responseActions[0]).toMatchObject({ action: 'already-current' });
+    expect(plan.factActions[0].nextContextJson.interactiveQuiz).toMatchObject({
+      scoring: expect.objectContaining({
+        answeredCount: 0,
+      }),
+    });
+  });
+
   it('applies updates idempotently without creating repeated changes', async () => {
     const rows = buildRows();
     const plan = buildInteractiveEvidenceScoringRecomputePlan({
