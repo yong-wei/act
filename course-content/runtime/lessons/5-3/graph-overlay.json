@@ -148,8 +148,8 @@
       "name": "传统控制结构局限",
       "nodeType": "THEORY",
       "description": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
-      "positionX": 82.0,
-      "positionY": -82.0,
+      "positionX": 100.5,
+      "positionY": -58.0,
       "positionZ": 4,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -188,7 +188,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
           "title": "传统控制结构局限 信息图",
           "lessonId": "5-1",
-          "nodeId": "传统控制结构局限_4_47008"
+          "nodeId": "传统控制结构局限_4_47008",
+          "sourceNodeId": "传统控制结构局限_4_47008"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -203,7 +204,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/传统控制结构局限_4_47008.png",
           "title": "传统控制结构局限 信息图",
           "lessonId": "5-1",
-          "nodeId": "传统控制结构局限_4_47008"
+          "nodeId": "传统控制结构局限_4_47008",
+          "sourceNodeId": "传统控制结构局限_4_47008"
         }
       ],
       "tags": [
@@ -219,8 +221,8 @@
       "name": "MASS协同链路",
       "nodeType": "THEORY",
       "description": "MASS 协同链路把复杂自主船舶任务拆分为感知、估计、规划、控制、执行和监督等相互依赖的环节，用于判断信息流、控制流和责任边界。",
-      "positionX": -77.0,
-      "positionY": -133.4,
+      "positionX": 80.0,
+      "positionY": 138.6,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -261,7 +263,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
           "title": "MASS协同链路 信息图",
           "lessonId": "5-3",
-          "nodeId": "MASS协同链路_5_53001"
+          "nodeId": "MASS协同链路_5_53001",
+          "sourceNodeId": "MASS协同链路_5_53001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -276,7 +279,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/MASS协同链路_5_53001.png",
           "title": "MASS协同链路 信息图",
           "lessonId": "5-3",
-          "nodeId": "MASS协同链路_5_53001"
+          "nodeId": "MASS协同链路_5_53001",
+          "sourceNodeId": "MASS协同链路_5_53001"
         }
       ],
       "tags": [
@@ -294,8 +298,8 @@
       "name": "MASS自动化等级责任边界",
       "nodeType": "THEORY",
       "description": "MASS 自动化等级描述运行形态和责任主体差异，但技术诊断仍需回到感知、估计、规划、控制、执行和监督链路证据。",
-      "positionX": -39.9,
-      "positionY": -148.8,
+      "positionX": 41.4,
+      "positionY": 154.5,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "FACTUAL",
@@ -331,7 +335,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
           "title": "MASS自动化等级责任边界 信息图",
           "lessonId": "5-3",
-          "nodeId": "MASS自动化等级责任边界_5_53008"
+          "nodeId": "MASS自动化等级责任边界_5_53008",
+          "sourceNodeId": "MASS自动化等级责任边界_5_53008"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -346,7 +351,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/MASS自动化等级责任边界_5_53008.png",
           "title": "MASS自动化等级责任边界 信息图",
           "lessonId": "5-3",
-          "nodeId": "MASS自动化等级责任边界_5_53008"
+          "nodeId": "MASS自动化等级责任边界_5_53008",
+          "sourceNodeId": "MASS自动化等级责任边界_5_53008"
         }
       ],
       "tags": [
@@ -362,8 +368,8 @@
       "name": "上游信息质量",
       "nodeType": "THEORY",
       "description": "上游信息质量描述感知和估计提供给规划与控制的状态是否可信、及时、同步并带有合理不确定性。",
-      "positionX": 148.8,
-      "positionY": -39.9,
+      "positionX": -154.5,
+      "positionY": -41.4,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -404,7 +410,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
           "title": "上游信息质量 信息图",
           "lessonId": "5-3",
-          "nodeId": "上游信息质量_5_53003"
+          "nodeId": "上游信息质量_5_53003",
+          "sourceNodeId": "上游信息质量_5_53003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -419,7 +426,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/上游信息质量_5_53003.png",
           "title": "上游信息质量 信息图",
           "lessonId": "5-3",
-          "nodeId": "上游信息质量_5_53003"
+          "nodeId": "上游信息质量_5_53003",
+          "sourceNodeId": "上游信息质量_5_53003"
         }
       ],
       "tags": [
@@ -436,8 +444,8 @@
       "name": "执行约束反馈",
       "nodeType": "THEORY",
       "description": "执行约束反馈把执行器幅值、速率、带宽、能耗和健康状态回传给控制与规划，使参考和控制指令保持物理可实现。",
-      "positionX": -160.3,
-      "positionY": -43.0,
+      "positionX": -44.5,
+      "positionY": 166.1,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -477,7 +485,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
           "title": "执行约束反馈 信息图",
           "lessonId": "5-3",
-          "nodeId": "执行约束反馈_5_53005"
+          "nodeId": "执行约束反馈_5_53005",
+          "sourceNodeId": "执行约束反馈_5_53005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -492,7 +501,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/执行约束反馈_5_53005.png",
           "title": "执行约束反馈 信息图",
           "lessonId": "5-3",
-          "nodeId": "执行约束反馈_5_53005"
+          "nodeId": "执行约束反馈_5_53005",
+          "sourceNodeId": "执行约束反馈_5_53005"
         }
       ],
       "tags": [
@@ -508,8 +518,8 @@
       "name": "控制在自主系统链路中的位置",
       "nodeType": "THEORY",
       "description": "控制层负责把上游行动意图转化为稳定、可反馈、可约束的运动，但它依赖估计状态、规划参考和执行器能力。",
-      "positionX": -117.4,
-      "positionY": -117.4,
+      "positionX": -121.6,
+      "positionY": 121.6,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -549,7 +559,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
           "title": "控制在自主系统链路中的位置 信息图",
           "lessonId": "5-3",
-          "nodeId": "控制在自主系统链路中的位置_5_53002"
+          "nodeId": "控制在自主系统链路中的位置_5_53002",
+          "sourceNodeId": "控制在自主系统链路中的位置_5_53002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -564,7 +575,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/控制在自主系统链路中的位置_5_53002.png",
           "title": "控制在自主系统链路中的位置 信息图",
           "lessonId": "5-3",
-          "nodeId": "控制在自主系统链路中的位置_5_53002"
+          "nodeId": "控制在自主系统链路中的位置_5_53002",
+          "sourceNodeId": "控制在自主系统链路中的位置_5_53002"
         }
       ],
       "tags": [
@@ -580,8 +592,8 @@
       "name": "方法迁移前边界说明",
       "nodeType": "THEORY",
       "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
-      "positionX": 83.0,
-      "positionY": -143.8,
+      "positionX": -149.0,
+      "positionY": -86.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -620,7 +632,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
           "title": "方法迁移前边界说明 信息图",
           "lessonId": "5-1",
-          "nodeId": "方法迁移前边界说明_5_51005"
+          "nodeId": "方法迁移前边界说明_5_51005",
+          "sourceNodeId": "方法迁移前边界说明_5_51005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -635,7 +648,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/方法迁移前边界说明_5_51005.png",
           "title": "方法迁移前边界说明 信息图",
           "lessonId": "5-1",
-          "nodeId": "方法迁移前边界说明_5_51005"
+          "nodeId": "方法迁移前边界说明_5_51005",
+          "sourceNodeId": "方法迁移前边界说明_5_51005"
         }
       ],
       "tags": [
@@ -651,8 +665,8 @@
       "name": "舵机死区饱和自振风险",
       "nodeType": "THEORY",
       "description": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
-      "positionX": 44.5,
-      "positionY": -166.1,
+      "positionX": 89.0,
+      "positionY": -154.2,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "FACTUAL",
@@ -693,7 +707,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
           "title": "舵机死区饱和自振风险 信息图",
           "lessonId": "5-2",
-          "nodeId": "舵机死区饱和自振风险_5_52005"
+          "nodeId": "舵机死区饱和自振风险_5_52005",
+          "sourceNodeId": "舵机死区饱和自振风险_5_52005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -708,7 +723,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
           "title": "舵机死区饱和自振风险 信息图",
           "lessonId": "5-2",
-          "nodeId": "舵机死区饱和自振风险_5_52005"
+          "nodeId": "舵机死区饱和自振风险_5_52005",
+          "sourceNodeId": "舵机死区饱和自振风险_5_52005"
         }
       ],
       "tags": [
@@ -725,8 +741,8 @@
       "name": "规划参考可实现性",
       "nodeType": "THEORY",
       "description": "规划参考可实现性要求规划层生成的路径、航向和速度参考满足控制与执行层的幅值、速率、转弯半径和安全约束。",
-      "positionX": 121.6,
-      "positionY": -121.6,
+      "positionX": 154.2,
+      "positionY": -89.0,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "CONCEPTUAL",
@@ -766,7 +782,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
           "title": "规划参考可实现性 信息图",
           "lessonId": "5-3",
-          "nodeId": "规划参考可实现性_5_53004"
+          "nodeId": "规划参考可实现性_5_53004",
+          "sourceNodeId": "规划参考可实现性_5_53004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -781,7 +798,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/规划参考可实现性_5_53004.png",
           "title": "规划参考可实现性 信息图",
           "lessonId": "5-3",
-          "nodeId": "规划参考可实现性_5_53004"
+          "nodeId": "规划参考可实现性_5_53004",
+          "sourceNodeId": "规划参考可实现性_5_53004"
         }
       ],
       "tags": [
@@ -797,8 +815,8 @@
       "name": "避碰转弯半径可行域",
       "nodeType": "THEORY",
       "description": "避碰转弯半径可行域用船体尺度、舵角上限和安全裕量判断规划半径是否能被控制与执行层实现。",
-      "positionX": 154.2,
-      "positionY": 89.0,
+      "positionX": 47.6,
+      "positionY": 177.7,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -838,7 +856,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
           "title": "避碰转弯半径可行域 信息图",
           "lessonId": "5-3",
-          "nodeId": "避碰转弯半径可行域_5_53007"
+          "nodeId": "避碰转弯半径可行域_5_53007",
+          "sourceNodeId": "避碰转弯半径可行域_5_53007"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -853,7 +872,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/避碰转弯半径可行域_5_53007.png",
           "title": "避碰转弯半径可行域 信息图",
           "lessonId": "5-3",
-          "nodeId": "避碰转弯半径可行域_5_53007"
+          "nodeId": "避碰转弯半径可行域_5_53007",
+          "sourceNodeId": "避碰转弯半径可行域_5_53007"
         }
       ],
       "tags": [
@@ -869,8 +889,8 @@
       "name": "链路责任诊断",
       "nodeType": "THEORY",
       "description": "链路责任诊断按感知、估计、规划、控制、执行和监督逐层定位偏差来源，避免把复杂系统问题直接压给控制器参数。",
-      "positionX": 125.9,
-      "positionY": 125.9,
+      "positionX": 0.0,
+      "positionY": 184.0,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "PROCEDURAL",
@@ -910,7 +930,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
           "title": "链路责任诊断 信息图",
           "lessonId": "5-3",
-          "nodeId": "链路责任诊断_5_53006"
+          "nodeId": "链路责任诊断_5_53006",
+          "sourceNodeId": "链路责任诊断_5_53006"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -925,7 +946,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/链路责任诊断_5_53006.png",
           "title": "链路责任诊断 信息图",
           "lessonId": "5-3",
-          "nodeId": "链路责任诊断_5_53006"
+          "nodeId": "链路责任诊断_5_53006",
+          "sourceNodeId": "链路责任诊断_5_53006"
         }
       ],
       "tags": [
