@@ -84,6 +84,29 @@ describe('scoreManifestObjectiveCard', () => {
     });
   });
 
+  it('preserves unmapped reference tokens instead of shortening multi-select answers', () => {
+    const result = scoreManifestObjectiveCard({
+      id: 'q3-unmapped-reference',
+      responseKind: 'multi_select',
+      options: [
+        { value: 'A', label: '航迹偏离' },
+      ],
+      referenceAnswer: '选 A、B。',
+    }, 'A');
+
+    expect(result).toMatchObject({
+      score: 1 / 2,
+      isCorrect: false,
+      normalizedSubmitted: ['A'],
+      normalizedReference: ['A', 'B'],
+      detail: {
+        correctHits: ['A'],
+        missedCorrectOptions: ['B'],
+        extraWrongOptions: [],
+      },
+    });
+  });
+
   it('penalizes duplicated correct options in multi-select answers', () => {
     const result = scoreManifestObjectiveCard({
       id: 'q3-duplicate',

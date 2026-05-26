@@ -409,6 +409,58 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('keeps unsupported-only objective cards traceable without materialized scores', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-unsupported-card',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        evidenceQuality: 'missing',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        questionSummaries: [
+          {
+            questionId: 'model-order',
+            responseKind: 'single_choice',
+            answered: false,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            normalizedSubmitted: null,
+            normalizedReference: null,
+            scoringDetail: {},
+            unsupportedReason: 'missing_reference',
+          },
+        ],
+      },
+    }));
+
+    expect(fact?.score).toBeUndefined();
+    expect(fact?.contextJson).toMatchObject({
+      interactiveQuiz: {
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        scoring: {
+          supported: false,
+          evidenceQuality: 'missing',
+          answeredCount: 0,
+          totalCount: 0,
+          scoringVersion: 'manifest-objective-scoring/v1',
+          basis: 'questionSummaries',
+          reason: 'missing_reference',
+        },
+        cards: [
+          {
+            cardId: 'model-order',
+            answered: false,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            unsupportedReason: 'missing_reference',
+          },
+        ],
+      },
+    });
+  });
+
   it('marks unsupported objective scoring explicitly instead of writing a zero score', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'unit-4-7-step-02-submit-unsupported',

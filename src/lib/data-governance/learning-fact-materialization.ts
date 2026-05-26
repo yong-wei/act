@@ -115,12 +115,14 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
       const referenceAnswer = readAnswerValue(record, ['referenceValue', 'referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
       const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
       const explicitScore = readFiniteNumber(record.score);
+      const unsupportedReason = readString(record.unsupportedReason);
       if (!cardId) return null;
       if (
         selectedValue === undefined
         && explicitCorrect === undefined
         && explicitScore === undefined
         && referenceAnswer === undefined
+        && unsupportedReason === undefined
       ) {
         return null;
       }
@@ -142,28 +144,45 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
         normalizedSubmitted: record.normalizedSubmitted,
         normalizedReference: record.normalizedReference,
         detail: scoringDetail,
-        unsupportedReason: readString(record.unsupportedReason),
+        unsupportedReason,
       });
     })
     .filter((item): item is Prisma.InputJsonObject => Boolean(item));
 
   if (cards.length === 0) return null;
 
+  const answeredCount = cards.filter((card) => card.answered === true).length;
   const scoreableCards = cards.filter((card) => typeof card.score === 'number' || typeof card.isCorrect === 'boolean');
-  if (scoreableCards.length === 0) return null;
+  const scoringVersion = cards
+    .map((card) => readString(card.scoringVersion))
+    .find((value): value is string => Boolean(value));
+  if (scoreableCards.length === 0) {
+    const unsupportedReasons = cards
+      .map((card) => readString(card.unsupportedReason))
+      .filter((value): value is string => Boolean(value));
+    return {
+      basis: 'questionSummaries',
+      supported: false,
+      cards,
+      answeredCount,
+      correctCount: 0,
+      totalCount: 0,
+      totalScore: 0,
+      score: undefined,
+      scoringVersion,
+      unsupportedReason: unsupportedReasons[0],
+    };
+  }
   const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
   const totalCount = scoreableCards.length;
-  const answeredCount = cards.filter((card) => card.answered === true).length;
   const totalScore = scoreableCards.reduce((sum, card) => (
     sum + (typeof card.score === 'number' ? card.score : card.isCorrect === true ? 1 : 0)
   ), 0);
   const score = Math.round((totalScore / totalCount) * 1000) / 10;
-  const scoringVersion = scoreableCards
-    .map((card) => readString(card.scoringVersion))
-    .find((value): value is string => Boolean(value));
 
   return {
     basis: 'questionSummaries',
+    supported: true,
     cards,
     answeredCount,
     correctCount,
@@ -213,7 +232,7 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
       context: compactJsonObject({
         ...baseContext,
         scoring: compactJsonObject({
-          supported: true,
+          supported: questionSummaryEvidence.supported,
           evidenceQuality,
           answeredCount: questionSummaryEvidence.answeredCount,
           correctCount: questionSummaryEvidence.correctCount,
@@ -222,6 +241,7 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
           score: questionSummaryEvidence.score,
           scoringVersion: questionSummaryEvidence.scoringVersion,
           basis: questionSummaryEvidence.basis,
+          reason: questionSummaryEvidence.unsupportedReason,
         }),
         cards: questionSummaryEvidence.cards,
       }),

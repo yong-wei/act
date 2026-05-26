@@ -139,7 +139,7 @@ function resolveReferenceOptions(card: ManifestObjectiveCardLike): string[] {
 
   const choiceTokens = extractReferenceChoiceTokens(referenceAnswer);
   if (choiceTokens.length > 0) {
-    return choiceTokens.map((token) => findOptionValue(card.options, token)).filter((value): value is string => Boolean(value));
+    return choiceTokens.map((token) => findOptionValue(card.options, token) ?? token);
   }
 
   const textTokens = splitAnswerTokens(referenceAnswer)

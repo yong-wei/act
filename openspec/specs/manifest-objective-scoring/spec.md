@@ -29,6 +29,12 @@ opaque answer text alone.
 - **AND** the normalized score SHALL represent partial credit when the policy
   permits it.
 
+#### Scenario: Unmapped reference tokens are preserved
+- **WHEN** a reference answer contains a token that cannot be mapped to the
+  card's configured options
+- **THEN** the token SHALL remain in the normalized reference instead of being
+  silently dropped.
+
 #### Scenario: Ordering answer is partly correct
 - **WHEN** a student submits an ordering answer with some items in the correct
   relative or absolute position
@@ -70,3 +76,10 @@ recompute objective evidence.
 - **THEN** its context SHALL include scoring version, normalized submitted
   answer, normalized reference, per-item detail, and unsupported reason when
   applicable.
+
+#### Scenario: Unsupported-only card remains traceable
+- **WHEN** a manifest submission carries an objective card with
+  `unsupportedReason` but no scoreable answer
+- **THEN** LearningFact materialization SHALL retain that card in
+  `interactiveQuiz.cards`
+- **AND** the fact SHALL not invent a numeric score for the unsupported card.
