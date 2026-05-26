@@ -175,8 +175,7 @@ type ApplyInteractiveEvidenceScoringRecomputeDb = {
 };
 
 interface InteractiveEvidenceScoringInteractionLogSourceIndex {
-  logsBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow>;
-  ambiguousSourceIds: Set<string>;
+  logsBySourceId: Map<string, InteractiveEvidenceScoringInteractionLogRow[]>;
 }
 
 export interface CollectInteractiveEvidenceScoringRecomputePlanInput {
@@ -436,8 +435,7 @@ function findMatchingFacts(
 function buildInteractionLogSourceIndex(
   logs: InteractiveEvidenceScoringInteractionLogRow[],
 ): InteractiveEvidenceScoringInteractionLogSourceIndex {
-  const logsBySourceId = new Map<string, InteractiveEvidenceScoringInteractionLogRow>();
-  const ambiguousSourceIds = new Set<string>();
+  const logsBySourceId = new Map<string, InteractiveEvidenceScoringInteractionLogRow[]>();
   for (const log of logs) {
     const payload = readRecord(log.eventData);
     const canonicalEventType = readString(payload.eventType) ?? (log.eventType === 'submit' ? 'lesson_submit' : log.eventType);
@@ -448,17 +446,14 @@ function buildInteractionLogSourceIndex(
       log.clientEventId,
       readString(payload.clientEventId),
     ]) {
-      if (!key || ambiguousSourceIds.has(key)) continue;
-      const existingLog = logsBySourceId.get(key);
-      if (!existingLog) {
-        logsBySourceId.set(key, log);
-      } else if (existingLog.id !== log.id) {
-        logsBySourceId.delete(key);
-        ambiguousSourceIds.add(key);
+      if (!key) continue;
+      const existingLogs = logsBySourceId.get(key) ?? [];
+      if (!existingLogs.some((entry) => entry.id === log.id)) {
+        logsBySourceId.set(key, [...existingLogs, log]);
       }
     }
   }
-  return { logsBySourceId, ambiguousSourceIds };
+  return { logsBySourceId };
 }
 
 function buildInteractiveQuizContext(responseData: JsonRecord) {
@@ -499,16 +494,23 @@ function buildInteractiveQuizContext(responseData: JsonRecord) {
   });
 }
 
+function findOwnedInteractionLogs(
+  response: InteractiveEvidenceScoringResponseRow,
+  fact: InteractiveEvidenceScoringLearningFactRow,
+  sourceIndex: InteractiveEvidenceScoringInteractionLogSourceIndex,
+) {
+  if (!fact.sourceEventId) return [];
+  return (sourceIndex.logsBySourceId.get(fact.sourceEventId) ?? [])
+    .filter((log) => log.userId === response.userId && log.sessionId === response.sessionId);
+}
+
 function findOwnedInteractionLog(
   response: InteractiveEvidenceScoringResponseRow,
   fact: InteractiveEvidenceScoringLearningFactRow,
   sourceIndex: InteractiveEvidenceScoringInteractionLogSourceIndex,
 ) {
-  if (!fact.sourceEventId) return null;
-  if (sourceIndex.ambiguousSourceIds.has(fact.sourceEventId)) return null;
-  const log = sourceIndex.logsBySourceId.get(fact.sourceEventId);
-  if (!log) return null;
-  return log.userId === response.userId && log.sessionId === response.sessionId ? log : null;
+  const ownedLogs = findOwnedInteractionLogs(response, fact, sourceIndex);
+  return ownedLogs.length === 1 ? ownedLogs[0] : null;
 }
 
 function buildFactAction(
@@ -577,7 +579,8 @@ function buildSourceLogDiagnostic(
       reason: 'missing_source_event_id',
     };
   }
-  if (sourceIndex.ambiguousSourceIds.has(fact.sourceEventId)) {
+  const ownedLogs = findOwnedInteractionLogs(response, fact, sourceIndex);
+  if (ownedLogs.length > 1) {
     return {
       factId: fact.id,
       responseId: response.id,
@@ -588,7 +591,7 @@ function buildSourceLogDiagnostic(
       reason: 'ambiguous_matching_interaction_log',
     };
   }
-  if (findOwnedInteractionLog(response, fact, sourceIndex)) return null;
+  if (ownedLogs.length === 1) return null;
   return {
     factId: fact.id,
     responseId: response.id,

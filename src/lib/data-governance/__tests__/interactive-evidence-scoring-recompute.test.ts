@@ -372,6 +372,45 @@ describe('interactive evidence scoring recompute', () => {
     ]);
   });
 
+  it('repairs sourceLogId when duplicated sourceEventId has one matching user-session log', () => {
+    const rows = buildRows();
+    const sharedEventId = 'duplicated-across-users';
+    const [log] = rows.interactionLogs;
+    const plan = buildInteractiveEvidenceScoringRecomputePlan({
+      generatedAt: '2026-05-20T03:00:00.000Z',
+      manifestsByLessonKey: {
+        'unit-5-3-state-feedback-observer-coordination-v1': lesson53Manifest,
+      },
+      studentStepResponses: rows.studentStepResponses.map((response) => ({
+        ...response,
+        sourceLogId: null,
+        clientEventId: sharedEventId,
+      })),
+      interactionLogs: [
+        {
+          ...log,
+          id: 'owned-log',
+          clientEventId: sharedEventId,
+        },
+        {
+          ...log,
+          id: 'other-user-log',
+          userId: 'student-other',
+          sessionId: 'session-other',
+          clientEventId: sharedEventId,
+        },
+      ],
+      learningFacts: rows.learningFacts.map((fact) => ({
+        ...fact,
+        sourceEventId: sharedEventId,
+        sourceLogId: null,
+      })),
+    });
+
+    expect(plan.factActions[0]?.nextSourceLogId).toBe('owned-log');
+    expect(plan.sourceLogDiagnostics).toEqual([]);
+  });
+
   it('counts only explicit answered cards when rebuilding interactive quiz context', () => {
     const seedRows = buildRows({
       schemaVersion: 'manifest-submission-v2',
@@ -536,5 +575,21 @@ describe('interactive evidence scoring recompute', () => {
 
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Missing value for --session-id');
+  });
+
+  it('rejects blank filter lists before apply can fall back to all rows', () => {
+    const result = spawnSync('npx', [
+      'tsx',
+      './scripts/db/recompute-interactive-evidence-scoring-history.ts',
+      '--apply',
+      '--lesson-key',
+      ',',
+    ], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('No values provided for --lesson-key');
   });
 });

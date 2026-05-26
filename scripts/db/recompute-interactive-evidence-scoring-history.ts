@@ -27,12 +27,15 @@ function readJsonFile(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function parseList(value: string | undefined): string[] | undefined {
+function parseList(option: string, value: string): string[] {
   const values = value
-    ?.split(',')
+    .split(',')
     .map((entry) => entry.trim())
     .filter(Boolean);
-  return values?.length ? values : undefined;
+  if (values.length === 0) {
+    throw new Error(`No values provided for ${option}`);
+  }
+  return values;
 }
 
 function parseDate(value: string | undefined): Date | undefined {
@@ -71,10 +74,10 @@ function parseOptions(argv: string[]): RecomputeOptions {
     } else if (arg === '--compact') {
       options.compact = true;
     } else if (arg === '--session-id' || arg === '--session-ids') {
-      options.filters.sessionIds = parseList(readRequiredOptionValue(arg, next));
+      options.filters.sessionIds = parseList(arg, readRequiredOptionValue(arg, next));
       index += 1;
     } else if (arg === '--lesson-key' || arg === '--lesson-keys') {
-      options.filters.lessonKeys = parseList(readRequiredOptionValue(arg, next));
+      options.filters.lessonKeys = parseList(arg, readRequiredOptionValue(arg, next));
       index += 1;
     } else if (arg === '--from') {
       options.filters.from = parseDate(readRequiredOptionValue(arg, next));
