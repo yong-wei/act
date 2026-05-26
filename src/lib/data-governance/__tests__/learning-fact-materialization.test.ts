@@ -345,6 +345,122 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('uses versioned per-card partial scores when materializing objective facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-5-3-step-14-submit-partial',
+      actionType: 'submit',
+      sessionId: 'session-5-3',
+      payload: {
+        eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        evidenceQuality: 'rich',
+        lessonKey: 'unit-5-3-mass-coordination-chain-v1',
+        stepId: 'step-14',
+        questionSummaries: [
+          {
+            questionId: 'multi-evidence',
+            responseKind: 'multi_select',
+            studentAnswer: 'A|C',
+            referenceValue: ['A', 'B'],
+            answered: true,
+            isCorrect: false,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            score: 1 / 3,
+            normalizedSubmitted: ['A', 'C'],
+            normalizedReference: ['A', 'B'],
+            scoringDetail: {
+              correctHits: ['A'],
+              missedCorrectOptions: ['B'],
+              extraWrongOptions: ['C'],
+            },
+          },
+        ],
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      score: 33.3,
+      outcome: 'failure',
+      contextJson: {
+        interactiveQuiz: {
+          scoring: {
+            supported: true,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            totalScore: 1 / 3,
+            totalCount: 1,
+            score: 33.3,
+          },
+          cards: [
+            {
+              cardId: 'multi-evidence',
+              score: 1 / 3,
+              scoringVersion: 'manifest-objective-scoring/v1',
+              normalizedSubmitted: ['A', 'C'],
+              normalizedReference: ['A', 'B'],
+              detail: {
+                correctHits: ['A'],
+                missedCorrectOptions: ['B'],
+                extraWrongOptions: ['C'],
+              },
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  it('keeps unsupported-only objective cards traceable without materialized scores', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'unit-4-7-step-02-submit-unsupported-card',
+      actionType: 'submit',
+      sessionId: 'session-4-7',
+      payload: {
+        eventType: 'lesson_submit',
+        schemaVersion: 'manifest-submission-v2',
+        evidenceQuality: 'missing',
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        questionSummaries: [
+          {
+            questionId: 'model-order',
+            responseKind: 'single_choice',
+            answered: false,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            normalizedSubmitted: null,
+            normalizedReference: null,
+            scoringDetail: {},
+            unsupportedReason: 'missing_reference',
+          },
+        ],
+      },
+    }));
+
+    expect(fact?.score).toBeUndefined();
+    expect(fact?.contextJson).toMatchObject({
+      interactiveQuiz: {
+        lessonKey: 'unit-4-7-destroyer-hifi-design-closure-v1',
+        stepId: 'step-02',
+        scoring: {
+          supported: false,
+          evidenceQuality: 'missing',
+          answeredCount: 0,
+          totalCount: 0,
+          scoringVersion: 'manifest-objective-scoring/v1',
+          basis: 'questionSummaries',
+          reason: 'missing_reference',
+        },
+        cards: [
+          {
+            cardId: 'model-order',
+            answered: false,
+            scoringVersion: 'manifest-objective-scoring/v1',
+            unsupportedReason: 'missing_reference',
+          },
+        ],
+      },
+    });
+  });
+
   it('marks unsupported objective scoring explicitly instead of writing a zero score', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'unit-4-7-step-02-submit-unsupported',

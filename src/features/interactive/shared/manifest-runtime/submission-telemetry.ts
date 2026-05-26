@@ -2,6 +2,10 @@ import type {
   InteractiveRuntimeActivityCardManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  isManifestObjectiveResponseKind,
+  scoreManifestObjectiveCard,
+} from '@/lib/manifest-objective-scoring';
 
 interface ManifestResponseLike {
   stepId: string;
@@ -13,103 +17,12 @@ interface ManifestSubmissionTelemetryOptions {
   extraEvidence?: Record<string, unknown>;
 }
 
-const OBJECTIVE_RESPONSE_KINDS = new Set([
-  'single_choice',
-  'binary_choice',
-  'multi_choice',
-  'multi_select',
-  'drag_match',
-  'triple_match',
-  'drag_sort',
-  'card_sort',
-]);
-
 function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
-  return OBJECTIVE_RESPONSE_KINDS.has(card.responseKind);
+  return isManifestObjectiveResponseKind(card.responseKind);
 }
 
 function isSubjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
   return !isObjectiveCard(card);
-}
-
-function isOrderedObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
-  return card.responseKind === 'drag_match'
-    || card.responseKind === 'triple_match'
-    || card.responseKind === 'drag_sort'
-    || card.responseKind === 'card_sort';
-}
-
-function splitAnswerTokens(value: string): string[] {
-  return value
-    .split(/\s*(?:\|+|[,，、;；/])\s*/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function normalizeAnswerToken(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function findOptionValue(card: InteractiveRuntimeActivityCardManifest, token: string): string | undefined {
-  const normalizedToken = normalizeAnswerToken(token);
-  const option = card.options.find((item) => (
-    normalizeAnswerToken(item.value) === normalizedToken
-    || normalizeAnswerToken(item.label) === normalizedToken
-  ));
-  return option?.value;
-}
-
-function extractReferenceChoiceTokens(referenceAnswer: string): string[] {
-  const prefixed = referenceAnswer.match(/(?:^|[。．.，,；;\s])(?:选|答案|正确答案)\s*[:：]?\s*([A-Za-z](?:\s*[、,，/]\s*[A-Za-z])*)/);
-  if (prefixed?.[1]) return splitAnswerTokens(prefixed[1]);
-
-  const leading = referenceAnswer.match(/^\s*([A-Za-z](?:\s*[、,，/]\s*[A-Za-z])*)(?=[。．.，,、；;\s]|$)/);
-  if (leading?.[1]) return splitAnswerTokens(leading[1]);
-
-  return [];
-}
-
-function resolveReferenceValue(card: InteractiveRuntimeActivityCardManifest): string | string[] | undefined {
-  if ((card.responseKind === 'drag_match' || card.responseKind === 'triple_match') && card.referenceMatches?.length) {
-    const itemOrder = (card.matchItems?.length ? card.matchItems : card.options).map((item) => item.value);
-    const optionByItem = new Map(card.referenceMatches.map((item) => [item.item, item.option]));
-    const orderedOptions = itemOrder.map((item) => optionByItem.get(item));
-    if (orderedOptions.every((value): value is string => Boolean(value))) {
-      return orderedOptions;
-    }
-  }
-
-  if (isOrderedObjectiveCard(card) && card.options.length) {
-    return card.options.map((option) => option.value);
-  }
-
-  const referenceAnswer = card.referenceAnswer?.trim();
-  if (!referenceAnswer) return undefined;
-
-  const exactOptionValue = findOptionValue(card, referenceAnswer);
-  if (exactOptionValue) return exactOptionValue;
-
-  const choiceTokens = extractReferenceChoiceTokens(referenceAnswer);
-  if (choiceTokens.length > 0) {
-    const optionValues = choiceTokens.map((token) => findOptionValue(card, token));
-    if (optionValues.every((value): value is string => Boolean(value))) {
-      return optionValues.length === 1 ? optionValues[0] : optionValues;
-    }
-  }
-
-  return referenceAnswer;
-}
-
-function answersMatch(studentAnswer: string, referenceValue: string | string[], ordered: boolean): boolean {
-  const studentTokens = splitAnswerTokens(studentAnswer).map(normalizeAnswerToken);
-  const referenceTokens = (Array.isArray(referenceValue) ? referenceValue : splitAnswerTokens(referenceValue))
-    .map(normalizeAnswerToken);
-  const comparableStudentTokens = ordered ? studentTokens : [...studentTokens].sort();
-  const comparableReferenceTokens = ordered ? referenceTokens : [...referenceTokens].sort();
-
-  return comparableStudentTokens.length > 0
-    && comparableStudentTokens.length === comparableReferenceTokens.length
-    && comparableStudentTokens.every((value, index) => value === comparableReferenceTokens[index]);
 }
 
 function roundScore(value: number): number {
@@ -147,25 +60,32 @@ export function buildManifestSubmissionTelemetry(
     .filter(isObjectiveCard)
     .map((card) => {
       const studentAnswer = response.answers[card.id];
-      const answered = Boolean(studentAnswer?.trim());
-      const referenceValue = resolveReferenceValue(card);
+      const scoring = scoreManifestObjectiveCard(card, studentAnswer);
       return {
         questionId: card.id,
         title: card.title,
         responseKind: card.responseKind,
-        studentAnswer: answered ? studentAnswer : null,
+        studentAnswer: scoring.answered ? studentAnswer : null,
         referenceAnswer: card.referenceAnswer,
-        referenceValue,
-        answered,
-        isCorrect: referenceValue ? (answered ? answersMatch(studentAnswer ?? '', referenceValue, isOrderedObjectiveCard(card)) : false) : undefined,
+        referenceValue: scoring.referenceValue,
+        answered: scoring.answered,
+        isCorrect: scoring.isCorrect,
+        score: scoring.score,
+        scoringVersion: scoring.scoringVersion,
+        normalizedSubmitted: scoring.normalizedSubmitted,
+        normalizedReference: scoring.normalizedReference,
+        scoringDetail: scoring.detail,
+        unsupportedReason: scoring.unsupportedReason,
       };
     })
-    .filter((item) => item.referenceValue !== undefined || item.answered);
-  const scoreableQuestionSummaries = questionSummaries.filter((item) => typeof item.isCorrect === 'boolean');
+    .filter((item) => item.referenceValue !== undefined || item.answered || item.unsupportedReason);
+  const scoreableQuestionSummaries = questionSummaries.filter((item) => typeof item.score === 'number');
   const scoringSupported = scoreableQuestionSummaries.length > 0;
   const correctCount = scoreableQuestionSummaries.filter((item) => item.isCorrect === true).length;
   const objectiveTotal = scoreableQuestionSummaries.length;
-  const score = scoringSupported ? roundScore((correctCount / objectiveTotal) * 100) : undefined;
+  const score = scoringSupported
+    ? roundScore((scoreableQuestionSummaries.reduce((sum, item) => sum + (item.score ?? 0), 0) / objectiveTotal) * 100)
+    : undefined;
   const subjectiveCompleteness = buildSubjectiveCompleteness(cards, answerDigest);
   const extraEvidence = options.extraEvidence ?? {};
   const { parameterSnapshots, ...nestedExtraEvidence } = extraEvidence;

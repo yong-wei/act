@@ -56,6 +56,10 @@ function readArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 function readAnswerValue(record: Record<string, unknown>, keys: string[]): unknown {
   for (const key of keys) {
     const value = record[key];
@@ -110,9 +114,21 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
       const selectedValue = readAnswerValue(record, ['studentAnswer', 'selectedValue', 'answer', 'value']);
       const referenceAnswer = readAnswerValue(record, ['referenceValue', 'referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
       const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
+      const explicitScore = readFiniteNumber(record.score);
+      const unsupportedReason = readString(record.unsupportedReason);
       if (!cardId) return null;
-      if (selectedValue === undefined && explicitCorrect === undefined && referenceAnswer === undefined) return null;
+      if (
+        selectedValue === undefined
+        && explicitCorrect === undefined
+        && explicitScore === undefined
+        && referenceAnswer === undefined
+        && unsupportedReason === undefined
+      ) {
+        return null;
+      }
       const ordered = isOrderedObjectiveResponseKind(record.responseKind);
+      const scoringVersion = readString(record.scoringVersion);
+      const scoringDetail = readRecord(record.scoringDetail) ?? readRecord(record.detail);
       return compactJsonObject({
         cardId,
         selectedValue: selectedValue ?? null,
@@ -123,26 +139,57 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
             ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer, ordered)
             : undefined
         ),
+        score: explicitScore,
+        scoringVersion,
+        normalizedSubmitted: record.normalizedSubmitted,
+        normalizedReference: record.normalizedReference,
+        detail: scoringDetail,
+        unsupportedReason,
       });
     })
     .filter((item): item is Prisma.InputJsonObject => Boolean(item));
 
   if (cards.length === 0) return null;
 
-  const scoreableCards = cards.filter((card) => typeof card.isCorrect === 'boolean');
-  if (scoreableCards.length === 0) return null;
+  const answeredCount = cards.filter((card) => card.answered === true).length;
+  const scoreableCards = cards.filter((card) => typeof card.score === 'number' || typeof card.isCorrect === 'boolean');
+  const scoringVersion = cards
+    .map((card) => readString(card.scoringVersion))
+    .find((value): value is string => Boolean(value));
+  if (scoreableCards.length === 0) {
+    const unsupportedReasons = cards
+      .map((card) => readString(card.unsupportedReason))
+      .filter((value): value is string => Boolean(value));
+    return {
+      basis: 'questionSummaries',
+      supported: false,
+      cards,
+      answeredCount,
+      correctCount: 0,
+      totalCount: 0,
+      totalScore: 0,
+      score: undefined,
+      scoringVersion,
+      unsupportedReason: unsupportedReasons[0],
+    };
+  }
   const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
   const totalCount = scoreableCards.length;
-  const answeredCount = cards.filter((card) => card.answered === true).length;
-  const score = Math.round((correctCount / totalCount) * 1000) / 10;
+  const totalScore = scoreableCards.reduce((sum, card) => (
+    sum + (typeof card.score === 'number' ? card.score : card.isCorrect === true ? 1 : 0)
+  ), 0);
+  const score = Math.round((totalScore / totalCount) * 1000) / 10;
 
   return {
     basis: 'questionSummaries',
+    supported: true,
     cards,
     answeredCount,
     correctCount,
     totalCount,
+    totalScore,
     score,
+    scoringVersion,
   };
 }
 
@@ -185,13 +232,16 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
       context: compactJsonObject({
         ...baseContext,
         scoring: compactJsonObject({
-          supported: true,
+          supported: questionSummaryEvidence.supported,
           evidenceQuality,
           answeredCount: questionSummaryEvidence.answeredCount,
           correctCount: questionSummaryEvidence.correctCount,
           totalCount: questionSummaryEvidence.totalCount,
+          totalScore: questionSummaryEvidence.totalScore,
           score: questionSummaryEvidence.score,
+          scoringVersion: questionSummaryEvidence.scoringVersion,
           basis: questionSummaryEvidence.basis,
+          reason: questionSummaryEvidence.unsupportedReason,
         }),
         cards: questionSummaryEvidence.cards,
       }),
