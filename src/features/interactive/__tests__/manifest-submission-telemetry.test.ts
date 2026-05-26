@@ -225,7 +225,69 @@ describe('buildManifestSubmissionTelemetry', () => {
     });
   });
 
-  it('requires ordered answers for drag-match and sort cards', () => {
+  it('scores drag-match pair text by structure independent of submitted pair order', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-14',
+        submittedAt: 1778550644600,
+        answers: {
+          chain: '5-1,1-3,2-4',
+        },
+      },
+      {
+        id: 'step-14',
+        interactionSpec: {
+          interactionKind: 'quiz_group',
+          activityCards: [
+            {
+              id: 'chain',
+              title: 'MASS 链路配对',
+              prompt: '把环节与职责配对。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [],
+              matchItems: [
+                { value: '1', label: '感知' },
+                { value: '2', label: '规划' },
+                { value: '5', label: '监督' },
+              ],
+              matchOptions: [
+                { value: '3', label: '状态估计' },
+                { value: '4', label: '路径生成' },
+                { value: '1', label: '安全接管' },
+              ],
+              referenceMatches: [
+                { item: '1', option: '3' },
+                { item: '2', option: '4' },
+                { item: '5', option: '1' },
+              ],
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 1,
+      objectiveTotal: 1,
+      score: 100,
+      questionSummaries: [
+        {
+          questionId: 'chain',
+          studentAnswer: '5-1,1-3,2-4',
+          scoringVersion: 'manifest-objective-scoring/v1',
+          score: 1,
+          isCorrect: true,
+          normalizedSubmitted: { '1': '3', '2': '4', '5': '1' },
+          normalizedReference: { '1': '3', '2': '4', '5': '1' },
+        },
+      ],
+    });
+  });
+
+  it('requires structure for matching and gives partial credit for sort cards', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {
         stepId: 'step-07',
@@ -283,16 +345,18 @@ describe('buildManifestSubmissionTelemetry', () => {
       scoringSupported: true,
       correctCount: 0,
       objectiveTotal: 2,
-      score: 0,
+      score: 16.7,
       questionSummaries: [
         {
           questionId: 'assumptions',
           referenceValue: ['linear', 'small-signal'],
+          score: 0,
           isCorrect: false,
         },
         {
           questionId: 'workflow',
           referenceValue: ['model', 'validate', 'deploy'],
+          score: 1 / 3,
           isCorrect: false,
         },
       ],
