@@ -29,6 +29,7 @@ CREATE TABLE "AdaptiveAssessmentSession" (
 CREATE TABLE "AdaptiveAssessmentItemRef" (
     "id" TEXT NOT NULL,
     "questionId" TEXT NOT NULL,
+    "contentHash" TEXT NOT NULL,
     "source" TEXT NOT NULL,
     "questionType" TEXT NOT NULL,
     "domains" TEXT[],
@@ -112,7 +113,7 @@ CREATE INDEX "AdaptiveAssessmentSession_sessionKey_idx" ON "AdaptiveAssessmentSe
 CREATE INDEX "AdaptiveAssessmentSession_algorithmVersion_idx" ON "AdaptiveAssessmentSession"("algorithmVersion");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AdaptiveAssessmentItemRef_questionId_algorithmVersion_key" ON "AdaptiveAssessmentItemRef"("questionId", "algorithmVersion");
+CREATE UNIQUE INDEX "AdaptiveAssessmentItemRef_questionId_algorithmVersion_contentHash_key" ON "AdaptiveAssessmentItemRef"("questionId", "algorithmVersion", "contentHash");
 
 -- CreateIndex
 CREATE INDEX "AdaptiveAssessmentItemRef_questionId_idx" ON "AdaptiveAssessmentItemRef"("questionId");

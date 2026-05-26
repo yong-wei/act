@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
@@ -120,6 +122,19 @@ function clamp(value: number, min: number, max: number): number {
 
 function questionSource(questionId: string): string {
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
+}
+
+function questionMetadataContentHash(question: SubmittedAnswerDetails['question']): string {
+  const snapshot = {
+    source: questionSource(question.id),
+    questionType: question.type,
+    domains: [...question.domains].sort(),
+    knowledgeTags: [...question.knowledgeTags].sort(),
+    difficulty: Number(question.difficulty.toFixed(6)),
+    optionCount: question.options.length,
+  };
+
+  return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
 }
 
 const QUESTION_TYPES = new Set<QuestionType>([
@@ -312,22 +327,19 @@ async function persistAdaptiveAssessmentSubmission(
     },
   });
 
+  const contentHash = questionMetadataContentHash(details.question);
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
-      questionId_algorithmVersion: {
+      questionId_algorithmVersion_contentHash: {
         questionId: details.question.id,
         algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+        contentHash,
       },
     },
-    update: {
-      questionType: details.question.type,
-      domains: details.question.domains,
-      knowledgeTags: details.question.knowledgeTags,
-      difficulty: details.question.difficulty,
-      optionCount: details.question.options.length,
-    },
+    update: {},
     create: {
       questionId: details.question.id,
+      contentHash,
       source: questionSource(details.question.id),
       questionType: details.question.type,
       domains: details.question.domains,

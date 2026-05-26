@@ -20,6 +20,11 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **THEN** the system SHALL restore question difficulty, knowledge tags, question type, and domains from the durable item reference
 - **AND** generated or changed questions SHALL still contribute to computational, cross-domain, and design dimensions without relying on in-memory question state.
 
+#### Scenario: Question metadata changes after historical answers exist
+- **WHEN** the same question id is answered after its assessment metadata changes under the same algorithm family
+- **THEN** the system SHALL create or reuse an immutable item reference keyed by the question id, algorithm version, and metadata content hash
+- **AND** it SHALL NOT overwrite the item reference used by older answers.
+
 ### Requirement: Assessment evidence enters governed facts
 The system SHALL materialize adaptive assessment outcomes into governed learning evidence.
 

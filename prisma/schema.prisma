@@ -1019,6 +1019,7 @@ model AdaptiveAssessmentSession {
 model AdaptiveAssessmentItemRef {
   id               String   @id @default(cuid())
   questionId       String
+  contentHash      String
   source           String
   questionType     String
   domains          String[]
@@ -1032,7 +1033,7 @@ model AdaptiveAssessmentItemRef {
   algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
   answers   AdaptiveAssessmentAnswer[]
 
-  @@unique([questionId, algorithmVersion])
+  @@unique([questionId, algorithmVersion, contentHash])
   @@index([questionId])
   @@index([algorithmVersion])
 }

@@ -136,6 +136,39 @@ describe('submitAnswerDurably', () => {
     expect(db.$transaction).toHaveBeenCalledTimes(1);
   });
 
+  it('stores immutable item reference snapshots for question metadata', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    await submitAnswerDurably({
+      userId: 'student-snapshot',
+      sessionId: 'session-snapshot',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 24,
+    }, db);
+
+    expect(db.adaptiveAssessmentItemRef.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        questionId_algorithmVersion_contentHash: {
+          questionId: question.id,
+          algorithmVersion: 'adaptive-assessment-bkt-v1',
+          contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
+      },
+      update: {},
+      create: expect.objectContaining({
+        contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        questionType: question.type,
+        domains: question.domains,
+        knowledgeTags: question.knowledgeTags,
+        difficulty: question.difficulty,
+      }),
+    }));
+  });
+
   it('falls back to the legacy response shape when persistence is disabled', async () => {
     const db = createMockDb();
     const question = PRESET_QUESTIONS[1];
