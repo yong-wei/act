@@ -17,6 +17,10 @@ XH-202620 needs a server-owned learner state rather than scattered page summarie
 ### Modified Capabilities
 - `student-evidence-feature-cache`: Adds adaptive learner-state feature groups and confidence/freshness metadata.
 
+## Governance Contract Dependency
+
+This change consumes `establish-adaptive-learning-governance-contracts` for learner-state privacy classes, server-owned field-family metadata, evaluation-event confidence semantics, feature flag fallback behavior, and downstream handoff artifacts.
+
 ## Impact
 
 - Affects learner-state services/APIs, data-governance feature cache, profile/recommendation/Konling consumers.

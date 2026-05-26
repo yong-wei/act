@@ -17,6 +17,10 @@ Current resource registration is renderer-oriented. XH-202620 needs a ResourceNo
 ### Modified Capabilities
 - None.
 
+## Governance Contract Dependency
+
+This change consumes `establish-adaptive-learning-governance-contracts` for prerequisite gates, ResourceNode privacy levels, path-eligibility audit visibility, evaluation-event references, rollback-safe registry flags, and data-dictionary handoff requirements.
+
 ## Impact
 
 - Affects `src/lib/resource-registry.tsx`, TeachingResource/resource metadata, knowledge graph mappings, runtime lesson media indexes, and later path planning.

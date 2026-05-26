@@ -18,6 +18,10 @@ Konling currently has UI and chat scaffolding but lacks authoritative learner st
 ### Modified Capabilities
 - None.
 
+## Governance Contract Dependency
+
+This change consumes `establish-adaptive-learning-governance-contracts` for Konling memory privacy classes, intervention evaluation-event envelope fields, teacher-policy audit requirements, feature flag fallback behavior, and redacted API/example handoffs.
+
 ## Impact
 
 - Affects `src/app/api/ai/**`, Konling context/prompt construction, memory persistence, and intervention feedback.

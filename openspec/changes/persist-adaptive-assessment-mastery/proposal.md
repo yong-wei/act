@@ -18,6 +18,10 @@ The report identifies the current adaptive-assessment engine as memory-only. It 
 ### Modified Capabilities
 - None.
 
+## Governance Contract Dependency
+
+This change consumes `establish-adaptive-learning-governance-contracts` for assessment payload privacy classes, evaluation-event envelope fields, feature flag fallback behavior, rollback notes, and ER/data-dictionary/API-example handoff expectations.
+
 ## Impact
 
 - Affects `prisma/schema.prisma`, assessment routes/services, and data-governance fact materialization.

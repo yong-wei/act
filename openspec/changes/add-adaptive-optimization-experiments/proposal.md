@@ -18,6 +18,10 @@ Contextual bandit, A/B experimentation, long-term strategy memory, and bulk reso
 ### Modified Capabilities
 - None.
 
+## Governance Contract Dependency
+
+This change consumes `establish-adaptive-learning-governance-contracts` for privacy-safe experiment aggregation, long-term memory audit boundaries, evaluation-event envelope compatibility, feature flag rollback behavior, and ER/data-dictionary/API-example handoffs.
+
 ## Impact
 
 - Affects path planner reranking, evaluation/experiment reporting, Konling memory, and teacher resource operations.
