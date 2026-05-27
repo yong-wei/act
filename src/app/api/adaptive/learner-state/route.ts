@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: '无权查看该学习状态' }, { status: 403 });
     }
 
-    if (role === 'teacher') {
+    if (role === 'teacher' && requestedUserId !== session.user.id) {
       const scope = await verifyTeacherStudentScope({
         teacherId: session.user.id,
         studentId: requestedUserId,

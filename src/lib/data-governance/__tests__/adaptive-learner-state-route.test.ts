@@ -104,6 +104,30 @@ describe('adaptive learner-state API', () => {
     );
   });
 
+  it('allows a teacher to read their own learner state without class scope', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.readAdaptiveLearnerState.mockResolvedValue({
+      userId: 'teacher-1',
+      authority: 'server-owned',
+    });
+
+    const response = await request('http://localhost/api/adaptive/learner-state');
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.findFirst).not.toHaveBeenCalled();
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        userId: 'teacher-1',
+        role: 'teacher',
+        classId: null,
+      }),
+    );
+  });
+
   it('allows admins to read a learner state without a class scope', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'admin-1', role: 'ADMIN' },
