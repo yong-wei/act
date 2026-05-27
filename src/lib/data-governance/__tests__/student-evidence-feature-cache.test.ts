@@ -236,6 +236,101 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
+  it('adds adaptive learner-state feature groups with coverage and confidence metadata', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'assessment-fact',
+          factType: 'question',
+          moduleId: 'adaptive-assessment',
+          contextJson: {
+            adaptiveAssessment: {
+              knowledgeTags: ['root-locus'],
+              masteryPosterior: 0.74,
+              masteryConfidence: 0.81,
+            },
+          },
+        }),
+        fact({
+          id: 'media-fact',
+          factType: 'media',
+          score: 58,
+          timeSpent: 420,
+          contextJson: {
+            media: {
+              mediaType: 'video',
+              progress: 0.58,
+            },
+          },
+        }),
+      ],
+      latestSnapshot: {
+        snapshotAt: new Date('2026-05-18T00:00:00.000Z'),
+        factCount: 12,
+        calculationVersion: 'competency-v2',
+        competencyVector: { controlModeling: { score: 76 } },
+      },
+      profileSummary: {
+        updatedAt: new Date('2026-05-18T01:00:00.000Z'),
+        overallScore: 69,
+        riskLevel: 'medium',
+        trendDirection: 'up',
+      },
+    });
+
+    expect(payload.payloadVersion).toBe('student-evidence-features.v3');
+    expect(payload.features.adaptiveLearnerState).toMatchObject({
+      payloadVersion: 'adaptive-learner-state.v1',
+      sourceCoverage: {
+        primaryCompetencies: 'available',
+        knowledgeMastery: 'available',
+        resourcePreference: 'available',
+        mediaAbsorption: 'available',
+        pathContext: 'missing',
+        simulationArena: 'missing',
+      },
+      sourceCounts: {
+        LearningFact: 2,
+        AdaptiveMasteryEvidence: 1,
+      },
+      confidence: {
+        level: 'medium',
+        markers: [],
+      },
+    });
+    expect(JSON.stringify(payload.features.adaptiveLearnerState)).not.toContain('rawTracePayload');
+  });
+
+  it('does not treat ordinary adaptive question tags as mastery posterior evidence', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'tag-only-question',
+          factType: 'question',
+          moduleId: 'adaptive-assessment',
+          contextJson: {
+            adaptiveAssessment: {
+              knowledgeTags: ['root-locus'],
+            },
+          },
+        }),
+      ],
+    });
+
+    expect(payload.features.adaptiveLearnerState).toMatchObject({
+      sourceCoverage: {
+        knowledgeMastery: 'missing',
+      },
+      sourceCounts: {
+        AdaptiveMasteryEvidence: 0,
+      },
+    });
+  });
+
   it('separates thirty-day learner windows from all-time audit windows', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -521,7 +616,7 @@ describe('student evidence feature cache service', () => {
     });
   });
 
-  it('marks old payload versions without simulation Arena features as stale', async () => {
+  it('marks old payload versions without adaptive learner-state features as stale', async () => {
     const db = {
       studentEvidenceFeatureCache: {
         findUnique: vi.fn().mockResolvedValue({
@@ -546,6 +641,36 @@ describe('student evidence feature cache service', () => {
         userId: 'student-1',
         payloadVersion: 'student-evidence-features.v1',
       },
+    });
+  });
+
+  it('marks v2 payloads without adaptive learner-state feature groups as stale', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v2',
+          refreshedAt: new Date('2026-05-21T00:00:00.000Z'),
+          statusMarkers: [],
+          features: {
+            ...payload.features,
+            adaptiveLearnerState: undefined,
+          },
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-21T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'stale',
     });
   });
 

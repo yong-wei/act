@@ -8,6 +8,8 @@ The system SHALL maintain a per-student evidence feature cache that is determini
 - **THEN** it SHALL consume the outputs of `materialize-simulation-features-for-personalization`
 - **AND** it SHALL NOT redefine trace, replay, coverage, or Arena evaluation semantics.
 
+## ADDED Requirements
+
 ### Requirement: Cache exposes adaptive-learning freshness and coverage
 The system SHALL expose freshness, source coverage, and confidence metadata for adaptive learner-state feature groups.
 

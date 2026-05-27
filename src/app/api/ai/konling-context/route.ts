@@ -10,6 +10,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import {
+  isAdaptiveLearnerStateServiceEnabled,
+  readAdaptiveLearnerState,
+} from '@/lib/data-governance/adaptive-learner-state-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,12 +26,39 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || session.user.id;
+    const classId = searchParams.get('classId');
 
     // Only allow viewing own data unless teacher/admin
     const isTeacherOrAdmin = session.user.role === 'TEACHER' || session.user.role === 'ADMIN';
     if (userId !== session.user.id && !isTeacherOrAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    if (session.user.role === 'TEACHER' && userId !== session.user.id) {
+      const scope = await verifyTeacherStudentScope({
+        teacherId: session.user.id,
+        studentId: userId,
+        classId,
+      });
+      if (!scope.ok) {
+        return NextResponse.json({ error: scope.error }, { status: scope.status });
+      }
+    }
+
+    const learnerState = isAdaptiveLearnerStateServiceEnabled()
+      ? await readAdaptiveLearnerState(prisma, {
+          userId,
+          classId,
+          role: session.user.role === 'ADMIN'
+            ? 'admin'
+            : session.user.role === 'TEACHER'
+              ? 'teacher'
+              : 'student',
+        }).catch((error) => {
+          console.error('[KonlingContext] Learner state read failed:', error);
+          return null;
+        })
+      : null;
 
     // Fetch optimized profile summary (should be < 100ms)
     const profile = await prisma.studentProfileSummary.findUnique({
@@ -56,6 +87,7 @@ export async function GET(request: NextRequest) {
           relevant_weaknesses: [],
         },
         competency_vector: null,
+        learner_state_context: learnerState,
       });
     }
 
@@ -85,6 +117,7 @@ export async function GET(request: NextRequest) {
         relevant_weaknesses: (profile.weaknessesJson as string[]) || [],
       },
       competency_vector: snapshot?.competencyVector || null,
+      learner_state_context: learnerState,
     };
 
     return NextResponse.json(response);
@@ -96,4 +129,60 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function verifyTeacherStudentScope(input: {
+  teacherId: string;
+  studentId: string;
+  classId: string | null;
+}): Promise<{ ok: true } | { ok: false; status: 400 | 403 | 404; error: string }> {
+  if (!input.classId) {
+    return {
+      ok: false,
+      status: 400,
+      error: '教师读取 Konling 学习上下文必须提供 classId',
+    };
+  }
+
+  const classData = await prisma.class.findUnique({
+    where: { id: input.classId },
+    select: { id: true, teacherId: true },
+  });
+
+  if (!classData) {
+    return {
+      ok: false,
+      status: 404,
+      error: '班级不存在',
+    };
+  }
+
+  if (classData.teacherId !== input.teacherId) {
+    return {
+      ok: false,
+      status: 403,
+      error: '无权查看该班级 Konling 学习上下文',
+    };
+  }
+
+  const studentProfile = await prisma.studentProfile.findFirst({
+    where: {
+      userId: input.studentId,
+      classId: input.classId,
+    },
+    select: {
+      userId: true,
+      classId: true,
+    },
+  });
+
+  if (!studentProfile) {
+    return {
+      ok: false,
+      status: 404,
+      error: '学生不在该班级中',
+    };
+  }
+
+  return { ok: true };
 }

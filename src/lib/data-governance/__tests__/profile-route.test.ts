@@ -119,6 +119,11 @@ vi.mock('@/features/assessment/adaptive-engine', () => ({
   getDiagnostic: mocks.getDiagnostic,
 }));
 
+vi.mock('@/features/assessment/adaptive-persistence', () => ({
+  getAbilityReportWithPersistenceFallback: mocks.getAbilityReport,
+  getDiagnosticWithPersistenceFallback: mocks.getDiagnostic,
+}));
+
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: mocks.prismaArenaSubmissionStore,
 }));
@@ -167,6 +172,7 @@ function arenaSubmission(overrides: Record<string, unknown> = {}) {
 function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
   return {
     userId: 'student-1',
+    payloadVersion: 'student-evidence-features.v3',
     refreshedAt: new Date('2026-05-19T00:00:00.000Z'),
     evidenceWindow: {
       firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -191,7 +197,79 @@ function profileEvidenceCache(overrides: Record<string, unknown> = {}) {
       sourceCompleteness: 0.86,
     },
     statusMarkers: [],
+    features: {
+      simulationArena: {
+        recent30d: emptySimulationArenaWindow(),
+        allTime: emptySimulationArenaWindow(),
+      },
+      adaptiveLearnerState: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        sourceWindows: {
+          learnerStateRecent30d: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-18T00:00:00.000Z',
+            daysCovered: 17,
+          },
+          learnerStateAllTime: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-18T00:00:00.000Z',
+            daysCovered: 17,
+          },
+        },
+        sourceCounts: {
+          LearningFact: 7,
+          AdaptiveMasteryEvidence: 0,
+        },
+        sourceCoverage: {
+          primaryCompetencies: 'available',
+          knowledgeMastery: 'missing',
+          resourcePreference: 'partial',
+          mediaAbsorption: 'missing',
+          pathContext: 'missing',
+          simulationArena: 'missing',
+        },
+        confidence: {
+          level: 'medium',
+          score: 0.66,
+          evidenceCount: 7,
+          sourceCompleteness: 0.86,
+          markers: [],
+        },
+      },
+    },
     ...overrides,
+  };
+}
+
+function emptySimulationArenaWindow() {
+  return {
+    window: {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    },
+    evidenceCount: 0,
+    completedCount: 0,
+    officialCount: 0,
+    previewCount: 0,
+    courseLaunchedCount: 0,
+    standaloneCount: 0,
+    traceReferenceCount: 0,
+    sourceCoverage: {
+      simulation: 'missing',
+      arena: 'missing',
+      traceReferences: 'missing',
+      replayConfidence: 'missing',
+    },
+    replayConfidence: {
+      average: null,
+      highConfidenceCount: 0,
+      lowConfidenceCount: 0,
+      missingCount: 0,
+    },
+    weakMetrics: [],
+    qualityMarkers: [],
+    traceReferences: [],
   };
 }
 
@@ -215,6 +293,7 @@ describe('GET /api/user/profile', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-21T00:00:00.000Z'));
     vi.clearAllMocks();
+    delete process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED;
 
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
@@ -542,6 +621,26 @@ describe('GET /api/user/profile', () => {
       methodPreference: 'pid',
       improvementCount: 1,
       learningFactContextCount: 1,
+    });
+    expect(body.adaptiveLearnerState).toBeNull();
+  });
+
+  it('includes server-owned adaptive learner state when the feature flag is enabled', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.adaptiveLearnerState).toMatchObject({
+      userId: 'student-1',
+      authority: 'server-owned',
+      clientHints: {
+        authoritative: false,
+      },
+      primaryCompetencies: {
+        source: 'latest-snapshot',
+      },
     });
   });
 

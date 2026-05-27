@@ -4,7 +4,8 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v2';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v3';
+export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
 export type StudentEvidenceFeatureLearningFact = Omit<LearningFact, 'createdAt'>;
@@ -152,6 +153,7 @@ export interface StudentEvidenceFeaturePayload {
     competencyContributions30d: StudentEvidenceCompetencyContributions;
     competencyContributionsAll: StudentEvidenceCompetencyContributions;
     simulationArena: StudentSimulationArenaFeatureSummary;
+    adaptiveLearnerState: StudentEvidenceAdaptiveLearnerStateFeature;
     latestEvidence: {
       factType: string;
       outcome: string;
@@ -174,6 +176,34 @@ export interface StudentEvidenceFeaturePayload {
         trendDirection: string;
       } | null;
     };
+  };
+}
+
+export interface StudentEvidenceAdaptiveLearnerStateFeature {
+  payloadVersion: typeof STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION;
+  sourceWindows: Record<
+    'learnerStateRecent30d' | 'learnerStateAllTime',
+    StudentEvidenceWindow
+  >;
+  sourceCounts: {
+    LearningFact: number;
+    AdaptiveMasteryEvidence: number;
+  };
+  sourceCoverage: Record<
+    | 'primaryCompetencies'
+    | 'knowledgeMastery'
+    | 'resourcePreference'
+    | 'mediaAbsorption'
+    | 'pathContext'
+    | 'simulationArena',
+    StudentEvidenceCoverageState
+  >;
+  confidence: {
+    level: StudentEvidenceFeaturePayload['confidence']['level'];
+    score: number;
+    evidenceCount: number;
+    sourceCompleteness: number;
+    markers: StudentEvidenceStatusMarker[];
   };
 }
 
@@ -294,6 +324,15 @@ export function buildStudentEvidenceFeaturePayload(
     now,
     staleAfterDays,
   });
+  const adaptiveLearnerState = buildAdaptiveLearnerStateFeature({
+    facts,
+    recentFacts,
+    latestSnapshot: input.latestSnapshot,
+    profileSummary: input.profileSummary,
+    confidence,
+    statusMarkers,
+    simulationArena,
+  });
 
   return {
     userId: input.userId,
@@ -317,6 +356,7 @@ export function buildStudentEvidenceFeaturePayload(
       competencyContributions30d,
       competencyContributionsAll,
       simulationArena,
+      adaptiveLearnerState,
       latestEvidence: lastFact
         ? {
             factType: lastFact.factType,
@@ -674,6 +714,66 @@ function buildSimulationArenaFeatures(
     recent30d: buildSimulationArenaFeatureWindow(recentEvidence, input.now, input.staleAfterDays),
     allTime: buildSimulationArenaFeatureWindow(allEvidence, input.now, input.staleAfterDays),
   };
+}
+
+function buildAdaptiveLearnerStateFeature(input: {
+  facts: StudentEvidenceFeatureLearningFact[];
+  recentFacts: StudentEvidenceFeatureLearningFact[];
+  latestSnapshot?: StudentCompetencySnapshotAggregate | null;
+  profileSummary?: StudentProfileSummaryAggregate | null;
+  confidence: StudentEvidenceFeaturePayload['confidence'];
+  statusMarkers: StudentEvidenceStatusMarker[];
+  simulationArena: StudentSimulationArenaFeatureSummary;
+}): StudentEvidenceAdaptiveLearnerStateFeature {
+  const masteryEvidenceCount = input.facts.filter(hasAdaptiveAssessmentMasteryEvidence).length;
+  const mediaEvidenceCount = input.facts.filter((fact) => factTypeToLearnerModality(fact.factType) === 'media').length;
+  const resourceEvidenceCount = input.facts.filter((fact) => Boolean(factTypeToLearnerModality(fact.factType))).length;
+
+  return {
+    payloadVersion: STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
+    sourceWindows: {
+      learnerStateRecent30d: buildFactsWindow(input.recentFacts),
+      learnerStateAllTime: buildFactsWindow(input.facts),
+    },
+    sourceCounts: {
+      LearningFact: input.facts.length,
+      AdaptiveMasteryEvidence: masteryEvidenceCount,
+    },
+    sourceCoverage: {
+      primaryCompetencies: input.latestSnapshot ? 'available' : 'missing',
+      knowledgeMastery: resolveCoverageCount(masteryEvidenceCount),
+      resourcePreference: resolveCoverageCount(resourceEvidenceCount),
+      mediaAbsorption: resolveCoverageCount(mediaEvidenceCount),
+      pathContext: 'missing',
+      simulationArena: resolveCoverageCount(input.simulationArena.allTime.evidenceCount),
+    },
+    confidence: {
+      level: input.confidence.level,
+      score: input.confidence.score,
+      evidenceCount: input.confidence.evidenceCount,
+      sourceCompleteness: input.confidence.sourceCompleteness,
+      markers: [...input.statusMarkers],
+    },
+  };
+}
+
+function hasAdaptiveAssessmentMasteryEvidence(fact: StudentEvidenceFeatureLearningFact): boolean {
+  const context = isObject(fact.contextJson) ? fact.contextJson : {};
+  const adaptiveAssessment = isObject(context.adaptiveAssessment) ? context.adaptiveAssessment : {};
+  return fact.factType === 'question' && (
+    finiteNumber(adaptiveAssessment.masteryPosterior) !== null ||
+    finiteNumber(adaptiveAssessment.posteriorMastery) !== null ||
+    finiteNumber(adaptiveAssessment.masteryConfidence) !== null
+  );
+}
+
+function factTypeToLearnerModality(factType: string): string | null {
+  if (factType === 'question' || factType === 'assessment') return 'assessment';
+  if (factType === 'media' || factType === 'video' || factType === 'audio') return 'media';
+  if (factType === 'simulation' || factType === 'design') return 'simulation';
+  if (factType === 'reflection') return 'reflection';
+  if (factType === 'resource') return 'resource';
+  return null;
 }
 
 function buildSimulationArenaFeatureWindow(
@@ -1162,8 +1262,42 @@ function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean
   }
   const features = isObject(cache.features) ? cache.features : {};
   const simulationArena = isObject(features.simulationArena) ? features.simulationArena : {};
+  const adaptiveLearnerState = isObject(features.adaptiveLearnerState) ? features.adaptiveLearnerState : {};
   return hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
-    hasSimulationArenaFeatureWindowSchema(simulationArena.allTime);
+    hasSimulationArenaFeatureWindowSchema(simulationArena.allTime) &&
+    hasAdaptiveLearnerStateFeatureSchema(adaptiveLearnerState);
+}
+
+function hasAdaptiveLearnerStateFeatureSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+  const sourceWindows = isObject(value.sourceWindows) ? value.sourceWindows : {};
+  const sourceCounts = isObject(value.sourceCounts) ? value.sourceCounts : {};
+  const sourceCoverage = isObject(value.sourceCoverage) ? value.sourceCoverage : {};
+  const confidence = isObject(value.confidence) ? value.confidence : {};
+
+  return value.payloadVersion === STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION &&
+    hasEvidenceWindowSchema(sourceWindows.learnerStateRecent30d) &&
+    hasEvidenceWindowSchema(sourceWindows.learnerStateAllTime) &&
+    hasFiniteNumber(sourceCounts.LearningFact) &&
+    hasFiniteNumber(sourceCounts.AdaptiveMasteryEvidence) &&
+    isCoverageState(sourceCoverage.primaryCompetencies) &&
+    isCoverageState(sourceCoverage.knowledgeMastery) &&
+    isCoverageState(sourceCoverage.resourcePreference) &&
+    isCoverageState(sourceCoverage.mediaAbsorption) &&
+    isCoverageState(sourceCoverage.pathContext) &&
+    isCoverageState(sourceCoverage.simulationArena) &&
+    (
+      confidence.level === 'none' ||
+      confidence.level === 'low' ||
+      confidence.level === 'medium' ||
+      confidence.level === 'high'
+    ) &&
+    hasFiniteNumber(confidence.score) &&
+    hasFiniteNumber(confidence.evidenceCount) &&
+    hasFiniteNumber(confidence.sourceCompleteness) &&
+    hasStatusMarkersSchema(confidence.markers);
 }
 
 function hasSimulationArenaFeatureWindowSchema(value: unknown): boolean {
@@ -1232,6 +1366,18 @@ function hasQualityMarkersSchema(value: unknown): boolean {
     item === 'standalone-only' ||
     item === 'stale' ||
     item === 'partial'
+  );
+}
+
+function hasStatusMarkersSchema(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  return value.every((item) =>
+    item === 'stale' ||
+    item === 'partial' ||
+    item === 'low-confidence' ||
+    item === 'missing-source'
   );
 }
 

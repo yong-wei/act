@@ -32,6 +32,11 @@ import {
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
+  isAdaptiveLearnerStateServiceEnabled,
+  readAdaptiveLearnerState,
+  type AdaptiveLearnerState,
+} from '@/lib/data-governance/adaptive-learner-state-service';
+import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
 } from '@/features/assessment/adaptive-persistence';
@@ -97,6 +102,7 @@ export interface UserProfileResponse {
     adaptivePractice: AdaptivePracticeSummary;
   };
   evidenceStatus: StudentProfileEvidenceStatus;
+  adaptiveLearnerState: AdaptiveLearnerState | null;
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
 }
@@ -258,6 +264,7 @@ export async function GET() {
       interactionLogs,
       learningFacts,
       studentEvidenceFeatureRead,
+      adaptiveLearnerState,
       studentStates,
       userArenaSubmissions,
     ] = await Promise.all([
@@ -346,6 +353,15 @@ export async function GET() {
         },
       }),
       readStudentEvidenceFeatures(prisma, userId),
+      isAdaptiveLearnerStateServiceEnabled()
+        ? readAdaptiveLearnerState(prisma, {
+            userId,
+            role: 'student',
+          }).catch((error) => {
+            console.error('[UserProfile] Learner state read failed:', error);
+            return null;
+          })
+        : Promise.resolve(null),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },
@@ -559,6 +575,7 @@ export async function GET() {
         }),
       },
       evidenceStatus,
+      adaptiveLearnerState,
       arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
