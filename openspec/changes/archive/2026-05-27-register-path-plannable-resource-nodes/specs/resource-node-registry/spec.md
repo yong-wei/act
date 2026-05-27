@@ -1,12 +1,13 @@
 ## ADDED Requirements
 
-### Requirement: ResourceNode registry covers path-plannable resources
-The system SHALL maintain a ResourceNode registry that represents every eligible path-plannable resource independently from its rendering implementation.
+### Requirement: ResourceNode registry builder covers supplied path-plannable resource records
+The system SHALL provide ResourceNode contracts and a registry builder that represent supplied path-plannable resource records independently from their rendering implementation.
 
 #### Scenario: ResourceNode types are registered
-- **WHEN** the registry is audited
+- **WHEN** supplied resource records are mapped and audited
 - **THEN** it SHALL support `lesson_step`, `knowledge_node`, `knowledge_card`, `video`, `audio`, `handout`, `quiz`, `simulation`, `arena_task`, `reflection`, `ai_intervention`, and `project` node types
-- **AND** each node SHALL include stable id, title, resource type, `sourceKind`, `sourceRef`, render target or launch target, and eligibility status.
+- **AND** each node SHALL include stable id, title, resource type, `sourceKind`, `sourceRef`, render target field, launch target field, and eligibility status.
+- **AND** the builder SHALL NOT invent a render or launch target when the source record does not provide a verified target.
 
 ### Requirement: ResourceNode metadata follows source-of-record ownership
 The system SHALL keep planning metadata separate from records that own renderable content and teacher-editable resource metadata.
@@ -22,7 +23,7 @@ The system SHALL keep planning metadata separate from records that own renderabl
 - **AND** ResourceNode SHALL link to both references without copying raw content or claiming duplicate ownership.
 
 ### Requirement: ResourceNode graph supports planning constraints
-The system SHALL store graph edges and metadata needed by adaptive path planning.
+The system SHALL expose graph edges and metadata needed by downstream adaptive path planning.
 
 #### Scenario: Planner reads the resource graph
 - **WHEN** the planner reads ResourceNodes
