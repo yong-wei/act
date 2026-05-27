@@ -159,6 +159,7 @@ describe('platform UI contracts', () => {
     for (const relativePath of [
       'src/components/platform/platform-ui-contracts.ts',
       'src/components/platform/app-shell.tsx',
+      'src/components/platform/status-and-evidence.tsx',
     ]) {
       const source = readSource(relativePath);
       for (const forbiddenPrefix of FORBIDDEN_SHARED_UI_IMPORT_PREFIXES) {
