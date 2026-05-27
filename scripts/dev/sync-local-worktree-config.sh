@@ -27,7 +27,7 @@ Options:
   --target PATH              Target worktree path.
   --apply                    Copy files. Without this flag, only print actions.
   --no-overwrite             Skip existing target files instead of overwriting.
-  --include-codex-plans      Also sync .codex/plans.
+  --include-codex-plans      Compatibility flag; .codex is now synced by default.
   -h, --help                 Show this help.
 
 Copied by default:
@@ -39,6 +39,8 @@ Copied by default:
   .claude/settings.local.json
   .claude/commands/
   .claude/skills/
+  .codex/
+  .github/
   .serena/project.yml
   .serena/memories/
 
@@ -47,7 +49,7 @@ Linked by default:
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
-  .serena/cache, .DS_Store, __pycache__, *.pyc.
+  .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
 USAGE
 }
 
@@ -135,6 +137,8 @@ FILES=(
 DIRS=(
   ".claude/commands"
   ".claude/skills"
+  ".codex"
+  ".github"
   ".serena/memories"
 )
 
@@ -143,7 +147,7 @@ DEPENDENCY_LINKS=(
 )
 
 if [[ "$INCLUDE_CODEX_PLANS" -eq 1 ]]; then
-  DIRS+=(".codex/plans")
+  :
 fi
 
 print_mode() {
@@ -203,6 +207,7 @@ copy_dir() {
     --exclude "__pycache__/"
     --exclude "*.pyc"
     --exclude "cache/"
+    --exclude "tmp/"
   )
 
   if [[ ! -d "$src" ]]; then
@@ -213,7 +218,7 @@ copy_dir() {
   if [[ "$NO_OVERWRITE" -eq 1 ]]; then
     rsync_args+=(--ignore-existing)
   else
-    rsync_args+=(--backup "--suffix=.bak.$TIMESTAMP")
+    rsync_args+=(--backup "--suffix=.bak.$TIMESTAMP" "--backup-dir=$BACKUP_ROOT/$rel")
   fi
 
   if [[ "$APPLY" -ne 1 ]]; then
@@ -222,6 +227,9 @@ copy_dir() {
   else
     ensure_parent_dir "$dest"
     mkdir -p "$dest"
+    if [[ "$NO_OVERWRITE" -ne 1 ]]; then
+      mkdir -p "$BACKUP_ROOT/$rel"
+    fi
   fi
 
   rsync "${rsync_args[@]}" "$src/" "$dest/"
