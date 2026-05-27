@@ -33,6 +33,7 @@ import {
   type WorkbenchObjectGroup,
   type WorkbenchObjectOption,
 } from '../object-selection';
+import { getControlWorkbenchReturnHref } from '../routing';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -47,14 +48,6 @@ function modeLabel(mode: string) {
 
 function isSingleSelectionView(viewId: WorkbenchViewId) {
   return viewId === 'root-locus' || viewId === 'nyquist';
-}
-
-export function getControlWorkbenchReturnHref(session: WorkbenchSessionContext) {
-  if (!('taskId' in session)) return '/interactive-learning/cross-domain-exploration';
-  if (!('publicationId' in session)) return `/arena/challenges/${session.taskId}`;
-
-  const params = new URLSearchParams({ publicationId: session.publicationId });
-  return `/arena/challenges/${session.taskId}?${params.toString()}`;
 }
 
 function createFallbackPanelConfig(
