@@ -1,6 +1,6 @@
 ## Context
 
-The report recommends that any resource become path-plannable once registered as a ResourceNode. The current platform already has renderable resources, knowledge nodes, media, simulations, and Arena tasks, but not a unified planning abstraction.
+The report recommends that any resource become path-plannable once registered as a ResourceNode. The current platform already has renderable resources, knowledge nodes, media, simulations, and Arena tasks, but not a unified planning abstraction or audit contract.
 
 ## Decisions
 
@@ -14,7 +14,7 @@ Managed DB metadata belongs to `TeachingResource` once an asset is promoted ther
 
 ### Audits gate path eligibility
 
-Resources without render/launch target, knowledge mapping, valid prerequisites, availability, or privacy policy are reported and excluded from adaptive paths unless explicitly allowed by policy.
+Resources without a verified render/launch target, knowledge mapping, valid prerequisites, availability, or privacy policy are reported and excluded from adaptive paths unless explicitly allowed by policy. The builder does not fabricate UI routes for sources that only provide content identity.
 
 ## Risks / Trade-offs
 
@@ -24,9 +24,9 @@ Resources without render/launch target, knowledge mapping, valid prerequisites, 
 ## Migration Plan
 
 1. Add ResourceNode and edge schema/contracts.
-2. Backfill existing resources.
+2. Map supplied source records into ResourceNodes.
 3. Add audits and path-eligibility flags.
-4. Expose APIs for downstream path planner and teacher management.
+4. Leave production aggregation APIs for downstream path planner and teacher management changes.
 
 ## Open Questions
 
