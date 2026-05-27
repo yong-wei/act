@@ -317,7 +317,7 @@ export function auditResourceNode(
 function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): ResourceNode[] {
   return resources.map((resource) => {
     const registryLaunch = resource.registryId ? `/interactive-learning/resources/${resource.id}` : null;
-    const contentRender = resource.content ? `/api/resources/${resource.id}` : null;
+    const contentRender = resource.content ? `/interactive-learning/resources/${resource.id}` : null;
     const nodeType = resource.type === 'STATIC_MEDIA'
       ? inferMediaNodeType(resource.content ?? resource.title)
       : resource.type === 'SIMULATION_APP'

@@ -124,10 +124,15 @@ describe('resource node registry', () => {
 
   it('keeps runtime media and TeachingResource ownership separate when sources overlap', () => {
     const registry = sampleRegistry();
+    const teachingVideo = registry.nodes.find((node) => node.id === 'teaching-resource:tr-video');
     const runtimeVideo = registry.nodes.find((node) =>
       node.id === 'runtime-media:unit-2-3-frequency-response-bode-intro:intro-video'
     );
 
+    expect(teachingVideo).toMatchObject({
+      renderTarget: '/interactive-learning/resources/tr-video',
+    });
+    expect(teachingVideo?.renderTarget).not.toBe('/api/resources/tr-video');
     expect(runtimeVideo).toMatchObject({
       type: 'video',
       sourceKind: 'runtime_lesson_media',
