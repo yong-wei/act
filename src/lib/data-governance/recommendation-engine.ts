@@ -17,6 +17,11 @@ import {
   type StudentSimulationArenaWeakMetric,
   type StudentEvidenceWindow,
 } from './student-evidence-feature-cache';
+import {
+  isAdaptiveLearnerStateServiceEnabled,
+  readPathPlannerLearnerState,
+  type AdaptiveLearnerState,
+} from './adaptive-learner-state-service';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -80,6 +85,7 @@ export interface RecommendationContext {
     startedAt: Date;
     score?: number;
   }>;
+  learnerState: AdaptiveLearnerState | null;
   evidence: RecommendationEvidenceContext;
   learningHistory: {
     totalMissions: number;
@@ -420,6 +426,12 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   const featureRead = await readStudentEvidenceFeatures(prisma, userId);
   const featureCache = normalizeFeatureCache(featureRead.cache);
   const cachedVector = getCachedCompetencyVector(featureCache);
+  const learnerState = isAdaptiveLearnerStateServiceEnabled()
+    ? await readPathPlannerLearnerState(prisma, userId).catch((error) => {
+        console.error('[RecommendationEngine] Learner state read failed:', error);
+        return null;
+      })
+    : null;
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -472,7 +484,11 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   ]);
 
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
+  const learnerStateVector = isLearnerStateUsableForDirectPersonalization(learnerState)
+    ? learnerState.primaryCompetencies.vector
+    : null;
   const competencyVector =
+    learnerStateVector ??
     cachedVector ??
     (snapshot?.competencyVector as unknown as CompetencyVector | null) ??
     createEmptyVector();
@@ -491,6 +507,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       ...f,
       score: f.score ?? undefined,
     })),
+    learnerState,
     evidence: buildRecommendationEvidenceContext({
       featureReadState: featureRead.state,
       featureCache,
@@ -504,6 +521,28 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       streakDays,
     },
   };
+}
+
+function isLearnerStateUsableForDirectPersonalization(
+  learnerState: AdaptiveLearnerState | null
+): learnerState is AdaptiveLearnerState {
+  if (!learnerState) {
+    return false;
+  }
+
+  const blockedMarkers: StudentEvidenceStatusMarker[] = [
+    'stale',
+    'partial',
+    'low-confidence',
+    'missing-source',
+  ];
+
+  return learnerState.evidence.readState === 'ready' &&
+    learnerState.evidence.sourceCoverage.StudentCompetencySnapshot === 'available' &&
+    learnerState.evidence.sourceCoverage.LearningFact !== 'missing' &&
+    learnerState.evidence.confidence.evidenceCount > 0 &&
+    learnerState.evidence.confidence.sourceCompleteness >= 0.5 &&
+    !blockedMarkers.some((marker) => learnerState.evidence.statusMarkers.includes(marker));
 }
 
 function buildRecommendationRationale(

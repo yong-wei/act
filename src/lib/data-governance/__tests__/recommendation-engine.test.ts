@@ -27,6 +27,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { generateRecommendations } from '../recommendation-engine';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
 
 const strongSnapshotVector: CompetencyVector = {
   controlModeling: { score: 86, trend: 'stable', confidence: 0.82, evidenceCount: 6, lastUpdated: '2026-05-18T00:00:00.000Z' },
@@ -85,10 +86,68 @@ function emptySimulationArenaFeature() {
   };
 }
 
+function defaultApprovedAggregates() {
+  return {
+    latestSnapshot: {
+      snapshotAt: '2026-05-18T00:00:00.000Z',
+      factCount: 7,
+      calculationVersion: 'v1',
+      competencyVector: cacheVector,
+    },
+    profileSummary: {
+      updatedAt: '2026-05-18T00:00:00.000Z',
+      overallScore: 65,
+      riskLevel: 'medium',
+      trendDirection: 'down',
+    },
+  };
+}
+
+function defaultAdaptiveLearnerStateFeature() {
+  return {
+    payloadVersion: 'adaptive-learner-state.v1',
+    sourceWindows: {
+      learnerStateRecent30d: {
+        firstStartedAt: '2026-05-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-18T00:00:00.000Z',
+        daysCovered: 17,
+      },
+      learnerStateAllTime: {
+        firstStartedAt: '2026-05-01T00:00:00.000Z',
+        lastStartedAt: '2026-05-18T00:00:00.000Z',
+        daysCovered: 17,
+      },
+    },
+    sourceCoverage: {
+      primaryCompetencies: 'available',
+      knowledgeMastery: 'missing',
+      resourcePreference: 'missing',
+      mediaAbsorption: 'missing',
+      pathContext: 'missing',
+      simulationArena: 'missing',
+    },
+    sourceCounts: {
+      LearningFact: 7,
+      AdaptiveMasteryEvidence: 0,
+    },
+    confidence: {
+      level: 'medium',
+      score: 0.66,
+      evidenceCount: 7,
+      sourceCompleteness: 0.86,
+      markers: [],
+    },
+  };
+}
+
 function evidenceCache(overrides: Record<string, unknown> = {}) {
+  const overrideFeatures = overrides.features && typeof overrides.features === 'object'
+    ? overrides.features as Record<string, unknown>
+    : {};
+
   return {
     userId: 'student-1',
-    payloadVersion: 'student-evidence-features.v2',
+    payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     refreshedAt: new Date('2026-05-19T00:00:00.000Z'),
     evidenceWindow: {
       firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -114,23 +173,14 @@ function evidenceCache(overrides: Record<string, unknown> = {}) {
     },
     statusMarkers: [],
     features: {
-      approvedAggregates: {
-        latestSnapshot: {
-          snapshotAt: '2026-05-18T00:00:00.000Z',
-          factCount: 7,
-          calculationVersion: 'v1',
-          competencyVector: cacheVector,
-        },
-        profileSummary: {
-          updatedAt: '2026-05-18T00:00:00.000Z',
-          overallScore: 65,
-          riskLevel: 'medium',
-          trendDirection: 'down',
-        },
-      },
+      approvedAggregates: defaultApprovedAggregates(),
+      adaptiveLearnerState: defaultAdaptiveLearnerStateFeature(),
       simulationArena: emptySimulationArenaFeature(),
+      ...overrideFeatures,
     },
-    ...overrides,
+    ...Object.fromEntries(
+      Object.entries(overrides).filter(([key]) => key !== 'features')
+    ),
   };
 }
 
@@ -218,6 +268,7 @@ function previewOnlySimulationArenaFeature() {
 describe('generateRecommendations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    delete process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED;
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
       competencyVector: strongSnapshotVector,
       snapshotAt: new Date('2026-05-18T00:00:00.000Z'),
@@ -448,5 +499,33 @@ describe('generateRecommendations', () => {
     expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
       readiness: 'partial',
     });
+  });
+
+  it('uses server learner state as the authoritative vector when the service is enabled', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations.map((item) => item.title)).not.toContain('提升跨域迁移与联动能力');
+    expect(recommendations.map((item) => item.title)).toContain('挑战专家级任务');
+  });
+
+  it('falls back from learner state to the feature cache when direct personalization evidence is weak', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      statusMarkers: ['low-confidence'],
+      confidenceMarkers: {
+        level: 'low',
+        score: 0.31,
+        evidenceCount: 7,
+        sourceCompleteness: 0.86,
+      },
+    }));
+
+    const recommendations = await generateRecommendations('student-1');
+
+    expect(recommendations.map((item) => item.title)).toContain('提升跨域迁移与联动能力');
+    expect(recommendations.map((item) => item.title)).not.toContain('挑战专家级任务');
   });
 });
