@@ -562,6 +562,63 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('preserves feedback node ids for visible alternative prerequisite chains', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'main-card',
+          label: '主路径知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/main-card',
+          knowledgeNodeIds: ['kn-goal'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'pre',
+          title: '替代路径前置',
+          launchTarget: '/simulations/pre',
+          knowledgeNodeIds: ['kn-pre'],
+        },
+      ],
+      projects: [
+        {
+          id: 'alt',
+          title: '替代项目',
+          launchTarget: '/missions?project=alt',
+          knowledgeNodeIds: ['kn-goal'],
+          prerequisiteNodeIds: ['simulation:pre'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-alternative-feedback',
+        title: '替代路径反馈',
+        knowledgeTargets: ['kn-goal'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 85,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    expect(plan.alternatives.find((item) => item.nodeId === 'project:alt')?.nodeIds)
+      .toEqual(['simulation:pre', 'project:alt']);
+
+    const updated = recordLearningPathFeedback(plan, {
+      id: 'feedback-alternative-prereq',
+      type: 'helpfulness',
+      nodeId: 'simulation:pre',
+      createdAt: '2026-05-27T11:05:00.000Z',
+      helpful: true,
+    });
+
+    expect(updated.feedbackEvents.at(-1)?.nodeId).toBe('simulation:pre');
+  });
+
   it('keeps correction as one executable alternative path instead of merging alternatives', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [

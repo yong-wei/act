@@ -377,6 +377,7 @@ export function recordLearningPathFeedback(
   const visibleNodeIds = new Set([
     ...plan.mainPath.map((node) => node.nodeId),
     ...plan.alternatives.map((node) => node.nodeId),
+    ...plan.alternatives.flatMap((node) => node.nodeIds),
   ]);
   const safeEvent = event.nodeId && !visibleNodeIds.has(event.nodeId)
     ? { ...event, nodeId: null }
