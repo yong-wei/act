@@ -981,6 +981,76 @@ describe('adaptive learning path planner', () => {
     ]);
   });
 
+  it('skips a high-scoring chain that would block another required target', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'alpha-sim',
+          label: '目标 A 高成本仿真',
+          type: 'SIMULATION_APP',
+          launchTarget: '/simulations/alpha',
+          knowledgeNodeIds: ['kn-alpha', 'kn-extra'],
+        },
+        {
+          id: 'alpha-card',
+          label: '目标 A 知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alpha',
+          knowledgeNodeIds: ['kn-alpha'],
+        },
+        {
+          id: 'beta-card',
+          label: '目标 B 知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/beta',
+          knowledgeNodeIds: ['kn-beta'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-lookahead-budget',
+        title: '前瞻预算覆盖两个目标',
+        knowledgeTargets: ['kn-alpha', 'kn-beta'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-alpha': { posteriorMastery: 0.1, confidence: 0.8, evidenceCount: 4 },
+            'kn-beta': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['simulation'],
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'registry:alpha-card',
+      'registry:beta-card',
+    ]);
+    expect(plan.mainPath).not.toContainEqual(
+      expect.objectContaining({ nodeId: 'registry:alpha-sim' }),
+    );
+  });
+
   it('only emits competency deficit reasons for requested competency targets', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {

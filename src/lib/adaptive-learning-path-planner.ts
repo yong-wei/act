@@ -255,6 +255,18 @@ interface CandidateChain {
   coversGoalTarget: boolean;
 }
 
+interface CandidateOption {
+  entry: ScoredNode;
+  chain: CandidateChain;
+  goalTargets: string[];
+}
+
+interface SelectionState {
+  selected: Map<string, ScoredNode>;
+  coveredGoalTargets: Set<string>;
+  remainingMinutes: number;
+}
+
 const EXCLUDED_POLICY_FAMILIES: AdaptiveLearningPathPlan['excludedPolicyFamilies'] = [
   'contextual-bandit',
   'reinforcement-learning',
@@ -608,69 +620,61 @@ function buildFeasiblePath(
   const nodesById = new Map(registry.nodes.filter((node) => eligibleIds.has(node.id)).map((node) => [node.id, node]));
   const scoredById = new Map(scoredNodes.map((entry) => [entry.node.id, entry]));
   const completed = new Set(completedNodeIds);
-  const selected = new Map<string, ScoredNode>();
-  const coveredGoalTargets = new Set<string>();
   const allGoalTargets = new Set([
     ...goal.knowledgeTargets,
     ...(goal.competencyTargets ?? []),
   ]);
-  let remainingMinutes = constraints.timeBudgetMinutes;
-
-  const hasUncoveredTargets = () =>
-    Array.from(allGoalTargets).some((target) => !coveredGoalTargets.has(target));
-
-  const tryAddEntry = (entry: ScoredNode, requireNewGoalTarget: boolean): boolean => {
+  const candidateOptions = scoredNodes.flatMap((entry): CandidateOption[] => {
     const chain = buildCandidateChain(entry, nodesById, scoredById, goal);
     if (!chain || !chain.coversGoalTarget) {
-      return false;
+      return [];
     }
-    const chainGoalTargets = goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal);
-    const addsGoalTarget = chainGoalTargets.some((target) => !coveredGoalTargets.has(target));
+    if (chainHasTerminalViolation(chain.entries)) {
+      return [];
+    }
+    return [{
+      entry,
+      chain,
+      goalTargets: goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal),
+    }];
+  });
+  let state: SelectionState = {
+    selected: new Map(),
+    coveredGoalTargets: new Set(),
+    remainingMinutes: constraints.timeBudgetMinutes,
+  };
+
+  const tryAddOption = (option: CandidateOption, requireNewGoalTarget: boolean): boolean => {
+    const addsGoalTarget = option.goalTargets.some((target) => !state.coveredGoalTargets.has(target));
     if (requireNewGoalTarget && !addsGoalTarget) {
       return false;
     }
-    if (chainHasTerminalViolation(chain.entries)) {
+    const nextState = addCandidateOptionToState(option, state, completed);
+    if (!nextState) {
       return false;
     }
-    const newEntries = chain.entries.filter((candidate) => !selected.has(candidate.node.id));
-    if (newEntries.length === 0) {
+    if (
+      requireNewGoalTarget &&
+      !allGoalTargetsCovered(nextState.coveredGoalTargets, allGoalTargets) &&
+      !canCompleteGoalCoverage(candidateOptions, nextState, completed, allGoalTargets)
+    ) {
       return false;
     }
-    if (Array.from(selected.values()).some((candidate) => isTerminalNode(candidate.node)) &&
-      newEntries.some((candidate) => isTerminalNode(candidate.node))) {
-      return false;
-    }
-    const newEstimatedMinutes = newEntries.reduce(
-      (sum, candidate) => sum + (completed.has(candidate.node.id)
-        ? 0
-        : (candidate.node.planningMetadata.estimatedTimeMinutes ?? 0)),
-      0,
-    );
-    if (newEstimatedMinutes > remainingMinutes) {
-      return false;
-    }
-    for (const candidate of chain.entries) {
-      if (selected.has(candidate.node.id)) continue;
-      selected.set(candidate.node.id, candidate);
-    }
-    for (const target of chainGoalTargets) {
-      coveredGoalTargets.add(target);
-    }
-    remainingMinutes -= newEstimatedMinutes;
+    state = nextState;
     return true;
   };
 
-  for (const entry of scoredNodes) {
-    tryAddEntry(entry, true);
+  for (const option of candidateOptions) {
+    tryAddOption(option, true);
   }
 
-  if (!hasUncoveredTargets()) {
-    for (const entry of scoredNodes) {
-      tryAddEntry(entry, false);
+  if (allGoalTargetsCovered(state.coveredGoalTargets, allGoalTargets)) {
+    for (const option of candidateOptions) {
+      tryAddOption(option, false);
     }
   }
 
-  return Array.from(selected.values()).sort((left, right) => {
+  return Array.from(state.selected.values()).sort((left, right) => {
     const leftTerminal = left.node.planningMetadata.terminalConstraints.includes('terminal-node');
     const rightTerminal = right.node.planningMetadata.terminalConstraints.includes('terminal-node');
     if (leftTerminal !== rightTerminal) {
@@ -680,6 +684,69 @@ function buildFeasiblePath(
       right.score - left.score ||
       left.node.id.localeCompare(right.node.id);
   });
+}
+
+function addCandidateOptionToState(
+  option: CandidateOption,
+  state: SelectionState,
+  completed: Set<string>,
+): SelectionState | null {
+  const newEntries = option.chain.entries.filter((candidate) => !state.selected.has(candidate.node.id));
+  if (newEntries.length === 0) {
+    return null;
+  }
+  if (Array.from(state.selected.values()).some((candidate) => isTerminalNode(candidate.node)) &&
+    newEntries.some((candidate) => isTerminalNode(candidate.node))) {
+    return null;
+  }
+  const newEstimatedMinutes = newEntries.reduce(
+    (sum, candidate) => sum + (completed.has(candidate.node.id)
+      ? 0
+      : (candidate.node.planningMetadata.estimatedTimeMinutes ?? 0)),
+    0,
+  );
+  if (newEstimatedMinutes > state.remainingMinutes) {
+    return null;
+  }
+  const selected = new Map(state.selected);
+  for (const candidate of option.chain.entries) {
+    if (selected.has(candidate.node.id)) continue;
+    selected.set(candidate.node.id, candidate);
+  }
+  const coveredGoalTargets = new Set(state.coveredGoalTargets);
+  for (const target of option.goalTargets) {
+    coveredGoalTargets.add(target);
+  }
+  return {
+    selected,
+    coveredGoalTargets,
+    remainingMinutes: state.remainingMinutes - newEstimatedMinutes,
+  };
+}
+
+function canCompleteGoalCoverage(
+  options: CandidateOption[],
+  state: SelectionState,
+  completed: Set<string>,
+  allGoalTargets: Set<string>,
+): boolean {
+  if (allGoalTargetsCovered(state.coveredGoalTargets, allGoalTargets)) {
+    return true;
+  }
+  for (const option of options) {
+    if (!option.goalTargets.some((target) => !state.coveredGoalTargets.has(target))) {
+      continue;
+    }
+    const nextState = addCandidateOptionToState(option, state, completed);
+    if (nextState && canCompleteGoalCoverage(options, nextState, completed, allGoalTargets)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function allGoalTargetsCovered(coveredGoalTargets: Set<string>, allGoalTargets: Set<string>): boolean {
+  return Array.from(allGoalTargets).every((target) => coveredGoalTargets.has(target));
 }
 
 function buildCandidateChain(
