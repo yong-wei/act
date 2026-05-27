@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {
   ChevronRight,
   FlaskConical,
+  GraduationCap,
   Home,
   Map,
   Sparkles,
@@ -33,6 +34,7 @@ const projectEntries = getStudentCoreNavigationEntries();
 const projectEntryIcons: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
   arena: Trophy,
+  interactive: GraduationCap,
   knowledge: Map,
   profile: User,
   ship: FlaskConical,

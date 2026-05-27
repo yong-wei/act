@@ -22,14 +22,15 @@ describe('platform role navigation', () => {
       '/arena',
       '/interactive-learning/control-workbench',
       '/assessment/adaptive-practice',
-      '/profile',
+      '/interactive-learning',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
+    expect(entries.map((entry) => entry.id)).not.toContain('student-profile');
   });
 
   it('defines student, teacher, admin, and guest navigation groups', () => {
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).toEqual(
-      expect.arrayContaining(['/dashboard', '/simulations', '/knowledge', '/arena', '/profile']),
+      expect.arrayContaining(['/dashboard', '/simulations', '/knowledge', '/arena', '/interactive-learning', '/profile']),
     );
     expect(getPlatformRoleNavigation('teacher').map((entry) => entry.href)).toEqual(
       expect.arrayContaining([

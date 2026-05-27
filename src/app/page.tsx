@@ -140,6 +140,7 @@ const homepageStudentEntries = getStudentCoreNavigationEntries()
 const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
   arena: Trophy,
+  interactive: GraduationCap,
   knowledge: Globe,
   profile: User,
   ship: Ship,
