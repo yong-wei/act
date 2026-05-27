@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 from docx import Document
@@ -19,10 +22,14 @@ HEADING_SIZES = {
 }
 
 
-def set_run_font(run, size: int, bold: bool = False, math: bool = False) -> None:
-    font_name = 'Arial Unicode MS' if math else 'Microsoft YaHei'
+def apply_cjk_font(run, font_name: str = 'Microsoft YaHei') -> None:
     run.font.name = font_name
     run._element.rPr.rFonts.set(qn('w:eastAsia'), font_name)
+
+
+def set_run_font(run, size: int, bold: bool = False, math: bool = False) -> None:
+    font_name = 'Arial Unicode MS' if math else 'Microsoft YaHei'
+    apply_cjk_font(run, font_name)
     run.font.size = Pt(size)
     run.bold = bold
 
@@ -59,6 +66,60 @@ def add_image(doc: Document, image_path: Path, alt_text: str) -> None:
         set_run_font(caption_run, 9, bold=False)
 
 
+def normalize_docx_fonts(output_path: Path) -> None:
+    doc = Document(str(output_path))
+    for style in doc.styles:
+        if getattr(style, 'font', None) is not None:
+            style.font.name = 'Microsoft YaHei'
+            style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei')
+
+    for paragraph in doc.paragraphs:
+        for run in paragraph.runs:
+            apply_cjk_font(run)
+
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        apply_cjk_font(run)
+
+    doc.save(output_path)
+
+
+def render_with_pandoc(markdown: str, output_path: Path, base_dir: Path) -> bool:
+    pandoc = shutil.which('pandoc')
+    if pandoc is None:
+        return False
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    command = [
+        pandoc,
+        '--from',
+        'markdown+tex_math_dollars+pipe_tables+lists_without_preceding_blankline',
+        '--to',
+        'docx',
+        '--resource-path',
+        str(base_dir),
+        '--output',
+        str(output_path),
+    ]
+    try:
+        subprocess.run(
+            command,
+            input=markdown,
+            text=True,
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if exc.stderr:
+            print(exc.stderr.strip(), file=sys.stderr)
+        return False
+    normalize_docx_fonts(output_path)
+    return True
+
+
 def flush_paragraph(doc: Document, buffer: list[str]) -> None:
     if not buffer:
         return
@@ -68,7 +129,7 @@ def flush_paragraph(doc: Document, buffer: list[str]) -> None:
     buffer.clear()
 
 
-def render_markdown(markdown: str, output_path: Path, base_dir: Path) -> None:
+def render_markdown_simple(markdown: str, output_path: Path, base_dir: Path) -> None:
     doc = Document()
 
     paragraph_buffer: list[str] = []
@@ -139,6 +200,17 @@ def render_markdown(markdown: str, output_path: Path, base_dir: Path) -> None:
     flush_paragraph(doc, paragraph_buffer)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(output_path)
+
+
+def render_markdown(markdown: str, output_path: Path, base_dir: Path) -> None:
+    if render_with_pandoc(markdown, output_path, base_dir):
+        return
+    print(
+        'warning: pandoc is unavailable or failed; falling back to simple DOCX export '
+        'without native Word math/table conversion',
+        file=sys.stderr,
+    )
+    render_markdown_simple(markdown, output_path, base_dir)
 
 
 def main() -> int:
