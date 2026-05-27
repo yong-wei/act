@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (session.user.role === 'TEACHER') {
+    if (session.user.role === 'TEACHER' && userId !== session.user.id) {
       const scope = await verifyTeacherStudentScope({
         teacherId: session.user.id,
         studentId: userId,

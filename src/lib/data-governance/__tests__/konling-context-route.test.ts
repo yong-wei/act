@@ -114,6 +114,33 @@ describe('Konling context route learner-state integration', () => {
     expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
   });
 
+  it('allows a teacher to read their own context without class scope', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.readAdaptiveLearnerState.mockResolvedValue({
+      userId: 'teacher-1',
+      authority: 'server-owned',
+      primaryCompetencies: {
+        source: 'latest-snapshot',
+      },
+    });
+
+    const response = await request();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.findFirst).not.toHaveBeenCalled();
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        userId: 'teacher-1',
+        role: 'teacher',
+        classId: null,
+      }),
+    );
+  });
+
   it('allows teacher reads only for students in the teacher class', async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
