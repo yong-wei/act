@@ -6,7 +6,7 @@ const studentEntryLabels = [
   '竞技场',
   '控制工作台',
   '自适应学习',
-  '个人中心',
+  '互动学习',
 ] as const;
 
 test('homepage exposes the shared student entry drawer at 320px', async ({ page }) => {

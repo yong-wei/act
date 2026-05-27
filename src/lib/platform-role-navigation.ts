@@ -22,6 +22,7 @@ export type PlatformNavigationIconKey =
   | 'arena'
   | 'workbench'
   | 'adaptive'
+  | 'interactive'
   | 'profile'
   | 'teacher'
   | 'classes'
@@ -71,7 +72,7 @@ export const STUDENT_CORE_ENTRY_IDS = [
   'student-arena',
   'student-control-workbench',
   'student-adaptive-learning',
-  'student-profile',
+  'student-interactive-learning',
 ] as const;
 
 export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
@@ -203,16 +204,28 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     aliasHrefs: ['/profile/growth'],
   },
   {
+    id: 'student-interactive-learning',
+    label: '互动学习',
+    href: '/interactive-learning',
+    role: 'student',
+    order: 150,
+    group: 'student-core',
+    description: '进入跨域探索、互动课程和章节互动组件。',
+    iconKey: 'interactive',
+    actionLabel: '进入互动',
+    actionPriority: 70,
+  },
+  {
     id: 'student-profile',
     label: '个人中心',
     href: '/profile',
     role: 'student',
-    order: 150,
-    group: 'student-core',
+    order: 160,
+    group: 'role-cockpit',
     description: '查看能力画像、活动轨迹、成长建议和学习档案。',
     iconKey: 'profile',
     actionLabel: '查看画像',
-    actionPriority: 70,
+    actionPriority: 80,
     aliasHrefs: ['/profile/growth', '/profile/portfolio'],
   },
   {

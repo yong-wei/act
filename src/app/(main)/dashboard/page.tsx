@@ -45,6 +45,12 @@ const dashboardEntryMeta = {
     badgeColor: 'bg-emerald-500/20 text-emerald-400',
     iconBg: 'bg-emerald-500/20 text-emerald-400',
   },
+  'student-interactive-learning': {
+    icon: '🎓',
+    badge: '互动课程',
+    badgeColor: 'bg-fuchsia-500/20 text-fuchsia-400',
+    iconBg: 'bg-fuchsia-500/20 text-fuchsia-400',
+  },
   'student-profile': {
     icon: '👤',
     badge: '能力画像',
@@ -204,7 +210,7 @@ export default async function DashboardPage() {
                   icon={<span className="text-3xl">{meta.icon}</span>}
                   title={entry.label}
                   description={entry.description}
-                  badge={entry.id === 'student-profile' ? `${completedMissions} 项任务` : meta.badge}
+                  badge={meta.badge}
                   badgeColor={meta.badgeColor}
                   iconBg={meta.iconBg}
                 />

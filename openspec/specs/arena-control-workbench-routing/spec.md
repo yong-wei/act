@@ -57,23 +57,6 @@ The first integration pass SHALL keep legacy workbench routes available for dire
 - **THEN** the route MUST continue to render its legacy page or compatibility experience
 - **AND** Arena default task links MUST still prefer `/interactive-learning/control-workbench`
 
-### Requirement: Cross-domain free explore entry targets comprehensive simulation workbench
-The cross-domain exploration catalog SHALL present the unified workbench as “综合仿真工作台” and route its primary free-explore entry to `/interactive-learning/control-workbench`.
-
-#### Scenario: Cross-domain primary entry opens unified workbench
-- **WHEN** a student opens `/interactive-learning/cross-domain-exploration`
-- **THEN** the primary entry SHALL be named “综合仿真工作台”
-- **AND** it SHALL link to `/interactive-learning/control-workbench?mode=explore&preset=classic-four-view`.
-
-#### Scenario: Arena routing remains on unified workbench
-- **WHEN** an Arena task route is built for a supported non-Odyssey workspace
-- **THEN** the returned URL SHALL still target `/interactive-learning/control-workbench`
-- **AND** it SHALL preserve the `arenaTask` and preset parameters.
-
-#### Scenario: Legacy direct route remains available
-- **WHEN** a student opens `/interactive-learning/multi-representation-linkage` directly
-- **THEN** the route SHALL remain available as a compatibility surface.
-
 ### Requirement: Arena-bound workbench renders challenge context without the legacy shell frame
 When the unified control workbench is opened from an Arena challenge, the page SHALL preserve Arena challenge context while removing the legacy workbench shell framing.
 
@@ -91,3 +74,16 @@ When the unified control workbench is opened from an Arena challenge, the page S
 - **WHEN** the workbench shell frame is removed for an Arena-bound challenge
 - **THEN** the page SHALL still show enough challenge context for the student to identify the active task
 - **AND** official submission controls SHALL remain bound to the same `arenaTask` value.
+
+### Requirement: Cross-domain exploration excludes duplicate workbench catalog entries
+The cross-domain exploration catalog SHALL NOT promote the upgraded multi-representation/classic workbench as a public catalog card when Control Workbench is already exposed as a core student entry.
+
+#### Scenario: Student opens cross-domain exploration
+- **WHEN** a student opens `/interactive-learning/cross-domain-exploration`
+- **THEN** the catalog SHALL NOT render a hard-coded `综合仿真工作台` or classic four-view workbench card
+- **AND** it SHALL render available `FUN_EXPLORATION` resources such as Control Odyssey and Ten Drops where those resources exist.
+
+#### Scenario: Workbench free exploration remains reachable
+- **WHEN** a student needs free workbench exploration
+- **THEN** the student SHALL use the core Control Workbench entry
+- **AND** the Control Workbench free-explore route alias MAY continue to target `/interactive-learning/control-workbench?mode=explore&preset=classic-four-view`.
