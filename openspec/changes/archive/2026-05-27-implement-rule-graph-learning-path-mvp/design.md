@@ -23,10 +23,10 @@ Map, timeline, and evidence views are not optional UI polish; they are the expla
 
 ## Migration Plan
 
-1. Add path plan models and APIs.
+1. Add path plan contracts and serializable payloads.
 2. Generate paths from learner state and ResourceNode graph.
 3. Add visualization payloads.
-4. Record feedback and deviations.
+4. Produce feedback and deviation records for downstream persistence.
 5. Leave bandit and experiments to a later change.
 
 ## Open Questions
