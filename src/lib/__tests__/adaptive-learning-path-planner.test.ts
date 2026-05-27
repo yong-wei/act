@@ -913,6 +913,74 @@ describe('adaptive learning path planner', () => {
     expect(record.payload.visualization.evidence.evidenceBasis).toBe('fallback');
   });
 
+  it('skips repeated target coverage so a feasible multi-target path can fit the budget', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'alpha-card-a',
+          label: '目标 A 知识卡 A',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alpha-a',
+          knowledgeNodeIds: ['kn-alpha'],
+        },
+        {
+          id: 'alpha-card-b',
+          label: '目标 A 知识卡 B',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/alpha-b',
+          knowledgeNodeIds: ['kn-alpha'],
+        },
+        {
+          id: 'beta-card',
+          label: '目标 B 知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/beta',
+          knowledgeNodeIds: ['kn-beta'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-budgeted-multi-target',
+        title: '预算刚好覆盖两个目标',
+        knowledgeTargets: ['kn-alpha', 'kn-beta'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-alpha': { posteriorMastery: 0.1, confidence: 0.8, evidenceCount: 4 },
+            'kn-beta': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'registry:alpha-card-a',
+      'registry:beta-card',
+    ]);
+    expect(plan.mainPath.map((node) => node.knowledgeCoverage)).toEqual([
+      ['kn-alpha'],
+      ['kn-beta'],
+    ]);
+  });
+
   it('only emits competency deficit reasons for requested competency targets', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {

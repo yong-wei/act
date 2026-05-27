@@ -609,20 +609,36 @@ function buildFeasiblePath(
   const scoredById = new Map(scoredNodes.map((entry) => [entry.node.id, entry]));
   const completed = new Set(completedNodeIds);
   const selected = new Map<string, ScoredNode>();
+  const coveredGoalTargets = new Set<string>();
+  const allGoalTargets = new Set([
+    ...goal.knowledgeTargets,
+    ...(goal.competencyTargets ?? []),
+  ]);
   let remainingMinutes = constraints.timeBudgetMinutes;
 
-  for (const entry of scoredNodes) {
+  const hasUncoveredTargets = () =>
+    Array.from(allGoalTargets).some((target) => !coveredGoalTargets.has(target));
+
+  const tryAddEntry = (entry: ScoredNode, requireNewGoalTarget: boolean): boolean => {
     const chain = buildCandidateChain(entry, nodesById, scoredById, goal);
     if (!chain || !chain.coversGoalTarget) {
-      continue;
+      return false;
+    }
+    const chainGoalTargets = goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal);
+    const addsGoalTarget = chainGoalTargets.some((target) => !coveredGoalTargets.has(target));
+    if (requireNewGoalTarget && !addsGoalTarget) {
+      return false;
     }
     if (chainHasTerminalViolation(chain.entries)) {
-      continue;
+      return false;
     }
     const newEntries = chain.entries.filter((candidate) => !selected.has(candidate.node.id));
+    if (newEntries.length === 0) {
+      return false;
+    }
     if (Array.from(selected.values()).some((candidate) => isTerminalNode(candidate.node)) &&
       newEntries.some((candidate) => isTerminalNode(candidate.node))) {
-      continue;
+      return false;
     }
     const newEstimatedMinutes = newEntries.reduce(
       (sum, candidate) => sum + (completed.has(candidate.node.id)
@@ -631,13 +647,27 @@ function buildFeasiblePath(
       0,
     );
     if (newEstimatedMinutes > remainingMinutes) {
-      continue;
+      return false;
     }
     for (const candidate of chain.entries) {
       if (selected.has(candidate.node.id)) continue;
       selected.set(candidate.node.id, candidate);
     }
+    for (const target of chainGoalTargets) {
+      coveredGoalTargets.add(target);
+    }
     remainingMinutes -= newEstimatedMinutes;
+    return true;
+  };
+
+  for (const entry of scoredNodes) {
+    tryAddEntry(entry, true);
+  }
+
+  if (!hasUncoveredTargets()) {
+    for (const entry of scoredNodes) {
+      tryAddEntry(entry, false);
+    }
   }
 
   return Array.from(selected.values()).sort((left, right) => {
@@ -688,6 +718,23 @@ function nodeCoversGoalTarget(node: ResourceNode, goal: AdaptiveLearningPathGoal
     Object.keys(node.planningMetadata.abilityImpact).some((dimension) =>
       (goal.competencyTargets ?? []).includes(dimension)
     );
+}
+
+function goalTargetsCoveredByNodes(nodes: ResourceNode[], goal: AdaptiveLearningPathGoal): string[] {
+  const covered = new Set<string>();
+  for (const node of nodes) {
+    for (const target of goal.knowledgeTargets) {
+      if (node.planningMetadata.knowledgeCoverage.includes(target)) {
+        covered.add(target);
+      }
+    }
+    for (const target of goal.competencyTargets ?? []) {
+      if (Object.prototype.hasOwnProperty.call(node.planningMetadata.abilityImpact, target)) {
+        covered.add(target);
+      }
+    }
+  }
+  return Array.from(covered);
 }
 
 function hasCyclicPrerequisites(
