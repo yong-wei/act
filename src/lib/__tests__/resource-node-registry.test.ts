@@ -318,4 +318,28 @@ describe('resource node registry', () => {
       ]),
     );
   });
+
+  it('does not expose graph edges that point to missing prerequisite nodes', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [
+        {
+          id: 'cruise',
+          title: '邮轮舒适度仿真',
+          launchTarget: '/simulations/cruise',
+          knowledgeNodeIds: ['kn-bode'],
+          prerequisiteNodeIds: ['missing-node'],
+        },
+      ],
+    });
+
+    expect(registry.edges).toEqual([]);
+    expect(registry.audit.ineligibleNodes).toEqual([
+      {
+        id: 'simulation:cruise',
+        title: '邮轮舒适度仿真',
+        type: 'simulation',
+        reasons: ['invalid-prerequisite'],
+      },
+    ]);
+  });
 });

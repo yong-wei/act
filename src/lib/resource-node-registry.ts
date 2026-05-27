@@ -624,6 +624,9 @@ function buildResourceNodeEdges(nodesById: Map<string, ResourceNode>): ResourceN
   const edges: ResourceNodeEdge[] = [];
   for (const node of Array.from(nodesById.values())) {
     for (const prerequisite of node.planningMetadata.prerequisites) {
+      if (!nodesById.has(prerequisite)) {
+        continue;
+      }
       edges.push({
         id: `${prerequisite}->${node.id}:prerequisite`,
         fromNodeId: prerequisite,
