@@ -284,7 +284,10 @@ export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlanner
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
   const eligibleIds = new Set(eligible.map((node) => node.id));
   const scored = eligible
-    .filter((node) => nodeMatchesGoal(node, input.goal, deficits))
+    .filter((node) =>
+      nodeMatchesGoal(node, input.goal, deficits) ||
+      (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
+    )
     .map((node) => scoreNode(node, deficits, input.learnerState, input.constraints))
     .sort((left, right) => right.score - left.score || left.node.id.localeCompare(right.node.id));
   const mainPathNodes = buildFeasiblePath(
@@ -629,7 +632,11 @@ function buildFeasiblePath(
   ]);
   const candidateOptions = scoredNodes.flatMap((entry): CandidateOption[] => {
     const chain = buildCandidateChain(entry, nodesById, scoredById, goal);
-    if (!chain || !chain.coversGoalTarget) {
+    if (!chain) {
+      return [];
+    }
+    const includesRiskIntervention = chain.entries.some((candidate) => isRiskInterventionNode(candidate.node));
+    if (!chain.coversGoalTarget && !(constraints.requireRiskIntervention && includesRiskIntervention)) {
       return [];
     }
     if (chainHasTerminalViolation(chain.entries)) {
@@ -639,7 +646,7 @@ function buildFeasiblePath(
       entry,
       chain,
       goalTargets: goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal),
-      includesRiskIntervention: chain.entries.some((candidate) => isRiskInterventionNode(candidate.node)),
+      includesRiskIntervention,
     }];
   });
   let state: SelectionState = {

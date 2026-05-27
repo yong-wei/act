@@ -1178,6 +1178,64 @@ describe('adaptive learning path planner', () => {
     expect(plan.explanations.fallbackReasons).not.toContain('risk-intervention-resource-missing');
   });
 
+  it('admits standalone risk interventions when risk support is required', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'goal-card',
+          label: '目标知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/goal-card',
+          knowledgeNodeIds: ['kn-goal'],
+        },
+      ],
+      reflectionPrompts: [
+        {
+          id: 'participation-risk',
+          title: '参与风险反思',
+          renderTarget: '/profile/growth?prompt=participation-risk',
+          knowledgeNodeIds: ['kn-risk-support'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-standalone-risk',
+        title: '通用风险干预路径',
+        knowledgeTargets: ['kn-goal'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-goal': { posteriorMastery: 0.2, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 27,
+        privacyScopes: ['student-visible'],
+        requireRiskIntervention: true,
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(
+      expect.arrayContaining(['registry:goal-card', 'reflection_prompt:participation-risk']),
+    );
+    expect(plan.explanations.fallbackReasons).not.toContain('risk-intervention-resource-missing');
+  });
+
   it('only emits competency deficit reasons for requested competency targets', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {
