@@ -259,11 +259,13 @@ interface CandidateOption {
   entry: ScoredNode;
   chain: CandidateChain;
   goalTargets: string[];
+  includesRiskIntervention: boolean;
 }
 
 interface SelectionState {
   selected: Map<string, ScoredNode>;
   coveredGoalTargets: Set<string>;
+  includesRiskIntervention: boolean;
   remainingMinutes: number;
 }
 
@@ -636,17 +638,22 @@ function buildFeasiblePath(
       entry,
       chain,
       goalTargets: goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal),
+      includesRiskIntervention: chain.entries.some((candidate) => isRiskInterventionNode(candidate.node)),
     }];
   });
   let state: SelectionState = {
     selected: new Map(),
     coveredGoalTargets: new Set(),
+    includesRiskIntervention: false,
     remainingMinutes: constraints.timeBudgetMinutes,
   };
 
   const tryAddOption = (option: CandidateOption, requireNewGoalTarget: boolean): boolean => {
     const addsGoalTarget = option.goalTargets.some((target) => !state.coveredGoalTargets.has(target));
-    if (requireNewGoalTarget && !addsGoalTarget) {
+    const addsRequiredRiskIntervention = constraints.requireRiskIntervention &&
+      !state.includesRiskIntervention &&
+      option.includesRiskIntervention;
+    if (requireNewGoalTarget && !addsGoalTarget && !addsRequiredRiskIntervention) {
       return false;
     }
     const nextState = addCandidateOptionToState(option, state, completed);
@@ -655,8 +662,8 @@ function buildFeasiblePath(
     }
     if (
       requireNewGoalTarget &&
-      !allGoalTargetsCovered(nextState.coveredGoalTargets, allGoalTargets) &&
-      !canCompleteGoalCoverage(candidateOptions, nextState, completed, allGoalTargets)
+      !allPlanningRequirementsSatisfied(nextState, allGoalTargets, constraints) &&
+      !canCompletePlanningRequirements(candidateOptions, nextState, completed, allGoalTargets, constraints)
     ) {
       return false;
     }
@@ -668,7 +675,7 @@ function buildFeasiblePath(
     tryAddOption(option, true);
   }
 
-  if (allGoalTargetsCovered(state.coveredGoalTargets, allGoalTargets)) {
+  if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     for (const option of candidateOptions) {
       tryAddOption(option, false);
     }
@@ -720,29 +727,44 @@ function addCandidateOptionToState(
   return {
     selected,
     coveredGoalTargets,
+    includesRiskIntervention: state.includesRiskIntervention || option.includesRiskIntervention,
     remainingMinutes: state.remainingMinutes - newEstimatedMinutes,
   };
 }
 
-function canCompleteGoalCoverage(
+function canCompletePlanningRequirements(
   options: CandidateOption[],
   state: SelectionState,
   completed: Set<string>,
   allGoalTargets: Set<string>,
+  constraints: AdaptiveLearningPathConstraints,
 ): boolean {
-  if (allGoalTargetsCovered(state.coveredGoalTargets, allGoalTargets)) {
+  if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     return true;
   }
   for (const option of options) {
-    if (!option.goalTargets.some((target) => !state.coveredGoalTargets.has(target))) {
+    const addsGoalTarget = option.goalTargets.some((target) => !state.coveredGoalTargets.has(target));
+    const addsRequiredRiskIntervention = constraints.requireRiskIntervention &&
+      !state.includesRiskIntervention &&
+      option.includesRiskIntervention;
+    if (!addsGoalTarget && !addsRequiredRiskIntervention) {
       continue;
     }
     const nextState = addCandidateOptionToState(option, state, completed);
-    if (nextState && canCompleteGoalCoverage(options, nextState, completed, allGoalTargets)) {
+    if (nextState && canCompletePlanningRequirements(options, nextState, completed, allGoalTargets, constraints)) {
       return true;
     }
   }
   return false;
+}
+
+function allPlanningRequirementsSatisfied(
+  state: SelectionState,
+  allGoalTargets: Set<string>,
+  constraints: AdaptiveLearningPathConstraints,
+): boolean {
+  return allGoalTargetsCovered(state.coveredGoalTargets, allGoalTargets) &&
+    (!constraints.requireRiskIntervention || state.includesRiskIntervention);
 }
 
 function allGoalTargetsCovered(coveredGoalTargets: Set<string>, allGoalTargets: Set<string>): boolean {
@@ -826,6 +848,10 @@ function hasCyclicPrerequisites(
 
 function isTerminalNode(node: ResourceNode): boolean {
   return node.planningMetadata.terminalConstraints.includes('terminal-node');
+}
+
+function isRiskInterventionNode(node: ResourceNode): boolean {
+  return node.type === 'reflection' || node.type === 'ai_intervention';
 }
 
 function chainHasTerminalViolation(entries: ScoredNode[]): boolean {

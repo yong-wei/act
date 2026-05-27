@@ -1051,6 +1051,76 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('includes required risk intervention in the feasibility lookahead', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'all-targets-sim',
+          label: '全目标高分仿真',
+          type: 'SIMULATION_APP',
+          launchTarget: '/simulations/all-targets',
+          knowledgeNodeIds: ['kn-alpha', 'kn-beta'],
+        },
+        {
+          id: 'beta-card',
+          label: '目标 B 知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/beta',
+          knowledgeNodeIds: ['kn-beta'],
+        },
+      ],
+      reflectionPrompts: [
+        {
+          id: 'alpha-risk-reflection',
+          title: '目标 A 风险反思',
+          renderTarget: '/profile/growth?prompt=alpha-risk-reflection',
+          knowledgeNodeIds: ['kn-alpha'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-risk-lookahead',
+        title: '风险干预前瞻路径',
+        knowledgeTargets: ['kn-alpha', 'kn-beta'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-alpha': { posteriorMastery: 0.1, confidence: 0.8, evidenceCount: 4 },
+            'kn-beta': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 27,
+        privacyScopes: ['student-visible'],
+        requireRiskIntervention: true,
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'reflection_prompt:alpha-risk-reflection',
+      'registry:beta-card',
+    ]);
+    expect(plan.mainPath).not.toContainEqual(
+      expect.objectContaining({ nodeId: 'registry:all-targets-sim' }),
+    );
+    expect(plan.explanations.fallbackReasons).not.toContain('risk-intervention-resource-missing');
+  });
+
   it('only emits competency deficit reasons for requested competency targets', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {
