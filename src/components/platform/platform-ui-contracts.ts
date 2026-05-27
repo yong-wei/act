@@ -1,6 +1,37 @@
 export type PlatformRole = 'student' | 'teacher' | 'admin' | 'audit';
 export type PlatformNavigationAudience = PlatformRole | 'guest' | 'all';
 export type PlatformNavigationAvailability = 'enabled' | 'disabled' | 'hidden';
+export type PlatformStatusTone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
+export type PlatformStatusRoleScope =
+  | 'student-visible'
+  | 'teacher-scoped'
+  | 'admin-scoped'
+  | 'audit-only'
+  | 'system-internal';
+export type PlatformStatusDomain =
+  | 'simulation'
+  | 'arena'
+  | 'learner-state'
+  | 'path'
+  | 'konling'
+  | 'resource-node'
+  | 'teacher-management'
+  | 'experiment';
+export type PlatformStatusRenderingVariant =
+  | 'compact-chip'
+  | 'inline-explanation'
+  | 'detail-panel'
+  | 'audit-row'
+  | 'empty-state'
+  | 'error-state';
+export type PlatformConfidenceStatus = 'high' | 'medium' | 'low' | 'unknown';
+export type PlatformSourceCoverageStatus = 'complete' | 'partial' | 'stale' | 'missing' | 'unsupported';
+export type PlatformPrivacyStatus = 'public' | 'classroom' | 'restricted' | 'private';
+export type PlatformReplayStatus = 'ready' | 'partial' | 'stale' | 'missing' | 'unsupported';
+export type PlatformProtocolStatus = 'current' | 'preview' | 'legacy' | 'unsupported' | 'missing';
+export type PlatformEvaluationStatus = 'official' | 'preview' | 'hidden' | 'not-evaluated';
+export type PlatformReadinessStatus = 'ready' | 'degraded' | 'blocked' | 'not-ready';
+export type PlatformFallbackStatus = 'none' | 'fallback-active' | 'fallback-missing-context' | 'unsupported';
 
 export type PlatformTokenCategory =
   | 'canvas'
@@ -37,6 +68,68 @@ export interface PlatformNavigationItem {
   children?: PlatformNavigationItem[];
 }
 
+export interface PlatformStatusCategories {
+  confidence: PlatformConfidenceStatus;
+  sourceCoverage: PlatformSourceCoverageStatus;
+  privacy: PlatformPrivacyStatus;
+  replay: PlatformReplayStatus;
+  protocol: PlatformProtocolStatus;
+  evaluation: PlatformEvaluationStatus;
+  readiness: PlatformReadinessStatus;
+  fallback: PlatformFallbackStatus;
+}
+
+export interface PlatformStatusSource {
+  domain: PlatformStatusDomain;
+  capability: string;
+}
+
+export interface PlatformStatusDetail {
+  label: string;
+  value: string;
+  roleScope: PlatformStatusRoleScope;
+  restricted?: boolean;
+}
+
+export interface PlatformStatusPayload {
+  id: string;
+  label: string;
+  categories: PlatformStatusCategories;
+  source: PlatformStatusSource;
+  summary?: string;
+  details?: readonly PlatformStatusDetail[];
+  fallbackReason?: string;
+}
+
+export interface PlatformStatusViewModel {
+  id: string;
+  label: string;
+  summaryLabel: string;
+  summary?: string;
+  tone: PlatformStatusTone;
+  tokenNames: string[];
+  sourceLabel: string;
+  details: PlatformStatusDetail[];
+  fallbackReason?: string;
+}
+
+export interface PlatformStatusRenderOptions {
+  role: PlatformRole;
+}
+
+export interface PlatformStatusRenderingContract {
+  variant: PlatformStatusRenderingVariant;
+  purpose: string;
+  requiredPayload: string;
+}
+
+export interface PlatformStatusIntegrationContract {
+  domain: PlatformStatusDomain;
+  acceptedPayload: string;
+  domainOwnership: string;
+  sharedPrimitiveRule: string;
+}
+
 export interface PlatformNavigationFilter {
   role: PlatformRole | 'guest';
   enabledFeatureFlags?: readonly string[];
@@ -51,6 +144,207 @@ export interface PlatformShellAdapter {
 }
 
 export const PLATFORM_SHELL_ROLLBACK_FLAG = 'platform.unifiedShell';
+
+const PLATFORM_STATUS_LABELS = {
+  confidence: {
+    high: '高置信',
+    medium: '中置信',
+    low: '低置信',
+    unknown: '置信未知',
+  },
+  sourceCoverage: {
+    complete: '完整覆盖',
+    partial: '部分覆盖',
+    stale: '覆盖过期',
+    missing: '缺少来源',
+    unsupported: '来源不支持',
+  },
+  privacy: {
+    public: '公开',
+    classroom: '课堂可见',
+    restricted: '受限',
+    private: '私有',
+  },
+  replay: {
+    ready: '回放就绪',
+    partial: '回放部分可用',
+    stale: '回放过期',
+    missing: '缺少回放',
+    unsupported: '回放不支持',
+  },
+  protocol: {
+    current: '当前协议',
+    preview: '预览协议',
+    legacy: '旧协议',
+    unsupported: '协议不支持',
+    missing: '缺少协议',
+  },
+  evaluation: {
+    official: '正式评价',
+    preview: '预览评价',
+    hidden: '隐藏评价',
+    'not-evaluated': '未评价',
+  },
+  readiness: {
+    ready: '就绪',
+    degraded: '降级可用',
+    blocked: '阻塞',
+    'not-ready': '未就绪',
+  },
+  fallback: {
+    none: '无回退',
+    'fallback-active': '已使用回退',
+    'fallback-missing-context': '上下文不足',
+    unsupported: '回退不支持',
+  },
+} as const;
+
+export const PLATFORM_STATUS_TOKEN_MAP = {
+  confidence: {
+    high: 'platform-evidence-eligible',
+    medium: 'platform-evidence-context',
+    low: 'platform-evidence-context',
+    unknown: 'platform-evidence-unsupported',
+  },
+  sourceCoverage: {
+    complete: 'platform-evidence-eligible',
+    partial: 'platform-evidence-context',
+    stale: 'platform-evidence-context',
+    missing: 'platform-evidence-unsupported',
+    unsupported: 'platform-evidence-unsupported',
+  },
+  privacy: {
+    public: 'platform-privacy-public',
+    classroom: 'platform-privacy-public',
+    restricted: 'platform-privacy-restricted',
+    private: 'platform-privacy-private',
+  },
+  replay: {
+    ready: 'platform-replay-ready',
+    partial: 'platform-replay-partial',
+    stale: 'platform-replay-partial',
+    missing: 'platform-replay-missing',
+    unsupported: 'platform-replay-missing',
+  },
+  protocol: {
+    current: 'platform-action-primary',
+    preview: 'platform-action-subtle',
+    legacy: 'platform-action-subtle',
+    unsupported: 'platform-evidence-unsupported',
+    missing: 'platform-evidence-unsupported',
+  },
+  evaluation: {
+    official: 'platform-evaluation-official',
+    preview: 'platform-evaluation-preview',
+    hidden: 'platform-evaluation-hidden',
+    'not-evaluated': 'platform-evidence-context',
+  },
+  readiness: {
+    ready: 'platform-evidence-eligible',
+    degraded: 'platform-evidence-context',
+    blocked: 'platform-evidence-unsupported',
+    'not-ready': 'platform-evidence-unsupported',
+  },
+  fallback: {
+    none: 'platform-evidence-eligible',
+    'fallback-active': 'platform-action-subtle',
+    'fallback-missing-context': 'platform-evidence-context',
+    unsupported: 'platform-evidence-unsupported',
+  },
+} as const satisfies {
+  confidence: Record<PlatformConfidenceStatus, string>;
+  sourceCoverage: Record<PlatformSourceCoverageStatus, string>;
+  privacy: Record<PlatformPrivacyStatus, string>;
+  replay: Record<PlatformReplayStatus, string>;
+  protocol: Record<PlatformProtocolStatus, string>;
+  evaluation: Record<PlatformEvaluationStatus, string>;
+  readiness: Record<PlatformReadinessStatus, string>;
+  fallback: Record<PlatformFallbackStatus, string>;
+};
+
+export const PLATFORM_STATUS_RENDERING_CONTRACTS: PlatformStatusRenderingContract[] = [
+  {
+    variant: 'compact-chip',
+    purpose: 'Render a terse label and tone for dense tables, headers, and cards.',
+    requiredPayload: 'Governed status categories plus role scope.',
+  },
+  {
+    variant: 'inline-explanation',
+    purpose: 'Render a short summary with limiting coverage or fallback reason.',
+    requiredPayload: 'Governed status categories, source summary, and optional fallback reason.',
+  },
+  {
+    variant: 'detail-panel',
+    purpose: 'Render role-filtered details without exposing restricted payloads.',
+    requiredPayload: 'Governed details with explicit roleScope and restricted markers.',
+  },
+  {
+    variant: 'audit-row',
+    purpose: 'Render compact evidence source, role scope, and status trail rows.',
+    requiredPayload: 'Governed status source and role-filtered details.',
+  },
+  {
+    variant: 'empty-state',
+    purpose: 'Render missing evidence or missing context as an intentional state.',
+    requiredPayload: 'Human-authored title and description from the owning feature.',
+  },
+  {
+    variant: 'error-state',
+    purpose: 'Render unavailable status surfaces without implying evidence failure.',
+    requiredPayload: 'Human-authored title and description from the owning feature.',
+  },
+];
+
+export const PLATFORM_STATUS_INTEGRATION_CONTRACTS: PlatformStatusIntegrationContract[] = [
+  {
+    domain: 'simulation',
+    acceptedPayload: 'Replay/checksum readiness and source coverage from simulation runtime contracts.',
+    domainOwnership: 'Simulation code computes replay status, checksum validity, and protocol support.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and map the governed payload to labels and tones.',
+  },
+  {
+    domain: 'arena',
+    acceptedPayload: 'Official/preview evaluation, confidence, and source coverage from Arena evaluation contracts.',
+    domainOwnership: 'Arena code computes scoring mode, official boundary, and evidence completeness.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never decide official evaluation status.',
+  },
+  {
+    domain: 'learner-state',
+    acceptedPayload: 'Confidence, coverage, and privacy scope from learner-state services.',
+    domainOwnership: 'Learner-state code computes competency state, confidence, authorization, and freshness.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never derive learner state.',
+  },
+  {
+    domain: 'path',
+    acceptedPayload: 'Readiness, fallback reason, and source coverage from path planning services.',
+    domainOwnership: 'Path code computes recommendation readiness, prerequisites, and fallback decisions.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never choose a path or intervention.',
+  },
+  {
+    domain: 'konling',
+    acceptedPayload: 'Privacy scope, confidence, and fallback status from governed Konling payloads.',
+    domainOwnership: 'Konling code computes memory access policy, intervention state, and private context.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never expose private memory.',
+  },
+  {
+    domain: 'resource-node',
+    acceptedPayload: 'ResourceNode audit readiness and protocol status from resource graph contracts.',
+    domainOwnership: 'ResourceNode code computes node readiness, mapping status, and audit findings.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never mark resources plannable.',
+  },
+  {
+    domain: 'teacher-management',
+    acceptedPayload: 'Teacher-scoped source coverage and privacy status from management features.',
+    domainOwnership: 'Teacher feature code computes scoped roster, classroom, and student evidence authorization.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never bypass teacher policy checks.',
+  },
+  {
+    domain: 'experiment',
+    acceptedPayload: 'Preview, readiness, confidence, and fallback status from experiment contracts.',
+    domainOwnership: 'Experiment code computes protocol compatibility, rollout readiness, and result confidence.',
+    sharedPrimitiveRule: 'Shared primitives are display-only and never decide experiment validity.',
+  },
+];
 
 export const PLATFORM_SEMANTIC_TOKENS: PlatformSemanticToken[] = [
   { name: 'platform-canvas', category: 'canvas', purpose: 'Page background canvas for role and product workspaces.' },
@@ -123,6 +417,114 @@ export const PLATFORM_UI_GUARDRAILS = [
   'Course runtime, ResourceNode, Arena, simulation, adaptive, and governance business rules stay outside shared UI primitives.',
   `Rollback keeps legacy shells reachable when ${PLATFORM_SHELL_ROLLBACK_FLAG} is disabled.`,
 ] as const;
+
+const statusCategoryOrder = [
+  'confidence',
+  'sourceCoverage',
+  'privacy',
+  'replay',
+  'protocol',
+  'evaluation',
+  'readiness',
+  'fallback',
+] as const;
+
+const allowedStatusDetailScopes: Record<PlatformRole, readonly PlatformStatusRoleScope[]> = {
+  student: ['student-visible'],
+  teacher: ['student-visible', 'teacher-scoped'],
+  admin: ['student-visible', 'teacher-scoped', 'admin-scoped', 'system-internal'],
+  audit: ['student-visible', 'teacher-scoped', 'admin-scoped', 'audit-only'],
+};
+
+function uniqueTokenNames(tokenNames: readonly string[]) {
+  return Array.from(new Set(tokenNames));
+}
+
+function resolveStatusTone(categories: PlatformStatusCategories): PlatformStatusTone {
+  if (
+    categories.readiness === 'blocked' ||
+    categories.sourceCoverage === 'missing' ||
+    categories.sourceCoverage === 'unsupported' ||
+    categories.replay === 'missing' ||
+    categories.replay === 'unsupported' ||
+    categories.protocol === 'missing' ||
+    categories.protocol === 'unsupported'
+  ) {
+    return 'danger';
+  }
+  if (
+    categories.confidence === 'low' ||
+    categories.confidence === 'unknown' ||
+    categories.sourceCoverage === 'partial' ||
+    categories.sourceCoverage === 'stale' ||
+    categories.privacy === 'restricted' ||
+    categories.privacy === 'private' ||
+    categories.replay === 'partial' ||
+    categories.replay === 'stale' ||
+    categories.protocol === 'legacy' ||
+    categories.evaluation === 'preview' ||
+    categories.readiness === 'degraded' ||
+    categories.fallback !== 'none'
+  ) {
+    return 'warning';
+  }
+  if (categories.evaluation === 'official' && categories.readiness === 'ready') {
+    return 'success';
+  }
+  return 'info';
+}
+
+function statusCategoryLabel<TCategory extends keyof PlatformStatusCategories>(
+  category: TCategory,
+  status: PlatformStatusCategories[TCategory],
+) {
+  return PLATFORM_STATUS_LABELS[category][status as never];
+}
+
+function statusCategoryToken<TCategory extends keyof PlatformStatusCategories>(
+  category: TCategory,
+  status: PlatformStatusCategories[TCategory],
+) {
+  return PLATFORM_STATUS_TOKEN_MAP[category][status as never];
+}
+
+export function filterPlatformStatusDetailsForRole(
+  details: readonly PlatformStatusDetail[] = [],
+  role: PlatformRole,
+): PlatformStatusDetail[] {
+  const allowedScopes = new Set(allowedStatusDetailScopes[role]);
+  return details
+    .filter((detail) => allowedScopes.has(detail.roleScope))
+    .map((detail) => {
+      if (!detail.restricted && detail.roleScope !== 'system-internal') return { ...detail };
+      return {
+        ...detail,
+        restricted: true,
+        value: '受限内容不可在当前界面展示',
+      };
+    });
+}
+
+export function buildPlatformStatusViewModel(
+  payload: PlatformStatusPayload,
+  options: PlatformStatusRenderOptions,
+): PlatformStatusViewModel {
+  return {
+    id: payload.id,
+    label: payload.label,
+    summaryLabel: statusCategoryOrder
+      .map((category) => statusCategoryLabel(category, payload.categories[category]))
+      .join(' · '),
+    summary: payload.summary,
+    tone: resolveStatusTone(payload.categories),
+    tokenNames: uniqueTokenNames(
+      statusCategoryOrder.map((category) => statusCategoryToken(category, payload.categories[category])),
+    ),
+    sourceLabel: `${payload.source.domain}:${payload.source.capability}`,
+    details: filterPlatformStatusDetailsForRole(payload.details, options.role),
+    fallbackReason: payload.fallbackReason,
+  };
+}
 
 function sortNavigationItems(items: readonly PlatformNavigationItem[]): PlatformNavigationItem[] {
   return [...items]
