@@ -137,6 +137,7 @@ describe('adaptive experiment operations UI contracts', () => {
       'prerequisite:stage-1-path-contracts:stage-1-metrics-unstable',
     ]));
     expect(workspace.panels.find((panel) => panel.id === 'stage-2-prerequisites')?.status.categories.readiness).toBe('blocked');
+    expect(workspace.panels.find((panel) => panel.id === 'experiment-variant-outcomes')?.status.categories.readiness).toBe('blocked');
     expect(workspace.panels.find((panel) => panel.id === 'system-owned-issue-triage')?.availability).toBe('unavailable');
     expect(workspace.panels.find((panel) => panel.id === 'system-owned-issue-triage')?.status.categories.readiness).toBe('blocked');
     expect(workspace.memoryAudit[0]?.rawPayloadVisible).toBe(false);

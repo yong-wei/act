@@ -310,7 +310,9 @@ function variantOutcomePanel(
     id: 'experiment-variant-outcomes',
     title: '实验变体结果',
     availability: workspaceAvailability === 'enabled' ? 'enabled' : 'unavailable',
-    readiness: variants.size > 0 ? 'ready' : 'degraded',
+    readiness: workspaceAvailability === 'enabled'
+      ? (variants.size > 0 ? 'ready' : 'degraded')
+      : 'blocked',
     metric: `${variants.size} variants`,
     sourceCoverage: input.metricSummaries.length > 0 ? 'complete' : 'missing',
     confidence: workspaceConfidence(input.metricSummaries),
