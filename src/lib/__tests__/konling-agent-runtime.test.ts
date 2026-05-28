@@ -34,6 +34,7 @@ import {
   startKonlingToolRun,
   verifyKonlingRuntimeScope,
   type KonlingRuntimeScope,
+  type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 
@@ -70,6 +71,58 @@ function createStudentState() {
         isSuccessful: false,
       },
     ],
+  };
+}
+
+function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): KonlingRuntimeContext {
+  return {
+    pageContext: {
+      courseId: 'simulation',
+      courseTitle: '仿真',
+      pageType: 'simulation',
+      stepId: 'pid-default',
+      topic: 'PID 参数整定',
+      learningObjectives: [],
+      knowledgeType: 'S',
+    },
+    userProfile: {
+      id: 'student-1',
+      name: '张三',
+      learningStyle: 'INTERACTIVE',
+      cognitiveLevel: 3,
+      abilityVector: {
+        computational: 0.5,
+        crossDomain: 0.5,
+        design: 0.5,
+        analysis: 0.5,
+        evaluation: 0.5,
+      },
+    },
+    learnerState: null,
+    planContext: {
+      currentPathId: null,
+      activeNodeId: null,
+      nextNodeIds: [],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'missing',
+    },
+    memory: [],
+    permittedTools: [
+      'get_simulation_context',
+      'run_virtual_simulation',
+      'analyze_simulation_trace',
+      'compare_simulation_runs',
+      'propose_controller_patch',
+      'apply_controller_patch',
+    ],
+    missingContext: [],
+    featureFlags: {
+      learnerState: false,
+      semanticMemory: false,
+      strategyMemory: false,
+    },
+    ...overrides,
   };
 }
 
@@ -347,6 +400,660 @@ describe('konling agent runtime', () => {
     const status = await runtime.getSimulationStatus() as { unavailable: boolean; pidGains: { Kp: number | null } };
     expect(status.unavailable).toBe(true);
     expect(status.pidGains.Kp).toBeNull();
+  });
+
+  it('registers persisted simulation tool schemas, tiers, and idempotency boundaries', () => {
+    expect(KONLING_TOOL_REGISTRY.get_simulation_context).toMatchObject({
+      permissionTier: 'read',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TOOL_REGISTRY.run_virtual_simulation).toMatchObject({
+      permissionTier: 'run',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'reuse',
+    });
+    expect(KONLING_TOOL_REGISTRY.analyze_simulation_trace).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TOOL_REGISTRY.compare_simulation_runs).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TOOL_REGISTRY.propose_controller_patch).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'none',
+    });
+    expect(KONLING_TOOL_REGISTRY.apply_controller_patch).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'required',
+      idempotencyPolicy: 'reuse',
+    });
+
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    expect(tools).toHaveProperty('get_simulation_context');
+    expect(tools).toHaveProperty('run_virtual_simulation');
+    expect(tools).toHaveProperty('analyze_simulation_trace');
+    expect(tools).toHaveProperty('compare_simulation_runs');
+    expect(tools).toHaveProperty('propose_controller_patch');
+    expect(tools).toHaveProperty('apply_controller_patch');
+    expect((tools.run_virtual_simulation.parameters as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.apply_controller_patch.parameters as any).shape).toHaveProperty('idempotencyKey');
+  });
+
+  it('resolves simulation context from persisted runs with student owner isolation and no global state dependency', async () => {
+    updateSimulationState({
+      isRunning: true,
+      pidGains: { kp: 9, ki: 9, kd: 9 },
+    });
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'run-1',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: 'simulation',
+          pageId: 'pid-default',
+          resourceId: 'resource-1',
+          runKind: 'scene_simulation',
+          sourceDomain: 'simulation_scene',
+          sourceRefId: 'scene-run-1',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+          },
+          controllerSnapshotRef: 'controller:pid:hash-1',
+          status: 'completed',
+          summary: {
+            metrics: { settlingTime: 4.2 },
+            controller: { kp: 1.6 },
+            lowEvidence: false,
+          },
+          replayToken: 'replay-token-1',
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          sceneSpecVersion: 'scene-spec-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          startedAt: new Date('2026-05-28T00:00:01Z'),
+          completedAt: new Date('2026-05-28T00:00:08Z'),
+          traces: [
+            {
+              id: 'trace-1',
+              checksum: 'sha256:trace-1',
+              summaryMetrics: { settlingTime: 4.2 },
+              sampleCount: 160,
+              sampleCadence: 0.05,
+              sampleStorageUri: 's3://traces/run-1.json',
+              createdAt: new Date('2026-05-28T00:00:08Z'),
+            },
+          ],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    const context = await runtime.getSimulationContext({ simulationRunId: 'run-1' }) as Record<string, any>;
+
+    expect(db.simulationRun.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'run-1',
+        ownerUserId: 'student-1',
+      }),
+    }));
+    expect(context).toMatchObject({
+      simulationRunId: 'run-1',
+      accessScope: 'owner',
+      provenance: {
+        runKind: 'scene_simulation',
+        sourceDomain: 'simulation_scene',
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+      traceRef: {
+        traceId: 'trace-1',
+        sampleCount: 160,
+      },
+    });
+    expect(JSON.stringify(context)).not.toContain('"kp":9');
+  });
+
+  it('allows teacher class-scoped simulation reads without student impersonation or raw trace exposure', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      classId: 'class-1',
+      privacyScopes: ['student-visible', 'teacher-scoped'],
+    });
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'run-1',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: 'simulation',
+          pageId: 'pid-default',
+          runKind: 'scene_simulation',
+          sourceDomain: 'simulation_scene',
+          sourceRefId: 'scene-run-1',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+          },
+          status: 'completed',
+          summary: { metrics: { settlingTime: 4.2 } },
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          traces: [
+            {
+              id: 'trace-1',
+              checksum: 'sha256:trace-1',
+              summaryMetrics: { settlingTime: 4.2 },
+              sampleCount: 160,
+              sampleCadence: 0.05,
+              sampleStorageUri: 's3://traces/run-1.json',
+              createdAt: new Date('2026-05-28T00:00:08Z'),
+            },
+          ],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    const context = await runtime.getSimulationContext({ simulationRunId: 'run-1', includeTrace: true }) as Record<string, any>;
+
+    expect(db.simulationRun.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'run-1',
+        classId: 'class-1',
+      }),
+    }));
+    expect(JSON.stringify(db.simulationRun.findFirst.mock.calls)).not.toContain('"ownerUserId":"teacher-1"');
+    expect(context).toMatchObject({
+      accessScope: 'class-summary',
+      rawTraceIncluded: false,
+      traceRef: {
+        traceId: 'trace-1',
+        sampleStorageUri: 's3://traces/run-1.json',
+      },
+    });
+  });
+
+  it('analyzes traces, compares runs, and proposes patches from canonical simulation references', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const runRow = {
+      id: 'run-1',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'simulation',
+      pageId: 'pid-default',
+      runKind: 'arena_preview',
+      sourceDomain: 'arena_virtual_preview',
+      sourceRefId: 'arena-preview-1',
+      taskSpecSnapshot: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+      status: 'completed',
+      summary: { metrics: { overshoot: 0.28, settlingTime: 6.5 }, lowEvidence: false },
+      replayToken: 'preview-replay-token',
+      protocolVersion: '1.0',
+      runtimeVersion: 'simulation-runtime-v1',
+      modelVersion: 'nomoto-v1',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      traces: [
+        {
+          id: 'trace-1',
+          checksum: 'sha256:trace-1',
+          summaryMetrics: { overshoot: 0.28, settlingTime: 6.5 },
+          sampleCount: 160,
+          sampleCadence: 0.05,
+          sampleStorageUri: 's3://traces/run-1.json',
+          createdAt: new Date('2026-05-28T00:00:08Z'),
+        },
+      ],
+    };
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue(runRow),
+        findMany: vi.fn().mockResolvedValue([
+          runRow,
+          {
+            ...runRow,
+            id: 'run-2',
+            sourceRefId: 'arena-preview-2',
+            summary: { metrics: { overshoot: 0.12, settlingTime: 4.2 }, lowEvidence: false },
+          },
+        ]),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    const analysis = await runtime.analyzeSimulationTrace({ simulationRunId: 'run-1' }) as Record<string, any>;
+    expect(analysis).toMatchObject({
+      simulationRunId: 'run-1',
+      traceId: 'trace-1',
+      analyzer: {
+        summaryMetrics: { overshoot: 0.28, settlingTime: 6.5 },
+        sampleCount: 160,
+      },
+      rawTraceIncluded: false,
+    });
+
+    const comparison = await runtime.compareSimulationRuns({ simulationRunIds: ['run-1', 'run-2'] }) as Record<string, any>;
+    expect(comparison).toMatchObject({
+      comparedRunIds: ['run-1', 'run-2'],
+      runs: [
+        {
+          simulationRunId: 'run-1',
+          provenance: {
+            runKind: 'arena_preview',
+            sourceDomain: 'arena_virtual_preview',
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+          },
+        },
+        { simulationRunId: 'run-2' },
+      ],
+      rawTraceIncluded: false,
+    });
+
+    const proposal = await runtime.proposeControllerPatch({
+      simulationRunId: 'run-1',
+      objective: '降低超调并缩短调节时间',
+      targetMetrics: { 'controller.ki': 0.05 },
+      constraints: ['rudder_rate'],
+    }) as Record<string, any>;
+
+    expect(proposal).toMatchObject({
+      simulationRunId: 'run-1',
+      candidatePatch: expect.objectContaining({ kp: 0.9, ki: 0.05 }),
+      affectedControllerFields: expect.arrayContaining(['kp', 'ki']),
+      mutatesControllerDraft: false,
+      evidenceReferences: expect.arrayContaining([
+        { kind: 'SimulationRun', id: 'run-1' },
+        { kind: 'SimulationTrace', id: 'trace-1' },
+      ]),
+    });
+  });
+
+  it('creates idempotent virtual simulation runs through AgentToolRun and SimulationRun records', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['run_virtual_simulation'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          if (!where?.id) return null;
+          return {
+            id: where.id,
+            agentSessionId: 'agent-session-1',
+            ownerUserId: 'student-1',
+            actorUserId: 'student-1',
+            targetUserId: 'student-1',
+            toolName: 'run_virtual_simulation',
+            permissionTier: 'run',
+            approvalState: 'not_required',
+            status: 'running',
+            inputSummary: { idempotencyKey: 'run-key-1' },
+            outputSummary: null,
+            errorSummary: null,
+            idempotencyKey: 'run-key-1',
+            correlationId: 'corr-1',
+            startedAt: new Date('2026-05-28T00:00:00Z'),
+            completedAt: null,
+            latencyMs: null,
+          };
+        }),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-sim-1',
+          ...data,
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({ id: 'task-spec-1', ...data })),
+      },
+      simulationRun: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'run-agent-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+      },
+      simulationTrace: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'trace-agent-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:01Z'),
+        })),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.runVirtualSimulation({
+      idempotencyKey: 'run-key-1',
+      taskSpec: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        disturbancePolicy: { family: 'none' },
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+      controllerSnapshotRef: 'controller:pid:draft-1',
+      seed: 7,
+    })).resolves.toMatchObject({
+      simulationRunId: 'run-agent-1',
+      traceId: 'trace-agent-1',
+      provenance: {
+        runKind: 'agent_experiment',
+        sourceDomain: 'konling_agent',
+        evaluationVisibility: 'preview',
+      },
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        toolName: 'run_virtual_simulation',
+        ownerUserId: 'student-1',
+        idempotencyKey: 'run-key-1',
+      }),
+    }));
+    expect(db.simulationRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        ownerUserId: 'student-1',
+        classId: 'class-1',
+        runKind: 'agent_experiment',
+        sourceDomain: 'konling_agent',
+        summary: expect.objectContaining({
+          agentSessionId: 'agent-session-1',
+          agentToolRunId: 'tool-run-sim-1',
+        }),
+      }),
+    }));
+  });
+
+  it('reuses idempotent virtual simulation run output without creating duplicate runs', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['run_virtual_simulation'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'tool-run-sim-existing',
+          agentSessionId: 'agent-session-1',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          targetUserId: 'student-1',
+          toolName: 'run_virtual_simulation',
+          permissionTier: 'run',
+          approvalState: 'not_required',
+          status: 'succeeded',
+          inputSummary: { idempotencyKey: 'run-key-1' },
+          outputSummary: { simulationRunId: 'run-agent-existing', traceId: 'trace-agent-existing' },
+          errorSummary: null,
+          idempotencyKey: 'run-key-1',
+          correlationId: 'corr-existing',
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          completedAt: new Date('2026-05-28T00:00:01Z'),
+          latencyMs: 1000,
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      simulationRun: {
+        create: vi.fn(),
+      },
+      simulationTrace: {
+        create: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.runVirtualSimulation({
+      idempotencyKey: 'run-key-1',
+      taskSpec: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        disturbancePolicy: { family: 'none' },
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+    })).resolves.toMatchObject({
+      simulationRunId: 'run-agent-existing',
+      traceId: 'trace-agent-existing',
+    });
+    expect(db.simulationRun.create).not.toHaveBeenCalled();
+    expect(db.simulationTrace.create).not.toHaveBeenCalled();
+  });
+
+  it('requires approval before applying controller patches and applies approved patches to the scoped session draft', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['apply_controller_patch'],
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce({
+            id: 'tool-run-apply-patch',
+            ownerUserId: 'student-1',
+            actorUserId: 'student-1',
+            targetUserId: 'student-1',
+            agentSessionId: 'agent-session-1',
+            toolName: 'apply_controller_patch',
+            permissionTier: 'write',
+            approvalState: 'approved',
+            status: 'running',
+            inputSummary: {
+              simulationRunId: 'run-1',
+              patch: { kp: 1.9, ki: 0.04 },
+              rationale: '降低超调并保持调节时间',
+            },
+            outputSummary: null,
+            errorSummary: null,
+            idempotencyKey: 'patch-key-1',
+            correlationId: 'corr-1',
+            startedAt: new Date('2026-05-28T00:00:00Z'),
+            completedAt: null,
+            latencyMs: null,
+          }),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-apply-patch',
+          ...data,
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'run-1',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: 'simulation',
+          pageId: 'pid-default',
+          runKind: 'scene_simulation',
+          sourceDomain: 'simulation_scene',
+          sourceRefId: 'scene-run-1',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+          },
+          status: 'completed',
+          summary: { metrics: { settlingTime: 4.2 } },
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          traces: [],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext(),
+    });
+
+    const approval = await runtime.applyControllerPatch({
+      idempotencyKey: 'patch-key-1',
+      simulationRunId: 'run-1',
+      patch: { kp: 1.9, ki: 0.04 },
+      rationale: '降低超调并保持调节时间',
+    }) as { approvalRequired: boolean; toolRunId: string };
+
+    expect(approval).toMatchObject({
+      approvalRequired: true,
+      toolRunId: 'tool-run-apply-patch',
+      pendingControllerPatch: {
+        simulationRunId: 'run-1',
+        patch: { kp: 1.9, ki: 0.04 },
+      },
+    });
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'awaiting_approval',
+        pendingApproval: expect.objectContaining({
+          toolName: 'apply_controller_patch',
+          preview: expect.objectContaining({
+            pendingControllerPatch: expect.objectContaining({
+              simulationRunId: 'run-1',
+            }),
+          }),
+        }),
+      }),
+    }));
+
+    await expect(completeKonlingToolRun(db, {
+      scope,
+      toolRunId: 'tool-run-apply-patch',
+      output: { approvedBy: 'student-1' },
+      now: new Date('2026-05-28T00:00:01Z'),
+    })).resolves.toEqual({ success: true, status: 'succeeded' });
+
+    expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'agent-session-1',
+        ownerUserId: 'student-1',
+      }),
+      data: expect.objectContaining({
+        stateJson: expect.objectContaining({
+          controllerDraft: expect.objectContaining({
+            simulationRunId: 'run-1',
+            patch: { kp: 1.9, ki: 0.04 },
+            sourceToolRunId: 'tool-run-apply-patch',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects teacher controller patch writes before creating tool-run side effects', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      classId: 'class-1',
+      privacyScopes: ['student-visible', 'teacher-scoped'],
+    });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'teacher-1',
+          permittedTools: ['apply_controller_patch'],
+        }),
+        updateMany: vi.fn(),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      simulationRun: {
+        findFirst: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.applyControllerPatch({
+      idempotencyKey: 'teacher-patch-key',
+      simulationRunId: 'student-run-1',
+      patch: { kp: 1.5 },
+    })).rejects.toMatchObject({ status: 403 });
+    expect(db.simulationRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentSession.updateMany).not.toHaveBeenCalled();
   });
 
   it('keeps scoped simulation parameter and analysis tools without writing legacy pending changes', async () => {

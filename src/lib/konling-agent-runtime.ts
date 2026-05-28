@@ -1,7 +1,17 @@
+import { createHash } from 'node:crypto';
+
 import { z } from 'zod';
 import { tool } from 'ai';
 
 import { getStepAIContext } from '@/lib/course-ai-contexts';
+import {
+  authorizeSimulationRunAccess,
+  buildSimulationTaskSpec,
+  type SimulationAccessRole,
+  type SimulationRunEnvelopeV1,
+  type SimulationTaskSpecInputV1,
+  type SimulationTaskSpecV1,
+} from '@/resources/simulations/core/run-contract';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   isAdaptiveLearnerStateServiceEnabled,
@@ -38,6 +48,12 @@ export type KonlingToolName =
   | 'get_simulation_status'
   | 'set_simulation_params'
   | 'analyze_result'
+  | 'get_simulation_context'
+  | 'run_virtual_simulation'
+  | 'analyze_simulation_trace'
+  | 'compare_simulation_runs'
+  | 'propose_controller_patch'
+  | 'apply_controller_patch'
   | 'record_intervention_result'
   | 'analyze_attempt';
 
@@ -207,6 +223,17 @@ interface KonlingToolRuntimeInput {
   scopedSimulationState?: Partial<SimulationStateStore> | null;
 }
 
+type SimulationDbRun = Record<string, unknown>;
+type SimulationDbTrace = Record<string, unknown>;
+type SimulationDbTaskSpec = Record<string, unknown>;
+
+type SimulationContextInput = z.infer<typeof simulationContextParameters>;
+type RunVirtualSimulationInput = z.infer<typeof runVirtualSimulationParameters>;
+type AnalyzeSimulationTraceInput = z.infer<typeof analyzeSimulationTraceParameters>;
+type CompareSimulationRunsInput = z.infer<typeof compareSimulationRunsParameters>;
+type ProposeControllerPatchInput = z.infer<typeof proposeControllerPatchParameters>;
+type ApplyControllerPatchInput = z.infer<typeof applyControllerPatchParameters>;
+
 interface KonlingAgentSessionCreateInput {
   scope: KonlingRuntimeScope;
   phase: string;
@@ -278,6 +305,19 @@ export interface KonlingRuntimeDb {
     create?: (args: any) => Promise<unknown>;
     updateMany?: (args: any) => Promise<unknown>;
   };
+  simulationTaskSpec?: {
+    findFirst?: (args: any) => Promise<unknown | null>;
+    create?: (args: any) => Promise<unknown>;
+  };
+  simulationRun?: {
+    findFirst?: (args: any) => Promise<unknown | null>;
+    findMany?: (args: any) => Promise<unknown[]>;
+    create?: (args: any) => Promise<unknown>;
+  };
+  simulationTrace?: {
+    findFirst?: (args: any) => Promise<unknown | null>;
+    create?: (args: any) => Promise<unknown>;
+  };
   aIIntervention?: {
     findFirst?: (args: any) => Promise<unknown | null>;
     create?: (args: any) => Promise<unknown>;
@@ -319,6 +359,12 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'get_simulation_status',
   'set_simulation_params',
   'analyze_result',
+  'get_simulation_context',
+  'run_virtual_simulation',
+  'analyze_simulation_trace',
+  'compare_simulation_runs',
+  'propose_controller_patch',
+  'apply_controller_patch',
   'record_intervention_result',
   'analyze_attempt',
 ];
@@ -335,11 +381,82 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   get_simulation_status: toolRegistryEntry('get_simulation_status', 'read'),
   set_simulation_params: toolRegistryEntry('set_simulation_params', 'write', 'required', 'reuse'),
   analyze_result: toolRegistryEntry('analyze_result', 'analyze'),
+  get_simulation_context: toolRegistryEntry('get_simulation_context', 'read'),
+  run_virtual_simulation: toolRegistryEntry('run_virtual_simulation', 'run', 'none', 'reuse'),
+  analyze_simulation_trace: toolRegistryEntry('analyze_simulation_trace', 'analyze'),
+  compare_simulation_runs: toolRegistryEntry('compare_simulation_runs', 'analyze'),
+  propose_controller_patch: toolRegistryEntry('propose_controller_patch', 'analyze'),
+  apply_controller_patch: toolRegistryEntry('apply_controller_patch', 'write', 'required', 'reuse'),
   record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'required', 'reuse'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
 const KONLING_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128).optional();
+const KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128);
+const KONLING_IDEMPOTENCY_REQUIRED_TOOLS = new Set<KonlingToolName>([
+  'run_virtual_simulation',
+  'apply_controller_patch',
+]);
+
+const simulationTaskSpecParameters = z.object({
+  sceneId: z.string().min(1),
+  scenarioId: z.string().min(1),
+  objectives: z.array(z.string()).default([]),
+  constraints: z.array(z.string()).default([]),
+  disturbancePolicy: z.record(z.string(), z.unknown()).default({}),
+  evaluationSpecRef: z.object({
+    id: z.string().min(1),
+    visibility: z.enum(['preview', 'official', 'both']).optional(),
+  }),
+  allowedControllers: z.array(z.string()).default([]),
+  launchContext: z.record(z.string(), z.unknown()).optional(),
+});
+
+const simulationContextParameters = z.object({
+  simulationRunId: z.string().min(1).optional(),
+  taskSpecId: z.string().min(1).optional(),
+  includeTrace: z.boolean().optional(),
+});
+
+const runVirtualSimulationParameters = z.object({
+  idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
+  taskSpec: simulationTaskSpecParameters,
+  controllerSnapshotRef: z.string().min(1).optional(),
+  seed: z.number().int().nonnegative().optional(),
+  summaryMetrics: z.record(z.string(), z.unknown()).optional(),
+  trace: z.object({
+    checksum: z.string().min(1).optional(),
+    sampleCount: z.number().int().nonnegative().optional(),
+    sampleCadence: z.number().nonnegative().optional(),
+    sampleStorageUri: z.string().min(1).optional(),
+    summaryMetrics: z.record(z.string(), z.unknown()).optional(),
+  }).optional(),
+});
+
+const analyzeSimulationTraceParameters = z.object({
+  simulationRunId: z.string().min(1),
+  traceId: z.string().min(1).optional(),
+});
+
+const compareSimulationRunsParameters = z.object({
+  simulationRunIds: z.array(z.string().min(1)).min(2).max(6),
+});
+
+const controllerPatchParameters = z.record(z.string(), z.unknown());
+
+const proposeControllerPatchParameters = z.object({
+  simulationRunId: z.string().min(1),
+  objective: z.string().min(1).optional(),
+  targetMetrics: z.record(z.string(), z.unknown()).optional(),
+  constraints: z.array(z.string()).optional(),
+});
+
+const applyControllerPatchParameters = z.object({
+  idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
+  simulationRunId: z.string().min(1),
+  patch: controllerPatchParameters,
+  rationale: z.string().min(1).optional(),
+});
 
 export async function verifyKonlingRuntimeScope(
   db: KonlingRuntimeDb,
@@ -492,6 +609,63 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       assertSimulationScope(input.scope, Boolean(input.scopedSimulationState));
       return analyzeSimulationResult(args);
     }),
+    getSimulationContext: async (args: SimulationContextInput) =>
+      runKonlingRuntimeTool(input, 'get_simulation_context', args, async () => {
+        const parsed = simulationContextParameters.parse(args);
+        const run = await resolveScopedSimulationRun(input.db, input.scope, parsed);
+        return buildSimulationContextOutput(input.scope, run, { includeTrace: parsed.includeTrace === true });
+      }),
+    runVirtualSimulation: async (args: RunVirtualSimulationInput) => {
+      assertAgentSessionRequiredForPersistentSimulationTool(input, 'run_virtual_simulation');
+      assertOwnerSimulationWriteScope(input.scope);
+      return runKonlingRuntimeTool(input, 'run_virtual_simulation', args, async (toolRun) => {
+        const parsed = runVirtualSimulationParameters.parse(args);
+        return createKonlingVirtualSimulationRun(input.db, input.scope, parsed, {
+          agentSessionId: input.agentSessionId ?? null,
+          agentToolRunId: toolRun?.id ?? null,
+        });
+      });
+    },
+    analyzeSimulationTrace: async (args: AnalyzeSimulationTraceInput) =>
+      runKonlingRuntimeTool(input, 'analyze_simulation_trace', args, async () => {
+        const parsed = analyzeSimulationTraceParameters.parse(args);
+        const run = await resolveScopedSimulationRun(input.db, input.scope, {
+          simulationRunId: parsed.simulationRunId,
+          includeTrace: true,
+        });
+        const trace = await resolveScopedSimulationTrace(input.db, run, parsed.traceId);
+        return buildSimulationTraceAnalysisOutput(input.scope, run, trace);
+      }),
+    compareSimulationRuns: async (args: CompareSimulationRunsInput) =>
+      runKonlingRuntimeTool(input, 'compare_simulation_runs', args, async () => {
+        const parsed = compareSimulationRunsParameters.parse(args);
+        const runs = await resolveScopedSimulationRuns(input.db, input.scope, parsed.simulationRunIds);
+        return buildSimulationComparisonOutput(input.scope, runs);
+      }),
+    proposeControllerPatch: async (args: ProposeControllerPatchInput) =>
+      runKonlingRuntimeTool(input, 'propose_controller_patch', args, async () => {
+        const parsed = proposeControllerPatchParameters.parse(args);
+        const run = await resolveScopedSimulationRun(input.db, input.scope, {
+          simulationRunId: parsed.simulationRunId,
+          includeTrace: true,
+        });
+        return buildControllerPatchProposal(input.scope, run, parsed);
+      }),
+    applyControllerPatch: async (args: ApplyControllerPatchInput) => {
+      assertAgentSessionRequiredForPersistentSimulationTool(input, 'apply_controller_patch');
+      assertOwnerSimulationWriteScope(input.scope);
+      return runKonlingRuntimeTool(input, 'apply_controller_patch', args, async () => {
+        const parsed = applyControllerPatchParameters.parse(args);
+        const run = await resolveScopedSimulationRun(input.db, input.scope, {
+          simulationRunId: parsed.simulationRunId,
+          includeTrace: true,
+        });
+        return {
+          applied: true,
+          pendingControllerPatch: buildPendingControllerPatch(input.scope, run, parsed),
+        };
+      });
+    },
     recordInterventionResult: async (args: {
       interventionId: string;
       feedback: KonlingInterventionFeedback;
@@ -713,6 +887,9 @@ export async function completeKonlingToolRun(
     completedAt: now,
     latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
   });
+  if (getString(toolRun, 'toolName') === 'apply_controller_patch') {
+    await applyApprovedControllerPatchToSession(db, input.scope, input.toolRunId, toolRun);
+  }
   return { success: true, status: 'succeeded' };
 }
 
@@ -735,7 +912,7 @@ async function runKonlingRuntimeTool<T>(
   runtimeInput: KonlingToolRuntimeInput,
   toolName: KonlingToolName,
   toolInput: unknown,
-  effect: () => Promise<T>,
+  effect: (toolRun?: KonlingToolRunView) => Promise<T>,
 ) {
   const agentSessionId = runtimeInput.agentSessionId;
   if (!agentSessionId) {
@@ -795,7 +972,7 @@ async function runKonlingRuntimeTool<T>(
   }
 
   try {
-    const result = await effect();
+    const result = await effect(toolRun);
     await completeKonlingToolRun(runtimeInput.db, {
       scope: runtimeInput.scope,
       toolRunId: toolRun.id,
@@ -817,9 +994,38 @@ async function validateKonlingToolPreflight(
   toolName: KonlingToolName,
   toolInput: unknown,
 ) {
+  requireIdempotencyKeyForTool(toolName, toolInput);
   if (toolName === 'set_simulation_params') {
     assertSimulationScope(runtimeInput.scope, Boolean(runtimeInput.scopedSimulationState));
     buildSimulationParamChangeRequest(readRecord(toolInput) as SimulationParamChangeInput);
+    return;
+  }
+  if (toolName === 'run_virtual_simulation') {
+    runVirtualSimulationParameters.parse(toolInput);
+    return;
+  }
+  if (toolName === 'get_simulation_context') {
+    simulationContextParameters.parse(toolInput);
+    return;
+  }
+  if (toolName === 'analyze_simulation_trace') {
+    analyzeSimulationTraceParameters.parse(toolInput);
+    return;
+  }
+  if (toolName === 'compare_simulation_runs') {
+    compareSimulationRunsParameters.parse(toolInput);
+    return;
+  }
+  if (toolName === 'propose_controller_patch') {
+    proposeControllerPatchParameters.parse(toolInput);
+    return;
+  }
+  if (toolName === 'apply_controller_patch') {
+    const parsed = applyControllerPatchParameters.parse(toolInput);
+    await resolveScopedSimulationRun(runtimeInput.db, runtimeInput.scope, {
+      simulationRunId: parsed.simulationRunId,
+      includeTrace: true,
+    });
     return;
   }
   if (toolName === 'record_intervention_result') {
@@ -832,6 +1038,17 @@ function buildKonlingApprovalPreview(
   toolName: KonlingToolName,
   toolInput: unknown,
 ): Record<string, unknown> | null {
+  if (toolName === 'apply_controller_patch') {
+    const input = applyControllerPatchParameters.parse(toolInput);
+    return {
+      pendingControllerPatch: {
+        simulationRunId: input.simulationRunId,
+        patch: input.patch,
+        rationale: input.rationale ?? null,
+        scope: buildToolScopeRef(runtimeInput.scope),
+      },
+    };
+  }
   if (toolName !== 'set_simulation_params') return null;
   const request = buildSimulationParamChangeRequest(readRecord(toolInput) as SimulationParamChangeInput);
   return {
@@ -891,6 +1108,575 @@ async function assertInterventionFeedbackScope(
   }
 }
 
+function requireIdempotencyKeyForTool(toolName: KonlingToolName, toolInput: unknown) {
+  if (!KONLING_IDEMPOTENCY_REQUIRED_TOOLS.has(toolName)) return;
+  const idempotencyKey = getString(readRecord(toolInput), 'idempotencyKey');
+  if (!idempotencyKey) {
+    throw new KonlingRuntimeScopeError(400, `Konling 工具 ${toolName} 需要 idempotencyKey。`);
+  }
+}
+
+function assertAgentSessionRequiredForPersistentSimulationTool(
+  input: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+) {
+  if (input.agentSessionId) return;
+  throw new KonlingRuntimeScopeError(400, `Konling 工具 ${toolName} 必须通过 AgentSession 和 AgentToolRun 执行。`);
+}
+
+function assertOwnerSimulationWriteScope(scope: KonlingRuntimeScope) {
+  if (scope.role === 'student' && scope.authenticatedUserId === scope.targetUserId) return;
+  throw new KonlingRuntimeScopeError(403, 'Konling 仿真写入工具只能作用于 owner user，教师 class scope 不能 impersonate 学生执行写入。');
+}
+
+async function resolveScopedSimulationRun(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  input: Pick<SimulationContextInput, 'simulationRunId' | 'taskSpecId' | 'includeTrace'>,
+): Promise<SimulationDbRun> {
+  if (!input.simulationRunId && !input.taskSpecId) {
+    throw new KonlingRuntimeScopeError(400, '必须提供 simulationRunId 或 taskSpecId。');
+  }
+  const where = buildSimulationRunScopeWhere(scope, {
+    simulationRunId: input.simulationRunId,
+    taskSpecId: input.taskSpecId,
+  });
+  const run = await db.simulationRun?.findFirst?.({
+    where,
+    include: {
+      taskSpec: true,
+      traces: {
+        orderBy: { createdAt: 'desc' },
+        take: input.includeTrace ? 1 : 1,
+      },
+    },
+  });
+  if (!run) {
+    throw new KonlingRuntimeScopeError(404, 'SimulationRun 不存在或不属于当前 Konling 仿真作用域。');
+  }
+  assertSimulationRunAccess(scope, run as SimulationDbRun);
+  return run as SimulationDbRun;
+}
+
+async function resolveScopedSimulationRuns(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  simulationRunIds: string[],
+): Promise<SimulationDbRun[]> {
+  const uniqueIds = Array.from(new Set(simulationRunIds));
+  const runs = await db.simulationRun?.findMany?.({
+    where: {
+      ...buildSimulationRunScopeWhere(scope, {}),
+      id: { in: uniqueIds },
+    },
+    include: {
+      taskSpec: true,
+      traces: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+  if (!runs || runs.length !== uniqueIds.length) {
+    throw new KonlingRuntimeScopeError(404, '部分 SimulationRun 不存在或不属于当前 Konling 仿真作用域。');
+  }
+  for (const run of runs) {
+    assertSimulationRunAccess(scope, run as SimulationDbRun);
+  }
+  return runs as SimulationDbRun[];
+}
+
+function buildSimulationRunScopeWhere(
+  scope: KonlingRuntimeScope,
+  input: { simulationRunId?: string | null; taskSpecId?: string | null },
+) {
+  const base: Record<string, unknown> = {
+    ...(input.simulationRunId ? { id: input.simulationRunId } : {}),
+    ...(input.taskSpecId ? { taskSpecId: input.taskSpecId } : {}),
+  };
+  if (scope.role === 'student') {
+    return {
+      ...base,
+      ownerUserId: scope.targetUserId,
+    };
+  }
+  if (scope.role === 'teacher') {
+    if (!scope.classId) {
+      throw new KonlingRuntimeScopeError(400, '教师读取 Konling 仿真工具必须提供 classId。');
+    }
+    return {
+      ...base,
+      classId: scope.classId,
+    };
+  }
+  return base;
+}
+
+function assertSimulationRunAccess(scope: KonlingRuntimeScope, run: SimulationDbRun) {
+  const decision = authorizeSimulationRunAccess({
+    requester: {
+      userId: scope.authenticatedUserId,
+      role: toSimulationAccessRole(scope.role),
+      classIds: scope.classId ? [scope.classId] : [],
+      allowRawTraceAudit: scope.role === 'admin',
+    },
+    run: toSimulationRunEnvelope(run),
+  });
+  if (!decision.allowed) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
+  }
+  return decision;
+}
+
+async function resolveScopedSimulationTrace(
+  db: KonlingRuntimeDb,
+  run: SimulationDbRun,
+  traceId?: string | null,
+): Promise<SimulationDbTrace | null> {
+  const traces = arrayOfRecords(getValue(run, 'traces'));
+  if (traceId) {
+    const inlineTrace = traces.find((trace) => getString(trace, 'id') === traceId);
+    if (inlineTrace) return inlineTrace;
+    const storedTrace = await db.simulationTrace?.findFirst?.({
+      where: {
+        id: traceId,
+        runId: getString(run, 'id'),
+      },
+    });
+    return storedTrace ? storedTrace as SimulationDbTrace : null;
+  }
+  return traces[0] ?? null;
+}
+
+function buildSimulationContextOutput(
+  scope: KonlingRuntimeScope,
+  run: SimulationDbRun,
+  options: { includeTrace: boolean },
+) {
+  const decision = assertSimulationRunAccess(scope, run);
+  const trace = arrayOfRecords(getValue(run, 'traces'))[0] ?? null;
+  return {
+    simulationRunId: getString(run, 'id'),
+    accessScope: decision.scope,
+    ownerUserId: getString(run, 'ownerUserId') || null,
+    classId: getString(run, 'classId') || null,
+    task: compactSimulationTaskSpec(readSimulationTaskSpec(run)),
+    controllerSnapshotRef: getString(run, 'controllerSnapshotRef') || null,
+    status: getString(run, 'status'),
+    summary: readRecord(getValue(run, 'summary')),
+    replay: {
+      replayToken: getString(run, 'replayToken') || null,
+      replayState: getString(run, 'status') === 'completed' ? 'available' : 'not_ready',
+    },
+    provenance: buildSimulationProvenance(run),
+    evidenceStatus: buildSimulationEvidenceStatus(run, trace),
+    traceRef: trace ? formatSimulationTraceRef(trace) : null,
+    rawTraceIncluded: options.includeTrace && decision.rawTraceAllowed,
+  };
+}
+
+async function createKonlingVirtualSimulationRun(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  input: RunVirtualSimulationInput,
+  refs: { agentSessionId: string | null; agentToolRunId: string | null },
+) {
+  const taskSpec = buildScopedSimulationTaskSpec(scope, input.taskSpec, refs.agentSessionId);
+  const taskSpecRow = await resolveOrCreateSimulationTaskSpec(db, taskSpec);
+  const sourceRefId = `konling:${refs.agentSessionId ?? 'no-session'}:${refs.agentToolRunId ?? input.idempotencyKey}`;
+  const summaryMetrics = input.summaryMetrics ?? input.trace?.summaryMetrics ?? {};
+  const summary = {
+    metrics: summaryMetrics,
+    agentSessionId: refs.agentSessionId,
+    agentToolRunId: refs.agentToolRunId,
+    provenance: {
+      runKind: 'agent_experiment',
+      sourceDomain: 'konling_agent',
+      evaluationVisibility: taskSpec.evaluationSpecRef.visibility ?? 'preview',
+    },
+    lowEvidence: Object.keys(summaryMetrics).length === 0,
+  };
+  const run = await db.simulationRun?.create?.({
+    data: {
+      ownerUserId: scope.targetUserId,
+      classId: scope.classId ?? null,
+      courseId: scope.courseId,
+      resourceId: scope.resourceId ?? null,
+      sessionId: refs.agentSessionId,
+      runKind: 'agent_experiment',
+      sourceDomain: 'konling_agent',
+      sourceRefId,
+      taskSpecId: getString(taskSpecRow, 'id') || null,
+      taskSpecSnapshot: taskSpec,
+      controllerSnapshotRef: input.controllerSnapshotRef ?? null,
+      status: 'completed',
+      summary,
+      replayToken: `konling-replay:${sourceRefId}`,
+      seed: typeof input.seed === 'number' ? BigInt(input.seed) : null,
+      protocolVersion: '1.0',
+      runtimeVersion: 'konling-simulation-tool-v1',
+      modelVersion: taskSpec.scenarioId,
+      sceneSpecVersion: taskSpec.sceneId,
+      startedAt: new Date(),
+      completedAt: new Date(),
+    },
+  });
+  if (!run) {
+    throw new KonlingRuntimeScopeError(404, 'SimulationRun 存储不可用。');
+  }
+  const trace = await db.simulationTrace?.create?.({
+    data: {
+      runId: getString(run, 'id'),
+      protocolVersion: '1.0',
+      runtimeVersion: 'konling-simulation-tool-v1',
+      modelVersion: taskSpec.scenarioId,
+      seed: typeof input.seed === 'number' ? BigInt(input.seed) : null,
+      checksum: input.trace?.checksum ?? hashSimulationValue({ sourceRefId, summaryMetrics }),
+      summaryMetrics,
+      sampleCount: input.trace?.sampleCount ?? 0,
+      sampleCadence: input.trace?.sampleCadence ?? 0,
+      sampleStorageUri: input.trace?.sampleStorageUri ?? null,
+    },
+  });
+  return {
+    simulationRunId: getString(run, 'id'),
+    traceId: trace ? getString(trace, 'id') : null,
+    status: getString(run, 'status'),
+    summary,
+    provenance: buildSimulationProvenance(run as SimulationDbRun, taskSpec),
+    evidenceStatus: buildSimulationEvidenceStatus(run as SimulationDbRun, trace as SimulationDbTrace | null),
+  };
+}
+
+function buildScopedSimulationTaskSpec(
+  scope: KonlingRuntimeScope,
+  input: RunVirtualSimulationInput['taskSpec'],
+  agentSessionId: string | null,
+): SimulationTaskSpecV1 {
+  const launchContext = {
+    ...(input.launchContext ?? {}),
+    courseId: scope.courseId,
+    classId: scope.classId ?? undefined,
+    resourceId: scope.resourceId ?? undefined,
+    pageId: scope.pageId,
+    agentSessionId: agentSessionId ?? undefined,
+  };
+  return buildSimulationTaskSpec({
+    ...(input as SimulationTaskSpecInputV1),
+    launchContext,
+  });
+}
+
+async function resolveOrCreateSimulationTaskSpec(db: KonlingRuntimeDb, taskSpec: SimulationTaskSpecV1) {
+  const existing = await db.simulationTaskSpec?.findFirst?.({
+    where: { specHash: taskSpec.specHash },
+  });
+  if (existing) return existing as SimulationDbTaskSpec;
+  const created = await db.simulationTaskSpec?.create?.({
+    data: {
+      schemaVersion: taskSpec.schemaVersion,
+      sceneId: taskSpec.sceneId,
+      scenarioId: taskSpec.scenarioId,
+      specHash: taskSpec.specHash,
+      payload: taskSpec,
+      launchContext: taskSpec.launchContext,
+    },
+  });
+  if (!created) {
+    throw new KonlingRuntimeScopeError(404, 'SimulationTaskSpec 存储不可用。');
+  }
+  return created as SimulationDbTaskSpec;
+}
+
+function buildSimulationTraceAnalysisOutput(
+  scope: KonlingRuntimeScope,
+  run: SimulationDbRun,
+  trace: SimulationDbTrace | null,
+) {
+  const context = buildSimulationContextOutput(scope, run, { includeTrace: true });
+  return {
+    simulationRunId: context.simulationRunId,
+    traceId: trace ? getString(trace, 'id') : null,
+    accessScope: context.accessScope,
+    analyzer: {
+      summaryMetrics: trace ? readRecord(getValue(trace, 'summaryMetrics')) : context.summary,
+      sampleCount: trace ? getNumber(trace, 'sampleCount') : 0,
+      lowEvidence: context.evidenceStatus.lowEvidence,
+      confidence: context.evidenceStatus.lowEvidence ? 'low' : 'medium',
+    },
+    provenance: context.provenance,
+    evidenceReferences: [
+      { kind: 'SimulationRun', id: context.simulationRunId },
+      ...(trace ? [{ kind: 'SimulationTrace', id: getString(trace, 'id') }] : []),
+    ],
+    rawTraceIncluded: false,
+  };
+}
+
+function buildSimulationComparisonOutput(scope: KonlingRuntimeScope, runs: SimulationDbRun[]) {
+  const summaries = runs.map((run) => buildSimulationContextOutput(scope, run, { includeTrace: false }));
+  return {
+    comparedRunIds: summaries.map((summary) => summary.simulationRunId),
+    accessScope: summaries[0]?.accessScope ?? 'none',
+    runs: summaries.map((summary) => ({
+      simulationRunId: summary.simulationRunId,
+      status: summary.status,
+      summary: summary.summary,
+      provenance: summary.provenance,
+      evidenceStatus: summary.evidenceStatus,
+      replay: summary.replay,
+    })),
+    lowConfidenceRunIds: summaries
+      .filter((summary) => summary.evidenceStatus.lowEvidence)
+      .map((summary) => summary.simulationRunId),
+    rawTraceIncluded: false,
+  };
+}
+
+function buildControllerPatchProposal(
+  scope: KonlingRuntimeScope,
+  run: SimulationDbRun,
+  input: ProposeControllerPatchInput,
+) {
+  const context = buildSimulationContextOutput(scope, run, { includeTrace: false });
+  const metrics = readRecord(getValue(context.summary, 'metrics')) || context.summary;
+  const candidatePatch = inferControllerPatch(metrics, input.targetMetrics ?? {});
+  return {
+    simulationRunId: context.simulationRunId,
+    candidatePatch,
+    rationale: input.objective ?? '基于当前仿真摘要生成控制器草稿补丁候选。',
+    affectedControllerFields: Object.keys(candidatePatch),
+    expectedTradeoffs: input.constraints ?? [],
+    evidenceReferences: [
+      { kind: 'SimulationRun', id: context.simulationRunId },
+      ...(context.traceRef ? [{ kind: 'SimulationTrace', id: context.traceRef.traceId }] : []),
+    ],
+    provenance: context.provenance,
+    mutatesControllerDraft: false,
+  };
+}
+
+function buildPendingControllerPatch(
+  scope: KonlingRuntimeScope,
+  run: SimulationDbRun,
+  input: ApplyControllerPatchInput,
+) {
+  return {
+    simulationRunId: input.simulationRunId,
+    patch: input.patch,
+    rationale: input.rationale ?? null,
+    scope: buildToolScopeRef(scope),
+    provenance: buildSimulationProvenance(run),
+  };
+}
+
+async function applyApprovedControllerPatchToSession(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  toolRunId: string,
+  toolRun: unknown,
+) {
+  const input = readRecord(getValue(toolRun, 'inputSummary'));
+  const patch = readRecord(getValue(input, 'patch'));
+  const simulationRunId = getString(input, 'simulationRunId');
+  if (!simulationRunId || Object.keys(patch).length === 0) {
+    throw new KonlingRuntimeScopeError(400, '批准的 controller patch 缺少 simulationRunId 或 patch。');
+  }
+  const agentSessionId = getString(toolRun, 'agentSessionId');
+  const result = await db.agentSession?.updateMany?.({
+    where: buildAgentSessionScopeWhere(scope, agentSessionId),
+    data: {
+      stateJson: {
+        controllerDraft: {
+          simulationRunId,
+          patch,
+          rationale: getString(input, 'rationale') || null,
+          sourceToolRunId: toolRunId,
+          appliedAt: new Date().toISOString(),
+        },
+      },
+      pendingApproval: null,
+    },
+  });
+  const updatedCount = typeof getValue(result, 'count') === 'number' ? getValue(result, 'count') as number : 0;
+  if (updatedCount !== 1) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
+  }
+}
+
+function toSimulationRunEnvelope(run: SimulationDbRun): SimulationRunEnvelopeV1 {
+  const taskSpec = readSimulationTaskSpec(run);
+  return {
+    id: getString(run, 'id'),
+    ownerUserId: getString(run, 'ownerUserId') || null,
+    classId: getString(run, 'classId') || null,
+    courseId: getString(run, 'courseId') || null,
+    sessionId: getString(run, 'sessionId') || null,
+    resourceId: getString(run, 'resourceId') || null,
+    publicationId: getString(run, 'publicationId') || null,
+    runKind: normalizeSimulationRunKind(getString(run, 'runKind')),
+    sourceDomain: normalizeSimulationSourceDomain(getString(run, 'sourceDomain')),
+    sourceRefId: getString(run, 'sourceRefId'),
+    taskSpec,
+    controllerSnapshotRef: getString(run, 'controllerSnapshotRef') || null,
+    status: normalizeSimulationRunStatus(getString(run, 'status')),
+    summary: readRecord(getValue(run, 'summary')),
+    replayToken: getString(run, 'replayToken') || null,
+    seed: getBigIntNumberOrNull(getValue(run, 'seed')),
+    protocolVersion: getString(run, 'protocolVersion') || '1.0',
+    runtimeVersion: getString(run, 'runtimeVersion') || 'unknown',
+    modelVersion: getString(run, 'modelVersion') || 'unknown',
+    sceneSpecVersion: getString(run, 'sceneSpecVersion') || null,
+    createdAt: toIsoOrNull(getValue(run, 'createdAt')) ?? new Date(0).toISOString(),
+    startedAt: toIsoOrNull(getValue(run, 'startedAt')),
+    completedAt: toIsoOrNull(getValue(run, 'completedAt')),
+  };
+}
+
+function readSimulationTaskSpec(run: SimulationDbRun): SimulationTaskSpecV1 {
+  const relatedTaskSpec = readRecord(getValue(run, 'taskSpec'));
+  const relatedPayload = readRecord(getValue(relatedTaskSpec, 'payload'));
+  const snapshot = readRecord(getValue(run, 'taskSpecSnapshot'));
+  const candidate = Object.keys(relatedPayload).length > 0 ? relatedPayload : snapshot;
+  return normalizeSimulationTaskSpec(candidate);
+}
+
+function normalizeSimulationTaskSpec(value: Record<string, unknown>): SimulationTaskSpecV1 {
+  if (getString(value, 'schemaVersion') === 'simulation-task-spec-v1' && getString(value, 'specHash')) {
+    return value as unknown as SimulationTaskSpecV1;
+  }
+  return buildSimulationTaskSpec({
+    sceneId: getString(value, 'sceneId') || 'unknown-scene',
+    scenarioId: getString(value, 'scenarioId') || 'unknown-scenario',
+    objectives: arrayOfStrings(getValue(value, 'objectives')),
+    constraints: arrayOfStrings(getValue(value, 'constraints')),
+    disturbancePolicy: readRecord(getValue(value, 'disturbancePolicy')),
+    evaluationSpecRef: {
+      id: getString(readRecord(getValue(value, 'evaluationSpecRef')), 'id') || 'unknown-evaluation',
+      visibility: normalizeEvaluationVisibility(getString(readRecord(getValue(value, 'evaluationSpecRef')), 'visibility')),
+    },
+    allowedControllers: arrayOfStrings(getValue(value, 'allowedControllers')),
+    launchContext: readRecord(getValue(value, 'launchContext')),
+  });
+}
+
+function compactSimulationTaskSpec(taskSpec: SimulationTaskSpecV1) {
+  return {
+    taskSpecHash: taskSpec.specHash,
+    sceneId: taskSpec.sceneId,
+    scenarioId: taskSpec.scenarioId,
+    objectives: taskSpec.objectives,
+    constraints: taskSpec.constraints,
+    evaluationSpecRef: taskSpec.evaluationSpecRef,
+    allowedControllers: taskSpec.allowedControllers,
+    launchContext: taskSpec.launchContext,
+  };
+}
+
+function buildSimulationProvenance(run: SimulationDbRun, taskSpecInput?: SimulationTaskSpecV1) {
+  const summary = readRecord(getValue(run, 'summary'));
+  const previewBoundary = readRecord(getValue(summary, 'previewBoundary'));
+  const taskSpec = taskSpecInput ?? readSimulationTaskSpec(run);
+  const evaluationVisibility =
+    normalizeEvaluationVisibility(getString(previewBoundary, 'evaluationVisibility')) ??
+    taskSpec.evaluationSpecRef.visibility ??
+    'preview';
+  const runKind = getString(run, 'runKind') || 'agent_experiment';
+  const sourceDomain = getString(run, 'sourceDomain') || 'konling_agent';
+  const officialEligible =
+    getValue(previewBoundary, 'officialEligible') === true ||
+    evaluationVisibility === 'official' ||
+    sourceDomain === 'arena_official_evaluation';
+  return {
+    runKind,
+    sourceDomain,
+    sourceRefId: getString(run, 'sourceRefId') || null,
+    evaluationVisibility,
+    officialEligible,
+    previewOnly: evaluationVisibility === 'preview' || officialEligible === false,
+    courseId: getString(run, 'courseId') || null,
+    classId: getString(run, 'classId') || null,
+    resourceId: getString(run, 'resourceId') || null,
+    publicationId: getString(run, 'publicationId') || null,
+  };
+}
+
+function buildSimulationEvidenceStatus(run: SimulationDbRun, trace: SimulationDbTrace | null) {
+  const summary = readRecord(getValue(run, 'summary'));
+  const lowEvidence = getValue(summary, 'lowEvidence') === true || !trace;
+  return {
+    lowEvidence,
+    confidence: lowEvidence ? 'low' : 'medium',
+    traceAvailable: Boolean(trace),
+    replayAvailable: Boolean(getString(run, 'replayToken')),
+  };
+}
+
+function formatSimulationTraceRef(trace: SimulationDbTrace) {
+  return {
+    traceId: getString(trace, 'id'),
+    checksum: getString(trace, 'checksum') || null,
+    sampleCount: getNumber(trace, 'sampleCount'),
+    sampleCadence: getNumber(trace, 'sampleCadence'),
+    sampleStorageUri: getString(trace, 'sampleStorageUri') || null,
+    summaryMetrics: readRecord(getValue(trace, 'summaryMetrics')),
+    createdAt: toIsoOrNull(getValue(trace, 'createdAt')),
+  };
+}
+
+function inferControllerPatch(
+  metrics: Record<string, unknown>,
+  targetMetrics: Record<string, unknown>,
+) {
+  const patch: Record<string, unknown> = {};
+  if (typeof metrics.overshoot === 'number' && metrics.overshoot > 0.2) patch.kp = 0.9;
+  if (typeof metrics.settlingTime === 'number' && metrics.settlingTime > 5) patch.ki = 0.05;
+  for (const [key, value] of Object.entries(targetMetrics)) {
+    if (key.startsWith('controller.')) {
+      patch[key.slice('controller.'.length)] = value;
+    }
+  }
+  return Object.keys(patch).length > 0 ? patch : { kp: 1, ki: 0, kd: 0 };
+}
+
+function toSimulationAccessRole(role: AdaptiveLearnerStateRole): SimulationAccessRole {
+  if (role === 'teacher') return 'TEACHER';
+  if (role === 'admin' || role === 'system') return 'ADMIN';
+  return 'STUDENT';
+}
+
+function normalizeSimulationRunKind(value: string): SimulationRunEnvelopeV1['runKind'] {
+  if (value === 'arena_preview' || value === 'teacher_batch' || value === 'agent_experiment') return value;
+  return 'scene_simulation';
+}
+
+function normalizeSimulationSourceDomain(value: string): SimulationRunEnvelopeV1['sourceDomain'] {
+  if (
+    value === 'arena_virtual_preview' ||
+    value === 'arena_official_evaluation' ||
+    value === 'konling_agent' ||
+    value === 'teacher_batch'
+  ) {
+    return value;
+  }
+  return 'simulation_scene';
+}
+
+function normalizeSimulationRunStatus(value: string): SimulationRunEnvelopeV1['status'] {
+  if (value === 'queued' || value === 'running' || value === 'failed' || value === 'abandoned') return value;
+  return 'completed';
+}
+
+function normalizeEvaluationVisibility(value: string): 'preview' | 'official' | 'both' | undefined {
+  if (value === 'official' || value === 'both') return value;
+  if (value === 'preview') return 'preview';
+  return undefined;
+}
+
+function hashSimulationValue(value: unknown) {
+  return `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
+}
+
 export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlingToolRuntime>) {
   const tools = {
     get_page_context: tool({
@@ -945,6 +1731,36 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       description: '分析当前资源范围内的仿真结果，给出控制性能、安全性与参数建议。',
       parameters: analyzeResultTool.parameters,
       execute: (args) => runtime.analyzeResult(args),
+    }),
+    get_simulation_context: tool({
+      description: '读取持久化 SimulationRun 或 SimulationTaskSpec 的仿真上下文摘要。',
+      parameters: simulationContextParameters,
+      execute: (args) => runtime.getSimulationContext(args),
+    }),
+    run_virtual_simulation: tool({
+      description: '通过持久化 SimulationRun 和 SimulationTrace 创建一次幂等虚拟仿真运行。',
+      parameters: runVirtualSimulationParameters,
+      execute: (args) => runtime.runVirtualSimulation(args),
+    }),
+    analyze_simulation_trace: tool({
+      description: '基于持久化 SimulationTrace 摘要分析仿真表现，默认不暴露高频原始样本。',
+      parameters: analyzeSimulationTraceParameters,
+      execute: (args) => runtime.analyzeSimulationTrace(args),
+    }),
+    compare_simulation_runs: tool({
+      description: '比较同一授权 owner 或班级范围内的多个持久化仿真运行。',
+      parameters: compareSimulationRunsParameters,
+      execute: (args) => runtime.compareSimulationRuns(args),
+    }),
+    propose_controller_patch: tool({
+      description: '基于仿真证据提出控制器补丁候选，不直接改变控制器草稿。',
+      parameters: proposeControllerPatchParameters,
+      execute: (args) => runtime.proposeControllerPatch(args),
+    }),
+    apply_controller_patch: tool({
+      description: '申请将控制器补丁写入当前 owner 的控制器草稿，必须等待 approval。',
+      parameters: applyControllerPatchParameters,
+      execute: (args) => runtime.applyControllerPatch(args),
     }),
     record_intervention_result: tool({
       description: '记录学生对 Konling 干预的接受、忽略或评分结果；AI 工具路径只创建待审批请求，不替学生直接确认。',
@@ -1795,6 +2611,12 @@ function arrayOfStrings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
+function arrayOfRecords(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
+    : [];
+}
+
 function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -1808,6 +2630,21 @@ function getValue(value: unknown, key: string): unknown {
 function getString(value: unknown, key: string): string {
   const child = getValue(value, key);
   return typeof child === 'string' ? child : '';
+}
+
+function getNumber(value: unknown, key: string): number {
+  const child = getValue(value, key);
+  return typeof child === 'number' && Number.isFinite(child) ? child : 0;
+}
+
+function getBigIntNumberOrNull(value: unknown): number | null {
+  if (typeof value === 'bigint') return Number(value);
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function isPrismaUniqueConstraintError(error: unknown): boolean {
