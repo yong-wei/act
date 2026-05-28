@@ -447,4 +447,29 @@ describe('teacher and admin governance workspace contracts', () => {
       value: '6 条已按聚合方式隐藏',
     });
   });
+
+  it('treats empty evidence source coverage as missing rather than complete', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 0,
+            eligibleRows: 0,
+            excludedRows: 0,
+            unsupportedRows: 0,
+            affectedUsers: 0,
+          },
+          sources: [],
+          exclusions: [],
+        },
+      }),
+    });
+
+    expect(workspace.status.categories.sourceCoverage).toBe('missing');
+    expect(workspace.status.categories.fallback).toBe('fallback-missing-context');
+    expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.sourceCoverage).toBe('missing');
+  });
 });
