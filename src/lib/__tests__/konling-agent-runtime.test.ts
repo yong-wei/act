@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -19,9 +21,17 @@ import {
   buildScopedKonlingAiTools,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
+  createKonlingAgentSession,
   createGovernedKonlingIntervention,
+  createScopedKonlingMemory,
+  completeKonlingToolRun,
+  failKonlingToolRun,
+  getOrCreateKonlingAgentSession,
+  KONLING_TOOL_REGISTRY,
   persistKonlingSessionMemories,
   recordKonlingInterventionFeedback,
+  resumeKonlingAgentSession,
+  startKonlingToolRun,
   verifyKonlingRuntimeScope,
   type KonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -416,6 +426,536 @@ describe('konling agent runtime', () => {
     expect(analysis.performance.grade).toContain('优秀');
   });
 
+  it('audits scoped runtime tool calls and gates intervention feedback behind approval', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['get_page_context', 'record_intervention_result'],
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          if (!where?.id) return null;
+          return {
+            id: where.id,
+            ownerUserId: 'student-1',
+            actorUserId: 'student-1',
+            targetUserId: 'student-1',
+            agentSessionId: 'agent-session-1',
+            toolName: 'get_page_context',
+            permissionTier: 'read',
+            approvalState: 'not_required',
+            status: 'running',
+            inputSummary: {},
+            outputSummary: null,
+            errorSummary: null,
+            idempotencyKey: null,
+            correlationId: 'corr-1',
+            startedAt: new Date('2026-05-28T00:00:00Z'),
+            completedAt: null,
+            latencyMs: null,
+          };
+        }),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: `tool-run-${data.toolName}`,
+          ...data,
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-1',
+          userId: 'student-1',
+          classId: 'class-1',
+          resourceId: null,
+          pathNodeId: null,
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: {
+        pageContext: {
+          courseId: 'simulation',
+          courseTitle: '仿真',
+          pageType: 'simulation',
+          stepId: 'pid-default',
+          topic: 'PID 参数整定',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['get_page_context', 'record_intervention_result'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+    });
+
+    await runtime.getPageContext();
+    const writeResult = await runtime.recordInterventionResult({
+      interventionId: 'intv-1',
+      feedback: 'accepted',
+      studentResponse: 'ok',
+    }) as { approvalRequired: boolean; toolRunId: string };
+
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        agentSessionId: 'agent-session-1',
+        toolName: 'get_page_context',
+        approvalState: 'not_required',
+      }),
+    }));
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'succeeded' }),
+    }));
+    expect(writeResult).toMatchObject({
+      approvalRequired: true,
+      toolRunId: 'tool-run-record_intervention_result',
+    });
+    expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'awaiting_approval',
+        pendingApproval: expect.objectContaining({
+          toolRunId: 'tool-run-record_intervention_result',
+          toolName: 'record_intervention_result',
+          status: 'awaiting_approval',
+        }),
+      }),
+    }));
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+    expect(db.konlingMemory.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects simulation write approvals outside simulation scope before creating tool runs', async () => {
+    const scope = createScope({ courseId: 'unit-4-5', pageId: 'step-03' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+        updateMany: vi.fn(),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: {
+        pageContext: {
+          courseId: 'unit-4-5',
+          courseTitle: '参数优化',
+          pageType: 'lesson',
+          stepId: 'step-03',
+          topic: '约束翻译',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['set_simulation_params'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+    });
+
+    await expect(runtime.setSimulationParams({ kp: 1.8 })).rejects.toMatchObject({ status: 403 });
+    expect(db.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentSession.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('returns simulation parameter request previews with approval-required tool runs', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-set-params',
+          ...data,
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        updateMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: {
+        pageContext: {
+          courseId: 'simulation',
+          courseTitle: '仿真',
+          pageType: 'simulation',
+          stepId: 'pid-default',
+          topic: 'PID 参数整定',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['set_simulation_params'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+    });
+
+    const result = await runtime.setSimulationParams({ kp: 1.8, ki: 0.04 }) as {
+      approvalRequired: boolean;
+      pendingRequest: { params: { kp: number; ki: number } };
+      pendingChanges: string;
+    };
+
+    expect(result).toMatchObject({
+      approvalRequired: true,
+      success: true,
+      toolRunId: 'tool-run-set-params',
+      pendingRequest: {
+        params: { kp: 1.8, ki: 0.04 },
+      },
+    });
+    expect(result.pendingChanges).toContain('Kp: 1.8');
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pendingApproval: expect.objectContaining({
+          toolRunId: 'tool-run-set-params',
+          preview: expect.objectContaining({
+            pendingRequest: expect.objectContaining({
+              params: { kp: 1.8, ki: 0.04 },
+            }),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects foreign intervention approvals before creating tool runs', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['record_intervention_result'],
+        }),
+        updateMany: vi.fn(),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: {
+        pageContext: {
+          courseId: 'simulation',
+          courseTitle: '仿真',
+          pageType: 'simulation',
+          stepId: 'pid-default',
+          topic: 'PID 参数整定',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['record_intervention_result'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+    });
+
+    await expect(runtime.recordInterventionResult({
+      interventionId: 'foreign-intv',
+      feedback: 'accepted',
+    })).rejects.toMatchObject({ status: 404 });
+    expect(db.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentSession.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('exposes idempotency keys in approval-required write tool schemas', () => {
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+
+    expect((tools.set_simulation_params.parameters as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.record_intervention_result.parameters as any).shape).toHaveProperty('idempotencyKey');
+  });
+
+  it('filters exposed AI tool schemas to the current agent session permissions', () => {
+    const tools = buildScopedKonlingAiTools({
+      permittedTools: ['get_page_context'],
+      getPageContext: vi.fn(),
+      getLearnerState: vi.fn(),
+      getPlanContext: vi.fn(),
+      searchLearningMemory: vi.fn(),
+      searchKnowledgeGraph: vi.fn(),
+      recommendNextAction: vi.fn(),
+      getSimulationStatus: vi.fn(),
+      setSimulationParams: vi.fn(),
+      analyzeResult: vi.fn(),
+      recordInterventionResult: vi.fn(),
+      analyzeAttempt: vi.fn(),
+    } as unknown as ReturnType<typeof buildKonlingToolRuntime>);
+
+    expect(tools).toHaveProperty('get_page_context');
+    expect(tools).not.toHaveProperty('set_simulation_params');
+    expect(tools).not.toHaveProperty('record_intervention_result');
+  });
+
+  it('reuses completed idempotent tool runs without repeating side effects', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const outputSummary = {
+      success: true,
+      outcome: {
+        feedback: 'accepted',
+        helpful: true,
+      },
+    };
+    const completedRun = {
+      id: 'tool-run-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'record_intervention_result',
+      permissionTier: 'write',
+      approvalState: 'approved',
+      status: 'succeeded',
+      inputSummary: { interventionId: 'intv-1' },
+      outputSummary,
+      errorSummary: null,
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['record_intervention_result'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(completedRun),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-1',
+          userId: 'student-1',
+          classId: 'class-1',
+          resourceId: 'resource-1',
+          pathNodeId: 'node-1',
+        }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: {
+        pageContext: {
+          courseId: 'simulation',
+          courseTitle: '仿真',
+          pageType: 'simulation',
+          stepId: 'pid-default',
+          topic: 'PID 参数整定',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['record_intervention_result'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+    });
+
+    const result = await runtime.recordInterventionResult({
+      interventionId: 'intv-1',
+      feedback: 'accepted',
+      helpful: true,
+      studentResponse: 'ok',
+      idempotencyKey: 'same-key',
+    } as Parameters<typeof runtime.recordInterventionResult>[0] & { idempotencyKey: string });
+
+    expect(result).toMatchObject(outputSummary);
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+    expect(db.konlingMemory.create).not.toHaveBeenCalled();
+  });
+
   it('applies intervention cooldowns and persists feedback outcomes', async () => {
     const scope = createScope();
     const db = {
@@ -630,5 +1170,497 @@ describe('konling agent runtime', () => {
       semanticMemory: false,
       strategyMemory: false,
     });
+  });
+
+  it('creates and resumes user-owned task agent sessions without reusing Konling chat history', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'agent-session-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          phase: 'draft-plan',
+          status: 'paused',
+          stateJson: { step: 2 },
+          permittedTools: ['get_page_context'],
+          pendingApproval: null,
+          expiresAt: new Date('2026-06-04T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        }),
+      },
+      konlingSession: {
+        findFirst: vi.fn(),
+      },
+    };
+
+    const created = await createKonlingAgentSession(db, {
+      scope,
+      phase: 'draft-plan',
+      status: 'draft',
+      state: { step: 1 },
+      permittedTools: ['get_page_context'],
+    });
+    const resumed = await resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      phase: 'draft-plan',
+    });
+
+    expect(created).toMatchObject({
+      id: 'agent-session-1',
+      ownerUserId: 'student-1',
+      status: 'draft',
+    });
+    expect(resumed).toMatchObject({
+      id: 'agent-session-1',
+      ownerUserId: 'student-1',
+      status: 'paused',
+      state: { step: 2 },
+    });
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'agent-session-1',
+        ownerUserId: 'student-1',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        phase: 'draft-plan',
+      }),
+    }));
+    expect(db.konlingSession.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('scopes explicit agent session resume by phase', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(getOrCreateKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'agent-session-from-other-phase',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    })).rejects.toMatchObject({ status: 404 });
+
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'agent-session-from-other-phase',
+        ownerUserId: 'student-1',
+        phase: 'konling-chat-tool-runtime',
+      }),
+    }));
+  });
+
+  it('reuses the latest scoped awaiting approval agent session before creating a new runtime session', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-awaiting',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          phase: 'ai-chat-tool-runtime',
+          status: 'awaiting_approval',
+          stateJson: { route: '/api/ai/chat' },
+          permittedTools: ['set_simulation_params'],
+          pendingApproval: { toolRunId: 'tool-run-pending' },
+          expiresAt: null,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:05:00Z'),
+        }),
+        create: vi.fn(),
+      },
+    };
+
+    const resolved = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      phase: 'ai-chat-tool-runtime',
+      status: 'running',
+      state: { route: '/api/ai/chat' },
+      permittedTools: ['get_page_context'],
+    });
+
+    expect(resolved).toMatchObject({
+      id: 'agent-session-awaiting',
+      status: 'awaiting_approval',
+      pendingApproval: { toolRunId: 'tool-run-pending' },
+    });
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        phase: 'ai-chat-tool-runtime',
+        status: 'awaiting_approval',
+      }),
+      orderBy: { updatedAt: 'desc' },
+    }));
+    expect(db.agentSession.create).not.toHaveBeenCalled();
+  });
+
+  it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {
+    const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
+
+    expect(schema).toContain('model AgentSession');
+    expect(schema).toMatch(/ownerUserId\s+String/);
+    expect(schema).toMatch(/stateJson\s+Json/);
+    expect(schema).toMatch(/permittedTools\s+String\[\]/);
+    expect(schema).toContain('model AgentToolRun');
+    expect(schema).toMatch(/agentSessionId\s+String/);
+    expect(schema).toMatch(/approvalState\s+String/);
+    expect(schema).toMatch(/correlationId\s+String/);
+    expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
+  });
+
+  it('registers tool tiers and routes write tools into approval-required tool runs', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+      },
+    };
+
+    expect(KONLING_TOOL_REGISTRY.set_simulation_params).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'required',
+    });
+    expect(KONLING_TOOL_REGISTRY.record_intervention_result).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'required',
+    });
+    expect(KONLING_TOOL_REGISTRY.analyze_result).toMatchObject({
+      permissionTier: 'analyze',
+      approvalPolicy: 'none',
+    });
+
+    const toolRun = await startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'set_simulation_params',
+      input: {
+        kp: 1.8,
+        rawDialogue: 'do not store',
+        hiddenEvaluation: { score: 99 },
+      },
+      idempotencyKey: 'set-pid-1',
+      correlationId: 'corr-1',
+    });
+
+    expect(toolRun).toMatchObject({
+      id: 'tool-run-1',
+      ownerUserId: 'student-1',
+      toolName: 'set_simulation_params',
+      permissionTier: 'write',
+      approvalState: 'required',
+      status: 'awaiting_approval',
+      idempotencyKey: 'set-pid-1',
+      correlationId: 'corr-1',
+    });
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('rawDialogue');
+    expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('hiddenEvaluation');
+  });
+
+  it('enforces scope-scoped idempotency before creating another state-changing tool run', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'tool-run-existing',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          targetUserId: 'student-1',
+          agentSessionId: 'agent-session-1',
+          toolName: 'set_simulation_params',
+          permissionTier: 'write',
+          approvalState: 'required',
+          status: 'awaiting_approval',
+          inputSummary: { kp: 1.8 },
+          outputSummary: null,
+          errorSummary: null,
+          idempotencyKey: 'same-key',
+          correlationId: 'corr-existing',
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          completedAt: null,
+          latencyMs: null,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        }),
+        create: vi.fn(),
+      },
+    };
+
+    const toolRun = await startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'set_simulation_params',
+      input: { kp: 2.0 },
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-new',
+    });
+
+    expect(toolRun).toMatchObject({
+      id: 'tool-run-existing',
+      idempotencyKey: 'same-key',
+    });
+    expect(db.agentToolRun.findFirst).toHaveBeenCalledWith({
+      where: {
+        agentSessionId: 'agent-session-1',
+        ownerUserId: 'student-1',
+        toolName: 'set_simulation_params',
+        idempotencyKey: 'same-key',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        resourceId: 'resource-1',
+        pathNodeId: 'node-1',
+      },
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+  });
+
+  it('reuses a scoped idempotent tool run after concurrent create conflicts', async () => {
+    const scope = createScope();
+    const existingRun = {
+      id: 'tool-run-concurrent',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      toolName: 'set_simulation_params',
+      permissionTier: 'write',
+      approvalState: 'required',
+      status: 'awaiting_approval',
+      inputSummary: { kp: 1.8 },
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      updatedAt: new Date('2026-05-28T00:00:00Z'),
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(existingRun),
+        create: vi.fn().mockRejectedValue(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' })),
+      },
+    };
+
+    await expect(startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'set_simulation_params',
+      input: { kp: 2.0 },
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-new',
+    })).resolves.toMatchObject({
+      id: 'tool-run-concurrent',
+      idempotencyKey: 'same-key',
+    });
+    expect(db.agentToolRun.findFirst).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects foreign agent sessions before creating tool-run side effects', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+    };
+
+    await expect(startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'foreign-agent-session',
+      toolName: 'set_simulation_params',
+      input: { kp: 2 },
+      idempotencyKey: 'foreign-run',
+    })).rejects.toMatchObject({ status: 404 });
+    expect(db.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+  });
+
+  it('treats an empty agent-session permittedTools list as no tool permission', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: [],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+    };
+
+    await expect(startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'get_page_context',
+      input: {},
+    })).rejects.toMatchObject({ status: 403 });
+    expect(db.agentToolRun.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+  });
+
+  it('blocks write tool completion until approval and redacts output and error summaries', async () => {
+    const scope = createScope();
+    const startedAt = new Date('2026-05-28T00:00:00Z');
+    const completedAt = new Date('2026-05-28T00:00:01Z');
+    const approvedRun = {
+      id: 'tool-run-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'set_simulation_params',
+      permissionTier: 'write',
+      approvalState: 'approved',
+      status: 'running',
+      inputSummary: { kp: 1.8 },
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'set-pid-1',
+      correlationId: 'corr-1',
+      startedAt,
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({
+            ...approvedRun,
+            approvalState: 'required',
+            status: 'awaiting_approval',
+          })
+          .mockResolvedValueOnce(approvedRun)
+          .mockResolvedValueOnce(approvedRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+
+    await expect(completeKonlingToolRun(db, {
+      scope,
+      toolRunId: 'tool-run-1',
+      output: { accepted: true, promptContent: 'secret' },
+      now: completedAt,
+    })).rejects.toMatchObject({ status: 403 });
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+
+    await expect(completeKonlingToolRun(db, {
+      scope,
+      toolRunId: 'tool-run-1',
+      output: { accepted: true, promptContent: 'secret' },
+      now: completedAt,
+    })).resolves.toEqual({ success: true, status: 'succeeded' });
+    await expect(failKonlingToolRun(db, {
+      scope,
+      toolRunId: 'tool-run-1',
+      error: { message: 'failed', rawDialogue: 'secret' },
+      now: completedAt,
+    })).resolves.toEqual({ success: true, status: 'failed' });
+
+    const updatePayloads = JSON.stringify(db.agentToolRun.updateMany.mock.calls);
+    expect(updatePayloads).toContain('"latencyMs":1000');
+    expect(updatePayloads).not.toContain('promptContent');
+    expect(updatePayloads).not.toContain('rawDialogue');
+  });
+
+  it('requires scoped owner writes for long-term Konling memory', async () => {
+    const scope = createScope();
+    const db = {
+      konlingMemory: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'scoped-memory-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+      },
+    };
+
+    await expect(createScopedKonlingMemory(db, {
+      scope: createScope({ targetUserId: 'student-2' }),
+      memoryType: 'episodic',
+      summary: 'foreign memory',
+      evidenceRefs: [{ kind: 'test', ref: 'foreign' }],
+    })).rejects.toMatchObject({ status: 403 });
+
+    const memory = await createScopedKonlingMemory(db, {
+      scope,
+      memoryType: 'episodic',
+      summary: 'student scoped memory with promptContent removed',
+      evidenceRefs: [{ kind: 'test', ref: 'owned', promptContent: 'secret' }],
+    });
+
+    expect(memory).toMatchObject({
+      id: 'scoped-memory-1',
+      memoryType: 'episodic',
+      privacyScope: 'student-visible',
+    });
+    expect(db.konlingMemory.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        userId: 'student-1',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        resourceId: 'resource-1',
+        pathNodeId: 'node-1',
+      }),
+    }));
+    expect(JSON.stringify(db.konlingMemory.create.mock.calls)).not.toContain('promptContent');
   });
 });

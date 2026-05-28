@@ -40,6 +40,23 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
 
+  it('attaches audited agent sessions before exposing scoped Konling tools', () => {
+    expect(chatRouteSource).toContain('getOrCreateKonlingAgentSession');
+    expect(chatRouteSource).toContain('agentSessionId?: string');
+    expect(chatRouteSource).toContain("'X-Konling-Agent-Session-Id': agentSession.id");
+    expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
+    expect(chatRouteSource).toContain('permittedTools: agentSession.permittedTools');
+    expect(sessionMessagesRouteSource).toContain('getOrCreateKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain('agentSessionId');
+    expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
+    expect(sessionMessagesRouteSource).toContain('permittedTools: agentSession.permittedTools');
+    expect(sessionMessagesRouteSource).toContain('const refreshedAgentSession = await resumeKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain("phase: 'konling-chat-tool-runtime'");
+    expect(sessionMessagesRouteSource.indexOf('const refreshedAgentSession = await resumeKonlingAgentSession'))
+      .toBeGreaterThan(sessionMessagesRouteSource.indexOf('await persistKonlingSessionMemories'));
+    expect(sessionMessagesRouteSource).toContain('pendingApproval: refreshedAgentSession.pendingApproval');
+  });
+
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {
     expect(chatRouteSource).toContain('if (simulationState && !hasRuntimeContext)');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');

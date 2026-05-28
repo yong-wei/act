@@ -17,8 +17,10 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
+  getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
   persistKonlingSessionMemories,
+  resumeKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import type { AIContext } from '@/types/ai-context';
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const { id: sessionId } = await context.params;
     const body = await request.json();
-    const { content, pageContext, classId, resourceId, pathNodeId } = body;
+    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -124,6 +126,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ...aiContext,
       adaptiveRuntime: runtimeContext,
     });
+    const agentSession = await getOrCreateKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      agentSessionId,
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+      state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
+      permittedTools: runtimeContext.permittedTools,
+    });
 
     // 调用AI
     const result = await streamText({
@@ -139,6 +149,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         db: prisma,
         scope: scope.scope,
         context: runtimeContext,
+        agentSessionId: agentSession.id,
+        permittedTools: agentSession.permittedTools,
       })),
       maxSteps: 5,
       maxTokens: 1000,
@@ -179,10 +191,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
       userMessage: content,
       assistantMessage: assistantContent,
     });
+    const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      agentSessionId: agentSession.id,
+      phase: 'konling-chat-tool-runtime',
+    });
 
     return NextResponse.json({
       messages: finalMessages,
       assistantMessage,
+      agentSessionId: agentSession.id,
+      pendingApproval: refreshedAgentSession.pendingApproval,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

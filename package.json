@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "npm run wasm:build:control-engine && prisma generate && next build",
+    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; node ./scripts/wasm/build-control-engine.mjs && prisma generate && next build",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "lint": "next lint",
     "test": "node ./scripts/tests/smoke-test.mjs && node ./scripts/tests/test-arena-home-entry.mjs && node ./scripts/tests/test-arena-routes.mjs",
