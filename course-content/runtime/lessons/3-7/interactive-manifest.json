@@ -2514,7 +2514,49 @@
             "prompt": "匹配核验指标与性能描述。",
             "response_kind": "match",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "one_third",
+            "match_items": [
+              {
+                "value": "type",
+                "label": "型别变化"
+              },
+              {
+                "value": "speed",
+                "label": "动态速度"
+              },
+              {
+                "value": "steady-error",
+                "label": "稳态误差"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "unchanged-type",
+                "label": "未增加积分环节，仍保持原型别。"
+              },
+              {
+                "value": "faster-response",
+                "label": "微分或超前效应让响应更快。"
+              },
+              {
+                "value": "residual-error",
+                "label": "斜坡跟踪仍会保留误差，不能只靠动态变快消除。"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "type",
+                "option": "unchanged-type"
+              },
+              {
+                "item": "speed",
+                "option": "faster-response"
+              },
+              {
+                "item": "steady-error",
+                "option": "residual-error"
+              }
+            ]
           },
           {
             "id": "freq-pd-card-3",
@@ -2688,7 +2730,49 @@
             "prompt": "匹配‘更快 / 更准 / 代价落点’。",
             "response_kind": "match",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "one_third",
+            "match_items": [
+              {
+                "value": "faster",
+                "label": "更快"
+              },
+              {
+                "value": "more-accurate",
+                "label": "更准"
+              },
+              {
+                "value": "tradeoff",
+                "label": "代价落点"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "pd-lead",
+                "label": "PD 或超前更偏动态速度优先。"
+              },
+              {
+                "value": "pi-lag",
+                "label": "PI 或滞后更偏低频精度优先。"
+              },
+              {
+                "value": "mid-frequency-cost",
+                "label": "低频收益会落到中频裕度、响应速度或形态代价上。"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "faster",
+                "option": "pd-lead"
+              },
+              {
+                "item": "more-accurate",
+                "option": "pi-lag"
+              },
+              {
+                "item": "tradeoff",
+                "option": "mid-frequency-cost"
+              }
+            ]
           },
           {
             "id": "freq-compare-card-3",

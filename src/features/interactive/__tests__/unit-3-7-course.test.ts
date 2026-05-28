@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 vi.mock('server-only', () => ({}));
 
@@ -134,6 +135,51 @@ describe('unit 3-7 interactive course', () => {
     expect(contract.steps['step-12']?.interaction_spec?.activity_cards).toHaveLength(2);
     expect(contract.steps['step-13']?.interaction_spec?.activity_cards).toHaveLength(2);
     expect(contract.steps['step-16']?.evidence_sequence?.[0]).toContain('名称卡');
+  });
+
+  it('keeps legacy match cards backed by concrete pairing structures', () => {
+    const contract = parse(
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/3-7-interactive-contract.yaml'), 'utf8'),
+    ) as {
+      steps: Record<
+        string,
+        {
+          interaction_spec?: {
+            activity_cards?: Array<{
+              id: string;
+              response_kind?: string;
+              match_items?: unknown[];
+              match_options?: unknown[];
+              reference_matches?: unknown[];
+            }>;
+          };
+        }
+      >;
+    };
+    const runtimeManifest = normalizeInteractiveRuntimeManifest(JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-7/interactive-manifest.json'), 'utf8'),
+    ));
+    const authoringCards = new Map(
+      Object.values(contract.steps).flatMap((step) => step.interaction_spec?.activity_cards ?? []).map((card) => [card.id, card]),
+    );
+    const runtimeCards = new Map(
+      runtimeManifest?.steps.flatMap((step) => step.interactionSpec.activityCards ?? []).map((card) => [card.id, card]) ?? [],
+    );
+
+    for (const cardId of ['freq-pd-card-2', 'freq-compare-card-2']) {
+      const authoringCard = authoringCards.get(cardId);
+      expect(authoringCard?.response_kind).toBe('match');
+      expect(authoringCard?.match_items).toHaveLength(3);
+      expect(authoringCard?.match_options).toHaveLength(3);
+      expect(authoringCard?.reference_matches).toHaveLength(3);
+
+      const runtimeCard = runtimeCards.get(cardId);
+      expect(runtimeCard?.responseKind).toBe('matching.pairs');
+      expect(runtimeCard?.legacyResponseKind).toBe('match');
+      expect(runtimeCard?.matchItems).toHaveLength(3);
+      expect(runtimeCard?.matchOptions).toHaveLength(3);
+      expect(runtimeCard?.referenceMatches).toHaveLength(3);
+    }
   });
 
   it('exposes AI quick questions for the frequency comparison step', () => {
