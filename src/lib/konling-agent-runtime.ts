@@ -881,15 +881,15 @@ export async function completeKonlingToolRun(
     throw new KonlingRuntimeScopeError(403, '写入或发布工具必须先获得 approval。');
   }
   const now = input.now ?? new Date();
+  if (getString(toolRun, 'toolName') === 'apply_controller_patch') {
+    await applyApprovedControllerPatchToSession(db, input.scope, input.toolRunId, toolRun);
+  }
   await updateScopedToolRun(db, input.scope, input.toolRunId, {
     status: 'succeeded',
     outputSummary: redactSensitivePayload(input.output ?? {}),
     completedAt: now,
     latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
   });
-  if (getString(toolRun, 'toolName') === 'apply_controller_patch') {
-    await applyApprovedControllerPatchToSession(db, input.scope, input.toolRunId, toolRun);
-  }
   return { success: true, status: 'succeeded' };
 }
 

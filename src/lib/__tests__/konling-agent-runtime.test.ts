@@ -1089,6 +1089,9 @@ describe('konling agent runtime', () => {
       now: new Date('2026-05-28T00:00:01Z'),
     })).resolves.toEqual({ success: true, status: 'succeeded' });
 
+    const draftUpdateOrder = db.agentSession.updateMany.mock.invocationCallOrder[1];
+    const toolRunSuccessOrder = db.agentToolRun.updateMany.mock.invocationCallOrder[0];
+    expect(draftUpdateOrder).toBeLessThan(toolRunSuccessOrder);
     expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         id: 'agent-session-1',
