@@ -64,6 +64,7 @@ const preview = buildArenaVirtualSimulationPreview({
   experiment,
   now: '2026-05-11T11:31:00.000Z',
 });
+const previewReplay = preview.replay!;
 
 function storeFor(run: StoredArenaVirtualSimulationRun | null): ArenaReplayRunStore {
   return {
@@ -89,7 +90,7 @@ describe('arena replay service', () => {
     });
 
     expect(result.status).toBe('match');
-    expect(result.persistedChecksum).toBe(preview.replay.checksum);
+    expect(result.persistedChecksum).toBe(previewReplay.checksum);
   });
 
   it('returns mismatch without overwriting persisted evidence', async () => {
@@ -105,7 +106,7 @@ describe('arena replay service', () => {
         scenarioId: preview.scenarioId,
         preview: {
           ...preview,
-          replay: { ...preview.replay, checksum: 'sha256:bad' },
+          replay: { ...previewReplay, checksum: 'sha256:bad' },
         },
         createdAt: preview.createdAt,
       }),
@@ -113,7 +114,7 @@ describe('arena replay service', () => {
 
     expect(result.status).toBe('mismatch');
     expect(result.persistedChecksum).toBe('sha256:bad');
-    expect(result.recomputedChecksum).toBe(preview.replay.checksum);
+    expect(result.recomputedChecksum).toBe(previewReplay.checksum);
   });
 
   it('detects tampered preview evidence even when the stored checksum is self-consistent', async () => {
@@ -123,9 +124,13 @@ describe('arena replay service', () => {
         ...preview.summary,
         trackingError: 999,
       },
+      replay: {
+        ...previewReplay,
+        checksum: '',
+      },
     };
     tamperedPreview.replay = {
-      ...preview.replay,
+      ...previewReplay,
       checksum: computeArenaVirtualSimulationPreviewChecksum(tamperedPreview),
     };
 
@@ -146,7 +151,7 @@ describe('arena replay service', () => {
 
     expect(result.status).toBe('mismatch');
     expect(result.persistedChecksum).toBe(tamperedPreview.replay.checksum);
-    expect(result.recomputedChecksum).toBe(preview.replay.checksum);
+    expect(result.recomputedChecksum).toBe(previewReplay.checksum);
   });
 
   it('reports missing trace metadata', async () => {
@@ -166,6 +171,152 @@ describe('arena replay service', () => {
     });
 
     expect(result.status).toBe('missing_trace');
+  });
+
+  it('resolves canonical SimulationRun and SimulationTrace metadata before replay verification', async () => {
+    const result = await verifyArenaVirtualSimulationReplay({
+      runId: 'preview-row-1',
+      requester: { userId: 'student-replay', role: 'STUDENT' },
+      store: storeFor({
+        id: 'preview-row-1',
+        userId: 'student-replay',
+        taskId: preview.taskId,
+        datasetHash: preview.datasetHash,
+        controllerHash: preview.controllerHash,
+        scenarioId: preview.scenarioId,
+        preview: {
+          ...preview,
+          replay: {
+            ...previewReplay,
+            runtimeVersion: 'legacy-preview-runtime',
+            modelVersion: 'legacy-preview-model',
+          },
+        },
+        simulationRun: {
+          id: 'canonical-run-1',
+          ownerUserId: 'student-replay',
+          classId: 'class-replay',
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: 'preview-row-1',
+          taskSpec: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'arena/task-cruise-roll-blackbox-identification',
+            scenarioId: preview.scenarioId,
+            objectives: ['tracking_error'],
+            constraints: ['control_energy'],
+            disturbancePolicy: {},
+            evaluationSpecRef: { id: 'arena-preview', visibility: 'preview' },
+            allowedControllers: ['blackbox-pid'],
+            launchContext: { publicationId: 'pub-replay' },
+            specHash: 'sha256:task-spec',
+          },
+          controllerSnapshotRef: `ArenaControllerArtifact:${artifact.id}`,
+          status: 'completed',
+          summary: preview.summary,
+          replayToken: 'replay-token-1',
+          seed: previewReplay.seed,
+          protocolVersion: '1.0',
+          runtimeVersion: 'canonical-runtime-v1',
+          modelVersion: 'canonical-model-v1',
+          sceneSpecVersion: 'arena-scene-v1',
+          createdAt: preview.createdAt,
+          completedAt: preview.createdAt,
+        },
+        simulationTrace: {
+          id: 'trace-1',
+          runId: 'canonical-run-1',
+          protocolVersion: '1.0',
+          runtimeVersion: 'canonical-runtime-v1',
+          modelVersion: 'canonical-model-v1',
+          seed: previewReplay.seed,
+          checksum: previewReplay.checksum,
+          summaryMetrics: preview.summary,
+          sampleCount: preview.trace.length,
+          sampleCadence: 0.2,
+          sampleStorageUri: 'traces/canonical-run-1.json',
+          createdAt: preview.createdAt,
+        },
+        createdAt: preview.createdAt,
+      } as any),
+    });
+
+    expect(result.status).toBe('match');
+    expect(result.runId).toBe('canonical-run-1');
+    expect(result.metadata).toEqual(expect.objectContaining({
+      runKind: 'arena_preview',
+      sourceDomain: 'arena_virtual_preview',
+      sourceRefId: 'preview-row-1',
+      scenarioId: preview.scenarioId,
+      runtimeVersion: 'canonical-runtime-v1',
+      modelVersion: 'canonical-model-v1',
+      traceChecksum: previewReplay.checksum,
+      sampleCount: preview.trace.length,
+    }));
+  });
+
+  it('rejects teacher canonical replay when the teacher is not authorized for the run class', async () => {
+    await expect(verifyArenaVirtualSimulationReplay({
+      runId: 'preview-row-1',
+      requester: { userId: 'teacher-1', role: 'TEACHER', classIds: ['class-current'] } as any,
+      store: storeFor({
+        id: 'preview-row-1',
+        userId: 'student-replay',
+        taskId: preview.taskId,
+        datasetHash: preview.datasetHash,
+        controllerHash: preview.controllerHash,
+        scenarioId: preview.scenarioId,
+        preview,
+        ownerClassId: 'class-current',
+        ownerClassTeacherId: 'teacher-1',
+        simulationRun: {
+          id: 'canonical-run-1',
+          ownerUserId: 'student-replay',
+          classId: 'class-old',
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: 'preview-row-1',
+          taskSpec: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'arena/task-cruise-roll-blackbox-identification',
+            scenarioId: preview.scenarioId,
+            objectives: ['tracking_error'],
+            constraints: ['control_energy'],
+            disturbancePolicy: {},
+            evaluationSpecRef: { id: 'arena-preview', visibility: 'preview' },
+            allowedControllers: ['blackbox-pid'],
+            launchContext: { publicationId: 'pub-replay' },
+            specHash: 'sha256:task-spec',
+          },
+          controllerSnapshotRef: `ArenaControllerArtifact:${artifact.id}`,
+          status: 'completed',
+          summary: preview.summary,
+          replayToken: 'replay-token-1',
+          seed: previewReplay.seed,
+          protocolVersion: '1.0',
+          runtimeVersion: 'canonical-runtime-v1',
+          modelVersion: 'canonical-model-v1',
+          sceneSpecVersion: 'arena-scene-v1',
+          createdAt: preview.createdAt,
+          completedAt: preview.createdAt,
+        },
+        simulationTrace: {
+          id: 'trace-1',
+          runId: 'canonical-run-1',
+          protocolVersion: '1.0',
+          runtimeVersion: 'canonical-runtime-v1',
+          modelVersion: 'canonical-model-v1',
+          seed: previewReplay.seed,
+          checksum: previewReplay.checksum,
+          summaryMetrics: preview.summary,
+          sampleCount: preview.trace.length,
+          sampleCadence: 0.2,
+          sampleStorageUri: 'traces/canonical-run-1.json',
+          createdAt: preview.createdAt,
+        },
+        createdAt: preview.createdAt,
+      } as any),
+    })).rejects.toThrow(ArenaReplayAccessError);
   });
 
   it('rejects missing and unauthorized runs before revealing replay metadata', async () => {

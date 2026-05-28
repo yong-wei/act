@@ -798,10 +798,10 @@ function resolveEvidenceState(
   markers: StudentEvidenceStatusMarker[],
   options: { now?: Date; staleAfterDays?: number },
 ): TeacherEvidenceState {
-  const refreshedAt = cache.refreshedAt instanceof Date ? cache.refreshedAt : null;
+  const refreshedAt = dateMillis(cache.refreshedAt);
   const staleAfterDays = options.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
-  const staleByAge = refreshedAt
-    ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
+  const staleByAge = refreshedAt !== null
+    ? (options.now ?? new Date()).getTime() - refreshedAt > staleAfterDays * DAY_MS
     : true;
 
   return staleByAge || markers.includes('stale') ? 'stale' : 'ready';
@@ -909,6 +909,7 @@ function stringValue(value: unknown): string | null {
 
 function dateToIso(value: unknown): string | null {
   if (value instanceof Date) return value.toISOString();
+  if (hasDateMethods(value)) return new Date(value.getTime()).toISOString();
   if (typeof value === 'string' && value.length > 0) return value;
   return null;
 }
@@ -954,9 +955,18 @@ function maxDateValue(
 
 function dateMillis(value: unknown): number | null {
   if (value instanceof Date) return value.getTime();
+  if (hasDateMethods(value)) return value.getTime();
   if (typeof value !== 'string' || value.length === 0) return null;
   const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function hasDateMethods(value: unknown): value is { getTime(): number } {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    typeof (value as { getTime?: unknown }).getTime === 'function'
+  );
 }
 
 function numberValue(value: unknown): number {
