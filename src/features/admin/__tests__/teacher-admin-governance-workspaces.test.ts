@@ -163,6 +163,7 @@ describe('teacher and admin governance workspace contracts', () => {
           id: 'teaching-resource:blocked',
           pathEligible: false,
           editable: false,
+          evidenceInstrumentationConfigured: false,
           pathExclusionReasons: ['missing-evidence-instrumentation'],
           warnings: [
             {
@@ -194,6 +195,12 @@ describe('teacher and admin governance workspace contracts', () => {
         }),
       ],
     });
+    expect(view.nodes[0]?.fields).toContainEqual(
+      expect.objectContaining({
+        id: 'evidence-instrumentation',
+        value: '未配置',
+      }),
+    );
   });
 
   it('redacts restricted payload categories for teacher and admin governance views', () => {
@@ -364,5 +371,43 @@ describe('teacher and admin governance workspace contracts', () => {
 
     expect(workspace.status.categories.readiness).toBe('degraded');
     expect(workspace.panels.find((panel) => panel.id === 'readiness')?.status.categories.readiness).toBe('degraded');
+  });
+
+  it('degrades source coverage for excluded-only rows and restricts hidden evaluation details', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 10,
+            eligibleRows: 8,
+            excludedRows: 2,
+            unsupportedRows: 0,
+            affectedUsers: 2,
+          },
+          sources: [],
+          exclusions: [
+            {
+              sourceId: 'ArenaEvaluationRun',
+              reason: 'hidden_official_evaluation_internal',
+              rowCount: 2,
+              affectedUsers: 2,
+              sampleSourceReference: 'ArenaEvaluationRun:official-secret-2',
+            },
+          ],
+        },
+      }),
+    });
+
+    expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.readiness).toBe('degraded');
+    expect(workspace.panels.find((panel) => panel.id === 'missing-context')?.details).toContainEqual(
+      expect.objectContaining({
+        label: 'ArenaEvaluationRun',
+        roleScope: 'audit-only',
+        restricted: true,
+      }),
+    );
   });
 });

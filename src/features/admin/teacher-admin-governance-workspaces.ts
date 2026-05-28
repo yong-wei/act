@@ -48,7 +48,13 @@ export interface TeacherGovernanceWorkspaceInput {
 }
 
 export interface TeacherGovernanceNodeField {
-  id: 'source-reference' | 'knowledge-coverage' | 'privacy-level' | 'teacher-policy' | 'path-eligibility';
+  id:
+    | 'source-reference'
+    | 'knowledge-coverage'
+    | 'privacy-level'
+    | 'teacher-policy'
+    | 'evidence-instrumentation'
+    | 'path-eligibility';
   label: string;
   value: string;
   roleScope: PlatformStatusRoleScope;
@@ -335,6 +341,12 @@ function buildTeacherGovernanceNode(
         roleScope: 'teacher-scoped',
       },
       {
+        id: 'evidence-instrumentation',
+        label: '证据采集',
+        value: node.evidenceInstrumentationConfigured ? '已配置' : '未配置',
+        roleScope: 'teacher-scoped',
+      },
+      {
         id: 'path-eligibility',
         label: '路径资格',
         value: node.pathEligible ? '可规划' : `已排除：${node.pathExclusionReasons.join(', ') || '无公开原因'}`,
@@ -390,7 +402,7 @@ function sourceCoveragePanel(payload: GovernanceStatusPayload): AdminDataCenterP
     id: 'source-coverage',
     title: '证据源覆盖',
     metric: totals ? `${totals.eligibleRows}/${totals.totalRows}` : 'unavailable',
-    readiness: totals && totals.unsupportedRows === 0 ? 'ready' : 'degraded',
+    readiness: totals && totals.unsupportedRows === 0 && totals.excludedRows === 0 ? 'ready' : 'degraded',
     sourceCoverage: sourceCoverageStatus(payload),
     details: [
       { label: '目录来源', value: payload.sourceCatalog?.coverageCommand ?? '未配置', roleScope: 'admin-scoped' },
@@ -424,7 +436,7 @@ function missingContextPanel(payload: GovernanceStatusPayload): AdminDataCenterP
     details: (payload.sourceCoverage?.exclusions ?? []).map((exclusion) => ({
       label: exclusion.sourceId,
       value: `${exclusion.reason}: ${exclusion.rowCount}`,
-      roleScope: 'admin-scoped',
+      roleScope: exclusionRoleScope(exclusion.reason),
       restricted: true,
     })),
   });
@@ -572,4 +584,10 @@ function restrictedExclusionCount(payload: GovernanceStatusPayload): number {
     exclusion.reason.includes('private') ||
     exclusion.reason.includes('raw')
   ).length;
+}
+
+function exclusionRoleScope(reason: string): PlatformStatusRoleScope {
+  if (reason.includes('hidden_official_evaluation')) return 'audit-only';
+  if (reason.includes('private') || reason.includes('raw')) return 'system-internal';
+  return 'admin-scoped';
 }
