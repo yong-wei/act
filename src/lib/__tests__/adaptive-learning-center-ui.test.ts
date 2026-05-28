@@ -243,6 +243,20 @@ describe('adaptive learning center UI contracts', () => {
     expect(buildPlatformStatusViewModel(state.status, { role: 'student' }).tone).not.toBe('danger');
   });
 
+  it('preserves legacy fallback status when the center flag is disabled even if learner state exists', () => {
+    const view = buildAdaptiveLearningCenterView({
+      featureFlags: [],
+      learnerState: learnerState(),
+    });
+
+    expect(view.mode).toBe('legacy-compatible');
+    expect(view.authority).toBe('server-owned');
+    expect(view.status.categories.fallback).toBe('fallback-active');
+    expect(view.status.fallbackReason).toBe('adaptive-learning-center-flag-disabled');
+    expect(view.status.source.domain).toBe('learner-state');
+    expect(view.panels.map((panel) => panel.region)).toEqual(['overview', 'practice', 'konling']);
+  });
+
   it('declares route compatibility for existing AI, adaptive practice, and profile surfaces without dead route files', () => {
     const routes = getAdaptiveLearningCenterCompatibilityRoutes();
 

@@ -245,7 +245,9 @@ export function buildAdaptiveLearningCenterView(input: AdaptiveLearningCenterVie
 
   return {
     ...state,
-    status: learnerState ? learnerStateStatus(learnerState, Boolean(input.clientProfileHints)) : state.status,
+    status: state.mode === 'adaptive-learning-center' && learnerState
+      ? learnerStateStatus(learnerState, Boolean(input.clientProfileHints))
+      : state.status,
     authority: learnerState ? 'server-owned' : 'unavailable',
     role: roleFromLearnerState(learnerState),
     panels: panels.filter((panel) => state.regions.includes(panel.region)),
