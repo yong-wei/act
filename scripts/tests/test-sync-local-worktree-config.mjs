@@ -85,6 +85,16 @@ assert.doesNotMatch(
   /warning:  is neither tracked nor ignored in target/,
   '未启用环境链接时不应检查空路径',
 );
+assert.doesNotMatch(
+  dryRun.stdout,
+  /node_modules/,
+  '工作树配置同步不应再尝试链接 node_modules',
+);
+assert.match(
+  dryRun.stdout,
+  /rtk npm ci/,
+  '工作树配置同步应提示每个工作树独立安装依赖',
+);
 
 const apply = run(
   'bash',
@@ -123,6 +133,11 @@ assert.equal(
   fs.existsSync(path.join(target, '.tmp/local-config-backups')),
   true,
   '目录同步覆盖已有文件时应把备份集中放入 .tmp/local-config-backups/',
+);
+assert.equal(
+  fs.existsSync(path.join(target, 'node_modules')),
+  false,
+  'apply 模式不应创建 node_modules 软链接或目录',
 );
 
 const graphDryRun = run(

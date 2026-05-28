@@ -56,9 +56,6 @@ Copied by default:
   .serena/project.yml
   .serena/memories/
 
-Linked by default:
-  node_modules -> <source>/node_modules
-
 Linked with --link-config:
   AGENTS.md
   GEMINI.md
@@ -81,6 +78,7 @@ Linked with --link-config --link-env:
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
   .codegraph, .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
+Dependencies are not copied or linked; run npm ci independently in each worktree.
 USAGE
 }
 
@@ -195,10 +193,6 @@ DIRS=(
   ".codex"
   ".github"
   ".serena/memories"
-)
-
-DEPENDENCY_LINKS=(
-  "node_modules"
 )
 
 CONFIG_LINKS=(
@@ -515,49 +509,6 @@ collect_env_links() {
   done
 }
 
-link_dependency_dir() {
-  local rel="$1"
-  local src="$SOURCE/$rel"
-  local dest="$TARGET/$rel"
-  local current_target=""
-
-  if [[ ! -d "$src" ]]; then
-    echo "skip missing dependency dir: $rel"
-    return
-  fi
-
-  if [[ -L "$dest" ]]; then
-    current_target="$(readlink "$dest")"
-    if [[ "$current_target" == "$src" ]]; then
-      echo "dependency link already exists: $rel -> $src"
-      ensure_local_exclude "$rel"
-      return
-    fi
-  elif [[ -e "$dest" ]]; then
-    echo "skip existing dependency path: $rel"
-    ensure_local_exclude "$rel"
-    return
-  fi
-
-  if [[ "$APPLY" -ne 1 ]]; then
-    if [[ -L "$dest" ]]; then
-      echo "would relink dependency dir: $rel -> $src"
-    else
-      echo "would link dependency dir: $rel -> $src"
-    fi
-    ensure_local_exclude "$rel"
-    return
-  fi
-
-  if [[ -L "$dest" ]]; then
-    rm "$dest"
-  fi
-
-  ln -s "$src" "$dest"
-  echo "linked dependency dir: $rel -> $src"
-  ensure_local_exclude "$rel"
-}
-
 warn_if_not_ignored_or_tracked() {
   local rel="$1"
   if git -C "$TARGET" ls-files --error-unmatch "$rel" >/dev/null 2>&1; then
@@ -609,12 +560,6 @@ for rel in "${DIRS[@]}"; do
   copy_dir "$rel"
 done
 
-echo
-echo "Dependency links:"
-for rel in "${DEPENDENCY_LINKS[@]}"; do
-  link_dependency_dir "$rel"
-done
-
 if [[ "$LINK_CONFIG" -eq 1 ]]; then
   echo
   echo "Config links:"
@@ -637,7 +582,7 @@ echo "Ignore/tracking check:"
 if [[ "$LINK_CONFIG" -eq 1 && "$LINK_ENV" -eq 1 ]]; then
   collect_env_links
 fi
-TRACKING_CHECK_PATHS=("${FILES[@]}" "${DIRS[@]}" "${DEPENDENCY_LINKS[@]}" "${CONFIG_LINKS[@]}")
+TRACKING_CHECK_PATHS=("${FILES[@]}" "${DIRS[@]}" "${CONFIG_LINKS[@]}")
 if [[ ${#ENV_LINKS[@]} -gt 0 ]]; then
   TRACKING_CHECK_PATHS+=("${ENV_LINKS[@]}")
 fi
@@ -652,6 +597,7 @@ fi
 echo
 echo "Follow-up commands for a new long-lived worktree:"
 echo "  scripts/dev/sync-local-worktree-config.sh --apply --link-config --link-env --target \"$TARGET\""
+echo "  (cd \"$TARGET\" && rtk npm ci)"
 echo "  scripts/dev/sync-local-worktree-config.sh --apply --init-graphs --target \"$TARGET\" --graph-alias \"$(resolve_graph_alias)\""
 echo "  rtk code-review-graph register \"$TARGET\" --alias <alias>"
 echo "  rtk code-review-graph build --repo \"$TARGET\""
