@@ -168,6 +168,11 @@ describe('unit 5-1 interactive course', () => {
       items: expect.arrayContaining([expect.stringContaining('说明线性定常主干默认依赖')]),
     });
     expect([step04Card?.responseKind, step05Card?.responseKind, step13Card?.responseKind]).toEqual([
+      'matching.pairs',
+      'matching.pairs',
+      'matching.pairs',
+    ]);
+    expect([step04Card?.legacyResponseKind, step05Card?.legacyResponseKind, step13Card?.legacyResponseKind]).toEqual([
       'drag_match',
       'drag_match',
       'drag_match',

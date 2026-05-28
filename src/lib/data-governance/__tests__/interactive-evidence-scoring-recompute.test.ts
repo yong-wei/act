@@ -205,7 +205,7 @@ describe('interactive evidence scoring recompute', () => {
       responseId: 'response-53',
       lessonKey: 'unit-5-3-state-feedback-observer-coordination-v1',
       stepId: 'step-08',
-      questionKinds: ['drag_match'],
+      questionKinds: ['matching.pairs'],
       oldScore: 0,
       newScore: 100,
     });
@@ -234,7 +234,8 @@ describe('interactive evidence scoring recompute', () => {
       questionSummaries: [
         expect.objectContaining({
           questionId: 'role-match',
-          responseKind: 'drag_match',
+          responseKind: 'matching.pairs',
+          responseCategory: 'objective',
           studentAnswer: 'target-speed:controller,target-outline:planner',
           isCorrect: true,
           score: 1,

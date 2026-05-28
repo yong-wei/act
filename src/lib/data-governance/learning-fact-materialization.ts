@@ -10,6 +10,7 @@ import {
   resolveCanonicalEventType,
   resolveCompetencyContribution,
 } from './event-normalization';
+import { isMatchingResponseKind, isOrderingResponseKind } from '../interactive-response-contracts';
 import { resolveLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
 
 type LearningFactCreateManyDelegate = {
@@ -85,10 +86,8 @@ function normalizeComparableAnswer(value: unknown): string[] {
 }
 
 function isOrderedObjectiveResponseKind(value: unknown): boolean {
-  return value === 'drag_match'
-    || value === 'triple_match'
-    || value === 'drag_sort'
-    || value === 'card_sort';
+  return isMatchingResponseKind(typeof value === 'string' ? value : undefined)
+    || isOrderingResponseKind(typeof value === 'string' ? value : undefined);
 }
 
 function answersMatch(studentAnswer: unknown, referenceAnswer: unknown, ordered: boolean): boolean {

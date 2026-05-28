@@ -9,6 +9,10 @@ import {
   type InteractiveLessonIdentityAliasKind,
   type InteractiveLessonIdentityRecord,
 } from '../interactive-lesson-identity';
+import {
+  isObjectiveInteractiveResponseKind,
+  isParameterSetResponseKind,
+} from '../interactive-response-contracts';
 
 export type CourseEvidenceSpecSource = 'manifest' | 'override' | 'manifest+override';
 
@@ -119,20 +123,6 @@ function buildIdentityEvidenceOverride(record: InteractiveLessonIdentityRecord):
 
 export const COURSE_EVIDENCE_SPEC_OVERRIDES: readonly CourseEvidenceSpecOverride[] =
   listInteractiveLessonIdentityRecords().map(buildIdentityEvidenceOverride);
-
-const OBJECTIVE_RESPONSE_KINDS = new Set([
-  'single_choice',
-  'binary_choice',
-  'multi_choice',
-  'multi_select',
-]);
-
-const ORDERED_OBJECTIVE_RESPONSE_KINDS = new Set([
-  'drag_match',
-  'triple_match',
-  'drag_sort',
-  'card_sort',
-]);
 
 const PARAMETER_INTERACTION_KINDS = new Set([
   'parameter_slider',
@@ -261,8 +251,7 @@ function isResponseProducingStep(step: InteractiveRuntimeStepManifest): boolean 
 }
 
 function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
-  return OBJECTIVE_RESPONSE_KINDS.has(card.responseKind)
-    || ORDERED_OBJECTIVE_RESPONSE_KINDS.has(card.responseKind);
+  return isObjectiveInteractiveResponseKind(card.responseKind);
 }
 
 function isObjectiveStep(step: InteractiveRuntimeStepManifest): boolean {
@@ -286,7 +275,7 @@ function parameterKeysFromStep(step: InteractiveRuntimeStepManifest): string[] {
 function isParameterStep(step: InteractiveRuntimeStepManifest): boolean {
   return PARAMETER_INTERACTION_KINDS.has(step.interactionSpec.interactionKind)
     || parameterKeysFromStep(step).length > 0
-    || (step.interactionSpec.activityCards ?? []).some((card) => card.responseKind === 'parameter_set');
+    || (step.interactionSpec.activityCards ?? []).some((card) => isParameterSetResponseKind(card.responseKind));
 }
 
 function inferFirstQuizStepId(steps: InteractiveRuntimeStepManifest[]): string | undefined {

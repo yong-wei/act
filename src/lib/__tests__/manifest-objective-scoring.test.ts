@@ -1,8 +1,72 @@
 import { describe, expect, it } from 'vitest';
 
-import { scoreManifestObjectiveCard } from '../manifest-objective-scoring';
+import { isManifestObjectiveResponseKind, scoreManifestObjectiveCard } from '../manifest-objective-scoring';
 
 describe('scoreManifestObjectiveCard', () => {
+  it('scores canonical objective response kinds through the shared implementation', () => {
+    expect(isManifestObjectiveResponseKind('choice.multi')).toBe(true);
+    expect(isManifestObjectiveResponseKind('ordering.sequence')).toBe(true);
+    expect(isManifestObjectiveResponseKind('matching.pairs')).toBe(true);
+
+    expect(scoreManifestObjectiveCard({
+      id: 'canonical-multi',
+      responseKind: 'choice.multi',
+      options: [
+        { value: 'A', label: '航迹偏离' },
+        { value: 'B', label: '舵角边界' },
+        { value: 'C', label: '文件名' },
+      ],
+      referenceAnswer: '选 A、B。',
+    }, 'A|C')).toMatchObject({
+      kind: 'choice.multi',
+      score: 1 / 3,
+      detail: {
+        correctHits: ['A'],
+        missedCorrectOptions: ['B'],
+        extraWrongOptions: ['C'],
+      },
+    });
+
+    expect(scoreManifestObjectiveCard({
+      id: 'canonical-ordering',
+      responseKind: 'ordering.sequence',
+      options: [
+        { value: 'model', label: '建模' },
+        { value: 'validate', label: '验证' },
+        { value: 'deploy', label: '发布' },
+      ],
+    }, 'model|deploy|validate')).toMatchObject({
+      kind: 'ordering.sequence',
+      score: 1 / 3,
+      detail: {
+        correctPositions: ['model'],
+        misplacedItems: ['deploy', 'validate'],
+      },
+    });
+
+    expect(scoreManifestObjectiveCard({
+      id: 'canonical-matching',
+      responseKind: 'matching.pairs',
+      options: [],
+      matchItems: [
+        { value: '1', label: '感知' },
+        { value: '2', label: '规划' },
+      ],
+      matchOptions: [
+        { value: '3', label: '状态估计' },
+        { value: '4', label: '路径生成' },
+      ],
+      referenceMatches: [
+        { item: '1', option: '3' },
+        { item: '2', option: '4' },
+      ],
+    }, '2-4,1-3')).toMatchObject({
+      kind: 'matching.pairs',
+      score: 1,
+      normalizedSubmitted: { '1': '3', '2': '4' },
+    });
+  });
+
   it('scores single choice and binary choice by normalized option value', () => {
     expect(scoreManifestObjectiveCard({
       id: 'q1',
