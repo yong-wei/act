@@ -329,6 +329,8 @@ function learnerStateConfidence(learnerState: AdaptiveLearnerState): PlatformCon
 
 function learnerStateCoverage(learnerState: AdaptiveLearnerState): PlatformSourceCoverageStatus {
   const coverageValues = Object.values(learnerState.evidence.sourceCoverage);
+  if (learnerState.evidence.readState === 'stale') return 'stale';
+  if (learnerState.evidence.readState === 'missing') return 'missing';
   if (coverageValues.length === 0) return 'missing';
   if (coverageValues.every((value) => value === 'available')) return 'complete';
   if (coverageValues.some((value) => value === 'missing')) return 'missing';

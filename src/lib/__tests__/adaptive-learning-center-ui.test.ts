@@ -295,6 +295,23 @@ describe('adaptive learning center UI contracts', () => {
         }),
       }).status.categories.sourceCoverage,
     ).toBe('complete');
+    expect(
+      buildAdaptiveLearningCenterView({
+        featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+        learnerState: learnerState({
+          evidence: {
+            ...learnerState().evidence,
+            readState: 'stale',
+            sourceCoverage: {
+              primaryCompetencies: 'available',
+              knowledgeMastery: 'available',
+              resourcePreference: 'available',
+            },
+          },
+          missingEvidence: [],
+        }),
+      }).status.categories.sourceCoverage,
+    ).toBe('stale');
     expect(view.status.details).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: '学习状态权威来源', value: 'server-owned' }),
