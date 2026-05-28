@@ -73,6 +73,7 @@ export interface EvidenceCoverageRow {
   clientEventId?: string | null;
   learningContext?: string | null;
   invalidContextReason?: string | null;
+  readinessGaps?: string[];
 }
 
 export interface InteractionLogEventTypeResolution {
@@ -92,6 +93,7 @@ export interface EvidenceRowClassification {
   canonicalEventType?: string;
   wrapperEventType?: string;
   exclusionReason?: string;
+  readinessGaps?: string[];
 }
 
 export interface EvidenceSourceCoverage {
@@ -108,6 +110,8 @@ export interface EvidenceSourceCoverage {
   provenanceCounts: Partial<Record<EvidenceProvenance, number>>;
   eligibilityCounts: Partial<Record<EvidenceEligibility, number>>;
   valueLevelCounts: Partial<Record<EvidenceValueLevel, number>>;
+  materializationReadiness: EvidenceMaterializationReadiness;
+  readinessGapCounts: Record<string, number>;
   sampleSourceReferences: string[];
 }
 
@@ -309,7 +313,7 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     materializationReadiness: 'ready',
     userIdField: 'userId',
     timestampField: 'createdAt',
-    traceabilityFields: ['id', 'userId', 'taskId', 'datasetHash', 'controllerHash', 'scenarioId'],
+    traceabilityFields: ['id', 'userId', 'simulationRunId', 'taskId', 'datasetHash', 'controllerHash', 'scenarioId'],
     provenancePolicy: 'Preview runs derive provenance from task and dataset context.',
   },
   {
@@ -364,6 +368,10 @@ function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
 function normalizeDate(value: string | Date | null | undefined): string | null {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -408,6 +416,89 @@ function inferProvenance(row: EvidenceCoverageRow): EvidenceProvenance {
 
 function isNonRealProvenance(provenance: EvidenceProvenance) {
   return provenance === 'seed' || provenance === 'showcase' || provenance === 'demo' || provenance === 'test';
+}
+
+function collectArenaPreviewReadinessGaps(row: EvidenceCoverageRow): string[] {
+  const payload = readRecord(row.eventData);
+  const summary = readRecord(payload.summary);
+  const replay = readRecord(payload.replay);
+  const metadata = readRecord(payload.metadata ?? readRecord(summary).previewBoundary);
+  const gaps = new Set<string>();
+
+  for (const gap of row.readinessGaps ?? []) {
+    if (gap.trim()) gaps.add(gap.trim());
+  }
+
+  if (!readString(payload.simulationRunId)) gaps.add('missing_simulation_run_mapping');
+  if (!readString(row.userId)) gaps.add('missing_owner_user');
+  if (!readString(row.id) && !readString(payload.arenaPreviewDetailId)) gaps.add('missing_arena_detail_reference');
+  if (!readString(replay.checksum) && !readString(payload.replayToken)) gaps.add('missing_replay_metadata');
+  if (
+    !(
+      typeof summary.trackingError === 'number' ||
+      typeof summary.maxDeviation === 'number' ||
+      typeof summary.controlEnergy === 'number' ||
+      typeof summary.safetyViolations === 'number' ||
+      typeof summary.smoothness === 'number'
+    )
+  ) {
+    gaps.add('missing_summary_metrics');
+  }
+  if (
+    metadata.evaluationVisibility !== 'preview' ||
+    readBoolean(metadata.officialEligible) !== false ||
+    !readString(metadata.modelRelation) ||
+    !readString(metadata.datasetHash) ||
+    !readString(metadata.controllerHash) ||
+    !readString(metadata.identificationModelId) ||
+    !readString(metadata.sourceExperimentId)
+  ) {
+    gaps.add('missing_preview_boundary_metadata');
+  }
+
+  return Array.from(gaps);
+}
+
+function classifyArenaVirtualSimulationRunRow(
+  row: EvidenceCoverageRow,
+  entry: EvidenceSourceCatalogEntry,
+): EvidenceRowClassification {
+  const provenance = inferProvenance(row);
+
+  if (isNonRealProvenance(provenance)) {
+    return {
+      sourceId: entry.id,
+      provenance,
+      learningScope: entry.learningScope,
+      valueLevel: entry.defaultValueLevel,
+      eligibility: 'excluded',
+      materializationReadiness: entry.materializationReadiness,
+      exclusionReason: 'non_real_provenance',
+    };
+  }
+
+  const readinessGaps = collectArenaPreviewReadinessGaps(row);
+  if (readinessGaps.length > 0) {
+    return {
+      sourceId: entry.id,
+      provenance,
+      learningScope: entry.learningScope,
+      valueLevel: 'context',
+      eligibility: 'context-only',
+      materializationReadiness: 'partial',
+      exclusionReason: readinessGaps[0],
+      readinessGaps,
+    };
+  }
+
+  return {
+    sourceId: entry.id,
+    provenance,
+    learningScope: entry.learningScope,
+    valueLevel: entry.defaultValueLevel,
+    eligibility: entry.defaultEligibility,
+    materializationReadiness: entry.materializationReadiness,
+  };
 }
 
 export function getEvidenceSourceCatalog(): EvidenceSourceCatalogEntry[] {
@@ -529,6 +620,10 @@ export function classifyEvidenceRow(row: EvidenceCoverageRow & { sourceId: Evide
     return classifyInteractionRow(row, entry);
   }
 
+  if (entry.id === 'ArenaVirtualSimulationRun') {
+    return classifyArenaVirtualSimulationRunRow(row, entry);
+  }
+
   const provenance = inferProvenance(row);
   if (isNonRealProvenance(provenance)) {
     return {
@@ -579,11 +674,13 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
     const provenanceCounts: Partial<Record<EvidenceProvenance, number>> = {};
     const eligibilityCounts: Partial<Record<EvidenceEligibility, number>> = {};
     const valueLevelCounts: Partial<Record<EvidenceValueLevel, number>> = {};
+    const readinessGapCounts: Record<string, number> = {};
     const timestamps: string[] = [];
     const samples: string[] = [];
     let eligibleRows = 0;
     let excludedRows = 0;
     let unsupportedRows = 0;
+    let materializationReadiness = entry.materializationReadiness;
 
     for (const row of rows) {
       const userId = readString(row.userId);
@@ -600,6 +697,12 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
       increment(provenanceCounts, classification.provenance);
       increment(eligibilityCounts, classification.eligibility);
       increment(valueLevelCounts, classification.valueLevel);
+      if (classification.materializationReadiness === 'partial') {
+        materializationReadiness = 'partial';
+      }
+      for (const gap of classification.readinessGaps ?? []) {
+        readinessGapCounts[gap] = (readinessGapCounts[gap] ?? 0) + 1;
+      }
 
       if (classification.eligibility === 'eligible') {
         eligibleRows += 1;
@@ -642,6 +745,8 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
       provenanceCounts,
       eligibilityCounts,
       valueLevelCounts,
+      materializationReadiness,
+      readinessGapCounts,
       sampleSourceReferences: samples,
     });
   }

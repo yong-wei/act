@@ -198,7 +198,21 @@ describe('GET /api/admin/data-governance/status', () => {
         datasetHash: 'dataset-hash',
         controllerHash: 'controller-hash',
         scenarioId: 'scenario-a',
-        payload: { source: 'real-arena-preview' },
+        simulationRunId: 'canonical-run-1',
+        payload: {
+          source: 'real-arena-preview',
+          summary: { trackingError: 0.2, maxDeviation: 0.4 },
+          replay: { checksum: 'sha256:abc' },
+          metadata: {
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+            modelRelation: 'identified-model-controller',
+            datasetHash: 'dataset-hash',
+            controllerHash: 'controller-hash',
+            identificationModelId: 'model-1',
+            sourceExperimentId: 'experiment-1',
+          },
+        },
         createdAt: new Date('2026-05-20T08:13:00.000Z'),
       },
     ]);
@@ -313,6 +327,7 @@ describe('GET /api/admin/data-governance/status', () => {
           materializationReadiness: 'ready',
           totalRows: 1,
           eligibleRows: 1,
+          readinessGapCounts: {},
         }),
         expect.objectContaining({
           id: 'ArenaEvaluationRun',
@@ -349,6 +364,11 @@ describe('GET /api/admin/data-governance/status', () => {
         }),
       ]),
     });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        simulationRunId: true,
+      }),
+    }));
     expect(payload.recentSnapshots[0]).toMatchObject({
       userId: 'student-1',
       userName: '张三',
@@ -359,7 +379,7 @@ describe('GET /api/admin/data-governance/status', () => {
       staleEntries: 0,
       latestRefreshAt: '2026-05-19T08:10:00.000Z',
       totalSourceFacts: 4,
-      payloadVersion: 'student-evidence-features.v1',
+      payloadVersion: 'student-evidence-features.v3',
     });
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,

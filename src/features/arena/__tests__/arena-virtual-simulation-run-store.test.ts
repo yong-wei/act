@@ -164,6 +164,18 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
         protocolVersion: '1.0',
         runtimeVersion: previewReplay.runtimeVersion,
         modelVersion: previewReplay.modelVersion,
+        summary: expect.objectContaining({
+          trackingError: preview.summary.trackingError,
+          previewBoundary: expect.objectContaining({
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+            modelRelation: 'identified-model-controller',
+            datasetHash: preview.datasetHash,
+            controllerHash: preview.controllerHash,
+            identificationModelId: 'arena-identification-store12345',
+            sourceExperimentId: 'experiment-store-row',
+          }),
+        }),
       }),
     }));
     expect(mocks.tx.simulationTrace.create).toHaveBeenCalledWith(expect.objectContaining({
