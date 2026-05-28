@@ -25,10 +25,12 @@ function writeTargetFile(relativePath, content) {
   fs.writeFileSync(fullPath, content);
 }
 
-function run(command, args, cwd) {
+function run(command, args, cwd, options = {}) {
   const result = spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
+    env: options.env ?? process.env,
+    timeout: options.timeout ?? 15000,
   });
   assert.equal(
     result.status,
@@ -78,6 +80,11 @@ assert.doesNotMatch(
   /\.codex\/tmp|runtime\.txt|\.codex\/cache|index\.db/,
   '工作树配置同步不应同步 .codex 的缓存和临时产物',
 );
+assert.doesNotMatch(
+  dryRun.stdout,
+  /warning:  is neither tracked nor ignored in target/,
+  '未启用环境链接时不应检查空路径',
+);
 
 const apply = run(
   'bash',
@@ -116,6 +123,90 @@ assert.equal(
   fs.existsSync(path.join(target, '.tmp/local-config-backups')),
   true,
   '目录同步覆盖已有文件时应把备份集中放入 .tmp/local-config-backups/',
+);
+
+const graphDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--init-graphs',
+    '--graph-alias',
+    'test-alias',
+  ],
+  root,
+);
+
+assert.match(
+  graphDryRun.stdout,
+  /would initialize codegraph: .*target/,
+  'dry-run 应说明会初始化 codegraph',
+);
+assert.match(
+  graphDryRun.stdout,
+  /would register CRG: .*target \(alias: test-alias\)/,
+  'dry-run 应说明会注册 CRG 并使用指定 alias',
+);
+
+const binDir = path.join(tmpRoot, 'bin');
+mkdirp(binDir);
+const graphCallLog = path.join(tmpRoot, 'graph-calls.log');
+for (const commandName of ['codegraph', 'code-review-graph']) {
+  const commandPath = path.join(binDir, commandName);
+  fs.writeFileSync(
+    commandPath,
+    `#!/bin/sh\nprintf '%s %s\\n' "$(basename "$0")" "$*" >> "$GRAPH_CALL_LOG"\n`,
+  );
+  fs.chmodSync(commandPath, 0o755);
+}
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+    '--init-graphs',
+    '--graph-alias',
+    'test-alias',
+  ],
+  root,
+  {
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      GRAPH_CALL_LOG: graphCallLog,
+    },
+  },
+);
+
+const graphCalls = fs.readFileSync(graphCallLog, 'utf8');
+assert.match(
+  graphCalls,
+  new RegExp(`codegraph init --index ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  'apply 模式应初始化并索引 codegraph',
+);
+assert.match(
+  graphCalls,
+  new RegExp(`code-review-graph register ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} --alias test-alias`),
+  'apply 模式应按指定 alias 注册 CRG',
+);
+assert.match(
+  graphCalls,
+  new RegExp(`code-review-graph build --repo ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  'apply 模式应构建 CRG',
+);
+
+assert.equal(
+  fs.existsSync(path.join(target, '.git/hooks/post-commit')),
+  false,
+  '初始化图谱不应写入 Git hook；worktree 共享 hook 应由主仓库维护',
 );
 
 console.log('local worktree config sync contract passed');

@@ -10,6 +10,9 @@ INCLUDE_CODEX_PLANS=0
 LINK_CONFIG=0
 LINK_ENV=0
 REPLACE_EXISTING=0
+INIT_GRAPHS=0
+GRAPH_ALIAS=""
+ENV_LINKS=()
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 
@@ -35,6 +38,8 @@ Options:
   --link-env                 Implies --link-config; also symlink .env, .env.*, .envrc,
                              and .codex/config.toml from source when present.
   --replace-existing         When linking, backup and replace existing target paths.
+  --init-graphs              Initialize and build codegraph and code-review-graph for target.
+  --graph-alias ALIAS        CRG alias to use with --init-graphs. Defaults to a target-based alias.
   -h, --help                 Show this help.
 
 Copied by default:
@@ -75,7 +80,7 @@ Linked with --link-config --link-env:
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
-  .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
+  .codegraph, .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
 USAGE
 }
 
@@ -112,6 +117,14 @@ while [[ $# -gt 0 ]]; do
     --replace-existing)
       REPLACE_EXISTING=1
       shift
+      ;;
+    --init-graphs)
+      INIT_GRAPHS=1
+      shift
+      ;;
+    --graph-alias)
+      GRAPH_ALIAS="${2:-}"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -216,6 +229,40 @@ print_mode() {
     echo "Config sync: symlink"
   else
     echo "Config sync: copy"
+  fi
+  if [[ "$INIT_GRAPHS" -eq 1 ]]; then
+    echo "Graph init: enabled"
+  fi
+}
+
+sanitize_graph_alias() {
+  local raw="$1"
+  printf '%s' "$raw" | tr -cs '[:alnum:]_-' '-' | sed -E 's/^-+//; s/-+$//'
+}
+
+default_graph_alias() {
+  local repo_name
+  local tail
+  local worktree_id
+
+  repo_name="$(basename "$TARGET")"
+  case "$TARGET" in
+    */.codex/worktrees/*/*)
+      tail="${TARGET#*/.codex/worktrees/}"
+      worktree_id="${tail%%/*}"
+      sanitize_graph_alias "$repo_name-$worktree_id"
+      ;;
+    *)
+      sanitize_graph_alias "$repo_name"
+      ;;
+  esac
+}
+
+resolve_graph_alias() {
+  if [[ -n "$GRAPH_ALIAS" ]]; then
+    sanitize_graph_alias "$GRAPH_ALIAS"
+  else
+    default_graph_alias
   fi
 }
 
@@ -522,6 +569,30 @@ warn_if_not_ignored_or_tracked() {
   echo "warning: $rel is neither tracked nor ignored in target"
 }
 
+initialize_graphs() {
+  local alias
+  alias="$(resolve_graph_alias)"
+
+  echo
+  echo "Graph initialization:"
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would initialize codegraph: $TARGET"
+    echo "would register CRG: $TARGET (alias: $alias)"
+    echo "would build CRG: $TARGET"
+    return
+  fi
+
+  require_command codegraph
+  require_command code-review-graph
+
+  codegraph init --index "$TARGET"
+  echo "initialized codegraph: $TARGET"
+  code-review-graph register "$TARGET" --alias "$alias"
+  echo "registered CRG: $TARGET (alias: $alias)"
+  code-review-graph build --repo "$TARGET"
+  echo "built CRG: $TARGET"
+}
+
 echo "Source: $SOURCE"
 echo "Target: $TARGET"
 print_mode
@@ -566,12 +637,21 @@ echo "Ignore/tracking check:"
 if [[ "$LINK_CONFIG" -eq 1 && "$LINK_ENV" -eq 1 ]]; then
   collect_env_links
 fi
-for rel in "${FILES[@]}" "${DIRS[@]}" "${DEPENDENCY_LINKS[@]}" "${CONFIG_LINKS[@]}" "${ENV_LINKS[@]:-}"; do
+TRACKING_CHECK_PATHS=("${FILES[@]}" "${DIRS[@]}" "${DEPENDENCY_LINKS[@]}" "${CONFIG_LINKS[@]}")
+if [[ ${#ENV_LINKS[@]} -gt 0 ]]; then
+  TRACKING_CHECK_PATHS+=("${ENV_LINKS[@]}")
+fi
+for rel in "${TRACKING_CHECK_PATHS[@]}"; do
   warn_if_not_ignored_or_tracked "$rel"
 done
+
+if [[ "$INIT_GRAPHS" -eq 1 ]]; then
+  initialize_graphs
+fi
 
 echo
 echo "Follow-up commands for a new long-lived worktree:"
 echo "  scripts/dev/sync-local-worktree-config.sh --apply --link-config --link-env --target \"$TARGET\""
+echo "  scripts/dev/sync-local-worktree-config.sh --apply --init-graphs --target \"$TARGET\" --graph-alias \"$(resolve_graph_alias)\""
 echo "  rtk code-review-graph register \"$TARGET\" --alias <alias>"
 echo "  rtk code-review-graph build --repo \"$TARGET\""
