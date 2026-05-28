@@ -51,8 +51,8 @@ CREATE TABLE "AgentToolRun" (
   CONSTRAINT "AgentToolRun_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "AgentToolRun_ownerUserId_toolName_idempotencyKey_key"
-  ON "AgentToolRun"("ownerUserId", "toolName", "idempotencyKey");
+CREATE UNIQUE INDEX "AgentToolRun_agentSessionId_toolName_idempotencyKey_key"
+  ON "AgentToolRun"("agentSessionId", "toolName", "idempotencyKey");
 
 CREATE INDEX "AgentSession_ownerUserId_status_updatedAt_idx" ON "AgentSession"("ownerUserId", "status", "updatedAt");
 CREATE INDEX "AgentSession_ownerUserId_courseId_pageId_idx" ON "AgentSession"("ownerUserId", "courseId", "pageId");

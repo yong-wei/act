@@ -1298,7 +1298,7 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/agentSessionId\s+String/);
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
-    expect(schema).toContain('@@unique([ownerUserId, toolName, idempotencyKey])');
+    expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
   });
 
   it('registers tool tiers and routes write tools into approval-required tool runs', async () => {

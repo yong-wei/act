@@ -1245,7 +1245,7 @@ model AgentToolRun {
   actorUser    User         @relation("AgentToolRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
   targetUser   User         @relation("AgentToolRunTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
-  @@unique([ownerUserId, toolName, idempotencyKey])
+  @@unique([agentSessionId, toolName, idempotencyKey])
   @@index([agentSessionId, startedAt])
   @@index([ownerUserId, toolName, startedAt])
   @@index([ownerUserId, status, startedAt])
