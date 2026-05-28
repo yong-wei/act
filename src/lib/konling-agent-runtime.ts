@@ -630,9 +630,15 @@ export async function startKonlingToolRun(
   if (input.idempotencyKey && registryEntry.idempotencyPolicy !== 'none') {
     const existing = await db.agentToolRun?.findFirst?.({
       where: {
+        agentSessionId: input.agentSessionId,
         ownerUserId: input.scope.targetUserId,
         toolName: input.toolName,
         idempotencyKey: input.idempotencyKey,
+        classId: input.scope.classId ?? null,
+        courseId: input.scope.courseId,
+        pageId: input.scope.pageId,
+        resourceId: input.scope.resourceId ?? null,
+        pathNodeId: input.scope.pathNodeId ?? null,
       },
     });
     if (existing) {

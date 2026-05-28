@@ -1362,7 +1362,7 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('hiddenEvaluation');
   });
 
-  it('enforces owner-scoped idempotency before creating another state-changing tool run', async () => {
+  it('enforces scope-scoped idempotency before creating another state-changing tool run', async () => {
     const scope = createScope();
     const db = {
       agentSession: {
@@ -1413,9 +1413,15 @@ describe('konling agent runtime', () => {
     });
     expect(db.agentToolRun.findFirst).toHaveBeenCalledWith({
       where: {
+        agentSessionId: 'agent-session-1',
         ownerUserId: 'student-1',
         toolName: 'set_simulation_params',
         idempotencyKey: 'same-key',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        resourceId: 'resource-1',
+        pathNodeId: 'node-1',
       },
     });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
