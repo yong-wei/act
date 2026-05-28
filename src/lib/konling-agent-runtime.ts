@@ -334,7 +334,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   get_simulation_status: toolRegistryEntry('get_simulation_status', 'read'),
   set_simulation_params: toolRegistryEntry('set_simulation_params', 'write', 'required', 'reuse'),
   analyze_result: toolRegistryEntry('analyze_result', 'analyze'),
-  record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'required', 'reuse'),
+  record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'none', 'reuse'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
@@ -683,7 +683,11 @@ export async function completeKonlingToolRun(
   const toolRun = await findScopedToolRun(db, input.scope, input.toolRunId);
   const permissionTier = getString(toolRun, 'permissionTier');
   const approvalState = getString(toolRun, 'approvalState');
-  if ((permissionTier === 'write' || permissionTier === 'publish') && approvalState !== 'approved') {
+  if (
+    (permissionTier === 'write' || permissionTier === 'publish') &&
+    approvalState !== 'approved' &&
+    approvalState !== 'not_required'
+  ) {
     throw new KonlingRuntimeScopeError(403, '写入或发布工具必须先获得 approval。');
   }
   const now = input.now ?? new Date();
