@@ -76,6 +76,7 @@ export interface ResourceNodeAuditIssue {
     | 'missing-knowledge-mapping'
     | 'invalid-prerequisite'
     | 'unavailable-resource'
+    | 'teacher-policy-blocked'
     | 'missing-privacy-policy'
     | 'missing-evidence-instrumentation';
   message: string;
@@ -97,7 +98,9 @@ export interface ResourceNodeSourceOfRecord {
 export interface ResourceNode {
   id: string;
   title: string;
+  description: string | null;
   type: ResourceNodeType;
+  courseModule: string | null;
   sourceKind: ResourceNodeSourceKind;
   sourceRef: string;
   sourceRefs: ResourceNodeSourceReference[];
@@ -141,6 +144,17 @@ export interface TeachingResourceNodeInput {
   prerequisiteNodeIds?: string[];
   config?: Record<string, unknown> | null;
 }
+
+export type ResourceNodePlanningOverride = Partial<Pick<
+  ResourceNodePlanningMetadata,
+  | 'prerequisites'
+  | 'estimatedTimeMinutes'
+  | 'cognitiveLoad'
+  | 'knowledgeCoverage'
+  | 'availability'
+  | 'teacherPolicy'
+  | 'privacyLevel'
+>>;
 
 export interface RegisteredResourceNodeInput {
   id: string;
@@ -291,6 +305,13 @@ export function auditResourceNode(
       message: `ResourceNode availability is ${node.planningMetadata.availability}.`,
     });
   }
+  if (node.planningMetadata.teacherPolicy === 'blocked') {
+    issues.push({
+      code: 'teacher-policy-blocked',
+      severity: 'blocking',
+      message: 'ResourceNode is excluded by teacher policy.',
+    });
+  }
   if (!node.planningMetadata.privacyLevel) {
     issues.push({
       code: 'missing-privacy-policy',
@@ -316,6 +337,7 @@ export function auditResourceNode(
 
 function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): ResourceNode[] {
   return resources.map((resource) => {
+    const planningOverride = parsePlanningOverride(resource.config);
     const registryLaunch = resource.registryId ? `/interactive-learning/resources/${resource.id}` : null;
     const contentRender = resource.content ? `/interactive-learning/resources/${resource.id}` : null;
     const nodeType = resource.type === 'STATIC_MEDIA'
@@ -328,7 +350,9 @@ function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): Res
     return createNode({
       id: `teaching-resource:${resource.id}`,
       title: resource.displayName ?? resource.title,
+      description: resource.description ?? null,
       type: nodeType,
+      courseModule: resource.category ?? null,
       sourceKind: 'teaching_resource',
       sourceRef: resource.id,
       sourceRefs: [
@@ -346,6 +370,7 @@ function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): Res
       teacherOnly: Boolean(resource.teacherOnly),
       prerequisites: resource.prerequisiteNodeIds ?? [],
       evidenceInstrumentation: ['TeachingResource.interactionLogs'],
+      planningOverride,
     });
   });
 }
@@ -374,6 +399,7 @@ function buildKnowledgeResourceNodes(nodes: KnowledgeNodeResourceInput[]): Resou
     createNode({
       id: `knowledge-node:${node.id}`,
       title: node.name,
+      courseModule: node.tags?.[0] ?? null,
       type: 'knowledge_node',
       sourceKind: 'knowledge_graph',
       sourceRef: node.id,
@@ -389,6 +415,7 @@ function buildKnowledgeResourceNodes(nodes: KnowledgeNodeResourceInput[]): Resou
     createNode({
       id: `knowledge-card:${node.id}`,
       title: `${node.name}知识卡`,
+      courseModule: node.tags?.[0] ?? null,
       type: 'knowledge_card',
       sourceKind: 'knowledge_graph',
       sourceRef: `${node.id}:card`,
@@ -411,6 +438,7 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
       nodes.push(createNode({
         id: `lesson-step:${lesson.lessonId}:${step.id}`,
         title: step.title,
+        courseModule: lesson.lessonId,
         type: 'lesson_step',
         sourceKind: 'runtime_lesson_step',
         sourceRef: `${lesson.lessonId}:${step.id}`,
@@ -429,6 +457,7 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
       nodes.push(createNode({
         id: `runtime-handout:${lesson.lessonId}`,
         title: `${lesson.title}讲义`,
+        courseModule: lesson.lessonId,
         type: 'handout',
         sourceKind: 'runtime_handout',
         sourceRef: lesson.lessonId,
@@ -452,6 +481,7 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
       nodes.push(createNode({
         id: `runtime-media:${lesson.lessonId}:${media.id}`,
         title: media.title,
+        courseModule: lesson.lessonId,
         type: media.kind === 'video' || media.kind === 'audio' ? media.kind : 'handout',
         sourceKind: 'runtime_lesson_media',
         sourceRef: `${lesson.lessonId}:${media.id}`,
@@ -474,6 +504,7 @@ function buildSimulationNodes(simulations: SimulationResourceNodeInput[]): Resou
   return simulations.map((simulation) => createNode({
     id: `simulation:${simulation.id}`,
     title: simulation.title,
+    courseModule: null,
     type: 'simulation',
     sourceKind: 'simulation_resource',
     sourceRef: simulation.id,
@@ -493,6 +524,7 @@ function buildArenaTaskNodes(tasks: ArenaTaskResourceNodeInput[]): ResourceNode[
   return tasks.map((task) => createNode({
     id: `arena-task:${task.id}`,
     title: task.title,
+    courseModule: null,
     type: 'arena_task',
     sourceKind: 'arena_task',
     sourceRef: task.id,
@@ -516,6 +548,7 @@ function buildLightweightNodes(
   return entries.map((entry) => createNode({
     id: `${sourceKind}:${entry.id}`,
     title: entry.title,
+    courseModule: null,
     type,
     sourceKind,
     sourceRef: entry.sourceRef ?? entry.id,
@@ -536,7 +569,9 @@ function buildLightweightNodes(
 function createNode(input: {
   id: string;
   title: string;
+  description?: string | null;
   type: ResourceNodeType;
+  courseModule?: string | null;
   sourceKind: ResourceNodeSourceKind;
   sourceRef: string;
   sourceRefs?: ResourceNodeSourceReference[];
@@ -547,30 +582,34 @@ function createNode(input: {
   teacherOnly?: boolean;
   prerequisites?: string[];
   evidenceInstrumentation: string[];
+  planningOverride?: ResourceNodePlanningOverride;
 }): ResourceNode {
   const privacyLevel: ResourceNodePrivacyLevel = input.teacherOnly ? 'teacher-scoped' : 'student-visible';
+  const planningOverride = input.planningOverride ?? {};
   return {
     id: input.id,
     title: input.title,
+    description: input.description ?? null,
     type: input.type,
+    courseModule: input.courseModule ?? null,
     sourceKind: input.sourceKind,
     sourceRef: input.sourceRef,
     sourceRefs: uniqueSourceRefs(input.sourceRefs ?? [{ kind: input.sourceKind, ref: input.sourceRef }]),
     renderTarget: input.renderTarget ?? null,
     launchTarget: input.launchTarget ?? null,
     planningMetadata: {
-      prerequisites: uniqueSorted(input.prerequisites ?? []),
-      estimatedTimeMinutes: defaultEstimatedTime(input.type),
-      cognitiveLoad: defaultCognitiveLoad(input.type),
-      knowledgeCoverage: uniqueSorted(input.knowledgeCoverage),
+      prerequisites: uniqueSorted(planningOverride.prerequisites ?? input.prerequisites ?? []),
+      estimatedTimeMinutes: planningOverride.estimatedTimeMinutes ?? defaultEstimatedTime(input.type),
+      cognitiveLoad: planningOverride.cognitiveLoad ?? defaultCognitiveLoad(input.type),
+      knowledgeCoverage: uniqueSorted(planningOverride.knowledgeCoverage ?? input.knowledgeCoverage),
       abilityImpact: defaultAbilityImpact(input.type),
       cost: {
         effort: input.type === 'project' || input.type === 'arena_task' ? 'high' : 'medium',
         requiresTeacherReview: input.teacherOnly === true || input.type === 'project',
       },
-      availability: input.teacherOnly ? 'teacher_only' : 'available',
-      teacherPolicy: input.teacherOnly ? 'teacher-only' : 'allowed',
-      privacyLevel,
+      availability: planningOverride.availability ?? (input.teacherOnly ? 'teacher_only' : 'available'),
+      teacherPolicy: planningOverride.teacherPolicy ?? (input.teacherOnly ? 'teacher-only' : 'allowed'),
+      privacyLevel: planningOverride.privacyLevel ?? privacyLevel,
       terminalConstraints: input.type === 'project' ? ['terminal-node'] : [],
       evidenceInstrumentation: input.evidenceInstrumentation,
     },
@@ -581,6 +620,53 @@ function createNode(input: {
       auditIssues: [],
     },
   };
+}
+
+function parsePlanningOverride(config?: Record<string, unknown> | null): ResourceNodePlanningOverride | undefined {
+  const value = config?.resourceNodePlanning;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const override: ResourceNodePlanningOverride = {};
+  if (Array.isArray(raw.prerequisites)) {
+    override.prerequisites = raw.prerequisites.filter((item): item is string => typeof item === 'string');
+  }
+  if (Array.isArray(raw.knowledgeCoverage)) {
+    override.knowledgeCoverage = raw.knowledgeCoverage.filter((item): item is string => typeof item === 'string');
+  }
+  if (typeof raw.estimatedTimeMinutes === 'number' || raw.estimatedTimeMinutes === null) {
+    override.estimatedTimeMinutes = raw.estimatedTimeMinutes;
+  }
+  if (raw.cognitiveLoad === 'low' || raw.cognitiveLoad === 'medium' || raw.cognitiveLoad === 'high') {
+    override.cognitiveLoad = raw.cognitiveLoad;
+  }
+  if (
+    raw.availability === 'available' ||
+    raw.availability === 'draft' ||
+    raw.availability === 'archived' ||
+    raw.availability === 'teacher_only'
+  ) {
+    override.availability = raw.availability;
+  }
+  if (
+    raw.teacherPolicy === 'allowed' ||
+    raw.teacherPolicy === 'teacher-assigned' ||
+    raw.teacherPolicy === 'teacher-only' ||
+    raw.teacherPolicy === 'blocked'
+  ) {
+    override.teacherPolicy = raw.teacherPolicy;
+  }
+  if (
+    raw.privacyLevel === 'student-visible' ||
+    raw.privacyLevel === 'teacher-scoped' ||
+    raw.privacyLevel === 'admin-scoped'
+  ) {
+    override.privacyLevel = raw.privacyLevel;
+  }
+
+  return Object.keys(override).length > 0 ? override : undefined;
 }
 
 function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNode> {

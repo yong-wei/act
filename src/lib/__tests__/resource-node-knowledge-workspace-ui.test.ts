@@ -24,7 +24,9 @@ function resourceNode(overrides: Partial<ResourceNode> = {}): ResourceNode {
   return {
     id: 'simulation:cruise',
     title: '邮轮舒适度仿真',
+    description: null,
     type: 'simulation',
+    courseModule: null,
     sourceKind: 'simulation_resource',
     sourceRef: 'cruise',
     sourceRefs: [
