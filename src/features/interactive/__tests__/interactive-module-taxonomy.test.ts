@@ -90,9 +90,20 @@ describe('interactive module taxonomy', () => {
       responseKind: 'hotspotLabeling',
       migrationOnly: true,
     });
+    expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['structured-compare']).toMatchObject({
+      canonicalClass: 'activity.panel',
+      interactionKind: 'structured-compare',
+      responseKind: 'structured',
+      migrationOnly: true,
+    });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['interactive-figure-panel']).toMatchObject({
       canonicalClass: 'compute.panel',
       capabilityRef: 'interactive-figure',
+      migrationOnly: true,
+    });
+    expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['parametric-risk-panel']).toMatchObject({
+      canonicalClass: 'compute.panel',
+      capabilityRef: 'parametric-risk',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['learning-stat-panel']).toMatchObject({
@@ -132,6 +143,12 @@ describe('interactive module taxonomy', () => {
     for (const alias of Object.values(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES)) {
       expect(INTERACTIVE_MODULE_CANONICAL_CLASSES).toContain(alias.canonicalClass);
       expect(alias.migrationOnly).toBe(true);
+      if (alias.capabilityRef) {
+        expect(alias.canonicalClass).toBe('compute.panel');
+      }
+      if (alias.responseKind) {
+        expect(['activity.panel', 'activity.workspace', 'compute.panel']).toContain(alias.canonicalClass);
+      }
     }
   });
 });

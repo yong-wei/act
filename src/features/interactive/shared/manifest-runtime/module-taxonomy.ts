@@ -295,7 +295,7 @@ function defineLegacyInteractiveModuleKindAlias(kind: ObservedLegacyInteractiveM
 
 function canonicalClassForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): InteractiveModuleCanonicalClass {
   if (kind === 'image-or-table-fallback') return 'legacy.adapter';
-  if (kind.includes('interactive-figure') || kind.includes('rust-') || kind.includes('shared-engine') || kind === 'phase-peak-locator') {
+  if (kind.includes('interactive-figure') || kind.includes('rust-') || kind.includes('shared-engine') || kind === 'phase-peak-locator' || kind === 'parametric-risk-panel') {
     return 'compute.panel';
   }
   if (kind.includes('workspace')) return 'activity.workspace';
@@ -437,6 +437,7 @@ function isActivityKind(kind: ObservedLegacyInteractiveModuleKind): boolean {
     'reason-record',
     'response',
     'sort',
+    'structured-compare',
     'submit',
     'table-builder',
     'triple-match',
