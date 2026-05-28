@@ -185,6 +185,7 @@ export async function POST(request: Request) {
         scope: scope.scope,
         context: runtimeContext,
         agentSessionId: agentSession.id,
+        permittedTools: agentSession.permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       }));
     } else if (pageContext && userProfile) {

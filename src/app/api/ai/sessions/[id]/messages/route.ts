@@ -150,6 +150,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         scope: scope.scope,
         context: runtimeContext,
         agentSessionId: agentSession.id,
+        permittedTools: agentSession.permittedTools,
       })),
       maxSteps: 5,
       maxTokens: 1000,

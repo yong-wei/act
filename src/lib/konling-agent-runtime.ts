@@ -203,6 +203,7 @@ interface KonlingToolRuntimeInput {
   scope: KonlingRuntimeScope;
   context: KonlingRuntimeContext;
   agentSessionId?: string | null;
+  permittedTools?: string[] | null;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
 }
 
@@ -451,6 +452,7 @@ export async function buildKonlingRuntimeContext(
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
   return {
+    permittedTools: normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools),
     getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => input.context.pageContext),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
@@ -870,7 +872,7 @@ async function assertInterventionFeedbackScope(
 }
 
 export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlingToolRuntime>) {
-  return {
+  const tools = {
     get_page_context: tool({
       description: '读取服务端确认的当前页面上下文。',
       parameters: z.object({}),
@@ -943,6 +945,13 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),
     }),
   };
+  if (!('permittedTools' in runtime)) {
+    return tools;
+  }
+  const permittedTools = new Set<string>(normalizeKonlingToolNames(runtime.permittedTools));
+  return Object.fromEntries(
+    Object.entries(tools).filter(([toolName]) => permittedTools.has(toolName)),
+  ) as typeof tools;
 }
 
 export async function createKonlingMemory(
@@ -1233,6 +1242,11 @@ export function privacyScopesForRole(role: AdaptiveLearnerStateRole): AdaptiveLe
   if (role === 'teacher') return ['student-visible', 'teacher-scoped'];
   if (role === 'system') return ['student-visible', 'teacher-scoped', 'admin-scoped', 'audit-only', 'system-internal'];
   return ['student-visible'];
+}
+
+function normalizeKonlingToolNames(value: unknown): KonlingToolName[] {
+  const names = arrayOfStrings(value);
+  return names.filter((name): name is KonlingToolName => name in KONLING_TOOL_REGISTRY);
 }
 
 function toolRegistryEntry(

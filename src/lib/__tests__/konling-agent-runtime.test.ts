@@ -818,6 +818,27 @@ describe('konling agent runtime', () => {
     expect((tools.record_intervention_result.parameters as any).shape).toHaveProperty('idempotencyKey');
   });
 
+  it('filters exposed AI tool schemas to the current agent session permissions', () => {
+    const tools = buildScopedKonlingAiTools({
+      permittedTools: ['get_page_context'],
+      getPageContext: vi.fn(),
+      getLearnerState: vi.fn(),
+      getPlanContext: vi.fn(),
+      searchLearningMemory: vi.fn(),
+      searchKnowledgeGraph: vi.fn(),
+      recommendNextAction: vi.fn(),
+      getSimulationStatus: vi.fn(),
+      setSimulationParams: vi.fn(),
+      analyzeResult: vi.fn(),
+      recordInterventionResult: vi.fn(),
+      analyzeAttempt: vi.fn(),
+    } as unknown as ReturnType<typeof buildKonlingToolRuntime>);
+
+    expect(tools).toHaveProperty('get_page_context');
+    expect(tools).not.toHaveProperty('set_simulation_params');
+    expect(tools).not.toHaveProperty('record_intervention_result');
+  });
+
   it('reuses completed idempotent tool runs without repeating side effects', async () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const outputSummary = {
