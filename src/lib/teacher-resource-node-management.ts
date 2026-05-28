@@ -143,7 +143,20 @@ export type TeacherResourceNodePatchResult =
       persistablePatch?: undefined;
     };
 
-const IMMUTABLE_PATCH_FIELDS = [
+export const TEACHER_RESOURCE_NODE_PERMITTED_EDIT_FIELDS = [
+  'displayName',
+  'description',
+  'planningMetadata.prerequisites',
+  'planningMetadata.knowledgeCoverage',
+  'planningMetadata.estimatedTimeMinutes',
+  'planningMetadata.cognitiveLoad',
+  'planningMetadata.availability',
+  'planningMetadata.teacherPolicy',
+  'planningMetadata.privacyLevel',
+  'planningMetadata.pathEligible',
+] as const;
+
+export const TEACHER_RESOURCE_NODE_IMMUTABLE_FIELDS = [
   'id',
   'sourceKind',
   'sourceRef',
@@ -157,7 +170,7 @@ const IMMUTABLE_PATCH_FIELDS = [
   'privateLearnerEvidence',
   'konlingMemory',
   'protocolVersion',
-];
+] as const;
 
 const IMMUTABLE_PLANNING_FIELDS = [
   'evidenceInstrumentation',
@@ -395,7 +408,7 @@ function sanitizePlanningPatch(
 function containsImmutablePatchField(patch: unknown): boolean {
   if (!patch || typeof patch !== 'object') return false;
   const record = patch as Record<string, unknown>;
-  if (IMMUTABLE_PATCH_FIELDS.some((field) => field in record)) return true;
+  if (TEACHER_RESOURCE_NODE_IMMUTABLE_FIELDS.some((field) => field in record)) return true;
   const planning = record.planningMetadata;
   if (!planning || typeof planning !== 'object' || Array.isArray(planning)) return false;
   const planningRecord = planning as Record<string, unknown>;
