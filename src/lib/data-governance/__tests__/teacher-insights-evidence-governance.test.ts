@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const TEST_DAY_MS = 24 * 60 * 60 * 1000;
+
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
   const generateRecommendations = vi.fn();
@@ -89,6 +91,7 @@ import {
   summarizeTeacherEvidenceCoverage,
   type TeacherStudentEvidenceStatus,
 } from '../teacher-evidence-governance';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -107,8 +110,8 @@ function enrolledStudent(userId: string, name: string) {
 function evidenceCache(userId: string, overrides: Record<string, unknown> = {}) {
   return {
     userId,
-    payloadVersion: 'student-evidence-features.v2',
-    refreshedAt: new Date('2026-05-20T00:00:00.000Z'),
+    payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+    refreshedAt: new Date(vi.getRealSystemTime() - TEST_DAY_MS),
     lastSourceFactAt: new Date('2026-05-20T08:00:00.000Z'),
     sourceFactCount: 12,
     evidenceWindow: {
@@ -318,7 +321,7 @@ function competencyVector(score: number) {
 
 describe('teacher evidence governance insights', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-05-21T00:00:00.000Z'));
     vi.clearAllMocks();
 
@@ -509,7 +512,9 @@ describe('teacher evidence governance insights', () => {
       evidenceCache('student-ready', {
         features: { simulationArena: simulationArenaFeature() },
       }),
-      evidenceCache('student-stale'),
+      evidenceCache('student-stale', {
+        refreshedAt: new Date(vi.getRealSystemTime() - 30 * TEST_DAY_MS),
+      }),
       evidenceCache('student-low', {
         features: {
           simulationArena: simulationArenaFeature({

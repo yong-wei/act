@@ -113,6 +113,7 @@ model User {
   arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
   arenaIdentificationModels ArenaIdentificationModel[]
   arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
+  simulationRuns SimulationRun[]
   arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
 }
 
@@ -1446,20 +1447,98 @@ model ArenaIdentificationModel {
 }
 
 model ArenaVirtualSimulationRun {
-  id             String   @id @default(cuid())
-  userId         String
-  taskId         String
-  datasetHash    String
-  controllerHash String
-  scenarioId     String
-  payload        Json
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  taskId          String
+  datasetHash     String
+  controllerHash  String
+  scenarioId      String
+  simulationRunId String?  @unique
+  payload         Json
+  createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
 
   @@index([userId, taskId, createdAt])
   @@index([taskId, controllerHash])
   @@index([taskId, datasetHash])
+}
+
+model SimulationTaskSpec {
+  id            String   @id @default(cuid())
+  schemaVersion String
+  sceneId       String
+  scenarioId    String
+  specHash      String   @unique
+  payload       Json
+  launchContext Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  runs SimulationRun[]
+
+  @@index([sceneId, scenarioId])
+  @@index([createdAt])
+}
+
+model SimulationRun {
+  id                    String    @id @default(cuid())
+  ownerUserId           String?
+  classId               String?
+  courseId              String?
+  sessionId             String?
+  resourceId            String?
+  publicationId         String?
+  runKind               String
+  sourceDomain          String
+  sourceRefId           String
+  taskSpecId            String?
+  taskSpecSnapshot      Json?
+  controllerSnapshotRef String?
+  status                String
+  summary               Json      @default("{}")
+  replayToken           String?
+  seed                  BigInt?
+  protocolVersion       String
+  runtimeVersion        String
+  modelVersion          String
+  sceneSpecVersion      String?
+  createdAt             DateTime  @default(now())
+  startedAt             DateTime?
+  completedAt           DateTime?
+  updatedAt             DateTime  @updatedAt
+
+  owner    User?               @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  taskSpec SimulationTaskSpec? @relation(fields: [taskSpecId], references: [id], onDelete: SetNull)
+  traces   SimulationTrace[]
+  arenaVirtualPreview ArenaVirtualSimulationRun?
+
+  @@unique([sourceDomain, sourceRefId])
+  @@index([ownerUserId, createdAt])
+  @@index([classId, createdAt])
+  @@index([runKind, status, createdAt])
+  @@index([taskSpecId])
+}
+
+model SimulationTrace {
+  id               String   @id @default(cuid())
+  runId            String
+  protocolVersion  String
+  runtimeVersion   String
+  modelVersion     String
+  seed             BigInt?
+  checksum         String
+  summaryMetrics   Json     @default("{}")
+  sampleCount      Int
+  sampleCadence    Float
+  sampleStorageUri String?
+  createdAt        DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, createdAt])
+  @@index([checksum])
 }
 
 // Student competency snapshot

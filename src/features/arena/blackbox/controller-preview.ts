@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { buildSimulationTaskSpec } from '@/resources/simulations/core/run-contract';
 import {
   createSimulationRunContext,
   normalizeSeed,
@@ -57,6 +58,7 @@ export interface StoredArenaVirtualSimulationRun {
   datasetHash: string;
   controllerHash: string;
   scenarioId: string;
+  simulationRunId?: string | null;
   preview: ArenaVirtualSimulationPreviewRun;
   createdAt: string;
 }
@@ -323,18 +325,123 @@ export async function createArenaVirtualSimulationPreviewRun({
   };
 }
 
+function buildArenaPreviewTaskSpec(input: {
+  taskId: string;
+  preview: ArenaVirtualSimulationPreviewRun;
+  classId?: string | null;
+}) {
+  if (!input.preview.replay) {
+    throw new Error('Arena preview replay metadata is missing.');
+  }
+
+  return buildSimulationTaskSpec({
+    sceneId: input.preview.replay.sceneId,
+    scenarioId: input.preview.replay.scenarioId,
+    objectives: ['tracking_error', 'max_deviation'],
+    constraints: ['control_energy', 'safety_violations', 'smoothness'],
+    disturbancePolicy: {
+      source: 'arena_blackbox_experiment',
+      datasetHash: input.preview.datasetHash,
+    },
+    evaluationSpecRef: {
+      id: 'arena-virtual-preview',
+      visibility: 'preview',
+    },
+    allowedControllers: ['black-box-control'],
+    launchContext: input.classId
+      ? { classId: input.classId, resourceId: input.taskId }
+      : { resourceId: input.taskId },
+  });
+}
+
+function inferTraceSampleCadence(trace: ArenaVirtualSimulationTracePoint[]): number {
+  if (trace.length < 2) return 0;
+  return round(trace[1].t - trace[0].t);
+}
+
 export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStore = {
   async createRun(input) {
-    const row = await prisma.arenaVirtualSimulationRun.create({
-      data: {
-        userId: input.userId,
+    const row = await prisma.$transaction(async (tx) => {
+      const owner = await tx.user.findUnique({
+        where: { id: input.userId },
+        select: {
+          profile: {
+            select: { classId: true },
+          },
+        },
+      });
+      const previewRow = await tx.arenaVirtualSimulationRun.create({
+        data: {
+          userId: input.userId,
+          taskId: input.taskId,
+          datasetHash: input.datasetHash,
+          controllerHash: input.controllerHash,
+          scenarioId: input.scenarioId,
+          payload: input.preview as unknown as Prisma.InputJsonValue,
+          createdAt: new Date(input.createdAt),
+        },
+      });
+      const taskSpec = buildArenaPreviewTaskSpec({
         taskId: input.taskId,
-        datasetHash: input.datasetHash,
-        controllerHash: input.controllerHash,
-        scenarioId: input.scenarioId,
-        payload: input.preview as unknown as Prisma.InputJsonValue,
-        createdAt: new Date(input.createdAt),
-      },
+        preview: input.preview,
+        classId: owner?.profile?.classId ?? null,
+      });
+      const taskSpecRow = await tx.simulationTaskSpec.upsert({
+        where: { specHash: taskSpec.specHash },
+        create: {
+          schemaVersion: taskSpec.schemaVersion,
+          sceneId: taskSpec.sceneId,
+          scenarioId: taskSpec.scenarioId,
+          specHash: taskSpec.specHash,
+          payload: taskSpec as unknown as Prisma.InputJsonValue,
+          launchContext: taskSpec.launchContext as Prisma.InputJsonValue,
+        },
+        update: {},
+      });
+      const canonicalRun = await tx.simulationRun.create({
+        data: {
+          ownerUserId: input.userId,
+          classId: owner?.profile?.classId ?? null,
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: previewRow.id,
+          taskSpecId: taskSpecRow.id,
+          taskSpecSnapshot: taskSpec as unknown as Prisma.InputJsonValue,
+          controllerSnapshotRef: input.preview.replaySource?.artifact.id
+            ? `ArenaControllerArtifact:${input.preview.replaySource.artifact.id}`
+            : `ArenaControllerArtifact:${input.controllerHash}`,
+          status: 'completed',
+          summary: input.preview.summary as unknown as Prisma.InputJsonValue,
+          replayToken: input.preview.replay?.checksum ?? null,
+          seed: input.preview.replay?.seed ?? null,
+          protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',
+          runtimeVersion: input.preview.replay?.runtimeVersion ?? 'unknown',
+          modelVersion: input.preview.replay?.modelVersion ?? 'unknown',
+          sceneSpecVersion: null,
+          createdAt: new Date(input.createdAt),
+          startedAt: new Date(input.createdAt),
+          completedAt: new Date(input.createdAt),
+        },
+      });
+      await tx.simulationTrace.create({
+        data: {
+          runId: canonicalRun.id,
+          protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',
+          runtimeVersion: input.preview.replay?.runtimeVersion ?? 'unknown',
+          modelVersion: input.preview.replay?.modelVersion ?? 'unknown',
+          seed: input.preview.replay?.seed ?? null,
+          checksum: input.preview.replay?.checksum ?? computeArenaVirtualSimulationPreviewChecksum(input.preview),
+          summaryMetrics: input.preview.summary as unknown as Prisma.InputJsonValue,
+          sampleCount: input.preview.trace.length,
+          sampleCadence: inferTraceSampleCadence(input.preview.trace),
+          sampleStorageUri: `ArenaVirtualSimulationRun:${previewRow.id}#trace`,
+        },
+      });
+
+      return tx.arenaVirtualSimulationRun.update({
+        where: { id: previewRow.id },
+        data: { simulationRunId: canonicalRun.id },
+      });
     });
 
     return {
@@ -344,6 +451,7 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
       datasetHash: row.datasetHash,
       controllerHash: row.controllerHash,
       scenarioId: row.scenarioId,
+      simulationRunId: row.simulationRunId,
       preview: row.payload as unknown as ArenaVirtualSimulationPreviewRun,
       createdAt: row.createdAt.toISOString(),
     };

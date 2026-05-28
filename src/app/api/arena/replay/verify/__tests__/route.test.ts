@@ -3,10 +3,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   verifyArenaVirtualSimulationReplay: vi.fn(),
+  prisma: {
+    class: {
+      findMany: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
 }));
 
 vi.mock('@/features/arena/blackbox/replay-service', () => ({
@@ -33,6 +42,7 @@ function postJson(body: unknown) {
 describe('POST /api/arena/replay/verify', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.prisma.class.findMany.mockResolvedValue([]);
     mocks.verifyArenaVirtualSimulationReplay.mockResolvedValue({
       runId: 'preview-row-1',
       status: 'match',
@@ -58,15 +68,23 @@ describe('POST /api/arena/replay/verify', () => {
 
   it('verifies a replay run for the authenticated requester', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findMany.mockResolvedValue([
+      { id: 'class-1' },
+      { id: 'class-2' },
+    ]);
 
     const response = await postJson({ runId: 'preview-row-1' });
     const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(payload.status).toBe('match');
+    expect(mocks.prisma.class.findMany).toHaveBeenCalledWith({
+      where: { teacherId: 'teacher-1' },
+      select: { id: true },
+    });
     expect(mocks.verifyArenaVirtualSimulationReplay).toHaveBeenCalledWith(expect.objectContaining({
       runId: 'preview-row-1',
-      requester: { userId: 'teacher-1', role: 'TEACHER' },
+      requester: { userId: 'teacher-1', role: 'TEACHER', classIds: ['class-1', 'class-2'] },
       store: { marker: 'replay-store' },
     }));
   });

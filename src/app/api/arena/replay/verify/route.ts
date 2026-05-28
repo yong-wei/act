@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
 import {
   ArenaReplayAccessError,
   ArenaReplayNotFoundError,
@@ -24,11 +25,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'runId is required' }, { status: 400 });
     }
 
+    const classIds = session.user.role === 'TEACHER'
+      ? (await prisma.class.findMany({
+        where: { teacherId: session.user.id },
+        select: { id: true },
+      })).map((classRecord) => classRecord.id)
+      : undefined;
+
     const result = await verifyArenaVirtualSimulationReplay({
       runId: body.runId,
       requester: {
         userId: session.user.id,
         role: session.user.role as ArenaReplayRole,
+        classIds,
       },
       store: prismaArenaReplayRunStore,
     });
