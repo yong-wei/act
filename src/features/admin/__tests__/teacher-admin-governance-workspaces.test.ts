@@ -410,4 +410,41 @@ describe('teacher and admin governance workspace contracts', () => {
       }),
     );
   });
+
+  it('limits missing-context drilldown details to the governance audit row cap', () => {
+    const exclusions = Array.from({ length: 55 }, (_, index) => ({
+      sourceId: `Source${index + 1}`,
+      reason: 'low_value_activity_context',
+      rowCount: 1,
+      affectedUsers: 1,
+      sampleSourceReference: `Source:${index + 1}`,
+    }));
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 55,
+            eligibleRows: 0,
+            excludedRows: 55,
+            unsupportedRows: 0,
+            affectedUsers: 55,
+          },
+          sources: [],
+          exclusions,
+        },
+      }),
+    });
+
+    const missingContext = workspace.panels.find((panel) => panel.id === 'missing-context');
+
+    expect(workspace.drilldownLimits.maxRowsPerPanel).toBe(50);
+    expect(missingContext?.details).toHaveLength(50);
+    expect(missingContext?.details.at(-1)).toMatchObject({
+      label: '其余排除项',
+      value: '6 条已按聚合方式隐藏',
+    });
+  });
 });

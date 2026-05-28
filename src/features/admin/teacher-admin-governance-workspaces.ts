@@ -154,6 +154,9 @@ export const ADMIN_DATA_CENTER_GOVERNANCE_PANELS: AdminDataCenterPanelId[] = [
   'evaluation-events',
 ];
 
+const PRESENTATION_MAX_ROWS_PER_PANEL = 5;
+const GOVERNANCE_AUDIT_MAX_ROWS_PER_PANEL = 50;
+
 export const GOVERNANCE_REDACTION_RULES: GovernanceRedactionRule[] = [
   {
     category: 'hidden-official-evaluation-internals',
@@ -284,7 +287,9 @@ export function buildAdminDataCenterWorkspace(input: {
       },
     },
     drilldownLimits: {
-      maxRowsPerPanel: input.mode === 'presentation' ? 5 : 50,
+      maxRowsPerPanel: input.mode === 'presentation'
+        ? PRESENTATION_MAX_ROWS_PER_PANEL
+        : GOVERNANCE_AUDIT_MAX_ROWS_PER_PANEL,
       allowSampleReferences: false,
       allowPrivateIdentifiers: false,
       exportPolicy: 'aggregate-only',
@@ -427,18 +432,19 @@ function readinessPanel(payload: GovernanceStatusPayload): AdminDataCenterPanel 
 }
 
 function missingContextPanel(payload: GovernanceStatusPayload): AdminDataCenterPanel {
+  const exclusions = payload.sourceCoverage?.exclusions ?? [];
   return panel({
     id: 'missing-context',
     title: '缺失上下文',
-    metric: String(payload.sourceCoverage?.exclusions.length ?? 0),
-    readiness: (payload.sourceCoverage?.exclusions.length ?? 0) > 0 ? 'degraded' : 'ready',
+    metric: String(exclusions.length),
+    readiness: exclusions.length > 0 ? 'degraded' : 'ready',
     sourceCoverage: sourceCoverageStatus(payload),
-    details: (payload.sourceCoverage?.exclusions ?? []).map((exclusion) => ({
+    details: limitPanelDetails(exclusions.map((exclusion) => ({
       label: exclusion.sourceId,
       value: `${exclusion.reason}: ${exclusion.rowCount}`,
       roleScope: exclusionRoleScope(exclusion.reason),
       restricted: true,
-    })),
+    })), GOVERNANCE_AUDIT_MAX_ROWS_PER_PANEL),
   });
 }
 
@@ -590,4 +596,21 @@ function exclusionRoleScope(reason: string): PlatformStatusRoleScope {
   if (reason.includes('hidden_official_evaluation')) return 'audit-only';
   if (reason.includes('private') || reason.includes('raw')) return 'system-internal';
   return 'admin-scoped';
+}
+
+function limitPanelDetails(
+  details: AdminDataCenterPanel['details'],
+  maxRows: number,
+): AdminDataCenterPanel['details'] {
+  if (details.length <= maxRows) return details;
+  const visibleRows = Math.max(0, maxRows - 1);
+  return [
+    ...details.slice(0, visibleRows),
+    {
+      label: '其余排除项',
+      value: `${details.length - visibleRows} 条已按聚合方式隐藏`,
+      roleScope: 'admin-scoped',
+      restricted: true,
+    },
+  ];
 }
