@@ -349,7 +349,16 @@ describe('teacher and admin governance workspace contracts', () => {
     });
 
     expect(workspace.status.categories.evaluation).toBe('official');
-    expect(workspace.panels.find((panel) => panel.id === 'evaluation-events')?.status.categories.evaluation).toBe('official');
+    const evaluationPanel = workspace.panels.find((panel) => panel.id === 'evaluation-events');
+    expect(evaluationPanel?.status.categories.evaluation).toBe('official');
+    expect(evaluationPanel?.status.categories.privacy).toBe('classroom');
+    expect(evaluationPanel?.details).toContainEqual(
+      expect.objectContaining({
+        label: '隐藏正式评测',
+        value: '0',
+        restricted: false,
+      }),
+    );
   });
 
   it('degrades governance readiness when snapshots are stale even without queue failures', () => {
@@ -401,7 +410,16 @@ describe('teacher and admin governance workspace contracts', () => {
       }),
     });
 
+    const evaluationPanel = workspace.panels.find((panel) => panel.id === 'evaluation-events');
     expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.readiness).toBe('degraded');
+    expect(evaluationPanel?.status.categories.privacy).toBe('restricted');
+    expect(evaluationPanel?.details).toContainEqual(
+      expect.objectContaining({
+        label: '隐藏正式评测',
+        value: '1',
+        restricted: true,
+      }),
+    );
     expect(workspace.panels.find((panel) => panel.id === 'missing-context')?.details).toContainEqual(
       expect.objectContaining({
         label: 'ArenaEvaluationRun',
@@ -471,6 +489,7 @@ describe('teacher and admin governance workspace contracts', () => {
     expect(workspace.status.categories.sourceCoverage).toBe('missing');
     expect(workspace.status.categories.fallback).toBe('fallback-missing-context');
     expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.sourceCoverage).toBe('missing');
+    expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.readiness).toBe('degraded');
   });
 
   it('marks fully unsupported evidence source coverage as unsupported', () => {

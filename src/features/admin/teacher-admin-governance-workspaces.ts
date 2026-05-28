@@ -407,7 +407,7 @@ function sourceCoveragePanel(payload: GovernanceStatusPayload): AdminDataCenterP
     id: 'source-coverage',
     title: '证据源覆盖',
     metric: totals ? `${totals.eligibleRows}/${totals.totalRows}` : 'unavailable',
-    readiness: totals && totals.unsupportedRows === 0 && totals.excludedRows === 0 ? 'ready' : 'degraded',
+    readiness: totals && totals.eligibleRows > 0 && totals.unsupportedRows === 0 && totals.excludedRows === 0 ? 'ready' : 'degraded',
     sourceCoverage: sourceCoverageStatus(payload),
     details: [
       { label: '目录来源', value: payload.sourceCatalog?.coverageCommand ?? '未配置', roleScope: 'admin-scoped' },
@@ -487,6 +487,9 @@ function privacyStatusPanel(payload: GovernanceStatusPayload): AdminDataCenterPa
 
 function evaluationEventsPanel(payload: GovernanceStatusPayload): AdminDataCenterPanel {
   const evaluation = evaluationStatus(payload);
+  const hiddenOfficialEvaluationCount = (payload.sourceCoverage?.exclusions ?? []).filter((exclusion) =>
+    exclusion.reason.includes('hidden_official_evaluation')
+  ).length;
   return panel({
     id: 'evaluation-events',
     title: '评测事件',
@@ -497,11 +500,9 @@ function evaluationEventsPanel(payload: GovernanceStatusPayload): AdminDataCente
     details: [
       {
         label: '隐藏正式评测',
-        value: String((payload.sourceCoverage?.exclusions ?? []).filter((exclusion) =>
-          exclusion.reason.includes('hidden_official_evaluation')
-        ).length),
+        value: String(hiddenOfficialEvaluationCount),
         roleScope: 'audit-only',
-        restricted: true,
+        restricted: hiddenOfficialEvaluationCount > 0,
       },
     ],
   });
