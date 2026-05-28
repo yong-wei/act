@@ -386,9 +386,9 @@ function interactionForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): In
   if (kind.includes('multi-')) return 'multi-select';
   if (kind.includes('parametric')) return 'parameter-workspace';
   if (kind.includes('reveal')) return 'progressive-reveal';
+  if (kind.includes('single-choice')) return 'single-choice';
   if (kind.includes('quiz') || kind.includes('choice') || kind.includes('check') || kind.includes('judge')) return 'quiz';
   if (kind.includes('reason-record')) return 'reason-record';
-  if (kind.includes('single-choice')) return 'single-choice';
   if (kind.includes('structured-compare')) return 'structured-compare';
   if (kind.includes('structured-submit')) return 'structured-submit';
   if (kind.includes('table-builder')) return 'table-builder';

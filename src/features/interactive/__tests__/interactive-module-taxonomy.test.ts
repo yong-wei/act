@@ -72,6 +72,18 @@ describe('interactive module taxonomy', () => {
       responseKind: 'singleChoice',
       migrationOnly: true,
     });
+    expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['single-choice']).toMatchObject({
+      canonicalClass: 'activity.panel',
+      interactionKind: 'single-choice',
+      responseKind: 'singleChoice',
+      migrationOnly: true,
+    });
+    expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['single-choice-card']).toMatchObject({
+      canonicalClass: 'activity.panel',
+      interactionKind: 'single-choice',
+      responseKind: 'singleChoice',
+      migrationOnly: true,
+    });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['interactive-figure-panel']).toMatchObject({
       canonicalClass: 'compute.panel',
       capabilityRef: 'interactive-figure',
