@@ -811,6 +811,13 @@ describe('konling agent runtime', () => {
     expect(db.agentSession.updateMany).not.toHaveBeenCalled();
   });
 
+  it('exposes idempotency keys in approval-required write tool schemas', () => {
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+
+    expect((tools.set_simulation_params.parameters as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.record_intervention_result.parameters as any).shape).toHaveProperty('idempotencyKey');
+  });
+
   it('reuses completed idempotent tool runs without repeating side effects', async () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const outputSummary = {

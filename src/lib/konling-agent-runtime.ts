@@ -337,6 +337,8 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
+const KONLING_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128).optional();
+
 export async function verifyKonlingRuntimeScope(
   db: KonlingRuntimeDb,
   input: KonlingRuntimeInput,
@@ -912,7 +914,9 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
     }),
     set_simulation_params: tool({
       description: '在当前资源范围内创建仿真参数修改请求，等待学生在仿真界面确认。',
-      parameters: setSimulationParamsTool.parameters,
+      parameters: setSimulationParamsTool.parameters.extend({
+        idempotencyKey: KONLING_IDEMPOTENCY_KEY_PARAMETER,
+      }),
       execute: (args) => runtime.setSimulationParams(args),
     }),
     analyze_result: tool({
@@ -927,6 +931,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
         feedback: z.enum(['accepted', 'dismissed', 'rated']),
         helpful: z.boolean().optional(),
         studentResponse: z.string().optional(),
+        idempotencyKey: KONLING_IDEMPOTENCY_KEY_PARAMETER,
       }),
       execute: (args) => runtime.recordInterventionResult(args),
     }),

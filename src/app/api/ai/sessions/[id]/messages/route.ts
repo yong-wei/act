@@ -20,6 +20,7 @@ import {
   getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
   persistKonlingSessionMemories,
+  resumeKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import type { AIContext } from '@/types/ai-context';
@@ -189,12 +190,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
       userMessage: content,
       assistantMessage: assistantContent,
     });
+    const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      agentSessionId: agentSession.id,
+    });
 
     return NextResponse.json({
       messages: finalMessages,
       assistantMessage,
       agentSessionId: agentSession.id,
-      pendingApproval: agentSession.pendingApproval,
+      pendingApproval: refreshedAgentSession.pendingApproval,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
