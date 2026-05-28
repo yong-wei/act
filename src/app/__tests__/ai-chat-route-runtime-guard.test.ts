@@ -24,4 +24,13 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('if (simulationState && !hasRuntimeContext)');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
+
+  it('validates runtime scope before building Konling context and preserves scope error status', () => {
+    const verifyIndex = chatRouteSource.indexOf('const scope = await verifyKonlingRuntimeScope');
+    const buildIndex = chatRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
+    expect(verifyIndex).toBeGreaterThanOrEqual(0);
+    expect(buildIndex).toBeGreaterThan(verifyIndex);
+    expect(chatRouteSource).toContain('if (error instanceof KonlingRuntimeScopeError)');
+    expect(chatRouteSource).toContain('status: error.status');
+  });
 });

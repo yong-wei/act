@@ -17,6 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
+  KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
@@ -126,25 +127,13 @@ export async function POST(request: Request) {
     let systemPrompt: string;
 
     if (session?.user?.id && hasRuntimeContext) {
-      const runtimeContext = await buildKonlingRuntimeContext(prisma, {
-        authenticatedUserId: session.user.id,
-        authenticatedUserName: session.user.name,
-        role: session.user.role,
-        targetUserId: session.user.id,
-        classId,
-        courseId: courseId || pageContext?.courseId,
-        pageId: pageId || pageContext?.stepId,
-        resourceId,
-        pathNodeId,
-        pageContextHint: pageContext,
-      });
       const scope = await verifyKonlingRuntimeScope(prisma, {
         authenticatedUserId: session.user.id,
         role: session.user.role,
         targetUserId: session.user.id,
         classId,
-        courseId: runtimeContext.pageContext.courseId,
-        pageId: runtimeContext.pageContext.stepId,
+        courseId: courseId || pageContext?.courseId,
+        pageId: pageId || pageContext?.stepId,
         resourceId,
         pathNodeId,
         pageContextHint: pageContext,
@@ -155,6 +144,18 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
+      const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+        authenticatedUserId: session.user.id,
+        authenticatedUserName: session.user.name,
+        role: session.user.role,
+        targetUserId: session.user.id,
+        classId,
+        courseId: scope.scope.courseId,
+        pageId: scope.scope.pageId,
+        resourceId,
+        pathNodeId,
+        pageContextHint: pageContext,
+      });
       const aiContext: AIContext = {
         page: runtimeContext.pageContext,
         user: runtimeContext.userProfile,
@@ -214,6 +215,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingRuntimeScopeError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     console.error('AI Chat API 错误:', summarizeAIChatError(error));
     return buildAIChatErrorResponse(error);
   }
