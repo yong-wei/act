@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import {
   shouldIntervene,
   type InterventionRules,
@@ -8,13 +11,46 @@ import {
 interface CheckRequest {
   studentState: StudentState;
   interventionRules?: Partial<InterventionRules>;
+  userId?: string;
+  classId?: string;
+  courseId?: string;
+  pageId?: string;
+  resourceId?: string;
+  pathNodeId?: string;
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 });
+    }
+
     const body = (await request.json()) as CheckRequest;
+    const scope = await verifyKonlingRuntimeScope(prisma, {
+      authenticatedUserId: session.user.id,
+      role: session.user.role,
+      targetUserId: body.userId || session.user.id,
+      classId: body.classId,
+      courseId: body.courseId,
+      pageId: body.pageId,
+      resourceId: body.resourceId,
+      pathNodeId: body.pathNodeId,
+    });
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
+    }
+
     const decision = shouldIntervene(body.studentState, body.interventionRules);
-    return NextResponse.json(decision);
+    return NextResponse.json({
+      ...decision,
+      scope: {
+        userId: scope.scope.targetUserId,
+        classId: scope.scope.classId,
+        resourceId: scope.scope.resourceId,
+        pathNodeId: scope.scope.pathNodeId,
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {

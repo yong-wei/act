@@ -38,6 +38,7 @@ interface GenerateResponse {
   decision: InterventionDecision;
   intervention: InterventionPayload;
   interventionId: string;
+  canSubmitFeedback?: boolean;
 }
 
 export function AICompanionPanel({
@@ -80,6 +81,15 @@ export function AICompanionPanel({
     }),
     [attempts, title]
   );
+  const interventionScope = useMemo(
+    () => ({
+      courseId: 'simulation-companion',
+      pageId: sessionId,
+      resourceId: sessionId,
+      pathNodeId: `ai-companion:${sessionId}`,
+    }),
+    [sessionId]
+  );
 
   const addAttempt = () => {
     const isSuccessful = attemptOutcomeToSuccess(attemptOutcome);
@@ -113,7 +123,7 @@ export function AICompanionPanel({
       const response = await fetch('/api/ai/intervention/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentState }),
+        body: JSON.stringify({ studentState, ...interventionScope }),
       });
 
       if (!response.ok) {
@@ -132,6 +142,7 @@ export function AICompanionPanel({
 
   const sendFeedback = async (wasHelpful: boolean) => {
     if (!result) return;
+    if (!result.canSubmitFeedback || !result.interventionId) return;
     if (feedbackState.status === 'submitting' || feedbackState.status === 'success') return;
 
     setFeedbackState({ status: 'submitting' });
@@ -143,6 +154,7 @@ export function AICompanionPanel({
           sessionId,
           interventionId: result.interventionId,
           wasHelpful,
+          ...interventionScope,
         }),
       });
 
@@ -266,24 +278,26 @@ export function AICompanionPanel({
           <div className="text-xs text-slate-700">
             建议重点参数：{result.intervention.highlightParams.join(', ')}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => void sendFeedback(true)}
-              disabled={feedbackButtonsDisabled}
-              className="rounded border border-transparent bg-sky-700 px-2 py-1 text-xs text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              建议有帮助
-            </button>
-            <button
-              type="button"
-              onClick={() => void sendFeedback(false)}
-              disabled={feedbackButtonsDisabled}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              建议需改进
-            </button>
-          </div>
+          {result.canSubmitFeedback && result.interventionId ? (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void sendFeedback(true)}
+                disabled={feedbackButtonsDisabled}
+                className="rounded border border-transparent bg-sky-700 px-2 py-1 text-xs text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                建议有帮助
+              </button>
+              <button
+                type="button"
+                onClick={() => void sendFeedback(false)}
+                disabled={feedbackButtonsDisabled}
+                className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                建议需改进
+              </button>
+            </div>
+          ) : null}
           {feedbackStatusMessage ? (
             <div
               role="status"

@@ -14,6 +14,7 @@ import {
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
+import { buildKonlingRuntimeContext } from '@/lib/konling-agent-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || session.user.id;
     const classId = searchParams.get('classId');
+    const courseId = searchParams.get('courseId');
+    const pageId = searchParams.get('pageId');
+    const resourceId = searchParams.get('resourceId');
+    const pathNodeId = searchParams.get('pathNodeId');
 
     // Only allow viewing own data unless teacher/admin
     const isTeacherOrAdmin = session.user.role === 'TEACHER' || session.user.role === 'ADMIN';
@@ -60,6 +65,21 @@ export async function GET(request: NextRequest) {
         })
       : null;
 
+    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+      authenticatedUserId: session.user.id,
+      authenticatedUserName: session.user.name,
+      role: session.user.role,
+      targetUserId: userId,
+      classId,
+      courseId,
+      pageId,
+      resourceId,
+      pathNodeId,
+    }).catch((error) => {
+      console.error('[KonlingContext] Runtime context read failed:', error);
+      return null;
+    });
+
     // Fetch optimized profile summary (should be < 100ms)
     const profile = await prisma.studentProfileSummary.findUnique({
       where: { userId },
@@ -80,14 +100,18 @@ export async function GET(request: NextRequest) {
           recommended_scaffolding: '继续学习以生成个性化建议',
         },
         current_task_context: {
-          page_type: 'unknown',
-          course_id: null,
-          current_step: null,
+          page_type: runtimeContext?.pageContext.pageType ?? 'unknown',
+          course_id: runtimeContext?.pageContext.courseId ?? null,
+          current_step: runtimeContext?.pageContext.stepId ?? null,
           completion_rate: 0,
           relevant_weaknesses: [],
         },
         competency_vector: null,
         learner_state_context: learnerState,
+        plan_context: runtimeContext?.planContext ?? null,
+        scoped_memory: runtimeContext?.memory ?? [],
+        permitted_tools: runtimeContext?.permittedTools ?? [],
+        missing_context: runtimeContext?.missingContext ?? [],
       });
     }
 
@@ -110,14 +134,18 @@ export async function GET(request: NextRequest) {
         recommended_scaffolding: profile.recommendedScaffolding,
       },
       current_task_context: {
-        page_type: 'unknown', // To be populated from request context
-        course_id: null,
-        current_step: null,
+        page_type: runtimeContext?.pageContext.pageType ?? 'unknown',
+        course_id: runtimeContext?.pageContext.courseId ?? null,
+        current_step: runtimeContext?.pageContext.stepId ?? null,
         completion_rate: 0,
         relevant_weaknesses: (profile.weaknessesJson as string[]) || [],
       },
       competency_vector: snapshot?.competencyVector || null,
       learner_state_context: learnerState,
+      plan_context: runtimeContext?.planContext ?? null,
+      scoped_memory: runtimeContext?.memory ?? [],
+      permitted_tools: runtimeContext?.permittedTools ?? [],
+      missing_context: runtimeContext?.missingContext ?? [],
     };
 
     return NextResponse.json(response);

@@ -7,12 +7,31 @@
 import type { AIContext, PageContext, UserProfile, LearningStyle, KnowledgeType, PromptBuilderOptions } from '@/types/ai-context';
 import { KONLING_BRAND } from './ai-branding';
 
+interface KonlingPromptRuntimeContext {
+  learnerState?: unknown;
+  planContext?: {
+    activeNodeId?: string | null;
+    nextNodeIds?: string[];
+    status?: string;
+  };
+  memory?: Array<{
+    memoryType: string;
+    summary: string;
+  }>;
+  permittedTools?: string[];
+  missingContext?: string[];
+  featureFlags?: Record<string, boolean>;
+}
+
 /**
  * 构建控灵系统提示词
  *
  * 简化版：只保留课程主题和学生画像，移除预设角色设定
  */
-export function buildKonlingSystemPrompt(context: AIContext, options: PromptBuilderOptions = {}): string {
+export function buildKonlingSystemPrompt(
+  context: AIContext & { adaptiveRuntime?: KonlingPromptRuntimeContext },
+  options: PromptBuilderOptions = {},
+): string {
   const { page, user } = context;
   const { wordLimit = 150, enableLatex = true } = options;
 
@@ -27,10 +46,38 @@ export function buildKonlingSystemPrompt(context: AIContext, options: PromptBuil
   // 学生画像
   sections.push(buildUserProfileSection(user));
 
+  if (context.adaptiveRuntime) {
+    sections.push(buildAdaptiveRuntimeSection(context.adaptiveRuntime));
+  }
+
   // 回答格式要求
   sections.push(buildFormatRequirements(wordLimit, enableLatex));
 
   return sections.filter(Boolean).join('\n\n');
+}
+
+function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): string {
+  const lines: string[] = [];
+  lines.push('**服务端自适应上下文**:');
+  lines.push('- 上下文来源: server-owned');
+  lines.push(`- 当前路径节点: ${runtime.planContext?.activeNodeId ?? '未确定'}`);
+  if (runtime.planContext?.nextNodeIds?.length) {
+    lines.push(`- 建议后续节点: ${runtime.planContext.nextNodeIds.slice(0, 3).join(', ')}`);
+  }
+  if (runtime.memory?.length) {
+    lines.push('- 近期学习记忆:');
+    runtime.memory.slice(0, 3).forEach((memory, index) => {
+      lines.push(`  ${index + 1}. [${memory.memoryType}] ${memory.summary}`);
+    });
+  }
+  if (runtime.missingContext?.length) {
+    lines.push(`- 低置信或缺失上下文: ${runtime.missingContext.join(', ')}`);
+  }
+  if (runtime.permittedTools?.length) {
+    lines.push(`- 可用工具: ${runtime.permittedTools.join(', ')}`);
+  }
+  lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
+  return lines.join('\n');
 }
 
 /**

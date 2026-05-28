@@ -12,6 +12,13 @@ import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
+import {
+  buildKonlingRuntimeContext,
+  buildKonlingToolRuntime,
+  buildScopedKonlingAiTools,
+  verifyKonlingRuntimeScope,
+} from '@/lib/konling-agent-runtime';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
@@ -74,6 +81,9 @@ export async function POST(request: Request) {
       userProfile,
       courseId,
       pageId,
+      classId,
+      resourceId,
+      pathNodeId,
     } = body as {
       messages: Message[];
       simulationState?: Record<string, unknown>;
@@ -82,6 +92,9 @@ export async function POST(request: Request) {
       userProfile?: UserProfile;
       courseId?: string;
       pageId?: string;
+      classId?: string;
+      resourceId?: string;
+      pathNodeId?: string;
     };
 
     // 验证用户身份
@@ -97,16 +110,67 @@ export async function POST(request: Request) {
       });
     }
 
-    // 如果提供了仿真状态，更新到工具存储
-    if (simulationState) {
+    const hasRuntimeContext = Boolean(
+      (courseId || pageContext?.courseId) &&
+      (pageId || pageContext?.stepId),
+    );
+
+    // 旧 AI 工具仍使用全局仿真状态；Konling runtime 使用当前请求的 scoped state。
+    if (simulationState && !hasRuntimeContext) {
       updateSimulationState(simulationState as Parameters<typeof updateSimulationState>[0]);
     }
+
+    let tools: any = aiTools;
 
     // 构建系统提示词
     let systemPrompt: string;
 
-    // 优先使用新的控灵上下文格式
-    if (pageContext && userProfile) {
+    if (session?.user?.id && hasRuntimeContext) {
+      const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+        authenticatedUserId: session.user.id,
+        authenticatedUserName: session.user.name,
+        role: session.user.role,
+        targetUserId: session.user.id,
+        classId,
+        courseId: courseId || pageContext?.courseId,
+        pageId: pageId || pageContext?.stepId,
+        resourceId,
+        pathNodeId,
+        pageContextHint: pageContext,
+      });
+      const scope = await verifyKonlingRuntimeScope(prisma, {
+        authenticatedUserId: session.user.id,
+        role: session.user.role,
+        targetUserId: session.user.id,
+        classId,
+        courseId: runtimeContext.pageContext.courseId,
+        pageId: runtimeContext.pageContext.stepId,
+        resourceId,
+        pathNodeId,
+        pageContextHint: pageContext,
+      });
+      if (!scope.ok) {
+        return new Response(JSON.stringify({ error: scope.error }), {
+          status: scope.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      const aiContext: AIContext = {
+        page: runtimeContext.pageContext,
+        user: runtimeContext.userProfile,
+        sessionHistory: messages.slice(0, -1),
+      };
+      systemPrompt = buildKonlingSystemPrompt({
+        ...aiContext,
+        adaptiveRuntime: runtimeContext,
+      });
+      tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
+        db: prisma,
+        scope: scope.scope,
+        context: runtimeContext,
+        scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
+      }));
+    } else if (pageContext && userProfile) {
       const aiContext: AIContext = {
         page: pageContext,
         user: userProfile,
@@ -137,7 +201,7 @@ export async function POST(request: Request) {
       model: await getConfiguredAIModel(),
       system: systemPrompt,
       messages: convertToCoreMessages(messages),
-      tools: aiTools,
+      tools,
       maxSteps: 5, // 允许最多5轮工具调用
       toolChoice: 'auto',
       temperature: 0.7,

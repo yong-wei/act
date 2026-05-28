@@ -27,7 +27,7 @@ let simulationState: SimulationStateStore = {
   },
 };
 
-interface SimulationStateStore {
+export interface SimulationStateStore {
   isRunning: boolean;
   isPaused: boolean;
   time: number;
