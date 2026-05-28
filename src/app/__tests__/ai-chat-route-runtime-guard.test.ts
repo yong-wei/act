@@ -15,6 +15,10 @@ const aiCompanionPanelSource = readFileSync(
   join(process.cwd(), 'src/features/ai/companion/ai-companion-panel.tsx'),
   'utf8',
 );
+const konlingRuntimeSource = readFileSync(
+  join(process.cwd(), 'src/lib/konling-agent-runtime.ts'),
+  'utf8',
+);
 
 describe('AI chat route Konling runtime guard', () => {
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
@@ -26,6 +30,14 @@ describe('AI chat route Konling runtime guard', () => {
   it('keeps the scoped get_simulation_status tool contract compatible with legacy tools', () => {
     expect(chatRouteSource).toContain('tools = buildScopedKonlingAiTools(buildKonlingToolRuntime');
     expect(chatRouteSource).not.toContain('...buildScopedKonlingAiTools');
+  });
+
+  it('keeps scoped Konling simulation parameter tools available without restoring legacy tools', () => {
+    expect(chatRouteSource).toContain('buildScopedKonlingAiTools(buildKonlingToolRuntime');
+    expect(konlingRuntimeSource).toContain('set_simulation_params: tool');
+    expect(konlingRuntimeSource).toContain('analyze_result: tool');
+    expect(konlingRuntimeSource).not.toContain('setSimulationParamsTool.execute');
+    expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
 
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {

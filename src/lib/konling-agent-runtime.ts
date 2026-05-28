@@ -13,7 +13,17 @@ import {
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
-import { getSimulationStatusTool, type SimulationStateStore } from '@/lib/ai-tools';
+import {
+  analyzeResultTool,
+  analyzeSimulationResult,
+  buildSimulationParamChangeRequest,
+  formatSimulationParamChangeResponse,
+  getSimulationStatusTool,
+  setSimulationParamsTool,
+  type SimulationAnalysisInput,
+  type SimulationParamChangeInput,
+  type SimulationStateStore,
+} from '@/lib/ai-tools';
 
 export const KONLING_SEMANTIC_MEMORY_FEATURE_FLAG = 'KONLING_SEMANTIC_MEMORY_ENABLED';
 export const KONLING_STRATEGY_MEMORY_FEATURE_FLAG = 'KONLING_STRATEGY_MEMORY_ENABLED';
@@ -26,6 +36,8 @@ export type KonlingToolName =
   | 'search_knowledge_graph'
   | 'recommend_next_action'
   | 'get_simulation_status'
+  | 'set_simulation_params'
+  | 'analyze_result'
   | 'record_intervention_result'
   | 'analyze_attempt';
 
@@ -188,6 +200,8 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'search_knowledge_graph',
   'recommend_next_action',
   'get_simulation_status',
+  'set_simulation_params',
+  'analyze_result',
   'record_intervention_result',
   'analyze_attempt',
 ];
@@ -325,6 +339,22 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         : formatUnavailableSimulationStatus(input.scope);
       return assertToolResult(input.scope, 'get_simulation_status', status);
     },
+    setSimulationParams: async (args: SimulationParamChangeInput) => {
+      assertSimulationScope(input.scope, Boolean(input.scopedSimulationState));
+      const request = buildSimulationParamChangeRequest(args);
+      return assertToolResult(input.scope, 'set_simulation_params', {
+        ...formatSimulationParamChangeResponse(request),
+        pendingRequest: {
+          type: request.type,
+          params: request.params,
+          scope: buildToolScopeRef(input.scope),
+        },
+      });
+    },
+    analyzeResult: async (args: SimulationAnalysisInput) => {
+      assertSimulationScope(input.scope, Boolean(input.scopedSimulationState));
+      return assertToolResult(input.scope, 'analyze_result', analyzeSimulationResult(args));
+    },
     recordInterventionResult: async (args: {
       interventionId: string;
       feedback: KonlingInterventionFeedback;
@@ -384,6 +414,16 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       description: '读取当前资源范围内的仿真状态。',
       parameters: getSimulationStatusTool.parameters,
       execute: (args) => runtime.getSimulationStatus(args),
+    }),
+    set_simulation_params: tool({
+      description: '在当前资源范围内创建仿真参数修改请求，等待学生在仿真界面确认。',
+      parameters: setSimulationParamsTool.parameters,
+      execute: (args) => runtime.setSimulationParams(args),
+    }),
+    analyze_result: tool({
+      description: '分析当前资源范围内的仿真结果，给出控制性能、安全性与参数建议。',
+      parameters: analyzeResultTool.parameters,
+      execute: (args) => runtime.analyzeResult(args),
     }),
     record_intervention_result: tool({
       description: '记录学生对 Konling 干预的接受、忽略或评分结果。',
@@ -678,6 +718,22 @@ function assertToolResult(scope: KonlingRuntimeScope, toolName: KonlingToolName,
     throw new KonlingRuntimeScopeError(403, `Konling 工具 ${toolName} 未授权。`);
   }
   return redactSensitivePayload(result, scope.privacyScopes);
+}
+
+function assertSimulationScope(scope: KonlingRuntimeScope, hasScopedSimulationState: boolean) {
+  if (hasScopedSimulationState || scope.courseId === 'simulation') return;
+  throw new KonlingRuntimeScopeError(403, '当前 Konling 作用域未提供仿真工具权限。');
+}
+
+function buildToolScopeRef(scope: KonlingRuntimeScope) {
+  return {
+    userId: scope.targetUserId,
+    classId: scope.classId ?? null,
+    courseId: scope.courseId,
+    pageId: scope.pageId,
+    resourceId: scope.resourceId ?? null,
+    pathNodeId: scope.pathNodeId ?? null,
+  };
 }
 
 async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope): Promise<KonlingPlanContext> {

@@ -16,6 +16,7 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
+  buildScopedKonlingAiTools,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   createGovernedKonlingIntervention,
@@ -24,7 +25,7 @@ import {
   verifyKonlingRuntimeScope,
   type KonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
-import { updateSimulationState } from '@/lib/ai-tools';
+import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
   return {
@@ -68,6 +69,7 @@ describe('konling agent runtime', () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
+    clearPendingChanges();
     mocks.readAdaptiveLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
@@ -335,6 +337,83 @@ describe('konling agent runtime', () => {
     const status = await runtime.getSimulationStatus() as { unavailable: boolean; pidGains: { Kp: number | null } };
     expect(status.unavailable).toBe(true);
     expect(status.pidGains.Kp).toBeNull();
+  });
+
+  it('keeps scoped simulation parameter and analysis tools without writing legacy pending changes', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const runtime = buildKonlingToolRuntime({
+      db: {},
+      scope,
+      context: {
+        pageContext: {
+          courseId: 'simulation',
+          courseTitle: '仿真',
+          pageType: 'simulation',
+          stepId: 'pid-default',
+          topic: 'PID 参数整定',
+          learningObjectives: [],
+          knowledgeType: 'S',
+        },
+        userProfile: {
+          id: 'student-1',
+          name: '张三',
+          learningStyle: 'INTERACTIVE',
+          cognitiveLevel: 3,
+          abilityVector: {
+            computational: 0.5,
+            crossDomain: 0.5,
+            design: 0.5,
+            analysis: 0.5,
+            evaluation: 0.5,
+          },
+        },
+        learnerState: null,
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+        memory: [],
+        permittedTools: ['get_simulation_status', 'set_simulation_params', 'analyze_result'],
+        missingContext: [],
+        featureFlags: {
+          learnerState: false,
+          semanticMemory: false,
+          strategyMemory: false,
+        },
+      },
+      scopedSimulationState: {
+        isRunning: true,
+        pidGains: { kp: 1.4, ki: 0.02, kd: 0.7 },
+      },
+    });
+    const scopedTools = buildScopedKonlingAiTools(runtime);
+
+    expect(scopedTools).toHaveProperty('set_simulation_params');
+    expect(scopedTools).toHaveProperty('analyze_result');
+
+    const change = await runtime.setSimulationParams({ kp: 1.8, ki: 0.04 }) as {
+      success: boolean;
+      pendingRequest: { params: { kp: number; ki: number }; scope: { courseId: string; pageId: string } };
+    };
+    expect(change.success).toBe(true);
+    expect(change.pendingRequest.params).toMatchObject({ kp: 1.8, ki: 0.04 });
+    expect(change.pendingRequest.scope).toMatchObject({ courseId: 'simulation', pageId: 'pid-default' });
+    expect(getPendingChanges()).toBeNull();
+
+    const analysis = await runtime.analyzeResult({
+      avgError: 42,
+      maxRudderRate: 2,
+      duration: 120,
+      controlMode: 'pid',
+      kp: 1.8,
+      ki: 0.04,
+      kd: 0.7,
+    }) as { performance: { grade: string } };
+    expect(analysis.performance.grade).toContain('优秀');
   });
 
   it('applies intervention cooldowns and persists feedback outcomes', async () => {
