@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 import {
   applyTeacherResourceNodePatch,
+  applyTeacherResourceNodeBulkPatch,
+  buildTeacherResourceNodeOperationsReadiness,
   buildTeacherResourceNodeManagementSummary,
   createTeacherResourceNodeView,
   filterTeacherResourceNodes,
@@ -233,5 +235,72 @@ describe('teacher ResourceNode management contracts', () => {
       code: 'RESOURCE_NODE_FORBIDDEN',
       error: '资源不存在或无权管理。',
     });
+  });
+
+  it('applies bulk mapping only to authorized resource nodes and records per-node failures', () => {
+    const result = applyTeacherResourceNodeBulkPatch({
+      nodes: registry().nodes,
+      scope: teacherScope,
+      nodeIds: [
+        'teaching-resource:owned-broken',
+        'teaching-resource:foreign-project',
+        'missing-node',
+      ],
+      reason: 'stage-2-bulk-mapping',
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+          pathEligible: true,
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      requestedCount: 3,
+      updatedCount: 1,
+      rejectedCount: 2,
+      reason: 'stage-2-bulk-mapping',
+    });
+    expect(result.results).toEqual([
+      expect.objectContaining({
+        nodeId: 'missing-node',
+        ok: false,
+        status: 404,
+      }),
+      expect.objectContaining({
+        nodeId: 'teaching-resource:foreign-project',
+        ok: false,
+        status: 403,
+      }),
+      expect.objectContaining({
+        nodeId: 'teaching-resource:owned-broken',
+        ok: true,
+        status: 200,
+        persistablePatch: {
+          resourceNodePlanning: {
+            knowledgeCoverage: ['kn-bode'],
+            teacherPolicy: 'allowed',
+          },
+        },
+      }),
+    ]);
+  });
+
+  it('reports coverage dashboards, policy review counts, and system-owned issue triage markers', () => {
+    const readiness = buildTeacherResourceNodeOperationsReadiness(registry().nodes, {
+      bulkMappingEnabled: true,
+    });
+
+    expect(readiness.bulkMappingEnabled).toBe(true);
+    expect(readiness.coverage.totalNodes).toBeGreaterThan(0);
+    expect(readiness.coverage.mappedNodes).toBeGreaterThan(0);
+    expect(readiness.coverage.coverageRatio).toBeGreaterThan(0);
+    expect(readiness.policyReviewRequiredCount).toBeGreaterThan(0);
+    expect(readiness.systemIssues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('missing-render-or-launch-target'),
+        expect.stringContaining('missing-knowledge-mapping'),
+      ]),
+    );
   });
 });
