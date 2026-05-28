@@ -98,6 +98,8 @@ export interface AdaptiveOptimizationMetricEvent {
 export interface AdaptiveOptimizationMetricSummary {
   metric: AdaptiveOptimizationMetricName;
   variant: AdaptiveOptimizationVariant;
+  classId: string | null;
+  cohortId: string | null;
   sampleCount: number;
   value: number | null;
   confidence: 'low' | 'medium' | 'high';
@@ -238,15 +240,16 @@ export function summarizeAdaptiveOptimizationMetrics(
   events: readonly AdaptiveOptimizationMetricEvent[],
   options: { aggregationLevel?: 'variant-aggregate' | 'class-aggregate' | 'cohort-aggregate' } = {},
 ): AdaptiveOptimizationMetricSummary[] {
+  const aggregationLevel = options.aggregationLevel ?? 'variant-aggregate';
   const groups = new Map<string, AdaptiveOptimizationMetricEvent[]>();
   for (const event of events) {
-    const key = `${event.metric}:${event.variant}`;
+    const key = metricGroupKey(event, aggregationLevel);
     groups.set(key, [...(groups.get(key) ?? []), event]);
   }
 
   return Array.from(groups.entries())
-    .map(([key, items]) => {
-      const [metric, variant] = key.split(':') as [AdaptiveOptimizationMetricName, AdaptiveOptimizationVariant];
+    .map(([, items]) => {
+      const first = items[0];
       const sampleCount = items.reduce((sum, item) => sum + (item.sampleWeight ?? 1), 0);
       const numericValues = items.map((item) => typeof item.value === 'boolean' ? (item.value ? 1 : 0) : item.value);
       const value = sampleCount > 0
@@ -255,23 +258,32 @@ export function summarizeAdaptiveOptimizationMetrics(
       const averageCompleteness = average(items.map((item) => item.completeness ?? 0));
       const averageConfidence = average(items.map((item) => item.confidence ?? averageCompleteness));
       return {
-        metric,
-        variant,
+        metric: first.metric,
+        variant: first.variant,
+        classId: aggregationLevel === 'class-aggregate' ? first.classId ?? null : null,
+        cohortId: aggregationLevel === 'cohort-aggregate' ? first.cohortId ?? null : null,
         sampleCount,
         value,
         confidence: confidenceMarker(averageConfidence, sampleCount),
         completeness: completenessMarker(averageCompleteness, sampleCount),
         evidenceWindowHours: maxOrNull(items.map((item) => item.evidenceWindowHours)),
-        privacyAggregationLevel: options.aggregationLevel ?? 'variant-aggregate',
+        privacyAggregationLevel: aggregationLevel,
       };
     })
-    .sort((left, right) => left.metric.localeCompare(right.metric) || left.variant.localeCompare(right.variant));
+    .sort((left, right) =>
+      left.metric.localeCompare(right.metric) ||
+      left.variant.localeCompare(right.variant) ||
+      String(left.classId ?? '').localeCompare(String(right.classId ?? '')) ||
+      String(left.cohortId ?? '').localeCompare(String(right.cohortId ?? ''))
+    );
 }
 
 export function sanitizeAdaptiveOptimizationExport(summaries: readonly AdaptiveOptimizationMetricSummary[]) {
   return summaries.map((summary) => ({
     metric: summary.metric,
     variant: summary.variant,
+    classId: summary.classId,
+    cohortId: summary.cohortId,
     sampleCount: summary.sampleCount,
     value: summary.value,
     confidence: summary.confidence,
@@ -321,6 +333,18 @@ function pathFeedbackToMetric(
   if (event.type === 'correction-success') return { ...base, metric: 'correction-success', value: true };
   if (event.type === 'explanation-click') return { ...base, metric: 'explanation-click', value: true };
   return null;
+}
+
+function metricGroupKey(
+  event: AdaptiveOptimizationMetricEvent,
+  aggregationLevel: AdaptiveOptimizationMetricSummary['privacyAggregationLevel'],
+): string {
+  const scopeKey = aggregationLevel === 'class-aggregate'
+    ? event.classId ?? 'unknown-class'
+    : aggregationLevel === 'cohort-aggregate'
+      ? event.cohortId ?? 'unknown-cohort'
+      : 'all';
+  return `${event.metric}:${event.variant}:${aggregationLevel}:${scopeKey}`;
 }
 
 function banditReward(

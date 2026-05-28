@@ -248,6 +248,8 @@ describe('adaptive learning optimization experiments', () => {
       expect.objectContaining({
         metric: 'path-adoption',
         variant: 'rules-graph-path',
+        classId: null,
+        cohortId: null,
         sampleCount: 2,
         value: 0.5,
         confidence: 'low',
@@ -258,6 +260,58 @@ describe('adaptive learning optimization experiments', () => {
     expect(JSON.stringify(exported)).not.toContain('do not export');
     expect(JSON.stringify(exported)).not.toContain('private');
     expect(JSON.stringify(exported)).not.toContain('rawTrace');
+  });
+
+  it('keeps class and cohort aggregates separated by their requested privacy scope', () => {
+    const classSummary = summarizeAdaptiveOptimizationMetrics([
+      {
+        metric: 'path-adoption',
+        variant: 'rules-graph-path',
+        classId: 'class-a',
+        cohortId: 'cohort-1',
+        value: true,
+        completeness: 1,
+        confidence: 0.9,
+      },
+      {
+        metric: 'path-adoption',
+        variant: 'rules-graph-path',
+        classId: 'class-b',
+        cohortId: 'cohort-1',
+        value: false,
+        completeness: 1,
+        confidence: 0.9,
+      },
+    ], { aggregationLevel: 'class-aggregate' });
+    const cohortSummary = summarizeAdaptiveOptimizationMetrics([
+      {
+        metric: 'path-adoption',
+        variant: 'rules-graph-path',
+        classId: 'class-a',
+        cohortId: 'cohort-1',
+        value: true,
+        completeness: 1,
+        confidence: 0.9,
+      },
+      {
+        metric: 'path-adoption',
+        variant: 'rules-graph-path',
+        classId: 'class-a',
+        cohortId: 'cohort-2',
+        value: false,
+        completeness: 1,
+        confidence: 0.9,
+      },
+    ], { aggregationLevel: 'cohort-aggregate' });
+
+    expect(classSummary).toEqual([
+      expect.objectContaining({ classId: 'class-a', cohortId: null, sampleCount: 1, value: 1 }),
+      expect.objectContaining({ classId: 'class-b', cohortId: null, sampleCount: 1, value: 0 }),
+    ]);
+    expect(cohortSummary).toEqual([
+      expect.objectContaining({ classId: null, cohortId: 'cohort-1', sampleCount: 1, value: 1 }),
+      expect.objectContaining({ classId: null, cohortId: 'cohort-2', sampleCount: 1, value: 0 }),
+    ]);
   });
 
   it('attributes path feedback to optimization metrics', () => {
