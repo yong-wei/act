@@ -67,6 +67,42 @@ export interface TeacherResourceNodeSummary {
   excludedNodes: number;
 }
 
+export interface TeacherResourceNodeBulkPatchInput {
+  nodes: readonly ResourceNode[];
+  scope: TeacherResourceNodeScope;
+  patch: TeacherResourceNodePatch;
+  nodeIds: string[];
+  reason: string;
+  maxBatchSize?: number;
+}
+
+export interface TeacherResourceNodeBulkPatchResult {
+  requestedCount: number;
+  updatedCount: number;
+  rejectedCount: number;
+  reason: string;
+  results: Array<{
+    nodeId: string;
+    ok: boolean;
+    status: 200 | 400 | 403 | 404;
+    code?: TeacherResourceNodePatchErrorCode;
+    error?: string;
+    persistablePatch?: TeacherResourceNodePersistablePatch;
+  }>;
+}
+
+export interface TeacherResourceNodeOperationsReadiness {
+  bulkMappingEnabled: boolean;
+  policyReviewRequiredCount: number;
+  coverage: {
+    totalNodes: number;
+    mappedNodes: number;
+    pathEligibleNodes: number;
+    coverageRatio: number;
+  };
+  systemIssues: TeacherResourceNodeWarningView[];
+}
+
 export interface TeacherResourceNodePatch {
   displayName?: string;
   description?: string;
@@ -88,6 +124,11 @@ export interface TeacherResourceNodePersistablePatch {
   resourceNodePlanning: NonNullable<TeacherResourceNodePatch['planningMetadata']>;
 }
 
+export type TeacherResourceNodePatchErrorCode =
+  | 'IMMUTABLE_RESOURCE_NODE_FIELDS'
+  | 'RESOURCE_NODE_FORBIDDEN'
+  | 'UNSUPPORTED_RESOURCE_NODE_SOURCE';
+
 export type TeacherResourceNodePatchResult =
   | {
       ok: true;
@@ -97,7 +138,7 @@ export type TeacherResourceNodePatchResult =
   | {
       ok: false;
       status: 400 | 403;
-      code: 'IMMUTABLE_RESOURCE_NODE_FIELDS' | 'RESOURCE_NODE_FORBIDDEN' | 'UNSUPPORTED_RESOURCE_NODE_SOURCE';
+      code: TeacherResourceNodePatchErrorCode;
       error: string;
       persistablePatch?: undefined;
     };
@@ -244,6 +285,85 @@ export function applyTeacherResourceNodePatch(input: {
   };
 }
 
+export function applyTeacherResourceNodeBulkPatch(
+  input: TeacherResourceNodeBulkPatchInput,
+): TeacherResourceNodeBulkPatchResult {
+  const maxBatchSize = input.maxBatchSize ?? 50;
+  const requestedIds = uniqueSorted(input.nodeIds).slice(0, maxBatchSize);
+  const nodesById = new Map(input.nodes.map((node) => [node.id, node]));
+  const results: TeacherResourceNodeBulkPatchResult['results'] = requestedIds.map((nodeId) => {
+    const node = nodesById.get(nodeId);
+    if (!node) {
+      return {
+        nodeId,
+        ok: false,
+        status: 404,
+        code: 'RESOURCE_NODE_FORBIDDEN',
+        error: '资源不存在或无权管理。',
+      };
+    }
+    const result = applyTeacherResourceNodePatch({
+      node,
+      scope: input.scope,
+      patch: input.patch,
+    });
+    return result.ok
+      ? {
+          nodeId,
+          ok: true,
+          status: result.status,
+          persistablePatch: result.persistablePatch,
+        }
+      : {
+          nodeId,
+          ok: false,
+          status: result.status,
+          code: result.code,
+          error: result.error,
+        };
+  });
+
+  return {
+    requestedCount: input.nodeIds.length,
+    updatedCount: results.filter((item) => item.ok).length,
+    rejectedCount: results.filter((item) => !item.ok).length + Math.max(0, input.nodeIds.length - requestedIds.length),
+    reason: input.reason,
+    results,
+  };
+}
+
+export function buildTeacherResourceNodeOperationsReadiness(
+  nodes: readonly ResourceNode[],
+  options: { bulkMappingEnabled?: boolean } = {},
+): TeacherResourceNodeOperationsReadiness {
+  const mappedNodes = nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length > 0).length;
+  const totalNodes = nodes.length;
+  const policyReviewRequired = nodes.filter((node) =>
+    node.planningMetadata.teacherPolicy === 'blocked' ||
+    node.planningMetadata.teacherPolicy === 'teacher-only' ||
+    node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking')
+  );
+  const systemIssues = nodes.flatMap((node) =>
+    node.eligibility.auditIssues.map((issue) => ({
+      code: `${node.id}:${issue.code}`,
+      message: issue.message,
+      severity: issue.severity,
+    }))
+  );
+
+  return {
+    bulkMappingEnabled: options.bulkMappingEnabled === true,
+    policyReviewRequiredCount: policyReviewRequired.length,
+    coverage: {
+      totalNodes,
+      mappedNodes,
+      pathEligibleNodes: nodes.filter((node) => node.eligibility.pathEligible).length,
+      coverageRatio: totalNodes > 0 ? round(mappedNodes / totalNodes, 4) : 0,
+    },
+    systemIssues,
+  };
+}
+
 export function canReadNode(node: ResourceNode, scope: TeacherResourceNodeScope): boolean {
   if (scope.role === 'ADMIN') return true;
   return node.sourceRefs.some((source) => scope.readableSourceRefs.has(source.ref));
@@ -300,4 +420,9 @@ function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) =>
     left.localeCompare(right)
   );
+}
+
+function round(value: number, digits: number): number {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }
