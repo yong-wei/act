@@ -1450,7 +1450,7 @@ function buildControllerPatchProposal(
   input: ProposeControllerPatchInput,
 ) {
   const context = buildSimulationContextOutput(scope, run, { includeTrace: false });
-  const metrics = readRecord(getValue(context.summary, 'metrics')) || context.summary;
+  const metrics = readSimulationSummaryMetrics(context.summary);
   const candidatePatch = inferControllerPatch(metrics, input.targetMetrics ?? {});
   return {
     simulationRunId: context.simulationRunId,
@@ -1465,6 +1465,11 @@ function buildControllerPatchProposal(
     provenance: context.provenance,
     mutatesControllerDraft: false,
   };
+}
+
+function readSimulationSummaryMetrics(summary: Record<string, unknown>) {
+  const metrics = readRecord(getValue(summary, 'metrics'));
+  return Object.keys(metrics).length > 0 ? metrics : summary;
 }
 
 function buildPendingControllerPatch(
