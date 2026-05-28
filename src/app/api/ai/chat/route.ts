@@ -17,6 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
+  createKonlingAgentSession,
   KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -165,10 +166,18 @@ export async function POST(request: Request) {
         ...aiContext,
         adaptiveRuntime: runtimeContext,
       });
+      const agentSession = await createKonlingAgentSession(prisma, {
+        scope: scope.scope,
+        phase: 'ai-chat-tool-runtime',
+        status: 'running',
+        state: { route: '/api/ai/chat' },
+        permittedTools: runtimeContext.permittedTools,
+      });
       tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
         context: runtimeContext,
+        agentSessionId: agentSession.id,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       }));
     } else if (pageContext && userProfile) {

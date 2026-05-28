@@ -17,6 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
+  createKonlingAgentSession,
   KonlingRuntimeScopeError,
   persistKonlingSessionMemories,
   verifyKonlingRuntimeScope,
@@ -124,6 +125,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ...aiContext,
       adaptiveRuntime: runtimeContext,
     });
+    const agentSession = await createKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+      state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
+      permittedTools: runtimeContext.permittedTools,
+    });
 
     // 调用AI
     const result = await streamText({
@@ -139,6 +147,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         db: prisma,
         scope: scope.scope,
         context: runtimeContext,
+        agentSessionId: agentSession.id,
       })),
       maxSteps: 5,
       maxTokens: 1000,

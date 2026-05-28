@@ -98,6 +98,11 @@ model User {
   abilityAssessments AbilityAssessment[]
   aiInterventions    AIIntervention[]
   konlingMemories    KonlingMemory[]
+  ownedAgentSessions AgentSession[] @relation("AgentSessionOwner")
+  actedAgentSessions AgentSession[] @relation("AgentSessionActor")
+  ownedAgentToolRuns AgentToolRun[] @relation("AgentToolRunOwner")
+  actorAgentToolRuns AgentToolRun[] @relation("AgentToolRunActor")
+  targetAgentToolRuns AgentToolRun[] @relation("AgentToolRunTarget")
   promptAssessments  PromptAssessment[]
   designSessions     DesignSession[]
 
@@ -1176,6 +1181,78 @@ model KonlingMemory {
   @@index([resourceId])
   @@index([pathNodeId])
   @@index([privacyScope])
+}
+
+model AgentSession {
+  id              String    @id @default(cuid())
+  ownerUserId     String
+  actorUserId     String?
+  classId         String?
+  courseId        String
+  pageId          String
+  resourceId      String?
+  pathNodeId      String?
+  phase           String
+  status          String    @default("draft")
+  stateJson       Json      @default("{}")
+  permittedTools  String[]  @default([])
+  pendingApproval Json?
+  expiresAt       DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  ownerUser User @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser User? @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  toolRuns  AgentToolRun[]
+
+  @@index([ownerUserId, status, updatedAt])
+  @@index([ownerUserId, courseId, pageId])
+  @@index([classId])
+  @@index([resourceId])
+  @@index([pathNodeId])
+  @@index([expiresAt])
+}
+
+model AgentToolRun {
+  id             String    @id @default(cuid())
+  agentSessionId String
+  ownerUserId    String
+  actorUserId    String
+  targetUserId   String
+  classId        String?
+  courseId       String
+  pageId         String
+  resourceId     String?
+  pathNodeId     String?
+  toolName       String
+  permissionTier String
+  approvalState  String    @default("not_required")
+  status         String    @default("running")
+  inputSummary   Json      @default("{}")
+  outputSummary  Json?
+  errorSummary   Json?
+  idempotencyKey String?
+  correlationId  String
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  latencyMs      Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  agentSession AgentSession @relation(fields: [agentSessionId], references: [id], onDelete: Cascade)
+  ownerUser    User         @relation("AgentToolRunOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser    User         @relation("AgentToolRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  targetUser   User         @relation("AgentToolRunTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerUserId, toolName, idempotencyKey])
+  @@index([agentSessionId, startedAt])
+  @@index([ownerUserId, toolName, startedAt])
+  @@index([ownerUserId, status, startedAt])
+  @@index([ownerUserId, courseId, pageId])
+  @@index([classId])
+  @@index([resourceId])
+  @@index([pathNodeId])
 }
 
 model PromptAssessment {

@@ -40,6 +40,13 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
 
+  it('attaches audited agent sessions before exposing scoped Konling tools', () => {
+    expect(chatRouteSource).toContain('createKonlingAgentSession');
+    expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
+    expect(sessionMessagesRouteSource).toContain('createKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
+  });
+
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {
     expect(chatRouteSource).toContain('if (simulationState && !hasRuntimeContext)');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');

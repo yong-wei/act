@@ -43,6 +43,20 @@ export type KonlingToolName =
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
 export type KonlingInterventionFeedback = 'accepted' | 'dismissed' | 'rated';
+export type KonlingAgentSessionStatus =
+  | 'draft'
+  | 'ready'
+  | 'running'
+  | 'awaiting_approval'
+  | 'paused'
+  | 'succeeded'
+  | 'failed'
+  | 'archived';
+export type KonlingToolPermissionTier = 'read' | 'analyze' | 'run' | 'write' | 'publish';
+export type KonlingToolApprovalPolicy = 'none' | 'required';
+export type KonlingToolApprovalState = 'not_required' | 'required' | 'approved' | 'rejected';
+export type KonlingToolRunStatus = 'running' | 'awaiting_approval' | 'succeeded' | 'failed';
+export type KonlingToolIdempotencyPolicy = 'none' | 'reuse' | 'reject';
 
 export interface KonlingRuntimeScope {
   authenticatedUserId: string;
@@ -104,6 +118,49 @@ export interface KonlingInterventionRecord {
   cooldownUntil: string | null;
 }
 
+export interface KonlingAgentSessionView {
+  id: string;
+  ownerUserId: string;
+  actorUserId?: string | null;
+  phase: string;
+  status: KonlingAgentSessionStatus | string;
+  state: Record<string, unknown>;
+  permittedTools: string[];
+  pendingApproval: Record<string, unknown> | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KonlingToolRegistryEntry {
+  name: KonlingToolName;
+  permissionTier: KonlingToolPermissionTier;
+  approvalPolicy: KonlingToolApprovalPolicy;
+  idempotencyPolicy: KonlingToolIdempotencyPolicy;
+  redactionPolicy: 'summary-only';
+}
+
+export interface KonlingToolRunView {
+  id: string;
+  agentSessionId: string;
+  ownerUserId: string;
+  actorUserId: string;
+  targetUserId: string;
+  toolName: string;
+  permissionTier: KonlingToolPermissionTier | string;
+  approvalState: KonlingToolApprovalState | string;
+  status: KonlingToolRunStatus | string;
+  inputSummary: unknown;
+  outputSummary: unknown | null;
+  errorSummary: unknown | null;
+  idempotencyKey: string | null;
+  correlationId: string;
+  startedAt: string;
+  completedAt: string | null;
+  latencyMs: number | null;
+  reused: boolean;
+}
+
 interface KonlingRuntimeInput {
   authenticatedUserId: string;
   authenticatedUserName?: string | null;
@@ -120,6 +177,7 @@ interface KonlingRuntimeInput {
 
 interface KonlingMemoryCreateInput {
   userId: string;
+  scope?: KonlingRuntimeScope;
   sessionId?: string | null;
   classId?: string | null;
   courseId?: string | null;
@@ -144,7 +202,47 @@ interface KonlingToolRuntimeInput {
   db: KonlingRuntimeDb;
   scope: KonlingRuntimeScope;
   context: KonlingRuntimeContext;
+  agentSessionId?: string | null;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
+}
+
+interface KonlingAgentSessionCreateInput {
+  scope: KonlingRuntimeScope;
+  phase: string;
+  status?: KonlingAgentSessionStatus;
+  state?: Record<string, unknown>;
+  permittedTools?: KonlingToolName[];
+  pendingApproval?: Record<string, unknown> | null;
+  expiresAt?: Date | null;
+}
+
+interface KonlingAgentSessionRefInput {
+  scope: KonlingRuntimeScope;
+  agentSessionId: string;
+}
+
+interface KonlingToolRunStartInput {
+  scope: KonlingRuntimeScope;
+  agentSessionId: string;
+  toolName: KonlingToolName;
+  input?: unknown;
+  idempotencyKey?: string | null;
+  correlationId?: string | null;
+  preflight?: () => Promise<void>;
+}
+
+interface KonlingToolRunCompleteInput {
+  scope: KonlingRuntimeScope;
+  toolRunId: string;
+  output?: unknown;
+  now?: Date;
+}
+
+interface KonlingToolRunFailInput {
+  scope: KonlingRuntimeScope;
+  toolRunId: string;
+  error?: unknown;
+  now?: Date;
 }
 
 export interface KonlingRuntimeDb {
@@ -160,6 +258,19 @@ export interface KonlingRuntimeDb {
   konlingMemory?: {
     findMany?: (args: any) => Promise<unknown[]>;
     create?: (args: any) => Promise<unknown>;
+  };
+  konlingSession?: {
+    findFirst?: (args: any) => Promise<unknown | null>;
+  };
+  agentSession?: {
+    create?: (args: any) => Promise<unknown>;
+    findFirst?: (args: any) => Promise<unknown | null>;
+    updateMany?: (args: any) => Promise<unknown>;
+  };
+  agentToolRun?: {
+    findFirst?: (args: any) => Promise<unknown | null>;
+    create?: (args: any) => Promise<unknown>;
+    updateMany?: (args: any) => Promise<unknown>;
   };
   aIIntervention?: {
     findFirst?: (args: any) => Promise<unknown | null>;
@@ -205,6 +316,22 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'record_intervention_result',
   'analyze_attempt',
 ];
+
+export const KONLING_TOOL_PERMISSION_TIERS: KonlingToolPermissionTier[] = ['read', 'analyze', 'run', 'write', 'publish'];
+
+export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryEntry> = {
+  get_page_context: toolRegistryEntry('get_page_context', 'read'),
+  get_learner_state: toolRegistryEntry('get_learner_state', 'read'),
+  get_plan_context: toolRegistryEntry('get_plan_context', 'read'),
+  search_learning_memory: toolRegistryEntry('search_learning_memory', 'read'),
+  search_knowledge_graph: toolRegistryEntry('search_knowledge_graph', 'read'),
+  recommend_next_action: toolRegistryEntry('recommend_next_action', 'analyze'),
+  get_simulation_status: toolRegistryEntry('get_simulation_status', 'read'),
+  set_simulation_params: toolRegistryEntry('set_simulation_params', 'write', 'required', 'reuse'),
+  analyze_result: toolRegistryEntry('analyze_result', 'analyze'),
+  record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'required', 'reuse'),
+  analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
+};
 
 export async function verifyKonlingRuntimeScope(
   db: KonlingRuntimeDb,
@@ -318,49 +445,50 @@ export async function buildKonlingRuntimeContext(
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
   return {
-    getPageContext: async () => assertToolResult(input.scope, 'get_page_context', input.context.pageContext),
-    getLearnerState: async () => assertToolResult(input.scope, 'get_learner_state', input.context.learnerState),
-    getPlanContext: async () => assertToolResult(input.scope, 'get_plan_context', input.context.planContext),
+    getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => input.context.pageContext),
+    getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
+    getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
-      assertToolResult(input.scope, 'search_learning_memory', await searchKonlingMemory(input.db, {
+      runKonlingRuntimeTool(input, 'search_learning_memory', args, async () => searchKonlingMemory(input.db, {
         scope: input.scope,
         query: args.query ?? '',
         limit: args.limit ?? 5,
       })),
     searchKnowledgeGraph: async (args: { query?: string; limit?: number } = {}) =>
-      assertToolResult(input.scope, 'search_knowledge_graph', await searchKnowledgeGraph(input.db, args.query ?? '', args.limit ?? 5)),
-    recommendNextAction: async () => assertToolResult(input.scope, 'recommend_next_action', recommendNextAction(input.context)),
+      runKonlingRuntimeTool(input, 'search_knowledge_graph', args, async () => searchKnowledgeGraph(input.db, args.query ?? '', args.limit ?? 5)),
+    recommendNextAction: async () => runKonlingRuntimeTool(input, 'recommend_next_action', {}, async () => recommendNextAction(input.context)),
     getSimulationStatus: async (args: { resourceId?: string | null } = {}) => {
-      if (args.resourceId && input.scope.resourceId && args.resourceId !== input.scope.resourceId) {
-        throw new KonlingRuntimeScopeError(403, '无权读取当前资源范围外的仿真状态。');
-      }
-      const status = input.scopedSimulationState
-        ? formatSimulationStatus(input.scopedSimulationState)
-        : formatUnavailableSimulationStatus(input.scope);
-      return assertToolResult(input.scope, 'get_simulation_status', status);
+      return runKonlingRuntimeTool(input, 'get_simulation_status', args, async () => {
+        if (args.resourceId && input.scope.resourceId && args.resourceId !== input.scope.resourceId) {
+          throw new KonlingRuntimeScopeError(403, '无权读取当前资源范围外的仿真状态。');
+        }
+        return input.scopedSimulationState
+          ? formatSimulationStatus(input.scopedSimulationState)
+          : formatUnavailableSimulationStatus(input.scope);
+      });
     },
-    setSimulationParams: async (args: SimulationParamChangeInput) => {
+    setSimulationParams: async (args: SimulationParamChangeInput) => runKonlingRuntimeTool(input, 'set_simulation_params', args, async () => {
       assertSimulationScope(input.scope, Boolean(input.scopedSimulationState));
       const request = buildSimulationParamChangeRequest(args);
-      return assertToolResult(input.scope, 'set_simulation_params', {
+      return {
         ...formatSimulationParamChangeResponse(request),
         pendingRequest: {
           type: request.type,
           params: request.params,
           scope: buildToolScopeRef(input.scope),
         },
-      });
-    },
-    analyzeResult: async (args: SimulationAnalysisInput) => {
+      };
+    }),
+    analyzeResult: async (args: SimulationAnalysisInput) => runKonlingRuntimeTool(input, 'analyze_result', args, async () => {
       assertSimulationScope(input.scope, Boolean(input.scopedSimulationState));
-      return assertToolResult(input.scope, 'analyze_result', analyzeSimulationResult(args));
-    },
+      return analyzeSimulationResult(args);
+    }),
     recordInterventionResult: async (args: {
       interventionId: string;
       feedback: KonlingInterventionFeedback;
       helpful?: boolean;
       studentResponse?: string;
-    }) => assertToolResult(input.scope, 'record_intervention_result', await recordKonlingInterventionFeedback(input.db, {
+    }) => runKonlingRuntimeTool(input, 'record_intervention_result', args, async () => recordKonlingInterventionFeedback(input.db, {
       scope: input.scope,
       interventionId: args.interventionId,
       feedback: args.feedback,
@@ -368,8 +496,345 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       studentResponse: args.studentResponse,
     })),
     analyzeAttempt: async (args: { studentState: StudentState }) =>
-      assertToolResult(input.scope, 'analyze_attempt', analyzeKonlingAttempt(args.studentState)),
+      runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
   };
+}
+
+export async function createKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionCreateInput,
+): Promise<KonlingAgentSessionView> {
+  const created = await db.agentSession?.create?.({
+    data: {
+      ownerUserId: input.scope.targetUserId,
+      actorUserId: input.scope.authenticatedUserId,
+      classId: input.scope.classId ?? null,
+      courseId: input.scope.courseId,
+      pageId: input.scope.pageId,
+      resourceId: input.scope.resourceId ?? null,
+      pathNodeId: input.scope.pathNodeId ?? null,
+      phase: input.phase,
+      status: input.status ?? 'draft',
+      stateJson: redactSensitivePayload(input.state ?? {}),
+      permittedTools: input.permittedTools ?? DEFAULT_TOOLS,
+      pendingApproval: input.pendingApproval ? redactSensitivePayload(input.pendingApproval) : null,
+      expiresAt: input.expiresAt ?? null,
+    },
+  });
+  if (!created) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 存储不可用。');
+  }
+  return toAgentSessionView(created);
+}
+
+export async function resumeKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionRefInput,
+): Promise<KonlingAgentSessionView> {
+  const session = await db.agentSession?.findFirst?.({
+    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId),
+  });
+  if (!session) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
+  }
+  return toAgentSessionView(session);
+}
+
+export async function pauseKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionRefInput & { state?: Record<string, unknown> },
+) {
+  return updateKonlingAgentSessionStatus(db, {
+    ...input,
+    status: 'paused',
+  });
+}
+
+export async function failKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionRefInput & { error?: unknown },
+) {
+  return updateKonlingAgentSessionStatus(db, {
+    ...input,
+    status: 'failed',
+    pendingApproval: input.error ? { error: redactSensitivePayload(input.error) as Record<string, unknown> } : null,
+  });
+}
+
+export async function archiveKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionRefInput,
+) {
+  return updateKonlingAgentSessionStatus(db, {
+    ...input,
+    status: 'archived',
+    archivedAt: new Date(),
+  });
+}
+
+export async function startKonlingToolRun(
+  db: KonlingRuntimeDb,
+  input: KonlingToolRunStartInput,
+): Promise<KonlingToolRunView> {
+  const registryEntry = KONLING_TOOL_REGISTRY[input.toolName];
+  if (!registryEntry) {
+    throw new KonlingRuntimeScopeError(403, `Konling 工具 ${input.toolName} 未注册。`);
+  }
+  const agentSession = await db.agentSession?.findFirst?.({
+    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId),
+    select: { id: true, permittedTools: true },
+  });
+  if (!agentSession) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
+  }
+  const permittedTools = arrayOfStrings(getValue(agentSession, 'permittedTools'));
+  if (!permittedTools.includes(input.toolName)) {
+    throw new KonlingRuntimeScopeError(403, `AgentSession 未授权 Konling 工具 ${input.toolName}。`);
+  }
+  await input.preflight?.();
+
+  if (input.idempotencyKey && registryEntry.idempotencyPolicy !== 'none') {
+    const existing = await db.agentToolRun?.findFirst?.({
+      where: {
+        ownerUserId: input.scope.targetUserId,
+        toolName: input.toolName,
+        idempotencyKey: input.idempotencyKey,
+      },
+    });
+    if (existing) {
+      if (registryEntry.idempotencyPolicy === 'reject') {
+        throw new KonlingRuntimeScopeError(403, '重复的 Konling 工具请求已被拒绝。');
+      }
+      return toToolRunView(existing, { reused: true });
+    }
+  }
+
+  const approvalState: KonlingToolApprovalState =
+    registryEntry.approvalPolicy === 'required' ? 'required' : 'not_required';
+  const status: KonlingToolRunStatus =
+    approvalState === 'required' ? 'awaiting_approval' : 'running';
+  const created = await db.agentToolRun?.create?.({
+    data: {
+      agentSessionId: input.agentSessionId,
+      ownerUserId: input.scope.targetUserId,
+      actorUserId: input.scope.authenticatedUserId,
+      targetUserId: input.scope.targetUserId,
+      classId: input.scope.classId ?? null,
+      courseId: input.scope.courseId,
+      pageId: input.scope.pageId,
+      resourceId: input.scope.resourceId ?? null,
+      pathNodeId: input.scope.pathNodeId ?? null,
+      toolName: input.toolName,
+      permissionTier: registryEntry.permissionTier,
+      approvalState,
+      status,
+      inputSummary: redactSensitivePayload(input.input ?? {}),
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: input.idempotencyKey ?? null,
+      correlationId: input.correlationId ?? `${input.agentSessionId}:${input.toolName}:${Date.now()}`,
+      startedAt: new Date(),
+    },
+  });
+  if (!created) {
+    throw new KonlingRuntimeScopeError(404, 'AgentToolRun 存储不可用。');
+  }
+  return toToolRunView(created);
+}
+
+export async function completeKonlingToolRun(
+  db: KonlingRuntimeDb,
+  input: KonlingToolRunCompleteInput,
+): Promise<{ success: true; status: 'succeeded' }> {
+  const toolRun = await findScopedToolRun(db, input.scope, input.toolRunId);
+  const permissionTier = getString(toolRun, 'permissionTier');
+  const approvalState = getString(toolRun, 'approvalState');
+  if ((permissionTier === 'write' || permissionTier === 'publish') && approvalState !== 'approved') {
+    throw new KonlingRuntimeScopeError(403, '写入或发布工具必须先获得 approval。');
+  }
+  const now = input.now ?? new Date();
+  await updateScopedToolRun(db, input.scope, input.toolRunId, {
+    status: 'succeeded',
+    outputSummary: redactSensitivePayload(input.output ?? {}),
+    completedAt: now,
+    latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
+  });
+  return { success: true, status: 'succeeded' };
+}
+
+export async function failKonlingToolRun(
+  db: KonlingRuntimeDb,
+  input: KonlingToolRunFailInput,
+): Promise<{ success: true; status: 'failed' }> {
+  const toolRun = await findScopedToolRun(db, input.scope, input.toolRunId);
+  const now = input.now ?? new Date();
+  await updateScopedToolRun(db, input.scope, input.toolRunId, {
+    status: 'failed',
+    errorSummary: redactSensitivePayload(input.error ?? {}),
+    completedAt: now,
+    latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
+  });
+  return { success: true, status: 'failed' };
+}
+
+async function runKonlingRuntimeTool<T>(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolInput: unknown,
+  effect: () => Promise<T>,
+) {
+  const agentSessionId = runtimeInput.agentSessionId;
+  if (!agentSessionId) {
+    return assertToolResult(runtimeInput.scope, toolName, await effect());
+  }
+
+  const inputRecord = readRecord(toolInput);
+  const idempotencyKey = typeof inputRecord.idempotencyKey === 'string' ? inputRecord.idempotencyKey : null;
+  const toolRun = await startKonlingToolRun(runtimeInput.db, {
+    scope: runtimeInput.scope,
+    agentSessionId,
+    toolName,
+    input: toolInput,
+    idempotencyKey,
+    preflight: () => validateKonlingToolPreflight(runtimeInput, toolName, toolInput),
+  });
+
+  if (toolRun.approvalState === 'required') {
+    const approvalPreview = buildKonlingApprovalPreview(runtimeInput, toolName, toolInput);
+    await markKonlingAgentSessionAwaitingApproval(
+      runtimeInput.db,
+      runtimeInput.scope,
+      agentSessionId,
+      toolRun,
+      approvalPreview,
+    );
+    return assertToolResult(runtimeInput.scope, toolName, {
+      approvalRequired: true,
+      toolRunId: toolRun.id,
+      toolName,
+      permissionTier: toolRun.permissionTier,
+      status: toolRun.status,
+      message: '该 Konling 工具需要 approval 后才能执行。',
+      ...(approvalPreview ?? {}),
+    });
+  }
+  if (toolRun.reused) {
+    if (toolRun.status === 'succeeded') {
+      return assertToolResult(runtimeInput.scope, toolName, toolRun.outputSummary ?? {
+        toolRunReused: true,
+        toolRunId: toolRun.id,
+        toolName,
+        status: toolRun.status,
+      });
+    }
+    if (toolRun.status === 'failed') {
+      throw new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。');
+    }
+    return assertToolResult(runtimeInput.scope, toolName, {
+      toolRunReused: true,
+      toolRunId: toolRun.id,
+      toolName,
+      permissionTier: toolRun.permissionTier,
+      status: toolRun.status,
+      message: '该 Konling 工具请求已存在，等待当前执行完成。',
+    });
+  }
+
+  try {
+    const result = await effect();
+    await completeKonlingToolRun(runtimeInput.db, {
+      scope: runtimeInput.scope,
+      toolRunId: toolRun.id,
+      output: result,
+    });
+    return assertToolResult(runtimeInput.scope, toolName, result);
+  } catch (error) {
+    await failKonlingToolRun(runtimeInput.db, {
+      scope: runtimeInput.scope,
+      toolRunId: toolRun.id,
+      error: summarizeRuntimeToolError(error),
+    });
+    throw error;
+  }
+}
+
+async function validateKonlingToolPreflight(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolInput: unknown,
+) {
+  if (toolName === 'set_simulation_params') {
+    assertSimulationScope(runtimeInput.scope, Boolean(runtimeInput.scopedSimulationState));
+    buildSimulationParamChangeRequest(readRecord(toolInput) as SimulationParamChangeInput);
+    return;
+  }
+  if (toolName === 'record_intervention_result') {
+    await assertInterventionFeedbackScope(runtimeInput.db, runtimeInput.scope, toolInput);
+  }
+}
+
+function buildKonlingApprovalPreview(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolInput: unknown,
+): Record<string, unknown> | null {
+  if (toolName !== 'set_simulation_params') return null;
+  const request = buildSimulationParamChangeRequest(readRecord(toolInput) as SimulationParamChangeInput);
+  return {
+    ...formatSimulationParamChangeResponse(request),
+    pendingRequest: {
+      type: request.type,
+      params: request.params,
+      scope: buildToolScopeRef(runtimeInput.scope),
+    },
+  };
+}
+
+async function markKonlingAgentSessionAwaitingApproval(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  agentSessionId: string,
+  toolRun: KonlingToolRunView,
+  approvalPreview: Record<string, unknown> | null,
+) {
+  await updateKonlingAgentSessionStatus(db, {
+    scope,
+    agentSessionId,
+    status: 'awaiting_approval',
+    pendingApproval: redactSensitivePayload({
+      toolRunId: toolRun.id,
+      toolName: toolRun.toolName,
+      permissionTier: toolRun.permissionTier,
+      approvalState: toolRun.approvalState,
+      status: toolRun.status,
+      inputSummary: toolRun.inputSummary,
+      idempotencyKey: toolRun.idempotencyKey,
+      correlationId: toolRun.correlationId,
+      startedAt: toolRun.startedAt,
+      ...(approvalPreview ? { preview: approvalPreview } : {}),
+    }) as Record<string, unknown>,
+  });
+}
+
+async function assertInterventionFeedbackScope(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  toolInput: unknown,
+) {
+  const input = readRecord(toolInput);
+  const interventionId = getString(input, 'interventionId');
+  const intervention = await db.aIIntervention?.findFirst?.({
+    where: {
+      id: interventionId,
+      userId: scope.targetUserId,
+      classId: scope.classId ?? null,
+      resourceId: scope.resourceId ?? null,
+      pathNodeId: scope.pathNodeId ?? null,
+    },
+  });
+  if (!intervention) {
+    throw new KonlingRuntimeScopeError(404, '干预不存在或不属于当前 Konling 作用域。');
+  }
 }
 
 export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlingToolRuntime>) {
@@ -449,6 +914,7 @@ export async function createKonlingMemory(
   db: KonlingRuntimeDb,
   input: KonlingMemoryCreateInput,
 ): Promise<KonlingMemoryView | null> {
+  assertMemoryWriteScope(input.scope, input.userId);
   const summary = sanitizeMemorySummary(input.summary);
   if (!summary) return null;
   const created = await db.konlingMemory?.create?.({
@@ -463,12 +929,33 @@ export async function createKonlingMemory(
       memoryType: input.memoryType,
       privacyScope: input.privacyScope ?? 'student-visible',
       summary,
-      evidenceRefs: input.evidenceRefs ?? [],
+      evidenceRefs: redactSensitivePayload(input.evidenceRefs ?? []),
       metadata: redactSensitivePayload(input.metadata ?? {}),
       expiresAt: input.expiresAt ?? null,
     },
   });
   return created ? toMemoryView(created) : null;
+}
+
+export async function createScopedKonlingMemory(
+  db: KonlingRuntimeDb,
+  input: Omit<KonlingMemoryCreateInput, 'userId' | 'sessionId' | 'classId' | 'courseId' | 'pageId' | 'resourceId' | 'pathNodeId' | 'scope'> & {
+    scope: KonlingRuntimeScope;
+    sessionId?: string | null;
+  },
+): Promise<KonlingMemoryView | null> {
+  assertMemoryWriteScope(input.scope, input.scope.targetUserId);
+  return createKonlingMemory(db, {
+    ...input,
+    scope: input.scope,
+    userId: input.scope.targetUserId,
+    sessionId: input.sessionId ?? null,
+    classId: input.scope.classId ?? null,
+    courseId: input.scope.courseId,
+    pageId: input.scope.pageId,
+    resourceId: input.scope.resourceId ?? null,
+    pathNodeId: input.scope.pathNodeId ?? null,
+  });
 }
 
 export async function persistKonlingSessionMemories(
@@ -711,6 +1198,162 @@ export function privacyScopesForRole(role: AdaptiveLearnerStateRole): AdaptiveLe
   if (role === 'teacher') return ['student-visible', 'teacher-scoped'];
   if (role === 'system') return ['student-visible', 'teacher-scoped', 'admin-scoped', 'audit-only', 'system-internal'];
   return ['student-visible'];
+}
+
+function toolRegistryEntry(
+  name: KonlingToolName,
+  permissionTier: KonlingToolPermissionTier,
+  approvalPolicy: KonlingToolApprovalPolicy = 'none',
+  idempotencyPolicy: KonlingToolIdempotencyPolicy = permissionTier === 'read' || permissionTier === 'analyze' ? 'none' : 'reuse',
+): KonlingToolRegistryEntry {
+  return {
+    name,
+    permissionTier,
+    approvalPolicy,
+    idempotencyPolicy,
+    redactionPolicy: 'summary-only',
+  };
+}
+
+async function updateKonlingAgentSessionStatus(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionRefInput & {
+    status: KonlingAgentSessionStatus;
+    state?: Record<string, unknown>;
+    pendingApproval?: Record<string, unknown> | null;
+    archivedAt?: Date | null;
+  },
+): Promise<{ success: true; status: KonlingAgentSessionStatus }> {
+  const result = await db.agentSession?.updateMany?.({
+    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId),
+    data: {
+      status: input.status,
+      ...(input.state ? { stateJson: redactSensitivePayload(input.state) } : {}),
+      ...(input.pendingApproval !== undefined ? { pendingApproval: input.pendingApproval } : {}),
+      ...(input.archivedAt !== undefined ? { archivedAt: input.archivedAt } : {}),
+    },
+  });
+  const updatedCount = typeof getValue(result, 'count') === 'number' ? getValue(result, 'count') as number : 0;
+  if (updatedCount !== 1) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
+  }
+  return { success: true, status: input.status };
+}
+
+function buildAgentSessionScopeWhere(scope: KonlingRuntimeScope, agentSessionId?: string) {
+  return {
+    ...(agentSessionId ? { id: agentSessionId } : {}),
+    ownerUserId: scope.targetUserId,
+    classId: scope.classId ?? null,
+    courseId: scope.courseId,
+    pageId: scope.pageId,
+    resourceId: scope.resourceId ?? null,
+    pathNodeId: scope.pathNodeId ?? null,
+  };
+}
+
+function buildToolRunScopeWhere(scope: KonlingRuntimeScope, toolRunId: string) {
+  return {
+    id: toolRunId,
+    ownerUserId: scope.targetUserId,
+    classId: scope.classId ?? null,
+    courseId: scope.courseId,
+    pageId: scope.pageId,
+    resourceId: scope.resourceId ?? null,
+    pathNodeId: scope.pathNodeId ?? null,
+  };
+}
+
+async function findScopedToolRun(db: KonlingRuntimeDb, scope: KonlingRuntimeScope, toolRunId: string) {
+  const toolRun = await db.agentToolRun?.findFirst?.({
+    where: buildToolRunScopeWhere(scope, toolRunId),
+  });
+  if (!toolRun) {
+    throw new KonlingRuntimeScopeError(404, 'AgentToolRun 不存在或不属于当前用户作用域。');
+  }
+  return toolRun;
+}
+
+async function updateScopedToolRun(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  toolRunId: string,
+  data: Record<string, unknown>,
+) {
+  const result = await db.agentToolRun?.updateMany?.({
+    where: buildToolRunScopeWhere(scope, toolRunId),
+    data,
+  });
+  const updatedCount = typeof getValue(result, 'count') === 'number' ? getValue(result, 'count') as number : 0;
+  if (updatedCount !== 1) {
+    throw new KonlingRuntimeScopeError(404, 'AgentToolRun 不存在或不属于当前用户作用域。');
+  }
+}
+
+function assertMemoryWriteScope(scope: KonlingRuntimeScope | undefined, userId: string) {
+  if (!scope) return;
+  if (scope.role === 'student' && scope.authenticatedUserId !== scope.targetUserId) {
+    throw new KonlingRuntimeScopeError(403, '学生只能写入自己的 Konling 长期记忆。');
+  }
+  if (scope.targetUserId !== userId) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 长期记忆写入必须绑定当前 owner user。');
+  }
+}
+
+function toAgentSessionView(session: unknown): KonlingAgentSessionView {
+  return {
+    id: getString(session, 'id'),
+    ownerUserId: getString(session, 'ownerUserId'),
+    actorUserId: getString(session, 'actorUserId') || null,
+    phase: getString(session, 'phase'),
+    status: getString(session, 'status'),
+    state: readRecord(getValue(session, 'stateJson')),
+    permittedTools: arrayOfStrings(getValue(session, 'permittedTools')),
+    pendingApproval: getValue(session, 'pendingApproval') ? readRecord(getValue(session, 'pendingApproval')) : null,
+    expiresAt: toIsoOrNull(getValue(session, 'expiresAt')),
+    createdAt: toIsoOrNull(getValue(session, 'createdAt')) ?? new Date(0).toISOString(),
+    updatedAt: toIsoOrNull(getValue(session, 'updatedAt')) ?? new Date(0).toISOString(),
+  };
+}
+
+function toToolRunView(toolRun: unknown, options: { reused?: boolean } = {}): KonlingToolRunView {
+  return {
+    id: getString(toolRun, 'id'),
+    agentSessionId: getString(toolRun, 'agentSessionId'),
+    ownerUserId: getString(toolRun, 'ownerUserId'),
+    actorUserId: getString(toolRun, 'actorUserId'),
+    targetUserId: getString(toolRun, 'targetUserId'),
+    toolName: getString(toolRun, 'toolName'),
+    permissionTier: getString(toolRun, 'permissionTier'),
+    approvalState: getString(toolRun, 'approvalState'),
+    status: getString(toolRun, 'status'),
+    inputSummary: redactSensitivePayload(getValue(toolRun, 'inputSummary') ?? {}),
+    outputSummary: getValue(toolRun, 'outputSummary') ? redactSensitivePayload(getValue(toolRun, 'outputSummary')) : null,
+    errorSummary: getValue(toolRun, 'errorSummary') ? redactSensitivePayload(getValue(toolRun, 'errorSummary')) : null,
+    idempotencyKey: getString(toolRun, 'idempotencyKey') || null,
+    correlationId: getString(toolRun, 'correlationId'),
+    startedAt: toIsoOrNull(getValue(toolRun, 'startedAt')) ?? new Date(0).toISOString(),
+    completedAt: toIsoOrNull(getValue(toolRun, 'completedAt')),
+    latencyMs: typeof getValue(toolRun, 'latencyMs') === 'number' ? getValue(toolRun, 'latencyMs') as number : null,
+    reused: options.reused ?? false,
+  };
+}
+
+function calculateLatencyMs(startedAt: unknown, completedAt: Date): number | null {
+  const startedIso = toIsoOrNull(startedAt);
+  if (!startedIso) return null;
+  const latencyMs = completedAt.getTime() - Date.parse(startedIso);
+  return Number.isFinite(latencyMs) && latencyMs >= 0 ? latencyMs : null;
+}
+
+function summarizeRuntimeToolError(error: unknown): Record<string, unknown> {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    };
+  }
+  return { message: String(error) };
 }
 
 function assertToolResult(scope: KonlingRuntimeScope, toolName: KonlingToolName, result: unknown) {
@@ -1068,6 +1711,12 @@ function arrayOfStrings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
 function getValue(value: unknown, key: string): unknown {
   return value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined;
 }
@@ -1088,7 +1737,7 @@ function toIsoOrNull(value: unknown): string | null {
 
 export class KonlingRuntimeScopeError extends Error {
   constructor(
-    readonly status: 400 | 403 | 404,
+    readonly status: 400 | 403 | 404 | 409,
     message: string,
   ) {
     super(message);
