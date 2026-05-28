@@ -25,8 +25,9 @@ import {
   createGovernedKonlingIntervention,
   createScopedKonlingMemory,
   completeKonlingToolRun,
-  KONLING_TOOL_REGISTRY,
   failKonlingToolRun,
+  getOrCreateKonlingAgentSession,
+  KONLING_TOOL_REGISTRY,
   persistKonlingSessionMemories,
   recordKonlingInterventionFeedback,
   resumeKonlingAgentSession,
@@ -1204,6 +1205,54 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(db.konlingSession.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('reuses the latest scoped awaiting approval agent session before creating a new runtime session', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-awaiting',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          phase: 'ai-chat-tool-runtime',
+          status: 'awaiting_approval',
+          stateJson: { route: '/api/ai/chat' },
+          permittedTools: ['set_simulation_params'],
+          pendingApproval: { toolRunId: 'tool-run-pending' },
+          expiresAt: null,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:05:00Z'),
+        }),
+        create: vi.fn(),
+      },
+    };
+
+    const resolved = await getOrCreateKonlingAgentSession(db, {
+      scope,
+      phase: 'ai-chat-tool-runtime',
+      status: 'running',
+      state: { route: '/api/ai/chat' },
+      permittedTools: ['get_page_context'],
+    });
+
+    expect(resolved).toMatchObject({
+      id: 'agent-session-awaiting',
+      status: 'awaiting_approval',
+      pendingApproval: { toolRunId: 'tool-run-pending' },
+    });
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        ownerUserId: 'student-1',
+        classId: 'class-1',
+        courseId: 'unit-4-5',
+        pageId: 'step-03',
+        phase: 'ai-chat-tool-runtime',
+        status: 'awaiting_approval',
+      }),
+      orderBy: { updatedAt: 'desc' },
+    }));
+    expect(db.agentSession.create).not.toHaveBeenCalled();
   });
 
   it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {

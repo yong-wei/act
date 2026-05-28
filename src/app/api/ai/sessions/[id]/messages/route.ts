@@ -17,7 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
-  createKonlingAgentSession,
+  getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
   persistKonlingSessionMemories,
   verifyKonlingRuntimeScope,
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const { id: sessionId } = await context.params;
     const body = await request.json();
-    const { content, pageContext, classId, resourceId, pathNodeId } = body;
+    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -125,8 +125,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ...aiContext,
       adaptiveRuntime: runtimeContext,
     });
-    const agentSession = await createKonlingAgentSession(prisma, {
+    const agentSession = await getOrCreateKonlingAgentSession(prisma, {
       scope: scope.scope,
+      agentSessionId,
       phase: 'konling-chat-tool-runtime',
       status: 'running',
       state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
@@ -192,6 +193,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({
       messages: finalMessages,
       assistantMessage,
+      agentSessionId: agentSession.id,
+      pendingApproval: agentSession.pendingApproval,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

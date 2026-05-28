@@ -41,9 +41,12 @@ describe('AI chat route Konling runtime guard', () => {
   });
 
   it('attaches audited agent sessions before exposing scoped Konling tools', () => {
-    expect(chatRouteSource).toContain('createKonlingAgentSession');
+    expect(chatRouteSource).toContain('getOrCreateKonlingAgentSession');
+    expect(chatRouteSource).toContain('agentSessionId?: string');
+    expect(chatRouteSource).toContain("'X-Konling-Agent-Session-Id': agentSession.id");
     expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
-    expect(sessionMessagesRouteSource).toContain('createKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain('getOrCreateKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain('agentSessionId');
     expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
   });
 

@@ -216,6 +216,10 @@ interface KonlingAgentSessionCreateInput {
   expiresAt?: Date | null;
 }
 
+interface KonlingAgentSessionResolveInput extends KonlingAgentSessionCreateInput {
+  agentSessionId?: string | null;
+}
+
 interface KonlingAgentSessionRefInput {
   scope: KonlingRuntimeScope;
   agentSessionId: string;
@@ -538,6 +542,32 @@ export async function resumeKonlingAgentSession(
     throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
   }
   return toAgentSessionView(session);
+}
+
+export async function getOrCreateKonlingAgentSession(
+  db: KonlingRuntimeDb,
+  input: KonlingAgentSessionResolveInput,
+): Promise<KonlingAgentSessionView> {
+  if (input.agentSessionId) {
+    return resumeKonlingAgentSession(db, {
+      scope: input.scope,
+      agentSessionId: input.agentSessionId,
+    });
+  }
+
+  const awaitingApprovalSession = await db.agentSession?.findFirst?.({
+    where: {
+      ...buildAgentSessionScopeWhere(input.scope),
+      phase: input.phase,
+      status: 'awaiting_approval',
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+  if (awaitingApprovalSession) {
+    return toAgentSessionView(awaitingApprovalSession);
+  }
+
+  return createKonlingAgentSession(db, input);
 }
 
 export async function pauseKonlingAgentSession(

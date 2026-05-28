@@ -17,7 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
-  createKonlingAgentSession,
+  getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       classId,
       resourceId,
       pathNodeId,
+      agentSessionId,
     } = body as {
       messages: Message[];
       simulationState?: Record<string, unknown>;
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
       classId?: string;
       resourceId?: string;
       pathNodeId?: string;
+      agentSessionId?: string;
     };
 
     // 验证用户身份
@@ -126,6 +128,7 @@ export async function POST(request: Request) {
 
     // 构建系统提示词
     let systemPrompt: string;
+    let agentSessionResponseHeaders: HeadersInit | undefined;
 
     if (session?.user?.id && hasRuntimeContext) {
       const scope = await verifyKonlingRuntimeScope(prisma, {
@@ -166,13 +169,17 @@ export async function POST(request: Request) {
         ...aiContext,
         adaptiveRuntime: runtimeContext,
       });
-      const agentSession = await createKonlingAgentSession(prisma, {
+      const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
+        agentSessionId,
         phase: 'ai-chat-tool-runtime',
         status: 'running',
         state: { route: '/api/ai/chat' },
         permittedTools: runtimeContext.permittedTools,
       });
+      agentSessionResponseHeaders = {
+        'X-Konling-Agent-Session-Id': agentSession.id,
+      };
       tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
@@ -220,6 +227,7 @@ export async function POST(request: Request) {
 
     // 返回流式响应
     return result.toDataStreamResponse({
+      init: agentSessionResponseHeaders ? { headers: agentSessionResponseHeaders } : undefined,
       getErrorMessage: getAIStreamErrorMessage,
     });
   } catch (error) {
