@@ -314,12 +314,18 @@ function canonicalClassForLegacyKind(kind: ObservedLegacyInteractiveModuleKind):
 }
 
 function orthogonalFieldsForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): Omit<LegacyInteractiveModuleKindAlias, 'canonicalClass' | 'migrationOnly'> {
+  const presentation = presentationForLegacyKind(kind);
+  const semanticRole = semanticRoleForLegacyKind(kind);
+  const interactionKind = interactionForLegacyKind(kind);
+  const responseKind = responseForLegacyKind(kind);
+  const capabilityRef = capabilityForLegacyKind(kind);
+
   return {
-    ...(presentationForLegacyKind(kind) ? { presentation: presentationForLegacyKind(kind) } : {}),
-    ...(semanticRoleForLegacyKind(kind) ? { semanticRole: semanticRoleForLegacyKind(kind) } : {}),
-    ...(interactionForLegacyKind(kind) ? { interactionKind: interactionForLegacyKind(kind) } : {}),
-    ...(responseForLegacyKind(kind) ? { responseKind: responseForLegacyKind(kind) } : {}),
-    ...(capabilityForLegacyKind(kind) ? { capabilityRef: capabilityForLegacyKind(kind) } : {}),
+    ...(presentation ? { presentation } : {}),
+    ...(semanticRole ? { semanticRole } : {}),
+    ...(interactionKind ? { interactionKind } : {}),
+    ...(responseKind ? { responseKind } : {}),
+    ...(capabilityRef ? { capabilityRef } : {}),
   };
 }
 

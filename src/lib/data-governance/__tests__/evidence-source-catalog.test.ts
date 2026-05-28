@@ -83,6 +83,39 @@ describe('evidence source catalog', () => {
     });
   });
 
+  it('reports Arena preview rows without canonical SimulationRun mapping as readiness gaps', () => {
+    const catalogEntry = getEvidenceSourceCatalog().find((entry) => entry.id === 'ArenaVirtualSimulationRun');
+
+    expect(catalogEntry?.traceabilityFields).toContain('simulationRunId');
+    expect(classifyEvidenceRow({
+      id: 'arena-preview-legacy',
+      sourceId: 'ArenaVirtualSimulationRun',
+      userId: 'student-1',
+      eventData: {
+        taskId: 'task-a',
+        datasetHash: 'dataset-hash',
+        controllerHash: 'controller-hash',
+        scenarioId: 'scenario-a',
+        summary: { trackingError: 0.2 },
+        replay: { checksum: 'sha256:abc' },
+        metadata: {
+          evaluationVisibility: 'preview',
+          officialEligible: false,
+          modelRelation: 'identified-model-controller',
+          datasetHash: 'dataset-hash',
+          controllerHash: 'controller-hash',
+          identificationModelId: 'model-1',
+          sourceExperimentId: 'experiment-1',
+        },
+      },
+    })).toMatchObject({
+      eligibility: 'context-only',
+      materializationReadiness: 'partial',
+      exclusionReason: 'missing_simulation_run_mapping',
+      readinessGaps: ['missing_simulation_run_mapping'],
+    });
+  });
+
   it('aggregates coverage counts, windows, users, provenance, and sample references', () => {
     const report = buildEvidenceSourceCoverageReport({
       generatedAt: '2026-05-19T00:00:00.000Z',
@@ -117,15 +150,46 @@ describe('evidence source catalog', () => {
             occurredAt: '2026-05-16T09:00:00.000Z',
           },
         ],
+        ArenaVirtualSimulationRun: [
+          {
+            id: 'arena-preview-legacy',
+            userId: 'u-3',
+            occurredAt: '2026-05-18T12:00:00.000Z',
+            eventData: {
+              taskId: 'task-a',
+              datasetHash: 'dataset-hash',
+              controllerHash: 'controller-hash',
+              scenarioId: 'scenario-a',
+              summary: { trackingError: 0.2 },
+              replay: { checksum: 'sha256:abc' },
+              metadata: {
+                evaluationVisibility: 'preview',
+                officialEligible: false,
+                modelRelation: 'identified-model-controller',
+                datasetHash: 'dataset-hash',
+                controllerHash: 'controller-hash',
+                identificationModelId: 'model-1',
+                sourceExperimentId: 'experiment-1',
+              },
+            },
+          },
+        ],
       },
     });
 
     expect(report.totals).toMatchObject({
-      totalRows: 4,
+      totalRows: 5,
       eligibleRows: 1,
-      excludedRows: 2,
+      excludedRows: 3,
       unsupportedRows: 1,
-      affectedUsers: 2,
+      affectedUsers: 3,
+    });
+    expect(report.sources.find((source) => source.sourceId === 'ArenaVirtualSimulationRun')).toMatchObject({
+      totalRows: 1,
+      eligibleRows: 0,
+      excludedRows: 1,
+      materializationReadiness: 'partial',
+      readinessGapCounts: { missing_simulation_run_mapping: 1 },
     });
     expect(report.sources.find((source) => source.sourceId === 'InteractionLog')).toMatchObject({
       totalRows: 2,
@@ -148,6 +212,11 @@ describe('evidence source catalog', () => {
       expect.objectContaining({
         sourceId: 'ArenaEvaluationRun',
         reason: 'source_not_profile_ready',
+        rowCount: 1,
+      }),
+      expect.objectContaining({
+        sourceId: 'ArenaVirtualSimulationRun',
+        reason: 'missing_simulation_run_mapping',
         rowCount: 1,
       }),
     ]));

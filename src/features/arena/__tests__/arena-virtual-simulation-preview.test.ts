@@ -114,7 +114,7 @@ describe('arena virtual simulation controller preview', () => {
       createOrResolveIdentificationModel: vi.fn(),
     };
     const runStore = {
-      createRun: vi.fn(async (input) => ({ ...input, id: 'preview-row-1' })),
+      createRun: vi.fn(async (input) => ({ ...input, id: 'preview-row-1', simulationRunId: 'canonical-run-preview-1' })),
     };
 
     const preview = await createArenaVirtualSimulationPreviewRun({
@@ -128,6 +128,16 @@ describe('arena virtual simulation controller preview', () => {
     } as any);
 
     expect(preview.id).toBe('preview-row-1');
+    expect((preview as any).simulationRunId).toBe('canonical-run-preview-1');
+    expect(preview.metadata).toEqual(expect.objectContaining({
+      evaluationVisibility: 'preview',
+      officialEligible: false,
+      modelRelation: 'identified-model-controller',
+      datasetHash,
+      controllerHash: preview.controllerHash,
+      identificationModelId: 'registered-identification-model-preview',
+      sourceExperimentId: 'experiment-preview-row',
+    }));
     expect(identificationModelStore.findOwnedIdentificationModel).toHaveBeenCalledWith({
       userId: 'student-preview',
       taskId: 'task-cruise-roll-blackbox-identification',

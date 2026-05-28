@@ -61,6 +61,7 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     });
     mocks.runVirtualPreview.mockResolvedValue({
       id: 'preview-row-1',
+      simulationRunId: 'canonical-run-preview-1',
       taskId: artifact.taskId,
       datasetHash: artifact.params.experimentDatasetHash,
       controllerHash: 'controller-hash',
@@ -72,6 +73,15 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
         controlEnergy: 0.2,
         safetyViolations: 0,
         smoothness: 0.9,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        modelRelation: 'identified-model-controller',
+        datasetHash: artifact.params.experimentDatasetHash,
+        controllerHash: 'controller-hash',
+        identificationModelId: artifact.params.identificationModelId,
+        sourceExperimentId: 'experiment-preview-row',
       },
       createdAt: '2026-05-11T11:31:00.000Z',
     });
@@ -106,6 +116,12 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(200);
     expect(payload.preview.id).toBe('preview-row-1');
+    expect(payload.preview.simulationRunId).toBe('canonical-run-preview-1');
+    expect(payload.preview.metadata).toEqual(expect.objectContaining({
+      evaluationVisibility: 'preview',
+      officialEligible: false,
+      modelRelation: 'identified-model-controller',
+    }));
     expect(mocks.getArenaPlantAdapterForVirtualPreviewTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.runVirtualPreview).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',

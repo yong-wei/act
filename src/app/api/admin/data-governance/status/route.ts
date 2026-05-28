@@ -37,6 +37,57 @@ function compactSourceLabel(...values: unknown[]): string | null {
     .find(Boolean) ?? null;
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function buildArenaPreviewBoundaryMetadata(row: {
+  datasetHash: string;
+  controllerHash: string;
+  payload: unknown;
+}) {
+  const payload = readObject(row.payload);
+  const existing = readObject(payload.metadata ?? readObject(readObject(payload.summary).previewBoundary));
+  const replaySource = readObject(payload.replaySource);
+  const artifact = readObject(replaySource.artifact);
+  const artifactParams = readObject(artifact.params);
+  const experiment = readObject(replaySource.experiment);
+
+  return {
+    evaluationVisibility: 'preview',
+    officialEligible: false,
+    modelRelation: readString(existing.modelRelation) ?? readString(artifactParams.representation) ?? readString(artifact.method),
+    datasetHash: readString(existing.datasetHash) ?? row.datasetHash,
+    controllerHash: readString(existing.controllerHash) ?? row.controllerHash,
+    identificationModelId: readString(existing.identificationModelId) ?? readString(artifactParams.identificationModelId),
+    sourceExperimentId: readString(existing.sourceExperimentId) ?? readString(experiment.id),
+  };
+}
+
+function buildArenaVirtualSimulationRunEventData(row: {
+  id: string;
+  userId: string;
+  taskId: string;
+  datasetHash: string;
+  controllerHash: string;
+  scenarioId: string;
+  simulationRunId?: string | null;
+  payload: unknown;
+}) {
+  const payload = readObject(row.payload);
+  return {
+    ...payload,
+    arenaPreviewDetailId: row.id,
+    simulationRunId: row.simulationRunId ?? null,
+    userId: row.userId,
+    taskId: row.taskId,
+    datasetHash: row.datasetHash,
+    controllerHash: row.controllerHash,
+    scenarioId: row.scenarioId,
+    metadata: buildArenaPreviewBoundaryMetadata(row),
+  };
+}
+
 function summarizeSessionQuality(
   reports: Array<{
     sessionId: string;
@@ -212,6 +263,7 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
         datasetHash: true,
         controllerHash: true,
         scenarioId: true,
+        simulationRunId: true,
         payload: true,
         createdAt: true,
       },
@@ -337,7 +389,7 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
       id: row.id,
       userId: row.userId,
       occurredAt: row.createdAt,
-      eventData: row.payload,
+      eventData: buildArenaVirtualSimulationRunEventData(row),
       sourceLabel: compactSourceLabel(
         readObject(row.payload).source,
         row.scenarioId,
@@ -596,13 +648,14 @@ export async function GET(request: NextRequest) {
             learningScope: source.learningScope,
             valueLevel: source.defaultValueLevel,
             eligibility: source.defaultEligibility,
-            materializationReadiness: source.materializationReadiness,
+            materializationReadiness: coverage?.materializationReadiness ?? source.materializationReadiness,
             totalRows: coverage?.totalRows ?? 0,
             eligibleRows: coverage?.eligibleRows ?? 0,
             excludedRows: coverage?.excludedRows ?? 0,
             unsupportedRows: coverage?.unsupportedRows ?? 0,
             affectedUsers: coverage?.affectedUsers ?? 0,
             provenanceCounts: coverage?.provenanceCounts ?? {},
+            readinessGapCounts: coverage?.readinessGapCounts ?? {},
             exclusionReasons: exclusionReasonsBySource.get(source.id) ?? [],
           };
         }),

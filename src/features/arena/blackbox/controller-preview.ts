@@ -42,6 +42,7 @@ export interface ArenaVirtualSimulationPreviewRun {
   };
   replay?: SimulationReplayMetadata;
   replaySource?: ArenaVirtualSimulationReplaySource;
+  metadata?: ArenaPreviewBoundaryMetadata;
   createdAt: string;
 }
 
@@ -49,6 +50,16 @@ export interface ArenaVirtualSimulationReplaySource {
   version: 'arena-virtual-preview-v1';
   artifact: ControllerArtifact;
   experiment: StoredArenaBlackBoxExperiment;
+}
+
+export interface ArenaPreviewBoundaryMetadata {
+  evaluationVisibility: 'preview';
+  officialEligible: false;
+  modelRelation?: string;
+  datasetHash: string;
+  controllerHash: string;
+  identificationModelId?: string;
+  sourceExperimentId?: string;
 }
 
 export interface StoredArenaVirtualSimulationRun {
@@ -84,6 +95,28 @@ function numberParam(artifact: ControllerArtifact, key: string): number {
     throw new ArenaVirtualSimulationRunInputError(`${key} must be a finite number.`);
   }
   return value;
+}
+
+function stringParam(artifact: ControllerArtifact | undefined, key: string): string | undefined {
+  const value = artifact?.params[key];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+export function getArenaPreviewBoundaryMetadata(
+  preview: ArenaVirtualSimulationPreviewRun,
+): ArenaPreviewBoundaryMetadata {
+  const existing = preview.metadata;
+  const artifact = preview.replaySource?.artifact;
+
+  return {
+    evaluationVisibility: 'preview',
+    officialEligible: false,
+    modelRelation: existing?.modelRelation ?? stringParam(artifact, 'representation') ?? artifact?.method,
+    datasetHash: existing?.datasetHash ?? preview.datasetHash,
+    controllerHash: existing?.controllerHash ?? preview.controllerHash,
+    identificationModelId: existing?.identificationModelId ?? stringParam(artifact, 'identificationModelId'),
+    sourceExperimentId: existing?.sourceExperimentId ?? preview.replaySource?.experiment.id,
+  };
 }
 
 function previewChecksumPayload(preview: ArenaVirtualSimulationPreviewRun) {
@@ -254,7 +287,7 @@ export function buildArenaVirtualSimulationPreview({
     summary: previewWithoutReplay.summary,
   });
 
-  return {
+  const preview = {
     ...previewWithoutReplay,
     replay: {
       ...replay,
@@ -277,6 +310,11 @@ export function buildArenaVirtualSimulationPreview({
     },
     replaySource,
   };
+
+  return {
+    ...preview,
+    metadata: getArenaPreviewBoundaryMetadata(preview),
+  };
 }
 
 export async function createArenaVirtualSimulationPreviewRun({
@@ -295,7 +333,7 @@ export async function createArenaVirtualSimulationPreviewRun({
   blackBoxExperimentStore: ArenaBlackBoxExperimentStore;
   identificationModelStore: ArenaIdentificationModelStore;
   runStore: ArenaVirtualSimulationRunStore;
-}): Promise<ArenaVirtualSimulationPreviewRun & { id: string }> {
+}): Promise<ArenaVirtualSimulationPreviewRun & { id: string; simulationRunId?: string | null }> {
   const experiment = await getOwnedExperiment({
     userId,
     taskId,
@@ -319,9 +357,15 @@ export async function createArenaVirtualSimulationPreviewRun({
     createdAt: now,
   });
 
-  return {
+  const storedPreview = {
     ...stored.preview,
+    metadata: getArenaPreviewBoundaryMetadata(stored.preview),
+  };
+
+  return {
+    ...storedPreview,
     id: stored.id,
+    simulationRunId: stored.simulationRunId ?? null,
   };
 }
 
@@ -398,6 +442,7 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
         },
         update: {},
       });
+      const previewBoundary = getArenaPreviewBoundaryMetadata(input.preview);
       const canonicalRun = await tx.simulationRun.create({
         data: {
           ownerUserId: input.userId,
@@ -411,7 +456,10 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
             ? `ArenaControllerArtifact:${input.preview.replaySource.artifact.id}`
             : `ArenaControllerArtifact:${input.controllerHash}`,
           status: 'completed',
-          summary: input.preview.summary as unknown as Prisma.InputJsonValue,
+          summary: {
+            ...input.preview.summary,
+            previewBoundary,
+          } as unknown as Prisma.InputJsonValue,
           replayToken: input.preview.replay?.checksum ?? null,
           seed: input.preview.replay?.seed ?? null,
           protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',

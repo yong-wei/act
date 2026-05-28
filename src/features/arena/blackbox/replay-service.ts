@@ -10,6 +10,7 @@ import {
 import {
   buildArenaVirtualSimulationPreview,
   computeArenaVirtualSimulationPreviewChecksum,
+  getArenaPreviewBoundaryMetadata,
   type ArenaVirtualSimulationPreviewRun,
   type StoredArenaVirtualSimulationRun,
 } from './controller-preview';
@@ -55,6 +56,13 @@ export interface ArenaReplayVerificationResult {
     taskSpecHash?: string;
     traceChecksum?: string;
     sampleCount?: number;
+    evaluationVisibility?: 'preview';
+    officialEligible?: false;
+    modelRelation?: string;
+    datasetHash?: string;
+    controllerHash?: string;
+    identificationModelId?: string;
+    sourceExperimentId?: string;
   };
 }
 
@@ -97,6 +105,7 @@ function canAccessRun(
 function metadataFor(run: ArenaReplayRunRecord, preview: ArenaVirtualSimulationPreviewRun) {
   const canonicalRun = run.simulationRun;
   const canonicalTrace = run.simulationTrace;
+  const boundaryMetadata = getArenaPreviewBoundaryMetadata(preview);
 
   return {
     taskId: preview.taskId,
@@ -113,6 +122,13 @@ function metadataFor(run: ArenaReplayRunRecord, preview: ArenaVirtualSimulationP
     taskSpecHash: canonicalRun?.taskSpec.specHash,
     traceChecksum: canonicalTrace?.checksum ?? preview.replay?.checksum,
     sampleCount: canonicalTrace?.sampleCount ?? preview.trace?.length,
+    evaluationVisibility: boundaryMetadata.evaluationVisibility,
+    officialEligible: boundaryMetadata.officialEligible,
+    modelRelation: boundaryMetadata.modelRelation,
+    datasetHash: boundaryMetadata.datasetHash,
+    controllerHash: boundaryMetadata.controllerHash,
+    identificationModelId: boundaryMetadata.identificationModelId,
+    sourceExperimentId: boundaryMetadata.sourceExperimentId,
   };
 }
 
@@ -314,10 +330,12 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
     if (!row) return null;
 
     const canonical = await db.simulationRun?.findFirst({
-      where: {
-        sourceDomain: 'arena_virtual_preview',
-        sourceRefId: row.id,
-      },
+      where: row.simulationRunId
+        ? { id: row.simulationRunId }
+        : {
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: row.id,
+        },
       include: {
         taskSpec: true,
         traces: {
@@ -338,6 +356,7 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
       datasetHash: row.datasetHash,
       controllerHash: row.controllerHash,
       scenarioId: row.scenarioId,
+      simulationRunId: row.simulationRunId,
       preview: row.payload as unknown as ArenaVirtualSimulationPreviewRun,
       createdAt: row.createdAt.toISOString(),
       ownerClassId: row.user.profile?.classId ?? null,
