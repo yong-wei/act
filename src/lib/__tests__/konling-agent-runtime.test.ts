@@ -509,6 +509,8 @@ describe('konling agent runtime', () => {
       where: expect.objectContaining({
         id: 'run-1',
         ownerUserId: 'student-1',
+        courseId: 'simulation',
+        resourceId: 'resource-1',
       }),
     }));
     expect(context).toMatchObject({
@@ -884,10 +886,21 @@ describe('konling agent runtime', () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const db = {
       agentSession: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'agent-session-1',
-          ownerUserId: 'student-1',
-          permittedTools: ['apply_controller_patch'],
+        findFirst: vi.fn().mockImplementation(async ({ select }) => {
+          if (select?.stateJson) {
+            return {
+              id: 'agent-session-1',
+              stateJson: {
+                route: 'ai-chat',
+                workflow: { phase: 'drafting-controller' },
+              },
+            };
+          }
+          return {
+            id: 'agent-session-1',
+            ownerUserId: 'student-1',
+            permittedTools: ['apply_controller_patch'],
+          };
         }),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
@@ -1002,6 +1015,8 @@ describe('konling agent runtime', () => {
       }),
       data: expect.objectContaining({
         stateJson: expect.objectContaining({
+          route: 'ai-chat',
+          workflow: { phase: 'drafting-controller' },
           controllerDraft: expect.objectContaining({
             simulationRunId: 'run-1',
             patch: { kp: 1.9, ki: 0.04 },

@@ -1193,6 +1193,8 @@ function buildSimulationRunScopeWhere(
   const base: Record<string, unknown> = {
     ...(input.simulationRunId ? { id: input.simulationRunId } : {}),
     ...(input.taskSpecId ? { taskSpecId: input.taskSpecId } : {}),
+    courseId: scope.courseId,
+    ...(scope.resourceId ? { resourceId: scope.resourceId } : {}),
   };
   if (scope.role === 'student') {
     return {
@@ -1483,10 +1485,19 @@ async function applyApprovedControllerPatchToSession(
     throw new KonlingRuntimeScopeError(400, '批准的 controller patch 缺少 simulationRunId 或 patch。');
   }
   const agentSessionId = getString(toolRun, 'agentSessionId');
+  const existingSession = await db.agentSession?.findFirst?.({
+    where: buildAgentSessionScopeWhere(scope, agentSessionId),
+    select: { stateJson: true },
+  });
+  if (!existingSession) {
+    throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
+  }
+  const existingState = readRecord(getValue(existingSession, 'stateJson'));
   const result = await db.agentSession?.updateMany?.({
     where: buildAgentSessionScopeWhere(scope, agentSessionId),
     data: {
       stateJson: {
+        ...existingState,
         controllerDraft: {
           simulationRunId,
           patch,
