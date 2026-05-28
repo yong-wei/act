@@ -97,6 +97,7 @@ model User {
   userAnswers        UserAnswer[]
   abilityAssessments AbilityAssessment[]
   aiInterventions    AIIntervention[]
+  konlingMemories    KonlingMemory[]
   promptAssessments  PromptAssessment[]
   designSessions     DesignSession[]
 
@@ -1121,9 +1122,19 @@ model AIIntervention {
   id               String   @id @default(cuid())
   userId           String
   sessionId        String
+  classId          String?
+  resourceId       String?
+  pathNodeId       String?
   triggerType      String
   interventionType String
   content          String   @db.Text
+  whyNow           String?  @db.Text
+  evidence         Json     @default("[]")
+  alternatives     Json     @default("[]")
+  privacyScope     String   @default("student-visible")
+  teacherPolicy    String   @default("allowed")
+  cooldownUntil    DateTime?
+  outcome          Json?
   studentResponse  String?  @db.Text
   wasHelpful       Boolean?
   createdAt        DateTime @default(now())
@@ -1132,6 +1143,38 @@ model AIIntervention {
 
   @@index([userId, createdAt])
   @@index([sessionId])
+  @@index([userId, interventionType, createdAt])
+  @@index([classId])
+  @@index([resourceId])
+}
+
+model KonlingMemory {
+  id           String    @id @default(cuid())
+  userId       String
+  sessionId    String?
+  classId      String?
+  courseId     String?
+  pageId       String?
+  resourceId   String?
+  pathNodeId   String?
+  memoryType   String
+  privacyScope String    @default("student-visible")
+  summary      String    @db.Text
+  evidenceRefs Json      @default("[]")
+  metadata     Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  expiresAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, memoryType, createdAt])
+  @@index([sessionId])
+  @@index([classId])
+  @@index([courseId, pageId])
+  @@index([resourceId])
+  @@index([pathNodeId])
+  @@index([privacyScope])
 }
 
 model PromptAssessment {
