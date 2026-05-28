@@ -17,6 +17,7 @@ import {
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
+  KonlingRuntimeScopeError,
   persistKonlingSessionMemories,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -84,18 +85,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const updatedMessages = [...existingMessages, userMessage];
 
-    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
-      authenticatedUserId: session.user.id,
-      authenticatedUserName: session.user.name,
-      role: session.user.role,
-      targetUserId: session.user.id,
-      classId,
-      courseId: konlingSession.courseId,
-      pageId: konlingSession.pageId,
-      resourceId,
-      pathNodeId,
-      pageContextHint: pageContext,
-    });
     const scope = await verifyKonlingRuntimeScope(prisma, {
       authenticatedUserId: session.user.id,
       role: session.user.role,
@@ -110,6 +99,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!scope.ok) {
       return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
+    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+      authenticatedUserId: session.user.id,
+      authenticatedUserName: session.user.name,
+      role: session.user.role,
+      targetUserId: session.user.id,
+      classId,
+      courseId: scope.scope.courseId,
+      pageId: scope.scope.pageId,
+      resourceId,
+      pathNodeId,
+      pageContextHint: pageContext,
+    });
 
     // 构建AI上下文
     const aiContext: AIContext = {
@@ -185,6 +186,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingRuntimeScopeError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Error in POST /api/ai/sessions/[id]/messages:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   attemptOutcomeToSuccess,
   canRecordAttempt,
@@ -48,6 +49,7 @@ export function AICompanionPanel({
   title: string;
   sessionId: string;
 }) {
+  const { status: authStatus } = useSession();
   const [attempts, setAttempts] = useState<Array<{
     attemptNumber: number;
     params: { kp: number; ki: number; kd: number };
@@ -175,6 +177,10 @@ export function AICompanionPanel({
   const feedbackButtonsDisabled =
     feedbackState.status === 'submitting' || feedbackState.status === 'success';
   const recordAttemptDisabled = !canRecordAttempt(attemptOutcome);
+
+  if (authStatus !== 'authenticated') {
+    return null;
+  }
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-300 bg-white/95 p-3 text-slate-900">
