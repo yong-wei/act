@@ -6,6 +6,27 @@ import {
 import { buildManifestSubmissionTelemetry } from '../shared/manifest-runtime/submission-telemetry';
 
 describe('buildManifestSubmissionTelemetry', () => {
+  it('rejects unknown manifest response kinds instead of silently treating them as text', () => {
+    expect(() => normalizeInteractiveRuntimeManifest({
+      lesson_id: 'contract-fixture',
+      steps: {
+        'step-01': {
+          title: '响应协议夹具',
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'misspelled-multi',
+                prompt: '哪些证据需要保留？',
+                response_kind: 'mult_select',
+              },
+            ],
+          },
+        },
+      },
+    })).toThrow('Unknown interactive response kind: mult_select');
+  });
+
   it('uses canonical response metadata while preserving legacy aliases in submission evidence', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'contract-fixture',

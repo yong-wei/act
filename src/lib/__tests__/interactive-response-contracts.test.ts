@@ -50,6 +50,14 @@ describe('interactive response contracts', () => {
     expect(normalizeInteractiveResponseKind('table_builder')).toBe('table.builder');
   });
 
+  it('rejects unknown or missing response kinds instead of silently treating them as text', () => {
+    expect(() => normalizeInteractiveResponseKind('mult_select')).toThrow(
+      'Unknown interactive response kind: mult_select',
+    );
+    expect(() => normalizeInteractiveResponseKind('')).toThrow('Missing interactive response kind');
+    expect(isObjectiveInteractiveResponseKind('mult_select')).toBe(false);
+  });
+
   it('classifies canonical response kinds by evidence and scoring category', () => {
     expect(isObjectiveInteractiveResponseKind('choice.multi')).toBe(true);
     expect(isObjectiveInteractiveResponseKind('multi_select')).toBe(true);

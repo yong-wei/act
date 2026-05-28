@@ -155,14 +155,22 @@ function aliasKey(value: string): string {
   return value.trim().replace(/-/g, '_').toLowerCase();
 }
 
+function tryNormalizeInteractiveResponseKind(value: string | null | undefined): InteractiveResponseKind | null {
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+  if (isCanonicalInteractiveResponseKind(raw)) return raw;
+  return RESPONSE_KIND_ALIASES[aliasKey(raw)] ?? null;
+}
+
 export function isCanonicalInteractiveResponseKind(value: string): value is InteractiveResponseKind {
   return CANONICAL_RESPONSE_KIND_SET.has(value);
 }
 
 export function normalizeInteractiveResponseKind(value: string | null | undefined): InteractiveResponseKind {
+  const kind = tryNormalizeInteractiveResponseKind(value);
+  if (kind) return kind;
   const raw = String(value ?? '').trim();
-  if (isCanonicalInteractiveResponseKind(raw)) return raw;
-  return RESPONSE_KIND_ALIASES[aliasKey(raw)] ?? 'text.short';
+  throw new Error(raw ? `Unknown interactive response kind: ${raw}` : 'Missing interactive response kind');
 }
 
 export function getInteractiveResponseKindMetadata(
@@ -182,30 +190,32 @@ export function resolveInteractiveResponseKind(value: string | null | undefined)
 }
 
 export function isObjectiveInteractiveResponseKind(value: string | null | undefined): boolean {
-  return getInteractiveResponseKindMetadata(value).scoring === 'objective';
+  const kind = tryNormalizeInteractiveResponseKind(value);
+  return kind ? RESPONSE_KIND_METADATA[kind].scoring === 'objective' : false;
 }
 
 export function isSubjectiveInteractiveResponseKind(value: string | null | undefined): boolean {
-  return getInteractiveResponseKindMetadata(value).category === 'subjective';
+  const kind = tryNormalizeInteractiveResponseKind(value);
+  return kind ? RESPONSE_KIND_METADATA[kind].category === 'subjective' : false;
 }
 
 export function isChoiceSingleResponseKind(value: string | null | undefined): boolean {
-  const kind = normalizeInteractiveResponseKind(value);
+  const kind = tryNormalizeInteractiveResponseKind(value);
   return kind === 'choice.single' || kind === 'choice.binary';
 }
 
 export function isChoiceMultiResponseKind(value: string | null | undefined): boolean {
-  return normalizeInteractiveResponseKind(value) === 'choice.multi';
+  return tryNormalizeInteractiveResponseKind(value) === 'choice.multi';
 }
 
 export function isOrderingResponseKind(value: string | null | undefined): boolean {
-  return normalizeInteractiveResponseKind(value) === 'ordering.sequence';
+  return tryNormalizeInteractiveResponseKind(value) === 'ordering.sequence';
 }
 
 export function isMatchingResponseKind(value: string | null | undefined): boolean {
-  return normalizeInteractiveResponseKind(value) === 'matching.pairs';
+  return tryNormalizeInteractiveResponseKind(value) === 'matching.pairs';
 }
 
 export function isParameterSetResponseKind(value: string | null | undefined): boolean {
-  return normalizeInteractiveResponseKind(value) === 'parameter.set';
+  return tryNormalizeInteractiveResponseKind(value) === 'parameter.set';
 }
