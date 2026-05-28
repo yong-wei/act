@@ -184,6 +184,27 @@ describe('konling agent runtime', () => {
       ok: false,
       status: 404,
     });
+
+    const foreignClassDb = {
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-2', teacherId: 'teacher-2' }),
+      },
+      studentProfile: {
+        findFirst: vi.fn(),
+      },
+    };
+    await expect(verifyKonlingRuntimeScope(foreignClassDb, {
+      authenticatedUserId: 'teacher-1',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-2',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+    })).resolves.toMatchObject({
+      ok: false,
+      status: 403,
+    });
+    expect(foreignClassDb.studentProfile.findFirst).not.toHaveBeenCalled();
   });
 
   it('builds prompt context from server learner state and not client profile defaults', async () => {

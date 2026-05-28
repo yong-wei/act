@@ -479,11 +479,7 @@ export async function verifyKonlingRuntimeScope(
     if (!studentProfile) return { ok: false, status: 404, error: '学生不在该班级中。' };
   }
 
-  if (role === 'teacher' && targetUserId !== input.authenticatedUserId) {
-    if (!input.classId) {
-      return { ok: false, status: 400, error: '教师访问学生 Konling 运行时必须提供 classId。' };
-    }
-
+  if (role === 'teacher' && input.classId) {
     const classData = await db.class?.findUnique?.({
       where: { id: input.classId },
       select: { id: true, teacherId: true },
@@ -491,6 +487,12 @@ export async function verifyKonlingRuntimeScope(
     if (!classData) return { ok: false, status: 404, error: '班级不存在。' };
     if (getString(classData, 'teacherId') !== input.authenticatedUserId) {
       return { ok: false, status: 403, error: '无权访问该班级的 Konling 运行时。' };
+    }
+  }
+
+  if (role === 'teacher' && targetUserId !== input.authenticatedUserId) {
+    if (!input.classId) {
+      return { ok: false, status: 400, error: '教师访问学生 Konling 运行时必须提供 classId。' };
     }
 
     const studentProfile = await db.studentProfile?.findFirst?.({
