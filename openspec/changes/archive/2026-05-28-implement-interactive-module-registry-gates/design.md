@@ -19,7 +19,7 @@ Add a manifest inventory test that scans every runtime manifest and reports:
 - legacy alias used in a lesson marked migrated;
 - activity module without matching response contract;
 - compute module without a registered capability reference;
-- visible module that cannot resolve to a shared renderer or allowed activity slot.
+- visible module kinds that cannot resolve to a canonical class or approved migration alias. Component-level renderer coverage remains in the existing manifest runtime rendering tests so this gate can stay separate from client renderer imports.
 
 Keep this gate separate from rendering. Rendering may remain tolerant while migration is underway, but the gate should name every exception explicitly.
 
