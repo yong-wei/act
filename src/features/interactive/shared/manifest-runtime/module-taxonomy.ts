@@ -431,6 +431,7 @@ function isActivityKind(kind: ObservedLegacyInteractiveModuleKind): boolean {
     'form',
     'hotspot',
     'judge',
+    'labeling',
     'multi',
     'quiz',
     'reason-record',

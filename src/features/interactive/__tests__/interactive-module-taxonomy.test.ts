@@ -84,6 +84,12 @@ describe('interactive module taxonomy', () => {
       responseKind: 'singleChoice',
       migrationOnly: true,
     });
+    expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['frequency-band-labeling']).toMatchObject({
+      canonicalClass: 'activity.panel',
+      interactionKind: 'hotspot-labeling',
+      responseKind: 'hotspotLabeling',
+      migrationOnly: true,
+    });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['interactive-figure-panel']).toMatchObject({
       canonicalClass: 'compute.panel',
       capabilityRef: 'interactive-figure',
