@@ -194,6 +194,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
       scope: scope.scope,
       agentSessionId: agentSession.id,
+      phase: 'konling-chat-tool-runtime',
     });
 
     return NextResponse.json({

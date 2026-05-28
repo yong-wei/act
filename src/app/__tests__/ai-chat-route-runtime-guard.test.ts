@@ -51,6 +51,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
     expect(sessionMessagesRouteSource).toContain('permittedTools: agentSession.permittedTools');
     expect(sessionMessagesRouteSource).toContain('const refreshedAgentSession = await resumeKonlingAgentSession');
+    expect(sessionMessagesRouteSource).toContain("phase: 'konling-chat-tool-runtime'");
     expect(sessionMessagesRouteSource.indexOf('const refreshedAgentSession = await resumeKonlingAgentSession'))
       .toBeGreaterThan(sessionMessagesRouteSource.indexOf('await persistKonlingSessionMemories'));
     expect(sessionMessagesRouteSource).toContain('pendingApproval: refreshedAgentSession.pendingApproval');

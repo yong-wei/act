@@ -224,6 +224,7 @@ interface KonlingAgentSessionResolveInput extends KonlingAgentSessionCreateInput
 interface KonlingAgentSessionRefInput {
   scope: KonlingRuntimeScope;
   agentSessionId: string;
+  phase?: string;
 }
 
 interface KonlingToolRunStartInput {
@@ -540,7 +541,7 @@ export async function resumeKonlingAgentSession(
   input: KonlingAgentSessionRefInput,
 ): Promise<KonlingAgentSessionView> {
   const session = await db.agentSession?.findFirst?.({
-    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId),
+    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId, input.phase),
   });
   if (!session) {
     throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
@@ -556,6 +557,7 @@ export async function getOrCreateKonlingAgentSession(
     return resumeKonlingAgentSession(db, {
       scope: input.scope,
       agentSessionId: input.agentSessionId,
+      phase: input.phase,
     });
   }
 
@@ -1299,9 +1301,10 @@ async function updateKonlingAgentSessionStatus(
   return { success: true, status: input.status };
 }
 
-function buildAgentSessionScopeWhere(scope: KonlingRuntimeScope, agentSessionId?: string) {
+function buildAgentSessionScopeWhere(scope: KonlingRuntimeScope, agentSessionId?: string, phase?: string) {
   return {
     ...(agentSessionId ? { id: agentSessionId } : {}),
+    ...(phase ? { phase } : {}),
     ownerUserId: scope.targetUserId,
     classId: scope.classId ?? null,
     courseId: scope.courseId,

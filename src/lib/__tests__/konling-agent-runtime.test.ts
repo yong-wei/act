@@ -1210,6 +1210,7 @@ describe('konling agent runtime', () => {
     const resumed = await resumeKonlingAgentSession(db, {
       scope,
       agentSessionId: 'agent-session-1',
+      phase: 'draft-plan',
     });
 
     expect(created).toMatchObject({
@@ -1230,9 +1231,34 @@ describe('konling agent runtime', () => {
         classId: 'class-1',
         courseId: 'unit-4-5',
         pageId: 'step-03',
+        phase: 'draft-plan',
       }),
     }));
     expect(db.konlingSession.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('scopes explicit agent session resume by phase', async () => {
+    const scope = createScope();
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(getOrCreateKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'agent-session-from-other-phase',
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+    })).rejects.toMatchObject({ status: 404 });
+
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'agent-session-from-other-phase',
+        ownerUserId: 'student-1',
+        phase: 'konling-chat-tool-runtime',
+      }),
+    }));
   });
 
   it('reuses the latest scoped awaiting approval agent session before creating a new runtime session', async () => {
