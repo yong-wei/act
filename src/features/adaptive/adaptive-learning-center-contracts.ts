@@ -457,7 +457,11 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
     label: '规则图学习路径',
     domain: 'path',
     confidence: pathPlan.confidence.level,
-    sourceCoverage: pathPlan.confidence.sourceCoverage >= 0.75 ? 'complete' : 'partial',
+    sourceCoverage: pathPlan.confidence.sourceCoverage <= 0
+      ? 'missing'
+      : pathPlan.confidence.sourceCoverage >= 0.75
+        ? 'complete'
+        : 'partial',
     privacy: 'classroom',
     readiness: pathPlan.status === 'ready' ? 'ready' : 'degraded',
     fallbackReason: pathPlan.explanations.fallbackReasons[0] ?? null,

@@ -355,6 +355,31 @@ describe('adaptive learning center UI contracts', () => {
     expect(view.excludedPolicyFamilies).toEqual(['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid']);
   });
 
+  it('reports zero path source coverage as missing instead of partial', () => {
+    const view = buildAdaptiveLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan({
+        status: 'fallback',
+        confidence: {
+          level: 'low',
+          score: 0,
+          sourceCoverage: 0,
+        },
+        explanations: {
+          selectedReasons: [],
+          rejectedAlternatives: [],
+          fallbackReasons: ['learner-state-missing'],
+        },
+      }),
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+
+    expect(currentPath?.status.categories.sourceCoverage).toBe('missing');
+    expect(currentPath?.status.fallbackReason).toBe('learner-state-missing');
+  });
+
   it('surfaces low-confidence, stale, privacy, fallback, and partial-coverage limits for adaptive claims', () => {
     const status = buildAdaptiveClaimStatus({
       id: 'path-low-confidence',
