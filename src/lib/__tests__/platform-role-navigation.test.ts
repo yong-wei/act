@@ -39,6 +39,7 @@ describe('platform role navigation', () => {
         '/teacher/lesson-plans',
         '/teacher/preset-lessons',
         '/teacher/resources',
+        '/teacher/resources/resource-nodes',
         '/teacher/history',
         '/teacher/arena',
       ]),
@@ -73,7 +74,6 @@ describe('platform role navigation', () => {
 
     expect(allFutureEntries.map((entry) => entry.featureFlag)).toEqual(
       expect.arrayContaining([
-        PLATFORM_NAVIGATION_FEATURE_FLAGS.resourceNodes,
         PLATFORM_NAVIGATION_FEATURE_FLAGS.adaptivePath,
         PLATFORM_NAVIGATION_FEATURE_FLAGS.konling,
         PLATFORM_NAVIGATION_FEATURE_FLAGS.governance,
@@ -94,18 +94,13 @@ describe('platform role navigation', () => {
 
     expect(futureEntries.map((entry) => [entry.id, entry.availability])).toEqual(
       expect.arrayContaining([
-        ['teacher-resource-nodes', 'disabled'],
         ['student-adaptive-path', 'disabled'],
         ['student-konling', 'disabled'],
         ['admin-governance-workspace', 'disabled'],
         ['admin-experiments', 'hidden'],
       ]),
     );
-    expect(
-      getPlatformRoleNavigation('teacher', { enabledFeatureFlags: enabledFlags }).some(
-        (entry) => entry.href === '/teacher/resources/resource-nodes',
-      ),
-    ).toBe(false);
+    expect(getPlatformNavigationHref('teacher-resource-nodes')).toBe('/teacher/resources/resource-nodes');
     expect(
       getPlatformRoleNavigation('admin', { enabledFeatureFlags: enabledFlags }).some(
         (entry) => entry.href === '/admin/experiments',
