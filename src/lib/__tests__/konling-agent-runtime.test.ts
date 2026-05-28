@@ -1449,6 +1449,64 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
   });
 
+  it('reuses a scoped idempotent tool run after concurrent create conflicts', async () => {
+    const scope = createScope();
+    const existingRun = {
+      id: 'tool-run-concurrent',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      toolName: 'set_simulation_params',
+      permissionTier: 'write',
+      approvalState: 'required',
+      status: 'awaiting_approval',
+      inputSummary: { kp: 1.8 },
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-existing',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      updatedAt: new Date('2026-05-28T00:00:00Z'),
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['set_simulation_params'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(existingRun),
+        create: vi.fn().mockRejectedValue(Object.assign(new Error('Unique constraint failed'), { code: 'P2002' })),
+      },
+    };
+
+    await expect(startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'set_simulation_params',
+      input: { kp: 2.0 },
+      idempotencyKey: 'same-key',
+      correlationId: 'corr-new',
+    })).resolves.toMatchObject({
+      id: 'tool-run-concurrent',
+      idempotencyKey: 'same-key',
+    });
+    expect(db.agentToolRun.findFirst).toHaveBeenCalledTimes(2);
+  });
+
   it('rejects foreign agent sessions before creating tool-run side effects', async () => {
     const scope = createScope();
     const db = {

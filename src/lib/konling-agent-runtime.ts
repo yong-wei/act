@@ -629,19 +629,13 @@ export async function startKonlingToolRun(
   }
   await input.preflight?.();
 
-  if (input.idempotencyKey && registryEntry.idempotencyPolicy !== 'none') {
+  const idempotencyWhere = input.idempotencyKey && registryEntry.idempotencyPolicy !== 'none'
+    ? buildAgentToolRunIdempotencyWhere(input)
+    : null;
+
+  if (idempotencyWhere) {
     const existing = await db.agentToolRun?.findFirst?.({
-      where: {
-        agentSessionId: input.agentSessionId,
-        ownerUserId: input.scope.targetUserId,
-        toolName: input.toolName,
-        idempotencyKey: input.idempotencyKey,
-        classId: input.scope.classId ?? null,
-        courseId: input.scope.courseId,
-        pageId: input.scope.pageId,
-        resourceId: input.scope.resourceId ?? null,
-        pathNodeId: input.scope.pathNodeId ?? null,
-      },
+      where: idempotencyWhere,
     });
     if (existing) {
       if (registryEntry.idempotencyPolicy === 'reject') {
@@ -655,29 +649,43 @@ export async function startKonlingToolRun(
     registryEntry.approvalPolicy === 'required' ? 'required' : 'not_required';
   const status: KonlingToolRunStatus =
     approvalState === 'required' ? 'awaiting_approval' : 'running';
-  const created = await db.agentToolRun?.create?.({
-    data: {
-      agentSessionId: input.agentSessionId,
-      ownerUserId: input.scope.targetUserId,
-      actorUserId: input.scope.authenticatedUserId,
-      targetUserId: input.scope.targetUserId,
-      classId: input.scope.classId ?? null,
-      courseId: input.scope.courseId,
-      pageId: input.scope.pageId,
-      resourceId: input.scope.resourceId ?? null,
-      pathNodeId: input.scope.pathNodeId ?? null,
-      toolName: input.toolName,
-      permissionTier: registryEntry.permissionTier,
-      approvalState,
-      status,
-      inputSummary: redactSensitivePayload(input.input ?? {}),
-      outputSummary: null,
-      errorSummary: null,
-      idempotencyKey: input.idempotencyKey ?? null,
-      correlationId: input.correlationId ?? `${input.agentSessionId}:${input.toolName}:${Date.now()}`,
-      startedAt: new Date(),
-    },
-  });
+  let created: unknown | null | undefined;
+  try {
+    created = await db.agentToolRun?.create?.({
+      data: {
+        agentSessionId: input.agentSessionId,
+        ownerUserId: input.scope.targetUserId,
+        actorUserId: input.scope.authenticatedUserId,
+        targetUserId: input.scope.targetUserId,
+        classId: input.scope.classId ?? null,
+        courseId: input.scope.courseId,
+        pageId: input.scope.pageId,
+        resourceId: input.scope.resourceId ?? null,
+        pathNodeId: input.scope.pathNodeId ?? null,
+        toolName: input.toolName,
+        permissionTier: registryEntry.permissionTier,
+        approvalState,
+        status,
+        inputSummary: redactSensitivePayload(input.input ?? {}),
+        outputSummary: null,
+        errorSummary: null,
+        idempotencyKey: input.idempotencyKey ?? null,
+        correlationId: input.correlationId ?? `${input.agentSessionId}:${input.toolName}:${Date.now()}`,
+        startedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    if (idempotencyWhere && isPrismaUniqueConstraintError(error)) {
+      const existing = await db.agentToolRun?.findFirst?.({ where: idempotencyWhere });
+      if (existing) {
+        if (registryEntry.idempotencyPolicy === 'reject') {
+          throw new KonlingRuntimeScopeError(403, '重复的 Konling 工具请求已被拒绝。');
+        }
+        return toToolRunView(existing, { reused: true });
+      }
+    }
+    throw error;
+  }
   if (!created) {
     throw new KonlingRuntimeScopeError(404, 'AgentToolRun 存储不可用。');
   }
@@ -1326,6 +1334,20 @@ function buildToolRunScopeWhere(scope: KonlingRuntimeScope, toolRunId: string) {
   };
 }
 
+function buildAgentToolRunIdempotencyWhere(input: KonlingToolRunStartInput) {
+  return {
+    agentSessionId: input.agentSessionId,
+    ownerUserId: input.scope.targetUserId,
+    toolName: input.toolName,
+    idempotencyKey: input.idempotencyKey,
+    classId: input.scope.classId ?? null,
+    courseId: input.scope.courseId,
+    pageId: input.scope.pageId,
+    resourceId: input.scope.resourceId ?? null,
+    pathNodeId: input.scope.pathNodeId ?? null,
+  };
+}
+
 async function findScopedToolRun(db: KonlingRuntimeDb, scope: KonlingRuntimeScope, toolRunId: string) {
   const toolRun = await db.agentToolRun?.findFirst?.({
     where: buildToolRunScopeWhere(scope, toolRunId),
@@ -1786,6 +1808,10 @@ function getValue(value: unknown, key: string): unknown {
 function getString(value: unknown, key: string): string {
   const child = getValue(value, key);
   return typeof child === 'string' ? child : '';
+}
+
+function isPrismaUniqueConstraintError(error: unknown): boolean {
+  return getString(error, 'code') === 'P2002';
 }
 
 function toIsoOrNull(value: unknown): string | null {
