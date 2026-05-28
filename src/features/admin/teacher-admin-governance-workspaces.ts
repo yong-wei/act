@@ -543,7 +543,7 @@ function sourceCoverageStatus(payload: GovernanceStatusPayload): PlatformSourceC
 function dataCenterReadiness(payload: GovernanceStatusPayload): PlatformReadinessStatus {
   const failed = Object.values(payload.queues).reduce((sum, queue) => sum + queue.failed, 0);
   if (payload.status === 'healthy' && failed === 0 && payload.freshness.status === 'fresh') return 'ready';
-  return failed > 0 || payload.status !== 'healthy' ? 'degraded' : 'ready';
+  return failed > 0 || payload.status !== 'healthy' || payload.freshness.status !== 'fresh' ? 'degraded' : 'ready';
 }
 
 function dataCenterPrivacy(payload: GovernanceStatusPayload): PlatformPrivacyStatus {

@@ -344,4 +344,25 @@ describe('teacher and admin governance workspace contracts', () => {
     expect(workspace.status.categories.evaluation).toBe('official');
     expect(workspace.panels.find((panel) => panel.id === 'evaluation-events')?.status.categories.evaluation).toBe('official');
   });
+
+  it('degrades governance readiness when snapshots are stale even without queue failures', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        status: 'healthy',
+        freshness: {
+          lastSnapshotMinutes: 180,
+          status: 'stale',
+        },
+        queues: {
+          eventIngestion: { waiting: 0, active: 0, completed: 30, failed: 0 },
+          studentSnapshot: { waiting: 0, active: 0, completed: 25, failed: 0 },
+          classSnapshot: { waiting: 0, active: 0, completed: 8, failed: 0 },
+        },
+      }),
+    });
+
+    expect(workspace.status.categories.readiness).toBe('degraded');
+    expect(workspace.panels.find((panel) => panel.id === 'readiness')?.status.categories.readiness).toBe('degraded');
+  });
 });
