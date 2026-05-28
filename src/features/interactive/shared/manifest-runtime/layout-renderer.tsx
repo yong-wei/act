@@ -37,6 +37,8 @@ type InteractiveTemplateRenderer = (props: {
 }) => ReactNode;
 
 const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
+  'activity.panel',
+  'activity.workspace',
   'activity-card',
   'activity-card-grid',
   'activity-card-row',

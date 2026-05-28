@@ -46,7 +46,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-01:summary",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "回到地图：从 `3-3` 法则走向 `3-4` 判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -115,7 +127,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-02:summary",
+          "region": "summary",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "问题提出与三张记录表：稳定之后还要回答什么",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -183,7 +207,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-03:summary",
+          "region": "object",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "固定对象与三个版本：先暴露“稳定=可用”的第一误判",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-03:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "对象、版本和误判要同页出现，不能先把证据链抽空。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-03:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -279,7 +335,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-04:summary",
+          "region": "workflow",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "固定读图顺序：先骨架，再关键节点，再窗口，再后果",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-04:response",
+          "region": "feedback",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先定住读图动作链，后续版本判断才不会串层。",
+          "payload": {
+            "response_kind": "card_sort",
+            "interaction_kind": "card_sort",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "card_sort",
+              "activity_card_ids": [
+                "step-04:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -367,7 +455,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-05:summary",
+          "region": "evidence",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "关键节点证据板：分离点、虚轴交点与参考工作点 `B`",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-05:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "关键节点必须回到主图证据和工程问题，不只是会背名称。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-05:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -451,7 +571,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-06:summary",
+          "region": "record",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "关键节点读图记录：把主图证据写成一句工程判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-06:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "关键节点、版本位置和工程后果要写成完整句，而不是碎片词。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-06:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -539,7 +691,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-07:summary",
+          "region": "definition",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "稳定窗口与可接受窗口：`A/B/C` 各自处在哪一侧",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-07:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "稳定窗口不等于可接受窗口，必须保留代价语言。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-07:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -632,7 +816,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-08:summary",
+          "region": "principle",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "增益换算链：从图上的 `k` 落回工程参数 `K`",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-08:response",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "题面常显、步骤显影，先完成 k 到 K 的完整换算链。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-08:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -725,7 +943,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-09:summary",
+          "region": "roles",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "为什么必须三域互证：主图、时域、频域先并排对齐",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-09:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先认清三域各回答什么，再进入局部验证。",
+          "payload": {
+            "response_kind": "triple_match",
+            "interaction_kind": "triple_match",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "triple_match",
+              "activity_card_ids": [
+                "step-09:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -863,7 +1113,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-10:summary",
+          "region": "figure",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "时域验证：版本 `B` 为什么能够作为参考工作点",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-10:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "图后继续读近似说明与局限，不把时域图当作单独结论。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-10:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -950,7 +1232,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-11:summary",
+          "region": "table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "频域代价：版本 `C` 为什么不能只看跟踪收益",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-11:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "按 4.5 的频域比较表和 Bode 对照，把收益与代价同时写出来。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-11:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1036,7 +1350,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-12:summary",
+          "region": "track-b",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "斜坡响应与航迹对照：连续跟踪中的收益与代价",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-12:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "按 4.6 同时保留 B/C 两张图，把连续跟踪中的收益和风险写成完整句。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-12:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1128,7 +1474,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-13:summary",
+          "region": "principle",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "广义根轨迹与等效改写：局部反馈系数 `a` 为什么不是“再调一次 `K`”",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-13:response",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "对象先改写，再继续用根轨迹条件；本页必须保留完整显影链。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-13:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1221,7 +1601,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-14:summary",
+          "region": "figure",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "非增益参数窗口记录：`a` 从 `0` 到 `1` 怎样改写主导极点",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-14:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "要同时写出比较基线、窗口建议与边界提醒。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-14:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1308,7 +1720,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-15:summary",
+          "region": "title",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "后测：读图、换算、三域与广义参数是否已经成链",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-15:response",
+          "region": "feedback",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "后测只检查是否形成完整判断链，不混入新的设计任务。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-15:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1410,7 +1854,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-16:summary",
+          "region": "takeaways",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "收束与去向：沿既有结构分析的能力与边界",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
