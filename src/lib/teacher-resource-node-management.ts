@@ -343,7 +343,7 @@ export function buildTeacherResourceNodeOperationsReadiness(
     node.planningMetadata.teacherPolicy === 'teacher-only' ||
     node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking')
   );
-  const systemIssues = policyReviewRequired.flatMap((node) =>
+  const systemIssues = nodes.flatMap((node) =>
     node.eligibility.auditIssues.map((issue) => ({
       code: `${node.id}:${issue.code}`,
       message: issue.message,

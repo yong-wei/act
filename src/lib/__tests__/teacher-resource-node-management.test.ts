@@ -287,7 +287,21 @@ describe('teacher ResourceNode management contracts', () => {
   });
 
   it('reports coverage dashboards, policy review counts, and system-owned issue triage markers', () => {
-    const readiness = buildTeacherResourceNodeOperationsReadiness(registry().nodes, {
+    const warningOnlyNode = {
+      ...registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!,
+      eligibility: {
+        pathEligible: true,
+        reasons: [],
+        auditIssues: [
+          {
+            code: 'missing-evidence-instrumentation' as const,
+            message: 'ResourceNode lacks evidence instrumentation.',
+            severity: 'warning' as const,
+          },
+        ],
+      },
+    };
+    const readiness = buildTeacherResourceNodeOperationsReadiness([...registry().nodes, warningOnlyNode], {
       bulkMappingEnabled: true,
     });
 
@@ -300,6 +314,7 @@ describe('teacher ResourceNode management contracts', () => {
       expect.arrayContaining([
         expect.stringContaining('missing-render-or-launch-target'),
         expect.stringContaining('missing-knowledge-mapping'),
+        expect.stringContaining('missing-evidence-instrumentation'),
       ]),
     );
   });
