@@ -307,4 +307,41 @@ describe('teacher and admin governance workspace contracts', () => {
     expect(workspace.panels.find((panel) => panel.id === 'privacy-status')?.status.categories.readiness).toBe('ready');
     expect(workspace.panels.find((panel) => panel.id === 'replay-confidence')?.status.categories.replay).toBe('ready');
   });
+
+  it('uses official evaluation status when evaluation events are not hidden', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 12,
+            eligibleRows: 12,
+            excludedRows: 0,
+            unsupportedRows: 0,
+            affectedUsers: 5,
+          },
+          sources: [],
+          exclusions: [],
+        },
+        sourceCatalog: {
+          totalSources: 1,
+          coverageCommand: 'npm run db:evidence-source-coverage -- --text',
+          sources: [
+            {
+              id: 'ArenaEvaluationRun',
+              learningScope: 'official-evaluation',
+              valueLevel: 'high',
+              eligibility: 'eligible',
+              materializationReadiness: 'ready',
+            },
+          ],
+        },
+      }),
+    });
+
+    expect(workspace.status.categories.evaluation).toBe('official');
+    expect(workspace.panels.find((panel) => panel.id === 'evaluation-events')?.status.categories.evaluation).toBe('official');
+  });
 });

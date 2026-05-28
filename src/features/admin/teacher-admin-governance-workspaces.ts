@@ -468,11 +468,13 @@ function privacyStatusPanel(payload: GovernanceStatusPayload): AdminDataCenterPa
 }
 
 function evaluationEventsPanel(payload: GovernanceStatusPayload): AdminDataCenterPanel {
+  const evaluation = evaluationStatus(payload);
   return panel({
     id: 'evaluation-events',
     title: '评测事件',
-    metric: evaluationStatus(payload),
-    readiness: evaluationStatus(payload) === 'official' ? 'ready' : 'degraded',
+    metric: evaluation,
+    evaluation,
+    readiness: evaluation === 'official' ? 'ready' : 'degraded',
     sourceCoverage: sourceCoverageStatus(payload),
     details: [
       {
@@ -494,6 +496,7 @@ function panel(input: {
   readiness: PlatformReadinessStatus;
   sourceCoverage: PlatformSourceCoverageStatus;
   replay?: 'ready' | 'partial' | 'missing';
+  evaluation?: 'official' | 'preview' | 'hidden';
   details: AdminDataCenterPanel['details'];
 }): AdminDataCenterPanel {
   return {
@@ -511,7 +514,7 @@ function panel(input: {
         privacy: input.details.some((detail) => detail.restricted) ? 'restricted' : 'classroom',
         replay: input.replay ?? 'ready',
         protocol: 'current',
-        evaluation: input.id === 'evaluation-events' ? 'hidden' : 'preview',
+        evaluation: input.evaluation ?? 'preview',
         readiness: input.readiness,
         fallback: input.sourceCoverage === 'missing' ? 'fallback-missing-context' : 'none',
       },
