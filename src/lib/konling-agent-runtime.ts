@@ -1164,6 +1164,12 @@ async function resolveScopedSimulationRuns(
   simulationRunIds: string[],
 ): Promise<SimulationDbRun[]> {
   const uniqueIds = Array.from(new Set(simulationRunIds));
+  if (uniqueIds.length !== simulationRunIds.length) {
+    throw new KonlingRuntimeScopeError(400, 'compare_simulation_runs 需要提供互不重复的 simulationRunIds。');
+  }
+  if (uniqueIds.length < 2) {
+    throw new KonlingRuntimeScopeError(400, 'compare_simulation_runs 至少需要两个不同的 SimulationRun。');
+  }
   const runs = await db.simulationRun?.findMany?.({
     where: {
       ...buildSimulationRunScopeWhere(scope, {}),
@@ -1245,7 +1251,10 @@ async function resolveScopedSimulationTrace(
         runId: getString(run, 'id'),
       },
     });
-    return storedTrace ? storedTrace as SimulationDbTrace : null;
+    if (!storedTrace) {
+      throw new KonlingRuntimeScopeError(404, 'SimulationTrace 不存在或不属于当前 SimulationRun。');
+    }
+    return storedTrace as SimulationDbTrace;
   }
   return traces[0] ?? null;
 }

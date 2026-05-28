@@ -705,6 +705,87 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('rejects duplicate simulation run ids before comparing runs', async () => {
+    const db = {
+      simulationRun: {
+        findMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ courseId: 'simulation', pageId: 'pid-default' }),
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.compareSimulationRuns({
+      simulationRunIds: ['run-1', 'run-1'],
+    })).rejects.toMatchObject({ status: 400 });
+    expect(db.simulationRun.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects explicit trace ids that do not belong to the simulation run', async () => {
+    const runRow = {
+      id: 'run-1',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'simulation',
+      pageId: 'pid-default',
+      runKind: 'arena_preview',
+      sourceDomain: 'arena_virtual_preview',
+      sourceRefId: 'arena-preview-1',
+      taskSpecSnapshot: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+      status: 'completed',
+      summary: { metrics: { overshoot: 0.28, settlingTime: 6.5 }, lowEvidence: false },
+      replayToken: 'preview-replay-token',
+      protocolVersion: '1.0',
+      runtimeVersion: 'simulation-runtime-v1',
+      modelVersion: 'nomoto-v1',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      traces: [
+        {
+          id: 'trace-1',
+          checksum: 'sha256:trace-1',
+          summaryMetrics: { overshoot: 0.28, settlingTime: 6.5 },
+          sampleCount: 160,
+          sampleCadence: 0.05,
+          sampleStorageUri: 's3://traces/run-1.json',
+          createdAt: new Date('2026-05-28T00:00:08Z'),
+        },
+      ],
+    };
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue(runRow),
+      },
+      simulationTrace: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ courseId: 'simulation', pageId: 'pid-default' }),
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.analyzeSimulationTrace({
+      simulationRunId: 'run-1',
+      traceId: 'missing-trace',
+    })).rejects.toMatchObject({ status: 404 });
+    expect(db.simulationTrace.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'missing-trace',
+        runId: 'run-1',
+      },
+    });
+  });
+
   it('creates idempotent virtual simulation runs through AgentToolRun and SimulationRun records', async () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const db = {
