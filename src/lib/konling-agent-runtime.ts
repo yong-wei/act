@@ -334,7 +334,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   get_simulation_status: toolRegistryEntry('get_simulation_status', 'read'),
   set_simulation_params: toolRegistryEntry('set_simulation_params', 'write', 'required', 'reuse'),
   analyze_result: toolRegistryEntry('analyze_result', 'analyze'),
-  record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'none', 'reuse'),
+  record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'required', 'reuse'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
@@ -937,7 +937,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.analyzeResult(args),
     }),
     record_intervention_result: tool({
-      description: '记录学生对 Konling 干预的接受、忽略或评分结果。',
+      description: '记录学生对 Konling 干预的接受、忽略或评分结果；AI 工具路径只创建待审批请求，不替学生直接确认。',
       parameters: z.object({
         interventionId: z.string(),
         feedback: z.enum(['accepted', 'dismissed', 'rated']),

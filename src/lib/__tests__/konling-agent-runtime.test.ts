@@ -426,7 +426,7 @@ describe('konling agent runtime', () => {
     expect(analysis.performance.grade).toContain('优秀');
   });
 
-  it('audits scoped runtime tool calls and records intervention feedback without approval', async () => {
+  it('audits scoped runtime tool calls and gates intervention feedback behind approval', async () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const db = {
       agentSession: {
@@ -440,15 +440,14 @@ describe('konling agent runtime', () => {
       agentToolRun: {
         findFirst: vi.fn().mockImplementation(async ({ where }) => {
           if (!where?.id) return null;
-          const toolName = String(where.id).replace(/^tool-run-/, '');
           return {
             id: where.id,
             ownerUserId: 'student-1',
             actorUserId: 'student-1',
             targetUserId: 'student-1',
             agentSessionId: 'agent-session-1',
-            toolName,
-            permissionTier: toolName === 'record_intervention_result' ? 'write' : 'read',
+            toolName: 'get_page_context',
+            permissionTier: 'read',
             approvalState: 'not_required',
             status: 'running',
             inputSummary: {},
@@ -536,7 +535,7 @@ describe('konling agent runtime', () => {
       interventionId: 'intv-1',
       feedback: 'accepted',
       studentResponse: 'ok',
-    }) as { success: boolean; outcome: { feedback: string } };
+    }) as { approvalRequired: boolean; toolRunId: string };
 
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
@@ -549,24 +548,21 @@ describe('konling agent runtime', () => {
       data: expect.objectContaining({ status: 'succeeded' }),
     }));
     expect(writeResult).toMatchObject({
-      success: true,
-      outcome: { feedback: 'accepted' },
+      approvalRequired: true,
+      toolRunId: 'tool-run-record_intervention_result',
     });
-    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+    expect(db.agentSession.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        agentSessionId: 'agent-session-1',
-        toolName: 'record_intervention_result',
-        approvalState: 'not_required',
+        status: 'awaiting_approval',
+        pendingApproval: expect.objectContaining({
+          toolRunId: 'tool-run-record_intervention_result',
+          toolName: 'record_intervention_result',
+          status: 'awaiting_approval',
+        }),
       }),
     }));
-    expect(db.agentSession.updateMany).not.toHaveBeenCalled();
-    expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ id: 'intv-1', userId: 'student-1' }),
-      data: expect.objectContaining({
-        outcome: expect.objectContaining({ feedback: 'accepted' }),
-      }),
-    }));
-    expect(db.konlingMemory.create).toHaveBeenCalled();
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+    expect(db.konlingMemory.create).not.toHaveBeenCalled();
   });
 
   it('rejects simulation write approvals outside simulation scope before creating tool runs', async () => {
@@ -1328,7 +1324,7 @@ describe('konling agent runtime', () => {
     });
     expect(KONLING_TOOL_REGISTRY.record_intervention_result).toMatchObject({
       permissionTier: 'write',
-      approvalPolicy: 'none',
+      approvalPolicy: 'required',
     });
     expect(KONLING_TOOL_REGISTRY.analyze_result).toMatchObject({
       permissionTier: 'analyze',
