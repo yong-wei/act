@@ -2,6 +2,10 @@ import type {
   InteractiveRuntimeChoiceOptionManifest,
   InteractiveRuntimeReferenceMatchManifest,
 } from './interactive-lesson-manifest';
+import {
+  isObjectiveInteractiveResponseKind,
+  normalizeInteractiveResponseKind,
+} from './interactive-response-contracts';
 
 export const MANIFEST_OBJECTIVE_SCORING_VERSION = 'manifest-objective-scoring/v1';
 
@@ -32,17 +36,6 @@ export interface ManifestObjectiveScoringResult {
   detail: Record<string, unknown>;
   unsupportedReason?: ManifestObjectiveScoringUnsupportedReason;
 }
-
-const OBJECTIVE_RESPONSE_KINDS = new Set([
-  'single_choice',
-  'binary_choice',
-  'multi_choice',
-  'multi_select',
-  'drag_match',
-  'triple_match',
-  'drag_sort',
-  'card_sort',
-]);
 
 function normalizeToken(value: unknown): string {
   return String(value ?? '').trim().toLowerCase();
@@ -435,27 +428,28 @@ function scoreMatching(card: ManifestObjectiveCardLike, submittedAnswer: unknown
 }
 
 export function isManifestObjectiveResponseKind(responseKind: string): boolean {
-  return OBJECTIVE_RESPONSE_KINDS.has(responseKind);
+  return isObjectiveInteractiveResponseKind(responseKind);
 }
 
 export function scoreManifestObjectiveCard(
   card: ManifestObjectiveCardLike,
   submittedAnswer: unknown,
 ): ManifestObjectiveScoringResult {
-  switch (card.responseKind) {
-    case 'single_choice':
-    case 'binary_choice':
-      return scoreChoice(card, submittedAnswer);
-    case 'multi_choice':
-    case 'multi_select':
-      return scoreMultiSelect(card, submittedAnswer);
-    case 'drag_sort':
-    case 'card_sort':
-      return scoreOrdering(card, submittedAnswer);
-    case 'drag_match':
-    case 'triple_match':
-      return scoreMatching(card, submittedAnswer);
+  const normalizedCard = {
+    ...card,
+    responseKind: normalizeInteractiveResponseKind(card.responseKind),
+  };
+  switch (normalizedCard.responseKind) {
+    case 'choice.single':
+    case 'choice.binary':
+      return scoreChoice(normalizedCard, submittedAnswer);
+    case 'choice.multi':
+      return scoreMultiSelect(normalizedCard, submittedAnswer);
+    case 'ordering.sequence':
+      return scoreOrdering(normalizedCard, submittedAnswer);
+    case 'matching.pairs':
+      return scoreMatching(normalizedCard, submittedAnswer);
     default:
-      return unsupported(card.responseKind, Boolean(String(submittedAnswer ?? '').trim()), submittedAnswer ?? null, 'unsupported_response_kind');
+      return unsupported(normalizedCard.responseKind, Boolean(String(submittedAnswer ?? '').trim()), submittedAnswer ?? null, 'unsupported_response_kind');
   }
 }

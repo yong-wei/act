@@ -2,6 +2,14 @@ import type {
   InteractiveRuntimeManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  getInteractiveResponseKindMetadata,
+  isChoiceMultiResponseKind,
+  isChoiceSingleResponseKind,
+  isMatchingResponseKind,
+  isOrderingResponseKind,
+  isParameterSetResponseKind,
+} from '@/lib/interactive-response-contracts';
 
 export type ManifestSubmissionEvidenceCategory =
   | 'objective'
@@ -67,20 +75,6 @@ export interface StandardCourseFinalizationGateInput {
   courseSource: string;
 }
 
-const OBJECTIVE_RESPONSE_KINDS = new Set([
-  'single_choice',
-  'binary_choice',
-  'multi_choice',
-  'multi_select',
-]);
-
-const ORDERED_RESPONSE_KINDS = new Set([
-  'drag_match',
-  'triple_match',
-  'drag_sort',
-  'card_sort',
-]);
-
 const TRAINING_INTERACTION_KINDS = new Set([
   'rust_toy_training_panel',
   'rust_heading_rl_training_panel',
@@ -97,9 +91,12 @@ export function classifyManifestResponseStep(
   const responseKinds = (step.interactionSpec.activityCards ?? []).map((card) => card.responseKind);
 
   for (const kind of responseKinds) {
-    if (OBJECTIVE_RESPONSE_KINDS.has(kind)) categories.push('objective');
-    else if (ORDERED_RESPONSE_KINDS.has(kind)) categories.push('drag-match-sort');
-    else if (kind === 'parameter_set') categories.push('parameter');
+    const metadata = getInteractiveResponseKindMetadata(kind);
+    if (isChoiceSingleResponseKind(kind) || isChoiceMultiResponseKind(kind)) categories.push('objective');
+    else if (isMatchingResponseKind(kind) || isOrderingResponseKind(kind)) categories.push('drag-match-sort');
+    else if (isParameterSetResponseKind(kind)) categories.push('parameter');
+    else if (metadata.category === 'simulation') categories.push('simulation');
+    else if (metadata.category === 'training') categories.push('training-result');
     else categories.push('subjective');
   }
 

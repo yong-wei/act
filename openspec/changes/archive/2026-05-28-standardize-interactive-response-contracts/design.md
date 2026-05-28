@@ -21,6 +21,14 @@ Use these response kinds for migrated and new lessons:
 
 Historical aliases such as `single_choice`, `binary_choice`, `multi_choice`, `multi_select`, `fill_text`, `text`, `short_response`, `short_text`, `observation_text`, `drag_sort`, `card_sort`, `drag_match`, `triple_match`, and `match` should normalize to these canonical kinds during migration.
 
+## Response Evidence Classification
+
+- Objective evidence: `choice.single`, `choice.binary`, `choice.multi`, `ordering.sequence`, and `matching.pairs`.
+- Subjective answer evidence: `text.short`, `text.long`, `text.structured`, and `table.builder`; these responses preserve submitted content and completeness but do not emit an objective zero.
+- Parameter evidence: `parameter.set`; parameter snapshots remain structured evidence and are not treated as quiz answers.
+- Simulation evidence: `simulation.result`; simulation outputs remain governed extra evidence until a simulation-specific scorer is attached.
+- Training evidence: `training.result`; training panel outputs remain structured training evidence and are not treated as objective quiz cards.
+
 ## Scoring Policy
 
 - Multi-choice scoring identifies correct hits, missed correct options, extra wrong options, and duplicate submitted options.

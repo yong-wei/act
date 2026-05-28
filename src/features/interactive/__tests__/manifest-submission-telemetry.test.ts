@@ -1,8 +1,125 @@
 import { describe, expect, it } from 'vitest';
-import type { InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
+import {
+  normalizeInteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import { buildManifestSubmissionTelemetry } from '../shared/manifest-runtime/submission-telemetry';
 
 describe('buildManifestSubmissionTelemetry', () => {
+  it('rejects unknown manifest response kinds instead of silently treating them as text', () => {
+    expect(() => normalizeInteractiveRuntimeManifest({
+      lesson_id: 'contract-fixture',
+      steps: {
+        'step-01': {
+          title: '响应协议夹具',
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'misspelled-multi',
+                prompt: '哪些证据需要保留？',
+                response_kind: 'mult_select',
+              },
+            ],
+          },
+        },
+      },
+    })).toThrow('Unknown interactive response kind: mult_select');
+  });
+
+  it('uses canonical response metadata while preserving legacy aliases in submission evidence', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'contract-fixture',
+      steps: {
+        'step-01': {
+          title: '响应协议夹具',
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'multi-evidence',
+                prompt: '哪些证据需要保留？',
+                response_kind: 'multi_select',
+                options: ['A', 'B', 'C'],
+                reference_answer: '选 A、B。',
+              },
+              {
+                id: 'reflection',
+                prompt: '写出判断依据。',
+                response_kind: 'fill_text',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step?.interactionSpec.activityCards?.map((card) => ({
+      id: card.id,
+      responseKind: card.responseKind,
+      legacyResponseKind: card.legacyResponseKind,
+      responseCategory: card.responseCategory,
+    }))).toEqual([
+      {
+        id: 'multi-evidence',
+        responseKind: 'choice.multi',
+        legacyResponseKind: 'multi_select',
+        responseCategory: 'objective',
+      },
+      {
+        id: 'reflection',
+        responseKind: 'text.short',
+        legacyResponseKind: 'fill_text',
+        responseCategory: 'subjective',
+      },
+    ]);
+
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-01',
+        submittedAt: 1778550642900,
+        answers: {
+          'multi-evidence': 'A|C',
+          reflection: '需要保留舵角边界。',
+        },
+      },
+      step,
+    );
+
+    expect(telemetry).toMatchObject({
+      responseSummaries: [
+        {
+          cardId: 'multi-evidence',
+          responseKind: 'choice.multi',
+          legacyResponseKind: 'multi_select',
+          responseCategory: 'objective',
+          answered: true,
+          submittedAnswer: 'A|C',
+          scoringSupported: true,
+        },
+        {
+          cardId: 'reflection',
+          responseKind: 'text.short',
+          legacyResponseKind: 'fill_text',
+          responseCategory: 'subjective',
+          answered: true,
+          submittedAnswer: '需要保留舵角边界。',
+          scoringSupported: false,
+          unsupportedReason: 'subjective_response_kind',
+        },
+      ],
+      questionSummaries: [
+        expect.objectContaining({
+          questionId: 'multi-evidence',
+          responseKind: 'choice.multi',
+          legacyResponseKind: 'multi_select',
+          responseCategory: 'objective',
+          score: 1 / 3,
+        }),
+      ],
+    });
+  });
+
   it('preserves manifest response answers and objective card scoring evidence', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {

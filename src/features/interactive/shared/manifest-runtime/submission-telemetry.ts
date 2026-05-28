@@ -6,6 +6,10 @@ import {
   isManifestObjectiveResponseKind,
   scoreManifestObjectiveCard,
 } from '@/lib/manifest-objective-scoring';
+import {
+  getInteractiveResponseKindMetadata,
+  isSubjectiveInteractiveResponseKind,
+} from '@/lib/interactive-response-contracts';
 
 interface ManifestResponseLike {
   stepId: string;
@@ -22,7 +26,7 @@ function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean 
 }
 
 function isSubjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
-  return !isObjectiveCard(card);
+  return isSubjectiveInteractiveResponseKind(card.responseKind);
 }
 
 function roundScore(value: number): number {
@@ -47,6 +51,48 @@ function buildSubjectiveCompleteness(
   };
 }
 
+function unsupportedReasonForCard(card: InteractiveRuntimeActivityCardManifest): string | undefined {
+  if (isObjectiveCard(card)) return undefined;
+  const metadata = getInteractiveResponseKindMetadata(card.responseKind);
+  if (metadata.scoring === 'subjective') return 'subjective_response_kind';
+  return `${metadata.category}_response_kind`;
+}
+
+function buildResponseSummary(
+  card: InteractiveRuntimeActivityCardManifest,
+  answers: Record<string, string>,
+) {
+  const submittedAnswer = answers[card.id];
+  const answered = hasAnswerValue(submittedAnswer);
+  const metadata = getInteractiveResponseKindMetadata(card.responseKind);
+  if (isObjectiveCard(card)) {
+    const scoring = scoreManifestObjectiveCard(card, submittedAnswer);
+    return {
+      cardId: card.id,
+      title: card.title,
+      responseKind: scoring.kind,
+      legacyResponseKind: card.legacyResponseKind,
+      responseCategory: metadata.category,
+      answered: scoring.answered,
+      submittedAnswer: scoring.answered ? submittedAnswer : null,
+      scoringSupported: typeof scoring.score === 'number',
+      unsupportedReason: scoring.unsupportedReason,
+    };
+  }
+
+  return {
+    cardId: card.id,
+    title: card.title,
+    responseKind: card.responseKind,
+    legacyResponseKind: card.legacyResponseKind,
+    responseCategory: metadata.category,
+    answered,
+    submittedAnswer: answered ? submittedAnswer : null,
+    scoringSupported: false,
+    unsupportedReason: unsupportedReasonForCard(card),
+  };
+}
+
 export function buildManifestSubmissionTelemetry(
   response: ManifestResponseLike,
   stepManifest: InteractiveRuntimeStepManifest | null | undefined,
@@ -61,10 +107,13 @@ export function buildManifestSubmissionTelemetry(
     .map((card) => {
       const studentAnswer = response.answers[card.id];
       const scoring = scoreManifestObjectiveCard(card, studentAnswer);
+      const metadata = getInteractiveResponseKindMetadata(card.responseKind);
       return {
         questionId: card.id,
         title: card.title,
-        responseKind: card.responseKind,
+        responseKind: scoring.kind,
+        legacyResponseKind: card.legacyResponseKind,
+        responseCategory: metadata.category,
         studentAnswer: scoring.answered ? studentAnswer : null,
         referenceAnswer: card.referenceAnswer,
         referenceValue: scoring.referenceValue,
@@ -79,6 +128,7 @@ export function buildManifestSubmissionTelemetry(
       };
     })
     .filter((item) => item.referenceValue !== undefined || item.answered || item.unsupportedReason);
+  const responseSummaries = cards.map((card) => buildResponseSummary(card, response.answers));
   const scoreableQuestionSummaries = questionSummaries.filter((item) => typeof item.score === 'number');
   const scoringSupported = scoreableQuestionSummaries.length > 0;
   const correctCount = scoreableQuestionSummaries.filter((item) => item.isCorrect === true).length;
@@ -105,6 +155,7 @@ export function buildManifestSubmissionTelemetry(
     interactionKind: stepManifest?.interactionSpec.interactionKind,
     answers: answerDigest,
     answerDigest,
+    responseSummaries,
     questionSummaries,
     scoringSupported,
     ...(scoringSupported ? { correctCount, objectiveTotal, score } : {}),

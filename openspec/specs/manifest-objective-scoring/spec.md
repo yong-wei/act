@@ -3,9 +3,7 @@
 Define the shared scoring contract for objective answers in manifest-driven
 interactive lessons so browser submission telemetry and server-side learning
 fact materialization produce the same versioned scoring evidence.
-
 ## Requirements
-
 ### Requirement: Manifest objective scoring is shared
 The system SHALL score manifest objective submissions through a shared scoring
 implementation used by both submission telemetry and LearningFact
@@ -96,3 +94,21 @@ recompute objective evidence.
 - **THEN** LearningFact materialization SHALL retain that card in
   `interactiveQuiz.cards`
 - **AND** the fact SHALL not invent a numeric score for the unsupported card.
+
+### Requirement: Canonical response kinds use shared structural scoring
+The objective scorer SHALL score canonical objective response kinds and their migration aliases through one shared implementation.
+
+#### Scenario: Multi-choice canonical scoring
+- **WHEN** a submitted `choice.multi` answer contains some correct options, missed correct options, extra wrong options, or duplicate options
+- **THEN** the scoring detail SHALL identify those structural parts
+- **AND** the normalized score SHALL reflect partial credit according to the shared policy.
+
+#### Scenario: Ordering canonical scoring
+- **WHEN** a submitted `ordering.sequence` answer has only part of the sequence in the correct position or relation
+- **THEN** the scoring detail SHALL expose the matched and misplaced structure
+- **AND** the answer SHALL NOT be treated as merely correct or incorrect by text equality.
+
+#### Scenario: Matching canonical scoring
+- **WHEN** a submitted `matching.pairs` answer provides the correct item-option pairs in a different pair order than the reference
+- **THEN** the answer SHALL be scored as structurally equivalent
+- **AND** each prompt-side item SHALL be compared with its submitted answer-side option.
