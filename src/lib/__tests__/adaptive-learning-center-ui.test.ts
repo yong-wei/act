@@ -449,6 +449,29 @@ describe('adaptive learning center UI contracts', () => {
       ]),
     );
   });
+
+  it('treats an empty Konling payload as missing context', () => {
+    const view = buildAdaptiveLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      konling: {
+        contextSource: 'none',
+        interventionBasis: null,
+        cooldown: { active: false, until: null },
+        feedback: { state: 'unavailable' },
+      },
+    });
+
+    const konlingPanel = view.panels.find((panel) => panel.region === 'konling');
+
+    expect(konlingPanel?.status.categories).toMatchObject({
+      confidence: 'unknown',
+      sourceCoverage: 'missing',
+      readiness: 'not-ready',
+      fallback: 'fallback-missing-context',
+    });
+    expect(konlingPanel?.status.fallbackReason).toBe('missing-konling-context');
+  });
 });
 
 function readRouteSource(route: AdaptiveLearningCompatibilityRoute) {

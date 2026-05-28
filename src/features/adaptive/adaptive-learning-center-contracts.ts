@@ -503,6 +503,9 @@ function practicePanel(learnerState: AdaptiveLearnerState | null): AdaptiveLearn
 }
 
 function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): AdaptiveLearningCenterPanel {
+  const hasKonlingContext = Boolean(
+    konling && (konling.contextSource !== 'none' || konling.interventionBasis),
+  );
   const cooldownValue = konling?.cooldown.active
     ? `active until ${konling.cooldown.until ?? 'unknown'}`
     : 'inactive';
@@ -515,11 +518,11 @@ function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): Ada
       id: 'adaptive-center-konling-status',
       label: 'Konling 自适应支持',
       domain: 'konling',
-      confidence: konling ? 'medium' : 'unknown',
-      sourceCoverage: konling ? 'partial' : 'missing',
+      confidence: hasKonlingContext ? 'medium' : 'unknown',
+      sourceCoverage: hasKonlingContext ? 'partial' : 'missing',
       privacy: 'private',
-      readiness: konling ? 'degraded' : 'not-ready',
-      fallbackReason: konling ? null : 'missing-konling-context',
+      readiness: hasKonlingContext ? 'degraded' : 'not-ready',
+      fallbackReason: hasKonlingContext ? null : 'missing-konling-context',
       details: [
         {
           label: '上下文来源',
