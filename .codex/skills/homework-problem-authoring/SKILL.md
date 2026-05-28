@@ -35,6 +35,42 @@ description: Use when the user asks to create homework or exam problems by quest
 
 如果用户一次给出多个题号，对每个题号分别跑完整流程，不要把多题混在同一个临时目录里。
 
+## Assignment DOCX Export
+
+当用户要求导出整次作业或重新导出作业文档时，使用仓库脚本
+`course-content/authoring/shared/homework-problems/scripts/export_homework_docx.py`，
+不要手工另建 Word 文件，也不要退回到不能转换公式和表格的简单复制流程。
+
+固定流程：
+
+1. 先确认对应的 `Tn.md` 和 `TnS.md` 已存在；若用户要求“第 1 到第 7 次作业”，应导出
+   `T1/T1S` 到 `T7/T7S` 的全部 DOCX。
+2. 在 `course-content/authoring/shared/homework-problems/` 下运行：
+
+   ```bash
+   python3 scripts/export_homework_docx.py Tn.md Tn.docx
+   python3 scripts/export_homework_docx.py TnS.md TnS.docx
+   ```
+
+3. 导出脚本优先调用 `pandoc` 把 Markdown 转为 DOCX，以保留 Word 原生公式和表格；随后用
+   `python-docx` 做统一格式后处理。只有在 `pandoc` 不可用或失败时，才允许使用脚本内的简化
+   fallback，并必须在交付说明中指出公式和表格保真风险。
+4. 导出后至少执行以下验证：`python3 -m py_compile` 检查导出脚本；用 `python-docx` 读回
+   DOCX 文本并确认题号出现；检查 `word/document.xml` 中不应残留 `$`、`\frac`、`\omega`、
+   `\zeta` 等原始 LaTeX 标记；必要时用 LibreOffice 渲染为 PDF 并抽查页面。
+
+DOCX 版式硬约束：
+
+- 文本全部为黑色。
+- 页边距采用窄边距：上、下、左、右均为 `1.27cm`。
+- 一级标题居中，中文黑体三号，西文 `Times New Roman`。
+- 二级标题，即题目名称，中文宋体四号加粗，西文 `Times New Roman`。
+- 三级标题，即“题干”“参考答案”等标题名称，中文黑体小四，西文 `Times New Roman`。
+- 正文采用中文宋体小四，西文 `Times New Roman`，单倍行距，首行缩进 `2` 字符。
+- 正文内强调采用中文黑体小四，西文 `Times New Roman`。
+- 图片标题采用中文宋体五号，西文 `Times New Roman`，居中，无首行缩进。
+- 表格内文本采用中文宋体五号，西文 `Times New Roman`。
+
 ## Workflow
 
 ### 1. 抽取题号规范
