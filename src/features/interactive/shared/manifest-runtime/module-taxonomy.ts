@@ -114,6 +114,167 @@ export const INTERACTIVE_MODULE_RESPONSE_KINDS = [
 
 export type InteractiveModuleResponseKind = typeof INTERACTIVE_MODULE_RESPONSE_KINDS[number];
 
+export type InteractiveModuleRenderBehavior = 'renderer' | 'activity-slot' | 'layout-only';
+export type InteractiveModuleScoringSupport = 'objective' | 'unsupported';
+
+export interface InteractiveModuleDefinition {
+  canonicalClass: InteractiveModuleCanonicalClass;
+  renderBehavior: InteractiveModuleRenderBehavior;
+  configShape: string;
+  producesEvidence: boolean;
+  allowedInNewAuthoring: boolean;
+  requiresResponseContract?: boolean;
+  requiresCapabilityRef?: boolean;
+  migrationOnly?: true;
+}
+
+export interface InteractiveModuleResponseKindDefinition {
+  responseKind: InteractiveModuleResponseKind;
+  scoring: InteractiveModuleScoringSupport;
+}
+
+export interface InteractiveModuleComputeCapabilityDefinition {
+  capabilityRef: string;
+  description: string;
+}
+
+export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalClass, InteractiveModuleDefinition> = {
+  'content.rich': {
+    canonicalClass: 'content.rich',
+    renderBehavior: 'renderer',
+    configShape: 'rich content payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.cardSet': {
+    canonicalClass: 'content.cardSet',
+    renderBehavior: 'renderer',
+    configShape: 'card collection payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.formula': {
+    canonicalClass: 'content.formula',
+    renderBehavior: 'renderer',
+    configShape: 'formula payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.table': {
+    canonicalClass: 'content.table',
+    renderBehavior: 'renderer',
+    configShape: 'table payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.figure': {
+    canonicalClass: 'content.figure',
+    renderBehavior: 'renderer',
+    configShape: 'figure or media payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.reveal': {
+    canonicalClass: 'content.reveal',
+    renderBehavior: 'renderer',
+    configShape: 'progressive reveal payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.stageMap': {
+    canonicalClass: 'content.stageMap',
+    renderBehavior: 'renderer',
+    configShape: 'stage map payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'activity.panel': {
+    canonicalClass: 'activity.panel',
+    renderBehavior: 'activity-slot',
+    configShape: 'activity payload with response contract',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+    requiresResponseContract: true,
+  },
+  'activity.workspace': {
+    canonicalClass: 'activity.workspace',
+    renderBehavior: 'activity-slot',
+    configShape: 'workspace payload with response contract',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+    requiresResponseContract: true,
+  },
+  'compute.panel': {
+    canonicalClass: 'compute.panel',
+    renderBehavior: 'renderer',
+    configShape: 'compute payload with capability reference',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+    requiresCapabilityRef: true,
+  },
+  'analytics.summary': {
+    canonicalClass: 'analytics.summary',
+    renderBehavior: 'renderer',
+    configShape: 'analytics summary payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'layout.support': {
+    canonicalClass: 'layout.support',
+    renderBehavior: 'layout-only',
+    configShape: 'layout helper payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'legacy.adapter': {
+    canonicalClass: 'legacy.adapter',
+    renderBehavior: 'renderer',
+    configShape: 'legacy adapter payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: false,
+    migrationOnly: true,
+  },
+};
+
+export const INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS: Record<InteractiveModuleResponseKind, InteractiveModuleResponseKindDefinition> = {
+  none: { responseKind: 'none', scoring: 'unsupported' },
+  singleChoice: { responseKind: 'singleChoice', scoring: 'objective' },
+  binaryChoice: { responseKind: 'binaryChoice', scoring: 'objective' },
+  multiSelect: { responseKind: 'multiSelect', scoring: 'objective' },
+  matching: { responseKind: 'matching', scoring: 'objective' },
+  sorting: { responseKind: 'sorting', scoring: 'objective' },
+  categorization: { responseKind: 'categorization', scoring: 'objective' },
+  shortText: { responseKind: 'shortText', scoring: 'unsupported' },
+  structured: { responseKind: 'structured', scoring: 'unsupported' },
+  table: { responseKind: 'table', scoring: 'unsupported' },
+  parameterRecord: { responseKind: 'parameterRecord', scoring: 'unsupported' },
+  reasonRecord: { responseKind: 'reasonRecord', scoring: 'unsupported' },
+  hotspotLabeling: { responseKind: 'hotspotLabeling', scoring: 'objective' },
+};
+
+export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, InteractiveModuleComputeCapabilityDefinition> = {
+  'interactive-figure': {
+    capabilityRef: 'interactive-figure',
+    description: 'Runtime interactive figure backed by a shared renderer.',
+  },
+  'rust-analysis': {
+    capabilityRef: 'rust-analysis',
+    description: 'Rust or WASM-backed analysis panel.',
+  },
+  'shared-engine-root-locus': {
+    capabilityRef: 'shared-engine-root-locus',
+    description: 'Shared control-engine root locus panel.',
+  },
+  'phase-peak-locator': {
+    capabilityRef: 'phase-peak-locator',
+    description: 'Frequency-domain peak locator compute panel.',
+  },
+  'parametric-risk': {
+    capabilityRef: 'parametric-risk',
+    description: 'Parametric risk visualization panel.',
+  },
+};
+
 export interface LegacyInteractiveModuleKindAlias {
   canonicalClass: InteractiveModuleCanonicalClass;
   migrationOnly: true;
@@ -407,6 +568,7 @@ function responseForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): Inter
   if (kind.includes('structured') || kind.includes('three-field-form') || kind.includes('judge-form')) return 'structured';
   if (kind.includes('table-builder')) return 'table';
   if (kind.includes('parametric')) return 'parameterRecord';
+  if (kind.includes('workspace')) return 'structured';
   if (kind.includes('reason-record') || kind.includes('single-reason')) return 'reasonRecord';
   if (kind.includes('hotspot') || kind.includes('labeling')) return 'hotspotLabeling';
   return null;
