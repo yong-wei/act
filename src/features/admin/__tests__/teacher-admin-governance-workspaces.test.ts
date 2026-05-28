@@ -472,4 +472,52 @@ describe('teacher and admin governance workspace contracts', () => {
     expect(workspace.status.categories.fallback).toBe('fallback-missing-context');
     expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.sourceCoverage).toBe('missing');
   });
+
+  it('marks fully unsupported evidence source coverage as unsupported', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 5,
+            eligibleRows: 0,
+            excludedRows: 0,
+            unsupportedRows: 5,
+            affectedUsers: 3,
+          },
+          sources: [],
+          exclusions: [],
+        },
+      }),
+    });
+
+    expect(workspace.status.categories.sourceCoverage).toBe('unsupported');
+    expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.sourceCoverage).toBe('unsupported');
+  });
+
+  it('keeps mixed unsupported and excluded coverage partial when no rows are eligible', () => {
+    const workspace = buildAdminDataCenterWorkspace({
+      mode: 'governance-audit',
+      payload: governancePayload({
+        sourceCoverage: {
+          generatedAt: '2026-05-28T07:45:00.000Z',
+          catalogVersion: '2026-05-28',
+          totals: {
+            totalRows: 10,
+            eligibleRows: 0,
+            excludedRows: 7,
+            unsupportedRows: 3,
+            affectedUsers: 4,
+          },
+          sources: [],
+          exclusions: [],
+        },
+      }),
+    });
+
+    expect(workspace.status.categories.sourceCoverage).toBe('partial');
+    expect(workspace.panels.find((panel) => panel.id === 'source-coverage')?.status.categories.sourceCoverage).toBe('partial');
+  });
 });

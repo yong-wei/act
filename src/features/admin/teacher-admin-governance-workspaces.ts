@@ -555,6 +555,7 @@ function sourceCoverageStatus(payload: GovernanceStatusPayload): PlatformSourceC
   const totals = payload.sourceCoverage?.totals;
   if (!totals) return 'missing';
   if (totals.totalRows === 0) return 'missing';
+  if (totals.unsupportedRows === totals.totalRows) return 'unsupported';
   if (totals.unsupportedRows > 0 || totals.excludedRows > 0) return 'partial';
   return totals.eligibleRows === totals.totalRows ? 'complete' : 'partial';
 }
