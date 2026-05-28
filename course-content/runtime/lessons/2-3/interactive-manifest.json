@@ -46,7 +46,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-01:summary",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "回到地图——从时域对象走向频域对象",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -116,7 +128,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-02:summary",
+          "region": "media",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "情境引入——系统为什么会挑节奏",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-02:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先建立“系统会区分低频命令和高频扰动”的直觉。",
+          "payload": {
+            "response_kind": "binary_choice",
+            "interaction_kind": "binary_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "step-02:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -205,7 +249,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-03:summary",
+          "region": "chain",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "学习目标——这节课要建立哪套频域语言",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -268,7 +324,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-04:summary",
+          "region": "question-stack",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "前测——低频、高频与正弦输入判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-04:response",
+          "region": "submit-bar",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "用三题暴露“同频不等于同幅、滤高频会更平滑”等起点误区。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-04:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -364,7 +452,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-05:summary",
+          "region": "table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "从时域问题走向频域问题",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-05:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "完成观察视角切换：时域看整体，频域看规则。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-05:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -449,7 +569,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-06:summary",
+          "region": "media",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "方波、频率分量与重构直觉",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-06:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "用谐波个数与高频衰减双滑块理解“分量分别响应，再叠加重构”。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-06:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -539,7 +693,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-07:summary",
+          "region": "formula-card",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "正弦输入为什么会导向同频输出",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-07:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "抓住“频率不变，幅值改变，相位改变”这三条结论。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-07:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -627,7 +813,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-08:summary",
+          "region": "media",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "幅值变化与相位变化的物理意义",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-08:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把波形差异翻译成“放大/衰减、提前/滞后”的工程语言。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-08:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -710,7 +928,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-09:summary",
+          "region": "formula-strip",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "频率特性：G(jω)、幅频与相频",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-09:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把对象、数学定义与回答问题三件事一一对应起来。",
+          "payload": {
+            "response_kind": "triple_match",
+            "interaction_kind": "triple_match",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "triple_match",
+              "activity_card_ids": [
+                "step-09:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -849,7 +1099,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-10:summary",
+          "region": "formula",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "为什么可以令 s=jω",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-10:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "说明这不是抛弃拉氏方法，而是沿虚轴观察正弦稳态。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "single_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "single_choice",
+              "activity_card_ids": [
+                "step-10:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -941,7 +1223,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-11:summary",
+          "region": "media",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "为什么要画 Bode 图",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-11:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "线性坐标、对数坐标和分贝表达各自解决不同可读性问题。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "highlight_toggle",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "highlight_toggle",
+              "activity_card_ids": [
+                "step-11:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1024,7 +1338,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-12:summary",
+          "region": "cards",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "典型环节 Bode 第一判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-12:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先认对象，再按“易通过/易抑制/相位滞后”做第一轮分类。",
+          "payload": {
+            "response_kind": "card_sort",
+            "interaction_kind": "card_sort",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "card_sort",
+              "activity_card_ids": [
+                "step-12:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1117,7 +1463,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-13:summary",
+          "region": "workflow",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "基础手绘骨架：标准型、转折频率与趋势",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-13:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "四步法只做第一轮骨架：写标准型、列转折点、判低频、画趋势。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-13:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1215,7 +1595,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-14:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "例题一——单一正弦输入下的稳态输出",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-14:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "顺着题面、模值、相位、最终表达式四步链完成例题。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-14:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1311,7 +1725,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-15:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "例题二——多频输入的重塑过程与 AI 对照",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-15:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "先独立写出分量处理顺序，再用页内 AI 核对推理链。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-15:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1401,7 +1849,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-16:summary",
+          "region": "question-stack",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "后测——对象会读，更要会画",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-16:response",
+          "region": "submit-bar",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "检验你是否既会读频域对象，也会解释骨架趋势和工程含义。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-16:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1495,7 +1975,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-17:summary",
+          "region": "summary",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "总结与后续预告——走向 Nyquist 与频域指标",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",

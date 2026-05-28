@@ -46,7 +46,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-01:summary",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "回到地图——从纯极点语言走向稳定边界",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -116,7 +128,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-02:summary",
+          "region": "media",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "先看主对象——极点迁移图提出了哪三个问题",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-02:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先暴露“只看图就够了”的误判，再把问题收回到系数规则。",
+          "payload": {
+            "response_kind": "binary_choice",
+            "interaction_kind": "binary_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "step-02:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -210,7 +254,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-03:summary",
+          "region": "title",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "前测——不求根判稳、特殊情况与区域收紧",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-03:response",
+          "region": "submit-bar",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "用三题前测把普通判稳、特殊情况与区域约束的起点误区先暴露出来。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-03:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -311,7 +387,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-04:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "普通劳斯表——固定 k=4 时怎样从第一列读出稳定性",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-04:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "题面常显、步骤显影、双卡独立提交，建立“判稳不等于求根”的第一条规则。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-04:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -404,7 +512,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-05:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "带参数劳斯表——稳定区间怎样从第一列条件链中写出",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-05:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把第一列条件链推进到稳定区间，并显式防止漏掉 s^0 行条件。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-05:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -497,7 +637,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-06:summary",
+          "region": "table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "边界点回到复平面——k=-2、18、22 分别对应什么根结构",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-06:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把参数点、根结构和极点迁移图放回同一页，避免只记边界数字。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-06:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -589,7 +761,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-07:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "首位为 0——ε 连续化为什么只服务于符号判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-07:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "固定题面先行，再逐步显影 epsilon 连续化的判断链，不把 epsilon 当真实参数。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-07:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -686,7 +890,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-08:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "全零行——辅助方程怎样把对称根结构重新写出来",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-08:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "显式区分全零行与首位为 0，保留规则卡、推导链和双作答卡。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-08:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -778,7 +1014,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-09:summary",
+          "region": "table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "劳斯现象到时域——极点结构怎样改写响应形态",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-09:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先表后图，再用双卡把极点结构翻译到时域响应。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-09:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -875,7 +1143,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-10:summary",
+          "region": "formula",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-10:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把频域观察固定在本课的辅助证据地位，不升级成新的主判据。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-10:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -967,7 +1267,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-11:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "变量平移——把 Re(s)<-0.5 转成普通劳斯判定",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-11:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "题面、平移链、区间对比和几何解释保持同页，不能压成一个区间输入框。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-11:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1054,7 +1386,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-12:summary",
+          "region": "title",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "后测——判稳、特殊情况与区域约束能否连成一条链",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-12:response",
+          "region": "submit-bar",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "后测单独成页，检查学生是否真的把判稳、特殊情况与区域约束连成一条边界语言链。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-12:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1150,7 +1514,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-13:summary",
+          "region": "summary-table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "收束——从稳定判定走向参数设计入口",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",

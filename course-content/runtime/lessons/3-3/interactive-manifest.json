@@ -46,7 +46,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-01:summary",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "回到地图：为什么稳定边界还不等于迁移机制",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -116,7 +128,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-02:summary",
+          "region": "figure",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "问题引入：知道稳定区间为什么仍然不够",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-02:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "用主图和四问暴露“只知道边界点就够了”的误判。",
+          "payload": {
+            "response_kind": "binary_choice",
+            "interaction_kind": "binary_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "step-02:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -206,7 +250,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-03:summary",
+          "region": "chain",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "本课目标：完成本次课程后你应能做到什么",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -274,7 +330,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-04:summary",
+          "region": "definition",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "根轨迹定义与两大条件：从闭环方程到资格与参数",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -337,7 +405,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-05:summary",
+          "region": "formula-strip",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "条件互动：拖动 s_0 检查相角条件与幅值条件",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-05:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "上方常显条件表达式，下方左拖右算。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-05:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -427,7 +529,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-06:summary",
+          "region": "rules",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "骨架法则：起点终点、实轴区段与渐近线",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-06:response",
+          "region": "legend",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "用原生 SVG 按固定顺序显影骨架法则，不提前跳进关键节点。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-06:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -515,7 +651,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-07:summary",
+          "region": "principle",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "例题 1：先用骨架法则判断整体走向",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-07:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "先把骨架法则压到完整题面里，再做双栏作答。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-07:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -608,7 +778,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-08:summary",
+          "region": "rules",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "分离点与虚轴交点：关键节点怎样进入主图",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -676,7 +858,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-09:summary",
+          "region": "principle",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "例题 2：用 dK/ds 与劳斯判据找关键节点",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-09:response",
+          "region": "workspace",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "在同一道题里区分实轴关键点与稳定边界。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-09:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -769,7 +985,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-10:summary",
+          "region": "summary",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "出射角、入射角与根之和：局部方向怎样与整图自洽",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -837,7 +1065,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-11:summary",
+          "region": "principle",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "例题 3：复极点附近怎样离开，整张图怎样自洽",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-11:response",
+          "region": "workspace",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把出射角链和根之和复核链都做成逐步显影，并保留双栏作答。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-11:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -925,7 +1185,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-12:summary",
+          "region": "workflow",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "读图顺序：先骨架，再关键点，最后补局部方向",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-12:response",
+          "region": "feedback",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把法则清单重组为七步读图法。",
+          "payload": {
+            "response_kind": "card_sort",
+            "interaction_kind": "card_sort",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "card_sort",
+              "activity_card_ids": [
+                "step-12:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1018,7 +1310,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-13:summary",
+          "region": "cards",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "三类开环极点：原点极点、实轴极点、共轭复极点",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-13:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把对象类型与轨迹趋势线索直接对应起来。",
+          "payload": {
+            "response_kind": "card_sort",
+            "interaction_kind": "card_sort",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "card_sort",
+              "activity_card_ids": [
+                "step-13:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1110,7 +1434,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-14:summary",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "后测：条件、法则、例题与读图顺序是否已经成链",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-14:response",
+          "region": "quiz",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "用题组后测检查条件顺序、法则职责与读图顺序。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-14:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1207,7 +1563,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-15:summary",
+          "region": "summary",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "总结：九项法则带走什么，3-4 从哪里接走",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",

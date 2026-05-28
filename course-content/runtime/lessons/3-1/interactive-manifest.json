@@ -46,7 +46,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-01:summary",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -126,7 +138,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-02:summary",
+          "region": "formula-strip",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "情境引入：同主导极点，为什么响应仍会分家",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-02:response",
+          "region": "response",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
+          "payload": {
+            "response_kind": "binary_choice",
+            "interaction_kind": "binary_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "step-02:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -218,7 +262,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-03:summary",
+          "region": "chain",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "学习目标与课堂边界：本课负责什么，不负责什么",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -286,7 +342,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-04:summary",
+          "region": "prompt",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "前测：稳定、主导极点与“可忽略”直觉判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-04:response",
+          "region": "notes",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-04:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -382,7 +470,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-05:summary",
+          "region": "formula",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "稳定底线：先回答“能不能谈近似”",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-05:response",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "先判断系统能否收敛，后面的近似和证据链才有前提。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-05:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -472,7 +592,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-06:summary",
+          "region": "decomposition",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "从极点到模态：极点为什么会直接写进响应",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-06:response",
+          "region": "response",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
+          "payload": {
+            "response_kind": "triple_match",
+            "interaction_kind": "triple_match",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "triple_match",
+              "activity_card_ids": [
+                "step-06:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -609,7 +761,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-07:summary",
+          "region": "figure",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "三类极点与重根：响应形态为什么不止一种",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-07:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-07:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -707,7 +891,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-08:summary",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "最小例题：三模型时域对照与主导模态近似",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-08:response",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-08:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -800,7 +1018,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-09:summary",
+          "region": "rules",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "时域筛选：更靠左为什么只是第一轮判断",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-09:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把经验句退回到筛选层，补上权重、重根与可视证据。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-09:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -887,7 +1137,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-10:summary",
+          "region": "question",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "转向频域：时域相近为什么还不够",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-10:response",
+          "region": "task",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
+          "payload": {
+            "response_kind": "binary_choice",
+            "interaction_kind": "binary_choice",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "step-10:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -987,7 +1269,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-11:summary",
+          "region": "formulas",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "Bode 对照：附加极点何时侵入主要带宽",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-11:response",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-11:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1080,7 +1396,41 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-12:summary",
+          "region": "table",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "双域判断表：先自判，再问 AI，再回到图上核验",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-12:response",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "title": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
+          "payload": {
+            "response_kind": "parameter_set",
+            "interaction_kind": "parameter_slider",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "parameter_slider",
+              "activity_card_ids": [
+                "step-12:response"
+              ],
+              "submit_fields": [
+                "response"
+              ]
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1183,7 +1533,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-13:summary",
+          "region": "convolution",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-13:response",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
+          "payload": {
+            "response_kind": "short_response",
+            "interaction_kind": "activity_cards",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "activity_cards",
+              "activity_card_ids": [
+                "step-13:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1270,7 +1652,39 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-14:summary",
+          "region": "header",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "后测：会不会发散、能不能近似、为什么能解释",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        },
+        {
+          "id": "step-14:response",
+          "region": "notes",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "title": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
+          "payload": {
+            "response_kind": "single_choice",
+            "interaction_kind": "quiz_group",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "step-14:response"
+              ],
+              "submit_fields": []
+            },
+            "migration_source": "interaction_spec"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",
@@ -1366,7 +1780,19 @@
           }
         ]
       },
-      "modules": [],
+      "modules": [
+        {
+          "id": "step-15:summary",
+          "region": "summary",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "title": "总结与去向：先守底线，再谈模态，再谈后续方法",
+          "payload": {
+            "block_key": "summary",
+            "migration_source": "runtime_summary"
+          }
+        }
+      ],
       "content_blocks": {
         "summary": {
           "type": "plain_text",

@@ -1,18 +1,22 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { ReactElement } from 'react';
 
 import { describe, expect, it } from 'vitest';
 
+import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
   evaluateInteractiveModuleRegistryGate,
   scanRuntimeInteractiveModuleRegistry,
+  STANDARD_MODULE_MIGRATED_LESSON_IDS,
 } from '@/features/interactive/shared/manifest-runtime/module-registry-gate';
 import {
+  INTERACTIVE_MODULE_CANONICAL_CLASSES,
   INTERACTIVE_MODULE_DEFINITIONS,
   INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS,
 } from '@/features/interactive/shared/manifest-runtime/module-taxonomy';
-import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
+import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 describe('interactive module registry gate', () => {
   it('defines every canonical module class with validation metadata', () => {
@@ -45,6 +49,227 @@ describe('interactive module registry gate', () => {
       responseKind: 'structured',
       scoring: 'unsupported',
     });
+  });
+
+  it('registers shared renderers for canonical standard content module classes', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    expect(registry['content.rich']).toBeTypeOf('function');
+    expect(registry['content.cardSet']).toBeTypeOf('function');
+    expect(registry['content.formula']).toBeTypeOf('function');
+    expect(registry['content.table']).toBeTypeOf('function');
+    expect(registry['content.figure']).toBeTypeOf('function');
+    expect(registry['content.reveal']).toBeTypeOf('function');
+    expect(registry['content.stageMap']).toBeTypeOf('function');
+    expect(registry['compute.panel']).toBeTypeOf('function');
+    expect(registry['analytics.summary']).toBeTypeOf('function');
+    expect(registry['layout.support']).toBeTypeOf('function');
+  });
+
+  it('renders inline payload items for canonical card set modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'inline-card-set',
+        kind: 'content.cardSet',
+        mustBeVisible: true,
+        payload: { items: ['第一条', '第二条'] },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['content.cardSet']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ items?: string[] }>;
+
+    expect(node.props.items).toEqual(['第一条', '第二条']);
+  });
+
+  it('renders formula group values for canonical formula modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'formula-group',
+        kind: 'content.formula',
+        mustBeVisible: true,
+        payload: { block_key: 'formula_group' },
+      },
+    });
+    const step = manifest.steps[0];
+    step.contentBlocks.formula_group = {
+      type: 'formula_group',
+      values: ['G(s)=K', 'T(s)=\\frac{G(s)}{1+G(s)H(s)}'],
+    };
+    const node = registry['content.formula']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ formulas?: string[] }>;
+
+    expect(node.props.formulas).toEqual(['G(s)=K', 'T(s)=\\frac{G(s)}{1+G(s)H(s)}']);
+  });
+
+  it('renders asset media blocks for canonical figure modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'media-block',
+        kind: 'content.figure',
+        mustBeVisible: true,
+        payload: { block_key: 'media_block' },
+      },
+    });
+    const step = manifest.steps[0];
+    step.contentBlocks.media_block = {
+      type: 'media',
+      asset: 'diagram.png',
+    };
+    const node = registry['content.figure']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ src?: string }>;
+
+    expect(node.props.src).toBe('/course-runtime/lessons/fixture-lesson/media/diagram.png');
+  });
+
+  it('renders single image payload assets for canonical figure modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'single-payload-asset',
+        kind: 'content.figure',
+        mustBeVisible: true,
+        payload: { assets: ['single.png'] },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['content.figure']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ src?: string }>;
+
+    expect(node.props.src).toBe('/course-runtime/lessons/fixture-lesson/media/single.png');
+  });
+
+  it('renders the migrated 2-1 step 13 loop diagram from its media group', () => {
+    const rawManifest = JSON.parse(
+      readFileSync(join(process.cwd(), 'course-content/runtime/lessons/2-1/interactive-manifest.json'), 'utf8'),
+    ) as unknown;
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    expect(manifest).not.toBeNull();
+    if (!manifest) throw new Error('2-1 manifest should normalize');
+    const step = manifest.steps.find((item) => item.id === 'step-13');
+    expect(step).toBeDefined();
+    if (!step) throw new Error('2-1 step-13 should exist');
+    const runtimeModule = step.modules.find((item) => item.id === 'loop-diagram');
+    expect(runtimeModule).toBeDefined();
+    if (!runtimeModule) throw new Error('2-1 step-13 loop-diagram should exist');
+
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const node = registry['content.figure']({
+      manifest,
+      step,
+      module: runtimeModule,
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ src?: string }>;
+
+    expect(node.props.src).toBe('/course-runtime/lessons/2-1/media/2-1-md-07-example-ship-loop.png');
+  });
+
+  it('renders the migrated 2-1 step 14 SFG stage as a figure', () => {
+    const rawManifest = JSON.parse(
+      readFileSync(join(process.cwd(), 'course-content/runtime/lessons/2-1/interactive-manifest.json'), 'utf8'),
+    ) as unknown;
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    expect(manifest).not.toBeNull();
+    if (!manifest) throw new Error('2-1 manifest should normalize');
+    const step = manifest.steps.find((item) => item.id === 'step-14');
+    expect(step).toBeDefined();
+    if (!step) throw new Error('2-1 step-14 should exist');
+    const runtimeModule = step.modules.find((item) => item.id === 'sfg-stage');
+    expect(runtimeModule).toBeDefined();
+    if (!runtimeModule) throw new Error('2-1 step-14 sfg-stage should exist');
+    expect(runtimeModule.kind).toBe('content.figure');
+
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const node = registry['content.figure']({
+      manifest,
+      step,
+      module: runtimeModule,
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ src?: string }>;
+
+    expect(node.props.src).toBe('/course-runtime/lessons/2-1/media/2-1-md-14-example2-sfg.png');
+  });
+
+  it('uses formula renderers for migrated 2-1 formula-only visible content blocks', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(process.cwd(), 'course-content/runtime/lessons/2-1/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, {
+        modules?: Array<{
+          id?: string;
+          kind?: string;
+          must_be_visible?: boolean;
+          payload?: { block_key?: string };
+        }>;
+        content_blocks?: Record<string, { type?: string; value?: unknown; values?: unknown; formula?: unknown; latex?: unknown; math?: unknown }>;
+      }>;
+    };
+    const offenders: string[] = [];
+
+    for (const [stepId, step] of Object.entries(manifest.steps)) {
+      for (const runtimeModule of step.modules ?? []) {
+        const blockKey = runtimeModule.payload?.block_key;
+        const block = blockKey ? step.content_blocks?.[blockKey] : undefined;
+        const formulaOnlyBlock = block && (
+          block.type === 'formula'
+          || block.type === 'formula_group'
+          || Boolean(block.value)
+          || Boolean(block.values)
+          || Boolean(block.formula)
+          || Boolean(block.latex)
+          || Boolean(block.math)
+        );
+        if (
+          runtimeModule.must_be_visible
+          && formulaOnlyBlock
+          && ['content.rich', 'content.cardSet'].includes(runtimeModule.kind ?? '')
+        ) {
+          offenders.push(`${stepId}/${runtimeModule.id}:${runtimeModule.kind}`);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
   });
 
   it('reports unknown module kinds with lesson, step, and module identifiers', () => {
@@ -588,12 +813,41 @@ describe('interactive module registry gate', () => {
     }
   });
 
-  it('passes for the current runtime manifest inventory through explicit aliases', () => {
+  it('passes for the current runtime manifest inventory with migrated lesson enforcement', () => {
     const result = scanRuntimeInteractiveModuleRegistry();
 
     expect(result.passed).toBe(true);
     expect(result.violations).toEqual([]);
     expect(result.scannedModules).toBeGreaterThan(0);
+  });
+
+  it('passes the migrated early lesson group with canonical modules on every step', () => {
+    const migratedLessonIds = [...STANDARD_MODULE_MIGRATED_LESSON_IDS];
+    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+    const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual([]);
+
+    for (const lessonId of migratedLessonIds) {
+      const manifest = JSON.parse(
+        readFileSync(join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json'), 'utf8'),
+      ) as {
+        steps: Record<string, { modules?: Array<{ kind?: string }> }>;
+      };
+
+      for (const [stepId, step] of Object.entries(manifest.steps)) {
+        expect(step.modules, `${lessonId} ${stepId} should have standard modules`).toBeDefined();
+        expect(step.modules?.length, `${lessonId} ${stepId} should have standard modules`).toBeGreaterThan(0);
+        for (const runtimeModule of step.modules ?? []) {
+          expect(
+            canonicalClasses.has(runtimeModule.kind ?? ''),
+            `${lessonId} ${stepId} module kind ${runtimeModule.kind} should be canonical`,
+          ).toBe(true);
+          expect(runtimeModule.kind).not.toBe('legacy.adapter');
+        }
+      }
+    }
   });
 });
 

@@ -58,6 +58,14 @@ export interface InteractiveModuleRegistryGateResult {
   violations: InteractiveModuleRegistryGateViolation[];
 }
 
+type InteractiveModuleRegistryGateScanItem =
+  | InteractiveModuleRegistryGateManifestInput
+  | {
+    lessonId: string;
+    manifestPath: string;
+    violation: InteractiveModuleRegistryGateViolation;
+  };
+
 type ModuleKindResolution =
   | {
     source: 'canonical';
@@ -78,18 +86,23 @@ const RESPONSE_KIND_ALIASES: Record<string, InteractiveModuleResponseKind> = {
   none: 'none',
   singleChoice: 'singleChoice',
   single_choice: 'singleChoice',
+  'choice.single': 'singleChoice',
   binaryChoice: 'binaryChoice',
   binary_choice: 'binaryChoice',
+  'choice.binary': 'binaryChoice',
   multiChoice: 'multiSelect',
   multi_choice: 'multiSelect',
   multiSelect: 'multiSelect',
   multi_select: 'multiSelect',
+  'choice.multi': 'multiSelect',
   matching: 'matching',
   drag_match: 'matching',
   triple_match: 'matching',
+  'matching.pairs': 'matching',
   sorting: 'sorting',
   card_sort: 'sorting',
   drag_sort: 'sorting',
+  'ordering.sequence': 'sorting',
   categorization: 'categorization',
   categorize: 'categorization',
   shortText: 'shortText',
@@ -97,15 +110,18 @@ const RESPONSE_KIND_ALIASES: Record<string, InteractiveModuleResponseKind> = {
   short_response: 'shortText',
   fill_text: 'shortText',
   observation_text: 'shortText',
+  'text.short': 'shortText',
   text: 'shortText',
   structured: 'structured',
   structured_compare: 'structured',
   structured_submit: 'structured',
   table: 'table',
   table_builder: 'table',
+  'table.builder': 'table',
   parameterRecord: 'parameterRecord',
   parameter_record: 'parameterRecord',
   parameter_set: 'parameterRecord',
+  'parameter.set': 'parameterRecord',
   reasonRecord: 'reasonRecord',
   reason_record: 'reasonRecord',
   hotspotLabeling: 'hotspotLabeling',
@@ -128,6 +144,17 @@ const STEP_INTERACTIONS_ALLOWING_EMPTY_ACTIVITY_CARDS = new Set([
   'summary',
   'teacher_reveal_only',
 ]);
+
+export const STANDARD_MODULE_MIGRATED_LESSON_IDS = [
+  '2-1',
+  '2-2',
+  '2-3',
+  '2-4',
+  '3-1',
+  '3-2',
+  '3-3',
+  '3-4',
+] as const;
 
 export function evaluateInteractiveModuleRegistryGate({
   manifests,
@@ -184,14 +211,14 @@ export function evaluateInteractiveModuleRegistryGate({
 
 export function scanRuntimeInteractiveModuleRegistry({
   rootDir = process.cwd(),
-  migratedLessonIds = [],
+  migratedLessonIds = STANDARD_MODULE_MIGRATED_LESSON_IDS,
 }: {
   rootDir?: string;
   migratedLessonIds?: readonly string[];
 } = {}): InteractiveModuleRegistryGateResult {
   const lessonRoot = join(rootDir, 'course-content/runtime/lessons');
   const manifests = collectManifestPaths(lessonRoot)
-    .map((manifestPath) => {
+    .map((manifestPath): InteractiveModuleRegistryGateScanItem => {
       const relativeManifestPath = relative(rootDir, manifestPath);
       const fallbackLessonId = lessonIdFromManifestPath(lessonRoot, manifestPath);
       try {
@@ -226,11 +253,15 @@ export function scanRuntimeInteractiveModuleRegistry({
       }
     });
 
-  const validManifests = manifests
-    .filter((item): item is InteractiveModuleRegistryGateManifestInput => 'manifest' in item);
-  const invalidViolations = manifests
-    .filter((item): item is { violation: InteractiveModuleRegistryGateViolation } => 'violation' in item)
-    .map((item) => item.violation);
+  const validManifests: InteractiveModuleRegistryGateManifestInput[] = [];
+  const invalidViolations: InteractiveModuleRegistryGateViolation[] = [];
+  for (const item of manifests) {
+    if ('manifest' in item) {
+      validManifests.push(item);
+    } else {
+      invalidViolations.push(item.violation);
+    }
+  }
   const result = evaluateInteractiveModuleRegistryGate({
     manifests: validManifests,
     migratedLessonIds,
@@ -434,7 +465,7 @@ function evaluateActivityCardResponseContracts({
   manifestPath?: string;
   step: InteractiveRuntimeStepManifest;
 }): InteractiveModuleRegistryGateViolation[] {
-  return (step.interactionSpec.activityCards ?? []).flatMap((card, index) => {
+  return (step.interactionSpec.activityCards ?? []).flatMap((card, index): InteractiveModuleRegistryGateViolation[] => {
     const rawResponseKind = stringValue(card.responseKind);
     const moduleId = card.id || `(activity-card-${index + 1})`;
     if (!rawResponseKind) {
@@ -550,6 +581,7 @@ function hasRuntimeManifestShape(raw: unknown): raw is { steps: Record<string, u
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return false;
   const steps = (raw as { steps?: unknown }).steps;
   return Boolean(steps)
+    && steps !== null
     && typeof steps === 'object'
     && !Array.isArray(steps)
     && Object.keys(steps).length > 0;
