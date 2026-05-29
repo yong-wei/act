@@ -327,7 +327,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -346,7 +346,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -365,7 +365,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -422,7 +422,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -432,7 +432,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -442,7 +442,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -616,7 +616,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -631,7 +631,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -681,7 +681,7 @@
             "title": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "prompt": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -691,7 +691,7 @@
             "title": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "prompt": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -881,14 +881,14 @@
           {
             "id": "ex1-card-1",
             "prompt": "第一步应先写什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "ex1-card-2",
             "prompt": "为什么最终只剩 1/K？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1119,14 +1119,14 @@
           {
             "id": "type-card-1",
             "prompt": "判断系统型别。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "type-card-2",
             "prompt": "如果要判断是否必须引入积分，第一步该看什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1324,14 +1324,14 @@
           {
             "id": "ex2-card-1",
             "prompt": "判断第一步动作。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "ex2-card-2",
             "prompt": "为什么必须先列总误差式？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1456,7 +1456,7 @@
             "legacyKind": "binary-choice-set",
             "presentation": "single",
             "interactionKind": "binary-choice",
-            "responseKind": "binaryChoice"
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -1497,7 +1497,7 @@
             "title": "判断三个情境更接近压小有限误差还是改变误差阶次。",
             "prompt": "判断三个情境更接近压小有限误差还是改变误差阶次。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1642,7 +1642,7 @@
             ],
             "legacyKind": "analysis-workspace",
             "presentation": "single",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         },
         {
@@ -1716,14 +1716,14 @@
           {
             "id": "lf-card-1",
             "prompt": "判断 PI 的结构抓手。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "lf-card-2",
             "prompt": "判断滞后的核心收益。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1909,14 +1909,14 @@
           {
             "id": "time-pi-card-1",
             "prompt": "判断纯增益为何不够。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-pi-card-2",
             "prompt": "选择 PI 的首要作用。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2101,14 +2101,14 @@
           {
             "id": "time-lag-card-1",
             "prompt": "判断纯增益失败原因。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-lag-card-2",
             "prompt": "判断滞后的核心结构作用。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2275,14 +2275,14 @@
           {
             "id": "time-compare-card-1",
             "prompt": "把‘斜坡误差为 0’对应到方法。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-compare-card-2",
             "prompt": "把‘型别不变但 Kv 提高’对应到方法。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2471,14 +2471,14 @@
           {
             "id": "freq-pi-card-1",
             "prompt": "判断纯增益不兼容的原因。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-pi-card-2",
             "prompt": "补全设计顺序。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2664,14 +2664,14 @@
           {
             "id": "freq-pd-card-1",
             "prompt": "判断本方案是否提高型别。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-pd-card-2",
             "prompt": "匹配核验指标与性能描述。",
-            "response_kind": "match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "match_items": [
@@ -2720,7 +2720,7 @@
           {
             "id": "freq-pd-card-3",
             "prompt": "填写保留误差的原因。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2887,14 +2887,14 @@
           {
             "id": "freq-compare-card-1",
             "prompt": "选择更适合斜坡跟踪精度优先的方案。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-compare-card-2",
             "prompt": "匹配‘更快 / 更准 / 代价落点’。",
-            "response_kind": "match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "match_items": [
@@ -2943,7 +2943,7 @@
           {
             "id": "freq-compare-card-3",
             "prompt": "判断场景归属。",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -3162,7 +3162,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -3172,7 +3172,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -3182,7 +3182,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -3192,7 +3192,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []

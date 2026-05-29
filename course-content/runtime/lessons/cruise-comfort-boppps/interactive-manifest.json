@@ -284,7 +284,7 @@
           {
             "id": "dominant-pole-risk",
             "prompt": "主导极点向虚轴靠近时，系统通常会出现什么变化？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "half",
             "reference_answer": "oscillation",
@@ -310,7 +310,7 @@
           {
             "id": "phase-margin-risk",
             "prompt": "若相位裕度过低，最直接的风险是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "half",
             "reference_answer": "oscillation_robustness",
@@ -451,7 +451,7 @@
           {
             "id": "target-form",
             "prompt": "填写本组方案采用的工程约束。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "card",
             "layout_span": "full",
             "reference_answer": "overshoot<=12;settlingTime<=65;maxLateralAccel<0.15",
@@ -556,7 +556,7 @@
           {
             "id": "controller-first-pass",
             "prompt": "记录第一轮 PID 参数。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "card",
             "layout_span": "half",
             "options": [],
@@ -578,7 +578,7 @@
           {
             "id": "failure-cause",
             "prompt": "哪一个约束最先暴露风险？请用一句话说明参数方向。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "half",
             "options": []
@@ -732,7 +732,7 @@
           {
             "id": "ai-diagnosis",
             "prompt": "AI 指出的主要失败原因是什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "half",
             "options": []
@@ -740,7 +740,7 @@
           {
             "id": "human-decision",
             "prompt": "你是否采用建议？说明对应的极点或裕度变化方向。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "half",
             "options": []
@@ -827,7 +827,7 @@
           {
             "id": "structured-prompt",
             "prompt": "提交对象、目标、约束、策略四段内容。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [],
@@ -933,7 +933,7 @@
           {
             "id": "reflection",
             "prompt": "你的方案是结果偶然达标，还是逻辑一致达标？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1018,7 +1018,7 @@
           {
             "id": "controller-adjusted",
             "prompt": "记录调整后的 PID 参数。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "card",
             "layout_span": "half",
             "options": [],
@@ -1040,7 +1040,7 @@
           {
             "id": "validation-metric",
             "prompt": "你用哪个指标验证调整有效？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "half",
             "options": []
@@ -1123,7 +1123,7 @@
           {
             "id": "consistency-source",
             "prompt": "目标写了舒适优先，但参数明显提高带宽导致侧向加速度越界，最该先修正哪一层？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "half",
             "reference_answer": "behavior",
@@ -1149,7 +1149,7 @@
           {
             "id": "safety-choice",
             "prompt": "真实邮轮载有 5000 名乘客时，接近 0.2g 红线的激进方案应如何处理？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "half",
             "reference_answer": "reduce_risk",
@@ -1250,7 +1250,7 @@
           {
             "id": "group-choice",
             "prompt": "你选择激进方案还是舒适方案？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "half",
             "reference_answer": "comfort",
@@ -1272,7 +1272,7 @@
           {
             "id": "tradeoff-reason",
             "prompt": "说明你愿意承担的代价。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "half",
             "options": []

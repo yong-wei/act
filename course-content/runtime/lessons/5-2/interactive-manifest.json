@@ -310,7 +310,7 @@
           {
             "id": "state-point",
             "prompt": "二阶运动对象常用状态变量 $x_1=x$、$x_2=\\dot{x}$ 表示。若给出初始点 $(x_1(0),x_2(0))$，它描述的是哪一类信息？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "系统从某个位置和速度出发的状态",
               "系统的频率响应",
@@ -323,7 +323,7 @@
           {
             "id": "sine-meaning",
             "prompt": "正弦信号 $e(t)=A\\sin(\\omega t)$ 中，$A$ 与 $\\omega$ 分别表示什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "幅值和角频率",
               "相位和阻尼比",
@@ -336,7 +336,7 @@
           {
             "id": "low-pass",
             "prompt": "低通滤波环节通常更容易保留低频成分，并衰减较高频率成分。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -493,7 +493,7 @@
           {
             "id": "gain-meaning",
             "prompt": "哪个量表示工作点附近的小信号增益？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "$f'(x_0)$",
               "$f(x_0)$",
@@ -506,7 +506,7 @@
           {
             "id": "global-risk",
             "prompt": "$f'(0)=1$ 是否可直接用于 $x=3$ 附近的大幅输入？",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "不能",
               "能"
@@ -653,7 +653,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -673,7 +673,7 @@
           {
             "id": "local-result",
             "prompt": "若雅可比矩阵特征值均在左半平面，最稳妥的结论是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "平衡点附近足够小的扰动会衰减，但不能保证远处轨迹也衰减",
               "系统全局稳定",
@@ -902,7 +902,7 @@
           {
             "id": "phase-observation-submit",
             "prompt": "请选择一个标签并点击初始点，记录初始点坐标、轨迹最终形态和观察结论。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应说明所选标签、初始点和轨迹是否趋向闭合轨道、保持速度或速度衰减停留。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -1019,7 +1019,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1071,7 +1071,7 @@
           {
             "id": "lowpass-why",
             "prompt": "描述函数法为什么要求线性部分具有较好的低通滤波特性？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "非线性输出的高次谐波需要被线性部分衰减，基波近似才有意义",
               "低通环节会增强所有高次谐波",
@@ -1373,7 +1373,7 @@
           {
             "id": "memoryless-observation-submit",
             "prompt": "请选择一个非线性标签，调节参数，并说明输入输出图形哪一段发生变化。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应同时写出标签、参数组和对应的死区段、线性段或饱和段变化。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -1692,7 +1692,7 @@
           {
             "id": "relay-observation-submit",
             "prompt": "请选择一个继电、滞环或间隙标签，调节参数，并说明当前描述函数是否带虚部及原因。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "滞环继电和间隙具有路径相关性，通常带相位滞后和虚部；理想继电与死区继电在该近似下为实数。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -1822,7 +1822,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1841,7 +1841,7 @@
           {
             "id": "intersection-next",
             "prompt": "负倒描述函数曲线与 Nyquist 曲线相交后，下一步应做什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "检查微小扰动方向，并用时域仿真或实验复核",
               "直接宣布稳定自振",
@@ -2018,7 +2018,7 @@
           {
             "id": "perturbation-observation-submit",
             "prompt": "拖动 A1 或 A2 后，记录扰动后的运动方向和最终停留状态。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "稳定交点应回到对应交点；非稳定交点应远离，可能发散、衰减停止或停在下一个稳定交点。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2481,7 +2481,7 @@
           {
             "id": "negative-inverse-observation-submit",
             "prompt": "请选择一种非线性类型，调节参数，并记录负倒曲线移动方向和候选交点风险变化。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应说明曲线起点、A 增大方向、参数变化导致的移动方向以及是否更可能与 G(jω) 相交。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2675,7 +2675,7 @@
             "title": "随教师显影阅读求解链。",
             "prompt": "随教师显影阅读求解链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2860,7 +2860,7 @@
             "title": "随教师显影阅读求解链。",
             "prompt": "随教师显影阅读求解链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2999,7 +2999,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -3018,7 +3018,7 @@
           {
             "id": "deadzone-source",
             "prompt": "小幅稳态误差长期消不掉时，最先应怀疑执行器链条中的哪类非线性？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "阀芯搭接、摩擦或启动压力造成的死区",
               "线性部分没有积分环节",
@@ -3181,7 +3181,7 @@
           {
             "id": "gain-fix",
             "prompt": "降低 K 为什么能降低本组自振风险？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "使线性部分 Nyquist 曲线远离危险负倒曲线交点",
               "使死区宽度自动为零",
@@ -3194,7 +3194,7 @@
           {
             "id": "fix-directions",
             "prompt": "哪些整改方向同时作用在控制器和执行器边界上？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "降低中低频增益",
               "抗积分饱和",
@@ -3313,7 +3313,7 @@
           {
             "id": "tool-choice",
             "prompt": "某系统只在小扰动下偏离工作点，首选哪种入口判断线性主干是否仍可用？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "局部线性化",
               "相平面闭合轨道",
@@ -3326,7 +3326,7 @@
           {
             "id": "df-condition",
             "prompt": "使用描述函数公式前必须检查哪些条件？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "输入幅值区间",
               "非线性参数范围",
@@ -3344,7 +3344,7 @@
           {
             "id": "intersection-check",
             "prompt": "负倒描述函数交点出现后，还应检查微小扰动方向并用时域仿真复核。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"

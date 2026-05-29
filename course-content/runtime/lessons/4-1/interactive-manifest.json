@@ -311,7 +311,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -326,7 +326,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -341,7 +341,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -370,7 +370,7 @@
             "title": "系统稳定后的任务判断",
             "prompt": "系统已经稳定，下列哪项判断最准确？",
             "reference_answer": "B。稳定只说明系统没有失稳，不能替代任务表达、约束判断和优先级排序。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -393,7 +393,7 @@
             "title": "带宽指标的边界",
             "prompt": "关于带宽，下列说法哪项更准确？",
             "reference_answer": "B。带宽只是任务语言的一部分，要和储备、约束、场景目标一起判断。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -416,7 +416,7 @@
             "title": "指标角色与优先级",
             "prompt": "关于“所有指标都重要”，下列说法最准确的是：",
             "reference_answer": "B。任务书的核心不是全部写上，而是把角色和优先级写清。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -553,7 +553,7 @@
             "presentation": "single",
             "semanticRole": "comparison",
             "interactionKind": "structured-compare",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -591,7 +591,7 @@
             "title": "当前主要矛盾",
             "prompt": "客船航向控制当前最紧的矛盾是什么？",
             "reference_answer": "提速冲动与乘坐平顺、储备边界之间的矛盾。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -600,7 +600,7 @@
             "title": "必守边界",
             "prompt": "客船任务书中哪些边界必须先守住？",
             "reference_answer": "超调量、调节时间与裕度边界必须先进入当前任务允许范围。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -609,7 +609,7 @@
             "title": "证据来源",
             "prompt": "哪些图上证据支持“平顺与储备优先，再谈提速”？",
             "reference_answer": "对象框图、时域曲线、根轨迹、幅频与相频裕度共同支持该排序。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -844,7 +844,7 @@
             "presentation": "single",
             "semanticRole": "comparison",
             "interactionKind": "structured-compare",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -882,7 +882,7 @@
             "title": "速度前移原因",
             "prompt": "稳定平台为什么可以把速度和带宽排得更前？",
             "reference_answer": "平台场景的主任务强调快速跟踪，速度优势和工作带宽直接服务当前目标。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -891,7 +891,7 @@
             "title": "不能放松的边界",
             "prompt": "速度前移时仍不能放松什么边界？",
             "reference_answer": "超调、谐振峰、相角裕度和增益裕度等储备边界仍要被守住。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -900,7 +900,7 @@
             "title": "证据来源",
             "prompt": "综合图中哪些证据同时说明速度优势和储备代价？",
             "reference_answer": "主根轨迹、时域响应、幅频与相频窄图同时显示速度优势与储备压力。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1126,7 +1126,7 @@
             "legacyKind": "card-sort",
             "presentation": "single",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         },
         {
@@ -1178,7 +1178,7 @@
             "title": "双案例任务排序",
             "prompt": "把四条判断分别写回客船或稳定平台，并说明排序变化的证据来源。",
             "reference_answer": "客船先保过程平顺与储备，平台让速度与带宽前移；变的是任务优先级，不是证据语言。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1337,7 +1337,7 @@
             "legacyKind": "triple-match",
             "presentation": "single",
             "interactionKind": "drag-match",
-            "responseKind": "matching"
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -1379,7 +1379,7 @@
             "title": "指标角色配对",
             "prompt": "把指标与它优先回答的问题配对。",
             "reference_answer": "超调量 Mp -> 过程是否可接受；相角裕度 gamma -> 离风险边界还有多远；ITAE/IAE/ISE -> 全过程累计代价。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "card",
             "layout_span": "full",
             "match_items": [
@@ -1558,7 +1558,7 @@
             "legacyKind": "card-sort",
             "presentation": "single",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1595,7 +1595,7 @@
             "title": "指标角色归类",
             "prompt": "选择一个指标，说明它在当前任务中应写成硬约束、软目标还是观察指标。",
             "reference_answer": "角色由任务决定：不能破的是硬约束，守住底线后继续争取的是软目标，用来解释后果的是观察指标。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1783,7 +1783,7 @@
             "legacyKind": "task-card-workspace",
             "presentation": "single",
             "semanticRole": "task",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1830,7 +1830,7 @@
             "title": "任务表达卡核心字段",
             "prompt": "写出对象、控制目标、最紧矛盾、硬约束和软目标。",
             "reference_answer": "字段必须围绕具体案例填写，且不能缺少最紧矛盾与优先级。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -1839,7 +1839,7 @@
             "title": "证据来源与优先级",
             "prompt": "补充观察指标、证据来源和任务优先级。",
             "reference_answer": "证据来源必须点到图、表或公式；优先级必须说明为什么这样排序。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1995,7 +1995,7 @@
             "legacyKind": "binary-choice",
             "presentation": "single",
             "interactionKind": "binary-choice",
-            "responseKind": "binaryChoice"
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -2037,7 +2037,7 @@
             "title": "区域分层判断",
             "prompt": "“当前指标都满足，所以这已经是最优解。”这句话最准确的判断是：",
             "reference_answer": "acceptable_equals_optimal。满足当前任务边界最多说明进入可接受层，不能自动推出已经最优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2204,7 +2204,7 @@
             "legacyKind": "binary-choice",
             "presentation": "single",
             "interactionKind": "binary-choice",
-            "responseKind": "binaryChoice"
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -2247,7 +2247,7 @@
             "title": "误判归类",
             "prompt": "“单看一张图就足够写结论。”这类说法最准确的归类是：",
             "reference_answer": "single_graph_conclusion。任务表达需要多图证据、约束和排序，不能单图直接定结论。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2390,7 +2390,7 @@
             "title": "4-1 的出口",
             "prompt": "4-1 最先要做的动作是什么？",
             "reference_answer": "B。4-1 的出口是任务表达卡，而不是控制器选型或参数整定。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2413,7 +2413,7 @@
             "title": "区域分层",
             "prompt": "关于可行域、满意域和最优域，下列哪项最准确？",
             "reference_answer": "B。4-1 先筛边界和可接受区，不在本课里宣称最优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2436,7 +2436,7 @@
             "title": "同图异读原因",
             "prompt": "同一套分析图会在两个案例里读出不同排序，最主要原因是什么？",
             "reference_answer": "B。双案例共享同一套证据语言，但场景主矛盾不同，所以任务排序会重排。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [

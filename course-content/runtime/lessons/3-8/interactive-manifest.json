@@ -344,7 +344,7 @@
             "presentation": "single",
             "semanticRole": "record",
             "interactionKind": "reason-record",
-            "responseKind": "reasonRecord"
+            "responseKind": "text.structured"
           }
         },
         {
@@ -400,7 +400,7 @@
           {
             "id": "card-03-a",
             "prompt": "频率响应读图时，是否需要同时看幅值、相位和所在频带。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": true,
@@ -422,7 +422,7 @@
           {
             "id": "card-03-b",
             "prompt": "Bode 图中，截止频率右移是否只能说明速度倾向，不能单独说明综合性能更优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": true,
@@ -444,7 +444,7 @@
           {
             "id": "card-03-c",
             "prompt": "根轨迹或闭环极点更靠近虚轴时，稳定余量通常如何变化。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "smaller",
@@ -466,7 +466,7 @@
           {
             "id": "card-03-d",
             "prompt": "积分补偿改善低频稳态精度时，最需要警惕哪类频域代价。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid-phase",
@@ -1463,7 +1463,7 @@
           {
             "id": "card-06-a",
             "prompt": "哪一种变化最先改写低频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "gain",
@@ -1485,7 +1485,7 @@
           {
             "id": "card-06-b",
             "prompt": "哪一种变化最先改写中频，并带来“动态更积极但高频代价上升”的组合。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "gain",
@@ -2045,7 +2045,7 @@
             "legacyKind": "card-sort",
             "presentation": "single",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -2080,7 +2080,7 @@
           {
             "id": "card-10-a",
             "prompt": "把 K=80 与 K=110 分到正确类别。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               {
                 "value": "k80",
@@ -2098,7 +2098,7 @@
           {
             "id": "card-10-b",
             "prompt": "若目标是既提速又保留余量，应保留哪一类增益区间。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "stable-side",
@@ -2285,7 +2285,7 @@
             "legacyKind": "hotspot-labeling",
             "presentation": "single",
             "interactionKind": "hotspot-labeling",
-            "responseKind": "hotspotLabeling"
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -2328,7 +2328,7 @@
           {
             "id": "card-11-a",
             "prompt": "标出截止频率线与相位穿越频率线。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-line",
@@ -2354,7 +2354,7 @@
           {
             "id": "card-11-b",
             "prompt": "标出 PM 线与 GM 线。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-line",
@@ -2589,7 +2589,7 @@
           {
             "id": "card-12-a",
             "prompt": "相角裕度、增益裕度的正负共同说明系统位于稳定侧还是已经越过边界。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "stable-positive",
@@ -2611,7 +2611,7 @@
           {
             "id": "card-12-b",
             "prompt": "若要把系统拉回稳定侧，优先怎样处理截止频率或相位。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "left-or-phase",
@@ -2845,7 +2845,7 @@
           {
             "id": "step-15-activity",
             "prompt": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "low",
@@ -3029,7 +3029,7 @@
           {
             "id": "card-14-a",
             "prompt": "目标切换为“减小超调并减轻执行器波动”后，优先希望哪组频域量变化。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-right",
@@ -3051,7 +3051,7 @@
           {
             "id": "card-14-b",
             "prompt": "把本题目标与频段分工对应起来。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               {
                 "value": "accuracy-low",
@@ -3248,7 +3248,7 @@
           {
             "id": "card-15-a",
             "prompt": "哪一项证据最能说明基线方案的问题落在中频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "phase-margin-low",
@@ -3274,7 +3274,7 @@
           {
             "id": "card-15-b",
             "prompt": "补一句依据：为什么这不是低频问题。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid-evidence",
@@ -3510,7 +3510,7 @@
             "presentation": "single",
             "semanticRole": "comparison",
             "interactionKind": "structured-compare",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -3553,7 +3553,7 @@
           {
             "id": "card-16-a",
             "prompt": "航向控制校正主要改写哪一段频带，为什么不是单纯抬低频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid",
@@ -3575,7 +3575,7 @@
           {
             "id": "card-16-b",
             "prompt": "把频域变化读回闭环结果，哪一组说法最完整。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "faster-less-overshoot",
@@ -3781,7 +3781,7 @@
           {
             "id": "card-17-a",
             "prompt": "哪种方案只是通过降增益换稳定。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "baseline",
@@ -3803,7 +3803,7 @@
           {
             "id": "card-17-b",
             "prompt": "它主要牺牲了什么。",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               {
                 "value": "speed-loss",
@@ -4031,7 +4031,7 @@
             "presentation": "single",
             "semanticRole": "comparison",
             "interactionKind": "structured-compare",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -4070,7 +4070,7 @@
           {
             "id": "card-18-a",
             "prompt": "三种稳定平台方案中，哪一种最能兼顾速度与平稳。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "fast",
@@ -4092,7 +4092,7 @@
           {
             "id": "card-18-b",
             "prompt": "为什么“只降增益”不是最合适的方案。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "too-slow",
@@ -4299,7 +4299,7 @@
           {
             "id": "card-19-a",
             "prompt": "面对未知结构变化，先判定它主要改写低频、中频还是高频这一频带问题，再说明对应的闭环收益和代价。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "band-first",
@@ -4321,7 +4321,7 @@
           {
             "id": "card-19-b",
             "prompt": "使用 Nyquist 或 Bode 判断稳定边界时，应先保留哪类边界证据，再决定是否越过稳定侧。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "margin-or-pnz",
@@ -4343,7 +4343,7 @@
           {
             "id": "card-19-c",
             "prompt": "当频域量显示系统更快但裕度变小时，如何把结果读回闭环表现。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "faster-risk",
@@ -4365,7 +4365,7 @@
           {
             "id": "card-19-d",
             "prompt": "工程目标从“尽快跟踪”改为“减小超调和执行器波动”时，完整判断链应如何重排。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "goal-band-boundary-closed",
@@ -4564,7 +4564,7 @@
           {
             "id": "step-22-activity",
             "prompt": "选填一句反思，说明自己现在最稳的判断动作是什么。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "translate-first",

@@ -1067,7 +1067,6 @@ function createUNIT_3_8ModuleRegistry(input: {
       }
       return sharedRegistry['compute.panel'](props);
     },
-    'rust-analysis-panel': ({ module }) => <Unit38RustAnalysisPanel module={module} />,
   };
 }
 

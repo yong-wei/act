@@ -121,8 +121,6 @@ export function UNIT_4_4StepContentPanel({
       }
       return sharedRegistry['analytics.summary']?.(props) ?? null;
     },
-    'native-figure': renderNativeFigure,
-    'stat-panel': renderStatPanel,
   };
 
   return (

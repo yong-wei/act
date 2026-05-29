@@ -34,8 +34,8 @@
         ]
       },
       "modules": [
-        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+        { "id": "stage-map", "region": "lead", "kind": "content.stageMap", "must_be_visible": true , "payload": { "legacyKind": "stage-map", "presentation": "single" }},
+        { "id": "today-task", "region": "summary", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "key-task-card", "presentation": "single", "semanticRole": "keyTask" }}
       ],
       "content_blocks": [
         { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 2-2 -> 2-3 -> 2-4。" },
@@ -79,9 +79,9 @@
         ]
       },
       "modules": [
-        { "id": "command-disturbance-media", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "core-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
-        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+        { "id": "command-disturbance-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "illustration", "presentation": "single" }},
+        { "id": "core-questions", "region": "questions", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "question-list", "presentation": "single", "semanticRole": "question" }},
+        { "id": "binary-vote", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "binary-choice", "presentation": "single", "interactionKind": "binary-choice", "responseKind": "choice.binary" }}
       ],
       "content_blocks": [
         { "id": "questions", "type": "bullet_list", "title": "两问", "items": ["哪种节奏更容易通过？", "为什么系统不应追每一次抖动？"] },
@@ -130,8 +130,8 @@
         ]
       },
       "modules": [
-        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
-        { "id": "method-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true }
+        { "id": "goal-cards", "region": "goals", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "goal-card-row", "presentation": "row", "semanticRole": "goal" }},
+        { "id": "method-chain", "region": "chain", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-chain", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "goals", "type": "bullet_list", "title": "三项目标", "items": ["会拆频率成分。", "会读单频响应。", "会画 Bode 首轮骨架。"] },
@@ -174,9 +174,9 @@
         ]
       },
       "modules": [
-        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+        { "id": "pretest-q1", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "pretest-q2", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "pretest-q3", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }}
       ],
       "content_blocks": [
         { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["系统不是所有频率都一样。", "同频不等于同幅。", "高频压制后波形更平滑。"] }
@@ -220,9 +220,9 @@
         ]
       },
       "modules": [
-        { "id": "time-vs-frequency-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "transition-card", "region": "prompt", "kind": "bridge-card", "must_be_visible": true },
-        { "id": "short-response", "region": "interaction", "kind": "short-response", "must_be_visible": true }
+        { "id": "time-vs-frequency-table", "region": "table", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "transition-card", "region": "prompt", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "bridge-card", "presentation": "single", "semanticRole": "bridge" }},
+        { "id": "short-response", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "short-response", "presentation": "single", "responseKind": "text.short" }}
       ],
       "content_blocks": [
         { "id": "table", "type": "table", "title": "两种观察视角", "body": "时域看整体曲线，频域看不同节奏如何被处理。" },
@@ -266,9 +266,9 @@
         ]
       },
       "modules": [
-        { "id": "harmonic-media", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "logic-chain", "region": "logic", "kind": "bullet-chain", "must_be_visible": true },
-        { "id": "reconstruction-lab", "region": "workspace", "kind": "slider-workspace", "must_be_visible": true }
+        { "id": "harmonic-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "illustration", "presentation": "single" }},
+        { "id": "logic-chain", "region": "logic", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "bullet-chain" }},
+        { "id": "reconstruction-lab", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "slider-workspace" }}
       ],
       "content_blocks": [
         { "id": "logic-chain", "type": "bullet_list", "title": "三段主链", "items": ["复杂信号可分解为不同频率分量。", "系统对每个频率分量分别响应。", "各分量叠加后重构为最终时域输出。"] },
@@ -312,10 +312,10 @@
         ]
       },
       "modules": [
-        { "id": "entry-formula", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "steady-output-formula", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "three-conclusions", "region": "explain-strip", "kind": "bullet-strip", "must_be_visible": true },
-        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+        { "id": "entry-formula", "region": "formula-card", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "steady-output-formula", "region": "formula-card", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "three-conclusions", "region": "explain-strip", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "bullet-strip", "presentation": "strip" }},
+        { "id": "reason-check", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "reason-check", "responseKind": "text.structured" }}
       ],
       "content_blocks": [
         { "id": "entry-formula", "type": "formula", "title": "输入公式", "value": "r(t)=A\\sin(\\omega t)" },
@@ -360,9 +360,9 @@
         ]
       },
       "modules": [
-        { "id": "sine-compare-media", "region": "media", "kind": "wave-compare", "must_be_visible": true },
-        { "id": "meaning-table", "region": "meaning-table", "kind": "meaning-table", "must_be_visible": true },
-        { "id": "wave-switcher", "region": "interaction", "kind": "tab-switch", "must_be_visible": true }
+        { "id": "sine-compare-media", "region": "media", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "wave-compare" }},
+        { "id": "meaning-table", "region": "meaning-table", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "meaning-table" }},
+        { "id": "wave-switcher", "region": "interaction", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "tab-switch" }}
       ],
       "content_blocks": [
         { "id": "meaning-table", "type": "bullet_list", "title": "物理意义", "items": ["幅值变化对应放大/衰减。", "相位变化对应提前/滞后。", "命令更应被保留，扰动更应被抑制。"] }
@@ -405,9 +405,9 @@
         ]
       },
       "modules": [
-        { "id": "frequency-characteristic-card", "region": "formula-strip", "kind": "formula-card", "must_be_visible": true },
-        { "id": "definition-matrix", "region": "definition-matrix", "kind": "matrix-table", "must_be_visible": true },
-        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+        { "id": "frequency-characteristic-card", "region": "formula-strip", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "definition-matrix", "region": "definition-matrix", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "matrix-table", "presentation": "matrix" }},
+        { "id": "triple-match", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "triple-match", "presentation": "single", "interactionKind": "drag-match", "responseKind": "matching.pairs" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "频率特性", "value": "G(j\\omega)" },
@@ -452,9 +452,9 @@
         ]
       },
       "modules": [
-        { "id": "complex-plane-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "bridge-sentence", "region": "bridge", "kind": "concept-card", "must_be_visible": true },
-        { "id": "single-choice", "region": "interaction", "kind": "single-choice", "must_be_visible": true }
+        { "id": "complex-plane-card", "region": "formula", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "bridge-sentence", "region": "bridge", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "concept-card", "presentation": "single" }},
+        { "id": "single-choice", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }}
       ],
       "content_blocks": [
         { "id": "formula", "type": "formula", "title": "复变量分解", "value": "s=\\sigma+j\\omega" },
@@ -499,9 +499,9 @@
         ]
       },
       "modules": [
-        { "id": "axis-compare-media", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "reason-cards", "region": "reasons", "kind": "reason-card-row", "must_be_visible": true },
-        { "id": "highlight-toggle", "region": "interaction", "kind": "highlight-toggle", "must_be_visible": true }
+        { "id": "axis-compare-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "reason-cards", "region": "reasons", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "reason-card-row", "presentation": "row", "responseKind": "text.structured" }},
+        { "id": "highlight-toggle", "region": "interaction", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "highlight-toggle" }}
       ],
       "content_blocks": [
         { "id": "db-formula", "type": "formula", "title": "分贝表达", "value": "L(\\omega)=20\\log_{10}|G(j\\omega)|" },
@@ -545,9 +545,9 @@
         ]
       },
       "modules": [
-        { "id": "first-order-reference", "region": "reference", "kind": "formula-card", "must_be_visible": true },
-        { "id": "typical-element-cards", "region": "cards", "kind": "element-card-grid", "must_be_visible": true },
-        { "id": "card-sorter", "region": "interaction", "kind": "card-sort", "must_be_visible": true }
+        { "id": "first-order-reference", "region": "reference", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "typical-element-cards", "region": "cards", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "element-card-grid", "presentation": "grid" }},
+        { "id": "card-sorter", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "card-sort", "presentation": "single", "interactionKind": "card-sort", "responseKind": "ordering.sequence" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "对象表达", "value": "G(s)=\\frac{1}{Ts+1}" },
@@ -592,9 +592,9 @@
         ]
       },
       "modules": [
-        { "id": "workflow-cards", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "skeleton-media", "region": "media", "kind": "workflow-graphic", "must_be_visible": true },
-        { "id": "builder-workspace", "region": "workspace", "kind": "builder-workspace", "must_be_visible": true }
+        { "id": "workflow-cards", "region": "workflow", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "skeleton-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "workflow-graphic" }},
+        { "id": "builder-workspace", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "builder-workspace" }}
       ],
       "content_blocks": [
         { "id": "workflow", "type": "ordered_list", "title": "四步法", "items": ["写标准型。", "列转折频率。", "判最低频段。", "依次画趋势变化。"] },
@@ -639,10 +639,10 @@
         ]
       },
       "modules": [
-        { "id": "example-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
-        { "id": "four-step-method", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "calculation-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true },
-        { "id": "result-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+        { "id": "example-problem-card", "region": "problem", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "problem-card", "presentation": "single", "semanticRole": "problem" }},
+        { "id": "four-step-method", "region": "method", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "calculation-workspace", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "worked-example-workspace", "presentation": "single", "semanticRole": "example", "responseKind": "text.structured" }},
+        { "id": "result-card", "region": "result", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "result-card", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "problem-1", "type": "formula", "title": "对象", "value": "G(s)=\\frac{1}{0.5s+1}" },
@@ -688,10 +688,10 @@
         ]
       },
       "modules": [
-        { "id": "multi-frequency-problem", "region": "problem", "kind": "problem-card", "must_be_visible": true },
-        { "id": "rebuild-chain", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "component-workspace", "region": "workspace", "kind": "component-workspace", "must_be_visible": true },
-        { "id": "ai-compare-panel", "region": "ai-panel", "kind": "ai-compare-panel", "must_be_visible": true }
+        { "id": "multi-frequency-problem", "region": "problem", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "problem-card", "presentation": "single", "semanticRole": "problem" }},
+        { "id": "rebuild-chain", "region": "method", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "component-workspace", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "component-workspace" }},
+        { "id": "ai-compare-panel", "region": "ai-panel", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "ai-compare-panel", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "problem-1", "type": "formula", "title": "对象", "value": "G(s)=\\frac{1}{s+1}" },
@@ -736,9 +736,9 @@
         ]
       },
       "modules": [
-        { "id": "post-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q3", "region": "question-stack", "kind": "short-explain-card", "must_be_visible": true }
+        { "id": "post-q1", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "post-q2", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "post-q3", "region": "question-stack", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "short-explain-card", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "hint", "type": "plain_text", "title": "后测提示", "body": "既要会说出对象对什么频率更敏感，也要会把这种敏感性画成首轮骨架。" }
@@ -782,9 +782,9 @@
         ]
       },
       "modules": [
-        { "id": "five-takeaways", "region": "summary", "kind": "summary-card-grid", "must_be_visible": true },
-        { "id": "next-course-card", "region": "bridge", "kind": "bridge-card", "must_be_visible": true },
-        { "id": "quick-reference-entry", "region": "resources", "kind": "resource-entry", "must_be_visible": true }
+        { "id": "five-takeaways", "region": "summary", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "summary-card-grid", "presentation": "grid", "semanticRole": "summary" }},
+        { "id": "next-course-card", "region": "bridge", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "bridge-card", "presentation": "single", "semanticRole": "bridge" }},
+        { "id": "quick-reference-entry", "region": "resources", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "resource-entry" }}
       ],
       "content_blocks": [
         { "id": "takeaways", "type": "bullet_list", "title": "五条结论", "items": ["频域分析研究系统如何处理不同频率成分。", "正弦输入稳态后仍是同频输出。", "G(jω) 把传递函数对象翻译成频域对象。", "Bode 图是频率特性第一次稳定可见的入口。", "下节课推进到 Nyquist 与频域指标。"] },

@@ -34,8 +34,8 @@
         ]
       },
       "modules": [
-        { "id": "map-banner", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+        { "id": "map-banner", "region": "lead", "kind": "content.stageMap", "must_be_visible": true , "payload": { "legacyKind": "stage-map", "presentation": "single" }},
+        { "id": "today-task", "region": "summary", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "key-task-card", "presentation": "single", "semanticRole": "keyTask" }}
       ],
       "content_blocks": [
         {
@@ -101,10 +101,10 @@
         ]
       },
       "modules": [
-        { "id": "core-equation", "region": "equation", "kind": "formula-card", "must_be_visible": true },
-        { "id": "three-questions", "region": "equation", "kind": "question-list", "must_be_visible": true },
-        { "id": "cover-comic", "region": "comic", "kind": "image-card", "must_be_visible": true },
-        { "id": "binary-judge", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+        { "id": "core-equation", "region": "equation", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "three-questions", "region": "equation", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "question-list", "presentation": "single", "semanticRole": "question" }},
+        { "id": "cover-comic", "region": "comic", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "image-card", "presentation": "single", "semanticRole": "media" }},
+        { "id": "binary-judge", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "binary-choice", "presentation": "single", "interactionKind": "binary-choice", "responseKind": "choice.binary" }}
       ],
       "content_blocks": [
         {
@@ -176,8 +176,8 @@
         ]
       },
       "modules": [
-        { "id": "object-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true },
-        { "id": "goal-cards", "region": "cards", "kind": "goal-card-row", "must_be_visible": true }
+        { "id": "object-chain", "region": "chain", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-chain", "presentation": "single" }},
+        { "id": "goal-cards", "region": "cards", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "goal-card-row", "presentation": "row", "semanticRole": "goal" }}
       ],
       "content_blocks": [
         {
@@ -227,9 +227,9 @@
         ]
       },
       "modules": [
-        { "id": "misconception-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "misconception-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "misconception-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+        { "id": "misconception-q1", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "misconception-q2", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "misconception-q3", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }}
       ],
       "content_blocks": [
         {
@@ -281,9 +281,9 @@
         ]
       },
       "modules": [
-        { "id": "language-contrast", "region": "contrast", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "minimum-formulas", "region": "formula-strip", "kind": "formula-strip", "must_be_visible": true },
-        { "id": "one-line-reflection", "region": "reflection", "kind": "short-response", "must_be_visible": true }
+        { "id": "language-contrast", "region": "contrast", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "minimum-formulas", "region": "formula-strip", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-strip", "presentation": "strip" }},
+        { "id": "one-line-reflection", "region": "reflection", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "short-response", "presentation": "single", "responseKind": "text.short" }}
       ],
       "content_blocks": [
         {
@@ -337,9 +337,9 @@
         ]
       },
       "modules": [
-        { "id": "transfer-definition", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "object-separation", "region": "explain-cards", "kind": "conclusion-cards", "must_be_visible": true },
-        { "id": "checklist", "region": "reason-checklist", "kind": "multi-check", "must_be_visible": true }
+        { "id": "transfer-definition", "region": "formula-card", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "object-separation", "region": "explain-cards", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "conclusion-cards", "presentation": "single", "semanticRole": "conclusion" }},
+        { "id": "checklist", "region": "reason-checklist", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "multi-check", "presentation": "single", "interactionKind": "multi-select", "responseKind": "choice.multi" }}
       ],
       "content_blocks": [
         {
@@ -388,9 +388,9 @@
         ]
       },
       "modules": [
-        { "id": "object-state-compare", "region": "compare-table", "kind": "two-column-compare", "must_be_visible": true },
-        { "id": "reflection-form", "region": "self-judgment", "kind": "three-field-form", "must_be_visible": true },
-        { "id": "bounded-ai", "region": "ai-panel", "kind": "ai-assistant", "must_be_visible": true }
+        { "id": "object-state-compare", "region": "compare-table", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "two-column-compare", "presentation": "column", "semanticRole": "comparison" }},
+        { "id": "reflection-form", "region": "self-judgment", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "three-field-form", "presentation": "single", "responseKind": "text.structured" }},
+        { "id": "bounded-ai", "region": "ai-panel", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "ai-assistant", "presentation": "single", "interactionKind": "ai-assisted" }}
       ],
       "content_blocks": [
         {
@@ -444,10 +444,10 @@
         ]
       },
       "modules": [
-        { "id": "elements-table", "region": "table-zone", "kind": "table-card", "must_be_visible": true },
-        { "id": "elements-map", "region": "map-zone", "kind": "image-or-table-fallback", "must_be_visible": true },
-        { "id": "drag-board", "region": "game-stage", "kind": "drag-match-board", "must_be_visible": true },
-        { "id": "result-bar", "region": "submit-zone", "kind": "submit-feedback-bar", "must_be_visible": true }
+        { "id": "elements-table", "region": "table-zone", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "table-card", "presentation": "single" }},
+        { "id": "elements-map", "region": "map-zone", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "image-or-table-fallback", "presentation": "fallback", "semanticRole": "media" }},
+        { "id": "drag-board", "region": "game-stage", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "drag-match-board", "presentation": "board", "interactionKind": "drag-match", "responseKind": "matching.pairs" }},
+        { "id": "result-bar", "region": "submit-zone", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "submit-feedback-bar", "presentation": "single", "semanticRole": "feedback" }}
       ],
       "content_blocks": [
         {
@@ -560,9 +560,9 @@
         ]
       },
       "modules": [
-        { "id": "three-formulas", "region": "formula-strip", "kind": "formula-strip", "must_be_visible": true },
-        { "id": "rule-cards", "region": "rule-cards", "kind": "rule-card-row", "must_be_visible": true },
-        { "id": "judge-zone", "region": "judge-zone", "kind": "judge-form", "must_be_visible": true }
+        { "id": "three-formulas", "region": "formula-strip", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-strip", "presentation": "strip" }},
+        { "id": "rule-cards", "region": "rule-cards", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "rule-card-row", "presentation": "row", "semanticRole": "rule" }},
+        { "id": "judge-zone", "region": "judge-zone", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "judge-form", "presentation": "single", "interactionKind": "quiz", "responseKind": "text.structured" }}
       ],
       "content_blocks": [
         {
@@ -615,9 +615,9 @@
         ]
       },
       "modules": [
-        { "id": "ship-diagram", "region": "diagram", "kind": "engineering-diagram", "must_be_visible": true },
-        { "id": "role-cards", "region": "role-cards", "kind": "role-card-row", "must_be_visible": true },
-        { "id": "feedback-task", "region": "feedback-task", "kind": "short-response", "must_be_visible": true }
+        { "id": "ship-diagram", "region": "diagram", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "engineering-diagram", "presentation": "single" }},
+        { "id": "role-cards", "region": "role-cards", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "role-card-row", "presentation": "row", "semanticRole": "role" }},
+        { "id": "feedback-task", "region": "feedback-task", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "short-response", "presentation": "single", "responseKind": "text.short" }}
       ],
       "content_blocks": [
         {
@@ -666,8 +666,8 @@
         ]
       },
       "modules": [
-        { "id": "diagram-comparison", "region": "left-diagram", "kind": "dual-diagram", "must_be_visible": true },
-        { "id": "task-table", "region": "comparison-table", "kind": "comparison-table", "must_be_visible": true }
+        { "id": "diagram-comparison", "region": "left-diagram", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "dual-diagram", "presentation": "single" }},
+        { "id": "task-table", "region": "comparison-table", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }}
       ],
       "content_blocks": [
         {
@@ -716,9 +716,9 @@
         ]
       },
       "modules": [
-        { "id": "mason-formula", "region": "formula-zone", "kind": "formula-card", "must_be_visible": true },
-        { "id": "term-defs", "region": "term-cards", "kind": "definition-cards", "must_be_visible": true },
-        { "id": "term-match", "region": "match-stage", "kind": "drag-match-board", "must_be_visible": true }
+        { "id": "mason-formula", "region": "formula-zone", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "term-defs", "region": "term-cards", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "definition-cards", "presentation": "single", "semanticRole": "definition" }},
+        { "id": "term-match", "region": "match-stage", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "drag-match-board", "presentation": "board", "interactionKind": "drag-match", "responseKind": "matching.pairs" }}
       ],
       "content_blocks": [
         {
@@ -769,9 +769,9 @@
         ]
       },
       "modules": [
-        { "id": "example-steps", "region": "step-cards", "kind": "worked-example-cards", "must_be_visible": true },
-        { "id": "loop-diagram", "region": "diagram-zone", "kind": "diagram-pair", "must_be_visible": true },
-        { "id": "channel-check", "region": "check-zone", "kind": "choice-check", "must_be_visible": true }
+        { "id": "example-steps", "region": "step-cards", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "worked-example-cards", "presentation": "single", "semanticRole": "example" }},
+        { "id": "loop-diagram", "region": "diagram-zone", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "diagram-pair", "presentation": "single" }},
+        { "id": "channel-check", "region": "check-zone", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "choice-check", "presentation": "single", "interactionKind": "quiz", "responseKind": "choice.single" }}
       ],
       "content_blocks": [
         {
@@ -830,9 +830,9 @@
         ]
       },
       "modules": [
-        { "id": "formula-chain", "region": "formula-chain", "kind": "formula-strip", "must_be_visible": true },
-        { "id": "sfg-stage", "region": "highlight-stage", "kind": "path-highlight-stage", "must_be_visible": true },
-        { "id": "reason-box", "region": "explain-box", "kind": "single-reason-response", "must_be_visible": true }
+        { "id": "formula-chain", "region": "formula-chain", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-strip", "presentation": "strip" }},
+        { "id": "sfg-stage", "region": "highlight-stage", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "path-highlight-stage", "presentation": "single" }},
+        { "id": "reason-box", "region": "explain-box", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-reason-response", "presentation": "single", "responseKind": "text.structured" }}
       ],
       "content_blocks": [
         {
@@ -891,8 +891,8 @@
         ]
       },
       "modules": [
-        { "id": "post-quiz", "region": "quiz-stack", "kind": "quiz-group", "must_be_visible": true },
-        { "id": "distribution", "region": "distribution", "kind": "teacher-only-distribution", "must_be_visible": false }
+        { "id": "post-quiz", "region": "quiz-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "quiz-group", "presentation": "single", "interactionKind": "quiz" }},
+        { "id": "distribution", "region": "distribution", "kind": "analytics.summary", "must_be_visible": false , "payload": { "legacyKind": "teacher-only-distribution", "presentation": "single", "semanticRole": "teacherHint", "interactionKind": "teacher-only" }}
       ],
       "content_blocks": [
         {
@@ -941,8 +941,8 @@
         ]
       },
       "modules": [
-        { "id": "summary-chain", "region": "summary-chain", "kind": "summary-chain", "must_be_visible": true },
-        { "id": "summary-image", "region": "finished-steps", "kind": "summary-image", "must_be_visible": true }
+        { "id": "summary-chain", "region": "summary-chain", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "summary-chain", "presentation": "single", "semanticRole": "summary" }},
+        { "id": "summary-image", "region": "finished-steps", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "summary-image", "presentation": "single", "semanticRole": "summary" }}
       ],
       "content_blocks": [
         {

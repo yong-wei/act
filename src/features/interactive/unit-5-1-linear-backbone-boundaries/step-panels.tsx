@@ -651,7 +651,6 @@ export function UNIT_5_1StepContentPanel({
   };
   const moduleRegistry = {
     ...sharedRegistry,
-    'rust-analysis-panel': renderRustAnalysisPanel,
     'compute.panel': (props: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
       const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
@@ -665,7 +664,6 @@ export function UNIT_5_1StepContentPanel({
         extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
       });
     },
-    'stat-panel': renderStatPanel,
     'analytics.summary': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
       const legacyKind = typeof module.payload.legacyKind === 'string' ? module.payload.legacyKind : '';
       if (legacyKind === 'stat-panel') {

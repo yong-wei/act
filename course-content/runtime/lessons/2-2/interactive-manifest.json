@@ -147,7 +147,7 @@
           "must_be_visible": true,
           "title": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。",
           "payload": {
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "interaction_kind": "binary_choice",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -180,7 +180,7 @@
             "id": "step-02:response",
             "title": "情境引入——稳定并不等于表现一样",
             "prompt": "比较两条都稳定的曲线，先建立“动态过程也要评价”的意识。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -344,7 +344,7 @@
           "must_be_visible": true,
           "title": "用三道速测题暴露“稳定、快速、超调”之间的混淆。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -377,7 +377,7 @@
             "id": "step-04:response",
             "title": "前测——快、稳、冲分别看什么",
             "prompt": "用三道速测题暴露“稳定、快速、超调”之间的混淆。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -473,7 +473,7 @@
           "must_be_visible": true,
           "title": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -506,7 +506,7 @@
             "id": "step-05:response",
             "title": "时域分析对象与典型输入",
             "prompt": "区分脉冲、阶跃、斜坡，但把单位阶跃确立为本课默认场景。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -590,7 +590,7 @@
           "must_be_visible": true,
           "title": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -625,7 +625,7 @@
             "id": "step-06:response",
             "title": "一阶系统阶跃响应与时间常数",
             "prompt": "抓住 t=T 时达到终值 63.2% 这一锚点，理解时间尺度。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -714,7 +714,7 @@
           "must_be_visible": true,
           "title": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。",
           "payload": {
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "interaction_kind": "triple_match",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -747,7 +747,7 @@
             "id": "step-07:response",
             "title": "二阶系统标准型：ωn、ζ、ωd",
             "prompt": "把自然频率、阻尼比和阻尼振荡频率三者各自负责的现象说清楚。",
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -883,7 +883,7 @@
           "must_be_visible": true,
           "title": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -916,7 +916,7 @@
             "id": "step-08:response",
             "title": "四种响应家族对比",
             "prompt": "把无阻尼、欠阻尼、临界阻尼、过阻尼看成阻尼比连续变化的一条谱。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -993,7 +993,7 @@
           "must_be_visible": true,
           "title": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1026,7 +1026,7 @@
             "id": "step-09:response",
             "title": "动态性能指标总览",
             "prompt": "先把上升时间、峰值时间、超调量、调节时间的语言全景搭起来。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1108,7 +1108,7 @@
           "must_be_visible": true,
           "title": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1141,7 +1141,7 @@
             "id": "step-10:response",
             "title": "上升时间的定义与推导",
             "prompt": "理解“第一次到达终值”的含义，并判断 wn 变化对 tr 的影响。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1225,7 +1225,7 @@
           "must_be_visible": true,
           "title": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1258,7 +1258,7 @@
             "id": "step-11:response",
             "title": "峰值时间与超调量",
             "prompt": "明确 Mp 主要由 zeta 决定，而不是由 wn 决定。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1345,7 +1345,7 @@
           "must_be_visible": true,
           "title": "区分严格定义与工程近似，并把注意力转到极点实部。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1380,7 +1380,7 @@
             "id": "step-12:response",
             "title": "调节时间与误差带",
             "prompt": "区分严格定义与工程近似，并把注意力转到极点实部。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1474,7 +1474,7 @@
           "must_be_visible": true,
           "title": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1509,7 +1509,7 @@
             "id": "step-13:response",
             "title": "例题一——已知参数求指标",
             "prompt": "按“读 wn、zeta -> 求 wd -> 顺推四指标”的三步法组织解题。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1603,7 +1603,7 @@
           "must_be_visible": true,
           "title": "先独立判断参数约束，再让 AI 帮你核对推理链。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1638,7 +1638,7 @@
             "id": "step-14:response",
             "title": "例题二——由指标反推参数区域 + AI 对照",
             "prompt": "先独立判断参数约束，再让 AI 帮你核对推理链。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1729,7 +1729,7 @@
           "must_be_visible": true,
           "title": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1762,7 +1762,7 @@
             "id": "step-15:response",
             "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
             "prompt": "把“更快、更稳、更小超调”翻译成复平面中的极点区域语言。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1839,7 +1839,7 @@
           "must_be_visible": true,
           "title": "检验你是否能把公式结果翻译回系统品质语言。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1872,7 +1872,7 @@
             "id": "step-16:response",
             "title": "后测——公式会算，更要会解释",
             "prompt": "检验你是否能把公式结果翻译回系统品质语言。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [

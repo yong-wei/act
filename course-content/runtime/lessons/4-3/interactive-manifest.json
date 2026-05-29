@@ -291,7 +291,7 @@
           {
             "id": "q-loop",
             "prompt": "$L(s)=C(s)G(s)$ 主要表示哪条分析主环路？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "反馈主环路",
               "扰动前馈通道",
@@ -304,7 +304,7 @@
           {
             "id": "q-disturbance",
             "prompt": "扰动加入点不同会改变扰动到输出通道。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -316,7 +316,7 @@
           {
             "id": "q-time",
             "prompt": "哪些量可从时域响应直接读取？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "调节时间",
               "超调量",
@@ -330,7 +330,7 @@
           {
             "id": "q-order",
             "prompt": "读复合方案时的合理顺序是对象通道、控制律、验证指标。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -513,7 +513,7 @@
           {
             "id": "main-start",
             "prompt": "哪类候选最适合作为本案例反馈主结构起点？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "滞后",
               "超前或超前-滞后",
@@ -526,7 +526,7 @@
           {
             "id": "gap-select",
             "prompt": "哪些问题需要复合控制或工程保护？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "可测扰动补偿",
               "参考突变",
@@ -647,7 +647,7 @@
             "legacyKind": "card-sort",
             "presentation": "single",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -689,7 +689,7 @@
           {
             "id": "classify",
             "prompt": "分类：扰动前馈、给定滤波、抗积分饱和、串级控制、MPC。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               "狭义复合控制",
               "实现层复合",
@@ -1025,7 +1025,7 @@
           {
             "id": "disturbance-role-card",
             "prompt": "扰动前馈加入后，反馈环节仍负责哪些任务？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "稳定闭环",
               "鲁棒修正",
@@ -1215,7 +1215,7 @@
           {
             "id": "inverse-risk",
             "prompt": "完美逆模型在工程实现中可能带来哪些风险？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "非最小相位零点",
               "纯滞后",
@@ -1391,7 +1391,7 @@
           {
             "id": "validation-evidence",
             "prompt": "复合控制首轮验证至少应同时看哪些证据？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "反馈主环路裕度",
               "参考响应",
@@ -1493,7 +1493,7 @@
             "legacyKind": "card-sort",
             "presentation": "single",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1520,7 +1520,7 @@
           {
             "id": "derivative-match-card",
             "prompt": "将微分滤波、输出微分、理想微分与限制噪声、避免设定值冲击、高频风险匹配。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               "限制噪声",
               "避免设定值冲击",
@@ -1669,7 +1669,7 @@
           {
             "id": "setpoint-smooth",
             "prompt": "给定滤波主要让响应更快还是更平滑？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "更快",
               "更平滑",
@@ -1856,7 +1856,7 @@
           {
             "id": "antiwindup-effect",
             "prompt": "执行器饱和时，$u_{act}-u$ 为什么会削弱积分继续累积？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "$u_{act}$ 小于控制器原始需求，差额反馈到积分通道后抵消部分误差推动，使积分状态不再追逐不可实现控制量。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2026,7 +2026,7 @@
           {
             "id": "disturbance-path",
             "prompt": "扰动为什么不经过舵机动态 $G_a(s)$？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "扰动在执行器之后、对象之前进入，因此扰动通道为 $G_p(s)$，不包含舵机动态 $G_a(s)$。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2228,7 +2228,7 @@
             "id": "disturbance-params",
             "title": "扰动前馈参数记录",
             "prompt": "提交当前扰动前馈零点、低通截止频率和前馈强度。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "关注扰动偏移是否下降，同时检查舵角补偿是否过大。"
@@ -2425,7 +2425,7 @@
             "id": "reference-params",
             "title": "参考前馈参数记录",
             "prompt": "提交参考前馈低通截止频率和前馈强度。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "关注给定变化阶段的跟随滞后和舵角峰值。"
@@ -2615,7 +2615,7 @@
             "id": "setpoint-filter-observation",
             "title": "给定滤波观察记录",
             "prompt": "提交当前给定滤波截止频率，并说明航向平顺性和跟踪速度怎样变化。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "截止频率降低通常使响应更平滑、舵角更温和，但跟踪速度下降。"
@@ -2866,7 +2866,7 @@
             "id": "issue-list",
             "title": "首轮问题清单",
             "prompt": "记录当前 $T_{aw}$、恢复速度、舵角贴边时间和下一轮优先调整项。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "抗饱和应缩短饱和解除后的拖尾；下一轮优先项应来自响应、舵角和贴边时间的共同证据。"
@@ -2987,7 +2987,7 @@
           {
             "id": "post-q1",
             "prompt": "扰动前馈的主要作用是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "提前补偿可测扰动",
               "替代反馈稳定闭环",
@@ -3000,7 +3000,7 @@
           {
             "id": "post-q2",
             "prompt": "只看 Bode 主环路会漏掉哪些问题？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "前馈抵消效果",
               "执行器限幅",
@@ -3014,7 +3014,7 @@
           {
             "id": "post-q3",
             "prompt": "给出一条首轮问题清单句子，包含已满足目标、已暴露代价和下一轮优先项。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "示例：调节时间已接近目标，但舵角贴边时间偏长，下一轮优先调整前馈强度或抗饱和时间常数。",
             "submit_scope": "per_card",
             "layout_span": "full"

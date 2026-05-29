@@ -378,7 +378,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -393,7 +393,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -408,7 +408,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -422,7 +422,7 @@
             "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。",
             "legacyKind": "short-response",
             "presentation": "single",
-            "responseKind": "shortText"
+            "responseKind": "text.short"
           }
         }
       ],
@@ -445,7 +445,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -455,7 +455,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -465,7 +465,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -593,7 +593,7 @@
             "legacyKind": "annotation-choice",
             "presentation": "single",
             "interactionKind": "quiz",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         },
         {
@@ -659,7 +659,7 @@
             "title": "标记被零点拉走的分支，并勾选被重排的实轴区段。",
             "prompt": "标记被零点拉走的分支，并勾选被重排的实轴区段。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -774,7 +774,7 @@
             "text": "我认为 ________ 被重排得更明显，因为 ________。",
             "legacyKind": "short-response",
             "presentation": "single",
-            "responseKind": "shortText"
+            "responseKind": "text.short"
           }
         }
       ],
@@ -821,7 +821,7 @@
             "title": "完成一句比较判断。",
             "prompt": "完成一句比较判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -982,7 +982,7 @@
             "title": "提交一个风险预测，并写一句理由。",
             "prompt": "提交一个风险预测，并写一句理由。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1104,7 +1104,7 @@
             "legacyKind": "binary-choice",
             "presentation": "single",
             "interactionKind": "binary-choice",
-            "responseKind": "binaryChoice"
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -1149,7 +1149,7 @@
             "title": "判断测速反馈是否在前向通道显式增加零点。",
             "prompt": "判断测速反馈是否在前向通道显式增加零点。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1266,7 +1266,7 @@
             "legacyKind": "worked-example-workspace",
             "presentation": "single",
             "semanticRole": "example",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1302,7 +1302,7 @@
             "title": "填写 K_d=K_t 的数值，并写一句结构解释。",
             "prompt": "填写 K_d=K_t 的数值，并写一句结构解释。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1424,7 +1424,7 @@
             "presentation": "single",
             "semanticRole": "comparison",
             "interactionKind": "structured-compare",
-            "responseKind": "structured"
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1467,7 +1467,7 @@
             "title": "分别填写共同点与不同点，并覆盖根轨迹、时域、频域三个域。",
             "prompt": "分别填写共同点与不同点，并覆盖根轨迹、时域、频域三个域。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1590,7 +1590,7 @@
             "legacyKind": "frequency-band-labeling",
             "presentation": "single",
             "interactionKind": "hotspot-labeling",
-            "responseKind": "hotspotLabeling"
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -1631,7 +1631,7 @@
             "title": "为低频、拐点后与高频区域放置正确标签。",
             "prompt": "为低频、拐点后与高频区域放置正确标签。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1785,7 +1785,7 @@
             "title": "定位相位峰频带，并匹配其主要改善对象。",
             "prompt": "定位相位峰频带，并匹配其主要改善对象。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1907,7 +1907,7 @@
             "legacyKind": "scenario-sort-matrix",
             "presentation": "matrix",
             "interactionKind": "card-sort",
-            "responseKind": "sorting"
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1957,7 +1957,7 @@
             "title": "把四个场景拖放到优先想 PD、优先想超前、需要再判边界三栏。",
             "prompt": "把四个场景拖放到优先想 PD、优先想超前、需要再判边界三栏。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2107,7 +2107,7 @@
             "title": "写出为什么会先反向动的一句解释。",
             "prompt": "写出为什么会先反向动的一句解释。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2267,7 +2267,7 @@
             "title": "判断规则陈述是否同时包含结论与原因。",
             "prompt": "判断规则陈述是否同时包含结论与原因。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2420,7 +2420,7 @@
             "title": "完成两题客观题和一题简短解释题。",
             "prompt": "完成两题客观题和一题简短解释题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []

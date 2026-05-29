@@ -217,7 +217,7 @@
             "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
             "legacy_kind": "binary-choice",
             "migration_source": "legacy_module_kind",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "binary_choice",
@@ -261,7 +261,7 @@
             "title": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
             "prompt": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -440,7 +440,7 @@
             "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
             "legacy_kind": "single-choice-card",
             "migration_source": "legacy_module_kind",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "quiz_group",
@@ -464,7 +464,7 @@
             "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
             "legacy_kind": "single-choice-card",
             "migration_source": "legacy_module_kind",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "quiz_group",
@@ -488,7 +488,7 @@
             "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
             "legacy_kind": "single-choice-card",
             "migration_source": "legacy_module_kind",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "quiz_group",
@@ -520,7 +520,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -530,7 +530,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -540,7 +540,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -650,7 +650,7 @@
             "block_key": "minimum-formulas",
             "legacy_kind": "short-response",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "short_response",
@@ -682,7 +682,7 @@
             "title": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
             "prompt": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -792,7 +792,7 @@
             "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
             "legacy_kind": "multi-check",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "multi_check",
@@ -820,7 +820,7 @@
             "title": "勾选“对象与输入分离”的三个理由。",
             "prompt": "勾选“对象与输入分离”的三个理由。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -913,7 +913,7 @@
             "block_key": "compare-formulas",
             "legacy_kind": "three-field-form",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "reflection_form",
@@ -955,7 +955,7 @@
             "title": "先写个人判断，再用页内 AI 对照。",
             "prompt": "先写个人判断，再用页内 AI 对照。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1071,7 +1071,7 @@
             "text": "先看上方总表，再进入下方拖拽舞台。学生要把公式卡、名称卡、第一眼工程判断卡拖到同一对象槽位中；舞台允许加入干扰项，但不能把拖拽题降级成单选或文本表单。",
             "legacy_kind": "drag-match-board",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "drag_match",
@@ -1092,7 +1092,7 @@
             "title": "五类典型环节及其第一判断",
             "legacy_kind": "submit-feedback-bar",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "drag_match",
@@ -1201,7 +1201,7 @@
             "title": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
             "prompt": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1324,7 +1324,7 @@
             "block_key": "three-formulas",
             "legacy_kind": "judge-form",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "rule_judge",
@@ -1356,7 +1356,7 @@
             "title": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
             "prompt": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1461,7 +1461,7 @@
             "block_key": "ship-diagram",
             "legacy_kind": "short-response",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "hotspot_labeling",
@@ -1489,7 +1489,7 @@
             "title": "指出反馈信号，并说明传感器怎样把闭环关上。",
             "prompt": "指出反馈信号，并说明传感器怎样把闭环关上。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1601,7 +1601,7 @@
             "title": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
             "prompt": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1707,7 +1707,7 @@
             "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}",
             "legacy_kind": "drag-match-board",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "drag_match",
@@ -1739,7 +1739,7 @@
             "title": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
             "prompt": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1850,7 +1850,7 @@
             "block_key": "diagrams",
             "legacy_kind": "choice-check",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "choice_check",
@@ -1889,7 +1889,7 @@
             "title": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
             "prompt": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1995,7 +1995,7 @@
             "block_key": "formula-chain",
             "legacy_kind": "single-reason-response",
             "migration_source": "legacy_module_kind",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "path_highlight",
@@ -2032,7 +2032,7 @@
             "title": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
             "prompt": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2113,7 +2113,7 @@
             "text": "三题分别检查零初值、典型环节识别和余子式判断。",
             "legacy_kind": "quiz-group",
             "migration_source": "legacy_module_kind",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "structured_extra_evidence": {
               "source": "interaction_spec",
               "interaction_kind": "quiz_group",
@@ -2153,7 +2153,7 @@
             "title": "完成后测三题。",
             "prompt": "完成后测三题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []

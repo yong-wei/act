@@ -283,7 +283,7 @@
             "id": "first-order-parameter",
             "title": "一阶对象参数影响",
             "prompt": "一阶对象 $G(s)=K/(Ts+1)$ 中，若 $K$ 变小且 $T$ 变大，在相同阶跃输入下，输出响应最可能表现为：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -297,7 +297,7 @@
             "id": "closed-loop-error",
             "title": "闭环误差含义",
             "prompt": "闭环跟踪问题中，$e(t)=r(t)-y(t)$ 的含义是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -311,7 +311,7 @@
             "id": "rudder-limit",
             "title": "执行限幅含义",
             "prompt": "舵角限制 $|\\delta|\\le 12^\\circ$ 的直接含义是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -465,7 +465,7 @@
             "id": "model-advantage",
             "title": "模型驱动优势来源",
             "prompt": "模型驱动控制的优势主要来自什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -479,7 +479,7 @@
             "id": "model-evidence",
             "title": "模型结构可信后的证据",
             "prompt": "模型结构可信时，哪些判断更容易建立证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -624,7 +624,7 @@
             "id": "pressure-match",
             "title": "复杂链路压力来源匹配",
             "prompt": "将左侧完整现象匹配到右侧压力类别。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -862,7 +862,7 @@
             "id": "prediction-observation",
             "title": "预测偏差观察记录",
             "prompt": "记录一个观察区间、一个最大误差读数，并说明预测误差下降说明什么、还不能说明什么。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "预测误差下降说明当前数据修正能改善预测；还不能证明后段工况覆盖充分或闭环安全已经成立。"
@@ -1033,7 +1033,7 @@
             "id": "first-action",
             "title": "滚动执行动作",
             "prompt": "MPC 每次求得一串候选控制量后实际执行哪一部分？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1047,7 +1047,7 @@
             "id": "mpc-elements",
             "title": "MPC 三要素",
             "prompt": "MPC 的三个核心要素是什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1174,7 +1174,7 @@
             "id": "mpc-dependency",
             "title": "MPC 双重依赖",
             "prompt": "上述例子中，MPC 的双重依赖是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1349,7 +1349,7 @@
             "id": "source-change",
             "title": "信息来源变化",
             "prompt": "数据驱动控制的核心变化是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1363,7 +1363,7 @@
             "id": "coverage-risk",
             "title": "覆盖不足风险",
             "prompt": "若数据只覆盖正常工况，主要风险是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1535,7 +1535,7 @@
             "title": "按教师节奏阅读在线模型更新链。",
             "prompt": "按教师节奏阅读在线模型更新链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1696,7 +1696,7 @@
             "id": "condition-gaps",
             "title": "进入条件缺项判断",
             "prompt": "该案例缺少哪些进入条件证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1871,7 +1871,7 @@
             "id": "hull-dynamics",
             "title": "船体动态责任",
             "prompt": "船体低速操纵动态优先由哪类方法承担？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1885,7 +1885,7 @@
             "id": "perception-error",
             "title": "感知误差局部职责",
             "prompt": "感知误差随水域密度变化明显时，数据驱动可承担什么局部职责？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2054,7 +2054,7 @@
             "id": "route-match",
             "title": "三路线匹配",
             "prompt": "将传统固定控制、名义模型 MPC、数据驱动模型 MPC 匹配到对应信息来源和主要局限。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -2292,7 +2292,7 @@
             "id": "route-observation",
             "title": "性能收益与新增代价",
             "prompt": "选择一条路线和一个观察区间，写出一个性能收益和一个新增代价。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "数据驱动模型 MPC 可降低累计绝对误差 IAE，但舵角触边比例升高，需要数据覆盖、在线辨识稳定性和约束监控。"
@@ -2466,7 +2466,7 @@
             "id": "no-whole-switch",
             "title": "整体切换风险",
             "prompt": "看到模型失配时，为什么不应整体切换到数据驱动？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2480,7 +2480,7 @@
             "id": "simulation-validation",
             "title": "仿真数据真实验证",
             "prompt": "仿真数据表现良好时，部署前仍需检查什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2610,7 +2610,7 @@
             "id": "error-reduction",
             "title": "误差降低比例",
             "prompt": "某数据修正模型把最大预测误差从 9.6° 降到 4.8°，误差降低比例是多少？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2624,7 +2624,7 @@
             "id": "closed-loop-evidence",
             "title": "闭环证据补充",
             "prompt": "误差降低后，仍需补充哪些闭环证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2646,7 +2646,7 @@
             "id": "local-duty",
             "title": "局部责任短答",
             "prompt": "船体模型可靠，但感知误差随水域密度变化明显。写出一项数据驱动局部职责和一项必须保留的模型或规则职责。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "reference_answer": "数据可估计不同水域密度下的感知误差范围并转化为安全距离裕度；船体模型、执行器约束和安全保护仍需显式保留。"

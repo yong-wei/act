@@ -53,38 +53,12 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
 
 ## 四、模块注册表覆盖
 
-- 共享模块注册表必须覆盖 contract 中实际出现的 `kind` 集合。
-- 当前通用内容模块至少包括：
-  - `stage-map`
-  - `goal-card-row`
-  - `goal-card-set`
-  - `question-card-set`
-  - `formula-card`
-  - `summary-card`
-  - `native-table`
-  - `native-formula-table`
-  - `table-card`
-  - `image-panel`
-  - `problem-statement`
-  - `title-card`
-  - `quiz-stack`
-  - `route-card`
-  - `step-reveal`
-  - `step-reveal-chain`
-- 下列模块属于活动锚点 / 活动运行时模块，不属于静态内容模块：
-  - `activity-card`
-  - `activity-card-set`
-  - `single-choice-card`
-  - `quiz-card`
-  - `quiz-group`
-- 当前通用活动类型至少包括：
-  - `single_choice`
-  - `binary_choice`
-  - `activity_card_set`
-  - `quiz_group`
-  - `parameter_slider`
-  - `table_builder`
-  - `teacher_reveal_only`
+- 共享模块注册表必须覆盖 contract 中实际出现的 canonical `kind` 集合。
+- 新课和已迁移课程只能使用标准模块类：`content.rich`、`content.cardSet`、`content.formula`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 旧内容名、活动名或面板名只能写入 `payload.legacyKind` 作为历史渲染提示，不能继续作为 `modules[].kind`。
+- 作答卡 `response_kind` 必须使用共享 canonical 响应词表：`choice.single`、`choice.binary`、`choice.multi`、`text.short`、`text.long`、`text.structured`、`parameter.set`、`ordering.sequence`、`matching.pairs`、`table.builder`、`simulation.result`、`training.result`。
+- `single_choice`、`multi_select`、`fill_text`、`drag_match`、`parameter_set` 等旧响应别名只属于迁移工具的输入兼容层，不能进入新课或已迁移 runtime manifest。
+- `interaction_kind` 可以继续表达页面交互形态，例如 `single_choice`、`binary_choice`、`activity_card_set`、`quiz_group`、`parameter_slider`、`table_builder`、`teacher_reveal_only`；不要把它误写为 `response_kind`。
 - Rust/WASM 共享分析模块属于正式覆盖面，包括但不限于：
   - `rust-analysis-panel`
   - `rust-time-compare-panel`

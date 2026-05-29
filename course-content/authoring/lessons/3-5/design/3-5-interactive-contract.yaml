@@ -29,9 +29,9 @@ steps:
         - { id: "lead", width: "full", order: 2 }
         - { id: "summary", width: "full", order: 3 }
     modules:
-      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
-      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
-      - { id: "boundary-card", region: "summary", kind: "boundary-card", must_be_visible: true }
+      - { id: "stage-map", region: "lead", kind: 'content.stageMap', must_be_visible: true , payload: { legacyKind: 'stage-map', presentation: 'single' }}
+      - { id: "core-question-card", region: "lead", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'question-card', presentation: 'single', semanticRole: 'question' }}
+      - { id: "boundary-card", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'boundary-card', presentation: 'single', semanticRole: 'boundary' }}
     content_blocks:
       - id: "path"
         type: "plain_text"
@@ -86,10 +86,10 @@ steps:
         - { id: "outputs", width: "full", order: 2 }
         - { id: "metrics", width: "full", order: 3 }
     modules:
-      - { id: "object-card", region: "objects", kind: "object-card", must_be_visible: true }
-      - { id: "version-card-row", region: "objects", kind: "comparison-card-row", must_be_visible: true }
-      - { id: "deliverable-card-row", region: "outputs", kind: "deliverable-card-row", must_be_visible: true }
-      - { id: "observation-card-row", region: "metrics", kind: "metric-card-row", must_be_visible: true }
+      - { id: "object-card", region: "objects", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'object-card', presentation: 'single' }}
+      - { id: "version-card-row", region: "objects", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'comparison-card-row', presentation: 'row', semanticRole: 'comparison' }}
+      - { id: "deliverable-card-row", region: "outputs", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'deliverable-card-row', presentation: 'row', semanticRole: 'deliverable' }}
+      - { id: "observation-card-row", region: "metrics", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'metric-card-row', presentation: 'row', semanticRole: 'metric' }}
     content_blocks:
       - id: "object"
         type: "plain_text"
@@ -144,10 +144,10 @@ steps:
         - { id: "record", width: "full", order: 2 }
         - { id: "feedback", width: "full", order: 3 }
     modules:
-      - { id: "pretest-q1", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "pretest-q2", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "pretest-q3", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "intuition-record", region: "record", kind: "short-response", must_be_visible: true }
+      - { id: "pretest-q1", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "pretest-q2", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "pretest-q3", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "intuition-record", region: "record", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'short-response', presentation: 'single', responseKind: 'text.short' }}
     content_blocks:
       - id: "ai-gate-note"
         type: "plain_text"
@@ -192,10 +192,10 @@ steps:
         - { id: "legend", width: "full", order: 2 }
         - { id: "workspace", width: "full", order: 3 }
     modules:
-      - { id: "low-order-compare-figure", region: "figure", kind: "figure", must_be_visible: true }
-      - { id: "object-formula-card", region: "legend", kind: "formula-card", must_be_visible: true }
-      - { id: "branch-annotation-layer", region: "workspace", kind: "annotation-choice", must_be_visible: true }
-      - { id: "judgement-table", region: "workspace", kind: "record-card", must_be_visible: true }
+      - { id: "low-order-compare-figure", region: "figure", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "object-formula-card", region: "legend", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "branch-annotation-layer", region: "workspace", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'annotation-choice', presentation: 'single', interactionKind: 'quiz', responseKind: 'choice.single' }}
+      - { id: "judgement-table", region: "workspace", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'record-card', presentation: 'single', semanticRole: 'record' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -252,9 +252,9 @@ steps:
         - { id: "compare", width: "full", order: 2 }
         - { id: "record", width: "full", order: 3 }
     modules:
-      - { id: "high-order-compare-figure", region: "figure", kind: "figure", must_be_visible: true }
-      - { id: "zero-position-card", region: "compare", kind: "comparison-card", must_be_visible: true }
-      - { id: "compare-note", region: "record", kind: "short-response", must_be_visible: true }
+      - { id: "high-order-compare-figure", region: "figure", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "zero-position-card", region: "compare", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'comparison-card', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "compare-note", region: "record", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'short-response', presentation: 'single', responseKind: 'text.short' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -312,9 +312,9 @@ steps:
         - { id: "risk", width: "full", order: 2 }
         - { id: "record", width: "full", order: 3 }
     modules:
-      - { id: "compare-table", region: "table", kind: "comparison-table", must_be_visible: true }
-      - { id: "risk-prediction-card", region: "risk", kind: "risk-card", must_be_visible: true }
-      - { id: "judgement-record", region: "record", kind: "record-card", must_be_visible: true }
+      - { id: "compare-table", region: "table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "risk-prediction-card", region: "risk", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'risk-card', presentation: 'single', semanticRole: 'risk' }}
+      - { id: "judgement-record", region: "record", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'record-card', presentation: 'single', semanticRole: 'record' }}
     content_blocks:
       - id: "table-fields"
         type: "bullet_list"
@@ -364,9 +364,9 @@ steps:
         - { id: "terms", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "pd-rate-structure-figure", region: "media", kind: "figure", must_be_visible: true }
-      - { id: "term-card-row", region: "terms", kind: "term-card-row", must_be_visible: true }
-      - { id: "binary-vote", region: "interaction", kind: "binary-choice", must_be_visible: true }
+      - { id: "pd-rate-structure-figure", region: "media", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "term-card-row", region: "terms", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'term-card-row', presentation: 'row', semanticRole: 'term' }}
+      - { id: "binary-vote", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'binary-choice', presentation: 'single', interactionKind: 'binary-choice', responseKind: 'choice.binary' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -427,9 +427,9 @@ steps:
         - { id: "example", width: "full", order: 2 }
         - { id: "workspace", width: "full", order: 3 }
     modules:
-      - { id: "damping-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "example-card", region: "example", kind: "example-card", must_be_visible: true }
-      - { id: "fill-workspace", region: "workspace", kind: "worked-example-workspace", must_be_visible: true }
+      - { id: "damping-formula-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "example-card", region: "example", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "fill-workspace", region: "workspace", kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'worked-example-workspace', presentation: 'single', semanticRole: 'example', responseKind: 'text.structured' }}
     content_blocks:
       - id: "formulas"
         type: "formula_list"
@@ -484,9 +484,9 @@ steps:
         - { id: "summary", width: "full", order: 2 }
         - { id: "record", width: "full", order: 3 }
     modules:
-      - { id: "tri-domain-figure", region: "graphs", kind: "comparison-graphic", must_be_visible: true }
-      - { id: "conclusion-card-row", region: "summary", kind: "conclusion-card-row", must_be_visible: true }
-      - { id: "structured-compare", region: "record", kind: "structured-compare", must_be_visible: true }
+      - { id: "tri-domain-figure", region: "graphs", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'comparison-graphic', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "conclusion-card-row", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'conclusion-card-row', presentation: 'row', semanticRole: 'conclusion' }}
+      - { id: "structured-compare", region: "record", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'structured-compare', presentation: 'single', semanticRole: 'comparison', interactionKind: 'structured-compare', responseKind: 'text.structured' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -542,9 +542,9 @@ steps:
         - { id: "bands", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "pd-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "band-note-card", region: "bands", kind: "summary-card", must_be_visible: true }
-      - { id: "band-labeling-zone", region: "interaction", kind: "frequency-band-labeling", must_be_visible: true }
+      - { id: "pd-formula-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "band-note-card", region: "bands", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "band-labeling-zone", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'frequency-band-labeling', presentation: 'single', interactionKind: 'hotspot-labeling', responseKind: 'matching.pairs' }}
     content_blocks:
       - id: "transfer-function"
         type: "formula_list"
@@ -601,9 +601,9 @@ steps:
         - { id: "graphic", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "lead-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "phase-peak-graphic", region: "graphic", kind: "comparison-graphic", must_be_visible: true }
-      - { id: "phase-peak-locator", region: "interaction", kind: "phase-peak-locator", must_be_visible: true }
+      - { id: "lead-formula-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "phase-peak-graphic", region: "graphic", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'comparison-graphic', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "phase-peak-locator", region: "interaction", kind: 'compute.panel', must_be_visible: true , payload: { legacyKind: 'phase-peak-locator', presentation: 'single', capabilityRef: 'phase-peak-locator' }}
     content_blocks:
       - id: "formulas"
         type: "formula_list"
@@ -655,9 +655,9 @@ steps:
         - { id: "matrix", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "design-rule-card", region: "rules", kind: "summary-card", must_be_visible: true }
-      - { id: "scenario-matrix", region: "matrix", kind: "comparison-matrix", must_be_visible: true }
-      - { id: "scenario-sort-zone", region: "interaction", kind: "scenario-sort-matrix", must_be_visible: true }
+      - { id: "design-rule-card", region: "rules", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "scenario-matrix", region: "matrix", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-matrix', presentation: 'matrix', semanticRole: 'comparison' }}
+      - { id: "scenario-sort-zone", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'scenario-sort-matrix', presentation: 'matrix', interactionKind: 'card-sort', responseKind: 'ordering.sequence' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -718,9 +718,9 @@ steps:
         - { id: "media", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "mirror-object-card", region: "objects", kind: "object-card", must_be_visible: true }
-      - { id: "nmp-compare-figure", region: "media", kind: "comparison-graphic", must_be_visible: true }
-      - { id: "term-explainer", region: "interaction", kind: "term-explainer", must_be_visible: true }
+      - { id: "mirror-object-card", region: "objects", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'object-card', presentation: 'single' }}
+      - { id: "nmp-compare-figure", region: "media", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'comparison-graphic', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "term-explainer", region: "interaction", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'term-explainer', presentation: 'single', semanticRole: 'term' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -775,9 +775,9 @@ steps:
         - { id: "summary", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "risk-table", region: "risk-table", kind: "comparison-table", must_be_visible: true }
-      - { id: "frequency-boundary-card", region: "summary", kind: "summary-card", must_be_visible: true }
-      - { id: "rule-check", region: "interaction", kind: "rule-check", must_be_visible: true }
+      - { id: "risk-table", region: "risk-table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "frequency-boundary-card", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "rule-check", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'rule-check', presentation: 'single', semanticRole: 'rule', interactionKind: 'quiz' }}
     content_blocks:
       - id: "risk-columns"
         type: "bullet_list"
@@ -826,9 +826,9 @@ steps:
         - { id: "summary", width: "full", order: 2 }
         - { id: "next", width: "full", order: 3 }
     modules:
-      - { id: "post-quiz-group", region: "quiz", kind: "quiz-group", must_be_visible: true }
-      - { id: "info-graphic", region: "summary", kind: "summary-graphic", must_be_visible: true }
-      - { id: "next-step-card", region: "next", kind: "next-step-card", must_be_visible: true }
+      - { id: "post-quiz-group", region: "quiz", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "info-graphic", region: "summary", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'summary-graphic', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "next-step-card", region: "next", kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'next-step-card', presentation: 'single', semanticRole: 'nextStep' }}
     content_blocks:
       - id: "graphic-ref"
         type: "plain_text"

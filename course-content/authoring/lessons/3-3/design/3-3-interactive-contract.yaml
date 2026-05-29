@@ -31,9 +31,9 @@ steps:
         - { id: "lead", width: "full", order: 2 }
         - { id: "summary", width: "full", order: 3 }
     modules:
-      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
-      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
-      - { id: "bridge-summary", region: "summary", kind: "summary-card", must_be_visible: true }
+      - { id: "stage-map", region: "lead", kind: 'content.stageMap', must_be_visible: true , payload: { legacyKind: 'stage-map', presentation: 'single' }}
+      - { id: "core-question-card", region: "lead", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'question-card', presentation: 'single', semanticRole: 'question' }}
+      - { id: "bridge-summary", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
     content_blocks:
       - { id: "path", type: "plain_text", title: "路径定位", body: "固定高亮 3-2 -> 3-3 -> 3-4。" }
       - { id: "question", type: "plain_text", title: "主问题", body: "参数连续变化时，闭环极点究竟沿什么路径移动。" }
@@ -61,9 +61,9 @@ steps:
         - { id: "questions", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "main-figure", region: "figure", kind: "image-card", must_be_visible: true }
-      - { id: "question-list", region: "questions", kind: "question-list", must_be_visible: true }
-      - { id: "binary-choice", region: "interaction", kind: "binary-choice", must_be_visible: true }
+      - { id: "main-figure", region: "figure", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-card', presentation: 'single', semanticRole: 'media' }}
+      - { id: "question-list", region: "questions", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'question-list', presentation: 'single', semanticRole: 'question' }}
+      - { id: "binary-choice", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'binary-choice', presentation: 'single', interactionKind: 'binary-choice', responseKind: 'choice.binary' }}
     content_blocks:
       - { id: "figure", type: "media", asset: "3-3-pp-04-complete-rules-example.svg" }
       - id: "questions"
@@ -99,8 +99,8 @@ steps:
         - { id: "goals", width: "full", order: 1 }
         - { id: "chain", width: "full", order: 2 }
     modules:
-      - { id: "goal-cards", region: "goals", kind: "goal-card-row", must_be_visible: true }
-      - { id: "main-chain", region: "chain", kind: "formula-chain", must_be_visible: true }
+      - { id: "goal-cards", region: "goals", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'goal-card-row', presentation: 'row', semanticRole: 'goal' }}
+      - { id: "main-chain", region: "chain", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-chain', presentation: 'single' }}
     content_blocks:
       - id: "goals"
         type: "bullet_list"
@@ -130,10 +130,10 @@ steps:
         - { id: "derivation", width: "full", order: 2 }
         - { id: "conclusion", width: "full", order: 3 }
     modules:
-      - { id: "definition-card", region: "definition", kind: "definition-card", must_be_visible: true }
-      - { id: "equation-chain", region: "derivation", kind: "equation-chain", must_be_visible: true }
-      - { id: "angle-condition-card", region: "conclusion", kind: "formula-card", must_be_visible: true }
-      - { id: "magnitude-condition-card", region: "conclusion", kind: "formula-card", must_be_visible: true }
+      - { id: "definition-card", region: "definition", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'definition-card', presentation: 'single' }}
+      - { id: "equation-chain", region: "derivation", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'equation-chain' }}
+      - { id: "angle-condition-card", region: "conclusion", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "magnitude-condition-card", region: "conclusion", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
     content_blocks:
       - { id: "definition", type: "plain_text", title: "普通根轨迹定义", body: "当 K 从 0 连续变化到 +∞ 时，闭环特征方程全部根在 s 平面形成的轨迹集合。" }
       - { id: "equation_chain", type: "formula", title: "入口方程", value: "1+L(s)=0 \\rightarrow L(s)=-1" }
@@ -162,9 +162,9 @@ steps:
         - { id: "formula-strip", width: "full", order: 1 }
         - { id: "workspace", width: "full", order: 2 }
     modules:
-      - { id: "formula-strip", region: "formula-strip", kind: "formula-strip", must_be_visible: true }
-      - { id: "root-locus-svg", region: "workspace", kind: "native-svg", must_be_visible: true }
-      - { id: "condition-breakdown", region: "workspace", kind: "condition-breakdown", must_be_visible: true }
+      - { id: "formula-strip", region: "formula-strip", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-strip', presentation: 'strip' }}
+      - { id: "root-locus-svg", region: "workspace", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'native-svg' }}
+      - { id: "condition-breakdown", region: "workspace", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'condition-breakdown' }}
     content_blocks:
       - { id: "formula_strip", type: "plain_text", title: "顶部常显", body: "相角条件与幅值条件表达式始终固定在屏幕上方。" }
       - { id: "workspace_rule", type: "plain_text", title: "左右结构", body: "左侧拖动单色虚线根轨迹上的 s0，右侧动态列出每个极点/零点对相角和幅值的贡献。" }
@@ -194,9 +194,9 @@ steps:
         - { id: "svg", width: "full", order: 2 }
         - { id: "legend", width: "full", order: 3 }
     modules:
-      - { id: "rule-cards", region: "rules", kind: "rule-cards", must_be_visible: true }
-      - { id: "progressive-svg", region: "svg", kind: "native-svg", must_be_visible: true }
-      - { id: "reading-cue", region: "legend", kind: "reading-cue", must_be_visible: true }
+      - { id: "rule-cards", region: "rules", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'rule-cards', presentation: 'single', semanticRole: 'rule' }}
+      - { id: "progressive-svg", region: "svg", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'native-svg' }}
+      - { id: "reading-cue", region: "legend", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'reading-cue' }}
     content_blocks:
       - { id: "real_axis_rule", type: "plain_text", title: "实轴区段法则", body: "实轴某点右侧的开环实极点与开环实零点总数为奇数，则该段属于根轨迹。" }
       - { id: "asymptote_formula", type: "formula", title: "渐近线", value: "\\sigma_a=(\\sum p_i-\\sum z_i)/(n-m),\\ \\phi_q=(2q+1)\\pi/(n-m)" }
@@ -227,10 +227,10 @@ steps:
         - { id: "problem", width: "full", order: 2 }
         - { id: "workspace", width: "full", order: 3 }
     modules:
-      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
-      - { id: "problem-card", region: "problem", kind: "problem-card", must_be_visible: true }
-      - { id: "step-reveal-board", region: "workspace", kind: "step-reveal", must_be_visible: true }
-      - { id: "dual-activity-cards", region: "workspace", kind: "dual-activity-cards", must_be_visible: true }
+      - { id: "principle-card", region: "principle", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'principle-card', presentation: 'single', semanticRole: 'principle' }}
+      - { id: "problem-card", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'problem-card', presentation: 'single', semanticRole: 'problem' }}
+      - { id: "step-reveal-board", region: "workspace", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "dual-activity-cards", region: "workspace", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'dual-activity-cards', presentation: 'single' }}
     content_blocks:
       - { id: "problem", type: "formula", title: "题面", value: "G(s)H(s)=K/[s(s+2)(s+4)]" }
       - { id: "figure", type: "media", asset: "3-3-example-01-skeleton.svg" }
@@ -257,10 +257,10 @@ steps:
         - { id: "derivation", width: "full", order: 2 }
         - { id: "cue", width: "full", order: 3 }
     modules:
-      - { id: "breakaway-rule-card", region: "rules", kind: "rule-card", must_be_visible: true }
-      - { id: "breakaway-derivation-reveal", region: "derivation", kind: "step-reveal", must_be_visible: true }
-      - { id: "imaginary-axis-rule-card", region: "rules", kind: "rule-card", must_be_visible: true }
-      - { id: "routh-cue", region: "cue", kind: "cue-card", must_be_visible: true }
+      - { id: "breakaway-rule-card", region: "rules", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'rule-card', presentation: 'single', semanticRole: 'rule' }}
+      - { id: "breakaway-derivation-reveal", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "imaginary-axis-rule-card", region: "rules", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'rule-card', presentation: 'single', semanticRole: 'rule' }}
+      - { id: "routh-cue", region: "cue", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'cue-card', presentation: 'single' }}
     content_blocks:
       - { id: "breakaway_formula", type: "formula", title: "分离点候选", value: "K(s)=-D(s)/N(s),\\ \\mathrm{d}K/\\mathrm{d}s=0" }
       - { id: "imaginary_axis_rule", type: "plain_text", title: "虚轴交点法则", body: "列闭环特征方程，以 K 为参数列劳斯表，再由辅助方程求虚轴交点频率。" }
@@ -287,10 +287,10 @@ steps:
         - { id: "problem", width: "full", order: 2 }
         - { id: "workspace", width: "full", order: 3 }
     modules:
-      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
-      - { id: "problem-card", region: "problem", kind: "problem-card", must_be_visible: true }
-      - { id: "dual-reveal-board", region: "workspace", kind: "step-reveal", must_be_visible: true }
-      - { id: "dual-activity-cards", region: "workspace", kind: "dual-activity-cards", must_be_visible: true }
+      - { id: "principle-card", region: "principle", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'principle-card', presentation: 'single', semanticRole: 'principle' }}
+      - { id: "problem-card", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'problem-card', presentation: 'single', semanticRole: 'problem' }}
+      - { id: "dual-reveal-board", region: "workspace", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "dual-activity-cards", region: "workspace", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'dual-activity-cards', presentation: 'single' }}
     content_blocks:
       - { id: "problem", type: "formula", title: "题面", value: "G(s)H(s)=K/[s(s+1)(s+2)],\\ s^3+3s^2+2s+K=0" }
       - { id: "figure", type: "media", asset: "3-3-example-02-breakaway-crossing.svg" }
@@ -317,10 +317,10 @@ steps:
         - { id: "figure", width: "full", order: 2 }
         - { id: "summary", width: "full", order: 3 }
     modules:
-      - { id: "departure-angle-card", region: "formulas", kind: "formula-card", must_be_visible: true }
-      - { id: "arrival-angle-card", region: "formulas", kind: "formula-card", must_be_visible: true }
-      - { id: "root-sum-card", region: "summary", kind: "formula-card", must_be_visible: true }
-      - { id: "direction-figure", region: "figure", kind: "image-card", must_be_visible: true }
+      - { id: "departure-angle-card", region: "formulas", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "arrival-angle-card", region: "formulas", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "root-sum-card", region: "summary", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "direction-figure", region: "figure", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-card', presentation: 'single', semanticRole: 'media' }}
     content_blocks:
       - { id: "figure", type: "media", asset: "3-3-pp-06-departure-arrival-angle.svg" }
       - { id: "departure_formula", type: "formula", title: "出射角公式", value: "\\phi_d(p_i)=\\pi+\\sum\\angle(p_i-z_j)-\\sum_{r\\ne i}\\angle(p_i-p_r)" }
@@ -349,10 +349,10 @@ steps:
         - { id: "problem", width: "full", order: 2 }
         - { id: "workspace", width: "full", order: 3 }
     modules:
-      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
-      - { id: "problem-card", region: "problem", kind: "problem-card", must_be_visible: true }
-      - { id: "step-reveal-board", region: "workspace", kind: "step-reveal", must_be_visible: true }
-      - { id: "dual-activity-cards", region: "workspace", kind: "dual-activity-cards", must_be_visible: true }
+      - { id: "principle-card", region: "principle", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'principle-card', presentation: 'single', semanticRole: 'principle' }}
+      - { id: "problem-card", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'problem-card', presentation: 'single', semanticRole: 'problem' }}
+      - { id: "step-reveal-board", region: "workspace", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "dual-activity-cards", region: "workspace", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'dual-activity-cards', presentation: 'single' }}
     content_blocks:
       - { id: "problem", type: "formula", title: "题面", value: "G(s)H(s)=K/[(s+2)(s^2+2s+5)]" }
       - { id: "figure", type: "media", asset: "3-3-example-03-departure-sum.svg" }
@@ -379,9 +379,9 @@ steps:
         - { id: "interaction", width: "full", order: 2 }
         - { id: "feedback", width: "full", order: 3 }
     modules:
-      - { id: "workflow-cards", region: "workflow", kind: "workflow-cards", must_be_visible: true }
-      - { id: "sequence-sort", region: "interaction", kind: "sequence-sort", must_be_visible: true }
-      - { id: "misread-note", region: "feedback", kind: "misread-note", must_be_visible: true }
+      - { id: "workflow-cards", region: "workflow", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'workflow-cards', presentation: 'single' }}
+      - { id: "sequence-sort", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'sequence-sort', responseKind: 'ordering.sequence' }}
+      - { id: "misread-note", region: "feedback", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'misread-note' }}
     content_blocks:
       - id: "workflow"
         type: "bullet_list"
@@ -411,9 +411,9 @@ steps:
         - { id: "table", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "pole-type-cards", region: "cards", kind: "object-cards", must_be_visible: true }
-      - { id: "trend-table", region: "table", kind: "trend-table", must_be_visible: true }
-      - { id: "classification-cards", region: "interaction", kind: "classification-cards", must_be_visible: true }
+      - { id: "pole-type-cards", region: "cards", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'object-cards', presentation: 'single' }}
+      - { id: "trend-table", region: "table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'trend-table' }}
+      - { id: "classification-cards", region: "interaction", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'classification-cards', presentation: 'single' }}
     content_blocks:
       - id: "objects"
         type: "bullet_list"
@@ -442,9 +442,9 @@ steps:
         - { id: "quiz", width: "full", order: 2 }
         - { id: "review", width: "full", order: 3 }
     modules:
-      - { id: "posttest-intro", region: "intro", kind: "intro-card", must_be_visible: true }
-      - { id: "quiz-group", region: "quiz", kind: "quiz-group", must_be_visible: true }
-      - { id: "misconception-review", region: "review", kind: "review-card", must_be_visible: true }
+      - { id: "posttest-intro", region: "intro", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'intro-card', presentation: 'single' }}
+      - { id: "quiz-group", region: "quiz", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "misconception-review", region: "review", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'review-card', presentation: 'single' }}
     content_blocks:
       - { id: "intro", type: "plain_text", title: "后测范围", body: "检查条件顺序、法则层次、例题职责与读图顺序。" }
     evidence_sequence: ["先后测范围，再题组，再错因回收。"]
@@ -470,9 +470,9 @@ steps:
         - { id: "infographic", width: "full", order: 2 }
         - { id: "next-step", width: "full", order: 3 }
     modules:
-      - { id: "takeaway-cards", region: "summary", kind: "takeaway-cards", must_be_visible: true }
-      - { id: "info-figure", region: "infographic", kind: "image-card", must_be_visible: true }
-      - { id: "next-step-card", region: "next-step", kind: "next-step-card", must_be_visible: true }
+      - { id: "takeaway-cards", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'takeaway-cards', presentation: 'single' }}
+      - { id: "info-figure", region: "infographic", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-card', presentation: 'single', semanticRole: 'media' }}
+      - { id: "next-step-card", region: "next-step", kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'next-step-card', presentation: 'single', semanticRole: 'nextStep' }}
     content_blocks:
       - { id: "figure", type: "media", asset: "3-3-info.png" }
       - id: "takeaways"

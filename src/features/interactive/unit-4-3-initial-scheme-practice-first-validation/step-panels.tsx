@@ -460,9 +460,9 @@ function createUNIT_4_3ModuleRegistry(
 
   return {
     ...sharedRegistry,
-    'stage-map': (props) => (
+    'content.stageMap': (props) => (
       <>
-        {sharedRegistry['stage-map']?.({
+        {sharedRegistry['content.stageMap']?.({
           manifest,
           step: props.step,
           module: props.module,
@@ -482,7 +482,6 @@ function createUNIT_4_3ModuleRegistry(
       }
       return sharedRegistry['compute.panel']?.(props) ?? null;
     },
-    'interactive-figure-panel': renderInteractiveFigurePanel,
   };
 }
 

@@ -49,9 +49,9 @@
         {
           "id": "intro-comic",
           "region": "comic",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "figure", "presentation": "single", "semanticRole": "media",
             "path": "3-9-cover-comic.png",
             "caption": "同一艘船既想更快转向，又想误差更小，还要保留足够余量。"
           },
@@ -60,9 +60,9 @@
         {
           "id": "recall-scene",
           "region": "recall",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "scene"
           },
           "title": "场景导入"
@@ -140,9 +140,9 @@
         {
           "id": "lesson-objectives",
           "region": "objectives",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "objective-list", "presentation": "single", "semanticRole": "objective",
             "block_key": "objectives"
           },
           "title": "完成本单元后，学习者能够："
@@ -220,9 +220,9 @@
         {
           "id": "pretest-anchor",
           "region": "quiz",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "prompt"
           },
           "title": "前测要求"
@@ -230,9 +230,9 @@
         {
           "id": "pretest-questions",
           "region": "quiz",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "activity-card-set", "presentation": "single",
             "source": "interaction_spec.activity_cards"
           }
         }
@@ -252,7 +252,7 @@
             "id": "q1",
             "title": "更快一些先写什么",
             "prompt": "如果现在的目标是“更快一些”，首轮判断最该先写什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -275,7 +275,7 @@
             "id": "q2",
             "title": "更准一些先看什么",
             "prompt": "如果目标是“更准一些”，下列哪项判断更合理？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -298,7 +298,7 @@
             "id": "q3",
             "title": "收益和代价出现在哪",
             "prompt": "收益和代价会不会总在同一个域先暴露？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -381,9 +381,9 @@
         {
           "id": "plant-formula",
           "region": "object",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "formula-card", "presentation": "single",
             "formulas": [
               "P(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}",
               "C_0(s)=2.25"
@@ -394,9 +394,9 @@
         {
           "id": "lesson-task",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "task"
           },
           "title": "本次课主要任务"
@@ -484,9 +484,9 @@
         {
           "id": "baseline-rust-panel",
           "region": "panel",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "rust-analysis-panel", "presentation": "single", "capabilityRef": "rust-analysis",
             "panel_id": "baseline"
           },
           "title": "基准版本四联图"
@@ -494,9 +494,9 @@
         {
           "id": "baseline-conclusion-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "step-reveal", "presentation": "single", "interactionKind": "progressive-reveal",
             "items": [
               "基准版本是后续所有比较的锚点，不能先拿单一指标判断好坏。",
               "主导极点、时域超调和调节时间说明动态品质；相角裕度和带宽说明频域代价；单位斜坡误差说明稳态能力。",
@@ -508,9 +508,9 @@
         {
           "id": "baseline-metric-fill",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "activity-card-set", "presentation": "single",
             "source": "interaction_spec.activity_cards"
           }
         }
@@ -526,7 +526,7 @@
             "id": "overshoot",
             "title": "超调量",
             "prompt": "读图填写基准版本闭环响应的超调量。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -536,7 +536,7 @@
             "id": "settling_time",
             "title": "调节时间",
             "prompt": "读图填写基准版本闭环响应的调节时间。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -546,7 +546,7 @@
             "id": "phase_margin",
             "title": "相角裕度",
             "prompt": "读图填写基准版本开环频域图中的相角裕度。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -556,7 +556,7 @@
             "id": "gain_margin",
             "title": "增益裕度",
             "prompt": "读图填写基准版本开环频域图中的增益裕度。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -566,7 +566,7 @@
             "id": "ramp_error",
             "title": "单位斜坡误差",
             "prompt": "读图填写基准版本对应的单位斜坡稳态误差。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -636,9 +636,9 @@
         {
           "id": "lead-task",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "task"
           },
           "title": "参数调节目标"
@@ -719,9 +719,9 @@
         {
           "id": "integral-task",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "task"
           },
           "title": "参数调节目标"
@@ -800,9 +800,9 @@
         {
           "id": "integral-example-task",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "task"
           },
           "title": "参数调节目标"
@@ -810,9 +810,9 @@
         {
           "id": "integral-example-controller",
           "region": "intro",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "formula-card", "presentation": "single",
             "formulas": [
               "C_{ic}(s)=2.25\\left(1+\\dfrac{1}{40s}\\right)\\dfrac{20s+1}{2s+1}"
             ]
@@ -893,9 +893,9 @@
         {
           "id": "lag-task",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "task"
           },
           "title": "参数调节目标"
@@ -970,9 +970,9 @@
         {
           "id": "mapping-table-builder",
           "region": "table",
-          "kind": "table-builder",
+          "kind": "activity.panel",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "table-builder", "presentation": "single", "interactionKind": "table-builder", "responseKind": "table.builder",
             "source": "interaction_spec.activity_cards",
             "columns": [
               "结构变化",
@@ -1002,7 +1002,7 @@
             "id": "mapping_table",
             "title": "综合映射表",
             "prompt": "把四个版本的结构变化、根轨迹第一信号、时域结果、频域解释、任务标签和主要风险填写到表格中。允许留空提交。",
-            "response_kind": "table_builder",
+            "response_kind": "table.builder",
             "submit_scope": "step",
             "layout_span": "full",
             "options": []
@@ -1065,9 +1065,9 @@
         {
           "id": "summary-card",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "summary-card", "presentation": "single", "semanticRole": "summary",
             "block_key": "summary"
           },
           "title": "课程总结"
@@ -1075,9 +1075,9 @@
         {
           "id": "course-info-graphic",
           "region": "summary",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
-          "payload": {
+          "payload": { "legacyKind": "figure", "presentation": "single", "semanticRole": "media",
             "path": "3-9-info.png",
             "caption": "三种校正路线在同一对象上的证据分工。"
           },

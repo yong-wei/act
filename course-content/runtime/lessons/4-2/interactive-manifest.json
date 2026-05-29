@@ -284,7 +284,7 @@
             "id": "pre-q1",
             "title": "相角裕度读法",
             "prompt": "Bode 图中相角裕度由哪两个量决定？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -307,7 +307,7 @@
             "id": "pre-q2",
             "title": "低频增益影响",
             "prompt": "增大低频开环增益通常会影响哪些指标？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -330,7 +330,7 @@
             "id": "pre-q3",
             "title": "前馈与反馈职责",
             "prompt": "前馈补偿进入系统后，反馈闭环就不再需要承担稳定性。",
-            "response_kind": "true_false",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "third",
             "reference_answer": "错误。前馈补已知通道，反馈仍承担稳定性和鲁棒性。"
@@ -446,7 +446,7 @@
             "id": "low-frequency-check",
             "title": "低频误差大但动态尚可时优先看哪类复核量",
             "prompt": "低频误差大但动态尚可时优先看哪类复核量？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -469,7 +469,7 @@
             "id": "margin-check",
             "title": "相角裕度不足时不能只增大哪个量",
             "prompt": "相角裕度不足时，为什么不能只增大比例增益？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "增益提高可能推高截止频率并进一步损失裕度，应看中频相位和高频代价。"
@@ -570,7 +570,7 @@
             "legacyKind": "multi-select-matrix",
             "presentation": "matrix",
             "interactionKind": "multi-select",
-            "responseKind": "multiSelect"
+            "responseKind": "choice.multi"
           }
         }
       ],
@@ -600,7 +600,7 @@
             "id": "low-frequency-structure",
             "title": "低频误差和慢扰动优先关联哪些结构",
             "prompt": "低频误差和慢扰动优先关联哪些结构？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -623,7 +623,7 @@
             "id": "mid-frequency-structure",
             "title": "相角裕度和超调优先关联哪些结构",
             "prompt": "相角裕度不足、超调偏大时，优先检查哪些结构？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -646,7 +646,7 @@
             "id": "channel-compensation-structure",
             "title": "已知参考或扰动通道优先关联什么补偿",
             "prompt": "已知参考或扰动通道可测、模型较清楚时，哪类补偿可作为候选？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -761,7 +761,7 @@
             "legacyKind": "drag-match",
             "presentation": "single",
             "interactionKind": "drag-match",
-            "responseKind": "matching"
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -793,7 +793,7 @@
             "id": "evidence-to-structure-match",
             "title": "任务证据到结构候选的配对",
             "prompt": "把任务证据拖到最合理的候选结构或复核量。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -1303,7 +1303,7 @@
             "id": "lambda-tradeoff",
             "title": "lambda 变大时响应和鲁棒性的变化",
             "prompt": "IMC/SIMC 中 lambda 变大时，响应速度和鲁棒性通常如何变化？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1326,7 +1326,7 @@
             "id": "feedback-role",
             "title": "扰动前馈加入后反馈闭环的职责",
             "prompt": "扰动前馈加入后，反馈闭环还承担什么职责？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "反馈仍承担稳定性、鲁棒性、未知误差和模型失配下的保底职责。"
@@ -2195,7 +2195,7 @@
             "id": "feedforward-value",
             "title": "理论扰动前馈值",
             "prompt": "本例理论扰动前馈值是多少？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2218,7 +2218,7 @@
             "id": "feedback-still-needed",
             "title": "反馈闭环仍需承担的职责",
             "prompt": "扰动前馈加入后，反馈闭环仍需承担什么职责？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "反馈仍承担稳定性、鲁棒性、未知误差和执行器约束下的保底职责。"
@@ -2333,7 +2333,7 @@
             "id": "ship-baseline-problem",
             "title": "基准对象最明显的问题证据",
             "prompt": "基准对象最明显的问题证据是什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "可写相角裕度偏低、超调较大、调节时间较长或低频抗扰需要复核。"
@@ -2342,7 +2342,7 @@
             "id": "ship-branch-source",
             "title": "候选结构的整定分支来源",
             "prompt": "哪类候选主要来自低频整定分支，哪类来自相位补偿分支？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "滞后和 PI 来自低频整定分支，超前来自相位补偿分支，超前-滞后是两者组合。"
@@ -2668,7 +2668,7 @@
             "id": "currentTask",
             "title": "当前任务",
             "prompt": "说明对象是谁，以及当前主要要解决什么问题。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出对象和当前主要问题。"
@@ -2677,7 +2677,7 @@
             "id": "mainConflict",
             "title": "最紧矛盾",
             "prompt": "说明当前最不能接受的后果。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出最紧矛盾。"
@@ -2686,7 +2686,7 @@
             "id": "preferredStructure",
             "title": "首选单结构",
             "prompt": "写出首选结构候选，并补一句作用语义。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出 PI/滞后、PD/超前、PID 或前馈候选及理由。"
@@ -2695,7 +2695,7 @@
             "id": "tuningEntry",
             "title": "整定入口",
             "prompt": "写出参数初算采用哪类整定入口。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出频域 PI、滞后、超前、ZN、模型匹配或前馈入口。"
@@ -2704,7 +2704,7 @@
             "id": "keyParameter",
             "title": "关键参数",
             "prompt": "写出本轮最关键的参数。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出 Kp、Ki、alpha、T、beta 等关键参数。"
@@ -2713,7 +2713,7 @@
             "id": "expectedBenefit",
             "title": "预期收益",
             "prompt": "写出最先希望看到什么改善。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出稳态误差、裕度、超调、扰动或控制量相关收益。"
@@ -2722,7 +2722,7 @@
             "id": "tradeoff",
             "title": "主要代价",
             "prompt": "写出预计会牺牲什么或哪条边界会收紧。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出相角裕度、速度、高频噪声、控制量或鲁棒性代价。"
@@ -2731,7 +2731,7 @@
             "id": "reviewEvidence",
             "title": "四类复核证据",
             "prompt": "写出需要复核的四类证据。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "至少包含低频增益、截止频率、相角裕度和高频增益，或对应时域/扰动/控制量证据。"
@@ -2821,7 +2821,7 @@
             "id": "post-q1",
             "title": "稳态误差大且动态基本可接受时的首轮结构",
             "prompt": "稳态误差大、动态基本可接受时，首轮更接近哪类结构和整定入口？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -2844,7 +2844,7 @@
             "id": "post-q2",
             "title": "超前校正设计必须包含的计算",
             "prompt": "超前校正设计必须包含哪些计算？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -2867,7 +2867,7 @@
             "id": "post-q3",
             "title": "客船超前候选是否可直接作为最终结构",
             "prompt": "客船案例中超前降低超调最明显，因此可直接作为最终结构。",
-            "response_kind": "true_false",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "third",
             "reference_answer": "错误。还要复核低频灵敏度、扰动峰值、控制量和工程边界。"

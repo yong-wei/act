@@ -583,38 +583,20 @@ export function UNIT_4_2StepContentPanel({
   };
   const moduleRegistry: InteractiveModuleRegistry<Unit42ManifestExtra> = {
     ...sharedRegistry,
-    'rust-analysis-panel': ({ module }) => {
-      const panelId = panelIdFromModule(module);
-      if (panelId) {
-        return (
-          <CaseNativeWorkspace
-            panelId={panelId}
-            onWorkspaceParameterChange={onWorkspaceParameterChange}
-          />
-        );
-      }
-      return sharedRegistry['rust-analysis-panel']?.({
-        manifest: manifest ?? {
-          lessonId: '4-2',
-          courseTitle: '',
-          courseRouteSegment: '',
-          previewMode: {},
-          mediaPolicy: {},
-          telemetryStrategy: '',
-          teacherInsightStrategy: '',
-          requiredStepFields: [],
-          stepOrder: [],
-          steps: [stepManifest],
-        },
-        step: stepManifest,
-        module,
-        extra: { revealProgress, allowInlineReveal },
-      }) ?? null;
-    },
-    'interactive-figure-panel': renderInteractiveFigurePanel,
     'compute.panel': (props) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
       const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'rust-analysis-panel' || capabilityRef === 'rust-analysis') {
+        const panelId = panelIdFromModule(props.module);
+        if (panelId) {
+          return (
+            <CaseNativeWorkspace
+              panelId={panelId}
+              onWorkspaceParameterChange={onWorkspaceParameterChange}
+            />
+          );
+        }
+      }
       if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
         return renderInteractiveFigurePanel(props);
       }

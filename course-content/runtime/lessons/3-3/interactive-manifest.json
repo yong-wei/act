@@ -147,7 +147,7 @@
           "must_be_visible": true,
           "title": "用主图和四问暴露“只知道边界点就够了”的误判。",
           "payload": {
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "interaction_kind": "binary_choice",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -180,7 +180,7 @@
             "id": "step-02:response",
             "title": "问题引入：知道稳定区间为什么仍然不够",
             "prompt": "用主图和四问暴露“只知道边界点就够了”的误判。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -424,7 +424,7 @@
           "must_be_visible": true,
           "title": "上方常显条件表达式，下方左拖右算。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -459,7 +459,7 @@
             "id": "step-05:response",
             "title": "条件互动：拖动 s_0 检查相角条件与幅值条件",
             "prompt": "上方常显条件表达式，下方左拖右算。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -548,7 +548,7 @@
           "must_be_visible": true,
           "title": "用原生 SVG 按固定顺序显影骨架法则，不提前跳进关键节点。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -583,7 +583,7 @@
             "id": "step-06:response",
             "title": "骨架法则：起点终点、实轴区段与渐近线",
             "prompt": "用原生 SVG 按固定顺序显影骨架法则，不提前跳进关键节点。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -670,7 +670,7 @@
           "must_be_visible": true,
           "title": "先把骨架法则压到完整题面里，再做双栏作答。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -705,7 +705,7 @@
             "id": "step-07:response",
             "title": "例题 1：先用骨架法则判断整体走向",
             "prompt": "先把骨架法则压到完整题面里，再做双栏作答。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -877,7 +877,7 @@
           "must_be_visible": true,
           "title": "在同一道题里区分实轴关键点与稳定边界。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -912,7 +912,7 @@
             "id": "step-09:response",
             "title": "例题 2：用 dK/ds 与劳斯判据找关键节点",
             "prompt": "在同一道题里区分实轴关键点与稳定边界。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1084,7 +1084,7 @@
           "must_be_visible": true,
           "title": "把出射角链和根之和复核链都做成逐步显影，并保留双栏作答。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1117,7 +1117,7 @@
             "id": "step-11:response",
             "title": "例题 3：复极点附近怎样离开，整张图怎样自洽",
             "prompt": "把出射角链和根之和复核链都做成逐步显影，并保留双栏作答。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1204,7 +1204,7 @@
           "must_be_visible": true,
           "title": "把法则清单重组为七步读图法。",
           "payload": {
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "interaction_kind": "card_sort",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1237,7 +1237,7 @@
             "id": "step-12:response",
             "title": "读图顺序：先骨架，再关键点，最后补局部方向",
             "prompt": "把法则清单重组为七步读图法。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -1329,7 +1329,7 @@
           "must_be_visible": true,
           "title": "把对象类型与轨迹趋势线索直接对应起来。",
           "payload": {
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "interaction_kind": "card_sort",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1362,7 +1362,7 @@
             "id": "step-13:response",
             "title": "三类开环极点：原点极点、实轴极点、共轭复极点",
             "prompt": "把对象类型与轨迹趋势线索直接对应起来。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -1453,7 +1453,7 @@
           "must_be_visible": true,
           "title": "用题组后测检查条件顺序、法则职责与读图顺序。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1486,7 +1486,7 @@
             "id": "step-14:response",
             "title": "后测：条件、法则、例题与读图顺序是否已经成链",
             "prompt": "用题组后测检查条件顺序、法则职责与读图顺序。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [

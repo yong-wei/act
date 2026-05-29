@@ -34,8 +34,8 @@
         ]
       },
       "modules": [
-        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+        { "id": "stage-map", "region": "lead", "kind": "content.stageMap", "must_be_visible": true , "payload": { "legacyKind": "stage-map", "presentation": "single" }},
+        { "id": "today-task", "region": "summary", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "key-task-card", "presentation": "single", "semanticRole": "keyTask" }}
       ],
       "content_blocks": [
         { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 2-3 -> 2-4 -> 3-1。" },
@@ -79,9 +79,9 @@
         ]
       },
       "modules": [
-        { "id": "dual-view-media", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "core-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
-        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+        { "id": "dual-view-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "core-questions", "region": "questions", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "question-list", "presentation": "single", "semanticRole": "question" }},
+        { "id": "binary-vote", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "binary-choice", "presentation": "single", "interactionKind": "binary-choice", "responseKind": "choice.binary" }}
       ],
       "content_blocks": [
         { "id": "questions", "type": "bullet_list", "title": "两问", "items": ["为什么已有 Bode 图，还要再画 Nyquist 图？", "两张图是不是在讲两套不同对象？"] },
@@ -130,8 +130,8 @@
         ]
       },
       "modules": [
-        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
-        { "id": "boundary-table", "region": "boundary", "kind": "comparison-table", "must_be_visible": true }
+        { "id": "goal-cards", "region": "goals", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "goal-card-row", "presentation": "row", "semanticRole": "goal" }},
+        { "id": "boundary-table", "region": "boundary", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }}
       ],
       "content_blocks": [
         { "id": "goals", "type": "bullet_list", "title": "四项目标", "items": ["会解释双图表达。", "会按四步读纯极点 Nyquist。", "会读频域指标。", "会做最小反向识别。"] },
@@ -174,9 +174,9 @@
         ]
       },
       "modules": [
-        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+        { "id": "pretest-q1", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "pretest-q2", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "pretest-q3", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }}
       ],
       "content_blocks": [
         { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["Nyquist 不是新对象。", "起点和低频信息相连。", "裕度不等于本节就能下闭环结论。"] }
@@ -220,10 +220,10 @@
         ]
       },
       "modules": [
-        { "id": "polar-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "cartesian-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "consistency-panel", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+        { "id": "polar-formula-card", "region": "formula", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "cartesian-formula-card", "region": "formula", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "consistency-panel", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "triple-match", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "triple-match", "presentation": "single", "interactionKind": "drag-match", "responseKind": "matching.pairs" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "极坐标形式", "value": "G(j\\omega)=|G(j\\omega)|e^{j\\phi(\\omega)}" },
@@ -268,9 +268,9 @@
         ]
       },
       "modules": [
-        { "id": "four-step-workflow", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "question-matrix", "region": "meaning", "kind": "matrix-table", "must_be_visible": true },
-        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+        { "id": "four-step-workflow", "region": "workflow", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "question-matrix", "region": "meaning", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "matrix-table", "presentation": "matrix" }},
+        { "id": "reason-check", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "reason-check", "responseKind": "text.structured" }}
       ],
       "content_blocks": [
         { "id": "workflow", "type": "ordered_list", "title": "四步法", "items": ["起点。", "终点。", "方向。", "总转角。"] },
@@ -314,9 +314,9 @@
         ]
       },
       "modules": [
-        { "id": "first-order-formulas", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "nyquist-track-figure", "region": "media", "kind": "response-graphic", "must_be_visible": true },
-        { "id": "parameter-slider", "region": "workspace", "kind": "slider-workspace", "must_be_visible": true }
+        { "id": "first-order-formulas", "region": "formula-card", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card", "presentation": "single" }},
+        { "id": "nyquist-track-figure", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "response-graphic" }},
+        { "id": "parameter-slider", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "slider-workspace" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "对象表达", "value": "G(s)=\\frac{1}{Ts+1}" },
@@ -361,9 +361,9 @@
         ]
       },
       "modules": [
-        { "id": "pure-pole-comparison", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "comparison-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "card-sorter", "region": "interaction", "kind": "card-sort", "must_be_visible": true }
+        { "id": "pure-pole-comparison", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "comparison-table", "region": "table", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "card-sorter", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "card-sort", "presentation": "single", "interactionKind": "card-sort", "responseKind": "ordering.sequence" }}
       ],
       "content_blocks": [
         { "id": "table", "type": "table", "title": "对象对照", "body": "一阶惯性、积分环节与两个实极点对象的起点、高频极限与总体趋势对照。" },
@@ -407,9 +407,9 @@
         ]
       },
       "modules": [
-        { "id": "indicator-formulas", "region": "formula-strip", "kind": "formula-card-group", "must_be_visible": true },
-        { "id": "indicator-matrix", "region": "definition-matrix", "kind": "matrix-table", "must_be_visible": true },
-        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+        { "id": "indicator-formulas", "region": "formula-strip", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card-group", "presentation": "single" }},
+        { "id": "indicator-matrix", "region": "definition-matrix", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "matrix-table", "presentation": "matrix" }},
+        { "id": "triple-match", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "triple-match", "presentation": "single", "interactionKind": "drag-match", "responseKind": "matching.pairs" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "截止与穿越", "value": "|G(j\\omega_c)|=1,\\qquad \\angle G(j\\omega_g)=-180^\\circ" },
@@ -454,9 +454,9 @@
         ]
       },
       "modules": [
-        { "id": "dual-graph-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "consistency-panel", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "hotspot-labeling", "region": "interaction", "kind": "hotspot-labeling", "must_be_visible": true }
+        { "id": "dual-graph-table", "region": "table", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "consistency-panel", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "hotspot-labeling", "region": "interaction", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "hotspot-labeling", "presentation": "single", "interactionKind": "hotspot-labeling", "responseKind": "matching.pairs" }}
       ],
       "content_blocks": [
         { "id": "table", "type": "table", "title": "双图对照", "body": "ωc 对应 0 dB 与单位圆，ωg 对应 -180° 与负实轴，γ 与 Kg 分别对应危险方向和 (-1,0) 余量。" }
@@ -499,9 +499,9 @@
         ]
       },
       "modules": [
-        { "id": "workflow-cards", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "checklist-media", "region": "media", "kind": "workflow-graphic", "must_be_visible": true },
-        { "id": "builder-workspace", "region": "workspace", "kind": "builder-workspace", "must_be_visible": true }
+        { "id": "workflow-cards", "region": "workflow", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "checklist-media", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "workflow-graphic" }},
+        { "id": "builder-workspace", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "builder-workspace" }}
       ],
       "content_blocks": [
         { "id": "formula", "type": "formula", "title": "基线公式", "value": "L(\\omega)=20\\log_{10}K-20r\\log_{10}\\omega" },
@@ -546,9 +546,9 @@
         ]
       },
       "modules": [
-        { "id": "nyquist-checklist", "region": "workflow", "kind": "workflow-graphic", "must_be_visible": true },
-        { "id": "key-point-rules", "region": "rules", "kind": "formula-card-group", "must_be_visible": true },
-        { "id": "path-highlighter", "region": "interaction", "kind": "path-highlight", "must_be_visible": true }
+        { "id": "nyquist-checklist", "region": "workflow", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "workflow-graphic" }},
+        { "id": "key-point-rules", "region": "rules", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card-group", "presentation": "single" }},
+        { "id": "path-highlighter", "region": "interaction", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "path-highlight" }}
       ],
       "content_blocks": [
         { "id": "formula-1", "type": "formula", "title": "过实轴条件", "value": "\\operatorname{Im}\\{G(j\\omega)\\}=0" },
@@ -594,10 +594,10 @@
         ]
       },
       "modules": [
-        { "id": "example-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
-        { "id": "three-step-method", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "calculation-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true },
-        { "id": "result-summary-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+        { "id": "example-problem-card", "region": "problem", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "problem-card", "presentation": "single", "semanticRole": "problem" }},
+        { "id": "three-step-method", "region": "method", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "workflow-card-row", "presentation": "row" }},
+        { "id": "calculation-workspace", "region": "workspace", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "worked-example-workspace", "presentation": "single", "semanticRole": "example", "responseKind": "text.structured" }},
+        { "id": "result-summary-card", "region": "result", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "result-card", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "problem", "type": "formula", "title": "题面", "value": "G_1(s)=\\frac{5}{s(0.5s+1)}" },
@@ -643,10 +643,10 @@
         ]
       },
       "modules": [
-        { "id": "metric-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
-        { "id": "definition-anchor-cards", "region": "definition", "kind": "formula-card-group", "must_be_visible": true },
-        { "id": "metric-overlay", "region": "workspace", "kind": "metric-overlay", "must_be_visible": true },
-        { "id": "result-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+        { "id": "metric-problem-card", "region": "problem", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "problem-card", "presentation": "single", "semanticRole": "problem" }},
+        { "id": "definition-anchor-cards", "region": "definition", "kind": "content.formula", "must_be_visible": true , "payload": { "legacyKind": "formula-card-group", "presentation": "single" }},
+        { "id": "metric-overlay", "region": "workspace", "kind": "content.rich", "must_be_visible": true , "payload": { "legacyKind": "metric-overlay", "semanticRole": "metric" }},
+        { "id": "result-card", "region": "result", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "result-card", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "problem", "type": "formula", "title": "题面", "value": "G_3(s)=\\frac{4}{s(0.5s+1)(0.2s+1)}" },
@@ -692,9 +692,9 @@
         ]
       },
       "modules": [
-        { "id": "feature-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "clue-table", "region": "logic", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "ai-compare-workspace", "region": "ai-panel", "kind": "ai-compare-workspace", "must_be_visible": true }
+        { "id": "feature-figure", "region": "media", "kind": "content.figure", "must_be_visible": true , "payload": { "legacyKind": "comparison-graphic", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "clue-table", "region": "logic", "kind": "content.table", "must_be_visible": true , "payload": { "legacyKind": "comparison-table", "presentation": "single", "semanticRole": "comparison" }},
+        { "id": "ai-compare-workspace", "region": "ai-panel", "kind": "activity.workspace", "must_be_visible": true , "payload": { "legacyKind": "ai-compare-workspace" }}
       ],
       "content_blocks": [
         { "id": "clues", "type": "bullet_list", "title": "四条线索", "items": ["低频平直且约 +6 dB。", "在 \\omega \\approx 2\\ \\text{rad/s} 左右开始下降。", "相位逐步拖后。", "无显著峰起。"] },
@@ -738,9 +738,9 @@
         ]
       },
       "modules": [
-        { "id": "post-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q3", "region": "question-stack", "kind": "short-response-card", "must_be_visible": true }
+        { "id": "post-q1", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "post-q2", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "single-choice-card", "presentation": "single", "interactionKind": "single-choice", "responseKind": "choice.single" }},
+        { "id": "post-q3", "region": "question-stack", "kind": "activity.panel", "must_be_visible": true , "payload": { "legacyKind": "short-response-card", "presentation": "single", "responseKind": "text.short" }}
       ],
       "content_blocks": [
         { "id": "boundary-reminder", "type": "bullet_list", "title": "后测覆盖", "items": ["双图一致性。", "相位裕度基础计算。", "为什么本课不能直接下闭环结论。"] }
@@ -784,9 +784,9 @@
         ]
       },
       "modules": [
-        { "id": "five-takeaways", "region": "summary", "kind": "summary-card-row", "must_be_visible": true },
-        { "id": "next-course-card", "region": "bridge", "kind": "next-step-card", "must_be_visible": true },
-        { "id": "quick-reference-entry", "region": "resources", "kind": "quick-reference-card", "must_be_visible": true }
+        { "id": "five-takeaways", "region": "summary", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "summary-card-row", "presentation": "row", "semanticRole": "summary" }},
+        { "id": "next-course-card", "region": "bridge", "kind": "layout.support", "must_be_visible": true , "payload": { "legacyKind": "next-step-card", "presentation": "single", "semanticRole": "nextStep" }},
+        { "id": "quick-reference-entry", "region": "resources", "kind": "content.cardSet", "must_be_visible": true , "payload": { "legacyKind": "quick-reference-card", "presentation": "single" }}
       ],
       "content_blocks": [
         { "id": "takeaways", "type": "bullet_list", "title": "五条结论", "items": ["Bode 图与 Nyquist 图看的是同一个 G(jω)。", "Nyquist 图先按四步法读。", "频域指标本课只做到定义、读图和基础计算。", "手工绘图入口重在下笔顺序与关键锚点。", "基础反向识别先认对象轮廓，再估参数量级。"] },

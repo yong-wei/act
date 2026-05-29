@@ -308,7 +308,7 @@
             "id": "pre-error",
             "title": "闭环误差含义",
             "prompt": "闭环跟踪中 $e(t)=r(t)-y(t)$ 的含义是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -322,7 +322,7 @@
             "id": "pre-actuator",
             "title": "执行器约束判断",
             "prompt": "舵角限幅和舵速限制意味着控制器输出的动作必须经过可执行性检查。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -335,7 +335,7 @@
             "id": "pre-coverage",
             "title": "样本覆盖判断",
             "prompt": "评价一个控制策略是否可靠时，训练样本数量很大是否足以替代边界工况覆盖？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -486,7 +486,7 @@
             "id": "explicit-evidence",
             "title": "显式控制律证据",
             "prompt": "显式控制律最容易提供哪类证据？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -500,7 +500,7 @@
             "id": "actuator-risk",
             "title": "执行边界风险",
             "prompt": "若舵机限幅没有写入控制结构或保护层，最直接的风险是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -642,7 +642,7 @@
             "id": "pressure-match",
             "title": "动作选择压力匹配",
             "prompt": "将左侧压力来源匹配到右侧设计影响。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -895,7 +895,7 @@
             "id": "policy-evidence",
             "title": "学习策略证据来源",
             "prompt": "学习策略的核心证据主要来自哪里？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -909,7 +909,7 @@
             "id": "policy-not",
             "title": "学习策略误解辨析",
             "prompt": "学习策略不能被理解成什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1058,7 +1058,7 @@
             "id": "reward-omission",
             "title": "奖励缺项风险",
             "prompt": "若奖励只惩罚跟踪误差而不惩罚舵角和舵角变化，可能诱发什么行为？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1072,7 +1072,7 @@
             "id": "long-return-role",
             "title": "长期回报作用",
             "prompt": "长期回报公式在本课中的作用是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1477,7 +1477,7 @@
             "id": "entry-evidence",
             "title": "进入前证据补齐",
             "prompt": "某团队要在强扰动航向保持中引入策略学习，进入前必须补齐哪些证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1643,7 +1643,7 @@
             "id": "risk-match",
             "title": "进入风险归类",
             "prompt": "把四种条件状态分别匹配到暂不进入、需要补证据或适合进入。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -1883,7 +1883,7 @@
             "id": "route-choice",
             "title": "航向 RL 起步方案",
             "prompt": "传统自动舵在强扰动下需要频繁重整定，最稳妥的 RL 起步方案是哪一类？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -2041,7 +2041,7 @@
             "id": "state-rudder-history",
             "title": "上一时刻舵角作用",
             "prompt": "状态中保留上一时刻舵角的主要作用是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2055,7 +2055,7 @@
             "id": "action-limit",
             "title": "离散动作与舵速限制",
             "prompt": "离散动作和舵速限制共同表达什么工程事实？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2394,7 +2394,7 @@
             "id": "reward-not-enough",
             "title": "训练回报边界",
             "prompt": "训练回报上升还不能证明什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2408,7 +2408,7 @@
             "id": "fallback-frequent",
             "title": "安全外壳触发含义",
             "prompt": "安全外壳触发频繁说明什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2814,7 +2814,7 @@
             "id": "post-reward-vs-response",
             "title": "训练回报与闭环评价",
             "prompt": "某 RL 直接控舵策略训练回报很高，但独立评价中最大超调达到 $58.04^\\\\circ$，平均舵速达到 $2.90^\\\\circ/\\\\mathrm{s}$。这最直接说明什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2828,7 +2828,7 @@
             "id": "post-limited-entry",
             "title": "受限 RL 进入方式",
             "prompt": "受限 RL 进入传统自动舵升级时，哪些做法更合理？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2851,7 +2851,7 @@
             "id": "post-design-short",
             "title": "受限 RL 航向控制要点",
             "prompt": "写出一个受限 RL 航向控制方案中的状态、动作、奖励和安全保护要点。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "reference_answer": "状态包含航向误差、偏航角速度、上一时刻舵角和扰动估计；动作先选择 PID 参数档位、参考航向修正或扰动补偿；奖励惩罚误差、大舵角、舵角变化率和安全退化；输出经过舵角限幅、舵速限制和传统自动舵接管。",
