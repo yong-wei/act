@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -272,6 +274,31 @@ describe('unit 4-3 interactive course', () => {
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=1a50c1d16508fe1d4bc869b994589a83');
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=2613b2f360c95d3501065357cca826a8');
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=72807c2c1b065890244844904f59977b');
+  });
+
+  it('routes migrated compute.panel compound panels through the native 4-3 renderer', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-3');
+    const courseModule = await import('@/lib/unit-4-3-course');
+    const featureModule = await import('@/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels');
+    const manifest = runtime.interactiveManifest;
+    if (!manifest) throw new Error('4-3 interactive manifest is missing');
+    const runtimeStep = courseModule.buildUNIT_4_3RuntimeSteps(manifest).find((step) => step.id === 'step-14');
+    const stepManifest = manifest.steps.find((step) => step.id === 'step-14');
+    if (!runtimeStep || !stepManifest) throw new Error('4-3 step-14 is missing');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_3StepContentPanel, {
+        manifest,
+        step: runtimeStep,
+        stepManifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('扰动前馈动态补偿面板');
+    expect(html).toContain('正在读取本页运行时曲线数据');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('records the revised implementation acceptance evidence instead of the old static-media downgrade claim', () => {

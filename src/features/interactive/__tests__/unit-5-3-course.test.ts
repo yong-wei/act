@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -91,7 +93,11 @@ describe('unit 5-3 interactive course', () => {
     const step11 = manifest.steps.find((step) => step.id === 'step-11');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 
-    expect(step11?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
+    expect(step11?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
     expect(step11?.modules.find((module) => module.id === 'turning-rust-panel')?.payload.panel_id).toBe('rust_turning_radius_panel');
     expect(stepPanelsSource).toContain("analysisKind: 'turning_radius'");
     expect(stepPanelsSource).toContain('hasCompleteTurningRadiusResult');
@@ -133,6 +139,21 @@ describe('unit 5-3 interactive course', () => {
     const turning = fallback.turningRadius!;
     const completedPlannedPath = completePlannedPathToActualExtent(turning.path.nominal, turning.path.actual);
     expect(polylineLength(completedPlannedPath)).toBeGreaterThanOrEqual(polylineLength(turning.path.actual) * 0.92);
+
+    const courseModule = await import('@/lib/unit-5-3-course');
+    const featureModule = await import('@/features/interactive/unit-5-3-mass-coordination-chain/step-panels');
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_5_3StepContentPanel, {
+        step: courseModule.getUNIT_5_3Step('step-11'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        browseEnabled: true,
+        role: 'student',
+      }),
+    );
+    expect(html).toContain('data-testid="unit-5-3-turning-status-tags"');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('keeps corrected page text and image captions in the 5-3 runtime manifest', () => {

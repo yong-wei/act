@@ -605,45 +605,78 @@ export function UNIT_5_1StepContentPanel({
     allowInlineReveal,
     onInlineReveal: onAdvanceReveal,
   });
-  const moduleRegistry = {
-    ...sharedRegistry,
-    'rust-analysis-panel': ({ step: manifestStep, module }: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => (
-      <Unit51NonlinearBoundaryPanel
-        key={`${manifestStep.id}:${module.id}`}
-        step={manifestStep}
-        module={module}
-        onParameterChange={onParameterChange}
-      />
-    ),
-    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      const visibility = String(module.payload.role_visibility ?? '');
-      if (visibility === 'student_only' && role !== 'student') {
-        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
-      }
-      if (visibility === 'teacher_only' && role !== 'teacher') {
-        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
-      }
-      if (role === 'student') {
-        return (
-          <Unit51StudentSummaryStats
-            submittedCount={submittedCount}
-            viewedCount={viewedCount}
-            parameterSubmissionCount={parameterSubmissionCount}
-            prePostCompletion={prePostCompletion}
-          />
-        );
-      }
+  const renderRustAnalysisPanel = ({
+    step: manifestStep,
+    module,
+  }: {
+    step: InteractiveRuntimeStepManifest;
+    module: InteractiveRuntimeModuleManifest;
+  }) => (
+    <Unit51NonlinearBoundaryPanel
+      key={`${manifestStep.id}:${module.id}`}
+      step={manifestStep}
+      module={module}
+      onParameterChange={onParameterChange}
+    />
+  );
+  const renderStatPanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    const visibility = String(module.payload.role_visibility ?? '');
+    if (visibility === 'student_only' && role !== 'student') {
+      return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+    }
+    if (visibility === 'teacher_only' && role !== 'teacher') {
+      return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+    }
+    if (role === 'student') {
       return (
-        <Unit51TeacherSummaryStats
-          studentCount={studentCount}
-          submittedStudents={submittedStudents}
-          totalResponses={totalResponses}
-          parameterCoverage={parameterCoverage}
-          objectiveAccuracy={objectiveAccuracy}
-          shortAnswerCompleteness={shortAnswerCompleteness}
-          misconceptionSummary={misconceptionSummary}
+        <Unit51StudentSummaryStats
+          submittedCount={submittedCount}
+          viewedCount={viewedCount}
+          parameterSubmissionCount={parameterSubmissionCount}
+          prePostCompletion={prePostCompletion}
         />
       );
+    }
+    return (
+      <Unit51TeacherSummaryStats
+        studentCount={studentCount}
+        submittedStudents={submittedStudents}
+        totalResponses={totalResponses}
+        parameterCoverage={parameterCoverage}
+        objectiveAccuracy={objectiveAccuracy}
+        shortAnswerCompleteness={shortAnswerCompleteness}
+        misconceptionSummary={misconceptionSummary}
+      />
+    );
+  };
+  const moduleRegistry = {
+    ...sharedRegistry,
+    'rust-analysis-panel': renderRustAnalysisPanel,
+    'compute.panel': (props: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'rust-analysis-panel' || capabilityRef === 'rust-analysis') {
+        return renderRustAnalysisPanel(props);
+      }
+      return sharedRegistry['compute.panel']({
+        manifest: activeManifest,
+        step: props.step,
+        module: props.module,
+        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
+      });
+    },
+    'stat-panel': renderStatPanel,
+    'analytics.summary': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+      const legacyKind = typeof module.payload.legacyKind === 'string' ? module.payload.legacyKind : '';
+      if (legacyKind === 'stat-panel') {
+        return renderStatPanel({ module });
+      }
+      return sharedRegistry['analytics.summary']({
+        manifest: activeManifest,
+        step: stepManifest,
+        module,
+        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
+      });
     },
   };
 

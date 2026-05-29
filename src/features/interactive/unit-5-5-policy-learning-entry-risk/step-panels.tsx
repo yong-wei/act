@@ -724,9 +724,8 @@ export function UNIT_5_5StepContentPanel({
   const activeManifest = requireUnit55Manifest(manifest);
   const stepManifest = getUNIT_5_5ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = useMemo(() => createManifestContentModuleRegistry({ revealProgress, allowInlineReveal, onInlineReveal }), [allowInlineReveal, onInlineReveal, revealProgress]);
-  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => ({
-    ...baseRegistry,
-    'interactive-figure-panel': ({ module }) => {
+  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => {
+    const renderInteractiveFigurePanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
       if (panelId(module) === 'rust_toy_rl_training_panel') {
         return <ToyTrainingPanel onPanelSubmit={onPanelSubmit} />;
       }
@@ -734,11 +733,31 @@ export function UNIT_5_5StepContentPanel({
         return <HeadingRlTrainingPanel released={activityReleased || mode === 'teacher'} figureSpec={stepManifest.interactiveFigureSpec} onPanelSubmit={onPanelSubmit} />;
       }
       return baseRegistry['interactive-figure-panel']({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal } });
-    },
-    'learning-stat-panel': () => mode === 'teacher'
+    };
+    const renderLearningStats = () => mode === 'teacher'
       ? <TeacherStats submittedStudents={submittedStudents} totalStudents={totalStudents} totalResponses={totalResponses} trainingCoverage={trainingCoverage} objectiveAccuracy={objectiveAccuracy} postTestCompletion={postTestCompletion} />
-      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} trainingSubmissionCount={trainingSubmissionCount} postTestSubmitted={postTestSubmitted} />,
-  }), [activeManifest, activityReleased, allowInlineReveal, baseRegistry, mode, objectiveAccuracy, onInlineReveal, onPanelSubmit, postTestCompletion, postTestSubmitted, revealProgress, stepManifest, submittedCount, submittedStudents, totalResponses, totalStudents, trainingCoverage, trainingSubmissionCount, viewedStepIds]);
+      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} trainingSubmissionCount={trainingSubmissionCount} postTestSubmitted={postTestSubmitted} />;
+    return {
+      ...baseRegistry,
+      'interactive-figure-panel': renderInteractiveFigurePanel,
+      'compute.panel': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+        if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+          return renderInteractiveFigurePanel(props);
+        }
+        return baseRegistry['compute.panel'](props);
+      },
+      'learning-stat-panel': renderLearningStats,
+      'analytics.summary': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        if (legacyKind === 'learning-stat-panel') {
+          return renderLearningStats();
+        }
+        return baseRegistry['analytics.summary'](props);
+      },
+    };
+  }, [activeManifest, activityReleased, allowInlineReveal, baseRegistry, mode, objectiveAccuracy, onInlineReveal, onPanelSubmit, postTestCompletion, postTestSubmitted, revealProgress, stepManifest, submittedCount, submittedStudents, totalResponses, totalStudents, trainingCoverage, trainingSubmissionCount, viewedStepIds]);
 
   return renderInteractiveManifestStep({
     manifest: activeManifest,

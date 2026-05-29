@@ -173,6 +173,61 @@ describe('interactive module registry gate', () => {
     expect(node.props.src).toBe('/course-runtime/lessons/fixture-lesson/media/single.png');
   });
 
+  it('keeps media fallback order for multiple canonical figure modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'segmented-block',
+        kind: 'content.figure',
+        mustBeVisible: true,
+        payload: { block_key: 'route_task_table' },
+      },
+    });
+    const step = manifest.steps[0];
+    step.modules = [
+      'segmented-block',
+      'rudder-identification-figure',
+      'hull-figure',
+      'disturbance-figure',
+    ].map((id) => ({
+      id,
+      kind: 'content.figure',
+      region: 'main',
+      mustBeVisible: true,
+      payload: { block_key: 'route_task_table', legacyKind: 'image-panel' },
+    }));
+    step.contentBlocks.route_task_table = {
+      columns: ['航线任务'],
+      rows: [['zig-zag 航线']],
+    };
+    step.contentBlocks.media = [
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/segmented.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/rudder.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/hull.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/disturbance.png' },
+    ];
+
+    const sources = step.modules.map((module) => {
+      const node = registry['content.figure']({
+        manifest,
+        step,
+        module,
+        extra: { revealProgress: 0, allowInlineReveal: false },
+      }) as ReactElement<{ src?: string }>;
+      return node.props.src;
+    });
+
+    expect(sources).toEqual([
+      '/course-runtime/lessons/fixture-lesson/media/segmented.png',
+      '/course-runtime/lessons/fixture-lesson/media/rudder.png',
+      '/course-runtime/lessons/fixture-lesson/media/hull.png',
+      '/course-runtime/lessons/fixture-lesson/media/disturbance.png',
+    ]);
+  });
+
   it('renders the migrated 2-1 step 13 loop diagram from its media group', () => {
     const rawManifest = JSON.parse(
       readFileSync(join(process.cwd(), 'course-content/runtime/lessons/2-1/interactive-manifest.json'), 'utf8'),
@@ -852,6 +907,50 @@ describe('interactive module registry gate', () => {
 
   it('passes the migrated variant-heavy lesson group with canonical modules on every step', () => {
     const migratedLessonIds = ['3-5', '3-6', '3-7', '3-8', '3-9'];
+    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+    const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual([]);
+
+    for (const lessonId of migratedLessonIds) {
+      const manifest = JSON.parse(
+        readFileSync(join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json'), 'utf8'),
+      ) as {
+        steps: Record<string, { modules?: Array<{ kind?: string }> }>;
+      };
+
+      for (const [stepId, step] of Object.entries(manifest.steps)) {
+        expect(step.modules, `${lessonId} ${stepId} should have standard modules`).toBeDefined();
+        expect(step.modules?.length, `${lessonId} ${stepId} should have standard modules`).toBeGreaterThan(0);
+        for (const runtimeModule of step.modules ?? []) {
+          expect(
+            canonicalClasses.has(runtimeModule.kind ?? ''),
+            `${lessonId} ${stepId} module kind ${runtimeModule.kind} should be canonical`,
+          ).toBe(true);
+          expect(runtimeModule.kind).not.toBe('legacy.adapter');
+        }
+      }
+    }
+  });
+
+  it('passes the migrated stable lesson group with canonical modules on every step', () => {
+    const migratedLessonIds = [
+      '4-1',
+      '4-2',
+      '4-3',
+      '4-4',
+      '4-5',
+      '4-6',
+      '4-7',
+      '5-1',
+      '5-2',
+      '5-3',
+      '5-4',
+      '5-5',
+      '5-6',
+      'cruise-comfort-boppps',
+    ];
     const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
     const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
 

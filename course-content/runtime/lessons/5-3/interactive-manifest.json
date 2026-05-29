@@ -53,30 +53,38 @@
         {
           "id": "problem",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "链路责任入口",
-            "text": "一艘自主船避碰失败，末端航迹偏离规划路径，责任是否一定在控制器参数。"
+            "text": "一艘自主船避碰失败，末端航迹偏离规划路径，责任是否一定在控制器参数。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "复杂自主系统中的控制位置",
-            "src": "/course-runtime/lessons/5-3/media/5-3-cover-comic.png"
+            "src": "/course-runtime/lessons/5-3/media/5-3-cover-comic.png",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "单回路仍在工作，但它已经嵌入更长的感知、估计、规划、控制、执行和监督链路。"
+            "text": "单回路仍在工作，但它已经嵌入更长的感知、估计、规划、控制、执行和监督链路。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -148,7 +156,7 @@
         {
           "id": "goal-list",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "intro": "完成本次课程后，学习者能够：",
@@ -158,7 +166,10 @@
               "根据图像、表格和日志证据判断偏差可能来自哪个链路环节。",
               "计算避碰转弯半径案例中的舵角需求和最小可实现半径。",
               "评价自动化等级描述与技术链路诊断之间的关系。"
-            ]
+            ],
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -238,11 +249,14 @@
         {
           "id": "pretest",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "note",
-            "text": "本页考察闭环误差、反馈质量和执行器限幅三类基础知识。"
+            "text": "本页考察闭环误差、反馈质量和执行器限幅三类基础知识。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -365,42 +379,49 @@
         {
           "id": "mass-definition",
           "region": "concept",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 协同链路",
-            "text": "MASS 需要把环境感知、状态估计、行动规划、运动控制、执行机构和安全监督连成责任链。"
+            "text": "MASS 需要把环境感知、状态估计、行动规划、运动控制、执行机构和安全监督连成责任链。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "chain-formula",
           "region": "concept",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 六环节责任链",
             "formulas": [
               "\\mathrm{MASS}=\\text{感知}+\\text{估计}+\\text{规划}+\\text{控制}+\\text{执行}+\\text{监督}"
             ],
-            "text": "公式把 MASS 链路写成六个责任环节的组合，重点是信息和责任的传递关系。"
+            "text": "公式把 MASS 链路写成六个责任环节的组合，重点是信息和责任的传递关系。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "chain-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 感知到监督的协同链路",
             "src": "/course-runtime/lessons/5-3/media/5-3-mass-coordination-chain.png",
             "caption": "图中从环境输入到监督接管依次标出感知、估计、规划、控制、执行和监督。",
-            "explanation": "读图时先沿信息流确认上游给出什么，再确认控制层把参考转成运动指令，最后看执行和监督怎样把风险反馈回链路。"
+            "explanation": "读图时先沿信息流确认上游给出什么，再确认控制层把参考转成运动指令，最后看执行和监督怎样把风险反馈回链路。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "role-match",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "roles",
@@ -411,7 +432,9 @@
               "控制把行动意图转为运动指令。",
               "执行器和船体产生真实运动。",
               "监督处理风险、降级和接管。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -590,7 +613,7 @@
         {
           "id": "closed-loop-formula",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "闭环控制的输入、控制律与对象输出",
@@ -599,25 +622,29 @@
               "u(t)=C(e(t))",
               "y(t)=P(u(t),d(t))"
             ],
-            "text": "三条关系分别固定误差来源、控制器动作和对象响应，使控制层的责任边界可见。"
+            "text": "三条关系分别固定误差来源、控制器动作和对象响应，使控制层的责任边界可见。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "control-position-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "控制层在自主系统链路中的位置",
             "src": "/course-runtime/lessons/5-3/media/5-3-control-position-in-chain.png",
             "caption": "规划参考和估计状态进入控制层，控制输出进入舵、推进或姿态执行器。",
-            "explanation": "本图用于区分控制层能直接承担的运动落地任务，以及它必须依赖的上游信息质量和下游执行约束。"
+            "explanation": "本图用于区分控制层能直接承担的运动落地任务，以及它必须依赖的上游信息质量和下游执行约束。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "control-position-tasks",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "symbols",
@@ -627,7 +654,9 @@
               "u(t) 是控制输入。",
               "P 表示对象与执行机构。",
               "d(t) 表示扰动。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -747,7 +776,7 @@
         {
           "id": "info-quality-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "上游信息质量对控制判断的影响",
@@ -783,74 +812,90 @@
                 "控制方向错误或响应不稳定",
                 "坐标转换、时间同步、接口协议"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "feedback-measurement-formula",
           "region": "table",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "反馈测量含延迟和噪声",
             "formulas": [
               "y_m(t)=y(t-\\tau)+n(t)"
             ],
-            "text": "控制器接收到的是测量反馈 y_m(t)，它可能同时包含时间滞后和噪声扰动。"
+            "text": "控制器接收到的是测量反馈 y_m(t)，它可能同时包含时间滞后和噪声扰动。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "noise-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "噪声沿闭环链路传播与滤波缓解",
             "src": "/course-runtime/lessons/5-3/media/5-3-sensor-noise-filter-chain.png",
             "caption": "无滤波时噪声进入误差信号并放大控制输出的高频负担。",
-            "explanation": "读图顺序是测量反馈、误差信号、控制器输出、执行器动作；加入滤波后再观察高频负担和相位滞后的取舍。"
+            "explanation": "读图顺序是测量反馈、误差信号、控制器输出、执行器动作；加入滤波后再观察高频负担和相位滞后的取舍。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "noise-figure-explanation",
           "region": "media",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "noise_figure_explanation",
-            "title": "噪声与滤波代价"
+            "title": "噪声与滤波代价",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "delay-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "测量延迟造成航向滞后与航迹偏移",
             "src": "/course-runtime/lessons/5-3/media/5-3-sensor-delay-heading-track.png",
             "caption": "同一控制器在测量延迟存在时会更晚修正航向。",
-            "explanation": "读图时比较无延迟和有延迟两条航向与航迹，判断偏差是否由反馈时间滞后放大。"
+            "explanation": "读图时比较无延迟和有延迟两条航向与航迹，判断偏差是否由反馈时间滞后放大。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "delay-figure-explanation",
           "region": "media",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "delay_figure_explanation",
-            "title": "测量延迟诊断链"
+            "title": "测量延迟诊断链",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "info-quality-tasks",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
-            "text": "y_m(t)=y(t-\\tau)+n(t)"
+            "text": "y_m(t)=y(t-\\tau)+n(t)",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -976,19 +1021,21 @@
         {
           "id": "planning-compare-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "规划航迹到实际舵角的对比证据",
             "src": "/course-runtime/lessons/5-3/media/5-3-planning-path-control-comparison.png",
             "caption": "三类规划路径对应不同的航向参考、控制器输出和实际舵角负担。",
-            "explanation": "读图时从几何路径进入航向参考，再看控制输出和实际舵角是否在约束边界附近反复切换。"
+            "explanation": "读图时从几何路径进入航向参考，再看控制输出和实际舵角是否在约束边界附近反复切换。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "planning-question",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "constraints",
@@ -998,7 +1045,11 @@
               "允许横向加速度。",
               "最小转弯半径。",
               "跟踪误差上界。"
-            ]
+            ],
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         }
       ],
@@ -1105,7 +1156,7 @@
         {
           "id": "actuator-formula",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "执行器幅值和变化率约束",
@@ -1113,39 +1164,48 @@
               "\\left|u(t)\\right|\\le u_{\\max}",
               "\\left|\\frac{du(t)}{dt}\\right|\\le \\dot{u}_{\\max}"
             ],
-            "text": "幅值边界限制控制量大小，变化率边界限制控制量变化速度，两者都会改变真实运动。"
+            "text": "幅值边界限制控制量大小，变化率边界限制控制量变化速度，两者都会改变真实运动。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "actuator-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "执行器约束改变控制量、响应和航迹",
             "src": "/course-runtime/lessons/5-3/media/5-3-actuator-limits-response-track.png",
             "caption": "幅值饱和截断峰值，速率限制减慢实际舵角上升和回落。",
-            "explanation": "读图时依次比较理想控制量、限幅后的实际舵角、阶跃响应和右侧真实航迹。"
+            "explanation": "读图时依次比较理想控制量、限幅后的实际舵角、阶跃响应和右侧真实航迹。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "actuator-figure-explanation",
           "region": "media",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "actuator_figure_explanation",
-            "title": "幅值、舵速与航迹三联证据"
+            "title": "幅值、舵速与航迹三联证据",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "actuator-tasks",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "explanation",
-            "text": "幅值限制截断峰值，速率限制减慢上升和回落；这会改变阶跃响应和船体航迹。"
+            "text": "幅值限制截断峰值，速率限制减慢上升和回落；这会改变阶跃响应和船体航迹。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1257,7 +1317,7 @@
         {
           "id": "diagnostic-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 链路诊断的责任分层",
@@ -1305,29 +1365,35 @@
                 "置信度过低、规则冲突、风险超限",
                 "安全模式、远程接管、人机协同"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "diagnostic-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 链路诊断顺序",
             "src": "/course-runtime/lessons/5-3/media/5-3-diagnostic-sequence-infographic.png",
             "caption": "图中把感知、估计、规划、控制、执行和监督组织成优先检查顺序。",
-            "explanation": "读图时不要从控制器参数开始，而是先确认原始信息、状态估计和规划参考是否已经给出可信输入。"
+            "explanation": "读图时不要从控制器参数开始，而是先确认原始信息、状态估计和规划参考是否已经给出可信输入。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "diagnostic-sort",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "diagnostic_order",
-            "text": "感知 -> 估计 -> 规划 -> 控制 -> 执行 -> 监督"
+            "text": "感知 -> 估计 -> 规划 -> 控制 -> 执行 -> 监督",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1434,19 +1500,21 @@
         {
           "id": "avoidance-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "自主避碰中的偏差传播场景",
             "src": "/course-runtime/lessons/5-3/media/5-3-autonomous-avoidance-scene.png",
             "caption": "图中同时呈现横穿目标船、蓝色规划路径、橙色实际航迹和偏差来源。",
-            "explanation": "蓝色规划路径和橙色实际航迹之间的间隔，可能由延迟、约束和控制误差共同留下。"
+            "explanation": "蓝色规划路径和橙色实际航迹之间的间隔，可能由延迟、约束和控制误差共同留下。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "avoidance-tasks",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "chain_questions",
@@ -1456,7 +1524,9 @@
               "规划是否满足规则、安全距离和操纵能力。",
               "控制是否跟踪参考并抑制扰动。",
               "执行层是否有舵角、舵速和推进余量。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1583,17 +1653,20 @@
         {
           "id": "turning-problem",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "避碰转弯半径题面",
-            "text": "自主船以 $v=4\\,\\mathrm{m/s}$ 接近障碍物，障碍物等效半径 $r_o=25\\,\\mathrm{m}$，安全裕量 $m=16\\,\\mathrm{m}$，等效船长 $L=34\\,\\mathrm{m}$，舵角边界 $\\delta_{\\max}=18^\\circ$。"
+            "text": "自主船以 $v=4\\,\\mathrm{m/s}$ 接近障碍物，障碍物等效半径 $r_o=25\\,\\mathrm{m}$，安全裕量 $m=16\\,\\mathrm{m}$，等效船长 $L=34\\,\\mathrm{m}$，舵角边界 $\\delta_{\\max}=18^\\circ$。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "turning-formulas",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "避障启动距离、舵角需求与最小半径",
@@ -1602,33 +1675,41 @@
               "\\delta_d\\approx\\tan^{-1}(L/R)",
               "R_{\\min}\\approx L/\\tan(\\delta_{\\max})"
             ],
-            "text": "三条公式分别给出何时开始转弯、当前半径需要多大舵角，以及舵角上限反推的最小可行半径。"
+            "text": "三条公式分别给出何时开始转弯、当前半径需要多大舵角，以及舵角上限反推的最小可行半径。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "turning-diagnostic-reveal",
           "region": "formula",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "turning_diagnostic_reveal",
-            "title": "四步链路定位显影"
+            "title": "四步链路定位显影",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "turning-rust-panel",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_turning_radius_panel",
-            "title": "规划半径、舵角饱和与安全边界联动面板"
+            "title": "规划半径、舵角饱和与安全边界联动面板",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "turning-submit",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "symbols",
@@ -1638,7 +1719,9 @@
               "L 为等效船长。",
               "δd 为名义舵角。",
               "δmax 为舵角边界。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1836,18 +1919,20 @@
         {
           "id": "automation-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "自动化程度与责任主体场景图",
             "src": "/course-runtime/lessons/5-3/media/5-3-automation-levels-scene.png",
-            "caption": "四个场景依次对应船上辅助、船上远程、无人远程和全自主决策，读图重点是责任主体如何变化。"
+            "caption": "四个场景依次对应船上辅助、船上远程、无人远程和全自主决策，读图重点是责任主体如何变化。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "automation-question",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "automation_degrees",
@@ -1856,7 +1941,11 @@
               "船上有人但由远程位置控制的船舶。",
               "船上无人且由远程位置控制的船舶。",
               "能够自行决策并采取行动的全自主船舶。"
-            ]
+            ],
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         }
       ],
@@ -1953,7 +2042,7 @@
         {
           "id": "five-questions",
           "region": "method",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "bullets": [
@@ -1962,17 +2051,21 @@
               "参考怎样生成。",
               "控制怎样落地。",
               "责任怎样分界。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "evidence-match",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "responsibility_rule",
-            "text": "若偏差来自上游状态错误，先修正感知和估计；若来自参考不可实现，先修正规划约束；若来自闭环振荡，再回到控制结构、参数和裕度；若来自执行饱和，控制分配和执行器健康管理优先进入分析；若风险超过自动系统可信范围，监督层应触发降级或接管。"
+            "text": "若偏差来自上游状态错误，先修正感知和估计；若来自参考不可实现，先修正规划约束；若来自闭环振荡，再回到控制结构、参数和裕度；若来自执行饱和，控制分配和执行器健康管理优先进入分析；若风险超过自动系统可信范围，监督层应触发降级或接管。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2075,11 +2168,14 @@
         {
           "id": "posttest",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "note",
-            "text": "后测题目呼应目标页，不设计大段综合推导。"
+            "text": "后测题目呼应目标页，不设计大段综合推导。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2203,32 +2299,40 @@
         {
           "id": "info-image",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 链路责任边界信息图",
             "src": "/course-runtime/lessons/5-3/media/5-3-info.png",
-            "caption": "图中把感知、估计、规划、控制、执行和监督串成诊断链，强调偏差判断要同时看上游信息、规划可行性和执行边界。"
+            "caption": "图中把感知、估计、规划、控制、执行和监督串成诊断链，强调偏差判断要同时看上游信息、规划可行性和执行边界。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-blocks",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "MASS 链路责任边界",
-            "text": "MASS 把经典控制问题放进感知、估计、规划、控制、执行和监督组成的链路；控制仍承担稳定、跟踪和抗扰职责，但依赖上游信息质量，也受下游执行约束限制。"
+            "text": "MASS 把经典控制问题放进感知、估计、规划、控制、执行和监督组成的链路；控制仍承担稳定、跟踪和抗扰职责，但依赖上游信息质量，也受下游执行约束限制。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "class-stats",
           "region": "stats",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "课堂表现统计",
-            "text": "学生页显示已浏览页面、已提交互动、后测完成情况和关键能力达成摘要；教师页显示提交率、题目正确率、排序误判分布和目标达成概况。"
+            "text": "学生页显示已浏览页面、已提交互动、后测完成情况和关键能力达成摘要；教师页显示提交率、题目正确率、排序误判分布和目标达成概况。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],

@@ -36,61 +36,75 @@
         {
           "id": "object-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "formula": "P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}"
+            "formula": "P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           },
           "title": "主案例对象"
         },
         {
           "id": "controller-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "formula": "C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1"
+            "formula": "C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           },
           "title": "固定结构"
         },
         {
           "id": "candidate-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "formula": "C_u(s)=5\\dfrac{10s+1}{2s+1}"
+            "formula": "C_u(s)=5\\dfrac{10s+1}{2s+1}",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           },
           "title": "无约束候选"
         },
         {
           "id": "failure-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-5/media/4-5-ship-heading-unconstrained-failure-compare.png",
-            "caption": "客船航向保持：无约束候选为什么不可直接交付。先看闭环输出确实更快压向目标，再看控制量已经明显冲出可接受动作区间。"
+            "caption": "客船航向保持：无约束候选为什么不可直接交付。先看闭环输出确实更快压向目标，再看控制量已经明显冲出可接受动作区间。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           },
           "title": "越界证据图"
         },
         {
           "id": "problem-focus",
           "region": "evidence",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "时间指标更好，为什么仍不可交付？"
+            "text": "时间指标更好，为什么仍不可交付？",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "问题句"
         },
         {
           "id": "bridge-conclusion",
           "region": "evidence",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "本课先不继续谈求解器，而是先把更优与可交付的断裂看清。更优不等于可交付。"
+            "text": "本课先不继续谈求解器，而是先把更优与可交付的断裂看清。更优不等于可交付。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "本页结论"
         }
@@ -175,17 +189,20 @@
         {
           "id": "objective-header",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "完成这一轮实践后，我们应能做到什么？"
+            "text": "完成这一轮实践后，我们应能做到什么？",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "课程目标"
         },
         {
           "id": "objective-list",
           "region": "goals",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "bullets": [
@@ -194,17 +211,23 @@
               "区分参数范围与输出侧硬约束的职责。",
               "解释罚函数与 fmincon/nonlcon 为什么会改写最优点位置。",
               "比较起始方案、无约束候选和带约束可用解，并说明剩余风险。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "能力目标"
         },
         {
           "id": "objective-bridge",
           "region": "bridge",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "本课承接 4-4 的无约束建模，真正解决“最优不等于可用”。"
+            "text": "本课承接 4-4 的无约束建模，真正解决“最优不等于可用”。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "桥接句"
         }
@@ -297,17 +320,20 @@
         {
           "id": "case-bridge",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "当前仍是客船航向保持主案例；左表回收自由目标收益，右表专门复核这些收益是否伴随新的工程失守。"
+            "text": "当前仍是客船航向保持主案例；左表回收自由目标收益，右表专门复核这些收益是否伴随新的工程失守。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "比较对象"
         },
         {
           "id": "gain-table",
           "region": "gain",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "columns": [
@@ -341,14 +367,16 @@
                 "774.9575",
                 "为收益支付了更大动作代价"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           },
           "title": "表 1. 客船航向保持主案例中的自由目标收益"
         },
         {
           "id": "boundary-table",
           "region": "boundary",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "columns": [
@@ -400,17 +428,22 @@
                 "47.8274",
                 "裕度未崩塌，但并没有换来更稳妥的整体结果"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           },
           "title": "表 2. 同一主案例下的工程复核"
         },
         {
           "id": "conclusion-card",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "自由目标收益是真实存在的，但它不能自动等于工程可用。"
+            "text": "自由目标收益是真实存在的，但它不能自动等于工程可用。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "本页结论"
         }
@@ -514,16 +547,18 @@
         {
           "id": "constraint-formula",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "constraint_formula"
+            "block_key": "constraint_formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "risk-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "risk_table",
@@ -557,34 +592,43 @@
                 "闭环稳健性储备",
                 "只看时域变快，不看模型偏差和扰动下的脆弱性"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "delivery-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "delivery_conclusion"
+            "block_key": "delivery_conclusion",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "constraint-role-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "constraint_formula"
+            "block_key": "constraint_formula",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "misread-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "constraint_formula"
+            "block_key": "constraint_formula",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -724,25 +768,30 @@
         {
           "id": "range-formula",
           "region": "top",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "range_formula"
+            "block_key": "range_formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "role-summary",
           "region": "top",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "role_summary"
+            "block_key": "role_summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "role-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "role_table",
@@ -775,16 +824,20 @@
                 "复核项",
                 "求解后解释为什么当前结果可信而不是偶然数值"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "role-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "range_formula"
+            "block_key": "range_formula",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -916,34 +969,40 @@
         {
           "id": "jfree-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "jfree_card"
+            "block_key": "jfree_card",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "jcon-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "jcon_card"
+            "block_key": "jcon_card",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "penalty-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "penalty_card"
+            "block_key": "penalty_card",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "explain-reveal",
           "region": "explain",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "explain_reveal",
@@ -951,16 +1010,22 @@
               "只要三条硬约束都未越界，$P(\\theta)=0$，搜索仍按原有偏好推进。",
               "一旦某一项越界，罚项开始增大，总代价不再只奖励更快或更省。",
               "越界越严重，罚项增长越快，搜索会被推回可交付区域。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "rule-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "rule_conclusion"
+            "block_key": "rule_conclusion",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1087,7 +1152,7 @@
         {
           "id": "solver-input-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "solver_input_table",
@@ -1137,13 +1202,15 @@
                 },
                 "把交付边界写成可行性判定"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "solver-chain",
           "region": "chain",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "solver_chain",
@@ -1154,22 +1221,28 @@
               "随后调用 $fmincon$，让它在边界内重新搜索。",
               "求解结果先回读成 $x_\\star$，不要直接跳到“优化成功”。",
               "最后把 $x_\\star$ 翻译成 $C_\\star(s)$，再回到控制器结构解释结果。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "solver-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "solver_conclusion"
+            "block_key": "solver_conclusion",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "solver-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "block_key": "solver_input_table",
@@ -1219,7 +1292,9 @@
                 },
                 "把交付边界写成可行性判定"
               ]
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1382,21 +1457,23 @@
         {
           "id": "controller-triple",
           "region": "controllers",
-          "kind": "formula-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "formulas": [
               "C_0(s)=2.796\\dfrac{10s+1}{4.06s+1}",
               "C_B(s)=2.0644\\dfrac{9.9804s+1}{2.0809s+1}",
               "C_{B,c}(s)=1.7679\\dfrac{10.4676s+1}{2.6452s+1}"
-            ]
+            ],
+            "legacyKind": "formula-card-row",
+            "presentation": "row"
           },
           "title": "三方案控制器"
         },
         {
           "id": "same-weight-table",
           "region": "evidence",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "columns": [
@@ -1436,52 +1513,64 @@
                 "6.996",
                 "67.694"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           },
           "title": "表 6. 同一权重下的三方案对比"
         },
         {
           "id": "same-weight-figure",
           "region": "evidence",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-5/media/4-5-ship-heading-same-weight-constraint-compare.png",
-            "caption": "平衡权重下：无约束最优与带约束最优为什么会分出两组不同解。"
+            "caption": "平衡权重下：无约束最优与带约束最优为什么会分出两组不同解。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           },
           "title": "同权重对比图"
         },
         {
           "id": "feasible-reveal",
           "region": "summary",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "items": [
               "同一权重没有变化。",
               "越界解被排出可行域。",
               "最优点因此在新的可行域内迁移。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           },
           "title": "解释链"
         },
         {
           "id": "feasible-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "改写的是可行域，不是权重语言。"
+            "text": "改写的是可行域，不是权重语言。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "本页结论"
         },
         {
           "id": "same-weight-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "same_weight_figure"
+            "block_key": "same_weight_figure",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1587,21 +1676,23 @@
         {
           "id": "weight-row",
           "region": "weights",
-          "kind": "formula-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "formulas": [
               "A=[0.40,\\ 0.30,\\ 0.20,\\ 0.10]",
               "B=[0.30,\\ 0.30,\\ 0.20,\\ 0.20]",
               "C=[0.20,\\ 0.25,\\ 0.25,\\ 0.30]"
-            ]
+            ],
+            "legacyKind": "formula-card-row",
+            "presentation": "row"
           },
           "title": "三组权重"
         },
         {
           "id": "weight-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "columns": [
@@ -1641,31 +1732,38 @@
                 "67.113",
                 "2.167"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           },
           "title": "表 7. 约束内权重扫掠结果"
         },
         {
           "id": "weight-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-5/media/4-5-weight-sweep-constrained-summary.png",
-            "caption": "同一结构下，权重改变会重排可行解的收益分布。"
+            "caption": "同一结构下，权重改变会重排可行解的收益分布。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           },
           "title": "权重扫掠图"
         },
         {
           "id": "weight-summary",
           "region": "summary",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "items": [
               "硬约束主导后，继续把权重往“更快”那一侧推，并不会无限换来速度收益。",
               "当权重显著照顾动作代价时，可行解会主动回到更保守的时间尺度。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           },
           "title": "趋势总结"
         }
@@ -1770,20 +1868,22 @@
         {
           "id": "structure-controllers",
           "region": "controllers",
-          "kind": "formula-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "formulas": [
               "C_{LL}^\\star(s)=1.7679\\dfrac{10.4676s+1}{2.6452s+1}",
               "C_{PID}^\\star(s)=0.3205\\left(1+\\dfrac{1}{137.3s}+\\dfrac{100.0s}{5.0s+1}\\right)"
-            ]
+            ],
+            "legacyKind": "formula-card-row",
+            "presentation": "row"
           },
           "title": "两种结构公式"
         },
         {
           "id": "structure-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "columns": [
@@ -1817,32 +1917,39 @@
                 "70.601",
                 "4.123"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           },
           "title": "表 8. 同一主案例下，不同结构的最优解对比"
         },
         {
           "id": "structure-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-5/media/4-5-ship-heading-pid-vs-leadlag-compare.png",
-            "caption": "同一性能指标函数下，结构改变会把最优点带向不同区间。"
+            "caption": "同一性能指标函数下，结构改变会把最优点带向不同区间。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           },
           "title": "结构对比图"
         },
         {
           "id": "structure-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "bullets": [
               "参数优化只能回答“在这一个结构里怎样调最好”，不能替我们回答“这个结构本身是不是最合适”。",
               "结构一旦变化，最优点会移动到完全不同的代价分布上。",
               "这正是 4-6 要接住的结构边界问题。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "结构差异结论"
         }
@@ -1943,7 +2050,7 @@
         {
           "id": "closure-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "closure_table",
@@ -1996,31 +2103,38 @@
                 "47.8274",
                 "67.6942"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "acceptance-criteria",
           "region": "criteria",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "acceptance_criteria"
+            "block_key": "acceptance_criteria",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "margin-warning",
           "region": "criteria",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "margin_warning"
+            "block_key": "margin_warning",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "closure-summary",
           "region": "summary",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "closure_summary",
@@ -2028,16 +2142,22 @@
               "无约束候选把收益建立在越界代价上。",
               "带约束可用解把优化重新拉回可用设计空间。",
               "当前结果可接受，但固定结构边界并未解决。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "forward-link",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "forward_link"
+            "block_key": "forward_link",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -2209,46 +2329,61 @@
         {
           "id": "posttest-header",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_header"
+            "block_key": "posttest_header",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-q1",
           "region": "quiz",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_note"
+            "block_key": "posttest_note",
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "posttest-q2",
           "region": "quiz",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_header"
+            "block_key": "posttest_header",
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "posttest-q3",
           "region": "quiz",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_header"
+            "block_key": "posttest_header",
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "posttest-note",
           "region": "review",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_note"
+            "block_key": "posttest_note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -2360,7 +2495,7 @@
         {
           "id": "summary-chain",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "bullets": [
@@ -2369,28 +2504,36 @@
               "罚函数与 nonlcon 的价值在于把边界写进求解器规则。",
               "同一权重下最优点变化，说明变化发生在可行域。",
               "固定结构下的可接受解已经形成，但结构边界尚未进入主线。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "五条带走"
         },
         {
           "id": "summary-infographic",
           "region": "infographic",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-5/media/4-5-info.png",
-            "caption": "信息图：从越界候选到带约束可用解的证据闭环。"
+            "caption": "信息图：从越界候选到带约束可用解的证据闭环。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           },
           "title": "总结信息图"
         },
         {
           "id": "next-step-card",
           "region": "next-step",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "下一课转入结构边界与场景迁移。"
+            "text": "下一课转入结构边界与场景迁移。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           },
           "title": "下一课去向"
         }

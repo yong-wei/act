@@ -378,14 +378,11 @@ function getImageSrc(
     }
     return [];
   });
-  const imageModuleIndex = step.modules
-    .filter((item) => item.kind === 'image-panel')
-    .findIndex((item) => item.id === module.id);
-  return mediaItems[imageModuleIndex] ?? mediaItems[0] ?? null;
+  return mediaItems[imageIndex] ?? mediaItems[0] ?? null;
 }
 
 function imageModulePosition(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const modules = step.modules.filter((item) => ['image-panel', 'comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(item.kind));
+  const modules = step.modules.filter((item) => ['content.figure', 'image-panel', 'comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(item.kind));
   return {
     index: modules.findIndex((item) => item.id === module.id),
     count: modules.length,
