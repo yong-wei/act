@@ -1737,6 +1737,13 @@ export function UNIT_5_2StepContentPanel({
       }
       return baseRegistry['compute.panel'](props);
     },
+    'content.formula': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      if (legacyKind === 'native-formula-table') {
+        return baseRegistry['native-formula-table'](props);
+      }
+      return baseRegistry['content.formula'](props);
+    },
     'stat-panel': renderStatPanel,
     'analytics.summary': (props) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';

@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -10,6 +12,9 @@ import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-ma
 import { isUNIT_4_1AiPageType } from '@/lib/unit-4-1-course';
 
 vi.mock('server-only', () => ({}));
+vi.mock('@/resources/control-system/charts/control-figure-workspace', () => ({
+  ControlFigureWorkspace: () => 'control figure workspace',
+}));
 
 const repoRoot = process.cwd();
 const routeSegment = 'unit-4-1-design-task-expression';
@@ -238,6 +243,50 @@ describe('unit 4-1 interactive course', () => {
     expect(stepPanelsSource).toContain('data-progressive-reveal="row_or_column_reveal"');
     expect(stepPanelsSource).toContain('data-progressive-reveal="section_click_reveal"');
     expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
+  });
+
+  it('routes migrated canonical 4-1 modules through native lesson renderers', async () => {
+    const { manifest } = readRuntimeManifest();
+    const courseModule = await import('@/lib/unit-4-1-course');
+    const featureModule = await import('@/features/interactive/unit-4-1-design-task-expression/step-panels');
+
+    const step04Html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_1StepContentPanel, {
+        step: courseModule.getUNIT_4_1Step('step-04'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        role: 'student',
+      }),
+    );
+    const step11Html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_1StepContentPanel, {
+        step: courseModule.getUNIT_4_1Step('step-11'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        role: 'student',
+      }),
+    );
+    const summaryHtml = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_1StepContentPanel, {
+        step: courseModule.getUNIT_4_1Step('step-13'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        role: 'student',
+        submittedCount: 2,
+        viewedCount: 13,
+        postTestCompletion: 1,
+        parameterSubmissionCount: 4,
+      }),
+    );
+
+    expect(step04Html).toContain('客船航向控制对象框图');
+    expect(step04Html).toContain('控件栏');
+    expect(step11Html).toContain('五步清单');
+    expect(summaryHtml).toContain('个人课堂表现');
+    expect(`${step04Html}\n${step11Html}\n${summaryHtml}`).not.toContain('互动页模块渲染缺失');
   });
 
   it('keeps step-07/09/10 layout and formula wiring aligned with the revised page requirements', () => {

@@ -173,6 +173,61 @@ describe('interactive module registry gate', () => {
     expect(node.props.src).toBe('/course-runtime/lessons/fixture-lesson/media/single.png');
   });
 
+  it('keeps media fallback order for multiple canonical figure modules', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'segmented-block',
+        kind: 'content.figure',
+        mustBeVisible: true,
+        payload: { block_key: 'route_task_table' },
+      },
+    });
+    const step = manifest.steps[0];
+    step.modules = [
+      'segmented-block',
+      'rudder-identification-figure',
+      'hull-figure',
+      'disturbance-figure',
+    ].map((id) => ({
+      id,
+      kind: 'content.figure',
+      region: 'main',
+      mustBeVisible: true,
+      payload: { block_key: 'route_task_table', legacyKind: 'image-panel' },
+    }));
+    step.contentBlocks.route_task_table = {
+      columns: ['航线任务'],
+      rows: [['zig-zag 航线']],
+    };
+    step.contentBlocks.media = [
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/segmented.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/rudder.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/hull.png' },
+      { runtime_media: '/course-runtime/lessons/fixture-lesson/media/disturbance.png' },
+    ];
+
+    const sources = step.modules.map((module) => {
+      const node = registry['content.figure']({
+        manifest,
+        step,
+        module,
+        extra: { revealProgress: 0, allowInlineReveal: false },
+      }) as ReactElement<{ src?: string }>;
+      return node.props.src;
+    });
+
+    expect(sources).toEqual([
+      '/course-runtime/lessons/fixture-lesson/media/segmented.png',
+      '/course-runtime/lessons/fixture-lesson/media/rudder.png',
+      '/course-runtime/lessons/fixture-lesson/media/hull.png',
+      '/course-runtime/lessons/fixture-lesson/media/disturbance.png',
+    ]);
+  });
+
   it('renders the migrated 2-1 step 13 loop diagram from its media group', () => {
     const rawManifest = JSON.parse(
       readFileSync(join(process.cwd(), 'course-content/runtime/lessons/2-1/interactive-manifest.json'), 'utf8'),
