@@ -317,7 +317,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   const metricNames = 'metricProfile' in session
     ? session.metricProfile.rankingMetrics.map((metric) => formatArenaMetric(metric.id, metric)).join('、')
     : '本地观察指标';
-  const showClassicPreset = session.defaultPreset === 'classic-whitebox';
+  const showClassicPreset = session.defaultPreset === 'classic-whitebox' || session.defaultPreset === 'free-explore';
   const showBlackBoxPreset = session.defaultPreset === 'blackbox-identification' && 'taskId' in session;
   const showCompositePreset = session.defaultPreset === 'composite-control' && 'taskId' in session;
   const showPredictivePreset = session.defaultPreset === 'predictive-control' && 'taskId' in session;
