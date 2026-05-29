@@ -274,7 +274,7 @@
           {
             "id": "closed-loop-error",
             "prompt": "闭环控制中 e(t)=r(t)-y(t) 的含义是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "参考输入与输出反馈之间的误差",
               "规划层给出的完整任务路径",
@@ -287,7 +287,7 @@
           {
             "id": "feedback-quality",
             "prompt": "反馈量若带有噪声或延迟，控制器接收到的误差就可能偏离真实状态。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -299,7 +299,7 @@
           {
             "id": "actuator-limit",
             "prompt": "执行器幅值上限的直接含义是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "控制指令超过边界时，实际执行量会被截断",
               "规划路径一定最短",
@@ -462,7 +462,7 @@
           {
             "id": "role-match",
             "prompt": "将六个典型动作分别放入感知、估计、规划、控制、执行和监督环节。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "match_items": [
               {
                 "value": "target-outline",
@@ -687,7 +687,7 @@
           {
             "id": "control-duty",
             "prompt": "规划层给出期望航迹后，控制层最直接承担什么任务？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "把参考转化为可反馈、可约束的运动指令",
               "保证感知信息完整",
@@ -700,7 +700,7 @@
           {
             "id": "control-boundary",
             "prompt": "控制层能独自保证感知信息完整和规划目标合理。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -929,7 +929,7 @@
           {
             "id": "noise-diagnosis",
             "prompt": "日志显示控制输出频繁小幅抖动，同时反馈测量含高频噪声，优先检查对象是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "传感器健康、量测滤波和采样同步",
               "自动化等级",
@@ -942,7 +942,7 @@
           {
             "id": "delay-diagnosis",
             "prompt": "同一控制器在测量延迟存在时避障后留下更大横向偏差，首要证据指向什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "反馈状态的时间滞后",
               "障碍物半径为零",
@@ -1049,7 +1049,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1080,7 +1080,7 @@
           {
             "id": "zigzag-saturation",
             "prompt": "三类路径中哪一类最容易造成舵角在正负最大值之间频繁切换？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "频繁重规划路径",
               "平滑可行路径",
@@ -1228,7 +1228,7 @@
           {
             "id": "saturation-evidence",
             "prompt": "若日志中实际舵角长时间贴着上限，最直接的证据类型是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "执行器幅值约束触边",
               "自动化等级提高",
@@ -1241,7 +1241,7 @@
           {
             "id": "constraint-motion",
             "prompt": "执行约束只是控制信号显示前的后处理，不会影响真实运动路径。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -1413,7 +1413,7 @@
           {
             "id": "diagnostic-order-sort",
             "prompt": "给出目标船丢帧、估计滞后、规划急转、舵角饱和、轨迹偏移、风险超限六条证据，按优先检查顺序排序。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               "目标船丢帧",
               "估计滞后",
@@ -1551,7 +1551,7 @@
           {
             "id": "occlusion-layer",
             "prompt": "目标船被短时遮挡后，估计层保持上一速度值，这条证据首先进入哪个诊断层？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "感知层和估计层",
               "执行层",
@@ -1564,7 +1564,7 @@
           {
             "id": "path-gap-checks",
             "prompt": "橙色航迹未贴住蓝色规划路径时，需要同步检查哪些对象？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "规划参考是否过急",
               "反馈状态是否滞后",
@@ -1831,7 +1831,7 @@
           {
             "id": "turning-radius-submit",
             "prompt": "提交当前选择的规划半径 R、对应最大舵角、名义舵角、是否触发舵角饱和、是否满足安全约束，以及一句链路判断。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "structured_fields": [
               "R_m",
               "max_delta_deg",
@@ -1945,7 +1945,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1971,7 +1971,7 @@
           {
             "id": "degree-vs-chain",
             "prompt": "自动化等级能否替代感知、估计、规划、控制、执行和监督链路证据诊断？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "不能，等级描述运行形态，技术判断仍要回到链路证据",
               "能，等级越高就不需要链路诊断",
@@ -2084,7 +2084,7 @@
           {
             "id": "minimal-method-match",
             "prompt": "将状态跳变、频繁重规划、舵角贴边、裕度不足、远程接管匹配到估计层、规划层、执行层、控制层、监督层。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "options": [
               {
                 "value": "estimation",
@@ -2191,7 +2191,7 @@
           {
             "id": "posttest-order",
             "prompt": "日志显示目标船短时遮挡、估计层保持上一速度值、规划层给出急转参考、舵角达到 18° 上限。请按优先检查顺序排列：感知、估计、规划、执行。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               "感知",
               "估计",
@@ -2210,7 +2210,7 @@
           {
             "id": "posttest-feasible-reference",
             "prompt": "若规划半径对应名义舵角超过执行器上限，最合理的链路结论是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "规划参考没有吸收控制与执行约束",
               "自动化等级太低",
@@ -2223,7 +2223,7 @@
           {
             "id": "posttest-why-not-gain",
             "prompt": "用一句话说明为什么不能先只调控制器增益。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "因为信息质量、参考可实现性和执行触边证据尚未排除，直接增益调整不能解释完整偏差链。",
             "submit_scope": "per_card",
             "layout_span": "full"

@@ -554,7 +554,7 @@
           {
             "id": "pre-quiz-1",
             "prompt": "只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "否",
               "是"
@@ -565,7 +565,7 @@
           {
             "id": "pre-quiz-2",
             "prompt": "参数范围和工程硬边界是不是同一种东西？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "不是",
               "是"
@@ -576,7 +576,7 @@
           {
             "id": "pre-quiz-3",
             "prompt": "若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "不能",
               "能"
@@ -919,7 +919,7 @@
           {
             "id": "improvement-gap",
             "prompt": "你认为上一课中的方案还有哪些可以改进的地方？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1191,7 +1191,7 @@
           {
             "id": "term-role",
             "prompt": "四项中哪两项更像收益，哪一项最明显在记录动作代价？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1477,7 +1477,7 @@
             "title": "只阅读，不提交。",
             "prompt": "只阅读，不提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1673,7 +1673,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1784,7 +1784,7 @@
           {
             "id": "weight-preference",
             "prompt": "若更担心动作代价继续抬高，更应优先保留哪一组偏好？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "A",
               "B",
@@ -2018,7 +2018,7 @@
           {
             "id": "reading-why",
             "prompt": "为什么同样是无约束优化，时域收益、频域读数和动作代价不会同步朝一个方向变化？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -2141,7 +2141,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -2187,7 +2187,7 @@
           {
             "id": "pareto-meaning",
             "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它保留的是一组非支配候选",
               "因为图还没画完",
@@ -2388,7 +2388,7 @@
             "legacyKind": "single-choice-card",
             "presentation": "single",
             "interactionKind": "single-choice",
-            "responseKind": "singleChoice"
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -2476,7 +2476,7 @@
           {
             "id": "pareto-point-why",
             "prompt": "为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它们彼此之间都存在收益与代价交换",
               "因为三个点的数值完全一样",
@@ -2727,21 +2727,21 @@
           {
             "id": "language-shift-card",
             "prompt": "请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "numeric-validation-card",
             "prompt": "请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "tradeoff-card",
             "prompt": "请用一句话说明横摇案例里收益与代价是怎样重新分配的。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -2870,7 +2870,7 @@
           {
             "id": "post-quiz-1",
             "prompt": "为什么本课保留下来的只能叫“候选族”，而不是最终可用解？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为还没有经过 4-5 的工程复核",
               "因为参数还没有写成向量",
@@ -2882,7 +2882,7 @@
           {
             "id": "post-quiz-2",
             "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它保留的是一组非支配候选",
               "因为图还没画完",
@@ -2894,7 +2894,7 @@
           {
             "id": "post-quiz-3",
             "prompt": "为什么横摇案例不能继续沿用航向保持中的目标语言？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为任务通道变了，收益项和代价项必须跟着改写",
               "因为横摇对象没有积分环节",

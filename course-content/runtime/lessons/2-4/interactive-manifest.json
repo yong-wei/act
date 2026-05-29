@@ -147,7 +147,7 @@
           "must_be_visible": true,
           "title": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。",
           "payload": {
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "interaction_kind": "binary_choice",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -180,7 +180,7 @@
             "id": "step-02:response",
             "title": "情境引入——为什么同一条频率特性还要换一张图",
             "prompt": "先立住 Nyquist 不是新对象，而是同一频率特性的另一种图形语言。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -343,7 +343,7 @@
           "must_be_visible": true,
           "title": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -376,7 +376,7 @@
             "id": "step-04:response",
             "title": "前测——起点、对象与指标三类误区",
             "prompt": "用三题暴露“Nyquist 是新对象”“裕度直接给闭环结论”等误区。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -471,7 +471,7 @@
           "must_be_visible": true,
           "title": "把双图职责、复数表达与观察问题一一配对。",
           "payload": {
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "interaction_kind": "triple_match",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -504,7 +504,7 @@
             "id": "step-05:response",
             "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
             "prompt": "把双图职责、复数表达与观察问题一一配对。",
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -642,7 +642,7 @@
           "must_be_visible": true,
           "title": "固定“四步读法”的观察顺序，不跳步。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -675,7 +675,7 @@
             "id": "step-06:response",
             "title": "Nyquist 四步读法——起点、终点、方向、总转角",
             "prompt": "固定“四步读法”的观察顺序，不跳步。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -761,7 +761,7 @@
           "must_be_visible": true,
           "title": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -796,7 +796,7 @@
             "id": "step-07:response",
             "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
             "prompt": "用参数滑块观察一阶惯性轨迹如何从正实轴向下弯向原点。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -885,7 +885,7 @@
           "must_be_visible": true,
           "title": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。",
           "payload": {
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "interaction_kind": "card_sort",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -918,7 +918,7 @@
             "id": "step-08:response",
             "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
             "prompt": "按对象比较 Nyquist 轨迹转角深浅与拖后程度。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -1011,7 +1011,7 @@
           "must_be_visible": true,
           "title": "把五个指标的定义、图上锚点和回答的问题对应起来。",
           "payload": {
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "interaction_kind": "triple_match",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1044,7 +1044,7 @@
             "id": "step-09:response",
             "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
             "prompt": "把五个指标的定义、图上锚点和回答的问题对应起来。",
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -1182,7 +1182,7 @@
           "must_be_visible": true,
           "title": "把单位圆、负实轴和指标锚点连回双图对应关系。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1215,7 +1215,7 @@
             "id": "step-10:response",
             "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
             "prompt": "把单位圆、负实轴和指标锚点连回双图对应关系。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1301,7 +1301,7 @@
           "must_be_visible": true,
           "title": "只做基线、折点与斜率的第一轮骨架工作区。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1336,7 +1336,7 @@
             "id": "step-11:response",
             "title": "手工绘图入口一——Bode 基线、折点与斜率",
             "prompt": "只做基线、折点与斜率的第一轮骨架工作区。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1428,7 +1428,7 @@
           "must_be_visible": true,
           "title": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1461,7 +1461,7 @@
             "id": "step-12:response",
             "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
             "prompt": "用关键点规则卡把 Nyquist 手工绘图入口固定下来。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1552,7 +1552,7 @@
           "must_be_visible": true,
           "title": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1587,7 +1587,7 @@
             "id": "step-13:response",
             "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
             "prompt": "按三步链完成含积分环节对象的 Bode 到 Nyquist 转换。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1683,7 +1683,7 @@
           "must_be_visible": true,
           "title": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1716,7 +1716,7 @@
             "id": "step-14:response",
             "title": "例题二——读取频域指标，暂不作闭环结论",
             "prompt": "只读取指标并解释来源，不把本课偷渡成闭环判稳课。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1802,7 +1802,7 @@
           "must_be_visible": true,
           "title": "先独立判断对象与参数量级，再用页内 AI 核对线索链。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1837,7 +1837,7 @@
             "id": "step-15:response",
             "title": "基础反向识别——先认对象轮廓，再估参数量级",
             "prompt": "先独立判断对象与参数量级，再用页内 AI 核对线索链。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1921,7 +1921,7 @@
           "must_be_visible": true,
           "title": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1954,7 +1954,7 @@
             "id": "step-16:response",
             "title": "后测——图会看，更要会守边界",
             "prompt": "检验会不会读图、会不会算指标，也检验会不会守住本课边界。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [

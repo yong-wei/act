@@ -1,3 +1,8 @@
+import {
+  CANONICAL_INTERACTIVE_RESPONSE_KINDS,
+  type InteractiveResponseKind,
+} from '@/lib/interactive-response-contracts';
+
 export const INTERACTIVE_MODULE_CANONICAL_CLASSES = [
   'content.rich',
   'content.cardSet',
@@ -96,23 +101,9 @@ export const INTERACTIVE_MODULE_INTERACTION_KINDS = [
 
 export type InteractiveModuleInteractionKind = typeof INTERACTIVE_MODULE_INTERACTION_KINDS[number];
 
-export const INTERACTIVE_MODULE_RESPONSE_KINDS = [
-  'none',
-  'singleChoice',
-  'binaryChoice',
-  'multiSelect',
-  'matching',
-  'sorting',
-  'categorization',
-  'shortText',
-  'structured',
-  'table',
-  'parameterRecord',
-  'reasonRecord',
-  'hotspotLabeling',
-] as const;
+export const INTERACTIVE_MODULE_RESPONSE_KINDS = CANONICAL_INTERACTIVE_RESPONSE_KINDS;
 
-export type InteractiveModuleResponseKind = typeof INTERACTIVE_MODULE_RESPONSE_KINDS[number];
+export type InteractiveModuleResponseKind = InteractiveResponseKind;
 
 export type InteractiveModuleRenderBehavior = 'renderer' | 'activity-slot' | 'layout-only';
 export type InteractiveModuleScoringSupport = 'objective' | 'unsupported';
@@ -237,19 +228,18 @@ export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalCl
 };
 
 export const INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS: Record<InteractiveModuleResponseKind, InteractiveModuleResponseKindDefinition> = {
-  none: { responseKind: 'none', scoring: 'unsupported' },
-  singleChoice: { responseKind: 'singleChoice', scoring: 'objective' },
-  binaryChoice: { responseKind: 'binaryChoice', scoring: 'objective' },
-  multiSelect: { responseKind: 'multiSelect', scoring: 'objective' },
-  matching: { responseKind: 'matching', scoring: 'objective' },
-  sorting: { responseKind: 'sorting', scoring: 'objective' },
-  categorization: { responseKind: 'categorization', scoring: 'objective' },
-  shortText: { responseKind: 'shortText', scoring: 'unsupported' },
-  structured: { responseKind: 'structured', scoring: 'unsupported' },
-  table: { responseKind: 'table', scoring: 'unsupported' },
-  parameterRecord: { responseKind: 'parameterRecord', scoring: 'unsupported' },
-  reasonRecord: { responseKind: 'reasonRecord', scoring: 'unsupported' },
-  hotspotLabeling: { responseKind: 'hotspotLabeling', scoring: 'objective' },
+  'choice.single': { responseKind: 'choice.single', scoring: 'objective' },
+  'choice.binary': { responseKind: 'choice.binary', scoring: 'objective' },
+  'choice.multi': { responseKind: 'choice.multi', scoring: 'objective' },
+  'text.short': { responseKind: 'text.short', scoring: 'unsupported' },
+  'text.long': { responseKind: 'text.long', scoring: 'unsupported' },
+  'text.structured': { responseKind: 'text.structured', scoring: 'unsupported' },
+  'parameter.set': { responseKind: 'parameter.set', scoring: 'unsupported' },
+  'ordering.sequence': { responseKind: 'ordering.sequence', scoring: 'objective' },
+  'matching.pairs': { responseKind: 'matching.pairs', scoring: 'objective' },
+  'table.builder': { responseKind: 'table.builder', scoring: 'unsupported' },
+  'simulation.result': { responseKind: 'simulation.result', scoring: 'unsupported' },
+  'training.result': { responseKind: 'training.result', scoring: 'unsupported' },
 };
 
 export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, InteractiveModuleComputeCapabilityDefinition> = {
@@ -564,19 +554,19 @@ function interactionForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): In
 }
 
 function responseForLegacyKind(kind: ObservedLegacyInteractiveModuleKind): InteractiveModuleResponseKind | null {
-  if (kind.includes('single-choice') || kind.includes('choice-check') || kind.includes('annotation-choice')) return 'singleChoice';
-  if (kind.includes('binary-choice')) return 'binaryChoice';
-  if (kind.includes('multi-')) return 'multiSelect';
-  if (kind.includes('drag-match') || kind.includes('triple-match')) return 'matching';
-  if (kind.includes('sort')) return 'sorting';
-  if (kind.includes('categorize')) return 'categorization';
-  if (kind.includes('short-response')) return 'shortText';
-  if (kind.includes('structured') || kind.includes('three-field-form') || kind.includes('judge-form')) return 'structured';
-  if (kind.includes('table-builder')) return 'table';
-  if (kind.includes('parametric')) return 'parameterRecord';
-  if (kind.includes('workspace')) return 'structured';
-  if (kind.includes('reason-record') || kind.includes('single-reason')) return 'reasonRecord';
-  if (kind.includes('hotspot') || kind.includes('labeling')) return 'hotspotLabeling';
+  if (kind.includes('single-choice') || kind.includes('choice-check') || kind.includes('annotation-choice')) return 'choice.single';
+  if (kind.includes('binary-choice')) return 'choice.binary';
+  if (kind.includes('multi-')) return 'choice.multi';
+  if (kind.includes('drag-match') || kind.includes('triple-match')) return 'matching.pairs';
+  if (kind.includes('sort')) return 'ordering.sequence';
+  if (kind.includes('categorize')) return 'text.structured';
+  if (kind.includes('short-response')) return 'text.short';
+  if (kind.includes('structured') || kind.includes('three-field-form') || kind.includes('judge-form')) return 'text.structured';
+  if (kind.includes('table-builder')) return 'table.builder';
+  if (kind.includes('parametric')) return 'parameter.set';
+  if (kind.includes('workspace')) return 'text.structured';
+  if (kind.includes('reason-record') || kind.includes('single-reason')) return 'text.structured';
+  if (kind.includes('hotspot') || kind.includes('labeling')) return 'matching.pairs';
   return null;
 }
 

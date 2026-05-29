@@ -36,10 +36,10 @@ steps:
         - { id: 'route', width: 'full', order: 2 }
         - { id: 'question', width: 'full', order: 3 }
     modules:
-      - { id: 'object-card', region: 'object', kind: 'formula-card', must_be_visible: true }
-      - { id: 'tension-list', region: 'object', kind: 'bullet-list-card', must_be_visible: true }
-      - { id: 'route-map', region: 'route', kind: 'stage-map', must_be_visible: true }
-      - { id: 'problem-focus', region: 'question', kind: 'summary-card', must_be_visible: true }
+      - { id: 'object-card', region: 'object', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'tension-list', region: 'object', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'bullet-list-card', presentation: 'single' }}
+      - { id: 'route-map', region: 'route', kind: 'content.stageMap', must_be_visible: true , payload: { legacyKind: 'stage-map', presentation: 'single' }}
+      - { id: 'problem-focus', region: 'question', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
     content_blocks:
       object_card:
         title: '主案例对象'
@@ -75,8 +75,8 @@ steps:
         - { id: 'header', width: 'full', order: 1 }
         - { id: 'goals', width: 'full', order: 2 }
     modules:
-      - { id: 'goal-intro', region: 'header', kind: 'summary-card', must_be_visible: true }
-      - { id: 'goal-cards', region: 'goals', kind: 'goal-card-row', must_be_visible: true }
+      - { id: 'goal-intro', region: 'header', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'goal-cards', region: 'goals', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'goal-card-row', presentation: 'row', semanticRole: 'goal' }}
     content_blocks:
       goal_intro:
         text: '完成本次课程后，学习者能够：'
@@ -108,11 +108,11 @@ steps:
         - { id: 'reading', width: 'full', order: 3 }
         - { id: 'quiz', width: 'full', order: 4 }
     modules:
-      - { id: 'trial-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'diagnosis-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'reading-order', region: 'reading', kind: 'summary-card', must_be_visible: true }
-      - { id: 'reading-conclusion', region: 'reading', kind: 'summary-card', must_be_visible: true }
-      - { id: 'pre-quiz', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
+      - { id: 'trial-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'diagnosis-figure', region: 'media', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'reading-order', region: 'reading', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'reading-conclusion', region: 'reading', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'pre-quiz', region: 'quiz', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz' }}
     content_blocks:
       trial_table:
         columns: ['方案', '设计意图', '超调 / %', '调节时间 / s', '控制峰值', '相角裕度 / deg', '读数结论']
@@ -137,9 +137,9 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三题前测。'
       activity_cards:
-        - { id: 'pre-quiz-1', prompt: '只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？', response_kind: 'single_choice', options: ['否', '是'], submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'pre-quiz-2', prompt: '参数范围和工程硬边界是不是同一种东西？', response_kind: 'single_choice', options: ['不是', '是'], submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'pre-quiz-3', prompt: '若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？', response_kind: 'single_choice', options: ['不能', '能'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'pre-quiz-1', prompt: '只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？', response_kind: 'choice.single', options: ['否', '是'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'pre-quiz-2', prompt: '参数范围和工程硬边界是不是同一种东西？', response_kind: 'choice.single', options: ['不是', '是'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'pre-quiz-3', prompt: '若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？', response_kind: 'choice.single', options: ['不能', '能'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions', 'completion_rate'] }
@@ -158,13 +158,13 @@ steps:
         - { id: 'table', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'initial-controller', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'parameter-vector', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'prior-result-figure', region: 'evidence', kind: 'image-panel', must_be_visible: true }
-      - { id: 'prior-result-metrics', region: 'evidence', kind: 'native-table', must_be_visible: true }
-      - { id: 'range-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'range-note', region: 'table', kind: 'summary-card', must_be_visible: true }
-      - { id: 'start-task', region: 'interaction', kind: 'activity-card', must_be_visible: true }
+      - { id: 'initial-controller', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'parameter-vector', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'prior-result-figure', region: 'evidence', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'prior-result-metrics', region: 'evidence', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'range-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'range-note', region: 'table', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'start-task', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card', presentation: 'single' }}
     content_blocks:
       initial_controller:
         title: '4-3 起始方案'
@@ -199,7 +199,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '根据上一轮结果指出仍可继续改进的地方。'
       activity_cards:
-        - { id: 'improvement-gap', prompt: '你认为上一课中的方案还有哪些可以改进的地方？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'improvement-gap', prompt: '你认为上一课中的方案还有哪些可以改进的地方？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -219,11 +219,11 @@ steps:
         - { id: 'meaning', width: 'full', order: 4 }
         - { id: 'interaction', width: 'full', order: 5 }
     modules:
-      - { id: 'target-cards', region: 'targets', kind: 'equation-card-row', must_be_visible: true }
-      - { id: 'jfree-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'normalization-meaning-table', region: 'normalization', kind: 'native-table', must_be_visible: true }
-      - { id: 'weight-note', region: 'meaning', kind: 'summary-card', must_be_visible: true }
-      - { id: 'role-task', region: 'interaction', kind: 'activity-card', must_be_visible: true }
+      - { id: 'target-cards', region: 'targets', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'equation-card-row', presentation: 'row' }}
+      - { id: 'jfree-card', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'normalization-meaning-table', region: 'normalization', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'weight-note', region: 'meaning', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'role-task', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card', presentation: 'single' }}
     content_blocks:
       target_cards:
         - { title: '调节时间 t_s', note: '代表收敛速度' }
@@ -251,7 +251,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '区分收益项与代价项。'
       activity_cards:
-        - { id: 'term-role', prompt: '四项中哪两项更像收益，哪一项最明显在记录动作代价？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'term-role', prompt: '四项中哪两项更像收益，哪一项最明显在记录动作代价？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -269,9 +269,9 @@ steps:
         - { id: 'steps', width: 'full', order: 2 }
         - { id: 'closing', width: 'full', order: 3 }
     modules:
-      - { id: 'optimization-problem', region: 'problem', kind: 'formula-card', must_be_visible: true }
-      - { id: 'iteration-chain', region: 'steps', kind: 'summary-card', must_be_visible: true }
-      - { id: 'closing-note', region: 'closing', kind: 'summary-card', must_be_visible: true }
+      - { id: 'optimization-problem', region: 'problem', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'iteration-chain', region: 'steps', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'closing-note', region: 'closing', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
     content_blocks:
       optimization_problem:
         title: '当前交给数值方法的问题'
@@ -304,10 +304,10 @@ steps:
         - { id: 'figure', width: 'half', order: 2 }
         - { id: 'reveal', width: 'half', order: 3 }
     modules:
-      - { id: 'page-title', region: 'problem', kind: 'summary-card', must_be_visible: true }
-      - { id: 'mini-problem', region: 'problem', kind: 'problem-statement', must_be_visible: true }
-      - { id: 'gradient-figure', region: 'figure', kind: 'native-figure', must_be_visible: true }
-      - { id: 'gradient-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'page-title', region: 'problem', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'mini-problem', region: 'problem', kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'problem-statement', presentation: 'single', semanticRole: 'problem' }}
+      - { id: 'gradient-figure', region: 'figure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'native-figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'gradient-reveal', region: 'reveal', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
     content_blocks:
       page_title:
         title: '为什么搜索会沿代价面下滑'
@@ -347,10 +347,10 @@ steps:
         - { id: 'table', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'shared-structure', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'weight-table', region: 'weights', kind: 'native-table', must_be_visible: true }
-      - { id: 'time-domain-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'weight-choice', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'shared-structure', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'weight-table', region: 'weights', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'time-domain-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'weight-choice', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
     content_blocks:
       shared_structure:
         title: '同一固定结构'
@@ -376,7 +376,7 @@ steps:
       interaction_kind: 'single_choice'
       student_task: '判断当前更应优先保留哪一组偏好。'
       activity_cards:
-        - { id: 'weight-preference', prompt: '若更担心动作代价继续抬高，更应优先保留哪一组偏好？', response_kind: 'single_choice', options: ['A', 'B', 'C'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'weight-preference', prompt: '若更担心动作代价继续抬高，更应优先保留哪一组偏好？', response_kind: 'choice.single', options: ['A', 'B', 'C'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -395,10 +395,10 @@ steps:
         - { id: 'table', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'comparison-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
-      - { id: 'time-reading', region: 'reading', kind: 'summary-card', must_be_visible: true }
-      - { id: 'frequency-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'comparison-task', region: 'interaction', kind: 'activity-card', must_be_visible: true }
+      - { id: 'comparison-figure', region: 'figure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'time-reading', region: 'reading', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'frequency-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'comparison-task', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card', presentation: 'single' }}
     content_blocks:
       comparison_figure:
         runtime_media: '/course-runtime/lessons/4-4/media/4-4-ship-heading-unconstrained-weight-compare.png'
@@ -423,7 +423,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '用一句话说明为什么不同读数不会同步变化。'
       activity_cards:
-        - { id: 'reading-why', prompt: '为什么同样是无约束优化，时域收益、频域读数和动作代价不会同步朝一个方向变化？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'reading-why', prompt: '为什么同样是无约束优化，时域收益、频域读数和动作代价不会同步朝一个方向变化？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -442,10 +442,10 @@ steps:
         - { id: 'reading', width: 'half', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'pareto-definition', region: 'definition', kind: 'formula-card', must_be_visible: true }
-      - { id: 'pareto-figure', region: 'figure', kind: 'native-figure', must_be_visible: true }
-      - { id: 'pareto-reading', region: 'reading', kind: 'stat-panel', must_be_visible: true }
-      - { id: 'pareto-task', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'pareto-definition', region: 'definition', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'pareto-figure', region: 'figure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'native-figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'pareto-reading', region: 'reading', kind: 'analytics.summary', must_be_visible: true , payload: { legacyKind: 'stat-panel', presentation: 'single' }}
+      - { id: 'pareto-task', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
     content_blocks:
       pareto_definition:
         title: '二目标设计对'
@@ -467,7 +467,7 @@ steps:
       interaction_kind: 'single_choice'
       student_task: '判断 Pareto front 为什么不是再选一个绝对最优。'
       activity_cards:
-        - { id: 'pareto-meaning', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'single_choice', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有填完'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'pareto-meaning', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'choice.single', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有填完'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -487,12 +487,12 @@ steps:
         - { id: 'meaning', width: 'full', order: 4 }
         - { id: 'interaction', width: 'full', order: 5 }
     modules:
-      - { id: 'shared-structure', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'pareto-point-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'pareto-response-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
-      - { id: 'pareto-response-reading', region: 'meaning', kind: 'summary-card', must_be_visible: true }
-      - { id: 'engineering-meaning', region: 'meaning', kind: 'summary-card', must_be_visible: true }
-      - { id: 'pareto-point-task', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'shared-structure', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'pareto-point-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'pareto-response-figure', region: 'figure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'pareto-response-reading', region: 'meaning', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'engineering-meaning', region: 'meaning', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'pareto-point-task', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
     content_blocks:
       shared_structure:
         title: '同一固定结构'
@@ -522,7 +522,7 @@ steps:
       interaction_kind: 'single_choice'
       student_task: '判断为什么三个典型点在 Pareto 意义下同样好。'
       activity_cards:
-        - { id: 'pareto-point-why', prompt: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？', response_kind: 'single_choice', options: ['因为它们彼此之间都存在收益与代价交换', '因为三个点的数值完全一样', '因为只要在前沿上就自动可交付'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'pareto-point-why', prompt: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？', response_kind: 'choice.single', options: ['因为它们彼此之间都存在收益与代价交换', '因为三个点的数值完全一样', '因为只要在前沿上就自动可交付'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -541,12 +541,12 @@ steps:
         - { id: 'figure', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'roll-object-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'roll-objective-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'roll-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'roll-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
-      - { id: 'roll-reading', region: 'figure', kind: 'summary-card', must_be_visible: true }
-      - { id: 'roll-workspace', region: 'interaction', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'roll-object-card', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'roll-objective-card', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'roll-table', region: 'table', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'roll-figure', region: 'figure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media' }}
+      - { id: 'roll-reading', region: 'figure', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'roll-workspace', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       roll_object_card:
         title: '横摇对象与固定结构'
@@ -571,9 +571,9 @@ steps:
       interaction_kind: 'task_card_workspace'
       student_task: '分别提交三张最小判断卡。'
       activity_cards:
-        - { id: 'language-shift-card', prompt: '请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'numeric-validation-card', prompt: '请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'tradeoff-card', prompt: '请用一句话说明横摇案例里收益与代价是怎样重新分配的。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'language-shift-card', prompt: '请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'numeric-validation-card', prompt: '请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'tradeoff-card', prompt: '请用一句话说明横摇案例里收益与代价是怎样重新分配的。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['field_completion_rate', 'error_bucket_distribution'] }
@@ -591,9 +591,9 @@ steps:
         - { id: 'quiz', width: 'full', order: 2 }
         - { id: 'closing', width: 'full', order: 3 }
     modules:
-      - { id: 'posttest-title', region: 'header', kind: 'summary-card', must_be_visible: true }
-      - { id: 'post-quiz', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
-      - { id: 'posttest-note', region: 'closing', kind: 'summary-card', must_be_visible: true }
+      - { id: 'posttest-title', region: 'header', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'post-quiz', region: 'quiz', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: 'posttest-note', region: 'closing', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
     content_blocks:
       posttest_title:
         title: '阶段判断后测'
@@ -605,9 +605,9 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三题后测。'
       activity_cards:
-        - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', response_kind: 'single_choice', options: ['因为还没有经过 4-5 的工程复核', '因为参数还没有写成向量', '因为调节时间没有下降'], submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'single_choice', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有归一化'], submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', response_kind: 'single_choice', options: ['因为任务通道变了，收益项和代价项必须跟着改写', '因为横摇对象没有积分环节', '因为参数范围必须改成负数'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', response_kind: 'choice.single', options: ['因为还没有经过 4-5 的工程复核', '因为参数还没有写成向量', '因为调节时间没有下降'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'choice.single', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有归一化'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', response_kind: 'choice.single', options: ['因为任务通道变了，收益项和代价项必须跟着改写', '因为横摇对象没有积分环节', '因为参数范围必须改成负数'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions', 'completion_rate'] }
@@ -624,8 +624,8 @@ steps:
         - { id: 'summary', width: 'full', order: 1 }
         - { id: 'next', width: 'full', order: 2 }
     modules:
-      - { id: 'takeaways', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'next-step', region: 'next', kind: 'summary-card', must_be_visible: true }
+      - { id: 'takeaways', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'next-step', region: 'next', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
     content_blocks:
       takeaways:
         bullets:

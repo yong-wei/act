@@ -157,7 +157,7 @@
           "must_be_visible": true,
           "title": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
           "payload": {
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "interaction_kind": "binary_choice",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -190,7 +190,7 @@
             "id": "step-02:response",
             "title": "情境引入：同主导极点，为什么响应仍会分家",
             "prompt": "先用三模型冲突压实主问题，再进入主导模态和附加模态的比较。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -361,7 +361,7 @@
           "must_be_visible": true,
           "title": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -394,7 +394,7 @@
             "id": "step-04:response",
             "title": "前测：稳定、主导极点与“可忽略”直觉判断",
             "prompt": "用三道前测题先暴露起点误解，建立后续纠偏需要。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -489,7 +489,7 @@
           "must_be_visible": true,
           "title": "先判断系统能否收敛，后面的近似和证据链才有前提。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -522,7 +522,7 @@
             "id": "step-05:response",
             "title": "稳定底线：先回答“能不能谈近似”",
             "prompt": "先判断系统能否收敛，后面的近似和证据链才有前提。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -611,7 +611,7 @@
           "must_be_visible": true,
           "title": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
           "payload": {
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "interaction_kind": "triple_match",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -644,7 +644,7 @@
             "id": "step-06:response",
             "title": "从极点到模态：极点为什么会直接写进响应",
             "prompt": "把部分分式、脉冲响应和模态含义连成一条可解释的因果链。",
-            "response_kind": "triple_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -780,7 +780,7 @@
           "must_be_visible": true,
           "title": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -813,7 +813,7 @@
             "id": "step-07:response",
             "title": "三类极点与重根：响应形态为什么不止一种",
             "prompt": "区分极点类型与重根效应，避免把不同形态混成一句经验话。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -910,7 +910,7 @@
           "must_be_visible": true,
           "title": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -945,7 +945,7 @@
             "id": "step-08:response",
             "title": "最小例题：三模型时域对照与主导模态近似",
             "prompt": "完整比较三模型的时域证据，并用逐步显影讲清主导模态近似为何有时可靠。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1037,7 +1037,7 @@
           "must_be_visible": true,
           "title": "把经验句退回到筛选层，补上权重、重根与可视证据。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1070,7 +1070,7 @@
             "id": "step-09:response",
             "title": "时域筛选：更靠左为什么只是第一轮判断",
             "prompt": "把经验句退回到筛选层，补上权重、重根与可视证据。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1156,7 +1156,7 @@
           "must_be_visible": true,
           "title": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
           "payload": {
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "interaction_kind": "binary_choice",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1189,7 +1189,7 @@
             "id": "step-10:response",
             "title": "转向频域：时域相近为什么还不够",
             "prompt": "从“像不像”推进到“为什么像/为什么不像”，为 Bode 对照搭桥。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -1288,7 +1288,7 @@
           "must_be_visible": true,
           "title": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1323,7 +1323,7 @@
             "id": "step-11:response",
             "title": "Bode 对照：附加极点何时侵入主要带宽",
             "prompt": "区分固有频率、转折频率和主要带宽，并把它们拉回近似判断。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1415,7 +1415,7 @@
           "must_be_visible": true,
           "title": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
           "payload": {
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "interaction_kind": "parameter_slider",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1450,7 +1450,7 @@
             "id": "step-12:response",
             "title": "双域判断表：先自判，再问 AI，再回到图上核验",
             "prompt": "坚持先自判再问 AI，让 AI 只核对证据链，而不是代替判断。",
-            "response_kind": "parameter_set",
+            "response_kind": "parameter.set",
             "submit_scope": "step",
             "layout_span": "full",
             "parameter_fields": [
@@ -1552,7 +1552,7 @@
           "must_be_visible": true,
           "title": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
           "payload": {
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "interaction_kind": "activity_cards",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1585,7 +1585,7 @@
             "id": "step-13:response",
             "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
             "prompt": "把卷积放回“输入如何激发已有模态”的解释框架，而非改变系统结构。",
-            "response_kind": "short_response",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "structured_fields": [
@@ -1671,7 +1671,7 @@
           "must_be_visible": true,
           "title": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
           "payload": {
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "interaction_kind": "quiz_group",
             "structured_extra_evidence": {
               "source": "interaction_spec",
@@ -1704,7 +1704,7 @@
             "id": "step-14:response",
             "title": "后测：会不会发散、能不能近似、为什么能解释",
             "prompt": "综合检查稳定底线、主导极点近似和卷积/模态语言是否真的连成一条链。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [

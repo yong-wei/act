@@ -491,14 +491,14 @@
           {
             "id": "task-change-card",
             "prompt": "除了对象参数变化，本页还要求你至少指出哪两类任务语义变化？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "boundary-split-card",
             "prompt": "为什么驱逐舰场景必须把峰值动作和控制能量分开筛选？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -712,7 +712,7 @@
             "title": "理解三类失配信号如何共同指向旧问题写法失效。",
             "prompt": "理解三类失配信号如何共同指向旧问题写法失效。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -956,14 +956,14 @@
           {
             "id": "trajectory-duty-card",
             "prompt": "哪一项指标直接回答“船是否真正走到位”？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "action-duty-card",
             "prompt": "为什么峰值动作与控制能量必须继续分开接受比较？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -1181,7 +1181,7 @@
             "title": "理解结构搜索是在什么条件下才成为合理入口。",
             "prompt": "理解结构搜索是在什么条件下才成为合理入口。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1416,14 +1416,14 @@
           {
             "id": "structure-first-card",
             "prompt": "给定一个编码向量时，哪一步必须先做，为什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "active-slots-card",
             "prompt": "为什么不能把 z_1 到 z_5 永远当作同时生效的五个参数？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -1636,7 +1636,7 @@
             "title": "理解四类方案为什么能把目标与结构拆成独立判断。",
             "prompt": "理解四类方案为什么能把目标与结构拆成独立判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1830,7 +1830,7 @@
           {
             "id": "boundary-task",
             "prompt": "为什么“总代价更低”与“工程可交付”不能直接画等号？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1982,21 +1982,21 @@
           {
             "id": "posttest-q1",
             "prompt": "为什么本课不能继续把问题写成“在原结构里微调参数”？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q2",
             "prompt": "驱逐舰专用代价函数比客船代价函数多回答了什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q3",
             "prompt": "给定一个统一编码向量时，为什么必须先判结构编号再解释参数？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }

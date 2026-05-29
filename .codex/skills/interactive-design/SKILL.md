@@ -441,6 +441,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `activity_cards[].prompt`、`response_kind`、`options`、`submit_scope`
 - `reference_answer`、`reveal_answer` 或等价答案揭示规则
 
+`modules[].kind` 必须使用标准模块类；旧组件名只能放在 `payload.legacyKind` 中作为历史渲染提示。`response_kind` 必须使用 `choice.single`、`choice.binary`、`choice.multi`、`text.short`、`text.structured`、`parameter.set`、`ordering.sequence`、`matching.pairs`、`table.builder` 等 canonical 响应名，不得继续使用 `single_choice`、`fill_text`、`drag_match` 等迁移别名。
+
 若当前步骤没有这些内容，只剩模板、模块名和互动类型，则该契约仍不能视为可实现的双轨真源。
 
 ### `interactive-design-acceptance.json`

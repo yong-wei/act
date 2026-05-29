@@ -25,45 +25,60 @@ steps:
     modules:
       - id: object-card
         region: evidence
-        kind: formula-card
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
           formula: P_h(s)=\dfrac{0.01715}{s(s+0.1)(s+2.14375)}
         title: 主案例对象
       - id: controller-card
         region: evidence
-        kind: formula-card
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
           formula: C_h(s)=K\dfrac{Ts+1}{\alpha Ts+1},\ 0<\alpha<1
         title: 固定结构
       - id: candidate-card
         region: evidence
-        kind: formula-card
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
           formula: C_u(s)=5\dfrac{10s+1}{2s+1}
         title: 无约束候选
       - id: failure-figure
         region: figure
-        kind: image-panel
+        kind: content.figure
         must_be_visible: true
         payload:
+          legacyKind: 'image-panel'
+          presentation: 'single'
+          semanticRole: 'media'
           src: /course-runtime/lessons/4-5/media/4-5-ship-heading-unconstrained-failure-compare.png
           caption: 客船航向保持：无约束候选为什么不可直接交付。先看闭环输出确实更快压向目标，再看控制量已经明显冲出可接受动作区间。
         title: 越界证据图
       - id: problem-focus
         region: evidence
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 时间指标更好，为什么仍不可交付？
         title: 问题句
       - id: bridge-conclusion
         region: evidence
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 本课先不继续谈求解器，而是先把更优与可交付的断裂看清。更优不等于可交付。
         title: 本页结论
     content_blocks:
@@ -122,16 +137,22 @@ steps:
     modules:
       - id: objective-header
         region: header
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 完成这一轮实践后，我们应能做到什么？
         title: 课程目标
       - id: objective-list
         region: goals
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload: &a1
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           bullets:
             - 指出无约束候选在哪些工程边界上失守。
             - 把超调、控制峰值和相角裕度写成硬约束。
@@ -141,9 +162,12 @@ steps:
         title: 能力目标
       - id: objective-bridge
         region: bridge
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 本课承接 4-4 的无约束建模，真正解决“最优不等于可用”。
         title: 桥接句
     content_blocks:
@@ -201,16 +225,21 @@ steps:
     modules:
       - id: case-bridge
         region: intro
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 当前仍是客船航向保持主案例；左表回收自由目标收益，右表专门复核这些收益是否伴随新的工程失守。
         title: 比较对象
       - id: gain-table
         region: gain
-        kind: native-table
+        kind: content.table
         must_be_visible: true
         payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
           columns:
             - 指标
             - 4-3 起始方案
@@ -236,9 +265,11 @@ steps:
         title: 表 1. 客船航向保持主案例中的自由目标收益
       - id: boundary-table
         region: boundary
-        kind: native-table
+        kind: content.table
         must_be_visible: true
         payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
           columns:
             - 指标
             - 4-3 起始方案
@@ -276,9 +307,12 @@ steps:
         title: 表 2. 同一主案例下的工程复核
       - id: conclusion-card
         region: summary
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 自由目标收益是真实存在的，但它不能自动等于工程可用。
         title: 本页结论
     content_blocks:
@@ -350,23 +384,39 @@ steps:
     modules:
       - id: constraint-formula
         region: formula
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: risk-table
         region: table
-        kind: native-table
+        kind: content.table
+        payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
         must_be_visible: true
       - id: delivery-conclusion
         region: summary
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: constraint-role-card
         region: interaction
-        kind: activity-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'activity-card'
+          presentation: 'single'
         must_be_visible: false
       - id: misread-card
         region: interaction
-        kind: activity-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'activity-card'
+          presentation: 'single'
         must_be_visible: false
     content_blocks:
       constraint_formula:
@@ -403,12 +453,12 @@ steps:
       activity_cards:
         - id: constraint-role-card
           prompt: 哪一条边界最直接挡住控制量爆表？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: half
         - id: misread-card
           prompt: 为什么相角裕度没崩塌，仍不能说明候选整体可交付？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: half
     teacher_controls:
@@ -458,19 +508,32 @@ steps:
     modules:
       - id: range-formula
         region: top
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: role-summary
         region: top
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: role-table
         region: table
-        kind: native-table
+        kind: content.table
+        payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
         must_be_visible: true
       - id: role-task
         region: interaction
-        kind: activity-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'activity-card'
+          presentation: 'single'
         must_be_visible: false
     content_blocks:
       range_formula:
@@ -508,7 +571,7 @@ steps:
       activity_cards:
         - id: role-task
           prompt: $1\\le K\\le 6$ 与 $u_{\\max}\\le 7$ 分别在回答什么问题？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
     teacher_controls:
@@ -558,23 +621,40 @@ steps:
     modules:
       - id: jfree-card
         region: formula
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: jcon-card
         region: formula
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: penalty-card
         region: formula
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: explain-reveal
         region: explain
-        kind: step-reveal
+        kind: content.reveal
+        payload:
+          legacyKind: 'step-reveal'
+          presentation: 'single'
+          interactionKind: 'progressive-reveal'
         must_be_visible: true
       - id: rule-conclusion
         region: summary
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
     content_blocks:
       jfree_card:
@@ -652,19 +732,33 @@ steps:
     modules:
       - id: solver-input-table
         region: table
-        kind: native-table
+        kind: content.table
+        payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
         must_be_visible: true
       - id: solver-chain
         region: chain
-        kind: step-reveal
+        kind: content.reveal
+        payload:
+          legacyKind: 'step-reveal'
+          presentation: 'single'
+          interactionKind: 'progressive-reveal'
         must_be_visible: true
       - id: solver-conclusion
         region: summary
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: solver-task
         region: interaction
-        kind: activity-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'activity-card'
+          presentation: 'single'
         must_be_visible: false
     content_blocks:
       solver_input_table:
@@ -717,7 +811,7 @@ steps:
       activity_cards:
         - id: solver-task
           prompt: 为什么本页重点不是 API，而是问题定义？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
     teacher_controls:
@@ -770,9 +864,11 @@ steps:
     modules:
       - id: controller-triple
         region: controllers
-        kind: formula-card-row
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card-row'
+          presentation: 'row'
           formulas:
             - C_0(s)=2.796\dfrac{10s+1}{4.06s+1}
             - C_B(s)=2.0644\dfrac{9.9804s+1}{2.0809s+1}
@@ -780,9 +876,11 @@ steps:
         title: 三方案控制器
       - id: same-weight-table
         region: evidence
-        kind: native-table
+        kind: content.table
         must_be_visible: true
         payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
           columns:
             - 方案
             - 调节时间 / s
@@ -816,17 +914,23 @@ steps:
         title: 表 6. 同一权重下的三方案对比
       - id: same-weight-figure
         region: evidence
-        kind: image-panel
+        kind: content.figure
         must_be_visible: true
         payload:
+          legacyKind: 'image-panel'
+          presentation: 'single'
+          semanticRole: 'media'
           src: /course-runtime/lessons/4-5/media/4-5-ship-heading-same-weight-constraint-compare.png
           caption: 平衡权重下：无约束最优与带约束最优为什么会分出两组不同解。
         title: 同权重对比图
       - id: feasible-reveal
         region: summary
-        kind: step-reveal
+        kind: content.reveal
         must_be_visible: true
         payload:
+          legacyKind: 'step-reveal'
+          presentation: 'single'
+          interactionKind: 'progressive-reveal'
           items:
             - 同一权重没有变化。
             - 越界解被排出可行域。
@@ -834,14 +938,20 @@ steps:
         title: 解释链
       - id: feasible-conclusion
         region: summary
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 改写的是可行域，不是权重语言。
         title: 本页结论
       - id: same-weight-task
         region: interaction
-        kind: activity-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'activity-card'
+          presentation: 'single'
         must_be_visible: false
     content_blocks:
       same_weight_figure:
@@ -861,7 +971,7 @@ steps:
       activity_cards:
         - id: same-weight-task
           prompt: 为什么这里改写的是可行域，而不是权重语言？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
     teacher_controls:
@@ -915,9 +1025,11 @@ steps:
     modules:
       - id: weight-row
         region: weights
-        kind: formula-card-row
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card-row'
+          presentation: 'row'
           formulas:
             - A=[0.40,\ 0.30,\ 0.20,\ 0.10]
             - B=[0.30,\ 0.30,\ 0.20,\ 0.20]
@@ -925,9 +1037,11 @@ steps:
         title: 三组权重
       - id: weight-table
         region: table
-        kind: native-table
+        kind: content.table
         must_be_visible: true
         payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
           columns:
             - 方案
             - 调节时间 / s
@@ -961,17 +1075,23 @@ steps:
         title: 表 7. 约束内权重扫掠结果
       - id: weight-figure
         region: figure
-        kind: image-panel
+        kind: content.figure
         must_be_visible: true
         payload:
+          legacyKind: 'image-panel'
+          presentation: 'single'
+          semanticRole: 'media'
           src: /course-runtime/lessons/4-5/media/4-5-weight-sweep-constrained-summary.png
           caption: 同一结构下，权重改变会重排可行解的收益分布。
         title: 权重扫掠图
       - id: weight-summary
         region: summary
-        kind: step-reveal
+        kind: content.reveal
         must_be_visible: true
         payload:
+          legacyKind: 'step-reveal'
+          presentation: 'single'
+          interactionKind: 'progressive-reveal'
           items:
             - 硬约束主导后，继续把权重往“更快”那一侧推，并不会无限换来速度收益。
             - 当权重显著照顾动作代价时，可行解会主动回到更保守的时间尺度。
@@ -1037,18 +1157,22 @@ steps:
     modules:
       - id: structure-controllers
         region: controllers
-        kind: formula-card-row
+        kind: content.formula
         must_be_visible: true
         payload:
+          legacyKind: 'formula-card-row'
+          presentation: 'row'
           formulas:
             - C_{LL}^\star(s)=1.7679\dfrac{10.4676s+1}{2.6452s+1}
             - C_{PID}^\star(s)=0.3205\left(1+\dfrac{1}{137.3s}+\dfrac{100.0s}{5.0s+1}\right)
         title: 两种结构公式
       - id: structure-table
         region: table
-        kind: native-table
+        kind: content.table
         must_be_visible: true
         payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
           columns:
             - 方案
             - 调节时间 / s
@@ -1078,17 +1202,23 @@ steps:
         title: 表 8. 同一主案例下，不同结构的最优解对比
       - id: structure-figure
         region: figure
-        kind: image-panel
+        kind: content.figure
         must_be_visible: true
         payload:
+          legacyKind: 'image-panel'
+          presentation: 'single'
+          semanticRole: 'media'
           src: /course-runtime/lessons/4-5/media/4-5-ship-heading-pid-vs-leadlag-compare.png
           caption: 同一性能指标函数下，结构改变会把最优点带向不同区间。
         title: 结构对比图
       - id: structure-summary
         region: summary
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           bullets:
             - 参数优化只能回答“在这一个结构里怎样调最好”，不能替我们回答“这个结构本身是不是最合适”。
             - 结构一旦变化，最优点会移动到完全不同的代价分布上。
@@ -1153,23 +1283,41 @@ steps:
     modules:
       - id: closure-table
         region: table
-        kind: native-table
+        kind: content.table
+        payload:
+          legacyKind: 'native-table'
+          presentation: 'single'
         must_be_visible: true
       - id: acceptance-criteria
         region: criteria
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: margin-warning
         region: criteria
-        kind: formula-card
+        kind: content.formula
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: closure-summary
         region: summary
-        kind: step-reveal
+        kind: content.reveal
+        payload:
+          legacyKind: 'step-reveal'
+          presentation: 'single'
+          interactionKind: 'progressive-reveal'
         must_be_visible: true
       - id: forward-link
         region: summary
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
     content_blocks:
       closure_table:
@@ -1279,23 +1427,43 @@ steps:
     modules:
       - id: posttest-header
         region: intro
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: posttest-q1
         region: quiz
-        kind: quiz-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'quiz-card'
+          presentation: 'single'
+          interactionKind: 'quiz'
         must_be_visible: true
       - id: posttest-q2
         region: quiz
-        kind: quiz-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'quiz-card'
+          presentation: 'single'
+          interactionKind: 'quiz'
         must_be_visible: true
       - id: posttest-q3
         region: quiz
-        kind: quiz-card
+        kind: activity.panel
+        payload:
+          legacyKind: 'quiz-card'
+          presentation: 'single'
+          interactionKind: 'quiz'
         must_be_visible: true
       - id: posttest-note
         region: review
-        kind: summary-card
+        kind: content.cardSet
+        payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
     content_blocks:
       posttest_header:
@@ -1312,17 +1480,17 @@ steps:
       activity_cards:
         - id: posttest-q1
           prompt: 同一权重下为何分出两组参数？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
         - id: posttest-q2
           prompt: 参数范围和输出侧硬约束分别回答什么问题？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
         - id: posttest-q3
           prompt: 为什么当前结果仍需继续被审视？
-          response_kind: fill_text
+          response_kind: text.short
           submit_scope: per_card
           layout_span: full
     teacher_controls:
@@ -1373,9 +1541,12 @@ steps:
     modules:
       - id: summary-chain
         region: summary
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           bullets:
             - 无约束候选的收益是真实的，但建立在越界代价之上。
             - 参数范围和输出侧硬约束不是同一层语言。
@@ -1385,17 +1556,23 @@ steps:
         title: 五条带走
       - id: summary-infographic
         region: infographic
-        kind: image-panel
+        kind: content.figure
         must_be_visible: true
         payload:
+          legacyKind: 'image-panel'
+          presentation: 'single'
+          semanticRole: 'media'
           src: /course-runtime/lessons/4-5/media/4-5-info.png
           caption: 信息图：从越界候选到带约束可用解的证据闭环。
         title: 总结信息图
       - id: next-step-card
         region: next-step
-        kind: summary-card
+        kind: content.cardSet
         must_be_visible: true
         payload:
+          legacyKind: 'summary-card'
+          presentation: 'single'
+          semanticRole: 'summary'
           text: 下一课转入结构边界与场景迁移。
         title: 下一课去向
     content_blocks:

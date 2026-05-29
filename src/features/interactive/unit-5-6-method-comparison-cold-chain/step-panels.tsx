@@ -493,7 +493,6 @@ export function UNIT_5_6StepContentPanel({
       : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} routeObservationCount={routeObservationCount} postTestSubmitted={postTestSubmitted} />;
     return {
       ...baseRegistry,
-      'interactive-figure-panel': renderInteractiveFigurePanel,
       'compute.panel': (props) => {
         const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
         const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
@@ -502,7 +501,6 @@ export function UNIT_5_6StepContentPanel({
         }
         return baseRegistry['compute.panel'](props);
       },
-      'learning-stat-panel': renderLearningStats,
       'analytics.summary': (props) => {
         const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
         if (legacyKind === 'learning-stat-panel') {

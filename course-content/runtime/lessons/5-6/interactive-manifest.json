@@ -287,7 +287,7 @@
             "id": "pre-slow-state",
             "title": "快慢状态判断",
             "prompt": "一个系统包含快速传感器读数和慢速对象状态。若快速读数已经回到设定值附近，慢速状态的风险是否必然解除？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -301,7 +301,7 @@
             "id": "pre-actuator-limit",
             "title": "执行限幅判断",
             "prompt": "执行器输出被限制在 $0\\\\leq u(k)\\\\leq 1$ 时，控制器计算出的候选动作仍必须经过执行边界限制。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -314,7 +314,7 @@
             "id": "pre-metric-reading",
             "title": "指标表读法",
             "prompt": "比较多个方案的指标表时，若各方案都没有触发硬约束越界，下一步最应该继续比较什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -503,7 +503,7 @@
             "id": "same-task-fixed",
             "title": "同题比较固定条件",
             "prompt": "同题比较中不能改变哪一类条件？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -517,7 +517,7 @@
             "id": "slow-core-risk",
             "title": "核心温度慢热风险",
             "prompt": "只看空气温度会遗漏哪类风险？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -720,7 +720,7 @@
             "id": "compressor-state",
             "title": "压缩机直接作用状态",
             "prompt": "压缩机项直接作用在哪个状态？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -734,7 +734,7 @@
             "id": "e3-pressure",
             "title": "E3 场景压力",
             "prompt": "E3 的比较重点是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1130,7 +1130,7 @@
             "id": "e2-evidence",
             "title": "E2 适用证据",
             "prompt": "预测补偿适合 E2 的关键证据是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1144,7 +1144,7 @@
             "id": "retained-responsibility",
             "title": "保留责任",
             "prompt": "这条路线必须保留哪些显式责任？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1320,7 +1320,7 @@
             "id": "mode-match",
             "title": "监督模式匹配",
             "prompt": "将监督模式匹配到对应边界。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -1531,7 +1531,7 @@
             "id": "alarm-zero",
             "title": "告警次数读法",
             "prompt": "告警次数本轮全为 0 时应如何处理？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1545,7 +1545,7 @@
             "id": "burden-meaning",
             "title": "验证负担含义",
             "prompt": "路线验证负担是否由温度轨迹直接计算？",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1704,7 +1704,7 @@
             "id": "e1-route",
             "title": "E1 优先路线",
             "prompt": "E1 常规日的优先路线是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1931,7 +1931,7 @@
             "id": "e2-observation",
             "title": "入库高峰观察记录",
             "prompt": "记录一条路线、恢复时间读数、一个收益判断和一个证据边界判断。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "预测补偿组合路线在 E2 中缩短恢复时间并略降峰值，但不能单独证明某一个机制贡献全部改善，也不能证明未见扰动可部署。"
@@ -2109,7 +2109,7 @@
             "id": "policy-risk",
             "title": "策略监督层风险",
             "prompt": "E3 中策略监督层不能进入主闭环的主要理由是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2123,7 +2123,7 @@
             "id": "verification-needed",
             "title": "追加验证证据",
             "prompt": "E3 中应追加哪些验证证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2274,7 +2274,7 @@
             "id": "data-responsibility",
             "title": "数据驱动证据责任",
             "prompt": "数据驱动路线新增的证据责任包括什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2297,7 +2297,7 @@
             "id": "policy-responsibility",
             "title": "策略监督层证据责任",
             "prompt": "策略监督层新增的证据责任包括什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2486,7 +2486,7 @@
             "id": "object-evidence",
             "title": "任务对象与主要证据",
             "prompt": "写出任务对象和主要证据。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "对象为生物制剂冷藏仓；证据包括温区、入库热负荷、开门记录、环境温度、恢复慢和缺少故障覆盖。"
@@ -2495,7 +2495,7 @@
             "id": "route-reason",
             "title": "推荐路线与选择理由",
             "prompt": "写出推荐路线和选择理由。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿，因为入库热负荷可提前观察，经典基线仍保留安全责任。"
@@ -2504,7 +2504,7 @@
             "id": "benefit-risk",
             "title": "主要收益与关键风险",
             "prompt": "写出主要收益和关键风险。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "收益是缩短恢复时间和降低峰值；风险是数据覆盖、能耗、冻伤风险和故障覆盖不足。"
@@ -2513,7 +2513,7 @@
             "id": "verification-reject",
             "title": "验证路径与暂不采用理由",
             "prompt": "写出验证路径和暂不采用其他路线的原因。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "验证路径包括压力工况、独立日志、故障注入和上线监控；策略学习因训练覆盖和安全壳不足暂不进入主闭环。"
@@ -2630,7 +2630,7 @@
             "id": "review-order",
             "title": "评审陈述顺序",
             "prompt": "将评审陈述结构排序。",
-            "response_kind": "card_sort",
+            "response_kind": "ordering.sequence",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -2757,7 +2757,7 @@
             "id": "misjudgment-match",
             "title": "误判证据匹配",
             "prompt": "将四类误判匹配到对应证据要求。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -2926,7 +2926,7 @@
             "id": "post-e2-meaning",
             "title": "E2 结论边界",
             "prompt": "E2 中预测补偿恢复时间从 22 min 降到 0 min，最稳妥说明什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2940,7 +2940,7 @@
             "id": "post-policy-evidence",
             "title": "策略监督层进入证据",
             "prompt": "策略监督层进入真实冷链前至少需要哪些证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2965,7 +2965,7 @@
             "id": "post-route-card",
             "title": "推荐路线短答",
             "prompt": "给出一个集中入库冷链仓的推荐路线，并同时写出一个收益、一个关键风险和一个验证路径。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "reference_answer": "推荐 PI/PID + 数据驱动预测预冷 + 前馈补偿；收益是缩短恢复时间；风险是覆盖不足或冻伤/能耗；验证路径包括压力工况、故障注入和监控。"

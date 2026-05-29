@@ -41,12 +41,12 @@ describe('interactive module registry gate', () => {
   });
 
   it('registers response kinds with scoring support metadata', () => {
-    expect(INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS.singleChoice).toMatchObject({
-      responseKind: 'singleChoice',
+    expect(INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS['choice.single']).toMatchObject({
+      responseKind: 'choice.single',
       scoring: 'objective',
     });
-    expect(INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS.structured).toMatchObject({
-      responseKind: 'structured',
+    expect(INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS['text.structured']).toMatchObject({
+      responseKind: 'text.structured',
       scoring: 'unsupported',
     });
   });
@@ -385,6 +385,35 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('rejects legacy aliases in new manifests even before a lesson is marked migrated', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'new-legacy-formula',
+              kind: 'formula-strip',
+              mustBeVisible: true,
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'new-legacy-formula',
+        kind: 'formula-strip',
+        code: 'legacy-alias-in-migrated-lesson',
+        canonicalClass: 'content.formula',
+      }),
+    ]);
+  });
+
   it('rejects migration-only canonical module classes in migrated lessons', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       migratedLessonIds: ['fixture-lesson'],
@@ -470,13 +499,13 @@ describe('interactive module registry gate', () => {
         stepId: 'step-01',
         moduleId: 'legacy-activity-without-contract',
         kind: 'submit-feedback-bar',
-        code: 'activity-missing-response-contract',
+        code: 'legacy-alias-in-migrated-lesson',
         canonicalClass: 'activity.panel',
       }),
     ]);
   });
 
-  it('does not infer response contracts from generic activity card container aliases', () => {
+  it('rejects generic activity card container aliases before response contract inference', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
         {
@@ -501,13 +530,13 @@ describe('interactive module registry gate', () => {
         stepId: 'step-01',
         moduleId: 'generic-activity-container',
         kind: 'activity-card-set',
-        code: 'activity-missing-response-contract',
+        code: 'legacy-alias-in-migrated-lesson',
         canonicalClass: 'activity.panel',
       }),
     ]);
   });
 
-  it('allows generic activity card containers when the step kind defines the response contract', () => {
+  it('allows canonical activity panels when the step kind defines the response contract', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
         {
@@ -515,7 +544,7 @@ describe('interactive module registry gate', () => {
           manifest: manifestFixture({
             module: {
               id: 'figure-submit-container',
-              kind: 'activity-card-set',
+              kind: 'activity.panel',
               mustBeVisible: true,
             },
             interactionKind: 'interactive_figure_submit',
@@ -540,11 +569,11 @@ describe('interactive module registry gate', () => {
               id: 'activity-with-mixed-contracts',
               kind: 'activity.panel',
               mustBeVisible: true,
-              payload: { responseKind: 'singleChoice' },
+              payload: { responseKind: 'choice.single' },
             },
             interactionKind: 'quiz_group',
             activityCards: [
-              activityCardFixture({ id: 'valid-card', responseKind: 'single_choice' }),
+              activityCardFixture({ id: 'valid-card', responseKind: 'choice.single' }),
               activityCardFixture({ id: 'invalid-card', responseKind: 'not_registered' }),
             ],
           }),
@@ -565,6 +594,40 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('rejects legacy response aliases even when their canonical replacement is known', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'activity-with-legacy-response',
+              kind: 'activity.panel',
+              mustBeVisible: true,
+              payload: { responseKind: 'choice.single' },
+            },
+            interactionKind: 'quiz_group',
+            activityCards: [
+              activityCardFixture({ id: 'legacy-response-card', responseKind: 'single_choice' }),
+            ],
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'legacy-response-card',
+        kind: 'quiz_group',
+        code: 'activity-unregistered-response-kind',
+        responseKind: 'single_choice',
+      }),
+    ]);
+  });
+
   it('rejects individual activity cards without response kinds even when sibling cards are valid', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
@@ -578,7 +641,7 @@ describe('interactive module registry gate', () => {
             },
             interactionKind: 'quiz_group',
             activityCards: [
-              activityCardFixture({ id: 'valid-card', responseKind: 'single_choice' }),
+              activityCardFixture({ id: 'valid-card', responseKind: 'choice.single' }),
               activityCardFixture({ id: 'missing-card', responseKind: '' }),
             ],
           }),
@@ -868,6 +931,53 @@ describe('interactive module registry gate', () => {
     }
   });
 
+  it('fails when a runtime-first manifest is missing from the migrated lesson inventory', () => {
+    const rootDir = mkdtempSync(join(tmpdir(), 'interactive-module-gate-'));
+    try {
+      const lessonDir = join(rootDir, 'course-content/runtime/lessons/unlisted-runtime-lesson');
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(
+        join(lessonDir, 'interactive-manifest.json'),
+        JSON.stringify({
+          lesson_id: 'unlisted-runtime-lesson',
+          steps: {
+            'step-01': {
+              title: 'Step 01',
+              layout: { regions: [{ id: 'main', width: 'full', order: 1 }] },
+              modules: [
+                {
+                  id: 'intro',
+                  kind: 'content.rich',
+                  region: 'main',
+                  must_be_visible: true,
+                  payload: {},
+                },
+              ],
+              interaction_spec: { interaction_kind: 'display' },
+            },
+          },
+        }),
+        'utf8',
+      );
+
+      const result = scanRuntimeInteractiveModuleRegistry({
+        rootDir,
+        migratedLessonIds: [],
+      });
+
+      expect(result.passed).toBe(false);
+      expect(result.violations).toEqual([
+        expect.objectContaining({
+          lessonId: 'unlisted-runtime-lesson',
+          code: 'lesson-missing-from-migrated-inventory',
+          manifestPath: 'course-content/runtime/lessons/unlisted-runtime-lesson/interactive-manifest.json',
+        }),
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   it('passes for the current runtime manifest inventory with migrated lesson enforcement', () => {
     const result = scanRuntimeInteractiveModuleRegistry();
 
@@ -907,7 +1017,9 @@ describe('interactive module registry gate', () => {
 
   it('passes the migrated variant-heavy lesson group with canonical modules on every step', () => {
     const migratedLessonIds = ['3-5', '3-6', '3-7', '3-8', '3-9'];
-    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+    const result = scanRuntimeInteractiveModuleRegistry({
+      migratedLessonIds: STANDARD_MODULE_MIGRATED_LESSON_IDS,
+    });
     const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
 
     expect(result.passed).toBe(true);
@@ -951,7 +1063,9 @@ describe('interactive module registry gate', () => {
       '5-6',
       'cruise-comfort-boppps',
     ];
-    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+    const result = scanRuntimeInteractiveModuleRegistry({
+      migratedLessonIds: STANDARD_MODULE_MIGRATED_LESSON_IDS,
+    });
     const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
 
     expect(result.passed).toBe(true);

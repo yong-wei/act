@@ -688,14 +688,14 @@
           {
             "id": "constraint-role-card",
             "prompt": "哪一条边界最直接挡住控制量爆表？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "misread-card",
             "prompt": "为什么相角裕度没崩塌，仍不能说明候选整体可交付？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -896,7 +896,7 @@
           {
             "id": "role-task",
             "prompt": "$1\\\\le K\\\\le 6$ 与 $u_{\\\\max}\\\\le 7$ 分别在回答什么问题？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1076,7 +1076,7 @@
             "title": "理解偏好没变，规则变了。",
             "prompt": "理解偏好没变，规则变了。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1379,7 +1379,7 @@
           {
             "id": "solver-task",
             "prompt": "为什么本页重点不是 API，而是问题定义？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1597,7 +1597,7 @@
           {
             "id": "same-weight-task",
             "prompt": "为什么这里改写的是可行域，而不是权重语言？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1792,7 +1792,7 @@
             "title": "理解约束内的收益如何被权重重新分配。",
             "prompt": "理解约束内的收益如何被权重重新分配。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1978,7 +1978,7 @@
             "title": "理解结构改变会把最优区间带向何处。",
             "prompt": "理解结构改变会把最优区间带向何处。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2257,7 +2257,7 @@
             "title": "理解当前结果为何可接受但不是终局。",
             "prompt": "理解当前结果为何可接受但不是终局。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2407,21 +2407,21 @@
           {
             "id": "posttest-q1",
             "prompt": "同一权重下为何分出两组参数？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q2",
             "prompt": "参数范围和输出侧硬约束分别回答什么问题？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q3",
             "prompt": "为什么当前结果仍需继续被审视？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }

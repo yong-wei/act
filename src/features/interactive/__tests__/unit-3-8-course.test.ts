@@ -314,8 +314,9 @@ describe('unit 3-8 interactive course', () => {
     const cards = Object.values(manifest.steps).flatMap((step) => step.interaction_spec?.activity_cards ?? []);
 
     expect(cards.length).toBeGreaterThan(0);
-    expect(cards.filter((card) => card.response_kind !== 'text').every((card) => card.options?.length)).toBe(true);
-    expect(cards.some((card) => card.response_kind === 'drag_sort')).toBe(true);
+    expect(cards.filter((card) => !card.response_kind.startsWith('text.')).every((card) => card.options?.length)).toBe(true);
+    expect(cards.some((card) => card.response_kind === 'ordering.sequence')).toBe(true);
+    expect(cards.map((card) => card.response_kind)).not.toContain('drag_sort');
     expect(cards.map((card) => card.response_kind)).not.toContain('fill_text');
   });
 

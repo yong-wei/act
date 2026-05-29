@@ -54,3 +54,16 @@ The system SHALL migrate 4-1, 4-2, 4-3, 4-4, 4-5, 4-6, 4-7, 5-1, 5-2, 5-3, 5-4, 
 - **WHEN** a migrated stable lesson uses rust, interactive figure, analysis, or training panels
 - **THEN** the manifest SHALL represent that behavior as `compute.panel`, `activity.workspace`, or an approved standard activity
 - **AND** the panel SHALL carry a registered capability reference or an explicit migration exception.
+
+### Requirement: Existing interactive lessons are fully migrated
+The system SHALL track every existing runtime-first interactive lesson as migrated to the standard module framework before legacy aliases are removed.
+
+#### Scenario: Full inventory is covered
+- **WHEN** the final strict gate runs
+- **THEN** the migrated inventory SHALL include all existing runtime-first interactive lessons
+- **AND** any missing lesson SHALL fail the gate.
+
+#### Scenario: All migrated lessons pass strict validation
+- **WHEN** a migrated lesson is in the inventory
+- **THEN** it SHALL pass canonical module, canonical response, submission evidence, and finalization gates
+- **AND** it SHALL NOT require a lesson-private module-kind exception.

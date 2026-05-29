@@ -200,9 +200,9 @@ describe('unit 5-1 interactive course', () => {
       'matching.pairs',
     ]);
     expect([step04Card?.legacyResponseKind, step05Card?.legacyResponseKind, step13Card?.legacyResponseKind]).toEqual([
-      'drag_match',
-      'drag_match',
-      'drag_match',
+      undefined,
+      undefined,
+      undefined,
     ]);
     expect(step05Card?.options.map((option) => option.label.split(' -> ')[1])).toEqual([
       '比例近似',

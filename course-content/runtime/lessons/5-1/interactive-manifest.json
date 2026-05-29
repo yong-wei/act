@@ -351,7 +351,7 @@
             "id": "model-range",
             "title": "传递函数适用范围",
             "prompt": "某一工作范围内辨识得到的传递函数，能否不加验证地外推到任意输入幅值？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -374,7 +374,7 @@
             "id": "superposition-check",
             "title": "叠加原理判断",
             "prompt": "在线性定常模型中，两个输入同时作用时，响应通常如何由单独响应得到？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -397,7 +397,7 @@
             "id": "parameter-reuse",
             "title": "参数复用条件",
             "prompt": "同一对象在两组工况下阶跃响应系统性不同，是否还能不加说明地共用同一组模型参数？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -582,7 +582,7 @@
             "id": "assumption-match",
             "title": "失效信号匹配",
             "prompt": "把三条现象拖入对应的线性默认条件空槽：输出被压平、路径回程残差、保护逻辑介入。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -842,7 +842,7 @@
             "id": "boundary-classify",
             "title": "假设破坏分类",
             "prompt": "把七类非线性环节拖入对应的主要破坏假设空槽。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1090,7 +1090,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1380,7 +1380,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1608,7 +1608,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1840,7 +1840,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2069,7 +2069,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2299,7 +2299,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2548,7 +2548,7 @@
             "id": "evidence-select",
             "title": "五步证据选择",
             "prompt": "给定“海试拖尾 + 控制量频繁限幅”，选出应进入边界说明的证据。",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2571,7 +2571,7 @@
             "id": "boundary-statement",
             "title": "方法迁移前边界说明",
             "prompt": "用 80 到 120 字写出证据、假设破坏、线性内处理和迁移理由。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "参考口径：先说明控制量限幅和工况变化，再指出比例关系、参数稳定或执行器能力假设被破坏，随后给出线性内修正与迁移理由。"
@@ -2692,7 +2692,7 @@
             "id": "boundary-type-match",
             "title": "边界类型匹配",
             "prompt": "把两个现象拖入对应的边界类型空槽：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2711,7 +2711,7 @@
             "id": "linearization-judgment",
             "title": "局部线性化判断",
             "prompt": "关于 $u=\\\\tanh v$ 与 $u=\\\\operatorname{sgn}v$ 的局部线性化判断，哪些说法成立？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2734,7 +2734,7 @@
             "id": "boundary-note",
             "title": "边界说明短答",
             "prompt": "根据“海试拖尾 + 控制量频繁限幅”写不超过 150 字的边界说明，包含证据、假设破坏、线性内处理和迁移理由。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "教师查看四字段完整性：证据、假设破坏、线性内处理、迁移理由。"

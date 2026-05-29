@@ -376,10 +376,6 @@ function createUNIT_3_9ModuleRegistry(extra: Unit39ModuleExtra): InteractiveModu
       }
       return sharedRegistry['compute.panel'](props);
     },
-    'rust-analysis-panel': ({ module }) => {
-      const panelId = typeof module.payload.panel_id === 'string' ? module.payload.panel_id as Unit39PanelId : 'baseline';
-      return <Unit39RustPanel panelId={panelId} params={PANEL_CONFIG[panelId]?.defaultParams ?? {}} />;
-    },
   };
 }
 

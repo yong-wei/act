@@ -137,7 +137,7 @@ describe('unit 3-7 interactive course', () => {
     expect(contract.steps['step-16']?.evidence_sequence?.[0]).toContain('名称卡');
   });
 
-  it('keeps legacy match cards backed by concrete pairing structures', () => {
+  it('keeps canonical matching cards backed by concrete pairing structures', () => {
     const contract = parse(
       readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/3-7-interactive-contract.yaml'), 'utf8'),
     ) as {
@@ -168,14 +168,14 @@ describe('unit 3-7 interactive course', () => {
 
     for (const cardId of ['freq-pd-card-2', 'freq-compare-card-2']) {
       const authoringCard = authoringCards.get(cardId);
-      expect(authoringCard?.response_kind).toBe('match');
+      expect(authoringCard?.response_kind).toBe('matching.pairs');
       expect(authoringCard?.match_items).toHaveLength(3);
       expect(authoringCard?.match_options).toHaveLength(3);
       expect(authoringCard?.reference_matches).toHaveLength(3);
 
       const runtimeCard = runtimeCards.get(cardId);
       expect(runtimeCard?.responseKind).toBe('matching.pairs');
-      expect(runtimeCard?.legacyResponseKind).toBe('match');
+      expect(runtimeCard?.legacyResponseKind).toBeUndefined();
       expect(runtimeCard?.matchItems).toHaveLength(3);
       expect(runtimeCard?.matchOptions).toHaveLength(3);
       expect(runtimeCard?.referenceMatches).toHaveLength(3);

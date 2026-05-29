@@ -5,10 +5,8 @@ import {
   INTERACTIVE_MODULE_CANONICAL_CLASSES,
   INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS,
   INTERACTIVE_MODULE_DEFINITIONS,
-  INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS,
   LEGACY_INTERACTIVE_MODULE_KIND_ALIASES,
   type InteractiveModuleCanonicalClass,
-  type InteractiveModuleResponseKind,
   type LegacyInteractiveModuleKindAlias,
 } from './module-taxonomy';
 import {
@@ -18,6 +16,10 @@ import {
   type InteractiveRuntimeModuleManifest,
   type InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  isCanonicalInteractiveResponseKind,
+  type InteractiveResponseKind,
+} from '@/lib/interactive-response-contracts';
 
 export type InteractiveModuleRegistryGateViolationCode =
   | 'unregistered-module-kind'
@@ -26,7 +28,8 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'activity-unregistered-response-kind'
   | 'compute-missing-capability-ref'
   | 'compute-unregistered-capability-ref'
-  | 'invalid-runtime-manifest';
+  | 'invalid-runtime-manifest'
+  | 'lesson-missing-from-migrated-inventory';
 
 export interface InteractiveModuleRegistryGateViolation {
   lessonId: string;
@@ -82,59 +85,11 @@ type ModuleKindResolution =
   };
 
 const CANONICAL_CLASSES = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
-const RESPONSE_KIND_ALIASES: Record<string, InteractiveModuleResponseKind> = {
-  none: 'none',
-  singleChoice: 'singleChoice',
-  single_choice: 'singleChoice',
-  'choice.single': 'singleChoice',
-  binaryChoice: 'binaryChoice',
-  binary_choice: 'binaryChoice',
-  'choice.binary': 'binaryChoice',
-  multiChoice: 'multiSelect',
-  multi_choice: 'multiSelect',
-  multiSelect: 'multiSelect',
-  multi_select: 'multiSelect',
-  'choice.multi': 'multiSelect',
-  matching: 'matching',
-  drag_match: 'matching',
-  triple_match: 'matching',
-  'matching.pairs': 'matching',
-  sorting: 'sorting',
-  card_sort: 'sorting',
-  drag_sort: 'sorting',
-  'ordering.sequence': 'sorting',
-  categorization: 'categorization',
-  categorize: 'categorization',
-  shortText: 'shortText',
-  short_text: 'shortText',
-  short_response: 'shortText',
-  fill_text: 'shortText',
-  observation_text: 'shortText',
-  'text.short': 'shortText',
-  text: 'shortText',
-  structured: 'structured',
-  structured_compare: 'structured',
-  structured_submit: 'structured',
-  table: 'table',
-  table_builder: 'table',
-  'table.builder': 'table',
-  parameterRecord: 'parameterRecord',
-  parameter_record: 'parameterRecord',
-  parameter_set: 'parameterRecord',
-  'parameter.set': 'parameterRecord',
-  reasonRecord: 'reasonRecord',
-  reason_record: 'reasonRecord',
-  hotspotLabeling: 'hotspotLabeling',
-  hotspot_labeling: 'hotspotLabeling',
-  match: 'matching',
-  true_false: 'binaryChoice',
-};
-
-const STEP_INTERACTION_RESPONSE_KIND_ALIASES: Record<string, InteractiveModuleResponseKind> = {
-  interactive_figure_submit: 'parameterRecord',
-  parameter_slider: 'parameterRecord',
-  rust_heading_rl_training_panel: 'parameterRecord',
-  rust_toy_training_panel: 'parameterRecord',
+const STEP_INTERACTION_RESPONSE_KIND_ALIASES: Record<string, InteractiveResponseKind> = {
+  interactive_figure_submit: 'parameter.set',
+  parameter_slider: 'parameter.set',
+  rust_heading_rl_training_panel: 'parameter.set',
+  rust_toy_training_panel: 'parameter.set',
 };
 
 const STEP_INTERACTIONS_ALLOWING_EMPTY_ACTIVITY_CARDS = new Set([
@@ -177,9 +132,7 @@ export const STANDARD_MODULE_MIGRATED_LESSON_IDS = [
 
 export function evaluateInteractiveModuleRegistryGate({
   manifests,
-  migratedLessonIds = [],
 }: InteractiveModuleRegistryGateInput): InteractiveModuleRegistryGateResult {
-  const migratedLessons = new Set(migratedLessonIds);
   const violations: InteractiveModuleRegistryGateViolation[] = [];
   let scannedModules = 0;
 
@@ -214,7 +167,6 @@ export function evaluateInteractiveModuleRegistryGate({
             manifestPath: item.manifestPath,
             step,
             module: runtimeModule,
-            migrated: migratedLessons.has(item.lessonId),
           }),
         );
       }
@@ -285,11 +237,12 @@ export function scanRuntimeInteractiveModuleRegistry({
     manifests: validManifests,
     migratedLessonIds,
   });
+  const inventoryViolations = missingMigratedInventoryViolations(validManifests, migratedLessonIds);
 
   return {
-    passed: result.violations.length === 0 && invalidViolations.length === 0,
+    passed: result.violations.length === 0 && invalidViolations.length === 0 && inventoryViolations.length === 0,
     scannedModules: result.scannedModules,
-    violations: [...invalidViolations, ...result.violations],
+    violations: [...invalidViolations, ...inventoryViolations, ...result.violations],
   };
 }
 
@@ -298,13 +251,11 @@ function evaluateRuntimeModule({
   manifestPath,
   step,
   module,
-  migrated,
 }: {
   lessonId: string;
   manifestPath?: string;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
-  migrated: boolean;
 }): InteractiveModuleRegistryGateViolation[] {
   const violations: InteractiveModuleRegistryGateViolation[] = [];
   const resolution = resolveInteractiveModuleKind(module.kind);
@@ -324,8 +275,8 @@ function evaluateRuntimeModule({
 
   const definition = INTERACTIVE_MODULE_DEFINITIONS[resolution.canonicalClass];
 
-  if (migrated && resolution.source === 'legacy-alias') {
-    violations.push(violation({
+  if (resolution.source === 'legacy-alias') {
+    return [violation({
       lessonId,
       manifestPath,
       step,
@@ -333,10 +284,10 @@ function evaluateRuntimeModule({
       code: 'legacy-alias-in-migrated-lesson',
       canonicalClass: resolution.canonicalClass,
       message: `${lessonId} ${step.id} ${module.id} still uses legacy alias ${module.kind}; replace with ${resolution.canonicalClass}.`,
-    }));
+    })];
   }
 
-  if (migrated && resolution.source === 'canonical' && (definition.migrationOnly || !definition.allowedInNewAuthoring)) {
+  if (resolution.source === 'canonical' && (definition.migrationOnly || !definition.allowedInNewAuthoring)) {
     violations.push(violation({
       lessonId,
       manifestPath,
@@ -348,12 +299,10 @@ function evaluateRuntimeModule({
     }));
   }
 
-  const requiresResponseContract =
-    Boolean(definition.requiresResponseContract)
-    || Boolean(resolution.alias?.responseKind);
+  const requiresResponseContract = Boolean(definition.requiresResponseContract);
 
   if (requiresResponseContract) {
-    const responseKindChecks = collectResponseKindChecks(step, module, resolution.alias);
+    const responseKindChecks = collectResponseKindChecks(step, module);
     if (responseKindChecks.length === 0) {
       violations.push(violation({
         lessonId,
@@ -368,7 +317,7 @@ function evaluateRuntimeModule({
       for (const responseKindCheck of responseKindChecks) {
         if (
           responseKindCheck.source === 'module'
-          && (!responseKindCheck.normalized || !INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS[responseKindCheck.normalized])
+          && !responseKindCheck.normalized
         ) {
           violations.push(violation({
             lessonId,
@@ -386,7 +335,7 @@ function evaluateRuntimeModule({
   }
 
   if (definition.requiresCapabilityRef) {
-    const capabilityRef = capabilityRefForModule(module, resolution.alias);
+    const capabilityRef = capabilityRefForModule(module);
     if (!capabilityRef) {
       violations.push(violation({
         lessonId,
@@ -429,7 +378,7 @@ function evaluateStepResponseContracts({
   const rawResponseKinds = responseKindsFromActivityCards(step.interactionSpec.activityCards);
   if (rawResponseKinds.length === 0) {
     const stepResponseKind = STEP_INTERACTION_RESPONSE_KIND_ALIASES[step.interactionSpec.interactionKind];
-    if (stepResponseKind && INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS[stepResponseKind]) {
+    if (stepResponseKind && isCanonicalInteractiveResponseKind(stepResponseKind)) {
       return [];
     }
     if ((step.interactionSpec.submitFields ?? []).length > 0) {
@@ -486,7 +435,20 @@ function evaluateActivityCardResponseContracts({
 }): InteractiveModuleRegistryGateViolation[] {
   return (step.interactionSpec.activityCards ?? []).flatMap((card, index): InteractiveModuleRegistryGateViolation[] => {
     const rawResponseKind = stringValue(card.responseKind);
+    const legacyResponseKind = stringValue(card.legacyResponseKind);
     const moduleId = card.id || `(activity-card-${index + 1})`;
+    if (legacyResponseKind) {
+      return [{
+        lessonId,
+        stepId: step.id,
+        moduleId,
+        kind: step.interactionSpec.interactionKind,
+        code: 'activity-unregistered-response-kind' as const,
+        responseKind: legacyResponseKind,
+        message: `${lessonId} ${step.id} ${moduleId} uses legacy response kind ${legacyResponseKind}; replace with ${card.responseKind}.`,
+        ...(manifestPath ? { manifestPath } : {}),
+      }];
+    }
     if (!rawResponseKind) {
       return [{
         lessonId,
@@ -536,12 +498,10 @@ function resolveInteractiveModuleKind(kind: string): ModuleKindResolution {
 function collectResponseKindChecks(
   step: InteractiveRuntimeStepManifest,
   module: InteractiveRuntimeModuleManifest,
-  alias?: LegacyInteractiveModuleKindAlias,
-): Array<{ raw: string; normalized: InteractiveModuleResponseKind | null; source: 'module' | 'activity-card' | 'step' }> {
+): Array<{ raw: string; normalized: InteractiveResponseKind | null; source: 'module' | 'activity-card' | 'step' }> {
   const stepResponseKind = STEP_INTERACTION_RESPONSE_KIND_ALIASES[step.interactionSpec.interactionKind];
   const rawKinds = [
     ...[
-      alias?.responseKind,
       stringValue(module.payload.responseKind),
       stringValue(module.payload.response_kind),
     ]
@@ -577,17 +537,15 @@ function responseKindsFromActivityCards(
   return activityCards.map((card) => card.responseKind).filter(Boolean);
 }
 
-function normalizeResponseKind(kind: string | null | undefined): InteractiveModuleResponseKind | null {
+function normalizeResponseKind(kind: string | null | undefined): InteractiveResponseKind | null {
   if (!kind) return null;
-  return RESPONSE_KIND_ALIASES[kind] ?? null;
+  return isCanonicalInteractiveResponseKind(kind) ? kind : null;
 }
 
 function capabilityRefForModule(
   module: InteractiveRuntimeModuleManifest,
-  alias?: LegacyInteractiveModuleKindAlias,
 ) {
-  return alias?.capabilityRef
-    ?? stringValue(module.payload.capabilityRef)
+  return stringValue(module.payload.capabilityRef)
     ?? stringValue(module.payload.capability_ref)
     ?? stringValue(module.payload.capability);
 }
@@ -654,6 +612,29 @@ function invalidManifestViolation(
     message: `${manifestPath} is not a valid runtime interactive manifest.`,
     manifestPath,
   };
+}
+
+function missingMigratedInventoryViolations(
+  manifests: InteractiveModuleRegistryGateManifestInput[],
+  migratedLessonIds: readonly string[],
+): InteractiveModuleRegistryGateViolation[] {
+  const migratedLessons = new Set(migratedLessonIds);
+  const seen = new Set<string>();
+  const violations: InteractiveModuleRegistryGateViolation[] = [];
+  for (const item of manifests) {
+    if (migratedLessons.has(item.lessonId) || seen.has(item.lessonId)) continue;
+    seen.add(item.lessonId);
+    violations.push({
+      lessonId: item.lessonId,
+      stepId: '',
+      moduleId: '(lesson)',
+      kind: '',
+      code: 'lesson-missing-from-migrated-inventory',
+      message: `${item.lessonId} has a runtime interactive manifest but is missing from the standard module migrated lesson inventory.`,
+      ...(item.manifestPath ? { manifestPath: item.manifestPath } : {}),
+    });
+  }
+  return violations;
 }
 
 function collectManifestPaths(root: string): string[] {

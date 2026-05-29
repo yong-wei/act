@@ -29,8 +29,8 @@ steps:
     title: '单结构候选走向工程复合方案'
     layout: { template: 'cover_problem_slide', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'lead', width: 'full', order: 2 }] }
     modules:
-      - { id: 'cover-comic', title: '工程复合方案导入漫画', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-cover-comic.png', alt: '从单结构候选走向可运行复合控制方案' } }
-      - { id: 'opening-problem', title: '可运行方案问题', region: 'lead', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
+      - { id: 'cover-comic', title: '工程复合方案导入漫画', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-cover-comic.png', alt: '从单结构候选走向可运行复合控制方案' } }
+      - { id: 'opening-problem', title: '可运行方案问题', region: 'lead', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'problem' } }
     content_blocks:
       problem: { type: 'plain_text', body: '单结构候选已经能改善一部分指标，但执行器限制、可测扰动、参考突变和积分饱和会让方案仍然不能直接运行。本课把候选结构推进为可运行的经典复合控制初始方案。' }
     evidence_sequence: ['导入漫画', '工程缺口句', '本课主问题']
@@ -47,7 +47,7 @@ steps:
     title: '本次课程目标'
     layout: { template: 'goal_card_board', regions: [{ id: 'goals', width: 'full', order: 1 }] }
     modules:
-      - { id: 'course-goals', title: '本次课程目标', region: 'goals', kind: 'goal-card-row', must_be_visible: true, payload: { block_key: 'goals' } }
+      - { id: 'course-goals', title: '本次课程目标', region: 'goals', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'goal-card-row', presentation: 'row', semanticRole: 'goal',  block_key: 'goals' } }
     content_blocks:
       goals:
         type: 'list'
@@ -66,8 +66,8 @@ steps:
     title: '前置基础读图与信号判断'
     layout: { template: 'pretest_quiz_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'pretest-intro', title: '前测说明', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { text: '前测只检查进入本课所需的反馈、扰动通道和约束读图基础。' } }
-      - { id: 'pretest-quiz', title: '前置基础题组', region: 'activity', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['q-loop', 'q-disturbance', 'q-time', 'q-order'] } }
+      - { id: 'pretest-intro', title: '前测说明', region: 'intro', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  text: '前测只检查进入本课所需的反馈、扰动通道和约束读图基础。' } }
+      - { id: 'pretest-quiz', title: '前置基础题组', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz',  activity_card_ids: ['q-loop', 'q-disturbance', 'q-time', 'q-order'] } }
     content_blocks:
       intro: { type: 'plain_text', body: '本页不考察本课新概念。' }
     evidence_sequence: ['前测说明', '客观题组']
@@ -75,10 +75,10 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成四道前置基础题。'
       activity_cards:
-        - { id: 'q-loop', prompt: '$L(s)=C(s)G(s)$ 主要表示哪条分析主环路？', response_kind: 'single_choice', options: ['反馈主环路', '扰动前馈通道', '执行器限幅环节'], reference_answer: '反馈主环路。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'q-disturbance', prompt: '扰动加入点不同会改变扰动到输出通道。', response_kind: 'binary_choice', options: ['正确', '错误'], reference_answer: '正确。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'q-time', prompt: '哪些量可从时域响应直接读取？', response_kind: 'multi_choice', options: ['调节时间', '超调量', '舵角峰值', '开环相角裕度'], reference_answer: '调节时间、超调量、舵角峰值。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'q-order', prompt: '读复合方案时的合理顺序是对象通道、控制律、验证指标。', response_kind: 'binary_choice', options: ['正确', '错误'], reference_answer: '正确。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'q-loop', prompt: '$L(s)=C(s)G(s)$ 主要表示哪条分析主环路？', response_kind: 'choice.single', options: ['反馈主环路', '扰动前馈通道', '执行器限幅环节'], reference_answer: '反馈主环路。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'q-disturbance', prompt: '扰动加入点不同会改变扰动到输出通道。', response_kind: 'choice.binary', options: ['正确', '错误'], reference_answer: '正确。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'q-time', prompt: '哪些量可从时域响应直接读取？', response_kind: 'choice.multi', options: ['调节时间', '超调量', '舵角峰值', '开环相角裕度'], reference_answer: '调节时间、超调量、舵角峰值。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'q-order', prompt: '读复合方案时的合理顺序是对象通道、控制律、验证指标。', response_kind: 'choice.binary', options: ['正确', '错误'], reference_answer: '正确。', submit_scope: 'per_card', layout_span: 'half' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -91,9 +91,9 @@ steps:
     title: '单结构候选留下的设计缺口'
     layout: { template: 'candidate_gap_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'candidate-gap-table', title: '单结构候选留下的设计缺口', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'table' } }
-      - { id: 'engineering-gap', title: '复合控制入口', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'gap' } }
-      - { id: 'candidate-gap-activity', title: '设计缺口判断', region: 'activity', kind: 'quiz-group', must_be_visible: false, payload: { activity_card_ids: ['main-start', 'gap-select'] } }
+      - { id: 'candidate-gap-table', title: '单结构候选留下的设计缺口', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'native-table', presentation: 'single',  block_key: 'table' } }
+      - { id: 'engineering-gap', title: '复合控制入口', region: 'summary', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'gap' } }
+      - { id: 'candidate-gap-activity', title: '设计缺口判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz',  activity_card_ids: ['main-start', 'gap-select'] } }
     content_blocks:
       table: { type: 'native_table', columns: ['候选结构', '已经改善的方面', '暴露出的缺口', '进入 4-3 后的动作'], rows: [['滞后', '低频灵敏度略有改善', '相角裕度下降，超调和调节时间变差', '不再把低频补偿单独推强'], ['PI', '具备消除静差的能力', '响应过慢，扰动峰值没有改善', '积分只作为基本结构的一部分进入工程实现'], ['超前', '超调和调节时间明显改善', '控制量增大，低频抗扰仍需复核', '可作为反馈主结构的起点'], ['超前-滞后', '动态指标较优，兼顾一定低频补偿', '参数之间互相牵动', '可作为基本串联结构，但需要额外通道'], ['前馈', '可提前补偿参考或可测扰动', '不改变反馈闭环稳定性，依赖模型与测量', '与反馈主结构复合使用']] }
       gap: { type: 'plain_text', body: '继续重复选结构没有足够增量。要处理参考规划、可测扰动、执行器限制、噪声和积分饱和。' }
@@ -102,8 +102,8 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '判断反馈主结构起点和需要复合处理的问题。'
       activity_cards:
-        - { id: 'main-start', prompt: '哪类候选最适合作为本案例反馈主结构起点？', response_kind: 'single_choice', options: ['滞后', '超前或超前-滞后', '单独前馈'], reference_answer: '超前或超前-滞后。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'gap-select', prompt: '哪些问题需要复合控制或工程保护？', response_kind: 'multi_choice', options: ['可测扰动补偿', '参考突变', '执行器限幅和斜率限制', '积分饱和'], reference_answer: '四项都需要。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'main-start', prompt: '哪类候选最适合作为本案例反馈主结构起点？', response_kind: 'choice.single', options: ['滞后', '超前或超前-滞后', '单独前馈'], reference_answer: '超前或超前-滞后。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'gap-select', prompt: '哪些问题需要复合控制或工程保护？', response_kind: 'choice.multi', options: ['可测扰动补偿', '参考突变', '执行器限幅和斜率限制', '积分饱和'], reference_answer: '四项都需要。', submit_scope: 'per_card', layout_span: 'half' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -116,9 +116,9 @@ steps:
     title: '狭义复合控制与广义复合控制边界'
     layout: { template: 'classification_table_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'scope', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'compound-boundary-table', title: '两种复合控制口径', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'table' } }
-      - { id: 'lesson-scope', title: '本讲处理范围', region: 'scope', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'scope' } }
-      - { id: 'compound-classify', title: '复合控制分类', region: 'activity', kind: 'card-sort', must_be_visible: false, payload: { activity_card_ids: ['classify'] } }
+      - { id: 'compound-boundary-table', title: '两种复合控制口径', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'native-table', presentation: 'single',  block_key: 'table' } }
+      - { id: 'lesson-scope', title: '本讲处理范围', region: 'scope', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'scope' } }
+      - { id: 'compound-classify', title: '复合控制分类', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'card-sort', presentation: 'single', interactionKind: 'card-sort', responseKind: 'ordering.sequence',  activity_card_ids: ['classify'] } }
     content_blocks:
       table: { type: 'native_table', columns: ['口径', '核心含义', '本讲的用法'], rows: [['狭义复合控制', '开环前馈与闭环反馈并用', '重点讨论反馈主结构与参考/扰动前馈组合'], ['广义复合控制', '引入额外信息通道、局部回路、模型补偿或工程保护', '只取微分滤波、给定滤波、抗饱和、限幅和斜率限制']] }
       scope: { type: 'plain_text', body: '串级控制、解耦控制、Smith 预估、扰动观测器和 MPC 不在本课展开。' }
@@ -127,7 +127,7 @@ steps:
       interaction_kind: 'card_sort'
       student_task: '把结构放入狭义复合、实现层复合或复杂工程控制结构。'
       activity_cards:
-        - { id: 'classify', prompt: '分类：扰动前馈、给定滤波、抗积分饱和、串级控制、MPC。', response_kind: 'card_sort', options: ['狭义复合控制', '实现层复合', '复杂工程控制结构'], reference_answer: '扰动前馈属于狭义复合；给定滤波和抗积分饱和属于实现层复合；串级控制和 MPC 属于复杂工程控制结构。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'classify', prompt: '分类：扰动前馈、给定滤波、抗积分饱和、串级控制、MPC。', response_kind: 'ordering.sequence', options: ['狭义复合控制', '实现层复合', '复杂工程控制结构'], reference_answer: '扰动前馈属于狭义复合；给定滤波和抗积分饱和属于实现层复合；串级控制和 MPC 属于复杂工程控制结构。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -140,9 +140,9 @@ steps:
     title: '反馈主结构与复合控制总表达'
     layout: { template: 'formula_reveal_figure_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }] }
     modules:
-      - { id: 'feedback-problem', title: '反馈主结构起点', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
-      - { id: 'compound-formula-reveal', title: '复合控制总表达显影', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
-      - { id: 'compound-structure', title: '经典复合控制基本结构', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-classic-compound-control-structure.png', block_key: 'figure_reading' } }
+      - { id: 'feedback-problem', title: '反馈主结构起点', region: 'problem', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'problem' } }
+      - { id: 'compound-formula-reveal', title: '复合控制总表达显影', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'reveal_layers' } }
+      - { id: 'compound-structure', title: '经典复合控制基本结构', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-classic-compound-control-structure.png', block_key: 'figure_reading' } }
     content_blocks:
       problem: { type: 'plain_text', body: '基本串联结构先作为反馈主结构，前馈、滤波和限幅在此基础上加入。' }
       reveal_layers:
@@ -164,10 +164,10 @@ steps:
     title: '扰动前馈与反馈的分工关系'
     layout: { template: 'feedforward_derivation_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'disturbance-problem', title: '扰动前馈题面', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
-      - { id: 'disturbance-reveal', title: '扰动前馈抵消条件', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
-      - { id: 'disturbance-structure', title: '扰动前馈复合结构', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-structure.png', block_key: 'figure_reading' } }
-      - { id: 'disturbance-role', title: '反馈保底判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['disturbance-role-card'] } }
+      - { id: 'disturbance-problem', title: '扰动前馈题面', region: 'problem', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'problem' } }
+      - { id: 'disturbance-reveal', title: '扰动前馈抵消条件', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'reveal_layers' } }
+      - { id: 'disturbance-structure', title: '扰动前馈复合结构', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-structure.png', block_key: 'figure_reading' } }
+      - { id: 'disturbance-role', title: '反馈保底判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['disturbance-role-card'] } }
     content_blocks:
       problem: { type: 'plain_text', body: '输出由控制输入和可测扰动共同决定，前馈提前补偿扰动，反馈保留稳定和残余修正职责。' }
       reveal_layers:
@@ -182,7 +182,7 @@ steps:
       student_task: '判断扰动前馈加入后反馈仍承担哪些任务。'
       step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }
       activity_cards:
-        - { id: 'disturbance-role-card', prompt: '扰动前馈加入后，反馈环节仍负责哪些任务？', response_kind: 'multi_choice', options: ['稳定闭环', '鲁棒修正', '残余误差修正', '完全替代前馈'], reference_answer: '稳定闭环、鲁棒修正和残余误差修正。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'disturbance-role-card', prompt: '扰动前馈加入后，反馈环节仍负责哪些任务？', response_kind: 'choice.multi', options: ['稳定闭环', '鲁棒修正', '残余误差修正', '完全替代前馈'], reference_answer: '稳定闭环、鲁棒修正和残余误差修正。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_direct', reveal_reference_answer: 'teacher_toggle' }
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -195,10 +195,10 @@ steps:
     title: '参考前馈与给定通道塑形'
     layout: { template: 'reference_feedforward_derivation_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'reference-problem', title: '参考前馈题面', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'problem' } }
-      - { id: 'reference-reveal', title: '参考前馈推导链', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
-      - { id: 'reference-structure', title: '参考前馈复合结构', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-reference-feedforward-structure.png', block_key: 'figure_reading' } }
-      - { id: 'inverse-risk-card', title: '逆模型风险判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['inverse-risk'] } }
+      - { id: 'reference-problem', title: '参考前馈题面', region: 'problem', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'problem' } }
+      - { id: 'reference-reveal', title: '参考前馈推导链', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'reveal_layers' } }
+      - { id: 'reference-structure', title: '参考前馈复合结构', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-reference-feedforward-structure.png', block_key: 'figure_reading' } }
+      - { id: 'inverse-risk-card', title: '逆模型风险判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['inverse-risk'] } }
     content_blocks:
       problem: { type: 'plain_text', body: '参考轨迹已知时，参考前馈在反馈之外提前给出操纵趋势，但完美逆模型需要低通修正。' }
       reveal_layers:
@@ -213,7 +213,7 @@ steps:
       student_task: '判断完美逆模型的工程风险。'
       step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }
       activity_cards:
-        - { id: 'inverse-risk', prompt: '完美逆模型在工程实现中可能带来哪些风险？', response_kind: 'multi_choice', options: ['非最小相位零点', '纯滞后', '高频噪声放大', '执行器限制'], reference_answer: '四项都可能使完美逆模型不可实现或过于激进。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'inverse-risk', prompt: '完美逆模型在工程实现中可能带来哪些风险？', response_kind: 'choice.multi', options: ['非最小相位零点', '纯滞后', '高频噪声放大', '执行器限制'], reference_answer: '四项都可能使完美逆模型不可实现或过于激进。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_direct', reveal_reference_answer: 'teacher_toggle' }
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -226,9 +226,9 @@ steps:
     title: 'Bode 主环路分析的适用边界'
     layout: { template: 'bode_boundary_table_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'bode-boundary-intro', title: '主环路分析边界', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro' } }
-      - { id: 'bode-boundary-table', title: '单一 Bode 分析难以覆盖的内容', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'table' } }
-      - { id: 'validation-evidence-card', title: '首轮验证证据选择', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['validation-evidence'] } }
+      - { id: 'bode-boundary-intro', title: '主环路分析边界', region: 'intro', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'intro' } }
+      - { id: 'bode-boundary-table', title: '单一 Bode 分析难以覆盖的内容', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'native-table', presentation: 'single',  block_key: 'table' } }
+      - { id: 'validation-evidence-card', title: '首轮验证证据选择', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['validation-evidence'] } }
     content_blocks:
       intro: { type: 'plain_text', body: '$L(s)=C(s)G(s)$ 仍服务反馈主环路，但不能单独覆盖前馈抵消、限幅、斜率限制和积分饱和。' }
       table: { type: 'native_table', columns: ['新增结构', 'Bode 主环路能说明什么', '还需要额外检查什么'], rows: [['扰动前馈', '反馈环路稳定性和裕度', '$G_uF_d+G_d$ 是否抵消'], ['参考前馈', '反馈通道鲁棒性', '给定变化是否造成控制尖峰'], ['给定滤波', '滤波后反馈环路仍稳定', '跟踪速度和平顺性'], ['限幅与斜率限制', '线性范围内频域性能', '饱和、windup 和贴边时间'], ['微分滤波', '中频相位改善趋势', '高频噪声和量化误差']] }
@@ -237,7 +237,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '选择复合控制首轮验证至少应同时观察的证据。'
       activity_cards:
-        - { id: 'validation-evidence', prompt: '复合控制首轮验证至少应同时看哪些证据？', response_kind: 'multi_choice', options: ['反馈主环路裕度', '参考响应', '扰动响应', '控制量轨迹'], reference_answer: '四项都需要。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'validation-evidence', prompt: '复合控制首轮验证至少应同时看哪些证据？', response_kind: 'choice.multi', options: ['反馈主环路裕度', '参考响应', '扰动响应', '控制量轨迹'], reference_answer: '四项都需要。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -250,8 +250,8 @@ steps:
     title: '微分滤波与输出微分实现'
     layout: { template: 'formula_match_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'derivative-formulas', title: '微分滤波与输出微分公式', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formulas' } }
-      - { id: 'derivative-match', title: '实现作用配对', region: 'activity', kind: 'card-sort', must_be_visible: false, payload: { activity_card_ids: ['derivative-match-card'] } }
+      - { id: 'derivative-formulas', title: '微分滤波与输出微分公式', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formulas' } }
+      - { id: 'derivative-match', title: '实现作用配对', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'card-sort', presentation: 'single', interactionKind: 'card-sort', responseKind: 'ordering.sequence',  activity_card_ids: ['derivative-match-card'] } }
     content_blocks:
       formulas: { type: 'formula_set', items: ['$C_D(s)=K_pT_ds/(1+T_ds/N)$', '$u_D=-K_pT_ds/(1+T_ds/N)y$'], body: '$N$ 越大越接近理想微分，噪声风险也越高；输出微分避免给定阶跃直接进入微分通道。' }
     evidence_sequence: ['理想微分风险', '滤波微分公式', '输出微分公式', '配对题']
@@ -259,7 +259,7 @@ steps:
       interaction_kind: 'card_sort'
       student_task: '匹配微分实现环节与其作用。'
       activity_cards:
-        - { id: 'derivative-match-card', prompt: '将微分滤波、输出微分、理想微分与限制噪声、避免设定值冲击、高频风险匹配。', response_kind: 'card_sort', options: ['限制噪声', '避免设定值冲击', '高频风险'], reference_answer: '微分滤波 -> 限制噪声；输出微分 -> 避免设定值冲击；理想微分 -> 高频风险。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'derivative-match-card', prompt: '将微分滤波、输出微分、理想微分与限制噪声、避免设定值冲击、高频风险匹配。', response_kind: 'ordering.sequence', options: ['限制噪声', '避免设定值冲击', '高频风险'], reference_answer: '微分滤波 -> 限制噪声；输出微分 -> 避免设定值冲击；理想微分 -> 高频风险。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -272,9 +272,9 @@ steps:
     title: '给定滤波与二自由度结构'
     layout: { template: 'setpoint_filter_concept_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'setpoint-formula', title: '给定滤波与二自由度控制律', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula' } }
-      - { id: 'setpoint-structure', title: '给定滤波复合结构', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-setpoint-filter-structure.png', block_key: 'figure_reading' } }
-      - { id: 'setpoint-judgment', title: '平顺性判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['setpoint-smooth'] } }
+      - { id: 'setpoint-formula', title: '给定滤波与二自由度控制律', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formula' } }
+      - { id: 'setpoint-structure', title: '给定滤波复合结构', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-setpoint-filter-structure.png', block_key: 'figure_reading' } }
+      - { id: 'setpoint-judgment', title: '平顺性判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['setpoint-smooth'] } }
     content_blocks:
       formula: { type: 'formula_set', items: ['$r_f(s)=1/(T_fs+1)r(s)$', '$u=C(s)(r_f-y)+F_r(s)r$'], body: '反馈看到更平滑的 $r_f$，参考前馈仍使用原始 $r$ 的可预测信息。' }
       figure_reading: { type: 'plain_text', body: '先看给定滤波进入反馈误差，再看参考前馈仍从原始给定进入控制输入。' }
@@ -283,7 +283,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '判断给定滤波的主要效果。'
       activity_cards:
-        - { id: 'setpoint-smooth', prompt: '给定滤波主要让响应更快还是更平滑？', response_kind: 'single_choice', options: ['更快', '更平滑', '提高反馈裕度'], reference_answer: '更平滑；代价通常是跟踪速度下降。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'setpoint-smooth', prompt: '给定滤波主要让响应更快还是更平滑？', response_kind: 'choice.single', options: ['更快', '更平滑', '提高反馈裕度'], reference_answer: '更平滑；代价通常是跟踪速度下降。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -296,10 +296,10 @@ steps:
     title: '限幅斜率限制与抗积分饱和'
     layout: { template: 'antiwindup_reveal_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'actuator-limits', title: '执行器限制条件', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'limits' } }
-      - { id: 'antiwindup-reveal', title: '抗积分饱和反算链', region: 'reveal', kind: 'step-reveal-chain', must_be_visible: true, payload: { block_key: 'reveal_layers' } }
-      - { id: 'antiwindup-structure', title: '限幅斜率限制与抗饱和结构', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-antiwindup-implementation-structure.png', block_key: 'figure_reading' } }
-      - { id: 'antiwindup-judgment', title: '抗饱和作用判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['antiwindup-effect'] } }
+      - { id: 'actuator-limits', title: '执行器限制条件', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'limits' } }
+      - { id: 'antiwindup-reveal', title: '抗积分饱和反算链', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'reveal_layers' } }
+      - { id: 'antiwindup-structure', title: '限幅斜率限制与抗饱和结构', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-antiwindup-implementation-structure.png', block_key: 'figure_reading' } }
+      - { id: 'antiwindup-judgment', title: '抗饱和作用判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['antiwindup-effect'] } }
     content_blocks:
       limits: { type: 'formula_set', items: ['$u_{\\min}\\le u\\le u_{\\max}$', '$|\\dot u|\\le \\dot u_{\\max}$', '$u_{\\text{act}}=\\operatorname{sat}(u)$'], body: '执行器同时存在幅值限制和变化率限制。' }
       reveal_layers:
@@ -313,7 +313,7 @@ steps:
       student_task: '判断反算项为何能削弱饱和时的积分累积。'
       step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }
       activity_cards:
-        - { id: 'antiwindup-effect', prompt: '执行器饱和时，$u_{act}-u$ 为什么会削弱积分继续累积？', response_kind: 'fill_text', reference_answer: '$u_{act}$ 小于控制器原始需求，差额反馈到积分通道后抵消部分误差推动，使积分状态不再追逐不可实现控制量。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'antiwindup-effect', prompt: '执行器饱和时，$u_{act}-u$ 为什么会削弱积分继续累积？', response_kind: 'text.short', reference_answer: '$u_{act}$ 小于控制器原始需求，差额反馈到积分通道后抵消部分误差推动，使积分状态不再追逐不可实现控制量。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_direct', reveal_reference_answer: 'teacher_toggle' }
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -326,9 +326,9 @@ steps:
     title: '客船对象扰动加入点与反馈主结构'
     layout: { template: 'ship_channel_problem_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'ship-problem', title: '客船航向控制题面', region: 'problem', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'problem' } }
-      - { id: 'channel-table', title: '控制输入与扰动通道', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'channel_table' } }
-      - { id: 'disturbance-path-task', title: '扰动加入点判断', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['disturbance-path'] } }
+      - { id: 'ship-problem', title: '客船航向控制题面', region: 'problem', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'problem' } }
+      - { id: 'channel-table', title: '控制输入与扰动通道', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'native-table', presentation: 'single',  block_key: 'channel_table' } }
+      - { id: 'disturbance-path-task', title: '扰动加入点判断', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['disturbance-path'] } }
     content_blocks:
       problem: { type: 'formula_set', items: ['$G_u(s)=0.01715/[s(s+0.1)(s+2.14375)]$', '$C_b(s)=1.338(13.91s+1)(109.05s+1)/[(5.94s+1)(196.29s+1)]$', '$d(t)=0.004+0.003\\sin(0.08t)$'], body: '海浪和洋流在执行器之后、对象之前进入被控过程。' }
       channel_table: { type: 'native_table', columns: ['通道', '表达式', '含义'], rows: [['执行器', '$G_a(s)=0.01715/(s+2.14375)$', '舵机动态'], ['被控对象', '$G_p(s)=1/[s(s+0.1)]$', '航向慢过程'], ['控制输入通道', '$G_u=G_aG_p$', '舵角到航向'], ['扰动通道', '$G_d=G_p$', '扰动不经过舵机']] }
@@ -337,7 +337,7 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '解释扰动为什么不经过舵机动态。'
       activity_cards:
-        - { id: 'disturbance-path', prompt: '扰动为什么不经过舵机动态 $G_a(s)$？', response_kind: 'fill_text', reference_answer: '扰动在执行器之后、对象之前进入，因此扰动通道为 $G_p(s)$，不包含舵机动态 $G_a(s)$。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'disturbance-path', prompt: '扰动为什么不经过舵机动态 $G_a(s)$？', response_kind: 'text.short', reference_answer: '扰动在执行器之后、对象之前进入，因此扰动通道为 $G_p(s)$，不包含舵机动态 $G_a(s)$。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -350,9 +350,9 @@ steps:
     title: '客船扰动前馈的参数补偿'
     layout: { template: 'feedforward_parameter_panel', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'disturbance-ff-formula', title: '扰动前馈参数化表达', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula' } }
-      - { id: 'disturbance-ff-panel', title: '扰动前馈动态补偿面板', region: 'media', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit43_disturbance_feedforward_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-comparison.png', block_key: 'figure_reading' } }
-      - { id: 'disturbance-ff-submit', title: '扰动前馈参数提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['disturbance-params'] } }
+      - { id: 'disturbance-ff-formula', title: '扰动前馈参数化表达', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formula' } }
+      - { id: 'disturbance-ff-panel', title: '扰动前馈动态补偿面板', region: 'media', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit43_disturbance_feedforward_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-comparison.png', block_key: 'figure_reading' } }
+      - { id: 'disturbance-ff-submit', title: '扰动前馈参数提交', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['disturbance-params'] } }
     content_blocks:
       formula: { type: 'formula_set', items: ['$F_d^\\ast(s)=-(s+2.14375)/0.01715$', '$F_d(s)=\\lambda_d\\,k_z(s+z_d)/(s+p_d)$'], body: '扰动前馈零点来自执行器逆近似；一阶低通截止频率对应惯性环节极点；前馈强度范围为 0% 到 200%。' }
       figure_reading: { type: 'plain_text', body: '航向响应中扰动、给定和无扰动前馈基准常显；动态曲线显示当前扰动前馈补偿后的航向响应和舵角。' }
@@ -371,7 +371,7 @@ steps:
       interaction_kind: 'interactive_figure_submit'
       student_task: '调节扰动前馈零点、一阶低通截止频率和前馈强度，提交全部设定参数。'
       activity_cards:
-        - { id: 'disturbance-params', title: '扰动前馈参数记录', prompt: '提交当前扰动前馈零点、低通截止频率和前馈强度。', response_kind: 'parameter_set', submit_scope: 'per_card', layout_span: 'full', reference_answer: '关注扰动偏移是否下降，同时检查舵角补偿是否过大。' }
+        - { id: 'disturbance-params', title: '扰动前馈参数记录', prompt: '提交当前扰动前馈零点、低通截止频率和前馈强度。', response_kind: 'parameter.set', submit_scope: 'per_card', layout_span: 'full', reference_answer: '关注扰动偏移是否下降，同时检查舵角补偿是否过大。' }
     teacher_controls: *figure_controls
     student_access: *released_access
     teacher_insight_spec: *figure_insight
@@ -384,9 +384,9 @@ steps:
     title: '客船参考前馈的参数补偿'
     layout: { template: 'reference_feedforward_parameter_panel', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'reference-ff-formula', title: '参考前馈低频近似', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula' } }
-      - { id: 'reference-ff-panel', title: '参考前馈动态补偿面板', region: 'media', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit43_reference_feedforward_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-reference-feedforward-comparison.png', block_key: 'figure_reading' } }
-      - { id: 'reference-ff-submit', title: '参考前馈参数提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['reference-params'] } }
+      - { id: 'reference-ff-formula', title: '参考前馈低频近似', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formula' } }
+      - { id: 'reference-ff-panel', title: '参考前馈动态补偿面板', region: 'media', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit43_reference_feedforward_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-reference-feedforward-comparison.png', block_key: 'figure_reading' } }
+      - { id: 'reference-ff-submit', title: '参考前馈参数提交', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['reference-params'] } }
     content_blocks:
       formula: { type: 'formula_set', items: ['$G_u(s)\\approx0.08/s$', '$F_r(s)=9.375s/(8s+1)$'], body: '本页以 75% 扰动前馈为基准，只研究参考前馈本身，不混入给定滤波。' }
       figure_reading: { type: 'plain_text', body: '扰动、给定和无参考前馈基准常显；动态曲线在 75% 扰动前馈基准上更新参考前馈效果。' }
@@ -406,7 +406,7 @@ steps:
       interaction_kind: 'interactive_figure_submit'
       student_task: '调节参考前馈低通截止频率和前馈强度，提交当前参数。'
       activity_cards:
-        - { id: 'reference-params', title: '参考前馈参数记录', prompt: '提交参考前馈低通截止频率和前馈强度。', response_kind: 'parameter_set', submit_scope: 'per_card', layout_span: 'full', reference_answer: '关注给定变化阶段的跟随滞后和舵角峰值。' }
+        - { id: 'reference-params', title: '参考前馈参数记录', prompt: '提交参考前馈低通截止频率和前馈强度。', response_kind: 'parameter.set', submit_scope: 'per_card', layout_span: 'full', reference_answer: '关注给定变化阶段的跟随滞后和舵角峰值。' }
     teacher_controls: *figure_controls
     student_access: *released_access
     teacher_insight_spec: *figure_insight
@@ -419,9 +419,9 @@ steps:
     title: '客船给定滤波的平顺性权衡'
     layout: { template: 'setpoint_filter_parameter_panel', regions: [{ id: 'explain', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'setpoint-filter-explain', title: '给定滤波完整讲解', region: 'explain', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula' } }
-      - { id: 'setpoint-filter-panel', title: '给定滤波平顺性观察面板', region: 'media', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit43_setpoint_filter_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-setpoint-filter-comparison.png', block_key: 'figure_reading' } }
-      - { id: 'setpoint-filter-submit', title: '给定滤波观察提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['setpoint-filter-observation'] } }
+      - { id: 'setpoint-filter-explain', title: '给定滤波完整讲解', region: 'explain', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formula' } }
+      - { id: 'setpoint-filter-panel', title: '给定滤波平顺性观察面板', region: 'media', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit43_setpoint_filter_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-setpoint-filter-comparison.png', block_key: 'figure_reading' } }
+      - { id: 'setpoint-filter-submit', title: '给定滤波观察提交', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['setpoint-filter-observation'] } }
     content_blocks:
       formula: { type: 'formula_set', items: ['$r_f=Q_f(s)r$', '$Q_f(s)=1/(16s+1)$', '$u=C_b(s)(r_f-y)+F_r(s)r+F_d(s)d$'], body: '反馈主结构看到更平滑的 $r_f$，参考前馈仍使用原始 $r$。' }
       figure_reading: { type: 'plain_text', body: '无给定滤波曲线以 75% 参考前馈和 75% 扰动前馈为基准；面板动态改变有给定滤波的航向响应和舵角。' }
@@ -441,7 +441,7 @@ steps:
       interaction_kind: 'interactive_figure_submit'
       student_task: '调节给定滤波截止频率，提交观察记录。'
       activity_cards:
-        - { id: 'setpoint-filter-observation', title: '给定滤波观察记录', prompt: '提交当前给定滤波截止频率，并说明航向平顺性和跟踪速度怎样变化。', response_kind: 'observation_text', submit_scope: 'per_card', layout_span: 'full', reference_answer: '截止频率降低通常使响应更平滑、舵角更温和，但跟踪速度下降。' }
+        - { id: 'setpoint-filter-observation', title: '给定滤波观察记录', prompt: '提交当前给定滤波截止频率，并说明航向平顺性和跟踪速度怎样变化。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full', reference_answer: '截止频率降低通常使响应更平滑、舵角更温和，但跟踪速度下降。' }
     teacher_controls: *figure_controls
     student_access: *released_access
     teacher_insight_spec: *figure_insight
@@ -454,10 +454,10 @@ steps:
     title: '客船执行器保护与抗饱和验证'
     layout: { template: 'antiwindup_parameter_panel', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'actuator-protection-formula', title: '执行器保护与抗饱和公式', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'formula' } }
-      - { id: 'antiwindup-panel', title: '抗饱和动态验证面板', region: 'media', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit43_antiwindup_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-antiwindup-comparison.png', block_key: 'figure_reading' } }
-      - { id: 'validation-table', title: '经典复合方案首轮记录', region: 'table', kind: 'native-table', must_be_visible: true, payload: { block_key: 'validation_table' } }
-      - { id: 'issue-list-submit', title: '首轮问题清单提交', region: 'activity', kind: 'activity-card', must_be_visible: false, payload: { activity_card_ids: ['issue-list'] } }
+      - { id: 'actuator-protection-formula', title: '执行器保护与抗饱和公式', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'formula' } }
+      - { id: 'antiwindup-panel', title: '抗饱和动态验证面板', region: 'media', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit43_antiwindup_panel', fallback_image: '/course-runtime/lessons/4-3/media/4-3-antiwindup-comparison.png', block_key: 'figure_reading' } }
+      - { id: 'validation-table', title: '经典复合方案首轮记录', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'native-table', presentation: 'single',  block_key: 'validation_table' } }
+      - { id: 'issue-list-submit', title: '首轮问题清单提交', region: 'activity', kind: 'activity.panel', must_be_visible: false, payload: { legacyKind: 'activity-card', presentation: 'single',  activity_card_ids: ['issue-list'] } }
     content_blocks:
       formula: { type: 'formula_set', items: ['$u_{raw}=C_{PIDf}(r_f-y)+F_r r+F_d d$', '$u_{act}=\\operatorname{rateLimit}(\\operatorname{sat}(u_{raw}))$', '$-2.4\\le u_{act}\\le2.4$', '$|\\dot u_{act}|\\le0.045$', '$\\dot x_i=e+(u_{act}-u_{raw})/T_{aw}$'], body: '抗饱和与基准两种情况都必须包含扰动前馈、参考前馈、给定滤波、限幅与斜率限制。' }
       figure_reading: { type: 'plain_text', body: '比较抗饱和与基准两种情况的航向响应和舵角变化，重点看恢复速度和舵角贴边时间。' }
@@ -477,7 +477,7 @@ steps:
       interaction_kind: 'interactive_figure_submit'
       student_task: '调节抗饱和时间常数，并提交恢复速度、舵角贴边时间和下一轮优先项。'
       activity_cards:
-        - { id: 'issue-list', title: '首轮问题清单', prompt: '记录当前 $T_{aw}$、恢复速度、舵角贴边时间和下一轮优先调整项。', response_kind: 'observation_text', submit_scope: 'per_card', layout_span: 'full', reference_answer: '抗饱和应缩短饱和解除后的拖尾；下一轮优先项应来自响应、舵角和贴边时间的共同证据。' }
+        - { id: 'issue-list', title: '首轮问题清单', prompt: '记录当前 $T_{aw}$、恢复速度、舵角贴边时间和下一轮优先调整项。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'full', reference_answer: '抗饱和应缩短饱和解除后的拖尾；下一轮优先项应来自响应、舵角和贴边时间的共同证据。' }
     teacher_controls: *figure_controls
     student_access: *released_access
     teacher_insight_spec: *figure_insight
@@ -490,8 +490,8 @@ steps:
     title: '复合控制初始方案后测'
     layout: { template: 'posttest_quiz_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'posttest-intro', title: '后测任务', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { text: '用本课形成的判断链检查复合控制初始方案是否成立。' } }
-      - { id: 'posttest-quiz', title: '复合控制后测题组', region: 'activity', kind: 'quiz-group', must_be_visible: true, payload: { activity_card_ids: ['post-q1', 'post-q2', 'post-q3'] } }
+      - { id: 'posttest-intro', title: '后测任务', region: 'intro', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  text: '用本课形成的判断链检查复合控制初始方案是否成立。' } }
+      - { id: 'posttest-quiz', title: '复合控制后测题组', region: 'activity', kind: 'activity.panel', must_be_visible: true, payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz',  activity_card_ids: ['post-q1', 'post-q2', 'post-q3'] } }
     content_blocks:
       intro: { type: 'plain_text', body: '后测检查前馈、Bode 边界和问题清单表达，不做复杂综合推导。' }
     evidence_sequence: ['后测标题卡', '三题后测']
@@ -499,9 +499,9 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三题后测。'
       activity_cards:
-        - { id: 'post-q1', prompt: '扰动前馈的主要作用是什么？', response_kind: 'single_choice', options: ['提前补偿可测扰动', '替代反馈稳定闭环', '提高开环相角裕度'], reference_answer: '提前补偿可测扰动。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'post-q2', prompt: '只看 Bode 主环路会漏掉哪些问题？', response_kind: 'multi_choice', options: ['前馈抵消效果', '执行器限幅', '斜率限制', '积分饱和'], reference_answer: '四项都可能被漏掉。', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'post-q3', prompt: '给出一条首轮问题清单句子，包含已满足目标、已暴露代价和下一轮优先项。', response_kind: 'fill_text', reference_answer: '示例：调节时间已接近目标，但舵角贴边时间偏长，下一轮优先调整前馈强度或抗饱和时间常数。', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-q1', prompt: '扰动前馈的主要作用是什么？', response_kind: 'choice.single', options: ['提前补偿可测扰动', '替代反馈稳定闭环', '提高开环相角裕度'], reference_answer: '提前补偿可测扰动。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'post-q2', prompt: '只看 Bode 主环路会漏掉哪些问题？', response_kind: 'choice.multi', options: ['前馈抵消效果', '执行器限幅', '斜率限制', '积分饱和'], reference_answer: '四项都可能被漏掉。', submit_scope: 'per_card', layout_span: 'half' }
+        - { id: 'post-q3', prompt: '给出一条首轮问题清单句子，包含已满足目标、已暴露代价和下一轮优先项。', response_kind: 'text.short', reference_answer: '示例：调节时间已接近目标，但舵角贴边时间偏长，下一轮优先调整前馈强度或抗饱和时间常数。', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: *quiz_controls
     student_access: *released_access
     teacher_insight_spec: *activity_insight
@@ -514,9 +514,9 @@ steps:
     title: '经典复合控制方案总结'
     layout: { template: 'summary_infograph_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }] }
     modules:
-      - { id: 'summary-infograph', title: '经典复合控制信息图', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { src: '/course-runtime/lessons/4-3/media/4-3-info.png', alt: '经典复合控制初始方案总结' } }
-      - { id: 'summary-takeaways', title: '本课结论', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'takeaways' } }
-      - { id: 'lesson-statistics', title: '课堂表现统计', region: 'stats', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'statistics' } }
+      - { id: 'summary-infograph', title: '经典复合控制信息图', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/4-3/media/4-3-info.png', alt: '经典复合控制初始方案总结' } }
+      - { id: 'summary-takeaways', title: '本课结论', region: 'summary', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'takeaways' } }
+      - { id: 'lesson-statistics', title: '课堂表现统计', region: 'stats', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'statistics' } }
     content_blocks:
       takeaways: { type: 'list', items: ['狭义复合控制主要指前馈与反馈并用。', '4-3 在单结构候选基础上处理更复杂的控制场景。', 'PID、超前和超前-滞后在这里作为反馈主结构。', '前馈提前利用参考或可测扰动，反馈负责稳定和残余修正。', '微分滤波、给定滤波、限幅、斜率限制和抗饱和决定方案能否落地。', 'Bode 分析不能单独覆盖前馈、限幅、斜率限制和积分饱和。'] }
       statistics: { type: 'plain_text', body: '学生页显示个人浏览、参数提交、后测和观察记录统计；教师页显示提交率、后测分布、常见误判和问题清单标签。' }

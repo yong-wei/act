@@ -1333,17 +1333,6 @@ export function UNIT_4_1StepContentPanel({
       }
       return baseRegistry['analytics.summary']?.(props) ?? null;
     },
-    graphic: renderGraphic,
-    'interactive-figure': renderInteractiveFigure,
-    'comparison-table': renderComparisonTable,
-    'question-card-row': renderQuestionCardRow,
-    'formula-card': renderFormulaCard,
-    'native-table': renderNativeTable,
-    'template-card': renderTemplateCard,
-    'evidence-bank': renderEvidenceBank,
-    'example-card': renderExampleCard,
-    'native-figure': renderNativeFigure,
-    'stat-panel': renderStatPanel,
   };
 
   return (

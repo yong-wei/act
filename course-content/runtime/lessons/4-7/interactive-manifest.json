@@ -247,7 +247,7 @@
             "id": "time-constant-review",
             "title": "一阶惯性时间常数",
             "prompt": "一阶惯性环节 $G(s)=1/(Ts+1)$ 中，$T$ 变大通常意味着什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -270,7 +270,7 @@
             "id": "integration-review",
             "title": "积分关系",
             "prompt": "若 $r(t)$ 表示艏摇角速度，航向角 $\\\\psi(t)$ 与它的基础关系是哪一项？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -293,7 +293,7 @@
             "id": "bode-review",
             "title": "Bode 裕度",
             "prompt": "在 Bode 图中，穿越频率附近的相位裕度主要用于判断什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -316,7 +316,7 @@
             "id": "objective-constraint-review",
             "title": "目标、约束与罚项",
             "prompt": "若舵角超过允许上限，最合适的建模归类是哪一项？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -849,7 +849,7 @@
             "title": "区分可设计参数与边界参数。",
             "prompt": "区分可设计参数与边界参数。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1144,7 +1144,7 @@
           {
             "id": "trajectory-card",
             "prompt": "哪一项指标直接把航向误差积累成位置偏离？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1166,7 +1166,7 @@
           {
             "id": "rudder-limit-card",
             "prompt": "舵角越界方案为什么不能靠更小航向误差被接受？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1364,7 +1364,7 @@
             "title": "用四域证据解释 $PI+\\text{超前}$ 选型。",
             "prompt": "用四域证据解释 $PI+\\text{超前}$ 选型。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1610,7 +1610,7 @@
             "title": "追踪传统控制器参数来源与跨模型验证。",
             "prompt": "追踪传统控制器参数来源与跨模型验证。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2038,14 +2038,14 @@
           {
             "id": "c3-card",
             "prompt": "$C_3$ 比 $C_2$ 多出的滞后强度 $a_g$ 在结构职责上意味着什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "c4-card",
             "prompt": "$C_4$ 的 $k_d$ 和 $\\\\beta$ 如何影响高保真任务中的微分动作？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -2249,7 +2249,7 @@
             "title": "判断名义模型结论是否能转成高保真可用。",
             "prompt": "判断名义模型结论是否能转成高保真可用。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2688,7 +2688,7 @@
           {
             "id": "disturbance-failure-card",
             "prompt": "为什么中等扰动下传统设计通常是退化，而不是必然完全失效？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2710,7 +2710,7 @@
           {
             "id": "cd-target-card",
             "prompt": "$C_d$ 与 $C_3$ 的设计目标有什么不同？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3073,7 +3073,7 @@
           {
             "id": "bias-random-card",
             "prompt": "$\\\\psi_m(t)$ 中哪一项表示慢变偏置？哪一项表示随机测量噪声？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3095,7 +3095,7 @@
           {
             "id": "filter-need-card",
             "prompt": "为什么抗噪传统方案要加入测量低通和微分滤波？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3277,7 +3277,7 @@
             "id": "rudder-question",
             "prompt": "关于舵机阶跃辨识中的 $T_r$，哪一项判断正确？",
             "reference_answer": "选 A。$T_r$ 是舵机一阶惯性的时间尺度，低估它会高估舵机快速执行能力。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3302,7 +3302,7 @@
             "id": "hull-question",
             "prompt": "关于 $G_h(s)=K_h/(T_hs+1)$ 与航向任务，哪一项判断正确？",
             "reference_answer": "选 A。$T_h$ 来自响应时间尺度，$K_h$ 来自稳态比值；航向角是艏摇角速度积分，因此需要同时检查 $r(t)$ 与 $\\\\psi(t)$。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3327,7 +3327,7 @@
             "id": "cross-model-question",
             "prompt": "若基于辨识模型的优化设计在辨识模型上代价更小，但在高保真 zig-zag 航线中航迹偏离更大，最终判断应选哪一项？",
             "reference_answer": "选 A。辨识模型低代价只能说明名义入口成立，最终交付必须看高保真航向、航迹和执行边界。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -3352,7 +3352,7 @@
             "id": "disturbance-question",
             "prompt": "$T_d=54.00\\\\,\\\\mathrm{s}$、$K_d=0.0150\\\\,\\\\mathrm{rad}$ 为什么不能证明现实风浪扰动已经被充分建模？",
             "reference_answer": "选 A。该通道只描述一类艏摇等效影响，不能覆盖横荡、局部流速改变和舵效变化。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [

@@ -614,7 +614,6 @@ export function UNIT_5_3StepContentPanel({
   };
   const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
     ...baseRegistry,
-    'interactive-figure-panel': renderInteractiveFigurePanel,
     'compute.panel': (props) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
       const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
@@ -623,7 +622,6 @@ export function UNIT_5_3StepContentPanel({
       }
       return baseRegistry['compute.panel'](props);
     },
-    'summary-card': renderSummaryCard,
     'content.cardSet': (props) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
       if (props.module.id === 'class-stats' && legacyKind === 'summary-card') {
@@ -635,9 +633,6 @@ export function UNIT_5_3StepContentPanel({
   if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
     moduleRegistry['content.reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
     moduleRegistry['content.figure'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
-    moduleRegistry['step-reveal-chain'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['step-reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['image-panel'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
   }
 
   return (

@@ -265,7 +265,7 @@
             "id": "q1",
             "title": "更快一些先写什么",
             "prompt": "如果现在的目标是“更快一些”，首轮判断最该先写什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -288,7 +288,7 @@
             "id": "q2",
             "title": "更准一些先看什么",
             "prompt": "如果目标是“更准一些”，下列哪项判断更合理？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -311,7 +311,7 @@
             "id": "q3",
             "title": "收益和代价出现在哪",
             "prompt": "收益和代价会不会总在同一个域先暴露？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [
@@ -552,7 +552,7 @@
             "id": "overshoot",
             "title": "超调量",
             "prompt": "读图填写基准版本闭环响应的超调量。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -562,7 +562,7 @@
             "id": "settling_time",
             "title": "调节时间",
             "prompt": "读图填写基准版本闭环响应的调节时间。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -572,7 +572,7 @@
             "id": "phase_margin",
             "title": "相角裕度",
             "prompt": "读图填写基准版本开环频域图中的相角裕度。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -582,7 +582,7 @@
             "id": "gain_margin",
             "title": "增益裕度",
             "prompt": "读图填写基准版本开环频域图中的增益裕度。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -592,7 +592,7 @@
             "id": "ramp_error",
             "title": "单位斜坡误差",
             "prompt": "读图填写基准版本对应的单位斜坡稳态误差。",
-            "response_kind": "short_text",
+            "response_kind": "text.short",
             "submit_scope": "step",
             "layout_span": "full",
             "options": [],
@@ -1031,7 +1031,7 @@
             "legacyKind": "table-builder",
             "presentation": "single",
             "interactionKind": "table-builder",
-            "responseKind": "table"
+            "responseKind": "table.builder"
           }
         }
       ],
@@ -1046,7 +1046,7 @@
             "id": "mapping_table",
             "title": "综合映射表",
             "prompt": "把四个版本的结构变化、根轨迹第一信号、时域结果、频域解释、任务标签和主要风险填写到表格中。允许留空提交。",
-            "response_kind": "table_builder",
+            "response_kind": "table.builder",
             "submit_scope": "step",
             "layout_span": "full",
             "options": []
