@@ -89,9 +89,19 @@ function main() {
     'Dockerfile 必须在容器内执行 npm run build，确保走统一构建链路'
   );
 
-  assert.match(
-    packageJson.scripts.build,
-    /wasm:build:control-engine/,
+  const buildScript = packageJson.scripts.build;
+  const wasmBuildIndex = Math.min(
+    ...[
+      buildScript.indexOf('wasm:build:control-engine'),
+      buildScript.indexOf('scripts/wasm/build-control-engine.mjs'),
+    ].filter((index) => index >= 0),
+  );
+  const prismaGenerateIndex = buildScript.indexOf('prisma generate');
+  const nextBuildIndex = buildScript.indexOf('next build');
+  assert.ok(
+    wasmBuildIndex >= 0
+      && prismaGenerateIndex > wasmBuildIndex
+      && nextBuildIndex > wasmBuildIndex,
     '统一 build 脚本必须先构建控制分析内核的 Wasm 产物'
   );
 
@@ -111,7 +121,7 @@ function main() {
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
 
   const deployScript = read('deploy/podman/deploy.sh');
-  const buildScript = read('scripts/build.sh');
+  const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
     deployScript,
@@ -138,13 +148,13 @@ function main() {
   );
 
   assert.doesNotMatch(
-    buildScript,
+      localImageBuildScript,
     /RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT/,
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
   assert.match(
-    buildScript,
+      localImageBuildScript,
     /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
     '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
   );
