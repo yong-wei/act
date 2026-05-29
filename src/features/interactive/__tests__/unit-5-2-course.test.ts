@@ -117,6 +117,9 @@ describe('unit 5-2 interactive course', () => {
     expect(htmlByStep.get('step-13')).toContain('katex');
     expect(htmlByStep.get('step-14')).toContain('katex');
     expect(htmlByStep.get('step-16')).toContain('katex');
+    expect(htmlByStep.get('step-06')).toContain('data-nonlinear-panel="rust_phase_plane_tabs"');
+    expect(htmlByStep.get('step-08')).toContain('data-nonlinear-panel="rust_memoryless_nonlinearity_tabs"');
+    expect(fullHtml).not.toContain('互动页模块渲染缺失');
 
     const step03ActivityHtml = renderToStaticMarkup(
       createElement(featureModule.UNIT_5_2StudentActivityForm, {

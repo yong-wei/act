@@ -18,6 +18,7 @@ import {
 import {
   renderInteractiveManifestStep,
   type InteractiveModuleRegistry,
+  type InteractiveModuleRendererProps,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type {
@@ -551,6 +552,35 @@ export function UNIT_4_2StepContentPanel({
 }) {
   const stepManifest = getManifestStep(manifest, step);
   const sharedRegistry = createManifestContentModuleRegistry({ revealProgress, allowInlineReveal });
+  const renderInteractiveFigurePanel = ({
+    manifest: renderManifest,
+    step: renderStep,
+    module,
+    extra,
+  }: InteractiveModuleRendererProps<Unit42ManifestExtra>) => {
+    const panelId = panelIdFromInteractiveModule(module);
+    if (panelId === 'unit42_ship_candidate_compare') {
+      return (
+        <Unit42ShipCandidateComparePanel
+          onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
+        />
+      );
+    }
+    if (panelId) {
+      return (
+        <Unit42ExampleTuningPanel
+          panelId={panelId}
+          onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
+        />
+      );
+    }
+    return sharedRegistry['interactive-figure-panel']?.({
+      manifest: renderManifest,
+      step: renderStep,
+      module,
+      extra,
+    }) ?? null;
+  };
   const moduleRegistry: InteractiveModuleRegistry<Unit42ManifestExtra> = {
     ...sharedRegistry,
     'rust-analysis-panel': ({ module }) => {
@@ -581,29 +611,14 @@ export function UNIT_4_2StepContentPanel({
         extra: { revealProgress, allowInlineReveal },
       }) ?? null;
     },
-    'interactive-figure-panel': ({ manifest: renderManifest, step: renderStep, module, extra }) => {
-      const panelId = panelIdFromInteractiveModule(module);
-      if (panelId === 'unit42_ship_candidate_compare') {
-        return (
-          <Unit42ShipCandidateComparePanel
-            onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
-          />
-        );
+    'interactive-figure-panel': renderInteractiveFigurePanel,
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+        return renderInteractiveFigurePanel(props);
       }
-      if (panelId) {
-        return (
-          <Unit42ExampleTuningPanel
-            panelId={panelId}
-            onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
-          />
-        );
-      }
-      return sharedRegistry['interactive-figure-panel']?.({
-        manifest: renderManifest,
-        step: renderStep,
-        module,
-        extra,
-      }) ?? null;
+      return sharedRegistry['compute.panel']?.(props) ?? null;
     },
   };
 

@@ -85,7 +85,7 @@ describe('unit 5-5 interactive course', () => {
     expect(teacherPageSource).toContain('currentStage: UNIT_5_5_STAGE_MAP[nextStep.stage]');
   });
 
-  it('keeps step-08 and step-15 as Rust/WASM training panels without ordinary text-card fallback', () => {
+  it('keeps step-08 and step-15 as Rust/WASM training panels without ordinary text-card fallback', async () => {
     const manifest = readManifest();
     const step08 = manifest.steps.find((step) => step.id === 'step-08');
     const step15 = manifest.steps.find((step) => step.id === 'step-15');
@@ -110,6 +110,29 @@ describe('unit 5-5 interactive course', () => {
     expect(stepPanelsSource).toContain('训练中，第 ${episodeCount} 轮');
     expect(stepPanelsSource).toContain('RMS 合并排名');
     expect(stepPanelsSource).toContain('safetyFallbackCount');
+
+    const { UNIT_5_5StepContentPanel } = await import('@/features/interactive/unit-5-5-policy-learning-entry-risk/step-panels');
+    const step08Html = renderToStaticMarkup(
+      createElement(UNIT_5_5StepContentPanel, {
+        step: UNIT_5_5_LESSON_STEPS[7],
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        mode: 'student',
+      }),
+    );
+    const step15Html = renderToStaticMarkup(
+      createElement(UNIT_5_5StepContentPanel, {
+        step: UNIT_5_5_LESSON_STEPS[14],
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        mode: 'student',
+      }),
+    );
+    expect(step08Html).toContain('data-testid="unit-5-5-toy-rl-training-panel"');
+    expect(step15Html).toContain('data-testid="unit-5-5-heading-rl-training-panel"');
+    expect(`${step08Html}\n${step15Html}`).not.toContain('互动页模块渲染缺失');
   });
 
   it('keeps unit 5-5 fixes aligned with the reviewed runtime manifest and panel source', () => {

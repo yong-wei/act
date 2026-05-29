@@ -1,11 +1,16 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 vi.mock('server-only', () => ({}));
+vi.mock('@/resources/control-system/charts/control-chart-panel', () => ({
+  ControlChartPanel: () => 'chart',
+}));
 
 const repoRoot = process.cwd();
 const routeSegment = 'unit-5-1-linear-backbone-boundaries';
@@ -156,6 +161,25 @@ describe('unit 5-1 interactive course', () => {
       expect(step.interactiveFigureSpec.layoutMirror).toBeTruthy();
       expect(step.interactiveFigureSpec.controlsPlacement ?? 'below_figure').toBe('below_figure');
     }
+  });
+
+  it('routes migrated rust-analysis compute panels through the native 5-1 renderer', async () => {
+    const manifest = readManifest();
+    const courseModule = await import('@/lib/unit-5-1-course');
+    const featureModule = await import('@/features/interactive/unit-5-1-linear-backbone-boundaries/step-panels');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_5_1StepContentPanel, {
+        step: courseModule.getUNIT_5_1Step('step-06'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        role: 'student',
+      }),
+    );
+
+    expect(html).toContain('data-testid="unit-5-1-nonlinear-boundary-panel"');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('renders 5-1 objectives, matching cards, and formula reveal payloads from the runtime manifest', () => {

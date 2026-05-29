@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -318,6 +320,32 @@ describe('unit 4-2 interactive course', () => {
     expect(manifest.steps['step-13']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lag')).toBe(true);
     expect(manifest.steps['step-14']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pid_zn')).toBe(true);
     expect(manifest.steps['step-17']?.modules?.some((module) => module.payload?.panel_id === 'unit42_ship_candidate_compare')).toBe(true);
+  });
+
+  it('routes migrated compute.panel examples through the native 4-2 panel renderer', async () => {
+    const rawManifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    );
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    if (!manifest) throw new Error('4-2 interactive manifest is invalid');
+    const courseModule = await import('@/lib/unit-4-2-course');
+    const featureModule = await import('@/features/interactive/unit-4-2-controller-selection-first-start/step-panels');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_2StepContentPanel, {
+        step: courseModule.getUNIT_4_2Step('step-11'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('频域 PI 参数复核面板');
+    expect(html).toContain('控件栏');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('lets worked-example reveal maintain local click-to-continue state instead of relying only on teacher progress', () => {
