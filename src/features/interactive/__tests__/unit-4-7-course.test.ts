@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
@@ -127,6 +129,27 @@ describe('unit 4-7 interactive course', () => {
       id: 'step-03',
       title: '真实航迹任务与分段辨识模型结构',
     });
+  });
+
+  it('renders step 03 canonical figures with distinct media fallback images', async () => {
+    const manifest = readManifest();
+    const courseModule = await import('@/lib/unit-4-7-course');
+    const featureModule = await import('@/features/interactive/unit-4-7-destroyer-hifi-design-closure/step-panels');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_7StepContentPanel, {
+        step: courseModule.getUNIT_4_7Step('step-03'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('/course-runtime/lessons/4-7/media/4-7-segmented-identification-block.png');
+    expect(html).toContain('/course-runtime/lessons/4-7/media/4-7-rudder-actuator-step-identification.png');
+    expect(html).toContain('/course-runtime/lessons/4-7/media/4-7-hull-yaw-step-identification.png');
+    expect(html).toContain('/course-runtime/lessons/4-7/media/4-7-disturbance-step-identification.png');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('gives every 4-7 manifest module a Chinese title instead of relying on id fallback labels', () => {

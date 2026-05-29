@@ -157,6 +157,20 @@ describe('unit 5-6 interactive course', () => {
     expect(stepPanelsSource).toContain('temperatureChannel');
     expect(stepPanelsSource).toContain('metricView');
     expect(stepPanelsSource).toContain('RecoveryThreshold');
+
+    const { UNIT_5_6_LESSON_STEPS } = await import('@/lib/unit-5-6-course');
+    const { UNIT_5_6StepContentPanel } = await import('@/features/interactive/unit-5-6-method-comparison-cold-chain/step-panels');
+    const html = renderToStaticMarkup(
+      createElement(UNIT_5_6StepContentPanel, {
+        step: UNIT_5_6_LESSON_STEPS[10],
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        mode: 'student',
+      }),
+    );
+    expect(html).toMatch(/data-testid="unit-5-6-cold-chain-(route-compare-panel|diagnostic-fallback)"/);
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('renders the step-11 teacher aggregate from structured route observation payloads', async () => {

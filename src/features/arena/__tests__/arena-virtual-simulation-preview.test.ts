@@ -23,6 +23,19 @@ const artifact = buildBlackBoxControlArtifactFromParams({
   identificationModelId: 'arena-identification-preview12345',
   now: '2026-05-11T11:30:00.000Z',
 });
+const registeredArtifact = buildBlackBoxControlArtifactFromParams({
+  taskId: 'task-cruise-roll-blackbox-identification',
+  values: {
+    identificationQuality: '0.82',
+    experimentCount: '6',
+    controllerGain: '1.6',
+    dampingCompensation: '0.72',
+    energyBudget: '12',
+  },
+  experimentDatasetHash: datasetHash,
+  identificationModelId: 'registered-identification-model-preview',
+  now: '2026-05-11T11:30:00.000Z',
+});
 
 const experiment: StoredArenaBlackBoxExperiment = {
   id: 'experiment-preview-row',
@@ -67,6 +80,12 @@ describe('arena virtual simulation controller preview', () => {
     expect(preview.trace.length).toBeGreaterThan(20);
     expect(preview.summary.trackingError).toBeGreaterThanOrEqual(0);
     expect(preview.summary.controlEnergy).toBeGreaterThan(0);
+    expect(preview.replay).toEqual(expect.objectContaining({
+      sceneId: 'arena/task-cruise-roll-blackbox-identification/virtual-preview',
+      scenarioId: 'cruise-roll-controller-preview',
+      seed: expect.any(Number),
+      checksum: expect.stringMatching(/^sha256:[a-f0-9]{64}$/),
+    }));
     expect(JSON.stringify(preview)).not.toContain('ArenaSubmission');
   });
 
@@ -75,24 +94,60 @@ describe('arena virtual simulation controller preview', () => {
       findOwnedExperiment: vi.fn().mockResolvedValue(experiment),
       createExperimentWithinBudget: vi.fn(),
     };
+    const identificationModelStore = {
+      findOwnedIdentificationModel: vi.fn().mockResolvedValue({
+        id: 'registered-identification-model-preview',
+        userId: 'student-preview',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        datasetHash,
+        sourceExperimentId: 'experiment-preview-row',
+        modelType: 'second-order-fit',
+        validationSummary: {
+          validationFit: 0.82,
+          dataQuality: 0.82,
+          sampleCount: 1,
+          signalType: 'step',
+        },
+        protocolVersion: 'arena-identification-model-v1',
+        createdAt: '2026-05-11T11:22:00.000Z',
+      }),
+      createOrResolveIdentificationModel: vi.fn(),
+    };
     const runStore = {
-      createRun: vi.fn(async (input) => ({ ...input, id: 'preview-row-1' })),
+      createRun: vi.fn(async (input) => ({ ...input, id: 'preview-row-1', simulationRunId: 'canonical-run-preview-1' })),
     };
 
     const preview = await createArenaVirtualSimulationPreviewRun({
       userId: 'student-preview',
       taskId: 'task-cruise-roll-blackbox-identification',
-      artifact,
+      artifact: registeredArtifact,
       now: '2026-05-11T11:31:00.000Z',
       blackBoxExperimentStore,
+      identificationModelStore,
       runStore,
-    });
+    } as any);
 
     expect(preview.id).toBe('preview-row-1');
+    expect((preview as any).simulationRunId).toBe('canonical-run-preview-1');
+    expect(preview.metadata).toEqual(expect.objectContaining({
+      evaluationVisibility: 'preview',
+      officialEligible: false,
+      modelRelation: 'identified-model-controller',
+      datasetHash,
+      controllerHash: preview.controllerHash,
+      identificationModelId: 'registered-identification-model-preview',
+      sourceExperimentId: 'experiment-preview-row',
+    }));
+    expect(identificationModelStore.findOwnedIdentificationModel).toHaveBeenCalledWith({
+      userId: 'student-preview',
+      taskId: 'task-cruise-roll-blackbox-identification',
+      modelId: 'registered-identification-model-preview',
+    });
     expect(blackBoxExperimentStore.findOwnedExperiment).toHaveBeenCalledWith({
       userId: 'student-preview',
       taskId: 'task-cruise-roll-blackbox-identification',
       datasetHash,
+      experimentId: 'experiment-preview-row',
     });
     expect(runStore.createRun).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-preview',
@@ -106,6 +161,25 @@ describe('arena virtual simulation controller preview', () => {
       findOwnedExperiment: vi.fn().mockResolvedValue(null),
       createExperimentWithinBudget: vi.fn(),
     };
+    const identificationModelStore = {
+      findOwnedIdentificationModel: vi.fn().mockResolvedValue({
+        id: 'arena-identification-preview12345',
+        userId: 'student-preview',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        datasetHash,
+        sourceExperimentId: 'experiment-preview-row',
+        modelType: 'second-order-fit',
+        validationSummary: {
+          validationFit: 0.82,
+          dataQuality: 0.82,
+          sampleCount: 1,
+          signalType: 'step',
+        },
+        protocolVersion: 'arena-identification-model-v1',
+        createdAt: '2026-05-11T11:22:00.000Z',
+      }),
+      createOrResolveIdentificationModel: vi.fn(),
+    };
     const runStore = {
       createRun: vi.fn(),
     };
@@ -115,8 +189,74 @@ describe('arena virtual simulation controller preview', () => {
       taskId: 'task-cruise-roll-blackbox-identification',
       artifact,
       blackBoxExperimentStore,
+      identificationModelStore,
       runStore,
-    })).rejects.toThrow('does not belong to the current student');
+    } as any)).rejects.toThrow('does not belong to the current student');
+    expect(runStore.createRun).not.toHaveBeenCalled();
+  });
+
+  it('rejects unregistered preview model ids before loading an experiment or creating a preview run', async () => {
+    const blackBoxExperimentStore = {
+      findOwnedExperiment: vi.fn(),
+      createExperimentWithinBudget: vi.fn(),
+    };
+    const identificationModelStore = {
+      findOwnedIdentificationModel: vi.fn().mockResolvedValue(null),
+      createOrResolveIdentificationModel: vi.fn(),
+    };
+    const runStore = {
+      createRun: vi.fn(),
+    };
+
+    await expect(createArenaVirtualSimulationPreviewRun({
+      userId: 'student-preview',
+      taskId: 'task-cruise-roll-blackbox-identification',
+      artifact: registeredArtifact,
+      blackBoxExperimentStore,
+      identificationModelStore,
+      runStore,
+    } as any)).rejects.toThrow('server registered identification model');
+    expect(blackBoxExperimentStore.findOwnedExperiment).not.toHaveBeenCalled();
+    expect(runStore.createRun).not.toHaveBeenCalled();
+  });
+
+  it('rejects registered models that do not match the artifact dataset before creating a preview run', async () => {
+    const blackBoxExperimentStore = {
+      findOwnedExperiment: vi.fn().mockResolvedValue(experiment),
+      createExperimentWithinBudget: vi.fn(),
+    };
+    const identificationModelStore = {
+      findOwnedIdentificationModel: vi.fn().mockResolvedValue({
+        id: 'arena-identification-preview12345',
+        userId: 'student-preview',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        datasetHash: 'arena-blackbox-dataset-other',
+        sourceExperimentId: 'experiment-other',
+        modelType: 'second-order-fit',
+        validationSummary: {
+          validationFit: 0.81,
+          dataQuality: 0.81,
+          sampleCount: 1,
+          signalType: 'step',
+        },
+        protocolVersion: 'arena-identification-model-v1',
+        createdAt: '2026-05-11T11:22:00.000Z',
+      }),
+      createOrResolveIdentificationModel: vi.fn(),
+    };
+    const runStore = {
+      createRun: vi.fn(),
+    };
+
+    await expect(createArenaVirtualSimulationPreviewRun({
+      userId: 'student-preview',
+      taskId: 'task-cruise-roll-blackbox-identification',
+      artifact,
+      blackBoxExperimentStore,
+      identificationModelStore,
+      runStore,
+    } as any)).rejects.toThrow('does not match the experiment dataset');
+    expect(blackBoxExperimentStore.findOwnedExperiment).not.toHaveBeenCalled();
     expect(runStore.createRun).not.toHaveBeenCalled();
   });
 

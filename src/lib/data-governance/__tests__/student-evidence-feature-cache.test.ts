@@ -33,6 +33,160 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('derives compact simulation and Arena features from governed summaries and trace references', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'course-sim',
+          factType: 'simulation',
+          startedAt: new Date('2026-05-18T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-18T10:08:00.000Z'),
+          outcome: 'partial',
+          score: 62,
+          sessionId: 'class-session-1',
+          lessonId: 'unit-5-2-nonlinear-analysis-entry',
+          contextJson: {
+            simulation: {
+              sourceId: 'simulation/cruise',
+              sceneId: 'sim/cruise',
+              launchMode: 'course-resource',
+              traceReference: 'SimulationTrace:course-run-1',
+              replayConfidence: 0.86,
+              protocolVersion: '1.0',
+              checksum: 'checksum-course-run-1',
+              summary: {
+                metrics: {
+                  settlingTime: 9.2,
+                  rollRms: 0.42,
+                },
+                passed: false,
+                durationSeconds: 138,
+              },
+              weakMetrics: [{ metricId: 'rollRms', value: 0.42 }],
+            },
+          },
+        }),
+        fact({
+          id: 'official-arena',
+          factType: 'design',
+          startedAt: new Date('2026-05-19T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-19T10:05:00.000Z'),
+          outcome: 'failure',
+          score: 48,
+          sourceEventId: 'arena_evaluation_complete:event-1',
+          sourceLogId: 'arena-log-1',
+          contextJson: {
+            arena: {
+              taskId: 'task-cruise-roll',
+              classId: 'class-1',
+              publicationId: 'publication-1',
+              score: 48,
+              valid: false,
+              official: true,
+              replayConfidence: 0.92,
+              traceReference: 'ArenaEvaluationRun:official-run-1',
+              protocolVersion: 'arena-eval-v1',
+              satisfaction: {
+                trackingError: 0.45,
+                controlEnergy: 0.3,
+              },
+            },
+            evidenceGovernance: {
+              policyReason: 'official_arena_evaluation',
+            },
+          },
+        }),
+        fact({
+          id: 'preview-arena',
+          factType: 'simulation',
+          startedAt: new Date('2026-04-01T10:00:00.000Z'),
+          finishedAt: new Date('2026-04-01T10:05:00.000Z'),
+          outcome: 'success',
+          score: 74,
+          sessionId: null,
+          lessonId: null,
+          courseId: null,
+          sourceEventId: 'arena_simulation_run:event-preview',
+          sourceLogId: 'arena-preview-log',
+          contextJson: {
+            arena: {
+              taskId: 'task-preview',
+              preview: true,
+              launchMode: 'standalone',
+              valid: true,
+              replayConfidence: 0.34,
+              traceReference: 'ArenaVirtualSimulationRun:preview-run-1',
+              satisfaction: {
+                smoothness: 0.55,
+              },
+            },
+          },
+        }),
+      ],
+    });
+
+    const simulationArena = (payload.features as any).simulationArena;
+
+    expect(simulationArena.recent30d).toMatchObject({
+      evidenceCount: 2,
+      completedCount: 0,
+      officialCount: 1,
+      previewCount: 0,
+      courseLaunchedCount: 2,
+      standaloneCount: 0,
+      traceReferenceCount: 2,
+      sourceCoverage: {
+        simulation: 'available',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'available',
+      },
+      replayConfidence: {
+        average: 0.89,
+        lowConfidenceCount: 0,
+        missingCount: 0,
+      },
+    });
+    expect(simulationArena.allTime).toMatchObject({
+      evidenceCount: 3,
+      officialCount: 1,
+      previewCount: 1,
+      courseLaunchedCount: 2,
+      standaloneCount: 1,
+      traceReferenceCount: 3,
+      replayConfidence: {
+        average: 0.71,
+        lowConfidenceCount: 1,
+      },
+    });
+    expect(simulationArena.allTime.weakMetrics.map((metric: { metricId: string }) => metric.metricId)).toEqual([
+      'controlEnergy',
+      'rollRms',
+      'smoothness',
+      'trackingError',
+    ]);
+    expect(simulationArena.allTime.traceReferences).toEqual([
+      expect.objectContaining({
+        factId: 'preview-arena',
+        source: 'arena',
+        traceReference: 'ArenaVirtualSimulationRun:preview-run-1',
+      }),
+      expect.objectContaining({
+        factId: 'course-sim',
+        source: 'simulation',
+        traceReference: 'SimulationTrace:course-run-1',
+      }),
+      expect.objectContaining({
+        factId: 'official-arena',
+        source: 'arena',
+        traceReference: 'ArenaEvaluationRun:official-run-1',
+      }),
+    ]);
+    expect(JSON.stringify(simulationArena)).not.toContain('samples');
+  });
+
   it('produces a stable payload for unchanged governed facts regardless of input order', () => {
     const facts = [
       fact({
@@ -78,6 +232,101 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       byFactType: {
         question: 1,
         simulation: 1,
+      },
+    });
+  });
+
+  it('adds adaptive learner-state feature groups with coverage and confidence metadata', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'assessment-fact',
+          factType: 'question',
+          moduleId: 'adaptive-assessment',
+          contextJson: {
+            adaptiveAssessment: {
+              knowledgeTags: ['root-locus'],
+              masteryPosterior: 0.74,
+              masteryConfidence: 0.81,
+            },
+          },
+        }),
+        fact({
+          id: 'media-fact',
+          factType: 'media',
+          score: 58,
+          timeSpent: 420,
+          contextJson: {
+            media: {
+              mediaType: 'video',
+              progress: 0.58,
+            },
+          },
+        }),
+      ],
+      latestSnapshot: {
+        snapshotAt: new Date('2026-05-18T00:00:00.000Z'),
+        factCount: 12,
+        calculationVersion: 'competency-v2',
+        competencyVector: { controlModeling: { score: 76 } },
+      },
+      profileSummary: {
+        updatedAt: new Date('2026-05-18T01:00:00.000Z'),
+        overallScore: 69,
+        riskLevel: 'medium',
+        trendDirection: 'up',
+      },
+    });
+
+    expect(payload.payloadVersion).toBe(STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION);
+    expect(payload.features.adaptiveLearnerState).toMatchObject({
+      payloadVersion: 'adaptive-learner-state.v1',
+      sourceCoverage: {
+        primaryCompetencies: 'available',
+        knowledgeMastery: 'available',
+        resourcePreference: 'available',
+        mediaAbsorption: 'available',
+        pathContext: 'missing',
+        simulationArena: 'missing',
+      },
+      sourceCounts: {
+        LearningFact: 2,
+        AdaptiveMasteryEvidence: 1,
+      },
+      confidence: {
+        level: 'medium',
+        markers: [],
+      },
+    });
+    expect(JSON.stringify(payload.features.adaptiveLearnerState)).not.toContain('rawTracePayload');
+  });
+
+  it('does not treat ordinary adaptive question tags as mastery posterior evidence', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'tag-only-question',
+          factType: 'question',
+          moduleId: 'adaptive-assessment',
+          contextJson: {
+            adaptiveAssessment: {
+              knowledgeTags: ['root-locus'],
+            },
+          },
+        }),
+      ],
+    });
+
+    expect(payload.features.adaptiveLearnerState).toMatchObject({
+      sourceCoverage: {
+        knowledgeMastery: 'missing',
+      },
+      sourceCounts: {
+        AdaptiveMasteryEvidence: 0,
       },
     });
   });
@@ -158,6 +407,48 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       evidenceCount: 1,
     });
     expect(payload.sourceCoverage.LearningFact).toBe('partial');
+  });
+
+  it('omits absent optional trace metadata instead of producing stale v2 payloads', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'trace-without-optional-metadata',
+          factType: 'simulation',
+          contextJson: {
+            simulation: {
+              traceReference: 'SimulationTrace:without-optional-metadata',
+              replayConfidence: 0.86,
+            },
+          },
+        }),
+      ],
+    });
+
+    expect(payload.features.simulationArena.allTime.traceReferences[0]).not.toHaveProperty('protocolVersion');
+    expect(payload.features.simulationArena.allTime.traceReferences[0]).not.toHaveProperty('checksum');
+
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-21T00:00:00.000Z'),
+          statusMarkers: [],
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-21T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'ready',
+    });
   });
 });
 
@@ -322,6 +613,155 @@ describe('student evidence feature cache service', () => {
       cache: {
         userId: 'student-1',
       },
+    });
+  });
+
+  it('marks old payload versions without adaptive learner-state features as stale', async () => {
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v1',
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {},
+          },
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'stale',
+      cache: {
+        userId: 'student-1',
+        payloadVersion: 'student-evidence-features.v1',
+      },
+    });
+  });
+
+  it('marks v2 payloads without adaptive learner-state feature groups as stale', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v2',
+          refreshedAt: new Date('2026-05-21T00:00:00.000Z'),
+          statusMarkers: [],
+          features: {
+            ...payload.features,
+            adaptiveLearnerState: undefined,
+          },
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-21T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'stale',
+    });
+  });
+
+  it('marks malformed v2 simulation Arena payloads as stale', async () => {
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          features: {
+            simulationArena: {
+              recent30d: {},
+              allTime: {},
+            },
+          },
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'stale',
+    });
+  });
+
+  it('marks v2 simulation Arena payloads with malformed nested fields as stale', async () => {
+    const malformedWindow = {
+      window: {},
+      evidenceCount: 1,
+      completedCount: 0,
+      officialCount: 1,
+      previewCount: 0,
+      courseLaunchedCount: 1,
+      standaloneCount: 0,
+      traceReferenceCount: 1,
+      sourceCoverage: {
+        simulation: 'missing',
+        arena: 'available',
+        traceReferences: 'available',
+        replayConfidence: 'available',
+      },
+      replayConfidence: {
+        average: 0.86,
+        highConfidenceCount: 1,
+        lowConfidenceCount: 0,
+        missingCount: 0,
+      },
+      weakMetrics: [
+        { metricId: 'trackingError', affectedFactCount: 1, lowestValue: 0.42 },
+      ],
+      qualityMarkers: [],
+      traceReferences: [
+        {
+          source: 'arena',
+          traceReference: 'ArenaEvaluationRun:raw-leak',
+          factId: 'fact-arena-1',
+          sourceEventId: null,
+          sourceLogId: null,
+          startedAt: '2026-05-18T00:00:00.000Z',
+          rawTracePayload: [{ t: 0, y: 1 }],
+        },
+      ],
+    };
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          features: {
+            simulationArena: {
+              recent30d: malformedWindow,
+              allTime: malformedWindow,
+            },
+          },
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'stale',
     });
   });
 

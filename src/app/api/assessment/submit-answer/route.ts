@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { submitAnswer } from '@/features/assessment/adaptive-engine';
+import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -16,12 +16,19 @@ interface SubmitAnswerRequest {
 export async function POST(request: Request) {
   try {
     const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '请先登录后再提交自适应评测答案' },
+        { status: 401 },
+      );
+    }
+
     const body = (await request.json()) as SubmitAnswerRequest;
 
-    const userId = session?.user?.id ?? body.userId ?? 'demo-user';
+    const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
 
-    const result = submitAnswer({
+    const result = await submitAnswerWithPersistenceFallback({
       userId,
       sessionId,
       questionId: body.questionId,

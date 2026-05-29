@@ -548,9 +548,8 @@ export function UNIT_5_4StepContentPanel({
   const activeManifest = requireUnit54Manifest(manifest);
   const stepManifest = getUNIT_5_4ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = useMemo(() => createManifestContentModuleRegistry({ revealProgress, allowInlineReveal, onInlineReveal }), [allowInlineReveal, onInlineReveal, revealProgress]);
-  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => ({
-    ...baseRegistry,
-    'interactive-figure-panel': ({ module }) => {
+  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => {
+    const renderInteractiveFigurePanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
       if (panelId(module) === 'rust_prediction_error_panel') {
         return <PredictionErrorPanel stepId={step.id} module={module} onParameterChange={onParameterChange} />;
       }
@@ -558,8 +557,8 @@ export function UNIT_5_4StepContentPanel({
         return <RouteComparePanel stepId={step.id} module={module} onParameterChange={onParameterChange} />;
       }
       return baseRegistry['interactive-figure-panel']({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal } });
-    },
-    'learning-stat-panel': () => mode === 'teacher'
+    };
+    const renderLearningStats = () => mode === 'teacher'
       ? (
         <TeacherStats
           submittedStudents={submittedStudents}
@@ -571,8 +570,26 @@ export function UNIT_5_4StepContentPanel({
           misconceptionSummary={misconceptionSummary}
         />
       )
-      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} figureSubmissionCount={figureSubmissionCount} postTestSubmitted={postTestSubmitted} />,
-  }), [activeManifest, allowInlineReveal, baseRegistry, figureCoverage, figureSubmissionCount, misconceptionSummary, mode, objectiveAccuracy, onInlineReveal, postTestCompletion, postTestSubmitted, revealProgress, step.id, stepManifest, submittedCount, submittedStudents, totalResponses, totalStudents, viewedStepIds, onParameterChange]);
+      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} figureSubmissionCount={figureSubmissionCount} postTestSubmitted={postTestSubmitted} />;
+    return {
+      ...baseRegistry,
+      'compute.panel': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+        if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+          return renderInteractiveFigurePanel(props);
+        }
+        return baseRegistry['compute.panel'](props);
+      },
+      'analytics.summary': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        if (legacyKind === 'learning-stat-panel') {
+          return renderLearningStats();
+        }
+        return baseRegistry['analytics.summary'](props);
+      },
+    };
+  }, [activeManifest, allowInlineReveal, baseRegistry, figureCoverage, figureSubmissionCount, misconceptionSummary, mode, objectiveAccuracy, onInlineReveal, postTestCompletion, postTestSubmitted, revealProgress, step.id, stepManifest, submittedCount, submittedStudents, totalResponses, totalStudents, viewedStepIds, onParameterChange]);
 
   return renderInteractiveManifestStep({
     manifest: activeManifest,

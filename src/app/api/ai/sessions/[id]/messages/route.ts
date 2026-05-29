@@ -13,6 +13,16 @@ import type { Prisma } from '@prisma/client';
 import { StreamingTextResponse, streamText } from 'ai';
 import { getConfiguredAIModel } from '@/lib/ai-client';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import {
+  buildKonlingRuntimeContext,
+  buildKonlingToolRuntime,
+  buildScopedKonlingAiTools,
+  getOrCreateKonlingAgentSession,
+  KonlingRuntimeScopeError,
+  persistKonlingSessionMemories,
+  resumeKonlingAgentSession,
+  verifyKonlingRuntimeScope,
+} from '@/lib/konling-agent-runtime';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from 'ai/react';
 
@@ -37,7 +47,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const { id: sessionId } = await context.params;
     const body = await request.json();
-    const { content, pageContext, userProfile } = body;
+    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -77,35 +87,53 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const updatedMessages = [...existingMessages, userMessage];
 
+    const scope = await verifyKonlingRuntimeScope(prisma, {
+      authenticatedUserId: session.user.id,
+      role: session.user.role,
+      targetUserId: session.user.id,
+      classId,
+      courseId: konlingSession.courseId,
+      pageId: konlingSession.pageId,
+      resourceId,
+      pathNodeId,
+      pageContextHint: pageContext,
+    });
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
+    }
+    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+      authenticatedUserId: session.user.id,
+      authenticatedUserName: session.user.name,
+      role: session.user.role,
+      targetUserId: session.user.id,
+      classId,
+      courseId: scope.scope.courseId,
+      pageId: scope.scope.pageId,
+      resourceId,
+      pathNodeId,
+      pageContextHint: pageContext,
+    });
+
     // 构建AI上下文
     const aiContext: AIContext = {
-      page: pageContext || {
-        courseId: konlingSession.courseId,
-        courseTitle: konlingSession.courseId,
-        pageType: 'theory',
-        stepId: konlingSession.pageId,
-        topic: konlingSession.title,
-        learningObjectives: [],
-        knowledgeType: 'C',
-      },
-      user: userProfile || {
-        id: session.user.id,
-        name: session.user.name || '同学',
-        learningStyle: 'VISUAL',
-        cognitiveLevel: 3,
-        abilityVector: {
-          computational: 0.5,
-          crossDomain: 0.5,
-          design: 0.5,
-          analysis: 0.5,
-          evaluation: 0.5,
-        },
-      },
+      page: runtimeContext.pageContext,
+      user: runtimeContext.userProfile,
       sessionHistory: existingMessages,
     };
 
     // 生成系统提示词
-    const systemPrompt = buildKonlingSystemPrompt(aiContext);
+    const systemPrompt = buildKonlingSystemPrompt({
+      ...aiContext,
+      adaptiveRuntime: runtimeContext,
+    });
+    const agentSession = await getOrCreateKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      agentSessionId,
+      phase: 'konling-chat-tool-runtime',
+      status: 'running',
+      state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
+      permittedTools: runtimeContext.permittedTools,
+    });
 
     // 调用AI
     const result = await streamText({
@@ -117,6 +145,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
           content: m.content,
         })),
       ],
+      tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
+        db: prisma,
+        scope: scope.scope,
+        context: runtimeContext,
+        agentSessionId: agentSession.id,
+        permittedTools: agentSession.permittedTools,
+      })),
+      maxSteps: 5,
       maxTokens: 1000,
       temperature: 0.7,
     });
@@ -144,13 +180,34 @@ export async function POST(request: NextRequest, context: RouteContext) {
         updatedAt: new Date(),
       },
     });
+    await persistKonlingSessionMemories(prisma, {
+      userId: konlingSession.userId,
+      sessionId,
+      courseId: konlingSession.courseId,
+      pageId: konlingSession.pageId,
+      classId: scope.scope.classId,
+      resourceId: scope.scope.resourceId,
+      pathNodeId: scope.scope.pathNodeId,
+      userMessage: content,
+      assistantMessage: assistantContent,
+    });
+    const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
+      scope: scope.scope,
+      agentSessionId: agentSession.id,
+      phase: 'konling-chat-tool-runtime',
+    });
 
     return NextResponse.json({
       messages: finalMessages,
       assistantMessage,
+      agentSessionId: agentSession.id,
+      pendingApproval: refreshedAgentSession.pendingApproval,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingRuntimeScopeError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Error in POST /api/ai/sessions/[id]/messages:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

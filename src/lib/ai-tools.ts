@@ -27,7 +27,7 @@ let simulationState: SimulationStateStore = {
   },
 };
 
-interface SimulationStateStore {
+export interface SimulationStateStore {
   isRunning: boolean;
   isPaused: boolean;
   time: number;
@@ -63,6 +63,32 @@ let pendingParamChanges: {
   confirmed: boolean;
 } | null = null;
 
+export interface SimulationParamChangeInput {
+  kp?: number;
+  ki?: number;
+  kd?: number;
+  seaStateLevel?: number;
+  speed?: number;
+}
+
+export interface SimulationParamChangeRequest {
+  type: 'pid' | 'seaState' | 'speed';
+  params: Record<string, number>;
+  descriptions: string[];
+}
+
+export interface SimulationAnalysisInput {
+  avgError: number;
+  maxRudderRate: number;
+  overshoot?: number;
+  settlingTime?: number;
+  duration: number;
+  controlMode: string;
+  kp: number;
+  ki: number;
+  kd: number;
+}
+
 export function getPendingChanges() {
   return pendingParamChanges;
 }
@@ -75,6 +101,126 @@ export function confirmPendingChanges() {
   if (pendingParamChanges) {
     pendingParamChanges.confirmed = true;
   }
+}
+
+export function buildSimulationParamChangeRequest({
+  kp,
+  ki,
+  kd,
+  seaStateLevel,
+  speed,
+}: SimulationParamChangeInput): SimulationParamChangeRequest {
+  const changes: Record<string, number> = {};
+  let changeType: 'pid' | 'seaState' | 'speed' = 'pid';
+
+  if (kp !== undefined) changes.kp = kp;
+  if (ki !== undefined) changes.ki = ki;
+  if (kd !== undefined) changes.kd = kd;
+
+  if (seaStateLevel !== undefined) {
+    changeType = 'seaState';
+    changes.level = seaStateLevel;
+    const seaStateMap: Record<number, { waveHeight: number; windSpeed: number }> = {
+      1: { waveHeight: 0.3, windSpeed: 3 },
+      2: { waveHeight: 0.5, windSpeed: 7 },
+      3: { waveHeight: 1.0, windSpeed: 12 },
+      4: { waveHeight: 2.0, windSpeed: 20 },
+      5: { waveHeight: 3.5, windSpeed: 30 },
+    };
+    const config = seaStateMap[seaStateLevel] || seaStateMap[3];
+    changes.waveHeight = config.waveHeight;
+    changes.windSpeed = config.windSpeed;
+  }
+
+  if (speed !== undefined) {
+    changeType = 'speed';
+    changes.speed = speed;
+  }
+
+  const descriptions: string[] = [];
+  if (kp !== undefined) descriptions.push(`Kp: ${kp}`);
+  if (ki !== undefined) descriptions.push(`Ki: ${ki}`);
+  if (kd !== undefined) descriptions.push(`Kd: ${kd}`);
+  if (seaStateLevel !== undefined) descriptions.push(`海况: ${seaStateLevel}级`);
+  if (speed !== undefined) descriptions.push(`航速: ${speed} m/s`);
+
+  return {
+    type: changeType,
+    params: changes,
+    descriptions,
+  };
+}
+
+export function formatSimulationParamChangeResponse(request: SimulationParamChangeRequest) {
+  return {
+    success: true,
+    message: '参数修改请求已创建',
+    pendingChanges: request.descriptions.join(', '),
+    note: '请在仿真界面确认参数修改',
+  };
+}
+
+export function analyzeSimulationResult({
+  avgError,
+  maxRudderRate,
+  overshoot,
+  duration,
+  controlMode,
+  kp,
+  ki,
+  kd,
+}: SimulationAnalysisInput) {
+  const performanceGrade =
+    avgError < 50
+      ? 'A (优秀)'
+      : avgError < 100
+        ? 'B (良好)'
+        : avgError < 200
+          ? 'C (合格)'
+          : 'D (不合格)';
+
+  const safetyIssues: string[] = [];
+  if (maxRudderRate > 5.0) {
+    safetyIssues.push(`舵角速度过快 (${maxRudderRate.toFixed(2)}°/s > 5°/s)，可能导致舵机过载`);
+  }
+  if (overshoot && overshoot > 20) {
+    safetyIssues.push(`超调量过大 (${overshoot.toFixed(1)}% > 20%)，存在过度修正风险`);
+  }
+
+  const paramAnalysis: string[] = [];
+  if (avgError > 100 && kp < 1.0) {
+    paramAnalysis.push('Kp偏小，响应速度不足，建议增加至1.0-2.0');
+  }
+  if (maxRudderRate > 5.0 && kp > 2.0) {
+    paramAnalysis.push('Kp偏大，响应过于激进，建议降至1.0-1.5');
+  }
+  if (overshoot && overshoot > 20 && kd < 0.5) {
+    paramAnalysis.push('Kd偏小，阻尼不足导致超调，建议增加至0.5-1.0');
+  }
+  if (controlMode === 'p' || controlMode === 'pd') {
+    paramAnalysis.push('当前未使用完整PID控制，建议启用积分项消除稳态误差');
+  }
+
+  return {
+    performance: {
+      grade: performanceGrade,
+      avgError: `${avgError.toFixed(1)} 米`,
+      duration: `${duration} 秒`,
+      controlMode: controlMode.toUpperCase(),
+    },
+    safety: {
+      status: safetyIssues.length === 0 ? '安全' : '存在风险',
+      issues: safetyIssues.length > 0 ? safetyIssues : ['无明显安全问题'],
+    },
+    analysis: {
+      currentParams: `Kp=${kp}, Ki=${ki}, Kd=${kd}`,
+      suggestions: paramAnalysis.length > 0 ? paramAnalysis : ['当前参数配置合理'],
+    },
+    ccsCompliance: {
+      status: avgError < 200 && maxRudderRate < 5.0 ? '符合' : '不符合',
+      reference: 'CCS《船舶操纵性规范》第4.2.3条',
+    },
+  };
 }
 
 /**
@@ -132,54 +278,16 @@ export const setSimulationParamsTool = tool({
     speed: z.number().min(4).max(22).optional().describe('目标航速 m/s (4-22)'),
   }),
   execute: async ({ kp, ki, kd, seaStateLevel, speed }) => {
-    const changes: Record<string, number> = {};
-    let changeType: 'pid' | 'seaState' | 'speed' = 'pid';
-
-    if (kp !== undefined) changes.kp = kp;
-    if (ki !== undefined) changes.ki = ki;
-    if (kd !== undefined) changes.kd = kd;
-
-    if (seaStateLevel !== undefined) {
-      changeType = 'seaState';
-      changes.level = seaStateLevel;
-      // 根据海况等级设置波高和风速
-      const seaStateMap: Record<number, { waveHeight: number; windSpeed: number }> = {
-        1: { waveHeight: 0.3, windSpeed: 3 },
-        2: { waveHeight: 0.5, windSpeed: 7 },
-        3: { waveHeight: 1.0, windSpeed: 12 },
-        4: { waveHeight: 2.0, windSpeed: 20 },
-        5: { waveHeight: 3.5, windSpeed: 30 },
-      };
-      const config = seaStateMap[seaStateLevel] || seaStateMap[3];
-      changes.waveHeight = config.waveHeight;
-      changes.windSpeed = config.windSpeed;
-    }
-
-    if (speed !== undefined) {
-      changeType = 'speed';
-      changes.speed = speed;
-    }
+    const request = buildSimulationParamChangeRequest({ kp, ki, kd, seaStateLevel, speed });
 
     // 存储待确认的变更
     pendingParamChanges = {
-      type: changeType,
-      params: changes,
+      type: request.type,
+      params: request.params,
       confirmed: false,
     };
 
-    const descriptions: string[] = [];
-    if (kp !== undefined) descriptions.push(`Kp: ${kp}`);
-    if (ki !== undefined) descriptions.push(`Ki: ${ki}`);
-    if (kd !== undefined) descriptions.push(`Kd: ${kd}`);
-    if (seaStateLevel !== undefined) descriptions.push(`海况: ${seaStateLevel}级`);
-    if (speed !== undefined) descriptions.push(`航速: ${speed} m/s`);
-
-    return {
-      success: true,
-      message: '参数修改请求已创建',
-      pendingChanges: descriptions.join(', '),
-      note: '请在仿真界面确认参数修改',
-    };
+    return formatSimulationParamChangeResponse(request);
   },
 });
 
@@ -199,62 +307,7 @@ export const analyzeResultTool = tool({
     ki: z.number().describe('当前Ki值'),
     kd: z.number().describe('当前Kd值'),
   }),
-  execute: async ({ avgError, maxRudderRate, overshoot, settlingTime, duration, controlMode, kp, ki, kd }) => {
-    // 性能评估
-    const performanceGrade =
-      avgError < 50
-        ? 'A (优秀)'
-        : avgError < 100
-          ? 'B (良好)'
-          : avgError < 200
-            ? 'C (合格)'
-            : 'D (不合格)';
-
-    // 安全评估
-    const safetyIssues: string[] = [];
-    if (maxRudderRate > 5.0) {
-      safetyIssues.push(`舵角速度过快 (${maxRudderRate.toFixed(2)}°/s > 5°/s)，可能导致舵机过载`);
-    }
-    if (overshoot && overshoot > 20) {
-      safetyIssues.push(`超调量过大 (${overshoot.toFixed(1)}% > 20%)，存在过度修正风险`);
-    }
-
-    // 参数分析
-    const paramAnalysis: string[] = [];
-    if (avgError > 100 && kp < 1.0) {
-      paramAnalysis.push('Kp偏小，响应速度不足，建议增加至1.0-2.0');
-    }
-    if (maxRudderRate > 5.0 && kp > 2.0) {
-      paramAnalysis.push('Kp偏大，响应过于激进，建议降至1.0-1.5');
-    }
-    if (overshoot && overshoot > 20 && kd < 0.5) {
-      paramAnalysis.push('Kd偏小，阻尼不足导致超调，建议增加至0.5-1.0');
-    }
-    if (controlMode === 'p' || controlMode === 'pd') {
-      paramAnalysis.push('当前未使用完整PID控制，建议启用积分项消除稳态误差');
-    }
-
-    return {
-      performance: {
-        grade: performanceGrade,
-        avgError: `${avgError.toFixed(1)} 米`,
-        duration: `${duration} 秒`,
-        controlMode: controlMode.toUpperCase(),
-      },
-      safety: {
-        status: safetyIssues.length === 0 ? '安全' : '存在风险',
-        issues: safetyIssues.length > 0 ? safetyIssues : ['无明显安全问题'],
-      },
-      analysis: {
-        currentParams: `Kp=${kp}, Ki=${ki}, Kd=${kd}`,
-        suggestions: paramAnalysis.length > 0 ? paramAnalysis : ['当前参数配置合理'],
-      },
-      ccsCompliance: {
-        status: avgError < 200 && maxRudderRate < 5.0 ? '符合' : '不符合',
-        reference: 'CCS《船舶操纵性规范》第4.2.3条',
-      },
-    };
-  },
+  execute: async (args) => analyzeSimulationResult(args),
 });
 
 // 导出所有工具

@@ -43,15 +43,26 @@ steps:
     modules:
       - id: 'stage-map'
         region: 'lead'
-        kind: 'stage-map'
+        kind: 'content.stageMap'
+        payload:
+          legacyKind: 'stage-map'
+          presentation: 'single'
         must_be_visible: true
       - id: 'today-task-card'
         region: 'lead'
-        kind: 'question-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'question-card'
+          presentation: 'single'
+          semanticRole: 'question'
         must_be_visible: true
       - id: 'boundary-card'
         region: 'summary'
-        kind: 'boundary-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'boundary-card'
+          presentation: 'single'
+          semanticRole: 'boundary'
         must_be_visible: true
     content_blocks:
       - id: 'path'
@@ -144,27 +155,52 @@ steps:
     modules:
       - id: 'reference-formula-card'
         region: 'formula-strip'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'three-pole-family-card'
         region: 'formula-strip'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'root-locus-panel'
         region: 'root-locus'
-        kind: 'interactive-figure'
+        kind: 'compute.panel'
+        payload:
+          legacyKind: 'interactive-figure'
+          presentation: 'single'
+          semanticRole: 'media'
+          capabilityRef: 'interactive-figure'
         must_be_visible: true
       - id: 'step-response-compare-panel'
         region: 'response'
-        kind: 'interactive-figure'
+        kind: 'compute.panel'
+        payload:
+          legacyKind: 'interactive-figure'
+          presentation: 'single'
+          semanticRole: 'media'
+          capabilityRef: 'interactive-figure'
         must_be_visible: true
       - id: 'live-metrics-row'
         region: 'metrics'
-        kind: 'metric-row'
+        kind: 'analytics.summary'
+        payload:
+          legacyKind: 'metric-row'
+          presentation: 'row'
+          semanticRole: 'metric'
         must_be_visible: true
       - id: 'binary-vote'
         region: 'interaction'
-        kind: 'binary-choice'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'binary-choice'
+          presentation: 'single'
+          interactionKind: 'binary-choice'
+          responseKind: 'choice.binary'
         must_be_visible: true
     content_blocks:
       - id: 'models'
@@ -258,15 +294,26 @@ steps:
     modules:
       - id: 'goal-card-row'
         region: 'goals'
-        kind: 'goal-card-row'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'goal-card-row'
+          presentation: 'row'
+          semanticRole: 'goal'
         must_be_visible: true
       - id: 'main-chain-card'
         region: 'chain'
-        kind: 'formula-chain'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-chain'
+          presentation: 'single'
         must_be_visible: true
       - id: 'boundary-table'
         region: 'boundary'
-        kind: 'comparison-table'
+        kind: 'content.table'
+        payload:
+          legacyKind: 'comparison-table'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
     content_blocks:
       - id: 'goals'
@@ -353,15 +400,26 @@ steps:
     modules:
       - id: 'misconception-note'
         region: 'prompt'
-        kind: 'bullet-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'bullet-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'pretest-card-group'
         region: 'questions'
-        kind: 'quiz-group'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'quiz-group'
+          presentation: 'single'
+          interactionKind: 'quiz'
         must_be_visible: true
       - id: 'reason-reminder'
         region: 'notes'
-        kind: 'notice-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'notice-card'
+          presentation: 'single'
+          semanticRole: 'notice'
         must_be_visible: true
     content_blocks:
       - id: 'misconceptions'
@@ -386,17 +444,17 @@ steps:
       activity_cards:
         - id: 'pretest-q1'
           prompt: '稳定的系统是否就代表它的动态表现已经足够好。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'full'
         - id: 'pretest-q2'
           prompt: '两个系统若拥有同一对主导共轭极点，单位阶跃响应是否就会几乎一样。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'full'
         - id: 'pretest-q3'
           prompt: '附加极点位于 -5 与 -1.4 时，哪一个更可能被忽略，并说明理由。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'full'
       answer_reveal: 'teacher_toggle'
@@ -463,19 +521,31 @@ steps:
     modules:
       - id: 'characteristic-equation-card'
         region: 'formula'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'stability-rule-list'
         region: 'formula'
-        kind: 'bullet-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'bullet-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'half-plane-figure'
         region: 'media'
-        kind: 'illustration'
+        kind: 'content.figure'
+        payload:
+          legacyKind: 'illustration'
+          presentation: 'single'
         must_be_visible: true
       - id: 'reason-check-card'
         region: 'interaction'
-        kind: 'reason-check'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'reason-check'
+          responseKind: 'text.structured'
         must_be_visible: true
     content_blocks:
       - id: 'formula'
@@ -501,7 +571,7 @@ steps:
     interaction_spec:
       interaction_kind: 'reason_check'
       student_task: '判断若存在虚轴根或右半平面根，是否还能直接谈高阶近似。'
-      response_kind: 'fill_text'
+      response_kind: 'text.short'
       answer_reveal: 'teacher_toggle'
     teacher_controls:
       release_activity: 'teacher_toggle'
@@ -567,19 +637,34 @@ steps:
     modules:
       - id: 'partial-fraction-card'
         region: 'decomposition'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'impulse-response-card'
         region: 'response'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'meaning-table'
         region: 'meaning'
-        kind: 'comparison-table'
+        kind: 'content.table'
+        payload:
+          legacyKind: 'comparison-table'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'triple-match'
         region: 'interaction'
-        kind: 'triple-match'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'triple-match'
+          presentation: 'single'
+          interactionKind: 'drag-match'
+          responseKind: 'matching.pairs'
         must_be_visible: true
     content_blocks:
       - id: 'decomposition'
@@ -668,23 +753,43 @@ steps:
     modules:
       - id: 'pole-mode-figure'
         region: 'figure'
-        kind: 'comparison-graphic'
+        kind: 'content.figure'
+        payload:
+          legacyKind: 'comparison-graphic'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'type-compare-table'
         region: 'compare'
-        kind: 'comparison-table'
+        kind: 'content.table'
+        payload:
+          legacyKind: 'comparison-table'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'repeated-root-card'
         region: 'compare'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
-        kind: 'single-choice-card'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'single-choice-card'
+          presentation: 'single'
+          interactionKind: 'single-choice'
+          responseKind: 'choice.single'
         must_be_visible: true
       - id: 'activity-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
     content_blocks:
       - id: 'compare'
@@ -709,12 +814,12 @@ steps:
       activity_cards:
         - id: 'activity-card-01'
           prompt: '把负实极点、左半平面共轭复极点、右半平面极点与响应形态对应起来。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'activity-card-02'
           prompt: '说明为什么重根不能只按“位置差不多”处理。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       answer_reveal: 'teacher_toggle'
@@ -787,31 +892,55 @@ steps:
     modules:
       - id: 'problem-statement-card'
         region: 'problem'
-        kind: 'worked-example-problem'
+        kind: 'content.rich'
+        payload:
+          legacyKind: 'worked-example-problem'
+          semanticRole: 'problem'
         must_be_visible: true
       - id: 'response-formula-stack'
         region: 'formulas'
-        kind: 'formula-stack'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-stack'
         must_be_visible: true
       - id: 'worked-example-reveal-stack'
         region: 'reveal'
-        kind: 'progressive-reveal'
+        kind: 'content.reveal'
+        payload:
+          legacyKind: 'progressive-reveal'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
       - id: 'activity-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
       - id: 'interactive-exploration-panel'
         region: 'exploration'
-        kind: 'interactive-figure'
+        kind: 'compute.panel'
+        payload:
+          legacyKind: 'interactive-figure'
+          presentation: 'single'
+          semanticRole: 'media'
+          capabilityRef: 'interactive-figure'
         must_be_visible: true
       - id: 'live-metrics-row'
         region: 'exploration'
-        kind: 'metric-row'
+        kind: 'analytics.summary'
+        payload:
+          legacyKind: 'metric-row'
+          presentation: 'row'
+          semanticRole: 'metric'
         must_be_visible: true
     content_blocks:
       - id: 'problem'
@@ -849,12 +978,12 @@ steps:
       activity_cards:
         - id: 'activity-card-01'
           prompt: '说明系统 A 为什么仍接近参考模型。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'activity-card-02'
           prompt: '说明系统 B 为什么已明显偏离参考模型。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       answer_reveal: 'teacher_toggle'
@@ -923,19 +1052,34 @@ steps:
     modules:
       - id: 'rule-card'
         region: 'rules'
-        kind: 'rule-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'rule-card'
+          presentation: 'single'
+          semanticRole: 'rule'
         must_be_visible: true
       - id: 'risk-list'
         region: 'risks'
-        kind: 'bullet-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'bullet-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
       - id: 'activity-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
     content_blocks:
       - id: 'rule'
@@ -964,12 +1108,12 @@ steps:
       activity_cards:
         - id: 'activity-card-01'
           prompt: '若主导极点为 -1 ± j2，附加极点为 -6，你会先做怎样的时域判断。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'activity-card-02'
           prompt: '说明为什么这一步仍不能取代图形和数值证据。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       answer_reveal: 'teacher_toggle'
@@ -1033,15 +1177,27 @@ steps:
     modules:
       - id: 'transition-question-card'
         region: 'question'
-        kind: 'question-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'question-card'
+          presentation: 'single'
+          semanticRole: 'question'
         must_be_visible: true
       - id: 'frequency-checklist'
         region: 'task'
-        kind: 'bullet-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'bullet-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'binary-vote'
         region: 'interaction'
-        kind: 'binary-choice'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'binary-choice'
+          presentation: 'single'
+          interactionKind: 'binary-choice'
+          responseKind: 'choice.binary'
         must_be_visible: true
     content_blocks:
       - id: 'question'
@@ -1130,27 +1286,52 @@ steps:
     modules:
       - id: 'magnitude-formula-stack'
         region: 'formulas'
-        kind: 'formula-stack'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-stack'
         must_be_visible: true
       - id: 'root-locus-panel'
         region: 'root-locus'
-        kind: 'interactive-figure'
+        kind: 'compute.panel'
+        payload:
+          legacyKind: 'interactive-figure'
+          presentation: 'single'
+          semanticRole: 'media'
+          capabilityRef: 'interactive-figure'
         must_be_visible: true
       - id: 'bode-compare-panel'
         region: 'bode'
-        kind: 'interactive-figure'
+        kind: 'compute.panel'
+        payload:
+          legacyKind: 'interactive-figure'
+          presentation: 'single'
+          semanticRole: 'media'
+          capabilityRef: 'interactive-figure'
         must_be_visible: true
       - id: 'frequency-metrics-row'
         region: 'metrics'
-        kind: 'metric-row'
+        kind: 'analytics.summary'
+        payload:
+          legacyKind: 'metric-row'
+          presentation: 'row'
+          semanticRole: 'metric'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
-        kind: 'single-choice-card'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'single-choice-card'
+          presentation: 'single'
+          interactionKind: 'single-choice'
+          responseKind: 'choice.single'
         must_be_visible: true
       - id: 'activity-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
     content_blocks:
       - id: 'formulas'
@@ -1184,12 +1365,12 @@ steps:
       activity_cards:
         - id: 'activity-card-01'
           prompt: '哪一个附加极点已经侵入主要带宽。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'activity-card-02'
           prompt: '说明为什么系统 B 不宜继续视为原来的低阶对象。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       answer_reveal: 'teacher_toggle'
@@ -1257,27 +1438,48 @@ steps:
     modules:
       - id: 'double-domain-table'
         region: 'table'
-        kind: 'comparison-table'
+        kind: 'content.table'
+        payload:
+          legacyKind: 'comparison-table'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'migration-problem-card'
         region: 'table'
-        kind: 'worked-example-problem'
+        kind: 'content.rich'
+        payload:
+          legacyKind: 'worked-example-problem'
+          semanticRole: 'problem'
         must_be_visible: true
       - id: 'self-judge-card-01'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
       - id: 'self-judge-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
       - id: 'ai-compare-card'
         region: 'ai'
-        kind: 'ai-compare-workspace'
+        kind: 'activity.workspace'
+        payload:
+          legacyKind: 'ai-compare-workspace'
         must_be_visible: true
       - id: 'return-to-figure-note'
         region: 'ai'
-        kind: 'notice-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'notice-card'
+          presentation: 'single'
+          semanticRole: 'notice'
         must_be_visible: true
     content_blocks:
       - id: 'table'
@@ -1307,12 +1509,12 @@ steps:
       activity_cards:
         - id: 'self-judge-card-01'
           prompt: '给出时域判断，并说明依据。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'self-judge-card-02'
           prompt: '给出频域判断，并说明依据。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       ai_compare_policy:
@@ -1391,27 +1593,50 @@ steps:
     modules:
       - id: 'convolution-formula-card'
         region: 'convolution'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'step-response-figure'
         region: 'figure-06'
-        kind: 'comparison-graphic'
+        kind: 'content.figure'
+        payload:
+          legacyKind: 'comparison-graphic'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'modal-example-card'
         region: 'example'
-        kind: 'formula-card'
+        kind: 'content.formula'
+        payload:
+          legacyKind: 'formula-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'modal-superposition-figure'
         region: 'figure-07'
-        kind: 'comparison-graphic'
+        kind: 'content.figure'
+        payload:
+          legacyKind: 'comparison-graphic'
+          presentation: 'single'
+          semanticRole: 'comparison'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
-        kind: 'single-choice-card'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'single-choice-card'
+          presentation: 'single'
+          interactionKind: 'single-choice'
+          responseKind: 'choice.single'
         must_be_visible: true
       - id: 'activity-card-02'
         region: 'activity'
-        kind: 'fill-text-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'fill-text-card'
+          presentation: 'single'
+          responseKind: 'text.short'
         must_be_visible: true
     content_blocks:
       - id: 'convolution'
@@ -1438,12 +1663,12 @@ steps:
       activity_cards:
         - id: 'activity-card-01'
           prompt: '在 2.4e^{-t}、-3e^{-2t}、0.6e^{-6t} 中，哪一个模态退场最快。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'half'
         - id: 'activity-card-02'
           prompt: '说明为什么负留数不等于系统不稳定。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'half'
       answer_reveal: 'teacher_toggle'
@@ -1509,15 +1734,26 @@ steps:
     modules:
       - id: 'posttest-title-card'
         region: 'header'
-        kind: 'title-card'
+        kind: 'layout.support'
+        payload:
+          legacyKind: 'title-card'
+          presentation: 'single'
         must_be_visible: true
       - id: 'posttest-card-group'
         region: 'questions'
-        kind: 'quiz-group'
+        kind: 'activity.panel'
+        payload:
+          legacyKind: 'quiz-group'
+          presentation: 'single'
+          interactionKind: 'quiz'
         must_be_visible: true
       - id: 'reason-note'
         region: 'notes'
-        kind: 'notice-card'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'notice-card'
+          presentation: 'single'
+          semanticRole: 'notice'
         must_be_visible: true
     content_blocks:
       - id: 'title'
@@ -1539,17 +1775,17 @@ steps:
       activity_cards:
         - id: 'posttest-q1'
           prompt: '若存在右半平面极点，系统是否还能稳定。'
-          response_kind: 'single_choice'
+          response_kind: 'choice.single'
           submit_scope: 'per_card'
           layout_span: 'full'
         - id: 'posttest-q2'
           prompt: '当附加极点转折频率落入主要带宽时，低阶近似是否仍可靠，并说明理由。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'full'
         - id: 'posttest-q3'
           prompt: '为什么阶跃响应可以看成多个延时脉冲响应的叠加。'
-          response_kind: 'fill_text'
+          response_kind: 'text.short'
           submit_scope: 'per_card'
           layout_span: 'full'
       answer_reveal: 'teacher_toggle'
@@ -1617,15 +1853,27 @@ steps:
     modules:
       - id: 'six-point-summary'
         region: 'summary'
-        kind: 'summary-list'
+        kind: 'content.cardSet'
+        payload:
+          legacyKind: 'summary-list'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: 'info-graphic'
         region: 'infographic'
-        kind: 'summary-graphic'
+        kind: 'content.figure'
+        payload:
+          legacyKind: 'summary-graphic'
+          presentation: 'single'
+          semanticRole: 'summary'
         must_be_visible: true
       - id: 'next-lesson-card'
         region: 'next'
-        kind: 'next-step-card'
+        kind: 'layout.support'
+        payload:
+          legacyKind: 'next-step-card'
+          presentation: 'single'
+          semanticRole: 'nextStep'
         must_be_visible: true
     content_blocks:
       - id: 'summary'

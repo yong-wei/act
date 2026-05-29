@@ -50,24 +50,13 @@ export default function CrossDomainExplorationPage() {
   }, []);
 
   const entries = useMemo(() => {
-    const dynamicEntries = resources.map((resource) => ({
+    return resources.map((resource) => ({
       key: resource.id,
       title: resource.displayName || resource.title,
       description: resource.description || '跨域探索互动组件',
       href: `/interactive-learning/resources/${resource.id}`,
       tag: '跨域组件',
     }));
-
-    return [
-      {
-        key: 'multi-representation-linkage',
-        title: '综合仿真工作台',
-        description: '时域响应、Bode、根轨迹与 Nyquist 视图共用同一对象上下文。',
-        href: '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view',
-        tag: '综合仿真（置顶）',
-      },
-      ...dynamicEntries,
-    ];
   }, [resources]);
 
   return (
@@ -77,14 +66,14 @@ export default function CrossDomainExplorationPage() {
       <main className="mx-auto max-w-[1280px] px-6 py-10">
         <header className="surface-card mb-8 p-6">
           <h1 className="text-3xl font-semibold">跨域探索</h1>
-          <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解。首个入口固定为“综合仿真工作台”。</p>
+          <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。</p>
         </header>
 
         {isLoading ? (
           <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
             正在加载跨域探索组件...
           </div>
-        ) : (
+        ) : entries.length > 0 ? (
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {entries.map((entry, index) => (
               <Link
@@ -119,6 +108,10 @@ export default function CrossDomainExplorationPage() {
               </Link>
             ))}
           </section>
+        ) : (
+          <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
+            暂无可展示的跨域探索组件。
+          </div>
         )}
       </main>
     </div>

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { resolveControlWorkbenchSession } from '../session-resolver';
-import { getControlWorkbenchReturnHref } from '../shell/control-workbench-shell';
+import { getControlWorkbenchReturnHref } from '../routing';
 
 const repoRoot = process.cwd();
 
@@ -159,6 +159,7 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('showArenaSubmissionMount');
     expect(shellSource).toContain("session.defaultPreset !== 'classic-whitebox'");
     expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
+    expect(shellSource).toContain("from '../routing'");
   });
 
   it('keeps layout controls structural and leaves view-specific configuration inside panels', () => {

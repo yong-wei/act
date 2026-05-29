@@ -1,8 +1,125 @@
 import { describe, expect, it } from 'vitest';
-import type { InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
+import {
+  normalizeInteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import { buildManifestSubmissionTelemetry } from '../shared/manifest-runtime/submission-telemetry';
 
 describe('buildManifestSubmissionTelemetry', () => {
+  it('rejects unknown manifest response kinds instead of silently treating them as text', () => {
+    expect(() => normalizeInteractiveRuntimeManifest({
+      lesson_id: 'contract-fixture',
+      steps: {
+        'step-01': {
+          title: '响应协议夹具',
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'misspelled-multi',
+                prompt: '哪些证据需要保留？',
+                response_kind: 'mult_select',
+              },
+            ],
+          },
+        },
+      },
+    })).toThrow('Unknown interactive response kind: mult_select');
+  });
+
+  it('uses canonical response metadata while preserving legacy aliases in submission evidence', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'contract-fixture',
+      steps: {
+        'step-01': {
+          title: '响应协议夹具',
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'multi-evidence',
+                prompt: '哪些证据需要保留？',
+                response_kind: 'multi_select',
+                options: ['A', 'B', 'C'],
+                reference_answer: '选 A、B。',
+              },
+              {
+                id: 'reflection',
+                prompt: '写出判断依据。',
+                response_kind: 'fill_text',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step?.interactionSpec.activityCards?.map((card) => ({
+      id: card.id,
+      responseKind: card.responseKind,
+      legacyResponseKind: card.legacyResponseKind,
+      responseCategory: card.responseCategory,
+    }))).toEqual([
+      {
+        id: 'multi-evidence',
+        responseKind: 'choice.multi',
+        legacyResponseKind: 'multi_select',
+        responseCategory: 'objective',
+      },
+      {
+        id: 'reflection',
+        responseKind: 'text.short',
+        legacyResponseKind: 'fill_text',
+        responseCategory: 'subjective',
+      },
+    ]);
+
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-01',
+        submittedAt: 1778550642900,
+        answers: {
+          'multi-evidence': 'A|C',
+          reflection: '需要保留舵角边界。',
+        },
+      },
+      step,
+    );
+
+    expect(telemetry).toMatchObject({
+      responseSummaries: [
+        {
+          cardId: 'multi-evidence',
+          responseKind: 'choice.multi',
+          legacyResponseKind: 'multi_select',
+          responseCategory: 'objective',
+          answered: true,
+          submittedAnswer: 'A|C',
+          scoringSupported: true,
+        },
+        {
+          cardId: 'reflection',
+          responseKind: 'text.short',
+          legacyResponseKind: 'fill_text',
+          responseCategory: 'subjective',
+          answered: true,
+          submittedAnswer: '需要保留舵角边界。',
+          scoringSupported: false,
+          unsupportedReason: 'subjective_response_kind',
+        },
+      ],
+      questionSummaries: [
+        expect.objectContaining({
+          questionId: 'multi-evidence',
+          responseKind: 'choice.multi',
+          legacyResponseKind: 'multi_select',
+          responseCategory: 'objective',
+          score: 1 / 3,
+        }),
+      ],
+    });
+  });
+
   it('preserves manifest response answers and objective card scoring evidence', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {
@@ -225,7 +342,124 @@ describe('buildManifestSubmissionTelemetry', () => {
     });
   });
 
-  it('requires ordered answers for drag-match and sort cards', () => {
+  it('keeps legacy drag-match option-order scoring and empty slot positions', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-05',
+        submittedAt: 1778550644550,
+        answers: {
+          assumptionMatch: 'flattened-output||protection-logic',
+        },
+      },
+      {
+        id: 'step-05',
+        interactionSpec: {
+          interactionKind: 'activity_card_set',
+          activityCards: [
+            {
+              id: 'assumptionMatch',
+              title: '失效信号匹配',
+              prompt: '把失效信号匹配到被破坏的线性默认条件。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [
+                { value: 'flattened-output', label: '输出被压平 -> 比例关系近似成立' },
+                { value: 'return-residual', label: '路径回程残差 -> 输入输出关系单值连续' },
+                { value: 'protection-logic', label: '保护逻辑介入 -> 工作模式不发生突变' },
+              ],
+              referenceAnswer: '正确顺序为：输出被压平 -> 比例关系；路径回程残差 -> 单值连续；保护逻辑介入 -> 工作模式不突变。',
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 0,
+      objectiveTotal: 1,
+      score: 66.7,
+      questionSummaries: [
+        {
+          questionId: 'assumptionMatch',
+          referenceValue: ['flattened-output', 'return-residual', 'protection-logic'],
+          score: 2 / 3,
+          isCorrect: false,
+          normalizedSubmitted: ['flattened-output', '', 'protection-logic'],
+          normalizedReference: ['flattened-output', 'return-residual', 'protection-logic'],
+          scoringDetail: {
+            correctPositions: ['flattened-output', 'protection-logic'],
+            fallback: 'legacy_slot_order',
+          },
+        },
+      ],
+    });
+  });
+
+  it('scores drag-match pair text by structure independent of submitted pair order', () => {
+    const telemetry = buildManifestSubmissionTelemetry(
+      {
+        stepId: 'step-14',
+        submittedAt: 1778550644600,
+        answers: {
+          chain: '5-1,1-3,2-4',
+        },
+      },
+      {
+        id: 'step-14',
+        interactionSpec: {
+          interactionKind: 'quiz_group',
+          activityCards: [
+            {
+              id: 'chain',
+              title: 'MASS 链路配对',
+              prompt: '把环节与职责配对。',
+              responseKind: 'drag_match',
+              submitScope: 'per_card',
+              layoutSpan: 'full',
+              options: [],
+              matchItems: [
+                { value: '1', label: '感知' },
+                { value: '2', label: '规划' },
+                { value: '5', label: '监督' },
+              ],
+              matchOptions: [
+                { value: '3', label: '状态估计' },
+                { value: '4', label: '路径生成' },
+                { value: '1', label: '安全接管' },
+              ],
+              referenceMatches: [
+                { item: '1', option: '3' },
+                { item: '2', option: '4' },
+                { item: '5', option: '1' },
+              ],
+            },
+          ],
+        },
+      } as unknown as InteractiveRuntimeStepManifest,
+    );
+
+    expect(telemetry).toMatchObject({
+      scoringSupported: true,
+      correctCount: 1,
+      objectiveTotal: 1,
+      score: 100,
+      questionSummaries: [
+        {
+          questionId: 'chain',
+          studentAnswer: '5-1,1-3,2-4',
+          scoringVersion: 'manifest-objective-scoring/v1',
+          score: 1,
+          isCorrect: true,
+          normalizedSubmitted: { '1': '3', '2': '4', '5': '1' },
+          normalizedReference: { '1': '3', '2': '4', '5': '1' },
+        },
+      ],
+    });
+  });
+
+  it('requires structure for matching and gives partial credit for sort cards', () => {
     const telemetry = buildManifestSubmissionTelemetry(
       {
         stepId: 'step-07',
@@ -283,16 +517,18 @@ describe('buildManifestSubmissionTelemetry', () => {
       scoringSupported: true,
       correctCount: 0,
       objectiveTotal: 2,
-      score: 0,
+      score: 16.7,
       questionSummaries: [
         {
           questionId: 'assumptions',
           referenceValue: ['linear', 'small-signal'],
+          score: 0,
           isCorrect: false,
         },
         {
           questionId: 'workflow',
           referenceValue: ['model', 'validate', 'deploy'],
+          score: 1 / 3,
           isCorrect: false,
         },
       ],

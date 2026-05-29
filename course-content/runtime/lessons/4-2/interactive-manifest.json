@@ -56,28 +56,36 @@
         {
           "id": "intro-question",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_question"
+            "block_key": "intro_question",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "cover_comic"
+            "block_key": "cover_comic",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "intro-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_summary"
+            "block_key": "intro_summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -155,10 +163,13 @@
         {
           "id": "lesson-goals",
           "region": "goal",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lesson_goals"
+            "block_key": "lesson_goals",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -235,19 +246,24 @@
         {
           "id": "pretest-intro",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro"
+            "block_key": "pretest_intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest-questions",
           "region": "quiz",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro"
+            "block_key": "pretest_intro",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -268,7 +284,7 @@
             "id": "pre-q1",
             "title": "相角裕度读法",
             "prompt": "Bode 图中相角裕度由哪两个量决定？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -291,7 +307,7 @@
             "id": "pre-q2",
             "title": "低频增益影响",
             "prompt": "增大低频开环增益通常会影响哪些指标？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -314,7 +330,7 @@
             "id": "pre-q3",
             "title": "前馈与反馈职责",
             "prompt": "前馈补偿进入系统后，反馈闭环就不再需要承担稳定性。",
-            "response_kind": "true_false",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "third",
             "reference_answer": "错误。前馈补已知通道，反馈仍承担稳定性和鲁棒性。"
@@ -384,20 +400,24 @@
         {
           "id": "review-quantities",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "review_quantities"
+            "block_key": "review_quantities",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "review-questions",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "review_quantities",
-            "formula": "L(s)=C(s)G(s)"
+            "formula": "L(s)=C(s)G(s)",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -426,7 +446,7 @@
             "id": "low-frequency-check",
             "title": "低频误差大但动态尚可时优先看哪类复核量",
             "prompt": "低频误差大但动态尚可时优先看哪类复核量？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -449,7 +469,7 @@
             "id": "margin-check",
             "title": "相角裕度不足时不能只增大哪个量",
             "prompt": "相角裕度不足时，为什么不能只增大比例增益？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "增益提高可能推高截止频率并进一步损失裕度，应看中频相位和高频代价。"
@@ -521,28 +541,36 @@
         {
           "id": "loop-formulas",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas"
+            "block_key": "loop_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "frequency-characteristics",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "frequency_media"
+            "block_key": "frequency_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "structure-matrix",
           "region": "matrix",
-          "kind": "multi-select-matrix",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas"
+            "block_key": "loop_formulas",
+            "legacyKind": "multi-select-matrix",
+            "presentation": "matrix",
+            "interactionKind": "multi-select",
+            "responseKind": "choice.multi"
           }
         }
       ],
@@ -572,7 +600,7 @@
             "id": "low-frequency-structure",
             "title": "低频误差和慢扰动优先关联哪些结构",
             "prompt": "低频误差和慢扰动优先关联哪些结构？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -595,7 +623,7 @@
             "id": "mid-frequency-structure",
             "title": "相角裕度和超调优先关联哪些结构",
             "prompt": "相角裕度不足、超调偏大时，优先检查哪些结构？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -618,7 +646,7 @@
             "id": "channel-compensation-structure",
             "title": "已知参考或扰动通道优先关联什么补偿",
             "prompt": "已知参考或扰动通道可测、模型较清楚时，哪类补偿可作为候选？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -703,28 +731,37 @@
         {
           "id": "selection-tree",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree"
+            "block_key": "selection_tree",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "selection-rules",
           "region": "rules",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_rules"
+            "block_key": "selection_rules",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "evidence-match",
           "region": "activity",
-          "kind": "drag-match",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree"
+            "block_key": "selection_tree",
+            "legacyKind": "drag-match",
+            "presentation": "single",
+            "interactionKind": "drag-match",
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -756,7 +793,7 @@
             "id": "evidence-to-structure-match",
             "title": "任务证据到结构候选的配对",
             "prompt": "把任务证据拖到最合理的候选结构或复核量。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -877,19 +914,24 @@
         {
           "id": "zn-table",
           "region": "content",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_table"
+            "block_key": "zn_table",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "zn-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_steps"
+            "block_key": "zn_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -999,19 +1041,24 @@
         {
           "id": "pi-lag-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_formulas"
+            "block_key": "pi_lag_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pi-lag-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_steps"
+            "block_key": "pi_lag_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1102,19 +1149,24 @@
         {
           "id": "lead-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_formulas"
+            "block_key": "lead_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lead-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_steps"
+            "block_key": "lead_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1205,19 +1257,23 @@
         {
           "id": "model-feedforward-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas"
+            "block_key": "model_feedforward_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "model-feedforward-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas"
+            "block_key": "model_feedforward_formulas",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1247,7 +1303,7 @@
             "id": "lambda-tradeoff",
             "title": "lambda 变大时响应和鲁棒性的变化",
             "prompt": "IMC/SIMC 中 lambda 变大时，响应速度和鲁棒性通常如何变化？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1270,7 +1326,7 @@
             "id": "feedback-role",
             "title": "扰动前馈加入后反馈闭环的职责",
             "prompt": "扰动前馈加入后，反馈闭环还承担什么职责？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "反馈仍承担稳定性、鲁棒性、未知误差和模型失配下的保底职责。"
@@ -1342,30 +1398,38 @@
         {
           "id": "example-5-1-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1"
+            "block_key": "example_5_1",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-1-panel",
           "title": "频域 PI 参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_pi",
-            "spec_key": "example_5_1_panel"
+            "spec_key": "example_5_1_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-1-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1"
+            "block_key": "example_5_1",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1503,30 +1567,38 @@
         {
           "id": "example-5-2-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2"
+            "block_key": "example_5_2",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-2-panel",
           "title": "超前参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_lead",
-            "spec_key": "example_5_2_panel"
+            "spec_key": "example_5_2_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-2-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2"
+            "block_key": "example_5_2",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1567,7 +1639,7 @@
             "label": "T",
             "default": 1.025,
             "min": 0.4,
-            "max": 2.0,
+            "max": 2,
             "step": 0.001
           },
           {
@@ -1575,7 +1647,7 @@
             "label": "K_c",
             "default": 1.95,
             "min": 0.8,
-            "max": 4.0,
+            "max": 4,
             "step": 0.01
           }
         ]
@@ -1665,30 +1737,38 @@
         {
           "id": "example-5-3-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3"
+            "block_key": "example_5_3",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-3-panel",
           "title": "滞后参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_lag",
-            "spec_key": "example_5_3_panel"
+            "spec_key": "example_5_3_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-3-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3"
+            "block_key": "example_5_3",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1720,7 +1800,7 @@
             "label": "beta",
             "default": 2.5,
             "min": 1.2,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           },
           {
@@ -1826,39 +1906,49 @@
         {
           "id": "example-5-4-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4"
+            "block_key": "example_5_4",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-4-critical",
           "region": "static",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4_critical_media"
+            "block_key": "example_5_4_critical_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "example-5-4-panel",
           "title": "ZN PID 参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_pid_zn",
-            "spec_key": "example_5_4_panel"
+            "spec_key": "example_5_4_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-4-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4"
+            "block_key": "example_5_4",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1894,16 +1984,16 @@
             "id": "Kp",
             "label": "K_p",
             "default": 4.8,
-            "min": 2.0,
-            "max": 7.0,
+            "min": 2,
+            "max": 7,
             "step": 0.01
           },
           {
             "id": "Ti",
             "label": "T_i",
-            "default": 2.0,
+            "default": 2,
             "min": 0.8,
-            "max": 4.0,
+            "max": 4,
             "step": 0.01
           },
           {
@@ -1919,7 +2009,7 @@
             "label": "K_i",
             "default": 2.4,
             "min": 0.5,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           },
           {
@@ -1927,7 +2017,7 @@
             "label": "K_d",
             "default": 2.4,
             "min": 0.5,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           }
         ]
@@ -2026,37 +2116,47 @@
         {
           "id": "feedforward-problem",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem"
+            "block_key": "feedforward_problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "feedforward-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_steps"
+            "block_key": "feedforward_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "feedforward-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_media"
+            "block_key": "feedforward_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "feedforward-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem"
+            "block_key": "feedforward_problem",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2095,7 +2195,7 @@
             "id": "feedforward-value",
             "title": "理论扰动前馈值",
             "prompt": "本例理论扰动前馈值是多少？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2118,7 +2218,7 @@
             "id": "feedback-still-needed",
             "title": "反馈闭环仍需承担的职责",
             "prompt": "扰动前馈加入后，反馈闭环仍需承担什么职责？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "反馈仍承担稳定性、鲁棒性、未知误差和执行器约束下的保底职责。"
@@ -2186,20 +2286,24 @@
         {
           "id": "ship-setup",
           "region": "content",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_setup"
+            "block_key": "ship_setup",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-setup-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ship_setup",
-            "formula": "G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]"
+            "formula": "G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2229,7 +2333,7 @@
             "id": "ship-baseline-problem",
             "title": "基准对象最明显的问题证据",
             "prompt": "基准对象最明显的问题证据是什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "可写相角裕度偏低、超调较大、调节时间较长或低频抗扰需要复核。"
@@ -2238,7 +2342,7 @@
             "id": "ship-branch-source",
             "title": "候选结构的整定分支来源",
             "prompt": "哪类候选主要来自低频整定分支，哪类来自相位补偿分支？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "滞后和 PI 来自低频整定分支，超前来自相位补偿分支，超前-滞后是两者组合。"
@@ -2309,48 +2413,59 @@
         {
           "id": "ship-bode-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_bode_media"
+            "block_key": "ship_bode_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-time-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_time_media"
+            "block_key": "ship_time_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-summary-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_summary_media"
+            "block_key": "ship_summary_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-candidate-table",
           "region": "table",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_candidate_table"
+            "block_key": "ship_candidate_table",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-compare-panel",
           "title": "客船候选结构时域与频域复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_ship_candidate_compare",
-            "spec_key": "ship_candidate_compare_panel"
+            "spec_key": "ship_candidate_compare_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         }
       ],
@@ -2487,28 +2602,36 @@
         {
           "id": "practice-prompts",
           "region": "practice",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts"
+            "block_key": "practice_prompts",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "start-card-template",
           "region": "template",
-          "kind": "template-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "start_card_fields"
+            "block_key": "start_card_fields",
+            "legacyKind": "template-card",
+            "presentation": "single",
+            "semanticRole": "template"
           }
         },
         {
           "id": "start-card-workspace",
           "region": "workspace",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts"
+            "block_key": "practice_prompts",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2545,7 +2668,7 @@
             "id": "currentTask",
             "title": "当前任务",
             "prompt": "说明对象是谁，以及当前主要要解决什么问题。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出对象和当前主要问题。"
@@ -2554,7 +2677,7 @@
             "id": "mainConflict",
             "title": "最紧矛盾",
             "prompt": "说明当前最不能接受的后果。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出最紧矛盾。"
@@ -2563,7 +2686,7 @@
             "id": "preferredStructure",
             "title": "首选单结构",
             "prompt": "写出首选结构候选，并补一句作用语义。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出 PI/滞后、PD/超前、PID 或前馈候选及理由。"
@@ -2572,7 +2695,7 @@
             "id": "tuningEntry",
             "title": "整定入口",
             "prompt": "写出参数初算采用哪类整定入口。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出频域 PI、滞后、超前、ZN、模型匹配或前馈入口。"
@@ -2581,7 +2704,7 @@
             "id": "keyParameter",
             "title": "关键参数",
             "prompt": "写出本轮最关键的参数。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出 Kp、Ki、alpha、T、beta 等关键参数。"
@@ -2590,7 +2713,7 @@
             "id": "expectedBenefit",
             "title": "预期收益",
             "prompt": "写出最先希望看到什么改善。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出稳态误差、裕度、超调、扰动或控制量相关收益。"
@@ -2599,7 +2722,7 @@
             "id": "tradeoff",
             "title": "主要代价",
             "prompt": "写出预计会牺牲什么或哪条边界会收紧。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "写出相角裕度、速度、高频噪声、控制量或鲁棒性代价。"
@@ -2608,7 +2731,7 @@
             "id": "reviewEvidence",
             "title": "四类复核证据",
             "prompt": "写出需要复核的四类证据。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "至少包含低频增益、截止频率、相角裕度和高频增益，或对应时域/扰动/控制量证据。"
@@ -2672,10 +2795,12 @@
         {
           "id": "posttest-cards",
           "region": "quiz",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_intro"
+            "block_key": "posttest_intro",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2696,7 +2821,7 @@
             "id": "post-q1",
             "title": "稳态误差大且动态基本可接受时的首轮结构",
             "prompt": "稳态误差大、动态基本可接受时，首轮更接近哪类结构和整定入口？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -2719,7 +2844,7 @@
             "id": "post-q2",
             "title": "超前校正设计必须包含的计算",
             "prompt": "超前校正设计必须包含哪些计算？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "third",
             "options": [
@@ -2742,7 +2867,7 @@
             "id": "post-q3",
             "title": "客船超前候选是否可直接作为最终结构",
             "prompt": "客船案例中超前降低超调最明显，因此可直接作为最终结构。",
-            "response_kind": "true_false",
+            "response_kind": "choice.binary",
             "submit_scope": "per_card",
             "layout_span": "third",
             "reference_answer": "错误。还要复核低频灵敏度、扰动峰值、控制量和工程边界。"
@@ -2817,28 +2942,36 @@
         {
           "id": "summary-infograph",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_infograph"
+            "block_key": "summary_infograph",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-content",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_content"
+            "block_key": "summary_content",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "performance-stats",
           "region": "stats",
-          "kind": "performance-summary",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "performance_stats"
+            "block_key": "performance_stats",
+            "legacyKind": "performance-summary",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],

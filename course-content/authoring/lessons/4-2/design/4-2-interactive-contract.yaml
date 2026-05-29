@@ -18,9 +18,9 @@ steps:
     title: '控制器选型与整定任务的导入场景'
     layout: { template: 'intro_comic_problem_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }] }
     modules:
-      - { id: 'intro-question', region: 'header', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro_question' } }
-      - { id: 'cover-comic', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'cover_comic' } }
-      - { id: 'intro-summary', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'intro_summary' } }
+      - { id: 'intro-question', region: 'header', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'intro_question' } }
+      - { id: 'cover-comic', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'cover_comic' } }
+      - { id: 'intro-summary', region: 'summary', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'intro_summary' } }
     content_blocks:
       intro_question: { text: '客船航向控制已经写出超调、相角裕度、慢扰动和控制量约束，首轮控制器为什么不能直接写成 PID。' }
       cover_comic: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-cover-comic.png', caption: '任务表达卡已经给出证据，工程师必须先判断主要矛盾属于低频精度、中频动态、通道补偿，还是高频噪声与执行器边界。' }
@@ -38,7 +38,7 @@ steps:
     title: '本次课程目标'
     layout: { template: 'goal_statement_board', regions: [{ id: 'goal', width: 'full', order: 1 }] }
     modules:
-      - { id: 'lesson-goals', region: 'goal', kind: 'goal-card-row', must_be_visible: true, payload: { block_key: 'lesson_goals' } }
+      - { id: 'lesson-goals', region: 'goal', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'goal-card-row', presentation: 'row', semanticRole: 'goal',  block_key: 'lesson_goals' } }
     content_blocks:
       lesson_goals: ['解释各类控制结构首先改变哪一段频域证据。', '沿决策树筛选候选控制结构。', '按整定方法写出参数初算步骤。', '用分结构例题说明参数来源和复核证据。', '用客船案例形成首轮起步卡。']
     evidence_sequence: ['布鲁姆式能力目标']
@@ -54,8 +54,8 @@ steps:
     title: '前置基础快测'
     layout: { template: 'quiz_group_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
     modules:
-      - { id: 'pretest-intro', region: 'intro', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'pretest_intro' } }
-      - { id: 'pretest-questions', region: 'quiz', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'pretest-intro', region: 'intro', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'pretest_intro' } }
+      - { id: 'pretest-questions', region: 'quiz', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       pretest_intro: { text: '本页只检查进入本课前需要的读图和基础概念，不考察本课要讲的新方法。' }
     evidence_sequence: ['前测说明', '三道客观题']
@@ -63,9 +63,9 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三道前置基础题。'
       activity_cards:
-        - { id: 'pre-q1', title: '相角裕度读法', prompt: 'Bode 图中相角裕度由哪两个量决定？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '截止频率处相位与 -180° 的距离' }, { value: 'B', label: '低频增益和高频斜率' }, { value: 'C', label: '稳态误差和峰值时间' }], reference_answer: 'A。相角裕度读取截止频率处相位与 -180° 的距离。' }
-        - { id: 'pre-q2', title: '低频增益影响', prompt: '增大低频开环增益通常会影响哪些指标？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '稳态误差' }, { value: 'B', label: '低频抗扰能力' }, { value: 'C', label: '高频噪声不受任何影响' }], reference_answer: 'A、B。低频增益直接关系稳态误差和低频抗扰。' }
-        - { id: 'pre-q3', title: '前馈与反馈职责', prompt: '前馈补偿进入系统后，反馈闭环就不再需要承担稳定性。', response_kind: 'true_false', submit_scope: 'per_card', layout_span: 'third', reference_answer: '错误。前馈补已知通道，反馈仍承担稳定性和鲁棒性。' }
+        - { id: 'pre-q1', title: '相角裕度读法', prompt: 'Bode 图中相角裕度由哪两个量决定？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '截止频率处相位与 -180° 的距离' }, { value: 'B', label: '低频增益和高频斜率' }, { value: 'C', label: '稳态误差和峰值时间' }], reference_answer: 'A。相角裕度读取截止频率处相位与 -180° 的距离。' }
+        - { id: 'pre-q2', title: '低频增益影响', prompt: '增大低频开环增益通常会影响哪些指标？', response_kind: 'choice.multi', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '稳态误差' }, { value: 'B', label: '低频抗扰能力' }, { value: 'C', label: '高频噪声不受任何影响' }], reference_answer: 'A、B。低频增益直接关系稳态误差和低频抗扰。' }
+        - { id: 'pre-q3', title: '前馈与反馈职责', prompt: '前馈补偿进入系统后，反馈闭环就不再需要承担稳定性。', response_kind: 'choice.binary', submit_scope: 'per_card', layout_span: 'third', reference_answer: '错误。前馈补已知通道，反馈仍承担稳定性和鲁棒性。' }
     teacher_controls: { release_activity: 'page_load_open', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -77,8 +77,8 @@ steps:
     title: '单结构整定的四类复核量'
     layout: { template: 'formula_table_reasoning_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'review-quantities', region: 'content', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'review_quantities' } }
-      - { id: 'review-questions', region: 'activity', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'review-quantities', region: 'content', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'review_quantities' } }
+      - { id: 'review-questions', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       review_quantities: { formula: 'L(s)=C(s)G(s)', bullets: ['低频增益', '截止频率 omega_c', '相角裕度', '高频增益'], text: '首轮结构只是一组可复核假设，必须同时说明收益和代价。' }
     evidence_sequence: ['开环公式', '四类复核量', '双题提交']
@@ -86,8 +86,8 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '用四类复核量解释结构判断。'
       activity_cards:
-        - { id: 'low-frequency-check', title: '低频误差大但动态尚可时优先看哪类复核量', prompt: '低频误差大但动态尚可时优先看哪类复核量？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '低频增益' }, { value: 'B', label: '高频噪声' }, { value: 'C', label: '只看峰值时间' }], reference_answer: 'A。低频误差首先对应低频增益。' }
-        - { id: 'margin-check', title: '相角裕度不足时不能只增大哪个量', prompt: '相角裕度不足时，为什么不能只增大比例增益？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '增益提高可能推高截止频率并进一步损失裕度，应看中频相位和高频代价。' }
+        - { id: 'low-frequency-check', title: '低频误差大但动态尚可时优先看哪类复核量', prompt: '低频误差大但动态尚可时优先看哪类复核量？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '低频增益' }, { value: 'B', label: '高频噪声' }, { value: 'C', label: '只看峰值时间' }], reference_answer: 'A。低频误差首先对应低频增益。' }
+        - { id: 'margin-check', title: '相角裕度不足时不能只增大哪个量', prompt: '相角裕度不足时，为什么不能只增大比例增益？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '增益提高可能推高截止频率并进一步损失裕度，应看中频相位和高频代价。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -99,9 +99,9 @@ steps:
     title: '典型控制结构的频域特性矩阵'
     layout: { template: 'frequency_matrix_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'matrix', width: 'full', order: 3 }] }
     modules:
-      - { id: 'loop-formulas', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'loop_formulas' } }
-      - { id: 'frequency-characteristics', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'frequency_media' } }
-      - { id: 'structure-matrix', region: 'matrix', kind: 'multi-select-matrix', must_be_visible: true }
+      - { id: 'loop-formulas', region: 'formula', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'loop_formulas' } }
+      - { id: 'frequency-characteristics', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'frequency_media' } }
+      - { id: 'structure-matrix', region: 'matrix', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'multi-select-matrix', presentation: 'matrix', interactionKind: 'multi-select', responseKind: 'choice.multi' }}
     content_blocks:
       loop_formulas: { formulas: ['L(s)=C(s)G(s)', '1+C(s)G(s)=0'], text: '每个结构首先改变开环频率特性，再通过闭环特征方程改变响应。' }
       frequency_media: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-controller-frequency-characteristics.png', caption: '先看低频段、中频相位和高频增益，再回到结构工具箱表。' }
@@ -110,9 +110,9 @@ steps:
       interaction_kind: 'multi_select_matrix'
       student_task: '把结构映射到低频增益、中频相位、高频噪声、通道补偿和执行器代价。'
       activity_cards:
-        - { id: 'low-frequency-structure', title: '低频误差和慢扰动优先关联哪些结构', prompt: '低频误差和慢扰动优先关联哪些结构？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'PI', label: 'PI' }, { value: 'lag', label: '滞后' }, { value: 'lead', label: '强超前' }], reference_answer: 'PI、滞后。低频补偿优先改善稳态误差和慢扰动。' }
-        - { id: 'mid-frequency-structure', title: '相角裕度和超调优先关联哪些结构', prompt: '相角裕度不足、超调偏大时，优先检查哪些结构？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'PD', label: 'PD' }, { value: 'lead', label: '超前' }, { value: 'lag_only', label: '只靠滞后' }], reference_answer: 'PD、超前。中频相位补偿主要服务裕度、阻尼和超调。' }
-        - { id: 'channel-compensation-structure', title: '已知参考或扰动通道优先关联什么补偿', prompt: '已知参考或扰动通道可测、模型较清楚时，哪类补偿可作为候选？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'feedforward', label: '前馈' }, { value: 'gain_only', label: '只加比例增益' }, { value: 'remove_feedback', label: '取消反馈' }], reference_answer: '前馈。前馈只补已知通道，不能替代反馈稳定性和鲁棒性。' }
+        - { id: 'low-frequency-structure', title: '低频误差和慢扰动优先关联哪些结构', prompt: '低频误差和慢扰动优先关联哪些结构？', response_kind: 'choice.multi', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'PI', label: 'PI' }, { value: 'lag', label: '滞后' }, { value: 'lead', label: '强超前' }], reference_answer: 'PI、滞后。低频补偿优先改善稳态误差和慢扰动。' }
+        - { id: 'mid-frequency-structure', title: '相角裕度和超调优先关联哪些结构', prompt: '相角裕度不足、超调偏大时，优先检查哪些结构？', response_kind: 'choice.multi', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'PD', label: 'PD' }, { value: 'lead', label: '超前' }, { value: 'lag_only', label: '只靠滞后' }], reference_answer: 'PD、超前。中频相位补偿主要服务裕度、阻尼和超调。' }
+        - { id: 'channel-compensation-structure', title: '已知参考或扰动通道优先关联什么补偿', prompt: '已知参考或扰动通道可测、模型较清楚时，哪类补偿可作为候选？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'feedforward', label: '前馈' }, { value: 'gain_only', label: '只加比例增益' }, { value: 'remove_feedback', label: '取消反馈' }], reference_answer: '前馈。前馈只补已知通道，不能替代反馈稳定性和鲁棒性。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['selection_distribution', 'completion_rate'] }
@@ -124,9 +124,9 @@ steps:
     title: '控制器结构选型决策树'
     layout: { template: 'decision_tree_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'rules', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 }] }
     modules:
-      - { id: 'selection-tree', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'selection_tree' } }
-      - { id: 'selection-rules', region: 'rules', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'selection_rules' } }
-      - { id: 'evidence-match', region: 'activity', kind: 'drag-match', must_be_visible: true }
+      - { id: 'selection-tree', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'selection_tree' } }
+      - { id: 'selection-rules', region: 'rules', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'selection_rules' } }
+      - { id: 'evidence-match', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'drag-match', presentation: 'single', interactionKind: 'drag-match', responseKind: 'matching.pairs' }}
     content_blocks:
       selection_tree: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-controller-selection-decision-tree.png', caption: '从任务证据进入频段或通道，再进入候选结构和复核量。' }
       selection_rules: { bullets: ['先判断最紧矛盾。', '判断矛盾落在哪个频段或通道。', '筛候选结构。', '选择整定入口。', '列出复核量。'] }
@@ -138,7 +138,7 @@ steps:
         - id: 'evidence-to-structure-match'
           title: '任务证据到结构候选的配对'
           prompt: '把任务证据拖到最合理的候选结构或复核量。'
-          response_kind: 'drag_match'
+          response_kind: 'matching.pairs'
           submit_scope: 'per_card'
           layout_span: 'full'
           match_items: [{ value: 'low_error', label: '稳态误差或慢扰动过大' }, { value: 'margin_overshoot', label: '相角裕度不足、超调偏大' }, { value: 'known_channel', label: '已知参考或扰动通道可测' }, { value: 'noise_actuator', label: '高频噪声或执行器边界收紧' }]
@@ -156,8 +156,8 @@ steps:
     title: '经验整定与临界比例整定步骤'
     layout: { template: 'tuning_table_reveal_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }] }
     modules:
-      - { id: 'zn-table', region: 'content', kind: 'table-card', must_be_visible: true, payload: { block_key: 'zn_table' } }
-      - { id: 'zn-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'zn_steps' } }
+      - { id: 'zn-table', region: 'content', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'table-card', presentation: 'single',  block_key: 'zn_table' } }
+      - { id: 'zn-reveal', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'zn_steps' } }
     content_blocks:
       zn_table: { columns: ['结构', 'Kp', 'Ti', 'Td'], rows: [['P', '0.5Ku', '-', '-'], ['PI', '0.45Ku', 'Pu/1.2', '-'], ['PID', '0.6Ku', 'Pu/2', 'Pu/8']] }
       zn_steps: ['关闭 I、D，只保留比例控制。', '逐步增大比例增益。', '找到等幅振荡时的临界比例 Ku。', '记录振荡周期 Pu。', '按表换算 Kp、Ti、Td。']
@@ -174,8 +174,8 @@ steps:
     title: '频域 PI 与滞后整定步骤'
     layout: { template: 'formula_method_reveal_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }] }
     modules:
-      - { id: 'pi-lag-formulas', region: 'content', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'pi_lag_formulas' } }
-      - { id: 'pi-lag-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'pi_lag_steps' } }
+      - { id: 'pi-lag-formulas', region: 'content', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'pi_lag_formulas' } }
+      - { id: 'pi-lag-reveal', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'pi_lag_steps' } }
     content_blocks:
       pi_lag_formulas: { formulas: ['omega_z=omega_c/3 sim omega_c/10', 'T_i=1/omega_z', 'K_i=K_p/T_i', 'beta=e_ss/e_ss^star', 'omega_p=omega_z/beta'] }
       pi_lag_steps: ['PI 先选零点，再按目标截止频率幅值条件求 Kp。', '滞后先由误差改善倍数确定 beta。', '滞后零点放在截止频率以下，极点再除以 beta。', '两类结构都必须复核相角裕度和响应速度。']
@@ -192,8 +192,8 @@ steps:
     title: '频域 PD、超前与超前-滞后整定步骤'
     layout: { template: 'formula_method_reveal_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }] }
     modules:
-      - { id: 'lead-formulas', region: 'content', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'lead_formulas' } }
-      - { id: 'lead-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'lead_steps' } }
+      - { id: 'lead-formulas', region: 'content', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'lead_formulas' } }
+      - { id: 'lead-reveal', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'lead_steps' } }
     content_blocks:
       lead_formulas: { formulas: ['phi_need=-180deg+PM^star-angle G(j omega_c)', 'alpha=(1-sin phi_max)/(1+sin phi_max)', 'T=1/(omega_c sqrt(alpha))', 'K_c=sqrt(alpha)/|G(j omega_c)|'] }
       lead_steps: ['PD 与超前主要服务中频相位和阻尼。', '先由目标相角裕度求所需相位补偿。', '加入设计余量得到 phi_max。', '由 alpha、T、Kc 形成超前校正器。', '强超前必须复核高频增益和控制量代价。']
@@ -210,8 +210,8 @@ steps:
     title: '模型匹配、IMC/SIMC 与前馈整定步骤'
     layout: { template: 'model_feedforward_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'model-feedforward-formulas', region: 'content', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'model_feedforward_formulas' } }
-      - { id: 'model-feedforward-cards', region: 'activity', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'model-feedforward-formulas', region: 'content', kind: 'content.formula', must_be_visible: true, payload: { legacyKind: 'formula-card', presentation: 'single',  block_key: 'model_feedforward_formulas' } }
+      - { id: 'model-feedforward-cards', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       model_feedforward_formulas: { formulas: ['K_p=(2 zeta omega_n-a)/b', 'K_i=omega_n^2/b', 'K_p=tau/[K(lambda+L)]', 'T_i=min{tau,4(lambda+L)}', 'F_r(s) approx G^{-1}(s)', 'F_d(s)=-G_d(s)/G(s)'] }
     evidence_sequence: ['模型匹配', 'IMC/SIMC', '前馈公式', '双题']
@@ -219,8 +219,8 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '判断 IMC/SIMC 与前馈整定边界。'
       activity_cards:
-        - { id: 'lambda-tradeoff', title: 'lambda 变大时响应和鲁棒性的变化', prompt: 'IMC/SIMC 中 lambda 变大时，响应速度和鲁棒性通常如何变化？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '响应变快但鲁棒性下降' }, { value: 'B', label: '响应变慢但鲁棒性增强' }, { value: 'C', label: '二者都不变' }], reference_answer: 'B。lambda 越大，闭环越保守，鲁棒性通常增强。' }
-        - { id: 'feedback-role', title: '扰动前馈加入后反馈闭环的职责', prompt: '扰动前馈加入后，反馈闭环还承担什么职责？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '反馈仍承担稳定性、鲁棒性、未知误差和模型失配下的保底职责。' }
+        - { id: 'lambda-tradeoff', title: 'lambda 变大时响应和鲁棒性的变化', prompt: 'IMC/SIMC 中 lambda 变大时，响应速度和鲁棒性通常如何变化？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '响应变快但鲁棒性下降' }, { value: 'B', label: '响应变慢但鲁棒性增强' }, { value: 'C', label: '二者都不变' }], reference_answer: 'B。lambda 越大，闭环越保守，鲁棒性通常增强。' }
+        - { id: 'feedback-role', title: '扰动前馈加入后反馈闭环的职责', prompt: '扰动前馈加入后，反馈闭环还承担什么职责？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '反馈仍承担稳定性、鲁棒性、未知误差和模型失配下的保底职责。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -232,9 +232,9 @@ steps:
     title: '例题 5.1 频域 PI 参数计算'
     layout: { template: 'worked_example_curve_submit_board', regions: [{ id: 'static', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'submit', width: 'full', order: 3 }] }
     modules:
-      - { id: 'example-5-1-solution', region: 'static', kind: 'worked-example-card', must_be_visible: true, payload: { block_key: 'example_5_1' } }
-      - { id: 'example-5-1-panel', title: '频域 PI 参数复核面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit42_example_pi', spec_key: 'example_5_1_panel' } }
-      - { id: 'example-5-1-submit', region: 'submit', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'example-5-1-solution', region: 'static', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'worked-example-card', presentation: 'single', semanticRole: 'example',  block_key: 'example_5_1' } }
+      - { id: 'example-5-1-panel', title: '频域 PI 参数复核面板', region: 'panel', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit42_example_pi', spec_key: 'example_5_1_panel' } }
+      - { id: 'example-5-1-submit', region: 'submit', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       example_5_1: { problem: 'G_1(s)=1/(s+1)，omega_c=1.0 rad/s，取 omega_z=0.25 rad/s。', solution_steps: ['T_i=1/omega_z=4 s', '|G_1(j1)|=0.707', 'PI 形状项为 1.031', 'K_p=1/(0.707*1.031)=1.372', 'K_i=K_p/T_i=0.343'], explanation: '积分消除静差，比例增益按目标截止频率确定；若相角裕度偏低，应下移零点或降低截止频率。' }
     interactive_figure_spec:
@@ -257,9 +257,9 @@ steps:
     title: '例题 5.2 频域超前参数计算'
     layout: { template: 'worked_example_curve_submit_board', regions: [{ id: 'static', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'submit', width: 'full', order: 3 }] }
     modules:
-      - { id: 'example-5-2-solution', region: 'static', kind: 'worked-example-card', must_be_visible: true, payload: { block_key: 'example_5_2' } }
-      - { id: 'example-5-2-panel', title: '超前参数复核面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit42_example_lead', spec_key: 'example_5_2_panel' } }
-      - { id: 'example-5-2-submit', region: 'submit', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'example-5-2-solution', region: 'static', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'worked-example-card', presentation: 'single', semanticRole: 'example',  block_key: 'example_5_2' } }
+      - { id: 'example-5-2-panel', title: '超前参数复核面板', region: 'panel', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit42_example_lead', spec_key: 'example_5_2_panel' } }
+      - { id: 'example-5-2-submit', region: 'submit', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       example_5_2: { problem: 'G_2(s)=1.183/[s(1.072s+1)]，omega_c=2 rad/s，|G(j omega_c)|=0.25，angle G(j omega_c)=-155deg，PM^star=55deg。', solution_steps: ['phi_need=30deg', '加入 8deg 余量，phi_max=38deg', 'alpha=0.238', 'T=1/(2 sqrt(0.238))=1.025 s', 'K_c=sqrt(0.238)/0.25=1.95', 'C_lead(s)=1.95(1.025s+1)/(0.244s+1)'], explanation: '超前改善相角裕度和超调，但 alpha 过小会提高高频增益和控制量风险。' }
     interactive_figure_spec:
@@ -282,9 +282,9 @@ steps:
     title: '例题 5.3 滞后校正参数计算'
     layout: { template: 'worked_example_curve_submit_board', regions: [{ id: 'static', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'submit', width: 'full', order: 3 }] }
     modules:
-      - { id: 'example-5-3-solution', region: 'static', kind: 'worked-example-card', must_be_visible: true, payload: { block_key: 'example_5_3' } }
-      - { id: 'example-5-3-panel', title: '滞后参数复核面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit42_example_lag', spec_key: 'example_5_3_panel' } }
-      - { id: 'example-5-3-submit', region: 'submit', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'example-5-3-solution', region: 'static', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'worked-example-card', presentation: 'single', semanticRole: 'example',  block_key: 'example_5_3' } }
+      - { id: 'example-5-3-panel', title: '滞后参数复核面板', region: 'panel', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit42_example_lag', spec_key: 'example_5_3_panel' } }
+      - { id: 'example-5-3-submit', region: 'submit', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       example_5_3: { problem: 'G_3(s)=9/(s+1)，e_ss=0.10，e_ss^star=0.04，omega_c=1 rad/s。', solution_steps: ['beta=0.10/0.04=2.5', 'omega_z=omega_c/10=0.1 rad/s', 'T=1/omega_z=10 s', 'omega_p=omega_z/beta=0.04 rad/s', 'C_lag(s)=2.5(10s+1)/(25s+1)'], explanation: '滞后提高低频增益并尽量少改截止频率附近幅值，代价是相位裕度下降和响应变慢。' }
     interactive_figure_spec:
@@ -307,10 +307,10 @@ steps:
     title: '例题 5.4 Ziegler-Nichols PID 参数计算'
     layout: { template: 'worked_example_curve_submit_board', regions: [{ id: 'static', width: 'full', order: 1 }, { id: 'panel', width: 'full', order: 2 }, { id: 'submit', width: 'full', order: 3 }] }
     modules:
-      - { id: 'example-5-4-solution', region: 'static', kind: 'worked-example-card', must_be_visible: true, payload: { block_key: 'example_5_4' } }
-      - { id: 'example-5-4-critical', region: 'static', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'example_5_4_critical_media' } }
-      - { id: 'example-5-4-panel', title: 'ZN PID 参数复核面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit42_example_pid_zn', spec_key: 'example_5_4_panel' } }
-      - { id: 'example-5-4-submit', region: 'submit', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'example-5-4-solution', region: 'static', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'worked-example-card', presentation: 'single', semanticRole: 'example',  block_key: 'example_5_4' } }
+      - { id: 'example-5-4-critical', region: 'static', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'example_5_4_critical_media' } }
+      - { id: 'example-5-4-panel', title: 'ZN PID 参数复核面板', region: 'panel', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit42_example_pid_zn', spec_key: 'example_5_4_panel' } }
+      - { id: 'example-5-4-submit', region: 'submit', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       example_5_4: { problem: 'G_4(s)=1/[s(s+1.221)(s+2.021)]，比例试验得到 K_u=8，P_u=4 s。', solution_steps: ['K_p=0.6K_u=4.8', 'T_i=P_u/2=2 s', 'T_d=P_u/8=0.5 s', 'K_i=K_p/T_i=2.4', 'K_d=K_pT_d=2.4', 'C_PID(s)=2.4(s+1)^2/s'], explanation: 'ZN 参数常使响应偏快、超调偏大；它只是 PID 初值，需要继续复核。' }
       example_5_4_critical_media: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-example-5-4-zn-steps.png', caption: '临界比例试验给出 Ku=8 和 Pu=4 s。' }
@@ -334,10 +334,10 @@ steps:
     title: '扰动前馈例题的补偿计算'
     layout: { template: 'feedforward_worked_example_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'feedforward-problem', region: 'problem', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'feedforward_problem' } }
-      - { id: 'feedforward-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true, payload: { block_key: 'feedforward_steps' } }
-      - { id: 'feedforward-media', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'feedforward_media' } }
-      - { id: 'feedforward-cards', region: 'activity', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'feedforward-problem', region: 'problem', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'feedforward_problem' } }
+      - { id: 'feedforward-reveal', region: 'reveal', kind: 'content.reveal', must_be_visible: true, payload: { legacyKind: 'step-reveal', presentation: 'single', interactionKind: 'progressive-reveal',  block_key: 'feedforward_steps' } }
+      - { id: 'feedforward-media', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'feedforward_media' } }
+      - { id: 'feedforward-cards', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       feedforward_problem: { text: 'y(s)=G(s)u(s)+G_d(s)d(s)，G(s)=1/(s+1)，G_d(s)=0.4/(s+1)。' }
       feedforward_steps: ['对消条件 G(s)F_d(s)+G_d(s)=0。', 'F_d(s)=-G_d(s)/G(s)=-0.4。', '工程初值取 F_d(s)=-0.32。', '根据偏移方向、控制量和限幅继续调整。']
@@ -348,8 +348,8 @@ steps:
       student_task: '阅读扰动前馈计算并完成边界判断。'
       step_reveal_policy: { default_state: 'collapsed', teacher_step_reveal: true, open_browse_required: true }
       activity_cards:
-        - { id: 'feedforward-value', title: '理论扰动前馈值', prompt: '本例理论扰动前馈值是多少？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '-0.4' }, { value: 'B', label: '0.4' }, { value: 'C', label: '-4' }], reference_answer: 'A。F_d(s)=-G_d(s)/G(s)=-0.4。' }
-        - { id: 'feedback-still-needed', title: '反馈闭环仍需承担的职责', prompt: '扰动前馈加入后，反馈闭环仍需承担什么职责？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '反馈仍承担稳定性、鲁棒性、未知误差和执行器约束下的保底职责。' }
+        - { id: 'feedforward-value', title: '理论扰动前馈值', prompt: '本例理论扰动前馈值是多少？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'half', options: [{ value: 'A', label: '-0.4' }, { value: 'B', label: '0.4' }, { value: 'C', label: '-4' }], reference_answer: 'A。F_d(s)=-G_d(s)/G(s)=-0.4。' }
+        - { id: 'feedback-still-needed', title: '反馈闭环仍需承担的职责', prompt: '扰动前馈加入后，反馈闭环仍需承担什么职责？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '反馈仍承担稳定性、鲁棒性、未知误差和执行器约束下的保底职责。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'teacher_toggle', teacher_step_reveal: 'teacher_direct', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: true, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['step_reveal_progress', 'card_completion_rate'] }
@@ -361,8 +361,8 @@ steps:
     title: '客船航向控制对象与候选参数初算'
     layout: { template: 'ship_candidate_setup_board', regions: [{ id: 'content', width: 'full', order: 1 }, { id: 'activity', width: 'full', order: 2 }] }
     modules:
-      - { id: 'ship-setup', region: 'content', kind: 'table-card', must_be_visible: true, payload: { block_key: 'ship_setup' } }
-      - { id: 'ship-setup-cards', region: 'activity', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'ship-setup', region: 'content', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'table-card', presentation: 'single',  block_key: 'ship_setup' } }
+      - { id: 'ship-setup-cards', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       ship_setup: { formula: 'G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]', baseline: 'C_0(s)=2.25，omega_c=0.1169 rad/s，PM=37.43deg，Mp=31.91%，t_s=83.09 s', rows: ['滞后候选', 'PI 候选', '超前候选', '超前-滞后候选'] }
     evidence_sequence: ['客船对象', '基准证据', '候选参数表', '双题']
@@ -370,8 +370,8 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '判断客船基准问题和候选参数来源。'
       activity_cards:
-        - { id: 'ship-baseline-problem', title: '基准对象最明显的问题证据', prompt: '基准对象最明显的问题证据是什么？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '可写相角裕度偏低、超调较大、调节时间较长或低频抗扰需要复核。' }
-        - { id: 'ship-branch-source', title: '候选结构的整定分支来源', prompt: '哪类候选主要来自低频整定分支，哪类来自相位补偿分支？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '滞后和 PI 来自低频整定分支，超前来自相位补偿分支，超前-滞后是两者组合。' }
+        - { id: 'ship-baseline-problem', title: '基准对象最明显的问题证据', prompt: '基准对象最明显的问题证据是什么？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '可写相角裕度偏低、超调较大、调节时间较长或低频抗扰需要复核。' }
+        - { id: 'ship-branch-source', title: '候选结构的整定分支来源', prompt: '哪类候选主要来自低频整定分支，哪类来自相位补偿分支？', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '滞后和 PI 来自低频整定分支，超前来自相位补偿分支，超前-滞后是两者组合。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
@@ -383,11 +383,11 @@ steps:
     title: '客船候选结构的 Bode 与时域复核'
     layout: { template: 'ship_candidate_compare_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'panel', width: 'full', order: 3 }] }
     modules:
-      - { id: 'ship-bode-media', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'ship_bode_media' } }
-      - { id: 'ship-time-media', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'ship_time_media' } }
-      - { id: 'ship-summary-media', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'ship_summary_media' } }
-      - { id: 'ship-candidate-table', region: 'table', kind: 'table-card', must_be_visible: true, payload: { block_key: 'ship_candidate_table' } }
-      - { id: 'ship-compare-panel', title: '客船候选结构时域与频域复核面板', region: 'panel', kind: 'interactive-figure-panel', must_be_visible: true, payload: { panel_id: 'unit42_ship_candidate_compare', spec_key: 'ship_candidate_compare_panel' } }
+      - { id: 'ship-bode-media', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'ship_bode_media' } }
+      - { id: 'ship-time-media', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'ship_time_media' } }
+      - { id: 'ship-summary-media', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'ship_summary_media' } }
+      - { id: 'ship-candidate-table', region: 'table', kind: 'content.table', must_be_visible: true, payload: { legacyKind: 'table-card', presentation: 'single',  block_key: 'ship_candidate_table' } }
+      - { id: 'ship-compare-panel', title: '客船候选结构时域与频域复核面板', region: 'panel', kind: 'compute.panel', must_be_visible: true, payload: { legacyKind: 'interactive-figure-panel', presentation: 'single', semanticRole: 'media', capabilityRef: 'interactive-figure',  panel_id: 'unit42_ship_candidate_compare', spec_key: 'ship_candidate_compare_panel' } }
     content_blocks:
       ship_bode_media: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-ship-controller-candidates-bode.png', caption: '先看相角裕度和截止频率，再看低频段是否真正改善。' }
       ship_time_media: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-ship-controller-candidates-step-disturbance.png', caption: '先看给定阶跃超调和调节时间，再看扰动峰值和恢复。' }
@@ -413,9 +413,9 @@ steps:
     title: '分层练习与单结构起步卡工作区'
     layout: { template: 'task_card_workspace', regions: [{ id: 'practice', width: 'full', order: 1 }, { id: 'template', width: 'full', order: 2 }, { id: 'workspace', width: 'full', order: 3 }] }
     modules:
-      - { id: 'practice-prompts', region: 'practice', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'practice_prompts' } }
-      - { id: 'start-card-template', region: 'template', kind: 'template-card', must_be_visible: true, payload: { block_key: 'start_card_fields' } }
-      - { id: 'start-card-workspace', region: 'workspace', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'practice-prompts', region: 'practice', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'practice_prompts' } }
+      - { id: 'start-card-template', region: 'template', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'template-card', presentation: 'single', semanticRole: 'template',  block_key: 'start_card_fields' } }
+      - { id: 'start-card-workspace', region: 'workspace', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       practice_prompts: { bullets: ['练习 1：超调 35%、相角裕度 32°、稳态误差很小，选择首轮结构和整定入口。', '练习 2：e_ss=0.12，e_ss^star=0.04，omega_c=0.8，计算 beta、omega_z、omega_p。', '练习 3：|G(j1.5)|=0.4，angle G(j1.5)=-150°，PM^star=55°，取 8° 余量，计算超前参数。', '练习 4：根据表 4 解释超调、低频灵敏度和多指标复核。'] }
       start_card_fields: ['当前任务', '最紧矛盾', '首选单结构', '整定入口', '关键参数', '预期收益', '主要代价', '四类复核证据']
@@ -424,14 +424,14 @@ steps:
       interaction_kind: 'task_card_workspace'
       student_task: '填写八字段单结构首轮起步卡。'
       activity_cards:
-        - { id: 'currentTask', title: '当前任务', prompt: '说明对象是谁，以及当前主要要解决什么问题。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出对象和当前主要问题。' }
-        - { id: 'mainConflict', title: '最紧矛盾', prompt: '说明当前最不能接受的后果。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出最紧矛盾。' }
-        - { id: 'preferredStructure', title: '首选单结构', prompt: '写出首选结构候选，并补一句作用语义。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出 PI/滞后、PD/超前、PID 或前馈候选及理由。' }
-        - { id: 'tuningEntry', title: '整定入口', prompt: '写出参数初算采用哪类整定入口。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出频域 PI、滞后、超前、ZN、模型匹配或前馈入口。' }
-        - { id: 'keyParameter', title: '关键参数', prompt: '写出本轮最关键的参数。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出 Kp、Ki、alpha、T、beta 等关键参数。' }
-        - { id: 'expectedBenefit', title: '预期收益', prompt: '写出最先希望看到什么改善。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出稳态误差、裕度、超调、扰动或控制量相关收益。' }
-        - { id: 'tradeoff', title: '主要代价', prompt: '写出预计会牺牲什么或哪条边界会收紧。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出相角裕度、速度、高频噪声、控制量或鲁棒性代价。' }
-        - { id: 'reviewEvidence', title: '四类复核证据', prompt: '写出需要复核的四类证据。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half', reference_answer: '至少包含低频增益、截止频率、相角裕度和高频增益，或对应时域/扰动/控制量证据。' }
+        - { id: 'currentTask', title: '当前任务', prompt: '说明对象是谁，以及当前主要要解决什么问题。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出对象和当前主要问题。' }
+        - { id: 'mainConflict', title: '最紧矛盾', prompt: '说明当前最不能接受的后果。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出最紧矛盾。' }
+        - { id: 'preferredStructure', title: '首选单结构', prompt: '写出首选结构候选，并补一句作用语义。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出 PI/滞后、PD/超前、PID 或前馈候选及理由。' }
+        - { id: 'tuningEntry', title: '整定入口', prompt: '写出参数初算采用哪类整定入口。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出频域 PI、滞后、超前、ZN、模型匹配或前馈入口。' }
+        - { id: 'keyParameter', title: '关键参数', prompt: '写出本轮最关键的参数。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出 Kp、Ki、alpha、T、beta 等关键参数。' }
+        - { id: 'expectedBenefit', title: '预期收益', prompt: '写出最先希望看到什么改善。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出稳态误差、裕度、超调、扰动或控制量相关收益。' }
+        - { id: 'tradeoff', title: '主要代价', prompt: '写出预计会牺牲什么或哪条边界会收紧。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '写出相角裕度、速度、高频噪声、控制量或鲁棒性代价。' }
+        - { id: 'reviewEvidence', title: '四类复核证据', prompt: '写出需要复核的四类证据。', response_kind: 'text.short', submit_scope: 'per_card', layout_span: 'half', reference_answer: '至少包含低频增益、截止频率、相角裕度和高频增益，或对应时域/扰动/控制量证据。' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['field_completion_rate', 'error_bucket_distribution'] }
@@ -443,7 +443,7 @@ steps:
     title: '后测：结构选型与整定复核判断'
     layout: { template: 'posttest_board', regions: [{ id: 'quiz', width: 'full', order: 1 }] }
     modules:
-      - { id: 'posttest-cards', region: 'quiz', kind: 'activity-card-set', must_be_visible: true }
+      - { id: 'posttest-cards', region: 'quiz', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       posttest_intro: { text: '本页检查结构选型、参数步骤和复核边界，不做总结。' }
     evidence_sequence: ['三道后测题', '独立提交']
@@ -451,9 +451,9 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三道后测题。'
       activity_cards:
-        - { id: 'post-q1', title: '稳态误差大且动态基本可接受时的首轮结构', prompt: '稳态误差大、动态基本可接受时，首轮更接近哪类结构和整定入口？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '滞后或 PI，按低频误差倍数、零点、幅值条件或 IMC/SIMC 初算' }, { value: 'B', label: '强超前，先提高高频增益' }, { value: 'C', label: '直接取消反馈' }], reference_answer: 'A。稳态误差主导时优先低频补偿，再复核裕度和响应。' }
-        - { id: 'post-q2', title: '超前校正设计必须包含的计算', prompt: '超前校正设计必须包含哪些计算？', response_kind: 'multi_select', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '所需相位补偿和设计余量' }, { value: 'B', label: 'alpha、T、Kc' }, { value: 'C', label: '高频增益和控制量复核' }], reference_answer: 'A、B、C 均需要。' }
-        - { id: 'post-q3', title: '客船超前候选是否可直接作为最终结构', prompt: '客船案例中超前降低超调最明显，因此可直接作为最终结构。', response_kind: 'true_false', submit_scope: 'per_card', layout_span: 'third', reference_answer: '错误。还要复核低频灵敏度、扰动峰值、控制量和工程边界。' }
+        - { id: 'post-q1', title: '稳态误差大且动态基本可接受时的首轮结构', prompt: '稳态误差大、动态基本可接受时，首轮更接近哪类结构和整定入口？', response_kind: 'choice.single', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '滞后或 PI，按低频误差倍数、零点、幅值条件或 IMC/SIMC 初算' }, { value: 'B', label: '强超前，先提高高频增益' }, { value: 'C', label: '直接取消反馈' }], reference_answer: 'A。稳态误差主导时优先低频补偿，再复核裕度和响应。' }
+        - { id: 'post-q2', title: '超前校正设计必须包含的计算', prompt: '超前校正设计必须包含哪些计算？', response_kind: 'choice.multi', submit_scope: 'per_card', layout_span: 'third', options: [{ value: 'A', label: '所需相位补偿和设计余量' }, { value: 'B', label: 'alpha、T、Kc' }, { value: 'C', label: '高频增益和控制量复核' }], reference_answer: 'A、B、C 均需要。' }
+        - { id: 'post-q3', title: '客船超前候选是否可直接作为最终结构', prompt: '客船案例中超前降低超调最明显，因此可直接作为最终结构。', response_kind: 'choice.binary', submit_scope: 'per_card', layout_span: 'third', reference_answer: '错误。还要复核低频灵敏度、扰动峰值、控制量和工程边界。' }
     teacher_controls: { release_activity: 'page_load_open', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -465,9 +465,9 @@ steps:
     title: '总结：频域证据到首轮候选结构'
     layout: { template: 'summary_infograph_board', regions: [{ id: 'media', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'stats', width: 'full', order: 3 }] }
     modules:
-      - { id: 'summary-infograph', region: 'media', kind: 'image-panel', must_be_visible: true, payload: { block_key: 'summary_infograph' } }
-      - { id: 'summary-content', region: 'summary', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'summary_content' } }
-      - { id: 'performance-stats', region: 'stats', kind: 'performance-summary', must_be_visible: true, payload: { block_key: 'performance_stats' } }
+      - { id: 'summary-infograph', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  block_key: 'summary_infograph' } }
+      - { id: 'summary-content', region: 'summary', kind: 'content.cardSet', must_be_visible: true, payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary',  block_key: 'summary_content' } }
+      - { id: 'performance-stats', region: 'stats', kind: 'analytics.summary', must_be_visible: true, payload: { legacyKind: 'performance-summary', presentation: 'single', semanticRole: 'summary',  block_key: 'performance_stats' } }
     content_blocks:
       summary_infograph: { runtime_media: '/course-runtime/lessons/4-2/media/4-2-info.png', caption: '从任务证据、频域作用点、整定入口、参数初算和多指标复核收束本课。' }
       summary_content: { bullets: ['结构选择从任务证据开始。', 'PI/滞后、PD/超前、PID/超前-滞后和前馈服务不同频段或通道。', '参数初算必须按步骤完成。', '阶跃响应、扰动响应、相角裕度和控制量共同决定候选是否值得继续。'], limitation: '本课只形成单结构首轮候选，不能替代组合结构设计、参数优化和工程试验。' }

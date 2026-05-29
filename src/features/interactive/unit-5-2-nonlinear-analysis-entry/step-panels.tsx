@@ -1687,46 +1687,73 @@ export function UNIT_5_2StepContentPanel({
     allowInlineReveal,
     onInlineReveal: onAdvanceReveal,
   });
-  const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
-    ...baseRegistry,
-    'interactive-figure-panel': ({ step: manifestStep, module }: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => (
-      <Unit52NonlinearAnalysisPanel step={manifestStep} module={module} onParameterChange={onParameterChange} />
-    ),
-    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      const visibility = String(module.payload.role_visibility ?? '');
-      if (visibility === 'student_only' && role !== 'student') {
-        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
-      }
-      if (visibility === 'teacher_only' && role !== 'teacher') {
-        return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
-      }
-      if (role === 'student') {
-        return (
-          <Unit52StudentSummaryStats
-            submittedCount={submittedCount}
-            viewedCount={viewedCount}
-            parameterSubmissionCount={parameterSubmissionCount}
-            prePostCompletion={prePostCompletion}
-          />
-        );
-      }
+  const renderInteractiveFigurePanel = ({
+    step: manifestStep,
+    module,
+  }: {
+    step: InteractiveRuntimeStepManifest;
+    module: InteractiveRuntimeModuleManifest;
+  }) => (
+    <Unit52NonlinearAnalysisPanel step={manifestStep} module={module} onParameterChange={onParameterChange} />
+  );
+  const renderStatPanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    const visibility = String(module.payload.role_visibility ?? '');
+    if (visibility === 'student_only' && role !== 'student') {
+      return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+    }
+    if (visibility === 'teacher_only' && role !== 'teacher') {
+      return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
+    }
+    if (role === 'student') {
       return (
-        <Unit52TeacherSummaryStats
-          studentCount={studentCount}
-          submittedStudents={submittedStudents}
-          totalResponses={totalResponses}
-          parameterCoverage={parameterCoverage}
-          objectiveAccuracy={objectiveAccuracy}
-          postTestCompletion={postTestCompletion}
-          misconceptionSummary={misconceptionSummary}
+        <Unit52StudentSummaryStats
+          submittedCount={submittedCount}
+          viewedCount={viewedCount}
+          parameterSubmissionCount={parameterSubmissionCount}
+          prePostCompletion={prePostCompletion}
         />
       );
+    }
+    return (
+      <Unit52TeacherSummaryStats
+        studentCount={studentCount}
+        submittedStudents={submittedStudents}
+        totalResponses={totalResponses}
+        parameterCoverage={parameterCoverage}
+        objectiveAccuracy={objectiveAccuracy}
+        postTestCompletion={postTestCompletion}
+        misconceptionSummary={misconceptionSummary}
+      />
+    );
+  };
+  const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
+    ...baseRegistry,
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+        return renderInteractiveFigurePanel(props);
+      }
+      return baseRegistry['compute.panel'](props);
+    },
+    'content.formula': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      if (legacyKind === 'native-formula-table') {
+        return baseRegistry['native-formula-table'](props);
+      }
+      return baseRegistry['content.formula'](props);
+    },
+    'analytics.summary': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      if (legacyKind === 'stat-panel') {
+        return renderStatPanel(props);
+      }
+      return baseRegistry['analytics.summary'](props);
     },
   };
   if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
-    moduleRegistry['step-reveal-chain'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['step-reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['image-panel'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
+    moduleRegistry['content.reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
+    moduleRegistry['content.figure'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
   }
 
   return (

@@ -49,6 +49,7 @@ interface LearningFactSummaryItem {
   factType: string;
   outcome: string;
   lessonId: string | null;
+  startedAt?: Date | null;
 }
 
 interface StudentStateSummaryItem {
@@ -137,6 +138,29 @@ function summarizeSubmissionEvidence(submissions: StudentStepResponseSummaryItem
     evidenceQualityReasonCounts,
     scoreableObjectiveSubmissions,
   };
+}
+
+function latestFactAtByUserId(facts: LearningFactSummaryItem[]) {
+  const latestByUserId = new Map<string, Date>();
+  for (const fact of facts) {
+    if (!(fact.startedAt instanceof Date) || !Number.isFinite(fact.startedAt.getTime())) continue;
+    const current = latestByUserId.get(fact.userId);
+    if (!current || fact.startedAt.getTime() > current.getTime()) {
+      latestByUserId.set(fact.userId, fact.startedAt);
+    }
+  }
+  return latestByUserId;
+}
+
+function latestSnapshotAtByUserId(snapshots: StudentSnapshotSummaryItem[]) {
+  const latestByUserId = new Map<string, Date>();
+  for (const snapshot of snapshots) {
+    const current = latestByUserId.get(snapshot.userId);
+    if (!current || snapshot.snapshotAt.getTime() > current.getTime()) {
+      latestByUserId.set(snapshot.userId, snapshot.snapshotAt);
+    }
+  }
+  return latestByUserId;
 }
 
 function buildStudentReportData(
@@ -482,6 +506,7 @@ export async function generateSessionSummaryReports(
         factType: true,
         outcome: true,
         lessonId: true,
+        startedAt: true,
       },
     }) as Promise<LearningFactSummaryItem[]>,
     db.studentStepResponse.findMany({
@@ -576,12 +601,13 @@ export async function generateSessionSummaryReports(
 
   const snapshotWindowStart = session.endTime ?? session.startTime;
   const snapshotWindowEnd = new Date(snapshotWindowStart.getTime() + SESSION_SNAPSHOT_UPDATE_WINDOW_MS);
+  const snapshotQueryStart = session.startTime;
   const snapshots = sessionParticipantUserIds.length > 0
     ? await db.studentCompetencySnapshot.findMany({
       where: {
         userId: { in: sessionParticipantUserIds },
         snapshotAt: {
-          gte: snapshotWindowStart,
+          gte: snapshotQueryStart,
           lte: snapshotWindowEnd,
         },
       },
@@ -599,13 +625,30 @@ export async function generateSessionSummaryReports(
       )
       .map((snapshot) => snapshot.userId),
   );
+  const latestFactAtByUser = latestFactAtByUserId(studentFacts);
+  const latestSnapshotAtByUser = latestSnapshotAtByUserId(snapshots);
+  const snapshotCoverageUserIds = sessionParticipantUserIds.filter((userId) => latestFactAtByUser.has(userId));
+  const snapshotCoveredUserIds = snapshotCoverageUserIds.filter((userId) => {
+    const latestFactAt = latestFactAtByUser.get(userId);
+    const latestSnapshotAt = latestSnapshotAtByUser.get(userId);
+    return Boolean(
+      latestFactAt
+      && latestSnapshotAt
+      && latestSnapshotAt.getTime() >= latestFactAt.getTime()
+      && latestSnapshotAt.getTime() <= snapshotWindowEnd.getTime()
+    );
+  });
+  const snapshotCoverageFresh = snapshotCoverageUserIds.length === snapshotCoveredUserIds.length;
+  const postClassUpdateWindowFresh = sessionParticipantUserIds.length === snapshotUpdatedUserIds.size;
   const qualityStatus = computeSessionQualityStatus({
     participants: sessionParticipantUserIds.length,
     durableSubmittedParticipants: durableSubmittedUserIds.size,
     durableSubmissions: studentSubmissions.length,
     evidenceQualityCounts: evidenceSummary.evidenceQualityCounts,
     reportFresh: true,
-    snapshotFresh: sessionParticipantUserIds.length === snapshotUpdatedUserIds.size,
+    snapshotFresh: snapshotCoverageFresh,
+    snapshotCoverageFresh,
+    postClassUpdateWindowFresh,
     syncSeverity: resolveSessionQualitySyncSeverity(qualitySyncHealth.severityDistribution),
     unresolvedSyncIncidents: qualitySyncHealth.unresolvedIncidentCount,
     syncAffectedUsers: qualitySyncHealth.affectedUsers,
@@ -656,6 +699,12 @@ export async function generateSessionSummaryReports(
       missingEvidenceSubmissions: evidenceSummary.evidenceQualityCounts.missing,
       scoreableObjectiveSubmissions: evidenceSummary.scoreableObjectiveSubmissions,
       snapshotUpdatedParticipants: snapshotUpdatedUserIds.size,
+      snapshotCoveredParticipants: snapshotCoveredUserIds.length,
+      snapshotCoverageExpectedParticipants: snapshotCoverageUserIds.length,
+      snapshotCoverageMissingParticipants: Math.max(0, snapshotCoverageUserIds.length - snapshotCoveredUserIds.length),
+      postClassUpdatedParticipants: snapshotUpdatedUserIds.size,
+      postClassUpdateWindowExpectedParticipants: sessionParticipantUserIds.length,
+      postClassUpdateWindowMissingParticipants: Math.max(0, sessionParticipantUserIds.length - snapshotUpdatedUserIds.size),
       syncErrorUsers: syncErrorUserIds.size,
       rawSyncErrors: canonicalEventTypes.sync_error ?? 0,
       syncErrorIncidents,
@@ -671,16 +720,29 @@ export async function generateSessionSummaryReports(
         startTime: snapshotWindowStart.toISOString(),
         endTime: snapshotWindowEnd.toISOString(),
       },
+      snapshotCoverageWindow: {
+        startTime: snapshotQueryStart.toISOString(),
+        endTime: snapshotWindowEnd.toISOString(),
+      },
     },
     evidenceSources: {
       interactionLogs: 'InteractionLog rows for this session',
       durableSubmissions: 'StudentStepResponse rows for this session',
       learningFacts: 'LearningFact rows for this session',
       stateParticipants: 'StudentState rows for this session, excluding teacher state',
-      snapshotUpdatedParticipants: 'StudentCompetencySnapshot rows in the report snapshot update window',
+      snapshotCoveredParticipants: 'StudentCompetencySnapshot rows whose latest snapshot covers the latest session LearningFact',
+      snapshotUpdatedParticipants: 'Compatibility field for StudentCompetencySnapshot rows in the post-class update window',
       syncErrorIncidents: 'sync_error InteractionLog rows grouped by user, step, signature, and 30 second burst window',
     },
     snapshotCoveragePolicy: {
+      denominator: 'participantsWithLearningFacts',
+      denominatorCount: snapshotCoverageUserIds.length,
+      coveredCount: snapshotCoveredUserIds.length,
+      updatedCount: snapshotCoveredUserIds.length,
+      windowStartTime: snapshotQueryStart.toISOString(),
+      windowEndTime: snapshotWindowEnd.toISOString(),
+    },
+    postClassUpdateWindowPolicy: {
       denominator: 'sessionParticipants',
       denominatorCount: sessionParticipantUserIds.length,
       updatedCount: snapshotUpdatedUserIds.size,

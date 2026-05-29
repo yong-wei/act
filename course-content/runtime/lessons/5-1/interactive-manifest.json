@@ -65,52 +65,65 @@
           "id": "page-title",
           "title": "线性边界显现场景",
           "region": "title",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "title_text"
+            "block_key": "title_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "title": "导入漫画",
           "region": "cover",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-1/media/5-1-cover-comic.png",
-            "caption_key": "cover_caption"
+            "caption_key": "cover_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "scene-text",
           "title": "舵机场景文案",
           "region": "scene",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "scene_text"
+            "block_key": "scene_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "boundary-overview",
           "title": "非线性边界现象总览",
           "region": "overview",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-1/media/5-1非线性边界总览插图.png",
-            "caption_key": "overview_caption"
+            "caption_key": "overview_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "bridge-text",
           "title": "工作范围桥接",
           "region": "explanation",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "bridge_text"
+            "block_key": "bridge_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -200,10 +213,13 @@
           "id": "objective-list",
           "title": "完成本次课程后，学习者能够",
           "region": "main",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "objectives"
+            "block_key": "objectives",
+            "legacyKind": "objective-list",
+            "presentation": "single",
+            "semanticRole": "objective"
           }
         }
       ],
@@ -290,24 +306,30 @@
           "id": "pretest-bridge",
           "title": "前测桥接",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "bridge"
+            "block_key": "bridge",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest-quiz",
           "title": "预备判断题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "model-range",
               "superposition-check",
               "parameter-reuse"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -329,7 +351,7 @@
             "id": "model-range",
             "title": "传递函数适用范围",
             "prompt": "某一工作范围内辨识得到的传递函数，能否不加验证地外推到任意输入幅值？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -352,7 +374,7 @@
             "id": "superposition-check",
             "title": "叠加原理判断",
             "prompt": "在线性定常模型中，两个输入同时作用时，响应通常如何由单独响应得到？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -375,7 +397,7 @@
             "id": "parameter-reuse",
             "title": "参数复用条件",
             "prompt": "同一对象在两组工况下阶跃响应系统性不同，是否还能不加说明地共用同一组模型参数？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -470,32 +492,39 @@
           "id": "concept-note",
           "title": "线性主干的使用范围",
           "region": "concept",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "concept_note"
+            "block_key": "concept_note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "assumption-table",
           "title": "默认条件与失效信号",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "assumption_table"
+            "block_key": "assumption_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "assumption-match",
           "title": "失效信号匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "assumption-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -553,7 +582,7 @@
             "id": "assumption-match",
             "title": "失效信号匹配",
             "prompt": "把三条现象拖入对应的线性默认条件空槽：输出被压平、路径回程残差、保护逻辑介入。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -655,53 +684,65 @@
           "id": "figure-role",
           "title": "图的用途",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "figure_role"
+            "block_key": "figure_role",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "static-characteristics",
           "title": "典型非线性环节的边界特性对照",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-1/media/5-1-boundary-static-characteristics.png",
-            "caption_key": "figure_caption"
+            "caption_key": "figure_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "nonlinear-catalog",
           "title": "非线性类型、表达式与风险",
           "region": "catalog",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "nonlinear_catalog"
+            "block_key": "nonlinear_catalog",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "risk-summary",
           "title": "假设破坏风险说明",
           "region": "risk",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "risk_summary"
+            "block_key": "risk_summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "boundary-classify",
           "title": "假设破坏分类",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "boundary-classify"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -801,7 +842,7 @@
             "id": "boundary-classify",
             "title": "假设破坏分类",
             "prompt": "把七类非线性环节拖入对应的主要破坏假设空槽。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -910,27 +951,33 @@
           "id": "smooth-problem",
           "title": "平滑非线性题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "smooth-reveal",
           "title": "局部线性化公式链",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "smooth-panel",
           "title": "时域与频域对比面板",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -939,7 +986,10 @@
               "默认模型：2dy/dt=-y+u, u=tanh(v)",
               "线性化模型：Glin(s)=1/(2s+1)",
               "控件位于图形下方。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1007,7 +1057,7 @@
               "kind": "slider",
               "default": 0.2,
               "min": 0.05,
-              "max": 2.0,
+              "max": 2,
               "step": 0.05
             }
           ],
@@ -1040,7 +1090,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1147,27 +1197,33 @@
           "id": "relay-problem",
           "title": "继电器题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "relay-reveal",
           "title": "伪线性化链与反证",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "relay-panel",
           "title": "继电器响应与伪线性 Bode",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -1176,17 +1232,22 @@
               "默认模型：2dy/dt=-y+u, u=sgn(v)",
               "伪模型：Gfake(s)=1/(2s+1)",
               "右侧 Bode 标注为一次谐波近似。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         },
         {
           "id": "linearization-boundary-table",
           "title": "局部线性化使用边界",
           "region": "boundary",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "linearization_boundary_table"
+            "block_key": "linearization_boundary_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         }
       ],
@@ -1242,16 +1303,16 @@
               "kind": "slider",
               "default": 0.2,
               "min": 0.05,
-              "max": 2.0,
+              "max": 2,
               "step": 0.05
             },
             {
               "id": "relay_amplitude",
               "label": "继电器幅值",
               "kind": "slider",
-              "default": 1.0,
+              "default": 1,
               "min": 0.2,
-              "max": 2.0,
+              "max": 2,
               "step": 0.1
             }
           ],
@@ -1319,7 +1380,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1421,27 +1482,33 @@
           "id": "case-problem",
           "title": "场景与模型",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "case-panel",
           "title": "忽略预测与实际响应对比",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -1450,7 +1517,10 @@
               "左侧为时域响应或控制量对比。",
               "默认参数复现讲义基线图。",
               "提交当前参数和风险判断。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1507,7 +1577,7 @@
               "kind": "slider",
               "default": 1.2,
               "min": 0.4,
-              "max": 2.0,
+              "max": 2,
               "step": 0.1
             }
           ],
@@ -1538,7 +1608,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1637,27 +1707,33 @@
           "id": "case-problem",
           "title": "场景与模型",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "case-panel",
           "title": "忽略预测与实际响应对比",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -1666,7 +1742,10 @@
               "左侧为时域响应或控制量对比。",
               "默认参数复现讲义基线图。",
               "提交当前参数和风险判断。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1697,7 +1776,7 @@
           "default_parameters": {
             "reference_r": 0.12,
             "deadzone_delta": 0.2,
-            "outer_slope": 1.0
+            "outer_slope": 1
           },
           "curve_series": [
             "linear_response",
@@ -1720,7 +1799,7 @@
               "label": "死区宽度 Delta",
               "kind": "slider",
               "default": 0.2,
-              "min": 0.0,
+              "min": 0,
               "max": 0.4,
               "step": 0.02
             },
@@ -1728,9 +1807,9 @@
               "id": "outer_slope",
               "label": "死区外斜率",
               "kind": "slider",
-              "default": 1.0,
+              "default": 1,
               "min": 0.5,
-              "max": 2.0,
+              "max": 2,
               "step": 0.1
             }
           ],
@@ -1761,7 +1840,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1776,7 +1855,7 @@
         "default_parameters": {
           "reference_r": 0.12,
           "deadzone_delta": 0.2,
-          "outer_slope": 1.0
+          "outer_slope": 1
         },
         "curve_series": [
           "linear_response",
@@ -1858,27 +1937,33 @@
           "id": "case-problem",
           "title": "场景与模型",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "case-panel",
           "title": "忽略预测与实际响应对比",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -1887,7 +1972,10 @@
               "左侧为时域响应或控制量对比。",
               "默认参数复现讲义基线图。",
               "提交当前参数和风险判断。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1917,7 +2005,7 @@
           "default_parameters": {
             "reference_r": 0.5,
             "hysteresis_h": 0.05,
-            "relay_amplitude": 1.0
+            "relay_amplitude": 1
           },
           "curve_series": [
             "linear_response",
@@ -1931,7 +2019,7 @@
               "label": "滞环宽度 h",
               "kind": "slider",
               "default": 0.05,
-              "min": 0.0,
+              "min": 0,
               "max": 0.2,
               "step": 0.01
             },
@@ -1939,9 +2027,9 @@
               "id": "relay_amplitude",
               "label": "继电器幅值",
               "kind": "slider",
-              "default": 1.0,
+              "default": 1,
               "min": 0.2,
-              "max": 2.0,
+              "max": 2,
               "step": 0.1
             },
             {
@@ -1950,7 +2038,7 @@
               "kind": "slider",
               "default": 0.5,
               "min": 0.1,
-              "max": 1.0,
+              "max": 1,
               "step": 0.05
             }
           ],
@@ -1981,7 +2069,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1996,7 +2084,7 @@
         "default_parameters": {
           "reference_r": 0.5,
           "hysteresis_h": 0.05,
-          "relay_amplitude": 1.0
+          "relay_amplitude": 1
         },
         "curve_series": [
           "linear_response",
@@ -2078,27 +2166,33 @@
           "id": "case-problem",
           "title": "场景与模型",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "case-reveal",
           "title": "表达式与风险显影",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "case-panel",
           "title": "忽略预测与实际响应对比",
           "region": "figure",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rust_panel",
@@ -2107,7 +2201,10 @@
               "左侧为时域响应或控制量对比。",
               "默认参数复现讲义基线图。",
               "提交当前参数和风险判断。"
-            ]
+            ],
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -2136,7 +2233,7 @@
             "rate_limited: du/dt = sat((v-u)/Ta), |du/dt| <= rate_limit"
           ],
           "default_parameters": {
-            "reference_r": 1.0,
+            "reference_r": 1,
             "actuator_Ta": 0.2,
             "rate_limit": 0.35
           },
@@ -2169,7 +2266,7 @@
               "id": "reference_r",
               "label": "参考输入 r",
               "kind": "slider",
-              "default": 1.0,
+              "default": 1,
               "min": 0.2,
               "max": 1.5,
               "step": 0.05
@@ -2202,7 +2299,7 @@
             "title": "调节曲线面板参数后提交当前参数和观察结论。",
             "prompt": "调节曲线面板参数后提交当前参数和观察结论。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2215,7 +2312,7 @@
         "layout_mirror": "response_compare",
         "baseline_media": "/course-runtime/lessons/5-1/media/5-1-rate-limit-feedback-compare.png",
         "default_parameters": {
-          "reference_r": 1.0,
+          "reference_r": 1,
           "actuator_Ta": 0.2,
           "rate_limit": 0.35
         },
@@ -2309,53 +2406,65 @@
           "id": "five-step-table",
           "title": "边界识别五步框架",
           "region": "framework",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "five_step_table"
+            "block_key": "five_step_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "direction-cards",
           "title": "三类处理方向",
           "region": "directions",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "directions"
+            "block_key": "directions",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "boundary-structure",
           "title": "边界说明结构式",
           "region": "structure",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary_structure"
+            "block_key": "boundary_structure",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-example-reveal",
           "title": "边界说明样例显影",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "boundary-activity",
           "title": "边界说明提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "evidence-select",
               "boundary-statement"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2439,7 +2548,7 @@
             "id": "evidence-select",
             "title": "五步证据选择",
             "prompt": "给定“海试拖尾 + 控制量频繁限幅”，选出应进入边界说明的证据。",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2462,7 +2571,7 @@
             "id": "boundary-statement",
             "title": "方法迁移前边界说明",
             "prompt": "用 80 到 120 字写出证据、假设破坏、线性内处理和迁移理由。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half",
             "reference_answer": "参考口径：先说明控制量限幅和工况变化，再指出比例关系、参数稳定或执行器能力假设被破坏，随后给出线性内修正与迁移理由。"
@@ -2536,24 +2645,30 @@
           "id": "posttest-header",
           "title": "后测任务",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "header"
+            "block_key": "header",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-cards",
           "title": "后测题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "boundary-type-match",
               "linearization-judgment",
               "boundary-note"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2577,7 +2692,7 @@
             "id": "boundary-type-match",
             "title": "边界类型匹配",
             "prompt": "把两个现象拖入对应的边界类型空槽：大角度舵机触碰上限；小修正长期落在执行机构无动作区间内而误差不减。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2596,7 +2711,7 @@
             "id": "linearization-judgment",
             "title": "局部线性化判断",
             "prompt": "关于 $u=\\\\tanh v$ 与 $u=\\\\operatorname{sgn}v$ 的局部线性化判断，哪些说法成立？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2619,7 +2734,7 @@
             "id": "boundary-note",
             "title": "边界说明短答",
             "prompt": "根据“海试拖尾 + 控制量频繁限幅”写不超过 150 字的边界说明，包含证据、假设破坏、线性内处理和迁移理由。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "教师查看四字段完整性：证据、假设破坏、线性内处理、迁移理由。"
@@ -2701,48 +2816,59 @@
           "id": "info-graphic",
           "title": "线性主干边界识别框架",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-1/media/5-1-info.png",
-            "caption_key": "info_caption"
+            "caption_key": "info_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-text",
           "title": "本课收束",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "practice-review",
           "title": "分层练习回看",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_review"
+            "block_key": "practice_review",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "extension-thought",
           "title": "扩展思考",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "extension_thought"
+            "block_key": "extension_thought",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "personal-stats",
           "title": "个人课堂表现统计",
           "region": "stats",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "block_key": "personal_stats",
@@ -2780,14 +2906,16 @@
                 "aggregation": "rubric_summary",
                 "format": "short_text"
               }
-            ]
+            ],
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "class-stats",
           "title": "班级整体表现统计",
           "region": "stats",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "block_key": "class_stats",
@@ -2825,7 +2953,9 @@
                 "aggregation": "top_tags",
                 "format": "tag_list"
               }
-            ]
+            ],
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         }
       ],

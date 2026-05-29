@@ -50,18 +50,20 @@
         {
           "id": "map-banner",
           "region": "lead",
-          "kind": "stage-map",
+          "kind": "content.stageMap",
           "must_be_visible": true,
           "payload": {
             "block_key": "map-banner",
             "title": "模块定位",
-            "text": "模块 1 停留在现象直觉层，2-1 要正式建立对象语言，2-2 才在这些对象上讨论时间响应。"
+            "text": "模块 1 停留在现象直觉层，2-1 要正式建立对象语言，2-2 才在这些对象上讨论时间响应。",
+            "legacy_kind": "stage-map",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "today-task",
           "region": "summary",
-          "kind": "key-task-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "today-task",
@@ -69,7 +71,9 @@
             "items": [
               "不是继续看快慢、稳不稳的表面现象。",
               "而是把对象怎样被写出来、连起来、收束起来这条链真正立住。"
-            ]
+            ],
+            "legacy_kind": "key-task-card",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],
@@ -164,18 +168,20 @@
         {
           "id": "core-equation",
           "region": "equation",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-equation",
             "title": "船舶航向动力学方程",
-            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)"
+            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+            "legacy_kind": "formula-card",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "three-questions",
           "region": "equation",
-          "kind": "question-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "three-questions",
@@ -184,27 +190,42 @@
               "能不能一眼判断它属于什么对象？",
               "它以后怎么接控制器和传感器？",
               "它进入反馈后，整体对象怎么写？"
-            ]
+            ],
+            "legacy_kind": "question-list",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "cover-comic",
           "region": "comic",
-          "kind": "image-card",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "cover-comic"
+            "block_key": "cover-comic",
+            "legacy_kind": "image-card",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "binary-judge",
           "region": "interaction",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-equation",
             "title": "船舶航向动力学方程",
-            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)"
+            "formula": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+            "legacy_kind": "binary-choice",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "choice.single",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "binary_choice",
+              "activity_card_ids": [
+                "binary-judge"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -240,7 +261,7 @@
             "title": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
             "prompt": "在 A/B 两个判断中选择“微分方程只是起点，还需要统一对象语言”。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -314,23 +335,27 @@
         {
           "id": "object-chain",
           "region": "chain",
-          "kind": "formula-chain",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "object-chain",
             "title": "本课主线",
-            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}"
+            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}",
+            "legacy_kind": "formula-chain",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "goal-cards",
           "region": "cards",
-          "kind": "goal-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "object-chain",
             "title": "本课主线",
-            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}"
+            "formula": "\\text{微分方程} \\rightarrow \\text{拉氏变换} \\rightarrow \\text{传递函数} \\rightarrow \\text{典型环节} \\rightarrow \\text{结构表达} \\rightarrow \\text{总体对象}",
+            "legacy_kind": "goal-card-row",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],
@@ -407,34 +432,73 @@
         {
           "id": "misconception-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "question-stems",
             "title": "三道误区题必须完整落页",
-            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
+            "legacy_kind": "single-choice-card",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "choice.single",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "misconception-q1",
+                "misconception-q2",
+                "misconception-q3"
+              ],
+              "submit_fields": []
+            }
           }
         },
         {
           "id": "misconception-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "question-stems",
             "title": "三道误区题必须完整落页",
-            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
+            "legacy_kind": "single-choice-card",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "choice.single",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "misconception-q1",
+                "misconception-q2",
+                "misconception-q3"
+              ],
+              "submit_fields": []
+            }
           }
         },
         {
           "id": "misconception-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "question-stems",
             "title": "三道误区题必须完整落页",
-            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。"
+            "text": "传递函数中的零初值能不能省略；遇到复杂分式先认对象还是直接化简；信号流图是不是方框图换个名字。",
+            "legacy_kind": "single-choice-card",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "choice.single",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "misconception-q1",
+                "misconception-q2",
+                "misconception-q3"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -456,7 +520,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -466,7 +530,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -476,7 +540,7 @@
             "title": "完成三道客观题。",
             "prompt": "完成三道客观题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -558,28 +622,43 @@
         {
           "id": "language-contrast",
           "region": "contrast",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "minimum-formulas"
+            "block_key": "minimum-formulas",
+            "legacy_kind": "comparison-table",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "minimum-formulas",
           "region": "formula-strip",
-          "kind": "formula-strip",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "minimum-formulas"
+            "block_key": "minimum-formulas",
+            "legacy_kind": "formula-strip",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "one-line-reflection",
           "region": "reflection",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "minimum-formulas"
+            "block_key": "minimum-formulas",
+            "legacy_kind": "short-response",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "short_response",
+              "activity_card_ids": [
+                "step-05-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -603,7 +682,7 @@
             "title": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
             "prompt": "补全一句话：拉氏变换在本课里的核心价值，是把什么改写成什么。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -682,31 +761,46 @@
         {
           "id": "transfer-definition",
           "region": "formula-card",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-definition",
-            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
+            "legacy_kind": "formula-card",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "object-separation",
           "region": "explain-cards",
-          "kind": "conclusion-cards",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-definition",
-            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
+            "legacy_kind": "conclusion-cards",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "checklist",
           "region": "reason-checklist",
-          "kind": "multi-check",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-definition",
-            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}"
+            "formula": "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
+            "legacy_kind": "multi-check",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "multi_check",
+              "activity_card_ids": [
+                "step-06-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -726,7 +820,7 @@
             "title": "勾选“对象与输入分离”的三个理由。",
             "prompt": "勾选“对象与输入分离”的三个理由。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -802,28 +896,43 @@
         {
           "id": "object-state-compare",
           "region": "compare-table",
-          "kind": "two-column-compare",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "compare-formulas"
+            "block_key": "compare-formulas",
+            "legacy_kind": "two-column-compare",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "reflection-form",
           "region": "self-judgment",
-          "kind": "three-field-form",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "compare-formulas"
+            "block_key": "compare-formulas",
+            "legacy_kind": "three-field-form",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "reflection_form",
+              "activity_card_ids": [
+                "step-07-activity"
+              ],
+              "submit_fields": []
+            }
           }
         },
         {
           "id": "bounded-ai",
           "region": "ai-panel",
-          "kind": "ai-assistant",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "compare-formulas"
+            "block_key": "compare-formulas",
+            "legacy_kind": "ai-assistant",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],
@@ -846,7 +955,7 @@
             "title": "先写个人判断，再用页内 AI 对照。",
             "prompt": "先写个人判断，再用页内 AI 对照。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -931,41 +1040,67 @@
         {
           "id": "elements-table",
           "region": "table-zone",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "elements-table",
-            "title": "五类典型环节及其第一判断"
+            "title": "五类典型环节及其第一判断",
+            "legacy_kind": "table-card",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "elements-map",
           "region": "map-zone",
-          "kind": "image-or-table-fallback",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "elements-map"
+            "block_key": "elements-map",
+            "legacy_kind": "image-or-table-fallback",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "drag-board",
           "region": "game-stage",
-          "kind": "drag-match-board",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "game-rules",
             "title": "互动舞台规则",
-            "text": "先看上方总表，再进入下方拖拽舞台。学生要把公式卡、名称卡、第一眼工程判断卡拖到同一对象槽位中；舞台允许加入干扰项，但不能把拖拽题降级成单选或文本表单。"
+            "text": "先看上方总表，再进入下方拖拽舞台。学生要把公式卡、名称卡、第一眼工程判断卡拖到同一对象槽位中；舞台允许加入干扰项，但不能把拖拽题降级成单选或文本表单。",
+            "legacy_kind": "drag-match-board",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "drag_match",
+              "activity_card_ids": [
+                "step-08-activity"
+              ],
+              "submit_fields": []
+            }
           }
         },
         {
           "id": "result-bar",
           "region": "submit-zone",
-          "kind": "submit-feedback-bar",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "elements-table",
-            "title": "五类典型环节及其第一判断"
+            "title": "五类典型环节及其第一判断",
+            "legacy_kind": "submit-feedback-bar",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "drag_match",
+              "activity_card_ids": [
+                "step-08-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1066,7 +1201,7 @@
             "title": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
             "prompt": "把公式卡、名称卡、第一眼工程判断卡拖到五个对象槽位中，形成正确配对。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1161,28 +1296,43 @@
         {
           "id": "three-formulas",
           "region": "formula-strip",
-          "kind": "formula-strip",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "three-formulas"
+            "block_key": "three-formulas",
+            "legacy_kind": "formula-strip",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "rule-cards",
           "region": "rule-cards",
-          "kind": "rule-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "three-formulas"
+            "block_key": "three-formulas",
+            "legacy_kind": "rule-card-row",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "judge-zone",
           "region": "judge-zone",
-          "kind": "judge-form",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "three-formulas"
+            "block_key": "three-formulas",
+            "legacy_kind": "judge-form",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "rule_judge",
+              "activity_card_ids": [
+                "step-09-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1206,7 +1356,7 @@
             "title": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
             "prompt": "判断串联、并联、反馈分别对应哪条规则，并写一句反馈为何关键。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1283,28 +1433,43 @@
         {
           "id": "ship-diagram",
           "region": "diagram",
-          "kind": "engineering-diagram",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship-diagram"
+            "block_key": "ship-diagram",
+            "legacy_kind": "engineering-diagram",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "role-cards",
           "region": "role-cards",
-          "kind": "role-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship-diagram"
+            "block_key": "ship-diagram",
+            "legacy_kind": "role-card-row",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "feedback-task",
           "region": "feedback-task",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship-diagram"
+            "block_key": "ship-diagram",
+            "legacy_kind": "short-response",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "hotspot_labeling",
+              "activity_card_ids": [
+                "step-10-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1324,7 +1489,7 @@
             "title": "指出反馈信号，并说明传感器怎样把闭环关上。",
             "prompt": "指出反馈信号，并说明传感器怎样把闭环关上。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1400,19 +1565,23 @@
         {
           "id": "diagram-comparison",
           "region": "left-diagram",
-          "kind": "dual-diagram",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "diagram-comparison"
+            "block_key": "diagram-comparison",
+            "legacy_kind": "dual-diagram",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "task-table",
           "region": "comparison-table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "diagram-comparison"
+            "block_key": "diagram-comparison",
+            "legacy_kind": "comparison-table",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],
@@ -1432,7 +1601,7 @@
             "title": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
             "prompt": "把“看模块连接”“看路径回路”等任务拖到方框图或信号流图栏目中。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1507,31 +1676,46 @@
         {
           "id": "mason-formula",
           "region": "formula-zone",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "mason-formula",
-            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}",
+            "legacy_kind": "formula-card",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "term-defs",
           "region": "term-cards",
-          "kind": "definition-cards",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "mason-formula",
-            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}",
+            "legacy_kind": "definition-cards",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "term-match",
           "region": "match-stage",
-          "kind": "drag-match-board",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "mason-formula",
-            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}"
+            "formula": "\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}",
+            "legacy_kind": "drag-match-board",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "drag_match",
+              "activity_card_ids": [
+                "step-12-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1555,7 +1739,7 @@
             "title": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
             "prompt": "把前向通路、回路、互不接触回路、余子式四个术语拖到对应定义与图中高亮部位。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1636,30 +1820,45 @@
         {
           "id": "example-steps",
           "region": "step-cards",
-          "kind": "worked-example-cards",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "forward-formula",
-            "formula": "G(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}"
+            "formula": "G(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}",
+            "legacy_kind": "worked-example-cards",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "loop-diagram",
           "region": "diagram-zone",
-          "kind": "diagram-pair",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "closed-loop-formula",
-            "formula": "\\Phi(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}"
+            "block_key": "diagrams",
+            "formula": "\\Phi(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}",
+            "legacy_kind": "diagram-pair",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "channel-check",
           "region": "check-zone",
-          "kind": "choice-check",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "diagrams"
+            "block_key": "diagrams",
+            "legacy_kind": "choice-check",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "choice_check",
+              "activity_card_ids": [
+                "step-13-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1690,7 +1889,7 @@
             "title": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
             "prompt": "确认哪一项是前向通道、哪一项是反馈通道，以及为什么真正分析对象是闭环对象。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1768,28 +1967,43 @@
         {
           "id": "formula-chain",
           "region": "formula-chain",
-          "kind": "formula-strip",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula-chain"
+            "block_key": "formula-chain",
+            "legacy_kind": "formula-strip",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "sfg-stage",
           "region": "highlight-stage",
-          "kind": "path-highlight-stage",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "sfg-stage"
+            "block_key": "sfg-stage",
+            "legacy_kind": "path-highlight-stage",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "reason-box",
           "region": "explain-box",
-          "kind": "single-reason-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula-chain"
+            "block_key": "formula-chain",
+            "legacy_kind": "single-reason-response",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "text.short",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "path_highlight",
+              "activity_card_ids": [
+                "step-14-activity"
+              ],
+              "submit_fields": []
+            }
           }
         }
       ],
@@ -1818,7 +2032,7 @@
             "title": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
             "prompt": "点击或拖选当前前向通路，再判断它是否接触局部回路，并写一句为什么会或不会保留 Delta_k。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1892,21 +2106,34 @@
         {
           "id": "post-quiz",
           "region": "quiz-stack",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "post-quiz",
-            "text": "三题分别检查零初值、典型环节识别和余子式判断。"
+            "text": "三题分别检查零初值、典型环节识别和余子式判断。",
+            "legacy_kind": "quiz-group",
+            "migration_source": "legacy_module_kind",
+            "response_kind": "choice.single",
+            "structured_extra_evidence": {
+              "source": "interaction_spec",
+              "interaction_kind": "quiz_group",
+              "activity_card_ids": [
+                "post-quiz"
+              ],
+              "submit_fields": []
+            }
           }
         },
         {
           "id": "distribution",
           "region": "distribution",
-          "kind": "teacher-only-distribution",
+          "kind": "analytics.summary",
           "must_be_visible": false,
           "payload": {
             "block_key": "post-quiz",
-            "text": "三题分别检查零初值、典型环节识别和余子式判断。"
+            "text": "三题分别检查零初值、典型环节识别和余子式判断。",
+            "legacy_kind": "teacher-only-distribution",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],
@@ -1926,7 +2153,7 @@
             "title": "完成后测三题。",
             "prompt": "完成后测三题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2006,20 +2233,24 @@
         {
           "id": "summary-chain",
           "region": "summary-chain",
-          "kind": "summary-chain",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "summary-chain",
-            "text": "对象建立 -> 对象识别 -> 结构表达 -> 总体对象"
+            "text": "对象建立 -> 对象识别 -> 结构表达 -> 总体对象",
+            "legacy_kind": "summary-chain",
+            "migration_source": "legacy_module_kind"
           }
         },
         {
           "id": "summary-image",
           "region": "finished-steps",
-          "kind": "summary-image",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary-image"
+            "block_key": "summary-image",
+            "legacy_kind": "summary-image",
+            "migration_source": "legacy_module_kind"
           }
         }
       ],

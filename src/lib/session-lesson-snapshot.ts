@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 
 export interface SessionLessonSnapshot {
   lessonVersion: string | null;
@@ -11,20 +12,8 @@ export interface SessionLessonSnapshot {
 }
 
 export function resolveRuntimeLessonKeyFromRouteSegment(routeSegment: string | null): string | null {
-  if (!routeSegment) {
-    return null;
-  }
-
-  const unitMatch = routeSegment.match(/^unit-(\d+)-(\d+)-/);
-  if (unitMatch) {
-    return `${unitMatch[1]}-${unitMatch[2]}`;
-  }
-
-  if (routeSegment === 'cruise-comfort-boppps') {
-    return 'cruise-comfort-boppps';
-  }
-
-  return null;
+  const resolved = resolveInteractiveLessonIdentity({ kind: 'routeSegment', value: routeSegment });
+  return resolved.status === 'resolved' ? resolved.record.runtimeLessonDir : null;
 }
 
 export function summarizeRuntimeLessonManifest(manifestContent: string): SessionLessonSnapshot {

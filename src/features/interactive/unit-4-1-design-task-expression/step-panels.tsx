@@ -1207,80 +1207,131 @@ export function UNIT_4_1StepContentPanel({
     onInlineReveal: onAdvanceReveal,
   });
   const hiddenModule = (moduleId: string) => <div hidden aria-hidden="true" data-role-hidden-module={moduleId} />;
-  const moduleRegistry: InteractiveModuleRegistry<ManifestContentExtra> = {
-    ...baseRegistry,
-    graphic: ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-04') {
-        return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png" alt="客船航向控制对象框图" />;
-      }
-      if (step.id === 'step-05') {
-        return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png" alt="稳定平台对象框图" />;
-      }
-      return baseRegistry.graphic?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'interactive-figure': ({ step: manifestStep }: { step: InteractiveRuntimeStepManifest }) => {
-      if (manifestStep.id === 'step-04' || manifestStep.id === 'step-05') {
-        return (
-          <ParameterMirrorPanel
-            stepId={manifestStep.id}
-            onWorkspaceParameterChange={onWorkspaceParameterChange}
-          />
-        );
-      }
-      return null;
-    },
-    'comparison-table': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-06') return <ContrastSummaryMatrixPanel />;
-      return baseRegistry['comparison-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'question-card-row': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-07') return <RoleMatrixPanel />;
-      return baseRegistry['question-card-row']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'formula-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
-      return baseRegistry['formula-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'native-table': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
-      if (step.id === 'step-11') return <EngineeringChecklistPanel />;
-      return baseRegistry['native-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'template-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-09') return <TaskCardTemplatePanel />;
-      return baseRegistry['template-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'evidence-bank': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-09') return hiddenModule(module.id);
-      return baseRegistry['evidence-bank']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'example-card': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-09') return hiddenModule(module.id);
-      return baseRegistry['example-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'native-figure': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (step.id === 'step-10') return <LayeredRegionPanel />;
-      return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal } });
-    },
-    'stat-panel': ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
-      if (role === 'student') {
-        return (
-          <UNIT_4_1StudentSummaryPanel
-            submittedCount={submittedCount}
-            viewedCount={viewedCount}
-            postTestCompleted={postTestCompletion > 0}
-            parameterSubmissionCount={parameterSubmissionCount}
-          />
-        );
-      }
+  const moduleExtra = { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal };
+  const moduleLegacyKind = (module: InteractiveRuntimeModuleManifest) =>
+    typeof module.payload.legacyKind === 'string' ? module.payload.legacyKind : '';
+  const moduleCapabilityRef = (module: InteractiveRuntimeModuleManifest) =>
+    typeof module.payload.capabilityRef === 'string' ? module.payload.capabilityRef : '';
+  const renderGraphic = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-04') {
+      return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png" alt="客船航向控制对象框图" />;
+    }
+    if (step.id === 'step-05') {
+      return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png" alt="稳定平台对象框图" />;
+    }
+    return baseRegistry.graphic?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderInteractiveFigure = ({ step: manifestStep }: { step: InteractiveRuntimeStepManifest }) => {
+    if (manifestStep.id === 'step-04' || manifestStep.id === 'step-05') {
       return (
-        <UNIT_4_1TeacherSummaryPanel
-          studentCount={studentCount}
-          submittedStudents={submittedStudents}
-          totalResponses={totalResponses}
-          postTestCompletion={postTestCompletion}
+        <ParameterMirrorPanel
+          stepId={manifestStep.id}
+          onWorkspaceParameterChange={onWorkspaceParameterChange}
         />
       );
+    }
+    return null;
+  };
+  const renderComparisonTable = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-06') return <ContrastSummaryMatrixPanel />;
+    return baseRegistry['comparison-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderQuestionCardRow = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-07') return <RoleMatrixPanel />;
+    return baseRegistry['question-card-row']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderFormulaCard = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
+    return baseRegistry['formula-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderNativeTable = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-07' || step.id === 'step-10') return hiddenModule(module.id);
+    if (step.id === 'step-11') return <EngineeringChecklistPanel />;
+    return baseRegistry['native-table']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderTemplateCard = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-09') return <TaskCardTemplatePanel />;
+    return baseRegistry['template-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderEvidenceBank = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-09') return hiddenModule(module.id);
+    return baseRegistry['evidence-bank']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderExampleCard = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-09') return hiddenModule(module.id);
+    return baseRegistry['example-card']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderNativeFigure = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
+    if (step.id === 'step-10') return <LayeredRegionPanel />;
+    return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
+  };
+  const renderStatPanel = () => {
+    if (role === 'student') {
+      return (
+        <UNIT_4_1StudentSummaryPanel
+          submittedCount={submittedCount}
+          viewedCount={viewedCount}
+          postTestCompleted={postTestCompletion > 0}
+          parameterSubmissionCount={parameterSubmissionCount}
+        />
+      );
+    }
+    return (
+      <UNIT_4_1TeacherSummaryPanel
+        studentCount={studentCount}
+        submittedStudents={submittedStudents}
+        totalResponses={totalResponses}
+        postTestCompletion={postTestCompletion}
+      />
+    );
+  };
+  const moduleRegistry: InteractiveModuleRegistry<ManifestContentExtra> = {
+    ...baseRegistry,
+    'content.figure': (props) => {
+      const legacyKind = moduleLegacyKind(props.module);
+      if (legacyKind === 'graphic') {
+        return renderGraphic(props);
+      }
+      if (legacyKind === 'native-figure') {
+        return renderNativeFigure(props);
+      }
+      return baseRegistry['content.figure']?.(props) ?? null;
+    },
+    'compute.panel': (props) => {
+      if (moduleLegacyKind(props.module) === 'interactive-figure' || moduleCapabilityRef(props.module) === 'interactive-figure') {
+        return renderInteractiveFigure(props);
+      }
+      return baseRegistry['compute.panel']?.(props) ?? null;
+    },
+    'content.table': (props) => {
+      const legacyKind = moduleLegacyKind(props.module);
+      if (legacyKind === 'comparison-table') {
+        return renderComparisonTable(props);
+      }
+      if (legacyKind === 'native-table') {
+        return renderNativeTable(props);
+      }
+      return baseRegistry['content.table']?.(props) ?? null;
+    },
+    'content.formula': (props) => {
+      if (moduleLegacyKind(props.module) === 'formula-card') {
+        return renderFormulaCard(props);
+      }
+      return baseRegistry['content.formula']?.(props) ?? null;
+    },
+    'content.cardSet': (props) => {
+      const legacyKind = moduleLegacyKind(props.module);
+      if (legacyKind === 'question-card-row') return renderQuestionCardRow(props);
+      if (legacyKind === 'template-card') return renderTemplateCard(props);
+      if (legacyKind === 'evidence-bank') return renderEvidenceBank(props);
+      if (legacyKind === 'example-card') return renderExampleCard(props);
+      return baseRegistry['content.cardSet']?.(props) ?? null;
+    },
+    'analytics.summary': (props) => {
+      if (moduleLegacyKind(props.module) === 'stat-panel') {
+        return renderStatPanel();
+      }
+      return baseRegistry['analytics.summary']?.(props) ?? null;
     },
   };
 
@@ -1290,7 +1341,7 @@ export function UNIT_4_1StepContentPanel({
         manifest: activeManifest,
         step: stepManifest,
         moduleRegistry,
-        extra: { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal },
+        extra: moduleExtra,
       })}
     </section>
   );

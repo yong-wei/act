@@ -1,59 +1,72 @@
 import { NextResponse } from 'next/server';
 
-interface FeedbackRecord {
-  userId: string;
-  sessionId: string;
-  interventionId: string;
-  wasHelpful: boolean;
-  studentResponse?: string;
-  createdAt: number;
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __aiInterventionFeedbackStore: FeedbackRecord[] | undefined;
-}
-
-function getStore(): FeedbackRecord[] {
-  if (!globalThis.__aiInterventionFeedbackStore) {
-    globalThis.__aiInterventionFeedbackStore = [];
-  }
-  return globalThis.__aiInterventionFeedbackStore;
-}
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import {
+  KonlingRuntimeScopeError,
+  recordKonlingInterventionFeedback,
+  verifyKonlingRuntimeScope,
+  type KonlingInterventionFeedback,
+} from '@/lib/konling-agent-runtime';
 
 interface FeedbackRequest {
   userId?: string;
-  sessionId: string;
+  classId?: string;
+  courseId?: string;
+  pageId?: string;
+  resourceId?: string;
+  pathNodeId?: string;
   interventionId: string;
-  wasHelpful: boolean;
+  feedback?: KonlingInterventionFeedback;
+  wasHelpful?: boolean;
   studentResponse?: string;
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 });
+    }
+
     const body = (await request.json()) as FeedbackRequest;
-    const store = getStore();
+    if (!body.interventionId) {
+      return NextResponse.json({ error: '缺少 interventionId' }, { status: 400 });
+    }
 
-    store.push({
-      userId: body.userId ?? 'demo-user',
-      sessionId: body.sessionId,
+    const scope = await verifyKonlingRuntimeScope(prisma, {
+      authenticatedUserId: session.user.id,
+      role: session.user.role,
+      targetUserId: body.userId || session.user.id,
+      classId: body.classId,
+      courseId: body.courseId,
+      pageId: body.pageId,
+      resourceId: body.resourceId,
+      pathNodeId: body.pathNodeId,
+    });
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
+    }
+
+    const result = await recordKonlingInterventionFeedback(prisma, {
+      scope: scope.scope,
       interventionId: body.interventionId,
-      wasHelpful: body.wasHelpful,
+      feedback: body.feedback ?? (body.wasHelpful === false ? 'dismissed' : 'rated'),
+      helpful: body.wasHelpful,
       studentResponse: body.studentResponse,
-      createdAt: Date.now(),
     });
 
-    return NextResponse.json({
-      success: true,
-      savedCount: store.length,
-    });
+    return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof KonlingRuntimeScopeError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     return NextResponse.json(
       {
         error: '反馈记录失败',
         message: error instanceof Error ? error.message : '未知错误',
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

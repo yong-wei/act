@@ -61,6 +61,7 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     });
     mocks.runVirtualPreview.mockResolvedValue({
       id: 'preview-row-1',
+      simulationRunId: 'canonical-run-preview-1',
       taskId: artifact.taskId,
       datasetHash: artifact.params.experimentDatasetHash,
       controllerHash: 'controller-hash',
@@ -72,6 +73,15 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
         controlEnergy: 0.2,
         safetyViolations: 0,
         smoothness: 0.9,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        modelRelation: 'identified-model-controller',
+        datasetHash: artifact.params.experimentDatasetHash,
+        controllerHash: 'controller-hash',
+        identificationModelId: artifact.params.identificationModelId,
+        sourceExperimentId: 'experiment-preview-row',
       },
       createdAt: '2026-05-11T11:31:00.000Z',
     });
@@ -106,12 +116,19 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(200);
     expect(payload.preview.id).toBe('preview-row-1');
+    expect(payload.preview.simulationRunId).toBe('canonical-run-preview-1');
+    expect(payload.preview.metadata).toEqual(expect.objectContaining({
+      evaluationVisibility: 'preview',
+      officialEligible: false,
+      modelRelation: 'identified-model-controller',
+    }));
     expect(mocks.getArenaPlantAdapterForVirtualPreviewTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.runVirtualPreview).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       taskId: artifact.taskId,
       artifact,
       blackBoxExperimentStore: { marker: 'blackbox-store' },
+      identificationModelStore: { marker: 'blackbox-store' },
       runStore: { marker: 'preview-store' },
     }));
   });
@@ -126,6 +143,36 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('does not belong');
+  });
+
+  it('reports pending Arena model registry migrations as a specific Chinese error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The column `ArenaIdentificationModel.validationSummary` does not exist in the current database.'),
+      { code: 'P2022', meta: { modelName: 'ArenaIdentificationModel', column: 'ArenaIdentificationModel.validationSummary' } },
+    );
+    mocks.runVirtualPreview.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
+  it('reports pending Arena table migrations from Prisma P2021 table metadata', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The table `ArenaIdentificationModel` does not exist in the current database.'),
+      { code: 'P2021', meta: { table: '`ArenaIdentificationModel`' } },
+    );
+    mocks.runVirtualPreview.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
   });
 
   it('maps unsupported adapter selection to 400 without storing a preview run', async () => {

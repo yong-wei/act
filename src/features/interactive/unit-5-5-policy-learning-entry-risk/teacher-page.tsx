@@ -16,6 +16,12 @@ import type {
   InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import {
+  isChoiceMultiResponseKind,
+  isChoiceSingleResponseKind,
+  isMatchingResponseKind,
+  isOrderingResponseKind,
+} from '@/lib/interactive-response-contracts';
+import {
   finalizeUNIT_5_5TeacherSession,
   isUNIT_5_5StudentState,
   isUNIT_5_5TeacherSyncState,
@@ -55,14 +61,14 @@ function normalizeAnswerList(value: string, comparison: Unit55ObjectiveCard['com
 }
 
 function expectedObjectiveAnswer(card: InteractiveRuntimeActivityCardManifest) {
-  if (card.responseKind === 'drag_match' && card.referenceMatches?.length && card.matchItems?.length) {
+  if (isMatchingResponseKind(card.responseKind) && card.referenceMatches?.length && card.matchItems?.length) {
     return {
       expected: card.matchItems.map((item) => card.referenceMatches?.find((match) => match.item === item.value)?.option ?? '').join('|'),
       comparison: 'ordered' as const,
     };
   }
 
-  if ((card.responseKind === 'drag_sort' || card.responseKind === 'drag_match') && card.options.length) {
+  if ((isOrderingResponseKind(card.responseKind) || isMatchingResponseKind(card.responseKind)) && card.options.length) {
     return {
       expected: card.options.map((option) => option.value).join('|'),
       comparison: 'ordered' as const,
@@ -72,14 +78,14 @@ function expectedObjectiveAnswer(card: InteractiveRuntimeActivityCardManifest) {
   const referenceAnswer = card.referenceAnswer?.trim();
   if (!referenceAnswer) return null;
 
-  if (card.responseKind === 'multi_select' || card.responseKind === 'multi_choice') {
+  if (isChoiceMultiResponseKind(card.responseKind)) {
     return {
       expected: referenceAnswer,
       comparison: 'set' as const,
     };
   }
 
-  if (card.responseKind === 'single_choice' || card.responseKind === 'binary_choice') {
+  if (isChoiceSingleResponseKind(card.responseKind)) {
     return {
       expected: referenceAnswer,
       comparison: 'single' as const,

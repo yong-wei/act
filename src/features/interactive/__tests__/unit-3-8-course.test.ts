@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -154,15 +156,66 @@ describe('unit 3-8 interactive course', () => {
     expect(manifest.steps['step-04']?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
 
     for (const stepId of ['step-05', 'step-06', 'step-07', 'step-08']) {
-      expect(manifest.steps[stepId]?.modules?.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
+      expect(
+        manifest.steps[stepId]?.modules?.some((module) =>
+          module.kind === 'compute.panel'
+          && module.payload?.legacyKind === 'rust-analysis-panel'
+          && module.payload?.capabilityRef === 'rust-analysis',
+        ),
+      ).toBe(true);
       expect(manifest.steps[stepId]?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
     }
 
     const step11Modules = manifest.steps['step-11']?.modules ?? [];
-    expect(step11Modules[0]?.kind).toBe('worked-example-card');
-    expect(step11Modules[1]?.kind).toBe('comparison-graphic');
+    expect(step11Modules[0]).toMatchObject({ kind: 'content.cardSet', payload: { legacyKind: 'worked-example-card' } });
+    expect(step11Modules[1]).toMatchObject({ kind: 'content.figure', payload: { legacyKind: 'comparison-graphic' } });
     expect(JSON.stringify(manifest.steps['step-12']?.modules ?? [])).toContain('L(s)=K/[(s+1)(s+2)(s+4)]');
     expect(JSON.stringify(manifest.steps['step-13']?.modules ?? [])).toContain('G_m');
+  });
+
+  it('renders migrated 3-8 compute.panel modules through the Rust analysis panel', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-8');
+    const courseModule = await import('@/lib/unit-3-8-course');
+    const { UNIT_3_8StepContentPanel } = await import(
+      '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels'
+    );
+    const step = courseModule.UNIT_3_8_LESSON_STEPS.find((item) => item.id === 'step-05');
+
+    if (!step || !runtime.interactiveManifest) throw new Error('3-8 step-05 runtime manifest missing');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_3_8StepContentPanel, {
+        step,
+        manifest: runtime.interactiveManifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+      }),
+    );
+
+    expect(html).toContain('控制分析图暂时不可用');
+    expect(html).not.toContain('Rust 驱动四联互动面板');
+  });
+
+  it('renders migrated 3-8 interactive-figure compute.panel modules through the image panel', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-8');
+    const courseModule = await import('@/lib/unit-3-8-course');
+    const { UNIT_3_8StepContentPanel } = await import(
+      '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels'
+    );
+    const step = courseModule.UNIT_3_8_LESSON_STEPS.find((item) => item.id === 'step-17');
+
+    if (!step || !runtime.interactiveManifest) throw new Error('3-8 step-17 runtime manifest missing');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_3_8StepContentPanel, {
+        step,
+        manifest: runtime.interactiveManifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+      }),
+    );
+
+    expect(html).toContain('3-8-heading-baseline.png');
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {
@@ -261,8 +314,9 @@ describe('unit 3-8 interactive course', () => {
     const cards = Object.values(manifest.steps).flatMap((step) => step.interaction_spec?.activity_cards ?? []);
 
     expect(cards.length).toBeGreaterThan(0);
-    expect(cards.filter((card) => card.response_kind !== 'text').every((card) => card.options?.length)).toBe(true);
-    expect(cards.some((card) => card.response_kind === 'drag_sort')).toBe(true);
+    expect(cards.filter((card) => !card.response_kind.startsWith('text.')).every((card) => card.options?.length)).toBe(true);
+    expect(cards.some((card) => card.response_kind === 'ordering.sequence')).toBe(true);
+    expect(cards.map((card) => card.response_kind)).not.toContain('drag_sort');
     expect(cards.map((card) => card.response_kind)).not.toContain('fill_text');
   });
 
@@ -323,7 +377,10 @@ describe('unit 3-8 interactive course', () => {
 
     for (const stepId of ['step-01', 'step-11', 'step-12', 'step-13', 'step-15', 'step-17', 'step-18', 'step-19', 'step-20', 'step-22']) {
       const modules = manifest.steps[stepId]?.modules ?? [];
-      const imageModules = modules.filter((manifestModule) => ['comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(manifestModule.kind));
+      const imageModules = modules.filter((manifestModule) =>
+        ['content.figure', 'compute.panel'].includes(manifestModule.kind)
+        && ['comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(String(manifestModule.payload?.legacyKind ?? '')),
+      );
       expect(imageModules.length, `${stepId} should contain image modules`).toBeGreaterThan(0);
       expect(
         imageModules.some((manifestModule) => JSON.stringify(manifestModule.payload ?? {}).includes('.png')),

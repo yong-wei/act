@@ -16,6 +16,7 @@ import {
   renderInteractiveManifestStep,
   type InteractiveModuleRegistry,
   type InteractiveRuntimeModuleManifest,
+  type InteractiveRuntimeStepManifest,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
@@ -475,18 +476,40 @@ export function UNIT_5_6StepContentPanel({
   const activeManifest = requireUnit56Manifest(manifest);
   const stepManifest = getUNIT_5_6ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = useMemo(() => createManifestContentModuleRegistry({ revealProgress, allowInlineReveal, onInlineReveal }), [allowInlineReveal, onInlineReveal, revealProgress]);
-  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => ({
-    ...baseRegistry,
-    'interactive-figure-panel': ({ manifest: renderManifest, step: renderStep, module, extra }) => {
+  const contentRegistry = useMemo<InteractiveModuleRegistry<ContentRegistryExtra>>(() => {
+    const renderInteractiveFigurePanel = ({ manifest: renderManifest, step: renderStep, module, extra }: {
+      manifest: InteractiveRuntimeManifest;
+      step: InteractiveRuntimeStepManifest;
+      module: InteractiveRuntimeModuleManifest;
+      extra: ContentRegistryExtra;
+    }) => {
       if (panelId(module) === 'rust_cold_chain_route_compare_panel') {
         return <ColdChainRouteComparePanel onPanelSubmit={onPanelSubmit} />;
       }
       return baseRegistry['interactive-figure-panel']({ manifest: renderManifest, step: renderStep, module, extra });
-    },
-    'learning-stat-panel': () => mode === 'teacher'
+    };
+    const renderLearningStats = () => mode === 'teacher'
       ? <TeacherStats submittedStudents={submittedStudents} totalStudents={totalStudents} totalResponses={totalResponses} routeObservationCoverage={routeObservationCoverage} objectiveAccuracy={objectiveAccuracy} postTestCompletion={postTestCompletion} />
-      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} routeObservationCount={routeObservationCount} postTestSubmitted={postTestSubmitted} />,
-  }), [baseRegistry, mode, objectiveAccuracy, onPanelSubmit, postTestCompletion, postTestSubmitted, routeObservationCount, routeObservationCoverage, submittedCount, submittedStudents, totalResponses, totalStudents, viewedStepIds]);
+      : <SummaryStats viewedStepIds={viewedStepIds} submittedCount={submittedCount} routeObservationCount={routeObservationCount} postTestSubmitted={postTestSubmitted} />;
+    return {
+      ...baseRegistry,
+      'compute.panel': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+        if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+          return renderInteractiveFigurePanel(props);
+        }
+        return baseRegistry['compute.panel'](props);
+      },
+      'analytics.summary': (props) => {
+        const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+        if (legacyKind === 'learning-stat-panel') {
+          return renderLearningStats();
+        }
+        return baseRegistry['analytics.summary'](props);
+      },
+    };
+  }, [baseRegistry, mode, objectiveAccuracy, onPanelSubmit, postTestCompletion, postTestSubmitted, routeObservationCount, routeObservationCoverage, submittedCount, submittedStudents, totalResponses, totalStudents, viewedStepIds]);
 
   return renderInteractiveManifestStep({
     manifest: activeManifest,

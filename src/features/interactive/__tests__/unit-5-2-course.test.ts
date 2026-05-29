@@ -117,6 +117,13 @@ describe('unit 5-2 interactive course', () => {
     expect(htmlByStep.get('step-13')).toContain('katex');
     expect(htmlByStep.get('step-14')).toContain('katex');
     expect(htmlByStep.get('step-16')).toContain('katex');
+    expect(htmlByStep.get('step-06')).toContain('data-nonlinear-panel="rust_phase_plane_tabs"');
+    expect(htmlByStep.get('step-08')).toContain('data-nonlinear-panel="rust_memoryless_nonlinearity_tabs"');
+    expect(htmlByStep.get('step-08')).toContain('无记忆环节描述函数');
+    expect(htmlByStep.get('step-08')).toContain('死区饱和');
+    expect(htmlByStep.get('step-09')).toContain('继电与间隙描述函数');
+    expect(htmlByStep.get('step-09')).toContain('滞环继电');
+    expect(fullHtml).not.toContain('互动页模块渲染缺失');
 
     const step03ActivityHtml = renderToStaticMarkup(
       createElement(featureModule.UNIT_5_2StudentActivityForm, {

@@ -76,6 +76,22 @@ describe('classic four-view control workbench preset', () => {
     expect(presetSource).toContain('session.workingModel');
   });
 
+  it('renders the naked free-explore control workbench through the classic four-view client', () => {
+    const result = resolveControlWorkbenchSession({});
+    const shellSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.session.defaultPreset).toBe('free-explore');
+    expect(result.session.allowedViews).toEqual(
+      expect.arrayContaining(['time-domain', 'bode', 'root-locus', 'nyquist']),
+    );
+    expect(result.session.workingModel?.representation.kind).toBe('transfer-function');
+    expect(shellSource).toContain("session.defaultPreset === 'classic-whitebox' || session.defaultPreset === 'free-explore'");
+    expect(shellSource).toContain('<ClassicFourViewPreset');
+  });
+
   it('keeps the legacy multi-representation route as the shared client wrapper', () => {
     const routeSource = readRepoFile('src/app/interactive-learning/multi-representation-linkage/page.tsx');
 

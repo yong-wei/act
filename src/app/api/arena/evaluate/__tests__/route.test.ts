@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createPersistedArenaSubmission: vi.fn(),
+  getArenaPlantAdapterForOfficialEvaluationTaskId: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
 }));
 
@@ -28,6 +29,11 @@ vi.mock('@/features/arena/blackbox/experiment-service', () => ({
   prismaArenaBlackBoxExperimentStore: { marker: 'blackbox-store' },
 }));
 
+vi.mock('@/features/arena/adapters/registry', () => ({
+  getArenaPlantAdapterForOfficialEvaluationTaskId: mocks.getArenaPlantAdapterForOfficialEvaluationTaskId,
+  ArenaPlantAdapterSelectionError: class ArenaPlantAdapterSelectionError extends Error {},
+}));
+
 import { POST } from '../route';
 import type { ControllerArtifact } from '@/features/arena/types';
 
@@ -50,6 +56,9 @@ function postJson(body: unknown) {
 describe('POST /api/arena/evaluate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getArenaPlantAdapterForOfficialEvaluationTaskId.mockReturnValue({
+      id: 'whitebox-transfer-function',
+    });
     mocks.resolveAccessibleArenaPublicationForStudent.mockImplementation(async ({ publicationId }) => ({
       id: publicationId,
       taskId: 'task-second-order-lead-pid',
@@ -135,6 +144,21 @@ describe('POST /api/arena/evaluate', () => {
     expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
   });
 
+  it('reports pending Arena table migrations from Prisma P2021 table metadata', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The table `ArenaEvaluationRun` does not exist in the current database.'),
+      { code: 'P2021', meta: { table: 'public.ArenaEvaluationRun' } },
+    );
+    mocks.createPersistedArenaSubmission.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
   it('persists duplicate evaluation reuse through the Arena submission store', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
 
@@ -145,12 +169,29 @@ describe('POST /api/arena/evaluate', () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(payload.submission.reusedEvaluation).toBe(true);
+    expect(mocks.getArenaPlantAdapterForOfficialEvaluationTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       studentLabel: '学生甲',
       store: { marker: 'store' },
       blackBoxExperimentStore: { marker: 'blackbox-store' },
+      identificationModelStore: { marker: 'blackbox-store' },
     }));
+  });
+
+  it('maps unsupported official evaluation adapter modes to 400 before persistence', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    const { ArenaPlantAdapterSelectionError } = await import('@/features/arena/adapters/registry');
+    mocks.getArenaPlantAdapterForOfficialEvaluationTaskId.mockImplementationOnce(() => {
+      throw new ArenaPlantAdapterSelectionError('Official evaluation is not supported for this Arena task.');
+    });
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('Official evaluation is not supported');
+    expect(mocks.createPersistedArenaSubmission).not.toHaveBeenCalled();
   });
 
   it('does not trust class or season scope from the request body', async () => {

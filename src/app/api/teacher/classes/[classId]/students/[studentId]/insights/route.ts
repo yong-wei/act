@@ -18,8 +18,14 @@ import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
 import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
-import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
+  STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
+  buildStudentEvidenceFeaturePayload,
+  readStudentEvidenceFeatures,
+  type StudentEvidenceFeatureLearningFact,
+} from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  buildTeacherScopedLearningFactScopeFilters,
   buildTeacherStudentEvidenceStatus,
   type TeacherSessionQualityStatus,
   type TeacherStudentEvidenceStatus,
@@ -252,7 +258,7 @@ export async function GET(
       recommendations,
       classSnapshot,
       studentEvidenceFeatureRead,
-      recentFacts,
+      scopedFeatureFacts,
       durableSubmissions,
       studentSessionReports,
     ] = await Promise.all([
@@ -288,28 +294,14 @@ export async function GET(
         orderBy: { snapshotAt: 'desc' },
       }),
       readStudentEvidenceFeatures(prisma, studentId),
-      scopedSessionIds.length
-        ? prisma.learningFact.findMany({
-            where: {
-              userId: studentId,
-              sessionId: { in: scopedSessionIds },
-            },
-            orderBy: { startedAt: 'desc' },
-            take: 8,
-            select: {
-              id: true,
-              factType: true,
-              moduleId: true,
-              lessonId: true,
-              sessionId: true,
-              outcome: true,
-              score: true,
-              startedAt: true,
-              finishedAt: true,
-              timeSpent: true,
-            },
-          })
-        : Promise.resolve([]),
+      prisma.learningFact.findMany({
+        where: {
+          userId: studentId,
+          OR: buildTeacherScopedLearningFactScopeFilters(classId, scopedSessionIds),
+        },
+        orderBy: { startedAt: 'desc' },
+        select: STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT,
+      }),
       prisma.studentStepResponse.findMany({
         where: {
           userId: studentId,
@@ -381,6 +373,7 @@ export async function GET(
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>
     );
+    const recentFacts = scopedFeatureFacts.slice(0, 8);
     const drawerSessionIds = Array.from(new Set([
       ...recentFacts.map((fact) => fact.sessionId).filter(isNonEmptyString),
       ...durableSubmissions.map((submission) => submission.sessionId),
@@ -399,11 +392,20 @@ export async function GET(
             reportData: true,
             updatedAt: true,
           },
-        })
+      })
       : [];
+    const drawerNow = new Date();
+    const scopedFeatureCache = buildTeacherScopedFeatureCacheRecord(
+      studentId,
+      scopedFeatureFacts,
+      drawerNow,
+    );
     const evidenceDrawer = buildEvidenceDrawer({
       studentId,
       featureRead: studentEvidenceFeatureRead,
+      scopedFeatureCache,
+      scopedFeatureState: scopedFeatureFacts.length > 0 ? undefined : 'missing',
+      now: drawerNow,
       recentFacts,
       durableSubmissions,
       studentSessionReports,
@@ -586,6 +588,9 @@ function summarizeRiskFlags(
 function buildEvidenceDrawer(input: {
   studentId: string;
   featureRead: Awaited<ReturnType<typeof readStudentEvidenceFeatures>>;
+  scopedFeatureCache: Record<string, unknown>;
+  scopedFeatureState?: TeacherStudentEvidenceStatus['state'];
+  now: Date;
   recentFacts: Array<{
     id: string;
     factType: string;
@@ -633,9 +638,9 @@ function buildEvidenceDrawer(input: {
     updatedAt: Date;
   }>;
 }): TeacherStudentEvidenceDrawer {
-  const featureCache = buildTeacherStudentEvidenceStatus(input.studentId, input.featureRead.cache, {
-    readState: input.featureRead.state,
-    now: new Date(),
+  const featureCache = buildTeacherStudentEvidenceStatus(input.studentId, input.scopedFeatureCache, {
+    readState: input.scopedFeatureState,
+    now: input.now,
   });
   const classReportMap = new Map(input.classSessionReports.map((report) => [report.sessionId, report]));
 
@@ -704,6 +709,35 @@ function buildEvidenceDrawer(input: {
       durableSubmissions: 8,
       sessionQuality: 6,
     },
+  };
+}
+
+function buildTeacherScopedFeatureCacheRecord(
+  studentId: string,
+  facts: StudentEvidenceFeatureLearningFact[],
+  now: Date,
+): Record<string, unknown> {
+  const payload = buildStudentEvidenceFeaturePayload({
+    userId: studentId,
+    facts,
+    now,
+  });
+  const lastSourceFactAt = payload.evidenceWindow.lastStartedAt
+    ? new Date(payload.evidenceWindow.lastStartedAt)
+    : null;
+
+  return {
+    userId: studentId,
+    payloadVersion: payload.payloadVersion,
+    refreshedAt: now,
+    lastSourceFactAt,
+    sourceFactCount: payload.sourceCounts.LearningFact,
+    evidenceWindow: payload.evidenceWindow,
+    sourceCounts: payload.sourceCounts,
+    sourceCoverage: payload.sourceCoverage,
+    confidenceMarkers: payload.confidence,
+    statusMarkers: payload.statusMarkers,
+    features: payload.features,
   };
 }
 

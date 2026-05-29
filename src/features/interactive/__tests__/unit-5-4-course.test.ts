@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -88,8 +90,16 @@ describe('unit 5-4 interactive course', () => {
     const step14 = manifest.steps.find((step) => step.id === 'step-14');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 
-    expect(step06?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
-    expect(step14?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
+    expect(step06?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
+    expect(step14?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
     expect(step06?.modules.find((module) => module.id === 'prediction-panel')?.payload.panel_id).toBe('rust_prediction_error_panel');
     expect(step14?.modules.find((module) => module.id === 'route-compare-panel')?.payload.panel_id).toBe('rust_three_route_compare_panel');
     expect(stepPanelsSource).toContain('data-testid="unit-5-4-prediction-error-panel"');
@@ -97,6 +107,30 @@ describe('unit 5-4 interactive course', () => {
     expect(stepPanelsSource).toContain('data-runtime-data="5-4-model-mismatch-prediction.csv"');
     expect(stepPanelsSource).toContain('data-runtime-data="5-4-mpc-drift-comparison.csv"');
     expect(stepPanelsSource).toContain('仿真数据暂未载入');
+
+    const courseModule = await import('@/lib/unit-5-4-course');
+    const featureModule = await import('@/features/interactive/unit-5-4-data-driven-mpc-transition/step-panels');
+    const step06Html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_5_4StepContentPanel, {
+        step: courseModule.getUNIT_5_4Step('step-06'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        mode: 'student',
+      }),
+    );
+    const step14Html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_5_4StepContentPanel, {
+        step: courseModule.getUNIT_5_4Step('step-14'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+        mode: 'student',
+      }),
+    );
+    expect(step06Html).toContain('data-testid="unit-5-4-prediction-error-panel"');
+    expect(step14Html).toContain('data-testid="unit-5-4-route-compare-panel"');
+    expect(`${step06Html}\n${step14Html}`).not.toContain('互动页模块渲染缺失');
   });
 
   it('removes duplicated p3-p5 explanation modules and migrates their copy into title descriptions', () => {

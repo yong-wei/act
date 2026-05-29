@@ -7,6 +7,12 @@ TARGET=""
 APPLY=0
 NO_OVERWRITE=0
 INCLUDE_CODEX_PLANS=0
+LINK_CONFIG=0
+LINK_ENV=0
+REPLACE_EXISTING=0
+INIT_GRAPHS=0
+GRAPH_ALIAS=""
+ENV_LINKS=()
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 
@@ -25,9 +31,15 @@ Usage:
 Options:
   --source PATH              Source checkout path.
   --target PATH              Target worktree path.
-  --apply                    Copy files. Without this flag, only print actions.
+  --apply                    Copy/link files. Without this flag, only print actions.
   --no-overwrite             Skip existing target files instead of overwriting.
-  --include-codex-plans      Also sync .codex/plans.
+  --include-codex-plans      Compatibility flag; .codex is now synced by default.
+  --link-config              Symlink shared local config from source instead of copying it.
+  --link-env                 Implies --link-config; also symlink .env, .env.*, .envrc,
+                             and .codex/config.toml from source when present.
+  --replace-existing         When linking, backup and replace existing target paths.
+  --init-graphs              Initialize and build codegraph and code-review-graph for target.
+  --graph-alias ALIAS        CRG alias to use with --init-graphs. Defaults to a target-based alias.
   -h, --help                 Show this help.
 
 Copied by default:
@@ -39,15 +51,34 @@ Copied by default:
   .claude/settings.local.json
   .claude/commands/
   .claude/skills/
+  .codex/
+  .github/
   .serena/project.yml
   .serena/memories/
 
-Linked by default:
-  node_modules -> <source>/node_modules
+Linked with --link-config:
+  AGENTS.md
+  GEMINI.md
+  .claude/settings.local.json
+  .claude/commands/
+  .claude/skills/
+  .codex/agents/
+  .codex/environments/
+  .codex/skills/
+  .github/
+  .serena/project.yml
+  .serena/memories/
+
+Linked with --link-config --link-env:
+  .env
+  .env.*
+  .envrc
+  .codex/config.toml
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
-  .serena/cache, .DS_Store, __pycache__, *.pyc.
+  .codegraph, .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
+Dependencies are not copied or linked; run npm ci independently in each worktree.
 USAGE
 }
 
@@ -72,6 +103,26 @@ while [[ $# -gt 0 ]]; do
     --include-codex-plans)
       INCLUDE_CODEX_PLANS=1
       shift
+      ;;
+    --link-config)
+      LINK_CONFIG=1
+      shift
+      ;;
+    --link-env)
+      LINK_ENV=1
+      shift
+      ;;
+    --replace-existing)
+      REPLACE_EXISTING=1
+      shift
+      ;;
+    --init-graphs)
+      INIT_GRAPHS=1
+      shift
+      ;;
+    --graph-alias)
+      GRAPH_ALIAS="${2:-}"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -100,6 +151,10 @@ BACKUP_ROOT="$TARGET/.tmp/local-config-backups/$TIMESTAMP"
 if [[ "$SOURCE" == "$TARGET" ]]; then
   echo "Source and target are the same path: $SOURCE" >&2
   exit 2
+fi
+
+if [[ "$LINK_ENV" -eq 1 && "$LINK_CONFIG" -ne 1 ]]; then
+  LINK_CONFIG=1
 fi
 
 if [[ ! -d "$SOURCE/.git" && ! -f "$SOURCE/.git" ]]; then
@@ -135,15 +190,27 @@ FILES=(
 DIRS=(
   ".claude/commands"
   ".claude/skills"
+  ".codex"
+  ".github"
   ".serena/memories"
 )
 
-DEPENDENCY_LINKS=(
-  "node_modules"
+CONFIG_LINKS=(
+  "AGENTS.md"
+  "GEMINI.md"
+  ".claude/settings.local.json"
+  ".claude/commands"
+  ".claude/skills"
+  ".codex/agents"
+  ".codex/environments"
+  ".codex/skills"
+  ".github"
+  ".serena/project.yml"
+  ".serena/memories"
 )
 
 if [[ "$INCLUDE_CODEX_PLANS" -eq 1 ]]; then
-  DIRS+=(".codex/plans")
+  :
 fi
 
 print_mode() {
@@ -152,6 +219,45 @@ print_mode() {
   else
     echo "Mode: dry-run"
   fi
+  if [[ "$LINK_CONFIG" -eq 1 ]]; then
+    echo "Config sync: symlink"
+  else
+    echo "Config sync: copy"
+  fi
+  if [[ "$INIT_GRAPHS" -eq 1 ]]; then
+    echo "Graph init: enabled"
+  fi
+}
+
+sanitize_graph_alias() {
+  local raw="$1"
+  printf '%s' "$raw" | tr -cs '[:alnum:]_-' '-' | sed -E 's/^-+//; s/-+$//'
+}
+
+default_graph_alias() {
+  local repo_name
+  local tail
+  local worktree_id
+
+  repo_name="$(basename "$TARGET")"
+  case "$TARGET" in
+    */.codex/worktrees/*/*)
+      tail="${TARGET#*/.codex/worktrees/}"
+      worktree_id="${tail%%/*}"
+      sanitize_graph_alias "$repo_name-$worktree_id"
+      ;;
+    *)
+      sanitize_graph_alias "$repo_name"
+      ;;
+  esac
+}
+
+resolve_graph_alias() {
+  if [[ -n "$GRAPH_ALIAS" ]]; then
+    sanitize_graph_alias "$GRAPH_ALIAS"
+  else
+    default_graph_alias
+  fi
 }
 
 ensure_parent_dir() {
@@ -159,10 +265,49 @@ ensure_parent_dir() {
   mkdir -p "$(dirname "$dest")"
 }
 
+path_in_list() {
+  local needle="$1"
+  shift
+  local item
+  for item in "$@"; do
+    if [[ "$needle" == "$item" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+skip_copy_for_link_mode() {
+  local rel="$1"
+
+  if [[ "$LINK_CONFIG" -eq 1 ]] && path_in_list "$rel" "${CONFIG_LINKS[@]}"; then
+    return 0
+  fi
+
+  if [[ "$LINK_CONFIG" -eq 1 && "$rel" == ".codex" ]]; then
+    return 0
+  fi
+
+  if [[ "$LINK_ENV" -eq 1 ]]; then
+    case "$rel" in
+      .env|.env.*|.envrc|.codex|.codex/config.toml)
+        return 0
+        ;;
+    esac
+  fi
+
+  return 1
+}
+
 copy_file() {
   local rel="$1"
   local src="$SOURCE/$rel"
   local dest="$TARGET/$rel"
+
+  if skip_copy_for_link_mode "$rel"; then
+    echo "skip copy; selected for symlink: $rel"
+    return
+  fi
 
   if [[ ! -f "$src" ]]; then
     echo "skip missing file: $rel"
@@ -203,7 +348,13 @@ copy_dir() {
     --exclude "__pycache__/"
     --exclude "*.pyc"
     --exclude "cache/"
+    --exclude "tmp/"
   )
+
+  if skip_copy_for_link_mode "$rel"; then
+    echo "skip sync; selected for symlink: $rel/"
+    return
+  fi
 
   if [[ ! -d "$src" ]]; then
     echo "skip missing dir: $rel"
@@ -213,7 +364,7 @@ copy_dir() {
   if [[ "$NO_OVERWRITE" -eq 1 ]]; then
     rsync_args+=(--ignore-existing)
   else
-    rsync_args+=(--backup "--suffix=.bak.$TIMESTAMP")
+    rsync_args+=(--backup "--suffix=.bak.$TIMESTAMP" "--backup-dir=$BACKUP_ROOT/$rel")
   fi
 
   if [[ "$APPLY" -ne 1 ]]; then
@@ -222,6 +373,9 @@ copy_dir() {
   else
     ensure_parent_dir "$dest"
     mkdir -p "$dest"
+    if [[ "$NO_OVERWRITE" -ne 1 ]]; then
+      mkdir -p "$BACKUP_ROOT/$rel"
+    fi
   fi
 
   rsync "${rsync_args[@]}" "$src/" "$dest/"
@@ -250,47 +404,109 @@ ensure_local_exclude() {
   echo "added local exclude: $rel"
 }
 
-link_dependency_dir() {
+same_link_target() {
+  local dest="$1"
+  local src="$2"
+  local current_target
+
+  if [[ ! -L "$dest" ]]; then
+    return 1
+  fi
+
+  current_target="$(readlink "$dest")"
+  if [[ "$current_target" == "$src" ]]; then
+    return 0
+  fi
+
+  if [[ "$current_target" != /* ]]; then
+    current_target="$(cd "$(dirname "$dest")" && cd "$(dirname "$current_target")" && pwd)/$(basename "$current_target")"
+  fi
+
+  [[ "$current_target" == "$src" ]]
+}
+
+backup_existing_path() {
+  local rel="$1"
+  local dest="$TARGET/$rel"
+  local backup="$BACKUP_ROOT/$rel"
+
+  mkdir -p "$(dirname "$backup")"
+  mv "$dest" "$backup"
+  echo "backup existing path: .tmp/local-config-backups/$TIMESTAMP/$rel"
+}
+
+path_has_tracked_content() {
+  local rel="$1"
+  [[ -n "$(git -C "$TARGET" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" ]]
+}
+
+link_config_path() {
   local rel="$1"
   local src="$SOURCE/$rel"
   local dest="$TARGET/$rel"
-  local current_target=""
 
-  if [[ ! -d "$src" ]]; then
-    echo "skip missing dependency dir: $rel"
+  if [[ ! -e "$src" ]]; then
+    echo "skip missing link source: $rel"
     return
   fi
 
-  if [[ -L "$dest" ]]; then
-    current_target="$(readlink "$dest")"
-    if [[ "$current_target" == "$src" ]]; then
-      echo "dependency link already exists: $rel -> $src"
+  if same_link_target "$dest" "$src"; then
+    echo "config link already exists: $rel -> $src"
+    ensure_local_exclude "$rel"
+    return
+  fi
+
+  if [[ -e "$dest" || -L "$dest" ]]; then
+    if path_has_tracked_content "$rel"; then
+      echo "skip tracked config path: $rel"
+      return
+    fi
+
+    if [[ "$REPLACE_EXISTING" -ne 1 ]]; then
+      echo "skip existing config path: $rel"
       ensure_local_exclude "$rel"
       return
     fi
-  elif [[ -e "$dest" ]]; then
-    echo "skip existing dependency path: $rel"
-    ensure_local_exclude "$rel"
-    return
-  fi
 
-  if [[ "$APPLY" -ne 1 ]]; then
-    if [[ -L "$dest" ]]; then
-      echo "would relink dependency dir: $rel -> $src"
-    else
-      echo "would link dependency dir: $rel -> $src"
+    if [[ "$APPLY" -ne 1 ]]; then
+      echo "would backup and link config path: $rel -> $src"
+      ensure_local_exclude "$rel"
+      return
     fi
+
+    backup_existing_path "$rel"
+  elif [[ "$APPLY" -ne 1 ]]; then
+    echo "would link config path: $rel -> $src"
     ensure_local_exclude "$rel"
     return
   fi
 
-  if [[ -L "$dest" ]]; then
-    rm "$dest"
-  fi
-
+  ensure_parent_dir "$dest"
   ln -s "$src" "$dest"
-  echo "linked dependency dir: $rel -> $src"
+  echo "linked config path: $rel -> $src"
   ensure_local_exclude "$rel"
+}
+
+collect_env_links() {
+  local src
+  local rel
+
+  ENV_LINKS=()
+  for rel in ".env" ".envrc" ".codex/config.toml"; do
+    if [[ -e "$SOURCE/$rel" ]]; then
+      ENV_LINKS+=("$rel")
+    fi
+  done
+
+  for src in "$SOURCE"/.env.*; do
+    if [[ ! -e "$src" ]]; then
+      continue
+    fi
+    rel="${src#$SOURCE/}"
+    if ! path_in_list "$rel" "${ENV_LINKS[@]}"; then
+      ENV_LINKS+=("$rel")
+    fi
+  done
 }
 
 warn_if_not_ignored_or_tracked() {
@@ -302,6 +518,30 @@ warn_if_not_ignored_or_tracked() {
     return
   fi
   echo "warning: $rel is neither tracked nor ignored in target"
+}
+
+initialize_graphs() {
+  local alias
+  alias="$(resolve_graph_alias)"
+
+  echo
+  echo "Graph initialization:"
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would initialize codegraph: $TARGET"
+    echo "would register CRG: $TARGET (alias: $alias)"
+    echo "would build CRG: $TARGET"
+    return
+  fi
+
+  require_command codegraph
+  require_command code-review-graph
+
+  codegraph init --index "$TARGET"
+  echo "initialized codegraph: $TARGET"
+  code-review-graph register "$TARGET" --alias "$alias"
+  echo "registered CRG: $TARGET (alias: $alias)"
+  code-review-graph build --repo "$TARGET"
+  echo "built CRG: $TARGET"
 }
 
 echo "Source: $SOURCE"
@@ -320,20 +560,44 @@ for rel in "${DIRS[@]}"; do
   copy_dir "$rel"
 done
 
-echo
-echo "Dependency links:"
-for rel in "${DEPENDENCY_LINKS[@]}"; do
-  link_dependency_dir "$rel"
-done
+if [[ "$LINK_CONFIG" -eq 1 ]]; then
+  echo
+  echo "Config links:"
+  for rel in "${CONFIG_LINKS[@]}"; do
+    link_config_path "$rel"
+  done
+
+  if [[ "$LINK_ENV" -eq 1 ]]; then
+    collect_env_links
+    echo
+    echo "Environment links:"
+    for rel in "${ENV_LINKS[@]}"; do
+      link_config_path "$rel"
+    done
+  fi
+fi
 
 echo
 echo "Ignore/tracking check:"
-for rel in "${FILES[@]}" "${DIRS[@]}" "${DEPENDENCY_LINKS[@]}"; do
+if [[ "$LINK_CONFIG" -eq 1 && "$LINK_ENV" -eq 1 ]]; then
+  collect_env_links
+fi
+TRACKING_CHECK_PATHS=("${FILES[@]}" "${DIRS[@]}" "${CONFIG_LINKS[@]}")
+if [[ ${#ENV_LINKS[@]} -gt 0 ]]; then
+  TRACKING_CHECK_PATHS+=("${ENV_LINKS[@]}")
+fi
+for rel in "${TRACKING_CHECK_PATHS[@]}"; do
   warn_if_not_ignored_or_tracked "$rel"
 done
 
+if [[ "$INIT_GRAPHS" -eq 1 ]]; then
+  initialize_graphs
+fi
+
 echo
 echo "Follow-up commands for a new long-lived worktree:"
-echo "  scripts/dev/sync-local-worktree-config.sh --apply --target \"$TARGET\""
+echo "  scripts/dev/sync-local-worktree-config.sh --apply --link-config --link-env --target \"$TARGET\""
+echo "  (cd \"$TARGET\" && rtk npm ci)"
+echo "  scripts/dev/sync-local-worktree-config.sh --apply --init-graphs --target \"$TARGET\" --graph-alias \"$(resolve_graph_alias)\""
 echo "  rtk code-review-graph register \"$TARGET\" --alias <alias>"
 echo "  rtk code-review-graph build --repo \"$TARGET\""

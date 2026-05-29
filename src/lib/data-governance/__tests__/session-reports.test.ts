@@ -95,12 +95,14 @@ describe('generateSessionSummaryReports', () => {
         factType: 'interactive',
         outcome: 'success',
         lessonId: '4-3',
+        startedAt: new Date('2026-05-09T01:20:00.000Z'),
       },
       {
         userId: 'student-2',
         factType: 'interactive',
         outcome: 'partial',
         lessonId: '4-3',
+        startedAt: new Date('2026-05-09T01:25:00.000Z'),
       },
     ]);
     prisma.studentStepResponse.findMany.mockResolvedValue([
@@ -209,7 +211,9 @@ describe('generateSessionSummaryReports', () => {
             richOrPartialEvidenceRatio: 2 / 3,
             legacyOrMissingRatio: 1 / 3,
             reportFresh: true,
-            snapshotFresh: false,
+            snapshotFresh: true,
+            snapshotCoverageFresh: true,
+            postClassUpdateWindowFresh: false,
             syncSeverity: 'medium',
             syncAffectedUserRatio: 2 / 3,
           }),
@@ -226,6 +230,10 @@ describe('generateSessionSummaryReports', () => {
         missingEvidenceSubmissions: 0,
         scoreableObjectiveSubmissions: 1,
         snapshotUpdatedParticipants: 1,
+        snapshotCoveredParticipants: 2,
+        snapshotCoverageExpectedParticipants: 2,
+        postClassUpdatedParticipants: 1,
+        postClassUpdateWindowExpectedParticipants: 3,
         syncErrorUsers: 2,
         rawSyncErrors: 3,
         syncErrorIncidents: 2,
@@ -239,10 +247,17 @@ describe('generateSessionSummaryReports', () => {
         durableSubmissions: 'StudentStepResponse rows for this session',
         learningFacts: 'LearningFact rows for this session',
         stateParticipants: 'StudentState rows for this session, excluding teacher state',
-        snapshotUpdatedParticipants: 'StudentCompetencySnapshot rows in the report snapshot update window',
+        snapshotCoveredParticipants: 'StudentCompetencySnapshot rows whose latest snapshot covers the latest session LearningFact',
+        snapshotUpdatedParticipants: 'Compatibility field for StudentCompetencySnapshot rows in the post-class update window',
         syncErrorIncidents: 'sync_error InteractionLog rows grouped by user, step, signature, and 30 second burst window',
       },
       snapshotCoveragePolicy: {
+        denominator: 'participantsWithLearningFacts',
+        denominatorCount: 2,
+        coveredCount: 2,
+        updatedCount: 2,
+      },
+      postClassUpdateWindowPolicy: {
         denominator: 'sessionParticipants',
         denominatorCount: 3,
         updatedCount: 1,
@@ -256,7 +271,7 @@ describe('generateSessionSummaryReports', () => {
       where: {
         userId: { in: ['student-1', 'student-2', 'student-3'] },
         snapshotAt: {
-          gte: new Date('2026-05-09T02:04:23.000Z'),
+          gte: new Date('2026-05-09T00:22:59.000Z'),
           lte: new Date('2026-05-09T04:04:23.000Z'),
         },
       },
@@ -409,6 +424,105 @@ describe('generateSessionSummaryReports', () => {
         },
       },
     }));
+  });
+
+  it('reports snapshot coverage separately from post-class update-window coverage', async () => {
+    prisma.classSession.findUnique.mockResolvedValue({
+      id: 'session-5-3-window-partial',
+      classId: 'class-1',
+      status: 'FINISHED',
+      startTime: new Date('2026-05-20T08:00:00.000Z'),
+      endTime: new Date('2026-05-20T09:30:00.000Z'),
+      plan: { title: '5-3：从单回路控制到复杂自主系统链路' },
+    });
+    prisma.interactionLog.findMany.mockResolvedValue([]);
+    prisma.studentState.findMany.mockResolvedValue([
+      { userId: 'student-1', lessonKey: '5-3' },
+      { userId: 'student-2', lessonKey: '5-3' },
+    ]);
+    prisma.learningFact.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        factType: 'interactive',
+        outcome: 'success',
+        lessonId: '5-3',
+        startedAt: new Date('2026-05-20T09:10:00.000Z'),
+      },
+      {
+        userId: 'student-2',
+        factType: 'interactive',
+        outcome: 'success',
+        lessonId: '5-3',
+        startedAt: new Date('2026-05-20T09:12:00.000Z'),
+      },
+    ]);
+    prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        stepId: 'step-10',
+        submittedAt: new Date('2026-05-20T09:10:00.000Z'),
+        responseData: {
+          schemaVersion: 'manifest-submission-v2',
+          answers: { q1: 'A' },
+          questionSummaries: [
+            { questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true },
+          ],
+        },
+      },
+      {
+        userId: 'student-2',
+        stepId: 'step-10',
+        submittedAt: new Date('2026-05-20T09:12:00.000Z'),
+        responseData: {
+          schemaVersion: 'manifest-submission-v2',
+          answers: { q1: 'B' },
+          questionSummaries: [
+            { questionId: 'q1', studentAnswer: 'B', referenceValue: 'B', isCorrect: true },
+          ],
+        },
+      },
+    ]);
+    prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+      { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:20:00.000Z') },
+      { userId: 'student-2', snapshotAt: new Date('2026-05-20T09:45:00.000Z') },
+    ]);
+    prisma.classSessionReport.upsert.mockResolvedValue({});
+    prisma.studentSessionReport.upsert.mockResolvedValue({});
+
+    await generateSessionSummaryReports(prisma as never, 'session-5-3-window-partial');
+
+    expect(prisma.studentCompetencySnapshot.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: { in: ['student-1', 'student-2'] },
+        snapshotAt: {
+          gte: new Date('2026-05-20T08:00:00.000Z'),
+          lte: new Date('2026-05-20T11:30:00.000Z'),
+        },
+      },
+      select: {
+        userId: true,
+        snapshotAt: true,
+      },
+    });
+    const reportData = prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData;
+    expect(reportData.sessionGovernanceSummary).toMatchObject({
+      snapshotCoveredParticipants: 2,
+      snapshotCoverageExpectedParticipants: 2,
+      postClassUpdatedParticipants: 1,
+      postClassUpdateWindowExpectedParticipants: 2,
+      snapshotUpdatedParticipants: 1,
+      qualityStatus: {
+        status: 'yellow',
+        reasons: ['post_class_update_window_partial'],
+        metrics: expect.objectContaining({
+          snapshotFresh: true,
+          snapshotCoverageFresh: true,
+          postClassUpdateWindowFresh: false,
+        }),
+      },
+    });
+    expect(reportData.sessionGovernanceSummary.qualityStatus.reasons)
+      .not.toContain('snapshot_partially_missing');
   });
 });
 

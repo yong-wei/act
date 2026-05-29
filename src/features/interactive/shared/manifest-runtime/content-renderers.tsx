@@ -231,6 +231,7 @@ function formulaItemsFromSource(source: unknown): string[] {
     ...asStringArray(record.formulas),
     ...asStringArray(record.latex),
     ...asStringArray(record.math),
+    ...asStringArray(record.values),
   );
   for (const key of ['formula', 'latex', 'math'] as const) {
     const value = record[key];
@@ -328,15 +329,21 @@ function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
 
 function mediaPathFromBlock(value: unknown, imageIndex: number, imageCount: number) {
   const record = asRecord(value);
-  const direct = record.runtime_media ?? record.runtimeMedia ?? record.path ?? record.src;
+  const direct = record.runtime_media ?? record.runtimeMedia ?? record.path ?? record.src ?? record.asset;
   if (typeof direct === 'string' && direct.trim()) return direct;
 
-  const items = Array.isArray(record.items) ? record.items : Array.isArray(value) ? value : [];
+  const items = Array.isArray(record.assets)
+    ? record.assets
+    : Array.isArray(record.items)
+      ? record.items
+      : Array.isArray(value)
+        ? value
+        : [];
   if (items.length) {
     const selected = items.length === imageCount ? items[imageIndex] : items[0];
     if (typeof selected === 'string' && selected.trim()) return selected;
     const selectedRecord = asRecord(selected);
-    const selectedPath = selectedRecord.runtime_media ?? selectedRecord.runtimeMedia ?? selectedRecord.path ?? selectedRecord.src;
+    const selectedPath = selectedRecord.runtime_media ?? selectedRecord.runtimeMedia ?? selectedRecord.path ?? selectedRecord.src ?? selectedRecord.asset;
     if (typeof selectedPath === 'string' && selectedPath.trim()) return selectedPath;
   }
   return null;
@@ -363,21 +370,19 @@ function getImageSrc(
     const record = asRecord(block);
     if (typeof record.runtime_media === 'string') return [record.runtime_media];
     if (typeof record.path === 'string') return [runtimeMediaPath(manifest, record.path)];
+    if (typeof record.asset === 'string') return [runtimeMediaPath(manifest, record.asset)];
     if (Array.isArray(block)) {
       return block
-        .map((item) => asRecord(item).runtime_media)
+        .map((item) => asRecord(item).runtime_media ?? asRecord(item).asset)
         .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
     }
     return [];
   });
-  const imageModuleIndex = step.modules
-    .filter((item) => item.kind === 'image-panel')
-    .findIndex((item) => item.id === module.id);
-  return mediaItems[imageModuleIndex] ?? mediaItems[0] ?? null;
+  return mediaItems[imageIndex] ?? mediaItems[0] ?? null;
 }
 
 function imageModulePosition(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const modules = step.modules.filter((item) => ['image-panel', 'comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(item.kind));
+  const modules = step.modules.filter((item) => ['content.figure', 'image-panel', 'comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(item.kind));
   return {
     index: modules.findIndex((item) => item.id === module.id),
     count: modules.length,
@@ -387,18 +392,20 @@ function imageModulePosition(step: InteractiveRuntimeStepManifest, module: Inter
 function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: ContentRecord) {
   const items = Array.isArray(payload.items)
     ? payload.items
-    : Array.isArray(payload.fallback_images)
-      ? payload.fallback_images
-      : Array.isArray(payload.fallbackImages)
-        ? payload.fallbackImages
-        : [];
+    : Array.isArray(payload.assets)
+      ? payload.assets
+      : Array.isArray(payload.fallback_images)
+        ? payload.fallback_images
+        : Array.isArray(payload.fallbackImages)
+          ? payload.fallbackImages
+          : [];
   return items
     .map((item) => {
       if (typeof item === 'string') {
         return { src: runtimeMediaPath(manifest, item), caption: '' };
       }
       const record = asRecord(item);
-      const path = [record.path, record.src, record.runtime_media, record.runtimeMedia]
+      const path = [record.path, record.src, record.runtime_media, record.runtimeMedia, record.asset]
         .find((value): value is string => typeof value === 'string' && Boolean(value.trim()));
       if (!path) return null;
       const caption = [record.caption, record.explanation, record.note]
@@ -625,6 +632,8 @@ function listFromKnownBlocks(step: InteractiveRuntimeStepManifest, keys: string[
 }
 
 function cardGridItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const payloadItems = asStringArray(module.payload.items);
+  if (payloadItems.length) return payloadItems;
   const rawBlock = blockFor(step, module.payload) ?? blockByModuleId(step, module);
   const block = asRecord(rawBlock);
   const fromItems = asStringArray(block.items);
@@ -975,6 +984,80 @@ export function createManifestContentModuleRegistry(extra: {
   onInlineReveal?: () => void;
 }): InteractiveModuleRegistry<typeof extra> {
   return {
+    'content.rich': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'content.cardSet': ({ step, module }) => {
+      const items = cardGridItems(step, module);
+      if (items.length) return <CardGrid title={titleFromModule(module)} items={items} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'content.formula': ({ step, module }) => (
+      <FormulaCard
+        title={titleFromModule(module)}
+        formulas={getFormulaItems(step, module)}
+        notes={formulaNotes(step, module)}
+        symbols={formulaSymbols(step, module)}
+      />
+    ),
+    'content.table': ({ step, module }) => {
+      const table = tableFor(step, module);
+      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'content.figure': ({ manifest, step, module }) => {
+      const galleryItems = imageItemsFromPayload(manifest, module.payload);
+      if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module)} items={galleryItems} />;
+      if (galleryItems.length === 1) {
+        const [item] = galleryItems;
+        const notes = [item.caption, ...imageNotes(step, module)].filter((value) => value.trim());
+        return <ImagePanel title={titleFromModule(module)} src={item.src} notes={notes} />;
+      }
+      const src = getImageSrc(manifest, step, module);
+      if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'content.reveal': ({ step, module, extra: renderExtra }) => {
+      const items = revealItems(step, module);
+      if (items.length) {
+        return (
+          <StepReveal
+            title={titleFromModule(module)}
+            items={items}
+            revealProgress={renderExtra.revealProgress}
+            allowInlineReveal={renderExtra.allowInlineReveal}
+            onInlineReveal={renderExtra.onInlineReveal}
+          />
+        );
+      }
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'content.stageMap': ({ step, module }) => {
+      const intro = asRecord(step.contentBlocks.page_intro);
+      const title = typeof intro.title === 'string' ? intro.title : titleFromModule(module);
+      const lead = typeof intro.lead === 'string' ? intro.lead : summaryContent(step, module).text;
+      const payloadItems = asStringArray(module.payload.items ?? module.payload.path_items ?? module.payload.pathItems);
+      const items = payloadItems.length ? payloadItems : asStringArray(intro.path_items ?? step.contentBlocks.path_items);
+      if (items.length) return <PathStageMap title={title} lead={lead} items={items} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
+    },
+    'compute.panel': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'analytics.summary': ({ step, module }) => (
+      <CardGrid title={titleFromModule(module)} items={learningStatItems(step, module)} columns="md:grid-cols-2" />
+    ),
+    'layout.support': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
     'stage-map': ({ step }) => {
       const intro = asRecord(step.contentBlocks.page_intro);
       const title = typeof intro.title === 'string' ? intro.title : '路径定位';

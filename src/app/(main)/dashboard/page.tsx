@@ -4,8 +4,75 @@ import { Home, Users } from 'lucide-react';
 
 import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  getPlatformCockpitHref,
+  getStudentCoreNavigationEntries,
+  type PlatformRoleNavigationItem,
+} from '@/lib/platform-role-navigation';
 import { prisma } from '@/lib/prisma';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
+
+const studentCoreEntries = getStudentCoreNavigationEntries();
+
+const dashboardEntryMeta = {
+  'student-simulations': {
+    icon: '🚢',
+    badge: '实时仿真',
+    badgeColor: 'bg-blue-500/20 text-blue-400',
+    iconBg: 'bg-blue-500/20 text-blue-400',
+  },
+  'student-knowledge': {
+    icon: '📚',
+    badge: '资源地图',
+    badgeColor: 'bg-cyan-500/20 text-cyan-400',
+    iconBg: 'bg-cyan-500/20 text-cyan-400',
+  },
+  'student-arena': {
+    icon: '🏆',
+    badge: '官方评测',
+    badgeColor: 'bg-amber-500/20 text-amber-400',
+    iconBg: 'bg-amber-500/20 text-amber-400',
+  },
+  'student-control-workbench': {
+    icon: '🧭',
+    badge: '控制实验',
+    badgeColor: 'bg-violet-500/20 text-violet-400',
+    iconBg: 'bg-violet-500/20 text-violet-400',
+  },
+  'student-adaptive-learning': {
+    icon: '🧠',
+    badge: '个性化',
+    badgeColor: 'bg-emerald-500/20 text-emerald-400',
+    iconBg: 'bg-emerald-500/20 text-emerald-400',
+  },
+  'student-interactive-learning': {
+    icon: '🎓',
+    badge: '互动课程',
+    badgeColor: 'bg-fuchsia-500/20 text-fuchsia-400',
+    iconBg: 'bg-fuchsia-500/20 text-fuchsia-400',
+  },
+  'student-profile': {
+    icon: '👤',
+    badge: '能力画像',
+    badgeColor: 'bg-purple-500/20 text-purple-400',
+    iconBg: 'bg-purple-500/20 text-purple-400',
+  },
+} as const;
+
+const quickStartEntryIds = [
+  'student-simulations',
+  'student-arena',
+  'student-adaptive-learning',
+] as const;
+
+function getDashboardEntryMeta(entry: PlatformRoleNavigationItem) {
+  return dashboardEntryMeta[entry.id as keyof typeof dashboardEntryMeta] ?? {
+    icon: '↗',
+    badge: entry.actionLabel ?? '进入',
+    badgeColor: 'bg-primary/15 text-primary',
+    iconBg: 'bg-primary/15 text-primary',
+  };
+}
 
 export default async function DashboardPage() {
   const session = await getServerAuthSession();
@@ -15,7 +82,11 @@ export default async function DashboardPage() {
   }
 
   if (session.user.role === 'ADMIN') {
-    redirect('/admin');
+    redirect(getPlatformCockpitHref(session.user.role));
+  }
+
+  if (session.user.role === 'TEACHER') {
+    redirect(getPlatformCockpitHref(session.user.role));
   }
 
   // 确保用户有档案和初始任务
@@ -130,131 +201,21 @@ export default async function DashboardPage() {
         <div className="mb-8">
           <h3 className="mb-4 text-xl font-semibold text-foreground">学习模块</h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* 任务大厅 */}
-            <FeatureCard
-              href="/missions"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  />
-                </svg>
-              }
-              title="任务大厅"
-              description="7 个渐进式学习任务，从入门到专家"
-              badge={`${completedMissions} 已完成`}
-              badgeColor="bg-emerald-500/20 text-emerald-400"
-              iconBg="bg-emerald-500/20 text-emerald-400"
-            />
-
-            {/* 驱逐舰仿真 */}
-            <FeatureCard
-              href="/simulations/destroyer"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              }
-              title="驱逐舰仿真"
-              description="3D 可视化船舶航向控制仿真实验"
-              badge="实时仿真"
-              badgeColor="bg-blue-500/20 text-blue-400"
-              iconBg="bg-blue-500/20 text-blue-400"
-            />
-
-            {/* AI 虚拟总工 */}
-            <FeatureCard
-              href="/ai/copilot"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                  />
-                </svg>
-              }
-              title="AI 虚拟总工"
-              description="智能问答助教，PID 调参建议与优化"
-              badge="AI 驱动"
-              badgeColor="bg-amber-500/20 text-amber-400"
-              iconBg="bg-amber-500/20 text-amber-400"
-            />
-
-            {/* 个人中心 */}
-            <FeatureCard
-              href="/profile"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              }
-              title="个人中心"
-              description="能力画像、学习统计、最近活动"
-              badge="能力分析"
-              badgeColor="bg-purple-500/20 text-purple-400"
-              iconBg="bg-purple-500/20 text-purple-400"
-            />
-
-            {/* 伦理案例 */}
-            <FeatureCard
-              href="/ethics"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              }
-              title="伦理案例"
-              description="工程伦理教育、安全规范学习"
-              badge="必修课程"
-              badgeColor="bg-red-500/20 text-red-400"
-              iconBg="bg-red-500/20 text-red-400"
-            />
-
-            {/* 知识库 */}
-            <FeatureCard
-              href="/knowledge"
-              icon={
-                <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              }
-              title="知识库"
-              description="PID 控制理论、船舶动力学文档"
-              badge="学习资料"
-              badgeColor="bg-cyan-500/20 text-cyan-400"
-              iconBg="bg-cyan-500/20 text-cyan-400"
-            />
+            {studentCoreEntries.map((entry) => {
+              const meta = getDashboardEntryMeta(entry);
+              return (
+                <FeatureCard
+                  key={entry.id}
+                  href={entry.href}
+                  icon={<span className="text-3xl">{meta.icon}</span>}
+                  title={entry.label}
+                  description={entry.description}
+                  badge={meta.badge}
+                  badgeColor={meta.badgeColor}
+                  iconBg={meta.iconBg}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -262,24 +223,20 @@ export default async function DashboardPage() {
         <div className="surface-card p-6">
           <h3 className="mb-4 text-lg font-semibold text-foreground">快速开始</h3>
           <div className="grid gap-4 md:grid-cols-3">
-            <QuickAction
-              href="/missions"
-              icon="🎯"
-              title="查看任务"
-              description="继续学习进度"
-            />
-            <QuickAction
-              href="/simulations/destroyer"
-              icon="🚢"
-              title="开始仿真"
-              description="进入实验环境"
-            />
-            <QuickAction
-              href="/ai/copilot"
-              icon="🤖"
-              title="咨询AI"
-              description="获取学习帮助"
-            />
+            {studentCoreEntries
+              .filter((entry) => quickStartEntryIds.includes(entry.id as (typeof quickStartEntryIds)[number]))
+              .map((entry) => {
+                const meta = getDashboardEntryMeta(entry);
+                return (
+                  <QuickAction
+                    key={entry.id}
+                    href={entry.href}
+                    icon={meta.icon}
+                    title={entry.actionLabel ?? entry.label}
+                    description={entry.description}
+                  />
+                );
+              })}
           </div>
         </div>
       </main>

@@ -63,42 +63,63 @@ export function UNIT_4_4StepContentPanel({
     revealProgress,
     allowInlineReveal,
   });
+  const moduleExtra = { revealProgress, allowInlineReveal };
+  const moduleLegacyKind = (module: { payload: Record<string, unknown> }) =>
+    typeof module.payload.legacyKind === 'string' ? module.payload.legacyKind : '';
+  const renderNativeFigure: InteractiveModuleRegistry<typeof moduleExtra>[string] = ({ step: manifestStep, module }) => {
+    const block = manifestStep.contentBlocks[module.id.replace(/-/g, '_')];
+    const source = block && typeof block === 'object' && !Array.isArray(block)
+      ? (block as Record<string, unknown>).source
+      : undefined;
+
+    if (source === 'native_gradient_descent_figure') {
+      const visiblePointCount = Math.max(1, Math.min(5, revealProgress + 1));
+      return (
+        <GradientDescentNativeFigure
+          visiblePointCount={visiblePointCount}
+          visibleSegmentCount={Math.max(0, visiblePointCount - 1)}
+          activePointIndex={visiblePointCount - 1}
+        />
+      );
+    }
+
+    if (source === 'native_pareto_front_figure') {
+      return (
+        <ParetoFrontNativeFigure
+          selectedPointId={selectedParetoPointId}
+          onSelectPoint={setSelectedParetoPointId}
+        />
+      );
+    }
+
+    return sharedRegistry['native-figure']?.({ manifest: activeManifest, step: manifestStep, module, extra: moduleExtra }) ?? null;
+  };
+  const renderStatPanel: InteractiveModuleRegistry<typeof moduleExtra>[string] = ({ step: manifestStep, module }) => {
+    if (manifestStep.id === 'step-10' && module.id === 'pareto-reading') {
+      return <ParetoPointStatsPanel pointId={selectedParetoPointId} />;
+    }
+
+    return sharedRegistry['stat-panel']?.({ manifest: activeManifest, step: manifestStep, module, extra: moduleExtra }) ?? null;
+  };
   const moduleRegistry: InteractiveModuleRegistry<{ revealProgress: number; allowInlineReveal: boolean }> = {
     ...sharedRegistry,
-    'native-figure': ({ step: manifestStep, module }) => {
-      const block = manifestStep.contentBlocks[module.id.replace(/-/g, '_')];
-      const source = block && typeof block === 'object' && !Array.isArray(block)
-        ? (block as Record<string, unknown>).source
-        : undefined;
-
-      if (source === 'native_gradient_descent_figure') {
-        const visiblePointCount = Math.max(1, Math.min(5, revealProgress + 1));
-        return (
-          <GradientDescentNativeFigure
-            visiblePointCount={visiblePointCount}
-            visibleSegmentCount={Math.max(0, visiblePointCount - 1)}
-            activePointIndex={visiblePointCount - 1}
-          />
-        );
+    'content.figure': (props) => {
+      if (moduleLegacyKind(props.module) === 'native-figure') {
+        return renderNativeFigure(props);
       }
-
-      if (source === 'native_pareto_front_figure') {
-        return (
-          <ParetoFrontNativeFigure
-            selectedPointId={selectedParetoPointId}
-            onSelectPoint={setSelectedParetoPointId}
-          />
-        );
-      }
-
-      return sharedRegistry['native-figure']?.({ manifest: activeManifest, step: manifestStep, module, extra: { revealProgress, allowInlineReveal } }) ?? null;
+      return sharedRegistry['content.figure']?.(props) ?? null;
     },
-    'stat-panel': ({ step: manifestStep, module }) => {
-      if (manifestStep.id === 'step-10' && module.id === 'pareto-reading') {
-        return <ParetoPointStatsPanel pointId={selectedParetoPointId} />;
+    'content.formula': (props) => {
+      if (moduleLegacyKind(props.module) === 'equation-card-row') {
+        return sharedRegistry['equation-card-row']?.(props) ?? null;
       }
-
-      return sharedRegistry['stat-panel']?.({ manifest: activeManifest, step: manifestStep, module, extra: { revealProgress, allowInlineReveal } }) ?? null;
+      return sharedRegistry['content.formula']?.(props) ?? null;
+    },
+    'analytics.summary': (props) => {
+      if (moduleLegacyKind(props.module) === 'stat-panel') {
+        return renderStatPanel(props);
+      }
+      return sharedRegistry['analytics.summary']?.(props) ?? null;
     },
   };
 
@@ -108,7 +129,7 @@ export function UNIT_4_4StepContentPanel({
         manifest: activeManifest,
         step: stepManifest,
         moduleRegistry,
-        extra: { revealProgress, allowInlineReveal },
+        extra: moduleExtra,
       })}
     </section>
   );

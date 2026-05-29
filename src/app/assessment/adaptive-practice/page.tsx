@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface DiagnosticResponse {
   knowledgeDimensions: {
@@ -141,8 +143,10 @@ function resolveDemoScene(sceneParam: string | null): DemoScene {
 
 export default function AdaptivePracticePage() {
   const searchParams = useSearchParams();
+  const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
+  const loginHref = `/login?callbackUrl=${encodeURIComponent('/assessment/adaptive-practice')}`;
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
@@ -198,26 +202,39 @@ export default function AdaptivePracticePage() {
     setQuestionStartAt(Date.now());
   }, [applyDemoScene, demoScene, isDemoMode, sessionId]);
 
+  const bootstrapPractice = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all([loadDiagnostic(), loadNextQuestion()]);
+    } catch (bootstrapError) {
+      setError(bootstrapError instanceof Error ? bootstrapError.message : '初始化失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadDiagnostic, loadNextQuestion]);
+
   useEffect(() => {
     if (isDemoMode) {
       applyDemoScene(demoScene);
       return;
     }
 
-    const bootstrap = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        await Promise.all([loadDiagnostic(), loadNextQuestion()]);
-      } catch (bootstrapError) {
-        setError(bootstrapError instanceof Error ? bootstrapError.message : '初始化失败');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (authStatus === 'loading') {
+      return;
+    }
 
-    void bootstrap();
-  }, [applyDemoScene, demoScene, isDemoMode, loadDiagnostic, loadNextQuestion]);
+    if (authStatus === 'unauthenticated') {
+      setDiagnostic(null);
+      setQuestionState(null);
+      setFeedback(null);
+      setLoading(false);
+      setError('请先登录后再进入自适应练习');
+      return;
+    }
+
+    void bootstrapPractice();
+  }, [applyDemoScene, authStatus, bootstrapPractice, demoScene, isDemoMode]);
 
   const submitCurrentAnswer = async () => {
     if (!questionState || !selectedOption) {
@@ -482,6 +499,29 @@ export default function AdaptivePracticePage() {
                     </ul>
                   </div>
                 ) : null}
+              </div>
+            ) : authStatus === 'unauthenticated' && !isDemoMode ? (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-6 text-center text-sm text-amber-100">
+                <p className="font-medium">请先登录后再进入自适应练习。</p>
+                <Link
+                  href={loginHref}
+                  className="mt-4 inline-flex rounded bg-amber-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
+                >
+                  登录后继续
+                </Link>
+              </div>
+            ) : error ? (
+              <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-6 text-center text-sm text-rose-100">
+                <p className="font-medium">题目加载失败</p>
+                <p className="mt-2 text-rose-100/80">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => void bootstrapPractice()}
+                  disabled={loading}
+                  className="mt-4 rounded bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500 disabled:opacity-60"
+                >
+                  重新加载
+                </button>
               </div>
             ) : (
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-sm text-slate-400">

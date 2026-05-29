@@ -84,6 +84,7 @@ describe('arena student entry UI boundaries', () => {
     const shellSource = readRepoFile('src/features/arena/arena-page-shell.tsx');
     const homeSource = readRepoFile('src/app/page.tsx');
     const authLayoutSource = readRepoFile('src/app/(auth)/layout.tsx');
+    const navigationSource = readRepoFile('src/lib/platform-role-navigation.ts');
 
     expect(hallSource).toContain('ArenaPageShell');
     expect(hallSource).toContain("from './display-labels'");
@@ -93,10 +94,14 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).toContain("'竞技场首页'");
     expect(detailSource).toContain("'首页'");
     expect(detailSource).toContain("'竞技场首页'");
-    expect(shellSource).toContain("'虚拟仿真'");
-    expect(shellSource).toContain("'竞技场'");
-    expect(shellSource).toContain("'知识图谱'");
-    expect(shellSource).toContain("'互动学习'");
+    expect(shellSource).toContain('getStudentCoreNavigationEntries');
+    expect(navigationSource).toContain("'虚拟仿真'");
+    expect(navigationSource).toContain("'竞技场'");
+    expect(navigationSource).toContain("'知识资源'");
+    expect(navigationSource).toContain("'控制工作台'");
+    expect(navigationSource).toContain("'自适应学习'");
+    expect(navigationSource).toContain("'互动学习'");
+    expect(navigationSource).toContain("'个人中心'");
     expect(shellSource).not.toContain("'我的方案'");
     expect(shellSource).not.toContain("'通知消息'");
     expect(shellSource).not.toContain("'AI 助教'");

@@ -151,6 +151,24 @@ describe('course evidence specs', () => {
     expect(listCourseEvidenceParameterStepIds(resolved.spec)).toEqual([]);
   });
 
+  it('resolves override-backed specs through canonical route and lesson-key aliases', () => {
+    for (const input of [
+      { lessonId: 'unit-5-3-mass-coordination-chain' },
+      { routeSegment: 'unit-5-3-mass-coordination-chain' },
+      { lessonKey: 'unit-5-3-mass-coordination-chain-v1' },
+    ]) {
+      const resolved = resolveCourseEvidenceSpec(input);
+
+      expect(resolved.status, JSON.stringify(input)).toBe('supported');
+      if (resolved.status !== 'supported') throw new Error(`${JSON.stringify(input)} did not resolve`);
+      expect(resolved.spec).toMatchObject({
+        lessonId: '5-3',
+        lessonKey: 'unit-5-3-mass-coordination-chain-v1',
+        routeSegment: 'unit-5-3-mass-coordination-chain',
+      });
+    }
+  });
+
   it('does not match override optional keys when both sides are absent', () => {
     const resolved = resolveCourseEvidenceSpec({
       lessonId: 'target',

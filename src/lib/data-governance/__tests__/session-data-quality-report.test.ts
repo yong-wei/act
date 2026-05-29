@@ -192,7 +192,7 @@ describe('buildSessionDataQualityReport', () => {
           richOrPartialEvidenceRatio: 2 / 3,
           legacyOrMissingRatio: 1 / 3,
           reportFresh: false,
-          snapshotFresh: false,
+          snapshotFresh: true,
           syncSeverity: 'low',
           unresolvedSyncIncidents: 1,
           syncAffectedUserRatio: 0.5,
@@ -271,7 +271,7 @@ describe('buildSessionDataQualityReport', () => {
         participants: 1,
         durableSubmissionCoverage: 0,
         reportFresh: false,
-        snapshotFresh: false,
+        snapshotFresh: true,
       },
     });
   });
@@ -450,6 +450,273 @@ describe('buildSessionDataQualityReport', () => {
     });
   });
 
+  it('separates snapshot coverage from post-class update-window coverage for a 5-3-like session', () => {
+    const report = buildSessionDataQualityReport({
+      generatedAt: '2026-05-20T15:00:00.000Z',
+      filters: { sessionIds: ['session-5-3-current-snapshot-partial-window'] },
+      sessions: [{
+        id: 'session-5-3-current-snapshot-partial-window',
+        classId: 'class-1',
+        status: 'FINISHED',
+        startTime: new Date('2026-05-20T08:00:00.000Z'),
+        endTime: new Date('2026-05-20T09:30:00.000Z'),
+        plan: { title: '5-3：从单回路控制到复杂自主系统链路' },
+      }],
+      studentStates: [
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-3',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        },
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-2',
+          stateKey: 'course',
+          lessonKey: '5-3',
+          submittedAt: new Date('2026-05-20T08:06:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:21:00.000Z'),
+        },
+      ],
+      interactionLogs: [],
+      learningFacts: [
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-1',
+          lessonId: '5-3',
+          score: 100,
+          outcome: 'success',
+          startedAt: new Date('2026-05-20T09:10:00.000Z'),
+          contextJson: {},
+        },
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-2',
+          lessonId: '5-3',
+          score: 90,
+          outcome: 'success',
+          startedAt: new Date('2026-05-20T09:12:00.000Z'),
+          contextJson: {},
+        },
+      ],
+      studentStepResponses: [
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          stepId: 'step-10',
+          submittedAt: new Date('2026-05-20T09:10:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            answers: { q1: 'A' },
+            score: 100,
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true }],
+          },
+        },
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-2',
+          lessonKey: '5-3',
+          stepId: 'step-10',
+          submittedAt: new Date('2026-05-20T09:12:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            answers: { q1: 'B' },
+            score: 90,
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'B', referenceValue: 'B', isCorrect: true }],
+          },
+        },
+      ],
+      studentCompetencySnapshots: [
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T09:20:00.000Z') },
+        { userId: 'student-1', snapshotAt: new Date('2026-05-20T12:30:00.000Z') },
+        { userId: 'student-2', snapshotAt: new Date('2026-05-20T09:45:00.000Z') },
+      ],
+      classSessionReports: [{
+        sessionId: 'session-5-3-current-snapshot-partial-window',
+        lessonKey: '5-3',
+        reportType: 'class-summary',
+        status: 'READY',
+        updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+      }],
+      studentSessionReports: [
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        },
+        {
+          sessionId: 'session-5-3-current-snapshot-partial-window',
+          userId: 'student-2',
+          lessonKey: '5-3',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:42:00.000Z'),
+        },
+      ],
+      studentEvidenceFeatureCaches: [
+        {
+          userId: 'student-1',
+          refreshedAt: new Date('2026-05-20T09:45:00.000Z'),
+          lastSourceFactAt: new Date('2026-05-20T09:10:00.000Z'),
+          statusMarkers: [],
+        },
+        {
+          userId: 'student-2',
+          refreshedAt: new Date('2026-05-20T09:46:00.000Z'),
+          lastSourceFactAt: new Date('2026-05-20T09:12:00.000Z'),
+          statusMarkers: [],
+        },
+      ],
+    });
+
+    expect(report.sessions[0]).toMatchObject({
+      snapshotCoverage: {
+        coveredParticipants: 2,
+        expectedParticipants: 2,
+        missingParticipants: 0,
+        fresh: true,
+      },
+      postClassUpdateWindowCoverage: {
+        updatedParticipants: 1,
+        expectedParticipants: 2,
+        missingParticipants: 1,
+        fresh: false,
+      },
+      featureCacheFreshness: {
+        latestFactCoveredParticipants: 2,
+        expectedParticipantsWithFacts: 2,
+        postClassRefreshedParticipants: 2,
+        fresh: true,
+      },
+      readinessMetrics: {
+        durableSubmissionCoverage: {
+          submittedParticipants: 2,
+          expectedParticipants: 2,
+          coverage: 1,
+        },
+        scoreableEvidenceCoverage: {
+          scoreableRows: 2,
+          submittedRows: 2,
+          coverage: 1,
+        },
+        scoringCoverage: {
+          scoredRows: 2,
+          scoreableRows: 2,
+          coverage: 1,
+        },
+      },
+      qualityStatus: {
+        status: 'yellow',
+        reasons: ['post_class_update_window_partial'],
+        metrics: {
+          snapshotFresh: true,
+          snapshotCoverageFresh: true,
+          postClassUpdateWindowFresh: false,
+          featureCacheFresh: true,
+        },
+      },
+    });
+    expect(report.sessions[0].qualityStatus.reasons).not.toContain('snapshot_partially_missing');
+  });
+
+  it('does not degrade collect reports when the feature-cache table is unavailable', async () => {
+    const db = {
+      interactionLog: { findMany: vi.fn().mockResolvedValue([]) },
+      studentState: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          stateKey: 'course',
+          lessonKey: '5-3',
+          submittedAt: new Date('2026-05-20T08:05:00.000Z'),
+          lastClientEventAt: new Date('2026-05-20T09:20:00.000Z'),
+        }]),
+      },
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonId: '5-3',
+          score: 100,
+          outcome: 'success',
+          startedAt: new Date('2026-05-20T09:10:00.000Z'),
+          contextJson: {},
+        }]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          stepId: 'step-10',
+          submittedAt: new Date('2026-05-20T09:10:00.000Z'),
+          responseData: {
+            schemaVersion: 'manifest-submission-v2',
+            answers: { q1: 'A' },
+            score: 100,
+            questionSummaries: [{ questionId: 'q1', studentAnswer: 'A', referenceValue: 'A', isCorrect: true }],
+          },
+        }]),
+      },
+      classSession: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'session-no-cache-model',
+          classId: 'class-1',
+          status: 'FINISHED',
+          startTime: new Date('2026-05-20T08:00:00.000Z'),
+          endTime: new Date('2026-05-20T09:30:00.000Z'),
+          plan: { title: '5-3' },
+        }]),
+      },
+      studentCompetencySnapshot: {
+        findMany: vi.fn().mockResolvedValue([{
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-20T09:45:00.000Z'),
+        }]),
+      },
+      classSessionReport: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          lessonKey: '5-3',
+          reportType: 'class-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:40:00.000Z'),
+        }]),
+      },
+      studentSessionReport: {
+        findMany: vi.fn().mockResolvedValue([{
+          sessionId: 'session-no-cache-model',
+          userId: 'student-1',
+          lessonKey: '5-3',
+          reportType: 'student-summary',
+          status: 'READY',
+          updatedAt: new Date('2026-05-20T09:41:00.000Z'),
+        }]),
+      },
+      user: { findMany: vi.fn().mockResolvedValue([{ id: 'student-1', role: 'STUDENT' }]) },
+    };
+
+    const report = await collectSessionDataQualityReport(db, { sessionIds: ['session-no-cache-model'] });
+
+    expect(report.sessions[0].featureCacheFreshness).toMatchObject({
+      evaluated: false,
+      fresh: false,
+    });
+    expect(report.sessions[0].qualityStatus).toMatchObject({
+      status: 'green',
+      reasons: ['healthy_quality_gate'],
+      metrics: {
+        featureCacheFresh: true,
+      },
+    });
+  });
+
   it('marks an existing feature cache incomplete when it does not cover session facts', () => {
     const report = buildSessionDataQualityReport({
       generatedAt: '2026-05-20T15:00:00.000Z',
@@ -524,6 +791,16 @@ describe('buildSessionDataQualityReport', () => {
       expectedParticipants: 1,
       missingParticipants: 0,
       staleParticipants: 1,
+    });
+    expect(report.sessions[0].featureCacheFreshness).toMatchObject({
+      latestFactCoveredParticipants: 0,
+      expectedParticipantsWithFacts: 1,
+      postClassRefreshedParticipants: 1,
+      staleParticipants: 1,
+      reasonCounts: {
+        feature_cache_missing_latest_fact: 1,
+      },
+      fresh: false,
     });
   });
 

@@ -1,11 +1,14 @@
 export type EvidenceSourceId =
   | 'InteractionLog'
   | 'StudentStepResponse'
+  | 'SimulationSession'
   | 'SimulationLog'
   | 'UserAnswer'
   | 'AbilityAssessment'
   | 'PromptAssessment'
   | 'DesignSession'
+  | 'ArenaBlackBoxExperiment'
+  | 'ArenaVirtualSimulationRun'
   | 'ArenaSubmission'
   | 'ArenaEvaluationRun'
   | 'LearningFact';
@@ -70,6 +73,7 @@ export interface EvidenceCoverageRow {
   clientEventId?: string | null;
   learningContext?: string | null;
   invalidContextReason?: string | null;
+  readinessGaps?: string[];
 }
 
 export interface InteractionLogEventTypeResolution {
@@ -89,6 +93,7 @@ export interface EvidenceRowClassification {
   canonicalEventType?: string;
   wrapperEventType?: string;
   exclusionReason?: string;
+  readinessGaps?: string[];
 }
 
 export interface EvidenceSourceCoverage {
@@ -105,6 +110,8 @@ export interface EvidenceSourceCoverage {
   provenanceCounts: Partial<Record<EvidenceProvenance, number>>;
   eligibilityCounts: Partial<Record<EvidenceEligibility, number>>;
   valueLevelCounts: Partial<Record<EvidenceValueLevel, number>>;
+  materializationReadiness: EvidenceMaterializationReadiness;
+  readinessGapCounts: Record<string, number>;
   sampleSourceReferences: string[];
 }
 
@@ -135,7 +142,7 @@ export interface BuildEvidenceSourceCoverageReportInput {
   rowsBySource: Partial<Record<EvidenceSourceId, EvidenceCoverageRow[]>>;
 }
 
-const CATALOG_VERSION = '2026-05-19';
+const CATALOG_VERSION = '2026-05-25';
 
 const HIGH_VALUE_INTERACTION_EVENTS = new Set([
   'answer_submit',
@@ -154,6 +161,10 @@ const HIGH_VALUE_INTERACTION_EVENTS = new Set([
   'arena_controller_save',
   'arena_identification_model_save',
   'arena_virtual_simulation_import',
+  'arena_virtual_simulation_start',
+  'arena_blackbox_experiment_create',
+  'simulation_session_start',
+  'simulation_session_complete',
 ]);
 
 const LOW_VALUE_INTERACTION_EVENTS = new Set([
@@ -170,6 +181,8 @@ const LOW_VALUE_INTERACTION_EVENTS = new Set([
   'arena_result_view',
   'arena_leaderboard_view',
   'arena_feedback_view',
+  'simulation_scene_view',
+  'simulation_help_open',
 ]);
 
 const CATALOG: EvidenceSourceCatalogEntry[] = [
@@ -198,6 +211,19 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'submittedAt',
     traceabilityFields: ['id', 'sourceLogId', 'clientEventId', 'sessionId', 'lessonKey', 'stepId'],
     provenancePolicy: 'Classroom submission provenance follows the linked session and source interaction log.',
+  },
+  {
+    id: 'SimulationSession',
+    tableName: 'SimulationSession',
+    description: 'Simulation run/session envelope stored with module, type, params, output summary, and artifacts.',
+    learningScope: 'mixed',
+    defaultValueLevel: 'high',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'partial',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'module', 'simType'],
+    provenancePolicy: 'Sessions inherit provenance from module context and input params payload.',
   },
   {
     id: 'SimulationLog',
@@ -265,6 +291,32 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     provenancePolicy: 'Design rows are unknown provenance unless action payloads identify a seed or demo source.',
   },
   {
+    id: 'ArenaBlackBoxExperiment',
+    tableName: 'ArenaBlackBoxExperiment',
+    description: 'Arena public experiment datasets and budget evidence.',
+    learningScope: 'standalone',
+    defaultValueLevel: 'medium',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'ready',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'taskId', 'datasetHash', 'signalType', 'budgetCost'],
+    provenancePolicy: 'Experiment rows mark seed, demo, or real datasets through signalType and payload metadata.',
+  },
+  {
+    id: 'ArenaVirtualSimulationRun',
+    tableName: 'ArenaVirtualSimulationRun',
+    description: 'Arena preview traces and controller exploration evidence.',
+    learningScope: 'standalone',
+    defaultValueLevel: 'high',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'ready',
+    userIdField: 'userId',
+    timestampField: 'createdAt',
+    traceabilityFields: ['id', 'userId', 'simulationRunId', 'taskId', 'datasetHash', 'controllerHash', 'scenarioId'],
+    provenancePolicy: 'Preview runs derive provenance from task and dataset context.',
+  },
+  {
     id: 'ArenaSubmission',
     tableName: 'ArenaSubmission',
     description: 'Arena controller submissions with score, task, class, season, and publication scope.',
@@ -280,14 +332,14 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
   {
     id: 'ArenaEvaluationRun',
     tableName: 'ArenaEvaluationRun',
-    description: 'Arena evaluation artifacts without direct user ownership.',
+    description: 'Arena evaluation artifacts with protocol version and trace reference. No direct user ownership.',
     learningScope: 'historical',
     defaultValueLevel: 'medium',
     defaultEligibility: 'unsupported',
     materializationReadiness: 'future',
     timestampField: 'completedAt',
     traceabilityFields: ['id', 'taskId', 'artifactHash', 'protocolVersion'],
-    provenancePolicy: 'Evaluation runs support submissions but are not profile evidence without a user submission.',
+    provenancePolicy: 'Evaluation runs lack user ownership; user attribution comes through a linked ArenaSubmission. Kept unsupported until submission-to-evaluation linking is materialized.',
   },
   {
     id: 'LearningFact',
@@ -314,6 +366,10 @@ function readRecord(value: unknown): Record<string, unknown> {
 
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
 }
 
 function normalizeDate(value: string | Date | null | undefined): string | null {
@@ -360,6 +416,89 @@ function inferProvenance(row: EvidenceCoverageRow): EvidenceProvenance {
 
 function isNonRealProvenance(provenance: EvidenceProvenance) {
   return provenance === 'seed' || provenance === 'showcase' || provenance === 'demo' || provenance === 'test';
+}
+
+function collectArenaPreviewReadinessGaps(row: EvidenceCoverageRow): string[] {
+  const payload = readRecord(row.eventData);
+  const summary = readRecord(payload.summary);
+  const replay = readRecord(payload.replay);
+  const metadata = readRecord(payload.metadata ?? readRecord(summary).previewBoundary);
+  const gaps = new Set<string>();
+
+  for (const gap of row.readinessGaps ?? []) {
+    if (gap.trim()) gaps.add(gap.trim());
+  }
+
+  if (!readString(payload.simulationRunId)) gaps.add('missing_simulation_run_mapping');
+  if (!readString(row.userId)) gaps.add('missing_owner_user');
+  if (!readString(row.id) && !readString(payload.arenaPreviewDetailId)) gaps.add('missing_arena_detail_reference');
+  if (!readString(replay.checksum) && !readString(payload.replayToken)) gaps.add('missing_replay_metadata');
+  if (
+    !(
+      typeof summary.trackingError === 'number' ||
+      typeof summary.maxDeviation === 'number' ||
+      typeof summary.controlEnergy === 'number' ||
+      typeof summary.safetyViolations === 'number' ||
+      typeof summary.smoothness === 'number'
+    )
+  ) {
+    gaps.add('missing_summary_metrics');
+  }
+  if (
+    metadata.evaluationVisibility !== 'preview' ||
+    readBoolean(metadata.officialEligible) !== false ||
+    !readString(metadata.modelRelation) ||
+    !readString(metadata.datasetHash) ||
+    !readString(metadata.controllerHash) ||
+    !readString(metadata.identificationModelId) ||
+    !readString(metadata.sourceExperimentId)
+  ) {
+    gaps.add('missing_preview_boundary_metadata');
+  }
+
+  return Array.from(gaps);
+}
+
+function classifyArenaVirtualSimulationRunRow(
+  row: EvidenceCoverageRow,
+  entry: EvidenceSourceCatalogEntry,
+): EvidenceRowClassification {
+  const provenance = inferProvenance(row);
+
+  if (isNonRealProvenance(provenance)) {
+    return {
+      sourceId: entry.id,
+      provenance,
+      learningScope: entry.learningScope,
+      valueLevel: entry.defaultValueLevel,
+      eligibility: 'excluded',
+      materializationReadiness: entry.materializationReadiness,
+      exclusionReason: 'non_real_provenance',
+    };
+  }
+
+  const readinessGaps = collectArenaPreviewReadinessGaps(row);
+  if (readinessGaps.length > 0) {
+    return {
+      sourceId: entry.id,
+      provenance,
+      learningScope: entry.learningScope,
+      valueLevel: 'context',
+      eligibility: 'context-only',
+      materializationReadiness: 'partial',
+      exclusionReason: readinessGaps[0],
+      readinessGaps,
+    };
+  }
+
+  return {
+    sourceId: entry.id,
+    provenance,
+    learningScope: entry.learningScope,
+    valueLevel: entry.defaultValueLevel,
+    eligibility: entry.defaultEligibility,
+    materializationReadiness: entry.materializationReadiness,
+  };
 }
 
 export function getEvidenceSourceCatalog(): EvidenceSourceCatalogEntry[] {
@@ -481,6 +620,10 @@ export function classifyEvidenceRow(row: EvidenceCoverageRow & { sourceId: Evide
     return classifyInteractionRow(row, entry);
   }
 
+  if (entry.id === 'ArenaVirtualSimulationRun') {
+    return classifyArenaVirtualSimulationRunRow(row, entry);
+  }
+
   const provenance = inferProvenance(row);
   if (isNonRealProvenance(provenance)) {
     return {
@@ -531,11 +674,13 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
     const provenanceCounts: Partial<Record<EvidenceProvenance, number>> = {};
     const eligibilityCounts: Partial<Record<EvidenceEligibility, number>> = {};
     const valueLevelCounts: Partial<Record<EvidenceValueLevel, number>> = {};
+    const readinessGapCounts: Record<string, number> = {};
     const timestamps: string[] = [];
     const samples: string[] = [];
     let eligibleRows = 0;
     let excludedRows = 0;
     let unsupportedRows = 0;
+    let materializationReadiness = entry.materializationReadiness;
 
     for (const row of rows) {
       const userId = readString(row.userId);
@@ -552,6 +697,12 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
       increment(provenanceCounts, classification.provenance);
       increment(eligibilityCounts, classification.eligibility);
       increment(valueLevelCounts, classification.valueLevel);
+      if (classification.materializationReadiness === 'partial') {
+        materializationReadiness = 'partial';
+      }
+      for (const gap of classification.readinessGaps ?? []) {
+        readinessGapCounts[gap] = (readinessGapCounts[gap] ?? 0) + 1;
+      }
 
       if (classification.eligibility === 'eligible') {
         eligibleRows += 1;
@@ -594,6 +745,8 @@ export function buildEvidenceSourceCoverageReport(input: BuildEvidenceSourceCove
       provenanceCounts,
       eligibilityCounts,
       valueLevelCounts,
+      materializationReadiness,
+      readinessGapCounts,
       sampleSourceReferences: samples,
     });
   }

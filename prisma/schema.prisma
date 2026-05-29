@@ -97,6 +97,12 @@ model User {
   userAnswers        UserAnswer[]
   abilityAssessments AbilityAssessment[]
   aiInterventions    AIIntervention[]
+  konlingMemories    KonlingMemory[]
+  ownedAgentSessions AgentSession[] @relation("AgentSessionOwner")
+  actedAgentSessions AgentSession[] @relation("AgentSessionActor")
+  ownedAgentToolRuns AgentToolRun[] @relation("AgentToolRunOwner")
+  actorAgentToolRuns AgentToolRun[] @relation("AgentToolRunActor")
+  targetAgentToolRuns AgentToolRun[] @relation("AgentToolRunTarget")
   promptAssessments  PromptAssessment[]
   designSessions     DesignSession[]
 
@@ -110,7 +116,9 @@ model User {
   arenaControllerArtifacts ArenaControllerArtifact[]
   arenaSubmissions         ArenaSubmission[]
   arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
+  arenaIdentificationModels ArenaIdentificationModel[]
   arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
+  simulationRuns SimulationRun[]
   arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
 }
 
@@ -978,13 +986,161 @@ model AbilityAssessment {
   @@index([userId, assessedAt])
 }
 
+model AdaptiveAssessmentAlgorithmVersion {
+  version    String   @id
+  family     String
+  parameters Json
+  status     String   @default("active")
+  releasedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  sessions         AdaptiveAssessmentSession[]
+  itemRefs         AdaptiveAssessmentItemRef[]
+  answers          AdaptiveAssessmentAnswer[]
+  abilityEstimates AdaptiveAssessmentAbilityEstimate[]
+  masteryUpdates   AdaptiveMasteryUpdate[]
+}
+
+model AdaptiveAssessmentSession {
+  id               String    @id @default(cuid())
+  userId           String
+  sessionKey       String
+  selectedQuestionIds String[]  @default([])
+  algorithmVersion String
+  startedAt        DateTime  @default(now())
+  lastAnsweredAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  algorithm        AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  answers          AdaptiveAssessmentAnswer[]
+  abilityEstimates AdaptiveAssessmentAbilityEstimate[]
+  masteryUpdates   AdaptiveMasteryUpdate[]
+
+  @@unique([userId, sessionKey])
+  @@index([userId, startedAt])
+  @@index([sessionKey])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentItemRef {
+  id               String   @id @default(cuid())
+  questionId       String
+  contentHash      String
+  source           String
+  questionType     String
+  domains          String[]
+  knowledgeTags    String[]
+  difficulty       Float
+  optionCount      Int
+  algorithmVersion String
+  metadata         Json     @default("{}")
+  createdAt        DateTime @default(now())
+
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  answers   AdaptiveAssessmentAnswer[]
+
+  @@unique([questionId, algorithmVersion, contentHash])
+  @@index([questionId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentAnswer {
+  id                  String   @id @default(cuid())
+  userId              String
+  sessionId           String
+  questionRefId       String
+  questionId          String
+  selectedOptionKey   String
+  correctOptionKey    String
+  isCorrect           Boolean
+  score               Float
+  responseTimeSeconds Int
+  abilityEstimate     Float
+  algorithmVersion    String
+  answeredAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+
+  session                 AdaptiveAssessmentSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionRef             AdaptiveAssessmentItemRef           @relation(fields: [questionRefId], references: [id], onDelete: Restrict)
+  algorithm               AdaptiveAssessmentAlgorithmVersion  @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  abilityEstimateSnapshot AdaptiveAssessmentAbilityEstimate?
+  masteryUpdates          AdaptiveMasteryUpdate[]
+
+  @@index([userId, answeredAt])
+  @@index([sessionId, answeredAt])
+  @@unique([sessionId, questionId])
+  @@index([questionId])
+  @@index([questionRefId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentAbilityEstimate {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionId        String
+  answerId         String   @unique
+  theta            Float
+  confidenceLow    Float
+  confidenceHigh   Float
+  dimensions       Json
+  algorithmVersion String
+  estimatedAt      DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+
+  @@index([userId, estimatedAt])
+  @@index([sessionId])
+  @@index([algorithmVersion])
+}
+
+model AdaptiveMasteryUpdate {
+  id                String   @id @default(cuid())
+  userId            String
+  sessionId         String
+  answerId          String
+  questionId        String
+  knowledgeTag      String
+  priorMastery      Float
+  posteriorMastery  Float
+  confidence        Float
+  evidenceKind      String
+  algorithmVersion  String
+  updateReason      String
+  prerequisiteState Json     @default("{}")
+  createdAt         DateTime @default(now())
+
+  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+
+  @@unique([answerId, knowledgeTag, algorithmVersion])
+  @@index([userId, knowledgeTag, createdAt])
+  @@index([sessionId])
+  @@index([questionId])
+  @@index([algorithmVersion])
+}
+
 model AIIntervention {
   id               String   @id @default(cuid())
   userId           String
   sessionId        String
+  classId          String?
+  resourceId       String?
+  pathNodeId       String?
   triggerType      String
   interventionType String
   content          String   @db.Text
+  whyNow           String?  @db.Text
+  evidence         Json     @default("[]")
+  alternatives     Json     @default("[]")
+  privacyScope     String   @default("student-visible")
+  teacherPolicy    String   @default("allowed")
+  cooldownUntil    DateTime?
+  outcome          Json?
   studentResponse  String?  @db.Text
   wasHelpful       Boolean?
   createdAt        DateTime @default(now())
@@ -993,6 +1149,110 @@ model AIIntervention {
 
   @@index([userId, createdAt])
   @@index([sessionId])
+  @@index([userId, interventionType, createdAt])
+  @@index([classId])
+  @@index([resourceId])
+}
+
+model KonlingMemory {
+  id           String    @id @default(cuid())
+  userId       String
+  sessionId    String?
+  classId      String?
+  courseId     String?
+  pageId       String?
+  resourceId   String?
+  pathNodeId   String?
+  memoryType   String
+  privacyScope String    @default("student-visible")
+  summary      String    @db.Text
+  evidenceRefs Json      @default("[]")
+  metadata     Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  expiresAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, memoryType, createdAt])
+  @@index([sessionId])
+  @@index([classId])
+  @@index([courseId, pageId])
+  @@index([resourceId])
+  @@index([pathNodeId])
+  @@index([privacyScope])
+}
+
+model AgentSession {
+  id              String    @id @default(cuid())
+  ownerUserId     String
+  actorUserId     String?
+  classId         String?
+  courseId        String
+  pageId          String
+  resourceId      String?
+  pathNodeId      String?
+  phase           String
+  status          String    @default("draft")
+  stateJson       Json      @default("{}")
+  permittedTools  String[]  @default([])
+  pendingApproval Json?
+  expiresAt       DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  ownerUser User @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser User? @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  toolRuns  AgentToolRun[]
+
+  @@index([ownerUserId, status, updatedAt])
+  @@index([ownerUserId, courseId, pageId])
+  @@index([classId])
+  @@index([resourceId])
+  @@index([pathNodeId])
+  @@index([expiresAt])
+}
+
+model AgentToolRun {
+  id             String    @id @default(cuid())
+  agentSessionId String
+  ownerUserId    String
+  actorUserId    String
+  targetUserId   String
+  classId        String?
+  courseId       String
+  pageId         String
+  resourceId     String?
+  pathNodeId     String?
+  toolName       String
+  permissionTier String
+  approvalState  String    @default("not_required")
+  status         String    @default("running")
+  inputSummary   Json      @default("{}")
+  outputSummary  Json?
+  errorSummary   Json?
+  idempotencyKey String?
+  correlationId  String
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  latencyMs      Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  agentSession AgentSession @relation(fields: [agentSessionId], references: [id], onDelete: Cascade)
+  ownerUser    User         @relation("AgentToolRunOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser    User         @relation("AgentToolRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  targetUser   User         @relation("AgentToolRunTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@unique([agentSessionId, toolName, idempotencyKey])
+  @@index([agentSessionId, startedAt])
+  @@index([ownerUserId, toolName, startedAt])
+  @@index([ownerUserId, status, startedAt])
+  @@index([ownerUserId, courseId, pageId])
+  @@index([classId])
+  @@index([resourceId])
+  @@index([pathNodeId])
 }
 
 model PromptAssessment {
@@ -1124,6 +1384,52 @@ model LearningFact {
   @@index([factType, startedAt])
 }
 
+model LearningEvidenceDraft {
+  id            String   @id @default(cuid())
+  ownerUserId   String
+  sourceType    String
+  sourceRefs    Json
+  factType      String
+  summary       Json     @default("{}")
+  evidenceRefs  Json     @default("{}")
+  provenance    Json     @default("{}")
+  confidence    Float
+  privacyScope  String
+  dedupeKey     String   @unique
+  reviewerState String
+  occurredAt    DateTime
+  courseId      String?
+  sessionId     String?
+  classId       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ownerUserId, occurredAt])
+  @@index([sourceType, occurredAt])
+  @@index([reviewerState, occurredAt])
+  @@index([classId, occurredAt])
+}
+
+model EvidenceOutbox {
+  id            String    @id @default(cuid())
+  eventType     String
+  correlationId String
+  causationId   String
+  ownerUserId   String
+  payload       Json      @default("{}")
+  dedupeKey     String    @unique
+  status        String    @default("pending")
+  availableAt   DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([eventType, status, availableAt])
+  @@index([ownerUserId, createdAt])
+  @@index([correlationId])
+  @@index([causationId])
+}
+
 model ArenaControllerArtifact {
   id           String   @id @default(cuid())
   ownerId      String
@@ -1237,26 +1543,125 @@ model ArenaBlackBoxExperiment {
   createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identificationModels ArenaIdentificationModel[]
 
   @@index([userId, taskId, createdAt])
   @@index([taskId, datasetHash])
 }
 
-model ArenaVirtualSimulationRun {
-  id             String   @id @default(cuid())
-  userId         String
-  taskId         String
-  datasetHash    String
-  controllerHash String
-  scenarioId     String
-  payload        Json
-  createdAt      DateTime @default(now())
+model ArenaIdentificationModel {
+  id                 String   @id @default(cuid())
+  userId             String
+  taskId             String
+  datasetHash        String
+  sourceExperimentId String
+  modelType          String
+  validationSummary  Json
+  protocolVersion    String
+  createdAt          DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceExperiment ArenaBlackBoxExperiment @relation(fields: [sourceExperimentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId, sourceExperimentId])
+  @@index([userId, taskId, createdAt])
+  @@index([taskId, datasetHash])
+  @@index([sourceExperimentId])
+}
+
+model ArenaVirtualSimulationRun {
+  id              String   @id @default(cuid())
+  userId          String
+  taskId          String
+  datasetHash     String
+  controllerHash  String
+  scenarioId      String
+  simulationRunId String?  @unique
+  payload         Json
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
 
   @@index([userId, taskId, createdAt])
   @@index([taskId, controllerHash])
   @@index([taskId, datasetHash])
+}
+
+model SimulationTaskSpec {
+  id            String   @id @default(cuid())
+  schemaVersion String
+  sceneId       String
+  scenarioId    String
+  specHash      String   @unique
+  payload       Json
+  launchContext Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  runs SimulationRun[]
+
+  @@index([sceneId, scenarioId])
+  @@index([createdAt])
+}
+
+model SimulationRun {
+  id                    String    @id @default(cuid())
+  ownerUserId           String?
+  classId               String?
+  courseId              String?
+  sessionId             String?
+  resourceId            String?
+  publicationId         String?
+  runKind               String
+  sourceDomain          String
+  sourceRefId           String
+  taskSpecId            String?
+  taskSpecSnapshot      Json?
+  controllerSnapshotRef String?
+  status                String
+  summary               Json      @default("{}")
+  replayToken           String?
+  seed                  BigInt?
+  protocolVersion       String
+  runtimeVersion        String
+  modelVersion          String
+  sceneSpecVersion      String?
+  createdAt             DateTime  @default(now())
+  startedAt             DateTime?
+  completedAt           DateTime?
+  updatedAt             DateTime  @updatedAt
+
+  owner    User?               @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  taskSpec SimulationTaskSpec? @relation(fields: [taskSpecId], references: [id], onDelete: SetNull)
+  traces   SimulationTrace[]
+  arenaVirtualPreview ArenaVirtualSimulationRun?
+
+  @@unique([sourceDomain, sourceRefId])
+  @@index([ownerUserId, createdAt])
+  @@index([classId, createdAt])
+  @@index([runKind, status, createdAt])
+  @@index([taskSpecId])
+}
+
+model SimulationTrace {
+  id               String   @id @default(cuid())
+  runId            String
+  protocolVersion  String
+  runtimeVersion   String
+  modelVersion     String
+  seed             BigInt?
+  checksum         String
+  summaryMetrics   Json     @default("{}")
+  sampleCount      Int
+  sampleCadence    Float
+  sampleStorageUri String?
+  createdAt        DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, createdAt])
+  @@index([checksum])
 }
 
 // Student competency snapshot

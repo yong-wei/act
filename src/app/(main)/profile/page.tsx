@@ -12,8 +12,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 interface UserProfile {
   user: {
@@ -117,7 +119,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role) {
       if (session.user.role !== 'STUDENT') {
-        const redirectPath = session.user.role === 'ADMIN' ? '/admin' : '/teacher';
+        const redirectPath = getPlatformCockpitHref(session.user.role);
         router.replace(redirectPath);
         return;
       }
@@ -141,25 +143,25 @@ export default function ProfilePage() {
     }
   };
 
+  if (status === 'unauthenticated') {
+    return (
+      <div className="surface-page flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-subtle">请先登录</p>
+          <Link href={buildLoginRedirectForPath('/profile')} className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
+            前往登录
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="surface-page flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'unauthenticated') {
-    return (
-      <div className="surface-page flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-subtle">请先登录</p>
-          <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
-            前往登录
-          </Link>
         </div>
       </div>
     );
@@ -184,13 +186,14 @@ export default function ProfilePage() {
       : 0;
   const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
   const evidenceStatusMeta = getEvidenceStatusMeta(profile.evidenceStatus);
+  const studentCockpitHref = getPlatformCockpitHref('STUDENT');
 
   return (
     <div className="surface-page">
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-subtle transition hover:text-foreground">
+            <Link href={studentCockpitHref} className="text-subtle transition hover:text-foreground">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>

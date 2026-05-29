@@ -37,6 +37,57 @@ function compactSourceLabel(...values: unknown[]): string | null {
     .find(Boolean) ?? null;
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function buildArenaPreviewBoundaryMetadata(row: {
+  datasetHash: string;
+  controllerHash: string;
+  payload: unknown;
+}) {
+  const payload = readObject(row.payload);
+  const existing = readObject(payload.metadata ?? readObject(readObject(payload.summary).previewBoundary));
+  const replaySource = readObject(payload.replaySource);
+  const artifact = readObject(replaySource.artifact);
+  const artifactParams = readObject(artifact.params);
+  const experiment = readObject(replaySource.experiment);
+
+  return {
+    evaluationVisibility: 'preview',
+    officialEligible: false,
+    modelRelation: readString(existing.modelRelation) ?? readString(artifactParams.representation) ?? readString(artifact.method),
+    datasetHash: readString(existing.datasetHash) ?? row.datasetHash,
+    controllerHash: readString(existing.controllerHash) ?? row.controllerHash,
+    identificationModelId: readString(existing.identificationModelId) ?? readString(artifactParams.identificationModelId),
+    sourceExperimentId: readString(existing.sourceExperimentId) ?? readString(experiment.id),
+  };
+}
+
+function buildArenaVirtualSimulationRunEventData(row: {
+  id: string;
+  userId: string;
+  taskId: string;
+  datasetHash: string;
+  controllerHash: string;
+  scenarioId: string;
+  simulationRunId?: string | null;
+  payload: unknown;
+}) {
+  const payload = readObject(row.payload);
+  return {
+    ...payload,
+    arenaPreviewDetailId: row.id,
+    simulationRunId: row.simulationRunId ?? null,
+    userId: row.userId,
+    taskId: row.taskId,
+    datasetHash: row.datasetHash,
+    controllerHash: row.controllerHash,
+    scenarioId: row.scenarioId,
+    metadata: buildArenaPreviewBoundaryMetadata(row),
+  };
+}
+
 function summarizeSessionQuality(
   reports: Array<{
     sessionId: string;
@@ -88,11 +139,14 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
   const [
     interactionLogs,
     studentStepResponses,
+    simulationSessions,
     simulationLogs,
     userAnswers,
     abilityAssessments,
     promptAssessments,
     designSessions,
+    arenaBlackBoxExperiments,
+    arenaVirtualSimulationRuns,
     arenaSubmissions,
     arenaEvaluationRuns,
     learningFacts,
@@ -116,6 +170,19 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
         id: true,
         userId: true,
         submittedAt: true,
+      },
+    }),
+    prisma.simulationSession.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: SOURCE_COVERAGE_ROW_LIMIT,
+      select: {
+        id: true,
+        userId: true,
+        module: true,
+        simType: true,
+        inputParams: true,
+        artifacts: true,
+        createdAt: true,
       },
     }),
     prisma.simulationLog.findMany({
@@ -174,6 +241,33 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
         startedAt: true,
       },
     }),
+    prisma.arenaBlackBoxExperiment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: SOURCE_COVERAGE_ROW_LIMIT,
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        signalType: true,
+        payload: true,
+        createdAt: true,
+      },
+    }),
+    prisma.arenaVirtualSimulationRun.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: SOURCE_COVERAGE_ROW_LIMIT,
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        datasetHash: true,
+        controllerHash: true,
+        scenarioId: true,
+        simulationRunId: true,
+        payload: true,
+        createdAt: true,
+      },
+    }),
     prisma.arenaSubmission.findMany({
       orderBy: { submittedAt: 'desc' },
       take: SOURCE_COVERAGE_ROW_LIMIT,
@@ -229,6 +323,23 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
       userId: row.userId,
       occurredAt: row.submittedAt,
     })),
+    SimulationSession: simulationSessions.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: {
+        module: row.module,
+        simType: row.simType,
+        inputParams: row.inputParams,
+        artifacts: row.artifacts,
+      },
+      sourceLabel: compactSourceLabel(
+        readObject(row.inputParams).source,
+        readObject(row.artifacts).source,
+        row.module,
+        row.simType,
+      ),
+    })),
     SimulationLog: simulationLogs.map((row): EvidenceCoverageRow => ({
       id: row.id,
       userId: row.userId,
@@ -266,6 +377,26 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
       occurredAt: row.startedAt,
       eventData: { designActions: row.designActions },
       sourceLabel: row.taskType,
+    })),
+    ArenaBlackBoxExperiment: arenaBlackBoxExperiments.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: row.payload,
+      sourceLabel: compactSourceLabel(readObject(row.payload).source, row.signalType, row.taskId),
+    })),
+    ArenaVirtualSimulationRun: arenaVirtualSimulationRuns.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: buildArenaVirtualSimulationRunEventData(row),
+      sourceLabel: compactSourceLabel(
+        readObject(row.payload).source,
+        row.scenarioId,
+        row.taskId,
+        row.datasetHash,
+        row.controllerHash,
+      ),
     })),
     ArenaSubmission: arenaSubmissions.map((row): EvidenceCoverageRow => ({
       id: row.id,
@@ -517,13 +648,14 @@ export async function GET(request: NextRequest) {
             learningScope: source.learningScope,
             valueLevel: source.defaultValueLevel,
             eligibility: source.defaultEligibility,
-            materializationReadiness: source.materializationReadiness,
+            materializationReadiness: coverage?.materializationReadiness ?? source.materializationReadiness,
             totalRows: coverage?.totalRows ?? 0,
             eligibleRows: coverage?.eligibleRows ?? 0,
             excludedRows: coverage?.excludedRows ?? 0,
             unsupportedRows: coverage?.unsupportedRows ?? 0,
             affectedUsers: coverage?.affectedUsers ?? 0,
             provenanceCounts: coverage?.provenanceCounts ?? {},
+            readinessGapCounts: coverage?.readinessGapCounts ?? {},
             exclusionReasons: exclusionReasonsBySource.get(source.id) ?? [],
           };
         }),

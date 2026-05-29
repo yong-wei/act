@@ -47,35 +47,44 @@
         {
           "id": "intro-question",
           "region": "question",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "intro_question",
             "title": "导入问题",
-            "text": "同样是结构变了，为什么有的变化让系统更快，有的变化让稳定余量变紧，有的变化看起来更强却更危险？"
+            "text": "同样是结构变了，为什么有的变化让系统更快，有的变化让稳定余量变紧，有的变化看起来更强却更危险？",
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         },
         {
           "id": "cover-comic",
           "region": "media",
-          "kind": "media-card",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "结构变化的频域入口",
             "src": "3-8-cover-comic.png",
             "path": "3-8-cover-comic.png",
-            "caption": "封面漫画只作为问题情境，核心阅读对象仍是频域判断链。"
+            "caption": "封面漫画只作为问题情境，核心阅读对象仍是频域判断链。",
+            "legacyKind": "media-card",
+            "presentation": "single",
+            "semanticRole": "media"
           }
         },
         {
           "id": "core-question",
           "region": "question",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "core_question",
             "title": "本页核心问题",
-            "text": "频域语言能否把结构变化、稳定边界和闭环后果放进同一条判断链？"
+            "text": "频域语言能否把结构变化、稳定边界和闭环后果放进同一条判断链？",
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         }
       ],
@@ -171,7 +180,7 @@
         {
           "id": "bloom-objectives",
           "region": "main",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "objectives",
@@ -182,7 +191,10 @@
               "运用幅角原理和 Nyquist 判据判断闭环稳定性，并说明 P、N、Z 的含义。",
               "利用 Bode 图中的截止频率、相角裕度和增益裕度判断系统距离临界状态的远近。",
               "比较工程案例中的结构调整方案，论证哪一段频带应被优先修改以及相应风险。"
-            ]
+            ],
+            "legacyKind": "objective-list",
+            "presentation": "single",
+            "semanticRole": "objective"
           }
         }
       ],
@@ -285,7 +297,7 @@
         {
           "id": "misconception-list",
           "region": "prompt",
-          "kind": "bullet-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -295,24 +307,29 @@
               "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
               "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
               "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
-            ]
+            ],
+            "legacyKind": "bullet-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pretest-card-group",
           "region": "questions",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "reason_note",
             "title": "作答要求",
-            "text": "每题先选判断，再写一句理由。前测不考本单元尚未展开的 Nyquist 判据细节。"
+            "text": "每题先选判断，再写一句理由。前测不考本单元尚未展开的 Nyquist 判据细节。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "reason-record",
           "region": "notes",
-          "kind": "reason-record",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -322,13 +339,18 @@
               "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
               "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
               "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
-            ]
+            ],
+            "legacyKind": "reason-record",
+            "presentation": "single",
+            "semanticRole": "record",
+            "interactionKind": "reason-record",
+            "responseKind": "text.structured"
           }
         },
         {
           "id": "ai-lock-note",
           "region": "notes",
-          "kind": "notice-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -338,7 +360,10 @@
               "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
               "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
               "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
-            ]
+            ],
+            "legacyKind": "notice-card",
+            "presentation": "single",
+            "semanticRole": "notice"
           }
         }
       ],
@@ -375,7 +400,7 @@
           {
             "id": "card-03-a",
             "prompt": "频率响应读图时，是否需要同时看幅值、相位和所在频带。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": true,
@@ -397,7 +422,7 @@
           {
             "id": "card-03-b",
             "prompt": "Bode 图中，截止频率右移是否只能说明速度倾向，不能单独说明综合性能更优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": true,
@@ -419,7 +444,7 @@
           {
             "id": "card-03-c",
             "prompt": "根轨迹或闭环极点更靠近虚轴时，稳定余量通常如何变化。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "smaller",
@@ -441,7 +466,7 @@
           {
             "id": "card-03-d",
             "prompt": "积分补偿改善低频稳态精度时，最需要警惕哪类频域代价。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid-phase",
@@ -543,20 +568,22 @@
         {
           "id": "open-loop-transfer",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "open_loop",
             "title": "开环传递函数",
             "items": [
               "L(s)=G(s)H(s)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "frequency-response",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "frequency_response",
@@ -564,13 +591,15 @@
             "items": [
               "L(j\\omega)=G(j\\omega)H(j\\omega)"
             ],
-            "text": "增益、零点、极点、积分环节之所以带来不同闭环后果，是因为它们改写 L(jω) 的方式不同。"
+            "text": "增益、零点、极点、积分环节之所以带来不同闭环后果，是因为它们改写 L(jω) 的方式不同。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "fingerprint-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "四类结构变化的频域指纹总表",
@@ -610,7 +639,10 @@
                 "截止频率上升是否伴随更大相位代价",
                 "直觉容易失真，超调风险增大"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         }
       ],
@@ -712,7 +744,7 @@
         {
           "id": "step-05-formula",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
@@ -720,24 +752,29 @@
             "items": [
               "L_{\\text{new}}(j\\omega)=\\alpha L(j\\omega)",
               "20\\log_{10}\\alpha\\ \\text{dB}"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "step-05-explain",
           "region": "content",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "explain",
             "title": "对应文案",
-            "text": "若开环增益从 K 增大为 αK，其中 α>1，幅频曲线整体上移，相位曲线基本保持原状。截止频率通常右移，系统速度提高；穿越点更靠近相位不足区，相角裕度常减小。"
+            "text": "若开环增益从 K 增大为 αK，其中 α>1，幅频曲线整体上移，相位曲线基本保持原状。截止频率通常右移，系统速度提高；穿越点更靠近相位不足区，相角裕度常减小。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "step-05-rust-panel",
           "region": "panel",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "Rust 驱动四联互动面板",
@@ -745,7 +782,10 @@
             "variant": "gain",
             "control": "gain",
             "layout": "2x2_time_bode_root_control",
-            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。",
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -856,31 +896,36 @@
         {
           "id": "step-06-formula",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "讲义 2.2.2 公式",
             "items": [
               "G_z(s)=1+\\frac{s}{z},\\quad z>0"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "step-06-explain",
           "region": "content",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "explain",
             "title": "对应文案",
-            "text": "左半平面零点在零点附近频带同时改写幅值和相位：幅值在较高频率开始上升，相位在中频段出现提前，中频段更容易获得动态积极性。"
+            "text": "左半平面零点在零点附近频带同时改写幅值和相位：幅值在较高频率开始上升，相位在中频段出现提前，中频段更容易获得动态积极性。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "step-06-rust-panel",
           "region": "panel",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "Rust 驱动四联互动面板",
@@ -888,7 +933,10 @@
             "variant": "lhp-zero",
             "control": "lhp_zero",
             "layout": "2x2_time_bode_root_control",
-            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。",
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -998,31 +1046,36 @@
         {
           "id": "step-07-formula",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "讲义 2.2.3 公式",
             "items": [
               "G_i(s)=\\frac{1}{s}"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "step-07-explain",
           "region": "content",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "explain",
             "title": "对应文案",
-            "text": "积分环节本质上是在原点增加一个极点。低频增益增强会改善稳态精度与抗缓变扰动能力，同时相位下降得更早，中频相位余量变紧。"
+            "text": "积分环节本质上是在原点增加一个极点。低频增益增强会改善稳态精度与抗缓变扰动能力，同时相位下降得更早，中频相位余量变紧。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "step-07-rust-panel",
           "region": "panel",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "Rust 驱动四联互动面板",
@@ -1030,7 +1083,10 @@
             "variant": "added-pole",
             "control": "pole_toggle",
             "layout": "2x2_time_bode_root_control",
-            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。",
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1140,31 +1196,36 @@
         {
           "id": "step-08-formula",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "讲义 2.2.4 公式",
             "items": [
               "G_{\\text{nmp}}(s)=1-\\frac{s}{z},\\quad z>0"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "step-08-explain",
           "region": "content",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "explain",
             "title": "对应文案",
-            "text": "右半平面零点可能让幅值看起来更强，但相位朝不利方向变化。只看截止频率上升会造成误判，相位代价过大时会提高超调风险，甚至把系统推向临界状态。"
+            "text": "右半平面零点可能让幅值看起来更强，但相位朝不利方向变化。只看截止频率上升会造成误判，相位代价过大时会提高超调风险，甚至把系统推向临界状态。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "step-08-rust-panel",
           "region": "panel",
-          "kind": "rust-analysis-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "Rust 驱动四联互动面板",
@@ -1172,7 +1233,10 @@
             "variant": "rhp-zero",
             "control": "rhp_zero",
             "layout": "2x2_time_bode_root_control",
-            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。",
+            "legacyKind": "rust-analysis-panel",
+            "presentation": "single",
+            "capabilityRef": "rust-analysis"
           }
         }
       ],
@@ -1287,17 +1351,20 @@
         {
           "id": "problem-statement-card",
           "region": "problem",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "完整题面",
-            "text": "设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。"
+            "text": "设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "given-change-list",
           "region": "problem",
-          "kind": "condition-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "三种结构变化",
@@ -1305,13 +1372,16 @@
               "增益扩大为 4 倍。",
               "引入左半平面零点 1+s/0.8。",
               "在原点增加一个积分极点。"
-            ]
+            ],
+            "legacyKind": "condition-list",
+            "presentation": "single",
+            "semanticRole": "condition"
           }
         },
         {
           "id": "step-reveal-column",
           "region": "reveal",
-          "kind": "step-reveal-column",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "显影链",
@@ -1320,22 +1390,27 @@
               "左半平面零点主要改写中频，相位提前和高频抬升同时出现，收益是动态更积极，代价是高频负担上升。",
               "积分极点首先增强低频，改善稳态精度，再把中频相位余量压紧。",
               "结论：最先改写低频的是积分极点，最先改写中频的是左半平面零点，改写最均匀的是增益提升。"
-            ]
+            ],
+            "legacyKind": "step-reveal-column",
+            "presentation": "column",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "activity",
-          "kind": "activity-card-grid",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "title": "作答区"
+            "title": "作答区",
+            "legacyKind": "activity-card-grid",
+            "presentation": "grid"
           }
         },
         {
           "id": "reference-answer-card",
           "region": "activity",
-          "kind": "reference-answer-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "参考答案",
@@ -1343,7 +1418,10 @@
               "最先改写低频的是积分极点。",
               "最先改写中频的是左半平面零点。",
               "改写最均匀的是增益提升。"
-            ]
+            ],
+            "legacyKind": "reference-answer-card",
+            "presentation": "single",
+            "semanticRole": "referenceAnswer"
           }
         }
       ],
@@ -1385,7 +1463,7 @@
           {
             "id": "card-06-a",
             "prompt": "哪一种变化最先改写低频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "gain",
@@ -1407,7 +1485,7 @@
           {
             "id": "card-06-b",
             "prompt": "哪一种变化最先改写中频，并带来“动态更积极但高频代价上升”的组合。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "gain",
@@ -1508,20 +1586,22 @@
         {
           "id": "argument-principle-formula",
           "region": "static",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "argument_formula",
             "title": "幅角原理",
             "items": [
               "\\Delta \\arg F(s)=2\\pi(Z-P)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "closed-loop-formulas",
           "region": "static",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "closed_loop",
@@ -1530,13 +1610,15 @@
               "\\Phi(s)=\\frac{G(s)}{1+G(s)H(s)}",
               "1+G(s)H(s)=0",
               "F(s)=1+G(s)H(s)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "symbol-meaning-table",
           "region": "static",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "P、N、Z 的含义",
@@ -1561,13 +1643,16 @@
                 "闭环右半平面极点数",
                 "Z=0 才闭环稳定"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "argument-reveal-chain",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "reveal_layers",
@@ -1581,7 +1666,10 @@
               "在虚轴映射时 F(jω)=1+G(jω)H(jω)。若 F(jω)=0，则 G(jω)H(jω)=-1+j0，所以 F 平面绕原点等价于 L 平面绕临界点 (-1,0)。",
               "采用顺时针包围临界点记为正的工程习惯，Nyquist 判据写成 N=P-Z。闭环稳定要求 Z=0，因此需要 N=P。",
               "固定判断顺序是：先数开环右半平面极点数 P，再数 Nyquist 曲线对 (-1,0) 的顺时针包围数 N，最后用 Z=P-N 判断闭环右半平面极点数。"
-            ]
+            ],
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1716,29 +1804,35 @@
         {
           "id": "example-2-problem",
           "region": "problem",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
             "title": "例题 2 题面",
-            "text": "观察四条典型 Nyquist 曲线，判断：哪一条属于开环稳定且闭环稳定；哪一条属于开环含一个右半平面极点，闭环仍稳定；哪一条属于开环含一个右半平面极点，闭环不稳定；哪一条虽然含右半平面零点，但并不自动失稳。"
+            "text": "观察四条典型 Nyquist 曲线，判断：哪一条属于开环稳定且闭环稳定；哪一条属于开环含一个右半平面极点，闭环仍稳定；哪一条属于开环含一个右半平面极点，闭环不稳定；哪一条虽然含右半平面零点，但并不自动失稳。",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "quickcheck-image",
           "region": "figure",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-nyquist-quickcheck.png",
             "src": "3-8-nyquist-quickcheck.png",
-            "caption": "四条 Nyquist 曲线用于快速判稳，先看题面，再看图形。"
+            "caption": "四条 Nyquist 曲线用于快速判稳，先看题面，再看图形。",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "pnz-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "Nyquist 快速判稳 P/N/Z 表",
@@ -1783,17 +1877,23 @@
                 "0",
                 "含右半平面零点，但闭环仍稳定"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "boundary-note",
           "region": "table",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "判稳顺序",
-            "text": "按“先数 P，再数 N，最后算 Z=P-N”的顺序判断；右半平面零点不等于右半平面极点。"
+            "text": "按“先数 P，再数 N，最后算 Z=P-N”的顺序判断；右半平面零点不等于右半平面极点。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1897,42 +1997,55 @@
         {
           "id": "design-example-card",
           "region": "problem",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "text": "考虑开环系统 L(s)=K/[(s+1)(s+2)(s+4)]。图中给出 K=80 与 K=110 两种增益对应的 Nyquist 曲线。问：哪一条没有包围临界点但已明显逼近稳定边界，哪一条已经发生包围，以及工程上应保留哪个增益区间。",
             "title": "完整题面",
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "boundary-figure",
           "region": "compare",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-nyquist-example.png",
             "caption": "K=80 靠近临界点但未包围，K=110 已经越过稳定边界。",
-            "src": "3-8-nyquist-example.png"
+            "src": "3-8-nyquist-example.png",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "gain-interval-note",
           "region": "compare",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "边界读图结论",
-            "text": "K=80 表示系统已经接近临界点但尚未越过边界，K=110 表示曲线已经越过稳定侧。工程上不能把“继续增大增益”直接等同于更快更好，必须先保留稳定余量。"
+            "text": "K=80 表示系统已经接近临界点但尚未越过边界，K=110 表示曲线已经越过稳定侧。工程上不能把“继续增大增益”直接等同于更快更好，必须先保留稳定余量。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "card-sort-zone",
           "region": "activity",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "title": "增益区间分类作答"
+            "title": "增益区间分类作答",
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1967,7 +2080,7 @@
           {
             "id": "card-10-a",
             "prompt": "把 K=80 与 K=110 分到正确类别。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               {
                 "value": "k80",
@@ -1985,7 +2098,7 @@
           {
             "id": "card-10-b",
             "prompt": "若目标是既提速又保留余量，应保留哪一类增益区间。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "stable-side",
@@ -2093,18 +2206,21 @@
         {
           "id": "bode-image",
           "region": "graph",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-bode-example.png",
             "caption": "Bode 判稳同时读截止频率、相位穿越频率、PM 线和 GM 线。",
-            "src": "3-8-bode-example.png"
+            "src": "3-8-bode-example.png",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "indicator-formula-list",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "equations",
@@ -2115,13 +2231,15 @@
               "\\angle L(j\\omega_\\pi)=-180^\\circ",
               "G_m=\\frac{1}{|L(j\\omega_\\pi)|}",
               "G_{m,\\text{dB}}=-20\\log_{10}|L(j\\omega_\\pi)|"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "three-language-table",
           "region": "formula",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "同一稳定问题的三种语言",
@@ -2150,17 +2268,24 @@
                 "对临界点的相对位置变了",
                 "穿越频率和裕度一起变了"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "hotspot-labeling-zone",
           "region": "activity",
-          "kind": "hotspot-labeling",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "image",
-            "title": "Bode 判稳图"
+            "title": "Bode 判稳图",
+            "legacyKind": "hotspot-labeling",
+            "presentation": "single",
+            "interactionKind": "hotspot-labeling",
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -2203,7 +2328,7 @@
           {
             "id": "card-11-a",
             "prompt": "标出截止频率线与相位穿越频率线。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-line",
@@ -2229,7 +2354,7 @@
           {
             "id": "card-11-b",
             "prompt": "标出 PM 线与 GM 线。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-line",
@@ -2357,29 +2482,35 @@
         {
           "id": "problem-statement-card",
           "region": "problem",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
             "title": "完整题面",
-            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "bode-example-image",
           "region": "problem",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-bode-example.png",
             "caption": "例题 4 的判稳证据来自图中的截止频率线、相位穿越频率线、PM 线和 GM 线。",
-            "src": "3-8-bode-example.png"
+            "src": "3-8-bode-example.png",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "reading-order-card",
           "region": "reveal",
-          "kind": "process-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "order",
@@ -2388,29 +2519,37 @@
               "先看 ωc 处相位离 -180° 多远。",
               "再看 ωπ 处幅值离 0 dB 多远。",
               "最后综合判断系统在边界哪一侧。"
-            ]
+            ],
+            "legacyKind": "process-card",
+            "presentation": "single",
+            "semanticRole": "process"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "activity",
-          "kind": "activity-card-grid",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "title": "作答区"
+            "title": "作答区",
+            "legacyKind": "activity-card-grid",
+            "presentation": "grid"
           }
         },
         {
           "id": "reference-answer-card",
           "region": "activity",
-          "kind": "reference-answer-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "参考答案",
             "items": [
               "PM 与 GM 均为负，系统已越过稳定边界。",
               "回到稳定侧应左移截止频率或增加中频相位。"
-            ]
+            ],
+            "legacyKind": "reference-answer-card",
+            "presentation": "single",
+            "semanticRole": "referenceAnswer"
           }
         }
       ],
@@ -2450,7 +2589,7 @@
           {
             "id": "card-12-a",
             "prompt": "相角裕度、增益裕度的正负共同说明系统位于稳定侧还是已经越过边界。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "stable-positive",
@@ -2472,7 +2611,7 @@
           {
             "id": "card-12-b",
             "prompt": "若要把系统拉回稳定侧，优先怎样处理截止频率或相位。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "left-or-phase",
@@ -2577,18 +2716,21 @@
         {
           "id": "three-band-image",
           "region": "figure",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-three-band-overview.png",
             "caption": "低频看精度，中频看速度与稳定边界，高频看噪声和执行器代价。",
-            "src": "3-8-three-band-overview.png"
+            "src": "3-8-three-band-overview.png",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "band-duty-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "三频段职责表",
@@ -2613,13 +2755,16 @@
                 "衰减斜率、峰值放大",
                 "噪声敏感性、执行器负担、鲁棒性"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "metric-readback-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "频域量读回闭环表现",
@@ -2649,17 +2794,22 @@
                 "峰值出现在什么频带",
                 "帮助判断共振集中哪一段"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "band-focus-panel",
           "region": "focus",
-          "kind": "band-focus-panel",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "image",
-            "title": "三频段总图"
+            "title": "三频段总图",
+            "legacyKind": "band-focus-panel",
+            "presentation": "single"
           }
         }
       ],
@@ -2695,7 +2845,7 @@
           {
             "id": "step-15-activity",
             "prompt": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "low",
@@ -2815,31 +2965,39 @@
         {
           "id": "goal-switch-card",
           "region": "problem",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
             "title": "完整题面",
-            "text": "若某系统任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”，在“截止频率继续右移”“相角裕度增大且谐振峰值减小”“高频段增益继续抬高”三组变化中，应优先选择哪一组，并说明它对应的频段分工。"
+            "text": "若某系统任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”，在“截止频率继续右移”“相角裕度增大且谐振峰值减小”“高频段增益继续抬高”三组变化中，应优先选择哪一组，并说明它对应的频段分工。",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "cards",
-          "kind": "activity-card-grid",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "title": "作答区"
+            "title": "作答区",
+            "legacyKind": "activity-card-grid",
+            "presentation": "grid"
           }
         },
         {
           "id": "frequency-band-review",
           "region": "review",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "三频段回看",
-            "text": "低频看稳态精度，中频看速度、裕度和超调，高频看噪声与执行器代价。本题任务从快转向稳，应重点看中频余量和峰化。"
+            "text": "低频看稳态精度，中频看速度、裕度和超调，高频看噪声与执行器代价。本题任务从快转向稳，应重点看中频余量和峰化。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -2871,7 +3029,7 @@
           {
             "id": "card-14-a",
             "prompt": "目标切换为“减小超调并减轻执行器波动”后，优先希望哪组频域量变化。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "wc-right",
@@ -2893,7 +3051,7 @@
           {
             "id": "card-14-b",
             "prompt": "把本题目标与频段分工对应起来。",
-            "response_kind": "drag_sort",
+            "response_kind": "ordering.sequence",
             "options": [
               {
                 "value": "accuracy-low",
@@ -2999,29 +3157,35 @@
         {
           "id": "case-context-card",
           "region": "problem",
-          "kind": "case-context-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "context",
             "title": "案例背景",
-            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。",
+            "legacyKind": "case-context-card",
+            "presentation": "single",
+            "semanticRole": "caseContext"
           }
         },
         {
           "id": "baseline-2x2-figure",
           "region": "figure",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-heading-baseline.png",
             "caption": "航向控制基线：相角裕度约 37.43°，截止频率约 0.1169 rad/s，超调约 31.95%，调节时间约 83.10 s。",
-            "src": "3-8-heading-baseline.png"
+            "src": "3-8-heading-baseline.png",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "metric-strip",
           "region": "figure",
-          "kind": "metric-strip",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "metrics",
@@ -3031,18 +3195,23 @@
               "截止频率约 0.1169 rad/s",
               "超调量约 31.95%",
               "调节时间约 83.10 s"
-            ]
+            ],
+            "legacyKind": "metric-strip",
+            "presentation": "strip",
+            "semanticRole": "metric"
           }
         },
         {
           "id": "evidence-mark-cards",
           "region": "activity",
-          "kind": "activity-card-grid",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "context",
             "title": "案例背景",
-            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。",
+            "legacyKind": "activity-card-grid",
+            "presentation": "grid"
           }
         }
       ],
@@ -3079,7 +3248,7 @@
           {
             "id": "card-15-a",
             "prompt": "哪一项证据最能说明基线方案的问题落在中频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "phase-margin-low",
@@ -3105,7 +3274,7 @@
           {
             "id": "card-15-b",
             "prompt": "补一句依据：为什么这不是低频问题。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid-evidence",
@@ -3225,7 +3394,7 @@
         {
           "id": "translation-chain-card",
           "region": "translation",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation_chain",
@@ -3234,37 +3403,44 @@
               "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
               "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
               "要同时补角并抬升中频幅值，不能只靠继续加增益"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lead-network-card",
           "region": "translation",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "network",
             "title": "超前网络",
             "items": [
               "Ch(s)=(1+s/0.05)/(1+s/0.3)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "compare-2x2-figure",
           "region": "compare",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-heading-case.png",
             "caption": "超前校正后，相角裕度、截止频率、带宽和时域指标同时改善，关键在中频定向补角。",
-            "src": "3-8-heading-case.png"
+            "src": "3-8-heading-case.png",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "metrics-table",
           "region": "compare",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "航向控制基线与超前校正指标表",
@@ -3311,13 +3487,16 @@
                 "$43.80$ s",
                 "收敛时间约减半"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "structured-compare-zone",
           "region": "activity",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation_chain",
@@ -3326,7 +3505,12 @@
               "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
               "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
               "要同时补角并抬升中频幅值，不能只靠继续加增益"
-            ]
+            ],
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -3369,7 +3553,7 @@
           {
             "id": "card-16-a",
             "prompt": "航向控制校正主要改写哪一段频带，为什么不是单纯抬低频。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "mid",
@@ -3391,7 +3575,7 @@
           {
             "id": "card-16-b",
             "prompt": "把频域变化读回闭环结果，哪一组说法最完整。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "faster-less-overshoot",
@@ -3517,44 +3701,55 @@
         {
           "id": "platform-structure-graphic",
           "region": "structure",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-platform-block-diagram.png",
             "caption": "平台结构由比例增益、执行机构、平台动力学和单位反馈组成。",
-            "src": "3-8-platform-block-diagram.png"
+            "src": "3-8-platform-block-diagram.png",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "aggressive-vs-slow-figure",
           "region": "figure",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-platform-baseline.png",
             "caption": "激进基线更快但超调和峰化明显，只降增益更稳但速度损失过大。",
-            "src": "3-8-platform-baseline.png"
+            "src": "3-8-platform-baseline.png",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "contradiction-note",
           "region": "figure",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "structure",
-            "title": "控制框图"
+            "title": "控制框图",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "scheme-vote-cards",
           "region": "activity",
-          "kind": "activity-card-grid",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "contradiction",
             "title": "核心矛盾",
-            "text": "只靠改比例增益，要么快但冒进，要么稳但太慢。"
+            "text": "只靠改比例增益，要么快但冒进，要么稳但太慢。",
+            "legacyKind": "activity-card-grid",
+            "presentation": "grid"
           }
         }
       ],
@@ -3586,7 +3781,7 @@
           {
             "id": "card-17-a",
             "prompt": "哪种方案只是通过降增益换稳定。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "baseline",
@@ -3608,7 +3803,7 @@
           {
             "id": "card-17-b",
             "prompt": "它主要牺牲了什么。",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               {
                 "value": "speed-loss",
@@ -3732,18 +3927,21 @@
         {
           "id": "three-scheme-2x2-figure",
           "region": "figure",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-platform-case.png",
             "caption": "三方案对照显示，超前校正能在保持较高截止频率的同时显著增大相角裕度并降低峰化。",
-            "src": "3-8-platform-case.png"
+            "src": "3-8-platform-case.png",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "metrics-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "稳定平台三方案指标表",
@@ -3797,13 +3995,16 @@
                 "$0.196$ s",
                 "校正方案几乎保持快速收敛"
               ]
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "fixed-conclusion-card",
           "region": "table",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "images",
@@ -3811,18 +4012,26 @@
             "items": [
               "3-8-platform-baseline.png",
               "3-8-platform-case.png"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "structured-compare-zone",
           "region": "activity",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "conclusion",
             "title": "固定结论",
-            "text": "更有效的办法是在中频补角，而不是单向把增益往下拧。"
+            "text": "更有效的办法是在中频补角，而不是单向把增益往下拧。",
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -3861,7 +4070,7 @@
           {
             "id": "card-18-a",
             "prompt": "三种稳定平台方案中，哪一种最能兼顾速度与平稳。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "fast",
@@ -3883,7 +4092,7 @@
           {
             "id": "card-18-b",
             "prompt": "为什么“只降增益”不是最合适的方案。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "too-slow",
@@ -4007,7 +4216,7 @@
         {
           "id": "posttest-card-group",
           "region": "questions",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "coverage",
@@ -4017,13 +4226,16 @@
               "Bode 边界判断",
               "频带优先级",
               "非最小相边界直觉"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "remaining-confusion-note",
           "region": "review",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "coverage",
@@ -4033,13 +4245,16 @@
               "Bode 边界判断",
               "频带优先级",
               "非最小相边界直觉"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "teacher-aggregation-strip",
           "region": "class",
-          "kind": "teacher-strip",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "coverage",
@@ -4049,7 +4264,10 @@
               "Bode 边界判断",
               "频带优先级",
               "非最小相边界直觉"
-            ]
+            ],
+            "legacyKind": "teacher-strip",
+            "presentation": "strip",
+            "semanticRole": "teacherHint"
           }
         }
       ],
@@ -4081,7 +4299,7 @@
           {
             "id": "card-19-a",
             "prompt": "面对未知结构变化，先判定它主要改写低频、中频还是高频这一频带问题，再说明对应的闭环收益和代价。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "band-first",
@@ -4103,7 +4321,7 @@
           {
             "id": "card-19-b",
             "prompt": "使用 Nyquist 或 Bode 判断稳定边界时，应先保留哪类边界证据，再决定是否越过稳定侧。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "margin-or-pnz",
@@ -4125,7 +4343,7 @@
           {
             "id": "card-19-c",
             "prompt": "当频域量显示系统更快但裕度变小时，如何把结果读回闭环表现。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "faster-risk",
@@ -4147,7 +4365,7 @@
           {
             "id": "card-19-d",
             "prompt": "工程目标从“尽快跟踪”改为“减小超调和执行器波动”时，完整判断链应如何重排。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "goal-band-boundary-closed",
@@ -4251,7 +4469,7 @@
         {
           "id": "summary-card-row",
           "region": "summary",
-          "kind": "summary-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "summary",
@@ -4261,39 +4479,50 @@
               "Nyquist 与 Bode 描述的是同一个稳定边界问题。",
               "低频、中频、高频分别承担精度、速度与代价判断。",
               "有效校正是定向改写关键频带，而不是盲目改增益。"
-            ]
+            ],
+            "legacyKind": "summary-card-row",
+            "presentation": "row",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "info-graphic",
           "region": "info",
-          "kind": "media-card",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-info.png",
             "caption": "本课把结构变化、稳定边界、三频段读回和工程校正收束成统一判断地图。",
-            "src": "3-8-info.png"
+            "src": "3-8-info.png",
+            "legacyKind": "media-card",
+            "presentation": "single",
+            "semanticRole": "media"
           }
         },
         {
           "id": "next-step-card",
           "region": "next",
-          "kind": "next-step-card",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "next",
             "title": "去向",
-            "text": "3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。"
+            "text": "3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。",
+            "legacyKind": "next-step-card",
+            "presentation": "single",
+            "semanticRole": "nextStep"
           }
         },
         {
           "id": "reflection-card",
           "region": "next",
-          "kind": "reflection-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "info_image",
-            "title": "信息图"
+            "title": "信息图",
+            "legacyKind": "reflection-card",
+            "presentation": "single"
           }
         }
       ],
@@ -4335,7 +4564,7 @@
           {
             "id": "step-22-activity",
             "prompt": "选填一句反思，说明自己现在最稳的判断动作是什么。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               {
                 "value": "translate-first",

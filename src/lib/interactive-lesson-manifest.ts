@@ -1,3 +1,9 @@
+import {
+  resolveInteractiveResponseKind,
+  type InteractiveResponseCategory,
+  type InteractiveResponseScoringMode,
+} from './interactive-response-contracts';
+
 export type InteractiveTeacherControlMode =
   | 'not_applicable'
   | 'page_load_open'
@@ -75,6 +81,9 @@ export interface InteractiveRuntimeActivityCardManifest {
   prompt: string;
   referenceAnswer?: string;
   responseKind: string;
+  legacyResponseKind?: string;
+  responseCategory?: InteractiveResponseCategory;
+  responseScoringMode?: InteractiveResponseScoringMode;
   submitScope: string;
   layoutSpan: string;
   options: InteractiveRuntimeChoiceOptionManifest[];
@@ -274,12 +283,16 @@ function normalizeReferenceAnswer(value: unknown): string | undefined {
 
 function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardManifest {
   const card = asRecord(value);
+  const responseKind = resolveInteractiveResponseKind(String(card.response_kind ?? card.responseKind ?? ''));
   return {
     id: String(card.id ?? ''),
     title: card.title ? String(card.title) : undefined,
     prompt: String(card.prompt ?? ''),
     referenceAnswer: normalizeReferenceAnswer(card.reference_answer ?? card.referenceAnswer),
-    responseKind: String(card.response_kind ?? card.responseKind ?? ''),
+    responseKind: responseKind.kind,
+    legacyResponseKind: responseKind.legacyResponseKind,
+    responseCategory: responseKind.category,
+    responseScoringMode: responseKind.scoring,
     submitScope: String(card.submit_scope ?? card.submitScope ?? ''),
     layoutSpan: String(card.layout_span ?? card.layoutSpan ?? ''),
     options: normalizeChoiceOptions(card.options),

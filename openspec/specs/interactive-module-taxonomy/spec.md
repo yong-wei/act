@@ -1,0 +1,79 @@
+# interactive-module-taxonomy Specification
+
+## Purpose
+Defines the finite module taxonomy, orthogonal metadata fields, and migration-only legacy alias policy for manifest-driven interactive lessons.
+## Requirements
+### Requirement: Canonical module classes are finite
+The system SHALL define a finite canonical module taxonomy for manifest-driven interactive lessons.
+
+#### Scenario: Canonical classes are registered
+- **WHEN** a manifest module is authored for a new or migrated lesson
+- **THEN** its module class SHALL be one of `content.rich`, `content.cardSet`, `content.formula`, `content.table`, `content.figure`, `content.reveal`, `content.stageMap`, `activity.panel`, `activity.workspace`, `compute.panel`, `analytics.summary`, `layout.support`, or `legacy.adapter`
+- **AND** `legacy.adapter` SHALL be marked migration-only.
+
+### Requirement: Module kind does not encode orthogonal concerns
+The module taxonomy SHALL keep presentation, course semantics, interaction behavior, response structure, and compute capability binding outside the canonical module class name.
+
+#### Scenario: Presentation is a field
+- **WHEN** a module needs row, grid, strip, column, tabs, or panel presentation
+- **THEN** that choice SHALL be represented as a presentation field or renderer option
+- **AND** it SHALL NOT create a new module class such as `summary-card-row`, `formula-strip`, or `step-reveal-column`.
+
+#### Scenario: Course semantics are a field
+- **WHEN** a module carries semantics such as goal, risk, term, bridge, teacher note, reference answer, or misconception
+- **THEN** that meaning SHALL be represented as a semantic role field
+- **AND** it SHALL NOT create a course-specific module class.
+
+#### Scenario: Answer structure is a response contract
+- **WHEN** an activity collects single choice, multi-select, ordering, matching, text, structured, parameter, or table answers
+- **THEN** that structure SHALL be represented by the activity response contract
+- **AND** it SHALL NOT create a module class such as `choice-check` or `scenario-sort-matrix`.
+
+### Requirement: Legacy aliases are explicit and temporary
+The system SHALL map historical `module.kind` values through an explicit alias table during migration.
+
+#### Scenario: Legacy kind resolves through alias map
+- **WHEN** a legacy manifest still contains a historical module kind
+- **THEN** the runtime or migration tooling SHALL resolve it through a central alias map to a canonical module class
+- **AND** the alias entry SHALL identify the replacement fields needed for equivalent rendering.
+
+#### Scenario: New authoring rejects legacy aliases
+- **WHEN** a new lesson or migrated manifest is validated
+- **THEN** it SHALL use canonical module classes directly
+- **AND** it SHALL NOT pass validation by relying on a legacy alias.
+
+### Requirement: Canonical modules are registry-backed
+The system SHALL provide a registry that defines each canonical interactive module class and the metadata needed to validate and render it.
+
+#### Scenario: Registry entry describes module behavior
+- **WHEN** a canonical module class is registered
+- **THEN** the entry SHALL identify its class, renderer or activity-slot behavior, allowed configuration shape, evidence-producing status, and authoring availability
+- **AND** the entry SHALL be usable by validation code without importing lesson-private components.
+
+### Requirement: Legacy aliases are registry-backed
+The system SHALL keep every migration alias in one registry-backed map.
+
+#### Scenario: Alias maps to canonical replacement
+- **WHEN** an existing manifest contains a legacy kind such as `formula-strip`, `choice-check`, `step-reveal-list`, or `parametric-workspace`
+- **THEN** the alias map SHALL identify the canonical module class and replacement fields
+- **AND** validation output SHALL be able to name the alias and the canonical target.
+
+### Requirement: Migrated manifests cannot use legacy aliases
+The system SHALL reject legacy module aliases in migrated or newly authored manifests.
+
+#### Scenario: Legacy alias in migrated manifest fails
+- **WHEN** a migrated lesson manifest contains a historical module kind that is not a canonical module class
+- **THEN** validation SHALL fail
+- **AND** the failure SHALL identify the canonical replacement.
+
+#### Scenario: New lesson invents a module kind
+- **WHEN** a new lesson introduces a module kind not registered as a canonical module class
+- **THEN** validation SHALL fail before the lesson can merge
+- **AND** no lesson-private renderer registration SHALL make the unregistered kind acceptable.
+
+### Requirement: Historical compatibility is isolated
+The system SHALL keep any unavoidable historical compatibility paths separate from new or migrated manifest validation.
+
+#### Scenario: Archive compatibility does not authorize new manifests
+- **WHEN** a historical archive or compatibility reader can still interpret old module names
+- **THEN** that compatibility SHALL NOT allow new or migrated runtime manifests to pass validation with old names.

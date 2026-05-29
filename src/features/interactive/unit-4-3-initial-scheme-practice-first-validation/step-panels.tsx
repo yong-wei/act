@@ -440,12 +440,29 @@ function createUNIT_4_3ModuleRegistry(
     revealProgress: extra.revealProgress,
     allowInlineReveal: extra.allowInlineReveal,
   });
+  const renderInteractiveFigurePanel: InteractiveModuleRegistry<Unit43ModuleExtra>[string] = ({ step, module }) =>
+    isCompoundPanelStepId(step.id) ? (
+      <CompoundControlPanel
+        stepId={step.id}
+        onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
+      />
+    ) : (
+      sharedRegistry['interactive-figure-panel']?.({
+        manifest,
+        step,
+        module,
+        extra: {
+          revealProgress: extra.revealProgress,
+          allowInlineReveal: extra.allowInlineReveal,
+        },
+      }) ?? null
+    );
 
   return {
     ...sharedRegistry,
-    'stage-map': (props) => (
+    'content.stageMap': (props) => (
       <>
-        {sharedRegistry['stage-map']?.({
+        {sharedRegistry['content.stageMap']?.({
           manifest,
           step: props.step,
           module: props.module,
@@ -457,23 +474,14 @@ function createUNIT_4_3ModuleRegistry(
         <UNIT_4_3KnowledgeMapVisual />
       </>
     ),
-    'interactive-figure-panel': ({ step, module }) =>
-      isCompoundPanelStepId(step.id) ? (
-        <CompoundControlPanel
-          stepId={step.id}
-          onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
-        />
-      ) : (
-        sharedRegistry['interactive-figure-panel']?.({
-          manifest,
-          step,
-          module,
-          extra: {
-            revealProgress: extra.revealProgress,
-            allowInlineReveal: extra.allowInlineReveal,
-          },
-        }) ?? null
-      ),
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+        return renderInteractiveFigurePanel(props);
+      }
+      return sharedRegistry['compute.panel']?.(props) ?? null;
+    },
   };
 }
 

@@ -51,18 +51,20 @@
         {
           "id": "stage-map",
           "region": "lead",
-          "kind": "stage-map",
+          "kind": "content.stageMap",
           "must_be_visible": true,
           "payload": {
             "block_key": "path",
             "title": "路径定位",
-            "text": "固定高亮 3-6 -> 3-7 -> 3-8。"
+            "text": "固定高亮 3-6 -> 3-7 -> 3-8。",
+            "legacyKind": "stage-map",
+            "presentation": "single"
           }
         },
         {
           "id": "core-question-card",
           "region": "lead",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "question",
@@ -70,18 +72,24 @@
             "items": [
               "系统稳定了，为什么误差还可能留在比较点上？",
               "为什么更快更稳不等于已经更准？"
-            ]
+            ],
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         },
         {
           "id": "boundary-card",
           "region": "summary",
-          "kind": "boundary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "边界卡",
-            "text": "本课先解决误差通道、稳态误差求解与低频补偿路径，不进入完整频域整定。"
+            "text": "本课先解决误差通道、稳态误差求解与低频补偿路径，不进入完整频域整定。",
+            "legacyKind": "boundary-card",
+            "presentation": "single",
+            "semanticRole": "boundary"
           }
         }
       ],
@@ -184,7 +192,7 @@
         {
           "id": "goal-cards",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "goals",
@@ -194,18 +202,24 @@
               "会在直接求与快速判之间选路径。",
               "会区分增益变大与型别提高。",
               "会比较 PI 与滞后两条低频补偿路径。"
-            ]
+            ],
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         },
         {
           "id": "boundary-table",
           "region": "boundary",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "本课边界",
-            "text": "负责误差通道、稳态误差求解与低频补偿；不负责 Nyquist 判据与完整整定。"
+            "text": "负责误差通道、稳态误差求解与低频补偿；不负责 Nyquist 判据与完整整定。",
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         }
       ],
@@ -300,7 +314,7 @@
         {
           "id": "pretest-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconception-note",
@@ -309,13 +323,17 @@
               "扰动不是另一种输入型别。",
               "增益变大不等于型别提高。",
               "滞后不是更弱积分。"
-            ]
+            ],
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconception-note",
@@ -324,13 +342,17 @@
               "扰动不是另一种输入型别。",
               "增益变大不等于型别提高。",
               "滞后不是更弱积分。"
-            ]
+            ],
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconception-note",
@@ -339,13 +361,17 @@
               "扰动不是另一种输入型别。",
               "增益变大不等于型别提高。",
               "滞后不是更弱积分。"
-            ]
+            ],
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "misconception-note",
           "region": "submit-bar",
-          "kind": "misconception-note",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconception-note",
@@ -354,7 +380,10 @@
               "扰动不是另一种输入型别。",
               "增益变大不等于型别提高。",
               "滞后不是更弱积分。"
-            ]
+            ],
+            "legacyKind": "misconception-note",
+            "presentation": "single",
+            "semanticRole": "misconception"
           }
         }
       ],
@@ -393,7 +422,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -403,7 +432,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -413,7 +442,7 @@
             "title": "完成三道前测题。",
             "prompt": "完成三道前测题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -494,18 +523,20 @@
         {
           "id": "dual-channel-figure",
           "region": "media",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "formula-card-1",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula-summary",
@@ -516,73 +547,91 @@
               "给定到误差：Er(s)/R(s)",
               "扰动到误差：Ed(s)/D(s)",
               "总输出与总误差：C(s)=Φr(s)R(s)+Φd(s)D(s)，E(s)=Er(s)+Ed(s)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "formula-card-2",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-judgement",
             "title": "核心判断",
-            "text": "分母相同反映结构，分子不同反映通道。"
+            "text": "分母相同反映结构，分子不同反映通道。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "formula-card-3",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "formula-card-4",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "channel-sum-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "channel-choice-card-1",
           "region": "interaction",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "channel-choice-card-2",
           "region": "interaction",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "主图",
-            "text": "固定使用 3-7-error-dual-channel.png。"
+            "text": "固定使用 3-7-error-dual-channel.png。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -632,7 +681,7 @@
             "title": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "prompt": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -642,7 +691,7 @@
             "title": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "prompt": "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -727,7 +776,7 @@
         {
           "id": "principle-card",
           "region": "principle",
-          "kind": "principle-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "principle",
@@ -736,13 +785,16 @@
               "先判闭环稳定。",
               "再写所关心通道的误差传递函数。",
               "最后用 e_ss=lim(s→0)sE(s) 求极限。"
-            ]
+            ],
+            "legacyKind": "principle-card",
+            "presentation": "single",
+            "semanticRole": "principle"
           }
         },
         {
           "id": "example-1-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -752,24 +804,30 @@
               "r(t)=3+2t+0.5t^2",
               "R(s)=3/s+2/s^2+1/s^3",
               "求稳态误差"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-1-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "result",
             "title": "结果摘要",
-            "text": "本题最终稳态误差为 1/K。"
+            "text": "本题最终稳态误差为 1/K。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "activity-card-row",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "principle",
@@ -778,7 +836,9 @@
               "先判闭环稳定。",
               "再写所关心通道的误差传递函数。",
               "最后用 e_ss=lim(s→0)sE(s) 求极限。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -821,14 +881,14 @@
           {
             "id": "ex1-card-1",
             "prompt": "第一步应先写什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "ex1-card-2",
             "prompt": "为什么最终只剩 1/K？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -915,7 +975,7 @@
         {
           "id": "type-definition-card",
           "region": "formula-groups",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula-groups",
@@ -924,13 +984,15 @@
               "型别定义：G(s)H(s)=K0/s^v·G0(s)",
               "静态误差系数：Kp、Kv、Ka",
               "典型输入稳态误差：e_ss,step / e_ss,ramp / e_ss,para"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "static-error-constants-card",
           "region": "formula-groups",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "tables",
@@ -938,24 +1000,28 @@
             "items": [
               "表 2：各型别系统的静态误差系数。",
               "表 3：各型别系统对典型输入的稳态误差。"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "steady-error-formulas-card",
           "region": "formula-groups",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary-note",
             "title": "适用边界",
-            "text": "标准给定输入可先快判；显式扰动问题必须优先列式。"
+            "text": "标准给定输入可先快判；显式扰动问题必须优先列式。",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "constants-table",
           "region": "tables",
-          "kind": "table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula-groups",
@@ -964,13 +1030,15 @@
               "型别定义：G(s)H(s)=K0/s^v·G0(s)",
               "静态误差系数：Kp、Kv、Ka",
               "典型输入稳态误差：e_ss,step / e_ss,ramp / e_ss,para"
-            ]
+            ],
+            "legacyKind": "table",
+            "presentation": "single"
           }
         },
         {
           "id": "steady-error-table",
           "region": "tables",
-          "kind": "table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula-groups",
@@ -979,24 +1047,28 @@
               "型别定义：G(s)H(s)=K0/s^v·G0(s)",
               "静态误差系数：Kp、Kv、Ka",
               "典型输入稳态误差：e_ss,step / e_ss,ramp / e_ss,para"
-            ]
+            ],
+            "legacyKind": "table",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-note",
           "region": "tables",
-          "kind": "note-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary-note",
             "title": "适用边界",
-            "text": "标准给定输入可先快判；显式扰动问题必须优先列式。"
+            "text": "标准给定输入可先快判；显式扰动问题必须优先列式。",
+            "legacyKind": "note-card",
+            "presentation": "single"
           }
         },
         {
           "id": "example-1-quick-judge-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula-groups",
@@ -1005,7 +1077,9 @@
               "型别定义：G(s)H(s)=K0/s^v·G0(s)",
               "静态误差系数：Kp、Kv、Ka",
               "典型输入稳态误差：e_ss,step / e_ss,ramp / e_ss,para"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1045,14 +1119,14 @@
           {
             "id": "type-card-1",
             "prompt": "判断系统型别。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "type-card-2",
             "prompt": "如果要判断是否必须引入积分，第一步该看什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1144,18 +1218,21 @@
         {
           "id": "principle-card",
           "region": "principle",
-          "kind": "principle-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "principle",
             "title": "双通道求解原则",
-            "text": "先写总输出，再写总误差，最后做终值极限。"
+            "text": "先写总输出，再写总误差，最后做终值极限。",
+            "legacyKind": "principle-card",
+            "presentation": "single",
+            "semanticRole": "principle"
           }
         },
         {
           "id": "example-2-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1165,40 +1242,50 @@
               "扰动加在执行机构之后、被控对象之前。",
               "R(s)=1/s，D(s)=0.2/s。",
               "问题：求总稳态误差。"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-2-figure",
           "region": "problem",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "result",
             "title": "结果摘要",
-            "text": "本题最终稳态误差为 0.4。"
+            "text": "本题最终稳态误差为 0.4。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "example-2-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "principle",
             "title": "双通道求解原则",
-            "text": "先写总输出，再写总误差，最后做终值极限。"
+            "text": "先写总输出，再写总误差，最后做终值极限。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "activity-card-row",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "principle",
             "title": "双通道求解原则",
-            "text": "先写总输出，再写总误差，最后做终值极限。"
+            "text": "先写总输出，再写总误差，最后做终值极限。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1237,14 +1324,14 @@
           {
             "id": "ex2-card-1",
             "prompt": "判断第一步动作。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "ex2-card-2",
             "prompt": "为什么必须先列总误差式？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1326,7 +1413,7 @@
         {
           "id": "gain-card",
           "region": "contrast",
-          "kind": "comparison-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "contrast",
@@ -1334,24 +1421,30 @@
             "items": [
               "增益调节：压小有限误差，不改变误差阶次。",
               "结构修正：通过积分或附加零极点改变低频结构，可能改变误差阶次。"
-            ]
+            ],
+            "legacyKind": "comparison-card",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "type-card",
           "region": "contrast",
-          "kind": "comparison-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "conclusion",
             "title": "结论句",
-            "text": "若题目要求把结构性误差变成零，第一步不是调增益，而是判断是否必须提高型别。"
+            "text": "若题目要求把结构性误差变成零，第一步不是调增益，而是判断是否必须提高型别。",
+            "legacyKind": "comparison-card",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "decision-cards",
           "region": "activity",
-          "kind": "binary-choice-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "contrast",
@@ -1359,7 +1452,11 @@
             "items": [
               "增益调节：压小有限误差，不改变误差阶次。",
               "结构修正：通过积分或附加零极点改变低频结构，可能改变误差阶次。"
-            ]
+            ],
+            "legacyKind": "binary-choice-set",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -1400,7 +1497,7 @@
             "title": "判断三个情境更接近压小有限误差还是改变误差阶次。",
             "prompt": "判断三个情境更接近压小有限误差还是改变误差阶次。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1487,7 +1584,7 @@
         {
           "id": "pi-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1495,13 +1592,15 @@
             "items": [
               "PI：G_PI(s)=K(1+1/(Ti s))",
               "滞后：G_lag(s)=K(Ts+1)/(βTs+1)"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lag-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "copy",
@@ -1510,24 +1609,29 @@
               "PI 通过积分提高型别。",
               "滞后通过零点在左、极点在右的附加零极点对提高低频增益。",
               "超前主要服务于目标频带的相位补偿。"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "copy-card",
           "region": "copy",
-          "kind": "copy-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-and-table",
             "title": "图表要求",
-            "text": "运行时统一使用 Rust/WASM 幅频工作区，并保留表 4 的四列比较；作者态图片仅作版式参考。"
+            "text": "运行时统一使用 Rust/WASM 幅频工作区，并保留表 4 的四列比较；作者态图片仅作版式参考。",
+            "legacyKind": "copy-card",
+            "presentation": "single",
+            "semanticRole": "copy"
           }
         },
         {
           "id": "low-frequency-magnitude-workspace",
           "region": "figure",
-          "kind": "analysis-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1535,13 +1639,16 @@
             "items": [
               "PI：G_PI(s)=K(1+1/(Ti s))",
               "滞后：G_lag(s)=K(Ts+1)/(βTs+1)"
-            ]
+            ],
+            "legacyKind": "analysis-workspace",
+            "presentation": "single",
+            "responseKind": "text.structured"
           }
         },
         {
           "id": "comparison-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1549,13 +1656,16 @@
             "items": [
               "PI：G_PI(s)=K(1+1/(Ti s))",
               "滞后：G_lag(s)=K(Ts+1)/(βTs+1)"
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1563,7 +1673,9 @@
             "items": [
               "PI：G_PI(s)=K(1+1/(Ti s))",
               "滞后：G_lag(s)=K(Ts+1)/(βTs+1)"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1604,14 +1716,14 @@
           {
             "id": "lf-card-1",
             "prompt": "判断 PI 的结构抓手。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "lf-card-2",
             "prompt": "判断滞后的核心收益。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1704,7 +1816,7 @@
         {
           "id": "time-pi-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1713,24 +1825,30 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：斜坡输入稳态误差为 0。",
               "目标：超调量不超过 20%，调节时间不超过 12 s。"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "time-pi-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "validation",
             "title": "验证图",
-            "text": "固定使用 3-7-pi-time-domain-design.png，且只在步骤链末端出现。"
+            "text": "固定使用 3-7-pi-time-domain-design.png，且只在步骤链末端出现。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "time-pi-validation-figure",
           "region": "validation",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1739,13 +1857,15 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：斜坡输入稳态误差为 0。",
               "目标：超调量不超过 20%，调节时间不超过 12 s。"
-            ]
+            ],
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "time-pi-activity-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1754,7 +1874,9 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：斜坡输入稳态误差为 0。",
               "目标：超调量不超过 20%，调节时间不超过 12 s。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1787,14 +1909,14 @@
           {
             "id": "time-pi-card-1",
             "prompt": "判断纯增益为何不够。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-pi-card-2",
             "prompt": "选择 PI 的首要作用。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -1886,7 +2008,7 @@
         {
           "id": "time-lag-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1895,24 +2017,30 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：保持 Mp≤20%、ts(2%)≤12 s。",
               "目标：在不提高型别的前提下，使 Kv≥10。"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "time-lag-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "validation",
             "title": "验证图",
-            "text": "固定使用 3-7-lag-time-domain-design.png，且只在步骤链末端出现。"
+            "text": "固定使用 3-7-lag-time-domain-design.png，且只在步骤链末端出现。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "time-lag-validation-figure",
           "region": "validation",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1921,13 +2049,15 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：保持 Mp≤20%、ts(2%)≤12 s。",
               "目标：在不提高型别的前提下，使 Kv≥10。"
-            ]
+            ],
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "time-lag-activity-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -1936,7 +2066,9 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "目标：保持 Mp≤20%、ts(2%)≤12 s。",
               "目标：在不提高型别的前提下，使 Kv≥10。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1969,14 +2101,14 @@
           {
             "id": "time-lag-card-1",
             "prompt": "判断纯增益失败原因。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-lag-card-2",
             "prompt": "判断滞后的核心结构作用。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2063,7 +2195,7 @@
         {
           "id": "comparison-dimensions",
           "region": "dimension",
-          "kind": "dimension-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "dimension",
@@ -2074,24 +2206,29 @@
               "主要代价",
               "适用问题",
               "验证结果"
-            ]
+            ],
+            "legacyKind": "dimension-card-row",
+            "presentation": "row"
           }
         },
         {
           "id": "time-methods-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "table",
             "title": "比较页职责",
-            "text": "本页只负责归纳，不重复承载完整推导链。"
+            "text": "本页只负责归纳，不重复承载完整推导链。",
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "dimension",
@@ -2102,7 +2239,9 @@
               "主要代价",
               "适用问题",
               "验证结果"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2136,14 +2275,14 @@
           {
             "id": "time-compare-card-1",
             "prompt": "把‘斜坡误差为 0’对应到方法。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "time-compare-card-2",
             "prompt": "把‘型别不变但 Kv 提高’对应到方法。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2235,7 +2374,7 @@
         {
           "id": "freq-pi-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2245,24 +2384,30 @@
               "目标：Kv≥10。",
               "目标：PM≥55°。",
               "目标：ωc≈2.5 rad/s。"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "freq-pi-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "validation",
             "title": "验证图",
-            "text": "固定使用 3-7-pi-frequency-design.png，且只在步骤链末端出现。"
+            "text": "固定使用 3-7-pi-frequency-design.png，且只在步骤链末端出现。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "freq-pi-validation-figure",
           "region": "validation",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2272,13 +2417,15 @@
               "目标：Kv≥10。",
               "目标：PM≥55°。",
               "目标：ωc≈2.5 rad/s。"
-            ]
+            ],
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "freq-pi-activity-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2288,7 +2435,9 @@
               "目标：Kv≥10。",
               "目标：PM≥55°。",
               "目标：ωc≈2.5 rad/s。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2322,14 +2471,14 @@
           {
             "id": "freq-pi-card-1",
             "prompt": "判断纯增益不兼容的原因。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-pi-card-2",
             "prompt": "补全设计顺序。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2422,7 +2571,7 @@
         {
           "id": "freq-pd-problem",
           "region": "problem",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2431,24 +2580,30 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "给定方案：G_PD(s)=8(1+0.1s)。",
               "页面语义：本页是方案读取与核验，不是假造完整整定链。"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "freq-pd-derivation",
           "region": "derivation",
-          "kind": "step-reveal-list",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "validation",
             "title": "验证图",
-            "text": "固定使用 3-7-pi-pd-comparison.png，且只在步骤链末端出现。"
+            "text": "固定使用 3-7-pi-pd-comparison.png，且只在步骤链末端出现。",
+            "legacyKind": "step-reveal-list",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "freq-pd-validation-figure",
           "region": "validation",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2457,13 +2612,15 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "给定方案：G_PD(s)=8(1+0.1s)。",
               "页面语义：本页是方案读取与核验，不是假造完整整定链。"
-            ]
+            ],
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "freq-pd-activity-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
@@ -2472,7 +2629,9 @@
               "对象：Gp(s)=4/[s(s+4)]。",
               "给定方案：G_PD(s)=8(1+0.1s)。",
               "页面语义：本页是方案读取与核验，不是假造完整整定链。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2505,21 +2664,63 @@
           {
             "id": "freq-pd-card-1",
             "prompt": "判断本方案是否提高型别。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-pd-card-2",
             "prompt": "匹配核验指标与性能描述。",
-            "response_kind": "match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "one_third",
+            "match_items": [
+              {
+                "value": "type",
+                "label": "型别变化"
+              },
+              {
+                "value": "speed",
+                "label": "动态速度"
+              },
+              {
+                "value": "steady-error",
+                "label": "稳态误差"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "unchanged-type",
+                "label": "未增加积分环节，仍保持原型别。"
+              },
+              {
+                "value": "faster-response",
+                "label": "微分或超前效应让响应更快。"
+              },
+              {
+                "value": "residual-error",
+                "label": "斜坡跟踪仍会保留误差，不能只靠动态变快消除。"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "type",
+                "option": "unchanged-type"
+              },
+              {
+                "item": "speed",
+                "option": "faster-response"
+              },
+              {
+                "item": "steady-error",
+                "option": "residual-error"
+              }
+            ]
           },
           {
             "id": "freq-pd-card-3",
             "prompt": "填写保留误差的原因。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2606,7 +2807,7 @@
         {
           "id": "comparison-dimensions",
           "region": "dimension",
-          "kind": "dimension-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "dimension",
@@ -2617,24 +2818,29 @@
               "相位裕度",
               "时域形态",
               "适用设计取向"
-            ]
+            ],
+            "legacyKind": "dimension-card-row",
+            "presentation": "row"
           }
         },
         {
           "id": "freq-methods-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "table",
             "title": "核心判断",
-            "text": "PI 更偏低频精度优先，PD 更偏动态速度优先。"
+            "text": "PI 更偏低频精度优先，PD 更偏动态速度优先。",
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "activity-card-grid",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "dimension",
@@ -2645,7 +2851,9 @@
               "相位裕度",
               "时域形态",
               "适用设计取向"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2679,21 +2887,63 @@
           {
             "id": "freq-compare-card-1",
             "prompt": "选择更适合斜坡跟踪精度优先的方案。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           },
           {
             "id": "freq-compare-card-2",
             "prompt": "匹配‘更快 / 更准 / 代价落点’。",
-            "response_kind": "match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "one_third",
+            "match_items": [
+              {
+                "value": "faster",
+                "label": "更快"
+              },
+              {
+                "value": "more-accurate",
+                "label": "更准"
+              },
+              {
+                "value": "tradeoff",
+                "label": "代价落点"
+              }
+            ],
+            "match_options": [
+              {
+                "value": "pd-lead",
+                "label": "PD 或超前更偏动态速度优先。"
+              },
+              {
+                "value": "pi-lag",
+                "label": "PI 或滞后更偏低频精度优先。"
+              },
+              {
+                "value": "mid-frequency-cost",
+                "label": "低频收益会落到中频裕度、响应速度或形态代价上。"
+              }
+            ],
+            "reference_matches": [
+              {
+                "item": "faster",
+                "option": "pd-lead"
+              },
+              {
+                "item": "more-accurate",
+                "option": "pi-lag"
+              },
+              {
+                "item": "tradeoff",
+                "option": "mid-frequency-cost"
+              }
+            ]
           },
           {
             "id": "freq-compare-card-3",
             "prompt": "判断场景归属。",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third"
           }
@@ -2776,7 +3026,7 @@
         {
           "id": "post-q1",
           "region": "cards",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "quiz-summary",
@@ -2786,24 +3036,30 @@
               "哪类问题可先用型别和静态误差系数快速判断。",
               "斜坡误差想从有限值变成 0，应先判断什么。",
               "PI 与滞后各把收益放在哪、代价推向哪。"
-            ]
+            ],
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "post-q2",
           "region": "cards",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "title-card",
             "title": "后测名称卡",
-            "text": "先判断路径，再判断方法与代价落点。"
+            "text": "先判断路径，再判断方法与代价落点。",
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "post-q3",
           "region": "cards",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "error-tags",
@@ -2812,13 +3068,16 @@
               "所有稳态误差都能套表。",
               "PI 没有代价。",
               "滞后只是更弱积分。"
-            ]
+            ],
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "post-q4",
           "region": "cards",
-          "kind": "quiz-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "quiz-summary",
@@ -2828,13 +3087,16 @@
               "哪类问题可先用型别和静态误差系数快速判断。",
               "斜坡误差想从有限值变成 0，应先判断什么。",
               "PI 与滞后各把收益放在哪、代价推向哪。"
-            ]
+            ],
+            "legacyKind": "quiz-card",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "teacher-feedback-strip",
           "region": "feedback",
-          "kind": "feedback-strip",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "quiz-summary",
@@ -2844,7 +3106,10 @@
               "哪类问题可先用型别和静态误差系数快速判断。",
               "斜坡误差想从有限值变成 0，应先判断什么。",
               "PI 与滞后各把收益放在哪、代价推向哪。"
-            ]
+            ],
+            "legacyKind": "feedback-strip",
+            "presentation": "strip",
+            "semanticRole": "feedback"
           }
         }
       ],
@@ -2897,7 +3162,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2907,7 +3172,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2917,7 +3182,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2927,7 +3192,7 @@
             "title": "四题独立作答，单卡提交。",
             "prompt": "四题独立作答，单卡提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -3010,7 +3275,7 @@
         {
           "id": "engineering-perspective-card",
           "region": "engineering",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "summary",
@@ -3022,51 +3287,64 @@
               "增益变大不等于型别提高。",
               "PI 与滞后同属低频补偿，但设计逻辑不同。",
               "低频收益与中频代价将在 3-8 统一翻译为频域语言。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "summary-list",
           "region": "summary",
-          "kind": "summary-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "engineering",
             "title": "工程视角",
-            "text": "长期偏一点，整段航程都在付代价。"
+            "text": "长期偏一点，整段航程都在付代价。",
+            "legacyKind": "summary-list",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "rule-table",
           "region": "appendix",
-          "kind": "table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "appendix",
             "title": "规则表与信息图",
-            "text": "必须完整保留表 6 与 3-7-info.png。"
+            "text": "必须完整保留表 6 与 3-7-info.png。",
+            "legacyKind": "table",
+            "presentation": "single"
           }
         },
         {
           "id": "info-graphic",
           "region": "appendix",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "engineering",
             "title": "工程视角",
-            "text": "长期偏一点，整段航程都在付代价。"
+            "text": "长期偏一点，整段航程都在付代价。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "next-lesson-card",
           "region": "next",
-          "kind": "next-lesson-card",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "engineering",
             "title": "工程视角",
-            "text": "长期偏一点，整段航程都在付代价。"
+            "text": "长期偏一点，整段航程都在付代价。",
+            "legacyKind": "next-lesson-card",
+            "presentation": "single",
+            "semanticRole": "nextStep"
           }
         }
       ],

@@ -367,9 +367,14 @@ function createUNIT_3_9ModuleRegistry(extra: Unit39ModuleExtra): InteractiveModu
 
   return {
     ...sharedRegistry,
-    'rust-analysis-panel': ({ module }) => {
-      const panelId = typeof module.payload.panel_id === 'string' ? module.payload.panel_id as Unit39PanelId : 'baseline';
-      return <Unit39RustPanel panelId={panelId} params={PANEL_CONFIG[panelId]?.defaultParams ?? {}} />;
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'rust-analysis-panel' || capabilityRef === 'rust-analysis') {
+        const panelId = typeof props.module.payload.panel_id === 'string' ? props.module.payload.panel_id as Unit39PanelId : 'baseline';
+        return <Unit39RustPanel panelId={panelId} params={PANEL_CONFIG[panelId]?.defaultParams ?? {}} />;
+      }
+      return sharedRegistry['compute.panel'](props);
     },
   };
 }

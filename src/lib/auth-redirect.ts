@@ -1,7 +1,7 @@
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+
 export function getDefaultPostLoginRedirect(role?: string | null) {
-  if (role === 'ADMIN') return '/admin';
-  if (role === 'TEACHER') return '/teacher';
-  return '/dashboard';
+  return getPlatformCockpitHref(role);
 }
 
 export function normalizeSafeCallbackPath(callbackUrl?: string | null, origin?: string) {

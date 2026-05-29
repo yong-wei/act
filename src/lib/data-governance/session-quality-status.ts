@@ -13,6 +13,9 @@ export type SessionQualityReason =
   | 'usable_evidence_ratio_partial'
   | 'legacy_or_missing_ratio_warning'
   | 'durable_submission_coverage_partial'
+  | 'snapshot_coverage_partial'
+  | 'post_class_update_window_partial'
+  | 'feature_cache_stale'
   | 'snapshot_partially_missing'
   | 'medium_sync_incident'
   | 'session_not_finished';
@@ -24,6 +27,9 @@ export interface ComputeSessionQualityStatusInput {
   evidenceQualityCounts: SubmissionEvidenceQualityCounts;
   reportFresh: boolean;
   snapshotFresh: boolean;
+  snapshotCoverageFresh?: boolean;
+  postClassUpdateWindowFresh?: boolean;
+  featureCacheFresh?: boolean;
   syncSeverity: SessionQualitySyncSeverity;
   unresolvedSyncIncidents: number;
   syncAffectedUsers: number;
@@ -42,6 +48,9 @@ export interface SessionQualityDecision {
     legacyOrMissingRatio: number;
     reportFresh: boolean;
     snapshotFresh: boolean;
+    snapshotCoverageFresh: boolean;
+    postClassUpdateWindowFresh: boolean;
+    featureCacheFresh: boolean;
     syncSeverity: SessionQualitySyncSeverity;
     unresolvedSyncIncidents: number;
     syncAffectedUsers: number;
@@ -87,6 +96,9 @@ export function computeSessionQualityStatus(
   const durableSubmissionCoverage = ratio(durableSubmittedParticipants, participants);
   const syncAffectedUserRatio = ratio(input.syncAffectedUsers, participants);
   const unresolvedSyncIncidents = Math.max(0, input.unresolvedSyncIncidents);
+  const snapshotCoverageFresh = input.snapshotCoverageFresh ?? input.snapshotFresh;
+  const postClassUpdateWindowFresh = input.postClassUpdateWindowFresh ?? true;
+  const featureCacheFresh = input.featureCacheFresh ?? true;
 
   const metrics: SessionQualityDecision['metrics'] = {
     participants,
@@ -96,7 +108,10 @@ export function computeSessionQualityStatus(
     richOrPartialEvidenceRatio,
     legacyOrMissingRatio,
     reportFresh: input.reportFresh,
-    snapshotFresh: input.snapshotFresh,
+    snapshotFresh: snapshotCoverageFresh,
+    snapshotCoverageFresh,
+    postClassUpdateWindowFresh,
+    featureCacheFresh,
     syncSeverity: input.syncSeverity,
     unresolvedSyncIncidents,
     syncAffectedUsers: Math.max(0, input.syncAffectedUsers),
@@ -148,7 +163,9 @@ export function computeSessionQualityStatus(
   if (durableSubmissionCoverage < GREEN_DURABLE_SUBMISSION_COVERAGE) {
     yellowReasons.push('durable_submission_coverage_partial');
   }
-  if (!input.snapshotFresh) yellowReasons.push('snapshot_partially_missing');
+  if (!snapshotCoverageFresh) yellowReasons.push('snapshot_coverage_partial');
+  if (!postClassUpdateWindowFresh) yellowReasons.push('post_class_update_window_partial');
+  if (!featureCacheFresh) yellowReasons.push('feature_cache_stale');
   if (input.syncSeverity === 'medium') yellowReasons.push('medium_sync_incident');
 
   if (yellowReasons.length > 0) {

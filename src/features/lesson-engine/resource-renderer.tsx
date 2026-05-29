@@ -13,6 +13,10 @@ import type { InteractiveConfig, InteractiveResourceConfig } from '@/features/in
 import type { WidgetState, WidgetResult } from '@/resources/widgets/widget-props';
 import { KnowledgeCard } from '@/features/knowledge/knowledge-card';
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
+import {
+  buildResourceRendererLaunchContext,
+  resolveInteractiveResourceConfig,
+} from './resource-renderer-config';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -25,6 +29,14 @@ interface ResourceRendererProps {
   onStateChange?: (state: WidgetState) => void;
   /** 课堂会话 ID（用于埋点追踪） */
   sessionId?: string;
+  /** 当前 LessonItem ID（用于课程资源启动上下文） */
+  lessonItemId?: string;
+  /** 当前 LessonPlan ID（用于课程资源启动上下文） */
+  lessonPlanId?: string;
+  /** 当前班级 ID（用于课程资源启动上下文） */
+  classId?: string | null;
+  /** 当前 BOPPPS 阶段 */
+  stage?: string | null;
   /** 是否启用 AI 面板 */
   enableAIPanel?: boolean;
 }
@@ -70,6 +82,10 @@ export function ResourceRenderer({
   onComplete,
   onStateChange,
   sessionId,
+  lessonItemId,
+  lessonPlanId,
+  classId,
+  stage,
   enableAIPanel = true,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
@@ -209,39 +225,11 @@ export function ResourceRenderer({
 
       const Component = registryConfig.component;
 
-      // 构建 InteractiveConfig
-      const resourceConfig = (resource.config || {}) as InteractiveResourceConfig;
-      const overrideConfigPayload = rawOverride as InteractiveResourceConfig;
-      const overrideProps = (overrideConfigPayload.props && typeof overrideConfigPayload.props === 'object')
-        ? overrideConfigPayload.props
-        : Object.fromEntries(
-            Object.entries(rawOverride).filter(([key]) =>
-              !['titleOverride', 'descriptionOverride', 'props', 'ai', 'tracking', 'completion', 'layout'].includes(key)
-            )
-          );
-      const mergedConfig: InteractiveResourceConfig = {
-        ...resourceConfig,
-        ai: {
-          ...(resourceConfig.ai || {}),
-          ...(overrideConfigPayload.ai || {}),
-        },
-        tracking: {
-          ...(resourceConfig.tracking || {}),
-          ...(overrideConfigPayload.tracking || {}),
-        },
-        completion: {
-          ...(resourceConfig.completion || {}),
-          ...(overrideConfigPayload.completion || {}),
-        },
-        layout: {
-          ...(resourceConfig.layout || {}),
-          ...(overrideConfigPayload.layout || {}),
-        },
-        props: {
-          ...(resourceConfig.props || {}),
-          ...(overrideProps || {}),
-        },
-      };
+      const mergedConfig: InteractiveResourceConfig = resolveInteractiveResourceConfig({
+        registryDefaultConfig: registryConfig.defaultConfig,
+        resourceConfig: resource.config,
+        overrideConfig,
+      });
       const interactiveConfig: InteractiveConfig = {
         resourceId: resource.id,
         registryId: resource.registryId,
@@ -249,10 +237,7 @@ export function ResourceRenderer({
         description: effectiveDescription || undefined,
         aiHints: resource.aiHints || undefined,
         config: {
-          props: {
-            ...(registryConfig.defaultConfig || {}),
-            ...mergedConfig.props,
-          },
+          props: mergedConfig.props ?? {},
           ai: {
             enabled: enableAIPanel,
             persona: lessonContext.aiConfig?.persona || mergedConfig.ai?.persona,
@@ -268,13 +253,23 @@ export function ResourceRenderer({
           },
         },
       };
+      const launchContext = buildResourceRendererLaunchContext({
+        resourceId: resource.id,
+        registryId: resource.registryId,
+        sessionId,
+        lessonItemId,
+        lessonPlanId,
+        classId,
+        stage,
+      });
 
       // 组件 props（不包含 InteractiveProvider 管理的内容）
       const componentProps = {
-        ...(registryConfig.defaultConfig || {}),
         ...(mergedConfig.props || {}),
-        ...(resource.config as Record<string, unknown> || {}),
         embedded: true,
+        resourceId: resource.id,
+        registryId: resource.registryId,
+        launchContext,
         lessonContext: {
           resourceTitle: lessonContext.title || effectiveTitle,
           aiPersona: lessonContext.aiConfig?.persona,

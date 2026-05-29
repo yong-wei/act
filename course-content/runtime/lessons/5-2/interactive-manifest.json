@@ -53,38 +53,45 @@
         {
           "id": "problem",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "非线性边界问题",
-            "text": "同一控制回路为什么在小幅输入下像线性模型，大幅输入下却可能触碰饱和并产生周期摆动。"
+            "text": "同一控制回路为什么在小幅输入下像线性模型，大幅输入下却可能触碰饱和并产生周期摆动。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-cover-comic.png",
-            "caption": "封面漫画：非线性边界中的控制回路"
+            "caption": "封面漫画：非线性边界中的控制回路",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "tool-map",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-nonlinear-tool-comparison.png",
-            "caption": "三种非线性边界工具看到的对象不同"
+            "caption": "三种非线性边界工具看到的对象不同",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "tool-summary",
           "title": "三种观察工具",
           "region": "summary",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "三种观察工具",
@@ -92,7 +99,9 @@
               "局部线性化看工作点附近的小扰动。",
               "相平面看二阶状态轨迹。",
               "描述函数看正弦基波近似下的自振边界。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         }
       ],
@@ -166,7 +175,7 @@
           "id": "goal-list",
           "title": "本次课程目标",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "intro": "完成本次课程后，学习者能够：",
@@ -177,7 +186,10 @@
               "写出主要非线性环节的描述函数及参数范围。",
               "使用负倒描述函数和微小扰动法判断候选自振点。",
               "结合执行器结构、仿真响应和工程后果提出整改方向。"
-            ]
+            ],
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -259,22 +271,28 @@
           "id": "foundation-scope",
           "title": "基础知识点",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "基础知识点",
-            "text": "本页检查状态变量、正弦信号和低通滤波三个基础概念。"
+            "text": "本页检查状态变量、正弦信号和低通滤波三个基础概念。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest",
           "title": "基础概念快测",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "note",
-            "text": "这些题只检查学习本页所需的基础概念。"
+            "text": "这些题只检查学习本页所需的基础概念。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -292,7 +310,7 @@
           {
             "id": "state-point",
             "prompt": "二阶运动对象常用状态变量 $x_1=x$、$x_2=\\dot{x}$ 表示。若给出初始点 $(x_1(0),x_2(0))$，它描述的是哪一类信息？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "系统从某个位置和速度出发的状态",
               "系统的频率响应",
@@ -305,7 +323,7 @@
           {
             "id": "sine-meaning",
             "prompt": "正弦信号 $e(t)=A\\sin(\\omega t)$ 中，$A$ 与 $\\omega$ 分别表示什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "幅值和角频率",
               "相位和阻尼比",
@@ -318,7 +336,7 @@
           {
             "id": "low-pass",
             "prompt": "低通滤波环节通常更容易保留低频成分，并衰减较高频率成分。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -398,7 +416,7 @@
           "id": "linearization-formula",
           "title": "局部线性化公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "局部线性化公式",
@@ -406,14 +424,16 @@
               "$y \\\\approx f(x_0)+f'(x_0)(x-x_0)$",
               "$\\\\Delta x=x-x_0,\\\\ \\\\Delta y=y-f(x_0)$",
               "$\\\\Delta y \\\\approx f'(x_0)\\\\Delta x$"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "tanh-table",
           "title": "tanh x 两个工作点对比",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "tanh x 两个工作点对比",
@@ -439,18 +459,22 @@
                 "$y \\\\approx 0.762+0.420(x-1)$",
                 "$x=1$ 附近小扰动"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "local-tasks",
           "title": "局部线性化判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "warning",
-            "text": "f'(x0) 是工作点附近的小信号增益，不是全局比例系数。"
+            "text": "f'(x0) 是工作点附近的小信号增益，不是全局比例系数。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -469,7 +493,7 @@
           {
             "id": "gain-meaning",
             "prompt": "哪个量表示工作点附近的小信号增益？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "$f'(x_0)$",
               "$f(x_0)$",
@@ -482,7 +506,7 @@
           {
             "id": "global-risk",
             "prompt": "$f'(0)=1$ 是否可直接用于 $x=3$ 附近的大幅输入？",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "不能",
               "能"
@@ -560,7 +584,7 @@
           "id": "jacobian-formula",
           "title": "动态线性化公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "动态线性化公式",
@@ -568,14 +592,16 @@
               "$\\\\dot{x}_1=x_2,\\\\ \\\\dot{x}_2=f(x_1,x_2)$",
               "$x_2=0,\\\\ f(x_1,0)=0$",
               "$\\\\Delta \\\\dot{x}=A\\\\Delta x$"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "applicability-table",
           "title": "局部模型适用条件",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "局部模型适用条件",
@@ -610,18 +636,24 @@
                 "不能直接等价为传递函数",
                 "同一输入值对应不同输出状态"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "local-conclusion-task",
           "title": "局部结论判断",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "note",
-            "text": "雅可比矩阵特征值只说明平衡点附近的小扰动趋势。"
+            "text": "雅可比矩阵特征值只说明平衡点附近的小扰动趋势。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -641,7 +673,7 @@
           {
             "id": "local-result",
             "prompt": "若雅可比矩阵特征值均在左半平面，最稳妥的结论是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "平衡点附近足够小的扰动会衰减，但不能保证远处轨迹也衰减",
               "系统全局稳定",
@@ -723,7 +755,7 @@
           "id": "phase-formula",
           "title": "相平面阅读公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "相平面阅读公式",
@@ -731,26 +763,31 @@
               "$\\\\dot{x}_1=x_2$",
               "$\\\\dot{x}_2=f(x_1,x_2)$",
               "$\\\\dfrac{dx_2}{dx_1}=\\\\dfrac{f(x_1,x_2)}{x_2}$"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "phase-rust-tabs",
           "title": "相平面轨迹面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "相平面轨迹面板",
             "panel_id": "rust_phase_plane_tabs",
-            "text": "三标签 Rust 相平面面板。"
+            "text": "三标签 Rust 相平面面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "phase-reading-table",
           "title": "相平面读图对象",
           "region": "reading",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "相平面读图对象",
@@ -775,18 +812,22 @@
                 "多条初始轨迹",
                 "吸引行为和初值敏感性"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "phase-observation",
           "title": "相轨迹观察提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "explanation",
-            "text": "图中的每个点表示系统状态，不是时间轴上的采样点；从不同初始点生成的轨迹揭示运动方向、吸引行为和周期行为。"
+            "text": "图中的每个点表示系统状态，不是时间轴上的采样点；从不同初始点生成的轨迹揭示运动方向、吸引行为和周期行为。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -861,7 +902,7 @@
           {
             "id": "phase-observation-submit",
             "prompt": "请选择一个标签并点击初始点，记录初始点坐标、轨迹最终形态和观察结论。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应说明所选标签、初始点和轨迹是否趋向闭合轨道、保持速度或速度衰减停留。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -939,37 +980,46 @@
           "id": "df-definition",
           "title": "描述函数定义",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "描述函数定义",
             "formulas": [
               "$e(t)=A\\\\sin(\\\\omega t)$",
               "$N(A)=\\\\dfrac{\\\\text{输出基波复幅值}}{\\\\text{输入正弦幅值}}$"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "harmonic-rust-panel",
           "title": "基波近似观察面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "基波近似观察面板",
             "panel_id": "rust_harmonic_lowpass_panel",
-            "text": "正弦输入、继电输出频谱、低通滤波与描述函数近似对比面板。"
+            "text": "正弦输入、继电输出频谱、低通滤波与描述函数近似对比面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "lowpass-question",
           "title": "低通条件判断",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "panel_reading",
-            "text": "输入正弦经过继电后会产生高次谐波；低通截止频率越低，高次谐波越难通过，实际输出越接近只保留基波的描述函数近似。"
+            "text": "输入正弦经过继电后会产生高次谐波；低通截止频率越低，高次谐波越难通过，实际输出越接近只保留基波的描述函数近似。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1021,7 +1071,7 @@
           {
             "id": "lowpass-why",
             "prompt": "描述函数法为什么要求线性部分具有较好的低通滤波特性？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "非线性输出的高次谐波需要被线性部分衰减，基波近似才有意义",
               "低通环节会增强所有高次谐波",
@@ -1107,30 +1157,36 @@
           "id": "memoryless-rust-panel",
           "title": "无记忆非线性特性面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "无记忆非线性特性面板",
             "panel_id": "rust_memoryless_nonlinearity_tabs",
-            "text": "饱和、死区、死区饱和输入输出特性面板。"
+            "text": "饱和、死区、死区饱和输入输出特性面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "memoryless-controls",
           "title": "参数控件",
           "region": "controls",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "参数控件",
-            "text": "控件随标签变化：饱和调节 $k,a,A$；死区调节 $k,\\\\Delta,A$；死区饱和调节 $k,\\\\Delta,a,A$。"
+            "text": "控件随标签变化：饱和调节 $k,a,A$；死区调节 $k,\\\\Delta,A$；死区饱和调节 $k,\\\\Delta,a,A$。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "memoryless-formulas",
           "title": "无记忆环节描述函数",
           "region": "formulas",
-          "kind": "native-formula-table",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "无记忆环节描述函数",
@@ -1151,17 +1207,21 @@
                 "死区饱和",
                 "$N(A)=0,\\ 0<A\\le \\Delta;\\quad N(A)=\\dfrac{2k}{\\pi}\\left[\\dfrac{\\pi}{2}-\\sin^{-1}\\dfrac{\\Delta}{A}-\\dfrac{\\Delta}{A}\\sqrt{1-\\left(\\dfrac{\\Delta}{A}\\right)^2}\\right],\\ \\Delta<A\\le a;\\quad N(A)=\\dfrac{2k}{\\pi}\\left[\\sin^{-1}\\dfrac{a}{A}-\\sin^{-1}\\dfrac{\\Delta}{A}+\\dfrac{a}{A}\\sqrt{1-\\left(\\dfrac{a}{A}\\right)^2}-\\dfrac{\\Delta}{A}\\sqrt{1-\\left(\\dfrac{\\Delta}{A}\\right)^2}\\right],\\ A>a$"
               ]
-            ]
+            ],
+            "legacyKind": "native-formula-table",
+            "presentation": "single"
           }
         },
         {
           "id": "memoryless-observation",
           "title": "无记忆环节观察提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formulas"
+            "block_key": "formulas",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1313,7 +1373,7 @@
           {
             "id": "memoryless-observation-submit",
             "prompt": "请选择一个非线性标签，调节参数，并说明输入输出图形哪一段发生变化。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应同时写出标签、参数组和对应的死区段、线性段或饱和段变化。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -1394,29 +1454,35 @@
           "id": "relay-rust-panel",
           "title": "路径相关非线性特性面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "路径相关非线性特性面板",
             "panel_id": "rust_relay_hysteresis_backlash_tabs",
-            "text": "继电、滞环继电和间隙输入输出特性面板。"
+            "text": "继电、滞环继电和间隙输入输出特性面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "relay-controls",
           "region": "controls",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "参数控件",
-            "text": "控件随标签变化：理想继电调节 M,A；死区继电调节 M,d,A；滞环继电调节 M,h,A；间隙调节 k,b,A。"
+            "text": "控件随标签变化：理想继电调节 M,A；死区继电调节 M,d,A；滞环继电调节 M,h,A；间隙调节 k,b,A。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "relay-formulas",
           "title": "继电与间隙描述函数",
           "region": "formulas",
-          "kind": "native-formula-table",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "继电与间隙描述函数",
@@ -1441,17 +1507,21 @@
                 "间隙",
                 "$N(A)=\\dfrac{k}{\\pi}\\left[\\dfrac{\\pi}{2}+\\sin^{-1}\\left(1-\\dfrac{2b}{A}\\right)+2\\left(1-\\dfrac{2b}{A}\\right)\\sqrt{\\dfrac{b}{A}\\left(1-\\dfrac{b}{A}\\right)}\\right]+j\\dfrac{4kb}{\\pi A}\\left(\\dfrac{b}{A}-1\\right)$"
               ]
-            ]
+            ],
+            "legacyKind": "native-formula-table",
+            "presentation": "single"
           }
         },
         {
           "id": "relay-observation",
           "title": "继电与间隙观察提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formulas"
+            "block_key": "formulas",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1622,7 +1692,7 @@
           {
             "id": "relay-observation-submit",
             "prompt": "请选择一个继电、滞环或间隙标签，调节参数，并说明当前描述函数是否带虚部及原因。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "滞环继电和间隙具有路径相关性，通常带相位滞后和虚部；理想继电与死区继电在该近似下为实数。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -1697,32 +1767,36 @@
         {
           "id": "feedback-block",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-nonlinear-feedback-block.png",
-            "caption": "线性部分与非线性部分串联的负反馈结构"
+            "caption": "线性部分与非线性部分串联的负反馈结构",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "limit-cycle-condition",
           "title": "候选自振条件",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "候选自振条件",
             "formulas": [
               "$1+G(j\\\\omega)N(A)=0$",
               "$G(j\\\\omega)=-\\\\dfrac{1}{N(A)}$"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "df-conditions",
           "title": "描述函数适用条件",
           "region": "formula",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "描述函数适用条件",
@@ -1731,18 +1805,24 @@
               "输出基波能代表主要成分。",
               "线性部分具有低通滤波特性。",
               "分析目标是自由系统自振边界。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "intersection-task",
           "title": "交点含义判断",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "intersection_note",
-            "text": "交点只给出候选自振频率和候选振幅，不等于最终稳定自振结论。"
+            "text": "交点只给出候选自振频率和候选振幅，不等于最终稳定自振结论。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1761,7 +1841,7 @@
           {
             "id": "intersection-next",
             "prompt": "负倒描述函数曲线与 Nyquist 曲线相交后，下一步应做什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "检查微小扰动方向，并用时域仿真或实验复核",
               "直接宣布稳定自振",
@@ -1839,34 +1919,42 @@
           "id": "perturbation-task",
           "title": "扰动判断任务",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "扰动判断任务",
-            "text": "比较交点两侧的振幅扰动是否把运动推回交点。"
+            "text": "比较交点两侧的振幅扰动是否把运动推回交点。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "perturbation-panel",
           "title": "微小扰动拖动面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "微小扰动拖动面板",
             "panel_id": "interactive_perturbation_curve_panel",
-            "text": "微小扰动法交点拖动面板。"
+            "text": "微小扰动法交点拖动面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "perturbation-submit",
           "title": "扰动结果提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "panel_explanation",
-            "text": "蓝色闭合曲线表示 G(jω) 的包围区域，红色曲线表示某一负倒描述函数示意轨迹，箭头表示 A 增大方向。"
+            "text": "蓝色闭合曲线表示 G(jω) 的包围区域，红色曲线表示某一负倒描述函数示意轨迹，箭头表示 A 增大方向。",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1930,7 +2018,7 @@
           {
             "id": "perturbation-observation-submit",
             "prompt": "拖动 A1 或 A2 后，记录扰动后的运动方向和最终停留状态。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "稳定交点应回到对应交点；非稳定交点应远离，可能发散、衰减停止或停在下一个稳定交点。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2006,18 +2094,21 @@
           "id": "curve-reading-rule",
           "title": "负倒曲线读图规则",
           "region": "reading",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "负倒曲线读图规则",
-            "text": "空心圆是曲线起点，箭头是 $A$ 增大方向；实描述函数负倒曲线落在负实轴上，滞环和间隙会进入复平面。"
+            "text": "空心圆是曲线起点，箭头是 $A$ 增大方向；实描述函数负倒曲线落在负实轴上，滞环和间隙会进入复平面。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "parameter-effects",
           "title": "参数影响方向",
           "region": "reading",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "参数影响方向",
@@ -2026,26 +2117,31 @@
               "死区增大使出现门槛推向更大振幅。",
               "滞环宽度增大使曲线虚部下移。",
               "间隙增大使相位滞后更明显。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "negative-inverse-rust-panel",
           "title": "负倒曲线族面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "title": "负倒曲线族面板",
             "panel_id": "rust_negative_inverse_family_panel",
-            "text": "常见非线性负倒描述函数曲线族面板。"
+            "text": "常见非线性负倒描述函数曲线族面板。",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "negative-inverse-submit",
           "title": "负倒曲线观察提交",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "parameter_effects",
@@ -2054,7 +2150,9 @@
               "死区增大使出现门槛推向更大振幅。",
               "滞环宽度增大使曲线虚部下移。",
               "间隙增大使相位滞后更明显。"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2383,7 +2481,7 @@
           {
             "id": "negative-inverse-observation-submit",
             "prompt": "请选择一种非线性类型，调节参数，并记录负倒曲线移动方向和候选交点风险变化。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "reference_answer": "应说明曲线起点、A 增大方向、参数变化导致的移动方向以及是否更可能与 G(jω) 相交。",
             "submit_scope": "per_card",
             "layout_span": "full"
@@ -2461,18 +2559,21 @@
           "id": "relay-problem",
           "title": "继电闭环题面",
           "region": "problem",
-          "kind": "problem-statement",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
-            "text": "$G(s)=\\dfrac{10}{s(s+2)^2}$，理想继电 $M=1$，判断是否存在描述函数意义下的自振并求候选频率和振幅。"
+            "text": "$G(s)=\\dfrac{10}{s(s+2)^2}$，理想继电 $M=1$，判断是否存在描述函数意义下的自振并求候选频率和振幅。",
+            "legacyKind": "problem-statement",
+            "presentation": "single",
+            "semanticRole": "problem"
           }
         },
         {
           "id": "relay-reveal",
           "title": "继电闭环求解步骤",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "reveal_steps",
@@ -2504,17 +2605,22 @@
               {
                 "body": "读仿真：短脉冲消失后仍进入周期运动，周期约 $3.14\\ \\mathrm{s}$。"
               }
-            ]
+            ],
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "relay-sim",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-example-relay-limit-cycle.png",
-            "caption": "理想继电闭环的描述函数交点与自振仿真"
+            "caption": "理想继电闭环的描述函数交点与自振仿真",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         }
       ],
@@ -2569,7 +2675,7 @@
             "title": "随教师显影阅读求解链。",
             "prompt": "随教师显影阅读求解链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2640,18 +2746,21 @@
           "id": "sat-problem",
           "title": "饱和闭环题面",
           "region": "problem",
-          "kind": "problem-statement",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem",
-            "text": "$G(s)=\\dfrac{K}{s(s+1)(0.2s+1)}$，单位饱和 $k=1,a=1$，比较 $K=4$ 与 $K=9$。"
+            "text": "$G(s)=\\dfrac{K}{s(s+1)(0.2s+1)}$，单位饱和 $k=1,a=1$，比较 $K=4$ 与 $K=9$。",
+            "legacyKind": "problem-statement",
+            "presentation": "single",
+            "semanticRole": "problem"
           }
         },
         {
           "id": "sat-reveal",
           "title": "饱和闭环求解步骤",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "reveal_steps",
@@ -2682,17 +2791,22 @@
               {
                 "body": "读仿真：$K=4$ 衰减，$K=9$ 进入周期运动。"
               }
-            ]
+            ],
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "sat-sim",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-example-saturation-gain-compare.png",
-            "caption": "饱和闭环中线性增益改变自振条件"
+            "caption": "饱和闭环中线性增益改变自振条件",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         }
       ],
@@ -2746,7 +2860,7 @@
             "title": "随教师显影阅读求解链。",
             "prompt": "随教师显影阅读求解链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2816,17 +2930,19 @@
         {
           "id": "rudder-structure",
           "region": "structure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-ship-rudder-actuator-case.png",
-            "caption": "船舶航向舵机中的饱和与死区结构"
+            "caption": "船舶航向舵机中的饱和与死区结构",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "actuator-chain",
           "region": "source",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "执行器链条",
@@ -2837,14 +2953,16 @@
               "液压缸",
               "舵杆与舵叶",
               "航向反馈"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "nonlinear-source",
           "title": "非线性来源",
           "region": "source",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "非线性来源",
@@ -2864,18 +2982,24 @@
                 "微小电压不能立即产生液压流量",
                 "小幅稳态修正时死区吞掉细微动作"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "rudder-source-task",
           "title": "死区来源判断",
           "region": "activity",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case_focus",
-            "text": "执行器结构决定死区与饱和来自哪里。"
+            "text": "执行器结构决定死区与饱和来自哪里。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -2894,7 +3018,7 @@
           {
             "id": "deadzone-source",
             "prompt": "小幅稳态误差长期消不掉时，最先应怀疑执行器链条中的哪类非线性？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "阀芯搭接、摩擦或启动压力造成的死区",
               "线性部分没有积分环节",
@@ -2977,29 +3101,33 @@
           "id": "rudder-calculation",
           "title": "舵机案例候选交点计算",
           "region": "calculation",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "calculation",
             "text": "$\\Delta=0.30,a=1.00,k=1$；$G(s)=\\dfrac{K}{s(s+1)(0.2s+1)}$。",
-            "formula": "$K=10:\\ \\omega=\\sqrt{5}\\approx2.24\\ \\mathrm{rad/s},\\quad G(j\\sqrt{5})=-\\dfrac{K}{6}\\approx-1.667,\\quad N(A)=0.600,\\quad A\\approx1.22;\\quad K=5:\\ G(j\\sqrt{5})\\approx-0.833.$"
+            "formula": "$K=10:\\ \\omega=\\sqrt{5}\\approx2.24\\ \\mathrm{rad/s},\\quad G(j\\sqrt{5})=-\\dfrac{K}{6}\\approx-1.667,\\quad N(A)=0.600,\\quad A\\approx1.22;\\quad K=5:\\ G(j\\sqrt{5})\\approx-0.833.$",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "rudder-sim",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-ship-rudder-actuator-case-sim.png",
-            "caption": "舵机死区饱和案例的交点判断与短脉冲仿真"
+            "caption": "舵机死区饱和案例的交点判断与短脉冲仿真",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "engineering-consequence",
           "title": "工程后果",
           "region": "consequence",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "consequences",
@@ -3008,19 +3136,23 @@
               "阀芯和机械部件磨损加剧。",
               "航向角周期摆动降低靠泊和狭水道安全裕度。",
               "积分累积可能拖慢恢复。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "fix-tasks",
           "title": "整改方向判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "calculation",
             "text": "$\\Delta=0.30,a=1.00,k=1$；$G(s)=\\dfrac{K}{s(s+1)(0.2s+1)}$。",
-            "formula": "$K=10:\\ \\omega=\\sqrt{5}\\approx2.24\\ \\mathrm{rad/s},\\quad G(j\\sqrt{5})=-\\dfrac{K}{6}\\approx-1.667,\\quad N(A)=0.600,\\quad A\\approx1.22;\\quad K=5:\\ G(j\\sqrt{5})\\approx-0.833.$"
+            "formula": "$K=10:\\ \\omega=\\sqrt{5}\\approx2.24\\ \\mathrm{rad/s},\\quad G(j\\sqrt{5})=-\\dfrac{K}{6}\\approx-1.667,\\quad N(A)=0.600,\\quad A\\approx1.22;\\quad K=5:\\ G(j\\sqrt{5})\\approx-0.833.$",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -3049,7 +3181,7 @@
           {
             "id": "gain-fix",
             "prompt": "降低 K 为什么能降低本组自振风险？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "使线性部分 Nyquist 曲线远离危险负倒曲线交点",
               "使死区宽度自动为零",
@@ -3062,7 +3194,7 @@
           {
             "id": "fix-directions",
             "prompt": "哪些整改方向同时作用在控制器和执行器边界上？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "降低中低频增益",
               "抗积分饱和",
@@ -3143,22 +3275,28 @@
           "id": "posttest-note",
           "title": "后测说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "后测说明",
-            "text": "本页检查工具选择、公式范围和自振判断链。"
+            "text": "本页检查工具选择、公式范围和自振判断链。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest",
           "title": "非线性边界判断链后测",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "note",
-            "text": "后测题目短而明确，分别对应工具选择、公式范围和自振判断。"
+            "text": "后测题目短而明确，分别对应工具选择、公式范围和自振判断。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -3175,7 +3313,7 @@
           {
             "id": "tool-choice",
             "prompt": "某系统只在小扰动下偏离工作点，首选哪种入口判断线性主干是否仍可用？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "局部线性化",
               "相平面闭合轨道",
@@ -3188,7 +3326,7 @@
           {
             "id": "df-condition",
             "prompt": "使用描述函数公式前必须检查哪些条件？",
-            "response_kind": "multi_choice",
+            "response_kind": "choice.multi",
             "options": [
               "输入幅值区间",
               "非线性参数范围",
@@ -3206,7 +3344,7 @@
           {
             "id": "intersection-check",
             "prompt": "负倒描述函数交点出现后，还应检查微小扰动方向并用时域仿真复核。",
-            "response_kind": "binary_choice",
+            "response_kind": "choice.binary",
             "options": [
               "正确",
               "错误"
@@ -3286,18 +3424,20 @@
         {
           "id": "info",
           "region": "infograph",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-2/media/5-2-info.png",
-            "caption": "非线性系统最小分析入口总结"
+            "caption": "非线性系统最小分析入口总结",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "three-entry-summary",
           "title": "三种分析入口",
           "region": "summary",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "entries",
@@ -3305,14 +3445,16 @@
               "局部线性化看工作点附近的小扰动。",
               "相平面看二阶状态轨迹和周期行为。",
               "描述函数看正弦基波近似下的自振边界。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "limits",
           "title": "工程验证边界",
           "region": "summary",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "limits",
@@ -3321,17 +3463,21 @@
               "相平面难以直接推广到高维系统。",
               "描述函数依赖基波近似。",
               "工程整改要同时考虑线性参数、执行器边界和实验验证。"
-            ]
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "performance-summary",
           "region": "analytics",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "title": "课堂表现统计",
-            "text": "学生端显示个人浏览、提交和前后测完成情况；教师端显示班级提交率、正确率、常见误判和目标达成概况。"
+            "text": "学生端显示个人浏览、提交和前后测完成情况；教师端显示班级提交率、正确率、常见误判和目标达成概况。",
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         }
       ],

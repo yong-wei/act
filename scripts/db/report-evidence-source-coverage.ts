@@ -57,11 +57,14 @@ async function collectRows() {
   const [
     interactionLogs,
     studentStepResponses,
+    simulationSessions,
     simulationLogs,
     userAnswers,
     abilityAssessments,
     promptAssessments,
     designSessions,
+    arenaBlackBoxExperiments,
+    arenaVirtualSimulationRuns,
     arenaSubmissions,
     arenaEvaluationRuns,
     learningFacts,
@@ -81,6 +84,17 @@ async function collectRows() {
         id: true,
         userId: true,
         submittedAt: true,
+      },
+    }),
+    prisma.simulationSession.findMany({
+      select: {
+        id: true,
+        userId: true,
+        module: true,
+        simType: true,
+        inputParams: true,
+        artifacts: true,
+        createdAt: true,
       },
     }),
     prisma.simulationLog.findMany({
@@ -127,6 +141,28 @@ async function collectRows() {
         taskType: true,
         designActions: true,
         startedAt: true,
+      },
+    }),
+    prisma.arenaBlackBoxExperiment.findMany({
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        signalType: true,
+        payload: true,
+        createdAt: true,
+      },
+    }),
+    prisma.arenaVirtualSimulationRun.findMany({
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        datasetHash: true,
+        controllerHash: true,
+        scenarioId: true,
+        payload: true,
+        createdAt: true,
       },
     }),
     prisma.arenaSubmission.findMany({
@@ -178,6 +214,23 @@ async function collectRows() {
       userId: row.userId,
       occurredAt: row.submittedAt,
     })),
+    SimulationSession: simulationSessions.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: {
+        module: row.module,
+        simType: row.simType,
+        inputParams: row.inputParams,
+        artifacts: row.artifacts,
+      },
+      sourceLabel: compactSourceLabel(
+        readRecord(row.inputParams).source,
+        readRecord(row.artifacts).source,
+        row.module,
+        row.simType,
+      ),
+    })),
     SimulationLog: simulationLogs.map((row): EvidenceCoverageRow => ({
       id: row.id,
       userId: row.userId,
@@ -215,6 +268,26 @@ async function collectRows() {
       occurredAt: row.startedAt,
       eventData: { designActions: row.designActions },
       sourceLabel: row.taskType,
+    })),
+    ArenaBlackBoxExperiment: arenaBlackBoxExperiments.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: row.payload,
+      sourceLabel: compactSourceLabel(readRecord(row.payload).source, row.signalType, row.taskId),
+    })),
+    ArenaVirtualSimulationRun: arenaVirtualSimulationRuns.map((row): EvidenceCoverageRow => ({
+      id: row.id,
+      userId: row.userId,
+      occurredAt: row.createdAt,
+      eventData: row.payload,
+      sourceLabel: compactSourceLabel(
+        readRecord(row.payload).source,
+        row.scenarioId,
+        row.taskId,
+        row.datasetHash,
+        row.controllerHash,
+      ),
     })),
     ArenaSubmission: arenaSubmissions.map((row): EvidenceCoverageRow => ({
       id: row.id,

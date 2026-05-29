@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, BookOpen, Boxes, Presentation } from 'lucide-react';
+import { ArrowLeft, Search, BookOpen, Boxes, GitBranch, Presentation } from 'lucide-react';
 import { InteractiveResourceList } from './resources/interactive-resource-list';
 import { ClassroomComponentList } from './resources/classroom-component-list';
 import { KnowledgeNodeManager } from './resources/knowledge-node-manager';
@@ -74,8 +74,19 @@ export function TeacherResourceManager({
           <ArrowLeft className="h-4 w-4" />
           返回教师工作台
         </Link>
-        <h1 className="text-3xl font-bold text-white">教学资源管理</h1>
-        <p className="mt-2 text-slate-400">管理互动组件、课堂组件和知识卡片</p>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">教学资源管理</h1>
+            <p className="mt-2 text-slate-400">管理互动组件、课堂组件和知识卡片</p>
+          </div>
+          <Link
+            href="/teacher/resources/resource-nodes"
+            className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-700 px-3 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-500 hover:text-cyan-200"
+          >
+            <GitBranch className="h-4 w-4" />
+            ResourceNode 管理
+          </Link>
+        </div>
       </div>
 
       {/* 搜索栏 */}

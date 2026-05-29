@@ -57,41 +57,50 @@
         {
           "id": "object-card",
           "region": "object",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "object_card",
             "title": "主案例对象",
-            "text": "P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]"
+            "text": "P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "tension-list",
           "region": "object",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "tension_list",
-            "title": "当前已经同时出现的四类愿望"
+            "title": "当前已经同时出现的四类愿望",
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         },
         {
           "id": "route-map",
           "region": "route",
-          "kind": "stage-map",
+          "kind": "content.stageMap",
           "must_be_visible": true,
           "payload": {
-            "block_key": "route_map"
+            "block_key": "route_map",
+            "legacyKind": "stage-map",
+            "presentation": "single"
           }
         },
         {
           "id": "problem-focus",
           "region": "question",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "problem_focus",
-            "title": "当前真正缺的不是更多试凑，而是统一的比较语言"
+            "title": "当前真正缺的不是更多试凑，而是统一的比较语言",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -193,16 +202,19 @@
         {
           "id": "goal-intro",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goal_intro"
+            "block_key": "goal_intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "goal-cards",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "goal_cards",
@@ -214,7 +226,10 @@
               "比较三组无约束候选的时域与频域差异。",
               "理解 Pareto front 为什么保留一族候选。",
               "看懂横摇边界案例为什么必须改写目标语言。"
-            ]
+            ],
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -309,7 +324,7 @@
         {
           "id": "trial-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "trial_table",
@@ -359,40 +374,50 @@
                 "43.4991",
                 "动作被收回后，动态品质又开始回退"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "diagnosis-figure",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "diagnosis_figure"
+            "block_key": "diagnosis_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "reading-order",
           "region": "reading",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reading_order"
+            "block_key": "reading_order",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "reading-conclusion",
           "region": "reading",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reading_conclusion"
+            "block_key": "reading_conclusion",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pre-quiz",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "trial_table",
@@ -442,7 +467,10 @@
                 "43.4991",
                 "动作被收回后，动态品质又开始回退"
               ]
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -526,7 +554,7 @@
           {
             "id": "pre-quiz-1",
             "prompt": "只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "否",
               "是"
@@ -537,7 +565,7 @@
           {
             "id": "pre-quiz-2",
             "prompt": "参数范围和工程硬边界是不是同一种东西？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "不是",
               "是"
@@ -548,7 +576,7 @@
           {
             "id": "pre-quiz-3",
             "prompt": "若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "不能",
               "能"
@@ -634,38 +662,44 @@
         {
           "id": "initial-controller",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "initial_controller",
             "title": "4-3 起始方案",
-            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)"
+            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "parameter-vector",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "parameter_vector",
             "title": "本课参数化入口",
-            "text": "θ=[K,T,α]^T,  C_h(s)=K(Ts+1)/(αTs+1),  0<α<1"
+            "text": "θ=[K,T,α]^T,  C_h(s)=K(Ts+1)/(αTs+1),  0<α<1",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "prior-result-figure",
           "region": "evidence",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "prior_result_figure"
+            "block_key": "prior_result_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "prior-result-metrics",
           "region": "evidence",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "prior_result_metrics",
@@ -715,13 +749,15 @@
                 "6.887",
                 "动作峰值已开始抬高"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "range-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "range_table",
@@ -746,27 +782,34 @@
                 "[0.15,0.85]",
                 "保持在超前结构有效区间内"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "range-note",
           "region": "table",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "range_note"
+            "block_key": "range_note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "start-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "initial_controller",
             "title": "4-3 起始方案",
-            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)"
+            "text": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -876,7 +919,7 @@
           {
             "id": "improvement-gap",
             "prompt": "你认为上一课中的方案还有哪些可以改进的地方？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -960,7 +1003,7 @@
         {
           "id": "target-cards",
           "region": "targets",
-          "kind": "equation-card-row",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "target_cards",
@@ -981,24 +1024,28 @@
                 "title": "控制能量 E_u",
                 "note": "代表控制动作整体是否过于激进"
               }
-            ]
+            ],
+            "legacyKind": "equation-card-row",
+            "presentation": "row"
           }
         },
         {
           "id": "jfree-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "jfree_card",
             "title": "无约束加权自由目标",
-            "text": "J_{free}(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0},  Σw_i=1"
+            "text": "J_{free}(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0},  Σw_i=1",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "normalization-meaning-table",
           "region": "normalization",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "normalization_meaning_table",
@@ -1033,27 +1080,34 @@
                 "4-3 起始方案的控制能量读数",
                 "动作代价是否被明显抬高"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "weight-note",
           "region": "meaning",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "weight_note",
-            "title": "讲义 5.3：权重代表的是偏好，而不是客观真理"
+            "title": "讲义 5.3：权重代表的是偏好，而不是客观真理",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "role-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "role_task",
-            "title": "收益项与代价项"
+            "title": "收益项与代价项",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1137,7 +1191,7 @@
           {
             "id": "term-role",
             "prompt": "四项中哪两项更像收益，哪一项最明显在记录动作代价？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1212,30 +1266,38 @@
         {
           "id": "optimization-problem",
           "region": "problem",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "optimization_problem",
             "title": "当前交给数值方法的问题",
-            "text": "min_θ J_free(θ),  θ∈[1,6]×[4,15]×[0.15,0.85]"
+            "text": "min_θ J_free(θ),  θ∈[1,6]×[4,15]×[0.15,0.85]",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "iteration-chain",
           "region": "steps",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "iteration_chain"
+            "block_key": "iteration_chain",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "closing-note",
           "region": "closing",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "closing_note"
+            "block_key": "closing_note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1330,38 +1392,49 @@
         {
           "id": "page-title",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "page_title",
-            "title": "为什么搜索会沿代价面下滑"
+            "title": "为什么搜索会沿代价面下滑",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "mini-problem",
           "region": "problem",
-          "kind": "problem-statement",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
-            "block_key": "mini_problem"
+            "block_key": "mini_problem",
+            "legacyKind": "problem-statement",
+            "presentation": "single",
+            "semanticRole": "problem"
           }
         },
         {
           "id": "gradient-figure",
           "region": "figure",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "gradient_figure"
+            "block_key": "gradient_figure",
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "gradient-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "gradient_reveal"
+            "block_key": "gradient_reveal",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1404,7 +1477,7 @@
             "title": "只阅读，不提交。",
             "prompt": "只阅读，不提交。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1482,18 +1555,20 @@
         {
           "id": "shared-structure",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared_structure",
             "title": "同一固定结构",
-            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "weight-table",
           "region": "weights",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "weight_table",
@@ -1530,13 +1605,15 @@
                 "0.30",
                 "更愿意多保留一些控制余量"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "time-domain-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "time_domain_table",
@@ -1581,16 +1658,22 @@
                 "11.545",
                 "138.352"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "weight-choice",
           "region": "interaction",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "weight_choice"
+            "block_key": "weight_choice",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -1701,7 +1784,7 @@
           {
             "id": "weight-preference",
             "prompt": "若更担心动作代价继续抬高，更应优先保留哪一组偏好？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "A",
               "B",
@@ -1785,25 +1868,30 @@
         {
           "id": "comparison-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "comparison_figure"
+            "block_key": "comparison_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "time-reading",
           "region": "reading",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "time_reading"
+            "block_key": "time_reading",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "frequency-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "frequency_table",
@@ -1843,17 +1931,21 @@
                 "1.996",
                 "10.983"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "comparison-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "comparison_task",
-            "title": "为什么这些读数不会朝同一个方向同步变化"
+            "title": "为什么这些读数不会朝同一个方向同步变化",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1926,7 +2018,7 @@
           {
             "id": "reading-why",
             "prompt": "为什么同样是无约束优化，时域收益、频域读数和动作代价不会同步朝一个方向变化？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -2004,42 +2096,52 @@
         {
           "id": "pareto-definition",
           "region": "definition",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "pareto_definition",
             "title": "二目标设计对",
-            "text": "(ITAE(θ), E_u(θ))"
+            "text": "(ITAE(θ), E_u(θ))",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-figure",
           "region": "figure",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pareto_figure"
+            "block_key": "pareto_figure",
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-reading",
           "region": "reading",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "block_key": "pareto_reading",
-            "title": "当前候选点统计"
+            "title": "当前候选点统计",
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-task",
           "region": "interaction",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "pareto_definition",
             "title": "二目标设计对",
-            "text": "(ITAE(θ), E_u(θ))"
+            "text": "(ITAE(θ), E_u(θ))",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -2085,7 +2187,7 @@
           {
             "id": "pareto-meaning",
             "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它保留的是一组非支配候选",
               "因为图还没画完",
@@ -2176,18 +2278,20 @@
         {
           "id": "shared-structure",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared_structure",
             "title": "同一固定结构",
-            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-point-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "pareto_point_table",
@@ -2232,45 +2336,59 @@
                 "28.2",
                 "2.282"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-response-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pareto_response_figure"
+            "block_key": "pareto_response_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "pareto-response-reading",
           "region": "meaning",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pareto_response_reading"
+            "block_key": "pareto_response_reading",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "engineering-meaning",
           "region": "meaning",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "engineering_meaning"
+            "block_key": "engineering_meaning",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pareto-point-task",
           "region": "interaction",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared_structure",
             "title": "同一固定结构",
-            "text": "C_h(s)=K(Ts+1)/(αTs+1)"
+            "text": "C_h(s)=K(Ts+1)/(αTs+1)",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -2358,7 +2476,7 @@
           {
             "id": "pareto-point-why",
             "prompt": "为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它们彼此之间都存在收益与代价交换",
               "因为三个点的数值完全一样",
@@ -2443,29 +2561,33 @@
         {
           "id": "roll-object-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "roll_object_card",
             "title": "横摇对象与固定结构",
-            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5"
+            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "roll-objective-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "roll_objective_card",
             "title": "横摇自由目标",
-            "text": "J_r(k)=0.60·RMS(φ)/RMS(φ)_0+0.25·max_ω|T_d(jω)|/max_ω|T_d(jω)|_0+0.15·RMS(u)/RMS(u)_0"
+            "text": "J_r(k)=0.60·RMS(φ)/RMS(φ)_0+0.25·max_ω|T_d(jω)|/max_ω|T_d(jω)|_0+0.15·RMS(u)/RMS(u)_0",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "roll-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "roll_table",
@@ -2497,36 +2619,45 @@
                 "-1.750",
                 "0.548"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "roll-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "roll_figure"
+            "block_key": "roll_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "roll-reading",
           "region": "figure",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "roll_reading"
+            "block_key": "roll_reading",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "roll-workspace",
           "region": "interaction",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "roll_object_card",
             "title": "横摇对象与固定结构",
-            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5"
+            "text": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2596,21 +2727,21 @@
           {
             "id": "language-shift-card",
             "prompt": "请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "numeric-validation-card",
             "prompt": "请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "tradeoff-card",
             "prompt": "请用一句话说明横摇案例里收益与代价是怎样重新分配的。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -2684,29 +2815,38 @@
         {
           "id": "posttest-title",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "posttest_title",
-            "title": "阶段判断后测"
+            "title": "阶段判断后测",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "post-quiz",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_note"
+            "block_key": "posttest_note",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "posttest-note",
           "region": "closing",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_note"
+            "block_key": "posttest_note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -2730,7 +2870,7 @@
           {
             "id": "post-quiz-1",
             "prompt": "为什么本课保留下来的只能叫“候选族”，而不是最终可用解？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为还没有经过 4-5 的工程复核",
               "因为参数还没有写成向量",
@@ -2742,7 +2882,7 @@
           {
             "id": "post-quiz-2",
             "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为它保留的是一组非支配候选",
               "因为图还没画完",
@@ -2754,7 +2894,7 @@
           {
             "id": "post-quiz-3",
             "prompt": "为什么横摇案例不能继续沿用航向保持中的目标语言？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "options": [
               "因为任务通道变了，收益项和代价项必须跟着改写",
               "因为横摇对象没有积分环节",
@@ -2830,19 +2970,25 @@
         {
           "id": "takeaways",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "takeaways"
+            "block_key": "takeaways",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "next-step",
           "region": "next",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "next_step"
+            "block_key": "next_step",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],

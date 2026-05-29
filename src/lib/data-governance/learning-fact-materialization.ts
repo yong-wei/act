@@ -10,6 +10,7 @@ import {
   resolveCanonicalEventType,
   resolveCompetencyContribution,
 } from './event-normalization';
+import { isMatchingResponseKind, isOrderingResponseKind } from '../interactive-response-contracts';
 import { resolveLearningFactEvidenceGovernance } from './learning-fact-quality-weight';
 
 type LearningFactCreateManyDelegate = {
@@ -56,6 +57,15 @@ function readArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function readStringArray(value: unknown): string[] {
+  return readArray(value)
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 function readAnswerValue(record: Record<string, unknown>, keys: string[]): unknown {
   for (const key of keys) {
     const value = record[key];
@@ -76,10 +86,8 @@ function normalizeComparableAnswer(value: unknown): string[] {
 }
 
 function isOrderedObjectiveResponseKind(value: unknown): boolean {
-  return value === 'drag_match'
-    || value === 'triple_match'
-    || value === 'drag_sort'
-    || value === 'card_sort';
+  return isMatchingResponseKind(typeof value === 'string' ? value : undefined)
+    || isOrderingResponseKind(typeof value === 'string' ? value : undefined);
 }
 
 function answersMatch(studentAnswer: unknown, referenceAnswer: unknown, ordered: boolean): boolean {
@@ -110,39 +118,80 @@ function buildQuestionSummaryEvidence(payload: Record<string, unknown>) {
       const selectedValue = readAnswerValue(record, ['studentAnswer', 'selectedValue', 'answer', 'value']);
       const referenceAnswer = readAnswerValue(record, ['referenceValue', 'referenceAnswer', 'reference_answer', 'correctAnswer', 'correct_answer']);
       const explicitCorrect = typeof record.isCorrect === 'boolean' ? record.isCorrect : undefined;
+      const explicitScore = readFiniteNumber(record.score);
+      const unsupportedReason = readString(record.unsupportedReason);
       if (!cardId) return null;
-      if (selectedValue === undefined && explicitCorrect === undefined && referenceAnswer === undefined) return null;
+      if (
+        selectedValue === undefined
+        && explicitCorrect === undefined
+        && explicitScore === undefined
+        && referenceAnswer === undefined
+        && unsupportedReason === undefined
+      ) {
+        return null;
+      }
       const ordered = isOrderedObjectiveResponseKind(record.responseKind);
+      const scoringVersion = readString(record.scoringVersion);
+      const scoringDetail = readRecord(record.scoringDetail) ?? readRecord(record.detail);
       return compactJsonObject({
         cardId,
-        selectedValue: selectedValue ?? null,
-        referenceAnswer,
         answered: selectedValue !== undefined,
         isCorrect: explicitCorrect ?? (
           referenceAnswer !== undefined
             ? selectedValue !== undefined && answersMatch(selectedValue, referenceAnswer, ordered)
             : undefined
         ),
+        score: explicitScore,
+        scoringVersion,
+        normalizedSubmitted: record.normalizedSubmitted,
+        normalizedReference: record.normalizedReference,
+        detail: scoringDetail,
+        unsupportedReason,
       });
     })
     .filter((item): item is Prisma.InputJsonObject => Boolean(item));
 
   if (cards.length === 0) return null;
 
-  const scoreableCards = cards.filter((card) => typeof card.isCorrect === 'boolean');
-  if (scoreableCards.length === 0) return null;
+  const answeredCount = cards.filter((card) => card.answered === true).length;
+  const scoreableCards = cards.filter((card) => typeof card.score === 'number' || typeof card.isCorrect === 'boolean');
+  const scoringVersion = cards
+    .map((card) => readString(card.scoringVersion))
+    .find((value): value is string => Boolean(value));
+  if (scoreableCards.length === 0) {
+    const unsupportedReasons = cards
+      .map((card) => readString(card.unsupportedReason))
+      .filter((value): value is string => Boolean(value));
+    return {
+      basis: 'questionSummaries',
+      supported: false,
+      cards,
+      answeredCount,
+      correctCount: 0,
+      totalCount: 0,
+      totalScore: 0,
+      score: undefined,
+      scoringVersion,
+      unsupportedReason: unsupportedReasons[0],
+    };
+  }
   const correctCount = scoreableCards.filter((card) => card.isCorrect === true).length;
   const totalCount = scoreableCards.length;
-  const answeredCount = cards.filter((card) => card.answered === true).length;
-  const score = Math.round((correctCount / totalCount) * 1000) / 10;
+  const totalScore = scoreableCards.reduce((sum, card) => (
+    sum + (typeof card.score === 'number' ? card.score : card.isCorrect === true ? 1 : 0)
+  ), 0);
+  const score = Math.round((totalScore / totalCount) * 1000) / 10;
 
   return {
     basis: 'questionSummaries',
+    supported: true,
     cards,
     answeredCount,
     correctCount,
     totalCount,
+    totalScore,
     score,
+    scoringVersion,
   };
 }
 
@@ -185,13 +234,16 @@ function buildInteractiveQuizContext(actionType: string, payload: Record<string,
       context: compactJsonObject({
         ...baseContext,
         scoring: compactJsonObject({
-          supported: true,
+          supported: questionSummaryEvidence.supported,
           evidenceQuality,
           answeredCount: questionSummaryEvidence.answeredCount,
           correctCount: questionSummaryEvidence.correctCount,
           totalCount: questionSummaryEvidence.totalCount,
+          totalScore: questionSummaryEvidence.totalScore,
           score: questionSummaryEvidence.score,
+          scoringVersion: questionSummaryEvidence.scoringVersion,
           basis: questionSummaryEvidence.basis,
+          reason: questionSummaryEvidence.unsupportedReason,
         }),
         cards: questionSummaryEvidence.cards,
       }),
@@ -253,6 +305,39 @@ function buildArenaLearningContext(actionType: string, payload: Record<string, u
       seasonId: readString(payload.seasonId),
       metrics,
     },
+  };
+}
+
+function buildAdaptiveAssessmentContext(
+  actionType: string,
+  payload: Record<string, unknown>,
+): Prisma.InputJsonValue | undefined {
+  if (actionType !== 'answer_submit' || payload.assessmentSource !== 'adaptive_assessment') {
+    return undefined;
+  }
+
+  const questionId = readString(payload.questionId);
+  const answerId = readString(payload.answerId);
+  if (!questionId || !answerId) {
+    return undefined;
+  }
+
+  return {
+    adaptiveAssessment: compactJsonObject({
+      answerId,
+      questionId,
+      questionRefId: readString(payload.questionRefId),
+      selectedOptionKey: readString(payload.selectedOptionKey),
+      correctOptionKey: readString(payload.correctOptionKey),
+      knowledgeTags: readStringArray(payload.knowledgeTags),
+      algorithmVersion: readString(payload.algorithmVersion),
+      abilityEstimate: typeof payload.abilityEstimate === 'number' ? payload.abilityEstimate : undefined,
+      derivedScore: typeof payload.score === 'number' ? payload.score : undefined,
+      masteryPosterior: typeof payload.masteryPosterior === 'number' ? payload.masteryPosterior : undefined,
+      masteryConfidence: typeof payload.masteryConfidence === 'number' ? payload.masteryConfidence : undefined,
+      confidence: typeof payload.confidence === 'number' ? payload.confidence : undefined,
+      privacyLevel: readString(payload.privacyLevel) ?? 'restricted',
+    }),
   };
 }
 
@@ -329,9 +414,11 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     lessonId: event.lessonId ?? readString(payload.lessonId) ?? readString(payload.lessonKey),
   };
   const arenaContext = buildArenaLearningContext(actionType, payload);
+  const adaptiveAssessmentContext = buildAdaptiveAssessmentContext(actionType, payload);
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
   const contextJson = compactJsonObject({
     ...(readRecord(arenaContext) ?? {}),
+    ...(readRecord(adaptiveAssessmentContext) ?? {}),
     ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
     ...(evidenceGovernance ? { evidenceGovernance } : {}),
   });

@@ -28,6 +28,9 @@ const mocks = vi.hoisted(() => ({
     studentStepResponse: {
       findMany: vi.fn(),
     },
+    simulationSession: {
+      findMany: vi.fn(),
+    },
     simulationLog: {
       findMany: vi.fn(),
     },
@@ -41,6 +44,12 @@ const mocks = vi.hoisted(() => ({
       findMany: vi.fn(),
     },
     designSession: {
+      findMany: vi.fn(),
+    },
+    arenaBlackBoxExperiment: {
+      findMany: vi.fn(),
+    },
+    arenaVirtualSimulationRun: {
       findMany: vi.fn(),
     },
     arenaSubmission: {
@@ -155,11 +164,58 @@ describe('GET /api/admin/data-governance/status', () => {
       },
     ]);
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    mocks.prisma.simulationSession.findMany.mockResolvedValue([
+      {
+        id: 'simulation-session-real',
+        userId: 'student-1',
+        module: 'unit-5-2',
+        simType: 'workspace',
+        inputParams: { source: 'real-simulation' },
+        artifacts: { traceReference: 'trace-sim-session-real' },
+        createdAt: new Date('2026-05-20T08:11:00.000Z'),
+      },
+    ]);
     mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
     mocks.prisma.userAnswer.findMany.mockResolvedValue([]);
     mocks.prisma.abilityAssessment.findMany.mockResolvedValue([]);
     mocks.prisma.promptAssessment.findMany.mockResolvedValue([]);
     mocks.prisma.designSession.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaBlackBoxExperiment.findMany.mockResolvedValue([
+      {
+        id: 'arena-blackbox-real',
+        userId: 'student-1',
+        taskId: 'unit-5-2-regression-fixture',
+        signalType: 'step',
+        payload: { source: 'real-arena-experiment' },
+        createdAt: new Date('2026-05-20T08:12:00.000Z'),
+      },
+    ]);
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([
+      {
+        id: 'arena-preview-real',
+        userId: 'student-1',
+        taskId: 'unit-5-2-regression-fixture',
+        datasetHash: 'dataset-hash',
+        controllerHash: 'controller-hash',
+        scenarioId: 'scenario-a',
+        simulationRunId: 'canonical-run-1',
+        payload: {
+          source: 'real-arena-preview',
+          summary: { trackingError: 0.2, maxDeviation: 0.4 },
+          replay: { checksum: 'sha256:abc' },
+          metadata: {
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+            modelRelation: 'identified-model-controller',
+            datasetHash: 'dataset-hash',
+            controllerHash: 'controller-hash',
+            identificationModelId: 'model-1',
+            sourceExperimentId: 'experiment-1',
+          },
+        },
+        createdAt: new Date('2026-05-20T08:13:00.000Z'),
+      },
+    ]);
     mocks.prisma.arenaSubmission.findMany.mockResolvedValue([]);
     mocks.prisma.arenaEvaluationRun.findMany.mockResolvedValue([
       {
@@ -232,7 +288,7 @@ describe('GET /api/admin/data-governance/status', () => {
 
     expect(response.status).toBe(200);
     expect(payload.sourceCatalog).toMatchObject({
-      totalSources: 10,
+      totalSources: 13,
       coverageCommand: 'npm run db:evidence-source-coverage -- --text',
     });
     expect(payload.sourceCatalog.sources).toEqual(
@@ -249,6 +305,31 @@ describe('GET /api/admin/data-governance/status', () => {
           exclusionReasons: expect.arrayContaining(['low_value_activity_context', 'non_real_provenance']),
         }),
         expect.objectContaining({
+          id: 'SimulationSession',
+          learningScope: 'mixed',
+          eligibility: 'eligible',
+          materializationReadiness: 'partial',
+          totalRows: 1,
+          eligibleRows: 1,
+        }),
+        expect.objectContaining({
+          id: 'ArenaBlackBoxExperiment',
+          learningScope: 'standalone',
+          eligibility: 'eligible',
+          materializationReadiness: 'ready',
+          totalRows: 1,
+          eligibleRows: 1,
+        }),
+        expect.objectContaining({
+          id: 'ArenaVirtualSimulationRun',
+          learningScope: 'standalone',
+          eligibility: 'eligible',
+          materializationReadiness: 'ready',
+          totalRows: 1,
+          eligibleRows: 1,
+          readinessGapCounts: {},
+        }),
+        expect.objectContaining({
           id: 'ArenaEvaluationRun',
           eligibility: 'unsupported',
           totalRows: 1,
@@ -259,8 +340,8 @@ describe('GET /api/admin/data-governance/status', () => {
     );
     expect(payload.sourceCoverage).toMatchObject({
       totals: {
-        totalRows: 4,
-        eligibleRows: 1,
+        totalRows: 7,
+        eligibleRows: 4,
         excludedRows: 2,
         unsupportedRows: 1,
       },
@@ -283,6 +364,11 @@ describe('GET /api/admin/data-governance/status', () => {
         }),
       ]),
     });
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        simulationRunId: true,
+      }),
+    }));
     expect(payload.recentSnapshots[0]).toMatchObject({
       userId: 'student-1',
       userName: '张三',
@@ -293,7 +379,7 @@ describe('GET /api/admin/data-governance/status', () => {
       staleEntries: 0,
       latestRefreshAt: '2026-05-19T08:10:00.000Z',
       totalSourceFacts: 4,
-      payloadVersion: 'student-evidence-features.v1',
+      payloadVersion: 'student-evidence-features.v3',
     });
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,

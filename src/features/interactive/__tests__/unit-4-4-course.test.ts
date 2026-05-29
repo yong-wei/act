@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -7,6 +9,7 @@ import { parse } from 'yaml';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 vi.mock('server-only', () => ({}));
 vi.mock('@/lib/unit-3-4-ai-contexts', () => ({
@@ -234,6 +237,53 @@ describe('unit 4-4 interactive course', () => {
 
     expect(courseModule.isUNIT_4_4PerCardQuizStep('step-03')).toBe(true);
     expect(courseModule.isUNIT_4_4PerCardQuizStep('step-10')).toBe(false);
+  });
+
+  it('routes migrated Pareto figure and stats modules through native 4-4 renderers', async () => {
+    const courseModule = await import('@/lib/unit-4-4-course');
+    const featureModule = await import('@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/step-panels');
+    const rawManifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/4-4/interactive-manifest.json'), 'utf8'),
+    );
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    if (!manifest) throw new Error('4-4 interactive manifest is invalid');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_4StepContentPanel, {
+        step: courseModule.getUNIT_4_4Step('step-10'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('主案例的 Pareto front');
+    expect(html).toContain('当前候选点统计');
+    expect(html).toContain('ITAE');
+    expect(html).not.toContain('互动页模块渲染缺失');
+  });
+
+  it('routes migrated equation card rows through the native 4-4 card renderer', async () => {
+    const courseModule = await import('@/lib/unit-4-4-course');
+    const featureModule = await import('@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/step-panels');
+    const rawManifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/4-4/interactive-manifest.json'), 'utf8'),
+    );
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    if (!manifest) throw new Error('4-4 interactive manifest is invalid');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_4StepContentPanel, {
+        step: courseModule.getUNIT_4_4Step('step-05'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('调节时间 t_s：代表收敛速度');
+    expect(html).toContain('控制能量 E_u：代表控制动作整体是否过于激进');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('re-aligns the revised 4-4 steps to the latest authoring sequence and native figure requirements', async () => {

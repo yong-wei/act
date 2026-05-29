@@ -14,6 +14,14 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  getInteractiveResponseKindMetadata,
+  isChoiceMultiResponseKind,
+  isChoiceSingleResponseKind,
+  isMatchingResponseKind,
+  isOrderingResponseKind,
+  isParameterSetResponseKind,
+} from '@/lib/interactive-response-contracts';
 
 export type StudentInteractiveActivityRendererProps<TStep, TResponse> = {
   step: TStep;
@@ -214,7 +222,7 @@ function parameterFieldsForCard(
   stepManifest: InteractiveRuntimeStepManifest,
   card: InteractiveRuntimeActivityCardManifest,
 ): ParameterField[] {
-  if (card.responseKind !== 'parameter_set' && !card.structuredFields?.length) return [];
+  if (!isParameterSetResponseKind(card.responseKind) && !card.structuredFields?.length) return [];
   const submitFields = card.structuredFields?.length ? card.structuredFields : parameterSubmitFields(stepManifest);
   if (!submitFields.length) return [];
   const controlFields = parameterControlFields(stepManifest);
@@ -242,7 +250,9 @@ function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
     id: field,
     title: field,
     prompt: `提交${field}。`,
-    responseKind: 'fill_text',
+    responseKind: 'text.short',
+    responseCategory: getInteractiveResponseKindMetadata('text.short').category,
+    responseScoringMode: getInteractiveResponseKindMetadata('text.short').scoring,
     submitScope: 'per_card',
     layoutSpan: 'half',
     options: [],
@@ -318,23 +328,23 @@ function CardPrompt({ card }: { card: InteractiveRuntimeActivityCardManifest }) 
 }
 
 function isSingleChoiceCard(card: InteractiveRuntimeActivityCardManifest) {
-  return card.responseKind === 'single_choice' || card.responseKind === 'binary_choice';
+  return isChoiceSingleResponseKind(card.responseKind);
 }
 
 function isMultiSelectCard(card: InteractiveRuntimeActivityCardManifest) {
-  return card.responseKind === 'multi_select' || card.responseKind === 'multi_choice';
+  return isChoiceMultiResponseKind(card.responseKind);
 }
 
 function isDragSortCard(card: InteractiveRuntimeActivityCardManifest) {
-  return card.responseKind === 'drag_sort';
+  return isOrderingResponseKind(card.responseKind);
 }
 
 function isDragMatchCard(card: InteractiveRuntimeActivityCardManifest) {
-  return card.responseKind === 'drag_match';
+  return isMatchingResponseKind(card.responseKind);
 }
 
 function isParameterSetCard(card: InteractiveRuntimeActivityCardManifest) {
-  return card.responseKind === 'parameter_set' && Boolean(card.parameterFields?.length);
+  return isParameterSetResponseKind(card.responseKind) && Boolean(card.parameterFields?.length);
 }
 
 function parseParameterAnswer(value: string): Record<string, string> {

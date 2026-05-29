@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -285,7 +287,7 @@ describe('unit 4-2 interactive course', () => {
         join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
         'utf8',
       ),
-    ) as { steps: Record<string, { modules?: Array<{ id: string; kind: string; payload?: { panel_id?: string } }> }> };
+    ) as { steps: Record<string, { modules?: Array<{ id: string; kind: string; payload?: { legacyKind?: string; panel_id?: string } }> }> };
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/student-page.tsx'),
       'utf8',
@@ -295,29 +297,55 @@ describe('unit 4-2 interactive course', () => {
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
 
-    expect(manifest.steps['step-11']?.modules?.map((module) => module.kind)).toEqual([
-      'worked-example-card',
-      'interactive-figure-panel',
-      'activity-card-set',
+    expect(manifest.steps['step-11']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.cardSet', 'worked-example-card'],
+      ['compute.panel', 'interactive-figure-panel'],
+      ['activity.panel', 'activity-card-set'],
     ]);
-    expect(manifest.steps['step-14']?.modules?.map((module) => module.kind)).toEqual([
-      'worked-example-card',
-      'image-panel',
-      'interactive-figure-panel',
-      'activity-card-set',
+    expect(manifest.steps['step-14']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.cardSet', 'worked-example-card'],
+      ['content.figure', 'image-panel'],
+      ['compute.panel', 'interactive-figure-panel'],
+      ['activity.panel', 'activity-card-set'],
     ]);
-    expect(manifest.steps['step-17']?.modules?.map((module) => module.kind)).toEqual([
-      'image-panel',
-      'image-panel',
-      'image-panel',
-      'table-card',
-      'interactive-figure-panel',
+    expect(manifest.steps['step-17']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.figure', 'image-panel'],
+      ['content.figure', 'image-panel'],
+      ['content.figure', 'image-panel'],
+      ['content.table', 'table-card'],
+      ['compute.panel', 'interactive-figure-panel'],
     ]);
     expect(manifest.steps['step-11']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pi')).toBe(true);
     expect(manifest.steps['step-12']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lead')).toBe(true);
     expect(manifest.steps['step-13']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lag')).toBe(true);
     expect(manifest.steps['step-14']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pid_zn')).toBe(true);
     expect(manifest.steps['step-17']?.modules?.some((module) => module.payload?.panel_id === 'unit42_ship_candidate_compare')).toBe(true);
+  });
+
+  it('routes migrated compute.panel examples through the native 4-2 panel renderer', async () => {
+    const rawManifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    );
+    const manifest = normalizeInteractiveRuntimeManifest(rawManifest);
+    if (!manifest) throw new Error('4-2 interactive manifest is invalid');
+    const courseModule = await import('@/lib/unit-4-2-course');
+    const featureModule = await import('@/features/interactive/unit-4-2-controller-selection-first-start/step-panels');
+
+    const html = renderToStaticMarkup(
+      createElement(featureModule.UNIT_4_2StepContentPanel, {
+        step: courseModule.getUNIT_4_2Step('step-11'),
+        manifest,
+        revealProgress: 0,
+        allowInlineReveal: true,
+      }),
+    );
+
+    expect(html).toContain('频域 PI 参数复核面板');
+    expect(html).toContain('控件栏');
+    expect(html).not.toContain('互动页模块渲染缺失');
   });
 
   it('lets worked-example reveal maintain local click-to-continue state instead of relying only on teacher progress', () => {

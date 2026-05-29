@@ -334,9 +334,9 @@ steps:
         - { id: 'question', width: 'full', order: 2 }
         - { id: 'interaction', width: 'full', order: 3 }
     modules:
-      - { id: 'cover-media', region: 'media', kind: 'illustration', must_be_visible: true }
-      - { id: 'core-question-card', region: 'question', kind: 'question-card', must_be_visible: true }
-      - { id: 'first-reaction-choice', region: 'interaction', kind: 'single-choice', must_be_visible: true }
+      - { id: 'cover-media', region: 'media', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'illustration', presentation: 'single' }}
+      - { id: 'core-question-card', region: 'question', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'question-card', presentation: 'single', semanticRole: 'question' }}
+      - { id: 'first-reaction-choice', region: 'interaction', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
     evidence_units: ['eu-03']
     content_blocks:
       - id: 'core-question'
@@ -379,9 +379,9 @@ steps:
         - { id: 'lead', width: 'full', order: 2 }
         - { id: 'summary', width: 'full', order: 3 }
     modules:
-      - { id: 'stage-map', region: 'header', kind: 'stage-map', must_be_visible: true }
-      - { id: 'bridge-card', region: 'lead', kind: 'bridge-card', must_be_visible: true }
-      - { id: 'boundary-card', region: 'summary', kind: 'boundary-card', must_be_visible: true }
+      - { id: 'stage-map', region: 'header', kind: 'content.stageMap', must_be_visible: true , payload: { legacyKind: 'stage-map', presentation: 'single' }}
+      - { id: 'bridge-card', region: 'lead', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'bridge-card', presentation: 'single', semanticRole: 'bridge' }}
+      - { id: 'boundary-card', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'boundary-card', presentation: 'single', semanticRole: 'boundary' }}
     evidence_units: ['eu-01']
     content_blocks:
       - id: 'boundary'
@@ -421,9 +421,9 @@ steps:
         - { id: 'outputs', width: 'half', order: 2 }
         - { id: 'rules', width: 'full', order: 3 }
     modules:
-      - { id: 'task-chain', region: 'chain', kind: 'task-chain', must_be_visible: true }
-      - { id: 'deliverable-card-row', region: 'outputs', kind: 'deliverable-card-row', must_be_visible: true }
-      - { id: 'practice-rule-card', region: 'rules', kind: 'rule-card', must_be_visible: true }
+      - { id: 'task-chain', region: 'chain', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'task-chain', presentation: 'single', semanticRole: 'task' }}
+      - { id: 'deliverable-card-row', region: 'outputs', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'deliverable-card-row', presentation: 'row', semanticRole: 'deliverable' }}
+      - { id: 'practice-rule-card', region: 'rules', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'rule-card', presentation: 'single', semanticRole: 'rule' }}
     evidence_units: ['eu-02']
     content_blocks:
       - id: 'deliverables'
@@ -462,10 +462,10 @@ steps:
         - { id: 'question-stack', width: 'full', order: 1 }
         - { id: 'record', width: 'full', order: 2 }
     modules:
-      - { id: 'pretest-q1', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
-      - { id: 'pretest-q2', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
-      - { id: 'pretest-q3', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
-      - { id: 'reason-record', region: 'record', kind: 'short-response', must_be_visible: true }
+      - { id: 'pretest-q1', region: 'question-stack', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: 'pretest-q2', region: 'question-stack', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: 'pretest-q3', region: 'question-stack', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: 'reason-record', region: 'record', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'short-response', presentation: 'single', responseKind: 'text.short' }}
     evidence_units: ['eu-03']
     content_blocks:
       - id: 'assistant-order'
@@ -507,10 +507,10 @@ steps:
         - { id: 'expressions', width: 'full', order: 2 }
         - { id: 'tasks', width: 'full', order: 3 }
     modules:
-      - { id: 'plant-card', region: 'object', kind: 'formula-card', must_be_visible: true }
-      - { id: 'controller-expression-tabs', region: 'expressions', kind: 'tabbed-formula-panel', must_be_visible: true }
-      - { id: 'task-table', region: 'tasks', kind: 'task-table', must_be_visible: true }
-      - { id: 'entry-classifier', region: 'tasks', kind: 'categorize-and-confirm', must_be_visible: true }
+      - { id: 'plant-card', region: 'object', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'controller-expression-tabs', region: 'expressions', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'tabbed-formula-panel', presentation: 'tabs' }}
+      - { id: 'task-table', region: 'tasks', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'task-table', presentation: 'single', semanticRole: 'task' }}
+      - { id: 'entry-classifier', region: 'tasks', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'categorize-and-confirm', presentation: 'single', interactionKind: 'categorization', responseKind: 'text.structured' }}
     evidence_units: ['eu-04']
     content_blocks:
       - id: 'plant'
@@ -550,10 +550,10 @@ steps:
         - { id: 'figure', width: 'half', order: 2 }
         - { id: 'record', width: 'half', order: 3 }
     modules:
-      - { id: 'translation-formula-panel', region: 'derivation', kind: 'formula-panel', must_be_visible: true }
-      - { id: 'feasible-region-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'pure-gain-failure-plot', region: 'figure', kind: 'shared-engine-root-locus-panel', must_be_visible: true }
-      - { id: 'translation-record-table', region: 'record', kind: 'record-table', must_be_visible: true }
+      - { id: 'translation-formula-panel', region: 'derivation', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-panel', presentation: 'single' }}
+      - { id: 'feasible-region-reveal', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'pure-gain-failure-plot', region: 'figure', kind: 'compute.panel', must_be_visible: true , payload: { legacyKind: 'shared-engine-root-locus-panel', presentation: 'single', capabilityRef: 'shared-engine-root-locus' }}
+      - { id: 'translation-record-table', region: 'record', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'record-table', presentation: 'single', semanticRole: 'record' }}
     evidence_units: ['eu-05', 'eu-06']
     content_blocks:
       - id: 'translation-formulas'
@@ -600,10 +600,10 @@ steps:
         - { id: 'derivation', width: 'full', order: 2 }
         - { id: 'workspace', width: 'full', order: 3 }
     modules:
-      - { id: 'pd-design-point-card', region: 'evidence', kind: 'formula-card', must_be_visible: true }
-      - { id: 'pd-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'pd-tri-panel-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
-      - { id: 'pd-record-card', region: 'workspace', kind: 'record-card', must_be_visible: true }
+      - { id: 'pd-design-point-card', region: 'evidence', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'pd-derivation-reveal', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'pd-tri-panel-workspace', region: 'workspace', kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'parametric-workspace', presentation: 'single', semanticRole: 'metric', interactionKind: 'parameter-workspace', responseKind: 'parameter.set' }}
+      - { id: 'pd-record-card', region: 'workspace', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'record-card', presentation: 'single', semanticRole: 'record' }}
     evidence_units: ['eu-07']
     content_blocks:
       - id: 'pd-design-point'
@@ -649,9 +649,9 @@ steps:
         - { id: 'derivation', width: 'full', order: 2 }
         - { id: 'compare', width: 'full', order: 3 }
     modules:
-      - { id: 'rate-structure-diagram', region: 'structure', kind: 'native-svg-diagram', must_be_visible: true }
-      - { id: 'rate-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'pd-rate-contrast-table', region: 'compare', kind: 'native-table', must_be_visible: true }
+      - { id: 'rate-structure-diagram', region: 'structure', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'native-svg-diagram', presentation: 'single' }}
+      - { id: 'rate-derivation-reveal', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'pd-rate-contrast-table', region: 'compare', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
     evidence_units: ['eu-08']
     content_blocks:
       - id: 'rate-formula'
@@ -694,10 +694,10 @@ steps:
         - { id: 'derivation', width: 'full', order: 2 }
         - { id: 'workspace', width: 'full', order: 3 }
     modules:
-      - { id: 'rate-target-card', region: 'evidence', kind: 'target-card', must_be_visible: true }
-      - { id: 'rate-modulus-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'rate-tri-panel-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
-      - { id: 'rate-record-card', region: 'workspace', kind: 'record-card', must_be_visible: true }
+      - { id: 'rate-target-card', region: 'evidence', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'target-card', presentation: 'single', semanticRole: 'target' }}
+      - { id: 'rate-modulus-reveal', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'rate-tri-panel-workspace', region: 'workspace', kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'parametric-workspace', presentation: 'single', semanticRole: 'metric', interactionKind: 'parameter-workspace', responseKind: 'parameter.set' }}
+      - { id: 'rate-record-card', region: 'workspace', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'record-card', presentation: 'single', semanticRole: 'record' }}
     evidence_units: ['eu-08']
     content_blocks:
       - id: 'rate-target'
@@ -739,10 +739,10 @@ steps:
         - { id: 'evidence', width: 'full', order: 2 }
         - { id: 'derivation', width: 'full', order: 3 }
     modules:
-      - { id: 'shared-frequency-goal-card', region: 'goal', kind: 'goal-card', must_be_visible: true }
-      - { id: 'gain-only-failure-card', region: 'evidence', kind: 'evidence-card', must_be_visible: true }
-      - { id: 'lead-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'lead-intent-response', region: 'derivation', kind: 'structured-response', must_be_visible: true }
+      - { id: 'shared-frequency-goal-card', region: 'goal', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'goal-card', presentation: 'single', semanticRole: 'goal' }}
+      - { id: 'gain-only-failure-card', region: 'evidence', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'evidence-card', presentation: 'single', semanticRole: 'evidence' }}
+      - { id: 'lead-derivation-reveal', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'lead-intent-response', region: 'derivation', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'structured-response', presentation: 'single', responseKind: 'text.structured' }}
     evidence_units: ['eu-09']
     content_blocks:
       - id: 'shared-goal'
@@ -784,10 +784,10 @@ steps:
         - { id: 'workspace', width: 'full', order: 2 }
         - { id: 'record', width: 'full', order: 3 }
     modules:
-      - { id: 'lead-formula-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'lead-sequence-card', region: 'formula', kind: 'sequence-card', must_be_visible: true }
-      - { id: 'lead-frequency-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
-      - { id: 'lead-record-card', region: 'record', kind: 'record-card', must_be_visible: true }
+      - { id: 'lead-formula-card', region: 'formula', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'lead-sequence-card', region: 'formula', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'sequence-card', presentation: 'single' }}
+      - { id: 'lead-frequency-workspace', region: 'workspace', kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'parametric-workspace', presentation: 'single', semanticRole: 'metric', interactionKind: 'parameter-workspace', responseKind: 'parameter.set' }}
+      - { id: 'lead-record-card', region: 'record', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'record-card', presentation: 'single', semanticRole: 'record' }}
     evidence_units: ['eu-09']
     content_blocks:
       - id: 'lead-formula'
@@ -829,10 +829,10 @@ steps:
         - { id: 'derivation', width: 'full', order: 2 }
         - { id: 'compare', width: 'full', order: 3 }
     modules:
-      - { id: 'shared-goal-card', region: 'goal', kind: 'goal-card', must_be_visible: true }
-      - { id: 'pd-frequency-derivation', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'compare-rubric-table', region: 'compare', kind: 'native-table', must_be_visible: true }
-      - { id: 'entry-note', region: 'compare', kind: 'entry-note', must_be_visible: true }
+      - { id: 'shared-goal-card', region: 'goal', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'goal-card', presentation: 'single', semanticRole: 'goal' }}
+      - { id: 'pd-frequency-derivation', region: 'derivation', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'derivation-reveal', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'compare-rubric-table', region: 'compare', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'native-table', presentation: 'single' }}
+      - { id: 'entry-note', region: 'compare', kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'entry-note', presentation: 'single', semanticRole: 'entry' }}
     evidence_units: ['eu-10']
     content_blocks:
       - id: 'compare-rubric'
@@ -872,9 +872,9 @@ steps:
         - { id: 'compare', width: 'full', order: 2 }
         - { id: 'submit', width: 'full', order: 3 }
     modules:
-      - { id: 'pd-frequency-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
-      - { id: 'lead-pd-compare-board', region: 'compare', kind: 'compare-board', must_be_visible: true }
-      - { id: 'difference-submit-card', region: 'submit', kind: 'structured-submit', must_be_visible: true }
+      - { id: 'pd-frequency-workspace', region: 'workspace', kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'parametric-workspace', presentation: 'single', semanticRole: 'metric', interactionKind: 'parameter-workspace', responseKind: 'parameter.set' }}
+      - { id: 'lead-pd-compare-board', region: 'compare', kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'compare-board', presentation: 'board', semanticRole: 'comparison' }}
+      - { id: 'difference-submit-card', region: 'submit', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'structured-submit', presentation: 'single', interactionKind: 'structured-submit', responseKind: 'text.structured' }}
     evidence_units: ['eu-10']
     content_blocks:
       - id: 'compare-board-note'
@@ -916,11 +916,11 @@ steps:
         - { id: 'risk', width: 'full', order: 2 }
         - { id: 'decision', width: 'full', order: 3 }
     modules:
-      - { id: 'nmp-object-card', region: 'boundary-object', kind: 'formula-card', must_be_visible: true }
-      - { id: 'risk-figure-panel', region: 'risk', kind: 'parametric-risk-panel', must_be_visible: true }
-      - { id: 'conservative-example-drawer', region: 'risk', kind: 'drawer', must_be_visible: true }
-      - { id: 'decision-matrix', region: 'decision', kind: 'decision-matrix', must_be_visible: true }
-      - { id: 'decision-submit-card', region: 'decision', kind: 'structured-submit', must_be_visible: true }
+      - { id: 'nmp-object-card', region: 'boundary-object', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'risk-figure-panel', region: 'risk', kind: 'compute.panel', must_be_visible: true , payload: { legacyKind: 'parametric-risk-panel', presentation: 'single', semanticRole: 'metric', interactionKind: 'parameter-workspace', responseKind: 'parameter.set', capabilityRef: 'parametric-risk' }}
+      - { id: 'conservative-example-drawer', region: 'risk', kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'drawer', presentation: 'single' }}
+      - { id: 'decision-matrix', region: 'decision', kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'decision-matrix', presentation: 'matrix' }}
+      - { id: 'decision-submit-card', region: 'decision', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'structured-submit', presentation: 'single', interactionKind: 'structured-submit', responseKind: 'text.structured' }}
     evidence_units: ['eu-11']
     content_blocks:
       - id: 'nmp-object'
@@ -967,10 +967,10 @@ steps:
         - { id: 'summary', width: 'full', order: 2 }
         - { id: 'close', width: 'full', order: 3 }
     modules:
-      - { id: 'posttest-group', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
-      - { id: 'three-line-summary', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'info-graphic', region: 'close', kind: 'illustration', must_be_visible: true }
-      - { id: 'exit-reflection', region: 'close', kind: 'short-response', must_be_visible: true }
+      - { id: 'posttest-group', region: 'quiz', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-group', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: 'three-line-summary', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: 'info-graphic', region: 'close', kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'illustration', presentation: 'single' }}
+      - { id: 'exit-reflection', region: 'close', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'short-response', presentation: 'single', responseKind: 'text.short' }}
     evidence_units: ['eu-12']
     content_blocks:
       - id: 'three-lines'

@@ -1972,7 +1972,8 @@ describe('interactive runtime manifest', () => {
       .find((step) => step.id === 'step-18')
       ?.interactionSpec.activityCards ?? [];
 
-    expect(gapChoice?.responseKind).toBe('single_choice');
+    expect(gapChoice?.responseKind).toBe('choice.single');
+    expect(gapChoice?.legacyResponseKind).toBe('single_choice');
     expect(gapChoice?.options.map((option) => option.label)).toEqual([
       '滞后',
       '超前或超前-滞后',
@@ -1981,7 +1982,8 @@ describe('interactive runtime manifest', () => {
     expect(gapChoice?.referenceAnswer).toContain('超前或超前-滞后');
 
     expect(postQuizCards).toHaveLength(3);
-    expect(postQuizCards.map((card) => card.responseKind)).toEqual(['single_choice', 'multi_choice', 'fill_text']);
+    expect(postQuizCards.map((card) => card.responseKind)).toEqual(['choice.single', 'choice.multi', 'text.short']);
+    expect(postQuizCards.map((card) => card.legacyResponseKind)).toEqual(['single_choice', 'multi_choice', 'fill_text']);
     expect(postQuizCards.map((card) => card.referenceAnswer)).toEqual([
       '提前补偿可测扰动。',
       '四项都可能被漏掉。',

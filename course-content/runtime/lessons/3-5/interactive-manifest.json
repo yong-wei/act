@@ -50,18 +50,20 @@
         {
           "id": "stage-map",
           "region": "lead",
-          "kind": "stage-map",
+          "kind": "content.stageMap",
           "must_be_visible": true,
           "payload": {
             "block_key": "path",
             "title": "路径定位",
-            "text": "固定高亮 3-4 -> 3-5 -> 3-6。"
+            "text": "固定高亮 3-4 -> 3-5 -> 3-6。",
+            "legacyKind": "stage-map",
+            "presentation": "single"
           }
         },
         {
           "id": "core-question-card",
           "region": "lead",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "questions",
@@ -70,18 +72,24 @@
               "零点为什么不是更大增益的别名。",
               "PD 与测速反馈为什么不能混同。",
               "右半平面零点为什么会把动态改善变成带条件判断。"
-            ]
+            ],
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         },
         {
           "id": "boundary-card",
           "region": "summary",
-          "kind": "boundary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "本课边界",
-            "text": "本课不进入模块 4 的完整整定流程。"
+            "text": "本课不进入模块 4 的完整整定流程。",
+            "legacyKind": "boundary-card",
+            "presentation": "single",
+            "semanticRole": "boundary"
           }
         }
       ],
@@ -183,18 +191,20 @@
         {
           "id": "object-card",
           "region": "objects",
-          "kind": "object-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "object",
             "title": "统一对象约束",
-            "text": "后续比较优先在同一对象上进行，不靠更换对象偷换结论。"
+            "text": "后续比较优先在同一对象上进行，不靠更换对象偷换结论。",
+            "legacyKind": "object-card",
+            "presentation": "single"
           }
         },
         {
           "id": "version-card-row",
           "region": "objects",
-          "kind": "comparison-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "versions",
@@ -204,13 +214,16 @@
               "左半平面零点",
               "PD/测速反馈",
               "右半平面零点边界"
-            ]
+            ],
+            "legacyKind": "comparison-card-row",
+            "presentation": "row",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "deliverable-card-row",
           "region": "outputs",
-          "kind": "deliverable-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "deliverables",
@@ -219,13 +232,16 @@
               "零点作用判断表",
               "结构对比解释",
               "风险边界卡"
-            ]
+            ],
+            "legacyKind": "deliverable-card-row",
+            "presentation": "row",
+            "semanticRole": "deliverable"
           }
         },
         {
           "id": "observation-card-row",
           "region": "metrics",
-          "kind": "metric-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "observations",
@@ -235,7 +251,10 @@
               "时域",
               "频域",
               "结构判断"
-            ]
+            ],
+            "legacyKind": "metric-card-row",
+            "presentation": "row",
+            "semanticRole": "metric"
           }
         }
       ],
@@ -350,45 +369,60 @@
         {
           "id": "pretest-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ai-gate-note",
             "title": "AI 顺序约束",
-            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。"
+            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ai-gate-note",
             "title": "AI 顺序约束",
-            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。"
+            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ai-gate-note",
             "title": "AI 顺序约束",
-            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。"
+            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "intuition-record",
           "region": "record",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ai-gate-note",
             "title": "AI 顺序约束",
-            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。"
+            "text": "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。",
+            "legacyKind": "short-response",
+            "presentation": "single",
+            "responseKind": "text.short"
           }
         }
       ],
@@ -411,7 +445,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -421,7 +455,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -431,7 +465,7 @@
             "title": "完成三道前测，并提交一句自己的直觉判断。",
             "prompt": "完成三道前测，并提交一句自己的直觉判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -514,18 +548,20 @@
         {
           "id": "low-order-compare-figure",
           "region": "figure",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "图示",
-            "text": "根轨迹区统一接入 Rust/WASM 控制分析引擎，只保留一个根轨迹面板。"
+            "text": "根轨迹区统一接入 Rust/WASM 控制分析引擎，只保留一个根轨迹面板。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "object-formula-card",
           "region": "legend",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -534,13 +570,15 @@
               "L_0(s)=K/[s(s+1)]",
               "L_1(s)=K(s+2)/[s(s+1)]",
               "L_2(s)=K(s+0.5)/[s(s+1)]"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "branch-annotation-layer",
           "region": "workspace",
-          "kind": "annotation-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "workspace-rules",
@@ -551,13 +589,17 @@
               "右侧模式控件区",
               "基线/添加零点",
               "零点标注可拖动，基线极点固定"
-            ]
+            ],
+            "legacyKind": "annotation-choice",
+            "presentation": "single",
+            "interactionKind": "quiz",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "judgement-table",
           "region": "workspace",
-          "kind": "record-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "prompt",
@@ -565,7 +607,10 @@
             "items": [
               "先看哪条分支被零点拉走。",
               "再看实轴区段如何重排。"
-            ]
+            ],
+            "legacyKind": "record-card",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -614,7 +659,7 @@
             "title": "标记被零点拉走的分支，并勾选被重排的实轴区段。",
             "prompt": "标记被零点拉走的分支，并勾选被重排的实轴区段。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -690,18 +735,20 @@
         {
           "id": "high-order-compare-figure",
           "region": "figure",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "图示",
-            "text": "根轨迹区继续沿用统一仿真引擎，只保留一个根轨迹面板。"
+            "text": "根轨迹区继续沿用统一仿真引擎，只保留一个根轨迹面板。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "zero-position-card",
           "region": "compare",
-          "kind": "comparison-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -710,18 +757,24 @@
               "L_3(s)=K/[s(s+1)(s+4)]",
               "L_{3a}(s)=K(s+0.4)/[s(s+1)(s+4)]",
               "L_{3b}(s)=K(s+2.5)/[s(s+1)(s+4)]"
-            ]
+            ],
+            "legacyKind": "comparison-card",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "compare-note",
           "region": "record",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "sentence-frame",
             "title": "句式",
-            "text": "我认为 ________ 被重排得更明显，因为 ________。"
+            "text": "我认为 ________ 被重排得更明显，因为 ________。",
+            "legacyKind": "short-response",
+            "presentation": "single",
+            "responseKind": "text.short"
           }
         }
       ],
@@ -768,7 +821,7 @@
             "title": "完成一句比较判断。",
             "prompt": "完成一句比较判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -844,7 +897,7 @@
         {
           "id": "compare-table",
           "region": "table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "table-fields",
@@ -854,13 +907,16 @@
               "轨迹骨架",
               "主导极点可达区域",
               "时域与频域后果"
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "risk-prediction-card",
           "region": "risk",
-          "kind": "risk-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "risk-questions",
@@ -869,13 +925,16 @@
               "轨迹还会不会继续朝有利区域重排？",
               "输出会不会仍然沿目标方向起步？",
               "相位会不会继续像左半平面零点那样给帮助？"
-            ]
+            ],
+            "legacyKind": "risk-card",
+            "presentation": "single",
+            "semanticRole": "risk"
           }
         },
         {
           "id": "judgement-record",
           "region": "record",
-          "kind": "record-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "table-fields",
@@ -885,7 +944,10 @@
               "轨迹骨架",
               "主导极点可达区域",
               "时域与频域后果"
-            ]
+            ],
+            "legacyKind": "record-card",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -920,7 +982,7 @@
             "title": "提交一个风险预测，并写一句理由。",
             "prompt": "提交一个风险预测，并写一句理由。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -997,18 +1059,20 @@
         {
           "id": "pd-rate-structure-figure",
           "region": "media",
-          "kind": "figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "结构图",
-            "text": "固定使用 3-5-md-01-pd-rate-structure.png。"
+            "text": "固定使用 3-5-md-01-pd-rate-structure.png。",
+            "legacyKind": "figure",
+            "presentation": "single"
           }
         },
         {
           "id": "term-card-row",
           "region": "terms",
-          "kind": "term-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "term-notes",
@@ -1017,13 +1081,16 @@
               "PD 在前向通道显式增加零点。",
               "测速反馈保留外环单位负反馈，并在对象输入端引入速度项反馈。",
               "不能因为都能增大阻尼就把两者混同。"
-            ]
+            ],
+            "legacyKind": "term-card-row",
+            "presentation": "row",
+            "semanticRole": "term"
           }
         },
         {
           "id": "binary-vote",
           "region": "interaction",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "fixed-formulas",
@@ -1033,7 +1100,11 @@
               "相应的闭环传递函数：T_0(s)=4/[s^2+0.8s+4]",
               "PD 等效特征方程：s^2+(2\\zeta\\omega_n+K_d\\omega_n^2)s+\\omega_n^2=0",
               "测速反馈等效特征方程：s^2+(2\\zeta\\omega_n+K_t\\omega_n^2)s+\\omega_n^2=0"
-            ]
+            ],
+            "legacyKind": "binary-choice",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -1078,7 +1149,7 @@
             "title": "判断测速反馈是否在前向通道显式增加零点。",
             "prompt": "判断测速反馈是否在前向通道显式增加零点。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1155,7 +1226,7 @@
         {
           "id": "damping-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1164,29 +1235,38 @@
               "\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n",
               "\\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n",
               "K_d=K_t=2(\\zeta^\\star-\\zeta)/\\omega_n"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "example-card",
           "region": "example",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "example",
             "title": "固定例题",
-            "text": "取 \\omega_n=2、\\zeta=0.2、\\zeta^\\star=0.5。"
+            "text": "取 \\omega_n=2、\\zeta=0.2、\\zeta^\\star=0.5。",
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "fill-workspace",
           "region": "workspace",
-          "kind": "worked-example-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "derivation-chain",
             "title": "等效阻尼推导链",
-            "text": "必须把特征方程改写成标准二阶形式，再推出 \\zeta_{PD}、\\zeta_v 与 K_d=K_t=0.3。"
+            "text": "必须把特征方程改写成标准二阶形式，再推出 \\zeta_{PD}、\\zeta_v 与 K_d=K_t=0.3。",
+            "legacyKind": "worked-example-workspace",
+            "presentation": "single",
+            "semanticRole": "example",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1222,7 +1302,7 @@
             "title": "填写 K_d=K_t 的数值，并写一句结构解释。",
             "prompt": "填写 K_d=K_t 的数值，并写一句结构解释。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1299,18 +1379,21 @@
         {
           "id": "tri-domain-figure",
           "region": "graphs",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "三域图",
-            "text": "固定使用 3-5-rl-03-pd-rate-compare.png。"
+            "text": "固定使用 3-5-rl-03-pd-rate-compare.png。",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "conclusion-card-row",
           "region": "summary",
-          "kind": "conclusion-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "conclusions",
@@ -1319,13 +1402,16 @@
               "同样提高阻尼，不等于结构相同。",
               "PD 有前向零点，测速反馈没有。",
               "频域与时域差异要读回结构来源。"
-            ]
+            ],
+            "legacyKind": "conclusion-card-row",
+            "presentation": "row",
+            "semanticRole": "conclusion"
           }
         },
         {
           "id": "structured-compare",
           "region": "record",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-functions",
@@ -1333,7 +1419,12 @@
             "items": [
               "T_{PD}(s)=4(1+0.3s)/(s^2+2s+4)",
               "T_v(s)=4/(s^2+2s+4)"
-            ]
+            ],
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1376,7 +1467,7 @@
             "title": "分别填写共同点与不同点，并覆盖根轨迹、时域、频域三个域。",
             "prompt": "分别填写共同点与不同点，并覆盖根轨迹、时域、频域三个域。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1453,20 +1544,22 @@
         {
           "id": "pd-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-function",
             "title": "PD 传函",
             "items": [
               "G_{PD}(s)=1+T_d s"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "band-note-card",
           "region": "bands",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "band-note",
@@ -1476,13 +1569,16 @@
               "拐点后中高频抬升明显。",
               "高频代价是噪声和控制动作放大。",
               "中高频持续抬升会推动交叉频率右移。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "band-labeling-zone",
           "region": "interaction",
-          "kind": "frequency-band-labeling",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1490,7 +1586,11 @@
             "items": [
               "|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2}",
               "\\phi_{PD}(\\omega)=\\arctan(\\omega T_d)"
-            ]
+            ],
+            "legacyKind": "frequency-band-labeling",
+            "presentation": "single",
+            "interactionKind": "hotspot-labeling",
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -1531,7 +1631,7 @@
             "title": "为低频、拐点后与高频区域放置正确标签。",
             "prompt": "为低频、拐点后与高频区域放置正确标签。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1605,7 +1705,7 @@
         {
           "id": "lead-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1616,24 +1716,29 @@
               "\\phi_{lead}(\\omega)=\\arctan(\\omega T)-\\arctan(\\alpha \\omega T)",
               "\\omega_m=1/(T\\sqrt{\\alpha})",
               "\\phi_m=\\sin^{-1}((1-\\alpha)/(1+\\alpha))"
-            ]
+            ],
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "phase-peak-graphic",
           "region": "graphic",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "interpretation",
             "title": "核心解释",
-            "text": "超前不是持续抬整个中高频，而是在关键频带制造相位峰。"
+            "text": "超前不是持续抬整个中高频，而是在关键频带制造相位峰。",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "phase-peak-locator",
           "region": "interaction",
-          "kind": "phase-peak-locator",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formulas",
@@ -1644,7 +1749,10 @@
               "\\phi_{lead}(\\omega)=\\arctan(\\omega T)-\\arctan(\\alpha \\omega T)",
               "\\omega_m=1/(T\\sqrt{\\alpha})",
               "\\phi_m=\\sin^{-1}((1-\\alpha)/(1+\\alpha))"
-            ]
+            ],
+            "legacyKind": "phase-peak-locator",
+            "presentation": "single",
+            "capabilityRef": "phase-peak-locator"
           }
         }
       ],
@@ -1677,7 +1785,7 @@
             "title": "定位相位峰频带，并匹配其主要改善对象。",
             "prompt": "定位相位峰频带，并匹配其主要改善对象。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1753,18 +1861,21 @@
         {
           "id": "design-rule-card",
           "region": "rules",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "图 6",
-            "text": "固定使用 3-5-rl-04-pd-lead-compare.png，并保持先读频域图的阅读顺序。"
+            "text": "固定使用 3-5-rl-04-pd-lead-compare.png，并保持先读频域图的阅读顺序。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "scenario-matrix",
           "region": "matrix",
-          "kind": "comparison-matrix",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "rules",
@@ -1773,13 +1884,16 @@
               "PD 先看是否需要抬交叉、提响应积极性。",
               "超前先看是否需要在截止频率附近补相角、守住稳定裕度。",
               "二者都不直接等于完整整定答案。"
-            ]
+            ],
+            "legacyKind": "comparison-matrix",
+            "presentation": "matrix",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "scenario-sort-zone",
           "region": "interaction",
-          "kind": "scenario-sort-matrix",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "scenarios",
@@ -1789,7 +1903,11 @@
               "裕度优先",
               "高频代价敏感",
               "模型不确定性较强"
-            ]
+            ],
+            "legacyKind": "scenario-sort-matrix",
+            "presentation": "matrix",
+            "interactionKind": "card-sort",
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1839,7 +1957,7 @@
             "title": "把四个场景拖放到优先想 PD、优先想超前、需要再判边界三栏。",
             "prompt": "把四个场景拖放到优先想 PD、优先想超前、需要再判边界三栏。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1914,34 +2032,42 @@
         {
           "id": "mirror-object-card",
           "region": "objects",
-          "kind": "object-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "figure-ref",
             "title": "对照图",
-            "text": "最小相开环对象与非最小相开环对象之后，固定使用 3-5-rl-05-nmp-compare.png。"
+            "text": "最小相开环对象与非最小相开环对象之后，固定使用 3-5-rl-05-nmp-compare.png。",
+            "legacyKind": "object-card",
+            "presentation": "single"
           }
         },
         {
           "id": "nmp-compare-figure",
           "region": "media",
-          "kind": "comparison-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "mirror-note",
             "title": "镜像对象",
-            "text": "最小相开环对象与非最小相开环对象唯一差别是零点位于左半平面还是右半平面。"
+            "text": "最小相开环对象与非最小相开环对象唯一差别是零点位于左半平面还是右半平面。",
+            "legacyKind": "comparison-graphic",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "term-explainer",
           "region": "interaction",
-          "kind": "term-explainer",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "term-note",
             "title": "术语提醒",
-            "text": "非最小相最先暴露的是逆响应与额外相位滞后。"
+            "text": "非最小相最先暴露的是逆响应与额外相位滞后。",
+            "legacyKind": "term-explainer",
+            "presentation": "single",
+            "semanticRole": "term"
           }
         }
       ],
@@ -1981,7 +2107,7 @@
             "title": "写出为什么会先反向动的一句解释。",
             "prompt": "写出为什么会先反向动的一句解释。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2055,7 +2181,7 @@
         {
           "id": "risk-table",
           "region": "risk-table",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "risk-columns",
@@ -2065,13 +2191,16 @@
               "频域后果",
               "常见误判",
               "保守动作"
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "frequency-boundary-card",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary-note",
@@ -2080,13 +2209,16 @@
               "右半平面零点带来额外相位滞后。",
               "过度提高带宽会更早逼近稳定边界。",
               "保守动作是先守交叉频率与相角裕度。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "rule-check",
           "region": "interaction",
-          "kind": "rule-check",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "risk-columns",
@@ -2096,7 +2228,11 @@
               "频域后果",
               "常见误判",
               "保守动作"
-            ]
+            ],
+            "legacyKind": "rule-check",
+            "presentation": "single",
+            "semanticRole": "rule",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2131,7 +2267,7 @@
             "title": "判断规则陈述是否同时包含结论与原因。",
             "prompt": "判断规则陈述是否同时包含结论与原因。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -2206,18 +2342,21 @@
         {
           "id": "post-quiz-group",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "graphic-ref",
             "title": "信息图",
-            "text": "固定使用 3-5-info.png。"
+            "text": "固定使用 3-5-info.png。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "info-graphic",
           "region": "summary",
-          "kind": "summary-graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "observation-list",
@@ -2227,18 +2366,24 @@
               "时域观察量",
               "频域观察量",
               "结构判断观察量"
-            ]
+            ],
+            "legacyKind": "summary-graphic",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "next-step-card",
           "region": "next",
-          "kind": "next-step-card",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "next-step",
             "title": "下一课去向",
-            "text": "3-6 将在统一对象上把 PD、测速反馈、超前与非最小相边界放入实验链。"
+            "text": "3-6 将在统一对象上把 PD、测速反馈、超前与非最小相边界放入实验链。",
+            "legacyKind": "next-step-card",
+            "presentation": "single",
+            "semanticRole": "nextStep"
           }
         }
       ],
@@ -2275,7 +2420,7 @@
             "title": "完成两题客观题和一题简短解释题。",
             "prompt": "完成两题客观题和一题简短解释题。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []

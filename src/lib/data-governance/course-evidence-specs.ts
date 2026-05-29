@@ -3,6 +3,16 @@ import type {
   InteractiveRuntimeManifest,
   InteractiveRuntimeStepManifest,
 } from '../interactive-lesson-manifest';
+import {
+  listInteractiveLessonIdentityRecords,
+  resolveInteractiveLessonIdentity,
+  type InteractiveLessonIdentityAliasKind,
+  type InteractiveLessonIdentityRecord,
+} from '../interactive-lesson-identity';
+import {
+  isObjectiveInteractiveResponseKind,
+  isParameterSetResponseKind,
+} from '../interactive-response-contracts';
 
 export type CourseEvidenceSpecSource = 'manifest' | 'override' | 'manifest+override';
 
@@ -62,79 +72,57 @@ export interface ResolveCourseEvidenceSpecInput {
   overrides?: readonly CourseEvidenceSpecOverride[];
 }
 
-const MODULE5_COURSE_EVIDENCE_OVERRIDES: readonly CourseEvidenceSpecOverride[] = [
-  {
-    lessonId: '5-3',
-    lessonKey: 'unit-5-3-mass-coordination-chain-v1',
-    routeSegment: 'unit-5-3-mass-coordination-chain',
+type CourseEvidenceSemanticOverride = Omit<CourseEvidenceSpecOverride, 'lessonId' | 'lessonKey' | 'routeSegment'>;
+
+const COURSE_EVIDENCE_SEMANTIC_OVERRIDES: Record<string, CourseEvidenceSemanticOverride> = {
+  '5-3': {
     studentStateKind: 'unit53_student_state',
     teacherSyncKind: 'teacher_sync_unit53',
     preAssessmentStepId: 'step-03',
     postAssessmentStepId: 'step-14',
     summaryStepId: 'step-15',
   },
-  {
-    lessonId: '5-4',
-    lessonKey: 'unit-5-4-data-driven-mpc-transition-v1',
-    routeSegment: 'unit-5-4-data-driven-mpc-transition',
+  '5-4': {
     studentStateKind: 'unit54_student_state',
     teacherSyncKind: 'teacher_sync_unit54',
     preAssessmentStepId: 'step-03',
     postAssessmentStepId: 'step-16',
     summaryStepId: 'step-17',
   },
-  {
-    lessonId: '5-5',
-    lessonKey: 'unit-5-5-policy-learning-entry-risk-v1',
-    routeSegment: 'unit-5-5-policy-learning-entry-risk',
+  '5-5': {
     studentStateKind: 'unit55_student_state',
     teacherSyncKind: 'teacher_sync_unit55',
     preAssessmentStepId: 'step-03',
     postAssessmentStepId: 'step-16',
     summaryStepId: 'step-17',
   },
-  {
-    lessonId: '5-6',
-    lessonKey: 'unit-5-6-method-comparison-cold-chain-v1',
-    routeSegment: 'unit-5-6-method-comparison-cold-chain',
+  '5-6': {
     studentStateKind: 'unit56_student_state',
     teacherSyncKind: 'teacher_sync_unit56',
     preAssessmentStepId: 'step-03',
     postAssessmentStepId: 'step-17',
     summaryStepId: 'step-18',
   },
-] as const;
-
-const SPECIAL_COURSE_EVIDENCE_OVERRIDES: readonly CourseEvidenceSpecOverride[] = [
-  {
-    lessonId: 'cruise-comfort-boppps',
-    routeSegment: 'cruise-comfort-boppps',
+  'cruise-comfort-boppps': {
     studentStateKind: 'cruise_student_state',
     teacherSyncKind: 'teacher_sync_cruise',
     preAssessmentStepId: 'precheck',
     postAssessmentStepId: 'consistency',
     summaryStepId: 'summary',
   },
-] as const;
+};
 
-export const COURSE_EVIDENCE_SPEC_OVERRIDES = [
-  ...MODULE5_COURSE_EVIDENCE_OVERRIDES,
-  ...SPECIAL_COURSE_EVIDENCE_OVERRIDES,
-] as const;
+function buildIdentityEvidenceOverride(record: InteractiveLessonIdentityRecord): CourseEvidenceSpecOverride {
+  return {
+    lessonId: record.canonicalId,
+    ...(record.lessonKeys[0] ? { lessonKey: record.lessonKeys[0] } : {}),
+    ...(record.routeSegments[0] ? { routeSegment: record.routeSegments[0] } : {}),
+    ...COURSE_EVIDENCE_SEMANTIC_OVERRIDES[record.canonicalId],
+  };
+}
 
-const OBJECTIVE_RESPONSE_KINDS = new Set([
-  'single_choice',
-  'binary_choice',
-  'multi_choice',
-  'multi_select',
-]);
-
-const ORDERED_OBJECTIVE_RESPONSE_KINDS = new Set([
-  'drag_match',
-  'triple_match',
-  'drag_sort',
-  'card_sort',
-]);
+export const COURSE_EVIDENCE_SPEC_OVERRIDES: readonly CourseEvidenceSpecOverride[] =
+  listInteractiveLessonIdentityRecords().map(buildIdentityEvidenceOverride);
 
 const PARAMETER_INTERACTION_KINDS = new Set([
   'parameter_slider',
@@ -160,8 +148,35 @@ function unique(values: Array<string | undefined | null>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
 }
 
-function findOverride(input: ResolveCourseEvidenceSpecInput) {
-  const overrides = input.overrides ?? COURSE_EVIDENCE_SPEC_OVERRIDES;
+function resolveEvidenceIdentityRecord(input: ResolveCourseEvidenceSpecInput): InteractiveLessonIdentityRecord | null {
+  const manifest = input.manifest ?? null;
+  const identifiers: Array<{ kind?: InteractiveLessonIdentityAliasKind; value: string | undefined }> = [
+    { value: input.lessonId ?? manifest?.lessonId },
+    { kind: 'lessonKey', value: input.lessonKey },
+    { kind: 'routeSegment', value: input.routeSegment ?? manifest?.courseRouteSegment },
+  ];
+
+  const resolvedRecords = new Map<string, InteractiveLessonIdentityRecord>();
+  for (const identifier of identifiers) {
+    if (!identifier.value) continue;
+    const resolved = identifier.kind
+      ? resolveInteractiveLessonIdentity({ kind: identifier.kind, value: identifier.value })
+      : resolveInteractiveLessonIdentity(identifier.value);
+    if (resolved.status !== 'resolved') {
+      return null;
+    }
+    resolvedRecords.set(resolved.record.canonicalId, resolved.record);
+  }
+
+  return resolvedRecords.size === 1
+    ? Array.from(resolvedRecords.values())[0]
+    : null;
+}
+
+function findOverrideByComparableIdentifiers(
+  input: ResolveCourseEvidenceSpecInput,
+  overrides: readonly CourseEvidenceSpecOverride[],
+) {
   const manifest = input.manifest ?? null;
   const lessonId = input.lessonId ?? manifest?.lessonId;
   const lessonKey = input.lessonKey ?? (manifest?.courseRouteSegment ? `${manifest.courseRouteSegment}-v1` : undefined);
@@ -179,6 +194,16 @@ function findOverride(input: ResolveCourseEvidenceSpecInput) {
   });
 }
 
+function findOverride(input: ResolveCourseEvidenceSpecInput) {
+  if (input.overrides) {
+    return findOverrideByComparableIdentifiers(input, input.overrides);
+  }
+
+  const record = resolveEvidenceIdentityRecord(input);
+  if (!record) return undefined;
+  return COURSE_EVIDENCE_SPEC_OVERRIDES.find((override) => override.lessonId === record.canonicalId);
+}
+
 function inferStateKinds(lessonId: string) {
   const match = /^(\d+)-(\d+)$/.exec(lessonId);
   if (!match) return null;
@@ -187,6 +212,21 @@ function inferStateKinds(lessonId: string) {
     studentStateKind: `unit${chapter}${unit}_student_state`,
     teacherSyncKind: `teacher_sync_unit${chapter}${unit}`,
   };
+}
+
+function hasSemanticOverride(override: CourseEvidenceSpecOverride | undefined): boolean {
+  if (!override) return false;
+  return Boolean(
+    override.studentStateKind
+    || override.teacherSyncKind
+    || override.preAssessmentStepId
+    || override.postAssessmentStepId
+    || override.summaryStepId
+    || override.responseProducingStepIds
+    || override.objectiveStepIds
+    || override.parameterStepIds
+    || override.parameterEvidenceKeys,
+  );
 }
 
 function orderedSteps(manifest: InteractiveRuntimeManifest): InteractiveRuntimeStepManifest[] {
@@ -211,8 +251,7 @@ function isResponseProducingStep(step: InteractiveRuntimeStepManifest): boolean 
 }
 
 function isObjectiveCard(card: InteractiveRuntimeActivityCardManifest): boolean {
-  return OBJECTIVE_RESPONSE_KINDS.has(card.responseKind)
-    || ORDERED_OBJECTIVE_RESPONSE_KINDS.has(card.responseKind);
+  return isObjectiveInteractiveResponseKind(card.responseKind);
 }
 
 function isObjectiveStep(step: InteractiveRuntimeStepManifest): boolean {
@@ -236,7 +275,7 @@ function parameterKeysFromStep(step: InteractiveRuntimeStepManifest): string[] {
 function isParameterStep(step: InteractiveRuntimeStepManifest): boolean {
   return PARAMETER_INTERACTION_KINDS.has(step.interactionSpec.interactionKind)
     || parameterKeysFromStep(step).length > 0
-    || (step.interactionSpec.activityCards ?? []).some((card) => card.responseKind === 'parameter_set');
+    || (step.interactionSpec.activityCards ?? []).some((card) => isParameterSetResponseKind(card.responseKind));
 }
 
 function inferFirstQuizStepId(steps: InteractiveRuntimeStepManifest[]): string | undefined {
@@ -303,7 +342,7 @@ function buildSpecFromManifest(
       objectiveStepIds: override?.objectiveStepIds ?? steps.filter(isObjectiveStep).map((step) => step.id),
       parameterStepIds,
       parameterEvidenceKeys,
-      source: override ? 'manifest+override' : 'manifest',
+      source: hasSemanticOverride(override) ? 'manifest+override' : 'manifest',
     },
   };
 }
@@ -312,7 +351,7 @@ function buildSpecFromOverride(
   input: ResolveCourseEvidenceSpecInput,
   override: CourseEvidenceSpecOverride,
 ): CourseEvidenceSpecResolution {
-  const lessonId = input.lessonId ?? override.lessonId;
+  const lessonId = override.lessonId ?? input.lessonId;
   const lessonKey = input.lessonKey ?? override.lessonKey ?? '';
   const routeSegment = input.routeSegment ?? override.routeSegment;
   const stateKinds = lessonId ? inferStateKinds(lessonId) : null;
@@ -323,6 +362,9 @@ function buildSpecFromOverride(
   if (!routeSegment) return compactUnsupported({ lessonId, lessonKey, reason: 'missing_route_segment' });
   if (!studentStateKind || !teacherSyncKind) {
     return compactUnsupported({ lessonId, lessonKey, routeSegment, reason: 'missing_state_kind' });
+  }
+  if (!override.responseProducingStepIds && !override.preAssessmentStepId && !override.postAssessmentStepId) {
+    return compactUnsupported({ lessonId, lessonKey, routeSegment, reason: 'missing_manifest_metadata' });
   }
 
   const responseProducingStepIds = override.responseProducingStepIds

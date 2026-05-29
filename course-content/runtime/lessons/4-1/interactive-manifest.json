@@ -56,35 +56,42 @@
         {
           "id": "cover-comic",
           "region": "lead",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "客船航向与稳定平台情境",
             "image_key": "cover_comic",
             "src": "/course-runtime/lessons/4-1/media/4-1-cover-comic.png",
-            "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+            "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "lesson-infograph",
           "region": "lead",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "任务表达课程信息图",
             "image_key": "infograph",
             "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
-            "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+            "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "core-question-card",
           "region": "summary",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "intro_question",
-            "title": "导入问题"
+            "title": "导入问题",
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         }
       ],
@@ -188,11 +195,14 @@
         {
           "id": "goal-cards",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "goals",
-            "title": "本次课程目标"
+            "title": "本次课程目标",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -292,34 +302,46 @@
         {
           "id": "pretest-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         },
         {
           "id": "pretest-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "choice.single"
           }
         }
       ],
@@ -348,7 +370,7 @@
             "title": "系统稳定后的任务判断",
             "prompt": "系统已经稳定，下列哪项判断最准确？",
             "reference_answer": "B。稳定只说明系统没有失稳，不能替代任务表达、约束判断和优先级排序。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -371,7 +393,7 @@
             "title": "带宽指标的边界",
             "prompt": "关于带宽，下列说法哪项更准确？",
             "reference_answer": "B。带宽只是任务语言的一部分，要和储备、约束、场景目标一起判断。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -394,7 +416,7 @@
             "title": "指标角色与优先级",
             "prompt": "关于“所有指标都重要”，下列说法最准确的是：",
             "reference_answer": "B。任务书的核心不是全部写上，而是把角色和优先级写清。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -498,30 +520,40 @@
         {
           "id": "ship-object-block",
           "region": "object",
-          "kind": "graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:ship-object-block"
+            "resolver": "4-1:ship-object-block",
+            "legacyKind": "graphic",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-quad-figure",
           "region": "evidence",
-          "kind": "interactive-figure",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:ship-quad-figure"
+            "resolver": "4-1:ship-quad-figure",
+            "legacyKind": "interactive-figure",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "ship-reading-card",
           "region": "analysis",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-function",
             "title": "对象与开环传函",
-            "formula": "P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)},\\quad L_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}"
+            "formula": "P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)},\\quad L_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}",
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -559,7 +591,7 @@
             "title": "当前主要矛盾",
             "prompt": "客船航向控制当前最紧的矛盾是什么？",
             "reference_answer": "提速冲动与乘坐平顺、储备边界之间的矛盾。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -568,7 +600,7 @@
             "title": "必守边界",
             "prompt": "客船任务书中哪些边界必须先守住？",
             "reference_answer": "超调量、调节时间与裕度边界必须先进入当前任务允许范围。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -577,7 +609,7 @@
             "title": "证据来源",
             "prompt": "哪些图上证据支持“平顺与储备优先，再谈提速”？",
             "reference_answer": "对象框图、时域曲线、根轨迹、幅频与相频裕度共同支持该排序。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -779,30 +811,40 @@
         {
           "id": "platform-object-block",
           "region": "object",
-          "kind": "graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:platform-object-block"
+            "resolver": "4-1:platform-object-block",
+            "legacyKind": "graphic",
+            "presentation": "single"
           }
         },
         {
           "id": "platform-quad-figure",
           "region": "evidence",
-          "kind": "interactive-figure",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:platform-quad-figure"
+            "resolver": "4-1:platform-quad-figure",
+            "legacyKind": "interactive-figure",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "platform-reading-card",
           "region": "analysis",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-function",
             "title": "对象与开环传函",
-            "formula": "P_p(s)=\\frac{2960\\left(\\frac{s}{15}+1\\right)}{s\\left(\\frac{s}{3}+1\\right)\\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\\right]},\\quad L_p(s)=K_pP_p(s)"
+            "formula": "P_p(s)=\\frac{2960\\left(\\frac{s}{15}+1\\right)}{s\\left(\\frac{s}{3}+1\\right)\\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\\right]},\\quad L_p(s)=K_pP_p(s)",
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -840,7 +882,7 @@
             "title": "速度前移原因",
             "prompt": "稳定平台为什么可以把速度和带宽排得更前？",
             "reference_answer": "平台场景的主任务强调快速跟踪，速度优势和工作带宽直接服务当前目标。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -849,7 +891,7 @@
             "title": "不能放松的边界",
             "prompt": "速度前移时仍不能放松什么边界？",
             "reference_answer": "超调、谐振峰、相角裕度和增益裕度等储备边界仍要被守住。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -858,7 +900,7 @@
             "title": "证据来源",
             "prompt": "综合图中哪些证据同时说明速度优势和储备代价？",
             "reference_answer": "主根轨迹、时域响应、幅频与相频窄图同时显示速度优势与储备压力。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1056,7 +1098,7 @@
         {
           "id": "case-compare-matrix",
           "region": "matrix",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "matrix-rows",
@@ -1066,29 +1108,39 @@
               "根轨迹首先提示什么。",
               "幅频首先提示什么。",
               "相频与裕度首先提示什么。"
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "sorting-cards",
           "region": "sorting",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-fact",
             "title": "核心判断",
-            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。"
+            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。",
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "ordering.sequence"
           }
         },
         {
           "id": "summary-card",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-fact",
             "title": "核心判断",
-            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。"
+            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1126,7 +1178,7 @@
             "title": "双案例任务排序",
             "prompt": "把四条判断分别写回客船或稳定平台，并说明排序变化的证据来源。",
             "reference_answer": "客船先保过程平顺与储备，平台让速度与带宽前移；变的是任务优先级，不是证据语言。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1228,7 +1280,7 @@
         {
           "id": "role-question-cards",
           "region": "tables",
-          "kind": "question-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "questions",
@@ -1237,35 +1289,42 @@
               "过程是否可接受。",
               "离风险边界和任务频带还有多远。",
               "全过程累计付出了什么代价。"
-            ]
+            ],
+            "legacyKind": "question-card-row",
+            "presentation": "row",
+            "semanticRole": "question"
           }
         },
         {
           "id": "integral-index-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "integral-formula",
             "title": "积分误差类指标",
-            "formula": "J_{\\mathrm{ISE}}=\\int_{0}^{\\infty} e^2(t)\\,\\mathrm{d}t,\\quad J_{\\mathrm{IAE}}=\\int_{0}^{\\infty} |e(t)|\\,\\mathrm{d}t,\\quad J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty} t|e(t)|\\,\\mathrm{d}t"
+            "formula": "J_{\\mathrm{ISE}}=\\int_{0}^{\\infty} e^2(t)\\,\\mathrm{d}t,\\quad J_{\\mathrm{IAE}}=\\int_{0}^{\\infty} |e(t)|\\,\\mathrm{d}t,\\quad J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty} t|e(t)|\\,\\mathrm{d}t",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "role-matrix-table",
           "region": "tables",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "role-note",
             "title": "角色提醒",
-            "text": "这里只回收最小指标语言，不展开为优化算法专题。"
+            "text": "这里只回收最小指标语言，不展开为优化算法专题。",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "role-match-zone",
           "region": "interaction",
-          "kind": "triple-match",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "questions",
@@ -1274,7 +1333,11 @@
               "过程是否可接受。",
               "离风险边界和任务频带还有多远。",
               "全过程累计付出了什么代价。"
-            ]
+            ],
+            "legacyKind": "triple-match",
+            "presentation": "single",
+            "interactionKind": "drag-match",
+            "responseKind": "matching.pairs"
           }
         }
       ],
@@ -1316,7 +1379,7 @@
             "title": "指标角色配对",
             "prompt": "把指标与它优先回答的问题配对。",
             "reference_answer": "超调量 Mp -> 过程是否可接受；相角裕度 gamma -> 离风险边界还有多远；ITAE/IAE/ISE -> 全过程累计代价。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "card",
             "layout_span": "full",
             "match_items": [
@@ -1451,7 +1514,7 @@
         {
           "id": "classification-rules",
           "region": "rules",
-          "kind": "rule-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "rules",
@@ -1460,24 +1523,29 @@
               "硬约束：不能破。",
               "软目标：守住底线后继续争取。",
               "观察指标：用来解释代价与后果。"
-            ]
+            ],
+            "legacyKind": "rule-card-row",
+            "presentation": "row",
+            "semanticRole": "rule"
           }
         },
         {
           "id": "metric-card-bank",
           "region": "card-bank",
-          "kind": "card-bank",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "reminder",
             "title": "固定提醒",
-            "text": "角色由任务决定，不由名词决定。"
+            "text": "角色由任务决定，不由名词决定。",
+            "legacyKind": "card-bank",
+            "presentation": "single"
           }
         },
         {
           "id": "classification-sort",
           "region": "sort-area",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rules",
@@ -1486,7 +1554,11 @@
               "硬约束：不能破。",
               "软目标：守住底线后继续争取。",
               "观察指标：用来解释代价与后果。"
-            ]
+            ],
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "ordering.sequence"
           }
         }
       ],
@@ -1523,7 +1595,7 @@
             "title": "指标角色归类",
             "prompt": "选择一个指标，说明它在当前任务中应写成硬约束、软目标还是观察指标。",
             "reference_answer": "角色由任务决定：不能破的是硬约束，守住底线后继续争取的是软目标，用来解释后果的是观察指标。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1608,7 +1680,7 @@
         {
           "id": "task-card-template",
           "region": "template",
-          "kind": "template-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1621,13 +1693,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "template-card",
+            "presentation": "single",
+            "semanticRole": "template"
           }
         },
         {
           "id": "evidence-bank",
           "region": "evidence",
-          "kind": "evidence-bank",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "checklist",
@@ -1638,13 +1713,16 @@
               "当前工作点是否进入允许区域。",
               "再改善会先碰到什么代价。",
               "最后再写排序和任务卡。"
-            ]
+            ],
+            "legacyKind": "evidence-bank",
+            "presentation": "single",
+            "semanticRole": "evidence"
           }
         },
         {
           "id": "task-card-example-a",
           "region": "evidence",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1657,13 +1735,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "task-card-example-b",
           "region": "evidence",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1676,13 +1757,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "task-card-form",
           "region": "workspace",
-          "kind": "task-card-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1695,7 +1779,11 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "task-card-workspace",
+            "presentation": "single",
+            "semanticRole": "task",
+            "responseKind": "text.structured"
           }
         }
       ],
@@ -1742,7 +1830,7 @@
             "title": "任务表达卡核心字段",
             "prompt": "写出对象、控制目标、最紧矛盾、硬约束和软目标。",
             "reference_answer": "字段必须围绕具体案例填写，且不能缺少最紧矛盾与优先级。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           },
@@ -1751,7 +1839,7 @@
             "title": "证据来源与优先级",
             "prompt": "补充观察指标、证据来源和任务优先级。",
             "reference_answer": "证据来源必须点到图、表或公式；优先级必须说明为什么这样排序。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full"
           }
@@ -1855,18 +1943,20 @@
         {
           "id": "layer-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "集合关系",
-            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-diagram",
           "region": "diagram",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "meaning",
@@ -1875,29 +1965,37 @@
               "可行域：先排除不能做。",
               "满意域：当前已经可接受。",
               "最优域：后续课程才有资格比较。"
-            ]
+            ],
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-difference-table",
           "region": "diagram",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "warning",
             "title": "边界提醒",
-            "text": "4-1 只把边界画到当前可接受，不直接把稳定写成已经最优。"
+            "text": "4-1 只把边界画到当前可接受，不直接把稳定写成已经最优。",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-judgement",
           "region": "decision",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "集合关系",
-            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}",
+            "legacyKind": "binary-choice",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -1939,7 +2037,7 @@
             "title": "区域分层判断",
             "prompt": "“当前指标都满足，所以这已经是最优解。”这句话最准确的判断是：",
             "reference_answer": "acceptable_equals_optimal。满足当前任务边界最多说明进入可接受层，不能自动推出已经最优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2057,7 +2155,7 @@
         {
           "id": "misconception-cards",
           "region": "cards",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -2066,13 +2164,15 @@
               "稳定 = 任务完成。",
               "所有指标同等重要。",
               "只看一张图就能直接下结论。"
-            ]
+            ],
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "engineering-checklist",
           "region": "checklist",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "checklist",
@@ -2083,13 +2183,15 @@
               "当前工作点有没有进入当前任务允许区域。",
               "若继续改善，会先碰到哪类代价。",
               "最后该怎样写成任务书。"
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "misconception-judge",
           "region": "decision",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -2098,7 +2200,11 @@
               "稳定 = 任务完成。",
               "所有指标同等重要。",
               "只看一张图就能直接下结论。"
-            ]
+            ],
+            "legacyKind": "binary-choice",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "choice.binary"
           }
         }
       ],
@@ -2141,7 +2247,7 @@
             "title": "误判归类",
             "prompt": "“单看一张图就足够写结论。”这类说法最准确的归类是：",
             "reference_answer": "single_graph_conclusion。任务表达需要多图证据、约束和排序，不能单图直接定结论。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2247,12 +2353,15 @@
         {
           "id": "post-quiz-group",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "post-quiz-title",
             "title": "后测题组",
-            "text": "后测只检查任务表达、指标角色与区域分层，不新增概念。"
+            "text": "后测只检查任务表达、指标角色与区域分层，不新增概念。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2281,7 +2390,7 @@
             "title": "4-1 的出口",
             "prompt": "4-1 最先要做的动作是什么？",
             "reference_answer": "B。4-1 的出口是任务表达卡，而不是控制器选型或参数整定。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2304,7 +2413,7 @@
             "title": "区域分层",
             "prompt": "关于可行域、满意域和最优域，下列哪项最准确？",
             "reference_answer": "B。4-1 先筛边界和可接受区，不在本课里宣称最优。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2327,7 +2436,7 @@
             "title": "同图异读原因",
             "prompt": "同一套分析图会在两个案例里读出不同排序，最主要原因是什么？",
             "reference_answer": "B。双案例共享同一套证据语言，但场景主矛盾不同，所以任务排序会重排。",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "card",
             "layout_span": "full",
             "options": [
@@ -2429,42 +2538,52 @@
         {
           "id": "lesson-infograph",
           "region": "infograph",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "任务表达信息图",
             "image_key": "infograph",
-            "src": "/course-runtime/lessons/4-1/media/4-1-info.png"
+            "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "takeaway-cards",
           "region": "summary",
-          "kind": "summary-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "takeaways",
-            "title": "四句带走"
+            "title": "四句带走",
+            "legacyKind": "summary-card-row",
+            "presentation": "row",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "next-step-cards",
           "region": "summary",
-          "kind": "next-step-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "next_step",
-            "title": "后续去向"
+            "title": "后续去向",
+            "legacyKind": "next-step-card-row",
+            "presentation": "row",
+            "semanticRole": "nextStep"
           }
         },
         {
           "id": "course-stat-panel",
           "region": "stats",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "block_key": "statistics",
-            "title": "课堂表现统计"
+            "title": "课堂表现统计",
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         }
       ],

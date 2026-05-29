@@ -4,28 +4,30 @@ import path from 'node:path';
 
 const root = process.cwd();
 const homePath = path.join(root, 'src/app/page.tsx');
+const navigationPath = path.join(root, 'src/lib/platform-role-navigation.ts');
 const arenaPagePath = path.join(root, 'src/app/arena/page.tsx');
 const arenaHallPath = path.join(root, 'src/features/arena/arena-hall.tsx');
 const arenaShellPath = path.join(root, 'src/features/arena/arena-page-shell.tsx');
 
 const homeContent = fs.readFileSync(homePath, 'utf8');
+const navigationContent = fs.readFileSync(navigationPath, 'utf8');
 
 assert.equal(
-  homeContent.includes('href="/arena"') || homeContent.includes("href: '/arena'"),
+  homeContent.includes('getStudentCoreNavigationEntries') && navigationContent.includes("href: '/arena'"),
   true,
-  '首页应提供指向 /arena 的竞技场入口',
+  '首页应通过共享学生入口提供指向 /arena 的竞技场入口',
 );
 
 assert.equal(
-  homeContent.includes('竞技场'),
+  navigationContent.includes('竞技场'),
   true,
-  '首页入口应使用“竞技场”作为学生可见名称',
+  '共享学生入口应使用“竞技场”作为学生可见名称',
 );
 
 assert.equal(
-  homeContent.includes('三个核心入口'),
+  homeContent.includes('六个核心入口'),
   true,
-  '首页平台入口矩阵应与三个入口数量一致',
+  '首页平台入口矩阵应与六个核心入口数量一致',
 );
 
 assert.equal(
@@ -60,13 +62,15 @@ assert.equal(
 );
 
 assert.equal(
-  combinedArenaContent.includes('虚拟仿真') &&
-    combinedArenaContent.includes('竞技场') &&
-    combinedArenaContent.includes('知识图谱') &&
-    combinedArenaContent.includes('互动学习') &&
-    combinedArenaContent.includes('个人中心'),
+  combinedArenaContent.includes('getStudentCoreNavigationEntries') &&
+    navigationContent.includes('虚拟仿真') &&
+    navigationContent.includes('竞技场') &&
+    navigationContent.includes('知识资源') &&
+    navigationContent.includes('控制工作台') &&
+    navigationContent.includes('自适应学习') &&
+    navigationContent.includes('个人中心'),
   true,
-  '/arena 页面壳层应使用首页一致的四入口导航和个人中心入口',
+  '/arena 页面壳层应使用首页一致的六入口学生导航',
 );
 
 assert.equal(

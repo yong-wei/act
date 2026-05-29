@@ -8,6 +8,10 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
+  createSimulationRunContext,
+  normalizeSeed,
+} from '@/resources/simulations/core/seeded-rng';
+import {
   optimizePIDParams,
   type OptimizationTarget,
   type OptimizationConstraints,
@@ -23,6 +27,7 @@ export interface OptimizeRequest {
   target?: Partial<OptimizationTarget>;
   constraints?: Partial<OptimizationConstraints>;
   maxIterations?: number;
+  seed?: number | string;
 }
 
 export async function POST(request: Request) {
@@ -63,12 +68,28 @@ export async function POST(request: Request) {
       kdRange: body.constraints?.kdRange ?? DEFAULT_CONSTRAINTS.kdRange,
     };
 
+    const replaySeed = normalizeSeed(
+      body.seed,
+      JSON.stringify({ config, target, constraints, maxIterations: body.maxIterations ?? 50 })
+    );
+
     // 执行优化
     const result = optimizePIDParams(
       config,
       target,
       constraints,
-      body.maxIterations ?? 50
+      body.maxIterations ?? 50,
+      20,
+      {
+        runContext: createSimulationRunContext({
+          runId: `optimizer-${session.user.id}-${replaySeed.toString(16)}`,
+          sceneId: 'simulation/optimizer/nomoto-quick-sim',
+          scenarioId: 'turn90',
+          seed: replaySeed,
+          runtimeVersion: 'simulation-optimizer-runtime-v1',
+          modelVersion: 'nomoto-quick-sim-v1',
+        }),
+      }
     );
 
     return NextResponse.json({
@@ -82,6 +103,7 @@ export async function POST(request: Request) {
           timeMs: result.searchTime,
           convergenceHistory: result.convergenceHistory.slice(-10), // 只返回最后10条
         },
+        replay: result.replay,
       },
       advice: generateAdvice(result.score, result.metrics),
     });

@@ -33,7 +33,8 @@ interface SessionInfo {
   status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
   currentItemId: string | null;
   currentStage: BopppsStage | null;
-  plan: { title: string };
+  classId: string | null;
+  plan: { id: string; title: string };
 }
 
 interface StudentPlayerProps {
@@ -162,6 +163,10 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
             knowledgeNode={currentItem.knowledgeNode}
             overrideConfig={currentItem.overrideConfig}
             sessionId={initialSession.id}
+            lessonItemId={currentItem.id}
+            lessonPlanId={initialSession.plan.id}
+            classId={initialSession.classId}
+            stage={currentItem.stage}
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">

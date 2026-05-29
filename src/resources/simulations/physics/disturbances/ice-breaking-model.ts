@@ -16,6 +16,7 @@ import {
   XUELONG_ICE_PARAMS,
   randomInRange,
 } from '../../core/constants';
+import type { RandomNumberGenerator } from '../../core/seeded-rng';
 import type { IceBreakingParams, IceBreakingState } from '../../core/types';
 
 // Re-export types for convenience
@@ -40,12 +41,14 @@ export const DEFAULT_ICE_BREAKING_PARAMS: IceBreakingParams = {
 // ============ 状态创建 ============
 
 /** 创建初始冰阻力状态 */
-export function createIceBreakingState(): IceBreakingState {
+export function createIceBreakingState(
+  rng: RandomNumberGenerator = Math.random
+): IceBreakingState {
   return {
     inContact: false,
     stickPhase: false,
     phaseTime: 0,
-    nextPhaseTime: randomInRange(2, 6),
+    nextPhaseTime: randomInRange(2, 6, rng),
     currentK: 1.0,
     currentT: 1.0,
     resistanceForce: 0,
@@ -92,19 +95,20 @@ export function computeIceResistance(
  */
 function computePerturbation(
   stickPhase: boolean,
-  params: IceBreakingParams
+  params: IceBreakingParams,
+  rng: RandomNumberGenerator = Math.random
 ): { kFactor: number; tFactor: number } {
   if (stickPhase) {
     // 粘滞相: K 下降至 [0.4, 0.7], T 上升至 [1.2, 1.4]
     return {
-      kFactor: randomInRange(params.kVariationMin, 0.7),
-      tFactor: randomInRange(1.2, params.tVariationMax),
+      kFactor: randomInRange(params.kVariationMin, 0.7, rng),
+      tFactor: randomInRange(1.2, params.tVariationMax, rng),
     };
   } else {
     // 滑动相: K 略高于正常, T 略低于正常
     return {
-      kFactor: randomInRange(0.9, params.kVariationMax),
-      tFactor: randomInRange(params.tVariationMin, 1.0),
+      kFactor: randomInRange(0.9, params.kVariationMax, rng),
+      tFactor: randomInRange(params.tVariationMin, 1.0, rng),
     };
   }
 }
@@ -124,7 +128,8 @@ export function iceBreakingStep(
   state: IceBreakingState,
   params: IceBreakingParams,
   speed: number,
-  dt: number
+  dt: number,
+  rng: RandomNumberGenerator = Math.random
 ): IceBreakingState {
   // 如果未启用冰区模式，返回无接触状态
   if (!params.enabled || params.iceThickness <= 0) {
@@ -168,19 +173,21 @@ export function iceBreakingStep(
       // 进入粘滞相，持续时间较长
       nextPhaseTime = randomInRange(
         XUELONG_ICE_PARAMS.STICK_DURATION_MIN,
-        XUELONG_ICE_PARAMS.STICK_DURATION_MAX
+        XUELONG_ICE_PARAMS.STICK_DURATION_MAX,
+        rng
       );
     } else {
       // 进入滑动相，持续时间较短
       nextPhaseTime = randomInRange(
         XUELONG_ICE_PARAMS.SLIP_DURATION_MIN,
-        XUELONG_ICE_PARAMS.SLIP_DURATION_MAX
+        XUELONG_ICE_PARAMS.SLIP_DURATION_MAX,
+        rng
       );
     }
   }
 
   // 计算参数摄动
-  const { kFactor, tFactor } = computePerturbation(stickPhase, params);
+  const { kFactor, tFactor } = computePerturbation(stickPhase, params, rng);
 
   // 平滑过渡参数变化 (避免突变)
   const smoothingFactor = 0.1;

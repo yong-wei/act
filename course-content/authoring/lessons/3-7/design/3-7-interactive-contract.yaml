@@ -30,9 +30,9 @@ steps:
         - { id: "lead", width: "full", order: 2 }
         - { id: "summary", width: "full", order: 3 }
     modules:
-      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
-      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
-      - { id: "boundary-card", region: "summary", kind: "boundary-card", must_be_visible: true }
+      - { id: "stage-map", region: "lead", kind: 'content.stageMap', must_be_visible: true , payload: { legacyKind: 'stage-map', presentation: 'single' }}
+      - { id: "core-question-card", region: "lead", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'question-card', presentation: 'single', semanticRole: 'question' }}
+      - { id: "boundary-card", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'boundary-card', presentation: 'single', semanticRole: 'boundary' }}
     content_blocks:
       - id: "path"
         type: "plain_text"
@@ -91,8 +91,8 @@ steps:
         - { id: "goals", width: "full", order: 1 }
         - { id: "boundary", width: "full", order: 2 }
     modules:
-      - { id: "goal-cards", region: "goals", kind: "goal-card-row", must_be_visible: true }
-      - { id: "boundary-table", region: "boundary", kind: "comparison-table", must_be_visible: true }
+      - { id: "goal-cards", region: "goals", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'goal-card-row', presentation: 'row', semanticRole: 'goal' }}
+      - { id: "boundary-table", region: "boundary", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
     content_blocks:
       - id: "goals"
         type: "bullet_list"
@@ -147,10 +147,10 @@ steps:
         - { id: "question-stack", width: "full", order: 1 }
         - { id: "submit-bar", width: "full", order: 2 }
     modules:
-      - { id: "pretest-q1", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "pretest-q2", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "pretest-q3", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
-      - { id: "misconception-note", region: "submit-bar", kind: "misconception-note", must_be_visible: true }
+      - { id: "pretest-q1", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "pretest-q2", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "pretest-q3", region: "question-stack", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "misconception-note", region: "submit-bar", kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'misconception-note', presentation: 'single', semanticRole: 'misconception' }}
     content_blocks:
       - id: "misconception-note"
         type: "bullet_list"
@@ -212,14 +212,14 @@ steps:
         - { id: "formula", width: "full", order: 2 }
         - { id: "interaction", width: "full", order: 3 }
     modules:
-      - { id: "dual-channel-figure", region: "media", kind: "figure", must_be_visible: true }
-      - { id: "formula-card-1", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "formula-card-2", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "formula-card-3", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "formula-card-4", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "channel-sum-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "channel-choice-card-1", region: "interaction", kind: "single-choice-card", must_be_visible: true }
-      - { id: "channel-choice-card-2", region: "interaction", kind: "single-choice-card", must_be_visible: true }
+      - { id: "dual-channel-figure", region: "media", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "formula-card-1", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "formula-card-2", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "formula-card-3", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "formula-card-4", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "channel-sum-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "channel-choice-card-1", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
+      - { id: "channel-choice-card-2", region: "interaction", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'single-choice-card', presentation: 'single', interactionKind: 'single-choice', responseKind: 'choice.single' }}
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -289,10 +289,10 @@ steps:
         - { id: "derivation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
-      - { id: "example-1-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "example-1-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "activity-card-row", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "principle-card", region: "principle", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'principle-card', presentation: 'single', semanticRole: 'principle' }}
+      - { id: "example-1-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "example-1-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "activity-card-row", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "principle"
         type: "bullet_list"
@@ -322,8 +322,8 @@ steps:
       student_task: "完成例题 1 的关键步骤判断与补全。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "ex1-card-1", prompt: "第一步应先写什么？", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex1-card-2", prompt: "为什么最终只剩 1/K？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex1-card-1", prompt: "第一步应先写什么？", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex1-card-2", prompt: "为什么最终只剩 1/K？", response_kind: "text.short", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -367,13 +367,13 @@ steps:
         - { id: "tables", width: "full", order: 2 }
         - { id: "activity", width: "full", order: 3 }
     modules:
-      - { id: "type-definition-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
-      - { id: "static-error-constants-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
-      - { id: "steady-error-formulas-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
-      - { id: "constants-table", region: "tables", kind: "table", must_be_visible: true }
-      - { id: "steady-error-table", region: "tables", kind: "table", must_be_visible: true }
-      - { id: "boundary-note", region: "tables", kind: "note-card", must_be_visible: true }
-      - { id: "example-1-quick-judge-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "type-definition-card", region: "formula-groups", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "static-error-constants-card", region: "formula-groups", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "steady-error-formulas-card", region: "formula-groups", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "constants-table", region: "tables", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'table', presentation: 'single' }}
+      - { id: "steady-error-table", region: "tables", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'table', presentation: 'single' }}
+      - { id: "boundary-note", region: "tables", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'note-card', presentation: 'single' }}
+      - { id: "example-1-quick-judge-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "formula-groups"
         type: "formula_list"
@@ -400,8 +400,8 @@ steps:
       interaction_kind: "activity_card_set"
       student_task: "回到例题 1，完成系统型别与误差结论快判。"
       activity_cards:
-        - { id: "type-card-1", prompt: "判断系统型别。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "type-card-2", prompt: "如果要判断是否必须引入积分，第一步该看什么？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "type-card-1", prompt: "判断系统型别。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "type-card-2", prompt: "如果要判断是否必须引入积分，第一步该看什么？", response_kind: "text.short", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -446,11 +446,11 @@ steps:
         - { id: "derivation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
-      - { id: "example-2-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "example-2-figure", region: "problem", kind: "figure", must_be_visible: true }
-      - { id: "example-2-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "activity-card-row", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "principle-card", region: "principle", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'principle-card', presentation: 'single', semanticRole: 'principle' }}
+      - { id: "example-2-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "example-2-figure", region: "problem", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "example-2-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "activity-card-row", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "principle"
         type: "plain_text"
@@ -477,8 +477,8 @@ steps:
       student_task: "完成例题 2 的总误差列式与判断。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "ex2-card-1", prompt: "判断第一步动作。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex2-card-2", prompt: "为什么必须先列总误差式？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex2-card-1", prompt: "判断第一步动作。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex2-card-2", prompt: "为什么必须先列总误差式？", response_kind: "text.short", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -521,9 +521,9 @@ steps:
         - { id: "contrast", width: "full", order: 1 }
         - { id: "activity", width: "full", order: 2 }
     modules:
-      - { id: "gain-card", region: "contrast", kind: "comparison-card", must_be_visible: true }
-      - { id: "type-card", region: "contrast", kind: "comparison-card", must_be_visible: true }
-      - { id: "decision-cards", region: "activity", kind: "binary-choice-set", must_be_visible: true }
+      - { id: "gain-card", region: "contrast", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'comparison-card', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "type-card", region: "contrast", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'comparison-card', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "decision-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'binary-choice-set', presentation: 'single', interactionKind: 'binary-choice', responseKind: 'choice.binary' }}
     content_blocks:
       - id: "contrast"
         type: "bullet_list"
@@ -585,12 +585,12 @@ steps:
         - { id: "table", width: "full", order: 4 }
         - { id: "activity", width: "full", order: 5 }
     modules:
-      - { id: "pi-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "lag-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "copy-card", region: "copy", kind: "copy-card", must_be_visible: true }
-      - { id: "low-frequency-magnitude-workspace", region: "figure", kind: "analysis-workspace", must_be_visible: true }
-      - { id: "comparison-table", region: "table", kind: "comparison-table", must_be_visible: true }
-      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "pi-formula-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "lag-formula-card", region: "formula", kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: "copy-card", region: "copy", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'copy-card', presentation: 'single', semanticRole: 'copy' }}
+      - { id: "low-frequency-magnitude-workspace", region: "figure", kind: 'activity.workspace', must_be_visible: true , payload: { legacyKind: 'analysis-workspace', presentation: 'single', responseKind: 'text.structured', capabilityRef: 'rust-analysis' }}
+      - { id: "comparison-table", region: "table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "activity-card-grid", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "formulas"
         type: "formula_list"
@@ -618,8 +618,8 @@ steps:
       interaction_kind: "activity_card_set"
       student_task: "完成方法、作用与代价的归类。"
       activity_cards:
-        - { id: "lf-card-1", prompt: "判断 PI 的结构抓手。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "lf-card-2", prompt: "判断滞后的核心收益。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-1", prompt: "判断 PI 的结构抓手。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-2", prompt: "判断滞后的核心收益。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -663,10 +663,10 @@ steps:
         - { id: "validation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "time-pi-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "time-pi-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "time-pi-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
-      - { id: "time-pi-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "time-pi-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "time-pi-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "time-pi-validation-figure", region: "validation", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "time-pi-activity-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "problem"
         type: "bullet_list"
@@ -688,8 +688,8 @@ steps:
       student_task: "完成时域 PI 设计链中的关键判断。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "time-pi-card-1", prompt: "判断纯增益为何不够。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-pi-card-2", prompt: "选择 PI 的首要作用。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-pi-card-1", prompt: "判断纯增益为何不够。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-pi-card-2", prompt: "选择 PI 的首要作用。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -734,10 +734,10 @@ steps:
         - { id: "validation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "time-lag-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "time-lag-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "time-lag-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
-      - { id: "time-lag-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "time-lag-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "time-lag-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "time-lag-validation-figure", region: "validation", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "time-lag-activity-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "problem"
         type: "bullet_list"
@@ -759,8 +759,8 @@ steps:
       student_task: "完成时域滞后设计链中的关键判断。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "time-lag-card-1", prompt: "判断纯增益失败原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-lag-card-2", prompt: "判断滞后的核心结构作用。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-lag-card-1", prompt: "判断纯增益失败原因。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-lag-card-2", prompt: "判断滞后的核心结构作用。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -804,9 +804,9 @@ steps:
         - { id: "table", width: "full", order: 2 }
         - { id: "activity", width: "full", order: 3 }
     modules:
-      - { id: "comparison-dimensions", region: "dimension", kind: "dimension-card-row", must_be_visible: true }
-      - { id: "time-methods-table", region: "table", kind: "comparison-table", must_be_visible: true }
-      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "comparison-dimensions", region: "dimension", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'dimension-card-row', presentation: 'row' }}
+      - { id: "time-methods-table", region: "table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "activity-card-grid", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "dimension"
         type: "bullet_list"
@@ -829,8 +829,8 @@ steps:
       interaction_kind: "activity_card_set"
       student_task: "完成时域两法的适用场景判断。"
       activity_cards:
-        - { id: "time-compare-card-1", prompt: "把‘斜坡误差为 0’对应到方法。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-compare-card-2", prompt: "把‘型别不变但 Kv 提高’对应到方法。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-compare-card-1", prompt: "把‘斜坡误差为 0’对应到方法。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-compare-card-2", prompt: "把‘型别不变但 Kv 提高’对应到方法。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -874,10 +874,10 @@ steps:
         - { id: "validation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "freq-pi-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "freq-pi-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "freq-pi-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
-      - { id: "freq-pi-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "freq-pi-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "freq-pi-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "freq-pi-validation-figure", region: "validation", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "freq-pi-activity-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "problem"
         type: "bullet_list"
@@ -900,8 +900,8 @@ steps:
       student_task: "完成频域 PI 设计链中的关键判断。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "freq-pi-card-1", prompt: "判断纯增益不兼容的原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-pi-card-2", prompt: "补全设计顺序。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pi-card-1", prompt: "判断纯增益不兼容的原因。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pi-card-2", prompt: "补全设计顺序。", response_kind: "text.short", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -946,10 +946,10 @@ steps:
         - { id: "validation", width: "full", order: 3 }
         - { id: "activity", width: "full", order: 4 }
     modules:
-      - { id: "freq-pd-problem", region: "problem", kind: "example-card", must_be_visible: true }
-      - { id: "freq-pd-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
-      - { id: "freq-pd-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
-      - { id: "freq-pd-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "freq-pd-problem", region: "problem", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'example-card', presentation: 'single', semanticRole: 'example' }}
+      - { id: "freq-pd-derivation", region: "derivation", kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-list', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: "freq-pd-validation-figure", region: "validation", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "freq-pd-activity-cards", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "problem"
         type: "bullet_list"
@@ -971,9 +971,25 @@ steps:
       student_task: "完成频域 PD 方案核验中的关键判断。"
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
-        - { id: "freq-pd-card-1", prompt: "判断本方案是否提高型别。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-pd-card-2", prompt: "匹配核验指标与性能描述。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-pd-card-3", prompt: "填写保留误差的原因。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pd-card-1", prompt: "判断本方案是否提高型别。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - id: "freq-pd-card-2"
+          prompt: "匹配核验指标与性能描述。"
+          response_kind: "matching.pairs"
+          submit_scope: "per_card"
+          layout_span: "one_third"
+          match_items:
+            - { value: "type", label: "型别变化" }
+            - { value: "speed", label: "动态速度" }
+            - { value: "steady-error", label: "稳态误差" }
+          match_options:
+            - { value: "unchanged-type", label: "未增加积分环节，仍保持原型别。" }
+            - { value: "faster-response", label: "微分或超前效应让响应更快。" }
+            - { value: "residual-error", label: "斜坡跟踪仍会保留误差，不能只靠动态变快消除。" }
+          reference_matches:
+            - { item: "type", option: "unchanged-type" }
+            - { item: "speed", option: "faster-response" }
+            - { item: "steady-error", option: "residual-error" }
+        - { id: "freq-pd-card-3", prompt: "填写保留误差的原因。", response_kind: "text.short", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -1016,9 +1032,9 @@ steps:
         - { id: "table", width: "full", order: 2 }
         - { id: "activity", width: "full", order: 3 }
     modules:
-      - { id: "comparison-dimensions", region: "dimension", kind: "dimension-card-row", must_be_visible: true }
-      - { id: "freq-methods-table", region: "table", kind: "comparison-table", must_be_visible: true }
-      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+      - { id: "comparison-dimensions", region: "dimension", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'dimension-card-row', presentation: 'row' }}
+      - { id: "freq-methods-table", region: "table", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'comparison-table', presentation: 'single', semanticRole: 'comparison' }}
+      - { id: "activity-card-grid", region: "activity", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       - id: "dimension"
         type: "bullet_list"
@@ -1041,9 +1057,25 @@ steps:
       interaction_kind: "activity_card_set"
       student_task: "完成频域两法的场景归类。"
       activity_cards:
-        - { id: "freq-compare-card-1", prompt: "选择更适合斜坡跟踪精度优先的方案。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-compare-card-2", prompt: "匹配‘更快 / 更准 / 代价落点’。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-compare-card-3", prompt: "判断场景归属。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-compare-card-1", prompt: "选择更适合斜坡跟踪精度优先的方案。", response_kind: "choice.single", submit_scope: "per_card", layout_span: "one_third" }
+        - id: "freq-compare-card-2"
+          prompt: "匹配‘更快 / 更准 / 代价落点’。"
+          response_kind: "matching.pairs"
+          submit_scope: "per_card"
+          layout_span: "one_third"
+          match_items:
+            - { value: "faster", label: "更快" }
+            - { value: "more-accurate", label: "更准" }
+            - { value: "tradeoff", label: "代价落点" }
+          match_options:
+            - { value: "pd-lead", label: "PD 或超前更偏动态速度优先。" }
+            - { value: "pi-lag", label: "PI 或滞后更偏低频精度优先。" }
+            - { value: "mid-frequency-cost", label: "低频收益会落到中频裕度、响应速度或形态代价上。" }
+          reference_matches:
+            - { item: "faster", option: "pd-lead" }
+            - { item: "more-accurate", option: "pi-lag" }
+            - { item: "tradeoff", option: "mid-frequency-cost" }
+        - { id: "freq-compare-card-3", prompt: "判断场景归属。", response_kind: "choice.multi", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -1085,11 +1117,11 @@ steps:
         - { id: "cards", width: "full", order: 1 }
         - { id: "feedback", width: "full", order: 2 }
     modules:
-      - { id: "post-q1", region: "cards", kind: "quiz-card", must_be_visible: true }
-      - { id: "post-q2", region: "cards", kind: "quiz-card", must_be_visible: true }
-      - { id: "post-q3", region: "cards", kind: "quiz-card", must_be_visible: true }
-      - { id: "post-q4", region: "cards", kind: "quiz-card", must_be_visible: true }
-      - { id: "teacher-feedback-strip", region: "feedback", kind: "feedback-strip", must_be_visible: true }
+      - { id: "post-q1", region: "cards", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-card', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "post-q2", region: "cards", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-card', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "post-q3", region: "cards", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-card', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "post-q4", region: "cards", kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'quiz-card', presentation: 'single', interactionKind: 'quiz' }}
+      - { id: "teacher-feedback-strip", region: "feedback", kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'feedback-strip', presentation: 'strip', semanticRole: 'feedback' }}
     content_blocks:
       - id: "quiz-summary"
         type: "bullet_list"
@@ -1160,11 +1192,11 @@ steps:
         - { id: "appendix", width: "full", order: 3 }
         - { id: "next", width: "full", order: 4 }
     modules:
-      - { id: "engineering-perspective-card", region: "engineering", kind: "summary-card", must_be_visible: true }
-      - { id: "summary-list", region: "summary", kind: "summary-list", must_be_visible: true }
-      - { id: "rule-table", region: "appendix", kind: "table", must_be_visible: true }
-      - { id: "info-graphic", region: "appendix", kind: "figure", must_be_visible: true }
-      - { id: "next-lesson-card", region: "next", kind: "next-lesson-card", must_be_visible: true }
+      - { id: "engineering-perspective-card", region: "engineering", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-card', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "summary-list", region: "summary", kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'summary-list', presentation: 'single', semanticRole: 'summary' }}
+      - { id: "rule-table", region: "appendix", kind: 'content.table', must_be_visible: true , payload: { legacyKind: 'table', presentation: 'single' }}
+      - { id: "info-graphic", region: "appendix", kind: 'content.figure', must_be_visible: true , payload: { legacyKind: 'figure', presentation: 'single', semanticRole: 'media' }}
+      - { id: "next-lesson-card", region: "next", kind: 'layout.support', must_be_visible: true , payload: { legacyKind: 'next-lesson-card', presentation: 'single', semanticRole: 'nextStep' }}
     content_blocks:
       - id: "engineering"
         type: "plain_text"

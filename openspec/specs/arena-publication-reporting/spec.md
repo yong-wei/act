@@ -1,4 +1,9 @@
-## ADDED Requirements
+# arena-publication-reporting Specification
+
+## Purpose
+Define the teacher-facing Arena publication report surface, including authorization, publication-scoped official submission aggregation, deadline-aware leaderboard visibility, and report entry links from teacher Arena management.
+
+## Requirements
 
 ### Requirement: Teachers can view Arena publication reports
 The system SHALL provide a teacher-facing report for each Arena publication that the teacher is allowed to manage.

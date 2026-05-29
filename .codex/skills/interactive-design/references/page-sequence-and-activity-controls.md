@@ -192,18 +192,18 @@
 
 推荐取值：
 
-- `response_kind`: `single_choice` / `multi_choice` / `multi_select` / `binary_choice` / `drag_sort` / `match` / `fill_text`
+- `response_kind`: `choice.single` / `choice.multi` / `choice.binary` / `ordering.sequence` / `matching.pairs` / `text.short` / `text.structured` / `parameter.set` / `table.builder`
 - `submit_scope`: `per_card`
 - `layout_span`: `one_third` / `half` / `full`
 
 补充默认约束：
 
-- 前测全部为客观题，可混合单选、多选、排序、判断等题型；不得使用 `fill_text` 或开放论述。
+- 前测全部为客观题，可混合单选、多选、排序、判断等题型；不得使用 `text.short`、`text.structured` 或开放论述。
 - 除前测 / 后测 / 专门题组页外，单页作答卡默认不超过 `2` 张。
 - 无互动图形的普通页面，互动题目不得超过 `2` 题，全部使用客观题，并允许每题单独提交。
 - 有互动图形的页面，不再另设普通互动题目；学生调节参数后提交当前参数、观察记录或判断结果作为互动。
 - 若单页作答卡恰为 `2` 张，且页面不是前测 / 后测 / 专门题组页，默认按双栏半宽并排设计；除非设计稿显式声明通栏或非对称布局，否则不得回退为上下单栏堆叠。
-- 后测不超过 `3` 题，最多 `1` 题使用 `fill_text`；若出现主观题，必须写明评分或教师查看口径。
+- 后测不超过 `3` 题，最多 `1` 题使用 `text.short` 或 `text.structured`；若出现主观题，必须写明评分或教师查看口径。
 - 同页若同时存在正文、例题、比较表与作答区，默认顺序是“正文在前、作答在后”；只有纯题组页才允许作答卡置顶。
 - 展示页不要额外附加“无需提交”占位模块；无作答即不渲染作答壳层。
 - 作答卡标题直接写题面或判断动作，不得使用“卡片 1 / 卡片 2 / 题面卡”这类无教学语义的泛称。

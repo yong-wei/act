@@ -12,7 +12,8 @@ export type LearningFactProfilePolicyReason =
   | 'partial_evidence_low_weight'
   | 'legacy_evidence_context_only'
   | 'missing_evidence_context_only'
-  | 'official_arena_evaluation';
+  | 'official_arena_evaluation'
+  | 'adaptive_assessment_evidence';
 
 export interface LearningFactEvidenceGovernance {
   evidenceQuality: SubmissionEvidenceQuality;
@@ -46,6 +47,18 @@ export function resolveLearningFactEvidenceGovernance(
   actionType: string,
   payload: Record<string, unknown>,
 ): Prisma.InputJsonObject | null {
+  if (actionType === 'answer_submit' && payload.assessmentSource === 'adaptive_assessment') {
+    return toJsonObject({
+      evidenceQuality: 'rich',
+      payloadEvidenceQuality: 'rich',
+      sourceState: 'manifest-submission-v2',
+      evidenceReason: 'adaptive_assessment_persisted',
+      profileWeight: 1,
+      skipProfileContribution: false,
+      policyReason: 'adaptive_assessment_evidence',
+    });
+  }
+
   if (actionType === 'lesson_submit' || actionType === 'lesson_resubmit') {
     const summary = summarizeSubmissionEvidencePayload(payload);
     const base = {

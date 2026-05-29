@@ -7,6 +7,7 @@ import { buildArenaLeaderboard } from '@/features/arena/leaderboards/leaderboard
 import { ArenaPersonalFeedback } from '@/features/arena/student/arena-personal-feedback';
 import { sendArenaCoreEvent } from '@/features/arena/telemetry';
 import type { ArenaBlackBoxExperimentDataset, ArenaBlackBoxSignalType } from '@/features/arena/blackbox/experiment';
+import type { StoredArenaIdentificationModel } from '@/features/arena/blackbox/experiment-service';
 import type { ArenaVirtualSimulationPreviewRun } from '@/features/arena/blackbox/controller-preview';
 import {
   buildBlackBoxExperimentBudgetCoverageEvidence,
@@ -25,7 +26,10 @@ import type {
 } from '../contracts';
 import type { WorkbenchPanelInstance } from '../views';
 
-type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & { id: string };
+type ExperimentDatasetResponse = ArenaBlackBoxExperimentDataset & {
+  id: string;
+  registeredModel: StoredArenaIdentificationModel;
+};
 const BLACKBOX_PREVIEW_VISIBLE_METRIC_IDS = new Set(['trackingError', 'controlEnergy']);
 
 interface BlackBoxIdentificationPanelProps {
@@ -47,10 +51,10 @@ export function buildClientNominalModelFromDataset(
   dataset: ExperimentDatasetResponse,
   now = new Date().toISOString(),
 ): NominalModelArtifact {
-  const identificationModelId = `arena-identification-${dataset.datasetHash.replace('arena-blackbox-dataset-', '').slice(0, 12)}`;
+  const identificationModelId = dataset.registeredModel.id;
 
   return {
-    id: `nominal-model:${dataset.datasetHash}`,
+    id: `nominal-model:${identificationModelId}`,
     sourceObjectId: dataset.objectId,
     sourceDatasetHash: dataset.datasetHash,
     sourceExperimentId: dataset.id,
@@ -65,8 +69,8 @@ export function buildClientNominalModelFromDataset(
       {
         id: 'data-quality',
         label: '名义模型数据质量',
-        value: dataset.summary.dataQuality,
-        status: qualityStatus(dataset.summary.dataQuality),
+        value: dataset.registeredModel.validationSummary.dataQuality,
+        status: qualityStatus(dataset.registeredModel.validationSummary.dataQuality),
       },
       {
         id: 'input-energy',

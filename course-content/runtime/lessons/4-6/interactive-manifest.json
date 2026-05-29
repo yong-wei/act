@@ -46,73 +46,91 @@
         {
           "id": "plant-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "客船对象",
             "formula_key": "key_formulas",
-            "formula_index": 0
+            "formula_index": 0,
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "recovered-solution-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "4-5 固定超前可用解",
             "formula_key": "key_formulas",
-            "formula_index": 1
+            "formula_index": 1,
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "problem-focus",
           "region": "evidence",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "问题聚焦",
-            "text": "同一对象族进入驱逐舰快速机动任务后，为什么“继续微调参数”已经不足以描述问题。"
+            "text": "同一对象族进入驱逐舰快速机动任务后，为什么“继续微调参数”已经不足以描述问题。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "scenario-reorder-note",
           "region": "comparison",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "表后迁移判断",
-            "text": "对象模型、任务语义、参考轨迹、动作筛选线和优先判断共同改写了问题。驱逐舰不是更快一点的客船，而是进入多段快速机动、动作边界分开筛选、任务质量并列比较的新场景。"
+            "text": "对象模型、任务语义、参考轨迹、动作筛选线和优先判断共同改写了问题。驱逐舰不是更快一点的客船，而是进入多段快速机动、动作边界分开筛选、任务质量并列比较的新场景。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "mismatch-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "驱逐舰失配证据",
-            "block_key": "mismatch_figure"
+            "block_key": "mismatch_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "figure-reading-cue",
           "region": "figure",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "读图口令",
-            "text": "左图看方波切换段拖尾，右图看航迹偏离如何被积分放大。"
+            "text": "左图看方波切换段拖尾，右图看航迹偏离如何被积分放大。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "bridge-conclusion",
           "region": "bridge",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "本页结论",
-            "text": "本课不是先换算法，而是先检查原来的问题写法为什么失效。"
+            "text": "本课不是先换算法，而是先检查原来的问题写法为什么失效。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -236,32 +254,41 @@
         {
           "id": "objective-header",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "本次课程目标",
-            "text": "完成这轮迁移判断后，我们应能做到什么。"
+            "text": "完成这轮迁移判断后，我们应能做到什么。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "objective-list",
           "region": "goals",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "完成这轮迁移判断后应能做到",
             "block_key": "objective_list",
-            "bullets_key": "bullets"
+            "bullets_key": "bullets",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "objective-bridge",
           "region": "bridge",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "主线桥接",
-            "text": "本课承接 4-5 的固定结构可用解，正式把结构边界显性化。"
+            "text": "本课承接 4-5 的固定结构可用解，正式把结构边界显性化。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -353,18 +380,20 @@
         {
           "id": "migration-formula",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "迁移判断式",
             "block_key": "migration_formula",
-            "field": "latex"
+            "field": "latex",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "scenario-compare-table",
           "region": "comparison",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "场景配置对比表",
@@ -399,36 +428,45 @@
                 "先看综合可接受性",
                 "先判断目标是否对题，再判断结构是否够用"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "priority-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "优先判断",
-            "text": "驱逐舰不是“更快一点的客船”，而是对象、参考和筛选线同时改写后的新任务。"
+            "text": "驱逐舰不是“更快一点的客船”，而是对象、参考和筛选线同时改写后的新任务。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "task-change-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "block_key": "migration_formula",
-            "formula": "$\\\\text{迁移判断}=\\\\text{对象变化}+\\\\text{任务变化}+\\\\text{筛选线重排}$"
+            "formula": "$\\\\text{迁移判断}=\\\\text{对象变化}+\\\\text{任务变化}+\\\\text{筛选线重排}$",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-split-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "scenario_reorder_note"
+            "block_key": "scenario_reorder_note",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -453,14 +491,14 @@
           {
             "id": "task-change-card",
             "prompt": "除了对象参数变化，本页还要求你至少指出哪两类任务语义变化？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "boundary-split-card",
             "prompt": "为什么驱逐舰场景必须把峰值动作和控制能量分开筛选？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -537,49 +575,57 @@
         {
           "id": "legacy-weight-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "客船平衡权重",
             "formula_key": "key_formulas",
-            "formula_index": 0
+            "formula_index": 0,
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "legacy-objective-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "沿用旧总代价",
             "formula_key": "key_formulas",
-            "formula_index": 1
+            "formula_index": 1,
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "legacy-symbol-table",
           "region": "formula",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "旧总代价符号说明",
-            "block_key": "legacy_symbol_table"
+            "block_key": "legacy_symbol_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "mismatch-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "驱逐舰失配证据",
-            "block_key": "mismatch_figure"
+            "block_key": "mismatch_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "mismatch-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "三类失配信号",
@@ -587,17 +633,23 @@
               "客船语言把首段收敛和总体能量看得比连续快速机动更重。",
               "固定超前结构只有三项有效参数，低频恢复、中频提速和动作边界只能互相挤占。",
               "当验证换成“方波跟踪 + 航迹积分”后，旧写法的缺口被持续放大。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "mismatch-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "结论",
-            "text": "这里暴露的不是某一组参数偶然失败，而是固定超前结构和旧判断链一起迁移后已经不再对题。"
+            "text": "这里暴露的不是某一组参数偶然失败，而是固定超前结构和旧判断链一起迁移后已经不再对题。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -660,7 +712,7 @@
             "title": "理解三类失配信号如何共同指向旧问题写法失效。",
             "prompt": "理解三类失配信号如何共同指向旧问题写法失效。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -737,48 +789,56 @@
         {
           "id": "legacy-objective",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "客船总代价",
-            "formula": "$J_p(\\theta)=0.30\\bar t_s+0.30\\overline{\\mathrm{ITAE}}+0.20\\overline{\\mathrm{ITSE}}+0.20\\bar E_u$"
+            "formula": "$J_p(\\theta)=0.30\\bar t_s+0.30\\overline{\\mathrm{ITAE}}+0.20\\overline{\\mathrm{ITSE}}+0.20\\bar E_u$",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "destroyer-objective",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "驱逐舰专用代价函数",
             "block_key": "destroyer_objective",
-            "field": "latex"
+            "field": "latex",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "metric-duty-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "五项职责表",
-            "block_key": "metric_duty_table"
+            "block_key": "metric_duty_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "trajectory-duty-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "block_key": "destroyer_objective",
-            "formula": "$J_d(\\\\theta)=\\\\lambda_1\\\\bar E_{\\\\mathrm{trans}}+\\\\lambda_2\\\\bar E_{\\\\psi}+\\\\lambda_3\\\\bar E_{\\\\mathrm{traj}}+\\\\lambda_4\\\\bar u_{\\\\mathrm{peak}}+\\\\lambda_5\\\\bar E_u$"
+            "formula": "$J_d(\\\\theta)=\\\\lambda_1\\\\bar E_{\\\\mathrm{trans}}+\\\\lambda_2\\\\bar E_{\\\\psi}+\\\\lambda_3\\\\bar E_{\\\\mathrm{traj}}+\\\\lambda_4\\\\bar u_{\\\\mathrm{peak}}+\\\\lambda_5\\\\bar E_u$",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "action-duty-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "block_key": "metric_duty_table",
@@ -819,17 +879,22 @@
                 "$E_u(\\\\theta)/E_{u,\\\\mathrm{lim}}$",
                 "统计全程控制量平方积分，检查持续动作代价。"
               ]
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "objective-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "目标重排结论",
-            "text": "驱逐舰场景改写的不是一组权重，而是整张比较对象清单。"
+            "text": "驱逐舰场景改写的不是一组权重，而是整张比较对象清单。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -891,14 +956,14 @@
           {
             "id": "trajectory-duty-card",
             "prompt": "哪一项指标直接回答“船是否真正走到位”？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "action-duty-card",
             "prompt": "为什么峰值动作与控制能量必须继续分开接受比较？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -975,18 +1040,20 @@
         {
           "id": "overload-chain",
           "region": "chain",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "结构职责过载链",
             "block_key": "overload_chain",
-            "field": "latex"
+            "field": "latex",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "search-condition-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "何时抬成结构搜索",
@@ -994,38 +1061,49 @@
               "固定结构已无法同时解释速度收益、动作边界和稳健性余量。",
               "同一组参数同时承担低频、中频和高频职责。",
               "继续调参只会在同一小块可用域里交换代价。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "candidate-structures",
           "region": "structures",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "候选结构表",
-            "block_key": "candidate_structures"
+            "block_key": "candidate_structures",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "structure-decode-example",
           "region": "structures",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "结构解码例",
             "block_key": "structure_decode_example",
-            "field": "text"
+            "field": "text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "entry-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "结构搜索入口",
-            "text": "引入结构搜索不是因为算法更复杂，而是因为固定结构已经不能完整承接当前任务。"
+            "text": "引入结构搜索不是因为算法更复杂，而是因为固定结构已经不能完整承接当前任务。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1103,7 +1181,7 @@
             "title": "理解结构搜索是在什么条件下才成为合理入口。",
             "prompt": "理解结构搜索是在什么条件下才成为合理入口。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1180,18 +1258,20 @@
         {
           "id": "encoding-formula",
           "region": "encoding",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "统一编码公式",
             "block_key": "encoding_formula",
-            "field": "latex"
+            "field": "latex",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "structure-codebook",
           "region": "codebook",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "结构码本",
@@ -1232,13 +1312,15 @@
                 "$z_5$",
                 "比例、积分、微分与滤波常数"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "decode-reveal",
           "region": "examples",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "解码三步",
@@ -1246,22 +1328,27 @@
               "先根据 $z_0$ 判结构编号。",
               "再列出有效槽位与忽略槽位。",
               "最后把有效槽位映射回工程参数。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "structure-first-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "encoding_formula"
+            "block_key": "encoding_formula",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "active-slots-card",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "block_key": "codebook_table",
@@ -1277,7 +1364,9 @@
               "PI + 超前",
               "滞后 + 超前",
               "带微分滤波的 PID"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1327,14 +1416,14 @@
           {
             "id": "structure-first-card",
             "prompt": "给定一个编码向量时，哪一步必须先做，为什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "active-slots-card",
             "prompt": "为什么不能把 z_1 到 z_5 永远当作同时生效的五个参数？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -1413,7 +1502,7 @@
         {
           "id": "scheme-matrix",
           "region": "matrix",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "四类方案矩阵",
@@ -1422,23 +1511,28 @@
               "驱逐舰采用客船代价函数但是变结构搜索。",
               "驱逐舰采用专用代价函数但是固定结构。",
               "驱逐舰采用专用代价函数和变结构搜索。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "comparison-figure",
           "region": "figure",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "四类方案比较图",
-            "block_key": "comparison_figure"
+            "block_key": "comparison_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "question-table",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "title": "方案问题表",
@@ -1468,13 +1562,15 @@
                 "目标与结构同时打开",
                 "检查可用域是否重新打开。"
               ]
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "comparison-reveal",
           "region": "summary",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "四类方案读图",
@@ -1482,17 +1578,23 @@
               "旧目标 + 旧结构：直接暴露目标错位。",
               "旧目标 + 变结构：只放开结构无法弥补错误目标。",
               "新目标 + 旧结构 / 新目标 + 变结构：进一步暴露结构边界与重新打开的可用域。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "comparison-conclusion",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "比较结论",
-            "text": "四类方案存在的意义，是把“目标是否对题”和“结构是否够用”拆开，而不是只给出一个看起来最好的结果。"
+            "text": "四类方案存在的意义，是把“目标是否对题”和“结构是否够用”拆开，而不是只给出一个看起来最好的结果。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1534,7 +1636,7 @@
             "title": "理解四类方案为什么能把目标与结构拆成独立判断。",
             "prompt": "理解四类方案为什么能把目标与结构拆成独立判断。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1615,48 +1717,56 @@
         {
           "id": "convergence-figure",
           "region": "convergence",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "搜索收敛证据",
-            "block_key": "convergence_figure"
+            "block_key": "convergence_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "probe-figure",
           "region": "probe",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "组合结构专项探针",
-            "block_key": "probe_figure"
+            "block_key": "probe_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "control-formulas",
           "region": "control",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "title": "实现控制律",
             "block_key": "control_formulas",
-            "field": "latex"
+            "field": "latex",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "control-effects-figure",
           "region": "control",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "控制效果专项验证",
-            "block_key": "control_effects_figure"
+            "block_key": "control_effects_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-reveal",
           "region": "summary",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "title": "总代价与交付边界",
@@ -1664,16 +1774,21 @@
               "收敛图只说明搜索会把结果推向哪一类结构家族。",
               "组合结构候选虽然总代价更低，但前馈与测速反馈最终收缩成零增益。",
               "只要筛选线没有写成真正硬约束，优化器就会继续沿总代价允许的方向下降。"
-            ]
+            ],
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "boundary-task",
           "region": "interaction",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "convergence_figure"
+            "block_key": "convergence_figure",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1715,7 +1830,7 @@
           {
             "id": "boundary-task",
             "prompt": "为什么“总代价更低”与“工程可交付”不能直接画等号？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1788,50 +1903,62 @@
         {
           "id": "posttest-header",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "后测说明",
             "block_key": "posttest_header",
-            "field": "text"
+            "field": "text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-q1",
           "region": "quiz",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "posttest_header"
+            "block_key": "posttest_header",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "posttest-q2",
           "region": "quiz",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "posttest_note"
+            "block_key": "posttest_note",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "posttest-q3",
           "region": "quiz",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
-            "block_key": "posttest_header"
+            "block_key": "posttest_header",
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         },
         {
           "id": "posttest-note",
           "region": "note",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "后测提交说明",
             "block_key": "posttest_note",
-            "field": "text"
+            "field": "text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1855,21 +1982,21 @@
           {
             "id": "posttest-q1",
             "prompt": "为什么本课不能继续把问题写成“在原结构里微调参数”？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q2",
             "prompt": "驱逐舰专用代价函数比客船代价函数多回答了什么？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           },
           {
             "id": "posttest-q3",
             "prompt": "给定一个统一编码向量时，为什么必须先判结构编号再解释参数？",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full"
           }
@@ -1946,43 +2073,54 @@
         {
           "id": "summary-list",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "总结清单",
             "block_key": "summary_list",
-            "bullets_key": "bullets"
+            "bullets_key": "bullets",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "lesson-info-figure",
           "region": "info",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "课程总结图",
-            "block_key": "lesson_info_figure"
+            "block_key": "lesson_info_figure",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "main-chain",
           "region": "chain",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "主线回收",
             "block_key": "main_chain",
-            "field": "text"
+            "field": "text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "next-step-card",
           "region": "next",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "后续指向",
-            "text": "4-7 将把结构编码、目标函数、约束建立和结果解释并入完整工程设计闭环。"
+            "text": "4-7 将把结构编码、目标函数、约束建立和结果解释并入完整工程设计闭环。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],

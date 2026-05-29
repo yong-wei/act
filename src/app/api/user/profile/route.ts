@@ -31,7 +31,15 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
-import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
+import {
+  isAdaptiveLearnerStateServiceEnabled,
+  readAdaptiveLearnerState,
+  type AdaptiveLearnerState,
+} from '@/lib/data-governance/adaptive-learner-state-service';
+import {
+  getAbilityReportWithPersistenceFallback,
+  getDiagnosticWithPersistenceFallback,
+} from '@/features/assessment/adaptive-persistence';
 import { buildArenaStudentPortfolio, type ArenaStudentPortfolio } from '@/features/arena/profile';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import {
@@ -94,6 +102,7 @@ export interface UserProfileResponse {
     adaptivePractice: AdaptivePracticeSummary;
   };
   evidenceStatus: StudentProfileEvidenceStatus;
+  adaptiveLearnerState: AdaptiveLearnerState | null;
   arenaPortfolio: ArenaStudentPortfolio;
   arenaSummary: ArenaStudentEvidenceSummary;
 }
@@ -116,6 +125,14 @@ function describeFactOutcome(outcome: string) {
     default:
       return '已记录一次练习';
   }
+}
+
+function isAdaptiveAssessmentModule(moduleId: string | null | undefined): boolean {
+  return moduleId === 'adaptive-practice' || moduleId === 'adaptive-assessment';
+}
+
+function formatFactScore(score: number): number {
+  return Math.round(score > 1 ? score : score * 100);
 }
 
 function inferInteractionTitle(event: {
@@ -247,6 +264,7 @@ export async function GET() {
       interactionLogs,
       learningFacts,
       studentEvidenceFeatureRead,
+      adaptiveLearnerState,
       studentStates,
       userArenaSubmissions,
     ] = await Promise.all([
@@ -335,6 +353,15 @@ export async function GET() {
         },
       }),
       readStudentEvidenceFeatures(prisma, userId),
+      isAdaptiveLearnerStateServiceEnabled()
+        ? readAdaptiveLearnerState(prisma, {
+            userId,
+            role: 'student',
+          }).catch((error) => {
+            console.error('[UserProfile] Learner state read failed:', error);
+            return null;
+          })
+        : Promise.resolve(null),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },
@@ -461,10 +488,10 @@ export async function GET() {
         id: fact.id,
         category: 'assessment',
         title:
-          fact.moduleId === 'adaptive-practice'
+          isAdaptiveAssessmentModule(fact.moduleId)
             ? '完成自适应练习'
             : '完成一次题目练习',
-        description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${Math.round(fact.score * 100)}` : ''}`,
+        description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${formatFactScore(fact.score)}` : ''}`,
         timestamp: fact.startedAt.toISOString(),
         href: '/assessment/adaptive-practice',
         badge: '评测',
@@ -478,8 +505,8 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = getAbilityReport(userId);
-    const adaptiveDiagnostic = getDiagnostic(userId);
+    const adaptiveReport = await getAbilityReportWithPersistenceFallback(userId);
+    const adaptiveDiagnostic = await getDiagnosticWithPersistenceFallback(userId);
     const recommendationCards = mapRecommendationsToResourceCards(
       dedupeRecommendations(await generateRecommendations(userId))
     ).slice(0, 4);
@@ -548,6 +575,7 @@ export async function GET() {
         }),
       },
       evidenceStatus,
+      adaptiveLearnerState,
       arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,

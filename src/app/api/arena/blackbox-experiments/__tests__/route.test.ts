@@ -65,6 +65,22 @@ describe('POST /api/arena/blackbox-experiments', () => {
           inputEnergy: 1,
           dataQuality: 0.7,
         },
+        registeredModel: {
+          id: 'registered-identification-model-route',
+          userId: 'student-1',
+          taskId: 'task-cruise-roll-blackbox-identification',
+          datasetHash: 'arena-blackbox-dataset-route',
+          sourceExperimentId: 'experiment-row-1',
+          modelType: 'second-order-fit',
+          validationSummary: {
+            validationFit: 0.7,
+            dataQuality: 0.7,
+            sampleCount: 1,
+            signalType: 'step',
+          },
+          protocolVersion: 'arena-identification-model-v1',
+          createdAt: '2026-05-11T10:20:00.000Z',
+        },
         createdAt: '2026-05-11T10:20:00.000Z',
       },
       budget: { limit: 20, used: 1, remaining: 19 },
@@ -106,6 +122,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
 
     expect(response.status).toBe(200);
     expect(payload.dataset.datasetHash).toBe('arena-blackbox-dataset-route');
+    expect(payload.dataset.registeredModel.id).toBe('registered-identification-model-route');
     expect(payload.budget.remaining).toBe(19);
     expect(mocks.getArenaPlantAdapterForPublicExperimentTaskId).toHaveBeenCalledWith('task-cruise-roll-blackbox-identification');
     expect(mocks.runPublicExperiment).toHaveBeenCalledWith(expect.objectContaining({
@@ -113,6 +130,7 @@ describe('POST /api/arena/blackbox-experiments', () => {
       experimentInput,
       userId: 'student-1',
       store: { marker: 'blackbox-store' },
+      identificationModelStore: { marker: 'blackbox-store' },
     }));
   });
 
@@ -129,6 +147,24 @@ describe('POST /api/arena/blackbox-experiments', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('budget exceeded');
+  });
+
+  it('reports pending Arena model registry migrations as a specific Chinese error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    const migrationError = Object.assign(
+      new Error('The table `ArenaIdentificationModel` does not exist in the current database.'),
+      { code: 'P2021', meta: { table: 'public.ArenaIdentificationModel' } },
+    );
+    mocks.runPublicExperiment.mockRejectedValueOnce(migrationError);
+
+    const response = await postJson({
+      taskId: 'task-cruise-roll-blackbox-identification',
+      experimentInput,
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
   });
 
   it('maps unsupported adapter selection to 400 without falling back to mock data', async () => {

@@ -573,46 +573,66 @@ export function UNIT_5_3StepContentPanel({
     onInlineReveal: onAdvanceReveal,
   });
   const summaryCardRenderer = baseRegistry['summary-card'];
-  const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
-    ...baseRegistry,
-    'interactive-figure-panel': ({ step: manifestStep, module }: { step: InteractiveRuntimeStepManifest; module: InteractiveRuntimeModuleManifest }) => {
-      if (panelId(module) === 'rust_turning_radius_panel') {
-        return <TurningRadiusPanel step={manifestStep} module={module} onParameterChange={onParameterChange} />;
-      }
-      return <div className="premium-lesson-panel text-sm text-rose-700">未知互动图面板：{panelId(module)}</div>;
-    },
-    'summary-card': (props) => {
-      const manifestModule = props.module as InteractiveRuntimeModuleManifest;
-      if (manifestModule.id === 'class-stats') {
-        if (role === 'student') {
-          return (
-            <Unit53StudentSummaryStats
-              submittedCount={submittedCount}
-              viewedCount={viewedCount}
-              turningSubmissionCount={turningSubmissionCount}
-              prePostCompletion={prePostCompletion}
-            />
-          );
-        }
+  const renderInteractiveFigurePanel = ({
+    step: manifestStep,
+    module,
+  }: {
+    step: InteractiveRuntimeStepManifest;
+    module: InteractiveRuntimeModuleManifest;
+  }) => {
+    if (panelId(module) === 'rust_turning_radius_panel') {
+      return <TurningRadiusPanel step={manifestStep} module={module} onParameterChange={onParameterChange} />;
+    }
+    return <div className="premium-lesson-panel text-sm text-rose-700">未知互动图面板：{panelId(module)}</div>;
+  };
+  const renderSummaryCard = (props: Parameters<InteractiveModuleRegistry<ContentRegistryExtra>[string]>[0]) => {
+    const manifestModule = props.module as InteractiveRuntimeModuleManifest;
+    if (manifestModule.id === 'class-stats') {
+      if (role === 'student') {
         return (
-          <Unit53TeacherSummaryStats
-            studentCount={studentCount}
-            submittedStudents={submittedStudents}
-            totalResponses={totalResponses}
-            turningCoverage={turningCoverage}
-            objectiveAccuracy={objectiveAccuracy}
-            postTestCompletion={postTestCompletion}
-            misconceptionSummary={misconceptionSummary}
+          <Unit53StudentSummaryStats
+            submittedCount={submittedCount}
+            viewedCount={viewedCount}
+            turningSubmissionCount={turningSubmissionCount}
+            prePostCompletion={prePostCompletion}
           />
         );
       }
-      return summaryCardRenderer?.(props) ?? null;
+      return (
+        <Unit53TeacherSummaryStats
+          studentCount={studentCount}
+          submittedStudents={submittedStudents}
+          totalResponses={totalResponses}
+          turningCoverage={turningCoverage}
+          objectiveAccuracy={objectiveAccuracy}
+          postTestCompletion={postTestCompletion}
+          misconceptionSummary={misconceptionSummary}
+        />
+      );
+    }
+    return summaryCardRenderer?.(props) ?? null;
+  };
+  const moduleRegistry: InteractiveModuleRegistry<ContentRegistryExtra> = {
+    ...baseRegistry,
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+        return renderInteractiveFigurePanel(props);
+      }
+      return baseRegistry['compute.panel'](props);
+    },
+    'content.cardSet': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      if (props.module.id === 'class-stats' && legacyKind === 'summary-card') {
+        return renderSummaryCard(props);
+      }
+      return baseRegistry['content.cardSet'](props);
     },
   };
   if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
-    moduleRegistry['step-reveal-chain'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['step-reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
-    moduleRegistry['image-panel'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
+    moduleRegistry['content.reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
+    moduleRegistry['content.figure'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
   }
 
   return (

@@ -55,31 +55,39 @@
           "id": "entry-problem",
           "title": "迁移问题入口",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "title": "导入漫画",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-cover-comic.png",
-            "caption_key": "cover_caption"
+            "caption_key": "cover_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-summary",
           "title": "证据责任收束",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -162,10 +170,13 @@
           "id": "goal-list",
           "title": "完成本次课程后，学习者能够",
           "region": "goals",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goals"
+            "block_key": "goals",
+            "legacyKind": "objective-list",
+            "presentation": "single",
+            "semanticRole": "objective"
           }
         }
       ],
@@ -246,14 +257,17 @@
           "id": "pretest-quiz",
           "title": "预备知识题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "first-order-parameter",
               "closed-loop-error",
               "rudder-limit"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -269,7 +283,7 @@
             "id": "first-order-parameter",
             "title": "一阶对象参数影响",
             "prompt": "一阶对象 $G(s)=K/(Ts+1)$ 中，若 $K$ 变小且 $T$ 变大，在相同阶跃输入下，输出响应最可能表现为：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -283,7 +297,7 @@
             "id": "closed-loop-error",
             "title": "闭环误差含义",
             "prompt": "闭环跟踪问题中，$e(t)=r(t)-y(t)$ 的含义是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -297,7 +311,7 @@
             "id": "rudder-limit",
             "title": "执行限幅含义",
             "prompt": "舵角限制 $|\\delta|\\le 12^\\circ$ 的直接含义是：",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -378,23 +392,27 @@
           "id": "model-formula",
           "title": "离散对象关系",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "model-activity",
           "title": "模型关系判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "model-advantage",
               "model-evidence"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -447,7 +465,7 @@
             "id": "model-advantage",
             "title": "模型驱动优势来源",
             "prompt": "模型驱动控制的优势主要来自什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -461,7 +479,7 @@
             "id": "model-evidence",
             "title": "模型结构可信后的证据",
             "prompt": "模型结构可信时，哪些判断更容易建立证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -544,22 +562,26 @@
           "id": "pressure-table",
           "title": "单一模型压力表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pressure_table"
+            "block_key": "pressure_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "pressure-match",
           "title": "压力来源匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "pressure-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -602,7 +624,7 @@
             "id": "pressure-match",
             "title": "复杂链路压力来源匹配",
             "prompt": "将左侧完整现象匹配到右侧压力类别。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "match_items": [
@@ -736,34 +758,42 @@
           "id": "prediction-problem",
           "title": "航向模型题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "prediction-panel",
           "title": "预测偏差读图面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_prediction_error_panel",
             "fallback_image": "/course-runtime/lessons/5-4/media/5-4-model-mismatch-prediction.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "prediction-submit",
           "title": "观察记录提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "prediction-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -832,7 +862,7 @@
             "id": "prediction-observation",
             "title": "预测偏差观察记录",
             "prompt": "记录一个观察区间、一个最大误差读数，并说明预测误差下降说明什么、还不能说明什么。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "预测误差下降说明当前数据修正能改善预测；还不能证明后段工况覆盖充分或闭环安全已经成立。"
@@ -910,34 +940,40 @@
           "id": "mpc-image",
           "title": "MPC 滚动优化原理框图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-mpc-principle-block.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "mpc-formula",
           "title": "目标函数与约束",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "mpc-activity",
           "title": "MPC 结构判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "first-action",
               "mpc-elements"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -997,7 +1033,7 @@
             "id": "first-action",
             "title": "滚动执行动作",
             "prompt": "MPC 每次求得一串候选控制量后实际执行哪一部分？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1011,7 +1047,7 @@
             "id": "mpc-elements",
             "title": "MPC 三要素",
             "prompt": "MPC 的三个核心要素是什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1094,22 +1130,27 @@
           "id": "mpc-boundary-case",
           "title": "舵角约束辨析题面",
           "region": "case",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "case_text"
+            "block_key": "case_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "mpc-boundary-choice",
           "title": "MPC 双重依赖判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "mpc-dependency"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1133,7 +1174,7 @@
             "id": "mpc-dependency",
             "title": "MPC 双重依赖",
             "prompt": "上述例子中，MPC 的双重依赖是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1216,33 +1257,40 @@
           "id": "data-driven-definition",
           "title": "数据驱动定义",
           "region": "concept",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "definition"
+            "block_key": "definition",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "model-data-table",
           "title": "模型驱动与数据驱动责任差异",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "compare_table"
+            "block_key": "compare_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "data-driven-activity",
           "title": "信息来源判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "source-change",
               "coverage-risk"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1301,7 +1349,7 @@
             "id": "source-change",
             "title": "信息来源变化",
             "prompt": "数据驱动控制的核心变化是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1315,7 +1363,7 @@
             "id": "coverage-risk",
             "title": "覆盖不足风险",
             "prompt": "若数据只覆盖正常工况，主要风险是什么？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1398,31 +1446,39 @@
           "id": "online-intro",
           "title": "局部责任说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "online-image",
           "title": "数据驱动 MPC 在线模型更新链路",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-data-driven-mpc-block.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "online-reveal",
           "title": "在线模型更新显影链",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_chain"
+            "block_key": "reveal_chain",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1479,7 +1535,7 @@
             "title": "按教师节奏阅读在线模型更新链。",
             "prompt": "按教师节奏阅读在线模型更新链。",
             "reference_answer": "见课堂讨论与教师反馈。",
-            "response_kind": "text",
+            "response_kind": "text.short",
             "submit_scope": "card",
             "layout_span": "full",
             "options": []
@@ -1555,32 +1611,39 @@
           "id": "condition-table",
           "title": "数据驱动进入闭环条件",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "condition_table"
+            "block_key": "condition_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "condition-case",
           "title": "缺项误判案例",
           "region": "case",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "case_text"
+            "block_key": "case_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "condition-choice",
           "title": "缺项证据判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "condition-gaps"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1633,7 +1696,7 @@
             "id": "condition-gaps",
             "title": "进入条件缺项判断",
             "prompt": "该案例缺少哪些进入条件证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -1722,33 +1785,40 @@
           "id": "navigation-task",
           "title": "近岸航行任务书",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "task"
+            "block_key": "task",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "relation-table",
           "title": "模型承担与数据补足关系",
           "region": "relations",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "relation_table"
+            "block_key": "relation_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "relation-activity",
           "title": "局部责任判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "hull-dynamics",
               "perception-error"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1801,7 +1871,7 @@
             "id": "hull-dynamics",
             "title": "船体动态责任",
             "prompt": "船体低速操纵动态优先由哪类方法承担？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1815,7 +1885,7 @@
             "id": "perception-error",
             "title": "感知误差局部职责",
             "prompt": "感知误差随水域密度变化明显时，数据驱动可承担什么局部职责？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -1898,32 +1968,39 @@
           "id": "drift-problem",
           "title": "长时漂移任务条件",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "route-table",
           "title": "三路线建模与控制信息",
           "region": "routes",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "route_table"
+            "block_key": "route_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "route-match",
           "title": "路线信息匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "route-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1977,7 +2054,7 @@
             "id": "route-match",
             "title": "三路线匹配",
             "prompt": "将传统固定控制、名义模型 MPC、数据驱动模型 MPC 匹配到对应信息来源和主要局限。",
-            "response_kind": "drag_match",
+            "response_kind": "matching.pairs",
             "submit_scope": "per_card",
             "layout_span": "full",
             "options": [
@@ -2069,17 +2146,20 @@
           "id": "route-compare-intro",
           "title": "比较任务说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "route-compare-panel",
           "title": "三路线仿真比较面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_three_route_compare_panel",
@@ -2087,19 +2167,24 @@
               "/course-runtime/lessons/5-4/media/5-4-model-parameter-drift.png",
               "/course-runtime/lessons/5-4/media/5-4-mpc-drift-comparison.png"
             ],
-            "block_key": "metrics"
+            "block_key": "metrics",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "route-observation",
           "title": "收益与代价观察",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "route-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2207,7 +2292,7 @@
             "id": "route-observation",
             "title": "性能收益与新增代价",
             "prompt": "选择一条路线和一个观察区间，写出一个性能收益和一个新增代价。",
-            "response_kind": "observation_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "full",
             "reference_answer": "数据驱动模型 MPC 可降低累计绝对误差 IAE，但舵角触边比例升高，需要数据覆盖、在线辨识稳定性和约束监控。"
@@ -2285,33 +2370,40 @@
           "id": "responsibility-table",
           "title": "复杂航行任务中的方法分配",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "responsibility_table"
+            "block_key": "responsibility_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-cases",
           "title": "数据驱动控制的边界情况",
           "region": "boundary",
-          "kind": "summary-card-grid",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary_cases"
+            "block_key": "boundary_cases",
+            "legacyKind": "summary-card-grid",
+            "presentation": "grid",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "responsibility-activity",
           "title": "责任分配判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "no-whole-switch",
               "simulation-validation"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2374,7 +2466,7 @@
             "id": "no-whole-switch",
             "title": "整体切换风险",
             "prompt": "看到模型失配时，为什么不应整体切换到数据驱动？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2388,7 +2480,7 @@
             "id": "simulation-validation",
             "title": "仿真数据真实验证",
             "prompt": "仿真数据表现良好时，部署前仍需检查什么？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "half",
             "options": [
@@ -2472,24 +2564,30 @@
           "id": "posttest-note",
           "title": "后测说明",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "note"
+            "block_key": "note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-quiz",
           "title": "后测题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "error-reduction",
               "closed-loop-evidence",
               "local-duty"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2512,7 +2610,7 @@
             "id": "error-reduction",
             "title": "误差降低比例",
             "prompt": "某数据修正模型把最大预测误差从 9.6° 降到 4.8°，误差降低比例是多少？",
-            "response_kind": "single_choice",
+            "response_kind": "choice.single",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2526,7 +2624,7 @@
             "id": "closed-loop-evidence",
             "title": "闭环证据补充",
             "prompt": "误差降低后，仍需补充哪些闭环证据？",
-            "response_kind": "multi_select",
+            "response_kind": "choice.multi",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "options": [
@@ -2548,7 +2646,7 @@
             "id": "local-duty",
             "title": "局部责任短答",
             "prompt": "船体模型可靠，但感知误差随水域密度变化明显。写出一项数据驱动局部职责和一项必须保留的模型或规则职责。",
-            "response_kind": "fill_text",
+            "response_kind": "text.short",
             "submit_scope": "per_card",
             "layout_span": "one_third",
             "reference_answer": "数据可估计不同水域密度下的感知误差范围并转化为安全距离裕度；船体模型、执行器约束和安全保护仍需显式保留。"
@@ -2629,31 +2727,38 @@
           "id": "info-image",
           "title": "信息图总结",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-info.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-content",
           "title": "收益、代价与边界",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "learning-stats",
           "title": "课堂表现统计",
           "region": "stats",
-          "kind": "learning-stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "stats"
+            "block_key": "stats",
+            "legacyKind": "learning-stat-panel",
+            "presentation": "single"
           }
         }
       ],
