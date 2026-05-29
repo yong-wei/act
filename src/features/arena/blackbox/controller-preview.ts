@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import { buildSimulationTaskSpec } from '@/resources/simulations/core/run-contract';
 import {
   createSimulationRunContext,
@@ -443,8 +444,7 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
         update: {},
       });
       const previewBoundary = getArenaPreviewBoundaryMetadata(input.preview);
-      const canonicalRun = await tx.simulationRun.create({
-        data: {
+      const canonicalRunData = {
           ownerUserId: input.userId,
           classId: owner?.profile?.classId ?? null,
           runKind: 'arena_preview',
@@ -469,10 +469,11 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
           createdAt: new Date(input.createdAt),
           startedAt: new Date(input.createdAt),
           completedAt: new Date(input.createdAt),
-        },
+        };
+      const canonicalRun = await tx.simulationRun.create({
+        data: canonicalRunData,
       });
-      await tx.simulationTrace.create({
-        data: {
+      const canonicalTraceData = {
           runId: canonicalRun.id,
           protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',
           runtimeVersion: input.preview.replay?.runtimeVersion ?? 'unknown',
@@ -483,8 +484,31 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
           sampleCount: input.preview.trace.length,
           sampleCadence: inferTraceSampleCadence(input.preview.trace),
           sampleStorageUri: `ArenaVirtualSimulationRun:${previewRow.id}#trace`,
-        },
+        };
+      const canonicalTrace = await tx.simulationTrace.create({
+        data: canonicalTraceData,
       });
+      await persistSimulationAgentEvidenceMaterialization(
+        {
+          learningFact: tx.learningFact,
+          learningEvidenceDraft: tx.learningEvidenceDraft,
+          evidenceOutbox: tx.evidenceOutbox,
+        },
+        {
+          simulationRuns: [
+            {
+              run: {
+                id: canonicalRun.id,
+                ...canonicalRunData,
+              },
+              trace: {
+                id: canonicalTrace.id,
+                ...canonicalTraceData,
+              },
+            },
+          ],
+        },
+      );
 
       return tx.arenaVirtualSimulationRun.update({
         where: { id: previewRow.id },

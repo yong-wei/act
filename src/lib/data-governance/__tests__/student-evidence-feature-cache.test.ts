@@ -280,7 +280,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       },
     });
 
-    expect(payload.payloadVersion).toBe('student-evidence-features.v3');
+    expect(payload.payloadVersion).toBe(STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION);
     expect(payload.features.adaptiveLearnerState).toMatchObject({
       payloadVersion: 'adaptive-learner-state.v1',
       sourceCoverage: {

@@ -20,6 +20,7 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
+import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -334,6 +335,13 @@ export interface KonlingRuntimeDb {
   };
   learningFact?: {
     findMany?: (args: any) => Promise<unknown[]>;
+    createMany?: (args: any) => Promise<{ count: number }>;
+  };
+  learningEvidenceDraft?: {
+    createMany?: (args: any) => Promise<{ count: number }>;
+  };
+  evidenceOutbox?: {
+    createMany?: (args: any) => Promise<{ count: number }>;
   };
   adaptiveMasteryUpdate?: {
     findMany?: (args: any) => Promise<unknown[]>;
@@ -896,6 +904,13 @@ export async function completeKonlingToolRun(
     completedAt: now,
     latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
   });
+  await persistKonlingAgentToolEvidence(db, {
+    ...readRecord(toolRun),
+    status: 'succeeded',
+    outputSummary: redactSensitivePayload(input.output ?? {}),
+    completedAt: now,
+    latencyMs: calculateLatencyMs(getValue(toolRun, 'startedAt'), now),
+  });
   return { success: true, status: 'succeeded' };
 }
 
@@ -965,16 +980,19 @@ async function runKonlingRuntimeTool<T>(
       });
     }
     if (toolRun.status === 'failed') {
-      throw new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。');
+      if (toolName !== 'run_virtual_simulation') {
+        throw new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。');
+      }
+    } else {
+      return assertToolResult(runtimeInput.scope, toolName, {
+        toolRunReused: true,
+        toolRunId: toolRun.id,
+        toolName,
+        permissionTier: toolRun.permissionTier,
+        status: toolRun.status,
+        message: '该 Konling 工具请求已存在，等待当前执行完成。',
+      });
     }
-    return assertToolResult(runtimeInput.scope, toolName, {
-      toolRunReused: true,
-      toolRunId: toolRun.id,
-      toolName,
-      permissionTier: toolRun.permissionTier,
-      status: toolRun.status,
-      message: '该 Konling 工具请求已存在，等待当前执行完成。',
-    });
   }
 
   try {
@@ -1444,6 +1462,11 @@ async function createKonlingVirtualSimulationRun(
   });
   if (existingRun) {
     assertSimulationRunAccess(scope, existingRun as SimulationDbRun);
+    await persistKonlingSimulationEvidence(
+      db,
+      existingRun,
+      arrayOfRecords(getValue(existingRun, 'traces'))[0] ?? null,
+    );
     return buildSimulationRunCreationOutput(existingRun as SimulationDbRun);
   }
   const taskSpec = buildScopedSimulationTaskSpec(scope, input.taskSpec, refs.agentSessionId);
@@ -1502,7 +1525,56 @@ async function createKonlingVirtualSimulationRun(
       sampleStorageUri: input.trace?.sampleStorageUri ?? null,
     },
   });
+  await persistKonlingSimulationEvidence(db, run, trace ?? null);
   return buildSimulationRunCreationOutput(run as SimulationDbRun, trace as SimulationDbTrace | null, taskSpec);
+}
+
+async function persistKonlingSimulationEvidence(
+  db: KonlingRuntimeDb,
+  run: unknown,
+  trace: unknown | null,
+) {
+  if (!db.learningFact?.createMany) return;
+  await persistSimulationAgentEvidenceMaterialization(
+    {
+      learningFact: { createMany: db.learningFact.createMany },
+      learningEvidenceDraft: db.learningEvidenceDraft?.createMany
+        ? { createMany: db.learningEvidenceDraft.createMany }
+        : undefined,
+      evidenceOutbox: db.evidenceOutbox?.createMany
+        ? { createMany: db.evidenceOutbox.createMany }
+        : undefined,
+    },
+    {
+      simulationRuns: [
+        {
+          run: readRecord(run),
+          trace: trace ? readRecord(trace) : null,
+        },
+      ],
+    },
+  );
+}
+
+async function persistKonlingAgentToolEvidence(
+  db: KonlingRuntimeDb,
+  toolRun: Record<string, unknown>,
+) {
+  if (!db.learningFact?.createMany) return;
+  await persistSimulationAgentEvidenceMaterialization(
+    {
+      learningFact: { createMany: db.learningFact.createMany },
+      learningEvidenceDraft: db.learningEvidenceDraft?.createMany
+        ? { createMany: db.learningEvidenceDraft.createMany }
+        : undefined,
+      evidenceOutbox: db.evidenceOutbox?.createMany
+        ? { createMany: db.evidenceOutbox.createMany }
+        : undefined,
+    },
+    {
+      agentToolRuns: [toolRun],
+    },
+  );
 }
 
 function buildKonlingSimulationSourceRefId(scope: KonlingRuntimeScope, idempotencyKey: string) {

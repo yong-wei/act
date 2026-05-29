@@ -1332,6 +1332,15 @@ describe('konling agent runtime', () => {
           createdAt: new Date('2026-05-28T00:00:01Z'),
         })),
       },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningEvidenceDraft: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
     };
     const runtime = buildKonlingToolRuntime({
       db,
@@ -1381,6 +1390,45 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'simulation',
+          sourceEventId: 'simulation-agent-evidence:simulation_run:run-agent-1:1.0',
+          sourceLogId: 'SimulationRun:run-agent-1',
+          contextJson: expect.objectContaining({
+            simulation: expect.objectContaining({
+              runId: 'run-agent-1',
+              traceReference: 'SimulationTrace:trace-agent-1',
+              agentAssisted: true,
+              governanceContext: expect.objectContaining({
+                classId: 'class-1',
+              }),
+            }),
+          }),
+        }),
+      ],
+    }));
+    expect(db.learningEvidenceDraft.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          sourceType: 'simulation_run',
+          dedupeKey: 'simulation_run:run-agent-1:1.0',
+        }),
+      ],
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          causationId: 'SimulationRun:run-agent-1',
+          dedupeKey: 'simulation_run:run-agent-1:1.0',
+        }),
+      ],
+    }));
   });
 
   it('reuses idempotent virtual simulation run output without creating duplicate runs', async () => {
@@ -1421,6 +1469,15 @@ describe('konling agent runtime', () => {
       },
       simulationTrace: {
         create: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      learningEvidenceDraft: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
     };
     const runtime = buildKonlingToolRuntime({
@@ -1476,7 +1533,12 @@ describe('konling agent runtime', () => {
         },
       },
       status: 'completed',
-      summary: { metrics: { settlingTime: 4.2 }, lowEvidence: false },
+      summary: {
+        metrics: { settlingTime: 4.2 },
+        lowEvidence: false,
+        agentSessionId: 'agent-session-previous',
+        agentToolRunId: 'tool-run-previous',
+      },
       replayToken: 'konling-replay:existing',
       protocolVersion: '1.0',
       runtimeVersion: 'konling-simulation-tool-v1',
@@ -1544,6 +1606,15 @@ describe('konling agent runtime', () => {
       simulationTrace: {
         create: vi.fn(),
       },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      learningEvidenceDraft: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
     };
     const runtime = buildKonlingToolRuntime({
       db,
@@ -1577,6 +1648,175 @@ describe('konling agent runtime', () => {
     expect(db.simulationRun.create).not.toHaveBeenCalled();
     expect(db.simulationTrace.create).not.toHaveBeenCalled();
     expect(db.simulationTaskSpec.create).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          sourceEventId: 'simulation-agent-evidence:simulation_run:run-agent-existing:1.0',
+        }),
+      ],
+    }));
+    expect(db.learningEvidenceDraft.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          sourceType: 'simulation_run',
+          dedupeKey: 'simulation_run:run-agent-existing:1.0',
+          sourceRefs: expect.objectContaining({
+            agentSessionId: 'agent-session-previous',
+            agentToolRunId: 'tool-run-previous',
+            simulationRunId: 'run-agent-existing',
+          }),
+        }),
+      ],
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          eventType: 'simulation_agent_evidence.draft_created',
+          dedupeKey: 'simulation_run:run-agent-existing:1.0',
+          payload: expect.objectContaining({
+            source: expect.objectContaining({
+              agentSessionId: 'agent-session-previous',
+              agentToolRunId: 'tool-run-previous',
+              simulationRunId: 'run-agent-existing',
+            }),
+          }),
+        }),
+      ],
+    }));
+  });
+
+  it('retries failed idempotent virtual simulation materialization by reusing the existing run', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const existingRun = {
+      id: 'run-agent-existing',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'simulation',
+      resourceId: 'resource-1',
+      sessionId: 'agent-session-1',
+      runKind: 'agent_experiment',
+      sourceDomain: 'konling_agent',
+      sourceRefId: 'konling:student-1:course:simulation:resource:resource-1:page:pid-default:run_virtual_simulation:run-key-1',
+      status: 'completed',
+      summary: { metrics: { settlingTime: 4.2 }, lowEvidence: false },
+      protocolVersion: '1.0',
+      runtimeVersion: 'konling-simulation-tool-v1',
+      modelVersion: 'step-response',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      traces: [
+        {
+          id: 'trace-agent-existing',
+          checksum: 'sha256:trace-existing',
+          summaryMetrics: { settlingTime: 4.2 },
+          sampleCount: 120,
+          sampleCadence: 0.05,
+          createdAt: new Date('2026-05-28T00:00:01Z'),
+        },
+      ],
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['run_virtual_simulation'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          if (!where?.id) {
+            return {
+              id: 'tool-run-failed',
+              agentSessionId: 'agent-session-1',
+              ownerUserId: 'student-1',
+              actorUserId: 'student-1',
+              targetUserId: 'student-1',
+              toolName: 'run_virtual_simulation',
+              permissionTier: 'run',
+              approvalState: 'not_required',
+              status: 'failed',
+              inputSummary: { idempotencyKey: 'run-key-1' },
+              outputSummary: null,
+              errorSummary: { message: 'materialization failed after run creation' },
+              idempotencyKey: 'run-key-1',
+              correlationId: 'corr-failed',
+              startedAt: new Date('2026-05-28T00:00:00Z'),
+              completedAt: new Date('2026-05-28T00:00:01Z'),
+              latencyMs: 1000,
+            };
+          }
+          return {
+            id: where.id,
+            agentSessionId: 'agent-session-1',
+            ownerUserId: 'student-1',
+            actorUserId: 'student-1',
+            targetUserId: 'student-1',
+            toolName: 'run_virtual_simulation',
+            permissionTier: 'run',
+            approvalState: 'not_required',
+            status: 'failed',
+            inputSummary: { idempotencyKey: 'run-key-1' },
+            outputSummary: null,
+            errorSummary: { message: 'materialization failed after run creation' },
+            idempotencyKey: 'run-key-1',
+            correlationId: 'corr-failed',
+            startedAt: new Date('2026-05-28T00:00:00Z'),
+            completedAt: new Date('2026-05-28T00:00:01Z'),
+            latencyMs: 1000,
+          };
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue(existingRun),
+        create: vi.fn(),
+      },
+      simulationTrace: {
+        create: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningEvidenceDraft: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.runVirtualSimulation({
+      idempotencyKey: 'run-key-1',
+      taskSpec: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        disturbancePolicy: { family: 'none' },
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+    })).resolves.toMatchObject({
+      simulationRunId: 'run-agent-existing',
+      traceId: 'trace-agent-existing',
+    });
+    expect(db.simulationRun.create).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'succeeded',
+      }),
+    }));
   });
 
   it('requires approval before applying controller patches and applies approved patches to the scoped session draft', async () => {
