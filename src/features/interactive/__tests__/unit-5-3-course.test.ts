@@ -91,7 +91,11 @@ describe('unit 5-3 interactive course', () => {
     const step11 = manifest.steps.find((step) => step.id === 'step-11');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 
-    expect(step11?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
+    expect(step11?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
     expect(step11?.modules.find((module) => module.id === 'turning-rust-panel')?.payload.panel_id).toBe('rust_turning_radius_panel');
     expect(stepPanelsSource).toContain("analysisKind: 'turning_radius'");
     expect(stepPanelsSource).toContain('hasCompleteTurningRadiusResult');

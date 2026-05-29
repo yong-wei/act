@@ -100,7 +100,8 @@ describe('unit 5-5 interactive course', () => {
     expect(step15?.modules.find((module) => module.id === 'heading-rl-training-panel')?.payload.panel_id).toBe('rust_heading_rl_training_panel');
     expect(step15?.modules.find((module) => module.id === 'heading-summary')).toMatchObject({
       region: 'summary',
-      kind: 'summary-card',
+      kind: 'content.cardSet',
+      payload: { legacyKind: 'summary-card' },
     });
     expect(runtimeSource).toContain('compute_rl_training');
     expect(stepPanelsSource).toContain('rl_result:${activeTab}');
@@ -120,7 +121,8 @@ describe('unit 5-5 interactive course', () => {
 
     expect(step10?.modules.find((module) => module.id === 'risk-matrix-figure')).toBeUndefined();
     expect(step10?.modules.find((module) => module.id === 'risk-matrix-table')).toMatchObject({
-      kind: 'native-table',
+      kind: 'content.table',
+      payload: { legacyKind: 'native-table' },
       mustBeVisible: true,
     });
     const step10ActivityCards = step10?.interactionSpec.activityCards;

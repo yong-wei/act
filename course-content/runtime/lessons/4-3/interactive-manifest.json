@@ -51,21 +51,26 @@
           "id": "cover-comic",
           "title": "工程复合方案导入漫画",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-cover-comic.png",
-            "alt": "从单结构候选走向可运行复合控制方案"
+            "alt": "从单结构候选走向可运行复合控制方案",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "opening-problem",
           "title": "可运行方案问题",
           "region": "lead",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -145,10 +150,13 @@
           "id": "course-goals",
           "title": "本次课程目标",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goals"
+            "block_key": "goals",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -238,17 +246,20 @@
           "id": "pretest-intro",
           "title": "前测说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "前测只检查进入本课所需的反馈、扰动通道和约束读图基础。"
+            "text": "前测只检查进入本课所需的反馈、扰动通道和约束读图基础。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest-quiz",
           "title": "前置基础题组",
           "region": "activity",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
@@ -256,7 +267,10 @@
               "q-disturbance",
               "q-time",
               "q-order"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -402,33 +416,41 @@
           "id": "candidate-gap-table",
           "title": "单结构候选留下的设计缺口",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "table"
+            "block_key": "table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "engineering-gap",
           "title": "复合控制入口",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "gap"
+            "block_key": "gap",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "candidate-gap-activity",
           "title": "设计缺口判断",
           "region": "activity",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "main-start",
               "gap-select"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -591,32 +613,41 @@
           "id": "compound-boundary-table",
           "title": "两种复合控制口径",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "table"
+            "block_key": "table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "lesson-scope",
           "title": "本讲处理范围",
           "region": "scope",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "scope"
+            "block_key": "scope",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "compound-classify",
           "title": "复合控制分类",
           "region": "activity",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "classify"
-            ]
+            ],
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "sorting"
           }
         }
       ],
@@ -743,31 +774,39 @@
           "id": "feedback-problem",
           "title": "反馈主结构起点",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "compound-formula-reveal",
           "title": "复合控制总表达显影",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "compound-structure",
           "title": "经典复合控制基本结构",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-classic-compound-control-structure.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         }
       ],
@@ -888,43 +927,53 @@
           "id": "disturbance-problem",
           "title": "扰动前馈题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "disturbance-reveal",
           "title": "扰动前馈抵消条件",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "disturbance-structure",
           "title": "扰动前馈复合结构",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-structure.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "disturbance-role",
           "title": "反馈保底判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "disturbance-role-card"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1068,43 +1117,53 @@
           "id": "reference-problem",
           "title": "参考前馈题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "reference-reveal",
           "title": "参考前馈推导链",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "reference-structure",
           "title": "参考前馈复合结构",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-reference-feedforward-structure.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "inverse-risk-card",
           "title": "逆模型风险判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "inverse-risk"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1242,32 +1301,39 @@
           "id": "bode-boundary-intro",
           "title": "主环路分析边界",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "bode-boundary-table",
           "title": "单一 Bode 分析难以覆盖的内容",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "table"
+            "block_key": "table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "validation-evidence-card",
           "title": "首轮验证证据选择",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "validation-evidence"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1406,22 +1472,28 @@
           "id": "derivative-formulas",
           "title": "微分滤波与输出微分公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formulas"
+            "block_key": "formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "derivative-match",
           "title": "实现作用配对",
           "region": "activity",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "derivative-match-card"
-            ]
+            ],
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "sorting"
           }
         }
       ],
@@ -1533,33 +1605,39 @@
           "id": "setpoint-formula",
           "title": "给定滤波与二自由度控制律",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula"
+            "block_key": "formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "setpoint-structure",
           "title": "给定滤波复合结构",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-setpoint-filter-structure.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "setpoint-judgment",
           "title": "平顺性判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "setpoint-smooth"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1681,43 +1759,52 @@
           "id": "actuator-limits",
           "title": "执行器限制条件",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "limits"
+            "block_key": "limits",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "antiwindup-reveal",
           "title": "抗积分饱和反算链",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "antiwindup-structure",
           "title": "限幅斜率限制与抗饱和结构",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-antiwindup-implementation-structure.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "antiwindup-judgment",
           "title": "抗饱和作用判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "antiwindup-effect"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1849,32 +1936,38 @@
           "id": "ship-problem",
           "title": "客船航向控制题面",
           "region": "problem",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "channel-table",
           "title": "控制输入与扰动通道",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "channel_table"
+            "block_key": "channel_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "disturbance-path-task",
           "title": "扰动加入点判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "disturbance-path"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2013,34 +2106,41 @@
           "id": "disturbance-ff-formula",
           "title": "扰动前馈参数化表达",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula"
+            "block_key": "formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "disturbance-ff-panel",
           "title": "扰动前馈动态补偿面板",
           "region": "media",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit43_disturbance_feedforward_panel",
             "fallback_image": "/course-runtime/lessons/4-3/media/4-3-disturbance-feedforward-comparison.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "disturbance-ff-submit",
           "title": "扰动前馈参数提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "disturbance-params"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2080,7 +2180,7 @@
             "label": "扰动前馈零点",
             "range": [
               0.02,
-              4.0
+              4
             ],
             "unit": "rad/s"
           },
@@ -2089,7 +2189,7 @@
             "label": "一阶低通截止频率",
             "range": [
               0.02,
-              1.0
+              1
             ],
             "unit": "rad/s"
           },
@@ -2210,34 +2310,41 @@
           "id": "reference-ff-formula",
           "title": "参考前馈低频近似",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula"
+            "block_key": "formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "reference-ff-panel",
           "title": "参考前馈动态补偿面板",
           "region": "media",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit43_reference_feedforward_panel",
             "fallback_image": "/course-runtime/lessons/4-3/media/4-3-reference-feedforward-comparison.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "reference-ff-submit",
           "title": "参考前馈参数提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "reference-params"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2280,7 +2387,7 @@
             "label": "参考前馈低通截止频率",
             "range": [
               0.02,
-              1.0
+              1
             ],
             "unit": "rad/s"
           },
@@ -2400,34 +2507,41 @@
           "id": "setpoint-filter-explain",
           "title": "给定滤波完整讲解",
           "region": "explain",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula"
+            "block_key": "formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "setpoint-filter-panel",
           "title": "给定滤波平顺性观察面板",
           "region": "media",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit43_setpoint_filter_panel",
             "fallback_image": "/course-runtime/lessons/4-3/media/4-3-setpoint-filter-comparison.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "setpoint-filter-submit",
           "title": "给定滤波观察提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "setpoint-filter-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2587,44 +2701,53 @@
           "id": "actuator-protection-formula",
           "title": "执行器保护与抗饱和公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula"
+            "block_key": "formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "antiwindup-panel",
           "title": "抗饱和动态验证面板",
           "region": "media",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit43_antiwindup_panel",
             "fallback_image": "/course-runtime/lessons/4-3/media/4-3-antiwindup-comparison.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "validation-table",
           "title": "经典复合方案首轮记录",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "validation_table"
+            "block_key": "validation_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "issue-list-submit",
           "title": "首轮问题清单提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "issue-list"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2715,7 +2838,7 @@
             "label": "抗饱和时间常数",
             "range": [
               0.3,
-              6.0
+              6
             ],
             "unit": "s"
           }
@@ -2820,24 +2943,30 @@
           "id": "posttest-intro",
           "title": "后测任务",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "text": "用本课形成的判断链检查复合控制初始方案是否成立。"
+            "text": "用本课形成的判断链检查复合控制初始方案是否成立。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-quiz",
           "title": "复合控制后测题组",
           "region": "activity",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "activity_card_ids": [
               "post-q1",
               "post-q2",
               "post-q3"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2968,31 +3097,39 @@
           "id": "summary-infograph",
           "title": "经典复合控制信息图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/4-3/media/4-3-info.png",
-            "alt": "经典复合控制初始方案总结"
+            "alt": "经典复合控制初始方案总结",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-takeaways",
           "title": "本课结论",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "takeaways"
+            "block_key": "takeaways",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "lesson-statistics",
           "title": "课堂表现统计",
           "region": "stats",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "statistics"
+            "block_key": "statistics",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],

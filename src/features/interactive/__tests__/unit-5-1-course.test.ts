@@ -148,8 +148,11 @@ describe('unit 5-1 interactive course', () => {
 
     expect(curveSteps.map((step) => step.id)).toEqual(['step-06', 'step-07', 'step-08', 'step-09', 'step-10', 'step-11']);
     for (const step of curveSteps) {
-      const panel = step.modules.find((module) => module.kind === 'rust-analysis-panel');
+      const panel = step.modules.find(
+        (module) => module.kind === 'compute.panel' && module.payload.legacyKind === 'rust-analysis-panel',
+      );
       expect(panel?.mustBeVisible).toBe(true);
+      expect(panel?.payload.capabilityRef).toBe('rust-analysis');
       expect(step.interactiveFigureSpec.layoutMirror).toBeTruthy();
       expect(step.interactiveFigureSpec.controlsPlacement ?? 'below_figure').toBe('below_figure');
     }

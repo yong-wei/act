@@ -56,35 +56,42 @@
         {
           "id": "cover-comic",
           "region": "lead",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "客船航向与稳定平台情境",
             "image_key": "cover_comic",
             "src": "/course-runtime/lessons/4-1/media/4-1-cover-comic.png",
-            "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+            "caption": "同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "lesson-infograph",
           "region": "lead",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "任务表达课程信息图",
             "image_key": "infograph",
             "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
-            "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+            "caption": "从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "core-question-card",
           "region": "summary",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "intro_question",
-            "title": "导入问题"
+            "title": "导入问题",
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         }
       ],
@@ -188,11 +195,14 @@
         {
           "id": "goal-cards",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "goals",
-            "title": "本次课程目标"
+            "title": "本次课程目标",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -292,34 +302,46 @@
         {
           "id": "pretest-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         },
         {
           "id": "pretest-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         },
         {
           "id": "pretest-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "case-note",
             "title": "前测基本知识点",
-            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。"
+            "text": "本页考察控制系统稳定性判断、时域与频域指标含义、积分误差指标含义，以及指标角色与优先级的基础认识。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         }
       ],
@@ -498,30 +520,40 @@
         {
           "id": "ship-object-block",
           "region": "object",
-          "kind": "graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:ship-object-block"
+            "resolver": "4-1:ship-object-block",
+            "legacyKind": "graphic",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-quad-figure",
           "region": "evidence",
-          "kind": "interactive-figure",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:ship-quad-figure"
+            "resolver": "4-1:ship-quad-figure",
+            "legacyKind": "interactive-figure",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "ship-reading-card",
           "region": "analysis",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-function",
             "title": "对象与开环传函",
-            "formula": "P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)},\\quad L_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}"
+            "formula": "P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)},\\quad L_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}",
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "structured"
           }
         }
       ],
@@ -779,30 +811,40 @@
         {
           "id": "platform-object-block",
           "region": "object",
-          "kind": "graphic",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:platform-object-block"
+            "resolver": "4-1:platform-object-block",
+            "legacyKind": "graphic",
+            "presentation": "single"
           }
         },
         {
           "id": "platform-quad-figure",
           "region": "evidence",
-          "kind": "interactive-figure",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "resolver": "4-1:platform-quad-figure"
+            "resolver": "4-1:platform-quad-figure",
+            "legacyKind": "interactive-figure",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "platform-reading-card",
           "region": "analysis",
-          "kind": "structured-compare",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "transfer-function",
             "title": "对象与开环传函",
-            "formula": "P_p(s)=\\frac{2960\\left(\\frac{s}{15}+1\\right)}{s\\left(\\frac{s}{3}+1\\right)\\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\\right]},\\quad L_p(s)=K_pP_p(s)"
+            "formula": "P_p(s)=\\frac{2960\\left(\\frac{s}{15}+1\\right)}{s\\left(\\frac{s}{3}+1\\right)\\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\\right]},\\quad L_p(s)=K_pP_p(s)",
+            "legacyKind": "structured-compare",
+            "presentation": "single",
+            "semanticRole": "comparison",
+            "interactionKind": "structured-compare",
+            "responseKind": "structured"
           }
         }
       ],
@@ -1056,7 +1098,7 @@
         {
           "id": "case-compare-matrix",
           "region": "matrix",
-          "kind": "comparison-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "matrix-rows",
@@ -1066,29 +1108,39 @@
               "根轨迹首先提示什么。",
               "幅频首先提示什么。",
               "相频与裕度首先提示什么。"
-            ]
+            ],
+            "legacyKind": "comparison-table",
+            "presentation": "single",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "sorting-cards",
           "region": "sorting",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-fact",
             "title": "核心判断",
-            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。"
+            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。",
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "sorting"
           }
         },
         {
           "id": "summary-card",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-fact",
             "title": "核心判断",
-            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。"
+            "text": "语言相同，排序不同；变化的是任务优先级，不是分析语言本身。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1228,7 +1280,7 @@
         {
           "id": "role-question-cards",
           "region": "tables",
-          "kind": "question-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "questions",
@@ -1237,35 +1289,42 @@
               "过程是否可接受。",
               "离风险边界和任务频带还有多远。",
               "全过程累计付出了什么代价。"
-            ]
+            ],
+            "legacyKind": "question-card-row",
+            "presentation": "row",
+            "semanticRole": "question"
           }
         },
         {
           "id": "integral-index-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "integral-formula",
             "title": "积分误差类指标",
-            "formula": "J_{\\mathrm{ISE}}=\\int_{0}^{\\infty} e^2(t)\\,\\mathrm{d}t,\\quad J_{\\mathrm{IAE}}=\\int_{0}^{\\infty} |e(t)|\\,\\mathrm{d}t,\\quad J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty} t|e(t)|\\,\\mathrm{d}t"
+            "formula": "J_{\\mathrm{ISE}}=\\int_{0}^{\\infty} e^2(t)\\,\\mathrm{d}t,\\quad J_{\\mathrm{IAE}}=\\int_{0}^{\\infty} |e(t)|\\,\\mathrm{d}t,\\quad J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty} t|e(t)|\\,\\mathrm{d}t",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "role-matrix-table",
           "region": "tables",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "role-note",
             "title": "角色提醒",
-            "text": "这里只回收最小指标语言，不展开为优化算法专题。"
+            "text": "这里只回收最小指标语言，不展开为优化算法专题。",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "role-match-zone",
           "region": "interaction",
-          "kind": "triple-match",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "questions",
@@ -1274,7 +1333,11 @@
               "过程是否可接受。",
               "离风险边界和任务频带还有多远。",
               "全过程累计付出了什么代价。"
-            ]
+            ],
+            "legacyKind": "triple-match",
+            "presentation": "single",
+            "interactionKind": "drag-match",
+            "responseKind": "matching"
           }
         }
       ],
@@ -1451,7 +1514,7 @@
         {
           "id": "classification-rules",
           "region": "rules",
-          "kind": "rule-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "rules",
@@ -1460,24 +1523,29 @@
               "硬约束：不能破。",
               "软目标：守住底线后继续争取。",
               "观察指标：用来解释代价与后果。"
-            ]
+            ],
+            "legacyKind": "rule-card-row",
+            "presentation": "row",
+            "semanticRole": "rule"
           }
         },
         {
           "id": "metric-card-bank",
           "region": "card-bank",
-          "kind": "card-bank",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "reminder",
             "title": "固定提醒",
-            "text": "角色由任务决定，不由名词决定。"
+            "text": "角色由任务决定，不由名词决定。",
+            "legacyKind": "card-bank",
+            "presentation": "single"
           }
         },
         {
           "id": "classification-sort",
           "region": "sort-area",
-          "kind": "card-sort",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "rules",
@@ -1486,7 +1554,11 @@
               "硬约束：不能破。",
               "软目标：守住底线后继续争取。",
               "观察指标：用来解释代价与后果。"
-            ]
+            ],
+            "legacyKind": "card-sort",
+            "presentation": "single",
+            "interactionKind": "card-sort",
+            "responseKind": "sorting"
           }
         }
       ],
@@ -1608,7 +1680,7 @@
         {
           "id": "task-card-template",
           "region": "template",
-          "kind": "template-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1621,13 +1693,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "template-card",
+            "presentation": "single",
+            "semanticRole": "template"
           }
         },
         {
           "id": "evidence-bank",
           "region": "evidence",
-          "kind": "evidence-bank",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "checklist",
@@ -1638,13 +1713,16 @@
               "当前工作点是否进入允许区域。",
               "再改善会先碰到什么代价。",
               "最后再写排序和任务卡。"
-            ]
+            ],
+            "legacyKind": "evidence-bank",
+            "presentation": "single",
+            "semanticRole": "evidence"
           }
         },
         {
           "id": "task-card-example-a",
           "region": "evidence",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1657,13 +1735,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "task-card-example-b",
           "region": "evidence",
-          "kind": "example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1676,13 +1757,16 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "task-card-form",
           "region": "workspace",
-          "kind": "task-card-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "fields",
@@ -1695,7 +1779,11 @@
               "软目标",
               "观察指标",
               "证据来源"
-            ]
+            ],
+            "legacyKind": "task-card-workspace",
+            "presentation": "single",
+            "semanticRole": "task",
+            "responseKind": "structured"
           }
         }
       ],
@@ -1855,18 +1943,20 @@
         {
           "id": "layer-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "集合关系",
-            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-diagram",
           "region": "diagram",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "meaning",
@@ -1875,29 +1965,37 @@
               "可行域：先排除不能做。",
               "满意域：当前已经可接受。",
               "最优域：后续课程才有资格比较。"
-            ]
+            ],
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-difference-table",
           "region": "diagram",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "warning",
             "title": "边界提醒",
-            "text": "4-1 只把边界画到当前可接受，不直接把稳定写成已经最优。"
+            "text": "4-1 只把边界画到当前可接受，不直接把稳定写成已经最优。",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "layer-judgement",
           "region": "decision",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "formula",
             "title": "集合关系",
-            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}"
+            "formula": "\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}",
+            "legacyKind": "binary-choice",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "binaryChoice"
           }
         }
       ],
@@ -2057,7 +2155,7 @@
         {
           "id": "misconception-cards",
           "region": "cards",
-          "kind": "native-figure",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -2066,13 +2164,15 @@
               "稳定 = 任务完成。",
               "所有指标同等重要。",
               "只看一张图就能直接下结论。"
-            ]
+            ],
+            "legacyKind": "native-figure",
+            "presentation": "single"
           }
         },
         {
           "id": "engineering-checklist",
           "region": "checklist",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "checklist",
@@ -2083,13 +2183,15 @@
               "当前工作点有没有进入当前任务允许区域。",
               "若继续改善，会先碰到哪类代价。",
               "最后该怎样写成任务书。"
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "misconception-judge",
           "region": "decision",
-          "kind": "binary-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
@@ -2098,7 +2200,11 @@
               "稳定 = 任务完成。",
               "所有指标同等重要。",
               "只看一张图就能直接下结论。"
-            ]
+            ],
+            "legacyKind": "binary-choice",
+            "presentation": "single",
+            "interactionKind": "binary-choice",
+            "responseKind": "binaryChoice"
           }
         }
       ],
@@ -2247,12 +2353,15 @@
         {
           "id": "post-quiz-group",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "post-quiz-title",
             "title": "后测题组",
-            "text": "后测只检查任务表达、指标角色与区域分层，不新增概念。"
+            "text": "后测只检查任务表达、指标角色与区域分层，不新增概念。",
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2429,42 +2538,52 @@
         {
           "id": "lesson-infograph",
           "region": "infograph",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "title": "任务表达信息图",
             "image_key": "infograph",
-            "src": "/course-runtime/lessons/4-1/media/4-1-info.png"
+            "src": "/course-runtime/lessons/4-1/media/4-1-info.png",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "takeaway-cards",
           "region": "summary",
-          "kind": "summary-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "takeaways",
-            "title": "四句带走"
+            "title": "四句带走",
+            "legacyKind": "summary-card-row",
+            "presentation": "row",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "next-step-cards",
           "region": "summary",
-          "kind": "next-step-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "next_step",
-            "title": "后续去向"
+            "title": "后续去向",
+            "legacyKind": "next-step-card-row",
+            "presentation": "row",
+            "semanticRole": "nextStep"
           }
         },
         {
           "id": "course-stat-panel",
           "region": "stats",
-          "kind": "stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "block_key": "statistics",
-            "title": "课堂表现统计"
+            "title": "课堂表现统计",
+            "legacyKind": "stat-panel",
+            "presentation": "single"
           }
         }
       ],

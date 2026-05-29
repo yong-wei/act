@@ -88,8 +88,16 @@ describe('unit 5-4 interactive course', () => {
     const step14 = manifest.steps.find((step) => step.id === 'step-14');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 
-    expect(step06?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
-    expect(step14?.modules.some((module) => module.kind === 'interactive-figure-panel')).toBe(true);
+    expect(step06?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
+    expect(step14?.modules.some(
+      (module) => module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'interactive-figure-panel'
+        && module.payload.capabilityRef === 'interactive-figure',
+    )).toBe(true);
     expect(step06?.modules.find((module) => module.id === 'prediction-panel')?.payload.panel_id).toBe('rust_prediction_error_panel');
     expect(step14?.modules.find((module) => module.id === 'route-compare-panel')?.payload.panel_id).toBe('rust_three_route_compare_panel');
     expect(stepPanelsSource).toContain('data-testid="unit-5-4-prediction-error-panel"');

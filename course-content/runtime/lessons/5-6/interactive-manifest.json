@@ -55,31 +55,39 @@
           "id": "entry-problem",
           "title": "冷链仓库路线选择问题",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "title": "冷链方法选择导入漫画",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-6/media/5-6-cover-comic.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-summary",
           "title": "同题比较收束",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -165,10 +173,13 @@
           "id": "goal-list",
           "title": "完成本次课程后，学习者能够",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goals"
+            "block_key": "goals",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -250,14 +261,17 @@
           "id": "pretest-quiz",
           "title": "快慢状态、执行限幅与指标表读法",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "pre-slow-state",
               "pre-actuator-limit",
               "pre-metric-reading"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -386,44 +400,53 @@
           "id": "task-constraint",
           "title": "温区、执行器和扰动约束",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "candidate-routes",
           "title": "三条候选路线",
           "region": "formula",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "route_list"
+            "block_key": "route_list",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "temperature-log",
           "title": "48 小时冷链仓库运行日志",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-6/media/5-6-temperature-log.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "task-activity",
           "title": "同题任务证据判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "same-task-fixed",
               "slow-core-risk"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -580,44 +603,52 @@
           "id": "thermal-formula",
           "title": "二状态热模型方程",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "thermal-model-image",
           "title": "二状态热模型与控制作用",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-6/media/5-6-two-state-thermal-model.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "scenario-table",
           "title": "三个实验场景",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "scenario_table"
+            "block_key": "scenario_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "thermal-activity",
           "title": "模型与场景判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "compressor-state",
               "e3-pressure"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -784,30 +815,37 @@
           "id": "pid-formula",
           "title": "测量误差与压缩机限幅",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pid-reveal",
           "title": "抗积分饱和显影链",
           "region": "reveal",
-          "kind": "step-reveal-chain",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal-chain",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "pid-params",
           "title": "经典 PI/PID 参数表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "param_table"
+            "block_key": "param_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         }
       ],
@@ -953,53 +991,64 @@
           "id": "prediction-formula",
           "title": "热负荷预测与前馈补偿",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "prediction-fit",
           "title": "E2 入库高峰适用性",
           "region": "formula",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "e2_fit"
+            "block_key": "e2_fit",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "input-table",
           "title": "预测输入来源",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "input_table"
+            "block_key": "input_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "prediction-params",
           "title": "预测补偿 PI/PID 参数表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "param_table"
+            "block_key": "param_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "prediction-activity",
           "title": "预测补偿责任判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "e2-evidence",
               "retained-responsibility"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1183,32 +1232,38 @@
           "id": "policy-state",
           "title": "监督层状态向量",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "mode-table",
           "title": "四模式监督策略",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "mode_table"
+            "block_key": "mode_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "mode-match",
           "title": "模式与边界匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "mode-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1395,33 +1450,40 @@
           "id": "experiment-flow",
           "title": "同题实验执行顺序",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "flow"
+            "block_key": "flow",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "metric-formula",
           "title": "恢复时间与能耗指标",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "metric-activity",
           "title": "指标口径判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "alarm-zero",
               "burden-meaning"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1558,22 +1620,26 @@
           "id": "e1-table",
           "title": "E1 常规日指标表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "e1_table"
+            "block_key": "e1_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "e1-choice",
           "title": "常规日优先路线判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "e1-route"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1719,34 +1785,41 @@
           "id": "e2-table",
           "title": "E2 入库高峰指标表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "e2_table"
+            "block_key": "e2_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "route-panel",
           "title": "入库高峰三路线比较面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_cold_chain_route_compare_panel",
             "src": "/course-runtime/lessons/5-6/media/5-6-three-route-comparison.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "route-observation",
           "title": "路线比较观察提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "e2-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1934,33 +2007,40 @@
           "id": "e3-table",
           "title": "E3 未见扰动指标表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "e3_table"
+            "block_key": "e3_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "e3-summary",
           "title": "覆盖风险说明",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "e3-activity",
           "title": "覆盖风险判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "policy-risk",
               "verification-needed"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2133,34 +2213,41 @@
           "id": "evidence-summary",
           "title": "三类路线证据责任",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "risk-matrix",
           "title": "风险验证矩阵",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-6/media/5-6-risk-verification-matrix.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "evidence-activity",
           "title": "证据责任判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "data-responsibility",
               "policy-responsibility"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2300,27 +2387,32 @@
           "id": "method-fields",
           "title": "方法选择说明卡字段",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "field_table"
+            "block_key": "field_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "method-case",
           "title": "集中入库冷链案例任务书",
           "region": "case",
-          "kind": "problem-statement",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
-            "block_key": "case_text"
+            "block_key": "case_text",
+            "legacyKind": "problem-statement",
+            "presentation": "single",
+            "semanticRole": "problem"
           }
         },
         {
           "id": "method-workspace",
           "title": "说明卡填写区",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
@@ -2328,7 +2420,9 @@
               "route-reason",
               "benefit-risk",
               "verification-reject"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2491,22 +2585,27 @@
           "id": "practice-summary",
           "title": "实践任务与评审结构",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "review-sort",
           "title": "三分钟评审陈述排序",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "review-order"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2615,22 +2714,27 @@
           "id": "misjudgment-summary",
           "title": "四类常见误判",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "misjudgment-match",
           "title": "误判与证据要求匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "misjudgment-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2778,24 +2882,29 @@
           "id": "posttest-title",
           "title": "后测任务",
           "region": "intro",
-          "kind": "title-card",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
-            "block_key": "post_quiz_title"
+            "block_key": "post_quiz_title",
+            "legacyKind": "title-card",
+            "presentation": "single"
           }
         },
         {
           "id": "posttest-quiz",
           "title": "方法迁移后测题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "post-e2-meaning",
               "post-policy-evidence",
               "post-route-card"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2935,58 +3044,72 @@
           "id": "info-graphic",
           "title": "方法选择证据信息图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-6/media/5-6-info.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-content",
           "title": "主要内容与边界",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "limitation-content",
           "title": "局限性",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "limitations"
+            "block_key": "limitations",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "difficulty-content",
           "title": "重点难点",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "difficulties"
+            "block_key": "difficulties",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "extension-content",
           "title": "拓展思考",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "extensions"
+            "block_key": "extensions",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "student-stats",
           "title": "学生个人课堂表现统计",
           "region": "stats",
-          "kind": "learning-stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "items": [
@@ -2995,14 +3118,16 @@
               "前测完成情况",
               "后测完成情况",
               "说明卡提交状态"
-            ]
+            ],
+            "legacyKind": "learning-stat-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "teacher-stats",
           "title": "班级整体表现统计",
           "region": "stats",
-          "kind": "learning-stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
             "items": [
@@ -3011,7 +3136,9 @@
               "说明卡关键词分布",
               "常见误判标签",
               "目标达成概况"
-            ]
+            ],
+            "legacyKind": "learning-stat-panel",
+            "presentation": "single"
           }
         }
       ],

@@ -285,7 +285,7 @@ describe('unit 4-2 interactive course', () => {
         join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
         'utf8',
       ),
-    ) as { steps: Record<string, { modules?: Array<{ id: string; kind: string; payload?: { panel_id?: string } }> }> };
+    ) as { steps: Record<string, { modules?: Array<{ id: string; kind: string; payload?: { legacyKind?: string; panel_id?: string } }> }> };
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/student-page.tsx'),
       'utf8',
@@ -295,23 +295,23 @@ describe('unit 4-2 interactive course', () => {
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
 
-    expect(manifest.steps['step-11']?.modules?.map((module) => module.kind)).toEqual([
-      'worked-example-card',
-      'interactive-figure-panel',
-      'activity-card-set',
+    expect(manifest.steps['step-11']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.cardSet', 'worked-example-card'],
+      ['compute.panel', 'interactive-figure-panel'],
+      ['activity.panel', 'activity-card-set'],
     ]);
-    expect(manifest.steps['step-14']?.modules?.map((module) => module.kind)).toEqual([
-      'worked-example-card',
-      'image-panel',
-      'interactive-figure-panel',
-      'activity-card-set',
+    expect(manifest.steps['step-14']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.cardSet', 'worked-example-card'],
+      ['content.figure', 'image-panel'],
+      ['compute.panel', 'interactive-figure-panel'],
+      ['activity.panel', 'activity-card-set'],
     ]);
-    expect(manifest.steps['step-17']?.modules?.map((module) => module.kind)).toEqual([
-      'image-panel',
-      'image-panel',
-      'image-panel',
-      'table-card',
-      'interactive-figure-panel',
+    expect(manifest.steps['step-17']?.modules?.map((module) => [module.kind, module.payload?.legacyKind])).toEqual([
+      ['content.figure', 'image-panel'],
+      ['content.figure', 'image-panel'],
+      ['content.figure', 'image-panel'],
+      ['content.table', 'table-card'],
+      ['compute.panel', 'interactive-figure-panel'],
     ]);
     expect(manifest.steps['step-11']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_pi')).toBe(true);
     expect(manifest.steps['step-12']?.modules?.some((module) => module.payload?.panel_id === 'unit42_example_lead')).toBe(true);

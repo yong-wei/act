@@ -55,31 +55,39 @@
           "id": "entry-problem",
           "title": "复杂航行中的策略学习入口",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "title": "显式控制律与策略学习导入漫画",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-5/media/5-5-cover-comic.png",
-            "caption_key": "cover_caption"
+            "caption_key": "cover_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-summary",
           "title": "控制责任收束",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -162,10 +170,13 @@
           "id": "goal-list",
           "title": "完成本次课程后，学习者能够",
           "region": "goals",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goals"
+            "block_key": "goals",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -252,24 +263,30 @@
           "id": "pretest-intro",
           "title": "预备基础范围",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest-quiz",
           "title": "闭环误差、执行约束与覆盖基础",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "pre-error",
               "pre-actuator",
               "pre-coverage"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -399,23 +416,27 @@
           "id": "explicit-formula",
           "title": "显式控制律公式与符号",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "explicit-activity",
           "title": "结构证据判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "explicit-evidence",
               "actuator-risk"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -558,22 +579,26 @@
           "id": "pressure-table",
           "title": "动作选择压力表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pressure_table"
+            "block_key": "pressure_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "pressure-match",
           "title": "压力来源匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "pressure-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -747,45 +772,53 @@
           "id": "policy-formula",
           "title": "学习策略动作公式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "policy-figure",
           "title": "显式控制律与学习策略证据差异",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-5/media/5-5-explicit-vs-policy.png",
             "block_key": "figure_reading",
-            "caption_key": "figure_reading"
+            "caption_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "proof-table",
           "title": "两类证据责任比较",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "proof_table"
+            "block_key": "proof_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "proof-activity",
           "title": "证明责任判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "policy-evidence",
               "policy-not"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -955,23 +988,27 @@
           "id": "rl-reward-formula",
           "title": "状态动作回报闭环",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reward_block"
+            "block_key": "reward_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "reward-activity",
           "title": "回报设计判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "reward-omission",
               "long-return-role"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1124,41 +1161,52 @@
           "id": "toy-task",
           "title": "横向误差修正任务",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "task"
+            "block_key": "task",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "toy-training-panel",
           "title": "横向误差修正实时训练面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_toy_rl_training_panel",
-            "spec_key": "toy_training_panel"
+            "spec_key": "toy_training_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "toy-stats",
           "title": "表 3 动态统计信息",
           "region": "stats",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "baseline_stats"
+            "block_key": "baseline_stats",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "toy-summary",
           "title": "简单误差修正的边界结论",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -1219,8 +1267,8 @@
         "training_spec": {
           "default_seed": 5505,
           "state_grid": [
-            -2.0,
-            2.0
+            -2,
+            2
           ],
           "actions": [
             "left_correction",
@@ -1336,32 +1384,38 @@
           "id": "entry-formula",
           "title": "策略学习进入条件表达",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "entry_formula"
+            "block_key": "entry_formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-condition-table",
           "title": "五项进入条件",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "condition_table"
+            "block_key": "condition_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-condition-choice",
           "title": "进入前证据补齐",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "entry-evidence"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1510,22 +1564,26 @@
           "id": "risk-matrix-table",
           "title": "判断矩阵与收益代价",
           "region": "tables",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "matrix_table"
+            "block_key": "matrix_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "risk-match",
           "title": "风险矩阵归类",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "risk-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1723,32 +1781,38 @@
           "id": "heading-error-formula",
           "title": "航向误差定义",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "heading_error"
+            "block_key": "heading_error",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "heading-route-table",
           "title": "三类 RL 进入结构",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "route_table"
+            "block_key": "route_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "heading-route-choice",
           "title": "工程起步路线判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "route-choice"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1897,23 +1961,27 @@
           "id": "nomoto-formulas",
           "title": "Nomoto 模型、状态与动作",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "environment_block"
+            "block_key": "environment_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "environment-activity",
           "title": "状态动作工程含义",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "state-rudder-history",
               "action-limit"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2066,20 +2134,25 @@
           "id": "heading-reward-formula",
           "title": "航向保持奖励总式",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reward_formula"
+            "block_key": "reward_formula",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "reward-reveal-chain",
           "title": "奖励项与 Q-learning 更新显影链",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_layers"
+            "block_key": "reveal_layers",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -2235,35 +2308,41 @@
           "id": "training-figure",
           "title": "航向 RL 训练曲线读图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-5/media/5-5-rl-heading-control-training.png",
             "block_key": "figure_reading",
-            "caption_key": "figure_reading"
+            "caption_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "safety-table",
           "title": "泛化训练、安全外壳与部署路径",
           "region": "tables",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "safety_table"
+            "block_key": "safety_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "safety-activity",
           "title": "训练证据与安全外壳判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "reward-not-enough",
               "fallback-frequent"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2418,41 +2497,52 @@
           "id": "heading-training-task",
           "title": "同一边缘场景评价任务",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "task"
+            "block_key": "task",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "heading-rl-training-panel",
           "title": "三类航向 RL 策略训练面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_heading_rl_training_panel",
-            "spec_key": "heading_rl_training_panel"
+            "spec_key": "heading_rl_training_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "heading-ranking",
           "title": "路线评价口径",
           "region": "ranking",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ranking_schema"
+            "block_key": "ranking_schema",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "heading-summary",
           "title": "三类策略路线的边界结论",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -2678,24 +2768,30 @@
           "id": "posttest-title",
           "title": "策略学习入口与责任判断后测",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-quiz",
           "title": "目标达成题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "post-reward-vs-response",
               "post-limited-entry",
               "post-design-short"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2844,32 +2940,39 @@
           "id": "summary-infograph",
           "title": "策略学习收益、代价与边界信息图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-5/media/5-5-info.png",
             "block_key": "figure_reading",
-            "caption_key": "figure_reading"
+            "caption_key": "figure_reading",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-points",
           "title": "主要内容、局限与拓展思考",
           "region": "summary",
-          "kind": "summary-card-grid",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_grid"
+            "block_key": "summary_grid",
+            "legacyKind": "summary-card-grid",
+            "presentation": "grid",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "learning-stats",
           "title": "课堂表现统计",
           "region": "stats",
-          "kind": "learning-stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "stats_contract"
+            "block_key": "stats_contract",
+            "legacyKind": "learning-stat-panel",
+            "presentation": "single"
           }
         }
       ],

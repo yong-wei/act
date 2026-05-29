@@ -29,329 +29,1366 @@
   "steps": {
     "class-code": {
       "title": "课堂码发放",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
         {
           "id": "join",
           "region": "main",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "进入双端课堂",
-            "text": "教师发布课堂码，学生加入同一节课后，页面进度、作答发放和参考答案显示由教师端同步。"
+            "text": "教师发布课堂码，学生加入同一节课后，页面进度、作答发放和参考答案显示由教师端同步。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["课堂码", "双端同步"],
-      "interaction_spec": { "interaction_kind": "none", "student_task": "加入课堂并确认学习目标。", "activity_cards": [] },
-      "teacher_controls": { "release_activity": "not_applicable", "open_browse": "not_applicable", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "not_applicable" },
-      "student_access": { "default_visibility": "visible", "release_required": false, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["join_count", "sync_status"] },
-      "telemetry_spec": { "summary_fields": ["viewed"], "misconception_tags": [] },
-      "ai_context_spec": { "page_goal": "确认课堂加入方式和双端同步规则。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=class-code" },
-      "acceptance_checks": ["route_available", "runtime_manifest_loaded"]
+      "evidence_sequence": [
+        "课堂码",
+        "双端同步"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "加入课堂并确认学习目标。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "join_count",
+          "sync_status"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "确认课堂加入方式和双端同步规则。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=class-code"
+      },
+      "acceptance_checks": [
+        "route_available",
+        "runtime_manifest_loaded"
+      ]
     },
     "bridge": {
       "title": "开场导入：邮轮舒适度冲突",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
         {
           "id": "conflict",
           "region": "main",
-          "kind": "bullet-list-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "title": "速度与舒适的冲突",
             "text": "豪华邮轮航向控制不能只追求响应速度，还要限制横摇和侧向加速度。",
-            "bullets": ["速度越快，乘客舒适度可能越差。", "0.15g 是舒适线，0.2g 是安全红线。", "控制策略必须能解释代价，而不是只给出参数。"]
+            "bullets": [
+              "速度越快，乘客舒适度可能越差。",
+              "0.15g 是舒适线，0.2g 是安全红线。",
+              "控制策略必须能解释代价，而不是只给出参数。"
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
           }
         }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["工程冲突", "安全边界"],
-      "interaction_spec": { "interaction_kind": "none", "student_task": "阅读场景并识别约束冲突。", "activity_cards": [] },
-      "teacher_controls": { "release_activity": "not_applicable", "open_browse": "not_applicable", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "not_applicable" },
-      "student_access": { "default_visibility": "visible", "release_required": false, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["view_count"] },
-      "telemetry_spec": { "summary_fields": ["viewed"], "misconception_tags": [] },
-      "ai_context_spec": { "page_goal": "建立邮轮舒适度控制的工程冲突。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=bridge" },
-      "acceptance_checks": ["scenario_visible"]
+      "evidence_sequence": [
+        "工程冲突",
+        "安全边界"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读场景并识别约束冲突。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "建立邮轮舒适度控制的工程冲突。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=bridge"
+      },
+      "acceptance_checks": [
+        "scenario_visible"
+      ]
     },
     "objective": {
       "title": "个性化目标：布鲁姆动词驱动",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
         {
           "id": "objectives",
           "region": "main",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "bullets": ["识别 极点分布、响应曲线与舒适度边界之间的对应关系。", "设计 满足超调、调节时间和侧向加速度约束的 PID 参数。", "评估 目标表达、参数轨迹与系统结果是否一致。"]
+            "bullets": [
+              "识别 极点分布、响应曲线与舒适度边界之间的对应关系。",
+              "设计 满足超调、调节时间和侧向加速度约束的 PID 参数。",
+              "评估 目标表达、参数轨迹与系统结果是否一致。"
+            ],
+            "legacyKind": "objective-list",
+            "presentation": "single",
+            "semanticRole": "objective"
           }
         }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["目标列表"],
-      "interaction_spec": { "interaction_kind": "none", "student_task": "阅读目标并准备前测。", "activity_cards": [] },
-      "teacher_controls": { "release_activity": "not_applicable", "open_browse": "not_applicable", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "not_applicable" },
-      "student_access": { "default_visibility": "visible", "release_required": false, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["view_count"] },
-      "telemetry_spec": { "summary_fields": ["viewed"], "misconception_tags": [] },
-      "ai_context_spec": { "page_goal": "明确本课的识别、设计与评估目标。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=objective" },
-      "acceptance_checks": ["objectives_visible"]
+      "evidence_sequence": [
+        "目标列表"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读目标并准备前测。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "明确本课的识别、设计与评估目标。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=objective"
+      },
+      "acceptance_checks": [
+        "objectives_visible"
+      ]
     },
     "precheck": {
       "title": "快速前测：2道自适应题",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "precheck-focus", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "前测目标", "text": "检查极点时域映射与频域稳定风险两个基础判断。" } }
+        {
+          "id": "precheck-focus",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "前测目标",
+            "text": "检查极点时域映射与频域稳定风险两个基础判断。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["基础判断", "前测作答"],
+      "evidence_sequence": [
+        "基础判断",
+        "前测作答"
+      ],
       "interaction_spec": {
         "interaction_kind": "quiz_group",
         "student_task": "完成两道基础判断题。",
         "activity_cards": [
-          { "id": "dominant-pole-risk", "prompt": "主导极点向虚轴靠近时，系统通常会出现什么变化？", "response_kind": "single_choice", "submit_scope": "card", "layout_span": "half", "reference_answer": "oscillation", "options": [{ "value": "fast_stable", "label": "调节时间缩短且超调减小" }, { "value": "oscillation", "label": "振荡增强且稳定时间延长" }, { "value": "zero_error", "label": "稳态误差一定为零" }, { "value": "overdamped", "label": "系统从欠阻尼变为过阻尼" }] },
-          { "id": "phase-margin-risk", "prompt": "若相位裕度过低，最直接的风险是：", "response_kind": "single_choice", "submit_scope": "card", "layout_span": "half", "reference_answer": "oscillation_robustness", "options": [{ "value": "slow_safe", "label": "响应过慢但绝对稳定" }, { "value": "energy_down", "label": "能耗下降" }, { "value": "oscillation_robustness", "label": "振荡与鲁棒性不足" }, { "value": "auto_zero_error", "label": "稳态误差自动降低" }] }
+          {
+            "id": "dominant-pole-risk",
+            "prompt": "主导极点向虚轴靠近时，系统通常会出现什么变化？",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "reference_answer": "oscillation",
+            "options": [
+              {
+                "value": "fast_stable",
+                "label": "调节时间缩短且超调减小"
+              },
+              {
+                "value": "oscillation",
+                "label": "振荡增强且稳定时间延长"
+              },
+              {
+                "value": "zero_error",
+                "label": "稳态误差一定为零"
+              },
+              {
+                "value": "overdamped",
+                "label": "系统从欠阻尼变为过阻尼"
+              }
+            ]
+          },
+          {
+            "id": "phase-margin-risk",
+            "prompt": "若相位裕度过低，最直接的风险是：",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "reference_answer": "oscillation_robustness",
+            "options": [
+              {
+                "value": "slow_safe",
+                "label": "响应过慢但绝对稳定"
+              },
+              {
+                "value": "energy_down",
+                "label": "能耗下降"
+              },
+              {
+                "value": "oscillation_robustness",
+                "label": "振荡与鲁棒性不足"
+              },
+              {
+                "value": "auto_zero_error",
+                "label": "稳态误差自动降低"
+              }
+            ]
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "objective_accuracy"] },
-      "telemetry_spec": { "summary_fields": ["objectiveScore"], "misconception_tags": ["pole_time_mapping", "frequency_margin"] },
-      "ai_context_spec": { "page_goal": "用前测识别学生的基础判断缺口。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=precheck" },
-      "acceptance_checks": ["quiz_group_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "objective_accuracy"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "objectiveScore"
+        ],
+        "misconception_tags": [
+          "pole_time_mapping",
+          "frequency_margin"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用前测识别学生的基础判断缺口。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=precheck"
+      },
+      "acceptance_checks": [
+        "quiz_group_submits_manifest_evidence"
+      ]
     },
     "engineering-target": {
       "title": "工程目标设定",
-      "layout": { "template": "two_column", "regions": [{ "id": "main", "width": "half", "order": 1 }, { "id": "task", "width": "half", "order": 2 }] },
+      "layout": {
+        "template": "two_column",
+        "regions": [
+          {
+            "id": "main",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "task",
+            "width": "half",
+            "order": 2
+          }
+        ]
+      },
       "modules": [
-        { "id": "target-principle", "region": "main", "kind": "bullet-list-card", "must_be_visible": true, "payload": { "title": "目标不是越严越好", "bullets": ["超调、调节时间、稳态误差和侧向加速度必须同时可实现。", "舒适线和安全红线要进入约束表达。"] } },
-        { "id": "target-table", "region": "task", "kind": "native-table", "must_be_visible": true, "payload": { "title": "默认约束", "columns": ["指标", "建议值", "含义"], "rows": [["超调量", "≤12%", "避免突兀转向"], ["调节时间", "≤65s", "保持响应效率"], ["侧向加速度", "<0.15g", "乘客舒适线"]] } }
+        {
+          "id": "target-principle",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "目标不是越严越好",
+            "bullets": [
+              "超调、调节时间、稳态误差和侧向加速度必须同时可实现。",
+              "舒适线和安全红线要进入约束表达。"
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
+          }
+        },
+        {
+          "id": "target-table",
+          "region": "task",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "title": "默认约束",
+            "columns": [
+              "指标",
+              "建议值",
+              "含义"
+            ],
+            "rows": [
+              [
+                "超调量",
+                "≤12%",
+                "避免突兀转向"
+              ],
+              [
+                "调节时间",
+                "≤65s",
+                "保持响应效率"
+              ],
+              [
+                "侧向加速度",
+                "<0.15g",
+                "乘客舒适线"
+              ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["约束说明", "参数填写"],
+      "evidence_sequence": [
+        "约束说明",
+        "参数填写"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交一组可解释的工程约束。",
         "activity_cards": [
-          { "id": "target-form", "prompt": "填写本组方案采用的工程约束。", "response_kind": "parameter_set", "submit_scope": "card", "layout_span": "full", "reference_answer": "overshoot<=12;settlingTime<=65;maxLateralAccel<0.15", "options": [], "parameter_fields": [{ "key": "overshoot", "label": "超调量", "unit": "%" }, { "key": "settlingTime", "label": "调节时间", "unit": "s" }, { "key": "steadyError", "label": "稳态误差", "unit": "%" }, { "key": "maxLateralAccel", "label": "最大侧向加速度", "unit": "g" }] }
+          {
+            "id": "target-form",
+            "prompt": "填写本组方案采用的工程约束。",
+            "response_kind": "parameter_set",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "reference_answer": "overshoot<=12;settlingTime<=65;maxLateralAccel<0.15",
+            "options": [],
+            "parameter_fields": [
+              {
+                "key": "overshoot",
+                "label": "超调量",
+                "unit": "%"
+              },
+              {
+                "key": "settlingTime",
+                "label": "调节时间",
+                "unit": "s"
+              },
+              {
+                "key": "steadyError",
+                "label": "稳态误差",
+                "unit": "%"
+              },
+              {
+                "key": "maxLateralAccel",
+                "label": "最大侧向加速度",
+                "unit": "g"
+              }
+            ]
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "parameter_distribution"] },
-      "telemetry_spec": { "summary_fields": ["parameterSubmitted"], "misconception_tags": ["missing_comfort_constraint"] },
-      "ai_context_spec": { "page_goal": "把工程需求翻译为可计算约束。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=engineering-target" },
-      "acceptance_checks": ["parameter_set_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "parameter_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "parameterSubmitted"
+        ],
+        "misconception_tags": [
+          "missing_comfort_constraint"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把工程需求翻译为可计算约束。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=engineering-target"
+      },
+      "acceptance_checks": [
+        "parameter_set_submits_manifest_evidence"
+      ]
     },
     "first-exploration": {
       "title": "第一轮参数探索",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "explore-rule", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "先制造一次可解释失败", "text": "学生要记录导致约束违反的参数方向，并用阻尼比、自然频率或裕度说明原因。" } }
+        {
+          "id": "explore-rule",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "先制造一次可解释失败",
+            "text": "学生要记录导致约束违反的参数方向，并用阻尼比、自然频率或裕度说明原因。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["探索规则", "参数记录"],
+      "evidence_sequence": [
+        "探索规则",
+        "参数记录"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交第一轮 PID 参数和失败解释。",
         "activity_cards": [
-          { "id": "controller-first-pass", "prompt": "记录第一轮 PID 参数。", "response_kind": "parameter_set", "submit_scope": "card", "layout_span": "half", "options": [], "parameter_fields": [{ "key": "kp", "label": "Kp" }, { "key": "ki", "label": "Ki" }, { "key": "kd", "label": "Kd" }] },
-          { "id": "failure-cause", "prompt": "哪一个约束最先暴露风险？请用一句话说明参数方向。", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "half", "options": [] }
+          {
+            "id": "controller-first-pass",
+            "prompt": "记录第一轮 PID 参数。",
+            "response_kind": "parameter_set",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": [],
+            "parameter_fields": [
+              {
+                "key": "kp",
+                "label": "Kp"
+              },
+              {
+                "key": "ki",
+                "label": "Ki"
+              },
+              {
+                "key": "kd",
+                "label": "Kd"
+              }
+            ]
+          },
+          {
+            "id": "failure-cause",
+            "prompt": "哪一个约束最先暴露风险？请用一句话说明参数方向。",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": []
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "parameter_distribution"] },
-      "telemetry_spec": { "summary_fields": ["parameterSubmitted", "reflection"], "misconception_tags": ["random_tuning"] },
-      "ai_context_spec": { "page_goal": "建立参数变化与跨域证据之间的映射。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=first-exploration" },
-      "acceptance_checks": ["activity_card_set_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "parameter_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "parameterSubmitted",
+          "reflection"
+        ],
+        "misconception_tags": [
+          "random_tuning"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "建立参数变化与跨域证据之间的映射。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=first-exploration"
+      },
+      "acceptance_checks": [
+        "activity_card_set_submits_manifest_evidence"
+      ]
     },
     "neural-ode": {
       "title": "NeuralODE嵌入（教师）",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "neuralode", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "前沿嵌入", "text": "NeuralODE 用连续时间模型表达学习到的动态，但本课评价仍回到可解释约束和验证证据。" } }
+        {
+          "id": "neuralode",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "前沿嵌入",
+            "text": "NeuralODE 用连续时间模型表达学习到的动态，但本课评价仍回到可解释约束和验证证据。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["前沿说明"],
-      "interaction_spec": { "interaction_kind": "none", "student_task": "阅读教师说明。", "activity_cards": [] },
-      "teacher_controls": { "release_activity": "not_applicable", "open_browse": "not_applicable", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "not_applicable" },
-      "student_access": { "default_visibility": "visible", "release_required": false, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["view_count"] },
-      "telemetry_spec": { "summary_fields": ["viewed"], "misconception_tags": [] },
-      "ai_context_spec": { "page_goal": "把前沿模型放回工程验证边界。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=neural-ode" },
-      "acceptance_checks": ["content_visible"]
+      "evidence_sequence": [
+        "前沿说明"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读教师说明。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "把前沿模型放回工程验证边界。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=neural-ode"
+      },
+      "acceptance_checks": [
+        "content_visible"
+      ]
     },
     "ai-analysis": {
       "title": "AI介入分析",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "ai-role", "region": "main", "kind": "bullet-list-card", "must_be_visible": true, "payload": { "title": "AI 负责诊断，人负责决策", "bullets": ["AI 建议必须映射回极点、裕度或侧向加速度。", "采用建议前先说明它修复哪个约束。"] } }
+        {
+          "id": "ai-role",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "AI 负责诊断，人负责决策",
+            "bullets": [
+              "AI 建议必须映射回极点、裕度或侧向加速度。",
+              "采用建议前先说明它修复哪个约束。"
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["AI建议", "人工判断"],
+      "evidence_sequence": [
+        "AI建议",
+        "人工判断"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交 AI 建议与自己的采用理由。",
         "activity_cards": [
-          { "id": "ai-diagnosis", "prompt": "AI 指出的主要失败原因是什么？", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "half", "options": [] },
-          { "id": "human-decision", "prompt": "你是否采用建议？说明对应的极点或裕度变化方向。", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "half", "options": [] }
+          {
+            "id": "ai-diagnosis",
+            "prompt": "AI 指出的主要失败原因是什么？",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": []
+          },
+          {
+            "id": "human-decision",
+            "prompt": "你是否采用建议？说明对应的极点或裕度变化方向。",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": []
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "response_summary"] },
-      "telemetry_spec": { "summary_fields": ["reflection"], "misconception_tags": ["ai_copy_without_reason"] },
-      "ai_context_spec": { "page_goal": "把 AI 建议转化为可解释的控制决策。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=ai-analysis" },
-      "acceptance_checks": ["subjective_response_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "response_summary"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "reflection"
+        ],
+        "misconception_tags": [
+          "ai_copy_without_reason"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把 AI 建议转化为可解释的控制决策。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=ai-analysis"
+      },
+      "acceptance_checks": [
+        "subjective_response_submits_manifest_evidence"
+      ]
     },
     "prompt-refine": {
       "title": "结构化提示词修改",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "prompt-template", "region": "main", "kind": "summary-card-grid", "must_be_visible": true, "payload": { "title": "四段式表达", "items": ["对象：豪华邮轮航向-舒适度耦合对象", "目标：超调和调节时间的数值边界", "约束：舒适线与安全红线", "策略：先提升阻尼，再检查裕度"] } }
+        {
+          "id": "prompt-template",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "四段式表达",
+            "items": [
+              "对象：豪华邮轮航向-舒适度耦合对象",
+              "目标：超调和调节时间的数值边界",
+              "约束：舒适线与安全红线",
+              "策略：先提升阻尼，再检查裕度"
+            ],
+            "legacyKind": "summary-card-grid",
+            "presentation": "grid",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["四段式提示词", "结构化提交"],
+      "evidence_sequence": [
+        "四段式提示词",
+        "结构化提交"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "按四段式提交提示词。",
         "activity_cards": [
-          { "id": "structured-prompt", "prompt": "提交对象、目标、约束、策略四段内容。", "response_kind": "parameter_set", "submit_scope": "card", "layout_span": "full", "options": [], "structured_fields": ["controlObject", "performanceGoal", "constraints", "strategy"], "parameter_fields": [{ "key": "controlObject", "label": "对象" }, { "key": "performanceGoal", "label": "目标" }, { "key": "constraints", "label": "约束" }, { "key": "strategy", "label": "策略" }] }
+          {
+            "id": "structured-prompt",
+            "prompt": "提交对象、目标、约束、策略四段内容。",
+            "response_kind": "parameter_set",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": [],
+            "structured_fields": [
+              "controlObject",
+              "performanceGoal",
+              "constraints",
+              "strategy"
+            ],
+            "parameter_fields": [
+              {
+                "key": "controlObject",
+                "label": "对象"
+              },
+              {
+                "key": "performanceGoal",
+                "label": "目标"
+              },
+              {
+                "key": "constraints",
+                "label": "约束"
+              },
+              {
+                "key": "strategy",
+                "label": "策略"
+              }
+            ]
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "response_summary"] },
-      "telemetry_spec": { "summary_fields": ["structuredPrompt"], "misconception_tags": ["missing_quantified_constraint"] },
-      "ai_context_spec": { "page_goal": "把模糊意图改写为可验证提示词。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=prompt-refine" },
-      "acceptance_checks": ["structured_fields_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "response_summary"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "structuredPrompt"
+        ],
+        "misconception_tags": [
+          "missing_quantified_constraint"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把模糊意图改写为可验证提示词。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=prompt-refine"
+      },
+      "acceptance_checks": [
+        "structured_fields_submits_manifest_evidence"
+      ]
     },
     "pause-reflection": {
       "title": "暂停反思",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "reflection-prompt", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "暂停操作，说明逻辑", "text": "说明当前方案是速度优先、舒适优先还是均衡，并指出最接近边界的约束。" } }
+        {
+          "id": "reflection-prompt",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "暂停操作，说明逻辑",
+            "text": "说明当前方案是速度优先、舒适优先还是均衡，并指出最接近边界的约束。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["反思题面", "文字提交"],
+      "evidence_sequence": [
+        "反思题面",
+        "文字提交"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交一条反思记录。",
         "activity_cards": [
-          { "id": "reflection", "prompt": "你的方案是结果偶然达标，还是逻辑一致达标？", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "full", "options": [] }
+          {
+            "id": "reflection",
+            "prompt": "你的方案是结果偶然达标，还是逻辑一致达标？",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "response_summary"] },
-      "telemetry_spec": { "summary_fields": ["reflection"], "misconception_tags": ["result_without_reason"] },
-      "ai_context_spec": { "page_goal": "让学生暴露方案逻辑与风险判断。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=pause-reflection" },
-      "acceptance_checks": ["reflection_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "response_summary"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "reflection"
+        ],
+        "misconception_tags": [
+          "result_without_reason"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生暴露方案逻辑与风险判断。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=pause-reflection"
+      },
+      "acceptance_checks": [
+        "reflection_submits_manifest_evidence"
+      ]
     },
     "adjustment": {
       "title": "反思调整",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "adjust-rule", "region": "main", "kind": "bullet-list-card", "must_be_visible": true, "payload": { "title": "保留-调整-验证", "bullets": ["保留一个有效决策。", "只调整一个关键参数。", "指定一个验证指标。"] } }
+        {
+          "id": "adjust-rule",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "保留-调整-验证",
+            "bullets": [
+              "保留一个有效决策。",
+              "只调整一个关键参数。",
+              "指定一个验证指标。"
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["调整规则", "调整提交"],
+      "evidence_sequence": [
+        "调整规则",
+        "调整提交"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交调整后的 PID 参数和验证指标。",
         "activity_cards": [
-          { "id": "controller-adjusted", "prompt": "记录调整后的 PID 参数。", "response_kind": "parameter_set", "submit_scope": "card", "layout_span": "half", "options": [], "parameter_fields": [{ "key": "kp", "label": "Kp" }, { "key": "ki", "label": "Ki" }, { "key": "kd", "label": "Kd" }] },
-          { "id": "validation-metric", "prompt": "你用哪个指标验证调整有效？", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "half", "options": [] }
+          {
+            "id": "controller-adjusted",
+            "prompt": "记录调整后的 PID 参数。",
+            "response_kind": "parameter_set",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": [],
+            "parameter_fields": [
+              {
+                "key": "kp",
+                "label": "Kp"
+              },
+              {
+                "key": "ki",
+                "label": "Ki"
+              },
+              {
+                "key": "kd",
+                "label": "Kd"
+              }
+            ]
+          },
+          {
+            "id": "validation-metric",
+            "prompt": "你用哪个指标验证调整有效？",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": []
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "parameter_distribution"] },
-      "telemetry_spec": { "summary_fields": ["parameterSubmitted", "validationMetric"], "misconception_tags": ["multi_parameter_guessing"] },
-      "ai_context_spec": { "page_goal": "完成一次可追踪的控制参数迭代。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=adjustment" },
-      "acceptance_checks": ["adjustment_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "parameter_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "parameterSubmitted",
+          "validationMetric"
+        ],
+        "misconception_tags": [
+          "multi_parameter_guessing"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "完成一次可追踪的控制参数迭代。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=adjustment"
+      },
+      "acceptance_checks": [
+        "adjustment_submits_manifest_evidence"
+      ]
     },
     "consistency": {
       "title": "一致性校验",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "consistency-focus", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "目标、行为、结果三层一致", "text": "高分但逻辑不自洽，不算好方案；需要说明偏差来自目标、参数还是验证不足。" } }
+        {
+          "id": "consistency-focus",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "目标、行为、结果三层一致",
+            "text": "高分但逻辑不自洽，不算好方案；需要说明偏差来自目标、参数还是验证不足。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["校验口径", "后测作答"],
+      "evidence_sequence": [
+        "校验口径",
+        "后测作答"
+      ],
       "interaction_spec": {
         "interaction_kind": "quiz_group",
         "student_task": "完成一致性后测。",
         "activity_cards": [
-          { "id": "consistency-source", "prompt": "目标写了舒适优先，但参数明显提高带宽导致侧向加速度越界，最该先修正哪一层？", "response_kind": "single_choice", "submit_scope": "card", "layout_span": "half", "reference_answer": "behavior", "options": [{ "value": "goal", "label": "目标层" }, { "value": "behavior", "label": "行为层" }, { "value": "display", "label": "页面显示" }, { "value": "none", "label": "无需修正" }] },
-          { "id": "safety-choice", "prompt": "真实邮轮载有 5000 名乘客时，接近 0.2g 红线的激进方案应如何处理？", "response_kind": "single_choice", "submit_scope": "card", "layout_span": "half", "reference_answer": "reduce_risk", "options": [{ "value": "keep_fast", "label": "保留速度优势" }, { "value": "reduce_risk", "label": "降低风险并保留余量" }, { "value": "hide_metric", "label": "忽略侧向加速度" }, { "value": "increase_kp", "label": "继续提高 Kp" }] }
+          {
+            "id": "consistency-source",
+            "prompt": "目标写了舒适优先，但参数明显提高带宽导致侧向加速度越界，最该先修正哪一层？",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "reference_answer": "behavior",
+            "options": [
+              {
+                "value": "goal",
+                "label": "目标层"
+              },
+              {
+                "value": "behavior",
+                "label": "行为层"
+              },
+              {
+                "value": "display",
+                "label": "页面显示"
+              },
+              {
+                "value": "none",
+                "label": "无需修正"
+              }
+            ]
+          },
+          {
+            "id": "safety-choice",
+            "prompt": "真实邮轮载有 5000 名乘客时，接近 0.2g 红线的激进方案应如何处理？",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "reference_answer": "reduce_risk",
+            "options": [
+              {
+                "value": "keep_fast",
+                "label": "保留速度优势"
+              },
+              {
+                "value": "reduce_risk",
+                "label": "降低风险并保留余量"
+              },
+              {
+                "value": "hide_metric",
+                "label": "忽略侧向加速度"
+              },
+              {
+                "value": "increase_kp",
+                "label": "继续提高 Kp"
+              }
+            ]
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "objective_accuracy"] },
-      "telemetry_spec": { "summary_fields": ["objectiveScore"], "misconception_tags": ["consistency_layer", "safety_tradeoff"] },
-      "ai_context_spec": { "page_goal": "检查目标表达、调参行为与结果达成的一致性。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=consistency" },
-      "acceptance_checks": ["post_quiz_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "objective_accuracy"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "objectiveScore"
+        ],
+        "misconception_tags": [
+          "consistency_layer",
+          "safety_tradeoff"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "检查目标表达、调参行为与结果达成的一致性。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=consistency"
+      },
+      "acceptance_checks": [
+        "post_quiz_submits_manifest_evidence"
+      ]
     },
     "group-compare": {
       "title": "小组对比",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "compare", "region": "main", "kind": "summary-card", "must_be_visible": true, "payload": { "title": "用数据和边界说话", "text": "比较两组方案在阻尼、超调、调节时间、侧向加速度和裕度上的代价。" } }
+        {
+          "id": "compare",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "用数据和边界说话",
+            "text": "比较两组方案在阻尼、超调、调节时间、侧向加速度和裕度上的代价。",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["对比口径", "小组选择"],
+      "evidence_sequence": [
+        "对比口径",
+        "小组选择"
+      ],
       "interaction_spec": {
         "interaction_kind": "activity_card_set",
         "student_task": "提交小组方案选择和理由。",
         "activity_cards": [
-          { "id": "group-choice", "prompt": "你选择激进方案还是舒适方案？", "response_kind": "single_choice", "submit_scope": "card", "layout_span": "half", "reference_answer": "comfort", "options": [{ "value": "aggressive", "label": "激进方案" }, { "value": "comfort", "label": "舒适方案" }, { "value": "undecided", "label": "需要更多数据" }] },
-          { "id": "tradeoff-reason", "prompt": "说明你愿意承担的代价。", "response_kind": "fill_text", "submit_scope": "card", "layout_span": "half", "options": [] }
+          {
+            "id": "group-choice",
+            "prompt": "你选择激进方案还是舒适方案？",
+            "response_kind": "single_choice",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "reference_answer": "comfort",
+            "options": [
+              {
+                "value": "aggressive",
+                "label": "激进方案"
+              },
+              {
+                "value": "comfort",
+                "label": "舒适方案"
+              },
+              {
+                "value": "undecided",
+                "label": "需要更多数据"
+              }
+            ]
+          },
+          {
+            "id": "tradeoff-reason",
+            "prompt": "说明你愿意承担的代价。",
+            "response_kind": "fill_text",
+            "submit_scope": "card",
+            "layout_span": "half",
+            "options": []
+          }
         ]
       },
-      "teacher_controls": { "release_activity": "teacher_toggle", "open_browse": "page_load_open", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "teacher_toggle" },
-      "student_access": { "default_visibility": "visible", "release_required": true, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["submission_count", "choice_distribution"] },
-      "telemetry_spec": { "summary_fields": ["choice", "reflection"], "misconception_tags": ["tradeoff_missing_cost"] },
-      "ai_context_spec": { "page_goal": "把工程伦理和控制指标放入同一选择。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=group-compare" },
-      "acceptance_checks": ["choice_and_reason_submits_manifest_evidence"]
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_count",
+          "choice_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "choice",
+          "reflection"
+        ],
+        "misconception_tags": [
+          "tradeoff_missing_cost"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把工程伦理和控制指标放入同一选择。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=group-compare"
+      },
+      "acceptance_checks": [
+        "choice_and_reason_submits_manifest_evidence"
+      ]
     },
     "summary": {
       "title": "收尾总结",
-      "layout": { "template": "stacked_regions", "regions": [{ "id": "main", "width": "full", "order": 1 }] },
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
       "modules": [
-        { "id": "closing", "region": "main", "kind": "bullet-list-card", "must_be_visible": true, "payload": { "title": "控制决策的责任", "text": "今天我们选择了安全。控制，不只是计算，更是对系统后果负责。", "bullets": ["目标要量化。", "参数要可解释。", "结果要回到乘客舒适和安全边界。"] } }
+        {
+          "id": "closing",
+          "region": "main",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "title": "控制决策的责任",
+            "text": "今天我们选择了安全。控制，不只是计算，更是对系统后果负责。",
+            "bullets": [
+              "目标要量化。",
+              "参数要可解释。",
+              "结果要回到乘客舒适和安全边界。"
+            ],
+            "legacyKind": "bullet-list-card",
+            "presentation": "single"
+          }
+        }
       ],
       "content_blocks": {},
-      "evidence_sequence": ["总结", "个人回收"],
-      "interaction_spec": { "interaction_kind": "none", "student_task": "查看个人课堂表现并完成回收。", "activity_cards": [] },
-      "teacher_controls": { "release_activity": "not_applicable", "open_browse": "not_applicable", "teacher_step_reveal": "not_applicable", "reveal_reference_answer": "not_applicable" },
-      "student_access": { "default_visibility": "visible", "release_required": false, "browse_required": false },
-      "teacher_insight_spec": { "widgets": ["session_summary"] },
-      "telemetry_spec": { "summary_fields": ["viewed"], "misconception_tags": [] },
-      "ai_context_spec": { "page_goal": "收束舒适度控制的工程责任。", "delivery_mode": "silent_context" },
-      "preview_contract": { "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=summary" },
-      "acceptance_checks": ["summary_visible"]
+      "evidence_sequence": [
+        "总结",
+        "个人回收"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "查看个人课堂表现并完成回收。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "session_summary"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "收束舒适度控制的工程责任。",
+        "delivery_mode": "silent_context"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/cruise-comfort-boppps/student/demo?step=summary"
+      },
+      "acceptance_checks": [
+        "summary_visible"
+      ]
     }
   }
 }

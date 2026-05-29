@@ -55,31 +55,39 @@
           "id": "entry-problem",
           "title": "迁移问题入口",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "title": "导入漫画",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-cover-comic.png",
-            "caption_key": "cover_caption"
+            "caption_key": "cover_caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-summary",
           "title": "证据责任收束",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -162,10 +170,13 @@
           "id": "goal-list",
           "title": "完成本次课程后，学习者能够",
           "region": "goals",
-          "kind": "objective-list",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "goals"
+            "block_key": "goals",
+            "legacyKind": "objective-list",
+            "presentation": "single",
+            "semanticRole": "objective"
           }
         }
       ],
@@ -246,14 +257,17 @@
           "id": "pretest-quiz",
           "title": "预备知识题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "first-order-parameter",
               "closed-loop-error",
               "rudder-limit"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -378,23 +392,27 @@
           "id": "model-formula",
           "title": "离散对象关系",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "model-activity",
           "title": "模型关系判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "model-advantage",
               "model-evidence"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -544,22 +562,26 @@
           "id": "pressure-table",
           "title": "单一模型压力表",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pressure_table"
+            "block_key": "pressure_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "pressure-match",
           "title": "压力来源匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "pressure-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -736,34 +758,42 @@
           "id": "prediction-problem",
           "title": "航向模型题面",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "prediction-panel",
           "title": "预测偏差读图面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_prediction_error_panel",
             "fallback_image": "/course-runtime/lessons/5-4/media/5-4-model-mismatch-prediction.png",
-            "block_key": "figure_reading"
+            "block_key": "figure_reading",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "prediction-submit",
           "title": "观察记录提交",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "prediction-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -910,34 +940,40 @@
           "id": "mpc-image",
           "title": "MPC 滚动优化原理框图",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-mpc-principle-block.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "mpc-formula",
           "title": "目标函数与约束",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula_block"
+            "block_key": "formula_block",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "mpc-activity",
           "title": "MPC 结构判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "first-action",
               "mpc-elements"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1094,22 +1130,27 @@
           "id": "mpc-boundary-case",
           "title": "舵角约束辨析题面",
           "region": "case",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "case_text"
+            "block_key": "case_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "mpc-boundary-choice",
           "title": "MPC 双重依赖判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "mpc-dependency"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1216,33 +1257,40 @@
           "id": "data-driven-definition",
           "title": "数据驱动定义",
           "region": "concept",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "definition"
+            "block_key": "definition",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "model-data-table",
           "title": "模型驱动与数据驱动责任差异",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "compare_table"
+            "block_key": "compare_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "data-driven-activity",
           "title": "信息来源判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "source-change",
               "coverage-risk"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1398,31 +1446,39 @@
           "id": "online-intro",
           "title": "局部责任说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "online-image",
           "title": "数据驱动 MPC 在线模型更新链路",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-data-driven-mpc-block.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "online-reveal",
           "title": "在线模型更新显影链",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_chain"
+            "block_key": "reveal_chain",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1555,32 +1611,39 @@
           "id": "condition-table",
           "title": "数据驱动进入闭环条件",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "condition_table"
+            "block_key": "condition_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "condition-case",
           "title": "缺项误判案例",
           "region": "case",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "case_text"
+            "block_key": "case_text",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "condition-choice",
           "title": "缺项证据判断",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "condition-gaps"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -1722,33 +1785,40 @@
           "id": "navigation-task",
           "title": "近岸航行任务书",
           "region": "task",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "task"
+            "block_key": "task",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "relation-table",
           "title": "模型承担与数据补足关系",
           "region": "relations",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "relation_table"
+            "block_key": "relation_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "relation-activity",
           "title": "局部责任判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "hull-dynamics",
               "perception-error"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1898,32 +1968,39 @@
           "id": "drift-problem",
           "title": "长时漂移任务条件",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem"
+            "block_key": "problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "route-table",
           "title": "三路线建模与控制信息",
           "region": "routes",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "route_table"
+            "block_key": "route_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "route-match",
           "title": "路线信息匹配",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "route-match"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2069,17 +2146,20 @@
           "id": "route-compare-intro",
           "title": "比较任务说明",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro"
+            "block_key": "intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "route-compare-panel",
           "title": "三路线仿真比较面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "rust_three_route_compare_panel",
@@ -2087,19 +2167,24 @@
               "/course-runtime/lessons/5-4/media/5-4-model-parameter-drift.png",
               "/course-runtime/lessons/5-4/media/5-4-mpc-drift-comparison.png"
             ],
-            "block_key": "metrics"
+            "block_key": "metrics",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "route-observation",
           "title": "收益与代价观察",
           "region": "activity",
-          "kind": "activity-card",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "route-observation"
-            ]
+            ],
+            "legacyKind": "activity-card",
+            "presentation": "single"
           }
         }
       ],
@@ -2285,33 +2370,40 @@
           "id": "responsibility-table",
           "title": "复杂航行任务中的方法分配",
           "region": "table",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "responsibility_table"
+            "block_key": "responsibility_table",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "boundary-cases",
           "title": "数据驱动控制的边界情况",
           "region": "boundary",
-          "kind": "summary-card-grid",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary_cases"
+            "block_key": "boundary_cases",
+            "legacyKind": "summary-card-grid",
+            "presentation": "grid",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "responsibility-activity",
           "title": "责任分配判断",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "no-whole-switch",
               "simulation-validation"
-            ]
+            ],
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2472,24 +2564,30 @@
           "id": "posttest-note",
           "title": "后测说明",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "note"
+            "block_key": "note",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "posttest-quiz",
           "title": "后测题组",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": false,
           "payload": {
             "activity_card_ids": [
               "error-reduction",
               "closed-loop-evidence",
               "local-duty"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         }
       ],
@@ -2629,31 +2727,38 @@
           "id": "info-image",
           "title": "信息图总结",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "src": "/course-runtime/lessons/5-4/media/5-4-info.png",
-            "caption_key": "caption"
+            "caption_key": "caption",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-content",
           "title": "收益、代价与边界",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary"
+            "block_key": "summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "learning-stats",
           "title": "课堂表现统计",
           "region": "stats",
-          "kind": "learning-stat-panel",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "stats"
+            "block_key": "stats",
+            "legacyKind": "learning-stat-panel",
+            "presentation": "single"
           }
         }
       ],

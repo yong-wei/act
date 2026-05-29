@@ -56,28 +56,36 @@
         {
           "id": "intro-question",
           "region": "header",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_question"
+            "block_key": "intro_question",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "cover-comic",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "cover_comic"
+            "block_key": "cover_comic",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "intro-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_summary"
+            "block_key": "intro_summary",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
@@ -155,10 +163,13 @@
         {
           "id": "lesson-goals",
           "region": "goal",
-          "kind": "goal-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lesson_goals"
+            "block_key": "lesson_goals",
+            "legacyKind": "goal-card-row",
+            "presentation": "row",
+            "semanticRole": "goal"
           }
         }
       ],
@@ -235,19 +246,24 @@
         {
           "id": "pretest-intro",
           "region": "intro",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro"
+            "block_key": "pretest_intro",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "pretest-questions",
           "region": "quiz",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro"
+            "block_key": "pretest_intro",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -384,20 +400,24 @@
         {
           "id": "review-quantities",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "review_quantities"
+            "block_key": "review_quantities",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "review-questions",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "review_quantities",
-            "formula": "L(s)=C(s)G(s)"
+            "formula": "L(s)=C(s)G(s)",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -521,28 +541,36 @@
         {
           "id": "loop-formulas",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas"
+            "block_key": "loop_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "frequency-characteristics",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "frequency_media"
+            "block_key": "frequency_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "structure-matrix",
           "region": "matrix",
-          "kind": "multi-select-matrix",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas"
+            "block_key": "loop_formulas",
+            "legacyKind": "multi-select-matrix",
+            "presentation": "matrix",
+            "interactionKind": "multi-select",
+            "responseKind": "multiSelect"
           }
         }
       ],
@@ -703,28 +731,37 @@
         {
           "id": "selection-tree",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree"
+            "block_key": "selection_tree",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "selection-rules",
           "region": "rules",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_rules"
+            "block_key": "selection_rules",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "evidence-match",
           "region": "activity",
-          "kind": "drag-match",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree"
+            "block_key": "selection_tree",
+            "legacyKind": "drag-match",
+            "presentation": "single",
+            "interactionKind": "drag-match",
+            "responseKind": "matching"
           }
         }
       ],
@@ -877,19 +914,24 @@
         {
           "id": "zn-table",
           "region": "content",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_table"
+            "block_key": "zn_table",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "zn-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_steps"
+            "block_key": "zn_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -999,19 +1041,24 @@
         {
           "id": "pi-lag-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_formulas"
+            "block_key": "pi_lag_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pi-lag-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_steps"
+            "block_key": "pi_lag_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1102,19 +1149,24 @@
         {
           "id": "lead-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_formulas"
+            "block_key": "lead_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lead-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_steps"
+            "block_key": "lead_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         }
       ],
@@ -1205,19 +1257,23 @@
         {
           "id": "model-feedforward-formulas",
           "region": "content",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas"
+            "block_key": "model_feedforward_formulas",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "model-feedforward-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas"
+            "block_key": "model_feedforward_formulas",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1342,30 +1398,38 @@
         {
           "id": "example-5-1-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1"
+            "block_key": "example_5_1",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-1-panel",
           "title": "频域 PI 参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_pi",
-            "spec_key": "example_5_1_panel"
+            "spec_key": "example_5_1_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-1-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1"
+            "block_key": "example_5_1",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1503,30 +1567,38 @@
         {
           "id": "example-5-2-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2"
+            "block_key": "example_5_2",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-2-panel",
           "title": "超前参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_lead",
-            "spec_key": "example_5_2_panel"
+            "spec_key": "example_5_2_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-2-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2"
+            "block_key": "example_5_2",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1567,7 +1639,7 @@
             "label": "T",
             "default": 1.025,
             "min": 0.4,
-            "max": 2.0,
+            "max": 2,
             "step": 0.001
           },
           {
@@ -1575,7 +1647,7 @@
             "label": "K_c",
             "default": 1.95,
             "min": 0.8,
-            "max": 4.0,
+            "max": 4,
             "step": 0.01
           }
         ]
@@ -1665,30 +1737,38 @@
         {
           "id": "example-5-3-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3"
+            "block_key": "example_5_3",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-3-panel",
           "title": "滞后参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_lag",
-            "spec_key": "example_5_3_panel"
+            "spec_key": "example_5_3_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-3-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3"
+            "block_key": "example_5_3",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1720,7 +1800,7 @@
             "label": "beta",
             "default": 2.5,
             "min": 1.2,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           },
           {
@@ -1826,39 +1906,49 @@
         {
           "id": "example-5-4-solution",
           "region": "static",
-          "kind": "worked-example-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4"
+            "block_key": "example_5_4",
+            "legacyKind": "worked-example-card",
+            "presentation": "single",
+            "semanticRole": "example"
           }
         },
         {
           "id": "example-5-4-critical",
           "region": "static",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4_critical_media"
+            "block_key": "example_5_4_critical_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "example-5-4-panel",
           "title": "ZN PID 参数复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_example_pid_zn",
-            "spec_key": "example_5_4_panel"
+            "spec_key": "example_5_4_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         },
         {
           "id": "example-5-4-submit",
           "region": "submit",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4"
+            "block_key": "example_5_4",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -1894,16 +1984,16 @@
             "id": "Kp",
             "label": "K_p",
             "default": 4.8,
-            "min": 2.0,
-            "max": 7.0,
+            "min": 2,
+            "max": 7,
             "step": 0.01
           },
           {
             "id": "Ti",
             "label": "T_i",
-            "default": 2.0,
+            "default": 2,
             "min": 0.8,
-            "max": 4.0,
+            "max": 4,
             "step": 0.01
           },
           {
@@ -1919,7 +2009,7 @@
             "label": "K_i",
             "default": 2.4,
             "min": 0.5,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           },
           {
@@ -1927,7 +2017,7 @@
             "label": "K_d",
             "default": 2.4,
             "min": 0.5,
-            "max": 5.0,
+            "max": 5,
             "step": 0.01
           }
         ]
@@ -2026,37 +2116,47 @@
         {
           "id": "feedforward-problem",
           "region": "problem",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem"
+            "block_key": "feedforward_problem",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "feedforward-reveal",
           "region": "reveal",
-          "kind": "step-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_steps"
+            "block_key": "feedforward_steps",
+            "legacyKind": "step-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "feedforward-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_media"
+            "block_key": "feedforward_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "feedforward-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem"
+            "block_key": "feedforward_problem",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2186,20 +2286,24 @@
         {
           "id": "ship-setup",
           "region": "content",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_setup"
+            "block_key": "ship_setup",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-setup-cards",
           "region": "activity",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "ship_setup",
-            "formula": "G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]"
+            "formula": "G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2309,48 +2413,59 @@
         {
           "id": "ship-bode-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_bode_media"
+            "block_key": "ship_bode_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-time-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_time_media"
+            "block_key": "ship_time_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-summary-media",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_summary_media"
+            "block_key": "ship_summary_media",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-candidate-table",
           "region": "table",
-          "kind": "table-card",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_candidate_table"
+            "block_key": "ship_candidate_table",
+            "legacyKind": "table-card",
+            "presentation": "single"
           }
         },
         {
           "id": "ship-compare-panel",
           "title": "客船候选结构时域与频域复核面板",
           "region": "panel",
-          "kind": "interactive-figure-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "panel_id": "unit42_ship_candidate_compare",
-            "spec_key": "ship_candidate_compare_panel"
+            "spec_key": "ship_candidate_compare_panel",
+            "legacyKind": "interactive-figure-panel",
+            "presentation": "single",
+            "capabilityRef": "interactive-figure"
           }
         }
       ],
@@ -2487,28 +2602,36 @@
         {
           "id": "practice-prompts",
           "region": "practice",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts"
+            "block_key": "practice_prompts",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "start-card-template",
           "region": "template",
-          "kind": "template-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "start_card_fields"
+            "block_key": "start_card_fields",
+            "legacyKind": "template-card",
+            "presentation": "single",
+            "semanticRole": "template"
           }
         },
         {
           "id": "start-card-workspace",
           "region": "workspace",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts"
+            "block_key": "practice_prompts",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2672,10 +2795,12 @@
         {
           "id": "posttest-cards",
           "region": "quiz",
-          "kind": "activity-card-set",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_intro"
+            "block_key": "posttest_intro",
+            "legacyKind": "activity-card-set",
+            "presentation": "single"
           }
         }
       ],
@@ -2817,28 +2942,36 @@
         {
           "id": "summary-infograph",
           "region": "media",
-          "kind": "image-panel",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_infograph"
+            "block_key": "summary_infograph",
+            "legacyKind": "image-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "summary-content",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_content"
+            "block_key": "summary_content",
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "performance-stats",
           "region": "stats",
-          "kind": "performance-summary",
+          "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "performance_stats"
+            "block_key": "performance_stats",
+            "legacyKind": "performance-summary",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         }
       ],
