@@ -18,6 +18,15 @@ const mocks = vi.hoisted(() => {
     simulationTrace: {
       create: vi.fn(),
     },
+    learningFact: {
+      createMany: vi.fn(),
+    },
+    learningEvidenceDraft: {
+      createMany: vi.fn(),
+    },
+    evidenceOutbox: {
+      createMany: vi.fn(),
+    },
   };
 
   return {
@@ -118,6 +127,9 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
     mocks.tx.simulationTrace.create.mockResolvedValue({
       id: 'trace-1',
     });
+    mocks.tx.learningFact.createMany.mockResolvedValue({ count: 1 });
+    mocks.tx.learningEvidenceDraft.createMany.mockResolvedValue({ count: 1 });
+    mocks.tx.evidenceOutbox.createMany.mockResolvedValue({ count: 1 });
     mocks.tx.arenaVirtualSimulationRun.update.mockResolvedValue({
       id: 'preview-row-1',
       userId: 'student-store',
@@ -189,5 +201,34 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
       where: { id: 'preview-row-1' },
       data: { simulationRunId: 'canonical-run-1' },
     });
+    expect(mocks.tx.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          userId: 'student-store',
+          factType: 'simulation',
+          sourceEventId: 'simulation-agent-evidence:simulation_run:canonical-run-1:1.0',
+          sourceLogId: 'SimulationRun:canonical-run-1',
+        }),
+      ],
+    }));
+    expect(mocks.tx.learningEvidenceDraft.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          sourceType: 'simulation_run',
+          dedupeKey: 'simulation_run:canonical-run-1:1.0',
+        }),
+      ],
+    }));
+    expect(mocks.tx.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          eventType: 'simulation_agent_evidence.draft_created',
+          causationId: 'SimulationRun:canonical-run-1',
+        }),
+      ],
+    }));
   });
 });

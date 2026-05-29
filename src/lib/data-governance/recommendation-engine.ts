@@ -51,11 +51,12 @@ export interface RecommendationRationale {
 
 export interface RecommendationSimulationArenaRationale {
   readiness: 'ready' | 'partial' | 'low-confidence' | 'missing';
-  evidenceKinds: Array<'official-evaluation' | 'course-launched' | 'standalone' | 'preview-only'>;
+  evidenceKinds: Array<'official-evaluation' | 'course-launched' | 'standalone' | 'preview-only' | 'agent-assisted'>;
   evidenceCount: number;
   traceReferenceCount: number;
   sourceCoverage: StudentSimulationArenaFeatureSummary['allTime']['sourceCoverage'];
   replayConfidence: StudentSimulationArenaFeatureSummary['allTime']['replayConfidence'];
+  interventionOutcome: StudentSimulationArenaFeatureSummary['allTime']['interventionOutcome'];
   weakMetrics: StudentSimulationArenaWeakMetric[];
   qualityMarkers: StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'];
 }
@@ -657,6 +658,7 @@ function normalizeSimulationArenaWindow(
     completedCount: numberValue(window.completedCount),
     officialCount: numberValue(window.officialCount),
     previewCount: numberValue(window.previewCount),
+    agentAssistedCount: numberValue(window.agentAssistedCount),
     courseLaunchedCount: numberValue(window.courseLaunchedCount),
     standaloneCount: numberValue(window.standaloneCount),
     traceReferenceCount: numberValue(window.traceReferenceCount),
@@ -667,6 +669,7 @@ function normalizeSimulationArenaWindow(
       replayConfidence: normalizeCoverageState(sourceCoverage.replayConfidence),
     },
     replayConfidence: normalizeSimulationArenaReplayConfidence(window.replayConfidence),
+    interventionOutcome: normalizeSimulationArenaInterventionOutcome(window.interventionOutcome),
     weakMetrics: normalizeSimulationArenaWeakMetrics(window.weakMetrics),
     qualityMarkers: normalizeSimulationArenaQualityMarkers(window.qualityMarkers),
     traceReferences: [],
@@ -684,6 +687,17 @@ function normalizeSimulationArenaReplayConfidence(
     highConfidenceCount: numberValue(replayConfidence.highConfidenceCount),
     lowConfidenceCount: numberValue(replayConfidence.lowConfidenceCount),
     missingCount: numberValue(replayConfidence.missingCount),
+  };
+}
+
+function normalizeSimulationArenaInterventionOutcome(
+  value: unknown
+): StudentSimulationArenaFeatureSummary['allTime']['interventionOutcome'] {
+  const interventionOutcome = getObject(value);
+  return {
+    reviewedCount: numberValue(interventionOutcome.reviewedCount),
+    improvedCount: numberValue(interventionOutcome.improvedCount),
+    lowConfidenceCount: numberValue(interventionOutcome.lowConfidenceCount),
   };
 }
 
@@ -732,6 +746,7 @@ function buildRecommendationSimulationArenaRationale(
   if (allTime.officialCount > 0) evidenceKinds.push('official-evaluation');
   if (allTime.courseLaunchedCount > 0) evidenceKinds.push('course-launched');
   if (allTime.previewCount > 0) evidenceKinds.push('preview-only');
+  if (numberValue(allTime.agentAssistedCount) > 0) evidenceKinds.push('agent-assisted');
   if (allTime.standaloneCount > 0) evidenceKinds.push('standalone');
 
   return {
@@ -741,6 +756,7 @@ function buildRecommendationSimulationArenaRationale(
     traceReferenceCount: allTime.traceReferenceCount,
     sourceCoverage: allTime.sourceCoverage,
     replayConfidence: allTime.replayConfidence,
+    interventionOutcome: allTime.interventionOutcome,
     weakMetrics: allTime.weakMetrics,
     qualityMarkers: allTime.qualityMarkers,
   };

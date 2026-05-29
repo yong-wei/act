@@ -393,11 +393,12 @@ describe('teacher evidence governance insights', () => {
     expect(scopedFeatureMap.get('student-low')?.allTime.evidenceCount).toBe(1);
   });
 
-  it('keeps simulationTrace class scope in teacher evidence filters and in-memory grouping', () => {
+  it('keeps simulationTrace and agentTool class scope in teacher evidence filters and in-memory grouping', () => {
     expect(buildTeacherScopedLearningFactScopeFilters('class-1', [])).toEqual(
       expect.arrayContaining([
         { contextJson: { path: ['simulationTrace', 'classId'], equals: 'class-1' } },
         { contextJson: { path: ['simulationTrace', 'governanceContext', 'classId'], equals: 'class-1' } },
+        { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: 'class-1' } },
       ]),
     );
 
@@ -424,6 +425,36 @@ describe('teacher evidence governance insights', () => {
             },
           },
         }),
+        scopedSimulationArenaFact('student-ready', {
+          id: 'agent-tool-scoped-sim',
+          factType: 'ai_intervention',
+          sessionId: null,
+          contextJson: {
+            agentTool: {
+              agentToolRunId: 'tool-run-1',
+              agentAssisted: true,
+              interventionOutcome: 0.82,
+              governanceContext: {
+                classId: 'class-1',
+              },
+            },
+          },
+        }),
+        scopedSimulationArenaFact('student-ready', {
+          id: 'agent-tool-other-class-sim',
+          factType: 'ai_intervention',
+          sessionId: null,
+          contextJson: {
+            agentTool: {
+              agentToolRunId: 'tool-run-2',
+              agentAssisted: true,
+              interventionOutcome: 0.91,
+              governanceContext: {
+                classId: 'class-other',
+              },
+            },
+          },
+        }),
       ] as any,
       {
         classId: 'class-1',
@@ -432,7 +463,12 @@ describe('teacher evidence governance insights', () => {
       },
     );
 
-    expect(scopedFeatureMap.get('student-ready')?.allTime.evidenceCount).toBe(1);
+    expect(scopedFeatureMap.get('student-ready')?.allTime.evidenceCount).toBe(2);
+    expect(scopedFeatureMap.get('student-ready')?.allTime.interventionOutcome).toMatchObject({
+      reviewedCount: 1,
+      improvedCount: 1,
+      lowConfidenceCount: 0,
+    });
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {
@@ -617,6 +653,7 @@ describe('teacher evidence governance insights', () => {
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-current'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+          { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: 'class-1' } },
         ]),
       },
     }));
@@ -626,6 +663,7 @@ describe('teacher evidence governance insights', () => {
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-current'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+          { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: 'class-1' } },
         ]),
       },
       select: expect.objectContaining({
@@ -1141,6 +1179,7 @@ describe('teacher evidence governance insights', () => {
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-5-2'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+          { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: 'class-1' } },
         ]),
       },
       select: expect.objectContaining({

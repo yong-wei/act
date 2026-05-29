@@ -4,7 +4,7 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 
-export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v3';
+export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v4';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS = 30;
 
@@ -108,6 +108,7 @@ export interface StudentSimulationArenaFeatureWindow {
   completedCount: number;
   officialCount: number;
   previewCount: number;
+  agentAssistedCount: number;
   courseLaunchedCount: number;
   standaloneCount: number;
   traceReferenceCount: number;
@@ -116,6 +117,11 @@ export interface StudentSimulationArenaFeatureWindow {
     StudentEvidenceCoverageState
   >;
   replayConfidence: StudentSimulationArenaReplayConfidence;
+  interventionOutcome: {
+    reviewedCount: number;
+    improvedCount: number;
+    lowConfidenceCount: number;
+  };
   weakMetrics: StudentSimulationArenaWeakMetric[];
   qualityMarkers: StudentSimulationArenaEvidenceMarker[];
   traceReferences: StudentSimulationArenaTraceReference[];
@@ -694,9 +700,11 @@ interface SimulationArenaFactEvidence {
   completed: boolean;
   official: boolean;
   preview: boolean;
+  agentAssisted: boolean;
   courseLaunched: boolean;
   standalone: boolean;
   replayConfidence: number | null;
+  interventionOutcome: number | null;
   weakMetrics: Array<{ metricId: string; value: number }>;
   traceReference: StudentSimulationArenaTraceReference | null;
 }
@@ -810,6 +818,7 @@ function buildSimulationArenaFeatureWindow(
     completedCount: sorted.filter((item) => item.completed).length,
     officialCount: sorted.filter((item) => item.official).length,
     previewCount: sorted.filter((item) => item.preview).length,
+    agentAssistedCount: sorted.filter((item) => item.agentAssisted).length,
     courseLaunchedCount: sorted.filter((item) => item.courseLaunched).length,
     standaloneCount: sorted.filter((item) => item.standalone).length,
     traceReferenceCount: traceReferences.length,
@@ -820,6 +829,7 @@ function buildSimulationArenaFeatureWindow(
       replayConfidence: resolveRequiredCoverage(evidenceCount, replayValues.length),
     },
     replayConfidence,
+    interventionOutcome: buildSimulationArenaInterventionOutcome(sorted),
     weakMetrics: buildSimulationArenaWeakMetrics(sorted),
     qualityMarkers,
     traceReferences,
@@ -833,12 +843,13 @@ function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearning
     isObject(context.simulation) ? context.simulation :
     isObject(context.simulationTrace) ? context.simulationTrace :
     null;
+  const agentToolContext = isObject(context.agentTool) ? context.agentTool : null;
   const historicalMaterialization = isObject(context.historicalMaterialization)
     ? context.historicalMaterialization
     : {};
   const source: StudentSimulationArenaEvidenceSource | null = arenaContext
     ? 'arena'
-    : simulationContext || fact.factType === 'simulation' || historicalMaterialization.sourceId === 'SimulationLog'
+    : simulationContext || agentToolContext || fact.factType === 'simulation' || historicalMaterialization.sourceId === 'SimulationLog'
       ? 'simulation'
       : null;
 
@@ -848,7 +859,7 @@ function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearning
 
   const sourceContext = source === 'arena'
     ? arenaContext ?? {}
-    : simulationContext ?? context;
+    : simulationContext ?? agentToolContext ?? context;
   const trace = isObject(sourceContext.trace)
     ? sourceContext.trace
     : isObject(context.trace)
@@ -863,6 +874,11 @@ function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearning
   const launchMode = readString(sourceContext.launchMode) ?? readString(context.launchMode);
   const official = resolveSimulationArenaOfficial(sourceContext, context, fact);
   const preview = resolveSimulationArenaPreview(sourceContext, fact, official);
+  const agentAssisted = sourceContext.agentAssisted === true ||
+    context.agentAssisted === true ||
+    agentToolContext !== null ||
+    isObject(context.agentTool) ||
+    readString(sourceContext.sourceDomain)?.includes('konling') === true;
   const courseLaunched = resolveSimulationArenaCourseLaunched(fact, sourceContext, context, launchMode);
   const standalone = launchMode === 'standalone' || sourceContext.standalone === true || !courseLaunched;
   const traceReference = buildSimulationArenaTraceReference({
@@ -880,12 +896,25 @@ function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearning
     completed: fact.outcome === 'success',
     official,
     preview,
+    agentAssisted,
     courseLaunched,
     standalone,
     replayConfidence: resolveReplayConfidence(sourceContext, context, historicalMaterialization, envelope),
+    interventionOutcome: resolveInterventionOutcome(sourceContext),
     weakMetrics: extractWeakMetrics(sourceContext, summary),
     traceReference,
   };
+}
+
+function resolveInterventionOutcome(sourceContext: Record<string, unknown>): number | null {
+  const deterministicMetrics = isObject(sourceContext.deterministicMetrics)
+    ? sourceContext.deterministicMetrics
+    : {};
+  const explicit =
+    finiteNumber(sourceContext.interventionOutcome) ??
+    finiteNumber(deterministicMetrics.interventionOutcome) ??
+    finiteNumber(deterministicMetrics.outcomeScore);
+  return explicit === null ? null : clamp01(explicit);
 }
 
 function resolveSimulationArenaOfficial(
@@ -1065,6 +1094,19 @@ function buildSimulationArenaWeakMetrics(
       lowestValue: round(entry.lowestValue, 2),
     }))
     .sort((left, right) => left.metricId.localeCompare(right.metricId));
+}
+
+function buildSimulationArenaInterventionOutcome(
+  evidence: SimulationArenaFactEvidence[]
+): StudentSimulationArenaFeatureWindow['interventionOutcome'] {
+  const outcomes = evidence
+    .map((item) => item.interventionOutcome)
+    .filter((value): value is number => value !== null);
+  return {
+    reviewedCount: outcomes.length,
+    improvedCount: outcomes.filter((value) => value >= 0.6).length,
+    lowConfidenceCount: evidence.filter((item) => item.agentAssisted && item.interventionOutcome === null).length,
+  };
 }
 
 function buildSimulationArenaQualityMarkers(input: {
@@ -1313,6 +1355,7 @@ function hasSimulationArenaFeatureWindowSchema(value: unknown): boolean {
     hasFiniteNumber(value.completedCount) &&
     hasFiniteNumber(value.officialCount) &&
     hasFiniteNumber(value.previewCount) &&
+    hasFiniteNumber(value.agentAssistedCount) &&
     hasFiniteNumber(value.courseLaunchedCount) &&
     hasFiniteNumber(value.standaloneCount) &&
     hasFiniteNumber(value.traceReferenceCount) &&
@@ -1324,9 +1367,20 @@ function hasSimulationArenaFeatureWindowSchema(value: unknown): boolean {
     hasFiniteNumber(replayConfidence.highConfidenceCount) &&
     hasFiniteNumber(replayConfidence.lowConfidenceCount) &&
     hasFiniteNumber(replayConfidence.missingCount) &&
+    hasSimulationArenaInterventionOutcomeSchema(value.interventionOutcome) &&
     hasWeakMetricsSchema(value.weakMetrics) &&
     hasQualityMarkersSchema(value.qualityMarkers) &&
     hasTraceReferencesSchema(value.traceReferences);
+}
+
+function hasSimulationArenaInterventionOutcomeSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  return hasFiniteNumber(value.reviewedCount) &&
+    hasFiniteNumber(value.improvedCount) &&
+    hasFiniteNumber(value.lowConfidenceCount);
 }
 
 function hasEvidenceWindowSchema(value: unknown): boolean {

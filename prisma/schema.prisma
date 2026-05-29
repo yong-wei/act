@@ -1384,6 +1384,52 @@ model LearningFact {
   @@index([factType, startedAt])
 }
 
+model LearningEvidenceDraft {
+  id            String   @id @default(cuid())
+  ownerUserId   String
+  sourceType    String
+  sourceRefs    Json
+  factType      String
+  summary       Json     @default("{}")
+  evidenceRefs  Json     @default("{}")
+  provenance    Json     @default("{}")
+  confidence    Float
+  privacyScope  String
+  dedupeKey     String   @unique
+  reviewerState String
+  occurredAt    DateTime
+  courseId      String?
+  sessionId     String?
+  classId       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ownerUserId, occurredAt])
+  @@index([sourceType, occurredAt])
+  @@index([reviewerState, occurredAt])
+  @@index([classId, occurredAt])
+}
+
+model EvidenceOutbox {
+  id            String    @id @default(cuid())
+  eventType     String
+  correlationId String
+  causationId   String
+  ownerUserId   String
+  payload       Json      @default("{}")
+  dedupeKey     String    @unique
+  status        String    @default("pending")
+  availableAt   DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([eventType, status, availableAt])
+  @@index([ownerUserId, createdAt])
+  @@index([correlationId])
+  @@index([causationId])
+}
+
 model ArenaControllerArtifact {
   id           String   @id @default(cuid())
   ownerId      String

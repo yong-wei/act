@@ -57,6 +57,7 @@ export interface TeacherSimulationArenaCoverageSummary {
   missingStudents: number;
   lowConfidenceStudents: number;
   previewOnlyStudents: number;
+  agentAssistedStudents: number;
   standaloneOnlyStudents: number;
   officialStudents: number;
   courseLaunchedStudents: number;
@@ -64,6 +65,11 @@ export interface TeacherSimulationArenaCoverageSummary {
     average: number | null;
     lowConfidenceStudents: number;
     missingStudents: number;
+  };
+  interventionOutcome: {
+    reviewedStudents: number;
+    improvedStudents: number;
+    lowConfidenceStudents: number;
   };
   sourceCoverage: Record<'simulation' | 'arena' | 'traceReferences' | 'replayConfidence', {
     available: number;
@@ -364,6 +370,7 @@ export function buildTeacherScopedLearningFactScopeFilters(
     { contextJson: { path: ['arena', 'governanceContext', 'classId'], equals: classId } },
     { contextJson: { path: ['simulation', 'governanceContext', 'classId'], equals: classId } },
     { contextJson: { path: ['simulationTrace', 'governanceContext', 'classId'], equals: classId } },
+    { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: classId } },
   ];
 }
 
@@ -388,10 +395,12 @@ function hasScopedClassId(record: Record<string, unknown>, classId: string): boo
   const arena = readObject(record.arena);
   const simulation = readObject(record.simulation);
   const simulationTrace = readObject(record.simulationTrace);
+  const agentTool = readObject(record.agentTool);
   const governanceContext = readObject(record.governanceContext);
   const arenaGovernanceContext = readObject(arena.governanceContext);
   const simulationGovernanceContext = readObject(simulation.governanceContext);
   const simulationTraceGovernanceContext = readObject(simulationTrace.governanceContext);
+  const agentToolGovernanceContext = readObject(agentTool.governanceContext);
 
   return stringValue(arena.classId) === classId ||
     stringValue(simulation.classId) === classId ||
@@ -399,7 +408,8 @@ function hasScopedClassId(record: Record<string, unknown>, classId: string): boo
     stringValue(governanceContext.classId) === classId ||
     stringValue(arenaGovernanceContext.classId) === classId ||
     stringValue(simulationGovernanceContext.classId) === classId ||
-    stringValue(simulationTraceGovernanceContext.classId) === classId;
+    stringValue(simulationTraceGovernanceContext.classId) === classId ||
+    stringValue(agentToolGovernanceContext.classId) === classId;
 }
 
 function summarizeTeacherSimulationArenaCoverage(
@@ -421,22 +431,30 @@ function summarizeTeacherSimulationArenaCoverage(
   let studentsWithEvidence = 0;
   let lowConfidenceStudents = 0;
   let previewOnlyStudents = 0;
+  let agentAssistedStudents = 0;
   let standaloneOnlyStudents = 0;
   let officialStudents = 0;
   let courseLaunchedStudents = 0;
   let replayLowConfidenceStudents = 0;
   let replayMissingStudents = 0;
+  let interventionReviewedStudents = 0;
+  let interventionImprovedStudents = 0;
+  let interventionLowConfidenceStudents = 0;
 
   for (const status of statuses) {
     const allTime = status.simulationArena.allTime;
     if (allTime.evidenceCount > 0) studentsWithEvidence += 1;
     if (allTime.qualityMarkers.includes('low-confidence')) lowConfidenceStudents += 1;
     if (allTime.qualityMarkers.includes('preview-only')) previewOnlyStudents += 1;
+    if (numberValue(allTime.agentAssistedCount) > 0) agentAssistedStudents += 1;
     if (allTime.qualityMarkers.includes('standalone-only')) standaloneOnlyStudents += 1;
     if (allTime.officialCount > 0) officialStudents += 1;
     if (allTime.courseLaunchedCount > 0) courseLaunchedStudents += 1;
     if (allTime.replayConfidence.lowConfidenceCount > 0) replayLowConfidenceStudents += 1;
     if (allTime.evidenceCount > 0 && allTime.replayConfidence.missingCount > 0) replayMissingStudents += 1;
+    if (numberValue(allTime.interventionOutcome?.reviewedCount) > 0) interventionReviewedStudents += 1;
+    if (numberValue(allTime.interventionOutcome?.improvedCount) > 0) interventionImprovedStudents += 1;
+    if (numberValue(allTime.interventionOutcome?.lowConfidenceCount) > 0) interventionLowConfidenceStudents += 1;
     if (allTime.replayConfidence.average !== null) {
       const availableReplayCount = Math.max(
         allTime.evidenceCount - allTime.replayConfidence.missingCount,
@@ -471,6 +489,7 @@ function summarizeTeacherSimulationArenaCoverage(
     missingStudents: statuses.length - studentsWithEvidence,
     lowConfidenceStudents,
     previewOnlyStudents,
+    agentAssistedStudents,
     standaloneOnlyStudents,
     officialStudents,
     courseLaunchedStudents,
@@ -480,6 +499,11 @@ function summarizeTeacherSimulationArenaCoverage(
         : null,
       lowConfidenceStudents: replayLowConfidenceStudents,
       missingStudents: replayMissingStudents,
+    },
+    interventionOutcome: {
+      reviewedStudents: interventionReviewedStudents,
+      improvedStudents: interventionImprovedStudents,
+      lowConfidenceStudents: interventionLowConfidenceStudents,
     },
     sourceCoverage,
     weakMetricDistribution: Array.from(weakMetrics.entries())
@@ -508,6 +532,7 @@ function normalizeSimulationArenaWindow(value: unknown): StudentSimulationArenaF
     completedCount: numberValue(window.completedCount),
     officialCount: numberValue(window.officialCount),
     previewCount: numberValue(window.previewCount),
+    agentAssistedCount: numberValue(window.agentAssistedCount),
     courseLaunchedCount: numberValue(window.courseLaunchedCount),
     standaloneCount: numberValue(window.standaloneCount),
     traceReferenceCount: numberValue(window.traceReferenceCount),
@@ -518,6 +543,7 @@ function normalizeSimulationArenaWindow(value: unknown): StudentSimulationArenaF
       replayConfidence: normalizeCoverageState(sourceCoverage.replayConfidence),
     },
     replayConfidence: normalizeSimulationArenaReplayConfidence(window.replayConfidence),
+    interventionOutcome: normalizeSimulationArenaInterventionOutcome(window.interventionOutcome),
     weakMetrics: normalizeSimulationArenaWeakMetrics(window.weakMetrics),
     qualityMarkers: normalizeSimulationArenaQualityMarkers(window.qualityMarkers),
     traceReferences: normalizeSimulationArenaTraceReferences(window.traceReferences),
@@ -535,6 +561,17 @@ function normalizeSimulationArenaReplayConfidence(
     highConfidenceCount: numberValue(replayConfidence.highConfidenceCount),
     lowConfidenceCount: numberValue(replayConfidence.lowConfidenceCount),
     missingCount: numberValue(replayConfidence.missingCount),
+  };
+}
+
+function normalizeSimulationArenaInterventionOutcome(
+  value: unknown,
+): StudentSimulationArenaFeatureSummary['allTime']['interventionOutcome'] {
+  const interventionOutcome = readObject(value);
+  return {
+    reviewedCount: numberValue(interventionOutcome.reviewedCount),
+    improvedCount: numberValue(interventionOutcome.improvedCount),
+    lowConfidenceCount: numberValue(interventionOutcome.lowConfidenceCount),
   };
 }
 
@@ -617,6 +654,7 @@ function createEmptySimulationArenaWindow(): StudentSimulationArenaFeatureSummar
     completedCount: 0,
     officialCount: 0,
     previewCount: 0,
+    agentAssistedCount: 0,
     courseLaunchedCount: 0,
     standaloneCount: 0,
     traceReferenceCount: 0,
@@ -631,6 +669,11 @@ function createEmptySimulationArenaWindow(): StudentSimulationArenaFeatureSummar
       highConfidenceCount: 0,
       lowConfidenceCount: 0,
       missingCount: 0,
+    },
+    interventionOutcome: {
+      reviewedCount: 0,
+      improvedCount: 0,
+      lowConfidenceCount: 0,
     },
     weakMetrics: [],
     qualityMarkers: [],
