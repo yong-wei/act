@@ -154,6 +154,11 @@ export const STANDARD_MODULE_MIGRATED_LESSON_IDS = [
   '3-2',
   '3-3',
   '3-4',
+  '3-5',
+  '3-6',
+  '3-7',
+  '3-8',
+  '3-9',
 ] as const;
 
 export function evaluateInteractiveModuleRegistryGate({

@@ -53,34 +53,43 @@
         {
           "id": "cover-media",
           "region": "media",
-          "kind": "illustration",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-question",
             "title": "核心追问",
-            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。"
+            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。",
+            "legacyKind": "illustration",
+            "presentation": "single"
           }
         },
         {
           "id": "core-question-card",
           "region": "question",
-          "kind": "question-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-question",
             "title": "核心追问",
-            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。"
+            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。",
+            "legacyKind": "question-card",
+            "presentation": "single",
+            "semanticRole": "question"
           }
         },
         {
           "id": "first-reaction-choice",
           "region": "interaction",
-          "kind": "single-choice",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "core-question",
             "title": "核心追问",
-            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。"
+            "text": "为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。",
+            "legacyKind": "single-choice",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         }
       ],
@@ -190,34 +199,42 @@
         {
           "id": "stage-map",
           "region": "header",
-          "kind": "stage-map",
+          "kind": "content.stageMap",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "本课边界",
-            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。"
+            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。",
+            "legacyKind": "stage-map",
+            "presentation": "single"
           }
         },
         {
           "id": "bridge-card",
           "region": "lead",
-          "kind": "bridge-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "本课边界",
-            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。"
+            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。",
+            "legacyKind": "bridge-card",
+            "presentation": "single",
+            "semanticRole": "bridge"
           }
         },
         {
           "id": "boundary-card",
           "region": "summary",
-          "kind": "boundary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary",
             "title": "本课边界",
-            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。"
+            "text": "本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。",
+            "legacyKind": "boundary-card",
+            "presentation": "single",
+            "semanticRole": "boundary"
           }
         }
       ],
@@ -307,7 +324,7 @@
         {
           "id": "task-chain",
           "region": "chain",
-          "kind": "task-chain",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "deliverables",
@@ -318,13 +335,16 @@
               "频域设计记录",
               "边界判断卡",
               "一页设计报告"
-            ]
+            ],
+            "legacyKind": "task-chain",
+            "presentation": "single",
+            "semanticRole": "task"
           }
         },
         {
           "id": "deliverable-card-row",
           "region": "outputs",
-          "kind": "deliverable-card-row",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "deliverables",
@@ -335,13 +355,16 @@
               "频域设计记录",
               "边界判断卡",
               "一页设计报告"
-            ]
+            ],
+            "legacyKind": "deliverable-card-row",
+            "presentation": "row",
+            "semanticRole": "deliverable"
           }
         },
         {
           "id": "practice-rule-card",
           "region": "rules",
-          "kind": "rule-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "deliverables",
@@ -352,7 +375,10 @@
               "频域设计记录",
               "边界判断卡",
               "一页设计报告"
-            ]
+            ],
+            "legacyKind": "rule-card",
+            "presentation": "single",
+            "semanticRole": "rule"
           }
         }
       ],
@@ -442,45 +468,60 @@
         {
           "id": "pretest-q1",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "assistant-order",
             "title": "控灵助手顺序约束",
-            "text": "先提交判断，再进入控灵助手中的错因对照。"
+            "text": "先提交判断，再进入控灵助手中的错因对照。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         },
         {
           "id": "pretest-q2",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "assistant-order",
             "title": "控灵助手顺序约束",
-            "text": "先提交判断，再进入控灵助手中的错因对照。"
+            "text": "先提交判断，再进入控灵助手中的错因对照。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         },
         {
           "id": "pretest-q3",
           "region": "question-stack",
-          "kind": "single-choice-card",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "assistant-order",
             "title": "控灵助手顺序约束",
-            "text": "先提交判断，再进入控灵助手中的错因对照。"
+            "text": "先提交判断，再进入控灵助手中的错因对照。",
+            "legacyKind": "single-choice-card",
+            "presentation": "single",
+            "interactionKind": "single-choice",
+            "responseKind": "singleChoice"
           }
         },
         {
           "id": "reason-record",
           "region": "record",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "assistant-order",
             "title": "控灵助手顺序约束",
-            "text": "先提交判断，再进入控灵助手中的错因对照。"
+            "text": "先提交判断，再进入控灵助手中的错因对照。",
+            "legacyKind": "short-response",
+            "presentation": "single",
+            "responseKind": "shortText"
           }
         }
       ],
@@ -609,45 +650,56 @@
         {
           "id": "plant-card",
           "region": "object",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "plant",
             "title": "示例对象",
-            "formula": "G_p(s)=4/[s(s+0.8)]"
+            "formula": "G_p(s)=4/[s(s+0.8)]",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "controller-expression-tabs",
           "region": "expressions",
-          "kind": "tabbed-formula-panel",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "plant",
             "title": "示例对象",
-            "formula": "G_p(s)=4/[s(s+0.8)]"
+            "formula": "G_p(s)=4/[s(s+0.8)]",
+            "legacyKind": "tabbed-formula-panel",
+            "presentation": "tabs"
           }
         },
         {
           "id": "task-table",
           "region": "tasks",
-          "kind": "task-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "plant",
             "title": "示例对象",
-            "formula": "G_p(s)=4/[s(s+0.8)]"
+            "formula": "G_p(s)=4/[s(s+0.8)]",
+            "legacyKind": "task-table",
+            "presentation": "single",
+            "semanticRole": "task"
           }
         },
         {
           "id": "entry-classifier",
           "region": "tasks",
-          "kind": "categorize-and-confirm",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "plant",
             "title": "示例对象",
-            "formula": "G_p(s)=4/[s(s+0.8)]"
+            "formula": "G_p(s)=4/[s(s+0.8)]",
+            "legacyKind": "categorize-and-confirm",
+            "presentation": "single",
+            "interactionKind": "categorization",
+            "responseKind": "categorization"
           }
         }
       ],
@@ -750,42 +802,53 @@
         {
           "id": "translation-formula-panel",
           "region": "derivation",
-          "kind": "formula-panel",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation-formulas",
-            "title": "时域翻译公式"
+            "title": "时域翻译公式",
+            "legacyKind": "formula-panel",
+            "presentation": "single"
           }
         },
         {
           "id": "feasible-region-reveal",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation-conclusion",
             "title": "区域结论",
-            "text": "zeta>=0.456，Re(s)<=-1。"
+            "text": "zeta>=0.456，Re(s)<=-1。",
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "pure-gain-failure-plot",
           "region": "figure",
-          "kind": "shared-engine-root-locus-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation-formulas",
-            "title": "时域翻译公式"
+            "title": "时域翻译公式",
+            "legacyKind": "shared-engine-root-locus-panel",
+            "presentation": "single",
+            "capabilityRef": "shared-engine-root-locus"
           }
         },
         {
           "id": "translation-record-table",
           "region": "record",
-          "kind": "record-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "translation-formulas",
-            "title": "时域翻译公式"
+            "title": "时域翻译公式",
+            "legacyKind": "record-table",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -899,45 +962,58 @@
         {
           "id": "pd-design-point-card",
           "region": "evidence",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "pd-design-point",
             "title": "设计点",
-            "formula": "s_d=-1.1±j1.67"
+            "formula": "s_d=-1.1±j1.67",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "pd-derivation-reveal",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "pd-controller",
             "title": "控制器形式",
-            "formula": "G_PD(s)=K(1+T_d s)"
+            "formula": "G_PD(s)=K(1+T_d s)",
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "pd-tri-panel-workspace",
           "region": "workspace",
-          "kind": "parametric-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "pd-design-point",
             "title": "设计点",
-            "formula": "s_d=-1.1±j1.67"
+            "formula": "s_d=-1.1±j1.67",
+            "legacyKind": "parametric-workspace",
+            "presentation": "single",
+            "semanticRole": "metric",
+            "interactionKind": "parameter-workspace",
+            "responseKind": "parameterRecord"
           }
         },
         {
           "id": "pd-record-card",
           "region": "workspace",
-          "kind": "record-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "pd-design-point",
             "title": "设计点",
-            "formula": "s_d=-1.1±j1.67"
+            "formula": "s_d=-1.1±j1.67",
+            "legacyKind": "record-card",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -1052,31 +1128,38 @@
         {
           "id": "rate-structure-diagram",
           "region": "structure",
-          "kind": "native-svg-diagram",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-formula",
-            "title": "测速反馈标准表达"
+            "title": "测速反馈标准表达",
+            "legacyKind": "native-svg-diagram",
+            "presentation": "single"
           }
         },
         {
           "id": "rate-derivation-reveal",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-formula",
-            "title": "测速反馈标准表达"
+            "title": "测速反馈标准表达",
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "pd-rate-contrast-table",
           "region": "compare",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-formula",
-            "title": "测速反馈标准表达"
+            "title": "测速反馈标准表达",
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         }
       ],
@@ -1168,45 +1251,59 @@
         {
           "id": "rate-target-card",
           "region": "evidence",
-          "kind": "target-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-target",
             "title": "等效极点目标",
-            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。"
+            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。",
+            "legacyKind": "target-card",
+            "presentation": "single",
+            "semanticRole": "target"
           }
         },
         {
           "id": "rate-modulus-reveal",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-target",
             "title": "等效极点目标",
-            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。"
+            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。",
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "rate-tri-panel-workspace",
           "region": "workspace",
-          "kind": "parametric-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-target",
             "title": "等效极点目标",
-            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。"
+            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。",
+            "legacyKind": "parametric-workspace",
+            "presentation": "single",
+            "semanticRole": "metric",
+            "interactionKind": "parameter-workspace",
+            "responseKind": "parameterRecord"
           }
         },
         {
           "id": "rate-record-card",
           "region": "workspace",
-          "kind": "record-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "rate-target",
             "title": "等效极点目标",
-            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。"
+            "text": "将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。",
+            "legacyKind": "record-card",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -1314,41 +1411,53 @@
         {
           "id": "shared-frequency-goal-card",
           "region": "goal",
-          "kind": "goal-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared-goal",
-            "title": "共同频域目标"
+            "title": "共同频域目标",
+            "legacyKind": "goal-card",
+            "presentation": "single",
+            "semanticRole": "goal"
           }
         },
         {
           "id": "gain-only-failure-card",
           "region": "evidence",
-          "kind": "evidence-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared-goal",
-            "title": "共同频域目标"
+            "title": "共同频域目标",
+            "legacyKind": "evidence-card",
+            "presentation": "single",
+            "semanticRole": "evidence"
           }
         },
         {
           "id": "lead-derivation-reveal",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared-goal",
-            "title": "共同频域目标"
+            "title": "共同频域目标",
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "lead-intent-response",
           "region": "derivation",
-          "kind": "structured-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "shared-goal",
-            "title": "共同频域目标"
+            "title": "共同频域目标",
+            "legacyKind": "structured-response",
+            "presentation": "single",
+            "responseKind": "structured"
           }
         }
       ],
@@ -1451,45 +1560,57 @@
         {
           "id": "lead-formula-card",
           "region": "formula",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "lead-formula",
             "title": "超前控制器形式",
-            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1"
+            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lead-sequence-card",
           "region": "formula",
-          "kind": "sequence-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "lead-formula",
             "title": "超前控制器形式",
-            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1"
+            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1",
+            "legacyKind": "sequence-card",
+            "presentation": "single"
           }
         },
         {
           "id": "lead-frequency-workspace",
           "region": "workspace",
-          "kind": "parametric-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "lead-formula",
             "title": "超前控制器形式",
-            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1"
+            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1",
+            "legacyKind": "parametric-workspace",
+            "presentation": "single",
+            "semanticRole": "metric",
+            "interactionKind": "parameter-workspace",
+            "responseKind": "parameterRecord"
           }
         },
         {
           "id": "lead-record-card",
           "region": "record",
-          "kind": "record-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "lead-formula",
             "title": "超前控制器形式",
-            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1"
+            "formula": "G_lead(s)=K_c(aTs+1)/(Ts+1), a>1",
+            "legacyKind": "record-card",
+            "presentation": "single",
+            "semanticRole": "record"
           }
         }
       ],
@@ -1599,7 +1720,7 @@
         {
           "id": "shared-goal-card",
           "region": "goal",
-          "kind": "goal-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-rubric",
@@ -1610,13 +1731,16 @@
               "调节时间",
               "高频放大风险",
               "推荐结构"
-            ]
+            ],
+            "legacyKind": "goal-card",
+            "presentation": "single",
+            "semanticRole": "goal"
           }
         },
         {
           "id": "pd-frequency-derivation",
           "region": "derivation",
-          "kind": "derivation-reveal",
+          "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-rubric",
@@ -1627,13 +1751,16 @@
               "调节时间",
               "高频放大风险",
               "推荐结构"
-            ]
+            ],
+            "legacyKind": "derivation-reveal",
+            "presentation": "single",
+            "interactionKind": "progressive-reveal"
           }
         },
         {
           "id": "compare-rubric-table",
           "region": "compare",
-          "kind": "native-table",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-rubric",
@@ -1644,13 +1771,15 @@
               "调节时间",
               "高频放大风险",
               "推荐结构"
-            ]
+            ],
+            "legacyKind": "native-table",
+            "presentation": "single"
           }
         },
         {
           "id": "entry-note",
           "region": "compare",
-          "kind": "entry-note",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-rubric",
@@ -1661,7 +1790,10 @@
               "调节时间",
               "高频放大风险",
               "推荐结构"
-            ]
+            ],
+            "legacyKind": "entry-note",
+            "presentation": "single",
+            "semanticRole": "entry"
           }
         }
       ],
@@ -1768,34 +1900,46 @@
         {
           "id": "pd-frequency-workspace",
           "region": "workspace",
-          "kind": "parametric-workspace",
+          "kind": "activity.workspace",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-board-note",
             "title": "并排比较要求",
-            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。"
+            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。",
+            "legacyKind": "parametric-workspace",
+            "presentation": "single",
+            "semanticRole": "metric",
+            "interactionKind": "parameter-workspace",
+            "responseKind": "parameterRecord"
           }
         },
         {
           "id": "lead-pd-compare-board",
           "region": "compare",
-          "kind": "compare-board",
+          "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-board-note",
             "title": "并排比较要求",
-            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。"
+            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。",
+            "legacyKind": "compare-board",
+            "presentation": "board",
+            "semanticRole": "comparison"
           }
         },
         {
           "id": "difference-submit-card",
           "region": "submit",
-          "kind": "structured-submit",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "compare-board-note",
             "title": "并排比较要求",
-            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。"
+            "text": "同步填写是否达标、Mp、ts、高频放大风险与推荐结构。",
+            "legacyKind": "structured-submit",
+            "presentation": "single",
+            "interactionKind": "structured-submit",
+            "responseKind": "structured"
           }
         }
       ],
@@ -1903,56 +2047,72 @@
         {
           "id": "nmp-object-card",
           "region": "boundary-object",
-          "kind": "formula-card",
+          "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
             "block_key": "nmp-object",
             "title": "边界对象",
-            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]"
+            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]",
+            "legacyKind": "formula-card",
+            "presentation": "single"
           }
         },
         {
           "id": "risk-figure-panel",
           "region": "risk",
-          "kind": "parametric-risk-panel",
+          "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "boundary-rule",
             "title": "边界结论",
-            "text": "非最小相对象下先改目标，再选 PD、测速反馈或超前。"
+            "text": "非最小相对象下先改目标，再选 PD、测速反馈或超前。",
+            "legacyKind": "parametric-risk-panel",
+            "presentation": "single",
+            "semanticRole": "metric",
+            "interactionKind": "parameter-workspace",
+            "responseKind": "parameterRecord",
+            "capabilityRef": "parametric-risk"
           }
         },
         {
           "id": "conservative-example-drawer",
           "region": "risk",
-          "kind": "drawer",
+          "kind": "layout.support",
           "must_be_visible": true,
           "payload": {
             "block_key": "nmp-object",
             "title": "边界对象",
-            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]"
+            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]",
+            "legacyKind": "drawer",
+            "presentation": "single"
           }
         },
         {
           "id": "decision-matrix",
           "region": "decision",
-          "kind": "decision-matrix",
+          "kind": "content.table",
           "must_be_visible": true,
           "payload": {
             "block_key": "nmp-object",
             "title": "边界对象",
-            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]"
+            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]",
+            "legacyKind": "decision-matrix",
+            "presentation": "matrix"
           }
         },
         {
           "id": "decision-submit-card",
           "region": "decision",
-          "kind": "structured-submit",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "nmp-object",
             "title": "边界对象",
-            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]"
+            "formula": "G_nmp(s)=4(1-0.3s)/[s(s+0.8)]",
+            "legacyKind": "structured-submit",
+            "presentation": "single",
+            "interactionKind": "structured-submit",
+            "responseKind": "structured"
           }
         }
       ],
@@ -2068,7 +2228,7 @@
         {
           "id": "posttest-group",
           "region": "quiz",
-          "kind": "quiz-group",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "three-lines",
@@ -2077,13 +2237,16 @@
               "时域指标先翻译成目标区域。",
               "频域指标先翻译成相角裕度与截止频率。",
               "右半平面零点下，目标本身也是设计变量。"
-            ]
+            ],
+            "legacyKind": "quiz-group",
+            "presentation": "single",
+            "interactionKind": "quiz"
           }
         },
         {
           "id": "three-line-summary",
           "region": "summary",
-          "kind": "summary-card",
+          "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "three-lines",
@@ -2092,13 +2255,16 @@
               "时域指标先翻译成目标区域。",
               "频域指标先翻译成相角裕度与截止频率。",
               "右半平面零点下，目标本身也是设计变量。"
-            ]
+            ],
+            "legacyKind": "summary-card",
+            "presentation": "single",
+            "semanticRole": "summary"
           }
         },
         {
           "id": "info-graphic",
           "region": "close",
-          "kind": "illustration",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "three-lines",
@@ -2107,13 +2273,15 @@
               "时域指标先翻译成目标区域。",
               "频域指标先翻译成相角裕度与截止频率。",
               "右半平面零点下，目标本身也是设计变量。"
-            ]
+            ],
+            "legacyKind": "illustration",
+            "presentation": "single"
           }
         },
         {
           "id": "exit-reflection",
           "region": "close",
-          "kind": "short-response",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "block_key": "three-lines",
@@ -2122,7 +2290,10 @@
               "时域指标先翻译成目标区域。",
               "频域指标先翻译成相角裕度与截止频率。",
               "右半平面零点下，目标本身也是设计变量。"
-            ]
+            ],
+            "legacyKind": "short-response",
+            "presentation": "single",
+            "responseKind": "shortText"
           }
         }
       ],

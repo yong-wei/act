@@ -1056,6 +1056,17 @@ function createUNIT_3_8ModuleRegistry(input: {
 
   return {
     ...sharedRegistry,
+    'compute.panel': (props) => {
+      const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
+      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
+      if (legacyKind === 'rust-analysis-panel' || capabilityRef === 'rust-analysis') {
+        return <Unit38RustAnalysisPanel module={props.module} />;
+      }
+      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+        return sharedRegistry['interactive-figure-panel'](props);
+      }
+      return sharedRegistry['compute.panel'](props);
+    },
     'rust-analysis-panel': ({ module }) => <Unit38RustAnalysisPanel module={module} />,
   };
 }
