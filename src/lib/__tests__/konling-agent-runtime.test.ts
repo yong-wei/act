@@ -530,8 +530,10 @@ describe('konling agent runtime', () => {
       where: expect.objectContaining({
         id: 'run-1',
         ownerUserId: 'student-1',
-        courseId: 'simulation',
-        resourceId: 'resource-1',
+        OR: expect.arrayContaining([
+          expect.objectContaining({ courseId: 'simulation', resourceId: 'resource-1' }),
+          expect.objectContaining({ sourceDomain: 'arena_virtual_preview', courseId: null, resourceId: null }),
+        ]),
       }),
     }));
     expect(context).toMatchObject({
@@ -551,12 +553,409 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(context)).not.toContain('"kp":9');
   });
 
+  it('resolves legacy Arena preview runs without run-level course scope through task spec launch context', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default', resourceId: 'resource-1' });
+    const arenaRun = {
+      id: 'arena-run-1',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      courseId: null,
+      resourceId: null,
+      runKind: 'arena_preview',
+      sourceDomain: 'arena_virtual_preview',
+      sourceRefId: 'arena-preview-1',
+      taskSpecSnapshot: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+        launchContext: {
+          classId: 'class-1',
+          resourceId: 'resource-1',
+        },
+      },
+      status: 'completed',
+      summary: { overshoot: 0.18, settlingTime: 4.2 },
+      replayToken: 'arena-replay-token',
+      protocolVersion: '1.0',
+      runtimeVersion: 'simulation-runtime-v1',
+      modelVersion: 'nomoto-v1',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      traces: [],
+    };
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockImplementation(async (args) => (
+          args.where?.OR ? arenaRun : null
+        )),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    const context = await runtime.getSimulationContext({ simulationRunId: 'arena-run-1' }) as Record<string, any>;
+
+    expect(db.simulationRun.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'arena-run-1',
+        ownerUserId: 'student-1',
+        OR: expect.arrayContaining([
+          expect.objectContaining({ courseId: 'simulation', resourceId: 'resource-1' }),
+          expect.objectContaining({ sourceDomain: 'arena_virtual_preview', courseId: null, resourceId: null }),
+        ]),
+      }),
+    }));
+    expect(context).toMatchObject({
+      simulationRunId: 'arena-run-1',
+      provenance: {
+        runKind: 'arena_preview',
+        sourceDomain: 'arena_virtual_preview',
+        resourceId: null,
+      },
+      task: {
+        launchContext: expect.objectContaining({
+          resourceId: 'resource-1',
+        }),
+      },
+    });
+  });
+
+  it('rejects legacy Arena preview fallback when task spec launch resource differs from runtime scope', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default', resourceId: 'resource-1' });
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'arena-run-foreign',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: null,
+          resourceId: null,
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: 'arena-preview-foreign',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            launchContext: {
+              resourceId: 'resource-foreign',
+            },
+          },
+          status: 'completed',
+          summary: {},
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          traces: [],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ simulationRunId: 'arena-run-foreign' })).rejects.toMatchObject({
+      status: 403,
+      message: '无权访问该 SimulationRun。',
+    });
+  });
+
+  it('rejects legacy Arena preview fallback when runtime scope lacks the declared launch resource', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default', resourceId: null });
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'arena-run-resource-only',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: null,
+          resourceId: null,
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: 'arena-preview-resource-only',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            launchContext: {
+              resourceId: 'resource-1',
+            },
+          },
+          status: 'completed',
+          summary: {},
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          traces: [],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ simulationRunId: 'arena-run-resource-only' })).rejects.toMatchObject({
+      status: 403,
+      message: '无权访问该 SimulationRun。',
+    });
+  });
+
+  it('rejects simulation runs when run-level and task-spec launch resources conflict', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default', resourceId: 'resource-1' });
+    const db = {
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'run-conflicting-resource',
+          ownerUserId: 'student-1',
+          classId: 'class-1',
+          courseId: 'simulation',
+          resourceId: 'resource-1',
+          runKind: 'arena_preview',
+          sourceDomain: 'arena_virtual_preview',
+          sourceRefId: 'arena-preview-conflicting-resource',
+          taskSpecSnapshot: {
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            launchContext: {
+              courseId: 'simulation',
+              resourceId: 'resource-foreign',
+            },
+          },
+          status: 'completed',
+          summary: {},
+          protocolVersion: '1.0',
+          runtimeVersion: 'simulation-runtime-v1',
+          modelVersion: 'nomoto-v1',
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          traces: [],
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ simulationRunId: 'run-conflicting-resource' })).rejects.toMatchObject({
+      status: 403,
+      message: '无权访问该 SimulationRun。',
+    });
+  });
+
+  it('resolves simulation context directly from a task spec before any run exists', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const db = {
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'task-spec-1',
+          payload: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            objectives: ['settling_time'],
+            constraints: ['overshoot'],
+            disturbancePolicy: { source: 'konling_plan' },
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            allowedControllers: ['pid'],
+            launchContext: {
+              courseId: 'simulation',
+              classId: 'class-1',
+              resourceId: 'resource-1',
+              pageId: 'pid-default',
+            },
+            specHash: 'sha256:task-spec-1',
+          },
+          launchContext: {
+            courseId: 'simulation',
+            classId: 'class-1',
+            resourceId: 'resource-1',
+            pageId: 'pid-default',
+          },
+        }),
+      },
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    const context = await runtime.getSimulationContext({ taskSpecId: 'task-spec-1' }) as Record<string, any>;
+
+    expect(db.simulationTaskSpec.findFirst).toHaveBeenCalledWith({
+      where: { id: 'task-spec-1' },
+    });
+    expect(db.simulationRun.findFirst).not.toHaveBeenCalled();
+    expect(context).toMatchObject({
+      taskSpecId: 'task-spec-1',
+      simulationRunId: null,
+      accessScope: 'owner',
+      task: {
+        taskSpecHash: 'sha256:task-spec-1',
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+      controllerSnapshotRef: null,
+      status: 'task_spec_ready',
+      replay: {
+        replayToken: null,
+        replayState: 'not_run',
+      },
+      evidenceStatus: {
+        lowEvidence: true,
+        traceAvailable: false,
+        replayAvailable: false,
+      },
+      traceRef: null,
+      rawTraceIncluded: false,
+    });
+  });
+
+  it('rejects task spec context when declared resource scope is absent from the runtime scope', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default', resourceId: null });
+    const db = {
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'task-spec-foreign-resource',
+          payload: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            objectives: ['settling_time'],
+            constraints: ['overshoot'],
+            disturbancePolicy: {},
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            allowedControllers: ['pid'],
+            launchContext: {
+              courseId: 'simulation',
+              resourceId: 'resource-foreign',
+              pageId: 'pid-default',
+            },
+            specHash: 'sha256:task-spec-foreign-resource',
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ taskSpecId: 'task-spec-foreign-resource' })).rejects.toMatchObject({
+      status: 403,
+      message: '无权访问该 SimulationTaskSpec。',
+    });
+  });
+
+  it('rejects publication-only task specs until publication scope is part of the Konling runtime scope', async () => {
+    const scope = createScope({
+      courseId: 'simulation',
+      classId: null,
+      resourceId: null,
+      pageId: 'pid-default',
+    });
+    const db = {
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'task-spec-publication-only',
+          payload: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            objectives: ['settling_time'],
+            constraints: ['overshoot'],
+            disturbancePolicy: {},
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            allowedControllers: ['pid'],
+            launchContext: {
+              publicationId: 'publication-1',
+            },
+            specHash: 'sha256:task-spec-publication-only',
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ taskSpecId: 'task-spec-publication-only' })).rejects.toMatchObject({
+      status: 403,
+      message: 'SimulationTaskSpec 缺少可验证的 Konling 仿真作用域。',
+    });
+  });
+
+  it('rejects agent-session-only task specs because agentSessionId is not a runtime scope anchor', async () => {
+    const scope = createScope({
+      courseId: 'simulation',
+      classId: null,
+      resourceId: null,
+      pageId: 'pid-default',
+    });
+    const db = {
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'task-spec-agent-session-only',
+          payload: {
+            schemaVersion: 'simulation-task-spec-v1',
+            sceneId: 'sim/cruise',
+            scenarioId: 'step-response',
+            objectives: ['settling_time'],
+            constraints: ['overshoot'],
+            disturbancePolicy: {},
+            evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+            allowedControllers: ['pid'],
+            launchContext: {
+              agentSessionId: 'agent-session-1',
+            },
+            specHash: 'sha256:task-spec-agent-session-only',
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.getSimulationContext({ taskSpecId: 'task-spec-agent-session-only' })).rejects.toMatchObject({
+      status: 403,
+      message: 'SimulationTaskSpec 缺少可验证的 Konling 仿真作用域。',
+    });
+  });
+
   it('allows teacher class-scoped simulation reads without student impersonation or raw trace exposure', async () => {
     const scope = createScope({
       authenticatedUserId: 'teacher-1',
       targetUserId: 'teacher-1',
       role: 'teacher',
       classId: 'class-1',
+      courseId: 'simulation',
+      resourceId: null,
       privacyScopes: ['student-visible', 'teacher-scoped'],
     });
     const db = {
@@ -615,9 +1014,9 @@ describe('konling agent runtime', () => {
       rawTraceIncluded: false,
       traceRef: {
         traceId: 'trace-1',
-        sampleStorageUri: 's3://traces/run-1.json',
       },
     });
+    expect(context.traceRef.sampleStorageUri).toBeNull();
   });
 
   it('analyzes traces, compares runs, and proposes patches from canonical simulation references', async () => {
@@ -628,6 +1027,7 @@ describe('konling agent runtime', () => {
       classId: 'class-1',
       courseId: 'simulation',
       pageId: 'pid-default',
+      resourceId: 'resource-1',
       runKind: 'arena_preview',
       sourceDomain: 'arena_virtual_preview',
       sourceRefId: 'arena-preview-1',
@@ -751,6 +1151,7 @@ describe('konling agent runtime', () => {
       classId: 'class-1',
       courseId: 'simulation',
       pageId: 'pid-default',
+      resourceId: 'resource-1',
       runKind: 'arena_preview',
       sourceDomain: 'arena_virtual_preview',
       sourceRefId: 'arena-preview-1',
@@ -814,6 +1215,7 @@ describe('konling agent runtime', () => {
       classId: 'class-1',
       courseId: 'simulation',
       pageId: 'pid-default',
+      resourceId: 'resource-1',
       runKind: 'arena_preview',
       sourceDomain: 'arena_virtual_preview',
       sourceRefId: 'arena-preview-1',
@@ -1047,6 +1449,136 @@ describe('konling agent runtime', () => {
     expect(db.simulationTrace.create).not.toHaveBeenCalled();
   });
 
+  it('reuses idempotent virtual simulation runs across agent sessions by stable owner key', async () => {
+    const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
+    const existingRun = {
+      id: 'run-agent-existing',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'simulation',
+      resourceId: 'resource-1',
+      sessionId: 'agent-session-previous',
+      runKind: 'agent_experiment',
+      sourceDomain: 'konling_agent',
+      sourceRefId: 'konling:student-1:course:simulation:resource:resource-1:page:pid-default:run_virtual_simulation:run-key-1',
+      taskSpecSnapshot: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+        launchContext: {
+          courseId: 'simulation',
+          classId: 'class-1',
+          resourceId: 'resource-1',
+          pageId: 'pid-default',
+        },
+      },
+      status: 'completed',
+      summary: { metrics: { settlingTime: 4.2 }, lowEvidence: false },
+      replayToken: 'konling-replay:existing',
+      protocolVersion: '1.0',
+      runtimeVersion: 'konling-simulation-tool-v1',
+      modelVersion: 'step-response',
+      createdAt: new Date('2026-05-28T00:00:00Z'),
+      traces: [
+        {
+          id: 'trace-agent-existing',
+          checksum: 'sha256:trace-existing',
+          summaryMetrics: { settlingTime: 4.2 },
+          sampleCount: 120,
+          sampleCadence: 0.05,
+          createdAt: new Date('2026-05-28T00:00:01Z'),
+        },
+      ],
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-2',
+          ownerUserId: 'student-1',
+          permittedTools: ['run_virtual_simulation'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          if (!where?.id) return null;
+          return {
+            id: where.id,
+            agentSessionId: 'agent-session-2',
+            ownerUserId: 'student-1',
+            actorUserId: 'student-1',
+            targetUserId: 'student-1',
+            toolName: 'run_virtual_simulation',
+            permissionTier: 'run',
+            approvalState: 'not_required',
+            status: 'running',
+            inputSummary: { idempotencyKey: 'run-key-1' },
+            outputSummary: null,
+            errorSummary: null,
+            idempotencyKey: 'run-key-1',
+            correlationId: 'corr-2',
+            startedAt: new Date('2026-05-28T00:00:00Z'),
+            completedAt: null,
+            latencyMs: null,
+          };
+        }),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-sim-2',
+          ...data,
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      simulationTaskSpec: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'task-spec-1' }),
+        create: vi.fn(),
+      },
+      simulationRun: {
+        findFirst: vi.fn().mockResolvedValue(existingRun),
+        create: vi.fn(),
+      },
+      simulationTrace: {
+        create: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-2',
+      context: createRuntimeContext(),
+    });
+
+    await expect(runtime.runVirtualSimulation({
+      idempotencyKey: 'run-key-1',
+      taskSpec: {
+        sceneId: 'sim/cruise',
+        scenarioId: 'step-response',
+        objectives: ['settling_time'],
+        constraints: ['overshoot'],
+        disturbancePolicy: { family: 'none' },
+        evaluationSpecRef: { id: 'preview-eval', visibility: 'preview' },
+        allowedControllers: ['pid'],
+      },
+    })).resolves.toMatchObject({
+      simulationRunId: 'run-agent-existing',
+      traceId: 'trace-agent-existing',
+      status: 'completed',
+    });
+    expect(db.simulationRun.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        sourceDomain: 'konling_agent',
+        sourceRefId: 'konling:student-1:course:simulation:resource:resource-1:page:pid-default:run_virtual_simulation:run-key-1',
+      }),
+    }));
+    expect(db.simulationRun.create).not.toHaveBeenCalled();
+    expect(db.simulationTrace.create).not.toHaveBeenCalled();
+    expect(db.simulationTaskSpec.create).not.toHaveBeenCalled();
+  });
+
   it('requires approval before applying controller patches and applies approved patches to the scoped session draft', async () => {
     const scope = createScope({ courseId: 'simulation', pageId: 'pid-default' });
     const db = {
@@ -1111,6 +1643,7 @@ describe('konling agent runtime', () => {
           classId: 'class-1',
           courseId: 'simulation',
           pageId: 'pid-default',
+          resourceId: 'resource-1',
           runKind: 'scene_simulation',
           sourceDomain: 'simulation_scene',
           sourceRefId: 'scene-run-1',

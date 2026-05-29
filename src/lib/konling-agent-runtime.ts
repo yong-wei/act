@@ -614,8 +614,12 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getSimulationContext: async (args: SimulationContextInput) =>
       runKonlingRuntimeTool(input, 'get_simulation_context', args, async () => {
         const parsed = simulationContextParameters.parse(args);
-        const run = await resolveScopedSimulationRun(input.db, input.scope, parsed);
-        return buildSimulationContextOutput(input.scope, run, { includeTrace: parsed.includeTrace === true });
+        if (parsed.simulationRunId) {
+          const run = await resolveScopedSimulationRun(input.db, input.scope, parsed);
+          return buildSimulationContextOutput(input.scope, run, { includeTrace: parsed.includeTrace === true });
+        }
+        const taskSpec = await resolveScopedSimulationTaskSpec(input.db, input.scope, parsed.taskSpecId);
+        return buildSimulationTaskSpecContextOutput(input.scope, taskSpec);
       }),
     runVirtualSimulation: async (args: RunVirtualSimulationInput) => {
       assertAgentSessionRequiredForPersistentSimulationTool(input, 'run_virtual_simulation');
@@ -1160,6 +1164,24 @@ async function resolveScopedSimulationRun(
   return run as SimulationDbRun;
 }
 
+async function resolveScopedSimulationTaskSpec(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  taskSpecId?: string | null,
+): Promise<SimulationDbTaskSpec> {
+  if (!taskSpecId) {
+    throw new KonlingRuntimeScopeError(400, '必须提供 simulationRunId 或 taskSpecId。');
+  }
+  const taskSpec = await db.simulationTaskSpec?.findFirst?.({
+    where: { id: taskSpecId },
+  });
+  if (!taskSpec) {
+    throw new KonlingRuntimeScopeError(404, 'SimulationTaskSpec 不存在或不属于当前 Konling 仿真作用域。');
+  }
+  assertSimulationTaskSpecAccess(scope, taskSpec as SimulationDbTaskSpec);
+  return taskSpec as SimulationDbTaskSpec;
+}
+
 async function resolveScopedSimulationRuns(
   db: KonlingRuntimeDb,
   scope: KonlingRuntimeScope,
@@ -1201,8 +1223,7 @@ function buildSimulationRunScopeWhere(
   const base: Record<string, unknown> = {
     ...(input.simulationRunId ? { id: input.simulationRunId } : {}),
     ...(input.taskSpecId ? { taskSpecId: input.taskSpecId } : {}),
-    courseId: scope.courseId,
-    ...(scope.resourceId ? { resourceId: scope.resourceId } : {}),
+    OR: buildSimulationRunContextScopeWhere(scope),
   };
   if (scope.role === 'student') {
     return {
@@ -1222,6 +1243,20 @@ function buildSimulationRunScopeWhere(
   return base;
 }
 
+function buildSimulationRunContextScopeWhere(scope: KonlingRuntimeScope) {
+  return [
+    {
+      courseId: scope.courseId,
+      ...(scope.resourceId ? { resourceId: scope.resourceId } : {}),
+    },
+    {
+      sourceDomain: 'arena_virtual_preview',
+      courseId: null,
+      resourceId: null,
+    },
+  ];
+}
+
 function assertSimulationRunAccess(scope: KonlingRuntimeScope, run: SimulationDbRun) {
   const decision = authorizeSimulationRunAccess({
     requester: {
@@ -1235,7 +1270,61 @@ function assertSimulationRunAccess(scope: KonlingRuntimeScope, run: SimulationDb
   if (!decision.allowed) {
     throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
   }
+  assertSimulationRunContextScope(scope, run);
   return decision;
+}
+
+function assertSimulationRunContextScope(scope: KonlingRuntimeScope, run: SimulationDbRun) {
+  const taskSpec = readSimulationTaskSpec(run);
+  const launchContext = taskSpec.launchContext;
+  const courseIds = [getString(run, 'courseId'), launchContext.courseId].filter(Boolean);
+  const resourceIds = [getString(run, 'resourceId'), launchContext.resourceId].filter(Boolean);
+  const pageIds = [launchContext.pageId].filter(Boolean);
+
+  if (courseIds.some((courseId) => courseId !== scope.courseId)) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
+  }
+  if (resourceIds.some((resourceId) => resourceId !== scope.resourceId)) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
+  }
+  if (scope.resourceId && resourceIds.length === 0) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
+  }
+  if (pageIds.some((pageId) => pageId !== scope.pageId)) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationRun。');
+  }
+}
+
+function assertSimulationTaskSpecAccess(scope: KonlingRuntimeScope, taskSpecRow: SimulationDbTaskSpec) {
+  if (scope.role === 'teacher' && !scope.classId) {
+    throw new KonlingRuntimeScopeError(400, '教师读取 Konling 仿真工具必须提供 classId。');
+  }
+  const taskSpec = readSimulationTaskSpecRow(taskSpecRow);
+  const launchContext = taskSpec.launchContext;
+  const scopedContextKeys = [
+    launchContext.courseId,
+    launchContext.classId,
+    launchContext.resourceId,
+    launchContext.pageId,
+  ].filter(Boolean);
+  if (scopedContextKeys.length === 0 && scope.role !== 'admin') {
+    throw new KonlingRuntimeScopeError(403, 'SimulationTaskSpec 缺少可验证的 Konling 仿真作用域。');
+  }
+  if (launchContext.courseId && launchContext.courseId !== scope.courseId) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationTaskSpec。');
+  }
+  if (launchContext.classId && launchContext.classId !== scope.classId) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationTaskSpec。');
+  }
+  if (launchContext.resourceId && launchContext.resourceId !== scope.resourceId) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationTaskSpec。');
+  }
+  if (launchContext.pageId && launchContext.pageId !== scope.pageId) {
+    throw new KonlingRuntimeScopeError(403, '无权访问该 SimulationTaskSpec。');
+  }
+  if (scope.role === 'teacher') return 'class-summary' as const;
+  if (scope.role === 'admin') return 'audit-summary' as const;
+  return 'owner' as const;
 }
 
 async function resolveScopedSimulationTrace(
@@ -1283,8 +1372,52 @@ function buildSimulationContextOutput(
     },
     provenance: buildSimulationProvenance(run),
     evidenceStatus: buildSimulationEvidenceStatus(run, trace),
-    traceRef: trace ? formatSimulationTraceRef(trace) : null,
+    traceRef: trace ? formatSimulationTraceRef(trace, { includeStorageUri: decision.rawTraceAllowed }) : null,
     rawTraceIncluded: options.includeTrace && decision.rawTraceAllowed,
+  };
+}
+
+function buildSimulationTaskSpecContextOutput(
+  scope: KonlingRuntimeScope,
+  taskSpecRow: SimulationDbTaskSpec,
+) {
+  const accessScope = assertSimulationTaskSpecAccess(scope, taskSpecRow);
+  const taskSpec = readSimulationTaskSpecRow(taskSpecRow);
+  const evaluationVisibility = taskSpec.evaluationSpecRef.visibility ?? 'preview';
+  return {
+    taskSpecId: getString(taskSpecRow, 'id') || null,
+    simulationRunId: null,
+    accessScope,
+    ownerUserId: null,
+    classId: taskSpec.launchContext.classId ?? null,
+    task: compactSimulationTaskSpec(taskSpec),
+    controllerSnapshotRef: null,
+    status: 'task_spec_ready',
+    summary: {},
+    replay: {
+      replayToken: null,
+      replayState: 'not_run',
+    },
+    provenance: {
+      runKind: null,
+      sourceDomain: null,
+      sourceRefId: null,
+      evaluationVisibility,
+      officialEligible: evaluationVisibility === 'official',
+      previewOnly: evaluationVisibility !== 'official',
+      courseId: taskSpec.launchContext.courseId ?? null,
+      classId: taskSpec.launchContext.classId ?? null,
+      resourceId: taskSpec.launchContext.resourceId ?? null,
+      publicationId: taskSpec.launchContext.publicationId ?? null,
+    },
+    evidenceStatus: {
+      lowEvidence: true,
+      confidence: 'low',
+      traceAvailable: false,
+      replayAvailable: false,
+    },
+    traceRef: null,
+    rawTraceIncluded: false,
   };
 }
 
@@ -1294,9 +1427,27 @@ async function createKonlingVirtualSimulationRun(
   input: RunVirtualSimulationInput,
   refs: { agentSessionId: string | null; agentToolRunId: string | null },
 ) {
+  const sourceRefId = buildKonlingSimulationSourceRefId(scope, input.idempotencyKey);
+  const existingRun = await db.simulationRun?.findFirst?.({
+    where: {
+      ...buildSimulationRunScopeWhere(scope, {}),
+      sourceDomain: 'konling_agent',
+      sourceRefId,
+    },
+    include: {
+      taskSpec: true,
+      traces: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+  if (existingRun) {
+    assertSimulationRunAccess(scope, existingRun as SimulationDbRun);
+    return buildSimulationRunCreationOutput(existingRun as SimulationDbRun);
+  }
   const taskSpec = buildScopedSimulationTaskSpec(scope, input.taskSpec, refs.agentSessionId);
   const taskSpecRow = await resolveOrCreateSimulationTaskSpec(db, taskSpec);
-  const sourceRefId = `konling:${refs.agentSessionId ?? 'no-session'}:${refs.agentToolRunId ?? input.idempotencyKey}`;
   const summaryMetrics = input.summaryMetrics ?? input.trace?.summaryMetrics ?? {};
   const summary = {
     metrics: summaryMetrics,
@@ -1351,13 +1502,35 @@ async function createKonlingVirtualSimulationRun(
       sampleStorageUri: input.trace?.sampleStorageUri ?? null,
     },
   });
+  return buildSimulationRunCreationOutput(run as SimulationDbRun, trace as SimulationDbTrace | null, taskSpec);
+}
+
+function buildKonlingSimulationSourceRefId(scope: KonlingRuntimeScope, idempotencyKey: string) {
+  const resourcePart = scope.resourceId ? `resource:${scope.resourceId}` : 'resource:none';
+  return [
+    'konling',
+    scope.targetUserId,
+    `course:${scope.courseId}`,
+    resourcePart,
+    `page:${scope.pageId}`,
+    'run_virtual_simulation',
+    idempotencyKey,
+  ].join(':');
+}
+
+function buildSimulationRunCreationOutput(
+  run: SimulationDbRun,
+  traceInput?: SimulationDbTrace | null,
+  taskSpecInput?: SimulationTaskSpecV1,
+) {
+  const trace = traceInput ?? arrayOfRecords(getValue(run, 'traces'))[0] ?? null;
   return {
     simulationRunId: getString(run, 'id'),
     traceId: trace ? getString(trace, 'id') : null,
     status: getString(run, 'status'),
-    summary,
-    provenance: buildSimulationProvenance(run as SimulationDbRun, taskSpec),
-    evidenceStatus: buildSimulationEvidenceStatus(run as SimulationDbRun, trace as SimulationDbTrace | null),
+    summary: readRecord(getValue(run, 'summary')),
+    provenance: buildSimulationProvenance(run, taskSpecInput),
+    evidenceStatus: buildSimulationEvidenceStatus(run, trace),
   };
 }
 
@@ -1568,6 +1741,12 @@ function readSimulationTaskSpec(run: SimulationDbRun): SimulationTaskSpecV1 {
   return normalizeSimulationTaskSpec(candidate);
 }
 
+function readSimulationTaskSpecRow(taskSpecRow: SimulationDbTaskSpec): SimulationTaskSpecV1 {
+  const payload = readRecord(getValue(taskSpecRow, 'payload'));
+  const candidate = Object.keys(payload).length > 0 ? payload : taskSpecRow;
+  return normalizeSimulationTaskSpec(candidate);
+}
+
 function normalizeSimulationTaskSpec(value: Record<string, unknown>): SimulationTaskSpecV1 {
   if (getString(value, 'schemaVersion') === 'simulation-task-spec-v1' && getString(value, 'specHash')) {
     return value as unknown as SimulationTaskSpecV1;
@@ -1639,13 +1818,16 @@ function buildSimulationEvidenceStatus(run: SimulationDbRun, trace: SimulationDb
   };
 }
 
-function formatSimulationTraceRef(trace: SimulationDbTrace) {
+function formatSimulationTraceRef(
+  trace: SimulationDbTrace,
+  options: { includeStorageUri?: boolean } = {},
+) {
   return {
     traceId: getString(trace, 'id'),
     checksum: getString(trace, 'checksum') || null,
     sampleCount: getNumber(trace, 'sampleCount'),
     sampleCadence: getNumber(trace, 'sampleCadence'),
-    sampleStorageUri: getString(trace, 'sampleStorageUri') || null,
+    sampleStorageUri: options.includeStorageUri ? getString(trace, 'sampleStorageUri') || null : null,
     summaryMetrics: readRecord(getValue(trace, 'summaryMetrics')),
     createdAt: toIsoOrNull(getValue(trace, 'createdAt')),
   };
