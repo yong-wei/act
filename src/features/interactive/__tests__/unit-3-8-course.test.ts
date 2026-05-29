@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -169,6 +171,51 @@ describe('unit 3-8 interactive course', () => {
     expect(step11Modules[1]).toMatchObject({ kind: 'content.figure', payload: { legacyKind: 'comparison-graphic' } });
     expect(JSON.stringify(manifest.steps['step-12']?.modules ?? [])).toContain('L(s)=K/[(s+1)(s+2)(s+4)]');
     expect(JSON.stringify(manifest.steps['step-13']?.modules ?? [])).toContain('G_m');
+  });
+
+  it('renders migrated 3-8 compute.panel modules through the Rust analysis panel', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-8');
+    const courseModule = await import('@/lib/unit-3-8-course');
+    const { UNIT_3_8StepContentPanel } = await import(
+      '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels'
+    );
+    const step = courseModule.UNIT_3_8_LESSON_STEPS.find((item) => item.id === 'step-05');
+
+    if (!step || !runtime.interactiveManifest) throw new Error('3-8 step-05 runtime manifest missing');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_3_8StepContentPanel, {
+        step,
+        manifest: runtime.interactiveManifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+      }),
+    );
+
+    expect(html).toContain('控制分析图暂时不可用');
+    expect(html).not.toContain('Rust 驱动四联互动面板');
+  });
+
+  it('renders migrated 3-8 interactive-figure compute.panel modules through the image panel', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-8');
+    const courseModule = await import('@/lib/unit-3-8-course');
+    const { UNIT_3_8StepContentPanel } = await import(
+      '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels'
+    );
+    const step = courseModule.UNIT_3_8_LESSON_STEPS.find((item) => item.id === 'step-17');
+
+    if (!step || !runtime.interactiveManifest) throw new Error('3-8 step-17 runtime manifest missing');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_3_8StepContentPanel, {
+        step,
+        manifest: runtime.interactiveManifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+      }),
+    );
+
+    expect(html).toContain('3-8-heading-baseline.png');
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {

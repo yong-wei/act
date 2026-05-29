@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
@@ -286,6 +288,32 @@ describe('unit 3-9 interactive course', () => {
       ),
     ).toBe(true);
     expect(JSON.stringify(steps.get('step-11'))).toContain('3-9-info.png');
+  });
+
+  it('renders migrated 3-9 compute.panel modules through the Rust analysis panel', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-9');
+    const courseModule = await import('@/lib/unit-3-9-course');
+    const { UNIT_3_9StepContentPanel } = await import(
+      '@/features/interactive/unit-3-9-cross-domain-mapping-lab/step-panels'
+    );
+    const manifest = runtime.interactiveManifest;
+    const step = courseModule.UNIT_3_9_LESSON_STEPS.find((item) => item.id === 'step-05');
+    const stepManifest = manifest?.steps.find((item) => item.id === 'step-05');
+
+    if (!manifest || !step || !stepManifest) throw new Error('3-9 step-05 runtime manifest missing');
+
+    const html = renderToStaticMarkup(
+      createElement(UNIT_3_9StepContentPanel, {
+        manifest,
+        step,
+        stepManifest,
+        revealProgress: 0,
+        allowInlineReveal: false,
+      }),
+    );
+
+    expect(html).toContain('基准版本四联图');
+    expect(html).not.toContain('综合比较面板');
   });
 
   it('builds 3-9 Rust analysis requests for baseline, lead, integral and lag panels', async () => {
