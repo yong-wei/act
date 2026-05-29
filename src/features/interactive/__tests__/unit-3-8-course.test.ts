@@ -154,13 +154,19 @@ describe('unit 3-8 interactive course', () => {
     expect(manifest.steps['step-04']?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
 
     for (const stepId of ['step-05', 'step-06', 'step-07', 'step-08']) {
-      expect(manifest.steps[stepId]?.modules?.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
+      expect(
+        manifest.steps[stepId]?.modules?.some((module) =>
+          module.kind === 'compute.panel'
+          && module.payload?.legacyKind === 'rust-analysis-panel'
+          && module.payload?.capabilityRef === 'rust-analysis',
+        ),
+      ).toBe(true);
       expect(manifest.steps[stepId]?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
     }
 
     const step11Modules = manifest.steps['step-11']?.modules ?? [];
-    expect(step11Modules[0]?.kind).toBe('worked-example-card');
-    expect(step11Modules[1]?.kind).toBe('comparison-graphic');
+    expect(step11Modules[0]).toMatchObject({ kind: 'content.cardSet', payload: { legacyKind: 'worked-example-card' } });
+    expect(step11Modules[1]).toMatchObject({ kind: 'content.figure', payload: { legacyKind: 'comparison-graphic' } });
     expect(JSON.stringify(manifest.steps['step-12']?.modules ?? [])).toContain('L(s)=K/[(s+1)(s+2)(s+4)]');
     expect(JSON.stringify(manifest.steps['step-13']?.modules ?? [])).toContain('G_m');
   });
@@ -323,7 +329,10 @@ describe('unit 3-8 interactive course', () => {
 
     for (const stepId of ['step-01', 'step-11', 'step-12', 'step-13', 'step-15', 'step-17', 'step-18', 'step-19', 'step-20', 'step-22']) {
       const modules = manifest.steps[stepId]?.modules ?? [];
-      const imageModules = modules.filter((manifestModule) => ['comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(manifestModule.kind));
+      const imageModules = modules.filter((manifestModule) =>
+        ['content.figure', 'compute.panel'].includes(manifestModule.kind)
+        && ['comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(String(manifestModule.payload?.legacyKind ?? '')),
+      );
       expect(imageModules.length, `${stepId} should contain image modules`).toBeGreaterThan(0);
       expect(
         imageModules.some((manifestModule) => JSON.stringify(manifestModule.payload ?? {}).includes('.png')),

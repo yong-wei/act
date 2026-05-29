@@ -849,6 +849,35 @@ describe('interactive module registry gate', () => {
       }
     }
   });
+
+  it('passes the migrated variant-heavy lesson group with canonical modules on every step', () => {
+    const migratedLessonIds = ['3-5', '3-6', '3-7', '3-8', '3-9'];
+    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+    const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual([]);
+
+    for (const lessonId of migratedLessonIds) {
+      const manifest = JSON.parse(
+        readFileSync(join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json'), 'utf8'),
+      ) as {
+        steps: Record<string, { modules?: Array<{ kind?: string }> }>;
+      };
+
+      for (const [stepId, step] of Object.entries(manifest.steps)) {
+        expect(step.modules, `${lessonId} ${stepId} should have standard modules`).toBeDefined();
+        expect(step.modules?.length, `${lessonId} ${stepId} should have standard modules`).toBeGreaterThan(0);
+        for (const runtimeModule of step.modules ?? []) {
+          expect(
+            canonicalClasses.has(runtimeModule.kind ?? ''),
+            `${lessonId} ${stepId} module kind ${runtimeModule.kind} should be canonical`,
+          ).toBe(true);
+          expect(runtimeModule.kind).not.toBe('legacy.adapter');
+        }
+      }
+    }
+  });
 });
 
 function manifestFixture({

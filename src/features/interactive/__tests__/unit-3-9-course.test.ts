@@ -234,7 +234,11 @@ describe('unit 3-9 interactive course', () => {
     const runtime = await loadLessonRuntimeEntry('3-9');
     const steps = new Map(runtime.interactiveManifest?.steps.map((step) => [step.id, step]) ?? []);
 
-    expect(steps.get('step-01')?.modules.some((module) => module.kind === 'figure')).toBe(true);
+    expect(
+      steps.get('step-01')?.modules.some((module) =>
+        module.kind === 'content.figure' && module.payload.legacyKind === 'figure',
+      ),
+    ).toBe(true);
     expect(JSON.stringify(steps.get('step-01'))).toContain('3-9-cover-comic.png');
     expect(JSON.stringify(steps.get('step-01'))).not.toContain('边界提醒');
     expect(steps.get('step-02')?.interactionSpec.interactionKind).toBe('none');
@@ -248,7 +252,13 @@ describe('unit 3-9 interactive course', () => {
     expect(JSON.stringify(steps.get('step-03'))).not.toContain('AI');
     expect(steps.get('step-03')?.interactionSpec.interactionKind).toBe('quiz_group');
     expect(JSON.stringify(steps.get('step-04'))).toContain('控制对象');
-    expect(steps.get('step-05')?.modules.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
+    expect(
+      steps.get('step-05')?.modules.some((module) =>
+        module.kind === 'compute.panel'
+        && module.payload.legacyKind === 'rust-analysis-panel'
+        && module.payload.capabilityRef === 'rust-analysis',
+      ),
+    ).toBe(true);
     expect(JSON.stringify(steps.get('step-05'))).toContain('超调量');
     expect(steps.get('step-06')?.interactionSpec.interactionKind).toBe('parameter_slider');
     expect(steps.get('step-07')?.interactionSpec.interactionKind).toBe('parameter_slider');
@@ -256,7 +266,11 @@ describe('unit 3-9 interactive course', () => {
     expect(steps.get('step-08')?.interactionSpec.interactionKind).toBe('parameter_slider');
     expect(JSON.stringify(steps.get('step-08'))).toContain('参数调节目标');
     expect(JSON.stringify(steps.get('step-08'))).not.toContain('设计任务');
-    expect(steps.get('step-08')?.modules.some((module) => module.kind === 'formula-card')).toBe(true);
+    expect(
+      steps.get('step-08')?.modules.some((module) =>
+        module.kind === 'content.formula' && module.payload.legacyKind === 'formula-card',
+      ),
+    ).toBe(true);
     expect(JSON.stringify(steps.get('step-08'))).toContain('C_{ic}(s)');
     expect(JSON.stringify(steps.get('step-08'))).not.toContain('讲义 5.4');
     expect(JSON.stringify(steps.get('step-08'))).toContain('单位斜坡误差');
@@ -266,7 +280,11 @@ describe('unit 3-9 interactive course', () => {
     expect(JSON.stringify(steps.get('step-09'))).toContain('单位斜坡误差');
     expect(steps.get('step-10')?.interactionSpec.interactionKind).toBe('table_builder');
     expect(steps.get('step-11')?.interactionSpec.interactionKind).toBe('summary');
-    expect(steps.get('step-11')?.modules.some((module) => module.kind === 'figure')).toBe(true);
+    expect(
+      steps.get('step-11')?.modules.some((module) =>
+        module.kind === 'content.figure' && module.payload.legacyKind === 'figure',
+      ),
+    ).toBe(true);
     expect(JSON.stringify(steps.get('step-11'))).toContain('3-9-info.png');
   });
 
