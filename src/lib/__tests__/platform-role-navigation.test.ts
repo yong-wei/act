@@ -23,6 +23,7 @@ describe('platform role navigation', () => {
       '/interactive-learning/control-workbench',
       '/assessment/adaptive-practice',
       '/interactive-learning',
+      '/data-center',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
     expect(entries.map((entry) => entry.id)).not.toContain('student-profile');

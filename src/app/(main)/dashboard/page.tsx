@@ -51,6 +51,12 @@ const dashboardEntryMeta = {
     badgeColor: 'bg-fuchsia-500/20 text-fuchsia-400',
     iconBg: 'bg-fuchsia-500/20 text-fuchsia-400',
   },
+  'platform-data-center': {
+    icon: '📊',
+    badge: '数据中心',
+    badgeColor: 'bg-teal-500/20 text-teal-400',
+    iconBg: 'bg-teal-500/20 text-teal-400',
+  },
   'student-profile': {
     icon: '👤',
     badge: '能力画像',
