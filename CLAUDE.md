@@ -1,3 +1,10 @@
+# OpenWolf
+
+@.wolf/OPENWOLF.md
+
+This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
+
+
 ## 项目进度保存与验证
 
 - 当完成了重大功能更新后，需要及时提交并推送到当前分支。更新docs/ProjectDescription.md文档相关部分。
@@ -236,51 +243,37 @@ For new pages/features, navigate to the page and verify:
 SSH_TARGET: root@121.40.124.135
 REMOTE_PROJECT_DIR: /home/projects/act
 
+## OpenSpec 工作流
+
+- 本项目使用 OpenSpec 管理功能开发。已完成变更会沉淀到 `openspec/specs/`，后续相关变更必须先阅读并遵循对应 spec。
+- 开始新变更前，先检查 `openspec/specs/` 与 `openspec/changes/`，避免与已归档能力或进行中变更冲突。
+- 当任务已由 OpenSpec 接管时，以 `proposal.md`、`design.md`、`tasks.md` 和 spec delta 为计划真源；不要再创建第二套计划，除非用户明确要求。
+- 提案或归档工作优先使用 `openspec validate <change> --type change --strict`、`openspec validate --specs --strict` 或 `openspec validate --changes --strict`。`validate --all` 可能暴露无关旧债，不作为默认门槛。
+
+## Code Graph Tool Split
+
+- `codegraph` 和 `code-review-graph` 是两套本地图谱工具；前者偏代码索引与符号级查询，后者偏 review、执行流、影响面和架构风险分析。
+- `codegraph` CLI 用于 `init/index/sync/status/query/files/context` 等索引维护和脚本化查询；`codegraph` MCP 用于会话内直接查询 `search/context/callers/callees/impact/node/explore/files/status`。
+- 快速定位符号、目录、调用者/被调用者或单点影响时优先用 `codegraph`；审查 diff、追踪流程、找测试缺口或评估跨文件风险时优先用 `code-review-graph`。
+
+<!-- codegraph MCP tools -->
+## MCP Tools: codegraph
+
+若项目存在 `.codegraph/`，代码理解类问题优先使用 `mcp__codegraph__`，避免先用 `rg`/文件读取做大范围探索。
+
+- 架构、功能、bug 上下文：先用 `codegraph_context`。
+- 符号定位：用 `codegraph_search`；目录结构：用 `codegraph_files`。
+- 调用关系：用 `codegraph_callers` / `codegraph_callees`。
+- 改动影响：用 `codegraph_impact`；单符号详情：用 `codegraph_node`。
+- 多符号源码巡检：在已有明确符号名后，用一次 `codegraph_explore`。
+
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
+本项目有 code-review-graph 知识图谱。CRG 适合 review、执行流、影响面、测试缺口和跨文件关系问题；单文件字面量确认可直接用 `rg`。
 
-**IMPORTANT: In Codex, some `code-review-graph` tools are lazily exposed.**
-If the current session only shows a subset of CRG tools, do **not** assume
-the others are unavailable or removed upstream. First use `tool_search` with
-queries such as `code-review-graph semantic_search_nodes query_graph
-get_impact_radius get_affected_flows list_flows get_flow
-get_architecture_overview list_communities refactor_tool` to load the
-deferred schemas, then call the corresponding `mcp__code_review_graph__.*_tool`.
-
-### When to use graph tools FIRST
-
-- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
-- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
-- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
-- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
-- **Architecture questions**: `get_architecture_overview` + `list_communities`
-
-Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
-
-### Key Tools
-
-| Tool | Use when |
-|------|----------|
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
-
-### Workflow
-
-1. Start with `get_minimal_context`.
-2. If a needed CRG tool is missing from the current session, use `tool_search`
-   to load it before falling back.
-3. Use `detect_changes` for code review.
-4. Use `get_affected_flows` to understand impact.
-5. Use `query_graph` pattern="tests_for" to check coverage.
+- 若 CRG 工具未显示，先用 `tool_search` 加载 `detect_changes`、`get_review_context`、`query_graph`、`get_affected_flows`、`get_flow`、`get_impact_radius` 等工具。
+- Review：先 `detect_changes`，再 `get_review_context`。
+- 影响面：先 `get_affected_flows`，再把 `get_impact_radius` 作为辅助估计。
+- 关系追踪：用 `query_graph`；具体执行路径用 `list_flows` / `get_flow`。
+- 图谱缩小范围后，再用 `rg`、`sed`、`git diff` 和测试做证据确认。
