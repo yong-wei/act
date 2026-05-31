@@ -6,13 +6,13 @@ import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   getPlatformCockpitHref,
-  getStudentCoreNavigationEntries,
+  getStudentLearningIntentNavigationGroups,
   type PlatformRoleNavigationItem,
 } from '@/lib/platform-role-navigation';
 import { prisma } from '@/lib/prisma';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
-const studentCoreEntries = getStudentCoreNavigationEntries();
+const studentCoreEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
 
 const dashboardEntryMeta = {
   'student-simulations': {

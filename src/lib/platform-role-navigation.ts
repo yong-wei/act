@@ -16,6 +16,16 @@ export type PlatformRoleNavigationGroup =
   | 'admin-cockpit'
   | 'future';
 
+export type PlatformNavigationLayerId = 'global-product' | 'role-cockpit' | 'contextual-workspace';
+export type PlatformWorkspaceMode =
+  | 'arena'
+  | 'control-workbench'
+  | 'interactive-learning'
+  | 'adaptive-learning'
+  | 'teacher'
+  | 'admin';
+export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
+
 export type PlatformNavigationIconKey =
   | 'ship'
   | 'knowledge'
@@ -43,6 +53,52 @@ export interface PlatformRoleNavigationItem extends PlatformNavigationItem {
   description: string;
   iconKey: PlatformNavigationIconKey;
   availability?: PlatformNavigationAvailability;
+}
+
+export interface PlatformNavigationLayerContract {
+  id: PlatformNavigationLayerId;
+  label: string;
+  purpose: string;
+  entryGroups: readonly PlatformRoleNavigationGroup[];
+  workspaceModes?: readonly PlatformWorkspaceMode[];
+  duplicatesGlobalNavigation: boolean;
+}
+
+export interface StudentLearningIntentGroup {
+  intent: StudentLearningIntent;
+  label: string;
+  entryIds: readonly (typeof STUDENT_CORE_ENTRY_IDS)[number][];
+  compatibilityAliases: readonly string[];
+}
+
+export interface StudentLearningIntentNavigationGroup extends StudentLearningIntentGroup {
+  entries: PlatformRoleNavigationItem[];
+}
+
+export interface PlatformProfileAndCockpitAction {
+  audience: PlatformRoleNavigationAudience;
+  profileHref: string;
+  cockpitHref: string;
+  primaryWorkspaceAction: 'account' | 'cockpit';
+  semantics: string;
+}
+
+export interface PlatformContextualReturnTargetRule {
+  workspaceMode: PlatformWorkspaceMode;
+  routePrefix: string;
+  sourceContext: 'arena-challenge' | 'arena-publication' | 'interactive-learning' | 'adaptive-learning';
+  targetHint: string;
+  fallbackHref: string;
+}
+
+export interface PlatformAuthRouteContract {
+  href: string;
+  preservesDestination?: string;
+  preservesDestinationOnError?: boolean;
+  errorStateIntent?: 'retry-with-same-destination';
+  exposesProfileAction: boolean;
+  exposesCockpitAction: boolean;
+  roleCockpitFallbacks?: typeof PLATFORM_ROLE_COCKPIT_HREFS;
 }
 
 export interface PlatformRoleNavigationOptions {
@@ -81,6 +137,152 @@ export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
   { href: '/login', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
   { href: '/dashboard', routeFile: 'src/app/(main)/dashboard/page.tsx', viewportWidths: [1440, 320] },
   { href: '/profile', routeFile: 'src/app/(main)/profile/page.tsx', viewportWidths: [1440, 320] },
+  { href: '/login?callbackUrl=%2Fprofile', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
+] as const;
+
+export const PLATFORM_NAVIGATION_LAYERS: PlatformNavigationLayerContract[] = [
+  {
+    id: 'global-product',
+    label: '全局产品导航',
+    purpose: 'Expose stable public and student product destinations without binding to a role workspace.',
+    entryGroups: ['public', 'student-core'],
+    duplicatesGlobalNavigation: false,
+  },
+  {
+    id: 'role-cockpit',
+    label: '角色驾驶舱导航',
+    purpose: 'Route authenticated users to the operational cockpit for their active role.',
+    entryGroups: ['role-cockpit', 'teacher-cockpit', 'admin-cockpit'],
+    workspaceModes: ['teacher', 'admin'],
+    duplicatesGlobalNavigation: false,
+  },
+  {
+    id: 'contextual-workspace',
+    label: '上下文工作区导航',
+    purpose: 'Expose local breadcrumbs, return targets, and tool actions inside dense workspaces.',
+    entryGroups: [],
+    workspaceModes: ['arena', 'control-workbench', 'interactive-learning', 'adaptive-learning', 'teacher', 'admin'],
+    duplicatesGlobalNavigation: false,
+  },
+] as const;
+
+export const STUDENT_LEARNING_INTENT_GROUPS: StudentLearningIntentGroup[] = [
+  {
+    intent: 'learn',
+    label: '学习',
+    entryIds: ['student-knowledge', 'student-interactive-learning'],
+    compatibilityAliases: [],
+  },
+  {
+    intent: 'practice',
+    label: '练习',
+    entryIds: ['student-adaptive-learning'],
+    compatibilityAliases: ['/profile/growth'],
+  },
+  {
+    intent: 'challenge',
+    label: '挑战',
+    entryIds: ['student-arena'],
+    compatibilityAliases: [],
+  },
+  {
+    intent: 'experiment',
+    label: '实验',
+    entryIds: ['student-simulations', 'student-control-workbench'],
+    compatibilityAliases: ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'],
+  },
+  {
+    intent: 'review-profile',
+    label: '复盘与画像',
+    entryIds: ['platform-data-center'],
+    compatibilityAliases: ['/profile', '/profile/growth', '/profile/portfolio'],
+  },
+] as const;
+
+export const PLATFORM_PROFILE_AND_COCKPIT_ACTIONS: PlatformProfileAndCockpitAction[] = [
+  {
+    audience: 'guest',
+    profileHref: '/login?callbackUrl=%2Fprofile',
+    cockpitHref: '/login',
+    primaryWorkspaceAction: 'account',
+    semantics: 'Guests authenticate before profile or cockpit access.',
+  },
+  {
+    audience: 'student',
+    profileHref: '/profile',
+    cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.student,
+    primaryWorkspaceAction: 'cockpit',
+    semantics: 'Student cockpit is the operational workspace; profile is account and learning-record review.',
+  },
+  {
+    audience: 'teacher',
+    profileHref: '/profile',
+    cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.teacher,
+    primaryWorkspaceAction: 'cockpit',
+    semantics: 'Teacher cockpit is the operational workspace; profile remains an account action.',
+  },
+  {
+    audience: 'admin',
+    profileHref: '/profile',
+    cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.admin,
+    primaryWorkspaceAction: 'cockpit',
+    semantics: 'Admin cockpit is the operational workspace; profile remains an account action.',
+  },
+  {
+    audience: 'audit',
+    profileHref: '/profile',
+    cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.audit,
+    primaryWorkspaceAction: 'cockpit',
+    semantics: 'Audit cockpit is the governed operational workspace; profile remains an account action.',
+  },
+] as const;
+
+export const PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES: PlatformContextualReturnTargetRule[] = [
+  {
+    workspaceMode: 'control-workbench',
+    routePrefix: '/interactive-learning/control-workbench',
+    sourceContext: 'arena-challenge',
+    targetHint: 'Return to the originating Arena challenge when challenge context is present.',
+    fallbackHref: '/interactive-learning',
+  },
+  {
+    workspaceMode: 'control-workbench',
+    routePrefix: '/interactive-learning/control-workbench',
+    sourceContext: 'arena-publication',
+    targetHint: 'Return to the Arena publication or challenge list when publication context is present.',
+    fallbackHref: '/arena',
+  },
+  {
+    workspaceMode: 'interactive-learning',
+    routePrefix: '/interactive-learning',
+    sourceContext: 'interactive-learning',
+    targetHint: 'Return to the interactive learning catalog when no narrower lesson context is present.',
+    fallbackHref: '/interactive-learning',
+  },
+  {
+    workspaceMode: 'adaptive-learning',
+    routePrefix: '/assessment/adaptive-practice',
+    sourceContext: 'adaptive-learning',
+    targetHint: 'Return to the adaptive practice surface or profile growth context.',
+    fallbackHref: '/assessment/adaptive-practice',
+  },
+] as const;
+
+export const PLATFORM_AUTH_ROUTE_CONTRACTS: PlatformAuthRouteContract[] = [
+  {
+    href: '/login?callbackUrl=%2Fprofile',
+    preservesDestination: '/profile',
+    preservesDestinationOnError: true,
+    errorStateIntent: 'retry-with-same-destination',
+    exposesProfileAction: true,
+    exposesCockpitAction: true,
+  },
+  {
+    href: '/login',
+    exposesProfileAction: false,
+    exposesCockpitAction: true,
+    roleCockpitFallbacks: PLATFORM_ROLE_COCKPIT_HREFS,
+  },
 ] as const;
 
 const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
@@ -480,6 +682,17 @@ export function getPlatformRoleNavigation(
 export function getStudentCoreNavigationEntries(): PlatformRoleNavigationItem[] {
   const coreIds = new Set<string>(STUDENT_CORE_ENTRY_IDS);
   return getPlatformRoleNavigation('student').filter((entry) => coreIds.has(entry.id));
+}
+
+export function getStudentLearningIntentNavigationGroups(): StudentLearningIntentNavigationGroup[] {
+  const entriesById = new Map(getStudentCoreNavigationEntries().map((entry) => [entry.id, entry]));
+  return STUDENT_LEARNING_INTENT_GROUPS.map((group) => ({
+    ...group,
+    entries: group.entryIds.flatMap((entryId) => {
+      const entry = entriesById.get(entryId);
+      return entry ? [entry] : [];
+    }),
+  }));
 }
 
 export function getPlatformNavigationHref(id: string): string | undefined {

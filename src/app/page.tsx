@@ -42,7 +42,7 @@ import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-ren
 import { getHomepageScenarioBackgroundClass } from '@/lib/homepage-theme'
 import {
   getPlatformCockpitHref,
-  getStudentCoreNavigationEntries,
+  getStudentLearningIntentNavigationGroups,
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
 
@@ -135,7 +135,7 @@ const shipScenarios = [
   },
 ]
 
-const homepageStudentEntries = getStudentCoreNavigationEntries()
+const homepageStudentEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries)
 
 const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
