@@ -40,6 +40,12 @@ function run(command, args, cwd, options = {}) {
   return result;
 }
 
+function gitHookPath(repo, hookName) {
+  const result = run('git', ['-C', repo, 'rev-parse', '--git-path', `hooks/${hookName}`], root);
+  const rawPath = result.stdout.trim();
+  return path.isAbsolute(rawPath) ? rawPath : path.join(repo, rawPath);
+}
+
 mkdirp(source);
 mkdirp(target);
 run('git', ['init'], source);
@@ -92,8 +98,8 @@ assert.doesNotMatch(
 );
 assert.match(
   dryRun.stdout,
-  /rtk npm ci/,
-  '工作树配置同步应提示每个工作树独立安装依赖',
+  /--bootstrap-dev-env/,
+  '工作树配置同步应提示使用开发环境一键初始化入口',
 );
 
 const apply = run(
@@ -221,7 +227,227 @@ assert.match(
 assert.equal(
   fs.existsSync(path.join(target, '.git/hooks/post-commit')),
   false,
-  '初始化图谱不应写入 Git hook；worktree 共享 hook 应由主仓库维护',
+  '初始化图谱不应隐式写入 Git hook；hook 安装必须显式启用',
+);
+
+const hookDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--install-hooks',
+  ],
+  root,
+);
+
+assert.match(
+  hookDryRun.stdout,
+  /would install managed Git hook(?: with backup)?: post-commit/,
+  'dry-run 应说明会安装 post-commit 图谱更新 hook',
+);
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+    '--install-hooks',
+  ],
+  root,
+);
+
+const postCommitHookPath = gitHookPath(target, 'post-commit');
+const postCommitHook = fs.readFileSync(postCommitHookPath, 'utf8');
+assert.match(
+  postCommitHook,
+  /Managed by sync-local-worktree-config\.sh/,
+  '安装的 post-commit hook 应带托管标记',
+);
+assert.match(
+  postCommitHook,
+  /crg_run update/,
+  'post-commit hook 应在提交成功后更新 CRG',
+);
+assert.match(
+  postCommitHook,
+  /codegraph_run sync/,
+  'post-commit hook 应在提交成功后同步 CodeGraph',
+);
+
+const preCommitHook = fs.readFileSync(gitHookPath(target, 'pre-commit'), 'utf8');
+assert.match(
+  preCommitHook,
+  /detect-changes --brief/,
+  'pre-commit hook 只应做 CRG 变更检测',
+);
+
+run('bash', [postCommitHookPath], target, {
+  env: {
+    ...process.env,
+    PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    GRAPH_CALL_LOG: graphCallLog,
+  },
+});
+
+assert.equal(
+  fs.existsSync(path.join(target, '.code-review-graph/hook.lock')),
+  false,
+  'post-commit 连续运行 CRG 与 CodeGraph 后不应残留 CRG 锁',
+);
+assert.equal(
+  fs.existsSync(path.join(target, '.codegraph/hook.lock')),
+  false,
+  'post-commit 连续运行 CRG 与 CodeGraph 后不应残留 CodeGraph 锁',
+);
+
+const customPostCommit = '#!/bin/sh\n# custom hook using codegraph but not managed\ncodegraph sync .\n';
+fs.writeFileSync(postCommitHookPath, customPostCommit);
+fs.chmodSync(postCommitHookPath, 0o755);
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+    '--install-hooks',
+  ],
+  root,
+);
+
+assert.equal(
+  fs.readFileSync(postCommitHookPath, 'utf8'),
+  customPostCommit,
+  '非托管 hook 即使包含 codegraph 字样，也不应在未显式 replace 时被覆盖',
+);
+
+const depCallLog = path.join(tmpRoot, 'dep-calls.log');
+const npmPath = path.join(binDir, 'npm');
+fs.writeFileSync(
+  npmPath,
+  `#!/bin/sh\nprintf 'cwd=%s args=%s\\n' "$(pwd)" "$*" >> "$DEP_CALL_LOG"\n`,
+);
+fs.chmodSync(npmPath, 0o755);
+
+const depsDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--install-deps',
+  ],
+  root,
+  {
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      DEP_CALL_LOG: depCallLog,
+    },
+  },
+);
+
+assert.match(
+  depsDryRun.stdout,
+  /would run npm ci in target: .*target/,
+  'dry-run 应说明会在目标工作树运行 npm ci',
+);
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+    '--install-deps',
+  ],
+  root,
+  {
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      DEP_CALL_LOG: depCallLog,
+    },
+  },
+);
+
+const depCalls = fs.readFileSync(depCallLog, 'utf8');
+assert.match(
+  depCalls,
+  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=ci`),
+  'install-deps 应在目标工作树执行 npm ci',
+);
+
+const bootstrapDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--bootstrap-dev-env',
+    '--graph-alias',
+    'bootstrap-alias',
+  ],
+  root,
+);
+
+assert.match(bootstrapDryRun.stdout, /Config sync: symlink/, 'bootstrap 应启用配置链接');
+assert.match(bootstrapDryRun.stdout, /Graph init: enabled/, 'bootstrap 应启用图谱初始化');
+assert.match(bootstrapDryRun.stdout, /Git hooks: enabled/, 'bootstrap 应启用 Git hook 安装');
+assert.match(bootstrapDryRun.stdout, /Dependency install: enabled/, 'bootstrap 应启用依赖安装');
+
+const linkedMain = path.join(tmpRoot, 'linked-main');
+const linkedTarget = path.join(tmpRoot, 'linked-target');
+mkdirp(linkedMain);
+run('git', ['init'], linkedMain);
+run('git', ['config', 'user.email', 'test@example.com'], linkedMain);
+run('git', ['config', 'user.name', 'Test User'], linkedMain);
+fs.writeFileSync(path.join(linkedMain, 'README.md'), 'linked\n');
+run('git', ['add', 'README.md'], linkedMain);
+run('git', ['commit', '-m', 'init'], linkedMain);
+run('git', ['worktree', 'add', linkedTarget], linkedMain);
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    linkedTarget,
+    '--apply',
+    '--install-hooks',
+  ],
+  root,
+);
+
+const linkedPostCommitPath = gitHookPath(linkedTarget, 'post-commit');
+assert.match(
+  linkedPostCommitPath,
+  /linked-main\/\.git\/hooks\/post-commit$/,
+  'linked worktree 应写入 Git 实际使用的 common hooks 目录',
+);
+assert.match(
+  fs.readFileSync(linkedPostCommitPath, 'utf8'),
+  /Managed by sync-local-worktree-config\.sh/,
+  'linked worktree 的实际 post-commit hook 应被安装',
 );
 
 console.log('local worktree config sync contract passed');

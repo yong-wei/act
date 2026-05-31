@@ -11,10 +11,14 @@ LINK_CONFIG=0
 LINK_ENV=0
 REPLACE_EXISTING=0
 INIT_GRAPHS=0
+INSTALL_HOOKS=0
+INSTALL_DEPS=0
+BOOTSTRAP_DEV_ENV=0
 GRAPH_ALIAS=""
 ENV_LINKS=()
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
+MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
 
 usage() {
   cat <<'USAGE'
@@ -39,6 +43,10 @@ Options:
                              and .codex/config.toml from source when present.
   --replace-existing         When linking, backup and replace existing target paths.
   --init-graphs              Initialize and build codegraph and code-review-graph for target.
+  --install-hooks            Install or repair managed Git hooks for codegraph and CRG.
+  --install-deps             Run npm ci in the target worktree.
+  --bootstrap-dev-env        Enable --link-config, --link-env, --install-hooks,
+                             --install-deps, and --init-graphs.
   --graph-alias ALIAS        CRG alias to use with --init-graphs. Defaults to a target-based alias.
   -h, --help                 Show this help.
 
@@ -78,7 +86,7 @@ Linked with --link-config --link-env:
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
   .codegraph, .codex/cache, .codex/tmp, .serena/cache, .DS_Store, __pycache__, *.pyc.
-Dependencies are not copied or linked; run npm ci independently in each worktree.
+Dependencies are not copied or linked; use --install-deps to run npm ci in the target worktree.
 USAGE
 }
 
@@ -120,6 +128,18 @@ while [[ $# -gt 0 ]]; do
       INIT_GRAPHS=1
       shift
       ;;
+    --install-hooks)
+      INSTALL_HOOKS=1
+      shift
+      ;;
+    --install-deps)
+      INSTALL_DEPS=1
+      shift
+      ;;
+    --bootstrap-dev-env)
+      BOOTSTRAP_DEV_ENV=1
+      shift
+      ;;
     --graph-alias)
       GRAPH_ALIAS="${2:-}"
       shift 2
@@ -155,6 +175,14 @@ fi
 
 if [[ "$LINK_ENV" -eq 1 && "$LINK_CONFIG" -ne 1 ]]; then
   LINK_CONFIG=1
+fi
+
+if [[ "$BOOTSTRAP_DEV_ENV" -eq 1 ]]; then
+  LINK_CONFIG=1
+  LINK_ENV=1
+  INSTALL_HOOKS=1
+  INSTALL_DEPS=1
+  INIT_GRAPHS=1
 fi
 
 if [[ ! -d "$SOURCE/.git" && ! -f "$SOURCE/.git" ]]; then
@@ -226,6 +254,12 @@ print_mode() {
   fi
   if [[ "$INIT_GRAPHS" -eq 1 ]]; then
     echo "Graph init: enabled"
+  fi
+  if [[ "$INSTALL_HOOKS" -eq 1 ]]; then
+    echo "Git hooks: enabled"
+  fi
+  if [[ "$INSTALL_DEPS" -eq 1 ]]; then
+    echo "Dependency install: enabled"
   fi
 }
 
@@ -544,6 +578,264 @@ initialize_graphs() {
   echo "built CRG: $TARGET"
 }
 
+hook_path() {
+  local path
+  path="$(git -C "$TARGET" rev-parse --git-path "hooks/$1")"
+  if [[ "$path" == /* ]]; then
+    printf '%s\n' "$path"
+  else
+    printf '%s/%s\n' "$TARGET" "$path"
+  fi
+}
+
+hook_can_replace() {
+  local path="$1"
+
+  if [[ ! -e "$path" ]]; then
+    return 0
+  fi
+  if grep -Fq "$MANAGED_HOOK_MARKER" "$path" 2>/dev/null; then
+    return 0
+  fi
+  [[ "$REPLACE_EXISTING" -eq 1 ]]
+}
+
+write_managed_hook() {
+  local name="$1"
+  local content="$2"
+  local path
+
+  path="$(hook_path "$name")"
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    if [[ -e "$path" ]]; then
+      if hook_can_replace "$path"; then
+        echo "would install managed Git hook with backup: $name"
+      else
+        echo "would skip existing non-managed Git hook: $name"
+      fi
+    else
+      echo "would install managed Git hook: $name"
+    fi
+    return
+  fi
+
+  mkdir -p "$(dirname "$path")"
+  if [[ -e "$path" ]]; then
+    if ! hook_can_replace "$path"; then
+      echo "skip existing non-managed Git hook: $name"
+      return
+    fi
+    mkdir -p "$BACKUP_ROOT/.git/hooks"
+    cp -p "$path" "$BACKUP_ROOT/.git/hooks/$name"
+    echo "backup existing Git hook: .tmp/local-config-backups/$TIMESTAMP/.git/hooks/$name"
+  fi
+
+  printf '%s\n' "$content" > "$path"
+  chmod +x "$path"
+  echo "installed managed Git hook: $name"
+}
+
+install_git_hooks() {
+  local pre_commit
+  local post_commit
+  local post_checkout
+  local post_merge
+  local post_rewrite
+  local crg_lib
+  local codegraph_lib
+
+  echo
+  echo "Git hooks:"
+
+  read -r -d '' pre_commit <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Detect graph-relevant changes before commit; graph indexes are updated after commit.
+if command -v code-review-graph >/dev/null 2>&1; then
+    code-review-graph detect-changes --brief || true
+fi
+HOOK
+
+  read -r -d '' post_commit <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Update local code graphs after each successful commit.
+
+. "$(git rev-parse --git-path hooks/crg-hook-lib.sh)"
+crg_run update
+
+. "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
+codegraph_run sync
+HOOK
+
+  read -r -d '' post_checkout <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Rebuild local code graphs after branch checkouts.
+
+if [ "$3" != "1" ]; then
+    exit 0
+fi
+
+. "$(git rev-parse --git-path hooks/crg-hook-lib.sh)"
+crg_run build
+
+. "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
+codegraph_run sync
+HOOK
+
+  read -r -d '' post_merge <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Rebuild local code graphs after merges.
+
+. "$(git rev-parse --git-path hooks/crg-hook-lib.sh)"
+crg_run build
+
+. "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
+codegraph_run sync
+HOOK
+
+  read -r -d '' post_rewrite <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Rebuild local code graphs after commit rewrites.
+
+. "$(git rev-parse --git-path hooks/crg-hook-lib.sh)"
+crg_run build
+
+. "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
+codegraph_run sync
+HOOK
+
+  read -r -d '' crg_lib <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+
+crg_repo_root() {
+  git rev-parse --show-toplevel 2>/dev/null
+}
+
+crg_run() {
+  mode="$1"
+  repo="$(crg_repo_root)"
+  if [ -z "$repo" ]; then
+    return 0
+  fi
+
+  if ! command -v code-review-graph >/dev/null 2>&1; then
+    return 0
+  fi
+
+  graph_dir="$repo/.code-review-graph"
+  mkdir -p "$graph_dir"
+  log_file="$graph_dir/hooks.log"
+  lock_dir="$graph_dir/hook.lock"
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    printf '%s [%s] skipped: another code-review-graph hook is running\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+    return 0
+  fi
+
+  crg_cleanup() {
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  trap crg_cleanup INT TERM
+
+  printf '%s [%s] start\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  case "$mode" in
+    update)
+      code-review-graph update --repo "$repo" >> "$log_file" 2>&1 || true
+      ;;
+    build)
+      code-review-graph build --repo "$repo" >> "$log_file" 2>&1 || true
+      ;;
+    *)
+      printf '%s [%s] unknown mode\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+      ;;
+  esac
+  printf '%s [%s] end\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  crg_cleanup
+  trap - INT TERM
+}
+HOOK
+
+  read -r -d '' codegraph_lib <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+
+codegraph_repo_root() {
+  git rev-parse --show-toplevel 2>/dev/null
+}
+
+codegraph_run() {
+  mode="$1"
+  repo="$(codegraph_repo_root)"
+  if [ -z "$repo" ]; then
+    return 0
+  fi
+
+  if ! command -v codegraph >/dev/null 2>&1; then
+    return 0
+  fi
+
+  graph_dir="$repo/.codegraph"
+  mkdir -p "$graph_dir"
+  log_file="$graph_dir/hooks.log"
+  lock_dir="$graph_dir/hook.lock"
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    printf '%s [%s] skipped: another codegraph hook is running\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+    return 0
+  fi
+
+  codegraph_cleanup() {
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  trap codegraph_cleanup INT TERM
+
+  printf '%s [%s] start\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  case "$mode" in
+    sync)
+      if [ -f "$graph_dir/codegraph.db" ]; then
+        codegraph sync --quiet "$repo" >> "$log_file" 2>&1 || true
+      else
+        codegraph index --quiet "$repo" >> "$log_file" 2>&1 || true
+      fi
+      ;;
+    *)
+      printf '%s [%s] unknown mode\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+      ;;
+  esac
+  printf '%s [%s] end\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  codegraph_cleanup
+  trap - INT TERM
+}
+HOOK
+
+  write_managed_hook "pre-commit" "$pre_commit"
+  write_managed_hook "post-commit" "$post_commit"
+  write_managed_hook "post-checkout" "$post_checkout"
+  write_managed_hook "post-merge" "$post_merge"
+  write_managed_hook "post-rewrite" "$post_rewrite"
+  write_managed_hook "crg-hook-lib.sh" "$crg_lib"
+  write_managed_hook "codegraph-hook-lib.sh" "$codegraph_lib"
+}
+
+install_dependencies() {
+  echo
+  echo "Dependency installation:"
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would run npm ci in target: $TARGET"
+    return
+  fi
+
+  require_command npm
+  (cd "$TARGET" && npm ci)
+  echo "installed dependencies in target: $TARGET"
+}
+
 echo "Source: $SOURCE"
 echo "Target: $TARGET"
 print_mode
@@ -590,14 +882,18 @@ for rel in "${TRACKING_CHECK_PATHS[@]}"; do
   warn_if_not_ignored_or_tracked "$rel"
 done
 
+if [[ "$INSTALL_DEPS" -eq 1 ]]; then
+  install_dependencies
+fi
+
 if [[ "$INIT_GRAPHS" -eq 1 ]]; then
   initialize_graphs
 fi
 
+if [[ "$INSTALL_HOOKS" -eq 1 ]]; then
+  install_git_hooks
+fi
+
 echo
 echo "Follow-up commands for a new long-lived worktree:"
-echo "  scripts/dev/sync-local-worktree-config.sh --apply --link-config --link-env --target \"$TARGET\""
-echo "  (cd \"$TARGET\" && rtk npm ci)"
-echo "  scripts/dev/sync-local-worktree-config.sh --apply --init-graphs --target \"$TARGET\" --graph-alias \"$(resolve_graph_alias)\""
-echo "  rtk code-review-graph register \"$TARGET\" --alias <alias>"
-echo "  rtk code-review-graph build --repo \"$TARGET\""
+echo "  scripts/dev/sync-local-worktree-config.sh --apply --bootstrap-dev-env --target \"$TARGET\" --graph-alias \"$(resolve_graph_alias)\""
