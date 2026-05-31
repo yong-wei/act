@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
+  COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
   PLATFORM_AUTH_ROUTE_CONTRACTS,
   PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
@@ -10,6 +12,8 @@ import {
   PLATFORM_ROLE_COCKPIT_HREFS,
   STUDENT_LEARNING_INTENT_GROUPS,
   STUDENT_CORE_ENTRY_IDS,
+  getCommercialStudentEntryIntentGroups,
+  resolveCommercialEntryHref,
   getPlatformCockpitHref,
   getPlatformNavigationHref,
   getPlatformRoleNavigation,
@@ -241,5 +245,32 @@ describe('platform role navigation', () => {
         }),
       ]),
     );
+  });
+
+  it('defines commercial student entry intents and route acceptance matrix', () => {
+    expect(getCommercialStudentEntryIntentGroups().map((group) => group.intent)).toEqual([
+      'learn',
+      'practice',
+      'challenge',
+      'experiment',
+      'review',
+      'account-profile',
+    ]);
+    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'account-profile')?.hrefs).toEqual(
+      expect.arrayContaining(['/login?callbackUrl=%2Fprofile', '/profile']),
+    );
+    expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.map((route) => [route.href, route.currentIntent])).toEqual([
+      ['/', 'experiment'],
+      ['/login?callbackUrl=%2Fprofile', 'account-profile'],
+      ['/dashboard', 'learn'],
+      ['/interactive-learning', 'learn'],
+      ['/arena', 'challenge'],
+      ['/assessment/adaptive-practice', 'practice'],
+      ['/profile', 'review'],
+    ]);
+    expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.every((route) => route.viewportWidths.join(',') === '1440,320')).toBe(true);
+    expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');
+    expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
+    expect(resolveCommercialEntryHref('review', true)).toBe('/profile');
   });
 });

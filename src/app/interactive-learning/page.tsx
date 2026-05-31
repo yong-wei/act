@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Compass, Sparkles, Workflow } from 'lucide-react';
 import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 const ENTRY_ROUTES = [
   {
@@ -28,12 +29,14 @@ const ENTRY_ROUTES = [
 ] as const;
 
 export default function InteractiveLearningPage() {
+  const entryIntents = getCommercialStudentEntryIntentGroups();
   return (
     <div className="surface-page">
       <UnifiedTopBar title="互动学习" backHref="/" backLabel="返回首页" subtitle="Interactive Learning" />
 
       <main className="mx-auto max-w-[1200px] px-6 py-12">
         <header className="surface-card mb-10 p-6">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 学习</p>
           <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">互动学习</h1>
           <p className="text-base text-subtle">
             入口已按学习意图拆分为独立路由：先选择学习模式，再进入对应课程与组件。
@@ -44,6 +47,15 @@ export default function InteractiveLearningPage() {
             <span className="rounded-full border border-border/60 px-3 py-1">各章节互动组件</span>
           </div>
         </header>
+
+        <section className="mb-6 grid gap-3 md:grid-cols-3">
+          {entryIntents.filter((intent) => ['learn', 'practice', 'challenge'].includes(intent.intent)).map((intent) => (
+            <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40">
+              <span className="text-xs font-medium text-primary">{intent.label}</span>
+              <span className="mt-1 block text-subtle">{intent.summary}</span>
+            </Link>
+          ))}
+        </section>
 
         <section className="grid gap-5 md:grid-cols-3">
           {ENTRY_ROUTES.map((entry) => (

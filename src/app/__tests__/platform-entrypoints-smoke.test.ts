@@ -3,7 +3,11 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { PLATFORM_ENTRYPOINT_SMOKE_ROUTES, STUDENT_LEARNING_INTENT_GROUPS } from '@/lib/platform-role-navigation';
+import {
+  COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
+  PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
+  STUDENT_LEARNING_INTENT_GROUPS,
+} from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -17,12 +21,28 @@ describe('platform entrypoint smoke contracts', () => {
       expect(route.viewportWidths).toEqual([1440, 320]);
       expect(existsSync(path.join(rootDir, route.routeFile))).toBe(true);
     }
+    expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.map((route) => route.href)).toEqual([
+      '/',
+      '/login?callbackUrl=%2Fprofile',
+      '/dashboard',
+      '/interactive-learning',
+      '/arena',
+      '/assessment/adaptive-practice',
+      '/profile',
+    ]);
+    for (const route of COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES) {
+      expect(route.viewportWidths).toEqual([1440, 320]);
+      expect(existsSync(path.join(rootDir, route.routeFile))).toBe(true);
+      expect(route.firstViewportRequirement).toContain('usable');
+    }
   });
 
   it('migrates homepage to shared student entries and a 320px mobile menu', () => {
     const source = readSource('src/app/page.tsx');
 
     expect(source).toContain('getStudentLearningIntentNavigationGroups');
+    expect(source).toContain('getCommercialStudentEntryIntentGroups');
+    expect(source).toContain('resolveCommercialEntryHref');
     expect(source).toContain('showMobileNavigation');
     expect(source).toContain('aria-label={');
     expect(source).toContain('打开平台入口菜单');
@@ -41,19 +61,47 @@ describe('platform entrypoint smoke contracts', () => {
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
 
     expect(dashboardSource).toContain('getStudentLearningIntentNavigationGroups');
+    expect(dashboardSource).toContain('getCommercialStudentEntryIntentGroups');
+    expect(dashboardSource).toContain('resolveCommercialEntryHref');
+    expect(dashboardSource).toContain('account-profile');
+    expect(dashboardSource).toContain('/profile');
+    expect(dashboardSource).toContain('dashboardCommercialEntries');
+    expect(dashboardSource).toContain('intentGroup.entryIds.flatMap');
     expect(dashboardSource).toContain('quickStartEntryIds.flatMap');
+    expect(dashboardSource).not.toContain('intentGroup.entryIds.includes(candidate.id)');
     for (const entryId of STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.entryIds)) {
       expect(dashboardSource).toContain(entryId);
     }
     expect(profileSource).toContain('getPlatformCockpitHref');
+    expect(profileSource).toContain('getCommercialStudentEntryIntentGroups');
     expect(profileSource).toContain('buildLoginRedirectForPath');
   });
 
   it('keeps login error states tied to the same callback destination contract', () => {
+    const loginSource = readSource('src/app/(auth)/login/page.tsx');
     const loginFormSource = readSource('src/components/shared/credential-login-form.tsx');
 
+    expect(loginSource).toContain('getCommercialStudentEntryIntentGroups');
+    expect(loginSource).toContain('callbackUrl=%2Fprofile');
+    expect(loginSource).toContain('保留目标');
+    expect(loginSource).toContain('LoginCommercialFallback');
     expect(loginFormSource).toContain("setError('账号或密码错误')");
     expect(loginFormSource).toContain('callbackUrl');
     expect(loginFormSource).toContain('resolvePostLoginRedirect');
+  });
+
+  it('keeps product entry routes on the commercial entry-surface contract', () => {
+    const routeSources = [
+      readSource('src/app/interactive-learning/page.tsx'),
+      readSource('src/features/arena/arena-hall.tsx'),
+      readSource('src/app/assessment/adaptive-practice/page.tsx'),
+    ];
+
+    for (const source of routeSources) {
+      expect(source).toContain('getCommercialStudentEntryIntentGroups');
+      expect(source).toContain('商业入口');
+    }
+    expect(routeSources[2]).toContain("['practice', 'learn', 'challenge', 'review']");
+    expect(routeSources[2]).toContain('返回竞技场');
   });
 });

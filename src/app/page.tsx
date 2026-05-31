@@ -41,8 +41,10 @@ import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
 import { getHomepageScenarioBackgroundClass } from '@/lib/homepage-theme'
 import {
+  getCommercialStudentEntryIntentGroups,
   getPlatformCockpitHref,
   getStudentLearningIntentNavigationGroups,
+  resolveCommercialEntryHref,
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
 
@@ -136,6 +138,7 @@ const shipScenarios = [
 ]
 
 const homepageStudentEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries)
+const homepageEntryIntentGroups = getCommercialStudentEntryIntentGroups()
 
 const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
@@ -442,16 +445,18 @@ export default function HomePage() {
               <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
-                  <div className="text-xs text-subtle">六个核心入口</div>
+                  <div className="text-xs text-subtle">商业入口 · 学习意图</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {homepageStudentEntries.map((module) => {
-                    const ModuleIcon = homepageIconMap[module.iconKey as PlatformNavigationIconKey] ?? Layers
+                  {homepageEntryIntentGroups.map((intentGroup) => {
+                    const entry = homepageStudentEntries.find((candidate) => intentGroup.entryIds.includes(candidate.id))
+                    const ModuleIcon = entry ? homepageIconMap[entry.iconKey as PlatformNavigationIconKey] ?? Layers : Layers
+                    const entryHref = entry?.href ?? resolveCommercialEntryHref(intentGroup.intent, Boolean(session))
                     return (
                       <Link
-                        key={module.id}
-                        href={module.href}
-                        prefetch={module.href.startsWith('/simulations') ? false : undefined}
+                        key={intentGroup.intent}
+                        href={entryHref}
+                        prefetch={entry?.href.startsWith('/simulations') ? false : undefined}
                         className="surface-card-soft group p-4 transition hover:-translate-y-1 hover:border-primary/45"
                       >
                         <div className="flex items-center justify-between">
@@ -460,8 +465,9 @@ export default function HomePage() {
                           </div>
                           <ArrowUpRight className="h-4 w-4 text-subtle group-hover:text-primary" />
                         </div>
-                        <div className="mt-4 text-sm font-semibold text-foreground">{module.label}</div>
-                        <div className="mt-2 text-xs text-subtle">{module.description}</div>
+                        <div className="mt-4 text-xs font-medium text-primary">{intentGroup.label}</div>
+                        <div className="mt-1 text-sm font-semibold text-foreground">{entry?.label ?? intentGroup.label}</div>
+                        <div className="mt-2 text-xs text-subtle">{intentGroup.summary}</div>
                       </Link>
                     )
                   })}
