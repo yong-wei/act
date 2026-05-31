@@ -41,6 +41,7 @@ describe('platform entrypoint smoke contracts', () => {
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
 
     expect(dashboardSource).toContain('getStudentLearningIntentNavigationGroups');
+    expect(dashboardSource).toContain('quickStartEntryIds.flatMap');
     for (const entryId of STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.entryIds)) {
       expect(dashboardSource).toContain(entryId);
     }
