@@ -12,9 +12,9 @@ const interactiveDesign = read('.codex/skills/interactive-design/SKILL.md');
 const pageSequenceReference = read(
   '.codex/skills/interactive-design/references/page-sequence-and-activity-controls.md',
 );
-const implementationSkill = read('.codex/skills/interactive-lesson-implementation/SKILL.md');
+const implementationSkill = read('.agents/skills/interactive-lesson/SKILL.md');
 const manifestRuntimeContract = read(
-  '.codex/skills/interactive-lesson-implementation/references/manifest-runtime-contract.md',
+  '.agents/skills/interactive-lesson/references/manifest-runtime-contract.md',
 );
 const lessonContentReview = read('.codex/skills/lesson-content-review/SKILL.md');
 const reviewScript = read('course-content/scripts/review_lesson_content.py');

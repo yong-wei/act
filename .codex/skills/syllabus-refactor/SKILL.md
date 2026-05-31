@@ -83,7 +83,7 @@ description: Use when restructuring an engineering course at whole-course level 
    - 互动课程设计
    - 媒体清单
 10. 若任务进入作业、题库或考试架构，必须先核对该次作业开始时学生已经学习的知识点、禁止越界知识与能力边界，避免能力失配后再讨论题目。
-11. 课程级作业设计先处理结构与边界，再处理具体题号；只有在逐题审核通过后，才允许交给 `homework-problem-authoring` 按题号生成完整习题。
+11. 课程级作业设计先处理结构与边界，再处理具体题号；只有在逐题审核通过后，才允许交给 `homework` 按题号生成完整习题。
 12. 作业开放题必须沿课程主线连续演进，且每次新增要求都要建立在前一次作业已完成产物之上，不能把未教能力提前压给学生。
 13. “互动课程设计”在本项目中默认指页面化课堂主载体，不是从传统 `PPT` 中切出的零散互动片段。
 14. “教案”默认指课堂后台控制文稿，不承担前台页面展示稿职责。
@@ -371,7 +371,7 @@ description: Use when restructuring an engineering course at whole-course level 
 
 ## 作业题目重构入口
 
-当用户要求重构某次作业、重写题库边界、调整开放题主线、确认期末考试题库，或在正式出题前先把题目骨架与边界审清时，不要直接调用 `homework-problem-authoring`。先在本技能内完成课程级作业重构。
+当用户要求重构某次作业、重写题库边界、调整开放题主线、确认期末考试题库，或在正式出题前先把题目骨架与边界审清时，不要直接调用 `homework`。先在本技能内完成课程级作业重构。
 
 ### 作业基本规范
 
@@ -413,11 +413,11 @@ description: Use when restructuring an engineering course at whole-course level 
 - 审核记录中必须区分“题目想考什么”“学生此时能做到什么”“本题明确不允许越过什么边界”。
 - 先审核，再出题；未完成审核的题号不得交给下游出题技能。
 
-### 与 `homework-problem-authoring` 的交接
+### 与 `homework` 的交接
 
-`homework-problem-authoring` 只负责在既定题号规范下按题号生成完整习题，不负责课程级边界设计。
+`homework` 只负责在既定题号规范下按题号生成完整习题，不负责课程级边界设计。
 
-- 只有在逐题审核通过后，才允许调用 `homework-problem-authoring`。
+- 只有在逐题审核通过后，才允许调用 `homework`。
 - 交接前，必须保证目标题号在 `course-content/syllabus-refactor/homework-framework.md` 中已经写清：
   - 所属作业
   - 模块边界

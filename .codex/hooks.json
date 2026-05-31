@@ -1,0 +1,73 @@
+{
+  "description": "OpenWolf Codex hook integration",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh session-start",
+            "timeout": 10,
+            "statusMessage": "Starting OpenWolf"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Read$|^mcp__.+__(read|view|cat)(_file|_files)?$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh pre-read",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "^Write$|^Edit$|^MultiEdit$|^functions\\.apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh pre-write",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^Read$|^mcp__.+__(read|view|cat)(_file|_files)?$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh post-read",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "^Write$|^Edit$|^MultiEdit$|^functions\\.apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh post-write",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/yw/.codex/local-plugins/openwolf/scripts/run-openwolf-hook.sh stop",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

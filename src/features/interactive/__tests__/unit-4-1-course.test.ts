@@ -396,7 +396,7 @@ describe('unit 4-1 interactive course', () => {
 
   it('tightens the interactive lesson implementation skill for dynamic figures and native diagram redraw', () => {
     const skillSource = readFileSync(
-      join(repoRoot, '.codex/skills/interactive-lesson-implementation/SKILL.md'),
+      join(repoRoot, '.agents/skills/interactive-lesson/SKILL.md'),
       'utf8',
     );
 

@@ -62,6 +62,25 @@ def extract_question_block(content: str, question_id: str) -> tuple[dict[str, st
     raise ValueError(f'Question ID not found: {question_id}')
 
 
+def infer_score_policy(question_id: str, assignment: str) -> dict[str, int | str]:
+    match = re.match(r'^T(\d+)-(\d+)$', question_id)
+    if not match:
+        raise ValueError(f'Unable to infer score policy for question ID: {question_id}')
+    homework_number = int(match.group(1))
+    question_number = int(match.group(2))
+    if assignment == 'HW7' or homework_number == 7:
+        policy = 'HW7: 25 + 25 + 50'
+        question_score = 25 if question_number <= 2 else 50
+    else:
+        policy = 'HW1-HW6: 20 + 20 + 20 + 40'
+        question_score = 20 if question_number <= 3 else 40
+    return {
+        'assignment_total_score': 100,
+        'assignment_score_policy': policy,
+        'question_score': question_score,
+    }
+
+
 def parse_list_value(raw: str) -> list[str]:
     items: list[str] = []
     for line in raw.splitlines():
@@ -116,9 +135,14 @@ def build_payload(framework_path: Path, question_id: str) -> dict[str, str]:
     content = framework_path.read_text(encoding='utf-8')
     header, block = extract_question_block(content, question_id)
     fields = extract_fields(block)
+    score_policy = infer_score_policy(
+        header['question_id'],
+        str(fields.get('assignment', '')),
+    )
     payload = {
         **header,
         **fields,
+        **score_policy,
         'source_excerpt': block,
         'framework_path': str(framework_path),
     }

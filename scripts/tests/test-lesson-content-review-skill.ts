@@ -7,7 +7,7 @@ const root = process.cwd();
 const reviewSkillPath = path.join(root, '.codex/skills/lesson-content-review/SKILL.md');
 const implementationSkillPath = path.join(
   root,
-  '.codex/skills/interactive-lesson-implementation/SKILL.md',
+  '.agents/skills/interactive-lesson/SKILL.md',
 );
 
 assert.equal(fs.existsSync(reviewSkillPath), true, '应新增 lesson-content-review 技能');

@@ -264,10 +264,10 @@ interface AiCompareState {
 
 - 已补齐 `src/lib/unit-2-2-course.ts` 的实现侧平行契约：`UNIT_2_2_PAGE_CONTRACTS` 现与作者态 `interactive-contract.yaml` 对齐，覆盖模板、区域、互动类型、教师洞察、telemetry 与学生演示页预览路径。
 - `UNIT_2_2_LESSON_STEPS` 的 `pageType` 已从旧的 `display/quiz/form/ai/summary` 粗粒度值升级为契约粒度值，便于严格实现校验。
-- `.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py` 已新增 `2-2` 预设，可直接运行：
+- `.agents/skills/interactive-lesson/scripts/check_contract_alignment.py` 已新增 `2-2` 预设，可直接运行：
 
 ```bash
-python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-2
+python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py --lesson 2-2
 ```
 
 - `course-content/scripts/review_lesson_content.py --lesson 2-2 --strict-implementation-contract` 已纳入 `2-2` 的实现契约注册表，可作为正式回归命令。

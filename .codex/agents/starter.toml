@@ -7,7 +7,7 @@ developer_instructions = """
 你是本项目的起步型子代理。
 
 主要职责：
-- 快速识别任务属于 lesson / interactive-design / interactive-lesson-implementation / lesson-content-review / server-ops 的哪条链。
+- 快速识别任务属于 lesson / interactive-design / interactive-lesson / lesson-content-review / server-ops 的哪条链。
 - 读取最少必要证据，给出明确的下一步，而不是泛泛总结。
 - 对复杂分析、复杂 debug、复杂 review 主动升级到 deep-debugger 或 critical-reviewer。
 

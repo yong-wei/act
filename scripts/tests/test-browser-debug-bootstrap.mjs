@@ -9,16 +9,16 @@ function read(relativePath) {
 }
 
 const startScript = read('scripts/ops/start.sh');
-const validationDoc = read('.codex/skills/interactive-lesson-implementation/references/closed-loop-browser-validation.md');
+const validationDoc = read('.agents/skills/interactive-lesson/references/closed-loop-browser-validation.md');
 
 assert.equal(
-  startScript.includes('npm run dev -- --hostname 127.0.0.1 --port 3001'),
+  startScript.includes('npm run dev -- --hostname 127.0.0.1 --port "$FRONTEND_PORT"'),
   true,
   '启动脚本应继续使用 next dev 作为本地浏览器调试基线',
 );
 
 assert.equal(
-  startScript.includes('curl -fsS') && startScript.includes('/interactive-learning/courses/l2d-three-domain-linkage-practice'),
+  startScript.includes('curl -fsS') && startScript.includes('/interactive-learning/courses'),
   true,
   '启动脚本应在返回成功前轮询浏览器调试目标页，避免页面只加载一半',
 );

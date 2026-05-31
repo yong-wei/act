@@ -63,7 +63,7 @@
 
 - `rtk npm run test:unit -- src/features/interactive/__tests__/unit-3-4-course.test.ts`
 - `rtk npm run test:unit -- src/features/interactive/__tests__/module-3-4-formula-rendering.test.ts`
-- `rtk python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 3-4`
+- `rtk python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py --lesson 3-4`
 - `rtk npm run lint`
 
 待与仓库其余改动一并回归：

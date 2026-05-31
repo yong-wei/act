@@ -17,6 +17,6 @@
 2. 对新课或尚未审查的课，先执行 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson>`
 3. 在审查阶段优先修复 `authoring` 源文件；若存在代码直出媒体，先生成到 `course-content/authoring/lessons/<lesson>/media/processed` 做内容审核，不要直接写入 runtime
 4. 确认 `course-content/runtime/lessons/<lesson>/review/*` 已生成，且 `review-report.md`、知识卡检查、多媒体检查结论可接受
-5. 若进入互动课程实现，再由 `interactive-lesson-implementation` 基于 runtime 的 `lesson.json`、`handout.md`、`review/*`、知识图与知识卡继续制作页面与课堂流程
+5. 若进入互动课程实现，再由 `interactive-lesson` 基于 runtime 的 `lesson.json`、`handout.md`、`review/*`、知识图与知识卡继续制作页面与课堂流程
 6. 对旧课如暂未补齐 `media/processed`，`export_runtime.py` 仍允许 `media/raw` fallback；但新课不要跳过审查直接依赖 fallback
 7. 完成页面或内容改动后，跑针对性测试，以及 `lint/test/build` 并验证入口

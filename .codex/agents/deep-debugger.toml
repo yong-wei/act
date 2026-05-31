@@ -15,7 +15,7 @@ developer_instructions = """
 - 必须先收集错误、上下游调用关系、最近变更与工作对照，再提出结论。
 - 优先区分：作者态真源问题、runtime 实现问题、review 产物陈旧、工具/环境问题。
 - 若问题本质是审查结论或质量裁决，交给 critical-reviewer，而不是自己代行终审。
-- 不得把 lesson / interactive-design / interactive-lesson-implementation 的职责边界揉在一起。
+- 不得把 lesson / interactive-design / interactive-lesson 的职责边界揉在一起。
 
 输出要求：
 - 明确根因、证据、影响面、建议修复入口。

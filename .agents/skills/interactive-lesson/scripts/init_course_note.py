@@ -11,6 +11,7 @@ def main() -> int:
     parser.add_argument('--title', default='', help='Lesson title')
     args = parser.parse_args()
 
+    # Skill directory is the parent of scripts directory
     skill_dir = Path(__file__).resolve().parent.parent
     notes_dir = skill_dir / 'notes'
     notes_dir.mkdir(parents=True, exist_ok=True)
@@ -26,13 +27,8 @@ def main() -> int:
 ## 课程信息
 - 课次：{args.lesson}
 - 标题：{title}
-- 设计源：
-  - `course-content/authoring/lessons/<lesson>/design/<lesson>-interactive-page.md`
-  - `course-content/runtime/lessons/<lesson>/lesson.json`
-  - `course-content/runtime/lessons/<lesson>/<lesson>-handout.md`
-  - `course-content/runtime/lessons/<lesson>/review/*`
+- 外部文档目录：`/Users/YW/JianguoYun/1教学/教学材料-课程/@自动控制原理/@新体系/notes/lessons/{args.lesson}`
 - 当前实现入口：
-- runtime：
 
 ## 当前状态
 - 未开始
@@ -40,18 +36,15 @@ def main() -> int:
 ## 本次实现内容
 - 待填写
 
-## 设计差异与实现约束
+## 与设计稿差异
 - 已消除差异：
 - 仍存在差异：
 - 有意偏离：
 
-## 复用基线
-- 待填写
-
 ## 媒体资源状态
 - 已具备：
 - 缺失：
-- 占位路径或导出路径：
+- 占位路径：
 
 ## 验证记录
 - 设计稿核对：

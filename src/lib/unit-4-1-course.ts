@@ -349,18 +349,33 @@ export const UNIT_4_1_PAGE_CONTRACTS: Record<string, UNIT_4_1PageContract> = {
       template: 'summary_quiz_board',
       regions: [
         { id: 'quiz', width: 'full', order: 1 },
-        { id: 'summary', width: 'full', order: 2 },
-        { id: 'next-step', width: 'full', order: 3 },
       ],
-      readingOrder: ['后测题组', '四句带走', '后续去向'],
+      readingOrder: ['后测题组'],
     },
     interactionKind: 'quiz_group',
-    interactionArchetype: 'summary_quiz',
+    interactionArchetype: 'post_assessment_quiz',
     teacherInsightWidgets: ['question_distribution', 'completion_rate', 'top_misconceptions'],
     telemetrySummaryFields: ['attemptCount', 'resultState', 'timeOnStep'],
-    misconceptionTags: ['stable_equals_done', 'missing_task_card_input'],
+    misconceptionTags: ['missing_task_card_input', 'acceptable_equals_optimal', 'same_sort_for_all_scenarios'],
     aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12',
+  },
+  'step-13': {
+    layout: {
+      template: 'summary_quiz_board',
+      regions: [
+        { id: 'infograph', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
+        { id: 'stats', width: 'full', order: 3 },
+      ],
+      readingOrder: ['课程信息图', '四句带走', '课堂表现统计'],
+    },
+    interactionKind: 'none',
+    interactionArchetype: 'lesson_summary',
+    teacherInsightWidgets: ['class_summary_stats'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep', 'submittedPages', 'parameterSnapshots'],
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-13',
   },
 };
 

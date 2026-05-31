@@ -16,4 +16,4 @@
 
 - `lesson` 技能不再负责 `interactive-page.md` 与 `interactive-contract.yaml`
 - 互动页作者态双轨设计统一由 `interactive-design` 维护
-- 互动页前端实现仍由 `interactive-lesson-implementation` 负责
+- 互动页前端实现仍由 `interactive-lesson` 负责

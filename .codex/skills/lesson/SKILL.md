@@ -19,7 +19,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 - 互动课程设计已拆分为独立技能 `interactive-design`。
 - `sequence.json` 与“每一步展示哪些知识卡片”的最终顺序，不在 lesson 阶段冻结；它们由 `interactive-design` 依据互动步骤、显影链和作答卡统一校准。lesson 阶段可以生成候选卡片和临时顺序，但不得把它们作为互动设计的硬约束。
 - 若用户要求互动页面蓝图、互动契约、课堂页步骤拆分、例题显影、学生作答卡或教师控制语义，切换到 `interactive-design`。
-- 若用户要求将设计稿落成前端代码、课堂路由、师生端页面或运行时课程实现，切换到 `interactive-lesson-implementation`。
+- 若用户要求将设计稿落成前端代码、课堂路由、师生端页面或运行时课程实现，切换到 `interactive-lesson`。
 
 ## 产物体系
 

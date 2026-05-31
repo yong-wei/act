@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_PATH = REPO_ROOT / '.codex' / 'skills' / 'interactive-lesson-implementation' / 'scripts' / 'check_contract_alignment.py'
+SCRIPT_PATH = REPO_ROOT / '.agents' / 'skills' / 'interactive-lesson' / 'scripts' / 'check_contract_alignment.py'
 
 
 def test_skill_contract_alignment_script_passes_for_2_1() -> None:

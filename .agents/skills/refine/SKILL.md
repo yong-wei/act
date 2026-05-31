@@ -1,6 +1,6 @@
 ---
 name: refine
-description: Use when refining student-facing `handout.md` files under `course-content/authoring/lessons/*/design/`, especially when a handout still contains teacher-facing or meta narration, needs tighter wording with consistent "我们" perspective, adjective dimension expansion, verb specificity, Chinese collocation review, and the polished result should be written back to the same `design/{unit}-handout.md` without changing formulas, figures, tables, or syllabus boundaries. Also use when user asks to "润色讲义", "精炼讲义", "refine handout", or specifies a unit handout that needs polishing.
+description: 对 course-content/authoring/lessons 下各单元的讲义 handout.md 进行面向学生的系统性文风润色与中文专业表达校准。删除作者态/教师视角残留，精简元叙述，统一称呼为"我们"视角，校准形容词维度、动词精准度和中文搭配，使行文更紧凑、准确、有判断力。润色后的讲义直接回写到 design/{unit}-handout.md 中。当用户要求"润色讲义""精炼讲义""refine handout"或指定某单元讲义需要润色时触发。
 tags: [handout, polish, chinese-prose, quality]
 ---
 
@@ -8,13 +8,13 @@ tags: [handout, polish, chinese-prose, quality]
 
 ## 概述
 
-对 `course-content/authoring/lessons/{unit}/design/{unit}-handout.md` 进行系统性文风润色与中文专业表达校准，直接回写到同一个 `{unit}-handout.md`。
+对 `course-content/authoring/lessons/{unit}/design/{unit}-handout.md` 进行系统性文风润色与中文专业表达校准，直接回写到同一个 `handout.md`。
 
-**定位**：整条生成链中的最后一道文风清扫工序，同时承担语言校准。不替代 `lesson` 技能的结构生成，不负责重新发明知识结构。
-
-**核心目标**：让讲义读起来像受过专业写作训练的中文作者所写——准确、克制、有判断、有节奏。
+**定位**：整条生成链中的最后一道文风清扫工序与语言校准工序。不替代 `lesson` 技能的结构生成，不负责重新发明知识结构；遇到结构性污染时返回 `lesson`，不靠润色强行补救。
 
 本技能的写作规则与 `course-content/AGENTS.override.md` 保持同步，两者均构成润色的约束来源。
+
+**核心目标**：让讲义读起来像受过专业写作训练的中文作者所写——准确、克制、有判断、有节奏。
 
 **核心原则：**
 - 面向学生，不面向教师或课程设计者
@@ -32,7 +32,7 @@ tags: [handout, polish, chinese-prose, quality]
 
 ## 工作流
 
-### Phase 0: Brief抽取（仅作为内部编辑判断依据）
+### Phase 0: Brief抽取（内部，不展示给用户）
 
 在动笔前先内部确认：
 - 文档类型、目标读者（学生）、核心对象
@@ -61,7 +61,7 @@ tags: [handout, polish, chinese-prose, quality]
 2. 支撑该结论的3-5个关键小点
 3. 哪些段落只是重复提醒、课程调度语或作者态解释
 
-**结构性缺陷检测**：如果原稿缺少以下任一要件，标记为"需返回 `lesson` 的讲义生成阶段重写结构"，不靠润色强行补救：
+**结构性缺陷检测**：如果原稿缺少以下任一要件，标记为"需回到 `lesson` 的讲义生成阶段重写结构"，不靠润色强行补救：
 - 没有明确的问题/任务引入
 - 没有前置知识缺口与能力目标
 - 没有锚点案例

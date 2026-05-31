@@ -12,7 +12,7 @@
 3. 最后再调整 `model`
 
 ## 本项目特有约束
-- 课程任务必须服从 `lesson / interactive-design / interactive-lesson-implementation / lesson-content-review` 的边界
+- 课程任务必须服从 `lesson / interactive-design / interactive-lesson / lesson-content-review` 的边界
 - 要求真实子代理审查的流程，不得通过收紧提示词来伪装成主代理可替代
 - `spark-coder` 只能承担局部、可验证、易回滚的简单编码
 - `explorer-librarian` 默认只读，只提供材料与路径，不给最终裁决

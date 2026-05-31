@@ -10,7 +10,7 @@ function read(relativePath: string) {
 
 const lessonSkill = read('.codex/skills/lesson/SKILL.md');
 const lessonHandoutStep = read('.codex/skills/lesson/references/step3-handout.md');
-const refineSkill = read('.codex/skills/refine/SKILL.md');
+const refineSkill = read('.agents/skills/refine/SKILL.md');
 const interactiveDesignSkill = read('.codex/skills/interactive-design/SKILL.md');
 const reviewSkill = read('.codex/skills/lesson-content-review/SKILL.md');
 const syllabusSkill = read('.codex/skills/syllabus-refactor/SKILL.md');

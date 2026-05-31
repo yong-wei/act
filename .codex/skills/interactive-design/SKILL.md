@@ -26,7 +26,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 ## 边界
 
 - 本技能负责作者态互动设计与契约。
-- 本技能不负责师生端代码、课堂路由、会话同步与运行时埋点落地；这些由 `interactive-lesson-implementation` 负责。
+- 本技能不负责师生端代码、课堂路由、会话同步与运行时埋点落地；这些由 `interactive-lesson` 负责。
 - 本技能不负责讲义正文、知识图谱概念事实与 BOPPPS 主线制作；这些由 `lesson` 负责。
 - 本技能负责互动呈现层的步骤编排、卡片展示位置、作答卡与显影链设计；因此 `sequence.json` 的最终顺序和 `groups[].step_ids` 应在本技能完成后定稿。若 lesson 阶段已生成 `sequence.json`，只把它当作候选输入，不得让它压制互动页步骤数、页面顺序或卡片拆分。
 

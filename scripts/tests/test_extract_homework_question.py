@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / '.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py'
+SCRIPT = ROOT / '.agents/skills/homework/scripts/extract_homework_question.py'
 FRAMEWORK = ROOT / 'course-content/syllabus-refactor/homework-framework.md'
 
 
@@ -23,8 +23,11 @@ def main() -> None:
     assert payload['question_id'] == 'T3-2'
     assert payload['question_type'] == 'X'
     assert payload['assignment'] == 'HW3'
+    assert payload['assignment_total_score'] == 100
+    assert payload['assignment_score_policy'] == 'HW1-HW6: 20 + 20 + 20 + 40'
+    assert payload['question_score'] == 20
     assert payload['title'] == '根轨迹读图与增益迁移'
-    assert payload['ability'] == '从给定根轨迹图中读取稳定边界、增益变化与动态趋势'
+    assert payload['ability'] == '从给定根轨迹图中读取稳定边界、参数窗口、根轨迹增益迁移与动态趋势'
     assert '模块3' in payload['module_units']
     assert '根轨迹机制' in payload['question_positioning']
     assert '稳定性计算' not in payload['ability']

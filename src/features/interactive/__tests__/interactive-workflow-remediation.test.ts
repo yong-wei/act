@@ -22,7 +22,7 @@ describe('interactive workflow remediation guards', () => {
   });
 
   it('requires subagent-driven implementation review loops and page-level acceptance files', () => {
-    const implementationSkill = readRepoFile('.codex/skills/interactive-lesson-implementation/SKILL.md');
+    const implementationSkill = readRepoFile('.agents/skills/interactive-lesson/SKILL.md');
 
     expect(implementationSkill).toContain('逐个页面发放实现任务');
     expect(implementationSkill).toContain('实现子代理');
@@ -32,7 +32,7 @@ describe('interactive workflow remediation guards', () => {
   });
 
   it('requires Rust-driven panel titles to be disciplinary and rejects engineering-form labels', () => {
-    const implementationSkill = readRepoFile('.codex/skills/interactive-lesson-implementation/SKILL.md');
+    const implementationSkill = readRepoFile('.agents/skills/interactive-lesson/SKILL.md');
 
     expect(implementationSkill).toContain('Rust 驱动面板的标题必须使用与页面内容相关、含义明确的学科标题');
     expect(implementationSkill).toContain('不得使用“Rust 面板”“三标签面板”“对照面板”');

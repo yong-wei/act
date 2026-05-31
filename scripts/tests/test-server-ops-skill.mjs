@@ -4,11 +4,11 @@ import path from 'node:path';
 
 const root = process.cwd();
 const skillSource = fs.readFileSync(
-  path.join(root, '.codex/skills/server-ops/SKILL.md'),
+  path.join(root, '.agents/skills/server-ops/SKILL.md'),
   'utf8',
 );
 const databaseSyncSource = fs.readFileSync(
-  path.join(root, '.codex/skills/server-ops/references/database-sync.md'),
+  path.join(root, '.agents/skills/server-ops/references/database-sync.md'),
   'utf8',
 );
 

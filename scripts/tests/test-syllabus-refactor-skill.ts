@@ -41,11 +41,11 @@ assert.equal(
 );
 
 assert.equal(
-  skill.includes('homework-problem-authoring') &&
+  skill.includes('homework') &&
     skill.includes('只有在逐题审核通过后') &&
     skill.includes('按题号生成完整习题'),
   true,
-  '大纲重构技能必须写明与 homework-problem-authoring 的交接条件',
+  '大纲重构技能必须写明与 homework 的交接条件',
 );
 
 console.log('syllabus refactor skill test passed');

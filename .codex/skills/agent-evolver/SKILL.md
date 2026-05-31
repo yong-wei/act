@@ -16,7 +16,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 
 不要用于：
 - 一次性业务分析或课程实现任务本身
-- 代替 `lesson`、`interactive-design`、`interactive-lesson-implementation` 这些业务技能
+- 代替 `lesson`、`interactive-design`、`interactive-lesson` 这些业务技能
 
 ## Quick Reference
 - 校验当前配置：
