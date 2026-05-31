@@ -625,7 +625,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorks
     workspace: 'teacher',
     density: 'analytics',
     representativeSurface: 'teacher class analytics',
-    expectedZones: commercialWorkspaceZoneIds,
+    expectedZones: ['instrument-area'],
   },
   {
     href: '/data-center',
@@ -639,7 +639,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorks
     workspace: 'admin',
     density: 'governance',
     representativeSurface: 'admin data governance',
-    expectedZones: commercialWorkspaceZoneIds,
+    expectedZones: ['instrument-area'],
   },
 ] as const;
 
