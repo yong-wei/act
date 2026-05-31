@@ -1,11 +1,13 @@
 ## Context
 
-The current project uses `next-auth@4`, `@auth/prisma-adapter@1`, and custom session typing. Audit remediation may require either a safe compatible update path or a controlled Auth.js migration. Because auth controls role and identity, the change needs behavior tests before and after dependency updates.
+The current project uses `next-auth@4` with credentials login, JWT sessions, and custom session typing. `@auth/prisma-adapter@1` is present as a dependency but is not imported by runtime code. Audit remediation may require either a safe compatible update path or a controlled Auth.js migration. Because auth controls role and identity, the change needs behavior tests before and after dependency updates.
 
 ## Migration Strategy
 
 - Inventory all auth entry points and session consumers before choosing package versions.
 - Prefer the smallest supported dependency path that clears the audit findings.
+- Remove `@auth/prisma-adapter` when inventory confirms that no `PrismaAdapter` is wired into `authOptions`.
+- Keep `next-auth@4` on the latest v4 line and override only its transitive `uuid` dependency to a fixed version when compatibility tests confirm `next-auth/jwt` still works.
 - If the supported path requires Auth.js-era changes, isolate adapter and session callback changes in this issue and keep Next framework upgrades out of scope.
 - Preserve existing user roles, IDs, and session fields.
 
@@ -14,7 +16,7 @@ The current project uses `next-auth@4`, `@auth/prisma-adapter@1`, and custom ses
 - Credentials login success and failure.
 - Server session retrieval in representative API routes.
 - Client `useSession` consumer smoke check if behavior changes.
-- Prisma adapter compatibility with existing schema.
+- Runtime inventory check confirming no `PrismaAdapter` wiring remains and the existing credentials + JWT session contract still works.
 
 ## Risks
 
