@@ -239,6 +239,46 @@ The following work belongs to #244 `upgrade-next16-validation`:
 - Re-check middleware/proxy naming if a middleware file exists then.
 - Confirm the ESLint CLI entry remains the lint gate after `next lint` removal.
 
+## Next 15 Validation Result
+
+OpenSpec change: `upgrade-next15-validation`
+
+Selected framework line:
+
+- `next`: `15.5.18`
+- `eslint-config-next`: `15.5.18`
+- `react`: `18.3.1`
+- `react-dom`: `18.3.1`
+
+Compatibility work completed:
+
+- Converted App Router server `params` and `searchParams` usage to the Next 15 async request API with the official `@next/codemod` `next-async-request-api` transform, followed by manual fixes where build or tests exposed expectations.
+- Converted route handler segment params to async segment data.
+- Moved simulation route `next/dynamic({ ssr: false })` calls into `src/app/simulations/_components/simulation-loaders.tsx`, a client component boundary required by Next 15.
+- Split client component resource registry usage from server metadata reads by adding `src/lib/resource-registry-metadata.ts`; API routes now read metadata without importing client-only dynamic components.
+- Adjusted the commercial UI governance smoke gate so route type-only migrations check newly added visual-sensitive lines rather than re-failing unchanged page-local visual debt.
+- Kept Next 16-only work out of scope. There is still no `middleware.*` or `proxy.*` file to rename.
+
+Validation results:
+
+- `rtk npm ls next eslint-config-next react react-dom --depth=0`: passed; confirmed `next@15.5.18`, `eslint-config-next@15.5.18`, `react@18.3.1`, `react-dom@18.3.1`.
+- `rtk npm run lint`: passed.
+- `rtk npm run build`: passed under Next `15.5.18`.
+- `rtk npm run test`: passed; smoke, Arena route checks, and commercial UI governance gate are green.
+- `rtk npm run test:unit`: failed with 13 existing interactive/data-governance assertions. No Next 15 migration-specific unit failure remains after updating the Arena publication page source assertion.
+- Targeted auth/AI smoke checks: not separately run because no auth or AI route behavior was intentionally changed; async route-prop migration touched request segment handling and is covered by build plus route smoke tests.
+- `rtk npm audit --json`: 17 remaining vulnerabilities, summarized in the audit baseline.
+
+Known residual test debt from `rtk npm run test:unit`:
+
+- Interactive manifest runtime expectations for 4-3, 4-4, 4-6, and 4-7.
+- Interactive module taxonomy legacy alias expectations.
+- Lesson entry knowledge-map ordering expectation.
+- Dynamic-error guard expectation for `src/app/api/ai/intervention/check/route.ts`.
+- Data-governance feature-cache status expectations.
+
+These failures predate the Next 15 compatibility work and are not caused by dependency, route-param, or resource-registry changes in this validation change.
+
 ## Validation Results In This Change
 
 - `rtk npx eslint . --max-warnings=0`: passed before changing the npm script.

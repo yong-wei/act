@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function EditLessonPlanPage({ params }: PageProps) {
+export default async function EditLessonPlanPage(props: PageProps) {
+  const params = await props.params;
   const plan = await prisma.lessonPlan.findUnique({
     where: { id: params.id },
     include: {

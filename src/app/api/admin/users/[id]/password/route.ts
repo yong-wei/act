@@ -9,10 +9,8 @@ const passwordSchema = z.object({
   resetToDefault: z.boolean().optional(),
 });
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireAdminSession();
 
   if (!session) {

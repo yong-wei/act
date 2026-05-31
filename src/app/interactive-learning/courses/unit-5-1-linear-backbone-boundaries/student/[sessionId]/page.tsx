@@ -6,13 +6,14 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_5_1StudentRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_5_1StudentRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-5-1-linear-backbone-boundaries');
 
   if (params.sessionId !== 'demo') {

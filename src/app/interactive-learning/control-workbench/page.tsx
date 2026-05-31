@@ -20,11 +20,12 @@ function parseRouteParams(searchParams: SearchParams | undefined): ControlWorkbe
   };
 }
 
-export default function ControlWorkbenchRoute({
-  searchParams,
-}: {
-  searchParams?: SearchParams;
-}) {
+export default async function ControlWorkbenchRoute(
+  props: {
+    searchParams?: Promise<SearchParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const result = resolveControlWorkbenchSession(parseRouteParams(searchParams));
   return <ControlWorkbenchShell result={result} />;
 }

@@ -7,11 +7,12 @@ import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-s
 
 export const dynamic = 'force-dynamic';
 
-export default async function UNIT_2_1ModelingLanguageStudentRoute({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
+export default async function UNIT_2_1ModelingLanguageStudentRoute(
+  props: {
+    params: Promise<{ sessionId: string }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-2-1-modeling-language');
 
   const session = await getServerSession(authOptions);

@@ -4,10 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { SYSTEM_RESOURCE_REGISTRY_IDS } from '@/lib/system-resource-ids';
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireAdminSession();
 
   if (!session) {

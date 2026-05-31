@@ -1,10 +1,11 @@
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
 
-export default function TeacherStudentEvidencePage({
-  params,
-}: {
-  params: { studentId: string };
-}) {
+export default async function TeacherStudentEvidencePage(
+  props: {
+    params: Promise<{ studentId: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <EvidenceTimelineBrowser
       apiPath={`/api/teacher/students/${params.studentId}/evidence`}

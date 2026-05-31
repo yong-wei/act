@@ -5,13 +5,14 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_2_2TeacherPage } from '@/features/interactive/unit-2-2-time-response/teacher-page';
 
-export default async function UNIT_2_2TeacherRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_2_2TeacherRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
 

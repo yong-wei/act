@@ -30,8 +30,8 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/resource-registry', () => ({
-  getAllRegisteredResources: () => [
+vi.mock('@/lib/resource-registry-metadata', () => ({
+  getAllRegisteredResourceMetadata: () => [
     {
       id: 'registered-quiz',
       label: '注册后测组件',

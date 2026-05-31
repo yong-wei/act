@@ -106,12 +106,12 @@ function createMarkdownComponents(lessonId: string): Components {
     ),
     img: ({ node, src = '', alt = '', ...props }) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
+      (<img
         src={resolveHandoutAssetUrl(src, { lessonId })}
         alt={alt}
         className="my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain"
         {...props}
-      />
+      />)
     ),
     a: ({ node, href = '', children, ...props }) => (
       <a
@@ -142,11 +142,12 @@ function createMarkdownComponents(lessonId: string): Components {
   };
 }
 
-export default async function LessonHandoutPrintPage({
-  params,
-}: {
-  params: { lessonId: string };
-}) {
+export default async function LessonHandoutPrintPage(
+  props: {
+    params: Promise<{ lessonId: string }>;
+  }
+) {
+  const params = await props.params;
   try {
     const runtime = await loadLessonRuntimeEntry(params.lessonId);
     const markdown = await fs.readFile(path.join(process.cwd(), runtime.handoutSourcePath), 'utf8');

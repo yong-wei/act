@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { getPromptHistory } from '@/features/evaluation/prompt-quality';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 export async function GET(_: Request, context: RouteContext) {
   try {
-    const history = getPromptHistory(context.params.userId);
+    const history = getPromptHistory((await context.params).userId);
     return NextResponse.json({
       history,
       total: history.length,

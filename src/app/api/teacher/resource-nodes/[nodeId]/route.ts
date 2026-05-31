@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { getAllRegisteredResources } from '@/lib/resource-registry';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources, asRecord } from '@/lib/teacher-resource-node-data';
 import {
   applyTeacherResourceNodePatch,
@@ -74,7 +74,7 @@ export async function PATCH(
       orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
     });
 
-    const registeredResources = getAllRegisteredResources();
+    const registeredResources = getAllRegisteredResourceMetadata();
     const registry = buildResourceNodeRegistryFromTeachingResources(scopedResources, registeredResources);
     const node = registry.nodes.find((candidate) => candidate.id === nodeId);
     if (!node) {

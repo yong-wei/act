@@ -38,10 +38,8 @@ function resolveStateKey(itemId: string | null | undefined, explicitStateKey: st
  * GET: 教师获取所有学生状态（用于数据大屏）
  */
 
-export async function POST(
-  request: Request,
-  { params }: { params: { sessionId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -106,10 +104,8 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { sessionId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

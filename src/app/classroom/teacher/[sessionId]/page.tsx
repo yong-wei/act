@@ -5,10 +5,11 @@ import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 
 interface PageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
-export default async function TeacherSessionPage({ params }: PageProps) {
+export default async function TeacherSessionPage(props: PageProps) {
+  const params = await props.params;
   const session = await prisma.classSession.findUnique({
     where: { id: params.sessionId },
     include: {
@@ -37,7 +38,7 @@ export default async function TeacherSessionPage({ params }: PageProps) {
   // Prisma Enum ordering is by definition order in schema. 
   // We should manually sort if needed, but 'asc' on Enum might work based on definition index.
   // To be safe, we rely on the returned order or handle it in client.
-  
+
   // Re-sort items logically in JS to be safe
   const stageOrder = ['BRIDGE_IN', 'OBJECTIVE', 'PRE_ASSESSMENT', 'PARTICIPATORY', 'POST_ASSESSMENT', 'SUMMARY'];
   const sortedItems = session.plan.items.sort((a, b) => {
