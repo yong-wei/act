@@ -114,7 +114,7 @@ export default function ClassAnalyticsV2Page() {
   const governanceToneClass = getGovernanceToneClass(insights.governance.tone);
 
   return (
-    <div className="teacher-insight-shell">
+    <div className="teacher-insight-shell" data-commercial-operations-workspace="teacher-analytics">
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
           <div className="flex items-center gap-4">

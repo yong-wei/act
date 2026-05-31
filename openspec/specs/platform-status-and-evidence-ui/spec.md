@@ -1,9 +1,7 @@
 ## Purpose
 
 Define shared display semantics for platform evidence, confidence, privacy, replay, protocol, evaluation, readiness, missing-context, and fallback states without moving domain truth into shared UI primitives.
-
 ## Requirements
-
 ### Requirement: Evidence status UI uses shared semantics
 The system SHALL provide shared UI semantics for evidence confidence, source coverage, privacy scope, replay status, protocol version, official/preview evaluation boundary, readiness, missing context, and fallback state.
 
@@ -32,3 +30,11 @@ The system SHALL distinguish complete, partial, stale, missing, unsupported, and
 #### Scenario: Personalization is limited
 - **WHEN** evidence or mapping coverage is insufficient for a confident recommendation, path, or intervention
 - **THEN** the UI SHALL show the limiting coverage or fallback reason.
+
+### Requirement: Workspace evidence rail uses shared status semantics
+Dense workspaces SHALL place confidence, official/preview state, source coverage, replay/readiness, and missing-context states in a consistent evidence rail or equivalent compact status zone.
+
+#### Scenario: Workspace shows governed state
+- **WHEN** Control Workbench, Arena detail, interactive course runtime, simulation workspace, teacher analytics, or admin governance shows governed state
+- **THEN** the state SHALL use shared evidence/status semantics
+- **AND** workspace-specific panels SHALL NOT invent page-local status badge vocabularies for the same concepts.

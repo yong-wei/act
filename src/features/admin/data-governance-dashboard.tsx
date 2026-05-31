@@ -108,7 +108,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
   }
 
   return (
-    <div className="admin-console-shell">
+    <div className="admin-console-shell" data-commercial-operations-workspace="admin-data-governance">
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/data-governance"

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   SOURCE_QUALITY_MARKERS,
@@ -9,6 +11,34 @@ import {
 import { sanitizeSnapshotMetrics, buildExportSafeSnapshot } from '../shared/export-safe-snapshot';
 import { canAccessDrilldown } from '../shared/drilldown-link';
 import type { SnapshotMetric } from '../shared/export-safe-snapshot';
+
+const repoRoot = process.cwd();
+
+describe('PresentationDataCenter commercial workspace layout', () => {
+  it('uses the commercial operations workspace contract for data center surfaces', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('data-commercial-operations-workspace="data-center"');
+    expect(source).toContain('data-commercial-workspace-zone="context-strip"');
+    expect(source).toContain('data-commercial-workspace-zone="instrument-area"');
+    expect(source).toContain('data-commercial-workspace-zone="command-bar"');
+  });
+
+  it('uses available-width grid tracks instead of defaulting operations panels to narrow xl-only stacks', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('repeat(auto-fit,minmax(min(100%,220px),1fr))');
+    expect(source).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
+    expect(source).not.toContain('xl:grid-cols-[1.6fr_1fr]');
+    expect(source).not.toContain('xl:grid-cols-[1.3fr_1fr]');
+  });
+});
 
 describe('SOURCE_QUALITY_MARKERS', () => {
   it('should define all five source quality levels', () => {

@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FORBIDDEN_SHARED_UI_IMPORT_PREFIXES,
+  PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX,
   PLATFORM_COMMERCIAL_WORKSPACE_SHELLS,
+  PLATFORM_COMMERCIAL_WORKSPACE_ZONES,
   PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS,
   PLATFORM_SEMANTIC_TOKENS,
   PLATFORM_SHELL_ADAPTERS,
@@ -190,25 +192,86 @@ describe('platform UI contracts', () => {
   });
 
   it('defines derived commercial workspace shell contracts for dense tools', () => {
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone) => zone.id)).toEqual([
+      'context-strip',
+      'command-bar',
+      'instrument-area',
+      'evidence-rail',
+      'support-drawer',
+    ]);
+    for (const zone of PLATFORM_COMMERCIAL_WORKSPACE_ZONES) {
+      expect(zone.domainOwnership).toBe('feature-owned');
+      expect(zone.presentationOwnership).toBe('shared-commercial-surface');
+    }
+
     expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.map((shell) => shell.workspace)).toEqual([
       'arena',
       'control-workbench',
-      'interactive-learning',
-      'adaptive-learning',
-      'teacher',
-      'admin',
-    ]);
+        'interactive-learning',
+        'adaptive-learning',
+        'teacher',
+        'data-center',
+        'admin',
+      ]);
 
     for (const shell of PLATFORM_COMMERCIAL_WORKSPACE_SHELLS) {
       expect(shell.inheritsTokenCategories).toEqual(
         expect.arrayContaining(['canvas', 'surface', 'foreground', 'border', 'action']),
       );
       expect(shell.requiredConventions).toEqual(
-        expect.arrayContaining(['account/profile action remains secondary to role cockpit action', 'contextual navigation does not duplicate global product navigation']),
+        expect.arrayContaining([
+          'account/profile action remains secondary to role cockpit action',
+          'contextual navigation does not duplicate global product navigation',
+          'panel wrappers preserve stable width and height while controls or fallback text change',
+        ]),
       );
+      expect(shell.zones).toEqual(PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone) => zone.id));
     }
 
     expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.find((shell) => shell.workspace === 'control-workbench')?.contextualNavigation).toContain('return target');
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/interactive-learning/control-workbench',
+      '/arena/challenges/[taskId]',
+      '/interactive-learning/[lesson]',
+      '/teacher/classes/[classId]/analytics-v2',
+      '/data-center',
+      '/admin/data-governance',
+    ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/data-center')?.expectedZones).toEqual([
+      'context-strip',
+      'instrument-area',
+      'command-bar',
+    ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher/classes/[classId]/analytics-v2')?.expectedZones).toEqual([
+      'instrument-area',
+    ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.expectedZones).toEqual([
+      'instrument-area',
+    ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.density).toBe('governance');
+  });
+
+  it('keeps representative dense workspace sources on the commercial zone contract', () => {
+    const workbenchSource = readSource('src/features/control-workbench/shell/control-workbench-shell.tsx');
+    const arenaDetailSource = readSource('src/features/arena/challenge-detail.tsx');
+    const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
+    const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
+    const dataCenterSource = readSource('src/features/data-center/presentation-data-center.tsx');
+    const adminGovernanceSource = readSource('src/features/admin/data-governance-dashboard.tsx');
+
+    for (const zone of PLATFORM_COMMERCIAL_WORKSPACE_ZONES) {
+      expect(workbenchSource).toContain(`data-commercial-workspace-zone="${zone.id}"`);
+    }
+    expect(workbenchSource).toContain('data-commercial-workspace="control-workbench"');
+    expect(workbenchSource).toContain('min-h-[360px]');
+    expect(arenaDetailSource).toContain('data-commercial-workspace="arena-challenge-detail"');
+    expect(arenaDetailSource).toContain('data-commercial-workspace-zone="command-bar"');
+    expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
+    expect(manifestRuntimeSource).toContain('data-commercial-module-state');
+    expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-analytics"');
+    expect(dataCenterSource).toContain('data-commercial-operations-workspace="data-center"');
+    expect(dataCenterSource).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
+    expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-data-governance"');
   });
 
   it('forwards the active route from AppShell to AppSidebar', () => {

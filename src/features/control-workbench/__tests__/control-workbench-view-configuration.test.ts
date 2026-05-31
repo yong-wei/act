@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import { resolvePanelSelectedOptions } from '../../interactive/multi-representation-linkage/model';
 import { resolveControlWorkbenchSession } from '../session-resolver';
@@ -67,6 +68,41 @@ describe('control workbench view configuration', () => {
       'uncorrected-open-loop',
       'corrected-open-loop',
     ]);
+  });
+
+  it('initializes direct exploration and Arena entries with complete default panel regions', () => {
+    const directResult = resolveControlWorkbenchSession({
+      mode: 'explore',
+      objectId: 'plant-second-order-underdamped',
+      preset: 'classic-four-view',
+    });
+    const arenaResult = resolveControlWorkbenchSession({
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'classic-four-view',
+    });
+
+    expect(directResult.ok).toBe(true);
+    expect(arenaResult.ok).toBe(true);
+    if (!directResult.ok || !arenaResult.ok) throw new Error('workbench sessions should resolve');
+
+    const directPanels = buildDefaultWorkbenchPanelInstances(directResult.session);
+    const arenaPanels = buildDefaultWorkbenchPanelInstances(arenaResult.session);
+
+    expect(directPanels.map((panel) => panel.viewId)).toEqual(['time-domain', 'bode', 'root-locus', 'nyquist']);
+    expect(arenaPanels.map((panel) => panel.viewId)).toEqual(directPanels.map((panel) => panel.viewId));
+    expect(directPanels.every((panel) => panel.enabled)).toBe(true);
+    expect(arenaPanels.every((panel) => panel.enabled)).toBe(true);
+  });
+
+  it('keeps unavailable default panels as branded layout regions', () => {
+    const source = readFileSync(
+      new URL('../../interactive/multi-representation-linkage/page-client.tsx', import.meta.url),
+      'utf8',
+    );
+
+    expect(source).not.toContain('panel.enabled !== false');
+    expect(source).toContain('panel.enabled === false');
+    expect(source).toContain('data-workbench-panel-unavailable');
   });
 
   it('keeps same-type panel instances independent when toggling options', () => {

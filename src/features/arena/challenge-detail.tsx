@@ -56,7 +56,8 @@ export function ChallengeDetail({
     submissionCount: 0,
     topScore: null,
   };
-  const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
+  const workspaceContext = publicationId ? { publicationId, classId, seasonId } : undefined;
+  const workspaceHref = getArenaWorkspaceHref(task, object, workspaceContext);
   const leaderboardBrowser = getChallengeLeaderboardBrowserData({
     taskId: task.id,
     submissions,
@@ -83,10 +84,13 @@ export function ChallengeDetail({
       ]}
     >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
-      <section className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+      <section
+        className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8"
+        data-commercial-workspace="arena-challenge-detail"
+      >
         <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
-          <div className="space-y-6">
-            <div className="surface-card rounded-lg p-6 shadow-sm">
+          <div className="space-y-6" data-commercial-workspace-zone="instrument-area">
+            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
               <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
                 <Trophy className="h-5 w-5" />
                 自动控制竞技场
@@ -228,7 +232,7 @@ export function ChallengeDetail({
           </div>
 
           <aside className="space-y-4">
-            <div className="surface-card rounded-lg p-6 shadow-sm">
+            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="command-bar">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                 <Rocket className="h-5 w-5 text-primary" />
                 进入控制工作台
@@ -256,7 +260,7 @@ export function ChallengeDetail({
               </ArenaWorkspaceLink>
             </div>
 
-            <div className="surface-card rounded-lg p-6 shadow-sm">
+            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="evidence-rail">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
@@ -272,6 +276,12 @@ export function ChallengeDetail({
               <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
               <ArenaShowcaseList showcase={showcase} />
             </div>
+            <section className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="support-drawer">
+              <h2 className="text-lg font-semibold text-foreground">支持与说明</h2>
+              <p className="mt-2 text-sm leading-6 text-subtle">
+                任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。
+              </p>
+            </section>
           </aside>
         </div>
       </section>

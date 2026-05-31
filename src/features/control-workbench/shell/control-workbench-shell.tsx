@@ -453,8 +453,8 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="border-b border-border/70 bg-card/80 px-6 py-5">
+    <main className="min-h-screen bg-background text-foreground" data-commercial-workspace="control-workbench">
+      <section className="border-b border-border/70 bg-card/80 px-6 py-5" data-commercial-workspace-zone="context-strip">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm text-primary">{modeLabel(session.mode)} · {workspaceLabel}</p>
@@ -473,7 +473,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       <section className="mx-auto grid max-w-[1600px] gap-4 px-4 py-5 sm:px-6 lg:px-8">
         <WorkbenchDesignFlowSection flow={session.designFlow} />
 
-        <section className="surface-card rounded-lg p-4">
+        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="evidence-rail">
           <h2 className="text-base font-semibold text-foreground">会话状态</h2>
           <dl className="mt-3 grid gap-3 text-sm md:grid-cols-4">
             <div>
@@ -513,7 +513,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           </section>
         ) : null}
 
-        <section className="surface-card rounded-lg p-4">
+        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="command-bar">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-base font-semibold text-foreground">面板布置与添加面板</h2>
@@ -546,7 +546,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           </div>
         </section>
 
-        <div className="grid gap-4">
+        <div className="grid min-h-[360px] gap-4" data-commercial-workspace-zone="instrument-area">
           {session.mode === 'explore' ? (
             <p className="surface-card rounded-lg p-4 text-sm leading-6 text-subtle">
               自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。
@@ -580,6 +580,12 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
             />
           ) : null}
         </div>
+        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="support-drawer">
+          <h2 className="text-base font-semibold text-foreground">支持与说明</h2>
+          <p className="mt-2 text-sm leading-6 text-subtle">
+            面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。
+          </p>
+        </section>
       </section>
     </main>
   );

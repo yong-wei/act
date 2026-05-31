@@ -153,6 +153,24 @@ function renderManifestModuleError({
   );
 }
 
+function renderCommercialModuleChrome({
+  module,
+  node,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+  node: ReactNode;
+}) {
+  return createElement(
+    'section',
+    {
+      'data-commercial-module-chrome': module.kind,
+      'data-commercial-module-state': module.mustBeVisible ? 'required' : 'available',
+      className: 'commercial-module-chrome min-h-[120px]',
+    },
+    node,
+  );
+}
+
 function stringFromContentBlock(value: unknown): string {
   if (typeof value === 'string') return value.trim();
   if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
@@ -288,10 +306,11 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
     .map((module) => {
       if (ACTIVITY_RUNTIME_MODULE_KINDS.has(module.kind)) {
         if (module.mustBeVisible) {
+          const node = renderActivityRuntimeModuleSlot({ module });
           return {
             moduleId: module.id,
             regionId: module.region,
-            node: renderActivityRuntimeModuleSlot({ module }),
+            node: renderCommercialModuleChrome({ module, node }),
           } as InteractiveLayoutRegionNode;
         }
         return null;
@@ -334,7 +353,7 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
       return {
         moduleId: module.id,
         regionId: module.region,
-        node,
+        node: renderCommercialModuleChrome({ module, node }),
       } as InteractiveLayoutRegionNode;
     })
     .filter(Boolean) as InteractiveLayoutRegionNode[];
