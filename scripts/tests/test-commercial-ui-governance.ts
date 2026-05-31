@@ -113,6 +113,7 @@ function diffForFile(file: string) {
     git(['diff', '--unified=0', '--', file]),
     git(['diff', '--cached', '--unified=0', '--', file]),
     hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
+    !hasGitRef('origin/integration') && hasGitRef('HEAD^') ? git(['diff', '--unified=0', 'HEAD^', 'HEAD', '--', file]) : '',
   ].join('\n');
 }
 
