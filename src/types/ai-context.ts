@@ -4,7 +4,7 @@
  * 定义页面上下文、用户画像、AI上下文等类型
  */
 
-import type { Message } from 'ai/react';
+import type { Message } from '@/types/ai-message';
 
 /**
  * 页面类型
