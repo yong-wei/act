@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FORBIDDEN_SHARED_UI_IMPORT_PREFIXES,
+  PLATFORM_COMMERCIAL_WORKSPACE_SHELLS,
+  PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS,
   PLATFORM_SEMANTIC_TOKENS,
   PLATFORM_SHELL_ADAPTERS,
   PLATFORM_SHELL_ROLLBACK_FLAG,
@@ -167,6 +169,46 @@ describe('platform UI contracts', () => {
         expect(source).not.toContain(`from "${forbiddenPrefix}`);
       }
     }
+  });
+
+  it('allows legacy shells to retire when a commercial shell preserves route and role semantics', () => {
+    expect(PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS.map((contract) => contract.legacyComponent)).toEqual([
+      'UnifiedTopBar',
+      'ArenaPageShell',
+      'TeacherLayout',
+      'AdminConsoleHeader',
+      'FeaturePageNav',
+    ]);
+
+    for (const contract of PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS) {
+      expect(contract.allowedDisposition).toBe('retire-or-adapt');
+      expect(contract.preservationRequirements).toEqual(
+        expect.arrayContaining(['route access', 'role actions', 'contextual navigation']),
+      );
+      expect(contract.retirementRule).toContain('commercial shell');
+    }
+  });
+
+  it('defines derived commercial workspace shell contracts for dense tools', () => {
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.map((shell) => shell.workspace)).toEqual([
+      'arena',
+      'control-workbench',
+      'interactive-learning',
+      'adaptive-learning',
+      'teacher',
+      'admin',
+    ]);
+
+    for (const shell of PLATFORM_COMMERCIAL_WORKSPACE_SHELLS) {
+      expect(shell.inheritsTokenCategories).toEqual(
+        expect.arrayContaining(['canvas', 'surface', 'foreground', 'border', 'action']),
+      );
+      expect(shell.requiredConventions).toEqual(
+        expect.arrayContaining(['account/profile action remains secondary to role cockpit action', 'contextual navigation does not duplicate global product navigation']),
+      );
+    }
+
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.find((shell) => shell.workspace === 'control-workbench')?.contextualNavigation).toContain('return target');
   });
 
   it('forwards the active route from AppShell to AppSidebar', () => {

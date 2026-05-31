@@ -6,13 +6,13 @@ import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   getPlatformCockpitHref,
-  getStudentCoreNavigationEntries,
+  getStudentLearningIntentNavigationGroups,
   type PlatformRoleNavigationItem,
 } from '@/lib/platform-role-navigation';
 import { prisma } from '@/lib/prisma';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
-const studentCoreEntries = getStudentCoreNavigationEntries();
+const studentCoreEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
 
 const dashboardEntryMeta = {
   'student-simulations': {
@@ -70,6 +70,11 @@ const quickStartEntryIds = [
   'student-arena',
   'student-adaptive-learning',
 ] as const;
+
+const quickStartEntries = quickStartEntryIds.flatMap((entryId) => {
+  const entry = studentCoreEntries.find((candidate) => candidate.id === entryId);
+  return entry ? [entry] : [];
+});
 
 function getDashboardEntryMeta(entry: PlatformRoleNavigationItem) {
   return dashboardEntryMeta[entry.id as keyof typeof dashboardEntryMeta] ?? {
@@ -229,9 +234,7 @@ export default async function DashboardPage() {
         <div className="surface-card p-6">
           <h3 className="mb-4 text-lg font-semibold text-foreground">快速开始</h3>
           <div className="grid gap-4 md:grid-cols-3">
-            {studentCoreEntries
-              .filter((entry) => quickStartEntryIds.includes(entry.id as (typeof quickStartEntryIds)[number]))
-              .map((entry) => {
+            {quickStartEntries.map((entry) => {
                 const meta = getDashboardEntryMeta(entry);
                 return (
                   <QuickAction

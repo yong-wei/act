@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  PLATFORM_AUTH_ROUTE_CONTRACTS,
+  PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
+  PLATFORM_NAVIGATION_LAYERS,
   PLATFORM_NAVIGATION_FEATURE_FLAGS,
+  PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
   PLATFORM_ROLE_COCKPIT_HREFS,
+  STUDENT_LEARNING_INTENT_GROUPS,
   STUDENT_CORE_ENTRY_IDS,
   getPlatformCockpitHref,
   getPlatformNavigationHref,
   getPlatformRoleNavigation,
+  getStudentLearningIntentNavigationGroups,
   getStudentCoreNavigationEntries,
 } from '@/lib/platform-role-navigation';
 
@@ -121,6 +127,119 @@ describe('platform role navigation', () => {
       { href: '/login', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
       { href: '/dashboard', routeFile: 'src/app/(main)/dashboard/page.tsx', viewportWidths: [1440, 320] },
       { href: '/profile', routeFile: 'src/app/(main)/profile/page.tsx', viewportWidths: [1440, 320] },
+      { href: '/login?callbackUrl=%2Fprofile', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
     ]);
+  });
+
+  it('defines commercial navigation layers without promoting contextual workspaces to global nav', () => {
+    expect(PLATFORM_NAVIGATION_LAYERS.map((layer) => layer.id)).toEqual([
+      'global-product',
+      'role-cockpit',
+      'contextual-workspace',
+    ]);
+    expect(PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'global-product')?.entryGroups).toEqual([
+      'public',
+      'student-core',
+    ]);
+    expect(PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'contextual-workspace')?.workspaceModes).toEqual([
+      'arena',
+      'control-workbench',
+      'interactive-learning',
+      'adaptive-learning',
+      'teacher',
+      'admin',
+    ]);
+    expect(
+      PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'contextual-workspace')?.duplicatesGlobalNavigation,
+    ).toBe(false);
+  });
+
+  it('groups student destinations by learning intent and preserves compatibility aliases', () => {
+    const intentGroups = getStudentLearningIntentNavigationGroups();
+
+    expect(intentGroups.map((group) => group.intent)).toEqual([
+      'learn',
+      'practice',
+      'challenge',
+      'experiment',
+      'review-profile',
+    ]);
+    expect(intentGroups.find((group) => group.intent === 'learn')?.entries.map((entry) => entry.id)).toEqual([
+      'student-knowledge',
+      'student-interactive-learning',
+    ]);
+    expect(intentGroups.find((group) => group.intent === 'experiment')?.entries.map((entry) => entry.id)).toEqual([
+      'student-simulations',
+      'student-control-workbench',
+    ]);
+    expect(intentGroups.flatMap((group) => group.compatibilityAliases)).toEqual(
+      expect.arrayContaining(['/profile/growth', '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view']),
+    );
+    expect(STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.compatibilityAliases)).toEqual(
+      expect.arrayContaining(
+        getStudentCoreNavigationEntries()
+          .flatMap((entry) => entry.aliasHrefs ?? [])
+          .filter((href) => href === '/profile/growth' || href.includes('control-workbench')),
+      ),
+    );
+  });
+
+  it('separates profile/account actions from role cockpit actions', () => {
+    expect(PLATFORM_PROFILE_AND_COCKPIT_ACTIONS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          audience: 'student',
+          profileHref: '/profile',
+          cockpitHref: '/dashboard',
+          primaryWorkspaceAction: 'cockpit',
+        }),
+        expect.objectContaining({
+          audience: 'teacher',
+          profileHref: '/profile',
+          cockpitHref: '/teacher',
+          primaryWorkspaceAction: 'cockpit',
+        }),
+        expect.objectContaining({
+          audience: 'guest',
+          profileHref: '/login?callbackUrl=%2Fprofile',
+          cockpitHref: '/login',
+          primaryWorkspaceAction: 'account',
+        }),
+      ]),
+    );
+  });
+
+  it('declares route-derived return targets and auth callback route semantics', () => {
+    expect(PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          workspaceMode: 'control-workbench',
+          routePrefix: '/interactive-learning/control-workbench',
+          sourceContext: 'arena-challenge',
+          fallbackHref: '/interactive-learning',
+        }),
+        expect.objectContaining({
+          workspaceMode: 'control-workbench',
+          sourceContext: 'arena-publication',
+          fallbackHref: '/arena',
+        }),
+      ]),
+    );
+    expect(PLATFORM_AUTH_ROUTE_CONTRACTS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          href: '/login?callbackUrl=%2Fprofile',
+          preservesDestination: '/profile',
+          preservesDestinationOnError: true,
+          errorStateIntent: 'retry-with-same-destination',
+          exposesProfileAction: true,
+          exposesCockpitAction: true,
+        }),
+        expect.objectContaining({
+          href: '/login',
+          roleCockpitFallbacks: PLATFORM_ROLE_COCKPIT_HREFS,
+        }),
+      ]),
+    );
   });
 });

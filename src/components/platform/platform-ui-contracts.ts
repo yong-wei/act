@@ -143,6 +143,22 @@ export interface PlatformShellAdapter {
   migrationRule: string;
 }
 
+export interface PlatformLegacyShellRetirementContract {
+  legacyComponent: PlatformShellAdapter['legacyComponent'];
+  allowedDisposition: 'retire-or-adapt';
+  preservationRequirements: readonly string[];
+  retirementRule: string;
+}
+
+export interface PlatformCommercialWorkspaceShell {
+  workspace: 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'admin';
+  derivedFrom: 'commercial-platform-shell';
+  density: 'tool' | 'learning' | 'analytics' | 'governance';
+  contextualNavigation: string;
+  inheritsTokenCategories: readonly PlatformTokenCategory[];
+  requiredConventions: readonly string[];
+}
+
 export const PLATFORM_SHELL_ROLLBACK_FLAG = 'platform.unifiedShell';
 
 const PLATFORM_STATUS_LABELS = {
@@ -402,6 +418,105 @@ export const PLATFORM_SHELL_ADAPTERS: PlatformShellAdapter[] = [
     migrationRule: 'Keep governance data aggregation and redaction decisions in admin/data-governance feature modules.',
   },
 ];
+
+export const PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS: PlatformLegacyShellRetirementContract[] = [
+  {
+    legacyComponent: 'UnifiedTopBar',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when the page can preserve cockpit routing, back links, and right-side actions.',
+  },
+  {
+    legacyComponent: 'ArenaPageShell',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when Arena task, scoring, and submission context remain owned by Arena modules.',
+  },
+  {
+    legacyComponent: 'TeacherLayout',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when authenticated teacher routing and class/session actions remain intact.',
+  },
+  {
+    legacyComponent: 'AdminConsoleHeader',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when admin governance tabs, status notes, and actions remain reachable.',
+  },
+  {
+    legacyComponent: 'FeaturePageNav',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when local return links and floating tool mode are preserved.',
+  },
+] as const;
+
+const commercialWorkspaceShellConventions = [
+  'account/profile action remains secondary to role cockpit action',
+  'contextual navigation does not duplicate global product navigation',
+] as const;
+
+const commercialWorkspaceShellTokenCategories = [
+  'canvas',
+  'surface',
+  'foreground',
+  'border',
+  'action',
+  'evidence',
+  'privacy',
+] as const;
+
+export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceShell[] = [
+  {
+    workspace: 'arena',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    contextualNavigation: 'Arena challenge, publication, ranking, submission, and return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'control-workbench',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    contextualNavigation: 'Control Workbench object, preset, mode, Arena source, and route-derived return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'interactive-learning',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'learning',
+    contextualNavigation: 'Interactive lesson, classroom session, step, and catalog return context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'adaptive-learning',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'learning',
+    contextualNavigation: 'Adaptive practice, diagnosis, growth profile, and recommendation context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'teacher',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'analytics',
+    contextualNavigation: 'Teacher class, lesson plan, classroom session, resource, and history context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'admin',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'governance',
+    contextualNavigation: 'Admin user, system usage, data governance, configuration, and audit context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+] as const;
 
 export const FORBIDDEN_SHARED_UI_IMPORT_PREFIXES = [
   '@/features/',

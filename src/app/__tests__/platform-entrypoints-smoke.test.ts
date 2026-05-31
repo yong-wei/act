@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { PLATFORM_ENTRYPOINT_SMOKE_ROUTES, STUDENT_CORE_ENTRY_IDS } from '@/lib/platform-role-navigation';
+import { PLATFORM_ENTRYPOINT_SMOKE_ROUTES, STUDENT_LEARNING_INTENT_GROUPS } from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -22,7 +22,7 @@ describe('platform entrypoint smoke contracts', () => {
   it('migrates homepage to shared student entries and a 320px mobile menu', () => {
     const source = readSource('src/app/page.tsx');
 
-    expect(source).toContain('getStudentCoreNavigationEntries');
+    expect(source).toContain('getStudentLearningIntentNavigationGroups');
     expect(source).toContain('showMobileNavigation');
     expect(source).toContain('aria-label={');
     expect(source).toContain('打开平台入口菜单');
@@ -40,11 +40,20 @@ describe('platform entrypoint smoke contracts', () => {
     const dashboardSource = readSource('src/app/(main)/dashboard/page.tsx');
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
 
-    expect(dashboardSource).toContain('getStudentCoreNavigationEntries');
-    for (const entryId of STUDENT_CORE_ENTRY_IDS) {
+    expect(dashboardSource).toContain('getStudentLearningIntentNavigationGroups');
+    expect(dashboardSource).toContain('quickStartEntryIds.flatMap');
+    for (const entryId of STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.entryIds)) {
       expect(dashboardSource).toContain(entryId);
     }
     expect(profileSource).toContain('getPlatformCockpitHref');
     expect(profileSource).toContain('buildLoginRedirectForPath');
+  });
+
+  it('keeps login error states tied to the same callback destination contract', () => {
+    const loginFormSource = readSource('src/components/shared/credential-login-form.tsx');
+
+    expect(loginFormSource).toContain("setError('账号或密码错误')");
+    expect(loginFormSource).toContain('callbackUrl');
+    expect(loginFormSource).toContain('resolvePostLoginRedirect');
   });
 });

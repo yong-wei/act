@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import {
-  getStudentCoreNavigationEntries,
+  getStudentLearningIntentNavigationGroups,
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation';
 
@@ -29,7 +29,7 @@ interface ArenaPageShellProps {
   children: ReactNode;
 }
 
-const projectEntries = getStudentCoreNavigationEntries();
+const projectEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
 
 const projectEntryIcons: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
