@@ -334,7 +334,7 @@ export function AddStudentsModal({
                 <ul className="space-y-1 text-sm text-slate-400">
                   <li>• 第一行为标题行（如：学号）</li>
                   <li>• 第一列为学号（studentNumber）</li>
-                  <li>• 支持 .xlsx 和 .xls 格式</li>
+                  <li>• 支持 .xlsx 格式</li>
                   <li>• 仅导入系统中已存在的学生账号</li>
                 </ul>
               </div>
@@ -354,7 +354,7 @@ export function AddStudentsModal({
                     )}
                     <input
                       type="file"
-                      accept=".xlsx,.xls"
+                      accept=".xlsx"
                       onChange={handleFileSelect}
                       className="hidden"
                     />

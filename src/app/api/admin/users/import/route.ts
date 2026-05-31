@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { UserRole, type Prisma } from '@prisma/client';
-import * as XLSX from 'xlsx';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { initializeUserProgress } from '@/lib/user-sync';
+import { loadFirstWorksheetRows } from '@/lib/server-spreadsheet';
 
 type ImportRow = {
   account: string;
@@ -222,19 +222,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '请上传 Excel 文件' }, { status: 400 });
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  const firstSheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[firstSheetName];
-
-  if (!worksheet) {
-    return NextResponse.json({ error: '未找到工作表' }, { status: 400 });
+  let rows: unknown[][] | null;
+  try {
+    rows = await loadFirstWorksheetRows(await file.arrayBuffer());
+  } catch {
+    return NextResponse.json(
+      { error: '无法解析 Excel 文件，请使用官方模板重新填写' },
+      { status: 400 }
+    );
   }
 
-  const rows = XLSX.utils.sheet_to_json(worksheet, {
-    header: 1,
-    defval: '',
-  }) as Array<Array<unknown>>;
+  if (!rows) {
+    return NextResponse.json({ error: '未找到工作表' }, { status: 400 });
+  }
 
   if (rows.length < 2) {
     return NextResponse.json({ error: '模板内容为空' }, { status: 400 });

@@ -108,6 +108,7 @@
     "react-force-graph-3d": "^1.29.0",
     "react-katex": "^3.1.0",
     "react-markdown": "^10.1.0",
+    "read-excel-file": "^9.0.10",
     "recharts": "^3.6.0",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
@@ -118,7 +119,7 @@
     "three": "^0.165.0",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0",
-    "xlsx": "^0.18.5",
+    "write-excel-file": "^4.0.7",
     "zod": "^3.23.8",
     "zustand": "^5.0.9"
   },

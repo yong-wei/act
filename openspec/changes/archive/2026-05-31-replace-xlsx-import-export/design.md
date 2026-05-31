@@ -5,9 +5,11 @@ The audit reports high-severity `xlsx` findings with `fixAvailable: false`. Sinc
 ## Replacement Strategy
 
 - Use a maintained library with active npm releases and server-side workbook read/write support.
+- Use `read-excel-file` for server-side workbook parsing and `write-excel-file` for template generation. `exceljs` was evaluated but avoided because `npm audit` reports a moderate `uuid` finding through `exceljs@4.4.0`.
 - Keep generated template columns and response headers compatible with existing clients.
 - Keep validation messages in Chinese and aligned with existing route behavior.
 - Avoid broad import workflow redesign; this change is a security replacement, not a new roster-management feature.
+- Treat `.xlsx` as the supported workbook format. The old teacher-side `.xls` extension gate is removed because the replacement libraries intentionally cover OOXML `.xlsx` workflows, not legacy BIFF `.xls` content.
 
 ## Affected Surfaces
 

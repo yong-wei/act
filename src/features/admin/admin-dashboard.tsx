@@ -458,7 +458,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".xlsx,.xls"
+                accept=".xlsx"
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
