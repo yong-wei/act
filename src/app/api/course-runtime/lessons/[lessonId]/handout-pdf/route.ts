@@ -5,10 +5,8 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { lessonId: string } },
-) {
+export async function GET(request: Request, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params;
   try {
     const origin = new URL(request.url).origin;
     const { pdf, lessonTitle } = await generateLessonHandoutPdf({

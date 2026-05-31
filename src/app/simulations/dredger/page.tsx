@@ -1,21 +1,5 @@
-import dynamic from 'next/dynamic';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
-
-const DredgerSimulation = dynamic(
-  () => import('@/resources/simulations/simulations/dredger-simulation').then((m) => m.DredgerSimulation),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-lg text-slate-400">正在加载天鲸号挖泥船仿真...</p>
-          <p className="mt-2 text-sm text-slate-500">MMG 3-DOF 高保真模型初始化中</p>
-        </div>
-      </div>
-    ),
-  }
-);
+import { DredgerSimulation } from '../_components/simulation-loaders';
 
 export default function DredgerSimulationPage() {
   return (

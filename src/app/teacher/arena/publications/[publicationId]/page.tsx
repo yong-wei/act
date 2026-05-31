@@ -11,7 +11,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 interface ArenaPublicationReportPageProps {
-  params: { publicationId: string };
+  params: Promise<{ publicationId: string }>;
 }
 
 function formatPercent(value: number): string {
@@ -29,7 +29,8 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-export default async function ArenaPublicationReportPage({ params }: ArenaPublicationReportPageProps) {
+export default async function ArenaPublicationReportPage(props: ArenaPublicationReportPageProps) {
+  const params = await props.params;
   const session = await getServerAuthSession();
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
     notFound();

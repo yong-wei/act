@@ -6,12 +6,13 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     sessionId: string;
-  };
+  }>;
 }
 
-export default async function CruiseTeacherRoute({ params }: PageProps) {
+export default async function CruiseTeacherRoute(props: PageProps) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
 

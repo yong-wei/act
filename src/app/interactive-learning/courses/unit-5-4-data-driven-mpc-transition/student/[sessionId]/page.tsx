@@ -4,11 +4,12 @@ import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-s
 
 export const dynamic = 'force-dynamic';
 
-export default async function UNIT_5_4StudentRoute({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
+export default async function UNIT_5_4StudentRoute(
+  props: {
+    params: Promise<{ sessionId: string }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition');
 
   const lessonRuntime = await loadLessonRuntimeEntry('5-4');

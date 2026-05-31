@@ -108,9 +108,64 @@ function sourceFilesForTokenGate(files: string[]) {
   ));
 }
 
-function lineEvidence(source: string, pattern: RegExp, label: string) {
+function diffForFile(file: string) {
+  return [
+    git(['diff', '--unified=0', '--', file]),
+    git(['diff', '--cached', '--unified=0', '--', file]),
+    hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
+  ].join('\n');
+}
+
+function diffAddedLines(file: string) {
+  if (git(['ls-files', '--others', '--exclude-standard', '--', file]).trim() === file) {
+    return readFileSync(path.join(repoRoot, file), 'utf8').split('\n');
+  }
+  return diffForFile(file)
+    .split('\n')
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .map((line) => line.slice(1));
+}
+
+function diffChangedLines(file: string) {
+  if (git(['ls-files', '--others', '--exclude-standard', '--', file]).trim() === file) {
+    return readFileSync(path.join(repoRoot, file), 'utf8').split('\n');
+  }
+  return diffForFile(file)
+    .split('\n')
+    .filter((line) => /^[+-]/.test(line) && !line.startsWith('+++') && !line.startsWith('---'))
+    .map((line) => line.slice(1));
+}
+
+function diffDeletedLines(file: string) {
+  return diffForFile(file)
+    .split('\n')
+    .filter((line) => line.startsWith('-') && !line.startsWith('---'))
+    .map((line) => line.slice(1));
+}
+
+function someLineMatches(lines: string[], pattern: RegExp) {
+  return lines.some((line) => {
+    const matched = pattern.test(line);
+    pattern.lastIndex = 0;
+    return matched;
+  });
+}
+
+function hasShellRelevantDiff(file: string) {
+  return someLineMatches(
+    diffAddedLines(file),
+    /<AppShell\b|data-commercial-(operations-)?workspace=|<main\b|<section\b|<div\b|className=/,
+  ) || someLineMatches(
+    diffDeletedLines(file),
+    /<AppShell\b|data-commercial-(operations-)?workspace=/,
+  );
+}
+
+function lineEvidence(source: string, pattern: RegExp, label: string, file?: string) {
+  const addedLineSet = file ? new Set(diffAddedLines(file).map((line) => line.trim())) : null;
   const evidence = new Set<string>();
   source.split('\n').forEach((line, index) => {
+    if (addedLineSet && !addedLineSet.has(line.trim())) return;
     if (pattern.test(line)) evidence.add(`${label}:L${index + 1}:${line.trim().slice(0, 140)}`);
     pattern.lastIndex = 0;
   });
@@ -120,17 +175,19 @@ function lineEvidence(source: string, pattern: RegExp, label: string) {
 function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation[] {
   return sourceFilesForTokenGate(files).flatMap((file) => {
     const source = readFileSync(path.join(repoRoot, file), 'utf8');
-    const rawPaletteEvidence = lineEvidence(source, /#[0-9a-fA-F]{3,8}\b/g, 'raw-color');
-    const rawRgbaEvidence = lineEvidence(source, /\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,/g, 'raw-rgba');
+    const rawPaletteEvidence = lineEvidence(source, /#[0-9a-fA-F]{3,8}\b/g, 'raw-color', file);
+    const rawRgbaEvidence = lineEvidence(source, /\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,/g, 'raw-rgba', file);
     const tailwindColorEvidence = lineEvidence(
       source,
       /\b(?:bg|text|border|shadow|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white)(?:-\d{2,3})?(?:\/\d{1,3})?\b/g,
       'tailwind-color-family',
+      file,
     );
     const gradientEvidence = lineEvidence(
       source,
       /\b(bg-gradient|from-\[[^\]]*#|via-\[[^\]]*#|to-\[[^\]]*#|linear-gradient|radial-gradient)\b/g,
       'decorative-gradient',
+      file,
     );
     const violations: CommercialUiGovernanceViolation[] = [];
     if (rawPaletteEvidence.length > 0 || rawRgbaEvidence.length > 0 || tailwindColorEvidence.length > 0) {
@@ -158,6 +215,7 @@ function buildShellInventory(files: string[]): CommercialShellInventoryEntry[] {
     .filter((file) => /^src\/app\/(?:.*\/)?(page|layout)\.tsx$/.test(file))
     .filter((file) => existsSync(path.join(repoRoot, file)))
     .filter((file) => !/(loading|handout-print|review|api)\.tsx$/.test(file))
+    .filter((file) => hasShellRelevantDiff(file))
     .map((file) => {
       const source = readFileSync(path.join(repoRoot, file), 'utf8');
       const route = file
@@ -218,7 +276,7 @@ function buildModuleChromeInventory(files: string[]): CommercialModuleChromeInve
 function buildStatusInventory(files: string[]): CommercialStatusVocabularyInventoryEntry[] {
   return sourceFilesForTokenGate(files).flatMap((file) => {
     const source = readFileSync(path.join(repoRoot, file), 'utf8');
-    return lineEvidence(source, /\b(status|badge|state).*(#[0-9a-fA-F]{3,8}|bg-(red|green|yellow|orange|purple|blue)-\d{2,3})/gi, 'status-color')
+    return lineEvidence(source, /\b(status|badge|state).*(#[0-9a-fA-F]{3,8}|bg-(red|green|yellow|orange|purple|blue)-\d{2,3})/gi, 'status-color', file)
       .map((evidence) => ({
         path: file,
         statusTerm: evidence,

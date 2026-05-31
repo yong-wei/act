@@ -5,11 +5,12 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_3_9TeacherPage } from '@/features/interactive/unit-3-9-cross-domain-mapping-lab/teacher-page';
 
-export default async function UNIT_3_9TeacherRoute({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
+export default async function UNIT_3_9TeacherRoute(
+  props: {
+    params: Promise<{ sessionId: string }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = String(session?.user?.role ?? '').trim().toUpperCase();
 

@@ -6,13 +6,14 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_4_1StudentPage } from '@/features/interactive/unit-4-1-design-task-expression/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_4_1StudentRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_4_1StudentRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-4-1-design-task-expression');
 
   if (params.sessionId !== 'demo') {

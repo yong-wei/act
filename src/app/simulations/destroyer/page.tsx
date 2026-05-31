@@ -1,19 +1,7 @@
-import dynamicImport from 'next/dynamic';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { DestroyerSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
-
-const DestroyerSimulation = dynamicImport(
-  () => import('@/resources/simulations/simulations/destroyer-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[560px] items-center justify-center text-slate-300">
-        正在加载仿真场景...
-      </div>
-    ),
-  },
-);
 
 export default function DestroyerSimulationPage() {
   return (

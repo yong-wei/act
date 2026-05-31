@@ -5,13 +5,14 @@ import { UNIT_4_7TeacherPage } from '@/features/interactive/unit-4-7-destroyer-h
 import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 
-export default async function UNIT_4_7TeacherRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_4_7TeacherRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
 

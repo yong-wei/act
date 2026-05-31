@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { getAllRegisteredResources } from '@/lib/resource-registry';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { RESOURCE_NODE_TYPES, type ResourceNodeType } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import {
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
     });
 
-    const registeredResources = getAllRegisteredResources();
+    const registeredResources = getAllRegisteredResourceMetadata();
     const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources);
     const scope = createScope(session.user.role, session.user.id, resources, registeredResources);
     const { searchParams } = new URL(request.url);

@@ -5,13 +5,14 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_4_4TeacherPage } from '@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/teacher-page';
 
-export default async function UNIT_4_4TeacherRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_4_4TeacherRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
 

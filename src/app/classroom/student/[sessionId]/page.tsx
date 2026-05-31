@@ -4,10 +4,11 @@ import { StudentPlayer } from '@/features/lesson-engine/student-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 
 interface PageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
-export default async function StudentSessionPage({ params }: PageProps) {
+export default async function StudentSessionPage(props: PageProps) {
+  const params = await props.params;
   const session = await prisma.classSession.findUnique({
     where: { id: params.sessionId },
     include: {

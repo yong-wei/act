@@ -599,7 +599,7 @@ describe('arena publication report route', () => {
       'utf8',
     );
 
-    expect(pageSource).toContain('params: { publicationId: string }');
+    expect(pageSource).toContain('params: Promise<{ publicationId: string }>');
     expect(pageSource).toContain('prismaArenaPublicationStore.loadReport');
     expect(pageSource).toContain('ArenaPublicationPermissionError');
     expect(pageSource).toContain('notFound()');
