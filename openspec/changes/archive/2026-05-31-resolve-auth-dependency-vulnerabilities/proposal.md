@@ -5,8 +5,8 @@ The audit reports auth-related findings through `next-auth`, `@auth/prisma-adapt
 ## What Changes
 
 - Determine the supported auth remediation path for the current Next baseline.
-- Upgrade or replace auth dependencies so cookie and UUID findings are resolved.
-- Preserve credentials login, session shape, role fields, Prisma adapter behavior, and route protection.
+- Remove the unused Prisma adapter dependency and use a targeted `next-auth` transitive `uuid` override so cookie and UUID findings are resolved without moving to Auth.js beta APIs.
+- Preserve credentials login, session shape, role fields, existing auth wiring, and route protection.
 - Add targeted auth/session regression checks.
 
 ## Capabilities
@@ -19,6 +19,6 @@ The audit reports auth-related findings through `next-auth`, `@auth/prisma-adapt
 
 ## Impact
 
-- Affects `src/lib/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`, `src/types/next-auth.d.ts`, Prisma auth models if adapter requirements change, and session-consuming routes/components.
+- Affects auth dependency versions, session contract tests, and session-consuming route validation. Runtime inventory confirmed no `PrismaAdapter` wiring in `src/lib/auth.ts`, so Prisma auth models are not changed.
 - May affect package versions and peer dependency constraints.
 - Must be coordinated with Next major migration but should remain separately reviewable.
