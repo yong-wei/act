@@ -4,9 +4,9 @@
 
 ## What Changes
 
-- Replace SheetJS `xlsx` usage with a maintained spreadsheet parser/writer, with `exceljs` as the preferred candidate.
+- Replace SheetJS `xlsx` usage with maintained spreadsheet parser/writer packages. The implementation uses `read-excel-file` and `write-excel-file` because the initially preferred `exceljs` candidate still introduces an npm audit moderate finding through its dependency tree.
 - Preserve current admin and teacher user import/template behavior.
-- Add tests for accepted file formats, required headers, invalid rows, duplicate handling, and generated template shape.
+- Add tests for the supported `.xlsx` file format, required headers, invalid rows, duplicate handling, numeric and blank cells, and generated template shape.
 - Remove `xlsx` from dependencies after replacement.
 
 ## Capabilities
