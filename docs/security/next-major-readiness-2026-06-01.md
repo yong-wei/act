@@ -239,6 +239,27 @@ The following work belongs to #244 `upgrade-next16-validation`:
 - Re-check middleware/proxy naming if a middleware file exists then.
 - Confirm the ESLint CLI entry remains the lint gate after `next lint` removal.
 
+## Next 16 Validation Result
+
+#244 evaluated Next 16 from the validated `next@15.5.18` baseline and closed with a not-required decision.
+
+Evidence:
+
+- The remaining audit state after #241 contains only 2 moderate findings: `next` and bundled `next/node_modules/postcss`.
+- `npm audit` reports the `next` vulnerable range as `9.3.4-canary.0 - 16.3.0-canary.5`.
+- `npm view next version dist-tags --json` reports stable `latest` as `16.2.6` and `backport` as `15.5.18`.
+- `npm view next@16.2.6 dependencies.postcss --json` reports `8.4.31`, still below the advisory fixed range `>=8.5.10`.
+
+Decision:
+
+- Do not upgrade to Next 16 in this migration series, because stable Next 16.2.6 does not clear the remaining bundled PostCSS audit finding.
+- Keep `next@15.5.18` and `eslint-config-next@15.5.18` as the validated deployment baseline.
+- Let #245 own the temporary governance exception and removal trigger.
+
+Reopen trigger:
+
+- Re-evaluate Next 16 when a stable release outside the audit range is available, when the Next 15 backport line updates bundled PostCSS to a fixed version, or when npm audit points to a safe forward fix rather than the invalid `next@9.3.3` downgrade path.
+
 ## Next 15 Validation Result
 
 OpenSpec change: `upgrade-next15-validation`
