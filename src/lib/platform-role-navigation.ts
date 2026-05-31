@@ -25,6 +25,13 @@ export type PlatformWorkspaceMode =
   | 'teacher'
   | 'admin';
 export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
+export type CommercialStudentEntryIntent =
+  | 'learn'
+  | 'practice'
+  | 'challenge'
+  | 'experiment'
+  | 'review'
+  | 'account-profile';
 
 export type PlatformNavigationIconKey =
   | 'ship'
@@ -73,6 +80,23 @@ export interface StudentLearningIntentGroup {
 
 export interface StudentLearningIntentNavigationGroup extends StudentLearningIntentGroup {
   entries: PlatformRoleNavigationItem[];
+}
+
+export interface CommercialStudentEntryIntentGroup {
+  intent: CommercialStudentEntryIntent;
+  label: string;
+  summary: string;
+  entryIds: readonly string[];
+  hrefs: readonly string[];
+}
+
+export interface CommercialStudentEntrySurfaceRoute {
+  href: string;
+  routeFile: string;
+  viewportWidths: readonly [1440, 320];
+  currentIntent: CommercialStudentEntryIntent;
+  firstViewportRequirement: string;
+  stateCoverage: readonly string[];
 }
 
 export interface PlatformProfileAndCockpitAction {
@@ -282,6 +306,110 @@ export const PLATFORM_AUTH_ROUTE_CONTRACTS: PlatformAuthRouteContract[] = [
     exposesProfileAction: false,
     exposesCockpitAction: true,
     roleCockpitFallbacks: PLATFORM_ROLE_COCKPIT_HREFS,
+  },
+] as const;
+
+export const COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS: CommercialStudentEntryIntentGroup[] = [
+  {
+    intent: 'learn',
+    label: '学习',
+    summary: '课程、知识图谱与互动学习入口。',
+    entryIds: ['student-knowledge', 'student-interactive-learning'],
+    hrefs: ['/knowledge', '/interactive-learning'],
+  },
+  {
+    intent: 'practice',
+    label: '练习',
+    summary: '自适应练习、诊断与补强路径。',
+    entryIds: ['student-adaptive-learning'],
+    hrefs: ['/assessment/adaptive-practice', '/profile/growth'],
+  },
+  {
+    intent: 'challenge',
+    label: '挑战',
+    summary: '竞技场挑战、榜单与正式评价。',
+    entryIds: ['student-arena'],
+    hrefs: ['/arena'],
+  },
+  {
+    intent: 'experiment',
+    label: '实验',
+    summary: '仿真对象、控制工作台与参数探索。',
+    entryIds: ['student-simulations', 'student-control-workbench'],
+    hrefs: ['/simulations', '/interactive-learning/control-workbench'],
+  },
+  {
+    intent: 'review',
+    label: '复盘',
+    summary: '数据中心、证据轨迹与学习报告。',
+    entryIds: ['platform-data-center'],
+    hrefs: ['/data-center', '/profile'],
+  },
+  {
+    intent: 'account-profile',
+    label: '账号与画像',
+    summary: '登录、账号、个人中心与回调目标。',
+    entryIds: ['student-profile'],
+    hrefs: ['/login?callbackUrl=%2Fprofile', '/profile'],
+  },
+] as const;
+
+export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurfaceRoute[] = [
+  {
+    href: '/',
+    routeFile: 'src/app/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'experiment',
+    firstViewportRequirement: 'usable destinations visible beside the product identity',
+    stateCoverage: ['public', 'authenticated', 'mobile-navigation'],
+  },
+  {
+    href: '/login?callbackUrl=%2Fprofile',
+    routeFile: 'src/app/(auth)/login/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'account-profile',
+    firstViewportRequirement: 'usable login and preserved callback intent visible',
+    stateCoverage: ['loading', 'authentication-error', 'callback-preserved'],
+  },
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'learn',
+    firstViewportRequirement: 'usable intent map and quick actions visible',
+    stateCoverage: ['authenticated', 'role-redirect'],
+  },
+  {
+    href: '/interactive-learning',
+    routeFile: 'src/app/interactive-learning/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'learn',
+    firstViewportRequirement: 'usable course, cross-domain, and component paths visible',
+    stateCoverage: ['public', 'route-continuity'],
+  },
+  {
+    href: '/arena',
+    routeFile: 'src/app/arena/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'challenge',
+    firstViewportRequirement: 'usable challenge discovery and workbench entry visible',
+    stateCoverage: ['public', 'authenticated', 'empty-publications'],
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'practice',
+    firstViewportRequirement: 'usable practice, retry, learner-state, and review actions visible',
+    stateCoverage: ['loading', 'empty', 'fallback', 'unauthenticated', 'authenticated'],
+  },
+  {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    viewportWidths: [1440, 320],
+    currentIntent: 'review',
+    firstViewportRequirement: 'usable evidence review and account/profile action visible',
+    stateCoverage: ['loading', 'unauthenticated', 'error', 'authenticated'],
   },
 ] as const;
 
@@ -693,6 +821,20 @@ export function getStudentLearningIntentNavigationGroups(): StudentLearningInten
       return entry ? [entry] : [];
     }),
   }));
+}
+
+export function getCommercialStudentEntryIntentGroups(): CommercialStudentEntryIntentGroup[] {
+  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.map((group) => ({ ...group }));
+}
+
+export function resolveCommercialEntryHref(intent: CommercialStudentEntryIntent, authenticated = false): string {
+  if (intent === 'account-profile') {
+    return authenticated ? '/profile' : '/login?callbackUrl=%2Fprofile';
+  }
+  if (intent === 'review') {
+    return '/profile';
+  }
+  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/dashboard';
 }
 
 export function getPlatformNavigationHref(id: string): string | undefined {

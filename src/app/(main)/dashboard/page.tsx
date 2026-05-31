@@ -5,14 +5,41 @@ import { Home, Users } from 'lucide-react';
 import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
 import {
+  getCommercialStudentEntryIntentGroups,
   getPlatformCockpitHref,
   getStudentLearningIntentNavigationGroups,
+  resolveCommercialEntryHref,
   type PlatformRoleNavigationItem,
 } from '@/lib/platform-role-navigation';
 import { prisma } from '@/lib/prisma';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
 const studentCoreEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
+const dashboardEntryIntentGroups = getCommercialStudentEntryIntentGroups();
+const authenticatedProfileHref = '/profile';
+
+const dashboardCommercialEntries = dashboardEntryIntentGroups.flatMap((intentGroup) => {
+  if (intentGroup.intent === 'account-profile') {
+    return [{
+      intentGroup,
+      entry: null,
+      href: authenticatedProfileHref,
+      key: intentGroup.intent,
+    }];
+  }
+
+  return intentGroup.entryIds.flatMap((entryId) => {
+    const entry = studentCoreEntries.find((candidate) => candidate.id === entryId);
+    return entry
+      ? [{
+          intentGroup,
+          entry,
+          href: entry.href,
+          key: entry.id,
+        }]
+      : [];
+  });
+});
 
 const dashboardEntryMeta = {
   'student-simulations': {
@@ -210,17 +237,17 @@ export default async function DashboardPage() {
 
         {/* 功能模块网格 */}
         <div className="mb-8">
-          <h3 className="mb-4 text-xl font-semibold text-foreground">学习模块</h3>
+          <h3 className="mb-4 text-xl font-semibold text-foreground">商业入口地图</h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {studentCoreEntries.map((entry) => {
-              const meta = getDashboardEntryMeta(entry);
+            {dashboardCommercialEntries.map(({ intentGroup, entry, href, key }) => {
+              const meta = entry ? getDashboardEntryMeta(entry) : dashboardEntryMeta['student-profile'];
               return (
                 <FeatureCard
-                  key={entry.id}
-                  href={entry.href}
+                  key={key}
+                  href={href ?? resolveCommercialEntryHref(intentGroup.intent, true)}
                   icon={<span className="text-3xl">{meta.icon}</span>}
-                  title={entry.label}
-                  description={entry.description}
+                  title={`${intentGroup.label} · ${entry?.label ?? '个人中心'}`}
+                  description={intentGroup.summary}
                   badge={meta.badge}
                   badgeColor={meta.badgeColor}
                   iconBg={meta.iconBg}

@@ -42,6 +42,7 @@ import {
 } from './types';
 import { selectArenaHallPublicationForTask } from './arena-publication-selection';
 import type { ArenaPublicationRecord } from './teacher/publication-store';
+import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
   { value: 'all', label: '全部来源' },
@@ -136,6 +137,7 @@ export function ArenaHall({
   );
   const stageGroups = useMemo(() => getArenaTrainingStageGroups(filteredTasks), [filteredTasks]);
   const capabilityGroups = useMemo(() => getArenaTrainingCapabilityGroups(filteredTasks), [filteredTasks]);
+  const entryIntents = getCommercialStudentEntryIntentGroups();
 
   return (
     <ArenaPageShell
@@ -149,6 +151,7 @@ export function ArenaHall({
         <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <div className="surface-card flex min-h-[260px] flex-col justify-between rounded-lg p-5">
             <div>
+              <div className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 挑战</div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
                 <BarChart3 className="h-4 w-4 text-primary" />
                 能力训练地图
@@ -159,6 +162,12 @@ export function ArenaHall({
               </p>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {entryIntents.filter((intent) => intent.intent === 'challenge' || intent.intent === 'experiment').map((intent) => (
+                <Link key={intent.intent} href={intent.hrefs[0] ?? '/arena'} className="rounded-lg border border-border/60 bg-background/55 p-3 transition hover:border-primary/40">
+                  <div className="text-sm font-semibold text-foreground">{intent.label}</div>
+                  <div className="mt-1 text-xs text-subtle">{intent.summary}</div>
+                </Link>
+              ))}
               {phaseItems.map((item) => (
                 <div key={item.label} className="rounded-lg border border-border/60 bg-background/55 p-3">
                   <div className="flex items-center gap-3">

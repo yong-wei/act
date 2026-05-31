@@ -15,7 +15,7 @@ import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
-import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 interface UserProfile {
   user: {
@@ -115,6 +115,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
+  const entryIntents = getCommercialStudentEntryIntentGroups();
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role) {
@@ -147,10 +148,18 @@ export default function ProfilePage() {
     return (
       <div className="surface-page flex items-center justify-center">
         <div className="text-center">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
           <Link href={buildLoginRedirectForPath('/profile')} className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
             前往登录
           </Link>
+          <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-subtle">
+            {entryIntents.slice(0, 3).map((intent) => (
+              <Link key={intent.intent} href={intent.hrefs[0] ?? '/'} className="rounded-full border border-border px-3 py-1 hover:text-foreground">
+                {intent.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -171,10 +180,14 @@ export default function ProfilePage() {
     return (
       <div className="surface-page flex items-center justify-center">
         <div className="text-center">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
           <button onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
+          <Link href="/dashboard" className="btn-ghost-themed ml-2 inline-block rounded-lg px-6 py-2">
+            返回驾驶舱
+          </Link>
         </div>
       </div>
     );
@@ -199,6 +212,7 @@ export default function ProfilePage() {
               </svg>
             </Link>
             <h1 className="text-xl font-bold text-foreground">个人中心</h1>
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">商业入口 · 复盘</span>
           </div>
           <UserMenu user={profile.user} />
         </div>

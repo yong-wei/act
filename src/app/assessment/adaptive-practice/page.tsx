@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 interface DiagnosticResponse {
   knowledgeDimensions: {
@@ -147,6 +148,7 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const loginHref = `/login?callbackUrl=${encodeURIComponent('/assessment/adaptive-practice')}`;
+  const entryIntents = getCommercialStudentEntryIntentGroups();
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
@@ -325,7 +327,7 @@ export default function AdaptivePracticePage() {
     <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-emerald-400">Adaptive Practice</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-emerald-400">商业入口 · Practice</p>
           <h1 className="mt-1 text-2xl font-semibold">自适应跨域题库</h1>
           <p className="mt-2 text-sm text-slate-400">
             基于答题历史动态估计能力值，针对薄弱知识点推荐下一题，并支持即时生成跨域题目。
@@ -335,6 +337,13 @@ export default function AdaptivePracticePage() {
               报告演示模式：{demoScene === 'stable' ? '题库稳定性视图' : '差异化生成视图'}
             </div>
           ) : null}
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
+            {entryIntents.filter((intent) => ['practice', 'learn', 'challenge', 'review'].includes(intent.intent)).map((intent) => (
+              <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="rounded-full border border-slate-700 px-3 py-1 hover:border-emerald-400">
+                {intent.label}
+              </Link>
+            ))}
+          </div>
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[340px_1fr]">
@@ -503,6 +512,7 @@ export default function AdaptivePracticePage() {
             ) : authStatus === 'unauthenticated' && !isDemoMode ? (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-6 text-center text-sm text-amber-100">
                 <p className="font-medium">请先登录后再进入自适应练习。</p>
+                <p className="mt-2 text-amber-100/80">当前 practice intent 会在登录后继续保留。</p>
                 <Link
                   href={loginHref}
                   className="mt-4 inline-flex rounded bg-amber-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
@@ -514,6 +524,17 @@ export default function AdaptivePracticePage() {
               <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-6 text-center text-sm text-rose-100">
                 <p className="font-medium">题目加载失败</p>
                 <p className="mt-2 text-rose-100/80">{error}</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <Link href="/profile" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
+                    查看证据画像
+                  </Link>
+                  <Link href="/interactive-learning" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
+                    返回互动学习
+                  </Link>
+                  <Link href="/arena" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
+                    返回竞技场
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => void bootstrapPractice()}
