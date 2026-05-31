@@ -6,7 +6,7 @@
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
     "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; node ./scripts/wasm/build-control-engine.mjs && prisma generate && next build",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings=0",
     "test": "node ./scripts/tests/smoke-test.mjs && node ./scripts/tests/test-arena-home-entry.mjs && node ./scripts/tests/test-arena-routes.mjs && npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
     "test:theme": "npx --yes tsx ./scripts/tests/test-theme-toggle.ts",
     "test:theme-bridge": "npx --yes tsx ./scripts/tests/test-theme-bridge.ts",
