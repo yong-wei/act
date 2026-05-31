@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { AIMessage, InteractiveAIContextValue, InteractiveConfig } from '../types';
-import { extractAITextFromStreamChunk } from './ai-stream';
+import { readAITextStream } from './ai-stream';
 
 interface UseInteractiveAIOptions {
   config: InteractiveConfig;
@@ -101,32 +101,7 @@ export function useInteractiveAI(
         throw new Error(`AI request failed: ${response.status}`);
       }
 
-      // 处理流式响应
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      let assistantContent = '';
-      let pendingBuffer = '';
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        pendingBuffer += decoder.decode(value, { stream: true });
-        const lines = pendingBuffer.split('\n');
-        pendingBuffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          assistantContent += extractAITextFromStreamChunk(line);
-        }
-      }
-
-      if (pendingBuffer) {
-        assistantContent += extractAITextFromStreamChunk(pendingBuffer);
-      }
+      const assistantContent = await readAITextStream(response);
 
       // 添加助手消息
       const assistantMessage: AIMessage = {

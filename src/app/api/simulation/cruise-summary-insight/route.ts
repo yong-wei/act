@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       model: await getConfiguredAIModel(),
       prompt,
       temperature: 0.2,
-      maxTokens: 160,
+      maxOutputTokens: 160,
     });
 
     return NextResponse.json({ text: generated.text.trim(), source: 'llm' });

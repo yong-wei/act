@@ -35,6 +35,7 @@ import {
   type ControlConfigSnapshot
 } from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
+import { readAITextStream } from '@/lib/ai-stream-compat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ControlOdysseyProps {
@@ -873,53 +874,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   };
 
   const readAiStream = async (response: Response) => {
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('无法读取 AI 响应');
-    }
-
-    const decoder = new TextDecoder();
-    let content = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
-        if (!line) continue;
-        if (line.startsWith('0:')) {
-          try {
-            const text = JSON.parse(line.slice(2));
-            if (typeof text === 'string') {
-              content += text;
-            }
-          } catch {
-            // 忽略解析错误
-          }
-          continue;
-        }
-        if (line.startsWith('data:')) {
-          const data = line.replace(/^data:\s*/, '');
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            if (typeof parsed === 'string') {
-              content += parsed;
-            } else if (parsed?.content) {
-              content += parsed.content;
-            } else if (parsed?.text) {
-              content += parsed.text;
-            }
-          } catch {
-            content += data;
-          }
-        }
-      }
-    }
-
-    return content.trim();
+    return (await readAITextStream(response)).trim();
   };
 
   const logFrontendEvent = async (payload: { type: string; content: string; context?: Record<string, unknown> }) => {

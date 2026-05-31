@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       model: createAIProviderFromConfig(config).getModel(config.model),
       prompt: AI_MODEL_TEST_PROMPT,
       temperature: 0.3,
-      maxTokens: 800,
+      maxOutputTokens: 800,
     });
     const elapsedMs = Date.now() - startedAt;
     const text = result.text.trim();

@@ -10,7 +10,9 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import type { PageContext, UserProfile, StepAIContext } from '@/types/ai-context';
-import type { Message } from 'ai/react';
+import type { Message } from '@/types/ai-message';
+import { toLegacyMessage } from '@/lib/ai-message-compat';
+import { readAITextStream } from '@/lib/ai-stream-compat';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { useLocalKonlingSession } from './useKonlingSession';
 
@@ -122,11 +124,11 @@ export function useInteractiveAI({
       setIsLoading(true);
 
       // 添加用户消息
-      const userMessage: Message = {
+      const userMessage: Message = toLegacyMessage({
         id: Date.now().toString(),
         role: 'user',
         content,
-      };
+      });
       addMessage(userMessage);
 
       // 追踪事件
@@ -150,26 +152,25 @@ export function useInteractiveAI({
           throw new Error('Failed to get AI response');
         }
 
-        // 解析响应
-        const data = await response.json();
+        const assistantContent = await readAITextStream(response);
 
         // 添加AI回复
-        if (data.text) {
-          const assistantMessage: Message = {
+        if (assistantContent) {
+          const assistantMessage: Message = toLegacyMessage({
             id: (Date.now() + 1).toString(),
             role: 'assistant',
-            content: data.text,
-          };
+            content: assistantContent,
+          });
           addMessage(assistantMessage);
         }
       } catch (error) {
         console.error('AI chat error:', error);
         // 添加错误消息
-        const errorMessage: Message = {
+        const errorMessage: Message = toLegacyMessage({
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: '抱歉，我遇到了一些问题。请稍后再试，或者换一种方式提问。',
-        };
+        });
         addMessage(errorMessage);
       } finally {
         setIsLoading(false);

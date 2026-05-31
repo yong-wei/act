@@ -10,6 +10,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
 import type { LessonContext } from '@/lib/ai-client';
+import { readAITextStream } from '@/lib/ai-stream-compat';
 
 interface Message {
   id: string;
@@ -95,36 +96,7 @@ export function useLessonAI(options: UseLessonAIOptions = {}): UseLessonAIReturn
           throw new Error(errData.message || errData.error || 'AI 请求失败');
         }
 
-        // 处理流式响应
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error('无法读取响应流');
-        }
-
-        const decoder = new TextDecoder();
-        let fullContent = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-
-          // 解析 SSE 数据 (Vercel AI SDK 格式)
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('0:')) {
-              // 文本内容
-              try {
-                const text = JSON.parse(line.slice(2));
-                fullContent += text;
-                onStream?.(text);
-              } catch {
-                // 忽略解析错误
-              }
-            }
-          }
-        }
+        const fullContent = await readAITextStream(response, onStream);
 
         onFinish?.(fullContent);
         return fullContent;

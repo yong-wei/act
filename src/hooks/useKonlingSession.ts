@@ -6,8 +6,9 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import useSWR from 'swr';
-import type { Message } from 'ai/react';
+import type { Message } from '@/types/ai-message';
 import type { PageContext } from '@/types/ai-context';
+import { toLegacyMessage } from '@/lib/ai-message-compat';
 
 interface KonlingSession {
   id: string;
@@ -52,7 +53,7 @@ export function useKonlingSession({
       onSuccess: (data) => {
         if (data) {
           setSessionId(data.id);
-          setLocalMessages(data.messages || []);
+          setLocalMessages((data.messages || []).map(toLegacyMessage));
         }
       },
     }
@@ -93,11 +94,11 @@ export function useKonlingSession({
     }
 
     // 乐观更新本地消息
-    const userMessage: Message = {
+    const userMessage: Message = toLegacyMessage({
       id: Date.now().toString(),
       role: 'user',
       content,
-    };
+    });
     setLocalMessages((prev) => [...prev, userMessage]);
 
     try {
@@ -113,7 +114,7 @@ export function useKonlingSession({
 
       // 更新本地消息列表（包含AI回复）
       if (data.messages) {
-        setLocalMessages(data.messages);
+        setLocalMessages(data.messages.map(toLegacyMessage));
       }
 
       await mutate();

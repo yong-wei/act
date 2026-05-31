@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       model: await getConfiguredAIModel(),
       prompt,
       temperature: 0.2,
-      maxTokens: 120,
+      maxOutputTokens: 120,
     });
 
     return NextResponse.json({ text: generated.text.trim(), source: 'llm' });

@@ -6,8 +6,9 @@
  * 支持控灵上下文感知系统提示词
  */
 
-import { streamText, convertToCoreMessages, type Message } from 'ai';
+import { consumeStream, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
-      messages,
+      messages: rawMessages,
       simulationState,
       lessonContext,
       pageContext,
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
       pathNodeId,
       agentSessionId,
     } = body as {
-      messages: Message[];
+      messages: IncomingMessage[];
       simulationState?: Record<string, unknown>;
       lessonContext?: LessonContext;
       pageContext?: PageContext;
@@ -113,6 +114,16 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    if (!Array.isArray(rawMessages)) {
+      return new Response(JSON.stringify({ error: 'Missing messages' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const uiMessages = rawMessages.map(toUIMessage);
+    const messages = uiMessages.map(toLegacyMessage);
 
     const hasRuntimeContext = Boolean(
       (courseId || pageContext?.courseId) &&
@@ -218,18 +229,21 @@ export async function POST(request: Request) {
     const result = await streamText({
       model: await getConfiguredAIModel(),
       system: systemPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: await toModelMessages(uiMessages),
       tools,
-      maxSteps: 5, // 允许最多5轮工具调用
+      stopWhen: stepCountIs(5), // 允许最多5轮工具调用
       toolChoice: 'auto',
       temperature: 0.7,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
     // 返回流式响应
-    return result.toDataStreamResponse({
-      init: agentSessionResponseHeaders ? { headers: agentSessionResponseHeaders } : undefined,
-      getErrorMessage: getAIStreamErrorMessage,
+    return result.toUIMessageStreamResponse({
+      headers: agentSessionResponseHeaders,
+      originalMessages: uiMessages,
+      generateMessageId: () => crypto.randomUUID(),
+      consumeSseStream: consumeStream,
+      onError: getAIStreamErrorMessage,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
