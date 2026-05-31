@@ -45,6 +45,9 @@ import { presentationDataCenterMock } from './presentation-mock-data';
 const numberFormatter = new Intl.NumberFormat('zh-CN');
 
 const MODULE_COLORS = ['#22d3ee', '#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f97316'];
+const metricGridClass = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]';
+const operationsPanelGridClass = 'mb-6 grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]';
+const compactGridClass = 'grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]';
 
 interface PresentationDataCenterProps {
   role: PlatformRole;
@@ -104,63 +107,68 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
         { label: '数据中心' },
       ]}
     >
-      {/* 数据来源提示 */}
-      <div className="mb-6 flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface p-4">
-        <div className="flex items-center gap-3">
-          <Activity className="h-5 w-5 text-platform-action-primary" />
-          <div>
-            <p className="text-sm font-medium text-platform-fg-primary">数据来源说明</p>
-            <p className="text-xs text-platform-fg-secondary">
-              本页面展示平台教学运行聚合数据，每个指标均标注数据质量来源
-            </p>
-          </div>
-        </div>
-        <DataCenterSourceMarker quality={sourceQuality()} showSummary />
-      </div>
-
-      {/* 1. 核心指标 (headline-metrics) */}
-      <section className="mb-6">
-        <DataCenterChartPanel
-          title="核心平台指标"
-          subtitle="用户规模、互动量、仿真访问与 Control Odyssey 访问"
-          sourceQuality={sourceQuality()}
-          mode="presentation"
+      <div className="w-full min-w-0" data-commercial-operations-workspace="data-center">
+        {/* 数据来源提示 */}
+        <div
+          className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-platform-border bg-platform-surface p-4"
+          data-commercial-workspace-zone="context-strip"
         >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              icon={<Users className="h-5 w-5" />}
-              title="用户规模"
-              value={`${numberFormatter.format(data.userScale.students)} 学生`}
-              description={`教师 ${data.userScale.teachers} · 管理员 ${data.userScale.admins}`}
-              isDark={isDark}
-            />
-            <MetricCard
-              icon={<MessagesSquare className="h-5 w-5" />}
-              title="互动总量"
-              value={numberFormatter.format(totals.interactionTotal)}
-              description={`人均 ${data.estimatedPerStudent.interactiveActions} 次`}
-              isDark={isDark}
-            />
-            <MetricCard
-              icon={<Ship className="h-5 w-5" />}
-              title="仿真访问总量"
-              value={numberFormatter.format(totals.simulationVisitTotal)}
-              description="7类仿真分项统计"
-              isDark={isDark}
-            />
-            <MetricCard
-              icon={<Gamepad2 className="h-5 w-5" />}
-              title="Control Odyssey"
-              value={numberFormatter.format(data.controlOdysseyVisits)}
-              description="高频训练访问模块"
-              isDark={isDark}
-            />
+          <div className="flex min-w-0 items-center gap-3">
+            <Activity className="h-5 w-5 shrink-0 text-platform-action-primary" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-platform-fg-primary">数据来源说明</p>
+              <p className="text-xs text-platform-fg-secondary">
+                本页面展示平台教学运行聚合数据，每个指标均标注数据质量来源
+              </p>
+            </div>
           </div>
-        </DataCenterChartPanel>
-      </section>
+          <DataCenterSourceMarker quality={sourceQuality()} showSummary />
+        </div>
+
+        <div data-commercial-workspace-zone="instrument-area">
+          {/* 1. 核心指标 (headline-metrics) */}
+          <section className="mb-6">
+            <DataCenterChartPanel
+              title="核心平台指标"
+              subtitle="用户规模、互动量、仿真访问与 Control Odyssey 访问"
+              sourceQuality={sourceQuality()}
+              mode="presentation"
+            >
+              <div className={metricGridClass}>
+                <MetricCard
+                  icon={<Users className="h-5 w-5" />}
+                  title="用户规模"
+                  value={`${numberFormatter.format(data.userScale.students)} 学生`}
+                  description={`教师 ${data.userScale.teachers} · 管理员 ${data.userScale.admins}`}
+                  isDark={isDark}
+                />
+                <MetricCard
+                  icon={<MessagesSquare className="h-5 w-5" />}
+                  title="互动总量"
+                  value={numberFormatter.format(totals.interactionTotal)}
+                  description={`人均 ${data.estimatedPerStudent.interactiveActions} 次`}
+                  isDark={isDark}
+                />
+                <MetricCard
+                  icon={<Ship className="h-5 w-5" />}
+                  title="仿真访问总量"
+                  value={numberFormatter.format(totals.simulationVisitTotal)}
+                  description="7类仿真分项统计"
+                  isDark={isDark}
+                />
+                <MetricCard
+                  icon={<Gamepad2 className="h-5 w-5" />}
+                  title="Control Odyssey"
+                  value={numberFormatter.format(data.controlOdysseyVisits)}
+                  description="高频训练访问模块"
+                  isDark={isDark}
+                />
+              </div>
+            </DataCenterChartPanel>
+          </section>
 
       {/* 2. 模块活动 (module-activity) 和 学习轨迹 (learning-trajectory) */}
-      <section className="mb-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+      <section className={operationsPanelGridClass}>
         <DataCenterChartPanel
           title="月度访问量变化"
           subtitle="学习轨迹：平台总体访问、互动量、仿真访问趋势"
@@ -236,7 +244,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       </section>
 
       {/* 3. 仿真活动 (simulation-activity) 和 课堂活动 (classroom-activity) */}
-      <section className="mb-6 grid gap-6 xl:grid-cols-2">
+      <section className={operationsPanelGridClass}>
         <DataCenterChartPanel
           title="互动环节统计"
           subtitle="课堂活动：按互动类型拆分"
@@ -287,14 +295,14 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       </section>
 
       {/* 4. 学习负载与完课率 */}
-      <section className="mb-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+      <section className={operationsPanelGridClass}>
         <DataCenterChartPanel
           title="完整学习周期负载"
           subtitle="学习轨迹：按完整学习口径统计"
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className={compactGridClass}>
             <StatLine icon={<BookOpenCheck className="h-4 w-4" />} label="习题尝试总量" value={numberFormatter.format(data.userScale.students * data.estimatedPerStudent.exerciseAttempts)} isDark={isDark} />
             <StatLine icon={<Ship className="h-4 w-4" />} label="仿真总时长（分钟）" value={numberFormatter.format(data.userScale.students * data.estimatedPerStudent.simulationMinutes)} isDark={isDark} />
             <StatLine icon={<Gamepad2 className="h-4 w-4" />} label="Control Odyssey 总访问" value={numberFormatter.format(data.controlOdysseyVisits)} isDark={isDark} />
@@ -345,7 +353,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className={compactGridClass}>
             <BriefCard
               icon={<GraduationCap className="h-4 w-4" />}
               title="教学规模"
@@ -369,7 +377,9 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       </section>
 
       {/* 导出区域 */}
-      <div className="flex items-center justify-end gap-3 border-t border-platform-border pt-4">
+        </div>
+
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4" data-commercial-workspace-zone="command-bar">
         <p className="text-xs text-platform-fg-muted">
           导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
         </p>
@@ -382,6 +392,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           <Download className="h-4 w-4" />
           导出演示快照
         </button>
+      </div>
       </div>
     </AppShell>
   );

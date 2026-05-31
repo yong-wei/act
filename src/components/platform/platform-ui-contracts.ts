@@ -151,12 +151,36 @@ export interface PlatformLegacyShellRetirementContract {
 }
 
 export interface PlatformCommercialWorkspaceShell {
-  workspace: 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'admin';
+  workspace: 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'data-center' | 'admin';
   derivedFrom: 'commercial-platform-shell';
   density: 'tool' | 'learning' | 'analytics' | 'governance';
+  zones: readonly PlatformCommercialWorkspaceZoneId[];
   contextualNavigation: string;
   inheritsTokenCategories: readonly PlatformTokenCategory[];
   requiredConventions: readonly string[];
+}
+
+export type PlatformCommercialWorkspaceZoneId =
+  | 'context-strip'
+  | 'command-bar'
+  | 'instrument-area'
+  | 'evidence-rail'
+  | 'support-drawer';
+
+export interface PlatformCommercialWorkspaceZone {
+  id: PlatformCommercialWorkspaceZoneId;
+  label: string;
+  purpose: string;
+  domainOwnership: 'feature-owned';
+  presentationOwnership: 'shared-commercial-surface';
+}
+
+export interface PlatformCommercialWorkspaceRoute {
+  href: string;
+  workspace: PlatformCommercialWorkspaceShell['workspace'];
+  density: PlatformCommercialWorkspaceShell['density'];
+  representativeSurface: string;
+  expectedZones: readonly PlatformCommercialWorkspaceZoneId[];
 }
 
 export const PLATFORM_SHELL_ROLLBACK_FLAG = 'platform.unifiedShell';
@@ -455,6 +479,7 @@ export const PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS: PlatformLegacyShellReti
 const commercialWorkspaceShellConventions = [
   'account/profile action remains secondary to role cockpit action',
   'contextual navigation does not duplicate global product navigation',
+  'panel wrappers preserve stable width and height while controls or fallback text change',
 ] as const;
 
 const commercialWorkspaceShellTokenCategories = [
@@ -467,11 +492,52 @@ const commercialWorkspaceShellTokenCategories = [
   'privacy',
 ] as const;
 
+export const PLATFORM_COMMERCIAL_WORKSPACE_ZONES: PlatformCommercialWorkspaceZone[] = [
+  {
+    id: 'context-strip',
+    label: 'Context strip',
+    purpose: 'Expose object, mode, route source, class, challenge, lesson, or return context.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'command-bar',
+    label: 'Command bar',
+    purpose: 'Expose primary submit, save, reset, view, report, and role operations.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'instrument-area',
+    label: 'Instrument area',
+    purpose: 'Hold charts, diagrams, media, lesson modules, simulators, and analysis panels.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'evidence-rail',
+    label: 'Evidence rail',
+    purpose: 'Show confidence, official or preview state, coverage, readiness, and missing context.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'support-drawer',
+    label: 'Support drawer',
+    purpose: 'Hold explanations, hints, logs, assistant support, and teacher-only controls.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+] as const;
+
+const commercialWorkspaceZoneIds = PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone) => zone.id);
+
 export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceShell[] = [
   {
     workspace: 'arena',
     derivedFrom: 'commercial-platform-shell',
     density: 'tool',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Arena challenge, publication, ranking, submission, and return target context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
@@ -480,6 +546,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
     workspace: 'control-workbench',
     derivedFrom: 'commercial-platform-shell',
     density: 'tool',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Control Workbench object, preset, mode, Arena source, and route-derived return target context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
@@ -488,6 +555,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
     workspace: 'interactive-learning',
     derivedFrom: 'commercial-platform-shell',
     density: 'learning',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Interactive lesson, classroom session, step, and catalog return context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
@@ -496,6 +564,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
     workspace: 'adaptive-learning',
     derivedFrom: 'commercial-platform-shell',
     density: 'learning',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Adaptive practice, diagnosis, growth profile, and recommendation context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
@@ -504,7 +573,17 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
     workspace: 'teacher',
     derivedFrom: 'commercial-platform-shell',
     density: 'analytics',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Teacher class, lesson plan, classroom session, resource, and history context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'data-center',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'analytics',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Platform data center source quality, presentation metrics, drilldown, and export context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
   },
@@ -512,9 +591,55 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
     workspace: 'admin',
     derivedFrom: 'commercial-platform-shell',
     density: 'governance',
+    zones: commercialWorkspaceZoneIds,
     contextualNavigation: 'Admin user, system usage, data governance, configuration, and audit context.',
     inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
     requiredConventions: commercialWorkspaceShellConventions,
+  },
+] as const;
+
+export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorkspaceRoute[] = [
+  {
+    href: '/interactive-learning/control-workbench',
+    workspace: 'control-workbench',
+    density: 'tool',
+    representativeSurface: 'direct and Arena-bound Control Workbench',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/arena/challenges/[taskId]',
+    workspace: 'arena',
+    density: 'tool',
+    representativeSurface: 'Arena challenge detail',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/interactive-learning/[lesson]',
+    workspace: 'interactive-learning',
+    density: 'learning',
+    representativeSurface: 'standard interactive lesson runtime',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/teacher/classes/[classId]/analytics-v2',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher class analytics',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/data-center',
+    workspace: 'data-center',
+    density: 'analytics',
+    representativeSurface: 'platform data center',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/admin/data-governance',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin data governance',
+    expectedZones: commercialWorkspaceZoneIds,
   },
 ] as const;
 

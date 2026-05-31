@@ -196,6 +196,18 @@ function WorkbenchViewEmptyNotice({ title }: { title: string }) {
   );
 }
 
+function WorkbenchViewUnavailableNotice({ title }: { title: string }) {
+  return (
+    <div
+      className="premium-lesson-panel px-5 py-4 text-sm text-muted-foreground"
+      data-workbench-panel-unavailable={title}
+    >
+      <div className="premium-lesson-kicker">{title}</div>
+      <p className="mt-2">当前对象、方法或来源暂不支持该面板，工作区保留此区域以维持面板布局稳定。</p>
+    </div>
+  );
+}
+
 export function MultiRepresentationLinkageClient({
   initialParams,
   onPanelSelectedOptionsChange,
@@ -238,7 +250,7 @@ export function MultiRepresentationLinkageClient({
   );
   const baselineResult = result ? model.preCorrectionAnalysisResult ?? result : null;
   const workbenchPanels: MultiRepresentationPanelInstance[] = initialParams.panelInstances?.length
-    ? initialParams.panelInstances.filter((panel) => panel.enabled !== false)
+    ? initialParams.panelInstances
     : [
         { id: 'panel-time-domain', viewId: 'time-domain', title: '时域响应', selectedOptions: Array.from(timeDomainOptions) },
         { id: 'panel-bode', viewId: 'bode', title: 'Bode 图', selectedOptions: Array.from(bodeOptions) },
@@ -352,7 +364,9 @@ export function MultiRepresentationLinkageClient({
     let panelControls: ReactNode = null;
     let content: ReactNode;
 
-    if (panel.viewId === 'time-domain') {
+    if (panel.enabled === false) {
+      content = <WorkbenchViewUnavailableNotice title={panel.title} />;
+    } else if (panel.viewId === 'time-domain') {
       const selectedOptions = resolveTimeDomainPanelOptions(panel);
       panelControls = (
         <PanelCurveToggleGroup
