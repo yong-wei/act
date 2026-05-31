@@ -37,6 +37,9 @@ import { useTheme } from '@/components/providers/theme-provider';
 import { AdminConsoleHeader } from '../admin-console-header';
 import { adminStatesMockData } from './stats-data';
 import type { SystemUsageData } from './system-usage-data';
+import { DataCenterSourceMarker } from '@/features/data-center/shared/source-marker';
+import { DataCenterDrilldownLink } from '@/features/data-center/shared/drilldown-link';
+import type { DataCenterSourceQuality } from '@/features/data-center/shared/data-center-contracts';
 
 type AdminStatesDashboardProps = {
   currentUser: {
@@ -209,6 +212,48 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
           </div>
         )}
 
+        {/* 治理模式区域（演示模式下展示的 UI 合约） */}
+        {demoMode ? (
+        <section className="mb-6">
+          <div className="rounded-2xl border border-platform-border bg-platform-surface p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-platform-fg-primary">数据治理概览</h2>
+                <p className="mt-1 text-xs text-platform-fg-secondary">治理模式区域展示源覆盖、数据就绪、缺失上下文、过期数据、隐私范围与不支持状态</p>
+              </div>
+              <DataCenterSourceMarker quality="demo" />
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <GovernancePanelItem label="源覆盖率" value="完整覆盖" detail="示例：当前学期学生与教师数据源均已覆盖" tone="success" isDark={isDark} />
+              <GovernancePanelItem label="数据就绪" value="就绪" detail="示例：最近一次全量快照在SLA范围内" tone="success" isDark={isDark} />
+              <GovernancePanelItem label="缺失上下文" value="部分缺失" detail="示例：部分仿真模块缺少完整学习链路" tone="warning" isDark={isDark} />
+              <GovernancePanelItem label="过期数据" value="无过期" detail="示例：当前学期活跃数据均在时效窗口内" tone="success" isDark={isDark} />
+              <GovernancePanelItem label="隐私范围" value="受限" detail="示例：含受限学生数据，仅聚合视图可展示" tone="warning" isDark={isDark} />
+              <GovernancePanelItem label="不支持状态" value="3项" detail="示例：实时轨迹、原始作答、私有记忆" tone="danger" isDark={isDark} />
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-platform-border pt-4">
+              <span className="text-xs text-platform-fg-muted">治理钻取：</span>
+              <DataCenterDrilldownLink
+                label="数据治理面板"
+                href="/admin/data-governance"
+                target="admin-governance"
+                currentRole="admin"
+                allowedRoles={['admin', 'audit']}
+              />
+              <DataCenterDrilldownLink
+                label="证据浏览器"
+                href="/admin/states"
+                target="evidence-browser"
+                currentRole="admin"
+                allowedRoles={['admin', 'teacher', 'audit']}
+                restricted
+                restrictedReason="完整证据浏览器功能尚未开放"
+              />
+            </div>
+          </div>
+        </section>
+        ) : null}
+
         {/* 顶部统计卡片 */}
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -243,7 +288,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
 
         {/* 图表区域 */}
         <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-          <Panel title="月度访问量变化" subtitle="平台总体访问、互动量、仿真访问趋势" isDark={isDark}>
+          <Panel title="月度访问量变化" subtitle="平台总体访问、互动量、仿真访问趋势" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data.monthlyTrend}>
@@ -278,7 +323,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
             </div>
           </Panel>
 
-          <Panel title="模块访问结构占比" subtitle="按平台核心模块拆分" isDark={isDark}>
+          <Panel title="模块访问结构占比" subtitle="按平台核心模块拆分" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -309,7 +354,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
 
         {/* 互动与仿真统计 */}
         <section className="grid gap-6 xl:grid-cols-2">
-          <Panel title="互动环节统计（按类型）" subtitle="课堂活动与学习行为拆分" isDark={isDark}>
+          <Panel title="互动环节统计（按类型）" subtitle="课堂活动与学习行为拆分" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.interactionByType} layout="vertical" margin={{ left: 42 }}>
@@ -328,7 +373,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
             </div>
           </Panel>
 
-          <Panel title="虚拟仿真访问量（7类分项）" subtitle="按具体仿真场景统计访问量" isDark={isDark}>
+          <Panel title="虚拟仿真访问量（7类分项）" subtitle="按具体仿真场景统计访问量" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.simulationVisits}>
@@ -350,7 +395,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
 
         {/* 学习负载与活跃度 */}
         <section className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-          <Panel title="完整学习周期负载" subtitle="按完整学习口径统计" isDark={isDark}>
+          <Panel title="完整学习周期负载" subtitle="按完整学习口径统计" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="grid gap-3 md:grid-cols-2">
               <StatLine icon={<BookOpenCheck className="h-4 w-4" />} label="习题尝试总量" value={formatNumber(estimates.exerciseAttemptsTotal)} isDark={isDark} />
               <StatLine icon={<Ship className="h-4 w-4" />} label="仿真总时长（分钟）" value={formatNumber(estimates.simulationMinutesTotal)} isDark={isDark} />
@@ -367,7 +412,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
             </p>
           </Panel>
 
-          <Panel title="学习活跃与完课率" subtitle="活跃学生规模与课程完课率联动" isDark={isDark}>
+          <Panel title="学习活跃与完课率" subtitle="活跃学生规模与课程完课率联动" isDark={isDark} sourceQuality={demoMode ? 'demo' : 'real'}>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data.monthlyTrend}>
@@ -429,16 +474,23 @@ function Panel({
   subtitle,
   children,
   isDark,
+  sourceQuality,
 }: {
   title: string;
   subtitle: string;
   children: ReactNode;
   isDark: boolean;
+  sourceQuality?: DataCenterSourceQuality;
 }) {
   return (
     <div className={`rounded-2xl border p-5 ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-white/90'}`}>
-      <h2 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
-      <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{subtitle}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
+          <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{subtitle}</p>
+        </div>
+        {sourceQuality ? <DataCenterSourceMarker quality={sourceQuality} /> : null}
+      </div>
       <div className="mt-4">{children}</div>
     </div>
   );
@@ -499,6 +551,34 @@ function StatLine({
   );
 }
 
+function GovernancePanelItem({
+  label,
+  value,
+  detail,
+  tone,
+  isDark,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  tone: 'success' | 'info' | 'warning' | 'danger';
+  isDark: boolean;
+}) {
+  const borders: Record<string, string> = {
+    success: isDark ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-emerald-200 bg-emerald-50/70',
+    info: isDark ? 'border-cyan-500/20 bg-cyan-500/5' : 'border-cyan-200 bg-cyan-50/70',
+    warning: isDark ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-200 bg-amber-50/70',
+    danger: isDark ? 'border-red-500/30 bg-red-500/5' : 'border-red-200 bg-red-50/70',
+  };
+  return (
+    <div className={`rounded-lg border p-3 ${borders[tone]}`}>
+      <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{label}</p>
+      <p className={`mt-1 text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+      <p className={`mt-1 text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{detail}</p>
+    </div>
+  );
+}
+
 function BriefCard({
   icon,
   title,
@@ -520,3 +600,4 @@ function BriefCard({
     </div>
   );
 }
+

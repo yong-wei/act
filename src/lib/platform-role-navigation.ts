@@ -73,6 +73,7 @@ export const STUDENT_CORE_ENTRY_IDS = [
   'student-control-workbench',
   'student-adaptive-learning',
   'student-interactive-learning',
+  'platform-data-center',
 ] as const;
 
 export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
@@ -214,6 +215,18 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     iconKey: 'interactive',
     actionLabel: '进入互动',
     actionPriority: 70,
+  },
+  {
+    id: 'platform-data-center',
+    label: '数据中心',
+    href: '/data-center',
+    role: 'student',
+    order: 155,
+    group: 'student-core',
+    description: '平台教学运行全景视图，展示聚合指标与学习轨迹。',
+    iconKey: 'analytics',
+    actionLabel: '查看数据中心',
+    actionPriority: 65,
   },
   {
     id: 'student-profile',

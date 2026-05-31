@@ -1,0 +1,178 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  SOURCE_QUALITY_MARKERS,
+  PRESENTATION_METRIC_REGIONS,
+  GOVERNANCE_REGIONS,
+  DEFAULT_EXPORT_SNAPSHOT_OPTIONS,
+} from '../shared/data-center-contracts';
+import { sanitizeSnapshotMetrics, buildExportSafeSnapshot } from '../shared/export-safe-snapshot';
+import { canAccessDrilldown } from '../shared/drilldown-link';
+import type { SnapshotMetric } from '../shared/export-safe-snapshot';
+
+describe('SOURCE_QUALITY_MARKERS', () => {
+  it('should define all five source quality levels', () => {
+    const qualities = Object.keys(SOURCE_QUALITY_MARKERS);
+    expect(qualities).toContain('demo');
+    expect(qualities).toContain('real');
+    expect(qualities).toContain('partial');
+    expect(qualities).toContain('stale');
+    expect(qualities).toContain('restricted');
+  });
+
+  it('should provide meaningful labels for each quality', () => {
+    Object.values(SOURCE_QUALITY_MARKERS).forEach((marker) => {
+      expect(marker.label).toBeTruthy();
+      expect(marker.label.length).toBeGreaterThan(0);
+      expect(marker.summary.length).toBeGreaterThan(0);
+      expect(marker.quality).toBeTruthy();
+    });
+  });
+});
+
+describe('PRESENTATION_METRIC_REGIONS', () => {
+  it('should include all six presentation regions', () => {
+    expect(PRESENTATION_METRIC_REGIONS).toHaveLength(6);
+    expect(PRESENTATION_METRIC_REGIONS).toContain('headline-metrics');
+    expect(PRESENTATION_METRIC_REGIONS).toContain('module-activity');
+    expect(PRESENTATION_METRIC_REGIONS).toContain('learning-trajectory');
+    expect(PRESENTATION_METRIC_REGIONS).toContain('simulation-activity');
+    expect(PRESENTATION_METRIC_REGIONS).toContain('classroom-activity');
+    expect(PRESENTATION_METRIC_REGIONS).toContain('demo-snapshots');
+  });
+});
+
+describe('GOVERNANCE_REGIONS', () => {
+  it('should include all six governance regions', () => {
+    expect(GOVERNANCE_REGIONS).toHaveLength(6);
+    expect(GOVERNANCE_REGIONS).toContain('source-coverage');
+    expect(GOVERNANCE_REGIONS).toContain('readiness');
+    expect(GOVERNANCE_REGIONS).toContain('stale-data');
+    expect(GOVERNANCE_REGIONS).toContain('missing-context');
+    expect(GOVERNANCE_REGIONS).toContain('privacy-scope');
+    expect(GOVERNANCE_REGIONS).toContain('unsupported-states');
+  });
+});
+
+describe('sanitizeSnapshotMetrics', () => {
+  const sampleMetrics: SnapshotMetric[] = [
+    {
+      label: '总访问量',
+      value: 12345,
+      sourceQuality: 'real',
+      rawEvidence: { studentIds: ['s1', 's2'] },
+      rawTraces: [{ traceId: 't1' }],
+    },
+    {
+      label: '完课率',
+      value: '85%',
+      sourceQuality: 'real',
+      hiddenEvaluation: { score: 92 },
+      rawAnswers: [{ questionId: 'q1', answer: '42' }],
+    },
+    {
+      label: '知识图谱交互',
+      value: 3400,
+      sourceQuality: 'demo',
+      privateMemory: { notes: 'internal memo' },
+    },
+  ];
+
+  it('should strip all sensitive data by default', () => {
+    const sanitized = sanitizeSnapshotMetrics(sampleMetrics);
+    sanitized.forEach((metric) => {
+      expect(metric.rawEvidence).toBeUndefined();
+      expect(metric.rawTraces).toBeUndefined();
+      expect(metric.hiddenEvaluation).toBeUndefined();
+      expect(metric.rawAnswers).toBeUndefined();
+      expect(metric.privateMemory).toBeUndefined();
+    });
+  });
+
+  it('should preserve label, value, and sourceQuality after sanitization', () => {
+    const sanitized = sanitizeSnapshotMetrics(sampleMetrics);
+    sanitized.forEach((metric, index) => {
+      expect(metric.label).toBe(sampleMetrics[index].label);
+      expect(metric.value).toBe(sampleMetrics[index].value);
+      expect(metric.sourceQuality).toBe(sampleMetrics[index].sourceQuality);
+    });
+  });
+
+  it('should unconditionally strip all sensitive fields', () => {
+    const withAllSensitive: SnapshotMetric[] = [{
+      label: 'X',
+      value: 1,
+      sourceQuality: 'real',
+      rawEvidence: { secret: true },
+      rawTraces: [{ t: 1 }],
+      hiddenEvaluation: { score: 99 },
+      rawAnswers: [{ q: '42' }],
+      privateMemory: { note: 'secret' },
+    }];
+    const sanitized = sanitizeSnapshotMetrics(withAllSensitive);
+    expect(sanitized[0].rawEvidence).toBeUndefined();
+    expect(sanitized[0].rawTraces).toBeUndefined();
+    expect(sanitized[0].hiddenEvaluation).toBeUndefined();
+    expect(sanitized[0].rawAnswers).toBeUndefined();
+    expect(sanitized[0].privateMemory).toBeUndefined();
+  });
+});
+
+describe('buildExportSafeSnapshot', () => {
+  it('should produce a safe snapshot with timestamp and deduplicated source qualities', () => {
+    const metrics: SnapshotMetric[] = [
+      { label: 'A', value: 10, sourceQuality: 'real' },
+      { label: 'B', value: 20, sourceQuality: 'real' },
+      { label: 'C', value: 30, sourceQuality: 'demo' },
+    ];
+    const snapshot = buildExportSafeSnapshot(metrics);
+    expect(snapshot.exportedAt).toBeTruthy();
+    expect(new Date(snapshot.exportedAt).getTime()).toBeGreaterThan(0);
+    expect(snapshot.metrics).toHaveLength(3);
+    expect(snapshot.sourceQualitySummary).toHaveLength(2);
+    expect(snapshot.sourceQualitySummary).toContain('real');
+    expect(snapshot.sourceQualitySummary).toContain('demo');
+  });
+
+  it('should always use default export options (unconditional sanitization)', () => {
+    const metrics: SnapshotMetric[] = [
+      { label: 'X', value: 1, sourceQuality: 'demo', rawEvidence: { secret: true }, rawTraces: [{ t: '1' }] },
+    ];
+    const snapshot = buildExportSafeSnapshot(metrics);
+    expect(snapshot.metrics[0].rawEvidence).toBeUndefined();
+    expect(snapshot.metrics[0].rawTraces).toBeUndefined();
+  });
+});
+
+describe('canAccessDrilldown', () => {
+  it('should grant access when role is in allowed list', () => {
+    expect(canAccessDrilldown('admin', ['admin', 'teacher'])).toBe(true);
+    expect(canAccessDrilldown('teacher', ['teacher'])).toBe(true);
+  });
+
+  it('should deny access when role is not in allowed list', () => {
+    expect(canAccessDrilldown('student', ['admin', 'teacher'])).toBe(false);
+    expect(canAccessDrilldown('student', [])).toBe(false);
+  });
+
+  it('should respect role boundaries for governance drilldowns', () => {
+    // Students cannot access admin governance
+    expect(canAccessDrilldown('student', ['admin', 'teacher', 'audit'])).toBe(false);
+    // Teachers can access teacher governance
+    expect(canAccessDrilldown('teacher', ['teacher'])).toBe(true);
+    // Admin can access admin governance
+    expect(canAccessDrilldown('admin', ['admin', 'audit'])).toBe(true);
+    // Audit can access evidence browser
+    expect(canAccessDrilldown('audit', ['admin', 'teacher', 'audit'])).toBe(true);
+  });
+});
+
+describe('DEFAULT_EXPORT_SNAPSHOT_OPTIONS', () => {
+  it('should have all stripping options enabled by default', () => {
+    expect(DEFAULT_EXPORT_SNAPSHOT_OPTIONS.stripRawEvidence).toBe(true);
+    expect(DEFAULT_EXPORT_SNAPSHOT_OPTIONS.stripRawTraces).toBe(true);
+    expect(DEFAULT_EXPORT_SNAPSHOT_OPTIONS.stripHiddenEvaluation).toBe(true);
+    expect(DEFAULT_EXPORT_SNAPSHOT_OPTIONS.stripRawAnswers).toBe(true);
+    expect(DEFAULT_EXPORT_SNAPSHOT_OPTIONS.stripPrivateMemory).toBe(true);
+  });
+});
