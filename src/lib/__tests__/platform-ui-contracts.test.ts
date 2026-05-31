@@ -402,6 +402,35 @@ describe('platform UI contracts', () => {
     ]);
   });
 
+  it('lets dense commercial workspaces defer fixed sidebar space until xl', () => {
+    const shell = asElement(
+      AppShell({
+        role: 'admin',
+        title: '数据中心',
+        activeHref: '/data-center',
+        sidebarMode: 'collapsible',
+        navigation: [
+          { id: 'platform-home', label: '首页', href: '/', role: 'admin', order: 10 },
+          { id: 'platform-data-center', label: '数据中心', href: '/data-center', role: 'admin', order: 20 },
+        ],
+        children: null,
+      }),
+    );
+    const grid = asElement(shell.props?.children);
+    const gridChildren = childElements(grid.props?.children);
+    const sidebar = gridChildren[0];
+    const content = gridChildren[1];
+    const mobileNav = childElements(content.props?.children).find(
+      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
+    );
+
+    expect(classNameOf(grid)).toContain('xl:grid-cols-[248px_1fr]');
+    expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');
+    expect(sidebar.type).toBe(AppSidebar);
+    expect(classNameOf(sidebar)).toContain('hidden xl:block');
+    expect(classNameOf(mobileNav)).toContain('xl:hidden');
+  });
+
   it('does not reserve sidebar layout space when shell navigation is empty', () => {
     const shell = asElement(
       AppShell({

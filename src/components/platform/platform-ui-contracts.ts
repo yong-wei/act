@@ -42,7 +42,8 @@ export type PlatformTokenCategory =
   | 'evidence'
   | 'privacy'
   | 'replay'
-  | 'evaluation';
+  | 'evaluation'
+  | 'chart';
 
 export interface PlatformSemanticToken {
   name: string;
@@ -413,6 +414,12 @@ export const PLATFORM_SEMANTIC_TOKENS: PlatformSemanticToken[] = [
   { name: 'platform-evaluation-official', category: 'evaluation', purpose: 'Official evaluation result.' },
   { name: 'platform-evaluation-preview', category: 'evaluation', purpose: 'Preview or rehearsal evaluation result.' },
   { name: 'platform-evaluation-hidden', category: 'evaluation', purpose: 'Hidden evaluation scenario or protected result.' },
+  { name: 'platform-chart-1', category: 'chart', purpose: 'Primary chart series color for commercial dashboards.' },
+  { name: 'platform-chart-2', category: 'chart', purpose: 'Secondary chart series color for commercial dashboards.' },
+  { name: 'platform-chart-3', category: 'chart', purpose: 'Success or growth chart series color for commercial dashboards.' },
+  { name: 'platform-chart-4', category: 'chart', purpose: 'Warning or variance chart series color for commercial dashboards.' },
+  { name: 'platform-chart-5', category: 'chart', purpose: 'Comparison chart series color for commercial dashboards.' },
+  { name: 'platform-chart-6', category: 'chart', purpose: 'Accent chart series color for commercial dashboards.' },
 ];
 
 export const PLATFORM_SHELL_ADAPTERS: PlatformShellAdapter[] = [

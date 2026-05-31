@@ -50,6 +50,12 @@
     --platform-evaluation-official: 196 82% 56%;
     --platform-evaluation-preview: 42 88% 58%;
     --platform-evaluation-hidden: 264 66% 66%;
+    --platform-chart-1: 196 82% 56%;
+    --platform-chart-2: 199 89% 48%;
+    --platform-chart-3: 153 68% 45%;
+    --platform-chart-4: 42 88% 58%;
+    --platform-chart-5: 264 66% 66%;
+    --platform-chart-6: 25 95% 53%;
   }
 
   .light {
@@ -98,6 +104,12 @@
     --platform-evaluation-official: 203 88% 42%;
     --platform-evaluation-preview: 38 88% 45%;
     --platform-evaluation-hidden: 262 62% 54%;
+    --platform-chart-1: 203 88% 42%;
+    --platform-chart-2: 199 89% 48%;
+    --platform-chart-3: 154 62% 36%;
+    --platform-chart-4: 38 88% 45%;
+    --platform-chart-5: 262 62% 54%;
+    --platform-chart-6: 25 92% 46%;
   }
 }
 

@@ -13,7 +13,9 @@ const homeContent = fs.readFileSync(homePath, 'utf8');
 const navigationContent = fs.readFileSync(navigationPath, 'utf8');
 
 assert.equal(
-  homeContent.includes('getStudentCoreNavigationEntries') && navigationContent.includes("href: '/arena'"),
+  (homeContent.includes('getStudentCoreNavigationEntries') ||
+    homeContent.includes('getCommercialStudentEntryIntentGroups')) &&
+    navigationContent.includes("href: '/arena'"),
   true,
   '首页应通过共享学生入口提供指向 /arena 的竞技场入口',
 );
@@ -25,9 +27,9 @@ assert.equal(
 );
 
 assert.equal(
-  homeContent.includes('六个核心入口'),
+  homeContent.includes('平台入口矩阵') && homeContent.includes('商业入口 · 学习意图'),
   true,
-  '首页平台入口矩阵应与六个核心入口数量一致',
+  '首页平台入口矩阵应使用商业学习意图入口语义',
 );
 
 assert.equal(
@@ -62,15 +64,17 @@ assert.equal(
 );
 
 assert.equal(
-  combinedArenaContent.includes('getStudentCoreNavigationEntries') &&
+  combinedArenaContent.includes('getStudentLearningIntentNavigationGroups') &&
     navigationContent.includes('虚拟仿真') &&
     navigationContent.includes('竞技场') &&
     navigationContent.includes('知识资源') &&
     navigationContent.includes('控制工作台') &&
     navigationContent.includes('自适应学习') &&
+    navigationContent.includes('互动学习') &&
+    navigationContent.includes('数据中心') &&
     navigationContent.includes('个人中心'),
   true,
-  '/arena 页面壳层应使用首页一致的六入口学生导航',
+  '/arena 页面壳层应使用首页一致的学生学习意图导航',
 );
 
 assert.equal(
