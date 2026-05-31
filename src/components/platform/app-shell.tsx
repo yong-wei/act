@@ -239,11 +239,24 @@ export function AppShell({
 }: AppShellProps) {
   const renderItems = flattenNavigationItems(navigation);
   const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
+  const sidebarBreakpoint = sidebarMode === 'collapsible' ? 'xl' : 'lg';
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   return (
     <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
-      <div className={cn('grid min-h-screen', showSidebar && 'lg:grid-cols-[248px_1fr]')}>
-        {showSidebar ? <AppSidebar navigation={navigation} activeHref={activeHref} className="hidden lg:block" /> : null}
+      <div
+        className={cn(
+          'grid min-h-screen',
+          showSidebar && sidebarBreakpoint === 'lg' && 'lg:grid-cols-[248px_1fr]',
+          showSidebar && sidebarBreakpoint === 'xl' && 'xl:grid-cols-[248px_1fr]',
+        )}
+      >
+        {showSidebar ? (
+          <AppSidebar
+            navigation={navigation}
+            activeHref={activeHref}
+            className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
+          />
+        ) : null}
         <div className="min-w-0">
           <AppHeader
             role={role}
@@ -254,7 +267,13 @@ export function AppShell({
             userMenu={userMenu}
           />
           {showSidebar && navigation.length > 0 ? (
-            <nav aria-label="平台导航" className="border-b border-platform-border bg-platform-surface px-4 py-2 lg:hidden">
+            <nav
+              aria-label="平台导航"
+              className={cn(
+                'border-b border-platform-border bg-platform-surface px-4 py-2',
+                sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden',
+              )}
+            >
               <div className="flex gap-2 overflow-x-auto">
                 {renderItems.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
               </div>

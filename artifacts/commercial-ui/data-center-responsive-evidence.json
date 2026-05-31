@@ -1,0 +1,53 @@
+{
+  "route": "/data-center",
+  "capturedAt": "2026-05-31",
+  "context": "Presentation data center responsive acceptance after AppShell collapsible sidebar change.",
+  "measurements": [
+    {
+      "width": 320,
+      "requiredByGate": true,
+      "firstViewportUseful": true,
+      "navigationReachable": true,
+      "noTextOverlap": true,
+      "stablePanelGeometry": true,
+      "coherentBrandApplication": true,
+      "taskControlsVisible": true,
+      "notes": "Mobile contract uses horizontal platform navigation and auto-fit metric/workspace grids."
+    },
+    {
+      "width": 1024,
+      "workspaceWidth": 976,
+      "sidebar": "none",
+      "mobileNav": "block",
+      "workspaceGrid": "two columns"
+    },
+    {
+      "width": 1180,
+      "workspaceWidth": 1132,
+      "sidebar": "none",
+      "mobileNav": "block",
+      "workspaceGrid": "two columns"
+    },
+    {
+      "width": 1280,
+      "workspaceWidth": 984,
+      "sidebar": "block",
+      "mobileNav": "none",
+      "workspaceGrid": "two columns"
+    },
+    {
+      "width": 1440,
+      "requiredByGate": true,
+      "workspaceWidth": 1144,
+      "sidebar": "block",
+      "mobileNav": "none",
+      "workspaceGrid": "two columns",
+      "firstViewportUseful": true,
+      "navigationReachable": true,
+      "noTextOverlap": true,
+      "stablePanelGeometry": true,
+      "coherentBrandApplication": true,
+      "taskControlsVisible": true
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "pr": 235,
+  "capturedAt": "2026-05-31",
+  "scope": "Commercial UI governance, data center responsive shell mode, and review checklist enforcement.",
+  "routes": [
+    {
+      "href": "/login?callbackUrl=%2Fprofile",
+      "reason": "Representative auth/profile callback route in commercial UI matrix.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/",
+      "reason": "Representative public entry route and root shell coverage sentinel.",
+      "desktop": "Root route shell scan is explicitly covered by the governance script.",
+      "mobile320": "Root route shell scan is explicitly covered by the governance script."
+    },
+    {
+      "href": "/dashboard",
+      "reason": "Representative student cockpit route.",
+      "desktop": "No dashboard route source changed in this PR; included because shared shell/navigation governance applies to student cockpit evidence.",
+      "mobile320": "No dashboard route source changed in this PR; included because shared shell/navigation governance applies to student cockpit evidence."
+    },
+    {
+      "href": "/interactive-learning",
+      "reason": "Representative Interactive Learning entry route.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/arena",
+      "reason": "Representative Arena entry route.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/assessment/adaptive-practice",
+      "reason": "Representative adaptive practice route.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/profile",
+      "reason": "Representative profile route for account/profile semantics.",
+      "desktop": "Profile/cockpit href semantics are asserted by the governance gate.",
+      "mobile320": "Profile/cockpit href semantics are asserted by the governance gate."
+    },
+    {
+      "href": "/interactive-learning/control-workbench",
+      "reason": "Representative dense Control Workbench route.",
+      "desktop": "No Control Workbench source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No Control Workbench source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "reason": "Representative interactive course runtime route.",
+      "desktop": "No runtime route source changed in this PR; module chrome governance remains covered by source/manifest scanning.",
+      "mobile320": "No runtime route source changed in this PR; module chrome governance remains covered by source/manifest scanning."
+    },
+    {
+      "href": "/teacher/classes/[classId]/analytics-v2",
+      "reason": "Representative teacher analytics route.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    },
+    {
+      "href": "/admin/data-governance",
+      "reason": "Representative admin governance route.",
+      "desktop": "No route source changed in this PR; covered as shared-shell regression sentinel.",
+      "mobile320": "No route source changed in this PR; covered as shared-shell regression sentinel."
+    }
+  ]
+}

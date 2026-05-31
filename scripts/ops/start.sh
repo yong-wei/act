@@ -90,6 +90,43 @@ run_database_script() {
   fi
 }
 
+detect_postgres_brew_formula() {
+  if [ -n "${POSTGRES_BREW_FORMULA:-}" ]; then
+    echo "$POSTGRES_BREW_FORMULA"
+    return 0
+  fi
+
+  if ! command -v brew &> /dev/null; then
+    return 1
+  fi
+
+  local formula
+  for formula in postgresql@18 postgresql@17 postgresql@16 postgresql@15 postgresql@14 postgresql; do
+    if brew list --formula "$formula" &> /dev/null; then
+      echo "$formula"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+detect_postgres_tool() {
+  local formula=$1
+  local tool=$2
+
+  if [ -n "$formula" ] && command -v brew &> /dev/null; then
+    local formula_tool
+    formula_tool="$(brew --prefix "$formula" 2>/dev/null)/bin/$tool"
+    if [ -x "$formula_tool" ]; then
+      echo "$formula_tool"
+      return 0
+    fi
+  fi
+
+  command -v "$tool" 2>/dev/null
+}
+
 ###############################################################################
 # 步骤 1: 清理日志文件内容
 ###############################################################################
@@ -128,30 +165,52 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[2/10] 检查 PostgreSQL 数据库...${NC}"
 
-if command -v pg_isready &> /dev/null; then
-  if pg_isready -h localhost -p 5432 &> /dev/null; then
-    echo -e "  ${GREEN}✓${NC} PostgreSQL 已运行"
-  else
-    echo -e "  ${RED}✗${NC} PostgreSQL 未运行"
-    echo -e "  ${YELLOW}尝试启动 PostgreSQL...${NC}"
+POSTGRES_FORMULA="$(detect_postgres_brew_formula || true)"
+POSTGRES_PG_ISREADY="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_isready || true)"
 
-    # 尝试使用 brew services 启动（macOS）
-    if command -v brew &> /dev/null; then
-      brew services start postgresql@14 2>&1 | tee -a "$LOGS_DIR/database.log" || true
-      sleep 2
-      if pg_isready -h localhost -p 5432 &> /dev/null; then
-        echo -e "  ${GREEN}✓${NC} PostgreSQL 启动成功"
-      else
-        echo -e "  ${RED}✗${NC} PostgreSQL 启动失败，请手动启动"
-        exit 1
-      fi
-    else
-      echo -e "  ${RED}✗${NC} 请手动启动 PostgreSQL"
+if [ -n "$POSTGRES_PG_ISREADY" ]; then
+  echo -e "  ${BLUE}使用 PostgreSQL 检查工具: ${POSTGRES_PG_ISREADY}${NC}"
+fi
+
+if [ -z "$POSTGRES_PG_ISREADY" ] && [ -z "$POSTGRES_FORMULA" ]; then
+  echo -e "  ${YELLOW}!${NC} 未找到 pg_isready，跳过 PostgreSQL 检查"
+elif [ -n "$POSTGRES_PG_ISREADY" ] && "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+  echo -e "  ${GREEN}✓${NC} PostgreSQL 已运行"
+else
+  echo -e "  ${RED}✗${NC} PostgreSQL 未运行"
+  echo -e "  ${YELLOW}尝试启动 PostgreSQL...${NC}"
+
+  # 尝试使用 brew services 启动（macOS）
+  if command -v brew &> /dev/null; then
+    if [ -z "$POSTGRES_FORMULA" ]; then
+      echo -e "  ${RED}✗${NC} 未找到已安装的 Homebrew PostgreSQL formula"
+      echo -e "  ${YELLOW}请安装 postgresql@18，或通过 POSTGRES_BREW_FORMULA 指定本机 formula${NC}"
       exit 1
     fi
+
+    echo -e "  ${BLUE}使用 Homebrew formula: ${POSTGRES_FORMULA}${NC}"
+    POSTGRES_DATA_DIR="$(brew --prefix)/var/${POSTGRES_FORMULA}"
+    POSTGRES_PG_CTL="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_ctl || true)"
+    if [ -n "$POSTGRES_PG_ISREADY" ] && ! "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null && [ -x "$POSTGRES_PG_CTL" ]; then
+      if [ -d "$POSTGRES_DATA_DIR" ]; then
+        "$POSTGRES_PG_CTL" -D "$POSTGRES_DATA_DIR" -l "$LOGS_DIR/database.log" start >> "$LOGS_DIR/database.log" 2>&1 || true
+      fi
+    fi
+    if [ -z "$POSTGRES_PG_ISREADY" ] || ! "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+      brew services start "$POSTGRES_FORMULA" 2>&1 | tee -a "$LOGS_DIR/database.log" || true
+      POSTGRES_PG_ISREADY="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_isready || true)"
+    fi
+    sleep 2
+    if [ -n "$POSTGRES_PG_ISREADY" ] && "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+      echo -e "  ${GREEN}✓${NC} PostgreSQL 启动成功"
+    else
+      echo -e "  ${RED}✗${NC} PostgreSQL 启动失败，请手动启动"
+      exit 1
+    fi
+  else
+    echo -e "  ${RED}✗${NC} 请手动启动 PostgreSQL"
+    exit 1
   fi
-else
-  echo -e "  ${YELLOW}!${NC} 未找到 pg_isready，跳过 PostgreSQL 检查"
 fi
 
 echo ""

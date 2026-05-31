@@ -44,7 +44,14 @@ import { presentationDataCenterMock } from './presentation-mock-data';
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
 
-const MODULE_COLORS = ['#22d3ee', '#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f97316'];
+const MODULE_COLORS = [
+  'hsl(var(--platform-chart-1))',
+  'hsl(var(--platform-chart-2))',
+  'hsl(var(--platform-chart-3))',
+  'hsl(var(--platform-chart-4))',
+  'hsl(var(--platform-chart-5))',
+  'hsl(var(--platform-chart-6))',
+];
 const metricGridClass = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]';
 const operationsPanelGridClass = 'mb-6 grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]';
 const compactGridClass = 'grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]';
@@ -72,19 +79,19 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
   }, [role]);
   const { mounted, theme } = useTheme();
   const isDark = mounted ? theme === 'dark' : true;
-  const axisColor = isDark ? '#94a3b8' : '#334155';
-  const gridColor = isDark ? 'rgba(100,116,139,0.25)' : 'rgba(148,163,184,0.35)';
+  const axisColor = isDark ? 'hsl(var(--platform-fg-muted))' : 'hsl(var(--platform-fg-secondary))';
+  const gridColor = 'hsl(var(--platform-border))';
   const [data] = useState(presentationDataCenterMock);
 
   const chartTooltipStyle = {
-    background: isDark ? '#0f172a' : '#ffffff',
-    border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
+    background: 'hsl(var(--platform-surface))',
+    border: isDark ? '1px solid hsl(var(--platform-fg-secondary))' : '1px solid hsl(var(--platform-border-strong))',
     borderRadius: '8px',
-    color: isDark ? '#e2e8f0' : '#0f172a',
+    color: 'hsl(var(--platform-fg-primary))',
   };
-  const chartTooltipLabelStyle = { color: isDark ? '#e2e8f0' : '#0f172a', fontWeight: 600 };
-  const chartTooltipItemStyle = { color: isDark ? '#cbd5e1' : '#334155' };
-  const chartLegendStyle = { color: isDark ? '#cbd5e1' : '#334155', fontSize: '12px' };
+  const chartTooltipLabelStyle = { color: 'hsl(var(--platform-fg-primary))', fontWeight: 600 };
+  const chartTooltipItemStyle = { color: 'hsl(var(--platform-fg-secondary))' };
+  const chartLegendStyle = { color: 'hsl(var(--platform-fg-secondary))', fontSize: '12px' };
 
   const totals = {
     interactionTotal: data.interactionByType.reduce((sum, item) => sum + item.count, 0),
@@ -102,6 +109,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       activeHref="/data-center"
       title="平台数据中心"
       subtitle="教学运行全景视图 · 聚合统计指标"
+      sidebarMode="collapsible"
       breadcrumbs={[
         { label: '课程中心', href: '/' },
         { label: '数据中心' },
@@ -180,8 +188,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
               <ComposedChart data={data.monthlyTrend}>
                 <defs>
                   <linearGradient id="visitGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0.03} />
+                    <stop offset="5%" stopColor="hsl(var(--platform-chart-1))" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="hsl(var(--platform-chart-1))" stopOpacity={0.03} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
@@ -198,12 +206,12 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
                   type="monotone"
                   dataKey="totalVisits"
                   name="总访问量"
-                  stroke="#22d3ee"
+                  stroke="hsl(var(--platform-chart-1))"
                   fill="url(#visitGradient)"
                   strokeWidth={2}
                 />
-                <Line type="monotone" dataKey="interactions" name="互动量" stroke="#34d399" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="simulationVisits" name="仿真访问量" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="interactions" name="互动量" stroke="hsl(var(--platform-chart-3))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="simulationVisits" name="仿真访问量" stroke="hsl(var(--platform-chart-4))" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -263,7 +271,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
                   labelStyle={chartTooltipLabelStyle}
                   itemStyle={chartTooltipItemStyle}
                 />
-                <Bar dataKey="count" fill="#22d3ee" radius={[0, 8, 8, 0]} />
+                <Bar dataKey="count" fill="hsl(var(--platform-chart-1))" radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -287,7 +295,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
                   labelStyle={chartTooltipLabelStyle}
                   itemStyle={chartTooltipItemStyle}
                 />
-                <Bar dataKey="visits" fill="#38bdf8" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="visits" fill="hsl(var(--platform-chart-2))" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -308,7 +316,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
             <StatLine icon={<Gamepad2 className="h-4 w-4" />} label="Control Odyssey 总访问" value={numberFormatter.format(data.controlOdysseyVisits)} isDark={isDark} />
             <StatLine icon={<TrendingUp className="h-4 w-4" />} label="知识图谱交互总量" value={numberFormatter.format(data.userScale.students * data.estimatedPerStudent.knowledgeGraphInteractions)} isDark={isDark} />
           </div>
-          <p className={`mt-4 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+          <p className="mt-4 text-xs text-platform-fg-muted">
             口径说明：按学生完整学习链路统计，包含互动、仿真、评测与知识图谱行为。
           </p>
         </DataCenterChartPanel>
@@ -337,8 +345,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
                   itemStyle={chartTooltipItemStyle}
                 />
                 <Legend wrapperStyle={chartLegendStyle} />
-                <Line yAxisId="left" type="monotone" dataKey="activeStudents" name="活跃学生" stroke="#22d3ee" strokeWidth={2} />
-                <Line yAxisId="right" type="monotone" dataKey="completionRate" name="完课率" stroke="#f59e0b" strokeWidth={2} />
+                <Line yAxisId="left" type="monotone" dataKey="activeStudents" name="活跃学生" stroke="hsl(var(--platform-chart-1))" strokeWidth={2} />
+                <Line yAxisId="right" type="monotone" dataKey="completionRate" name="完课率" stroke="hsl(var(--platform-chart-4))" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -399,58 +407,52 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
 }
 
 function MetricCard({
-  icon, title, value, description, isDark,
+  icon, title, value, description,
 }: {
   icon: React.ReactNode; title: string; value: string; description: string; isDark: boolean;
 }) {
   return (
-    <div className={`rounded-xl border p-4 shadow-[0_0_20px_rgba(14,116,144,0.08)] transition hover:shadow-[0_0_32px_rgba(34,211,238,0.12)] ${
-      isDark
-        ? 'border-cyan-500/20 bg-cyan-500/5 shadow-[0_0_32px_rgba(34,211,238,0.08)]'
-        : 'border-cyan-200 bg-cyan-50/70'
-    }`}>
+    <div className="rounded-xl border border-platform-border bg-platform-action-subtle p-4 transition">
       <div className="flex items-center justify-between">
-        <p className={`text-xs uppercase tracking-[0.22em] ${isDark ? 'text-cyan-200/70' : 'text-cyan-700/80'}`}>{title}</p>
-        <span className={`rounded-full p-2 ${isDark ? 'bg-cyan-500/10' : 'bg-cyan-100'}`}>
-          <span className={isDark ? 'text-cyan-200' : 'text-cyan-700'}>{icon}</span>
+        <p className="text-xs uppercase tracking-[0.22em] text-platform-action-primary">{title}</p>
+        <span className="rounded-full bg-platform-surface p-2">
+          <span className="text-platform-action-primary">{icon}</span>
         </span>
       </div>
-      <p className={`mt-4 text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-      <p className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{description}</p>
+      <p className="mt-4 text-2xl font-semibold text-platform-fg-primary">{value}</p>
+      <p className="mt-2 text-xs text-platform-fg-secondary">{description}</p>
     </div>
   );
 }
 
 function StatLine({
-  icon, label, value, isDark,
+  icon, label, value,
 }: {
   icon: React.ReactNode; label: string; value: string; isDark: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between rounded-lg border px-3 py-2 ${
-      isDark ? 'border-slate-800 bg-slate-950/60' : 'border-slate-200 bg-slate-50'
-    }`}>
-      <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-        <span className={isDark ? 'text-cyan-300' : 'text-cyan-700'}>{icon}</span>
+    <div className="flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface px-3 py-2">
+      <div className="flex items-center gap-2 text-sm text-platform-fg-secondary">
+        <span className="text-platform-action-primary">{icon}</span>
         {label}
       </div>
-      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
+      <span className="text-sm font-semibold text-platform-fg-primary">{value}</span>
     </div>
   );
 }
 
 function BriefCard({
-  icon, title, text, isDark,
+  icon, title, text,
 }: {
   icon: React.ReactNode; title: string; text: string; isDark: boolean;
 }) {
   return (
-    <div className={`rounded-xl border p-4 ${isDark ? 'border-slate-800 bg-slate-950/60' : 'border-slate-200 bg-slate-50'}`}>
-      <div className={`flex items-center gap-2 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
-        <span className={isDark ? 'text-cyan-300' : 'text-cyan-700'}>{icon}</span>
+    <div className="rounded-xl border border-platform-border bg-platform-surface p-4">
+      <div className="flex items-center gap-2 text-sm font-medium text-platform-fg-primary">
+        <span className="text-platform-action-primary">{icon}</span>
         {title}
       </div>
-      <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{text}</p>
+      <p className="mt-2 text-sm text-platform-fg-secondary">{text}</p>
     </div>
   );
 }

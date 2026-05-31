@@ -35,6 +35,7 @@ describe('PresentationDataCenter commercial workspace layout', () => {
 
     expect(source).toContain('repeat(auto-fit,minmax(min(100%,220px),1fr))');
     expect(source).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
+    expect(source).toContain('sidebarMode="collapsible"');
     expect(source).not.toContain('xl:grid-cols-[1.6fr_1fr]');
     expect(source).not.toContain('xl:grid-cols-[1.3fr_1fr]');
   });

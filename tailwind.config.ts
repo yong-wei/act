@@ -49,6 +49,12 @@ const config: Config = {
         'platform-evaluation-official': "hsl(var(--platform-evaluation-official))",
         'platform-evaluation-preview': "hsl(var(--platform-evaluation-preview))",
         'platform-evaluation-hidden': "hsl(var(--platform-evaluation-hidden))",
+        'platform-chart-1': "hsl(var(--platform-chart-1))",
+        'platform-chart-2': "hsl(var(--platform-chart-2))",
+        'platform-chart-3': "hsl(var(--platform-chart-3))",
+        'platform-chart-4': "hsl(var(--platform-chart-4))",
+        'platform-chart-5': "hsl(var(--platform-chart-5))",
+        'platform-chart-6': "hsl(var(--platform-chart-6))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
