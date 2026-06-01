@@ -35,7 +35,7 @@ describe('interactive module taxonomy', () => {
     expect(INTERACTIVE_MODULE_PRESENTATION_LAYOUTS).toEqual(expect.arrayContaining(['single', 'row', 'grid', 'strip', 'tabs']));
     expect(INTERACTIVE_MODULE_SEMANTIC_ROLES).toEqual(expect.arrayContaining(['goal', 'risk', 'teacherHint', 'referenceAnswer']));
     expect(INTERACTIVE_MODULE_INTERACTION_KINDS).toEqual(expect.arrayContaining(['display', 'single-choice', 'structured-submit']));
-    expect(INTERACTIVE_MODULE_RESPONSE_KINDS).toEqual(expect.arrayContaining(['singleChoice', 'multiSelect', 'structured']));
+    expect(INTERACTIVE_MODULE_RESPONSE_KINDS).toEqual(expect.arrayContaining(['choice.single', 'choice.multi', 'text.structured']));
   });
 
   it('keeps every observed legacy manifest kind in the migration alias table', () => {
@@ -69,31 +69,31 @@ describe('interactive module taxonomy', () => {
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['choice-check']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'quiz',
-      responseKind: 'singleChoice',
+      responseKind: 'choice.single',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['single-choice']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'single-choice',
-      responseKind: 'singleChoice',
+      responseKind: 'choice.single',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['single-choice-card']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'single-choice',
-      responseKind: 'singleChoice',
+      responseKind: 'choice.single',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['frequency-band-labeling']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'hotspot-labeling',
-      responseKind: 'hotspotLabeling',
+      responseKind: 'matching.pairs',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['structured-compare']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'structured-compare',
-      responseKind: 'structured',
+      responseKind: 'text.structured',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['interactive-figure-panel']).toMatchObject({
@@ -118,19 +118,19 @@ describe('interactive module taxonomy', () => {
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['table-builder']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'table-builder',
-      responseKind: 'table',
+      responseKind: 'table.builder',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['multi-select-matrix']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'multi-select',
-      responseKind: 'multiSelect',
+      responseKind: 'choice.multi',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['scenario-sort-matrix']).toMatchObject({
       canonicalClass: 'activity.panel',
       interactionKind: 'card-sort',
-      responseKind: 'sorting',
+      responseKind: 'ordering.sequence',
       migrationOnly: true,
     });
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['stage-map']).toMatchObject({

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -379,7 +380,7 @@ describe('GET /api/admin/data-governance/status', () => {
       staleEntries: 0,
       latestRefreshAt: '2026-05-19T08:10:00.000Z',
       totalSourceFacts: 4,
-      payloadVersion: 'student-evidence-features.v3',
+      payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     });
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,

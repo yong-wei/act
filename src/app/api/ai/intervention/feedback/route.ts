@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   KonlingRuntimeScopeError,
@@ -8,6 +9,8 @@ import {
   verifyKonlingRuntimeScope,
   type KonlingInterventionFeedback,
 } from '@/lib/konling-agent-runtime';
+
+export const dynamic = 'force-dynamic';
 
 interface FeedbackRequest {
   userId?: string;
@@ -58,6 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     if (error instanceof KonlingRuntimeScopeError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }

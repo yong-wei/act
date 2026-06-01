@@ -569,7 +569,7 @@ describe('GET /api/user/profile', () => {
     );
     expect(body.personalizedReinforcement.resources).toHaveLength(2);
     expect(body.evidenceStatus).toMatchObject({
-      state: 'ready',
+      state: 'stale',
       evidenceBasis: 'student-evidence-feature-cache',
       refreshedAt: '2026-05-19T00:00:00.000Z',
       evidenceWindow: {
@@ -588,7 +588,7 @@ describe('GET /api/user/profile', () => {
         StudentProfileSummary: 'available',
       },
       confidence: {
-        state: 'ready',
+        state: 'stale',
         level: 'medium',
         score: 0.66,
         evidenceCount: 7,
