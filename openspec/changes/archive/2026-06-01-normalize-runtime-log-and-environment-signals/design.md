@@ -16,6 +16,26 @@ The dependency environment also has reproducibility gaps:
 - Add package metadata that records the intended Node/package-manager range without forcing an unrelated runtime upgrade.
 - Treat Browserslist update as a lockfile hygiene action, not as a UI or browser-support policy redesign.
 
+## Implementation Notes
+
+- Add a `test:runtime-log-delta` smoke script that records frontend error-log
+  byte offsets before and after a route request. The check defaults to
+  `.logs/frontend-error.log`, while `RUNTIME_ERROR_LOG` can point at another
+  log file for targeted checks. The check fails only when the current request
+  writes new frontend error bytes, so historical log residue and unrelated
+  background worker stderr are not treated as active homepage failures.
+- Declare the local/CI/server runtime contract in `package.json` as
+  Node `^20.19.0 || >=22.12.0 <27`, npm `>=10 <12`, with `packageManager`
+  set to the npm version used for this lockfile hygiene pass.
+- Refresh `caniuse-lite` through `npx update-browserslist-db@latest` so the
+  Browserslist data change is visible in `package-lock.json`.
+- `npm ci` removes stale missing/invalid package drift and succeeds with the
+  remaining owned moderate audit findings. `npm ls --depth=0` still reports
+  extraneous `@emnapi/core`, `@emnapi/runtime`, and `@emnapi/wasi-threads`;
+  `npm explain @emnapi/*` shows no owning dependency path except
+  `@emnapi/core -> @emnapi/wasi-threads`, so this residual is recorded as
+  environment drift rather than mixed with application failures.
+
 ## Verification
 
 - `rtk npm ci`

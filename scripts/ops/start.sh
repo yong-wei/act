@@ -185,6 +185,7 @@ LOG_FILES=(
   "$LOGS_DIR/scheduler.log"
   "$LOGS_DIR/console.log"
   "$LOGS_DIR/error.log"
+  "$LOGS_DIR/frontend-error.log"
 )
 
 for log_file in "${LOG_FILES[@]}"; do
@@ -442,7 +443,7 @@ free_frontend_port "$FRONTEND_PORT"
 
 # 启动开发服务器（后台运行）
 echo -e "  ${BLUE}启动命令: npm run dev -- --hostname 127.0.0.1 --port ${FRONTEND_PORT}${NC}"
-FRONTEND_PID="$(start_detached_shell "act-frontend" "$LOGS_DIR/frontend.log" "$LOGS_DIR/error.log" "npm run dev -- --hostname 127.0.0.1 --port \"$FRONTEND_PORT\"")"
+FRONTEND_PID="$(start_detached_shell "act-frontend" "$LOGS_DIR/frontend.log" "$LOGS_DIR/frontend-error.log" "npm run dev -- --hostname 127.0.0.1 --port \"$FRONTEND_PORT\"")"
 echo "$FRONTEND_PID" > "$PIDS_DIR/frontend.pid"
 
 echo -e "  ${GREEN}✓${NC} Next.js 开发服务器已启动 (PID: $FRONTEND_PID)"
@@ -457,7 +458,7 @@ if ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
   echo -e "  ${GREEN}✓${NC} 服务器正在运行"
 else
   echo -e "  ${RED}✗${NC} 服务器启动失败"
-  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
   exit 1
 fi
 
@@ -474,7 +475,7 @@ wait_for_page() {
   for ((i=1; i<=attempts; i++)); do
     if ! ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Next.js 进程提前退出"
-      echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+      echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
       exit 1
     fi
 
@@ -489,7 +490,7 @@ wait_for_page() {
   echo -e "  ${RED}✗${NC} $label 页面未在预期时间内就绪"
   echo -e "  ${YELLOW}目标地址: $url${NC}"
   echo -e "  ${YELLOW}目标标记: $marker${NC}"
-  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
   exit 1
 }
 
@@ -518,7 +519,8 @@ echo -e "    • 前端日志: ${YELLOW}$LOGS_DIR/frontend.log${NC}"
 echo -e "    • Redis 日志: ${YELLOW}$LOGS_DIR/redis.log${NC}"
 echo -e "    • Worker 日志: ${YELLOW}$LOGS_DIR/worker.log${NC}"
 echo -e "    • Scheduler 日志: ${YELLOW}$LOGS_DIR/scheduler.log${NC}"
-echo -e "    • 错误日志: ${YELLOW}$LOGS_DIR/error.log${NC}"
+echo -e "    • 前端错误日志: ${YELLOW}$LOGS_DIR/frontend-error.log${NC}"
+echo -e "    • 后台错误日志: ${YELLOW}$LOGS_DIR/error.log${NC}"
 echo ""
 echo -e "  ${BLUE}查看日志:${NC}"
 echo -e "    ${YELLOW}tail -f $LOGS_DIR/frontend.log${NC}"
