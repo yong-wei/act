@@ -2,6 +2,11 @@
   "name": "ai-obe-platform",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.12.1",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0 <27",
+    "npm": ">=10 <12"
+  },
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
     "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; node ./scripts/wasm/build-control-engine.mjs && prisma generate && next build",
@@ -39,6 +44,7 @@
     "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
+    "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
