@@ -35,6 +35,19 @@ const allowlist = {
       removalCondition: 'Remove when Next no longer reports the finding.',
     },
   ],
+  deprecationResiduals: [
+    {
+      id: 'ESLINT8-DEPRECATED-TRANSITIVES',
+      packages: ['eslint@8.57.1', 'glob@7.2.3'],
+      dependencyPath: 'eslint -> file-entry-cache -> flat-cache -> rimraf -> glob',
+      ownerLane: 'dev-tooling-eslint9-migration',
+      ownerIssue: 'https://github.com/yong-wei/act/issues/261',
+      reviewDate: '2026-06-01',
+      expiresOn: '2026-09-01',
+      releaseBlocking: false,
+      removalCondition: 'Remove when ESLint 9 migration clears the warnings.',
+    },
+  ],
 };
 
 const allowedAudit = {
@@ -134,6 +147,8 @@ assert.equal(allowedResult.pass, true);
 assert.equal(allowedResult.allowed.length, 1);
 assert.equal(allowedResult.unallowlisted.length, 0);
 assert.equal(allowedResult.allowed[0].finding.runtimeRelevance, 'production-runtime');
+assert.equal(allowedResult.deprecationResiduals.length, 1);
+assert.equal(allowedResult.deprecationResiduals[0].ownerLane, 'dev-tooling-eslint9-migration');
 
 const newHighResult = evaluateGovernance({
   audit: newHighAudit,
@@ -188,6 +203,30 @@ const expiredResult = evaluateGovernance({
 
 assert.equal(expiredResult.pass, false);
 assert.match(expiredResult.validationErrors[0], /expired/);
+
+const invalidDeprecationResult = evaluateGovernance({
+  audit: allowedAudit,
+  allowlist: {
+    ...allowlist,
+    deprecationResiduals: [{
+      id: 'BROKEN-DEPRECATION-RESIDUAL',
+      packages: ['eslint@8.57.1'],
+      dependencyPath: 'eslint',
+      ownerIssue: 'https://github.com/yong-wei/act/issues/261',
+      reviewDate: '2026-06-01',
+      expiresOn: '2026-09-01',
+      releaseBlocking: false,
+      removalCondition: 'Remove when fixed.',
+    }],
+  },
+  packageJson,
+  lockfile,
+  threshold: 'moderate',
+  today: '2026-06-01',
+});
+
+assert.equal(invalidDeprecationResult.pass, false);
+assert.match(invalidDeprecationResult.validationErrors[0], /ownerLane/);
 
 assert.throws(
   () =>

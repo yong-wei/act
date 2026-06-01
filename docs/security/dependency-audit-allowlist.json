@@ -13,8 +13,8 @@
       "dependencyPath": "node_modules/next",
       "advisoryIds": ["postcss"],
       "severity": "moderate",
-      "reason": "Residual npm audit owner finding for the bundled Next/PostCSS advisory after the migration series. The audited stable Next 16 line does not yet provide a useful remediation.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/244",
+      "reason": "Residual npm audit owner finding for the bundled Next/PostCSS advisory after the migration series. The audited stable Next 16 line does not yet provide a useful remediation, and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
       "reviewDate": "2026-06-01",
       "expiresOn": "2026-09-01",
       "removalCondition": "Remove when the supported Next 15 backport or stable Next line bundles postcss >=8.5.10, or when npm audit no longer reports the Next-owned finding."
@@ -25,11 +25,53 @@
       "dependencyPath": "node_modules/next/node_modules/postcss",
       "advisoryIds": ["GHSA-qx2v-qp2m-jg93", "1117015", "postcss"],
       "severity": "moderate",
-      "reason": "Residual bundled PostCSS finding owned by Next after the migration series; direct postcss is already on a fixed version.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/244",
+      "reason": "Residual bundled PostCSS finding owned by Next after the migration series; direct postcss is already on a fixed version and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
       "reviewDate": "2026-06-01",
       "expiresOn": "2026-09-01",
       "removalCondition": "Remove when node_modules/next/node_modules/postcss is no longer below 8.5.10 or the advisory is no longer reported by npm audit."
+    }
+  ],
+  "deprecationResiduals": [
+    {
+      "id": "ESLINT8-DEPRECATED-TRANSITIVES",
+      "packages": [
+        "eslint@8.57.1",
+        "@humanwhocodes/config-array@0.13.0",
+        "@humanwhocodes/object-schema@2.0.3",
+        "rimraf@3.0.2",
+        "glob@7.2.3",
+        "inflight@1.0.6"
+      ],
+      "dependencyPath": "eslint -> file-entry-cache -> flat-cache -> rimraf -> glob -> inflight",
+      "ownerLane": "dev-tooling-eslint9-migration",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
+      "reviewDate": "2026-06-01",
+      "expiresOn": "2026-09-01",
+      "releaseBlocking": false,
+      "removalCondition": "Remove when the project migrates to an ESLint 9-compatible lint stack and npm ci no longer emits the ESLint 8 transitive deprecation warnings."
+    },
+    {
+      "id": "TAILWIND3-SUCRASE-GLOB10",
+      "packages": ["glob@10.5.0"],
+      "dependencyPath": "tailwindcss@3.4.19 -> sucrase@3.35.0 -> glob@10.5.0",
+      "ownerLane": "tailwind-major-or-transitive-tooling-refresh",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
+      "reviewDate": "2026-06-01",
+      "expiresOn": "2026-09-01",
+      "releaseBlocking": false,
+      "removalCondition": "Remove when the Tailwind line or its Sucrase transitive dependency no longer installs deprecated glob@10.5.0."
+    },
+    {
+      "id": "DREI9-THREE-MESH-BVH",
+      "packages": ["three-mesh-bvh@0.7.8"],
+      "dependencyPath": "@react-three/drei@9.122.0 -> three-mesh-bvh@0.7.8",
+      "ownerLane": "react18-r3f8-drei9-graphics-line",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
+      "reviewDate": "2026-06-01",
+      "expiresOn": "2026-09-01",
+      "releaseBlocking": false,
+      "removalCondition": "Remove when the graphics dependency line can move to a Drei release that uses three-mesh-bvh >=0.8 without requiring an unplanned React 19/R3F 9 migration."
     }
   ]
 }

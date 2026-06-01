@@ -200,6 +200,35 @@ function validateAllowlistEntry(entry, today) {
   return null;
 }
 
+function validateDeprecationResidual(entry, today) {
+  const required = [
+    'id',
+    'dependencyPath',
+    'ownerLane',
+    'ownerIssue',
+    'reviewDate',
+    'expiresOn',
+    'removalCondition',
+  ];
+  const missing = required.filter((field) => !entry[field]);
+  if (missing.length > 0) {
+    return `Deprecation residual ${entry.id || '<missing id>'} is missing: ${missing.join(', ')}`;
+  }
+  if (!Array.isArray(entry.packages) || entry.packages.length === 0) {
+    return `Deprecation residual ${entry.id} must include at least one package.`;
+  }
+  if (typeof entry.releaseBlocking !== 'boolean') {
+    return `Deprecation residual ${entry.id} must set releaseBlocking to true or false.`;
+  }
+  if (entry.expiresOn < today) {
+    return `Deprecation residual ${entry.id} expired on ${entry.expiresOn}.`;
+  }
+  if (!/^#\d+$|^https:\/\/github\.com\/.+\/issues\/\d+$/.test(entry.ownerIssue)) {
+    return `Deprecation residual ${entry.id} ownerIssue must be a GitHub issue URL or #number.`;
+  }
+  return null;
+}
+
 function entryMatchesFinding(entry, finding) {
   if (entry.packageName !== finding.packageName) {
     return false;
@@ -238,8 +267,12 @@ function evaluateGovernance({ audit, allowlist, packageJson, lockfile, threshold
   validateAuditReport(audit);
 
   const thresholdRank = severityRank[threshold];
+  const deprecationResiduals = Array.isArray(allowlist.deprecationResiduals)
+    ? allowlist.deprecationResiduals
+    : [];
   const validationErrors = allowlist.entries
     .map((entry) => validateAllowlistEntry(entry, today))
+    .concat(deprecationResiduals.map((entry) => validateDeprecationResidual(entry, today)))
     .filter(Boolean);
 
   const findings = toFindings(audit, packageJson, lockfile);
@@ -280,6 +313,7 @@ function evaluateGovernance({ audit, allowlist, packageJson, lockfile, threshold
     allowed,
     unallowlisted,
     unusedAllowlist,
+    deprecationResiduals,
     validationErrors,
     pass: validationErrors.length === 0 && unallowlisted.length === 0 && unusedAllowlist.length === 0,
   };
@@ -304,6 +338,7 @@ function printReport(result) {
   console.log(`allowed findings: ${result.allowed.length}`);
   console.log(`unallowlisted findings: ${result.unallowlisted.length}`);
   console.log(`unused allowlist entries: ${result.unusedAllowlist.length}`);
+  console.log(`owned deprecation residuals: ${result.deprecationResiduals.length}`);
 
   if (result.allowed.length > 0) {
     console.log('\nAllowed residual findings:');
@@ -329,6 +364,17 @@ function printReport(result) {
     console.log('\nUnused allowlist entries:');
     for (const entry of result.unusedAllowlist) {
       console.log(`- ${entry.id} (${entry.packageName} ${entry.dependencyPath})`);
+    }
+  }
+
+  if (result.deprecationResiduals.length > 0) {
+    console.log('\nOwned deprecation residuals:');
+    for (const residual of result.deprecationResiduals) {
+      console.log(`- ${residual.id} lane=${residual.ownerLane} releaseBlocking=${residual.releaseBlocking}`);
+      console.log(`  packages=${residual.packages.join(', ')}`);
+      console.log(`  path=${residual.dependencyPath}`);
+      console.log(`  owner=${residual.ownerIssue} expiresOn=${residual.expiresOn}`);
+      console.log(`  removalCondition=${residual.removalCondition}`);
     }
   }
 
