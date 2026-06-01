@@ -5,6 +5,16 @@ import { summarizeController } from '../evaluation/whitebox-evaluator';
 import type { CorrectionState } from '@/features/interactive/multi-representation-linkage/model';
 import type { ChallengeObject, ChallengeTask } from '../types';
 
+const baseTraining: ChallengeTask['training'] = {
+  stage: 'foundation',
+  capabilityTags: ['time-domain-shaping', 'steady-state-accuracy'],
+  prerequisiteCapabilityTags: [],
+  goal: '用二阶对象建立调节时间、超调量和稳态误差的第一轮控制设计直觉。',
+  estimatedEffortMinutes: 25,
+  hiddenTestSignal: 'none',
+  commonFailurePoints: ['只追求调节时间导致超调过大', '忽略稳态误差是否已经进入目标范围'],
+};
+
 const baseTask: ChallengeTask = {
   id: 'task-second-order-lead-pid',
   objectId: 'plant-second-order-underdamped',
@@ -20,6 +30,7 @@ const baseTask: ChallengeTask = {
   homeworkPolicy: '可作为作业挑战',
   homeworkEligible: true,
   practiceMode: 'open',
+  training: baseTraining,
 };
 
 const pidState: CorrectionState = {

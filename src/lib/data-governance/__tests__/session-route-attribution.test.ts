@@ -111,7 +111,7 @@ describe('PATCH /api/session/[sessionId]', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'FINISHED' }),
       }),
-      { params: { sessionId: 'session-1' } },
+      { params: Promise.resolve({ sessionId: 'session-1' }) },
     );
     const payload = await response.json();
 

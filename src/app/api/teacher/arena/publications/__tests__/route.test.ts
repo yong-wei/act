@@ -93,7 +93,7 @@ function patchJson(publicationId: string, body: unknown) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }),
-    { params: { publicationId } },
+    { params: Promise.resolve({ publicationId }) },
   );
 }
 

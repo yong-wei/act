@@ -149,6 +149,7 @@ describe('auth session resilience', () => {
       token: {
         sub: 'student-1',
         id: 'student-1',
+        email: 'student@example.com',
         role: UserRole.STUDENT,
       },
       secret,

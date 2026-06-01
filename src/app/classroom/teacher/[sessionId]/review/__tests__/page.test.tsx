@@ -79,7 +79,7 @@ describe('TeacherSessionReviewPage', () => {
       }],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-with-report' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-with-report' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('课堂记录：77 人');
@@ -191,7 +191,7 @@ describe('TeacherSessionReviewPage', () => {
       classSessionReports: [],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-unit-5-3' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-unit-5-3' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('课前 40 → 课后 85');
@@ -297,7 +297,7 @@ describe('TeacherSessionReviewPage', () => {
       classSessionReports: [],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-unit-5-3-duplicate-state' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-unit-5-3-duplicate-state' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('课前 40 → 课后 85');
@@ -345,7 +345,7 @@ describe('TeacherSessionReviewPage', () => {
       classSessionReports: [],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-course-review' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-course-review' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('课前 20 → 课后 70');
@@ -418,7 +418,7 @@ describe('TeacherSessionReviewPage', () => {
       classSessionReports: [],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-teacher-submission' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-teacher-submission' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).not.toContain('教师用户（T-1）');
@@ -469,7 +469,7 @@ describe('TeacherSessionReviewPage', () => {
       classSessionReports: [],
     });
 
-    const element = await TeacherSessionReviewPage({ params: { sessionId: 'session-limited-legacy' } });
+    const element = await TeacherSessionReviewPage({ params: Promise.resolve({ sessionId: 'session-limited-legacy' }) });
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('班级均值短板：暂无可计算数据');

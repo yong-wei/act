@@ -32,6 +32,7 @@ describe('interactive commercial module chrome', () => {
       },
       step_order: ['step-01'],
     });
+    if (!manifest) throw new Error('expected test manifest to normalize');
 
     const html = renderToStaticMarkup(
       renderInteractiveManifestStep({
@@ -73,6 +74,7 @@ describe('interactive commercial module chrome', () => {
       },
       step_order: ['step-01'],
     });
+    if (!manifest) throw new Error('expected test manifest to normalize');
 
     const html = renderToStaticMarkup(
       renderInteractiveManifestStep({
