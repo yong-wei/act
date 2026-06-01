@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   resolveHomeModelRenderMode,
   shouldForceStaticByConnection,
-} from '../src/lib/model-render-policy';
+} from '../../src/lib/model-render-policy';
 
 function run() {
   assert.equal(shouldForceStaticByConnection(undefined), false);
