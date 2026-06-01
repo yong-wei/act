@@ -166,7 +166,7 @@ describe('assessment API auth boundaries', () => {
 
     const response = await getAbilityReport(
       new Request('http://localhost/api/assessment/ability-report/student-1'),
-      { params: { userId: 'student-1' } },
+      { params: Promise.resolve({ userId: 'student-1' }) },
     );
 
     expect(response.status).toBe(401);
@@ -180,7 +180,7 @@ describe('assessment API auth boundaries', () => {
 
     const response = await getAbilityReport(
       new Request('http://localhost/api/assessment/ability-report/student-2'),
-      { params: { userId: 'student-2' } },
+      { params: Promise.resolve({ userId: 'student-2' }) },
     );
 
     expect(response.status).toBe(403);
@@ -194,7 +194,7 @@ describe('assessment API auth boundaries', () => {
 
     const response = await getAbilityReport(
       new Request('http://localhost/api/assessment/ability-report/student-1'),
-      { params: { userId: 'student-1' } },
+      { params: Promise.resolve({ userId: 'student-1' }) },
     );
     const body = await response.json();
 

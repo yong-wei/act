@@ -15,7 +15,7 @@ function resourceNodeView(overrides: Partial<TeacherResourceNodeView> = {}): Tea
     id: 'teaching-resource:control-case',
     title: '控制案例讲解',
     description: '带路径规划元数据的教师资源',
-    type: 'lesson',
+    type: 'lesson_step',
     courseModule: 'module-5',
     sourceKind: 'teaching_resource',
     sourceRefs: [{ kind: 'teaching_resource', ref: 'owned-resource' }],

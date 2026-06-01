@@ -79,11 +79,11 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
     pageContext: {
       courseId: 'simulation',
       courseTitle: '仿真',
-      pageType: 'simulation',
+      pageType: 'practice',
       stepId: 'pid-default',
       topic: 'PID 参数整定',
       learningObjectives: [],
-      knowledgeType: 'S',
+      knowledgeType: 'X',
     },
     userProfile: {
       id: 'student-1',
@@ -2021,11 +2021,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2154,11 +2154,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2253,11 +2253,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'unit-4-5',
           courseTitle: '参数优化',
-          pageType: 'lesson',
+          pageType: 'practice',
           stepId: 'step-03',
           topic: '约束翻译',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2329,11 +2329,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2426,11 +2426,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2565,11 +2565,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',

@@ -68,8 +68,8 @@ describe('ArenaChallengePage publication context', () => {
 
   it('validates publication access before loading publication submissions', async () => {
     await ArenaChallengePage({
-      params: { taskId },
-      searchParams: { publicationId: 'publication-1' },
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({ publicationId: 'publication-1' }),
     });
 
     expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
@@ -87,8 +87,8 @@ describe('ArenaChallengePage publication context', () => {
 
   it('hides peer submissions before deadline when publication policy requires it', async () => {
     const element = await ArenaChallengePage({
-      params: { taskId },
-      searchParams: { publicationId: 'publication-1' },
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({ publicationId: 'publication-1' }),
     });
 
     expect(element.props).toMatchObject({
@@ -101,8 +101,8 @@ describe('ArenaChallengePage publication context', () => {
     mocks.getServerAuthSession.mockResolvedValue(null);
 
     await expect(ArenaChallengePage({
-      params: { taskId },
-      searchParams: { publicationId: 'publication-1' },
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({ publicationId: 'publication-1' }),
     })).rejects.toThrow('notFound');
 
     expect(mocks.resolveAccessibleArenaPublicationForStudent).not.toHaveBeenCalled();
@@ -121,8 +121,8 @@ describe('ArenaChallengePage publication context', () => {
     });
 
     await ArenaChallengePage({
-      params: { taskId },
-      searchParams: { publicationId: 'publication-course' },
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({ publicationId: 'publication-course' }),
     });
 
     expect(mocks.listSubmissions).toHaveBeenCalledWith({
@@ -151,8 +151,8 @@ describe('ArenaChallengePage publication context', () => {
     ]);
 
     const element = await ArenaChallengePage({
-      params: { taskId },
-      searchParams: {},
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({}),
     });
 
     expect(mocks.listSubmissions).toHaveBeenCalledWith({ taskId });

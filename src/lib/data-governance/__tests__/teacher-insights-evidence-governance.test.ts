@@ -91,7 +91,10 @@ import {
   summarizeTeacherEvidenceCoverage,
   type TeacherStudentEvidenceStatus,
 } from '../teacher-evidence-governance';
-import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
+import {
+  STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+  type StudentSimulationArenaFeatureSummary,
+} from '../student-evidence-feature-cache';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -141,13 +144,19 @@ function evidenceCache(userId: string, overrides: Record<string, unknown> = {}) 
   };
 }
 
-function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
+function simulationArenaFeature(overrides: Partial<StudentSimulationArenaFeatureSummary> = {}): StudentSimulationArenaFeatureSummary {
   return {
     recent30d: {
+      window: {
+        firstStartedAt: '2026-05-20T08:00:00.000Z',
+        lastStartedAt: '2026-05-20T08:00:00.000Z',
+        daysCovered: 0,
+      },
       evidenceCount: 2,
       completedCount: 1,
       officialCount: 1,
       previewCount: 0,
+      agentAssistedCount: 0,
       courseLaunchedCount: 2,
       standaloneCount: 0,
       traceReferenceCount: 2,
@@ -163,6 +172,11 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
         lowConfidenceCount: 0,
         missingCount: 0,
       },
+      interventionOutcome: {
+        reviewedCount: 0,
+        improvedCount: 0,
+        lowConfidenceCount: 0,
+      },
       weakMetrics: [
         { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
       ],
@@ -172,6 +186,8 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
           source: 'arena',
           traceReference: 'ArenaEvaluationRun:official-run-1',
           factId: 'fact-arena-1',
+          sourceEventId: 'fact-arena-1:event',
+          sourceLogId: 'fact-arena-1:log',
           startedAt: '2026-05-20T08:00:00.000Z',
           protocolVersion: 'arena-eval-v1',
           checksum: 'checksum-safe',
@@ -179,10 +195,16 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
       ],
     },
     allTime: {
+      window: {
+        firstStartedAt: '2026-05-20T08:00:00.000Z',
+        lastStartedAt: '2026-05-20T08:00:00.000Z',
+        daysCovered: 0,
+      },
       evidenceCount: 2,
       completedCount: 1,
       officialCount: 1,
       previewCount: 0,
+      agentAssistedCount: 0,
       courseLaunchedCount: 2,
       standaloneCount: 0,
       traceReferenceCount: 2,
@@ -198,6 +220,11 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
         lowConfidenceCount: 0,
         missingCount: 0,
       },
+      interventionOutcome: {
+        reviewedCount: 0,
+        improvedCount: 0,
+        lowConfidenceCount: 0,
+      },
       weakMetrics: [
         { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
       ],
@@ -207,6 +234,8 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
           source: 'arena',
           traceReference: 'ArenaEvaluationRun:official-run-1',
           factId: 'fact-arena-1',
+          sourceEventId: 'fact-arena-1:event',
+          sourceLogId: 'fact-arena-1:log',
           startedAt: '2026-05-20T08:00:00.000Z',
           protocolVersion: 'arena-eval-v1',
           checksum: 'checksum-safe',
@@ -760,6 +789,8 @@ describe('teacher evidence governance insights', () => {
                   source: 'arena',
                   traceReference: 'ArenaEvaluationRun:other-class-run',
                   factId: 'other-class-fact',
+                  sourceEventId: 'other-class-fact:event',
+                  sourceLogId: 'other-class-fact:log',
                   startedAt: '2026-05-20T08:00:00.000Z',
                 },
               ],
@@ -1043,15 +1074,17 @@ describe('teacher evidence governance insights', () => {
         simulationArena: simulationArenaFeature({
           allTime: {
             ...simulationArenaFeature().allTime,
-            hiddenOfficialEvaluation: 'official-secret',
             traceReferences: [
               {
                 source: 'arena',
                 traceReference: 'ArenaEvaluationRun:official-run-1',
                 factId: 'fact-arena-1',
+                sourceEventId: 'fact-arena-1:event',
+                sourceLogId: 'fact-arena-1:log',
                 startedAt: '2026-05-20T08:00:00.000Z',
+                hiddenOfficialEvaluation: 'official-secret',
                 rawTracePayload: [{ t: 0, hidden: true }],
-              },
+              } as unknown as StudentSimulationArenaFeatureSummary['allTime']['traceReferences'][number],
             ],
           },
         }),

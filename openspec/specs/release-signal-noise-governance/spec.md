@@ -49,3 +49,11 @@ The project SHALL declare enough runtime and package-manager metadata for depend
 - **WHEN** a clean install is performed
 - **THEN** the expected Node range, package-manager version, lockfile behavior, Browserslist data state, and extraneous-package result SHALL be known
 - **AND** deviations SHALL be reported as environment drift rather than mixed with application test failures.
+
+### Requirement: Typecheck signal is restored before dependency upgrades
+The project SHALL restore the TypeScript no-emit gate before using it to validate dependency or framework upgrades.
+
+#### Scenario: Typecheck gate is run on the migration branch
+- **WHEN** `npx tsc --noEmit --pretty false` is executed
+- **THEN** stale route parameter fixtures, runtime field fixtures, mock generic signatures, and compiler target/lib mismatches SHALL be repaired or classified as real blockers
+- **AND** the command SHALL provide a meaningful regression signal for future package changes.
