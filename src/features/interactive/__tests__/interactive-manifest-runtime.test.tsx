@@ -43,8 +43,8 @@ describe('interactive runtime manifest', () => {
     expect(runtime.interactiveManifest?.lessonId).toBe('4-3');
     expect(runtime.interactiveManifest?.steps).toHaveLength(19);
     expect(runtime.interactiveManifest?.steps[0]?.modules.map((module) => module.kind)).toEqual([
-      'image-panel',
-      'summary-card',
+      'content.figure',
+      'content.cardSet',
     ]);
   });
 
@@ -197,15 +197,15 @@ describe('interactive runtime manifest', () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const manifest = runtime.interactiveManifest!;
     const moduleRegistry = {
-      'formula-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.formula': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'summary-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.cardSet': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'native-table': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.table': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'image-panel': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.figure': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'step-reveal': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.reveal': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
     };
 
@@ -1105,7 +1105,7 @@ describe('interactive runtime manifest', () => {
     const manifest = runtime.interactiveManifest!;
     const step = manifest.steps.find((item) => item.id === 'step-03');
     expect(step).toBeDefined();
-    const formulaModules = step!.modules.filter((module) => module.kind === 'formula-card');
+    const formulaModules = step!.modules.filter((module) => module.kind === 'content.formula');
     const formulaAt = (moduleId: string) => {
       const index = formulaModules.findIndex((module) => module.id === moduleId);
       const formulas = step!.contentBlocks.key_formulas;
@@ -1117,11 +1117,11 @@ describe('interactive runtime manifest', () => {
         manifest,
         step: step!,
         moduleRegistry: {
-          'native-table': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.route_task_table)),
-          'formula-card': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
-          'summary-card': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
-          'image-panel': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
-          'step-reveal': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.reveal_layers)),
+          'content.table': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.route_task_table)),
+          'content.formula': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
+          'content.cardSet': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
+          'content.figure': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
+          'content.reveal': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.reveal_layers)),
         },
         extra: undefined,
       }),
@@ -1938,7 +1938,7 @@ describe('interactive runtime manifest', () => {
   it('drives 4-6 shared content modules through manifest payload instead of course-specific module ids', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const manifest = runtime.interactiveManifest!;
-    const contentKinds = new Set(['formula-card', 'summary-card', 'native-table', 'image-panel', 'step-reveal']);
+    const contentKinds = new Set(['content.formula', 'content.cardSet', 'content.table', 'content.figure', 'content.reveal']);
 
     const contentModules = manifest.steps.flatMap((step) =>
       step.modules
@@ -1973,7 +1973,7 @@ describe('interactive runtime manifest', () => {
       ?.interactionSpec.activityCards ?? [];
 
     expect(gapChoice?.responseKind).toBe('choice.single');
-    expect(gapChoice?.legacyResponseKind).toBe('single_choice');
+    expect(gapChoice?.legacyResponseKind).toBeUndefined();
     expect(gapChoice?.options.map((option) => option.label)).toEqual([
       '滞后',
       '超前或超前-滞后',
@@ -1983,7 +1983,7 @@ describe('interactive runtime manifest', () => {
 
     expect(postQuizCards).toHaveLength(3);
     expect(postQuizCards.map((card) => card.responseKind)).toEqual(['choice.single', 'choice.multi', 'text.short']);
-    expect(postQuizCards.map((card) => card.legacyResponseKind)).toEqual(['single_choice', 'multi_choice', 'fill_text']);
+    expect(postQuizCards.map((card) => card.legacyResponseKind)).toEqual([undefined, undefined, undefined]);
     expect(postQuizCards.map((card) => card.referenceAnswer)).toEqual([
       '提前补偿可测扰动。',
       '四项都可能被漏掉。',
@@ -2003,15 +2003,14 @@ describe('interactive runtime manifest', () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const moduleKinds = new Set(runtime.interactiveManifest!.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
-      'formula-card',
-      'goal-card-row',
-      'image-panel',
-      'interactive-figure-panel',
-      'native-table',
-      'step-reveal-chain',
-      'summary-card',
+      'compute.panel',
+      'content.cardSet',
+      'content.figure',
+      'content.formula',
+      'content.reveal',
+      'content.table',
     ];
-    const activityModuleKinds = ['activity-card', 'card-sort', 'quiz-group'];
+    const activityModuleKinds = ['activity.panel'];
 
     for (const kind of sharedKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);
@@ -2039,20 +2038,16 @@ describe('interactive runtime manifest', () => {
     const manifest = runtime.interactiveManifest!;
     const moduleKinds = new Set(manifest.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
-      'bullet-list-card',
-      'equation-card-row',
-      'formula-card',
-      'goal-card-row',
-      'image-panel',
-      'native-figure',
-      'native-table',
-      'problem-statement',
-      'stage-map',
-      'stat-panel',
-      'step-reveal',
-      'summary-card',
+      'analytics.summary',
+      'content.cardSet',
+      'content.figure',
+      'content.formula',
+      'content.reveal',
+      'content.rich',
+      'content.stageMap',
+      'content.table',
     ];
-    const activityModuleKinds = ['quiz-group', 'single-choice-card', 'activity-card', 'activity-card-set'];
+    const activityModuleKinds = ['activity.panel'];
 
     expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-4/interactive-manifest.json');
     for (const kind of sharedKinds) {
@@ -2063,7 +2058,7 @@ describe('interactive runtime manifest', () => {
     }
 
     const moduleRegistry = Object.fromEntries(
-      sharedKinds.map((kind) => [
+      [...sharedKinds, ...activityModuleKinds].map((kind) => [
         kind,
         ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string; kind: string } }) =>
           createElement('div', null, module.kind, module.id, JSON.stringify(step.contentBlocks)),

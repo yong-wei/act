@@ -12,6 +12,7 @@ import {
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
         allowAfterDeadline: true,
       });
     } catch (error) {
+      rethrowIfNextDynamicError(error);
       if (error instanceof ArenaPublicationAccessError) {
         return NextResponse.json({ error: error.message }, { status: 403 });
       }
