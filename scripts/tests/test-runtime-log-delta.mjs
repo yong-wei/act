@@ -3,7 +3,9 @@ import { stat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const rootDir = process.cwd();
-const errorLogPath = path.join(rootDir, '.logs', 'error.log');
+const errorLogPath = process.env.RUNTIME_ERROR_LOG
+  ? path.resolve(rootDir, process.env.RUNTIME_ERROR_LOG)
+  : path.join(rootDir, '.logs', 'frontend-error.log');
 const smokeUrl = process.env.RUNTIME_SMOKE_URL ?? 'http://127.0.0.1:3001/';
 
 async function logSize(filePath) {

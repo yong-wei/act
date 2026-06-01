@@ -18,10 +18,12 @@ The dependency environment also has reproducibility gaps:
 
 ## Implementation Notes
 
-- Add a `test:runtime-log-delta` smoke script that records `.logs/error.log`
-  byte offsets before and after a route request. The check fails only when the
-  current request writes new error bytes, so historical log residue is not
-  treated as an active failure.
+- Add a `test:runtime-log-delta` smoke script that records frontend error-log
+  byte offsets before and after a route request. The check defaults to
+  `.logs/frontend-error.log`, while `RUNTIME_ERROR_LOG` can point at another
+  log file for targeted checks. The check fails only when the current request
+  writes new frontend error bytes, so historical log residue and unrelated
+  background worker stderr are not treated as active homepage failures.
 - Declare the local/CI/server runtime contract in `package.json` as
   Node `^20.19.0 || >=22.12.0 <27`, npm `>=10 <12`, with `packageManager`
   set to the npm version used for this lockfile hygiene pass.
