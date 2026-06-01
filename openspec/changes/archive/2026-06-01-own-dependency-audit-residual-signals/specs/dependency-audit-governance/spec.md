@@ -13,7 +13,7 @@ The project SHALL keep dependency audit allowlist entries explicit, owned, and t
 - **THEN** governance SHALL reject the automatic fix
 - **AND** it SHALL record the supported owner lane and follow-up issue for remediation.
 
-### Requirement: Dependency audit governance records runtime relevance
+### Requirement: Audit governance records runtime relevance
 The project SHALL distinguish production runtime dependency findings from dev-only tooling findings in audit reports.
 
 #### Scenario: Audit report is generated
