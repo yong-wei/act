@@ -11,6 +11,11 @@ The system SHALL support advisory and blocking governance modes for commercial U
 - **THEN** advisory mode SHALL report the violation and owning migration reference
 - **AND** blocking mode SHALL fail only new or unallowlisted violations according to the migration stage.
 
+#### Scenario: Default test encounters commercial UI debt
+- **WHEN** the default project test command includes commercial UI governance
+- **THEN** any failure for `/` or another primary route SHALL be treated as real UI governance debt unless it has a narrow temporary exception
+- **AND** dependency-upgrade work SHALL NOT classify that failure as package noise.
+
 ### Requirement: Token governance rejects unapproved page-local palettes
 The system SHALL detect unapproved page-local color families, raw decorative gradients, and unregistered status colors in student-facing and workspace UI.
 
