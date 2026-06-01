@@ -17,6 +17,7 @@
     "test:data-governance": "npx tsx ./scripts/tests/data-governance-integration-test.ts",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
+    "audit:governance": "node ./scripts/security/audit-governance.mjs",
     "test:course-data-quality-gates": "vitest run src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/module5-submission-migration.test.ts src/lib/data-governance/__tests__/session-data-quality-report.test.ts src/lib/data-governance/__tests__/session-data-quality-report-options.test.ts",
     "seed:demo": "node ./scripts/db/seed-demo-user.mjs",
     "seed:admin": "node ./scripts/db/seed-admin.mjs",
