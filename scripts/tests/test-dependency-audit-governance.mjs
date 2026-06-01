@@ -38,6 +38,7 @@ const allowlist = {
 };
 
 const allowedAudit = {
+  auditReportVersion: 2,
   vulnerabilities: {
     next: {
       name: 'next',
@@ -53,6 +54,7 @@ const allowedAudit = {
 };
 
 const newHighAudit = {
+  auditReportVersion: 2,
   vulnerabilities: {
     next: allowedAudit.vulnerabilities.next,
     eslint: {
@@ -75,6 +77,7 @@ const newHighAudit = {
 };
 
 const newModerateAudit = {
+  auditReportVersion: 2,
   vulnerabilities: {
     minimatch: {
       name: 'minimatch',
@@ -96,6 +99,7 @@ const newModerateAudit = {
 };
 
 const mixedAdvisoryAudit = {
+  auditReportVersion: 2,
   vulnerabilities: {
     next: {
       name: 'next',
@@ -184,5 +188,22 @@ const expiredResult = evaluateGovernance({
 
 assert.equal(expiredResult.pass, false);
 assert.match(expiredResult.validationErrors[0], /expired/);
+
+assert.throws(
+  () =>
+    evaluateGovernance({
+      audit: {
+        message: 'npm audit endpoint returned 403',
+        statusCode: 403,
+        error: 'Forbidden',
+      },
+      allowlist: { entries: [] },
+      packageJson,
+      lockfile,
+      threshold: 'moderate',
+      today: '2026-06-01',
+    }),
+  /not a valid audit report/,
+);
 
 console.log('dependency audit governance tests passed');

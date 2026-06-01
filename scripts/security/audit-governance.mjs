@@ -90,6 +90,21 @@ function readAuditJson(path) {
   return JSON.parse(result.stdout);
 }
 
+function validateAuditReport(audit) {
+  if (!audit || typeof audit !== 'object') {
+    throw new Error('npm audit did not return a JSON object.');
+  }
+  if (!('auditReportVersion' in audit)) {
+    throw new Error('npm audit JSON is not a valid audit report: missing auditReportVersion.');
+  }
+  if (!audit.metadata?.vulnerabilities || typeof audit.metadata.vulnerabilities !== 'object') {
+    throw new Error('npm audit JSON is not a valid audit report: missing metadata.vulnerabilities.');
+  }
+  if (!audit.vulnerabilities || typeof audit.vulnerabilities !== 'object') {
+    throw new Error('npm audit JSON is not a valid audit report: missing vulnerabilities.');
+  }
+}
+
 function directPackageFromNode(nodePath) {
   const normalized = nodePath.replace(/^node_modules\//, '');
   const segments = normalized.split('/');
@@ -220,6 +235,8 @@ function findAllowlistCoverage(finding, allowlistEntries) {
 }
 
 function evaluateGovernance({ audit, allowlist, packageJson, lockfile, threshold, today }) {
+  validateAuditReport(audit);
+
   const thresholdRank = severityRank[threshold];
   const validationErrors = allowlist.entries
     .map((entry) => validateAllowlistEntry(entry, today))
@@ -328,6 +345,7 @@ export {
   parseArgs,
   readAuditJson,
   toFindings,
+  validateAuditReport,
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
