@@ -53,7 +53,10 @@ Each residual must include:
 - `releaseBlocking`
 - `removalCondition`
 
-Expired or incomplete deprecation residual entries fail the governance command. This keeps low-risk dependency refresh work from treating known warnings as local install noise while still surfacing any new unowned warning for review.
+Expired or incomplete deprecation residual entries fail the governance command.
+The command also compares `deprecationResiduals` with the current `package-lock.json` deprecated package metadata:
+new deprecated packages fail as unowned warnings, and entries whose packages no longer appear as deprecated fail as stale residuals.
+This keeps low-risk dependency refresh work from treating known warnings as local install noise while still surfacing any new unowned warning for review.
 
 ## Current Residual Findings
 

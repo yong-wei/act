@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
-import { evaluateGovernance } from '../security/audit-governance.mjs';
+import { evaluateGovernance, printReport } from '../security/audit-governance.mjs';
 
 const packageJson = {
   dependencies: {
@@ -16,7 +16,8 @@ const lockfile = {
   packages: {
     'node_modules/next': {},
     'node_modules/next/node_modules/postcss': {},
-    'node_modules/eslint': { dev: true },
+    'node_modules/eslint': { dev: true, version: '8.57.1', deprecated: 'ESLint 8 is deprecated.' },
+    'node_modules/glob': { dev: true, version: '7.2.3', deprecated: 'Glob 7 is deprecated.' },
   },
 };
 
@@ -149,6 +150,9 @@ assert.equal(allowedResult.unallowlisted.length, 0);
 assert.equal(allowedResult.allowed[0].finding.runtimeRelevance, 'production-runtime');
 assert.equal(allowedResult.deprecationResiduals.length, 1);
 assert.equal(allowedResult.deprecationResiduals[0].ownerLane, 'dev-tooling-eslint9-migration');
+assert.equal(allowedResult.deprecatedPackages.length, 2);
+assert.equal(allowedResult.unownedDeprecations.length, 0);
+assert.equal(allowedResult.staleDeprecationResiduals.length, 0);
 
 const newHighResult = evaluateGovernance({
   audit: newHighAudit,
@@ -227,6 +231,67 @@ const invalidDeprecationResult = evaluateGovernance({
 
 assert.equal(invalidDeprecationResult.pass, false);
 assert.match(invalidDeprecationResult.validationErrors[0], /ownerLane/);
+
+const invalidDeprecationPackagesResult = evaluateGovernance({
+  audit: allowedAudit,
+  allowlist: {
+    ...allowlist,
+    deprecationResiduals: [{
+      id: 'BROKEN-DEPRECATION-PACKAGES',
+      dependencyPath: 'eslint',
+      ownerLane: 'dev-tooling-eslint9-migration',
+      ownerIssue: 'https://github.com/yong-wei/act/issues/261',
+      reviewDate: '2026-06-01',
+      expiresOn: '2026-09-01',
+      releaseBlocking: false,
+      removalCondition: 'Remove when fixed.',
+    }],
+  },
+  packageJson,
+  lockfile,
+  threshold: 'moderate',
+  today: '2026-06-01',
+});
+
+assert.equal(invalidDeprecationPackagesResult.pass, false);
+assert.match(invalidDeprecationPackagesResult.validationErrors[0], /at least one package/);
+assert.doesNotThrow(() => printReport(invalidDeprecationPackagesResult));
+
+const unownedDeprecationResult = evaluateGovernance({
+  audit: allowedAudit,
+  allowlist: {
+    ...allowlist,
+    deprecationResiduals: [{
+      ...allowlist.deprecationResiduals[0],
+      packages: ['eslint@8.57.1'],
+    }],
+  },
+  packageJson,
+  lockfile,
+  threshold: 'moderate',
+  today: '2026-06-01',
+});
+
+assert.equal(unownedDeprecationResult.pass, false);
+assert.equal(unownedDeprecationResult.unownedDeprecations[0].packageKey, 'glob@7.2.3');
+
+const staleDeprecationResult = evaluateGovernance({
+  audit: allowedAudit,
+  allowlist: {
+    ...allowlist,
+    deprecationResiduals: [{
+      ...allowlist.deprecationResiduals[0],
+      packages: ['eslint@8.57.1', 'missing-package@1.0.0'],
+    }],
+  },
+  packageJson,
+  lockfile,
+  threshold: 'moderate',
+  today: '2026-06-01',
+});
+
+assert.equal(staleDeprecationResult.pass, false);
+assert.equal(staleDeprecationResult.staleDeprecationResiduals[0].missingPackages[0], 'missing-package@1.0.0');
 
 assert.throws(
   () =>

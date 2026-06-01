@@ -169,6 +169,31 @@ function toFindings(audit, packageJson, lockfile) {
   }));
 }
 
+function packageNameFromLockPath(packagePath) {
+  const segments = packagePath.split('node_modules/');
+  const packageSegments = (segments.at(-1) || packagePath).split('/');
+  if (packageSegments[0]?.startsWith('@')) {
+    return `${packageSegments[0]}/${packageSegments[1]}`;
+  }
+  return packageSegments[0];
+}
+
+function packageKey(name, version) {
+  return `${name}@${version}`;
+}
+
+function deprecatedPackagesFromLockfile(lockfile) {
+  return Object.entries(lockfile.packages || {})
+    .filter(([, pkg]) => pkg?.deprecated)
+    .map(([path, pkg]) => ({
+      path,
+      name: packageNameFromLockPath(path),
+      version: pkg.version || '',
+      packageKey: packageKey(packageNameFromLockPath(path), pkg.version || ''),
+      message: pkg.deprecated,
+    }));
+}
+
 function validateAllowlistEntry(entry, today) {
   const required = [
     'id',
@@ -227,6 +252,33 @@ function validateDeprecationResidual(entry, today) {
     return `Deprecation residual ${entry.id} ownerIssue must be a GitHub issue URL or #number.`;
   }
   return null;
+}
+
+function evaluateDeprecationResiduals(deprecationResiduals, lockfile) {
+  const deprecatedPackages = deprecatedPackagesFromLockfile(lockfile);
+  const deprecatedKeys = new Set(deprecatedPackages.map((pkg) => pkg.packageKey));
+  const ownedKeys = new Set(deprecationResiduals.flatMap((entry) => entry.packages));
+  const unownedDeprecations = deprecatedPackages.filter((pkg) => !ownedKeys.has(pkg.packageKey));
+  const staleDeprecationResiduals = [];
+
+  for (const entry of deprecationResiduals) {
+    if (!Array.isArray(entry.packages)) {
+      continue;
+    }
+    const missingPackages = entry.packages.filter((pkg) => !deprecatedKeys.has(pkg));
+    if (missingPackages.length > 0) {
+      staleDeprecationResiduals.push({
+        ...entry,
+        missingPackages,
+      });
+    }
+  }
+
+  return {
+    deprecatedPackages,
+    unownedDeprecations,
+    staleDeprecationResiduals,
+  };
 }
 
 function entryMatchesFinding(entry, finding) {
@@ -303,6 +355,7 @@ function evaluateGovernance({ audit, allowlist, packageJson, lockfile, threshold
   }
 
   const unusedAllowlist = allowlist.entries.filter((entry) => !usedAllowlistIds.has(entry.id));
+  const deprecationState = evaluateDeprecationResiduals(deprecationResiduals, lockfile);
 
   return {
     threshold,
@@ -314,8 +367,16 @@ function evaluateGovernance({ audit, allowlist, packageJson, lockfile, threshold
     unallowlisted,
     unusedAllowlist,
     deprecationResiduals,
+    deprecatedPackages: deprecationState.deprecatedPackages,
+    unownedDeprecations: deprecationState.unownedDeprecations,
+    staleDeprecationResiduals: deprecationState.staleDeprecationResiduals,
     validationErrors,
-    pass: validationErrors.length === 0 && unallowlisted.length === 0 && unusedAllowlist.length === 0,
+    pass:
+      validationErrors.length === 0 &&
+      unallowlisted.length === 0 &&
+      unusedAllowlist.length === 0 &&
+      deprecationState.unownedDeprecations.length === 0 &&
+      deprecationState.staleDeprecationResiduals.length === 0,
   };
 }
 
@@ -324,6 +385,10 @@ function formatFinding(finding) {
   const advisories = finding.advisoryIds.length > 0 ? finding.advisoryIds.join(', ') : 'n/a';
   const paths = finding.dependencyPaths.join(', ') || 'n/a';
   return `${finding.packageName} (${finding.severity}, ${directness}, ${finding.runtimeRelevance}) advisories=${advisories} paths=${paths}`;
+}
+
+function formatPackageList(packages) {
+  return Array.isArray(packages) ? packages.join(', ') : '<invalid packages>';
 }
 
 function printReport(result) {
@@ -338,7 +403,10 @@ function printReport(result) {
   console.log(`allowed findings: ${result.allowed.length}`);
   console.log(`unallowlisted findings: ${result.unallowlisted.length}`);
   console.log(`unused allowlist entries: ${result.unusedAllowlist.length}`);
+  console.log(`deprecated packages in lockfile: ${result.deprecatedPackages.length}`);
   console.log(`owned deprecation residuals: ${result.deprecationResiduals.length}`);
+  console.log(`unowned deprecation warnings: ${result.unownedDeprecations.length}`);
+  console.log(`stale deprecation residuals: ${result.staleDeprecationResiduals.length}`);
 
   if (result.allowed.length > 0) {
     console.log('\nAllowed residual findings:');
@@ -371,10 +439,25 @@ function printReport(result) {
     console.log('\nOwned deprecation residuals:');
     for (const residual of result.deprecationResiduals) {
       console.log(`- ${residual.id} lane=${residual.ownerLane} releaseBlocking=${residual.releaseBlocking}`);
-      console.log(`  packages=${residual.packages.join(', ')}`);
+      console.log(`  packages=${formatPackageList(residual.packages)}`);
       console.log(`  path=${residual.dependencyPath}`);
       console.log(`  owner=${residual.ownerIssue} expiresOn=${residual.expiresOn}`);
       console.log(`  removalCondition=${residual.removalCondition}`);
+    }
+  }
+
+  if (result.unownedDeprecations.length > 0) {
+    console.log('\nUnowned deprecation warnings:');
+    for (const warning of result.unownedDeprecations) {
+      console.log(`- ${warning.packageKey} path=${warning.path}`);
+      console.log(`  message=${warning.message}`);
+    }
+  }
+
+  if (result.staleDeprecationResiduals.length > 0) {
+    console.log('\nStale deprecation residuals:');
+    for (const residual of result.staleDeprecationResiduals) {
+      console.log(`- ${residual.id} missingPackages=${residual.missingPackages.join(', ')}`);
     }
   }
 
@@ -389,6 +472,7 @@ function printReport(result) {
 export {
   evaluateGovernance,
   parseArgs,
+  printReport,
   readAuditJson,
   toFindings,
   validateAuditReport,
