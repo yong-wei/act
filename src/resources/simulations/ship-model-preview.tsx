@@ -258,7 +258,7 @@ export function ShipModelPreview({
   }
 
   return (
-    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
+    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-card/55 backdrop-blur-sm">
       <Image
         src={posterPath}
         alt="模型预览"
@@ -305,7 +305,7 @@ export function ShipModelPreview({
 
       {!isModelReady ? (
         <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
-          <div className="rounded-full border border-white/20 bg-slate-900/70 px-3 py-1 text-xs text-slate-100">
+          <div className="rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs text-foreground">
             {isStaticOnly
               ? '弱网模式：静态预览'
               : loadFailed
