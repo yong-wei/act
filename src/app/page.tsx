@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -31,11 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  ShipModelPreview,
-  getShipModelPosterPath,
-  preloadShipModel,
-} from '@/resources/simulations/ship-model-preview'
+import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
 import { LoginModal } from '@/components/shared/login-modal'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
@@ -150,6 +147,22 @@ const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = 
   workbench: Wrench,
 }
 
+const ShipModelPreview = dynamic(
+  () => import('@/resources/simulations/ship-model-preview').then((module) => module.ShipModelPreview),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
+          <div className="rounded-full border border-white/20 bg-slate-900/70 px-3 py-1 text-xs text-slate-100">
+            模型加载中...
+          </div>
+        </div>
+      </div>
+    ),
+  },
+)
+
 export default function HomePage() {
   const router = useRouter()
   const { data: session } = useSession()
@@ -236,7 +249,9 @@ export default function HomePage() {
     const current = shipScenarios[currentSlide]
 
     if (current?.modelPath) {
-      preloadShipModel(current.modelPath, 'high')
+      void import('@/resources/simulations/ship-model-preview')
+        .then(({ preloadShipModel }) => preloadShipModel(current.modelPath, 'high'))
+        .catch(() => undefined)
     }
   }, [currentSlide, shouldUseDynamicHomeModel])
 

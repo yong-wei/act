@@ -18,6 +18,7 @@ import { OrbitControls, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { shouldForceStaticByConnection, type ConnectionHint } from '@/lib/model-render-policy'
+import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
 
 type ShipModelPreviewProps = {
   modelPath: string
@@ -53,16 +54,6 @@ const MODEL_YAW_ROTATION: Record<string, number> = {
   '/assets/dredger.glb': Math.PI,
   '/assets/Lng-carrier.glb': Math.PI,
   '/assets/container.glb': Math.PI,
-}
-
-const MODEL_POSTER: Record<string, string> = {
-  '/assets/destroyer.glb': '/assets/destroyer.png',
-  '/assets/icebreaker.glb': '/assets/icebreaker.png',
-  '/assets/Lng-carrier.glb': '/assets/Lng-carrier.png',
-  '/assets/container.glb': '/assets/container.png',
-  '/assets/dredger.glb': '/assets/dredger.png',
-  '/assets/luxury-liner.glb': '/assets/luxury-liner.png',
-  '/assets/drilling-rig.glb': '/assets/drilling-rig.png',
 }
 
 const preloadRequested = new Set<string>()
@@ -131,10 +122,6 @@ export function preloadShipModel(modelPath: string, priority: PreloadPriority = 
   }
 
   runInIdle(run)
-}
-
-export function getShipModelPosterPath(modelPath: string) {
-  return MODEL_POSTER[modelPath] ?? '/assets/destroyer.png'
 }
 
 class ModelLoadBoundary extends Component<{
