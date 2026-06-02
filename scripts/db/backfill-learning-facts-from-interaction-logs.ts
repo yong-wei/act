@@ -1,4 +1,5 @@
-import { PrismaClient, type Prisma } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
+import { type Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 
@@ -12,7 +13,7 @@ import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
 import type { StudentSnapshotJob } from '../workers/types';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const isDryRun = process.argv.includes('--dry-run');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';

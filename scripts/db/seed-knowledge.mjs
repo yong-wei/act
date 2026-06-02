@@ -1,7 +1,7 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 // Data extracted from lesson-knowledge-cards.ts
 const LESSON_02_CARDS = [

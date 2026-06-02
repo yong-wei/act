@@ -1,9 +1,9 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const SCENARIO_MIN_ATTEMPTS = 10;
 const SCENARIO_MAX_ATTEMPTS = 30;

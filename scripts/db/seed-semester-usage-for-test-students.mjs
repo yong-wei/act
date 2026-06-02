@@ -1,9 +1,10 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { PrismaClient, ProgressStatus } from '@prisma/client';
+import { ProgressStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const SEMESTER_START = new Date('2025-03-03T08:00:00+08:00');
 const SEMESTER_END = new Date('2025-06-30T22:00:00+08:00');

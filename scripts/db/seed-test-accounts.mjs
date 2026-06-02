@@ -1,7 +1,8 @@
-import { PrismaClient, UserRole } from '@prisma/client'
+import { createPrismaClient } from '../lib/prisma-client.mjs';
+import { UserRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
+const prisma = createPrismaClient()
 
 const TEST_ACCOUNTS = [
   {

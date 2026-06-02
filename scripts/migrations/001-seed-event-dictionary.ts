@@ -1,10 +1,11 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * Seed Event Dictionary
  *
  * Populates the EventDictionary table with all known event types.
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 // Event type metadata from data-governance/event-types.ts
 const ALL_EVENTS = [
@@ -114,7 +115,7 @@ const ALL_EVENTS = [
   },
 ];
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function seedEventDictionary() {
   console.log('[Migration] Seeding event dictionary...');

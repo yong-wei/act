@@ -1,12 +1,13 @@
 #!/usr/bin/env node
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 /**
  * 旧资源迁移脚本（知识卡片 + 资源注册）
  * 运行: node scripts/db/seed-legacy-content.mjs
  */
 
-import { PrismaClient, ResourceType, KnowledgeNodeType, InteractiveCategory, LessonItemType } from '@prisma/client';
+import { ResourceType, KnowledgeNodeType, InteractiveCategory, LessonItemType } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const knowledgeCards = [
   {

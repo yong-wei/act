@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -7,7 +7,7 @@ if (!databaseUrl) {
   process.exit(0);
 }
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 try {
   await prisma.$connect();
