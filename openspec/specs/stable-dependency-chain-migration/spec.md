@@ -1,4 +1,18 @@
-## ADDED Requirements
+# stable-dependency-chain-migration Specification
+
+## Purpose
+
+Define the baseline, staging, and verification policy for moving development
+and production dependency chains to latest stable package versions without
+losing attribution or release signal.
+## Requirements
+### Requirement: Dependency migration uses explicit ownership lanes
+The project SHALL assign dependency migration work to explicit owner lanes before package versions are changed.
+
+#### Scenario: Dependency migration work is planned
+- **WHEN** a dependency update is proposed
+- **THEN** the owning lane SHALL be identified before implementation begins
+- **AND** the expected verification commands SHALL be recorded with that lane.
 
 ### Requirement: Dependency migration baseline records current development and production state
 The project SHALL establish a dependency migration baseline before moving development and production dependency chains to latest stable package versions.
