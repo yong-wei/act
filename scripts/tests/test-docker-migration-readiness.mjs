@@ -39,6 +39,12 @@ function main() {
 
   assert.match(
     dockerfile,
+    /npm config set registry https:\/\/registry\.npmjs\.org && npm ci --omit=dev --prefer-offline/,
+    'Dockerfile production-only install 必须在镜像源缺包时回退到官方 npm registry'
+  );
+
+  assert.match(
+    dockerfile,
     /COPY --from=prod-deps \/app\/node_modules \.\/node_modules/,
     'Dockerfile 运行镜像必须复制 production-only node_modules，而不是完整开发依赖树'
   );

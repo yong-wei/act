@@ -26,7 +26,8 @@ RUN --mount=type=cache,target=/root/.npm \
   && npm config get registry \
   && echo "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}" \
   && echo "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" \
-  && npm ci --prefer-offline
+  && (npm ci --prefer-offline \
+    || (npm config set registry https://registry.npmjs.org && npm ci --prefer-offline))
 
 # Production dependencies stage
 FROM base AS prod-deps
@@ -46,7 +47,8 @@ RUN --mount=type=cache,target=/root/.npm \
   && npm config set fetch-timeout 600000 \
   && if [ -n "${PRISMA_ENGINES_MIRROR}" ]; then export PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}; fi \
   && if [ -n "${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" ]; then export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}; fi \
-  && npm ci --omit=dev --prefer-offline
+  && (npm ci --omit=dev --prefer-offline \
+    || (npm config set registry https://registry.npmjs.org && npm ci --omit=dev --prefer-offline))
 
 # Builder stage
 FROM base AS builder
