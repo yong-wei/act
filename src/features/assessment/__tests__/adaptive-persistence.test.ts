@@ -98,9 +98,13 @@ function createMockDb() {
     },
   };
 
+  const transaction = vi.fn(
+    async (callback: (tx: typeof db) => Promise<unknown>) => callback(db),
+  ) as unknown as <T>(callback: (tx: typeof db) => Promise<T>) => Promise<T>;
+
   return {
     ...db,
-    $transaction: vi.fn(async (callback: (tx: typeof db) => Promise<unknown>) => callback(db)),
+    $transaction: transaction,
   };
 }
 

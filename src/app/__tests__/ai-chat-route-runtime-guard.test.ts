@@ -32,11 +32,29 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).not.toContain('...buildScopedKonlingAiTools');
   });
 
+  it('uses AI SDK v6 message and stream contracts', () => {
+    expect(chatRouteSource).toContain('toModelMessages(uiMessages)');
+    expect(chatRouteSource).toContain('toUIMessageStreamResponse');
+    expect(chatRouteSource).toContain('const uiMessages = rawMessages.map(toUIMessage)');
+    expect(chatRouteSource).toContain('originalMessages: uiMessages');
+    expect(chatRouteSource).toContain('generateMessageId: () => crypto.randomUUID()');
+    expect(chatRouteSource).toContain('consumeSseStream: consumeStream');
+    expect(chatRouteSource).toContain('stopWhen: stepCountIs(5)');
+    expect(chatRouteSource.indexOf('if (!Array.isArray(rawMessages))'))
+      .toBeGreaterThan(chatRouteSource.indexOf("return new Response(JSON.stringify({ error: '未授权' })"));
+    expect(chatRouteSource).not.toContain('convertToCoreMessages');
+    expect(chatRouteSource).not.toContain('toDataStreamResponse');
+    expect(sessionMessagesRouteSource).toContain('toModelMessages(updatedMessages)');
+    expect(sessionMessagesRouteSource).toContain('stopWhen: stepCountIs(5)');
+    expect(sessionMessagesRouteSource).not.toContain('StreamingTextResponse');
+  });
+
   it('keeps scoped Konling simulation parameter tools available without restoring legacy tools', () => {
     expect(chatRouteSource).toContain('buildScopedKonlingAiTools(buildKonlingToolRuntime');
     expect(konlingRuntimeSource).toContain('set_simulation_params: tool');
     expect(konlingRuntimeSource).toContain('analyze_result: tool');
     expect(konlingRuntimeSource).not.toContain('setSimulationParamsTool.execute');
+    expect(konlingRuntimeSource).toContain('inputSchema: setSimulationParamsInputSchema.extend');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
 

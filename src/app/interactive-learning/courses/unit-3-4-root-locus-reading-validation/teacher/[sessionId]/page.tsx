@@ -5,13 +5,14 @@ import { authOptions } from '@/lib/auth';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_3_4TeacherPage } from '@/features/interactive/unit-3-4-root-locus-reading-validation/teacher-page';
 
-export default async function UNIT_3_4TeacherRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_3_4TeacherRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   const role = session?.user?.role;
 

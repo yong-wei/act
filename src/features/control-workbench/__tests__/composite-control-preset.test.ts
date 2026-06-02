@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { getArenaChallengeObject, getArenaChallengeTask } from '@/features/arena/data/seed-challenges';
 import { resolveControlWorkbenchSession } from '../session-resolver';
 import { getPresetDefaultViewConfigs, getWorkbenchViewPlugin } from '../views';
+import { buildWorkbenchDesignFlow, type WorkbenchDesignFlowSource } from '../design-flow';
 
 const repoRoot = process.cwd();
 
@@ -41,14 +42,7 @@ describe('composite control workbench preset', () => {
     const object = getArenaChallengeObject('plant-second-order-underdamped');
     expect(object).toBeDefined();
     if (!object) return;
-
-    expect(configs.map((config) => config.id)).toEqual([
-      'time-domain',
-      'response-comparison',
-      'control-effort',
-      'metric-summary',
-    ]);
-    expect(responseComparison?.getOptions({
+    const sessionBase: WorkbenchDesignFlowSource = {
       mode: 'explore',
       title: '复合校正',
       object,
@@ -66,6 +60,17 @@ describe('composite control workbench preset', () => {
         leaderboardTypes: [],
         disabledReason: 'test',
       },
+    };
+
+    expect(configs.map((config) => config.id)).toEqual([
+      'time-domain',
+      'response-comparison',
+      'control-effort',
+      'metric-summary',
+    ]);
+    expect(responseComparison?.getOptions({
+      ...sessionBase,
+      designFlow: buildWorkbenchDesignFlow(sessionBase),
     })).toEqual(expect.arrayContaining([
       expect.objectContaining({ label: expect.stringContaining('扰动') }),
     ]));

@@ -7,7 +7,7 @@
  * 使用控灵品牌
  */
 
-import { useChat } from 'ai/react';
+import { useChat } from '@/hooks/useLegacyChat';
 import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';

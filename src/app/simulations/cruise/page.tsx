@@ -1,4 +1,3 @@
-import dynamicImport from 'next/dynamic';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 import {
   filterArenaSubmissionsForHiddenPublicationPolicy,
@@ -14,34 +13,24 @@ import {
 import { resolveArenaWorkbenchContext } from '@/features/arena/workbench/context';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { CruiseSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
 
-const CruiseSimulation = dynamicImport(
-  () => import('@/resources/simulations/simulations/cruise-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[560px] items-center justify-center text-slate-300">
-        正在加载爱达·魔都号邮轮仿真场景...
-      </div>
-    ),
-  },
-);
-
 type CruiseSimulationPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     arenaTask?: string | string[];
     mode?: string | string[];
     publicationId?: string | string[];
-  };
+  }>;
 };
 
 function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function CruiseSimulationPage({ searchParams }: CruiseSimulationPageProps) {
+export default async function CruiseSimulationPage(props: CruiseSimulationPageProps) {
+  const searchParams = await props.searchParams;
   const arenaTaskId = getSingleSearchParam(searchParams?.arenaTask);
   const requestedPublicationId = getSingleSearchParam(searchParams?.publicationId)?.trim() || undefined;
   const arenaContext = arenaTaskId ? resolveArenaWorkbenchContext(arenaTaskId) : null;

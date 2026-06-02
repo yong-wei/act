@@ -3,10 +3,11 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function PlaylistPlayPage({ params }: PageProps) {
+export default async function PlaylistPlayPage(props: PageProps) {
+  const params = await props.params;
   // LessonPlan replaces CoursePlaylist
   // For playing, redirect to the new classroom system
   const plan = await prisma.lessonPlan.findUnique({

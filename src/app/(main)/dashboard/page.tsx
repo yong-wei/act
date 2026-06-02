@@ -18,7 +18,14 @@ const studentCoreEntries = getStudentLearningIntentNavigationGroups().flatMap((g
 const dashboardEntryIntentGroups = getCommercialStudentEntryIntentGroups();
 const authenticatedProfileHref = '/profile';
 
-const dashboardCommercialEntries = dashboardEntryIntentGroups.flatMap((intentGroup) => {
+type DashboardCommercialEntry = {
+  intentGroup: (typeof dashboardEntryIntentGroups)[number];
+  entry: PlatformRoleNavigationItem | null;
+  href: string;
+  key: string;
+};
+
+const dashboardCommercialEntries = dashboardEntryIntentGroups.flatMap<DashboardCommercialEntry>((intentGroup) => {
   if (intentGroup.intent === 'account-profile') {
     return [{
       intentGroup,

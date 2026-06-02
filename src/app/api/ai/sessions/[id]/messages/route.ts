@@ -10,8 +10,9 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
-import { StreamingTextResponse, streamText } from 'ai';
+import { streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel } from '@/lib/ai-client';
+import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   buildKonlingRuntimeContext,
@@ -24,7 +25,7 @@ import {
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import type { AIContext } from '@/types/ai-context';
-import type { Message } from 'ai/react';
+import type { Message } from '@/types/ai-message';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -76,14 +77,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // 获取现有消息
-    const existingMessages = (konlingSession.messages as unknown as Message[]) || [];
+    const existingMessages = ((konlingSession.messages as unknown as Message[]) || []).map(toLegacyMessage);
 
     // 添加用户消息
-    const userMessage: Message = {
+    const userMessage: Message = toLegacyMessage({
       id: Date.now().toString(),
       role: 'user',
       content,
-    };
+    });
 
     const updatedMessages = [...existingMessages, userMessage];
 
@@ -138,13 +139,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // 调用AI
     const result = await streamText({
       model: await getConfiguredAIModel(),
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...updatedMessages.map((m) => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
-      ],
+      system: systemPrompt,
+      messages: await toModelMessages(updatedMessages),
       tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
@@ -152,8 +148,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         agentSessionId: agentSession.id,
         permittedTools: agentSession.permittedTools,
       })),
-      maxSteps: 5,
-      maxTokens: 1000,
+      stopWhen: stepCountIs(5),
+      maxOutputTokens: 1000,
       temperature: 0.7,
     });
 
@@ -164,11 +160,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // 添加助手回复
-    const assistantMessage: Message = {
+    const assistantMessage: Message = toLegacyMessage({
       id: (Date.now() + 1).toString(),
       role: 'assistant',
       content: assistantContent,
-    };
+    });
 
     const finalMessages = [...updatedMessages, assistantMessage];
 

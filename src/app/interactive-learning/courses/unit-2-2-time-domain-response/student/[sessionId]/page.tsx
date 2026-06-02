@@ -6,13 +6,14 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_2_2StudentPage } from '@/features/interactive/unit-2-2-time-response/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_2_2StudentRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_2_2StudentRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-2-2-time-domain-response');
 
   if (params.sessionId !== 'demo') {

@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       system: systemPrompt,
       prompt: `请审核学生的方程：${equation}`,
       temperature: 0.3,
-      maxTokens: 200,
+      maxOutputTokens: 200,
     });
 
     const feedback = result.text || '无法获取反馈';

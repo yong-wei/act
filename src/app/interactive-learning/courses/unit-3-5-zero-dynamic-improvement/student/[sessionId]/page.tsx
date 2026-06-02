@@ -6,13 +6,14 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_3_5StudentPage } from '@/features/interactive/unit-3-5-zero-dynamic-improvement/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_3_5StudentRoute({
-  params,
-}: {
-  params: {
-    sessionId: string;
-  };
-}) {
+export default async function UNIT_3_5StudentRoute(
+  props: {
+    params: Promise<{
+      sessionId: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement');
 
   if (params.sessionId !== 'demo') {

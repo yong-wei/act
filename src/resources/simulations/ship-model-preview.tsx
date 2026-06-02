@@ -18,6 +18,7 @@ import { OrbitControls, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { shouldForceStaticByConnection, type ConnectionHint } from '@/lib/model-render-policy'
+import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
 
 type ShipModelPreviewProps = {
   modelPath: string
@@ -53,16 +54,6 @@ const MODEL_YAW_ROTATION: Record<string, number> = {
   '/assets/dredger.glb': Math.PI,
   '/assets/Lng-carrier.glb': Math.PI,
   '/assets/container.glb': Math.PI,
-}
-
-const MODEL_POSTER: Record<string, string> = {
-  '/assets/destroyer.glb': '/assets/destroyer.png',
-  '/assets/icebreaker.glb': '/assets/icebreaker.png',
-  '/assets/Lng-carrier.glb': '/assets/Lng-carrier.png',
-  '/assets/container.glb': '/assets/container.png',
-  '/assets/dredger.glb': '/assets/dredger.png',
-  '/assets/luxury-liner.glb': '/assets/luxury-liner.png',
-  '/assets/drilling-rig.glb': '/assets/drilling-rig.png',
 }
 
 const preloadRequested = new Set<string>()
@@ -131,10 +122,6 @@ export function preloadShipModel(modelPath: string, priority: PreloadPriority = 
   }
 
   runInIdle(run)
-}
-
-export function getShipModelPosterPath(modelPath: string) {
-  return MODEL_POSTER[modelPath] ?? '/assets/destroyer.png'
 }
 
 class ModelLoadBoundary extends Component<{
@@ -271,7 +258,7 @@ export function ShipModelPreview({
   }
 
   return (
-    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
+    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-card/55 backdrop-blur-sm">
       <Image
         src={posterPath}
         alt="模型预览"
@@ -318,7 +305,7 @@ export function ShipModelPreview({
 
       {!isModelReady ? (
         <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
-          <div className="rounded-full border border-white/20 bg-slate-900/70 px-3 py-1 text-xs text-slate-100">
+          <div className="rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs text-foreground">
             {isStaticOnly
               ? '弱网模式：静态预览'
               : loadFailed

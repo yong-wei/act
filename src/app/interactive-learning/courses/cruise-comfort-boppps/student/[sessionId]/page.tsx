@@ -7,12 +7,13 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     sessionId: string;
-  };
+  }>;
 }
 
-export default async function CruiseStudentRoute({ params }: PageProps) {
+export default async function CruiseStudentRoute(props: PageProps) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/cruise-comfort-boppps');
 
   if (params.sessionId !== 'demo') {

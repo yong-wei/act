@@ -142,7 +142,7 @@ async function generateWithConfiguredModel(prompt: string) {
       model: await getConfiguredAIModel(),
       prompt,
       temperature: 0.2,
-      maxTokens: 220,
+      maxOutputTokens: 220,
       abortSignal: controller.signal,
     });
 

@@ -6,7 +6,7 @@
  * 集成到仿真界面的 AI 助手聊天组件
  */
 
-import { useChat, type Message } from 'ai/react';
+import { useChat, type Message } from '@/hooks/useLegacyChat';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';

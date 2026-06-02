@@ -23,7 +23,7 @@ import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } 
 import { prisma } from '@/lib/prisma'
 
 interface PageProps {
-  params: { sessionId: string }
+  params: Promise<{ sessionId: string }>
 }
 
 type AbilityDimensionKey =
@@ -484,7 +484,8 @@ function MiniRadar({ values, color }: { values: number[]; color: string }) {
   )
 }
 
-export default async function TeacherSessionReviewPage({ params }: PageProps) {
+export default async function TeacherSessionReviewPage(props: PageProps) {
+  const params = await props.params;
   const auth = await getServerAuthSession()
   if (!auth?.user?.id) {
     redirect('/login')

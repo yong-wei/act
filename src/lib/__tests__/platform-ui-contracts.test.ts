@@ -423,6 +423,7 @@ describe('platform UI contracts', () => {
     const mobileNav = childElements(content.props?.children).find(
       (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
     );
+    if (!mobileNav) throw new Error('expected mobile platform navigation');
 
     expect(classNameOf(grid)).toContain('xl:grid-cols-[248px_1fr]');
     expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');

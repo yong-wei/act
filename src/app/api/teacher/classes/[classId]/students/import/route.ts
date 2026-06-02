@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import * as XLSX from 'xlsx';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { loadFirstWorksheetRows } from '@/lib/server-spreadsheet';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,20 +53,20 @@ export async function POST(
 
     // 验证文件类型
     const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-      return NextResponse.json({ error: '请上传Excel文件（.xlsx或.xls格式）' }, { status: 400 });
+    if (!fileName.endsWith('.xlsx')) {
+      return NextResponse.json({ error: '请上传Excel文件（.xlsx格式）' }, { status: 400 });
     }
 
-    // 读取Excel文件
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
+    let data: unknown[][] | null;
+    try {
+      data = await loadFirstWorksheetRows(await file.arrayBuffer());
+    } catch {
+      return NextResponse.json({ error: 'Excel文件无法解析或格式不正确' }, { status: 400 });
+    }
 
-    // 获取第一个工作表
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-
-    // 转换为JSON数组 (header: 1 返回数组而非对象)
-    const data = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
+    if (!data) {
+      return NextResponse.json({ error: 'Excel文件为空或格式不正确' }, { status: 400 });
+    }
 
     if (data.length < 2) {
       return NextResponse.json({ error: 'Excel文件为空或格式不正确' }, { status: 400 });

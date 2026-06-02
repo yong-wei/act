@@ -79,11 +79,11 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
     pageContext: {
       courseId: 'simulation',
       courseTitle: '仿真',
-      pageType: 'simulation',
+      pageType: 'practice',
       stepId: 'pid-default',
       topic: 'PID 参数整定',
       learningObjectives: [],
-      knowledgeType: 'S',
+      knowledgeType: 'X',
     },
     userProfile: {
       id: 'student-1',
@@ -462,8 +462,8 @@ describe('konling agent runtime', () => {
     expect(tools).toHaveProperty('compare_simulation_runs');
     expect(tools).toHaveProperty('propose_controller_patch');
     expect(tools).toHaveProperty('apply_controller_patch');
-    expect((tools.run_virtual_simulation.parameters as any).shape).toHaveProperty('idempotencyKey');
-    expect((tools.apply_controller_patch.parameters as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.run_virtual_simulation.inputSchema as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.apply_controller_patch.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
   it('resolves simulation context from persisted runs with student owner isolation and no global state dependency', async () => {
@@ -2021,11 +2021,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2154,11 +2154,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2253,11 +2253,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'unit-4-5',
           courseTitle: '参数优化',
-          pageType: 'lesson',
+          pageType: 'practice',
           stepId: 'step-03',
           topic: '约束翻译',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2329,11 +2329,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2426,11 +2426,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',
@@ -2477,8 +2477,8 @@ describe('konling agent runtime', () => {
   it('exposes idempotency keys in approval-required write tool schemas', () => {
     const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
 
-    expect((tools.set_simulation_params.parameters as any).shape).toHaveProperty('idempotencyKey');
-    expect((tools.record_intervention_result.parameters as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.set_simulation_params.inputSchema as any).shape).toHaveProperty('idempotencyKey');
+    expect((tools.record_intervention_result.inputSchema as any).shape).toHaveProperty('idempotencyKey');
   });
 
   it('filters exposed AI tool schemas to the current agent session permissions', () => {
@@ -2565,11 +2565,11 @@ describe('konling agent runtime', () => {
         pageContext: {
           courseId: 'simulation',
           courseTitle: '仿真',
-          pageType: 'simulation',
+          pageType: 'practice',
           stepId: 'pid-default',
           topic: 'PID 参数整定',
           learningObjectives: [],
-          knowledgeType: 'S',
+          knowledgeType: 'X',
         },
         userProfile: {
           id: 'student-1',

@@ -26,10 +26,13 @@ import type { InterventionDecision, StudentState } from '@/features/ai/companion
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
 import {
   analyzeResultTool,
+  analyzeResultInputSchema,
   analyzeSimulationResult,
   buildSimulationParamChangeRequest,
   formatSimulationParamChangeResponse,
+  getSimulationStatusInputSchema,
   getSimulationStatusTool,
+  setSimulationParamsInputSchema,
   setSimulationParamsTool,
   type SimulationAnalysisInput,
   type SimulationParamChangeInput,
@@ -1962,22 +1965,22 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
   const tools = {
     get_page_context: tool({
       description: '读取服务端确认的当前页面上下文。',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: () => runtime.getPageContext(),
     }),
     get_learner_state: tool({
       description: '读取服务端学习者状态，包含能力、知识掌握、风险与证据置信度。',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: () => runtime.getLearnerState(),
     }),
     get_plan_context: tool({
       description: '读取当前学习路径与下一步节点上下文。',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: () => runtime.getPlanContext(),
     }),
     search_learning_memory: tool({
       description: '检索隐私范围允许的 Konling 学习记忆摘要。',
-      parameters: z.object({
+      inputSchema: z.object({
         query: z.string().optional(),
         limit: z.number().int().min(1).max(10).optional(),
       }),
@@ -1985,7 +1988,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
     }),
     search_knowledge_graph: tool({
       description: '按关键词检索课程知识图谱节点。',
-      parameters: z.object({
+      inputSchema: z.object({
         query: z.string().optional(),
         limit: z.number().int().min(1).max(10).optional(),
       }),
@@ -1993,59 +1996,59 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
     }),
     recommend_next_action: tool({
       description: '基于学习状态、路径和记忆推荐下一步动作。',
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: () => runtime.recommendNextAction(),
     }),
     get_simulation_status: tool({
       description: '读取当前资源范围内的仿真状态。',
-      parameters: getSimulationStatusTool.parameters,
+      inputSchema: getSimulationStatusInputSchema,
       execute: (args) => runtime.getSimulationStatus(args),
     }),
     set_simulation_params: tool({
       description: '在当前资源范围内创建仿真参数修改请求，等待学生在仿真界面确认。',
-      parameters: setSimulationParamsTool.parameters.extend({
+      inputSchema: setSimulationParamsInputSchema.extend({
         idempotencyKey: KONLING_IDEMPOTENCY_KEY_PARAMETER,
       }),
       execute: (args) => runtime.setSimulationParams(args),
     }),
     analyze_result: tool({
       description: '分析当前资源范围内的仿真结果，给出控制性能、安全性与参数建议。',
-      parameters: analyzeResultTool.parameters,
+      inputSchema: analyzeResultInputSchema,
       execute: (args) => runtime.analyzeResult(args),
     }),
     get_simulation_context: tool({
       description: '读取持久化 SimulationRun 或 SimulationTaskSpec 的仿真上下文摘要。',
-      parameters: simulationContextParameters,
+      inputSchema: simulationContextParameters,
       execute: (args) => runtime.getSimulationContext(args),
     }),
     run_virtual_simulation: tool({
       description: '通过持久化 SimulationRun 和 SimulationTrace 创建一次幂等虚拟仿真运行。',
-      parameters: runVirtualSimulationParameters,
+      inputSchema: runVirtualSimulationParameters,
       execute: (args) => runtime.runVirtualSimulation(args),
     }),
     analyze_simulation_trace: tool({
       description: '基于持久化 SimulationTrace 摘要分析仿真表现，默认不暴露高频原始样本。',
-      parameters: analyzeSimulationTraceParameters,
+      inputSchema: analyzeSimulationTraceParameters,
       execute: (args) => runtime.analyzeSimulationTrace(args),
     }),
     compare_simulation_runs: tool({
       description: '比较同一授权 owner 或班级范围内的多个持久化仿真运行。',
-      parameters: compareSimulationRunsParameters,
+      inputSchema: compareSimulationRunsParameters,
       execute: (args) => runtime.compareSimulationRuns(args),
     }),
     propose_controller_patch: tool({
       description: '基于仿真证据提出控制器补丁候选，不直接改变控制器草稿。',
-      parameters: proposeControllerPatchParameters,
+      inputSchema: proposeControllerPatchParameters,
       execute: (args) => runtime.proposeControllerPatch(args),
     }),
     apply_controller_patch: tool({
       description: '申请将控制器补丁写入当前 owner 的控制器草稿，必须等待 approval。',
-      parameters: applyControllerPatchParameters,
+      inputSchema: applyControllerPatchParameters,
       execute: (args) => runtime.applyControllerPatch(args),
     }),
     record_intervention_result: tool({
       description: '记录学生对 Konling 干预的接受、忽略或评分结果；AI 工具路径只创建待审批请求，不替学生直接确认。',
-      parameters: z.object({
+      inputSchema: z.object({
         interventionId: z.string(),
         feedback: z.enum(['accepted', 'dismissed', 'rated']),
         helpful: z.boolean().optional(),
@@ -2056,7 +2059,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
     }),
     analyze_attempt: tool({
       description: '分析最近尝试并判断是否需要纠偏或补救干预。',
-      parameters: z.object({
+      inputSchema: z.object({
         studentState: z.any(),
       }),
       execute: (args) => runtime.analyzeAttempt(args as { studentState: StudentState }),

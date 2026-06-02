@@ -23,10 +23,8 @@ const CONTENT_TYPES: Record<string, string> = {
   '.mdx': 'text/markdown; charset=utf-8',
 };
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { assetPath: string[] } },
-) {
+export async function GET(_request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
+  const params = await props.params;
   const segments = params.assetPath ?? [];
   if (!segments.length) {
     return NextResponse.json({ error: 'Missing asset path' }, { status: 400 });

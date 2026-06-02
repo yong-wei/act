@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useChat, type Message } from 'ai/react';
+import { useChat, type Message } from '@/hooks/useLegacyChat';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { X, Send, Sparkles, MessageSquare, Trash2, Loader2 } from 'lucide-react';
 import { KonlingAvatar } from './konling-avatar';
