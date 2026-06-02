@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Workflow, Compass, GaugeCircle, Waves, Map } from 'lucide-react';
+import { Workflow, Compass, GaugeCircle, Waves, Map, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
@@ -10,7 +10,7 @@ interface SynthesisStep {
   title: string;
   summary: string;
   details: string[];
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const STEPS: SynthesisStep[] = [

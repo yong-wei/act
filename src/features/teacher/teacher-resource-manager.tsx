@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, BookOpen, Boxes, GitBranch, Presentation } from 'lucide-react';
+import { ArrowLeft, Search, BookOpen, Boxes, GitBranch, Presentation, type LucideIcon } from 'lucide-react';
 import { InteractiveResourceList } from './resources/interactive-resource-list';
 import { ClassroomComponentList } from './resources/classroom-component-list';
 import { KnowledgeNodeManager } from './resources/knowledge-node-manager';
@@ -42,7 +42,7 @@ interface TeacherResourceManagerProps {
 
 type TabType = 'interactive' | 'classroom' | 'knowledge';
 
-const TABS: { id: TabType; label: string; icon: React.ElementType }[] = [
+const TABS: { id: TabType; label: string; icon: LucideIcon }[] = [
   { id: 'interactive', label: '互动组件', icon: Boxes },
   { id: 'classroom', label: '课堂组件', icon: Presentation },
   { id: 'knowledge', label: '知识图谱', icon: BookOpen },

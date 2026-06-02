@@ -110,7 +110,7 @@ export function KnowledgeGraphCanvas({
   onNodeHover,
   labelMode,
 }: KnowledgeGraphCanvasProps) {
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
 
   useEffect(() => {

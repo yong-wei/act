@@ -383,7 +383,7 @@ function Scene({
   trail: Vector2[];
   iceMode: boolean;
   showGrid: boolean;
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
 }) {

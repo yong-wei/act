@@ -156,7 +156,7 @@ export function KnowledgeGraph2D({
   height,
   labelMode,
 }: KnowledgeGraph2DProps) {
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
 
   useEffect(() => {

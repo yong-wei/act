@@ -6,7 +6,7 @@
  */
 
 import { useRef, useMemo } from 'react';
-import { useFrame, extend, type ReactThreeFiber } from '@react-three/fiber';
+import { useFrame, extend } from '@react-three/fiber';
 import { shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -138,21 +138,6 @@ const WaterShaderMaterial = shaderMaterial(
 );
 
 extend({ WaterShaderMaterial });
-
-// 为 React Three Fiber 声明自定义 shader 材质类型
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof THREE.ShaderMaterial> & {
-        uTime?: number;
-        uColor?: THREE.Color;
-        uFoamColor?: THREE.Color;
-        uSunPosition?: THREE.Vector3;
-        uWaveAmplitude?: number;
-      };
-    }
-  }
-}
 
 // ============ 波浪高度计算函数 ============
 

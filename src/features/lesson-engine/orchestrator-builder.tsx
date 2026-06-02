@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil, type LucideIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TeachingResource, LessonItemType, InteractiveCategory } from '@prisma/client';
 
 // 组件分类配置
-const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+const CATEGORY_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   SYSTEM_MODELING: { label: '系统建模', icon: Boxes, color: 'text-blue-400' },
   TIME_DOMAIN: { label: '时域分析', icon: Activity, color: 'text-emerald-400' },
   ROOT_LOCUS: { label: '根轨迹分析', icon: GitBranch, color: 'text-violet-400' },

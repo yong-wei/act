@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import type { ReactElement } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -79,7 +80,7 @@ const QUIZ_ITEMS: QuizItem[] = [
   },
 ];
 
-const CHARTS: Record<string, JSX.Element> = {
+const CHARTS: Record<string, ReactElement> = {
   lowpass: (
     <svg viewBox="0 0 320 160" className="h-32 w-full">
       <rect width="320" height="160" rx="12" fill="#0f172a" />

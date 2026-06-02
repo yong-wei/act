@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.skip(
-  true,
-  'React Three Fiber 8 simulation runtime is isolated until the React/Three upgrade lane restores Next 16 dev coverage.',
-);
+import { expectRenderedCanvas } from './simulation-canvas-assertions';
 
 test('destroyer simulation loads without runtime errors', async ({ page }) => {
   test.setTimeout(180000);
@@ -20,6 +17,7 @@ test('destroyer simulation loads without runtime errors', async ({ page }) => {
   await page.goto('/simulations/destroyer', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
   await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30000 });
+  await expectRenderedCanvas(page);
 
   await expect(page.getByText('1.0x')).toBeVisible({ timeout: 30000 });
   for (const speedLabel of ['2.0x', '4.0x', '8.0x']) {
@@ -53,6 +51,7 @@ test('destroyer simulation loads without runtime errors', async ({ page }) => {
     .toBeGreaterThan(1);
 
   await page.waitForTimeout(500);
+  await expectRenderedCanvas(page);
 
   expect(pageErrors, `Page errors: ${pageErrors.join(' | ')}`).toEqual([]);
   expect(consoleErrors, `Console errors: ${consoleErrors.join(' | ')}`).toEqual([]);

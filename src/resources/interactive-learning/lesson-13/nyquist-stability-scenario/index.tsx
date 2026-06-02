@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -15,7 +15,7 @@ interface ScenarioItem {
   id: string;
   title: string;
   prompt: string;
-  plot: JSX.Element;
+  plot: ReactElement;
   options: ScenarioOption[];
   answerId: string;
   explanation: string;

@@ -107,7 +107,7 @@ function createMarkdownComponents(lessonId: string): Components {
     img: ({ node, src = '', alt = '', ...props }) => (
       // eslint-disable-next-line @next/next/no-img-element
       (<img
-        src={resolveHandoutAssetUrl(src, { lessonId })}
+        src={resolveHandoutAssetUrl(typeof src === 'string' ? src : '', { lessonId })}
         alt={alt}
         className="my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain"
         {...props}
@@ -115,7 +115,7 @@ function createMarkdownComponents(lessonId: string): Components {
     ),
     a: ({ node, href = '', children, ...props }) => (
       <a
-        href={resolveHandoutAssetUrl(href, { lessonId })}
+        href={resolveHandoutAssetUrl(typeof href === 'string' ? href : '', { lessonId })}
         className="text-sky-700 underline underline-offset-2"
         {...props}
       >

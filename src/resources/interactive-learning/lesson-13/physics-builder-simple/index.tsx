@@ -426,7 +426,7 @@ export function PhysicsBuilderSimple({
   const [hasCompleted, setHasCompleted] = useState(false);
   const [bestScore, setBestScore] = useState(0);
 
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const startTimeRef = useRef<number>(0);
 
   const characteristics = getResponseCharacteristics(dampingRatio);

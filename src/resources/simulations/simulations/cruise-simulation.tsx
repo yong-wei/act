@@ -1347,7 +1347,7 @@ function VisualizationLayer({
   desiredRoutePoints: Vector2[];
   trajectoryPoints: Vector2[];
   cameraMode: CameraMode;
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
   onRequestFreeMode: () => void;
 }) {
   return (

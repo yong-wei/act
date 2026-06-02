@@ -1,5 +1,4 @@
 import type { InteractiveCategory } from '@prisma/client';
-import type { ElementType } from 'react';
 import {
   Activity,
   Boxes,
@@ -8,6 +7,7 @@ import {
   Shuffle,
   Sliders,
   Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
 
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
@@ -78,7 +78,7 @@ export interface InteractiveCourseHubModule {
 
 export type CategoryConfig = {
   label: string;
-  icon: ElementType;
+  icon: LucideIcon;
   color: string;
   description: string;
   routeSlug: string;

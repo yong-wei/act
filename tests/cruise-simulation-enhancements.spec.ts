@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
 test('cruise simulation course mode should expose speed controls', async ({ page }) => {
-  test.skip(
-    true,
-    'React Three Fiber 8 simulation runtime is isolated until the React/Three upgrade lane restores Next 16 dev coverage.',
-  );
-
   await page.goto(
     '/simulations/cruise?courseMode=cruise-boppps&role=student&sessionId=demo&embed=1',
     { waitUntil: 'domcontentloaded' }

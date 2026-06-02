@@ -2098,7 +2098,7 @@ function getCrossTrackError(position: THREE.Vector3, path: THREE.Vector3[]): num
 }
 
 type SimulationLoopProps = {
-  shipRef: React.RefObject<THREE.Group>;
+  shipRef: React.RefObject<THREE.Group | null>;
   simRef: React.MutableRefObject<SimulationState>;
   controlMode: ControlMode;
   pidGains: { kp: number; ki: number; kd: number };
@@ -2701,7 +2701,7 @@ function MiniMap({
   );
 }
 
-function ShipModel({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
+function ShipModel({ shipRef }: { shipRef: React.RefObject<THREE.Group | null> }) {
   const { scene } = useGLTF('/assets/destroyer.glb');
   const { model, scale, size } = useMemo(() => {
     const cloned = scene.clone(true);

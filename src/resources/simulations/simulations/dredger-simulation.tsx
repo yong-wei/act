@@ -582,7 +582,7 @@ export function DredgerSimulation() {
   const dpStateRef = useRef<DPState>(createDPState());
   const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
   const timeRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
     new SimulationClock({
