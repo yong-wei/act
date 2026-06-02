@@ -33,6 +33,18 @@ function main() {
 
   assert.match(
     dockerfile,
+    /npm ci --omit=dev --prefer-offline/,
+    'Dockerfile 运行镜像依赖阶段必须支持 production-only install'
+  );
+
+  assert.match(
+    dockerfile,
+    /COPY --from=prod-deps \/app\/node_modules \.\/node_modules/,
+    'Dockerfile 运行镜像必须复制 production-only node_modules，而不是完整开发依赖树'
+  );
+
+  assert.match(
+    dockerfile,
     /ENTRYPOINT \["\.\/docker-entrypoint\.sh"\]/,
     'Dockerfile 必须使用 entrypoint 在启动时执行迁移'
   );
@@ -91,7 +103,7 @@ function main() {
 
   assert.match(
     packageJson.scripts.build,
-    /wasm:build:control-engine/,
+    /(?:wasm:build:control-engine|scripts\/wasm\/build-control-engine\.mjs)/,
     '统一 build 脚本必须先构建控制分析内核的 Wasm 产物'
   );
 
@@ -129,6 +141,42 @@ function main() {
     startWrapperScript,
     /data-governance-worker\.ts/,
     '容器启动包装脚本必须最终启动数据治理 worker'
+  );
+
+  assert.match(
+    startWrapperScript,
+    /\.\/node_modules\/\.bin\/tsx scripts\/workers\/data-governance-worker\.ts/,
+    'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
+  );
+
+  assert.match(
+    deployScript,
+    /\.\/node_modules\/\.bin\/tsx scripts\/workers\/scheduler\.ts/,
+    'scheduler 初始化使用 tsx 时必须走镜像内显式生产依赖'
+  );
+
+  assert.equal(
+    packageJson.dependencies.tsx,
+    '^4.22.4',
+    'tsx 被生产 worker 与 scheduler 入口使用，必须归类为 dependencies'
+  );
+
+  assert.equal(
+    packageJson.dependencies.prisma,
+    '^5.18.0',
+    'docker-entrypoint.sh 运行 prisma migrate deploy，prisma CLI 必须归类为 dependencies'
+  );
+
+  assert.equal(
+    packageJson.devDependencies?.tsx,
+    undefined,
+    'tsx 不得留在 devDependencies，否则 production-only install 会缺少 worker 入口'
+  );
+
+  assert.equal(
+    packageJson.devDependencies?.prisma,
+    undefined,
+    'prisma 不得留在 devDependencies，否则 production-only install 会缺少迁移入口'
   );
 
   assert.match(

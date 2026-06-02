@@ -30,10 +30,16 @@ assert.match(
   'systemd 配置必须继续等待 Redis 就绪',
 );
 
-assert.match(
-  serviceSource,
-  /podman start \$\{WORKER_CONTAINER\}/,
-  'systemd 配置必须继续管理 worker 容器',
+assert.equal(
+  serviceSource.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
+  true,
+  'systemd 配置必须通过 4-deploy.sh --app-only 继续重建并管理 worker 容器',
+);
+
+assert.equal(
+  serviceSource.includes('ExecStart=/usr/bin/podman start ${WORKER_CONTAINER}'),
+  false,
+  'systemd 配置不得直接启动旧 worker 容器，避免复用过期静态主机映射',
 );
 
 console.log('data governance deploy guardrails contract passed');
