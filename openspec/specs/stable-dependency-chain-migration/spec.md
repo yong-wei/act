@@ -83,3 +83,19 @@ The project SHALL keep unrelated major migrations outside the Next framework cha
 #### Scenario: Next framework change is scoped
 - **WHEN** Next and directly related framework tooling are updated
 - **THEN** React 19, Prisma 7, Tailwind 4, and 3D visualization major upgrades SHALL remain out of scope unless required by verified peer constraints.
+
+### Requirement: React runtime upgrades validate shared UI and route rendering
+The project SHALL validate shared UI primitives, client components, and representative application routes when upgrading the React runtime.
+
+#### Scenario: React 19 upgrade is reviewed
+- **WHEN** React and React DOM are upgraded to the selected latest stable React 19 line
+- **THEN** typecheck, lint, default tests, unit tests, build, and browser route checks SHALL pass or document explicit blockers
+- **AND** React-dependent major package upgrades SHALL remain deferred unless they are required to restore React runtime compatibility.
+
+### Requirement: Visualization dependency upgrades validate canvas runtime behavior
+The project SHALL validate browser canvas rendering and interaction when upgrading Three.js, React Three Fiber, Drei, or force-graph packages.
+
+#### Scenario: Visualization stack upgrade is reviewed
+- **WHEN** 2D or 3D visualization dependencies are upgraded to selected latest stable versions
+- **THEN** typecheck, tests, build, and browser canvas checks SHALL pass or document explicit blockers
+- **AND** representative canvases SHALL be verified as nonblank, correctly framed, and interactive.

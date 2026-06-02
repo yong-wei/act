@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Waves, Sigma, ShieldCheck } from 'lucide-react';
+import { BookOpen, Waves, Sigma, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
@@ -11,7 +11,7 @@ interface GuideSection {
   summary: string;
   bullets: string[];
   tag: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const SECTIONS: GuideSection[] = [

@@ -750,7 +750,7 @@ export function DrillingSimulation() {
   );
   const waveHeightRef = useRef(1.5);
   const timeRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef(performance.now());
   const clockRef = useRef(
     new SimulationClock({

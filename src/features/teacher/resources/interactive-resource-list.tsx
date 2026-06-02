@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Pencil,
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Pencil, type LucideIcon,
 } from 'lucide-react';
 import { ResourceEditDialog } from './resource-edit-dialog';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ interface InteractiveResourceListProps {
   searchQuery: string;
 }
 
-const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
+const CATEGORY_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bgColor: string }> = {
   SYSTEM_MODELING: { label: '系统建模', icon: Boxes, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
   TIME_DOMAIN: { label: '时域分析', icon: Activity, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
   ROOT_LOCUS: { label: '根轨迹分析', icon: GitBranch, color: 'text-violet-400', bgColor: 'bg-violet-500/10' },

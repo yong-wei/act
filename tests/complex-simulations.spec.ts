@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.skip(
-  true,
-  'React Three Fiber 8 simulation runtime is isolated until the React/Three upgrade lane restores Next 16 dev coverage.',
-);
+import { expectRenderedCanvas } from './simulation-canvas-assertions';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -62,12 +59,29 @@ for (const scenario of pages) {
     await page.goto(scenario.path, { waitUntil: 'networkidle' });
     await expect(page.getByText(scenario.title)).toBeVisible({ timeout: 30000 });
     await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30000 });
+    await expectRenderedCanvas(page);
 
     await page.getByRole('button', { name: scenario.startName }).first().click();
     await expect(page.getByText(scenario.runningText).first()).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(3000);
+    await expectRenderedCanvas(page);
 
     expect(pageErrors, `Page errors: ${pageErrors.join(' | ')}`).toEqual([]);
     expect(consoleErrors, `Console errors: ${consoleErrors.join(' | ')}`).toEqual([]);
   });
 }
+
+test('/simulations/cruise keeps a nonblank 3D canvas on mobile', async ({ page }) => {
+  test.setTimeout(180000);
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await page.goto('/simulations/cruise', { waitUntil: 'networkidle' });
+  await expect(page.getByText('邮轮仿真')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30000 });
+  await expectRenderedCanvas(page);
+
+  await page.getByRole('button', { name: /开始仿真/ }).first().click();
+  await expect(page.getByText('暂停').first()).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(3000);
+  await expectRenderedCanvas(page);
+});

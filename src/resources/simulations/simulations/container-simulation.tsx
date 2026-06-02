@@ -568,7 +568,7 @@ function Scene({
   showGrid: boolean;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   return (
     <>

@@ -90,7 +90,7 @@ export function useChampagneTower(
     shipRoll: 0,
   });
 
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const lastTimeRef = useRef<number>(0);
   const clockRef = useRef(new SimulationClock({ dt: 1 / updateRate, maxSubSteps: 6 }));
   const isFallingRef = useRef(false);

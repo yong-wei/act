@@ -324,7 +324,7 @@ function AutoOrbit({
   controlsRef,
   isInteractingRef,
 }: {
-  controlsRef: RefObject<OrbitControlsImpl>
+  controlsRef: RefObject<OrbitControlsImpl | null>
   isInteractingRef: MutableRefObject<boolean>
 }) {
   useFrame((_, delta) => {

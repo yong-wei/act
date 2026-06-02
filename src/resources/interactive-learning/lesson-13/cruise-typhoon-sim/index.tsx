@@ -138,7 +138,7 @@ export function CruiseTyphoonSim({
   const [pipMinimized, setPipMinimized] = useState(false);
 
   // 动画帧引用
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const lastTimeRef = useRef<number>(0);
   const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const runtimeReadyRef = useRef(false);

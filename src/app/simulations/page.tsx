@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Ship, Anchor, Compass, Snowflake, Fuel, Container, Waves, Play, BookOpen } from 'lucide-react';
+import { Ship, Anchor, Compass, Snowflake, Fuel, Container, Waves, Play, BookOpen, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ interface SimulationInfo {
   subtitle: string;
   description: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   previewImage: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
@@ -233,7 +233,7 @@ export default function SimulationsPage() {
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
 
   return (
-    <div className="surface-page">
+    <div className="surface-page" data-commercial-workspace="simulations">
       <FeaturePageNav
         title="虚拟仿真实验室"
         backHref="/"
@@ -272,12 +272,14 @@ export default function SimulationsPage() {
       {/* 课程设计模态框 */}
       <Dialog open={!!selectedSimulation} onOpenChange={() => setSelectedSimulation(null)}>
         <DialogContent className="max-w-2xl border-border bg-card text-card-foreground">
-          {selectedSimulation && (
+          {selectedSimulation && (() => {
+            const SelectedIcon = selectedSimulation.icon;
+            return (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                    <selectedSimulation.icon className="h-5 w-5 text-primary" />
+                    <SelectedIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <DialogTitle className="text-xl text-foreground">{selectedSimulation.title}</DialogTitle>
@@ -341,7 +343,8 @@ export default function SimulationsPage() {
                 </div>
               </div>
             </>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

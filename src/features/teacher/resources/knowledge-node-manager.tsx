@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, BookOpen, Eye, Pencil, Lightbulb, Brain, Scale } from 'lucide-react';
+import { ChevronRight, ChevronDown, BookOpen, Eye, Pencil, Lightbulb, Brain, Scale, type LucideIcon } from 'lucide-react';
 import { KnowledgeNodeEditDialog } from './knowledge-node-edit-dialog';
 import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,7 @@ interface KnowledgeNodeManagerProps {
   searchQuery: string;
 }
 
-const NODE_TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; label: string }> = {
+const NODE_TYPE_CONFIG: Record<string, { icon: LucideIcon; color: string; label: string }> = {
   theory: { icon: Brain, color: 'text-blue-400', label: '理论' },
   application: { icon: Lightbulb, color: 'text-amber-400', label: '应用' },
   ethics: { icon: Scale, color: 'text-rose-400', label: '伦理' },

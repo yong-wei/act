@@ -47,7 +47,7 @@ export interface UnifiedCameraControllerProps {
   /** 当前相机模式 */
   cameraMode: CameraMode;
   /** OrbitControls 引用 */
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
   /** 相机配置参数 */
   config?: CameraConfig;
   /** 是否跟随目标 (默认true) */
