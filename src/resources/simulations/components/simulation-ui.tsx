@@ -17,8 +17,7 @@ export const simulationUi = {
     'inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 transition hover:bg-slate-100',
   badge:
     'rounded-full border border-slate-300 bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-800',
-  panel:
-    'rounded-2xl border border-slate-200/90 bg-slate-50/92 text-slate-900 shadow-2xl shadow-slate-950/30 backdrop-blur-md [&_.border-slate-700]:border-slate-300 [&_.border-slate-700\\/60]:border-slate-300 [&_.border-slate-700\\/70]:border-slate-300 [&_.border-slate-700\\/80]:border-slate-300 [&_.bg-slate-700]:bg-slate-200 [&_.bg-slate-800]:bg-white/90 [&_.bg-slate-800\\/60]:bg-white/90 [&_.bg-slate-800\\/70]:bg-white/90 [&_.bg-slate-800\\/80]:bg-white/90 [&_.bg-slate-900\\/80]:bg-slate-100 [&_.bg-slate-900\\/88]:bg-slate-100 [&_.bg-slate-950]:bg-slate-100 [&_.bg-slate-950\\/70]:bg-slate-100 [&_.bg-slate-950\\/80]:bg-slate-100 [&_.text-slate-100]:text-slate-900 [&_.text-slate-200]:text-slate-900 [&_.text-slate-300]:text-slate-800 [&_.text-slate-400]:text-slate-700 [&_.text-slate-500]:text-slate-600 [&_.text-white]:text-slate-900 [&_.text-cyan-300]:text-slate-900 [&_.text-cyan-400]:text-slate-900 [&_.text-cyan-500]:text-slate-900 [&_.text-blue-400]:text-slate-900 [&_.text-purple-400]:text-slate-900',
+  panel: 'simulation-light-panel',
   controlPanelPosition: 'absolute right-4 top-20 z-20 w-[22rem] pointer-events-auto',
   statusPanelPosition: 'absolute left-4 top-20 z-20 w-[20rem] pointer-events-auto',
   cameraSwitcherPosition: 'absolute bottom-4 left-1/2 z-20 -translate-x-1/2',

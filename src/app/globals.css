@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 @layer base {
   :root {
@@ -142,7 +141,7 @@
   }
 
   .teacher-insight-shell {
-    @apply surface-page;
+    @apply min-h-screen bg-background text-foreground;
     background:
       radial-gradient(circle at top left, hsl(var(--primary) / 0.12), transparent 28%),
       radial-gradient(circle at top right, hsl(var(--accent) / 0.1), transparent 24%),
@@ -150,13 +149,13 @@
   }
 
   .teacher-insight-hero {
-    @apply surface-card overflow-hidden p-6;
+    @apply overflow-hidden rounded-2xl border border-border/70 bg-card/75 p-6 backdrop-blur;
     background:
       linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.92) 58%, hsl(var(--primary) / 0.12) 100%);
   }
 
   .teacher-insight-entry {
-    @apply surface-card-soft block p-4 transition;
+    @apply block rounded-xl border border-border/60 bg-card/55 p-4 backdrop-blur transition;
   }
 
   .teacher-insight-entry:hover {
@@ -165,7 +164,7 @@
   }
 
   .teacher-insight-metric {
-    @apply surface-card-soft p-4;
+    @apply rounded-xl border border-border/60 bg-card/55 p-4 backdrop-blur;
   }
 
   .teacher-insight-chip {
@@ -227,7 +226,7 @@
   }
 
   .teacher-insight-timeline-item {
-    @apply relative mb-4 surface-card-soft p-4;
+    @apply relative mb-4 rounded-xl border border-border/60 bg-card/55 p-4 backdrop-blur;
   }
 
   .teacher-insight-timeline-item::before {
@@ -236,13 +235,13 @@
   }
 
   .teacher-home-hero {
-    @apply surface-card overflow-hidden p-8;
+    @apply overflow-hidden rounded-2xl border border-border/70 bg-card/75 p-8 backdrop-blur;
     background:
       linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.96) 62%, hsl(var(--primary) / 0.1) 100%);
   }
 
   .teacher-home-stat-card {
-    @apply surface-card-soft p-4;
+    @apply rounded-xl border border-border/60 bg-card/55 p-4 backdrop-blur;
   }
 
   .teacher-home-stat-card-link {
@@ -292,7 +291,7 @@
   }
 
   .teacher-home-action {
-    @apply surface-card-soft flex items-center gap-4 p-4 transition;
+    @apply flex items-center gap-4 rounded-xl border border-border/60 bg-card/55 p-4 backdrop-blur transition;
   }
 
   .teacher-home-action:hover {
@@ -314,6 +313,42 @@
 
   .teacher-home-list-item:hover {
     @apply border-primary/35 bg-accent/65;
+  }
+
+  .simulation-light-panel {
+    @apply rounded-2xl border border-slate-200/90 bg-slate-50/92 text-slate-900 shadow-2xl shadow-slate-950/30 backdrop-blur-md;
+  }
+
+  .simulation-light-panel :is(.border-slate-700, .border-slate-700\/60, .border-slate-700\/70, .border-slate-700\/80) {
+    border-color: var(--color-slate-300);
+  }
+
+  .simulation-light-panel .bg-slate-700 {
+    background-color: var(--color-slate-200);
+  }
+
+  .simulation-light-panel :is(.bg-slate-800, .bg-slate-800\/60, .bg-slate-800\/70, .bg-slate-800\/80) {
+    background-color: rgb(255 255 255 / 0.9);
+  }
+
+  .simulation-light-panel :is(.bg-slate-900\/80, .bg-slate-900\/88, .bg-slate-950, .bg-slate-950\/70, .bg-slate-950\/80) {
+    background-color: var(--color-slate-100);
+  }
+
+  .simulation-light-panel :is(.text-slate-100, .text-slate-200, .text-white, .text-cyan-300, .text-cyan-400, .text-cyan-500, .text-blue-400, .text-purple-400) {
+    color: var(--color-slate-900);
+  }
+
+  .simulation-light-panel .text-slate-300 {
+    color: var(--color-slate-800);
+  }
+
+  .simulation-light-panel .text-slate-400 {
+    color: var(--color-slate-700);
+  }
+
+  .simulation-light-panel .text-slate-500 {
+    color: var(--color-slate-600);
   }
 
   .interactive-course-hub-shell {
