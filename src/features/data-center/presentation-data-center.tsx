@@ -55,6 +55,7 @@ const MODULE_COLORS = [
 const metricGridClass = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]';
 const operationsPanelGridClass = 'mb-6 grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]';
 const compactGridClass = 'grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]';
+const chartInitialDimension = { width: 1, height: 1 };
 
 interface PresentationDataCenterProps {
   role: PlatformRole;
@@ -183,8 +184,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[320px] min-w-0 w-full">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={chartInitialDimension}>
               <ComposedChart data={data.monthlyTrend}>
                 <defs>
                   <linearGradient id="visitGradient" x1="0" y1="0" x2="0" y2="1">
@@ -223,8 +224,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[320px] min-w-0 w-full">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={chartInitialDimension}>
               <PieChart>
                 <Pie
                   data={data.moduleVisitShare as unknown as Record<string, unknown>[]}
@@ -259,8 +260,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] min-w-0 w-full">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={chartInitialDimension}>
               <BarChart data={data.interactionByType} layout="vertical" margin={{ left: 42 }}>
                 <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
                 <XAxis type="number" stroke={axisColor} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
@@ -283,8 +284,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] min-w-0 w-full">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={chartInitialDimension}>
               <BarChart data={data.simulationVisits}>
                 <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
                 <XAxis dataKey="simulation" stroke={axisColor} tick={{ fontSize: 11 }} interval={0} angle={-15} height={58} />
@@ -327,8 +328,8 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           sourceQuality={sourceQuality()}
           mode="presentation"
         >
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[260px] min-w-0 w-full">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={chartInitialDimension}>
               <LineChart data={data.monthlyTrend}>
                 <CartesianGrid stroke={gridColor} strokeDasharray="3 3" />
                 <XAxis dataKey="month" stroke={axisColor} />

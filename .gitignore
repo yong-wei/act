@@ -71,6 +71,7 @@ tmp/
 **/build/
 **/out/
 **/test-results/
+/next-env.d.ts
 coverage/
 .eslintcache
 .stylelintcache

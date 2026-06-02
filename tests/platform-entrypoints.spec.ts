@@ -44,3 +44,11 @@ test('profile unauthenticated state links back to login with profile callback at
     '/login?callbackUrl=%2Fprofile',
   );
 });
+
+test('simulations hub remains reachable without opening 3D runtimes', async ({ page }) => {
+  await page.goto('/simulations', { waitUntil: 'networkidle' });
+
+  await expect(page.getByRole('heading', { name: '虚拟仿真实验室' })).toBeVisible();
+  await expect(page.getByText('7 个仿真场景')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '052D驱逐舰' })).toBeVisible();
+});
