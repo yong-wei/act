@@ -3,8 +3,8 @@
 Candidate packages include patch/minor updates such as:
 
 - AI SDK patch updates on the current major line.
-- Radix patch updates.
-- BullMQ patch updates.
+- Radix current-major patch/minor updates.
+- BullMQ current-major minor updates.
 - ECharts/Recharts/Zustand minor updates.
 - Playwright and Vitest patch/minor updates compatible with the current app.
 - Type packages that remain on the current React/Node major line.
