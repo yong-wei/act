@@ -28,6 +28,26 @@ RUN --mount=type=cache,target=/root/.npm \
   && echo "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" \
   && npm ci --prefer-offline
 
+# Production dependencies stage
+FROM base AS prod-deps
+WORKDIR /app
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+ARG PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma
+ARG PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=
+
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+RUN --mount=type=cache,target=/root/.npm \
+  --mount=type=cache,target=/root/.cache/prisma \
+  npm config set registry ${NPM_REGISTRY} \
+  && npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 120000 \
+  && npm config set fetch-timeout 600000 \
+  && if [ -n "${PRISMA_ENGINES_MIRROR}" ]; then export PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}; fi \
+  && if [ -n "${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" ]; then export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}; fi \
+  && npm ci --omit=dev --prefer-offline
+
 # Builder stage
 FROM base AS builder
 WORKDIR /app
@@ -59,10 +79,9 @@ RUN adduser --system --uid 1001 nextjs
 # Copy built application
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
