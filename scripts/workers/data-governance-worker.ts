@@ -1,3 +1,4 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * Data Governance Worker Service
  *
@@ -13,7 +14,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Job, Queue, Worker } from 'bullmq';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
 import {
   calculateCompetencyVector,
@@ -947,7 +948,7 @@ async function startWorkers() {
   await respectCooldown();
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
-  prisma = new PrismaClient();
+  prisma = createPrismaClient();
 
   redis.on('error', (error) => {
     if (isInfrastructureError(error)) {

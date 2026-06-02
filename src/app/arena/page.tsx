@@ -8,9 +8,13 @@ import {
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
 import { listArenaPublicationsForStudent } from '@/features/arena/teacher/publication-store';
 import { getServerAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
+
+async function getPrismaClient() {
+  const { prisma } = await import('@/lib/prisma');
+  return prisma;
+}
 
 export default async function ArenaPage() {
   const session = await getServerAuthSession();
@@ -18,8 +22,11 @@ export default async function ArenaPage() {
   const submissionPublicationIds = Array.from(
     new Set(submissions.map((submission) => submission.publicationId).filter((id): id is string => typeof id === 'string')),
   );
+  const prisma = submissionPublicationIds.length > 0 || (session?.user?.id && session.user.role === 'STUDENT')
+    ? await getPrismaClient()
+    : null;
   const publicationRows = submissionPublicationIds.length > 0
-    ? await prisma.arenaChallengePublication.findMany({
+    ? await prisma!.arenaChallengePublication.findMany({
       where: { id: { in: submissionPublicationIds } },
       select: { id: true, deadline: true, gradingPolicy: true },
     })

@@ -1,3 +1,4 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 /**
  * seed-all-knowledge.mjs
  *
@@ -7,11 +8,10 @@
  * 运行方式: node scripts/db/seed-all-knowledge.mjs
  */
 
-import { PrismaClient } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 // ============================================================================
 // 知识点定义

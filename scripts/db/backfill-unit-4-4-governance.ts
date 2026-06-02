@@ -1,4 +1,5 @@
-import { PrismaClient, type Prisma } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
+import { type Prisma } from '@prisma/client';
 
 import {
   calculateCompetencyVector,
@@ -17,7 +18,7 @@ import {
 } from '@/lib/data-governance/unit-4-4-backfill';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const DEFAULT_SESSION_ID = 'cmp1vz3l3001ue3jfwnwwvzio';
 
 function getArgValue(name: string): string | null {

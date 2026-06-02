@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
 
 import {
   buildEvidenceSourceCoverageReport,
@@ -6,7 +6,7 @@ import {
   type EvidenceSourceCoverageReport,
 } from '@/lib/data-governance/evidence-source-catalog';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 function hasFlag(name: string) {
   return process.argv.includes(name);

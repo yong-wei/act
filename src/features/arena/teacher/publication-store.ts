@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/prisma';
-
 import {
   createArenaChallengePublication,
   type ArenaChallengePublication,
@@ -14,6 +12,8 @@ import { prismaArenaSubmissionStore, type ArenaSubmissionListOptions } from '../
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 
 export type { ArenaPublicationVisibility, ArenaTelemetryLevel } from './configuration';
+
+type PrismaModule = typeof import('@/lib/prisma');
 
 export type ArenaPublicationStatus = 'draft' | 'active' | 'paused' | 'archived' | 'closed';
 export type ArenaActorRole = 'TEACHER' | 'ADMIN' | 'STUDENT';
@@ -161,6 +161,11 @@ function isMissingArenaPublicationSchema(error: unknown): boolean {
       prismaError.code === 'P2022' &&
       prismaError.meta?.modelName === 'ArenaChallengePublication'
     );
+}
+
+async function getPrismaClient(): Promise<PrismaModule['prisma']> {
+  const { prisma } = await import('@/lib/prisma');
+  return prisma;
 }
 
 function readDate(value: unknown): string {
@@ -466,22 +471,28 @@ export async function resolveAccessibleArenaPublicationForStudent(
 }
 
 export const prismaArenaPublicationStore = {
-  create(input: CreateArenaPublicationRecordInput) {
+  async create(input: CreateArenaPublicationRecordInput) {
+    const prisma = await getPrismaClient();
     return createArenaPublicationRecord(prisma as unknown as ArenaPublicationDb, input);
   },
-  list(actor: ArenaPublicationActor, options?: { classId?: string; status?: ArenaPublicationStatus }) {
+  async list(actor: ArenaPublicationActor, options?: { classId?: string; status?: ArenaPublicationStatus }) {
+    const prisma = await getPrismaClient();
     return listArenaPublicationsForActor(prisma as unknown as ArenaPublicationDb, actor, options);
   },
-  updateStatus(input: UpdateArenaPublicationStatusInput) {
+  async updateStatus(input: UpdateArenaPublicationStatusInput) {
+    const prisma = await getPrismaClient();
     return updateArenaPublicationStatus(prisma as unknown as ArenaPublicationDb, input);
   },
-  loadReport(input: LoadArenaPublicationReportForActorInput) {
+  async loadReport(input: LoadArenaPublicationReportForActorInput) {
+    const prisma = await getPrismaClient();
     return loadArenaPublicationReportForActor(prisma as unknown as ArenaPublicationDb, input);
   },
-  resolveForStudent(input: ResolveAccessibleArenaPublicationInput) {
+  async resolveForStudent(input: ResolveAccessibleArenaPublicationInput) {
+    const prisma = await getPrismaClient();
     return resolveAccessibleArenaPublicationForStudent(prisma as unknown as ArenaPublicationDb, input);
   },
-  listForStudent(input: ListArenaPublicationsForStudentInput) {
+  async listForStudent(input: ListArenaPublicationsForStudentInput) {
+    const prisma = await getPrismaClient();
     return listArenaPublicationsForStudent(prisma as unknown as ArenaPublicationDb, input);
   },
 };

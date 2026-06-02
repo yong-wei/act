@@ -1,7 +1,7 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function main() {
   console.log('🌱 Seeding Lesson 02 Complete Resources...');

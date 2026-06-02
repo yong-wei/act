@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
 
 import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-evaluation';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const isDryRun = process.argv.includes('--dry-run');
 
 function getArgValue(name: string): string | null {

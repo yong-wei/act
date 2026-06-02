@@ -1,12 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 import {
-  PrismaClient,
   LearningStyle,
   ProgressStatus,
 } from '@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = createPrismaClient()
 
 const SHOWCASE_CLASS = {
   name: '2023自动化课外展示班',

@@ -14,6 +14,7 @@ ARG PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=
 # Copy package files
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN --mount=type=cache,target=/root/.npm \
   --mount=type=cache,target=/root/.cache/prisma \
   npm config set registry ${NPM_REGISTRY} \
@@ -38,6 +39,7 @@ ARG PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=
 
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN --mount=type=cache,target=/root/.npm \
   --mount=type=cache,target=/root/.cache/prisma \
   npm config set registry ${NPM_REGISTRY} \
@@ -61,7 +63,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_WASM_BUILD=1
 
 # Build the application
-RUN npm run build
+RUN --mount=type=secret,id=database_url,required=false \
+  DATABASE_URL="$(cat /run/secrets/database_url 2>/dev/null || true)" \
+  && DATABASE_URL="${DATABASE_URL:-postgresql://prisma-generate:prisma-generate@localhost:5432/prisma_generate}" npm run build
 
 # Runner stage
 FROM base AS runner
@@ -80,6 +84,7 @@ RUN adduser --system --uid 1001 nextjs
 # Copy built application
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
@@ -88,17 +93,17 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/scripts/db ./scripts/db
+COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
-RUN chmod +x ./docker-entrypoint.sh
 
 # Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --chown=nextjs:nodejs --chmod=755 docker-entrypoint.sh ./docker-entrypoint.sh
 
 USER nextjs
 

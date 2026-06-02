@@ -1,6 +1,6 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
 
 import {
   applyCourseEvidenceBackfillPlan,
@@ -18,7 +18,7 @@ import {
 } from '@/lib/interactive-lesson-manifest';
 import { parseCourseEvidenceBackfillOptions } from './course-evidence-backfill-options';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 function readJsonFile(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));

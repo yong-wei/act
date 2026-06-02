@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 import bcryptModule from 'bcryptjs';
 
 const bcrypt = bcryptModule.default ?? bcryptModule;
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const CASES = [
   {

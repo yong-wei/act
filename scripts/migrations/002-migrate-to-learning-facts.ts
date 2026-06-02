@@ -1,12 +1,12 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * Migrate to Learning Facts
  *
  * Transforms existing data into unified LearningFact format.
  */
 
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function migrateToLearningFacts() {
   console.log('[Migration] Starting LearningFacts migration...');

@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/prisma';
-
 import { getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
@@ -12,6 +10,7 @@ import type {
 } from './persistence';
 
 type PrismaJson = Record<string, unknown> | unknown[];
+type PrismaModule = typeof import('@/lib/prisma');
 
 export interface ArenaSubmissionListOptions {
   taskId?: string;
@@ -50,6 +49,11 @@ function isLocalDatabaseUrlMissing(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes('Environment variable not found: DATABASE_URL') ||
     message.includes('env("DATABASE_URL")');
+}
+
+async function getPrismaClient(): Promise<PrismaModule['prisma']> {
+  const { prisma } = await import('@/lib/prisma');
+  return prisma;
 }
 
 function toEvaluationResult(row: Record<string, unknown>): ArenaEvaluationResult {
@@ -107,6 +111,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   listSubmissions(options?: ArenaSubmissionListOptions): Promise<ArenaSubmissionRecord[]>;
 } = {
   async findEvaluationByHash(taskId, artifactHash, protocolVersion) {
+    const prisma = await getPrismaClient();
     const row = await (prisma as any).arenaEvaluationRun.findUnique({
       where: {
         taskId_artifactHash_protocolVersion: {
@@ -121,6 +126,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async createEvaluation(input) {
+    const prisma = await getPrismaClient();
     const result = input.result;
     const data = {
       taskId: input.taskId,
@@ -153,6 +159,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async upsertArtifact(input) {
+    const prisma = await getPrismaClient();
     const row = await (prisma as any).arenaControllerArtifact.upsert({
       where: {
         ownerId_taskId_artifactHash: {
@@ -184,6 +191,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async createSubmission(input) {
+    const prisma = await getPrismaClient();
     const row = await (prisma as any).arenaSubmission.create({
       data: {
         taskId: input.taskId,
@@ -224,9 +232,16 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   },
 
   async listSubmissions(options) {
-    if (!(prisma as any).arenaSubmission?.findMany) {
-      return [];
+    let prisma: PrismaModule['prisma'];
+    try {
+      prisma = await getPrismaClient();
+    } catch (error) {
+      if (isLocalDatabaseUrlMissing(error)) {
+        return [];
+      }
+      throw error;
     }
+
     const taskFilter = options?.taskId
       ? { taskId: options.taskId }
       : options?.taskIds?.length
