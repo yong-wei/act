@@ -29,7 +29,6 @@
   - `echarts` 6.0.0 -> 6.1.0: minor.
   - `recharts` 3.6.0 -> 3.8.1: minor.
   - `zustand` 5.0.9 -> 5.0.14: patch.
-  - `autoprefixer` 10.4.21 -> 10.5.0: minor; transitive `fraction.js` deduped to 5.3.4 through Autoprefixer and existing MathJS usage.
   - `katex` 0.16.27 -> 0.16.47: patch on the current 0.16 line.
   - `@xyflow/react` 12.10.0 -> 12.11.0: minor.
   - `@types/node` 20.19.4 -> 20.19.41: patch on the current Node 20 type line.
@@ -42,7 +41,7 @@
   - Next lane: `next` 15.5.18 remains behind wanted 15.5.19 and latest 16.2.7; `eslint-config-next` 15.5.18 remains behind wanted 15.5.19 and latest 16.2.7.
   - React lane: `react` and `react-dom` stay on 18.3.1 while latest is 19.2.7; `@types/react` stays on React 18 types while latest is 19.2.16; `@types/react-dom` stays on 18.3.7 while latest is 19.2.3; `lucide-react` stays on 0.263.1 while latest is 1.17.0.
   - Prisma lane: `@prisma/client` and `prisma` stay on 5.22.0 while latest is 7.8.0.
-  - Tailwind/design-system lane: `tailwindcss` stays on 3.4.19 while latest is 4.3.0; `tailwind-merge` stays on 1.14.0 while latest is 3.6.0.
+  - Tailwind/design-system lane: `autoprefixer` stays on 10.4.21 while wanted/latest is 10.5.0; `tailwindcss` stays on 3.4.19 while latest is 4.3.0; `tailwind-merge` stays on 1.14.0 while latest is 3.6.0.
   - 3D visualization lane: `@react-three/fiber` stays on 8.18.0 while latest is 9.6.1; `@react-three/drei` stays on 9.122.0 while latest is 10.7.7; `three` stays on 0.165.0 while latest is 0.184.0; `react-force-graph-2d` and `react-force-graph-3d` stay on 1.29.0 while wanted/latest is 1.29.1.
   - Governance/toolchain lane: `eslint` stays on 8.57.1 while latest is 10.4.1; `typescript` stays on 5.8.3 while wanted is 5.9.3 and latest is 6.0.3; `@types/node` stays on Node 20 types while latest is 25.9.1.
   - Validation/security runtime lane: `zod` stays on 3.25.76 while latest is 4.4.3; `bcryptjs` stays on 2.4.3 while latest is 3.0.3.
@@ -50,5 +49,7 @@
   - Math/content lane: `katex` stays on 0.16.47 while latest is 0.17.0.
 - Deferred owner mapping remains: ESLint 10, TypeScript 6, and `@types/node` 25 to governance/toolchain; Zod 4 and bcryptjs 3 to validation/security runtime; `lucide-react` 1 and React 19 type packages to React UI runtime; `tailwind-merge` 3 to Tailwind/design-system; Next/React/Prisma/Tailwind/3D packages to their dedicated migration changes.
 - Audit result: `rtk npm audit --json` still reports 2 moderate findings from `next -> postcss`; no new finding is attributable to the refreshed packages, and `npm audit fix --force` remains out of scope because it proposes a breaking Next lane.
-- Validation passed: `rtk npx tsc --noEmit --pretty false`, `rtk npm run test`, `rtk npm run test:unit`, and `rtk npm run build`.
+- Docker production dependency validation found that `autoprefixer` 10.5.0 resolves through `browserslist` 4.28.2 to `node-releases` 2.0.47, which exists on official npm but returned 404 from the default `npmmirror` registry on 2026-06-02. The change leaves `autoprefixer` on the existing direct range and adds Dockerfile npm-registry fallback so production dependency stages retry against official npm when the configured mirror lacks a tarball.
+- Docker validation passed: `rtk docker build --target prod-deps --build-arg NPM_REGISTRY=https://registry.npmmirror.com --build-arg PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma -t act-obe-prod-deps-smoke:274 .` first hit the mirror 404 and then completed through the official-registry fallback; `rtk docker run --rm --entrypoint ./node_modules/.bin/tsx act-obe-prod-deps-smoke:274 --version` returned `tsx v4.22.4`; `rtk docker run --rm --entrypoint node act-obe-prod-deps-smoke:274 ./node_modules/prisma/build/index.js --version` returned Prisma 5.22.0.
+- Validation passed: `rtk npm run test:docker-migration-readiness`, `rtk npx tsc --noEmit --pretty false`, `rtk npm run test`, `rtk npm run test:unit`, and `rtk npm run build`.
 - Browser validation passed on `next start` at localhost:3001: `/login?callbackUrl=%2Fdata-center`, `/data-center` redirect to login, `/knowledge`, `/simulations`, `/interactive-learning/control-workbench`, and `/teacher` redirect to login all loaded without console errors; mobile `/login?callbackUrl=%2Fdata-center` at 390px had no horizontal overflow.
