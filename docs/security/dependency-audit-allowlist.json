@@ -30,48 +30,43 @@
       "reviewDate": "2026-06-01",
       "expiresOn": "2026-09-01",
       "removalCondition": "Remove when node_modules/next/node_modules/postcss is no longer below 8.5.10 or the advisory is no longer reported by npm audit."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-DIRECT",
+      "packageName": "prisma",
+      "dependencyPath": "node_modules/prisma",
+      "advisoryIds": ["@prisma/dev"],
+      "severity": "moderate",
+      "reason": "Residual Prisma-owned audit finding introduced by npm audit metadata after the Tailwind/Turbopack source-boundary change. npm audit suggests downgrading prisma to 6.19.3 from the current supported line, so this is tracked as dependency governance rather than a source-boundary failure.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when the supported Prisma line no longer depends on the vulnerable @prisma/dev/@hono/node-server path or npm audit no longer reports the Prisma-owned finding."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-PRISMA-DEV",
+      "packageName": "@prisma/dev",
+      "dependencyPath": "node_modules/@prisma/dev",
+      "advisoryIds": ["@hono/node-server"],
+      "severity": "moderate",
+      "reason": "Residual transitive Prisma development package finding for the @hono/node-server serveStatic advisory. The remediation lane is a supported Prisma update, not a Tailwind/Turbopack source-boundary change.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when @prisma/dev is no longer present in the vulnerable range or no longer depends on @hono/node-server <1.19.13."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-HONO",
+      "packageName": "@hono/node-server",
+      "dependencyPath": "node_modules/@hono/node-server",
+      "advisoryIds": ["GHSA-92pp-h63x-v22m", "1116281", "@hono/node-server"],
+      "severity": "moderate",
+      "reason": "Residual transitive @hono/node-server finding reached through Prisma tooling. It is recorded separately from security audit findings introduced by application runtime code and must be cleared through the Prisma dependency lane.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when node_modules/@hono/node-server is at 1.19.13 or newer, disappears from the Prisma dependency tree, or npm audit no longer reports GHSA-92pp-h63x-v22m."
     }
   ],
-  "deprecationResiduals": [
-    {
-      "id": "ESLINT8-DEPRECATED-TRANSITIVES",
-      "packages": [
-        "eslint@8.57.1",
-        "@humanwhocodes/config-array@0.13.0",
-        "@humanwhocodes/object-schema@2.0.3",
-        "rimraf@3.0.2",
-        "glob@7.2.3",
-        "inflight@1.0.6"
-      ],
-      "dependencyPath": "eslint -> file-entry-cache -> flat-cache -> rimraf -> glob -> inflight",
-      "ownerLane": "dev-tooling-eslint9-migration",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
-      "reviewDate": "2026-06-01",
-      "expiresOn": "2026-09-01",
-      "releaseBlocking": false,
-      "removalCondition": "Remove when the project migrates to an ESLint 9-compatible lint stack and npm ci no longer emits the ESLint 8 transitive deprecation warnings."
-    },
-    {
-      "id": "TAILWIND3-SUCRASE-GLOB10",
-      "packages": ["glob@10.5.0"],
-      "dependencyPath": "tailwindcss@3.4.19 -> sucrase@3.35.0 -> glob@10.5.0",
-      "ownerLane": "tailwind-major-or-transitive-tooling-refresh",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
-      "reviewDate": "2026-06-01",
-      "expiresOn": "2026-09-01",
-      "releaseBlocking": false,
-      "removalCondition": "Remove when the Tailwind line or its Sucrase transitive dependency no longer installs deprecated glob@10.5.0."
-    },
-    {
-      "id": "DREI9-THREE-MESH-BVH",
-      "packages": ["three-mesh-bvh@0.7.8"],
-      "dependencyPath": "@react-three/drei@9.122.0 -> three-mesh-bvh@0.7.8",
-      "ownerLane": "react18-r3f8-drei9-graphics-line",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
-      "reviewDate": "2026-06-01",
-      "expiresOn": "2026-09-01",
-      "releaseBlocking": false,
-      "removalCondition": "Remove when the graphics dependency line can move to a Drei release that uses three-mesh-bvh >=0.8 without requiring an unplanned React 19/R3F 9 migration."
-    }
-  ]
+  "deprecationResiduals": []
 }

@@ -18,4 +18,4 @@
 
 ## 3. Follow-up
 
-- [ ] Record any remaining `npm audit` findings in dependency-audit governance rather than treating them as Tailwind/Turbopack source-boundary failures.
+- [x] Record any remaining `npm audit` findings in dependency-audit governance rather than treating them as Tailwind/Turbopack source-boundary failures.

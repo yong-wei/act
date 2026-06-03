@@ -8,7 +8,7 @@ Base branch: `migration/audit-vulnerabilities`
 The dependency audit governance gate is `rtk npm run audit:governance`.
 It runs `npm audit --json`, classifies each finding, and fails when any unallowlisted finding at `moderate`, `high`, or `critical` severity is present.
 
-The threshold intentionally includes moderate findings because the current migration series ends with only the Next-owned bundled PostCSS advisory remaining. New moderate or higher findings are regressions unless they are approved through a reviewed allowlist entry.
+The threshold intentionally includes moderate findings because current approved residuals must be explicit, owner-tracked, and temporary. New moderate or higher findings are regressions unless they are approved through a reviewed allowlist entry.
 
 The report records:
 
@@ -60,20 +60,24 @@ This keeps low-risk dependency refresh work from treating known warnings as loca
 
 ## Current Residual Findings
 
-The only approved security audit residual findings are the Next-owned bundled PostCSS advisory now owned by #261:
+The approved security audit residual findings are the Next-owned bundled PostCSS advisory owned by #261 and the Prisma-owned Hono advisory record owned by #291.
+
+Next/PostCSS residuals:
 
 - `next` at `node_modules/next`
 - `postcss` at `node_modules/next/node_modules/postcss`
 
 Both are moderate severity and production-runtime relevant because `next` is a production dependency. `npm audit --omit=dev --json` currently suggests `next@9.3.3` through `npm audit fix --force`; that is an unsupported downgrade for this application and is rejected by governance. The exception expires on 2026-09-01 and must be removed earlier if a supported Next 15 backport or stable Next release stops reporting the bundled PostCSS advisory.
 
-The approved deprecated-package residuals are:
+Prisma/Hono residuals:
 
-- ESLint 8 dev tooling: `eslint@8.57.1`, `@humanwhocodes/config-array@0.13.0`, `@humanwhocodes/object-schema@2.0.3`, `rimraf@3.0.2`, `glob@7.2.3`, and `inflight@1.0.6`. Owner lane: `dev-tooling-eslint9-migration`.
-- Tailwind 3 transitive tooling: `tailwindcss@3.4.19 -> sucrase@3.35.0 -> glob@10.5.0`. Owner lane: `tailwind-major-or-transitive-tooling-refresh`.
-- Drei 9 graphics line: `@react-three/drei@9.122.0 -> three-mesh-bvh@0.7.8`. Owner lane: `react18-r3f8-drei9-graphics-line`.
+- `prisma` at `node_modules/prisma`
+- `@prisma/dev` at `node_modules/@prisma/dev`
+- `@hono/node-server` at `node_modules/@hono/node-server`
 
-These deprecation residuals are not release-blocking on their own. They must be removed when the named owner lane clears the corresponding `npm ci` warnings.
+These are moderate severity findings for `@hono/node-server <1.19.13` through the Prisma tooling dependency path. `npm audit` currently suggests `prisma@6.19.3`, which is a downgrade from the current supported Prisma line rather than a Tailwind/Turbopack source-boundary remediation. The exception expires on 2026-09-01 and must be removed earlier if the supported Prisma line clears `@prisma/dev` or upgrades its Hono dependency.
+
+The current lockfile has no deprecated-package residuals. Previous ESLint 8, Tailwind 3/Sucrase, and Drei 9 warning ownership entries were removed because `package-lock.json` no longer marks those packages as deprecated; stale residual entries fail the governance command by design.
 
 ## Verification
 
@@ -84,4 +88,4 @@ rtk npm run audit:governance
 rtk node ./scripts/tests/test-dependency-audit-governance.mjs
 ```
 
-The test script verifies that the approved residual finding passes, that a new unallowlisted high-severity finding fails, and that an expired allowlist entry fails.
+The test script verifies that approved residual findings pass, that a new unallowlisted high-severity finding fails, and that an expired allowlist entry fails.
