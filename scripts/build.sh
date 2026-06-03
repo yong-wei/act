@@ -24,6 +24,12 @@ if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
   echo "ERROR: .dockerignore 必须排除 ${EXTERNAL_RUNTIME_DIR}，避免运行时资源进入镜像构建上下文。" >&2
   exit 1
 fi
+for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs; do
+  if ! grep -qx "!${required_script}" .dockerignore; then
+    echo "ERROR: .dockerignore 必须放行 ${required_script}，否则 Docker builder 阶段 npm run build 会缺少构建脚本。" >&2
+    exit 1
+  fi
+done
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"

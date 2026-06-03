@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\"; node ./scripts/wasm/build-control-engine.mjs && prisma generate && next build",
+    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\"; node ./scripts/wasm/build-control-engine.mjs && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "lint": "eslint . --max-warnings=0",
     "test": "node ./scripts/tests/smoke-test.mjs && node ./scripts/tests/test-arena-home-entry.mjs && node ./scripts/tests/test-arena-routes.mjs && npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
@@ -44,6 +44,7 @@
     "test:server-ops-skill": "node ./scripts/tests/test-server-ops-skill.mjs",
     "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
+    "test:turbopack-trace-boundary": "node ./scripts/tests/test-turbopack-trace-boundary.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",

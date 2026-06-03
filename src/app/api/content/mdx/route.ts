@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  isInvalidContentPathError,
+  readReadableContentText,
+  resolveReadableContentPath,
+} from '@/lib/runtime-content-path';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,29 +17,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing path' }, { status: 400 });
     }
 
-    const sanitizedPath = rawPath.replace(/^\/+/, '');
-    if (!sanitizedPath.endsWith('.md') && !sanitizedPath.endsWith('.mdx')) {
+    const resolvedPath = resolveReadableContentPath(rawPath);
+
+    if (!resolvedPath.projectPath.endsWith('.md') && !resolvedPath.projectPath.endsWith('.mdx')) {
       return NextResponse.json({ error: 'Only Markdown files are supported' }, { status: 400 });
     }
 
-    const resolvedPath = path.resolve(process.cwd(), sanitizedPath);
-    const allowedBaseDirs = [
-      path.resolve(process.cwd(), 'content'),
-      path.resolve(process.cwd(), 'course-content', 'runtime'),
-    ];
-
-    const isAllowed = allowedBaseDirs.some((baseDir) =>
-      resolvedPath === baseDir || resolvedPath.startsWith(`${baseDir}${path.sep}`)
-    );
-
-    if (!isAllowed) {
-      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
-    }
-
-    const content = await fs.readFile(resolvedPath, 'utf8');
+    const content = await readReadableContentText(resolvedPath.projectPath);
     return NextResponse.json({ content });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isInvalidContentPathError(error)) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+    }
     console.error('Failed to load MDX content:', error);
     return NextResponse.json({ error: 'Failed to load MDX content' }, { status: 500 });
   }

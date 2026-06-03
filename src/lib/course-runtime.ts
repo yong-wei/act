@@ -14,6 +14,11 @@ import {
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
+import {
+  readReadableContentText,
+  resolveRuntimeContentPath,
+  tryResolveRuntimeContentPath,
+} from '@/lib/runtime-content-path';
 
 type RuntimeNode = {
   id: string;
@@ -127,7 +132,6 @@ export interface RuntimeLessonEntryBundle {
   interactiveManifest: InteractiveRuntimeManifest | null;
 }
 
-const RUNTIME_ROOT = path.join(process.cwd(), 'course-content', 'runtime');
 const LESSON_ID_MAP_PATH = path.join(
   process.cwd(),
   'course-content',
@@ -158,11 +162,16 @@ async function fileExists(absolutePath: string): Promise<boolean> {
 
 async function resolveExistingSourcePath(candidates: string[]) {
   for (const candidate of Array.from(new Set(candidates))) {
-    if (await fileExists(path.join(process.cwd(), candidate))) {
-      return candidate;
+    const resolved = tryResolveRuntimeContentPath(candidate);
+    if (resolved && await fileExists(resolved.absolutePath)) {
+      return resolved.projectPath;
     }
   }
-  return candidates[0];
+  const firstResolvedCandidate = candidates.map(tryResolveRuntimeContentPath).find(Boolean);
+  if (!firstResolvedCandidate) {
+    throw new Error('No valid runtime content source path candidate was provided.');
+  }
+  return firstResolvedCandidate.projectPath;
 }
 
 async function loadRuntimeLessonDirIndex() {
@@ -324,7 +333,7 @@ async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
   }
 
   try {
-    const markdown = await readText(path.join(process.cwd(), resourcePath));
+    const markdown = await readReadableContentText(resourcePath);
     return extractSection(markdown, '首页') ?? fallbackFrontContent(markdown) ?? node.description;
   } catch {
     return node.description;
@@ -333,10 +342,10 @@ async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
 
 export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeLessonEntryBundle> {
   const runtimeLessonFragment = await resolveLessonRuntimeFragment(lessonId);
-  const lessonDir = path.join(RUNTIME_ROOT, 'lessons', runtimeLessonFragment);
+  const lessonDir = resolveRuntimeContentPath(`lessons/${runtimeLessonFragment}`);
   const [lesson, graphOverlay] = await Promise.all([
-    readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
-    readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
+    readJson<RuntimeLessonJson>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/lesson.json`).absolutePath),
+    readJson<RuntimeGraphOverlay>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/graph-overlay.json`).absolutePath),
   ]);
 
   const handoutFilename = buildLessonHandoutMarkdownFilename(lessonId);
@@ -368,20 +377,20 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
   const interactiveManifestSourcePath =
     lesson.interactive_manifest_source_path
     ?? `course-content/runtime/lessons/${runtimeLessonFragment}/interactive-manifest.json`;
-  const handoutMarkdown = await readText(path.join(process.cwd(), handoutSourcePath));
+  const handoutMarkdown = await readReadableContentText(handoutSourcePath);
   const handoutPreview = createHandoutPreview(handoutMarkdown);
   const [handoutPdfExists, mediaIndexExists, interactiveManifestExists] = await Promise.all([
-    fileExists(path.join(process.cwd(), handoutPdfSourcePath)),
-    fileExists(path.join(process.cwd(), mediaIndexSourcePath)),
-    fileExists(path.join(process.cwd(), interactiveManifestSourcePath)),
+    fileExists(resolveRuntimeContentPath(handoutPdfSourcePath).absolutePath),
+    fileExists(resolveRuntimeContentPath(mediaIndexSourcePath).absolutePath),
+    fileExists(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
   ]);
   const mediaDocument = mediaIndexExists
-    ? parseRuntimeLessonMediaDocument(await readText(path.join(process.cwd(), mediaIndexSourcePath)))
+    ? parseRuntimeLessonMediaDocument(await readReadableContentText(mediaIndexSourcePath))
     : { handoutSummary: null, mediaResources: [] };
   const mediaResources = mediaDocument.mediaResources;
   const interactiveManifest = interactiveManifestExists
     ? normalizeInteractiveRuntimeManifest(
-        await readJson(path.join(process.cwd(), interactiveManifestSourcePath)),
+        await readJson(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
       )
     : null;
 

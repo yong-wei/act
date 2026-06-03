@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import type { Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
@@ -12,6 +9,7 @@ import 'katex/dist/katex.min.css';
 
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { resolveHandoutAssetUrl } from '@/lib/handout-pdf';
+import { readReadableContentText } from '@/lib/runtime-content-path';
 
 export const dynamic = 'force-dynamic';
 
@@ -150,7 +148,7 @@ export default async function LessonHandoutPrintPage(
   const params = await props.params;
   try {
     const runtime = await loadLessonRuntimeEntry(params.lessonId);
-    const markdown = await fs.readFile(path.join(process.cwd(), runtime.handoutSourcePath), 'utf8');
+    const markdown = await readReadableContentText(runtime.handoutSourcePath);
     const markdownComponents = createMarkdownComponents(params.lessonId);
 
     return (

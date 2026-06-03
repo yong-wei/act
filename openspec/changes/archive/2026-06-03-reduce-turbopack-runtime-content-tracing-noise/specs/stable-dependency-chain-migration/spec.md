@@ -15,7 +15,8 @@ The project SHALL keep Next.js 16 Turbopack builds on the default build path whi
 
 #### Scenario: Standalone output is reviewed
 - **WHEN** the standalone production build is generated
-- **THEN** traced files SHALL include required runtime content for representative course and MDX routes
+- **THEN** traced files SHALL include required application code and small runtime metadata for representative course and MDX routes
+- **AND** standalone output SHALL exclude the external `course-content/runtime` resource package, which production deployment provides through a read-only mount
 - **AND** standalone output SHALL exclude non-runtime directories such as authoring sources, tests, docs, OpenSpec changes, local notes, and source build workspaces unless a route explicitly requires them.
 
 #### Scenario: Runtime behavior is preserved

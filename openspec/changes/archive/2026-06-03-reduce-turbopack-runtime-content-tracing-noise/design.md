@@ -72,9 +72,9 @@ Rationale: This avoids a risky content regeneration requirement while still maki
 
 ### Decision 3: Configure standalone tracing after path narrowing
 
-Use `outputFileTracingIncludes` and `outputFileTracingExcludes` only after runtime path reads are narrowed. Includes should cover required runtime/content roots. Excludes should remove non-runtime directories currently observed in standalone output, such as authoring sources, docs, tests, OpenSpec artifacts, Rust source/build directories, generated image workspaces, and local notes.
+Use `outputFileTracingIncludes` and `outputFileTracingExcludes` only after runtime path reads are narrowed. Includes should cover required application metadata and public `content/` inputs. Excludes should remove non-runtime directories currently observed in standalone output, such as authoring sources, the external `course-content/runtime` resource package, docs, tests, OpenSpec artifacts, Rust source/build directories, generated image workspaces, and local notes.
 
-Rationale: Next.js output tracing configuration is the right deployment boundary tool, but it should reinforce code-level boundaries rather than compensate for arbitrary project-root reads.
+Rationale: Next.js output tracing configuration is the right deployment boundary tool, but it should reinforce code-level boundaries rather than compensate for arbitrary project-root reads. Production deployment already supplies `course-content/runtime` through a read-only Podman mount, so the standalone image should not embed that teaching resource package.
 
 ### Decision 4: Validate with artifact metrics, not only build success
 
@@ -82,7 +82,7 @@ The change should compare before/after build output:
 
 - `npm run build` exits 0 and has no Turbopack dynamic tracing warnings.
 - `.next/standalone` no longer contains unexpected top-level directories.
-- representative `.nft.json` files for course routes and `/api/content/mdx` no longer trace thousands of broad project files.
+- representative `.nft.json` files for course routes and `/api/content/mdx` no longer trace thousands of broad project files or the external runtime resource package.
 - key content routes still render in browser checks.
 
 Rationale: A passing build can still produce a poor standalone bundle. The issue being solved is build/deployment signal quality.
@@ -90,6 +90,6 @@ Rationale: A passing build can still produce a poor standalone bundle. The issue
 ## Risks / Trade-offs
 
 - Path normalization can reject valid existing lesson content paths. Mitigation: support current project-relative runtime/content prefixes during migration and add tests for representative lesson JSON fields.
-- Over-aggressive tracing excludes can break production standalone content reads. Mitigation: validate `.next/standalone` runtime routes or Docker/Podman startup after build.
-- Removing broad tracing can reveal missing explicit includes. Mitigation: inspect `.nft.json` for required runtime files and add targeted includes.
+- Over-aggressive tracing excludes can break production standalone content reads if the runtime mount is missing. Mitigation: keep deployment checks for the `/app/course-content/runtime:ro` mount and validate representative routes with local runtime content present.
+- Removing broad tracing can reveal missing explicit includes. Mitigation: inspect `.nft.json` for required application metadata and add targeted includes without embedding the external runtime resource package.
 - Browser-only MDX consumers may depend on `/api/content/mdx` accepting broad paths. Mitigation: keep `content/` and `course-content/runtime/` as allowed roots and add negative traversal tests.
