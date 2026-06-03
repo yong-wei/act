@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source ".";
+@source "../components";
+@source "../features";
+@source "../lib";
+@source "../resources";
 @config "../../tailwind.config.ts";
 
 @layer base {
