@@ -159,20 +159,24 @@ export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpu
   const content = readRecord(record.content);
   const freshness = readRecord(record.freshness);
   const retrieval = readRecord(record.retrieval);
+  const spanRef = readRecord(record.spanRef);
   const family = typeof record.family === 'string' ? record.family as LearningEvidenceCorpusFamily : null;
   const sourceType = typeof record.sourceType === 'string' ? record.sourceType as LearningEvidenceCorpusSourceType : null;
+  const retrievalUseCases = isUseCaseArray(retrieval.useCases) ? retrieval.useCases : null;
   const errors = [
     record.id ? null : 'missing-id',
     sourceRef.id ? null : 'missing-source-ref',
     display.title ? null : 'missing-display-title',
     display.capsule ? null : 'missing-display-capsule',
+    isSpanKind(spanRef.kind) ? null : 'missing-span-ref',
     content.hash ? null : 'missing-content-hash',
     freshness.indexedAt ? null : 'missing-indexed-at',
     isPrivacyClass(record.privacyClass) ? null : 'missing-privacy-class',
     isConfidence(record.confidence) ? null : 'missing-confidence',
     isStringArray(retrieval.tags) ? null : 'missing-retrieval-tags',
     isStringArray(retrieval.goals) ? null : 'missing-retrieval-goals',
-    isUseCaseArray(retrieval.useCases) ? null : 'missing-retrieval-use-cases',
+    retrievalUseCases ? null : 'missing-retrieval-use-cases',
+    sourceType && retrievalUseCases?.every((useCase) => isUseCaseSourceCompatible(useCase, sourceType)) ? null : 'source-use-case-mismatch',
     family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
   ];
   if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
@@ -273,6 +277,7 @@ function matchesRetrievalScope(chunk: LearningEvidenceCorpusChunk, scope: Learni
     matchesOwnerScope(chunk, scope) &&
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
+    (!scope.useCase || isUseCaseSourceCompatible(scope.useCase, chunk.sourceType)) &&
     isChunkVisible(chunk, scope);
 }
 
@@ -347,6 +352,14 @@ function isStringArray(value: unknown): value is string[] {
 
 function isUseCaseArray(value: unknown): value is LearningEvidenceCitationUseCase[] {
   return isStringArray(value) && value.every((item) => Object.prototype.hasOwnProperty.call(USE_CASE_SOURCE_TYPES, item));
+}
+
+function isUseCaseSourceCompatible(useCase: LearningEvidenceCitationUseCase, sourceType: LearningEvidenceCorpusSourceType) {
+  return USE_CASE_SOURCE_TYPES[useCase]?.has(sourceType) === true;
+}
+
+function isSpanKind(value: unknown): value is LearningEvidenceCorpusChunk['spanRef']['kind'] {
+  return value === 'text-range' || value === 'node' || value === 'record' || value === 'summary';
 }
 
 function isPrivacyClass(value: unknown): value is LearningEvidenceCorpusPrivacyClass {

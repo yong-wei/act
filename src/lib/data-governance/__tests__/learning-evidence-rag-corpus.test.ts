@@ -125,6 +125,7 @@ describe('learning evidence RAG corpus contract', () => {
       'missing-source-ref',
       'missing-display-title',
       'missing-display-capsule',
+      'missing-span-ref',
       'missing-content-hash',
       'missing-indexed-at',
       'missing-privacy-class',
@@ -492,6 +493,35 @@ describe('learning evidence RAG corpus contract', () => {
     }, [
       { chunkId: 'malformed-enums', useCase: 'konling' },
     ]).limitations).toContainEqual({ chunkId: 'malformed-enums', reason: 'unsupported-source-type' });
+
+    const missingSpanRef = chunk({ id: 'missing-span-ref' });
+    delete (missingSpanRef as unknown as { spanRef?: unknown }).spanRef;
+    expect(validateLearningEvidenceCorpusChunk(missingSpanRef)).toContain('missing-span-ref');
+    const spanVerification = verifyLearningEvidenceCitations([missingSpanRef, ...corpus], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [
+      { chunkId: 'missing-span-ref', useCase: 'konling', spanRef: { kind: 'record', locator: 'x' } },
+    ]);
+    expect(spanVerification.limitations).toContainEqual({ chunkId: 'missing-span-ref', reason: 'unsupported-source-type' });
+
+    const incompatibleUseCase = chunk({
+      id: 'incompatible-use-case',
+      family: 'report',
+      sourceType: 'teacher-report',
+      retrieval: { tags: ['teacher-report'], goals: ['control-correction'], useCases: ['konling'] },
+    });
+    expect(validateLearningEvidenceCorpusChunk(incompatibleUseCase)).toContain('source-use-case-mismatch');
+    expect(retrieveLearningEvidenceCorpus([incompatibleUseCase, ...corpus], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['teacher-report'] }).map((item) => item.id)).not.toContain('incompatible-use-case');
   });
 
   it('covers diagnosis, grading, and Konling citation use cases with verified refs', () => {
