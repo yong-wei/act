@@ -136,6 +136,165 @@ export interface AdminDataCenterExportSummary {
   }>;
 }
 
+export interface TeacherOperationsNavigationEntry {
+  id: string;
+  label: string;
+  href: string;
+  workspace: 'teacher-operations';
+  objectLevelActions: readonly string[];
+  statusSemantics: readonly string[];
+}
+
+export interface AdminOperationsConsoleDomain {
+  id: string;
+  label: string;
+  href: string;
+  workspace: 'admin-operations';
+  state: 'available' | 'future';
+  actions: readonly string[];
+  statusSemantics: readonly string[];
+}
+
+export interface OperationsUnavailableSlot {
+  id: string;
+  label: string;
+  state: 'empty' | 'loading' | 'disabled' | 'feature-flagged';
+  permittedAdjacentActions: readonly string[];
+  fabricatesMetrics: false;
+}
+
+export const TEACHER_OPERATIONS_NAVIGATION: TeacherOperationsNavigationEntry[] = [
+  {
+    id: 'teacher-operations-home',
+    label: '教师总览',
+    href: '/teacher',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['查看班级', '查看教案', '查看课堂历史'],
+    statusSemantics: ['ready', 'degraded', 'active-session'],
+  },
+  {
+    id: 'teacher-operations-classes',
+    label: '班级',
+    href: '/teacher/classes',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['新建班级', '搜索班级', '查看学生'],
+    statusSemantics: ['loading', 'active', 'closed', 'empty'],
+  },
+  {
+    id: 'teacher-operations-lesson-plans',
+    label: '教案',
+    href: '/teacher/lesson-plans',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['新建教案', '编辑教案', '进入课堂'],
+    statusSemantics: ['draft', 'updated', 'empty'],
+  },
+  {
+    id: 'teacher-operations-resources',
+    label: '资源',
+    href: '/teacher/resources',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['筛选资源', '查看知识节点', '管理 ResourceNode'],
+    statusSemantics: ['available', 'teacher-only', 'path-eligible'],
+  },
+  {
+    id: 'teacher-operations-history',
+    label: '课堂历史',
+    href: '/teacher/history',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['搜索课堂', '归档班级', '删除记录'],
+    statusSemantics: ['loading', 'finished', 'unassigned-class', 'empty'],
+  },
+  {
+    id: 'teacher-operations-analytics',
+    label: '班级分析',
+    href: '/teacher/classes/[classId]/analytics-v2',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['查看班级', '查看学生证据'],
+    statusSemantics: ['feature-flagged', 'ready', 'empty'],
+  },
+] as const;
+
+export const TEACHER_OPERATIONS_ANALYTICS_SLOTS: OperationsUnavailableSlot[] = [
+  {
+    id: 'class-learning-analytics',
+    label: '班级学习分析',
+    state: 'feature-flagged',
+    permittedAdjacentActions: ['查看班级', '查看学生证据'],
+    fabricatesMetrics: false,
+  },
+  {
+    id: 'student-learning-analytics',
+    label: '学生学习分析',
+    state: 'feature-flagged',
+    permittedAdjacentActions: ['查看班级', '查看学生证据'],
+    fabricatesMetrics: false,
+  },
+] as const;
+
+export const ADMIN_OPERATIONS_CONSOLE_DOMAINS: AdminOperationsConsoleDomain[] = [
+  {
+    id: 'admin-operations-home',
+    label: '管理总台',
+    href: '/admin',
+    workspace: 'admin-operations',
+    state: 'available',
+    actions: ['进入用户管理', '查看使用态势', '查看数据治理'],
+    statusSemantics: ['ready', 'degraded', 'restricted'],
+  },
+  {
+    id: 'admin-operations-users',
+    label: '用户管理',
+    href: '/admin/users',
+    workspace: 'admin-operations',
+    state: 'available',
+    actions: ['新建账号', '批量导入', '重置密码'],
+    statusSemantics: ['loading', 'active', 'role-filtered', 'import-error'],
+  },
+  {
+    id: 'admin-operations-config',
+    label: '系统配置',
+    href: '/admin/config',
+    workspace: 'admin-operations',
+    state: 'available',
+    actions: ['保存配置', '重置表单', '测试模型'],
+    statusSemantics: ['loading', 'ready', 'dirty', 'saving', 'validation-error'],
+  },
+  {
+    id: 'admin-operations-states',
+    label: '系统使用量统计',
+    href: '/admin/states',
+    workspace: 'admin-operations',
+    state: 'available',
+    actions: ['刷新数据', '查看趋势'],
+    statusSemantics: ['loading', 'fresh', 'stale', 'empty'],
+  },
+  {
+    id: 'admin-operations-governance',
+    label: '数据治理',
+    href: '/admin/data-governance',
+    workspace: 'admin-operations',
+    state: 'available',
+    actions: ['刷新队列', '查看风险', '导出摘要'],
+    statusSemantics: ['loading', 'ready', 'partial', 'blocked'],
+  },
+  {
+    id: 'admin-operations-model-management',
+    label: '模型管理',
+    href: '/admin/model-management',
+    workspace: 'admin-operations',
+    state: 'future',
+    actions: ['查看当前模型配置'],
+    statusSemantics: ['feature-flagged'],
+  },
+] as const;
+
+export function buildOperationsUnavailableSlot(slot: OperationsUnavailableSlot): OperationsUnavailableSlot {
+  return {
+    ...slot,
+    fabricatesMetrics: false,
+  };
+}
+
 export const TEACHER_GOVERNANCE_WORKSPACE_REGIONS: TeacherGovernanceWorkspaceRegion[] = [
   'resource-node-browse',
   'resource-node-search-filters',

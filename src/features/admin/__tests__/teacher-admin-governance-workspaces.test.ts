@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADMIN_DATA_CENTER_GOVERNANCE_PANELS,
+  ADMIN_OPERATIONS_CONSOLE_DOMAINS,
+  TEACHER_OPERATIONS_ANALYTICS_SLOTS,
+  TEACHER_OPERATIONS_NAVIGATION,
   TEACHER_GOVERNANCE_WORKSPACE_REGIONS,
   buildAdminDataCenterExportSummary,
   buildAdminDataCenterWorkspace,
+  buildOperationsUnavailableSlot,
   buildTeacherGovernanceWorkspace,
 } from '../teacher-admin-governance-workspaces';
 import type { GovernanceStatusPayload } from '../data-governance-overview';
@@ -129,6 +133,60 @@ function governancePayload(overrides: Partial<GovernanceStatusPayload> = {}): Go
 }
 
 describe('teacher and admin governance workspace contracts', () => {
+  it('defines shared teacher operations navigation and honest future analytics slots', () => {
+    expect(TEACHER_OPERATIONS_NAVIGATION.map((entry) => entry.href)).toEqual([
+      '/teacher',
+      '/teacher/classes',
+      '/teacher/lesson-plans',
+      '/teacher/resources',
+      '/teacher/history',
+      '/teacher/classes/[classId]/analytics-v2',
+    ]);
+    expect(TEACHER_OPERATIONS_NAVIGATION.every((entry) => entry.workspace === 'teacher-operations')).toBe(true);
+    expect(TEACHER_OPERATIONS_NAVIGATION.every((entry) => entry.objectLevelActions.length > 0)).toBe(true);
+    expect(TEACHER_OPERATIONS_ANALYTICS_SLOTS.map((slot) => slot.state)).toEqual(['feature-flagged', 'feature-flagged']);
+    expect(buildOperationsUnavailableSlot(TEACHER_OPERATIONS_ANALYTICS_SLOTS[0])).toMatchObject({
+      state: 'feature-flagged',
+      fabricatesMetrics: false,
+      permittedAdjacentActions: expect.arrayContaining(['查看班级', '查看学生证据']),
+    });
+  });
+
+  it('defines admin console domains with consistent actions and status semantics', () => {
+    expect(ADMIN_OPERATIONS_CONSOLE_DOMAINS.map((entry) => entry.href)).toEqual([
+      '/admin',
+      '/admin/users',
+      '/admin/config',
+      '/admin/states',
+      '/admin/data-governance',
+      '/admin/model-management',
+    ]);
+    expect(ADMIN_OPERATIONS_CONSOLE_DOMAINS.every((entry) => entry.workspace === 'admin-operations')).toBe(true);
+    expect(ADMIN_OPERATIONS_CONSOLE_DOMAINS.every((entry) => entry.statusSemantics.length > 0)).toBe(true);
+    expect(ADMIN_OPERATIONS_CONSOLE_DOMAINS.find((entry) => entry.href === '/admin/model-management')).toMatchObject({
+      state: 'future',
+      actions: expect.arrayContaining(['查看当前模型配置']),
+    });
+  });
+
+  it('keeps declared operations status semantics aligned with rendered route states', () => {
+    const teacherSemantics = new Map(
+      TEACHER_OPERATIONS_NAVIGATION.map((entry) => [entry.href, new Set(entry.statusSemantics)]),
+    );
+    const adminSemantics = new Map(
+      ADMIN_OPERATIONS_CONSOLE_DOMAINS.map((entry) => [entry.href, new Set(entry.statusSemantics)]),
+    );
+
+    expect([...teacherSemantics.get('/teacher/classes')!]).toEqual(expect.arrayContaining(['loading', 'active', 'empty']));
+    expect([...teacherSemantics.get('/teacher/history')!]).toEqual(expect.arrayContaining(['loading', 'finished', 'empty']));
+    expect([...teacherSemantics.get('/teacher/classes/[classId]/analytics-v2')!]).toEqual(expect.arrayContaining(['feature-flagged', 'ready']));
+
+    expect([...adminSemantics.get('/admin/users')!]).toEqual(expect.arrayContaining(['loading', 'role-filtered']));
+    expect([...adminSemantics.get('/admin/config')!]).toEqual(expect.arrayContaining(['loading', 'ready', 'saving', 'validation-error']));
+    expect([...adminSemantics.get('/admin/states')!]).toEqual(expect.arrayContaining(['loading', 'fresh', 'stale']));
+    expect([...adminSemantics.get('/admin/data-governance')!]).toEqual(expect.arrayContaining(['loading', 'ready', 'partial', 'blocked']));
+  });
+
   it('wraps teacher ResourceNode management without redefining edit ownership or homepage scope', () => {
     const view = buildTeacherGovernanceWorkspace({
       role: 'teacher',

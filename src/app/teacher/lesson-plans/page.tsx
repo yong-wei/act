@@ -23,7 +23,12 @@ export default async function TeacherLessonPlansPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
+    <div
+      className="surface-page p-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={plans.length === 0 ? 'empty' : 'updated'}
+    >
       <div className="max-w-[1600px] mx-auto space-y-8">
 
         {/* Header */}

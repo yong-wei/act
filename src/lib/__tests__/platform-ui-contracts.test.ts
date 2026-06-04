@@ -279,7 +279,16 @@ describe('platform UI contracts', () => {
       '/interactive-learning/control-workbench',
       '/arena/challenges/[taskId]',
       '/interactive-learning/[lesson]',
+      '/teacher',
+      '/teacher/classes',
+      '/teacher/lesson-plans',
+      '/teacher/resources',
+      '/teacher/history',
       '/teacher/classes/[classId]/analytics-v2',
+      '/admin',
+      '/admin/users',
+      '/admin/config',
+      '/admin/states',
       '/data-center',
       '/admin/data-governance',
     ]);
@@ -292,6 +301,8 @@ describe('platform UI contracts', () => {
     expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher/classes/[classId]/analytics-v2')?.expectedZones).toEqual([
       'instrument-area',
     ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher')?.density).toBe('analytics');
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin')?.density).toBe('governance');
     expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.expectedZones).toEqual([
       'instrument-area',
     ]);
@@ -305,6 +316,15 @@ describe('platform UI contracts', () => {
     const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
+    const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
+    const teacherClassesSource = readSource('src/app/teacher/classes/page.tsx');
+    const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
+    const teacherResourcesSource = readSource('src/app/teacher/resources/page.tsx');
+    const teacherHistorySource = readSource('src/app/teacher/history/page.tsx');
+    const adminHomeSource = readSource('src/features/admin/admin-console-home.tsx');
+    const adminUsersSource = readSource('src/features/admin/admin-dashboard.tsx');
+    const adminConfigSource = readSource('src/features/admin/system-config-dashboard.tsx');
+    const adminStatesSource = readSource('src/features/admin/states/admin-states-dashboard.tsx');
     const dataCenterSource = readSource('src/features/data-center/presentation-data-center.tsx');
     const adminGovernanceSource = readSource('src/features/admin/data-governance-dashboard.tsx');
 
@@ -323,10 +343,24 @@ describe('platform UI contracts', () => {
     expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
     expect(manifestRuntimeSource).toContain('data-commercial-module-state');
-    expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-analytics"');
+    expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherDashboardSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherDashboardSource).toContain('TEACHER_OPERATIONS_ANALYTICS_SLOTS');
+    expect(teacherDashboardSource).toContain('data-operations-unavailable-slot');
+    expect(teacherDashboardSource).toContain('data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}');
+    expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherLessonPlansSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherResourcesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherHistorySource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(dataCenterSource).toContain('data-commercial-operations-workspace="data-center"');
     expect(dataCenterSource).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
-    expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-data-governance"');
+    expect(adminHomeSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminUsersSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminConfigSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminStatesSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminHomeSource).toContain('ADMIN_OPERATIONS_CONSOLE_DOMAINS');
+    expect(adminHomeSource).toContain('data-admin-operations-future-domains');
+    expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-operations"');
   });
 
   it('forwards the active route from AppShell to AppSidebar', () => {

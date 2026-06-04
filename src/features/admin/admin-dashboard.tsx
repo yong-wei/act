@@ -379,7 +379,12 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   }, [overview]);
 
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={loadingUsers || loadingOverview ? 'loading' : 'role-filtered'}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/users"

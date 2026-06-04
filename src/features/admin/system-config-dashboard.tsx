@@ -396,7 +396,12 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
 
   if (loading) {
     return (
-      <div className="admin-console-shell">
+      <div
+        className="admin-console-shell"
+        data-commercial-operations-workspace="admin-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+      >
         <AdminConsoleHeader
           currentUser={currentUser}
           currentHref="/admin/config"
@@ -416,7 +421,12 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
   }
 
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={saving ? 'saving' : notice?.type === 'error' ? 'validation-error' : 'ready'}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/config"
