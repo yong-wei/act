@@ -130,18 +130,31 @@ describe('learning path round API routes', () => {
     expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
   });
 
+  it('prevents a student from directly submitting a persisted path plan', async () => {
+    const response = await planPath(post('http://localhost/api/learning-paths/plan', {
+      plan: { id: 'path-1', goal: { id: 'control-correction' }, userId: 'student-1' },
+      classId: 'class-1',
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
+  });
+
   it('rejects plan creation when the feature flag is disabled', async () => {
     process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED = 'false';
 
     const response = await planPath(post('http://localhost/api/learning-paths/plan', {
       plan: { id: 'path-1', goal: { id: 'control-correction' }, userId: 'student-1' },
+      classId: 'class-1',
     }));
 
     expect(response.status).toBe(503);
     expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
   });
 
-  it('persists a student owned control-correction path round', async () => {
+  it('persists a teacher scoped control-correction path round for a student', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
     const response = await planPath(post('http://localhost/api/learning-paths/plan', {
       plan: { id: 'path-1', goal: { id: 'control-correction' }, userId: 'student-1' },
       learnerStateRef: 'cache-1',
@@ -158,6 +171,7 @@ describe('learning path round API routes', () => {
   });
 
   it('rejects a client supplied path id that already belongs to another owner', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-2',
@@ -170,6 +184,7 @@ describe('learning path round API routes', () => {
 
     const response = await planPath(post('http://localhost/api/learning-paths/plan', {
       plan: { id: 'path-1', goal: { id: 'control-correction' }, userId: 'student-1' },
+      classId: 'class-1',
     }));
 
     expect(response.status).toBe(409);
@@ -310,7 +325,7 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
-  it('does not advance the parent path on idempotent execution retry', async () => {
+  it('fills the parent path update on idempotent execution retry when the path still points at that node', async () => {
     mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
       id: 'exec-existing',
       pathId: 'path-1',
@@ -327,6 +342,39 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(200);
     expect(payload.execution.id).toBe('exec-existing');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+    }));
+  });
+
+  it('does not roll back the parent path on idempotent retry for an older node', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: { mainPathNodeIds: ['node-1', 'node-2'] },
+      terminalValidation: { nodeId: 'node-2', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'] },
+    });
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
+      id: 'exec-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'exec-key',
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-key',
+    }), params);
+
+    expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });

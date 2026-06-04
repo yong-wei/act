@@ -48,6 +48,23 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         },
       });
       if (existingExecution) {
+        if (path.currentNodeId === body.nodeId) {
+          await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
+            pathId: params.id,
+            userId: path.userId,
+            nodeId: body.nodeId,
+            resourceType: body.resourceType,
+            status: body.status,
+            startedAt: body.startedAt ?? null,
+            completedAt: body.completedAt ?? null,
+            failedAt: body.failedAt ?? null,
+            evidenceRefs: body.evidenceRefs ?? [],
+            liftMetadata: body.liftMetadata ?? {},
+            simulationRef: body.simulationRef ?? null,
+            arenaRef: body.arenaRef ?? null,
+            idempotencyKey: body.idempotencyKey ?? null,
+          });
+        }
         return NextResponse.json({ execution: existingExecution });
       }
     }

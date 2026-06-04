@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   persistControlCorrectionPathRound,
   ControlCorrectionPathRoundConflictError,
+  ControlCorrectionPathRoundValidationError,
   readControlCorrectionPathRound,
   recordPathDeviation,
   recordPathIntervention,
@@ -272,6 +273,21 @@ describe('control-correction path rounds', () => {
     await expect(persistControlCorrectionPathRound(db, {
       plan: samplePlan(),
     })).rejects.toBeInstanceOf(ControlCorrectionPathRoundConflictError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed persisted plans before writing LearningPath rows', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.id = 'client-forged-path';
+    plan.mainPath[1] = {
+      ...plan.mainPath[1],
+      type: 'knowledge_card',
+    };
+
+    await expect(persistControlCorrectionPathRound(db, {
+      plan,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 

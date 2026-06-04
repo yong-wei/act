@@ -86,6 +86,13 @@ export class ControlCorrectionPathRoundConflictError extends Error {
   }
 }
 
+export class ControlCorrectionPathRoundValidationError extends Error {
+  constructor(message = 'control-correction path plan failed persistence validation') {
+    super(message);
+    this.name = 'ControlCorrectionPathRoundValidationError';
+  }
+}
+
 export function isControlCorrectionPathRoundPersistenceEnabled(): boolean {
   return process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED !== 'false';
 }
@@ -94,6 +101,7 @@ export async function persistControlCorrectionPathRound(
   db: ControlCorrectionPathRoundDb,
   input: PersistControlCorrectionPathRoundInput,
 ): Promise<any> {
+  validateControlCorrectionPathPlanForPersistence(input.plan);
   const record = serializeLearningPathPlan(input.plan);
   const existing = await db.learningPath.findFirst({
     where: { id: record.id },
@@ -154,6 +162,48 @@ export async function persistControlCorrectionPathRound(
     create: { id: record.id, ...data },
     update: data,
   });
+}
+
+export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
+  if (
+    !plan.id ||
+    plan.userId.length === 0 ||
+    plan.goal.id !== CONTROL_CORRECTION_PATH_ROUND_GOAL_ID ||
+    plan.stage !== CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION ||
+    plan.policyFamily !== 'rules-plus-graph-search' ||
+    !plan.id.includes(plan.userId) ||
+    plan.mainPath.length === 0
+  ) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+  const seen = new Set<string>();
+  for (const node of plan.mainPath) {
+    if (
+      !node.nodeId ||
+      seen.has(node.nodeId) ||
+      !['knowledge_card', 'simulation', 'arena_task', 'intervention', 'reflection'].includes(node.type) ||
+      node.privacyLevel !== 'student-visible' ||
+      node.teacherPolicy !== 'allowed' ||
+      typeof node.target !== 'string' ||
+      node.target.length === 0 ||
+      !Number.isFinite(node.estimatedTimeMinutes) ||
+      !Number.isFinite(node.score) ||
+      !['completed', 'current', 'next', 'blocked'].includes(node.status)
+    ) {
+      throw new ControlCorrectionPathRoundValidationError();
+    }
+    seen.add(node.nodeId);
+  }
+  const terminal = plan.mainPath[plan.mainPath.length - 1];
+  if (
+    !terminal.terminalConstraints.includes('terminal-validation') ||
+    (terminal.type !== 'simulation' && terminal.type !== 'arena_task')
+  ) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+  if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
 }
 
 export async function readControlCorrectionPathRound(
