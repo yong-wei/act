@@ -325,6 +325,32 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it('rejects new execution writes for non-current path nodes', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: { mainPathNodeIds: ['node-1', 'node-2'] },
+      terminalValidation: { nodeId: 'node-2', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-2',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'new-node-2',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('fills the parent path update on idempotent execution retry when the path still points at that node', async () => {
     mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
       id: 'exec-existing',

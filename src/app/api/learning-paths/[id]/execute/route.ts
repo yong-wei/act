@@ -68,6 +68,9 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         return NextResponse.json({ execution: existingExecution });
       }
     }
+    if (path.currentNodeId !== body.nodeId) {
+      return NextResponse.json({ error: '执行事件只能写入当前路径节点' }, { status: 409 });
+    }
     const execution = await recordPathNodeExecution(prisma as any, {
       pathId: params.id,
       userId: path.userId,
