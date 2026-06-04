@@ -29,6 +29,6 @@ The evidence timeline browser SHALL group repeated events and highlight meaningf
 The evidence browser SHALL use the same ability dimensions, status vocabulary, filters, and route frame as profile and adaptive learning surfaces.
 
 #### Scenario: Student filters evidence
-- **WHEN** a student filters by ability dimension, course, event type, confidence, or result
+- **WHEN** a student filters by ability dimension, course or lesson context, event type, or result
 - **THEN** the evidence browser SHALL preserve the learner data shell and current route context
 - **AND** empty results SHALL remain navigable and actionable.
