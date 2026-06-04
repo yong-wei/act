@@ -724,7 +724,8 @@ crg_run() {
     return 0
   fi
 
-  if ! command -v code-review-graph >/dev/null 2>&1; then
+  tool_path="$(command -v code-review-graph || true)"
+  if [ -z "$tool_path" ]; then
     return 0
   fi
 
@@ -741,15 +742,26 @@ crg_run() {
   crg_cleanup() {
     rmdir "$lock_dir" 2>/dev/null || true
   }
-  trap crg_cleanup INT TERM
+  trap crg_cleanup EXIT INT TERM
 
-  printf '%s [%s] start\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  crg_command() {
+    "$@" >> "$log_file" 2>&1
+    status="$?"
+    if [ "$status" -ge 128 ]; then
+      printf '%s [%s] command exit_status=%s signal=%s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" "$((status - 128))" "$*" >> "$log_file"
+    else
+      printf '%s [%s] command exit_status=%s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" "$*" >> "$log_file"
+    fi
+    return 0
+  }
+
+  printf '%s [%s] start tool=%s repo=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$tool_path" "$repo" >> "$log_file"
   case "$mode" in
     update)
-      code-review-graph update --repo "$repo" >> "$log_file" 2>&1 || true
+      crg_command "$tool_path" update --repo "$repo"
       ;;
     build)
-      code-review-graph build --repo "$repo" >> "$log_file" 2>&1 || true
+      crg_command "$tool_path" build --repo "$repo"
       ;;
     *)
       printf '%s [%s] unknown mode\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
@@ -757,7 +769,7 @@ crg_run() {
   esac
   printf '%s [%s] end\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
   crg_cleanup
-  trap - INT TERM
+  trap - EXIT INT TERM
 }
 HOOK
 
@@ -776,7 +788,8 @@ codegraph_run() {
     return 0
   fi
 
-  if ! command -v codegraph >/dev/null 2>&1; then
+  tool_path="$(command -v codegraph || true)"
+  if [ -z "$tool_path" ]; then
     return 0
   fi
 
@@ -793,15 +806,26 @@ codegraph_run() {
   codegraph_cleanup() {
     rmdir "$lock_dir" 2>/dev/null || true
   }
-  trap codegraph_cleanup INT TERM
+  trap codegraph_cleanup EXIT INT TERM
 
-  printf '%s [%s] start\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
+  codegraph_command() {
+    "$@" >> "$log_file" 2>&1
+    status="$?"
+    if [ "$status" -ge 128 ]; then
+      printf '%s [%s] command exit_status=%s signal=%s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" "$((status - 128))" "$*" >> "$log_file"
+    else
+      printf '%s [%s] command exit_status=%s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$status" "$*" >> "$log_file"
+    fi
+    return 0
+  }
+
+  printf '%s [%s] start tool=%s repo=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" "$tool_path" "$repo" >> "$log_file"
   case "$mode" in
     sync)
       if [ -f "$graph_dir/codegraph.db" ]; then
-        codegraph sync --quiet "$repo" >> "$log_file" 2>&1 || true
+        codegraph_command "$tool_path" sync --quiet "$repo"
       else
-        codegraph index --quiet "$repo" >> "$log_file" 2>&1 || true
+        codegraph_command "$tool_path" index --quiet "$repo"
       fi
       ;;
     *)
@@ -810,7 +834,7 @@ codegraph_run() {
   esac
   printf '%s [%s] end\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$mode" >> "$log_file"
   codegraph_cleanup
-  trap - INT TERM
+  trap - EXIT INT TERM
 }
 HOOK
 

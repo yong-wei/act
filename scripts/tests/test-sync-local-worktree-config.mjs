@@ -179,7 +179,7 @@ for (const commandName of ['codegraph', 'code-review-graph']) {
   const commandPath = path.join(binDir, commandName);
   fs.writeFileSync(
     commandPath,
-    `#!/bin/sh\nprintf '%s %s\\n' "$(basename "$0")" "$*" >> "$GRAPH_CALL_LOG"\n`,
+    `#!/bin/sh\nprintf '%s %s\\n' "$(basename "$0")" "$*" >> "$GRAPH_CALL_LOG"\nexit "\${GRAPH_FAIL_STATUS:-0}"\n`,
   );
   fs.chmodSync(commandPath, 0o755);
 }
@@ -281,6 +281,30 @@ assert.match(
   'post-commit hook 应在提交成功后同步 CodeGraph',
 );
 
+const crgHookLib = fs.readFileSync(gitHookPath(target, 'crg-hook-lib.sh'), 'utf8');
+assert.match(
+  crgHookLib,
+  /trap crg_cleanup EXIT INT TERM/,
+  'CRG hook lib 应在 EXIT 时清理锁',
+);
+assert.match(
+  crgHookLib,
+  /command exit_status=.*signal=/,
+  'CRG hook lib 应记录命令退出码和信号',
+);
+
+const codegraphHookLib = fs.readFileSync(gitHookPath(target, 'codegraph-hook-lib.sh'), 'utf8');
+assert.match(
+  codegraphHookLib,
+  /trap codegraph_cleanup EXIT INT TERM/,
+  'CodeGraph hook lib 应在 EXIT 时清理锁',
+);
+assert.match(
+  codegraphHookLib,
+  /command exit_status=.*signal=/,
+  'CodeGraph hook lib 应记录命令退出码和信号',
+);
+
 const preCommitHook = fs.readFileSync(gitHookPath(target, 'pre-commit'), 'utf8');
 assert.match(
   preCommitHook,
@@ -288,7 +312,7 @@ assert.match(
   'pre-commit hook 只应做 CRG 变更检测',
 );
 
-run('bash', [postCommitHookPath], target, {
+run('sh', [postCommitHookPath], target, {
   env: {
     ...process.env,
     PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
@@ -305,6 +329,60 @@ assert.equal(
   fs.existsSync(path.join(target, '.codegraph/hook.lock')),
   false,
   'post-commit 连续运行 CRG 与 CodeGraph 后不应残留 CodeGraph 锁',
+);
+
+const crgHookLog = fs.readFileSync(path.join(target, '.code-review-graph/hooks.log'), 'utf8');
+assert.match(
+  crgHookLog,
+  /start tool=.*code-review-graph repo=/,
+  'CRG hook 日志应记录实际命令路径和仓库路径',
+);
+assert.match(
+  crgHookLog,
+  /command exit_status=0:/,
+  'CRG hook 日志应记录成功命令退出码',
+);
+
+const codegraphHookLog = fs.readFileSync(path.join(target, '.codegraph/hooks.log'), 'utf8');
+assert.match(
+  codegraphHookLog,
+  /start tool=.*codegraph repo=/,
+  'CodeGraph hook 日志应记录实际命令路径和仓库路径',
+);
+assert.match(
+  codegraphHookLog,
+  /command exit_status=0:/,
+  'CodeGraph hook 日志应记录成功命令退出码',
+);
+
+run('sh', [postCommitHookPath], target, {
+  env: {
+    ...process.env,
+    PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    GRAPH_CALL_LOG: graphCallLog,
+    GRAPH_FAIL_STATUS: '137',
+  },
+});
+
+assert.match(
+  fs.readFileSync(path.join(target, '.code-review-graph/hooks.log'), 'utf8'),
+  /command exit_status=137 signal=9:/,
+  'CRG hook 日志应把 137 退出码标记为 signal 9',
+);
+assert.match(
+  fs.readFileSync(path.join(target, '.codegraph/hooks.log'), 'utf8'),
+  /command exit_status=137 signal=9:/,
+  'CodeGraph hook 日志应把 137 退出码标记为 signal 9',
+);
+assert.equal(
+  fs.existsSync(path.join(target, '.code-review-graph/hook.lock')),
+  false,
+  'CRG 命令失败后不应残留 hook 锁',
+);
+assert.equal(
+  fs.existsSync(path.join(target, '.codegraph/hook.lock')),
+  false,
+  'CodeGraph 命令失败后不应残留 hook 锁',
 );
 
 const customPostCommit = '#!/bin/sh\n# custom hook using codegraph but not managed\ncodegraph sync .\n';
