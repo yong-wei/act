@@ -130,6 +130,10 @@ export interface ResourceNodeRegistry {
   };
 }
 
+export interface ResourceNodeAuditOptions {
+  strictEvidenceInstrumentation?: boolean;
+}
+
 export interface TeachingResourceNodeInput {
   id: string;
   title: string;
@@ -151,9 +155,13 @@ export type ResourceNodePlanningOverride = Partial<Pick<
   | 'estimatedTimeMinutes'
   | 'cognitiveLoad'
   | 'knowledgeCoverage'
+  | 'abilityImpact'
+  | 'cost'
   | 'availability'
   | 'teacherPolicy'
   | 'privacyLevel'
+  | 'terminalConstraints'
+  | 'evidenceInstrumentation'
 >>;
 
 export interface RegisteredResourceNodeInput {
@@ -163,6 +171,8 @@ export interface RegisteredResourceNodeInput {
   renderTarget?: string | null;
   launchTarget?: string | null;
   knowledgeNodeIds?: string[];
+  prerequisiteNodeIds?: string[];
+  planningOverride?: ResourceNodePlanningOverride;
 }
 
 export interface KnowledgeNodeResourceInput {
@@ -170,6 +180,10 @@ export interface KnowledgeNodeResourceInput {
   name: string;
   resources?: unknown[];
   tags?: string[];
+}
+
+export interface KnowledgeCardResourceNodeInput extends LightweightResourceNodeInput {
+  sourceRef: string;
 }
 
 export interface RuntimeLessonNodeInput {
@@ -200,6 +214,7 @@ export interface SimulationResourceNodeInput {
   launchTarget: string;
   knowledgeNodeIds?: string[];
   prerequisiteNodeIds?: string[];
+  planningOverride?: ResourceNodePlanningOverride;
 }
 
 export interface ArenaTaskResourceNodeInput {
@@ -209,6 +224,7 @@ export interface ArenaTaskResourceNodeInput {
   knowledgeNodeIds?: string[];
   prerequisiteNodeIds?: string[];
   official?: boolean;
+  planningOverride?: ResourceNodePlanningOverride;
 }
 
 export interface LightweightResourceNodeInput {
@@ -220,12 +236,15 @@ export interface LightweightResourceNodeInput {
   launchTarget?: string | null;
   renderTarget?: string | null;
   teacherOnly?: boolean;
+  planningOverride?: ResourceNodePlanningOverride;
 }
 
 export interface ResourceNodeRegistryInput {
+  auditOptions?: ResourceNodeAuditOptions;
   teachingResources?: TeachingResourceNodeInput[];
   registeredResources?: RegisteredResourceNodeInput[];
   knowledgeNodes?: KnowledgeNodeResourceInput[];
+  knowledgeCards?: KnowledgeCardResourceNodeInput[];
   runtimeLessons?: RuntimeLessonNodeInput[];
   simulations?: SimulationResourceNodeInput[];
   arenaTasks?: ArenaTaskResourceNodeInput[];
@@ -239,6 +258,7 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     ...buildTeachingResourceNodes(input.teachingResources ?? []),
     ...buildRegisteredResourceNodes(input.registeredResources ?? []),
     ...buildKnowledgeResourceNodes(input.knowledgeNodes ?? []),
+    ...buildKnowledgeCardNodes(input.knowledgeCards ?? []),
     ...buildRuntimeLessonNodes(input.runtimeLessons ?? []),
     ...buildSimulationNodes(input.simulations ?? []),
     ...buildArenaTaskNodes(input.arenaTasks ?? []),
@@ -249,7 +269,7 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
   const nodesById = mergeOverlappingSources(nodeCandidates);
   const edges = buildResourceNodeEdges(nodesById);
   const auditedNodes = Array.from(nodesById.values())
-    .map((node) => ({ ...node, eligibility: auditResourceNode(node, nodesById) }))
+    .map((node) => ({ ...node, eligibility: auditResourceNode(node, nodesById, input.auditOptions) }))
     .sort((left, right) => left.id.localeCompare(right.id));
 
   return {
@@ -274,6 +294,7 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
 export function auditResourceNode(
   node: ResourceNode,
   nodesById: Map<string, ResourceNode> = new Map([[node.id, node]]),
+  options: ResourceNodeAuditOptions = {},
 ): ResourceNodeEligibility {
   const issues: ResourceNodeAuditIssue[] = [];
   if (!node.renderTarget && !node.launchTarget) {
@@ -322,7 +343,7 @@ export function auditResourceNode(
   if (node.planningMetadata.evidenceInstrumentation.length === 0) {
     issues.push({
       code: 'missing-evidence-instrumentation',
-      severity: 'warning',
+      severity: options.strictEvidenceInstrumentation ? 'blocking' : 'warning',
       message: 'ResourceNode has no evidence instrumentation mapping.',
     });
   }
@@ -390,7 +411,9 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
       catalogMetadata: 'resource_registry',
       planningMetadata: 'ResourceNode',
     },
+    prerequisites: resource.prerequisiteNodeIds ?? [],
     evidenceInstrumentation: ['InteractionLog'],
+    planningOverride: resource.planningOverride,
   }));
 }
 
@@ -429,6 +452,28 @@ function buildKnowledgeResourceNodes(nodes: KnowledgeNodeResourceInput[]): Resou
       evidenceInstrumentation: ['knowledge_card_open'],
     }),
   ]);
+}
+
+function buildKnowledgeCardNodes(cards: KnowledgeCardResourceNodeInput[]): ResourceNode[] {
+  return cards.map((card) => createNode({
+    id: `knowledge-card:${card.id}`,
+    title: card.title,
+    type: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: card.sourceRef,
+    renderTarget: card.renderTarget ?? null,
+    launchTarget: card.launchTarget ?? null,
+    knowledgeCoverage: card.knowledgeNodeIds ?? [],
+    sourceOfRecord: {
+      content: 'knowledge_graph',
+      catalogMetadata: 'ResourceNode',
+      planningMetadata: 'ResourceNode',
+    },
+    teacherOnly: Boolean(card.teacherOnly),
+    prerequisites: card.prerequisiteNodeIds ?? [],
+    evidenceInstrumentation: ['knowledge_card_open'],
+    planningOverride: card.planningOverride,
+  }));
 }
 
 function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNode[] {
@@ -517,6 +562,7 @@ function buildSimulationNodes(simulations: SimulationResourceNodeInput[]): Resou
     },
     prerequisites: simulation.prerequisiteNodeIds ?? [],
     evidenceInstrumentation: ['simulation_run'],
+    planningOverride: simulation.planningOverride,
   }));
 }
 
@@ -537,6 +583,7 @@ function buildArenaTaskNodes(tasks: ArenaTaskResourceNodeInput[]): ResourceNode[
     },
     prerequisites: task.prerequisiteNodeIds ?? [],
     evidenceInstrumentation: [task.official ? 'arena_evaluation_complete' : 'arena_simulation_run'],
+    planningOverride: task.planningOverride,
   }));
 }
 
@@ -563,6 +610,7 @@ function buildLightweightNodes(
     teacherOnly: Boolean(entry.teacherOnly),
     prerequisites: entry.prerequisiteNodeIds ?? [],
     evidenceInstrumentation: [`${sourceKind}_complete`],
+    planningOverride: entry.planningOverride,
   }));
 }
 
@@ -602,16 +650,16 @@ function createNode(input: {
       estimatedTimeMinutes: planningOverride.estimatedTimeMinutes ?? defaultEstimatedTime(input.type),
       cognitiveLoad: planningOverride.cognitiveLoad ?? defaultCognitiveLoad(input.type),
       knowledgeCoverage: uniqueSorted(planningOverride.knowledgeCoverage ?? input.knowledgeCoverage),
-      abilityImpact: defaultAbilityImpact(input.type),
-      cost: {
+      abilityImpact: planningOverride.abilityImpact ?? defaultAbilityImpact(input.type),
+      cost: planningOverride.cost ?? {
         effort: input.type === 'project' || input.type === 'arena_task' ? 'high' : 'medium',
         requiresTeacherReview: input.teacherOnly === true || input.type === 'project',
       },
       availability: planningOverride.availability ?? (input.teacherOnly ? 'teacher_only' : 'available'),
       teacherPolicy: planningOverride.teacherPolicy ?? (input.teacherOnly ? 'teacher-only' : 'allowed'),
       privacyLevel: planningOverride.privacyLevel ?? privacyLevel,
-      terminalConstraints: input.type === 'project' ? ['terminal-node'] : [],
-      evidenceInstrumentation: input.evidenceInstrumentation,
+      terminalConstraints: uniqueSorted(planningOverride.terminalConstraints ?? (input.type === 'project' ? ['terminal-node'] : [])),
+      evidenceInstrumentation: uniqueSorted(planningOverride.evidenceInstrumentation ?? input.evidenceInstrumentation),
     },
     sourceOfRecord: input.sourceOfRecord,
     eligibility: {
@@ -635,6 +683,17 @@ function parsePlanningOverride(config?: Record<string, unknown> | null): Resourc
   }
   if (Array.isArray(raw.knowledgeCoverage)) {
     override.knowledgeCoverage = raw.knowledgeCoverage.filter((item): item is string => typeof item === 'string');
+  }
+  if (Array.isArray(raw.terminalConstraints)) {
+    override.terminalConstraints = raw.terminalConstraints.filter((item): item is string => typeof item === 'string');
+  }
+  if (Array.isArray(raw.evidenceInstrumentation)) {
+    override.evidenceInstrumentation = raw.evidenceInstrumentation.filter((item): item is string => typeof item === 'string');
+  }
+  if (raw.abilityImpact && typeof raw.abilityImpact === 'object' && !Array.isArray(raw.abilityImpact)) {
+    override.abilityImpact = Object.fromEntries(
+      Object.entries(raw.abilityImpact).filter(([, value]) => typeof value === 'number' && Number.isFinite(value)),
+    );
   }
   if (typeof raw.estimatedTimeMinutes === 'number' || raw.estimatedTimeMinutes === null) {
     override.estimatedTimeMinutes = raw.estimatedTimeMinutes;
