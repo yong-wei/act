@@ -7,6 +7,7 @@ import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   ADAPTIVE_LEARNING_CENTER_REGIONS,
   LEARNER_DATA_SHELL_SEMANTICS,
+  buildControlCorrectionLearningCenterView,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
   buildRecommendedPathNodeView,
@@ -14,6 +15,7 @@ import {
   buildAdaptiveClaimStatus,
   buildAdaptiveLearningCenterState,
   buildAdaptiveLearningCenterView,
+  getControlCorrectionCenterEntryRoutes,
   getLearnerDataSurfaceRoutes,
   getAdaptiveLearningCenterCompatibilityRoutes,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
@@ -333,6 +335,22 @@ describe('adaptive learning center UI contracts', () => {
     }
   });
 
+  it('declares control-correction entry routes with preserved goal and route intent', () => {
+    const routes = getControlCorrectionCenterEntryRoutes();
+
+    expect(routes.map((route) => [route.href, route.source, route.routeIntent])).toEqual([
+      ['/', 'homepage', 'practice'],
+      ['/dashboard', 'student-cockpit', 'learner-state-review'],
+      ['/profile', 'profile', 'learner-state-review'],
+      ['/profile/growth', 'profile', 'evidence-review'],
+      ['/profile/evidence', 'profile', 'evidence-review'],
+      ['/profile/growth', 'contextual-recommendation', 'contextual-recommendation'],
+      ['/assessment/adaptive-practice', 'adaptive-practice', 'practice'],
+    ]);
+    expect(routes.every((route) => route.preservedQuery.goal === 'control-correction')).toBe(true);
+    expect(routes.every((route) => route.preservedQuery.intent === route.routeIntent)).toBe(true);
+  });
+
   it('binds the evidence browser to grouped timeline metadata and actionable empty states', () => {
     const source = readFileSync(join(repoRoot, 'src/features/data-governance/evidence-timeline-browser.tsx'), 'utf8');
     const teacherEvidence = readFileSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'), 'utf8');
@@ -472,6 +490,177 @@ describe('adaptive learning center UI contracts', () => {
       },
       state: 'current',
     });
+  });
+
+  it('launches control-correction path nodes with path, node, goal, and route intent context', () => {
+    const node = buildRecommendedPathNodeView(pathPlan(), {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      routeIntent: 'path-execution',
+    }).nodes[0];
+
+    expect(node.action.href).toBe(
+      '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+    );
+  });
+
+  it('normalizes persisted knowledge card targets before adding control-correction launch context', () => {
+    const node = buildRecommendedPathNodeView(pathPlan({
+      goal: {
+        id: 'control-correction',
+        title: '控制校正路径',
+        knowledgeTargets: ['phase-margin'],
+      },
+      mainPath: [
+        {
+          ...pathPlan().mainPath[0],
+          target: 'course-content/runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md',
+        },
+      ],
+    }), {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      routeIntent: 'path-execution',
+    }).nodes[0];
+
+    expect(node.action.href).toBe(
+      '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+    );
+  });
+
+  it('builds the control-correction center with hero, next action, readiness, citations, and Konling dock', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'control-correction',
+          title: '控制校正路径',
+          knowledgeTargets: ['phase-margin'],
+        },
+        confidence: {
+          level: 'medium',
+          score: 0.72,
+          sourceCoverage: 0.8,
+        },
+      }),
+      konling: {
+        contextSource: 'learner-state-and-path',
+        interventionBasis: 'control-correction-next-node',
+        cooldown: { active: false, until: null },
+        feedback: { state: 'pending' },
+      },
+      entrySource: 'student-cockpit',
+      routeIntent: 'path-execution',
+    });
+
+    expect(view.goalId).toBe('control-correction');
+    expect(view.entry).toEqual({ source: 'student-cockpit', routeIntent: 'path-execution' });
+    expect(view.competencyHero).toMatchObject({
+      id: 'control-correction-competency-hero',
+      region: 'mastery',
+      title: '控制校正能力状态',
+    });
+    expect(view.nextAction).toMatchObject({
+      nodeId: 'node-1',
+      href: '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+      confidence: 'medium',
+      evidenceLimitation: 'complete',
+    });
+    expect(view.readinessGate.ready).toBe(true);
+    expect(view.readinessGate.missing).toEqual([]);
+    expect(view.citationAccess.id).toBe('control-correction-citation-drawer');
+    expect(view.konlingDock.id).toBe('control-correction-konling-dock');
+    expect(view.launchContexts).toEqual([
+      {
+        goalId: 'control-correction',
+        pathId: 'path-1',
+        nodeId: 'node-1',
+        routeIntent: 'path-execution',
+      },
+    ]);
+  });
+
+  it('renders actionable control-correction fallback states without private internals', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [],
+      learnerState: learnerState({
+        evidence: {
+          ...learnerState().evidence,
+          readState: 'stale',
+        },
+      }),
+      pathPlan: null,
+      networkError: true,
+      questionAvailable: false,
+      routeIntent: 'practice',
+    });
+
+    expect(view.readinessGate.ready).toBe(false);
+    expect(view.fallbackStates.map((state) => state.state)).toEqual([
+      'feature-flag-disabled',
+      'network-error',
+      'loading',
+      'low-evidence',
+      'no-path',
+    ]);
+    expect(view.fallbackStates.every((state) => state.actions.length >= 2)).toBe(true);
+    expect(JSON.stringify(view)).not.toMatch(/rawTrace|hiddenArena|rawAnswer|privateKonlingMemory|secret/i);
+  });
+
+  it('surfaces no-question state when a control-correction path has no available practice item', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'control-correction',
+          title: '控制校正路径',
+          knowledgeTargets: ['phase-margin'],
+        },
+        currentNodeId: null,
+      }),
+      questionAvailable: false,
+    });
+
+    expect(view.fallbackStates.map((state) => state.state)).toEqual(['no-question', 'path-ready']);
+    expect(view.readinessGate.ready).toBe(false);
+    expect(view.fallbackStates.find((state) => state.state === 'no-question')?.actions).toEqual(
+      expect.arrayContaining([
+        {
+          href: '/interactive-learning?goal=control-correction',
+          label: '打开互动学习',
+        },
+      ]),
+    );
+  });
+
+  it('does not relabel non-control-correction paths as control-correction launch contexts', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan(),
+    });
+
+    expect(view.launchContexts).toEqual([]);
+    expect(view.nextAction.nodeId).toBeNull();
+    expect(view.readinessGate.ready).toBe(false);
+    expect(view.readinessGate.missing).toContain('no-path');
+  });
+
+  it('binds the adaptive practice page to control-correction query context', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('buildControlCorrectionLearningCenterView');
+    expect(source).toContain("searchParams.get('goal')");
+    expect(source).toContain("searchParams.get('intent')");
+    expect(source).toContain("searchParams.get('pathId')");
+    expect(source).toContain("searchParams.get('nodeId')");
+    expect(source).toContain('data-control-correction-center="adaptive-practice"');
+    expect(source).toContain("fetch('/api/adaptive/learner-state?goal=control-correction')");
+    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(activePathId)}`)');
+    expect(source).toContain('goalId: activeGoal');
+    expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
   });
 
   it('keeps next main-path nodes distinct from optional alternatives', () => {

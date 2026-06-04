@@ -727,7 +727,11 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     iconKey: 'adaptive',
     actionLabel: '继续练习',
     actionPriority: 60,
-    aliasHrefs: ['/profile/growth'],
+    aliasHrefs: [
+      '/profile/growth',
+      '/assessment/adaptive-practice?goal=control-correction&intent=practice',
+      '/profile/growth?goal=control-correction&intent=contextual-recommendation',
+    ],
   },
   {
     id: 'student-interactive-learning',

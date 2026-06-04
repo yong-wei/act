@@ -31,6 +31,26 @@ export type AdaptiveLearningCompatibilityIntent =
   | 'profile-adaptive-cards';
 
 export type AdaptiveLearningCompatibilityMigrationMode = 'legacy-surface' | 'center-alias';
+export type ControlCorrectionCenterRouteIntent =
+  | 'practice'
+  | 'learner-state-review'
+  | 'path-execution'
+  | 'evidence-review'
+  | 'contextual-recommendation';
+export type ControlCorrectionCenterEntrySource =
+  | 'homepage'
+  | 'student-cockpit'
+  | 'profile'
+  | 'adaptive-practice'
+  | 'contextual-recommendation';
+export type ControlCorrectionCenterStateKind =
+  | 'path-ready'
+  | 'loading'
+  | 'low-evidence'
+  | 'no-path'
+  | 'no-question'
+  | 'feature-flag-disabled'
+  | 'network-error';
 export type LearnerDataShellSemantic =
   | 'ability-profile'
   | 'current-path'
@@ -116,6 +136,71 @@ export interface AdaptiveLearningCenterView extends AdaptiveLearningCenterState 
   excludedPolicyFamilies: string[];
 }
 
+export interface ControlCorrectionCenterEntryRoute {
+  href: '/' | '/assessment/adaptive-practice' | '/dashboard' | '/profile' | '/profile/growth' | '/profile/evidence';
+  source: ControlCorrectionCenterEntrySource;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+  preservedQuery: {
+    goal: 'control-correction';
+    intent: ControlCorrectionCenterRouteIntent;
+  };
+}
+
+export interface ControlCorrectionCenterRecoveryAction {
+  href: string;
+  label: string;
+}
+
+export interface ControlCorrectionCenterFallbackState {
+  state: ControlCorrectionCenterStateKind;
+  title: string;
+  status: PlatformStatusPayload;
+  actions: readonly ControlCorrectionCenterRecoveryAction[];
+}
+
+export interface ControlCorrectionCenterNextAction {
+  nodeId: string | null;
+  title: string;
+  href: string;
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+}
+
+export interface ControlCorrectionCenterReadinessGate {
+  ready: boolean;
+  status: PlatformStatusPayload;
+  missing: readonly string[];
+}
+
+export interface ControlCorrectionCenterLaunchContext {
+  goalId: 'control-correction';
+  pathId: string;
+  nodeId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+}
+
+export interface ControlCorrectionLearningCenterView extends AdaptiveLearningCenterView {
+  goalId: 'control-correction';
+  entry: {
+    source: ControlCorrectionCenterEntrySource;
+    routeIntent: ControlCorrectionCenterRouteIntent;
+  };
+  competencyHero: AdaptiveLearningCenterPanel;
+  nextAction: ControlCorrectionCenterNextAction;
+  readinessGate: ControlCorrectionCenterReadinessGate;
+  citationAccess: AdaptiveLearningCenterPanel;
+  konlingDock: AdaptiveLearningCenterPanel;
+  fallbackStates: readonly ControlCorrectionCenterFallbackState[];
+  launchContexts: readonly ControlCorrectionCenterLaunchContext[];
+}
+
+export interface ControlCorrectionLearningCenterInput extends AdaptiveLearningCenterViewInput {
+  entrySource?: ControlCorrectionCenterEntrySource;
+  routeIntent?: ControlCorrectionCenterRouteIntent;
+  networkError?: boolean;
+  questionAvailable?: boolean;
+}
+
 export interface RecommendedPathNodeView {
   stage: string;
   nodeId: string;
@@ -135,6 +220,12 @@ export interface RecommendedPathNodeView {
 export interface RecommendedPathNodeViewModel {
   pathId: string;
   nodes: RecommendedPathNodeView[];
+}
+
+export interface RecommendedPathLaunchContext {
+  goalId: string;
+  pathId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
 }
 
 export interface PracticeEntryRouteNodeInput {
@@ -274,12 +365,64 @@ const ADAPTIVE_LEARNING_CENTER_ROUTES: AdaptiveLearningCompatibilityRoute[] = [
   },
 ];
 
+const CONTROL_CORRECTION_CENTER_ENTRY_ROUTES: ControlCorrectionCenterEntryRoute[] = [
+  {
+    href: '/',
+    source: 'homepage',
+    routeIntent: 'practice',
+    preservedQuery: { goal: 'control-correction', intent: 'practice' },
+  },
+  {
+    href: '/dashboard',
+    source: 'student-cockpit',
+    routeIntent: 'learner-state-review',
+    preservedQuery: { goal: 'control-correction', intent: 'learner-state-review' },
+  },
+  {
+    href: '/profile',
+    source: 'profile',
+    routeIntent: 'learner-state-review',
+    preservedQuery: { goal: 'control-correction', intent: 'learner-state-review' },
+  },
+  {
+    href: '/profile/growth',
+    source: 'profile',
+    routeIntent: 'evidence-review',
+    preservedQuery: { goal: 'control-correction', intent: 'evidence-review' },
+  },
+  {
+    href: '/profile/evidence',
+    source: 'profile',
+    routeIntent: 'evidence-review',
+    preservedQuery: { goal: 'control-correction', intent: 'evidence-review' },
+  },
+  {
+    href: '/profile/growth',
+    source: 'contextual-recommendation',
+    routeIntent: 'contextual-recommendation',
+    preservedQuery: { goal: 'control-correction', intent: 'contextual-recommendation' },
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    source: 'adaptive-practice',
+    routeIntent: 'practice',
+    preservedQuery: { goal: 'control-correction', intent: 'practice' },
+  },
+];
+
 export function getAdaptiveLearningCenterCompatibilityRoutes(): AdaptiveLearningCompatibilityRoute[] {
   return ADAPTIVE_LEARNING_CENTER_ROUTES.map((route) => ({ ...route }));
 }
 
 export function getLearnerDataSurfaceRoutes(): LearnerDataSurfaceRoute[] {
   return LEARNER_DATA_SURFACE_ROUTES.map((route) => ({ ...route }));
+}
+
+export function getControlCorrectionCenterEntryRoutes(): ControlCorrectionCenterEntryRoute[] {
+  return CONTROL_CORRECTION_CENTER_ENTRY_ROUTES.map((route) => ({
+    ...route,
+    preservedQuery: { ...route.preservedQuery },
+  }));
 }
 
 export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']): LearnerDataRouteShell {
@@ -297,7 +440,10 @@ export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']
   };
 }
 
-export function buildRecommendedPathNodeView(pathPlan: AdaptiveLearningPathPlan): RecommendedPathNodeViewModel {
+export function buildRecommendedPathNodeView(
+  pathPlan: AdaptiveLearningPathPlan,
+  launchContext?: RecommendedPathLaunchContext,
+): RecommendedPathNodeViewModel {
   return {
     pathId: pathPlan.id,
     nodes: pathPlan.mainPath.map((node, index) => ({
@@ -314,11 +460,91 @@ export function buildRecommendedPathNodeView(pathPlan: AdaptiveLearningPathPlan)
       expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
       sourceContext: `${node.sourceKind}:${node.sourceRef}`,
       action: {
-        href: node.target,
+        href: pathNodeLaunchHref(node.target, node.nodeId, launchContext),
         label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
       },
       state: recommendedNodeState(node.status),
     })),
+  };
+}
+
+export function buildControlCorrectionLearningCenterView(
+  input: ControlCorrectionLearningCenterInput,
+): ControlCorrectionLearningCenterView {
+  const pathPlan = input.pathPlan?.goal.id === 'control-correction' ? input.pathPlan : null;
+  const baseView = buildAdaptiveLearningCenterView({ ...input, pathPlan });
+  const routeIntent = input.routeIntent ?? 'practice';
+  const entrySource = input.entrySource ?? 'adaptive-practice';
+  const learnerState = isServerOwnedLearnerState(input.learnerState) ? input.learnerState : null;
+  const pathNodes = pathPlan
+    ? buildRecommendedPathNodeView(pathPlan, {
+        goalId: 'control-correction',
+        pathId: pathPlan.id,
+        routeIntent,
+      }).nodes
+    : [];
+  const nextNode = pathNodes.find((node) => node.state === 'current') ?? pathNodes[0] ?? null;
+  const evidencePanel = baseView.panels.find((panel) => panel.region === 'evidence') ?? fallbackPanel('evidence');
+  const konlingDock = baseView.panels.find((panel) => panel.region === 'konling') ?? konlingPanel(input.konling ?? null);
+  const currentPath = baseView.panels.find((panel) => panel.region === 'current-path') ?? currentPathPanel(pathPlan);
+  const fallbackStates = buildControlCorrectionFallbackStates({
+    featureEnabled: baseView.mode === 'adaptive-learning-center',
+    learnerState,
+    pathPlan,
+    networkError: input.networkError ?? false,
+    questionAvailable: input.questionAvailable ?? true,
+  });
+  const blockingStates = fallbackStates.filter((state) => state.state !== 'path-ready');
+
+  return {
+    ...baseView,
+    goalId: 'control-correction',
+    entry: {
+      source: entrySource,
+      routeIntent,
+    },
+    competencyHero: {
+      id: 'control-correction-competency-hero',
+      region: 'mastery',
+      title: '控制校正能力状态',
+      status: learnerStateStatus(learnerState),
+      payload: {
+        goalId: 'control-correction',
+        competencies: learnerState?.primaryCompetencies ?? null,
+        knowledgeMastery: learnerState?.knowledgeMastery ?? null,
+      },
+    },
+    nextAction: {
+      nodeId: nextNode?.nodeId ?? null,
+      title: nextNode?.title ?? '生成控制校正学习路径',
+      href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=control-correction&intent=${routeIntent}`,
+      confidence: nextNode?.confidence ?? 'unknown',
+      evidenceLimitation: nextNode?.evidenceLimitation ?? 'missing',
+    },
+    readinessGate: {
+      ready: blockingStates.length === 0,
+      status: currentPath.status,
+      missing: blockingStates.map((state) => state.state),
+    },
+    citationAccess: {
+      ...evidencePanel,
+      id: 'control-correction-citation-drawer',
+      title: '证据与引用',
+    },
+    konlingDock: {
+      ...konlingDock,
+      id: 'control-correction-konling-dock',
+      title: 'Konling 校正支持',
+    },
+    fallbackStates,
+    launchContexts: pathPlan
+      ? pathPlan.mainPath.map((node) => ({
+          goalId: 'control-correction',
+          pathId: pathPlan.id,
+          nodeId: node.nodeId,
+          routeIntent,
+        }))
+      : [],
   };
 }
 
@@ -475,6 +701,146 @@ function practiceConfidence(
 function practiceRouteNodeHref(actionHref: string, priority: number): string {
   const separator = actionHref.includes('?') ? '&' : '?';
   return `${actionHref}${separator}focus=practice-focus-${priority}`;
+}
+
+function pathNodeLaunchHref(
+  target: string,
+  nodeId: string,
+  launchContext?: RecommendedPathLaunchContext,
+): string {
+  const href = normalizePathNodeTarget(target);
+  if (!launchContext) return href;
+
+  const separator = href.includes('?') ? '&' : '?';
+  const params = new URLSearchParams({
+    pathId: launchContext.pathId,
+    nodeId,
+    goal: launchContext.goalId,
+    intent: launchContext.routeIntent,
+  });
+  return `${href}${separator}${params.toString()}`;
+}
+
+function normalizePathNodeTarget(target: string): string {
+  if (target.startsWith('course-content/runtime/knowledge/')) {
+    return target.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/');
+  }
+  return target;
+}
+
+function buildControlCorrectionFallbackStates(input: {
+  featureEnabled: boolean;
+  learnerState: AdaptiveLearnerState | null;
+  pathPlan: AdaptiveLearningPathPlan | null;
+  networkError: boolean;
+  questionAvailable: boolean;
+}): ControlCorrectionCenterFallbackState[] {
+  return [
+    !input.featureEnabled
+      ? controlCorrectionFallbackState(
+          'feature-flag-disabled',
+          '控制校正中心暂未启用',
+          'adaptive-learning-center-flag-disabled',
+          'not-ready',
+          '/assessment/adaptive-practice?goal=control-correction',
+          '进入兼容练习',
+        )
+      : null,
+    input.networkError
+      ? controlCorrectionFallbackState(
+          'network-error',
+          '控制校正数据暂时无法加载',
+          'network-error',
+          'degraded',
+          '/assessment/adaptive-practice?goal=control-correction',
+          '重试加载',
+        )
+      : null,
+    input.learnerState && input.learnerState.evidence.readState === 'stale'
+      ? controlCorrectionFallbackState(
+          'loading',
+          '正在刷新学习证据',
+          'stale-learner-state',
+          'degraded',
+          '/profile/evidence?goal=control-correction',
+          '查看证据',
+        )
+      : null,
+    !input.learnerState || input.learnerState.missingEvidence.length > 0
+      ? controlCorrectionFallbackState(
+          'low-evidence',
+          '控制校正证据不足',
+          'missing-control-correction-evidence',
+          'degraded',
+          '/assessment/adaptive-practice?goal=control-correction',
+          '先完成诊断练习',
+        )
+      : null,
+    !input.pathPlan
+      ? controlCorrectionFallbackState(
+          'no-path',
+          '尚未生成控制校正路径',
+          'missing-control-correction-path',
+          'not-ready',
+          '/profile/growth?goal=control-correction',
+          '查看成长状态',
+        )
+      : null,
+    input.pathPlan && !input.questionAvailable && !input.pathPlan.currentNodeId
+      ? controlCorrectionFallbackState(
+          'no-question',
+          '当前路径暂无可用题目',
+          'missing-control-correction-question',
+          'degraded',
+          '/interactive-learning?goal=control-correction',
+          '打开互动学习',
+        )
+      : null,
+    input.pathPlan && input.pathPlan.status === 'ready'
+      ? controlCorrectionFallbackState(
+          'path-ready',
+          '控制校正路径已就绪',
+          null,
+          'ready',
+          '/assessment/adaptive-practice?goal=control-correction',
+          '继续当前节点',
+        )
+      : null,
+  ].filter((state): state is ControlCorrectionCenterFallbackState => Boolean(state));
+}
+
+function controlCorrectionFallbackState(
+  state: ControlCorrectionCenterStateKind,
+  title: string,
+  fallbackReason: string | null,
+  readiness: PlatformReadinessStatus,
+  href: string,
+  label: string,
+): ControlCorrectionCenterFallbackState {
+  return {
+    state,
+    title,
+    status: buildAdaptiveClaimStatus({
+      id: `control-correction-center-${state}`,
+      label: title,
+      domain: 'path',
+      confidence: state === 'path-ready' ? 'medium' : 'unknown',
+      sourceCoverage: state === 'path-ready' ? 'partial' : 'missing',
+      privacy: 'classroom',
+      readiness,
+      fallbackReason,
+    }),
+    actions: [
+      {
+        href,
+        label,
+      },
+      {
+        href: '/profile/evidence?goal=control-correction',
+        label: '查看证据来源',
+      },
+    ],
+  };
 }
 
 function isServerOwnedLearnerState(value: AdaptiveLearnerState | null | undefined): value is AdaptiveLearnerState {
