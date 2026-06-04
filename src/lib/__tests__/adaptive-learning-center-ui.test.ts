@@ -19,6 +19,7 @@ import {
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 
 const repoRoot = process.cwd();
@@ -140,6 +141,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
     },
     stage: 'stage-1-rules-graph',
     policyFamily: 'rules-plus-graph-search',
+    policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['rules-plus-graph-search'],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: 'ready',
     currentNodeId: 'node-1',

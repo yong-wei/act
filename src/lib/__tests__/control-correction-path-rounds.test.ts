@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  type AdaptiveLearningPathPlan,
+} from '../adaptive-learning-path-planner';
+import {
   persistControlCorrectionPathRound,
   ControlCorrectionPathRoundConflictError,
   ControlCorrectionPathRoundValidationError,
@@ -12,7 +16,6 @@ import {
   toLegacyLearningPathSummary,
   updateControlCorrectionPathRoundAfterExecution,
 } from '../control-correction-path-rounds';
-import type { AdaptiveLearningPathPlan } from '../adaptive-learning-path-planner';
 
 function samplePlan(): AdaptiveLearningPathPlan {
   return {
@@ -26,6 +29,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
     },
     stage: 'stage-1-rules-graph',
     policyFamily: 'rules-plus-graph-search',
+    policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['rules-plus-graph-search'],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: 'ready',
     currentNodeId: 'knowledge-card:control-correction-time-domain-targets',
@@ -312,6 +316,20 @@ describe('control-correction path rounds', () => {
     plan.mainPath[1] = {
       ...plan.mainPath[1],
       type: 'knowledge_card',
+    };
+
+    await expect(persistControlCorrectionPathRound(db, {
+      plan,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-compatible policy families for control-correction persistence', async () => {
+    const db = mockDb();
+    const plan = {
+      ...samplePlan(),
+      policyFamily: 'simulation-driven' as const,
+      policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['simulation-driven'],
     };
 
     await expect(persistControlCorrectionPathRound(db, {
