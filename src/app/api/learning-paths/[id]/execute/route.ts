@@ -75,9 +75,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorUserId: requester.userId,
             actorRole: requester.role,
           };
-          execution = await recordPathNodeExecution(prisma as any, executionInput);
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, executionInput);
+          execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (path.currentNodeId === existingExecution.nodeId) {
-            await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
+            await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
           }
         }
         const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
@@ -87,7 +88,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path.currentNodeId !== body.nodeId) {
       return NextResponse.json({ error: '执行事件只能写入当前路径节点' }, { status: 409 });
     }
-    const execution = await recordPathNodeExecution(prisma as any, {
+    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, {
       pathId: params.id,
       userId: path.userId,
       nodeId: body.nodeId,
@@ -104,23 +105,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       actorUserId: requester.userId,
       actorRole: requester.role,
     });
-    await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
-      pathId: params.id,
-      userId: path.userId,
-      nodeId: body.nodeId,
-      resourceType: body.resourceType,
-      status: body.status,
-      startedAt: body.startedAt ?? null,
-      completedAt: body.completedAt ?? null,
-      failedAt: body.failedAt ?? null,
-      evidenceRefs: body.evidenceRefs ?? [],
-      liftMetadata: body.liftMetadata ?? {},
-      simulationRef: body.simulationRef ?? null,
-      arenaRef: body.arenaRef ?? null,
-      idempotencyKey: body.idempotencyKey ?? null,
-      actorUserId: requester.userId,
-      actorRole: requester.role,
-    });
+    const execution = await recordPathNodeExecution(prisma as any, executionInput);
+    await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
     return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
@@ -156,4 +142,305 @@ function toExecutionWriteView(execution: any) {
     failedAt: execution.failedAt ?? null,
     createdAt: execution.createdAt ?? null,
   };
+}
+
+async function resolveGovernedTerminalEvidence<T extends {
+  userId: string;
+  nodeId: string;
+  resourceType: string;
+  simulationRef?: Record<string, unknown> | null;
+  arenaRef?: Record<string, unknown> | null;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  path: any,
+  input: T,
+): Promise<T> {
+  const terminalValidation = toRecord(path.terminalValidation);
+  if (terminalValidation.nodeId !== input.nodeId) return input;
+
+  const scope = readTerminalEvidenceScope(path, input.nodeId);
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
+  const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
+  return {
+    ...input,
+    simulationRef,
+    arenaRef,
+    evidenceRefs: sanitizeTerminalEvidenceRefs(input.evidenceRefs, simulationRef, arenaRef),
+  };
+}
+
+async function resolveServerSimulationRef(
+  db: any,
+  userId: string,
+  clientRef: Record<string, unknown> | null | undefined,
+  scope: TerminalEvidenceScope,
+): Promise<Record<string, unknown> | null> {
+  const id = readRefId(clientRef, ['id', 'runId', 'simulationRunId', 'ref']);
+  if (!id) return null;
+  const run = await db.simulationRun?.findFirst?.({
+    where: {
+      id,
+      ownerUserId: userId,
+    },
+    select: {
+      id: true,
+      runKind: true,
+      sourceDomain: true,
+      status: true,
+      sourceRefId: true,
+      taskSpecId: true,
+      resourceId: true,
+      summary: true,
+      replayToken: true,
+      protocolVersion: true,
+      completedAt: true,
+    },
+  });
+  if (!run) {
+    return unknownEvidenceRef('SimulationRun', id);
+  }
+  if (!matchesExpectedSimulationEvidence(run, scope)) {
+    return unknownEvidenceRef('SimulationRun', id, 'simulation-scope-mismatch');
+  }
+  const summary = toRecord(run.summary);
+  return compactObject({
+    kind: 'SimulationRun',
+    id: run.id,
+    provenance: run.sourceDomain === 'arena_virtual_preview' || run.runKind === 'arena_preview' ? 'preview' : 'official',
+    status: typeof run.status === 'string' ? run.status : undefined,
+    replayConfidence: readFinite(summary.replayConfidence ?? summary.confidence),
+    protocolVersion: typeof run.protocolVersion === 'string' ? run.protocolVersion : undefined,
+    completedAt: run.completedAt instanceof Date ? run.completedAt.toISOString() : undefined,
+    summaryMetrics: sanitizeMetricRecord(summary.metrics ?? summary),
+  });
+}
+
+async function resolveServerArenaRef(
+  db: any,
+  userId: string,
+  clientRef: Record<string, unknown> | null | undefined,
+  scope: TerminalEvidenceScope,
+): Promise<Record<string, unknown> | null> {
+  const id = readRefId(clientRef, ['id', 'submissionId', 'runId', 'ref']);
+  if (!id) return null;
+  const submission = await db.arenaSubmission?.findFirst?.({
+    where: {
+      id,
+      userId,
+    },
+    select: {
+      id: true,
+      taskId: true,
+      userId: true,
+      score: true,
+      valid: true,
+      submittedAt: true,
+      evaluationRun: {
+        select: {
+          protocolVersion: true,
+          metrics: true,
+          metadata: true,
+          completedAt: true,
+        },
+      },
+    },
+  });
+  if (submission) {
+    if (!matchesExpectedArenaEvidence(submission, scope)) {
+      return unknownEvidenceRef('ArenaSubmission', id, 'arena-task-mismatch');
+    }
+    const evaluationRun = toRecord(submission.evaluationRun);
+    const metadata = toRecord(evaluationRun.metadata);
+    return compactObject({
+      kind: 'ArenaSubmission',
+      id: submission.id,
+      taskId: submission.taskId,
+      provenance: 'official',
+      official: true,
+      valid: typeof submission.valid === 'boolean' ? submission.valid : undefined,
+      score: readFinite(submission.score),
+      replayConfidence: readFinite(metadata.replayConfidence ?? metadata.confidence),
+      protocolVersion: typeof evaluationRun.protocolVersion === 'string' ? evaluationRun.protocolVersion : undefined,
+      submittedAt: submission.submittedAt instanceof Date ? submission.submittedAt.toISOString() : undefined,
+      summaryMetrics: sanitizeMetricRecord(evaluationRun.metrics),
+    });
+  }
+
+  const preview = await db.arenaVirtualSimulationRun?.findFirst?.({
+    where: {
+      id,
+      userId,
+    },
+    select: {
+      id: true,
+      taskId: true,
+      simulationRunId: true,
+      payload: true,
+      createdAt: true,
+    },
+  });
+  if (preview) {
+    if (!matchesExpectedArenaEvidence(preview, scope)) {
+      return unknownEvidenceRef('ArenaVirtualSimulationRun', id, 'arena-task-mismatch');
+    }
+    const payload = toRecord(preview.payload);
+    const replay = toRecord(payload.replay);
+    return compactObject({
+      kind: 'ArenaVirtualSimulationRun',
+      id: preview.id,
+      taskId: preview.taskId,
+      provenance: 'preview',
+      official: false,
+      replayConfidence: readFinite(replay.confidence ?? payload.replayConfidence),
+      simulationRunId: typeof preview.simulationRunId === 'string' ? preview.simulationRunId : undefined,
+      createdAt: preview.createdAt instanceof Date ? preview.createdAt.toISOString() : undefined,
+      summaryMetrics: sanitizeMetricRecord(payload.summary),
+    });
+  }
+
+  return unknownEvidenceRef('ArenaSubmission', id);
+}
+
+interface TerminalEvidenceScope {
+  arenaTaskId: string | null;
+  simulationRefs: Set<string>;
+}
+
+function readTerminalEvidenceScope(path: any, nodeId: string): TerminalEvidenceScope {
+  const terminalValidation = toRecord(path.terminalValidation);
+  const pathPayload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(pathPayload.planNodes) ? pathPayload.planNodes.map(toRecord) : [];
+  const mainPathNodeIds = Array.isArray(pathPayload.mainPathNodeIds)
+    ? pathPayload.mainPathNodeIds.filter((value): value is string => typeof value === 'string')
+    : [];
+  const terminalNode = planNodes.find((node) => node.nodeId === nodeId) ?? {};
+  const arenaTaskId = firstString(
+    terminalValidation.sourceRef,
+    terminalValidation.taskId,
+    terminalValidation.target,
+    terminalNode.sourceRef,
+    terminalNode.taskId,
+    terminalNode.target,
+    stripNodePrefix(nodeId, 'arena-task:'),
+  );
+  const simulationRefs = new Set<string>();
+  for (const node of planNodes) {
+    if (node.type !== 'simulation' && typeof node.nodeId === 'string' && !node.nodeId.startsWith('simulation:')) continue;
+    addScopeRef(simulationRefs, node.nodeId);
+    addScopeRef(simulationRefs, node.target);
+    addScopeRef(simulationRefs, node.resourceId);
+    addScopeRef(simulationRefs, node.taskSpecId);
+  }
+  for (const id of mainPathNodeIds) {
+    if (id.startsWith('simulation:')) addScopeRef(simulationRefs, id);
+  }
+  return { arenaTaskId, simulationRefs };
+}
+
+function matchesExpectedArenaEvidence(record: Record<string, unknown>, scope: TerminalEvidenceScope): boolean {
+  if (!scope.arenaTaskId) return true;
+  return record.taskId === scope.arenaTaskId;
+}
+
+function matchesExpectedSimulationEvidence(record: Record<string, unknown>, scope: TerminalEvidenceScope): boolean {
+  if (scope.simulationRefs.size === 0) return true;
+  return [
+    record.sourceRefId,
+    record.resourceId,
+    record.taskSpecId,
+  ].some((value) => typeof value === 'string' && scope.simulationRefs.has(stripKnownNodePrefix(value)));
+}
+
+function addScopeRef(target: Set<string>, value: unknown): void {
+  if (typeof value !== 'string' || !value.trim()) return;
+  target.add(value);
+  target.add(stripKnownNodePrefix(value));
+}
+
+function stripKnownNodePrefix(value: string): string {
+  return stripNodePrefix(value, 'simulation:') ??
+    stripNodePrefix(value, 'arena-task:') ??
+    lastPathSegment(value);
+}
+
+function lastPathSegment(value: string): string {
+  const normalized = value.trim().replace(/\/+$/, '');
+  const index = normalized.lastIndexOf('/');
+  return index >= 0 ? normalized.slice(index + 1) : normalized;
+}
+
+function stripNodePrefix(value: unknown, prefix: string): string | null {
+  return typeof value === 'string' && value.startsWith(prefix) ? value.slice(prefix.length) : null;
+}
+
+function firstString(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return stripKnownNodePrefix(value);
+  }
+  return null;
+}
+
+function unknownEvidenceRef(kind: string, id: string, reason?: string): Record<string, unknown> {
+  return compactObject({
+    kind,
+    id,
+    provenance: 'unknown',
+    official: false,
+    status: kind === 'SimulationRun' ? 'unverified' : undefined,
+    mismatchReason: reason,
+  });
+}
+
+function sanitizeTerminalEvidenceRefs(
+  refs: unknown[] | undefined,
+  simulationRef: Record<string, unknown> | null,
+  arenaRef: Record<string, unknown> | null,
+): Array<Record<string, unknown>> {
+  const safeRefs = Array.isArray(refs)
+    ? refs
+        .map((item) => {
+          const ref = toRecord(item);
+          const kind = typeof ref.kind === 'string' ? ref.kind : typeof ref.sourceType === 'string' ? ref.sourceType : null;
+          const id = readRefId(ref, ['id', 'ref', 'sourceId']);
+          if (!kind || !id || !['LearningFact', 'SimulationRun', 'ArenaSubmission', 'ArenaVirtualSimulationRun'].includes(kind)) {
+            return null;
+          }
+          return { kind, id };
+        })
+        .filter((item): item is Record<string, unknown> => Boolean(item))
+    : [];
+  if (simulationRef?.id) safeRefs.push({ kind: 'SimulationRun', id: simulationRef.id });
+  if (arenaRef?.id) safeRefs.push({ kind: arenaRef.kind ?? 'ArenaSubmission', id: arenaRef.id });
+  return safeRefs;
+}
+
+function readRefId(ref: Record<string, unknown> | null | undefined, keys: string[]): string | null {
+  const record = toRecord(ref);
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return null;
+}
+
+function sanitizeMetricRecord(value: unknown): Record<string, number> | undefined {
+  const record = toRecord(value);
+  const entries = Object.entries(record).filter(([key, entry]) => {
+    const lower = key.toLowerCase();
+    return typeof entry === 'number' &&
+      Number.isFinite(entry) &&
+      !lower.includes('trace') &&
+      !lower.includes('hidden') &&
+      !lower.includes('raw');
+  });
+  return entries.length ? Object.fromEntries(entries) as Record<string, number> : undefined;
+}
+
+function readFinite(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function compactObject(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
 }

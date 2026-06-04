@@ -16,6 +16,15 @@ const mocks = vi.hoisted(() => ({
     learningPathExecution: {
       findFirst: vi.fn(),
     },
+    simulationRun: {
+      findFirst: vi.fn(),
+    },
+    arenaSubmission: {
+      findFirst: vi.fn(),
+    },
+    arenaVirtualSimulationRun: {
+      findFirst: vi.fn(),
+    },
     studentProfile: {
       findUnique: vi.fn(),
     },
@@ -66,6 +75,39 @@ function post(url: string, body: unknown) {
   });
 }
 
+function useStructuredTerminalPath() {
+  mocks.prisma.learningPath.findUnique.mockResolvedValue({
+    id: 'path-1',
+    userId: 'student-1',
+    classId: 'class-1',
+    goalId: 'control-correction',
+    pathStatus: 'active',
+    currentNodeId: 'arena-task:task-second-order-lead-pid',
+    nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+    pathPayload: {
+      mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      planNodes: [
+        {
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: 'control-correction-step-response-lab',
+        },
+        {
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          type: 'arena_task',
+          target: '/arena/challenges/task-second-order-lead-pid',
+        },
+      ],
+    },
+    terminalValidation: {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      state: 'pending',
+      target: '/arena/challenges/task-second-order-lead-pid',
+    },
+    lastExecutionMetadata: { completedNodeIds: ['simulation:control-correction-step-response-lab'] },
+  });
+}
+
 describe('learning path round API routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -87,6 +129,9 @@ describe('learning path round API routes', () => {
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
     mocks.prisma.learningPath.update.mockResolvedValue({ id: 'path-1' });
     mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(null);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue(null);
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
       id: 'path-1',
@@ -360,8 +405,14 @@ describe('learning path round API routes', () => {
       where: { id: 'path-1' },
       data: expect.objectContaining({
         currentNodeId: 'node-1',
-        pathStatus: 'completed',
-        terminalValidation: expect.objectContaining({ state: 'completed' }),
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          lowConfidenceMarkers: expect.arrayContaining([
+            'arena-terminal-evidence-missing',
+            'simulation-evidence-missing',
+          ]),
+        }),
       }),
     }));
     expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
@@ -384,6 +435,301 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('does not let clients forge official terminal Arena evidence', async () => {
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'forged-terminal',
+      simulationRef: {
+        id: 'client-sim',
+        official: true,
+        status: 'completed',
+        replayConfidence: 1,
+      },
+      arenaRef: {
+        id: 'missing-arena-submission',
+        kind: 'ArenaSubmission',
+        provenance: 'official',
+        official: true,
+        valid: true,
+        score: 100,
+        replayConfidence: 1,
+        hiddenEvaluation: { private: true },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.arenaSubmission.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'missing-arena-submission',
+        userId: 'student-1',
+      }),
+    }));
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      arenaRef: expect.objectContaining({
+        id: 'missing-arena-submission',
+        provenance: 'unknown',
+      }),
+      simulationRef: expect.objectContaining({
+        id: 'client-sim',
+        provenance: 'unknown',
+      }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          lowConfidenceMarkers: expect.arrayContaining([
+            'arena-official-evidence-missing',
+            'arena-replay-confidence-missing',
+          ]),
+        }),
+      }),
+    }));
+    const executionCalls = JSON.stringify(mocks.recordPathNodeExecution.mock.calls);
+    expect(executionCalls).not.toContain('hiddenEvaluation');
+    expect(executionCalls).not.toContain('"score":100');
+    expect(executionCalls).not.toContain('"valid":true');
+  });
+
+  it('completes terminal validation from server-owned SimulationRun and ArenaSubmission records', async () => {
+    useStructuredTerminalPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-1',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'control-correction-step-response-lab',
+      resourceId: 'control-correction-step-response-lab',
+      taskSpecId: null,
+      status: 'completed',
+      summary: {
+        replayConfidence: 0.84,
+        metrics: { overshoot: 0.08, hiddenTraceScore: 999 },
+      },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-1',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-06-04T10:00:00.000Z'),
+      evaluationRun: {
+        protocolVersion: 'template-whitebox-v1',
+        metrics: { settlingTime: 0.9, hiddenScenarioWorst: 0.7 },
+        metadata: { replayConfidence: 0.9, hiddenEvaluation: { private: true } },
+        completedAt: new Date('2026-06-04T10:00:00.000Z'),
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'official-terminal',
+      simulationRef: { id: 'sim-run-1' },
+      arenaRef: { id: 'arena-submission-1' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-1',
+        provenance: 'official',
+        replayConfidence: 0.84,
+      }),
+      arenaRef: expect.objectContaining({
+        id: 'arena-submission-1',
+        provenance: 'official',
+        official: true,
+        valid: true,
+        replayConfidence: 0.9,
+      }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'completed',
+        terminalValidation: expect.objectContaining({
+          state: 'completed',
+          lowConfidenceMarkers: [],
+        }),
+      }),
+    }));
+    const executionCalls = JSON.stringify(mocks.recordPathNodeExecution.mock.calls);
+    expect(executionCalls).not.toContain('hiddenScenarioWorst');
+    expect(executionCalls).not.toContain('hiddenEvaluation');
+  });
+
+  it('rejects official ArenaSubmission records from a different terminal Arena task', async () => {
+    useStructuredTerminalPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-1',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'control-correction-step-response-lab',
+      resourceId: 'control-correction-step-response-lab',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.84 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-other-task',
+      taskId: 'unrelated-task',
+      userId: 'student-1',
+      score: 100,
+      valid: true,
+      submittedAt: new Date('2026-06-04T10:00:00.000Z'),
+      evaluationRun: {
+        protocolVersion: 'template-whitebox-v1',
+        metrics: { settlingTime: 0.9 },
+        metadata: { replayConfidence: 0.95 },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'wrong-arena-task',
+      simulationRef: { id: 'sim-run-1' },
+      arenaRef: { id: 'arena-submission-other-task' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      arenaRef: expect.objectContaining({
+        id: 'arena-submission-other-task',
+        provenance: 'unknown',
+        official: false,
+        mismatchReason: 'arena-task-mismatch',
+      }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          lowConfidenceMarkers: expect.arrayContaining(['arena-official-evidence-missing']),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects Arena preview records from a different terminal Arena task', async () => {
+    useStructuredTerminalPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-1',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'control-correction-step-response-lab',
+      resourceId: 'control-correction-step-response-lab',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.84 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue({
+      id: 'arena-preview-other-task',
+      taskId: 'unrelated-task',
+      simulationRunId: 'sim-run-1',
+      payload: { replay: { confidence: 0.92 }, summary: { settlingTime: 0.8 } },
+      createdAt: new Date('2026-06-04T10:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'wrong-preview-task',
+      simulationRef: { id: 'sim-run-1' },
+      arenaRef: { id: 'arena-preview-other-task' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      arenaRef: expect.objectContaining({
+        id: 'arena-preview-other-task',
+        provenance: 'unknown',
+        official: false,
+        mismatchReason: 'arena-task-mismatch',
+      }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+      }),
+    }));
+  });
+
+  it('rejects SimulationRun records from outside the path simulation source', async () => {
+    useStructuredTerminalPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-other-source',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'unrelated-simulation',
+      resourceId: 'unrelated-simulation',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.94 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-1',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-06-04T10:00:00.000Z'),
+      evaluationRun: {
+        protocolVersion: 'template-whitebox-v1',
+        metrics: { settlingTime: 0.9 },
+        metadata: { replayConfidence: 0.9 },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'wrong-simulation-source',
+      simulationRef: { id: 'sim-run-other-source' },
+      arenaRef: { id: 'arena-submission-1' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-other-source',
+        provenance: 'unknown',
+        status: 'unverified',
+        mismatchReason: 'simulation-scope-mismatch',
+      }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          lowConfidenceMarkers: expect.arrayContaining(['simulation-replay-confidence-missing']),
+        }),
+      }),
+    }));
   });
 
   it('refreshes the owner feature cache after teacher intervention writes', async () => {

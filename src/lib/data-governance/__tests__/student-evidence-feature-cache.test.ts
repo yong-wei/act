@@ -233,6 +233,63 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
+  it('summarizes failed terminal validation executions', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [
+          {
+            id: 'exec-terminal-failed',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'simulation:control-correction-step-response-lab',
+            resourceType: 'simulation',
+            status: 'failed',
+            startedAt: new Date('2026-06-04T10:00:00.000Z'),
+            completedAt: null,
+            failedAt: new Date('2026-06-04T10:03:00.000Z'),
+            idempotencyKey: 'terminal-failed',
+            createdAt: new Date('2026-06-04T10:03:01.000Z'),
+            path: {
+              goalId: 'control-correction',
+              terminalValidation: {
+                nodeId: 'simulation:control-correction-step-response-lab',
+                state: 'failed',
+                fallbackRequired: true,
+                failureReasons: ['simulation-failed'],
+                lowConfidenceMarkers: [],
+              },
+            },
+          },
+        ],
+        deviations: [],
+        interventions: [],
+      },
+    } as any);
+
+    const allTime = (payload.features as any).pathExecution.allTime;
+    expect(allTime).toMatchObject({
+      evidenceCount: 1,
+      fallbackCount: 1,
+      terminalValidationCount: 1,
+      terminalValidation: {
+        latestState: 'failed',
+        failedCount: 1,
+        fallbackRequiredCount: 1,
+        failureReasons: ['simulation-failed'],
+      },
+    });
+    expect(allTime.sourceReferences).toEqual([
+      expect.objectContaining({
+        sourceId: 'exec-terminal-failed',
+        terminalValidationState: 'failed',
+        failureReasons: ['simulation-failed'],
+      }),
+    ]);
+  });
+
   it('counts cited Konling path intervention outcomes beyond legacy dismissed', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -910,6 +967,92 @@ describe('student evidence feature cache service', () => {
     });
   });
 
+  it('summarizes failed terminal validation without leaking hidden Arena internals', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-terminal-low-confidence',
+            pathId: 'path-terminal',
+            userId: 'student-path',
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            resourceType: 'arena_task',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-terminal-low-confidence',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: {
+              goalId: 'control-correction',
+              terminalValidation: {
+                nodeId: 'arena-task:task-second-order-lead-pid',
+                state: 'low-confidence',
+                fallbackRequired: true,
+                lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+                failureReasons: [],
+                evidence: {
+                  arena: {
+                    id: 'preview-run-1',
+                    provenance: 'preview',
+                    hiddenTrace: [{ t: 0, y: 1 }],
+                    hiddenScenarioOrder: ['private-scenario'],
+                  },
+                },
+              },
+            },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-path', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect(entry.features.pathExecution.allTime).toMatchObject({
+      terminalValidationCount: 1,
+      fallbackCount: 1,
+      confidence: expect.objectContaining({
+        level: 'low',
+        lowConfidenceCount: 1,
+      }),
+      terminalValidation: expect.objectContaining({
+        latestState: 'low-confidence',
+        lowConfidenceCount: 1,
+        fallbackRequiredCount: 1,
+        lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+      }),
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          terminalValidationState: 'low-confidence',
+          lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+        }),
+      ],
+    });
+    const serialized = JSON.stringify(entry);
+    expect(serialized).not.toContain('hiddenTrace');
+    expect(serialized).not.toContain('hiddenScenarioOrder');
+    expect(serialized).not.toContain('private-scenario');
+  });
+
   it('ignores path rows that are not scoped to control-correction paths', async () => {
     const db = {
       learningFact: {
@@ -1104,6 +1247,39 @@ describe('student evidence feature cache service', () => {
       state: 'stale',
       cache: {
         userId: 'student-1',
+      },
+    });
+  });
+
+  it('keeps current v4 path execution caches readable when terminal validation summary is absent', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    delete (payload.features as any).pathExecution.recent30d.terminalValidation;
+    delete (payload.features as any).pathExecution.allTime.terminalValidation;
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'ready',
+      cache: {
+        userId: 'student-1',
+        payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
       },
     });
   });

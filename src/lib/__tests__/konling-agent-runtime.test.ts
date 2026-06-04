@@ -370,6 +370,18 @@ describe('konling agent runtime', () => {
                     status: 'completed',
                   },
                   {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-terminal-low-confidence',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:08:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    terminalValidationState: 'low-confidence',
+                    lowConfidenceMarkers: ['arena-preview-only'],
+                    hiddenTrace: [{ t: 0, y: 1 }],
+                  },
+                  {
                     sourceType: 'LearningPathIntervention',
                     sourceId: 'student-intv-latest',
                     pathId: 'path-1',
@@ -435,9 +447,16 @@ describe('konling agent runtime', () => {
     });
     expect(runtime.citationContext?.evidenceCitations).toEqual(expect.arrayContaining([
       expect.objectContaining({ sourceType: 'path-execution', evidenceBasis: 'LearningPathExecution' }),
+      expect.objectContaining({
+        id: 'LearningPathExecution:exec-terminal-low-confidence',
+        sourceType: 'path-execution',
+        displayTitle: '控制校正终端验证低置信证据',
+        confidence: 'low',
+      }),
       expect.objectContaining({ id: 'LearningPathIntervention:student-intv-latest', sourceType: 'intervention' }),
       expect.objectContaining({ sourceType: 'simulation', confidence: 'low' }),
     ]));
+    expect(JSON.stringify(runtime.citationContext?.evidenceCitations)).not.toContain('hiddenTrace');
     const latestInterventionIndex = runtime.citationContext?.evidenceCitations
       .findIndex((citation) => citation.id === 'LearningPathIntervention:student-intv-latest') ?? -1;
     const newerExecutionIndex = runtime.citationContext?.evidenceCitations

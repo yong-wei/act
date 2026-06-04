@@ -2894,8 +2894,8 @@ function buildPathExecutionCitations(
       sourceType: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'path-execution',
       displayTitle: buildPathCitationTitle(ref),
       href: null,
-      confidence: normalizeCitationConfidence(getString(ref, 'confidence') || readRecord(getValue(allTime, 'confidence')).level),
-      evidenceBasis: getString(ref, 'sourceType') || 'LearningPathEvidence',
+      confidence: buildPathCitationConfidence(ref, allTime),
+      evidenceBasis: buildPathCitationEvidenceBasis(ref),
       owner: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'recommendation',
     } satisfies KonlingCitation));
 }
@@ -2958,7 +2958,25 @@ function buildPathCitationTitle(ref: Record<string, unknown>): string {
   const sourceType = getString(ref, 'sourceType');
   if (sourceType === 'LearningPathIntervention') return '控灵路径干预结果';
   if (sourceType === 'LearningPathDeviation') return '学习路径偏离证据';
+  const terminalState = getString(ref, 'terminalValidationState');
+  if (terminalState === 'failed') return '控制校正终端验证失败证据';
+  if (terminalState === 'low-confidence') return '控制校正终端验证低置信证据';
+  if (terminalState === 'completed') return '控制校正终端验证通过证据';
   return '学习路径执行证据';
+}
+
+function buildPathCitationConfidence(ref: Record<string, unknown>, allTime: Record<string, unknown>): KonlingCitation['confidence'] {
+  const terminalState = getString(ref, 'terminalValidationState');
+  if (terminalState === 'failed' || terminalState === 'low-confidence') return 'low';
+  const lowConfidenceMarkers = getValue(ref, 'lowConfidenceMarkers');
+  if (Array.isArray(lowConfidenceMarkers) && lowConfidenceMarkers.length > 0) return 'low';
+  return normalizeCitationConfidence(getString(ref, 'confidence') || readRecord(getValue(allTime, 'confidence')).level);
+}
+
+function buildPathCitationEvidenceBasis(ref: Record<string, unknown>): string {
+  const terminalState = getString(ref, 'terminalValidationState');
+  if (terminalState) return `LearningPathTerminalValidation:${terminalState}`;
+  return getString(ref, 'sourceType') || 'LearningPathEvidence';
 }
 
 function normalizeCitationConfidence(value: unknown): KonlingCitation['confidence'] {

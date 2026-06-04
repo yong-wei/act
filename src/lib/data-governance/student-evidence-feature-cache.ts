@@ -152,6 +152,9 @@ export interface StudentPathEvidenceSourceReference {
   interventionKind?: string;
   studentOutcome?: string;
   confidence?: 'low' | 'medium' | 'high' | 'unknown';
+  terminalValidationState?: string;
+  lowConfidenceMarkers?: string[];
+  failureReasons?: string[];
 }
 
 export interface StudentPathEvidenceFeatureWindow {
@@ -179,6 +182,15 @@ export interface StudentPathEvidenceFeatureWindow {
     rejectedCount: number;
     partiallyAcceptedCount: number;
     lowConfidenceCount: number;
+  };
+  terminalValidation: {
+    latestState: string | null;
+    completedCount: number;
+    failedCount: number;
+    lowConfidenceCount: number;
+    fallbackRequiredCount: number;
+    lowConfidenceMarkers: string[];
+    failureReasons: string[];
   };
   sourceReferences: StudentPathEvidenceSourceReference[];
 }
@@ -910,6 +922,14 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
   const status = stringValue(row.status) ?? 'unknown';
   const resourceType = stringValue(row.resourceType) ?? 'unknown';
   const nodeId = stringValue(row.nodeId);
+  const terminalValidation = readPathTerminalValidation(row);
+  const terminalValidationState = stringValue(terminalValidation.state);
+  const terminalValidationLowConfidenceMarkers = arrayOfStrings(terminalValidation.lowConfidenceMarkers);
+  const terminalValidationFailureReasons = arrayOfStrings(terminalValidation.failureReasons);
+  const terminalExecution = nodeId !== null && terminalValidation.nodeId === nodeId;
+  const terminalFallbackRequired = terminalValidation.fallbackRequired === true ||
+    terminalValidationState === 'failed' ||
+    terminalValidationState === 'low-confidence';
 
   return {
     dedupeKey: pathDedupeKey('LearningPathExecution', row, id),
@@ -922,31 +942,43 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       privacyLevel: 'student-visible',
       status,
       resourceType,
+      ...(terminalExecution ? {
+        terminalValidationState,
+        lowConfidenceMarkers: terminalValidationLowConfidenceMarkers,
+        failureReasons: terminalValidationFailureReasons,
+      } : {}),
     },
     adoption: status === 'started',
     completion: status === 'completed',
     deviation: false,
-    fallback: false,
-    terminalValidation: status === 'completed' && isTerminalPathExecution(row, nodeId),
+    fallback: terminalExecution && terminalFallbackRequired,
+    terminalValidation: terminalExecution,
     interventionAccepted: false,
     interventionCompleted: false,
     interventionDismissed: false,
     interventionIgnored: false,
     interventionRejected: false,
     interventionPartiallyAccepted: false,
-    lowConfidence: false,
+    lowConfidence: terminalExecution && (
+      terminalValidationState === 'low-confidence' ||
+      terminalValidationLowConfidenceMarkers.length > 0
+    ),
   };
 }
 
 function isTerminalPathExecution(row: Record<string, any>, nodeId: string | null): boolean {
   if (!nodeId) return false;
+  const terminalValidation = readPathTerminalValidation(row);
+  return terminalValidation.nodeId === nodeId;
+}
+
+function readPathTerminalValidation(row: Record<string, any>): Record<string, any> {
   const path = isObject(row.path) ? row.path : {};
-  const terminalValidation = isObject(path.terminalValidation)
+  return isObject(path.terminalValidation)
     ? path.terminalValidation
     : isObject(row.terminalValidation)
       ? row.terminalValidation
       : {};
-  return terminalValidation.nodeId === nodeId;
 }
 
 function pathDeviationToEvent(row: Record<string, any>): PathEvidenceEvent | null {
@@ -1024,6 +1056,8 @@ function buildPathEvidenceWindow(events: PathEvidenceEvent[]): StudentPathEviden
   const evidenceCount = events.length;
   const lowConfidenceCount = events.filter((event) => event.lowConfidence).length;
   const score = evidenceCount === 0 ? 0 : round((evidenceCount - lowConfidenceCount * 0.5) / evidenceCount, 2);
+  const terminalEvents = events.filter((event) => event.terminalValidation);
+  const latestTerminalEvent = terminalEvents.at(-1) ?? null;
 
   return {
     window: buildPathEventWindow(events),
@@ -1061,6 +1095,15 @@ function buildPathEvidenceWindow(events: PathEvidenceEvent[]): StudentPathEviden
       rejectedCount: events.filter((event) => event.interventionRejected).length,
       partiallyAcceptedCount: events.filter((event) => event.interventionPartiallyAccepted).length,
       lowConfidenceCount,
+    },
+    terminalValidation: {
+      latestState: latestTerminalEvent?.reference.terminalValidationState ?? null,
+      completedCount: terminalEvents.filter((event) => event.reference.terminalValidationState === 'completed').length,
+      failedCount: terminalEvents.filter((event) => event.reference.terminalValidationState === 'failed').length,
+      lowConfidenceCount: terminalEvents.filter((event) => event.reference.terminalValidationState === 'low-confidence').length,
+      fallbackRequiredCount: terminalEvents.filter((event) => event.fallback).length,
+      lowConfidenceMarkers: uniqueSorted(terminalEvents.flatMap((event) => event.reference.lowConfidenceMarkers ?? [])),
+      failureReasons: uniqueSorted(terminalEvents.flatMap((event) => event.reference.failureReasons ?? [])),
     },
     sourceReferences: events.map((event) => event.reference),
   };
@@ -1752,6 +1795,10 @@ function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values)).sort((left, right) => left.localeCompare(right));
 }
 
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
 function isPresent(value: string | null | undefined): value is string {
   return Boolean(value);
 }
@@ -1891,6 +1938,7 @@ function hasPathEvidenceFeatureWindowSchema(value: unknown): boolean {
   const sourceCoverage = isObject(value.sourceCoverage) ? value.sourceCoverage : {};
   const confidence = isObject(value.confidence) ? value.confidence : {};
   const interventionOutcome = isObject(value.interventionOutcome) ? value.interventionOutcome : {};
+  const terminalValidation = isObject(value.terminalValidation) ? value.terminalValidation : null;
 
   return hasEvidenceWindowSchema(value.window) &&
     hasFiniteNumber(value.evidenceCount) &&
@@ -1920,8 +1968,22 @@ function hasPathEvidenceFeatureWindowSchema(value: unknown): boolean {
     hasOptionalFiniteNumber(interventionOutcome.rejectedCount) &&
     hasOptionalFiniteNumber(interventionOutcome.partiallyAcceptedCount) &&
     hasFiniteNumber(interventionOutcome.lowConfidenceCount) &&
+    (terminalValidation === null || hasPathTerminalValidationSummarySchema(terminalValidation)) &&
     Array.isArray(value.sourceReferences) &&
     value.sourceReferences.every(hasPathEvidenceSourceReferenceSchema);
+}
+
+function hasPathTerminalValidationSummarySchema(value: unknown): boolean {
+  if (!isObject(value)) return false;
+  return (value.latestState === null || typeof value.latestState === 'string') &&
+    hasFiniteNumber(value.completedCount) &&
+    hasFiniteNumber(value.failedCount) &&
+    hasFiniteNumber(value.lowConfidenceCount) &&
+    hasFiniteNumber(value.fallbackRequiredCount) &&
+    Array.isArray(value.lowConfidenceMarkers) &&
+    value.lowConfidenceMarkers.every((item) => typeof item === 'string') &&
+    Array.isArray(value.failureReasons) &&
+    value.failureReasons.every((item) => typeof item === 'string');
 }
 
 function hasPathEvidenceSourceReferenceSchema(value: unknown): boolean {

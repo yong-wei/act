@@ -289,6 +289,15 @@ function pathExecutionWindow(overrides: Record<string, unknown> = {}) {
       dismissedCount: 0,
       lowConfidenceCount: 0,
     },
+    terminalValidation: {
+      latestState: null,
+      completedCount: 0,
+      failedCount: 0,
+      lowConfidenceCount: 0,
+      fallbackRequiredCount: 0,
+      lowConfidenceMarkers: [],
+      failureReasons: [],
+    },
     sourceReferences: [],
     ...overrides,
   };
