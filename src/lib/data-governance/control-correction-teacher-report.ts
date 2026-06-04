@@ -93,6 +93,7 @@ export function buildControlCorrectionTeacherReport(
 ): ControlCorrectionTeacherReport {
   const now = input.now ?? new Date();
   const pathsByUser = latestByUser(input.paths);
+  const latestPaths = Array.from(pathsByUser.values());
   const snapshotsByUser = groupSnapshotsByUser(input.snapshots);
   const cachesByUser = new Map(input.featureCaches.map((cache) => [String(cache.userId), cache]));
   const coverage = summarizeCoverage(input.students, cachesByUser);
@@ -102,7 +103,7 @@ export function buildControlCorrectionTeacherReport(
     snapshotsByUser.get(student.userId) ?? [],
     cachesByUser.get(student.userId) ?? null,
   ));
-  const windows = collectWindow(input.paths);
+  const windows = collectWindow(latestPaths);
 
   return {
     version: CONTROL_CORRECTION_TEACHER_REPORT_VERSION,
@@ -114,15 +115,15 @@ export function buildControlCorrectionTeacherReport(
       pathCompletion: ratioMetric('pathCompletion', '路径完成率', drilldowns.filter((item) => item.path.pathId && item.path.pathStatus === 'completed').length, drilldowns.filter((item) => item.path.pathId).length, coverage, windows, 'Completed control-correction paths divided by adopted path denominator.'),
       deviationRate: ratioMetric('deviationRate', '路径偏离率', drilldowns.filter((item) => item.path.deviationCount > 0).length, drilldowns.filter((item) => item.path.pathId).length, coverage, windows, 'Students with governed path deviations divided by adopted path denominator.'),
       competencyLift: averageMetric('competencyLift', '能力提升均值', drilldowns.map((item) => item.learnerState.competencyLift).filter(isNumber), drilldowns.filter((item) => item.learnerState.competencyLift !== null).length, input.students.length, coverage, windows, 'Average latest-minus-previous competency score across students with two snapshots.'),
-      simulationPassRate: terminalEvidenceRateMetric('simulationPassRate', '仿真通过率', input.paths, hasAcceptedTerminalSimulation, coverage, windows, 'Terminal validations with accepted governed simulation evidence divided by adopted path denominator.'),
-      arenaValidSubmissionRate: terminalEvidenceRateMetric('arenaValidSubmissionRate', 'Arena 有效提交率', input.paths, hasAcceptedTerminalArena, coverage, windows, 'Terminal validations with accepted governed Arena evidence divided by adopted path denominator.'),
-      konlingInterventionAcceptance: interventionRateMetric('konlingInterventionAcceptance', '控灵干预接受率', input.paths, isAcceptedIntervention, coverage, windows, 'Accepted or completed Konling interventions divided by intervention denominator.'),
-      interventionAfterSuccess: interventionAfterSuccessMetric(input.paths, coverage, windows),
-      citationCoverage: interventionRateMetric('citationCoverage', '引用覆盖率', input.paths, hasCitations, coverage, windows, 'Interventions with privacy-safe citations divided by intervention denominator.'),
-      resourceContribution: resourceContributionMetric(input.paths, coverage, windows),
+      simulationPassRate: terminalEvidenceRateMetric('simulationPassRate', '仿真通过率', latestPaths, hasAcceptedTerminalSimulation, coverage, windows, 'Terminal validations with accepted governed simulation evidence divided by adopted latest path denominator.'),
+      arenaValidSubmissionRate: terminalEvidenceRateMetric('arenaValidSubmissionRate', 'Arena 有效提交率', latestPaths, hasAcceptedTerminalArena, coverage, windows, 'Terminal validations with accepted governed Arena evidence divided by adopted latest path denominator.'),
+      konlingInterventionAcceptance: interventionRateMetric('konlingInterventionAcceptance', '控灵干预接受率', latestPaths, isAcceptedIntervention, coverage, windows, 'Accepted or completed Konling interventions divided by latest-path intervention denominator.'),
+      interventionAfterSuccess: interventionAfterSuccessMetric(latestPaths, coverage, windows),
+      citationCoverage: interventionRateMetric('citationCoverage', '引用覆盖率', latestPaths, hasCitations, coverage, windows, 'Interventions with privacy-safe citations divided by latest-path intervention denominator.'),
+      resourceContribution: resourceContributionMetric(latestPaths, coverage, windows),
     },
     studentDrilldowns: drilldowns,
-    resourceContribution: summarizeResourceContribution(input.paths),
+    resourceContribution: summarizeResourceContribution(latestPaths),
     methodologyNotes: [
       'All denominators are explicit and scoped to the authorized class roster or governed evidence subset.',
       'Stage 1 metrics use governed learning paths, feature cache summaries, learner snapshots, and privacy-safe evidence references.',

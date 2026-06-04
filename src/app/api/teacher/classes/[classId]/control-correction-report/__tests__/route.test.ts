@@ -375,4 +375,57 @@ describe('GET /api/teacher/classes/[classId]/control-correction-report', () => {
       { kind: 'ArenaSubmission', id: 'preview-run-1' },
     ]));
   });
+
+  it('calculates path outcome rates from each student latest path when duplicate path rows exist', async () => {
+    mocks.prisma.learningPath.findMany.mockResolvedValue([
+      pathFixture({
+        id: 'path-old',
+        updatedAt: new Date('2026-06-01T00:00:00.000Z'),
+        terminalValidation: {
+          state: 'completed',
+          fallbackRequired: false,
+          lowConfidenceMarkers: [],
+          failureReasons: [],
+          evidence: {
+            simulation: { id: 'old-sim-run', replayConfidence: 0.91 },
+            arena: { id: 'old-arena-submission', valid: true, score: 90 },
+          },
+        },
+        executions: [
+          { id: 'exec-old-arena', nodeId: 'arena-task:old', resourceType: 'arena_task', status: 'completed', completedAt: new Date('2026-06-01T10:00:00.000Z') },
+        ],
+      }),
+      pathFixture({
+        id: 'path-new',
+        updatedAt: new Date('2026-06-04T00:00:00.000Z'),
+        terminalValidation: {
+          state: 'completed',
+          fallbackRequired: false,
+          lowConfidenceMarkers: [],
+          failureReasons: [],
+          evidence: {
+            simulation: { id: 'new-sim-run', replayConfidence: 0.91 },
+            arena: { id: 'new-arena-submission', valid: false, score: 40 },
+          },
+        },
+        executions: [
+          { id: 'exec-new-sim', nodeId: 'simulation:new', resourceType: 'simulation', status: 'completed', completedAt: new Date('2026-06-04T10:00:00.000Z') },
+        ],
+      }),
+    ]);
+
+    const response = await GET(get('http://localhost/api/teacher/classes/class-1/control-correction-report'), params);
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.report.studentDrilldowns[0].path.pathId).toBe('path-new');
+    expect(payload.report.metrics.arenaValidSubmissionRate).toMatchObject({
+      value: 0,
+      denominator: 1,
+      includedPopulation: 0,
+    });
+    expect(payload.report.resourceContribution).toEqual([
+      expect.objectContaining({ resourceType: 'simulation', nodeId: 'simulation:new' }),
+    ]);
+  });
 });
