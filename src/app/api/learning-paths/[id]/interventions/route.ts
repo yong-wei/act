@@ -15,7 +15,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 const INTERVENTION_KINDS = new Set(['diagnosis', 'hint', 'rollback', 'fallback-path', 'reflection-prompt']);
-const STUDENT_OUTCOMES = new Set(['pending', 'accepted', 'dismissed', 'completed']);
+const STUDENT_OUTCOMES = new Set(['pending', 'accepted', 'ignored', 'rejected', 'partially-accepted', 'dismissed', 'completed']);
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {

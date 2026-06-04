@@ -175,6 +175,9 @@ export interface StudentPathEvidenceFeatureWindow {
     acceptedCount: number;
     completedCount: number;
     dismissedCount: number;
+    ignoredCount: number;
+    rejectedCount: number;
+    partiallyAcceptedCount: number;
     lowConfidenceCount: number;
   };
   sourceReferences: StudentPathEvidenceSourceReference[];
@@ -850,6 +853,7 @@ const CONTROL_CORRECTION_PATH_INTERVENTION_SELECT = {
   pathId: true,
   userId: true,
   interventionKind: true,
+  citedEvidence: true,
   studentOutcome: true,
   idempotencyKey: true,
   createdAt: true,
@@ -867,6 +871,9 @@ interface PathEvidenceEvent {
   interventionAccepted: boolean;
   interventionCompleted: boolean;
   interventionDismissed: boolean;
+  interventionIgnored: boolean;
+  interventionRejected: boolean;
+  interventionPartiallyAccepted: boolean;
   lowConfidence: boolean;
 }
 
@@ -924,6 +931,9 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
     interventionAccepted: false,
     interventionCompleted: false,
     interventionDismissed: false,
+    interventionIgnored: false,
+    interventionRejected: false,
+    interventionPartiallyAccepted: false,
     lowConfidence: false,
   };
 }
@@ -967,6 +977,9 @@ function pathDeviationToEvent(row: Record<string, any>): PathEvidenceEvent | nul
     interventionAccepted: false,
     interventionCompleted: false,
     interventionDismissed: false,
+    interventionIgnored: false,
+    interventionRejected: false,
+    interventionPartiallyAccepted: false,
     lowConfidence: confidence === 'low' || confidence === 'unknown',
   };
 }
@@ -978,6 +991,7 @@ function pathInterventionToEvent(row: Record<string, any>): PathEvidenceEvent | 
   if (!id || !pathId || !occurredAt) return null;
   const interventionKind = stringValue(row.interventionKind) ?? 'unknown';
   const studentOutcome = stringValue(row.studentOutcome) ?? 'pending';
+  const nodeId = readInterventionEvidenceNodeId(row.citedEvidence);
 
   return {
     dedupeKey: pathDedupeKey('LearningPathIntervention', row, id),
@@ -985,7 +999,7 @@ function pathInterventionToEvent(row: Record<string, any>): PathEvidenceEvent | 
       sourceType: 'LearningPathIntervention',
       sourceId: id,
       pathId,
-      nodeId: null,
+      nodeId,
       occurredAt: occurredAt.toISOString(),
       privacyLevel: 'teacher-scoped',
       interventionKind,
@@ -999,6 +1013,9 @@ function pathInterventionToEvent(row: Record<string, any>): PathEvidenceEvent | 
     interventionAccepted: studentOutcome === 'accepted',
     interventionCompleted: studentOutcome === 'completed',
     interventionDismissed: studentOutcome === 'dismissed',
+    interventionIgnored: studentOutcome === 'ignored' || studentOutcome === 'dismissed',
+    interventionRejected: studentOutcome === 'rejected',
+    interventionPartiallyAccepted: studentOutcome === 'partially-accepted',
     lowConfidence: false,
   };
 }
@@ -1023,7 +1040,12 @@ function buildPathEvidenceWindow(events: PathEvidenceEvent[]): StudentPathEviden
       fallback: resolveCoverageCount(events.filter((event) => event.fallback).length),
       terminalValidation: resolveCoverageCount(events.filter((event) => event.terminalValidation).length),
       interventionOutcome: resolveCoverageCount(events.filter((event) => (
-        event.interventionAccepted || event.interventionCompleted || event.interventionDismissed
+        event.interventionAccepted ||
+        event.interventionCompleted ||
+        event.interventionDismissed ||
+        event.interventionIgnored ||
+        event.interventionRejected ||
+        event.interventionPartiallyAccepted
       )).length),
     },
     confidence: {
@@ -1035,6 +1057,9 @@ function buildPathEvidenceWindow(events: PathEvidenceEvent[]): StudentPathEviden
       acceptedCount: events.filter((event) => event.interventionAccepted).length,
       completedCount: events.filter((event) => event.interventionCompleted).length,
       dismissedCount: events.filter((event) => event.interventionDismissed).length,
+      ignoredCount: events.filter((event) => event.interventionIgnored).length,
+      rejectedCount: events.filter((event) => event.interventionRejected).length,
+      partiallyAcceptedCount: events.filter((event) => event.interventionPartiallyAccepted).length,
       lowConfidenceCount,
     },
     sourceReferences: events.map((event) => event.reference),
@@ -1049,6 +1074,18 @@ function dedupePathEvidenceEvents(events: PathEvidenceEvent[]): PathEvidenceEven
     }
   }
   return [...byKey.values()];
+}
+
+function readInterventionEvidenceNodeId(citedEvidence: unknown): string | null {
+  const evidence = Array.isArray(citedEvidence) ? citedEvidence : [];
+  for (const entry of evidence) {
+    if (!isObject(entry)) continue;
+    const kind = stringValue(entry.kind) ?? stringValue(entry.sourceType);
+    if (kind !== 'learning-path-node') continue;
+    const nodeId = stringValue(entry.ref) ?? stringValue(entry.nodeId) ?? stringValue(entry.sourceId);
+    if (nodeId) return nodeId;
+  }
+  return null;
 }
 
 function pathDedupeKey(sourceType: StudentPathEvidenceSourceType, row: Record<string, any>, fallbackId: string): string {
@@ -1879,6 +1916,9 @@ function hasPathEvidenceFeatureWindowSchema(value: unknown): boolean {
     hasFiniteNumber(interventionOutcome.acceptedCount) &&
     hasFiniteNumber(interventionOutcome.completedCount) &&
     hasFiniteNumber(interventionOutcome.dismissedCount) &&
+    hasOptionalFiniteNumber(interventionOutcome.ignoredCount) &&
+    hasOptionalFiniteNumber(interventionOutcome.rejectedCount) &&
+    hasOptionalFiniteNumber(interventionOutcome.partiallyAcceptedCount) &&
     hasFiniteNumber(interventionOutcome.lowConfidenceCount) &&
     Array.isArray(value.sourceReferences) &&
     value.sourceReferences.every(hasPathEvidenceSourceReferenceSchema);
@@ -2001,6 +2041,10 @@ function hasOptionalNonEmptyStringOrNull(value: unknown): boolean {
 
 function hasFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function hasOptionalFiniteNumber(value: unknown): boolean {
+  return value === undefined || hasFiniteNumber(value);
 }
 
 function isStaleCacheEntry(entry: Record<string, unknown>, staleCutoff: Date): boolean {
