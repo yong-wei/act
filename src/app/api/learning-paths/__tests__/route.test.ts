@@ -356,6 +356,10 @@ describe('learning path round API routes', () => {
       id: 'exec-existing',
       pathId: 'path-1',
       idempotencyKey: 'exec-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      completedAt: new Date('2026-06-04T10:00:00.000Z'),
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -371,6 +375,45 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'path-1' },
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          lastExecution: expect.objectContaining({ status: 'completed' }),
+        }),
+      }),
+    }));
+  });
+
+  it('uses the existing execution payload when an idempotency key is reused with a different status', async () => {
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
+      id: 'exec-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'exec-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      startedAt: new Date('2026-06-04T10:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      completedAt: '2026-06-04T10:10:00.000Z',
+      idempotencyKey: 'exec-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'active',
+        lastExecutionMetadata: expect.objectContaining({
+          lastExecution: expect.objectContaining({
+            status: 'started',
+            completedAt: null,
+          }),
+        }),
+      }),
     }));
   });
 
@@ -391,6 +434,9 @@ describe('learning path round API routes', () => {
       id: 'exec-existing',
       pathId: 'path-1',
       idempotencyKey: 'exec-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {

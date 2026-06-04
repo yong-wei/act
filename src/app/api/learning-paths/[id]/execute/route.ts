@@ -48,20 +48,25 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         },
       });
       if (existingExecution) {
-        if (path.currentNodeId === body.nodeId) {
+        const existingStatus = readExecutionStatus(existingExecution.status);
+        if (
+          path.currentNodeId === existingExecution.nodeId &&
+          typeof existingExecution.resourceType === 'string' &&
+          existingStatus
+        ) {
           await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
             pathId: params.id,
             userId: path.userId,
-            nodeId: body.nodeId,
-            resourceType: body.resourceType,
-            status: body.status,
-            startedAt: body.startedAt ?? null,
-            completedAt: body.completedAt ?? null,
-            failedAt: body.failedAt ?? null,
-            evidenceRefs: body.evidenceRefs ?? [],
-            liftMetadata: body.liftMetadata ?? {},
-            simulationRef: body.simulationRef ?? null,
-            arenaRef: body.arenaRef ?? null,
+            nodeId: existingExecution.nodeId,
+            resourceType: existingExecution.resourceType,
+            status: existingStatus,
+            startedAt: existingExecution.startedAt ?? null,
+            completedAt: existingExecution.completedAt ?? null,
+            failedAt: existingExecution.failedAt ?? null,
+            evidenceRefs: Array.isArray(existingExecution.evidenceRefs) ? existingExecution.evidenceRefs : [],
+            liftMetadata: toRecord(existingExecution.liftMetadata),
+            simulationRef: toNullableRecord(existingExecution.simulationRef),
+            arenaRef: toNullableRecord(existingExecution.arenaRef),
             idempotencyKey: body.idempotencyKey ?? null,
           });
         }
@@ -108,4 +113,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }
+}
+
+function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed' | 'abandoned' | null {
+  return typeof value === 'string' && EXECUTION_STATUSES.has(value)
+    ? value as 'started' | 'completed' | 'failed' | 'abandoned'
+    : null;
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function toNullableRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
