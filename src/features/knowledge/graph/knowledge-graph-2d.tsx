@@ -16,6 +16,7 @@ import {
   shouldRenderKnowledgeNodeLabel,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
+import { getRelationFocusState } from './filter-utils';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
@@ -290,12 +291,15 @@ export function KnowledgeGraph2D({
     if (source.x === undefined || source.y === undefined) return;
     if (target.x === undefined || target.y === undefined) return;
 
-    const style = getRelationStyle(link.relation);
+    const style = getRelationStyle(link.relationType || link.relation);
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    const alpha = 0.2 + strength * 0.65;
-    const lineWidth = style.width * (0.6 + strength * 0.9);
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+    const focusState = getRelationFocusState(source.id, target.id, focusNodeId);
+    const focusOpacity = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1 : 0.82;
+    const alpha = (0.2 + strength * 0.65) * focusOpacity;
+    const lineWidth = style.width * (0.6 + strength * 0.9) * (focusState === 'active' ? 1.25 : 1);
 
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
@@ -313,7 +317,7 @@ export function KnowledgeGraph2D({
 
     // 重置虚线设置
     ctx.setLineDash([]);
-  }, []);
+  }, [hoveredNode?.id, selectedNode?.id]);
 
   // 4. 物理引擎配置
   useEffect(() => {

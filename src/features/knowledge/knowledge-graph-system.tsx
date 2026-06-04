@@ -22,7 +22,10 @@ import {
   buildDefaultSelectedRelationTypes,
   buildRelationTypeStats,
   injectChapterNodes,
+  limitStructureRelationDensity,
   matchesNodeFilters,
+  relationPassesDensity,
+  type RelationDensityMode,
 } from './graph/filter-utils';
 import type { KnowledgeGraphLabelMode } from './graph/label-policy';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
@@ -104,6 +107,7 @@ export function KnowledgeGraphSystem({
   const [selectedBloomLevels, setSelectedBloomLevels] = useState<string[]>([]);
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
+  const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
   const [isLightTheme, setIsLightTheme] = useState(false);
 
   // 视图模式：默认 2D
@@ -272,15 +276,29 @@ export function KnowledgeGraphSystem({
 
   const filteredLinksByRelation = useMemo(() => {
     if (selectedRelationTypes.length === 0) return [] as KnowledgeLinkData[];
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     return links.filter((link) => {
       const relationType = link.relationType || link.relation || 'related';
       const strength = typeof link.strength === 'number' ? link.strength : 1;
+      const isFocusedLink = relationDensityMode === 'focused' && focusNodeId !== null
+        && (link.sourceId === focusNodeId || link.targetId === focusNodeId);
       if (!selectedRelationTypes.includes(relationType)) return false;
-      if (strength < minRelationStrength) return false;
+      if (strength < minRelationStrength && !isFocusedLink) return false;
       if (!nodeFilterIdSet.has(link.sourceId) || !nodeFilterIdSet.has(link.targetId)) return false;
+      if (!relationPassesDensity(link, { densityMode: relationDensityMode, focusNodeId })) return false;
       return true;
     });
-  }, [links, minRelationStrength, nodeFilterIdSet, selectedRelationTypes]);
+  }, [hoveredNode?.id, links, minRelationStrength, nodeFilterIdSet, relationDensityMode, selectedNode?.id, selectedRelationTypes]);
+
+  const densityFilteredLinks = useMemo(
+    () =>
+      relationDensityMode === 'structure'
+        ? limitStructureRelationDensity(filteredLinksByRelation, {
+            focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null,
+          })
+        : filteredLinksByRelation,
+    [filteredLinksByRelation, hoveredNode?.id, relationDensityMode, selectedNode?.id]
+  );
 
   const filteredNodes = useMemo(() => {
     if (!showOnlyConnectedNodes) return nodeFilteredByMeta;
@@ -295,7 +313,7 @@ export function KnowledgeGraphSystem({
       }
     });
 
-    filteredLinksByRelation.forEach((link) => {
+    densityFilteredLinks.forEach((link) => {
       connectedByVisibleLinks.add(link.sourceId);
       connectedByVisibleLinks.add(link.targetId);
     });
@@ -305,17 +323,16 @@ export function KnowledgeGraphSystem({
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [filteredLinksByRelation, links, nodeFilterIdSet, nodeFilteredByMeta, selectedNode?.id, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, links, nodeFilterIdSet, nodeFilteredByMeta, selectedNode?.id, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
-  const filteredLinks = useMemo(
-    () =>
-      filteredLinksByRelation.filter(
-        (link) => filteredNodeIdSet.has(link.sourceId) && filteredNodeIdSet.has(link.targetId)
-      ),
-    [filteredLinksByRelation, filteredNodeIdSet]
-  );
+  const filteredLinks = useMemo(() => {
+    const visibleLinks = densityFilteredLinks.filter(
+      (link) => filteredNodeIdSet.has(link.sourceId) && filteredNodeIdSet.has(link.targetId)
+    );
+    return visibleLinks;
+  }, [densityFilteredLinks, filteredNodeIdSet]);
 
   const graphWithChapterNodes = useMemo(
     () => injectChapterNodes(filteredNodes, filteredLinks),
@@ -363,6 +380,7 @@ export function KnowledgeGraphSystem({
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onNodeSelect={handleNodeClick}
+        onNodeHover={setHoveredNode}
       />
 
       {/* 中央图谱区域 */}
@@ -391,7 +409,7 @@ export function KnowledgeGraphSystem({
           </div>
 
           <div className={`mb-3 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-600' : 'text-slate-400'}`}>
-            <span>当前显示关系 {filteredLinks.length} 条</span>
+            <span>当前显示关系 {displayLinks.length} 条</span>
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
           </div>
 
@@ -495,6 +513,31 @@ export function KnowledgeGraphSystem({
           </div>
 
           <div className="mb-3">
+            <div className="mb-1.5 text-[11px] text-platform-fg-secondary">
+              关系密度
+            </div>
+            <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
+              {([
+                ['structure', '结构优先'],
+                ['focused', '焦点邻域'],
+                ['all', '全部关系'],
+              ] as const).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={relationDensityMode === mode}
+                  onClick={() => setRelationDensityMode(mode)}
+                  className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                    relationDensityMode === mode
+                      ? 'bg-platform-action-primary text-platform-fg-inverse'
+                      : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
               <span>关系类型</span>
               <div className="flex gap-2">
@@ -539,6 +582,18 @@ export function KnowledgeGraphSystem({
             </div>
           </div>
 
+          <div className="mb-3 rounded-lg border border-platform-border bg-platform-surface px-2.5 py-2 text-[11px] text-platform-fg-secondary">
+            <div className="mb-1 font-medium text-platform-fg-primary">关系图例</div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              <span>实线箭头：前置/基础</span>
+              <span>粗实线：章节包含</span>
+              <span>长虚线箭头：后续/引出</span>
+              <span>短虚线箭头：应用</span>
+              <span>短虚线无箭头：对立</span>
+              <span>细虚线：弱关联</span>
+            </div>
+          </div>
+
           <div className="mb-3">
             <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
               <span>关系强度阈值</span>
@@ -553,6 +608,11 @@ export function KnowledgeGraphSystem({
               onChange={(e) => setMinRelationStrength(Number(e.target.value))}
               className={`w-full ${isLightTheme ? 'accent-sky-600' : 'accent-amber-400'}`}
             />
+            {relationDensityMode === 'focused' && (
+              <p className="mt-1 text-[10px] text-platform-fg-muted">
+                焦点邻域会保留直连弱关系，关系类型筛选仍然生效。
+              </p>
+            )}
           </div>
 
           <label className={`mb-2 flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
