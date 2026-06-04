@@ -130,6 +130,121 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
   };
 }
 
+function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
+  const registry = buildResourceNodeRegistry({
+    registeredResources: [
+      {
+        id: 'concept',
+        label: '基础概念卡',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/concept',
+        knowledgeNodeIds: ['kn-a'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+        },
+      },
+      {
+        id: 'quiz',
+        label: '短程练习',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/quiz',
+        knowledgeNodeIds: ['kn-b'],
+        planningOverride: {
+          estimatedTimeMinutes: 12,
+          abilityImpact: { skill: 0.35 },
+        },
+      },
+      {
+        id: 'assigned',
+        label: '教师指定任务',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/assigned',
+        knowledgeNodeIds: ['kn-b'],
+        planningOverride: {
+          teacherPolicy: 'teacher-assigned',
+          estimatedTimeMinutes: 20,
+          abilityImpact: { skill: 0.3 },
+        },
+      },
+    ],
+    simulations: [
+      {
+        id: 'sim',
+        title: '策略仿真',
+        launchTarget: '/simulations/policy',
+        knowledgeNodeIds: ['kn-b'],
+        planningOverride: {
+          estimatedTimeMinutes: 25,
+          abilityImpact: { skill: 0.3 },
+        },
+      },
+    ],
+    arenaTasks: [
+      {
+        id: 'arena',
+        title: '策略 Arena',
+        launchTarget: '/arena/challenges/policy',
+        knowledgeNodeIds: ['kn-c'],
+        prerequisiteNodeIds: ['simulation:sim'],
+        official: true,
+        planningOverride: {
+          estimatedTimeMinutes: 30,
+          abilityImpact: { skill: 0.4 },
+        },
+      },
+    ],
+    reflectionPrompts: [
+      {
+        id: 'reflect',
+        title: '策略反思',
+        renderTarget: '/profile/growth?prompt=policy',
+        knowledgeNodeIds: ['kn-c'],
+        prerequisiteNodeIds: ['simulation:sim'],
+      },
+    ],
+  });
+
+  return {
+    studentId: 'student-policy',
+    goal: {
+      id: 'goal-policy',
+      title: '策略路径目标',
+      knowledgeTargets: ['kn-a', 'kn-b', 'kn-c'],
+      competencyTargets: ['skill'],
+    },
+    learnerState: {
+      knowledgeMastery: {
+        tags: {
+          'kn-a': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 2 },
+          'kn-b': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 2 },
+          'kn-c': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 2 },
+        },
+      },
+      primaryCompetencies: {
+        vector: {
+          skill: { score: 0.3, confidence: 0.7, evidenceCount: 3 },
+        },
+      },
+      evidence: {
+        confidence: {
+          level: 'high',
+          score: 0.8,
+          evidenceCount: 8,
+          sourceCompleteness: 0.8,
+        },
+      },
+    },
+    registry,
+    constraints: {
+      timeBudgetMinutes: 90,
+      privacyScopes: ['student-visible'],
+      teacherAssignedNodeIds: ['registry:assigned'],
+    },
+    now: new Date('2026-05-27T08:00:00.000Z'),
+    ...overrides,
+  };
+}
+
 describe('adaptive learning path planner', () => {
   it('generates a feasible 90-minute control-correction path from audited seed nodes', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
@@ -454,6 +569,251 @@ describe('adaptive learning path planner', () => {
     expect(plan.mainPath.find((node) => node.nodeId === plan.currentNodeId)?.status).toBe('current');
   });
 
+  it('selects explicit policy families with distinct scoring intents', () => {
+    const foundation = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      policyFamily: 'foundation-remediation',
+    }));
+    const simulation = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      policyFamily: 'simulation-driven',
+    }));
+    const sprint = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      policyFamily: 'sprint-correction',
+    }));
+    const teacher = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      policyFamily: 'teacher-assigned',
+    }));
+
+    expect(foundation.policyMetadata?.label).toBe('基础补救路径');
+    expect(foundation.mainPath.slice(0, 2).map((node) => node.nodeId)).toEqual(['registry:quiz', 'registry:concept']);
+    expect(foundation.mainPath[0].reasonCodes).toContain('policy-foundation-remediation');
+    expect(simulation.mainPath[0]).toMatchObject({
+      nodeId: 'simulation:sim',
+      type: 'simulation',
+      reasonCodes: expect.arrayContaining(['policy-simulation-driven']),
+    });
+    expect(sprint.mainPath[0].reasonCodes).toContain('policy-sprint-correction');
+    expect(teacher.mainPath[0]).toMatchObject({
+      nodeId: 'registry:assigned',
+      reasonCodes: expect.arrayContaining(['policy-teacher-assigned']),
+    });
+  });
+
+  it('reports policy bundle diversity metrics or low-resource fallback', () => {
+    const plan = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      policyFamily: 'foundation-remediation',
+      policyBundle: ['foundation-remediation', 'simulation-driven', 'teacher-assigned'],
+      diversityOverlapThreshold: 0.72,
+    }));
+
+    expect(plan.policyBundle).toMatchObject({
+      requestedPolicyFamilies: ['foundation-remediation', 'simulation-driven', 'teacher-assigned'],
+      overlapThreshold: 0.72,
+      status: 'low-resource-fallback',
+      fallbackReasons: expect.arrayContaining(['policy-bundle-low-resource-diversity']),
+    });
+    expect(plan.policyBundle?.alternatives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          policyFamily: 'simulation-driven',
+          diversity: expect.objectContaining({
+            modalityMix: expect.objectContaining({ simulation: 1, arena_task: 1 }),
+            estimatedEffortMinutes: expect.any(Number),
+          }),
+        }),
+        expect.objectContaining({
+          policyFamily: 'teacher-assigned',
+          nodeIds: expect.arrayContaining(['registry:assigned']),
+          diversity: expect.objectContaining({ overlapRatio: 0.6 }),
+        }),
+      ]),
+    );
+  });
+
+  it('falls back when requested policy families cannot satisfy their strategy prerequisites', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'concept-only',
+          label: '普通概念资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/concept-only',
+          knowledgeNodeIds: ['kn-a'],
+        },
+      ],
+    });
+    const baseInput = policyFixtureInput({
+      registry,
+      goal: {
+        id: 'goal-policy-missing',
+        title: '缺少策略资源目标',
+        knowledgeTargets: ['kn-a'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+      },
+    });
+
+    const simulation = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      policyFamily: 'simulation-driven',
+    });
+    const teacher = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      policyFamily: 'teacher-assigned',
+    });
+
+    expect(simulation.status).toBe('fallback');
+    expect(simulation.explanations.fallbackReasons).toContain('simulation-policy-resource-missing');
+    expect(teacher.status).toBe('fallback');
+    expect(teacher.explanations.fallbackReasons).toContain('teacher-assigned-resource-missing');
+  });
+
+  it('keeps policy bundle low-resource when any requested strategy falls back', () => {
+    const plan = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        teacherAssignedNodeIds: [],
+      },
+      policyFamily: 'foundation-remediation',
+      policyBundle: ['foundation-remediation', 'teacher-assigned'],
+      diversityOverlapThreshold: 0.9,
+    }));
+
+    expect(plan.policyBundle).toMatchObject({
+      status: 'low-resource-fallback',
+      fallbackReasons: expect.arrayContaining([
+        'policy-bundle-low-resource-diversity',
+        'teacher-assigned-fallback',
+      ]),
+    });
+    expect(plan.policyBundle?.alternatives.find((item) => item.policyFamily === 'teacher-assigned')).toMatchObject({
+      status: 'fallback',
+      fallbackReasons: expect.arrayContaining(['teacher-assigned-resource-missing']),
+    });
+  });
+
+  it('keeps policy bundle low-resource when non-current strategy paths duplicate each other', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'concept',
+          label: '基础概念卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/concept',
+          knowledgeNodeIds: ['kn-foundation'],
+          planningOverride: {
+            estimatedTimeMinutes: 10,
+          },
+        },
+        {
+          id: 'quiz',
+          label: '基础练习',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/quiz',
+          knowledgeNodeIds: ['kn-foundation'],
+          planningOverride: {
+            estimatedTimeMinutes: 12,
+          },
+        },
+      ],
+      simulations: [
+        {
+          id: 'sim',
+          title: '唯一仿真路径',
+          launchTarget: '/simulations/only-sim',
+          knowledgeNodeIds: ['kn-sim'],
+          planningOverride: {
+            estimatedTimeMinutes: 20,
+            abilityImpact: { skill: 0.5 },
+          },
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      registry,
+      goal: {
+        id: 'goal-pairwise-diversity',
+        title: '两两差异目标',
+        knowledgeTargets: ['kn-foundation', 'kn-sim'],
+        competencyTargets: ['skill'],
+      },
+      constraints: {
+        timeBudgetMinutes: 70,
+        privacyScopes: ['student-visible'],
+      },
+      policyFamily: 'foundation-remediation',
+      policyBundle: ['foundation-remediation', 'simulation-driven', 'sprint-correction'],
+      diversityOverlapThreshold: 0.1,
+    }));
+
+    const simulationPath = plan.policyBundle?.alternatives.find((item) => item.policyFamily === 'simulation-driven')?.nodeIds;
+    const sprintPath = plan.policyBundle?.alternatives.find((item) => item.policyFamily === 'sprint-correction')?.nodeIds;
+    expect(simulationPath).toEqual(sprintPath);
+    expect(plan.policyBundle).toMatchObject({
+      status: 'low-resource-fallback',
+      fallbackReasons: expect.arrayContaining([
+        'simulation-driven-sprint-correction-insufficient-diversity',
+      ]),
+    });
+  });
+
+  it.each([
+    'foundation-remediation',
+    'simulation-driven',
+    'sprint-correction',
+    'teacher-assigned',
+  ] as const)('preserves privacy and teacher constraints for policy family %s', (policyFamily) => {
+    const registry = buildResourceNodeRegistry({
+      aiInterventions: [
+        {
+          id: 'teacher-only-policy',
+          title: '教师专用策略资源',
+          renderTarget: '/ai/teacher-only-policy',
+          knowledgeNodeIds: ['kn-policy-private'],
+          teacherOnly: true,
+        },
+      ],
+      registeredResources: [
+        {
+          id: 'assigned-private',
+          label: '受限教师指定资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/admin/data-governance',
+          knowledgeNodeIds: ['kn-policy-private'],
+          planningOverride: {
+            teacherPolicy: 'teacher-assigned',
+            privacyLevel: 'admin-scoped',
+          },
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(policyFixtureInput({
+      registry,
+      goal: {
+        id: 'goal-policy-privacy',
+        title: '策略隐私约束',
+        knowledgeTargets: ['kn-policy-private'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+        teacherAssignedNodeIds: ['registry:assigned-private'],
+      },
+      policyFamily,
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(JSON.stringify(plan)).not.toContain('teacher-only-policy');
+    expect(JSON.stringify(plan)).not.toContain('受限教师指定资源');
+    expect(plan.visualization.map.blockedNodes.length).toBeGreaterThan(0);
+  });
+
   it('keeps blocked resources out of graph edges while exposing map, timeline, and evidence payloads', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
     const mainIds = plan.mainPath.map((node) => node.nodeId);
@@ -597,6 +957,10 @@ describe('adaptive learning path planner', () => {
     expect(record.userId).toBe('student-1');
     expect(record.nodeIds).toEqual(withFeedback.mainPath.map((node) => node.nodeId));
     expect(record.payload.status).toBe(withFeedback.status);
+    expect(record.payload.policyFamily).toBe(withFeedback.policyFamily);
+    expect(record.payload.policyMetadata).toEqual(withFeedback.policyMetadata);
+    expect(record.payload.diversity).toEqual(withFeedback.diversity);
+    expect(record.payload.policyBundle).toEqual(withFeedback.policyBundle);
     expect(record.payload.currentNodeId).toBe(withFeedback.currentNodeId);
     expect(record.payload.score).toEqual(withFeedback.score);
     expect(record.payload.confidence).toEqual(withFeedback.confidence);
