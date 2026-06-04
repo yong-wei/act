@@ -23,6 +23,7 @@ interface SimulationInfo {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
   controlFocus: string[];
+  taskStatus: string;
   courseDesign: {
     overview: string;
     objectives: string[];
@@ -42,6 +43,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'beginner',
     tags: ['Nomoto模型', 'PID控制', '航向保持'],
     controlFocus: ['航向控制', '舵角响应', '转向特性'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '通过052D驱逐舰仿真，掌握船舶运动的基本数学模型和PID控制器设计方法。',
       objectives: [
@@ -68,6 +70,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['大惯性系统', '能源运输', '港口靠泊'],
     controlFocus: ['减速控制', '靠泊操作', '安全距离'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: 'LNG运输船具有大吨位、低速、高惯性特点，是学习大惯性系统控制的典型案例。',
       objectives: [
@@ -94,6 +97,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['航线规划', '经济航速', '定时到达'],
     controlFocus: ['速度控制', '航线跟踪', '油耗优化'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '集装箱船追求准时性和经济性，需要在速度、油耗和安全间寻找平衡。',
       objectives: [
@@ -120,6 +124,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['舒适性控制', '减摇稳定', '平稳操纵'],
     controlFocus: ['横摇控制', '平稳转向', '加速度限制'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '邮轮以乘客体验为核心，控制系统需要在快速响应和舒适性间取得平衡。',
       objectives: [
@@ -146,6 +151,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['动力定位', '解耦控制', '多推进器'],
     controlFocus: ['位置保持', '推力分配', '冗余设计'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '钻井平台需要在深海精确保持位置，是多自由度解耦控制的经典应用。',
       objectives: [
@@ -172,6 +178,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['Azipod推进', '冰阻力', '参数摄动'],
     controlFocus: ['推进角度', '破冰策略', '鲁棒控制'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '雪龙2号采用先进的Azipod推进系统，在冰区航行时船舶参数会显著变化。',
       objectives: [
@@ -198,6 +205,7 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['多工况', '模式切换', '自适应控制'],
     controlFocus: ['工况识别', '参数切换', '平滑过渡'],
+    taskStatus: '任务链开放',
     courseDesign: {
       overview: '挖泥船需要在多种工况间灵活切换，是自适应控制和模式切换控制的典型应用。',
       objectives: [
@@ -233,7 +241,13 @@ export default function SimulationsPage() {
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
 
   return (
-    <div className="surface-page" data-commercial-workspace="simulations">
+    <div
+      className="surface-page"
+      data-commercial-workspace="simulations"
+      data-commercial-student-entry-route="/simulations"
+      data-commercial-entry-intent="experiment"
+      data-simulation-entry-map="scenario-fleet"
+    >
       <FeaturePageNav
         title="虚拟仿真实验室"
         backHref="/"
@@ -247,17 +261,23 @@ export default function SimulationsPage() {
 
       {/* 简介 */}
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="surface-card p-6">
+        <div className="surface-card p-6" data-entry-current-context="simulation-hub">
           <h2 className="mb-2 text-lg font-medium text-foreground">船舶控制理论实践平台</h2>
           <p className="text-sm leading-relaxed text-subtle">
             通过7种典型船舶的3D仿真，深入理解自动控制原理在海洋工程中的应用。
             从经典PID到多自由度解耦控制，从单一工况到自适应控制，循序渐进掌握控制系统设计方法。
           </p>
+          <div className="mt-4 grid gap-2 text-xs text-subtle md:grid-cols-4" data-commercial-entry-intent-map="simulation-scenario">
+            <span className="rounded-full border border-border px-3 py-1">场景身份</span>
+            <span className="rounded-full border border-border px-3 py-1">控制难度</span>
+            <span className="rounded-full border border-border px-3 py-1">课程适配</span>
+            <span className="rounded-full border border-border px-3 py-1">任务状态</span>
+          </div>
         </div>
       </div>
 
       {/* 仿真卡片网格 */}
-      <div className="mx-auto max-w-7xl px-6 pb-12">
+      <div className="mx-auto max-w-7xl px-6 pb-12" data-scenario-fleet="ship-scenarios">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {simulations.map((sim) => (
             <SimulationCard
@@ -363,7 +383,7 @@ function SimulationCard({
   const Icon = simulation.icon;
 
   return (
-    <Card className="surface-card group transition-all hover:border-primary/45 hover:bg-card/90">
+    <Card className="surface-card group transition-all hover:border-primary/45 hover:bg-card/90" data-simulation-scenario-card={simulation.id}>
       {/* 预览图区域 */}
       <div className="relative h-40 overflow-hidden bg-secondary/35">
         <Image
@@ -399,6 +419,17 @@ function SimulationCard({
 
       <CardContent className="space-y-4">
         <p className="line-clamp-2 text-sm text-subtle">{simulation.description}</p>
+
+        <dl className="grid gap-2 text-xs text-subtle sm:grid-cols-2" data-simulation-scenario-fit={simulation.id}>
+          <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+            <dt className="font-medium text-foreground">课程适配</dt>
+            <dd className="mt-1">{simulation.controlFocus.slice(0, 2).join(' / ')}</dd>
+          </div>
+          <div className="rounded-md border border-border bg-muted/30 px-3 py-2" data-simulation-task-status={simulation.id}>
+            <dt className="font-medium text-foreground">任务状态</dt>
+            <dd className="mt-1">{simulation.taskStatus}</dd>
+          </div>
+        </dl>
 
         {/* 标签 */}
         <div className="flex flex-wrap gap-1.5">

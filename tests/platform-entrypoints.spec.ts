@@ -27,6 +27,8 @@ test('login page keeps the shared credential form on desktop and 320px callback 
     await page.setViewportSize({ width, height: 720 });
     await page.goto('/login?callbackUrl=%2Fprofile');
 
+    await expect(page.locator('[data-commercial-student-entry-route="/login"]')).toBeVisible();
+    await expect(page.locator('[data-auth-callback-target="/profile"]')).toBeVisible();
     await expect(page.getByRole('heading', { name: '账号登录' })).toBeVisible();
     await expect(page.getByPlaceholder('学号/工号')).toBeVisible();
     await expect(page.getByPlaceholder('密码')).toBeVisible();
@@ -48,6 +50,10 @@ test('profile unauthenticated state links back to login with profile callback at
 test('simulations hub remains reachable without opening 3D runtimes', async ({ page }) => {
   await page.goto('/simulations', { waitUntil: 'networkidle' });
 
+  await expect(page.locator('[data-simulation-entry-map="scenario-fleet"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-scenario-card]')).toHaveCount(7);
+  await expect(page.locator('[data-simulation-scenario-fit]')).toHaveCount(7);
+  await expect(page.locator('[data-simulation-task-status]')).toHaveCount(7);
   await expect(page.getByRole('heading', { name: '虚拟仿真实验室' })).toBeVisible();
   await expect(page.getByText('7 个仿真场景')).toBeVisible();
   await expect(page.getByRole('heading', { name: '052D驱逐舰' })).toBeVisible();

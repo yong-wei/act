@@ -31,11 +31,17 @@ const ENTRY_ROUTES = [
 export default function InteractiveLearningPage() {
   const entryIntents = getCommercialStudentEntryIntentGroups();
   return (
-    <div className="surface-page">
+    <div
+      className="surface-page"
+      data-commercial-workspace="interactive-learning"
+      data-commercial-student-entry-route="/interactive-learning"
+      data-commercial-entry-intent="learn"
+      data-learning-entry-map="student-intent"
+    >
       <UnifiedTopBar title="互动学习" backHref="/" backLabel="返回首页" subtitle="Interactive Learning" />
 
       <main className="mx-auto max-w-[1200px] px-6 py-12">
-        <header className="surface-card mb-10 p-6">
+        <header className="surface-card mb-10 p-6" data-entry-current-context="interactive-learning">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 学习</p>
           <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">互动学习</h1>
           <p className="text-base text-subtle">
@@ -48,7 +54,7 @@ export default function InteractiveLearningPage() {
           </div>
         </header>
 
-        <section className="mb-6 grid gap-3 md:grid-cols-3">
+        <section className="mb-6 grid gap-3 md:grid-cols-3" data-commercial-entry-intent-map="learn-practice-challenge">
           {entryIntents.filter((intent) => ['learn', 'practice', 'challenge'].includes(intent.intent)).map((intent) => (
             <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40">
               <span className="text-xs font-medium text-primary">{intent.label}</span>
@@ -57,7 +63,7 @@ export default function InteractiveLearningPage() {
           ))}
         </section>
 
-        <section className="grid gap-5 md:grid-cols-3">
+        <section className="grid gap-5 md:grid-cols-3" data-learning-map-surface="module-paths">
           {ENTRY_ROUTES.map((entry) => (
             <Link
               key={entry.href}
