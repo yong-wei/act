@@ -50,6 +50,25 @@ The system SHALL expose a governed `control-correction` learner-state slice that
 - **THEN** existing learner-state payloads SHALL remain compatible
 - **AND** the new goal slice SHALL NOT be required for unrelated adaptive-learning surfaces.
 
+### Requirement: Learner state consumes registered goal slices
+The Learner State Service SHALL resolve goal-specific read models through the adaptive goal-slice registry.
+
+#### Scenario: Registered goal slice is read
+- **WHEN** learner state is requested for a registered goal
+- **THEN** the service SHALL return only dimensions and metadata declared by that goal contract
+- **AND** it SHALL include confidence, source coverage, freshness, and privacy metadata for each visible field family.
+- **AND** it SHALL preserve declared non-dimensional field families such as active path context, recent path rounds, terminal validation state, and no-active-path state when those families are part of the goal contract.
+
+#### Scenario: Registered control-correction path context is read
+- **WHEN** learner state is requested for `goal=control-correction`
+- **THEN** the registered goal contract SHALL allow the active path id, status, current node, terminal validation state, and no-active-path state required by control-correction path consumers
+- **AND** registry filtering SHALL NOT remove those fields merely because they are not competency dimensions.
+
+#### Scenario: General learner state is read
+- **WHEN** no goal is requested
+- **THEN** existing general learner-state payloads SHALL remain compatible
+- **AND** registered goal slices SHALL NOT be required for unrelated adaptive surfaces.
+
 ### Requirement: Learner state links to active control-correction path rounds
 The system SHALL expose privacy-safe references from learner state to active or recent control-correction path rounds when authorized.
 
@@ -62,4 +81,3 @@ The system SHALL expose privacy-safe references from learner state to active or 
 - **WHEN** no active control-correction path exists
 - **THEN** learner state SHALL expose an explicit no-active-path state
 - **AND** path planning consumers SHALL be able to distinguish that state from a failed learner-state read.
-
