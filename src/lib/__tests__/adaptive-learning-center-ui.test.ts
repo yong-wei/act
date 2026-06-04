@@ -71,6 +71,14 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
       activePathCount: 1,
       bookmarkedPathCount: 0,
       recentPathIds: ['path-1'],
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
       statusMarkers: ['available'],
     },
     risks: {

@@ -29,6 +29,7 @@ export default defineConfig({
       'src/app/api/arena/**/__tests__/**/*.test.ts',
       'src/app/api/admin/**/__tests__/**/*.test.ts',
       'src/app/api/interactive/**/__tests__/**/*.test.ts',
+      'src/app/api/learning-paths/**/__tests__/**/*.test.ts',
       'src/app/api/teacher/**/__tests__/**/*.test.ts',
       'src/app/api/teacher/arena/**/__tests__/**/*.test.ts',
       'src/app/classroom/**/__tests__/**/*.test.tsx',

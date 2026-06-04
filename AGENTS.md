@@ -54,7 +54,7 @@
 
 ## 项目结构
 
-本仓库是单一 Next.js 14 应用，核心目录如下：
+本仓库是单一 Next.js 16 应用，核心目录如下：
 
 - `src/app/`：App Router 路由、页面与 API。
 - `src/features/`：平台业务域；`src/features/interactive/` 承载当前精品互动课、课堂同步、manifest runtime 与 `unit-*` 课程实现。

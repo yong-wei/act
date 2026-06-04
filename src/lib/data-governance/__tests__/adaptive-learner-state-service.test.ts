@@ -205,6 +205,11 @@ function createDb(overrides: Record<string, unknown> = {}) {
           nodeIds: ['node-a', 'node-b'],
           isAiGenerated: true,
           isBookmarked: true,
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-a',
+          terminalValidation: { state: 'pending' },
+          lastExecutionMetadata: { lowConfidenceMarkers: ['arena-preview-only'] },
           updatedAt: new Date('2026-05-19T00:00:00.000Z'),
         },
       ],
@@ -395,6 +400,14 @@ describe('adaptive learner state service', () => {
     expect(state.pathContext).toMatchObject({
       activePathCount: 1,
       bookmarkedPathCount: 1,
+      activeControlCorrectionPath: {
+        state: 'active',
+        pathId: 'path-1',
+        status: 'active',
+        currentNodeId: 'node-a',
+        terminalValidationState: 'pending',
+        lowConfidenceMarkers: ['arena-preview-only'],
+      },
     });
     expect(state.risks).toEqual({
       riskLevel: 'redacted',
@@ -437,6 +450,47 @@ describe('adaptive learner state service', () => {
       'AdaptiveMasteryUpdate',
       'StudentEvidenceFeatureCache',
     ]));
+  });
+
+  it('keeps the active control-correction path even when recent generic paths fill the general window', async () => {
+    const recentGenericPaths = Array.from({ length: 10 }, (_, index) => ({
+      id: `legacy-path-${index}`,
+      goalId: 'legacy',
+      pathStatus: 'legacy',
+      isBookmarked: false,
+      updatedAt: new Date(`2026-05-${19 - index}T00:00:00.000Z`),
+    }));
+    const state = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async (args: any) => {
+          if (args.where?.goalId === 'control-correction') {
+            return [{
+              id: 'active-control-path',
+              goalId: 'control-correction',
+              pathStatus: 'active',
+              currentNodeId: 'control-node',
+              terminalValidation: { state: 'pending' },
+              lastExecutionMetadata: { lowConfidenceMarkers: ['low-source-coverage'] },
+              isBookmarked: false,
+            }];
+          }
+          return recentGenericPaths;
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.pathContext.recentPathIds).toHaveLength(10);
+    expect(state.pathContext.activeControlCorrectionPath).toMatchObject({
+      state: 'active',
+      pathId: 'active-control-path',
+      currentNodeId: 'control-node',
+      terminalValidationState: 'pending',
+      lowConfidenceMarkers: ['low-source-coverage'],
+    });
   });
 
   it('keeps active risk flags teacher scoped', async () => {
@@ -487,12 +541,12 @@ describe('adaptive learner state service', () => {
       CONTROL_CORRECTION_GOAL_DIMENSIONS,
     );
     expect(slice.pathContext).toMatchObject({
-      activePathId: null,
-      activePathStatus: null,
-      currentNodeId: null,
-      terminalValidationState: null,
+      activePathId: 'path-1',
+      activePathStatus: 'active',
+      currentNodeId: 'node-a',
+      terminalValidationState: 'pending',
       recentPathIds: ['path-1'],
-      noActivePath: true,
+      noActivePath: false,
     });
     expect(slice.dimensions).toEqual(
       expect.arrayContaining([
@@ -546,6 +600,21 @@ describe('adaptive learner state service', () => {
     });
     expect(state.goalSlices?.controlCorrection).toBeUndefined();
     expect(state.primaryCompetencies.vector.controlModeling.score).toBe(78);
+
+    for (const specialGoal of ['__proto__', 'constructor']) {
+      const specialState = await readAdaptiveLearnerState(createDb(), {
+        userId: 'student-1',
+        role: 'student',
+        now: new Date('2026-05-20T03:00:00.000Z'),
+        goal: specialGoal,
+      });
+      expect(specialState.goalSlices?.unsupported).toMatchObject({
+        goalId: specialGoal,
+        state: 'unsupported-goal',
+        fallbackReason: 'unregistered-adaptive-goal',
+      });
+      expect(specialState.goalSlices?.controlCorrection).toBeUndefined();
+    }
   });
 
   it('rejects undeclared control-correction dimensions before consumers can use them', async () => {
@@ -714,6 +783,78 @@ describe('adaptive learner state service', () => {
       currentNodeId: 'node-in-progress',
       terminalValidationState: 'pending',
       noActivePath: false,
+    });
+
+    const scopedActivePathState = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async (args: any) => {
+          if (args.where?.goalId === 'control-correction') {
+            return [
+              {
+                id: 'scoped-active-path',
+                goalId: 'control-correction',
+                pathStatus: 'active',
+                currentNodeId: 'node-scoped',
+                terminalValidation: { state: 'ready-for-terminal-check' },
+                updatedAt: new Date('2026-05-01T00:00:00.000Z'),
+              },
+            ];
+          }
+          return Array.from({ length: 10 }, (_, index) => ({
+            id: `generic-path-${index}`,
+            pathStatus: 'ready',
+            updatedAt: new Date(`2026-05-${String(20 - index).padStart(2, '0')}T00:00:00.000Z`),
+          }));
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(scopedActivePathState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: 'scoped-active-path',
+      activePathStatus: 'active',
+      currentNodeId: 'node-scoped',
+      terminalValidationState: 'ready-for-terminal-check',
+      recentPathIds: expect.arrayContaining(['generic-path-0', 'scoped-active-path']),
+      noActivePath: false,
+    });
+
+    const otherGoalActivePathState = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async (args: any) => {
+          if (args.where?.goalId === 'control-correction') {
+            return [];
+          }
+          return [
+            {
+              id: 'other-goal-active-path',
+              goalId: 'other-goal',
+              pathStatus: 'active',
+              currentNodeId: 'node-other',
+              terminalValidation: { state: 'pending' },
+              updatedAt: new Date('2026-05-19T00:00:00.000Z'),
+            },
+          ];
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(otherGoalActivePathState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: null,
+      activePathStatus: null,
+      currentNodeId: null,
+      terminalValidationState: null,
+      recentPathIds: ['other-goal-active-path'],
+      noActivePath: true,
     });
   });
 

@@ -341,6 +341,14 @@ export interface AdaptiveLearnerState {
     activePathCount: number;
     bookmarkedPathCount: number;
     recentPathIds: string[];
+    activeControlCorrectionPath: {
+      state: 'active' | 'none';
+      pathId: string | null;
+      status: string | null;
+      currentNodeId: string | null;
+      terminalValidationState: string | null;
+      lowConfidenceMarkers: string[];
+    };
     statusMarkers: Array<'missing' | 'available'>;
   };
   risks: {
@@ -551,7 +559,10 @@ const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
 export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefined): AdaptiveGoalSliceDefinition | null {
   const normalizedGoal = normalizeRequestedGoal(goal);
   if (!normalizedGoal) return null;
-  return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId] ?? null;
+  if (!Object.hasOwn(ADAPTIVE_GOAL_SLICE_REGISTRY, normalizedGoal)) {
+    return null;
+  }
+  return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId];
 }
 
 export function isAdaptiveLearnerStateServiceEnabled(
@@ -581,6 +592,7 @@ export async function readAdaptiveLearnerState(
     latestAbility,
     riskFlags,
     paths,
+    activeControlCorrectionPaths,
     controlCorrectionFacts,
     controlCorrectionArenaSubmissions,
   ] = await Promise.all([
@@ -612,8 +624,35 @@ export async function readAdaptiveLearnerState(
     }) ?? Promise.resolve([]),
     db.learningPath?.findMany?.({
       where: { userId: input.userId },
+      select: {
+        id: true,
+        goalId: true,
+        pathStatus: true,
+        currentNodeId: true,
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+        isBookmarked: true,
+      },
       orderBy: { updatedAt: 'desc' },
       take: 10,
+    }) ?? Promise.resolve([]),
+    db.learningPath?.findMany?.({
+      where: {
+        userId: input.userId,
+        goalId: CONTROL_CORRECTION_GOAL_ID,
+        pathStatus: { in: ['active', 'fallback'] },
+      },
+      select: {
+        id: true,
+        goalId: true,
+        pathStatus: true,
+        currentNodeId: true,
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+        isBookmarked: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 1,
     }) ?? Promise.resolve([]),
     shouldBuildControlCorrectionGoalSlice
       ? readControlCorrectionLearningFacts(db, input.userId)
@@ -662,6 +701,7 @@ export async function readAdaptiveLearnerState(
     arenaSubmissions: controlCorrectionArenaSubmissions,
     prerequisiteFeatureGroups,
     paths,
+    activeControlCorrectionPath: activeControlCorrectionPaths.find(isControlCorrectionPathRound) ?? null,
   });
 
   return {
@@ -692,7 +732,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     resourcePreference: buildResourcePreference(facts),
     mediaAbsorption: buildMediaAbsorption(facts),
-    pathContext: buildPathContext(paths),
+    pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {
       latestAbilityEstimate: buildAbilityEstimate(latestAbility),
@@ -772,6 +812,7 @@ function buildAdaptiveGoalSlices(input: {
   arenaSubmissions: Array<Record<string, unknown>>;
   prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
   paths: Array<Record<string, unknown>>;
+  activeControlCorrectionPath: Record<string, unknown> | null;
 }): AdaptiveLearnerState['goalSlices'] | undefined {
   if (!input.requestedGoal) {
     return undefined;
@@ -799,6 +840,7 @@ function buildAdaptiveGoalSlices(input: {
         arenaSubmissions: input.arenaSubmissions,
         prerequisiteFeatureGroups: input.prerequisiteFeatureGroups,
         paths: input.paths,
+        activeControlCorrectionPath: input.activeControlCorrectionPath,
       }),
     };
   }
@@ -815,6 +857,7 @@ function buildControlCorrectionGoalSlice(input: {
   arenaSubmissions: Array<Record<string, unknown>>;
   prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
   paths: Array<Record<string, unknown>>;
+  activeControlCorrectionPath: Record<string, unknown> | null;
 }): ControlCorrectionGoalSlice {
   const simulationArena = getObject(input.prerequisiteFeatureGroups.simulationArena);
   const sourceEvidence = buildControlCorrectionSourceEvidence({
@@ -863,7 +906,7 @@ function buildControlCorrectionGoalSlice(input: {
     generatedAt: input.now.toISOString(),
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
     dimensions,
-    pathContext: buildControlCorrectionPathContext(input.paths),
+    pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
   };
   validateControlCorrectionGoalSliceContract(slice);
@@ -1005,34 +1048,67 @@ function buildMediaAbsorption(facts: Array<Record<string, unknown>>): AdaptiveLe
   };
 }
 
-function buildPathContext(paths: Array<Record<string, unknown>>): AdaptiveLearnerState['pathContext'] {
+function buildPathContext(
+  paths: Array<Record<string, unknown>>,
+  activeControlCorrectionPath: Record<string, unknown> | null,
+): AdaptiveLearnerState['pathContext'] {
   return {
     activePathCount: paths.length,
     bookmarkedPathCount: paths.filter((path) => path.isBookmarked === true).length,
     recentPathIds: paths.map((path) => readString(path.id)).filter((id): id is string => Boolean(id)),
+    activeControlCorrectionPath: activeControlCorrectionPath
+      ? {
+          state: 'active',
+          pathId: readString(activeControlCorrectionPath.id) ?? null,
+          status: readString(activeControlCorrectionPath.pathStatus) ?? null,
+          currentNodeId: readString(activeControlCorrectionPath.currentNodeId) ?? null,
+          terminalValidationState: readString(getObject(activeControlCorrectionPath.terminalValidation).state) ?? null,
+          lowConfidenceMarkers: arrayOfStrings(getObject(activeControlCorrectionPath.lastExecutionMetadata).lowConfidenceMarkers),
+        }
+      : {
+          state: 'none',
+          pathId: null,
+          status: null,
+          currentNodeId: null,
+          terminalValidationState: null,
+          lowConfidenceMarkers: [],
+        },
     statusMarkers: paths.length > 0 ? ['available'] : ['missing'],
   };
 }
 
-function buildControlCorrectionPathContext(paths: Array<Record<string, unknown>>): ControlCorrectionGoalSlicePathContext {
-  const recentPathIds = paths
+function buildControlCorrectionPathContext(
+  paths: Array<Record<string, unknown>>,
+  activeControlCorrectionPath: Record<string, unknown> | null,
+): ControlCorrectionGoalSlicePathContext {
+  const recentPathIds = unique([
+    ...paths
     .map((path) => readString(path.id))
-    .filter((id): id is string => Boolean(id));
-  const activePath = paths.find((path) => {
+      .filter((id): id is string => Boolean(id)),
+    ...(activeControlCorrectionPath ? [readString(activeControlCorrectionPath.id)].filter((id): id is string => Boolean(id)) : []),
+  ]);
+  const activePath = activeControlCorrectionPath ?? paths.find((path) => {
+    const goalId = readString(path.goalId);
+    if (goalId !== null && goalId !== CONTROL_CORRECTION_GOAL_ID) return false;
     if (path.isActive === true) return true;
-    const status = readString(path.status);
-    return status === 'active' || status === 'in-progress';
+    const status = readString(path.pathStatus) ?? readString(path.status);
+    return status === 'active' || status === 'in-progress' || status === 'fallback';
   }) ?? null;
+  const activePathStatus = readString(activePath?.pathStatus) ?? readString(activePath?.status) ?? (activePath ? 'active' : null);
 
   return {
     activePathId: readString(activePath?.id),
-    activePathStatus: readString(activePath?.status) ?? (activePath ? 'active' : null),
+    activePathStatus,
     currentNodeId: readString(activePath?.currentNodeId) ?? readString(getObject(activePath?.currentNode).id),
     terminalValidationState: readString(activePath?.terminalValidationState)
       ?? readString(getObject(activePath?.terminalValidation).state),
     recentPathIds,
     noActivePath: activePath === null,
   };
+}
+
+function isControlCorrectionPathRound(path: Record<string, unknown>): boolean {
+  return readString(path.goalId) === CONTROL_CORRECTION_GOAL_ID;
 }
 
 function buildRiskState(
