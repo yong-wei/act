@@ -360,6 +360,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('groupGrowthTimelineRecords');
     expect(source).toContain('groupedGrowthRecords');
     expect(source).toContain('重复记录');
+    expect(source).toContain('while (nextIndex < records.length && lowSignalGrowthRecordKey(records[nextIndex]) === key)');
+    expect(source).not.toContain('const emittedGroups = new Set<string>();');
     expect(source).toContain('min-h-[320px]');
     expect(source).toContain('min-w-0');
     expect(source).toContain('hasCompetencyChartData');

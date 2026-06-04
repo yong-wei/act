@@ -672,34 +672,31 @@ export default function GrowthPage() {
 }
 
 function groupGrowthTimelineRecords(records: GrowthRecord[]): GroupedGrowthRecord[] {
-  const groups = new Map<string, GrowthRecord[]>();
-
-  for (const record of records) {
-    const key = lowSignalGrowthRecordKey(record);
-    if (!key) continue;
-    const group = groups.get(key) ?? [];
-    group.push(record);
-    groups.set(key, group);
-  }
-
-  const emittedGroups = new Set<string>();
   const groupedRecords: GroupedGrowthRecord[] = [];
+  let index = 0;
 
-  for (const record of records) {
+  while (index < records.length) {
+    const record = records[index];
     const key = lowSignalGrowthRecordKey(record);
     if (!key) {
       groupedRecords.push(record);
+      index += 1;
       continue;
     }
 
-    const group = groups.get(key);
-    if (!group || group.length <= 1) {
+    const group = [record];
+    let nextIndex = index + 1;
+    while (nextIndex < records.length && lowSignalGrowthRecordKey(records[nextIndex]) === key) {
+      group.push(records[nextIndex]);
+      nextIndex += 1;
+    }
+
+    if (group.length <= 1) {
       groupedRecords.push(record);
+      index = nextIndex;
       continue;
     }
-    if (emittedGroups.has(key)) continue;
 
-    emittedGroups.add(key);
     groupedRecords.push({
       ...record,
       title: record.title,
@@ -707,6 +704,7 @@ function groupGrowthTimelineRecords(records: GrowthRecord[]): GroupedGrowthRecor
       groupedCount: group.length,
       groupedRecordIds: group.map((entry) => entry.id),
     });
+    index = nextIndex;
   }
 
   return groupedRecords;
