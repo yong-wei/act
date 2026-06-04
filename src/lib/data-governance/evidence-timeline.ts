@@ -298,35 +298,31 @@ function formatEvidenceTimelineItem(
 }
 
 function groupEvidenceTimelineItems(items: EvidenceTimelineItem[]): EvidenceTimelineItem[] {
-  const groups = new Map<string, EvidenceTimelineItem[]>();
-
-  for (const item of items) {
-    const key = lowSignalGroupKey(item);
-    if (!key) continue;
-
-    const group = groups.get(key) ?? [];
-    group.push(item);
-    groups.set(key, group);
-  }
-
-  const emittedGroups = new Set<string>();
   const groupedItems: EvidenceTimelineItem[] = [];
+  let index = 0;
 
-  for (const item of items) {
+  while (index < items.length) {
+    const item = items[index];
     const key = lowSignalGroupKey(item);
     if (!key) {
       groupedItems.push({ ...item, displayPriority: 'normal' });
+      index += 1;
       continue;
     }
 
-    const group = groups.get(key);
-    if (!group || group.length <= 1) {
+    const group = [item];
+    let nextIndex = index + 1;
+    while (nextIndex < items.length && lowSignalGroupKey(items[nextIndex]) === key) {
+      group.push(items[nextIndex]);
+      nextIndex += 1;
+    }
+
+    if (group.length <= 1) {
       groupedItems.push({ ...item, displayPriority: 'normal' });
+      index = nextIndex;
       continue;
     }
-    if (emittedGroups.has(key)) continue;
 
-    emittedGroups.add(key);
     groupedItems.push(compactObject({
       ...item,
       displayPriority: 'deemphasized' as const,
@@ -335,6 +331,7 @@ function groupEvidenceTimelineItems(items: EvidenceTimelineItem[]): EvidenceTime
       groupedCount: group.length,
       groupedEvidenceIds: group.map((entry) => entry.id),
     }));
+    index = nextIndex;
   }
 
   return groupedItems;
