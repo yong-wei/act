@@ -12,6 +12,37 @@ const CHAPTER_ORDER_INDEX = new Map<string, number>(
 export const CHAPTER_NODE_PREFIX = 'chapter-node:';
 export { CHAPTER_DISPLAY_ORDER, resolveChapterName };
 
+export type RelationDensityMode = 'structure' | 'focused' | 'all';
+export type RelationFocusState = 'neutral' | 'active' | 'dimmed';
+
+const DEFAULT_STRUCTURE_RELATION_ORDER = [
+  'contains',
+  'prerequisite',
+  'provides_foundation',
+  'follows',
+  'leads_to',
+] as const;
+
+const HIGH_SIGNAL_RELATION_ORDER = [
+  ...DEFAULT_STRUCTURE_RELATION_ORDER,
+  'applies_to',
+  'opposite',
+] as const;
+
+const HIGH_SIGNAL_RELATIONS = new Set<string>(HIGH_SIGNAL_RELATION_ORDER);
+const WEAK_RELATION_MIN_STRENGTH = 0.7;
+
+const STRUCTURE_RELATION_LIMITS: Record<string, { maxEdges: number; maxDegreePerNode: number }> = {
+  contains: { maxEdges: 360, maxDegreePerNode: 4 },
+  prerequisite: { maxEdges: 260, maxDegreePerNode: 3 },
+  provides_foundation: { maxEdges: 180, maxDegreePerNode: 3 },
+  follows: { maxEdges: 120, maxDegreePerNode: 2 },
+  leads_to: { maxEdges: 120, maxDegreePerNode: 2 },
+  applies_to: { maxEdges: 120, maxDegreePerNode: 2 },
+  opposite: { maxEdges: 80, maxDegreePerNode: 1 },
+  related: { maxEdges: 80, maxDegreePerNode: 1 },
+};
+
 export function isChapterNodeId(nodeId?: string | null): boolean {
   if (!nodeId) return false;
   return nodeId.startsWith(CHAPTER_NODE_PREFIX);
@@ -104,9 +135,97 @@ export function buildRelationTypeStats(
 }
 
 export function buildDefaultSelectedRelationTypes(types: string[]): string[] {
-  const prerequisiteTypes = types.filter((type) => getRelationCategory(type) === 'prerequisite');
-  if (prerequisiteTypes.length > 0) return prerequisiteTypes;
+  const availableTypes = new Set(types);
+  const structureTypes = DEFAULT_STRUCTURE_RELATION_ORDER.filter((type) => availableTypes.has(type));
+  if (structureTypes.length > 0) return structureTypes;
+  const highSignalTypes = HIGH_SIGNAL_RELATION_ORDER.filter((type) => availableTypes.has(type));
+  if (highSignalTypes.length > 0) return highSignalTypes.slice(0, 1);
   return types.slice(0, 1);
+}
+
+export function isHighSignalRelation(relation?: string | null): boolean {
+  if (!relation) return false;
+  if (HIGH_SIGNAL_RELATIONS.has(relation)) return true;
+  return getRelationCategory(relation) !== 'related';
+}
+
+export function getRelationFocusState(
+  sourceId: string,
+  targetId: string,
+  focusNodeId?: string | null
+): RelationFocusState {
+  if (!focusNodeId) return 'neutral';
+  return sourceId === focusNodeId || targetId === focusNodeId ? 'active' : 'dimmed';
+}
+
+export function relationPassesDensity(
+  link: Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType' | 'strength'>,
+  options: {
+    densityMode: RelationDensityMode;
+    focusNodeId?: string | null;
+  }
+): boolean {
+  if (options.densityMode === 'all') return true;
+
+  const relationType = link.relationType || link.relation || 'related';
+  if (isHighSignalRelation(relationType)) return true;
+
+  const strength = typeof link.strength === 'number' ? link.strength : 1;
+  if (options.densityMode === 'focused') {
+    return getRelationFocusState(link.sourceId, link.targetId, options.focusNodeId) === 'active';
+  }
+
+  return strength >= WEAK_RELATION_MIN_STRENGTH;
+}
+
+export function limitStructureRelationDensity<T extends Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType' | 'strength'>>(
+  links: T[],
+  options: { focusNodeId?: string | null } = {}
+): T[] {
+  const selectedByType = new Map<string, number>();
+  const degreeByNodeAndType = new Map<string, number>();
+  const relationPriority = new Map<string, number>(
+    DEFAULT_STRUCTURE_RELATION_ORDER.map((type, index) => [type, index])
+  );
+
+  return [...links]
+    .sort((a, b) => {
+      const activeA = getRelationFocusState(a.sourceId, a.targetId, options.focusNodeId) === 'active';
+      const activeB = getRelationFocusState(b.sourceId, b.targetId, options.focusNodeId) === 'active';
+      if (activeA !== activeB) return activeA ? -1 : 1;
+      const typeA = a.relationType || a.relation || 'related';
+      const typeB = b.relationType || b.relation || 'related';
+      const priorityA = relationPriority.get(typeA) ?? 99;
+      const priorityB = relationPriority.get(typeB) ?? 99;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const strengthA = typeof a.strength === 'number' ? a.strength : 1;
+      const strengthB = typeof b.strength === 'number' ? b.strength : 1;
+      if (strengthA !== strengthB) return strengthB - strengthA;
+      return `${a.sourceId}:${a.targetId}`.localeCompare(`${b.sourceId}:${b.targetId}`);
+    })
+    .filter((link) => {
+      if (getRelationFocusState(link.sourceId, link.targetId, options.focusNodeId) === 'active') {
+        return true;
+      }
+
+      const relationType = link.relationType || link.relation || 'related';
+      const limit = STRUCTURE_RELATION_LIMITS[relationType];
+      if (!limit) return false;
+
+      const selectedCount = selectedByType.get(relationType) ?? 0;
+      if (selectedCount >= limit.maxEdges) return false;
+
+      const sourceKey = `${relationType}:${link.sourceId}`;
+      const targetKey = `${relationType}:${link.targetId}`;
+      const sourceDegree = degreeByNodeAndType.get(sourceKey) ?? 0;
+      const targetDegree = degreeByNodeAndType.get(targetKey) ?? 0;
+      if (sourceDegree >= limit.maxDegreePerNode || targetDegree >= limit.maxDegreePerNode) return false;
+
+      selectedByType.set(relationType, selectedCount + 1);
+      degreeByNodeAndType.set(sourceKey, sourceDegree + 1);
+      degreeByNodeAndType.set(targetKey, targetDegree + 1);
+      return true;
+    });
 }
 
 export function buildChapterGroups(nodes: KnowledgeNodeData[]): Array<{

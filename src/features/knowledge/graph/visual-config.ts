@@ -31,6 +31,13 @@ export interface RelationStyle {
   hasArrow: boolean;
 }
 
+export interface RelationThreeDimensionalEncoding {
+  arrowLength: number;
+  directionalParticles: number;
+  particleWidth: number;
+  particleSpeed: number;
+}
+
 export const RELATION_STYLES: Record<string, RelationStyle> = {
   prerequisite: {
     color: '#f59e0b',
@@ -50,8 +57,8 @@ export const RELATION_STYLES: Record<string, RelationStyle> = {
     color: '#fb923c',
     colorRgba: 'rgba(251, 146, 60, 0.7)',
     dash: [],
-    width: 2.3,
-    hasArrow: true,
+    width: 3,
+    hasArrow: false,
   },
   follows: {
     color: '#10b981',
@@ -140,6 +147,61 @@ export function getGlowColor(bloomLevel?: string | null): string | null {
 export function getRelationStyle(relation?: string | null): RelationStyle {
   if (!relation) return RELATION_STYLES.related;
   return RELATION_STYLES[relation] ?? RELATION_STYLES.related;
+}
+
+/**
+ * 3D 视图没有 dashed line primitive，用方向箭头、粒子数量、粒子宽度和速度补足非颜色编码。
+ */
+export function getRelationThreeDimensionalEncoding(
+  relation?: string | null
+): RelationThreeDimensionalEncoding {
+  const style = getRelationStyle(relation);
+
+  switch (relation) {
+    case 'contains':
+      return {
+        arrowLength: 0,
+        directionalParticles: 0,
+        particleWidth: style.width * 0.9,
+        particleSpeed: 0,
+      };
+    case 'opposite':
+      return {
+        arrowLength: 0,
+        directionalParticles: 3,
+        particleWidth: style.width * 1.1,
+        particleSpeed: 0.0018,
+      };
+    case 'related':
+      return {
+        arrowLength: 0,
+        directionalParticles: 1,
+        particleWidth: style.width * 0.45,
+        particleSpeed: 0.0012,
+      };
+    case 'applies_to':
+      return {
+        arrowLength: style.hasArrow ? 3.5 : 0,
+        directionalParticles: 3,
+        particleWidth: style.width * 0.7,
+        particleSpeed: 0.003,
+      };
+    case 'follows':
+    case 'leads_to':
+      return {
+        arrowLength: style.hasArrow ? 4 : 0,
+        directionalParticles: 2,
+        particleWidth: style.width * 0.75,
+        particleSpeed: 0.0036,
+      };
+    default:
+      return {
+        arrowLength: style.hasArrow ? 4 : 0,
+        directionalParticles: style.hasArrow ? 1 : 0,
+        particleWidth: Math.max(1.2, style.width * 0.75),
+        particleSpeed: style.hasArrow ? 0.004 : 0,
+      };
+  }
 }
 
 /**

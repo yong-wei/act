@@ -15,10 +15,11 @@ import {
   getNodeColor,
   getGlowColor,
   getRelationStyle,
+  getRelationThreeDimensionalEncoding,
   getNodeTypeConfig,
 } from './visual-config';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
-import { CHAPTER_NODE_PREFIX } from './filter-utils';
+import { CHAPTER_NODE_PREFIX, getRelationFocusState } from './filter-utils';
 import {
   shouldRenderKnowledgeNodeLabel,
   type KnowledgeGraphLabelMode,
@@ -263,23 +264,48 @@ export function KnowledgeGraphCanvas({
 
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {
-    const style = getRelationStyle(link.relation);
+    const style = getRelationStyle(link.relationType || link.relation);
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
     const color = new THREE.Color(style.color);
-    const gain = 0.55 + strength * 0.45;
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+    const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
+    const focusGain = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1.15 : 0.9;
+    const gain = (0.55 + strength * 0.45) * focusGain;
     color.multiplyScalar(gain);
     return color.getStyle();
-  }, []);
+  }, [hoveredNode?.id, selectedNode?.id]);
 
   // 4. 获取连线宽度
   const getLinkWidth = useCallback((link: any) => {
-    const style = getRelationStyle(link.relation);
+    const style = getRelationStyle(link.relationType || link.relation);
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    return style.width * (0.7 + strength) * 1.1;
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+    const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
+    return style.width * (0.7 + strength) * (focusState === 'active' ? 1.35 : 1.1);
+  }, [hoveredNode?.id, selectedNode?.id]);
+
+  const getLinkArrowLength = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).arrowLength;
+  }, []);
+
+  const getLinkDirectionalParticles = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).directionalParticles;
+  }, []);
+
+  const getLinkDirectionalParticleWidth = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleWidth;
+  }, []);
+
+  const getLinkDirectionalParticleSpeed = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleSpeed;
   }, []);
 
   // 5. 配置物理引擎
@@ -319,6 +345,11 @@ export function KnowledgeGraphCanvas({
         linkColor={getLinkColor}
         linkWidth={getLinkWidth}
         linkOpacity={0.62}
+        linkDirectionalArrowLength={getLinkArrowLength}
+        linkDirectionalArrowRelPos={1}
+        linkDirectionalParticles={getLinkDirectionalParticles}
+        linkDirectionalParticleWidth={getLinkDirectionalParticleWidth}
+        linkDirectionalParticleSpeed={getLinkDirectionalParticleSpeed}
 
         // 交互
         onNodeClick={handleNodeClick}

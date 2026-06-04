@@ -12,6 +12,7 @@ interface KnowledgeSidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onNodeSelect: (node: KnowledgeNodeData) => void;
+  onNodeHover?: (node: KnowledgeNodeData | null) => void;
 }
 
 function getNodeTypeIcon(nodeType?: string) {
@@ -26,6 +27,7 @@ export function KnowledgeSidebar({
   searchQuery,
   onSearchChange,
   onNodeSelect,
+  onNodeHover,
 }: KnowledgeSidebarProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -153,6 +155,10 @@ export function KnowledgeSidebar({
                       <button
                         key={node.id}
                         onClick={() => onNodeSelect(node)}
+                        onMouseEnter={() => onNodeHover?.(node)}
+                        onMouseLeave={() => onNodeHover?.(null)}
+                        onFocus={() => onNodeHover?.(node)}
+                        onBlur={() => onNodeHover?.(null)}
                         className={`flex w-full items-center gap-1.5 py-1 pl-3 pr-2 text-left text-xs transition-colors ${
                           isSelected
                             ? (isLightTheme

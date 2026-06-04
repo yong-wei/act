@@ -1,0 +1,147 @@
+{
+  "generatedAt": "2026-06-04T21:49:47.524Z",
+  "url": "http://localhost:3001/knowledge",
+  "commit": "d557319c933157dc30ea3aae31d08dca69ab6581",
+  "outDir": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z",
+  "errors": [],
+  "captures": [
+    {
+      "name": "01-light-structure-default",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/01-light-structure-default.png",
+      "theme": "light",
+      "mode": "structure",
+      "telemetry": {
+        "relationCount": "1283",
+        "nodeCount": "574 / 788",
+        "activeButtons": [
+          "重点标签",
+          "结构优先"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    },
+    {
+      "name": "02-dark-structure-default",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/02-dark-structure-default.png",
+      "theme": "dark",
+      "mode": "structure",
+      "telemetry": {
+        "relationCount": "1283",
+        "nodeCount": "574 / 788",
+        "activeButtons": [
+          "重点标签",
+          "结构优先"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    },
+    {
+      "name": "03-light-focused-hover",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/03-light-focused-hover.png",
+      "theme": "light",
+      "mode": "focused-hover",
+      "hoveredSidebarNode": true,
+      "telemetry": {
+        "relationCount": "3379",
+        "nodeCount": "755 / 788",
+        "activeButtons": [
+          "重点标签",
+          "焦点邻域"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": true
+      }
+    },
+    {
+      "name": "04-light-all-relations",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/04-light-all-relations.png",
+      "theme": "light",
+      "mode": "all",
+      "telemetry": {
+        "relationCount": "3379",
+        "nodeCount": "755 / 788",
+        "activeButtons": [
+          "重点标签",
+          "全部关系"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    },
+    {
+      "name": "05-light-filtered-contains-prerequisite",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/05-light-filtered-contains-prerequisite.png",
+      "theme": "light",
+      "mode": "filtered",
+      "telemetry": {
+        "relationCount": "1070",
+        "nodeCount": "481 / 788",
+        "activeButtons": [
+          "重点标签",
+          "结构优先"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    },
+    {
+      "name": "06-light-filtered-focused-hover",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/06-light-filtered-focused-hover.png",
+      "theme": "light",
+      "mode": "filtered-focused-hover",
+      "hoveredSidebarNode": true,
+      "telemetry": {
+        "relationCount": "2537",
+        "nodeCount": "635 / 788",
+        "activeButtons": [
+          "重点标签",
+          "焦点邻域"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": true
+      }
+    },
+    {
+      "name": "07-light-filtered-all",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/07-light-filtered-all.png",
+      "theme": "light",
+      "mode": "filtered-all",
+      "telemetry": {
+        "relationCount": "2537",
+        "nodeCount": "635 / 788",
+        "activeButtons": [
+          "重点标签",
+          "全部关系"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    },
+    {
+      "name": "08-light-3d-filtered-all",
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/08-light-3d-filtered-all.png",
+      "theme": "light",
+      "mode": "3d-filtered-all",
+      "telemetry": {
+        "relationCount": "2537",
+        "nodeCount": "635 / 788",
+        "activeButtons": [
+          "重点标签",
+          "全部关系"
+        ],
+        "hasDensityControls": true,
+        "hasRelationStats": true,
+        "hasFocusedStrengthNote": false
+      }
+    }
+  ]
+}
