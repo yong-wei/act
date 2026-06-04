@@ -10,6 +10,7 @@ export default async function TeacherStudentEvidencePage(
     <EvidenceTimelineBrowser
       apiPath={`/api/teacher/students/${params.studentId}/evidence`}
       backHref={`/teacher/students/${params.studentId}/diagnosis`}
+      emptyBackLabel="返回学生诊断"
       title="学生证据"
       subtitle="按时间查看该学生的学习事实和作答摘要"
     />

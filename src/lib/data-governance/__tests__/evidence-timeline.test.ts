@@ -100,7 +100,7 @@ describe('evidence timeline browser', () => {
     expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: { userId: 'student-1' },
       orderBy: [{ startedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      take: 3,
+      take: 5,
     }));
     expect(page.items.map((item) => item.id)).toEqual([
       'newer-5-2-lower-score',
@@ -179,5 +179,283 @@ describe('evidence timeline browser', () => {
       dimension: 'engineeringDecision',
       lessonId: 'unit-5-1-controller-parameter-observation',
     });
+  });
+
+  it('groups repeated low-signal events while keeping high-signal evidence visible', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'empty-question-2',
+            score: 0,
+            outcome: 'abandoned',
+            sourceLogId: 'empty-log-2',
+            sourceEventId: 'empty-event-2',
+            startedAt: new Date('2026-05-21T08:10:00.000Z'),
+            createdAt: new Date('2026-05-21T08:10:01.000Z'),
+            contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+          }),
+          fact({
+            id: 'empty-question-1',
+            score: 0,
+            outcome: 'abandoned',
+            sourceLogId: 'empty-log-1',
+            sourceEventId: 'empty-event-1',
+            startedAt: new Date('2026-05-21T08:08:00.000Z'),
+            createdAt: new Date('2026-05-21T08:08:01.000Z'),
+            contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+          }),
+          fact({
+            id: 'simulation-breakthrough',
+            factType: 'simulation',
+            score: 92,
+            outcome: 'success',
+            sourceLogId: 'sim-log',
+            sourceEventId: 'sim-event',
+            startedAt: new Date('2026-05-21T08:06:00.000Z'),
+            createdAt: new Date('2026-05-21T08:06:01.000Z'),
+            contextJson: { evidenceTitle: '相轨线边界仿真突破', evidenceQuality: 'rich' },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+    });
+
+    expect(page.items).toHaveLength(2);
+    expect(page.items[0]).toMatchObject({
+      id: 'empty-question-2',
+      factType: 'question',
+      outcome: 'abandoned',
+      stepId: 'step-09',
+      groupedCount: 2,
+      groupedEvidenceIds: ['empty-question-2', 'empty-question-1'],
+      displayPriority: 'deemphasized',
+      groupLabel: '重复低信号证据 2 条',
+    });
+    expect(page.items[1]).toMatchObject({
+      id: 'simulation-breakthrough',
+      factType: 'simulation',
+      displayPriority: 'normal',
+    });
+  });
+
+  it('keeps legacy high-value simulation events visually identifiable instead of grouping them as low signal', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'legacy-simulation-2',
+            factType: 'simulation',
+            score: 91,
+            outcome: 'success',
+            sourceLogId: 'sim-log-2',
+            sourceEventId: 'sim-event-2',
+            startedAt: new Date('2026-05-21T08:10:00.000Z'),
+            createdAt: new Date('2026-05-21T08:10:01.000Z'),
+            contextJson: { evidenceTitle: '鲁棒性仿真突破', evidenceQuality: 'legacy-envelope' },
+          }),
+          fact({
+            id: 'legacy-simulation-1',
+            factType: 'simulation',
+            score: 89,
+            outcome: 'success',
+            sourceLogId: 'sim-log-1',
+            sourceEventId: 'sim-event-1',
+            startedAt: new Date('2026-05-21T08:08:00.000Z'),
+            createdAt: new Date('2026-05-21T08:08:01.000Z'),
+            contextJson: { evidenceTitle: '鲁棒性仿真突破', evidenceQuality: 'legacy-envelope' },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+    });
+
+    expect(page.items.map((item) => item.id)).toEqual(['legacy-simulation-2', 'legacy-simulation-1']);
+    expect(page.items.every((item) => item.displayPriority === 'normal')).toBe(true);
+    expect(page.items.every((item) => item.groupedCount === undefined)).toBe(true);
+  });
+
+  it('keeps a next cursor when grouped low-signal events consume the page lookahead window', async () => {
+    const rows = [
+      fact({
+        id: 'empty-question-page-1',
+        score: 0,
+        outcome: 'abandoned',
+        sourceLogId: 'empty-page-log-1',
+        sourceEventId: 'empty-page-event-1',
+        startedAt: new Date('2026-05-21T08:10:00.000Z'),
+        createdAt: new Date('2026-05-21T08:10:01.000Z'),
+        contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+      }),
+      fact({
+        id: 'empty-question-lookahead',
+        score: 0,
+        outcome: 'abandoned',
+        sourceLogId: 'empty-page-log-2',
+        sourceEventId: 'empty-page-event-2',
+        startedAt: new Date('2026-05-21T08:08:00.000Z'),
+        createdAt: new Date('2026-05-21T08:08:01.000Z'),
+        contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+      }),
+      fact({
+        id: 'empty-question-lookahead-tail',
+        score: 0,
+        outcome: 'abandoned',
+        sourceLogId: 'empty-page-log-3',
+        sourceEventId: 'empty-page-event-3',
+        startedAt: new Date('2026-05-21T08:06:00.000Z'),
+        createdAt: new Date('2026-05-21T08:06:01.000Z'),
+        contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+      }),
+      fact({
+        id: 'new-page-item',
+        score: 84,
+        outcome: 'success',
+        sourceLogId: 'new-page-log',
+        sourceEventId: 'new-page-event',
+        startedAt: new Date('2026-05-21T08:04:00.000Z'),
+        createdAt: new Date('2026-05-21T08:04:01.000Z'),
+      }),
+    ];
+    const db = {
+      learningFact: {
+        findMany: vi.fn(async (args) => {
+          const where = JSON.stringify(args.where ?? {});
+          const cursorIndex = rows.findIndex((row) => where.includes(`"id":{"lt":"${row.id}"}`));
+          const startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
+          return rows.slice(startIndex, startIndex + (args.take ?? rows.length));
+        }),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 1 },
+    });
+
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 4 }));
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]).toMatchObject({
+      id: 'empty-question-page-1',
+      groupedCount: 3,
+      groupedEvidenceIds: ['empty-question-page-1', 'empty-question-lookahead', 'empty-question-lookahead-tail'],
+      displayPriority: 'deemphasized',
+    });
+    expect(page.nextCursor).toBeTruthy();
+    expect(JSON.parse(Buffer.from(page.nextCursor ?? '', 'base64').toString('utf8'))).toMatchObject({
+      id: 'empty-question-lookahead-tail',
+    });
+
+    const secondPage = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 1, cursor: page.nextCursor ?? undefined },
+    });
+
+    expect(JSON.stringify(db.learningFact.findMany.mock.calls[1][0].where)).toContain('"id":{"lt":"empty-question-lookahead-tail"}');
+    expect(secondPage.items.map((item) => item.id)).toEqual(['new-page-item']);
+  });
+
+  it('does not group across high-value evidence between matching low-signal events', async () => {
+    const rows = [
+      fact({
+        id: 'empty-question-a',
+        score: 0,
+        outcome: 'abandoned',
+        sourceLogId: 'empty-log-a',
+        sourceEventId: 'empty-event-a',
+        startedAt: new Date('2026-05-21T08:10:00.000Z'),
+        createdAt: new Date('2026-05-21T08:10:01.000Z'),
+        contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+      }),
+      fact({
+        id: 'simulation-middle',
+        factType: 'simulation',
+        score: 92,
+        outcome: 'success',
+        sourceLogId: 'sim-log-middle',
+        sourceEventId: 'sim-event-middle',
+        startedAt: new Date('2026-05-21T08:08:00.000Z'),
+        createdAt: new Date('2026-05-21T08:08:01.000Z'),
+        contextJson: { evidenceTitle: '相轨线边界仿真突破', evidenceQuality: 'rich' },
+      }),
+      fact({
+        id: 'empty-question-c',
+        score: 0,
+        outcome: 'abandoned',
+        sourceLogId: 'empty-log-c',
+        sourceEventId: 'empty-event-c',
+        startedAt: new Date('2026-05-21T08:06:00.000Z'),
+        createdAt: new Date('2026-05-21T08:06:01.000Z'),
+        contextJson: { stepId: 'step-09', evidenceQuality: 'missing' },
+      }),
+      fact({
+        id: 'older-page-item',
+        score: 84,
+        outcome: 'success',
+        sourceLogId: 'older-page-log',
+        sourceEventId: 'older-page-event',
+        startedAt: new Date('2026-05-21T08:04:00.000Z'),
+        createdAt: new Date('2026-05-21T08:04:01.000Z'),
+      }),
+    ];
+    const db = {
+      learningFact: {
+        findMany: vi.fn(async (args) => {
+          const where = JSON.stringify(args.where ?? {});
+          const cursorIndex = rows.findIndex((row) => where.includes(`"id":{"lt":"${row.id}"}`));
+          const startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
+          return rows.slice(startIndex, startIndex + (args.take ?? rows.length));
+        }),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 1 },
+    });
+
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]).toMatchObject({
+      id: 'empty-question-a',
+      displayPriority: 'normal',
+    });
+    expect(page.items[0].groupedCount).toBeUndefined();
+    expect(JSON.parse(Buffer.from(page.nextCursor ?? '', 'base64').toString('utf8'))).toMatchObject({
+      id: 'empty-question-a',
+    });
+
+    const secondPage = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 1, cursor: page.nextCursor ?? undefined },
+    });
+
+    expect(JSON.stringify(db.learningFact.findMany.mock.calls[1][0].where)).toContain('"id":{"lt":"empty-question-a"}');
+    expect(secondPage.items.map((item) => item.id)).toEqual(['simulation-middle']);
   });
 });

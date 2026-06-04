@@ -31,6 +31,20 @@ export type AdaptiveLearningCompatibilityIntent =
   | 'profile-adaptive-cards';
 
 export type AdaptiveLearningCompatibilityMigrationMode = 'legacy-surface' | 'center-alias';
+export type LearnerDataShellSemantic =
+  | 'ability-profile'
+  | 'current-path'
+  | 'evidence-timeline'
+  | 'recommendations'
+  | 'practice'
+  | 'next-action';
+export type LearnerDataRouteIdentity =
+  | 'student-cockpit'
+  | 'profile-overview'
+  | 'growth-center'
+  | 'evidence-browser'
+  | 'adaptive-practice';
+export type RecommendedPathNodeState = 'current' | 'completed' | 'blocked' | 'next' | 'optional';
 
 export interface AdaptiveLearningCenterStateInput {
   featureFlags: readonly string[];
@@ -50,6 +64,21 @@ export interface AdaptiveLearningCompatibilityRoute {
   preservedIntent: AdaptiveLearningCompatibilityIntent;
   centerRegion: AdaptiveLearningCenterRegion;
   migrationMode: AdaptiveLearningCompatibilityMigrationMode;
+}
+
+export interface LearnerDataSurfaceRoute {
+  href: '/dashboard' | '/profile' | '/profile/growth' | '/profile/evidence' | '/assessment/adaptive-practice';
+  routeFile: string;
+  routeIdentity: LearnerDataRouteIdentity;
+  primaryRegion: AdaptiveLearningCenterRegion;
+}
+
+export interface LearnerDataRouteShell {
+  routeFamily: 'learner-data-pathway';
+  routeIdentity: LearnerDataRouteIdentity;
+  semantics: readonly LearnerDataShellSemantic[];
+  statusVocabulary: readonly string[];
+  nextActions: readonly string[];
 }
 
 export interface AdaptiveLearningCenterPanel {
@@ -87,6 +116,48 @@ export interface AdaptiveLearningCenterView extends AdaptiveLearningCenterState 
   excludedPolicyFamilies: string[];
 }
 
+export interface RecommendedPathNodeView {
+  stage: string;
+  nodeId: string;
+  title: string;
+  priority: number;
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+  expectedEffort: string;
+  sourceContext: string;
+  action: {
+    href: string;
+    label: string;
+  };
+  state: RecommendedPathNodeState;
+}
+
+export interface RecommendedPathNodeViewModel {
+  pathId: string;
+  nodes: RecommendedPathNodeView[];
+}
+
+export interface PracticeEntryRouteNodeInput {
+  recommendedFocus: readonly string[];
+  weakAreas: readonly string[];
+  estimatedAbility?: number | null;
+  confidenceInterval?: readonly [number, number] | null;
+  actionHref: string;
+}
+
+export interface PracticeEntryRouteNode {
+  nodeId: string;
+  title: string;
+  state: RecommendedPathNodeState;
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+  missingEvidence: readonly string[];
+  action: {
+    href: string;
+    label: string;
+  };
+}
+
 export interface AdaptiveClaimStatusInput {
   id: string;
   label: string;
@@ -114,7 +185,63 @@ export const ADAPTIVE_LEARNING_CENTER_REGIONS: AdaptiveLearningCenterRegion[] = 
   'konling',
 ];
 
+export const LEARNER_DATA_SHELL_SEMANTICS: LearnerDataShellSemantic[] = [
+  'ability-profile',
+  'current-path',
+  'evidence-timeline',
+  'recommendations',
+  'practice',
+  'next-action',
+];
+
+const LEARNER_DATA_STATUS_VOCABULARY = [
+  'confidence',
+  'sourceCoverage',
+  'readiness',
+  'fallback',
+] as const;
+
+const LEARNER_DATA_NEXT_ACTIONS = [
+  'start-practice',
+  'review-evidence',
+  'open-interactive-learning',
+  'enter-simulation-or-arena',
+] as const;
+
 const LEGACY_COMPATIBLE_REGIONS: AdaptiveLearningCenterRegion[] = ['overview', 'practice', 'konling'];
+
+const LEARNER_DATA_SURFACE_ROUTES: LearnerDataSurfaceRoute[] = [
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    routeIdentity: 'student-cockpit',
+    primaryRegion: 'overview',
+  },
+  {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    routeIdentity: 'profile-overview',
+    primaryRegion: 'learner-state',
+  },
+  {
+    href: '/profile/growth',
+    routeFile: 'src/app/(main)/profile/growth/page.tsx',
+    routeIdentity: 'growth-center',
+    primaryRegion: 'mastery',
+  },
+  {
+    href: '/profile/evidence',
+    routeFile: 'src/app/(main)/profile/evidence/page.tsx',
+    routeIdentity: 'evidence-browser',
+    primaryRegion: 'evidence',
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
+    routeIdentity: 'adaptive-practice',
+    primaryRegion: 'practice',
+  },
+] as const;
 
 const ADAPTIVE_LEARNING_CENTER_ROUTES: AdaptiveLearningCompatibilityRoute[] = [
   {
@@ -149,6 +276,68 @@ const ADAPTIVE_LEARNING_CENTER_ROUTES: AdaptiveLearningCompatibilityRoute[] = [
 
 export function getAdaptiveLearningCenterCompatibilityRoutes(): AdaptiveLearningCompatibilityRoute[] {
   return ADAPTIVE_LEARNING_CENTER_ROUTES.map((route) => ({ ...route }));
+}
+
+export function getLearnerDataSurfaceRoutes(): LearnerDataSurfaceRoute[] {
+  return LEARNER_DATA_SURFACE_ROUTES.map((route) => ({ ...route }));
+}
+
+export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']): LearnerDataRouteShell {
+  const route = LEARNER_DATA_SURFACE_ROUTES.find((entry) => entry.href === href);
+  if (!route) {
+    throw new Error(`Unsupported learner data route: ${href}`);
+  }
+
+  return {
+    routeFamily: 'learner-data-pathway',
+    routeIdentity: route.routeIdentity,
+    semantics: LEARNER_DATA_SHELL_SEMANTICS,
+    statusVocabulary: LEARNER_DATA_STATUS_VOCABULARY,
+    nextActions: LEARNER_DATA_NEXT_ACTIONS,
+  };
+}
+
+export function buildRecommendedPathNodeView(pathPlan: AdaptiveLearningPathPlan): RecommendedPathNodeViewModel {
+  return {
+    pathId: pathPlan.id,
+    nodes: pathPlan.mainPath.map((node, index) => ({
+      stage: pathPlan.stage,
+      nodeId: node.nodeId,
+      title: node.title,
+      priority: index + 1,
+      confidence: pathPlan.confidence.level,
+      evidenceLimitation: pathPlan.confidence.sourceCoverage <= 0
+        ? 'missing'
+        : pathPlan.confidence.sourceCoverage >= 0.75
+          ? 'complete'
+          : 'partial',
+      expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
+      sourceContext: `${node.sourceKind}:${node.sourceRef}`,
+      action: {
+        href: node.target,
+        label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
+      },
+      state: recommendedNodeState(node.status),
+    })),
+  };
+}
+
+export function buildPracticeEntryRouteNodes(input: PracticeEntryRouteNodeInput): PracticeEntryRouteNode[] {
+  const confidence = practiceConfidence(input.estimatedAbility, input.confidenceInterval);
+  const evidenceLimitation: PlatformSourceCoverageStatus = input.weakAreas.length > 0 ? 'partial' : 'complete';
+
+  return input.recommendedFocus.map((title, index) => ({
+    nodeId: `practice-focus-${index + 1}`,
+    title,
+    state: index === 0 ? 'current' : 'optional',
+    confidence,
+    evidenceLimitation,
+    missingEvidence: [...input.weakAreas],
+    action: {
+      href: practiceRouteNodeHref(input.actionHref, index + 1),
+      label: index === 0 ? '开始当前训练' : '查看训练节点',
+    },
+  }));
 }
 
 export function buildAdaptiveClaimStatus(input: AdaptiveClaimStatusInput): PlatformStatusPayload {
@@ -265,6 +454,27 @@ function adaptiveStatusSummary(input: AdaptiveClaimStatusInput): string {
   ].filter(Boolean);
 
   return limits.length > 0 ? limits.join('；') : '自适应声明证据完整且可展示。';
+}
+
+function recommendedNodeState(status: AdaptiveLearningPathPlan['mainPath'][number]['status']): RecommendedPathNodeState {
+  if (status === 'current' || status === 'completed' || status === 'blocked' || status === 'next') return status;
+  return 'optional';
+}
+
+function practiceConfidence(
+  estimatedAbility?: number | null,
+  confidenceInterval?: readonly [number, number] | null
+): PlatformConfidenceStatus {
+  if (typeof estimatedAbility !== 'number' || !confidenceInterval) return 'low';
+  const intervalWidth = Math.abs(confidenceInterval[1] - confidenceInterval[0]);
+  if (intervalWidth <= 0.3) return 'high';
+  if (intervalWidth <= 0.6) return 'medium';
+  return 'low';
+}
+
+function practiceRouteNodeHref(actionHref: string, priority: number): string {
+  const separator = actionHref.includes('?') ? '&' : '?';
+  return `${actionHref}${separator}focus=practice-focus-${priority}`;
 }
 
 function isServerOwnedLearnerState(value: AdaptiveLearnerState | null | undefined): value is AdaptiveLearnerState {

@@ -48,6 +48,11 @@ export interface EvidenceTimelineItem {
   qualityReason?: string;
   sourceState?: string;
   schemaVersion?: string | null;
+  displayPriority?: 'normal' | 'deemphasized';
+  groupKey?: string;
+  groupLabel?: string;
+  groupedCount?: number;
+  groupedEvidenceIds?: string[];
 }
 
 export interface EvidenceTimelinePage {
@@ -95,6 +100,7 @@ export interface EvidenceTimelineDb {
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
+const GROUP_LOOKAHEAD = 2;
 const ORDER_BY: Prisma.LearningFactOrderByWithRelationInput[] = [
   { startedAt: 'desc' },
   { createdAt: 'desc' },
@@ -129,18 +135,20 @@ export async function listEvidenceTimeline({
 }): Promise<EvidenceTimelinePage> {
   const normalizedFilters = normalizeFilters(filters);
   const limit = normalizedFilters.limit ?? DEFAULT_LIMIT;
+  const groupLookaheadLimit = Math.min(limit + GROUP_LOOKAHEAD, MAX_LIMIT);
+  const queryLimit = Math.min(groupLookaheadLimit + 1, MAX_LIMIT + 1);
   const facts = normalizedFilters.dimension
-    ? await collectDimensionFilteredFacts(db, userId, normalizedFilters, limit)
+    ? await collectDimensionFilteredFacts(db, userId, normalizedFilters, queryLimit - 1)
     : await db.learningFact.findMany({
         where: buildLearningFactWhere(userId, normalizedFilters),
         orderBy: ORDER_BY,
-        take: limit + 1,
+        take: queryLimit,
       });
   const matchedFacts = normalizedFilters.dimension
     ? facts
     : facts.filter((fact) => matchesDimension(fact, normalizedFilters.dimension));
-  const pageFacts = matchedFacts.slice(0, limit);
-  const sourceLogIds = pageFacts
+  const groupableFacts = matchedFacts.slice(0, groupLookaheadLimit);
+  const sourceLogIds = groupableFacts
     .map((fact) => fact.sourceLogId)
     .filter((sourceLogId): sourceLogId is string => typeof sourceLogId === 'string' && sourceLogId.length > 0);
   const responses = sourceLogIds.length
@@ -165,10 +173,16 @@ export async function listEvidenceTimeline({
       .map((response) => [response.sourceLogId!, response])
   );
 
+  const groupedItems = groupEvidenceTimelineItems(
+    groupableFacts.map((fact) => formatEvidenceTimelineItem(fact, responseBySourceLogId.get(fact.sourceLogId ?? '')))
+  );
+  const visibleItems = groupedItems.slice(0, limit);
+  const cursorFact = resolveCursorFact(visibleItems, groupableFacts);
+
   return {
-    items: pageFacts.map((fact) => formatEvidenceTimelineItem(fact, responseBySourceLogId.get(fact.sourceLogId ?? ''))),
-    nextCursor: matchedFacts.length > limit
-      ? createCursorFromFact(pageFacts[pageFacts.length - 1])
+    items: visibleItems,
+    nextCursor: cursorFact && matchedFacts.some((fact) => compareTimelineFactOrder(fact, cursorFact) > 0)
+      ? createEvidenceTimelineCursor(cursorFromFact(cursorFact))
       : null,
     appliedFilters: normalizedFilters,
   };
@@ -281,6 +295,87 @@ function formatEvidenceTimelineItem(
     sourceState: quality?.sourceState,
     schemaVersion: quality?.schemaVersion,
   });
+}
+
+function groupEvidenceTimelineItems(items: EvidenceTimelineItem[]): EvidenceTimelineItem[] {
+  const groupedItems: EvidenceTimelineItem[] = [];
+  let index = 0;
+
+  while (index < items.length) {
+    const item = items[index];
+    const key = lowSignalGroupKey(item);
+    if (!key) {
+      groupedItems.push({ ...item, displayPriority: 'normal' });
+      index += 1;
+      continue;
+    }
+
+    const group = [item];
+    let nextIndex = index + 1;
+    while (nextIndex < items.length && lowSignalGroupKey(items[nextIndex]) === key) {
+      group.push(items[nextIndex]);
+      nextIndex += 1;
+    }
+
+    if (group.length <= 1) {
+      groupedItems.push({ ...item, displayPriority: 'normal' });
+      index = nextIndex;
+      continue;
+    }
+
+    groupedItems.push(compactObject({
+      ...item,
+      displayPriority: 'deemphasized' as const,
+      groupKey: key,
+      groupLabel: `重复低信号证据 ${group.length} 条`,
+      groupedCount: group.length,
+      groupedEvidenceIds: group.map((entry) => entry.id),
+    }));
+    index = nextIndex;
+  }
+
+  return groupedItems;
+}
+
+function lowSignalGroupKey(item: EvidenceTimelineItem): string | null {
+  const sparseQuestion = item.factType === 'question' && !item.questionSummaries?.length;
+  if (!sparseQuestion) return null;
+
+  return [
+    item.factType,
+    item.outcome,
+    item.lessonId ?? 'unknown-lesson',
+    item.stepId ?? item.moduleId ?? 'unknown-step',
+    item.quality ?? 'sparse',
+  ].join('|');
+}
+
+function resolveCursorFact(
+  visibleItems: EvidenceTimelineItem[],
+  facts: LearningFactTimelineRecord[]
+): LearningFactTimelineRecord | undefined {
+  const coveredIds = new Set(
+    visibleItems.flatMap((item) => item.groupedEvidenceIds ?? [item.id])
+  );
+  let cursorFact: LearningFactTimelineRecord | undefined;
+
+  for (const fact of facts) {
+    if (coveredIds.has(fact.id)) {
+      cursorFact = fact;
+    }
+  }
+
+  return cursorFact;
+}
+
+function compareTimelineFactOrder(left: LearningFactTimelineRecord, right: LearningFactTimelineRecord): number {
+  if (left.startedAt.getTime() !== right.startedAt.getTime()) {
+    return right.startedAt.getTime() - left.startedAt.getTime();
+  }
+  if (left.createdAt.getTime() !== right.createdAt.getTime()) {
+    return right.createdAt.getTime() - left.createdAt.getTime();
+  }
+  return right.id.localeCompare(left.id);
 }
 
 function resolveQuality(

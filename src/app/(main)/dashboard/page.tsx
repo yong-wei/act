@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Home, Users } from 'lucide-react';
 
 import { UserMenu } from '@/components/shared/user-menu';
+import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   getCommercialStudentEntryIntentGroups,
@@ -17,6 +18,7 @@ import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 const studentCoreEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
 const dashboardEntryIntentGroups = getCommercialStudentEntryIntentGroups();
 const authenticatedProfileHref = '/profile';
+const learnerDataShell = buildLearnerDataRouteShell('/dashboard');
 
 type DashboardCommercialEntry = {
   intentGroup: (typeof dashboardEntryIntentGroups)[number];
@@ -166,7 +168,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="surface-page">
+    <div className="surface-page" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
       {/* 顶部导航栏 */}
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">

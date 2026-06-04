@@ -11,11 +11,14 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
+import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
 import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+
+const learnerDataShell = buildLearnerDataRouteShell('/profile');
 
 interface UserProfile {
   user: {
@@ -146,7 +149,7 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
@@ -167,7 +170,7 @@ export default function ProfilePage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
@@ -178,7 +181,7 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
@@ -202,7 +205,7 @@ export default function ProfilePage() {
   const studentCockpitHref = getPlatformCockpitHref('STUDENT');
 
   return (
-    <div className="surface-page">
+    <div className="surface-page" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
