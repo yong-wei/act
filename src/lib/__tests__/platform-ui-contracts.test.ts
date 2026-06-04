@@ -249,14 +249,15 @@ describe('platform UI contracts', () => {
     }
 
     expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.map((shell) => shell.workspace)).toEqual([
+      'simulation',
       'arena',
       'control-workbench',
-        'interactive-learning',
-        'adaptive-learning',
-        'teacher',
-        'data-center',
-        'admin',
-      ]);
+      'interactive-learning',
+      'adaptive-learning',
+      'teacher',
+      'data-center',
+      'admin',
+    ]);
 
     for (const shell of PLATFORM_COMMERCIAL_WORKSPACE_SHELLS) {
       expect(shell.inheritsTokenCategories).toEqual(
@@ -274,6 +275,7 @@ describe('platform UI contracts', () => {
 
     expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.find((shell) => shell.workspace === 'control-workbench')?.contextualNavigation).toContain('return target');
     expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/simulations/[id]',
       '/interactive-learning/control-workbench',
       '/arena/challenges/[taskId]',
       '/interactive-learning/[lesson]',
@@ -281,6 +283,7 @@ describe('platform UI contracts', () => {
       '/data-center',
       '/admin/data-governance',
     ]);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/simulations/[id]')?.workspace).toBe('simulation');
     expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/data-center')?.expectedZones).toEqual([
       'context-strip',
       'instrument-area',
@@ -299,6 +302,8 @@ describe('platform UI contracts', () => {
     const workbenchSource = readSource('src/features/control-workbench/shell/control-workbench-shell.tsx');
     const arenaDetailSource = readSource('src/features/arena/challenge-detail.tsx');
     const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
+    const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
+    const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const dataCenterSource = readSource('src/features/data-center/presentation-data-center.tsx');
     const adminGovernanceSource = readSource('src/features/admin/data-governance-dashboard.tsx');
@@ -307,10 +312,16 @@ describe('platform UI contracts', () => {
       expect(workbenchSource).toContain(`data-commercial-workspace-zone="${zone.id}"`);
     }
     expect(workbenchSource).toContain('data-commercial-workspace="control-workbench"');
+    expect(workbenchSource).toContain('data-task-workspace-archetype="engineering-analysis"');
     expect(workbenchSource).toContain('min-h-[360px]');
     expect(arenaDetailSource).toContain('data-commercial-workspace="arena-challenge-detail"');
+    expect(arenaDetailSource).toContain('data-task-workspace-archetype="challenge-task"');
     expect(arenaDetailSource).toContain('data-commercial-workspace-zone="command-bar"');
+    expect(cruiseSimulationSource).toContain('data-commercial-workspace="simulation-scene"');
+    expect(cruiseSimulationSource).toContain('data-task-workspace-archetype="immersive-scene"');
     expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
+    expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
+    expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
     expect(manifestRuntimeSource).toContain('data-commercial-module-state');
     expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-analytics"');
     expect(dataCenterSource).toContain('data-commercial-operations-workspace="data-center"');

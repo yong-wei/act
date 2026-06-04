@@ -12,6 +12,10 @@ import {
   formatArenaMetric,
 } from '@/features/arena/display-labels';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
+import {
+  buildWorkbenchExperienceContext,
+  describeExperienceLaunch,
+} from '@/features/simulation-arena-workbench/experience-shell-contracts';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
 import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
@@ -333,6 +337,9 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       return plugin.getAvailability(session).available;
     });
   const showObjectSelector = session.mode === 'explore';
+  const experienceContext = buildWorkbenchExperienceContext(session);
+  const launchDescription = describeExperienceLaunch(experienceContext.launch);
+  const returnHref = getControlWorkbenchReturnHref(session);
 
   useEffect(() => {
     setSession(initialSession);
@@ -453,17 +460,24 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground" data-commercial-workspace="control-workbench">
+    <main
+      className="min-h-screen bg-background text-foreground"
+      data-commercial-workspace="control-workbench"
+      data-task-workspace-archetype="engineering-analysis"
+      data-launch-provenance={experienceContext.launch.kind}
+      data-return-target={returnHref}
+    >
       <section className="border-b border-border/70 bg-card/80 px-6 py-5" data-commercial-workspace-zone="context-strip">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm text-primary">{modeLabel(session.mode)} · {workspaceLabel}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-normal">{taskTitle}</h1>
             <p className="mt-2 text-sm text-subtle">对象：{objectName}</p>
+            <p className="mt-2 text-xs text-subtle">{launchDescription.label} · {launchDescription.summary}</p>
           </div>
           <Link
             className="btn-ghost-themed inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm"
-            href={getControlWorkbenchReturnHref(session)}
+            href={returnHref}
           >
             {'taskId' in session ? '返回挑战详情' : '返回跨域探索'}
           </Link>

@@ -195,7 +195,7 @@ export interface PlatformFloatingActionDockControlContract {
 }
 
 export interface PlatformCommercialWorkspaceShell {
-  workspace: 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'data-center' | 'admin';
+  workspace: 'simulation' | 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'data-center' | 'admin';
   derivedFrom: 'commercial-platform-shell';
   density: 'tool' | 'learning' | 'analytics' | 'governance';
   zones: readonly PlatformCommercialWorkspaceZoneId[];
@@ -655,6 +655,15 @@ const commercialWorkspaceZoneIds = PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone
 
 export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceShell[] = [
   {
+    workspace: 'simulation',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Simulation catalog, launch provenance, scene tools, replay, and route-derived return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
     workspace: 'arena',
     derivedFrom: 'commercial-platform-shell',
     density: 'tool',
@@ -720,6 +729,13 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceSh
 ] as const;
 
 export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorkspaceRoute[] = [
+  {
+    href: '/simulations/[id]',
+    workspace: 'simulation',
+    density: 'tool',
+    representativeSurface: 'immersive simulation scene',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar', 'evidence-rail', 'support-drawer'],
+  },
   {
     href: '/interactive-learning/control-workbench',
     workspace: 'control-workbench',
