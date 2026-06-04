@@ -1,57 +1,56 @@
 # 当前状态
 
 状态: active
-最后更新: 2026-04-06
-摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像外，还应优先记住模块 2 精品互动课与课堂外资源互动追踪都已进入可复用模板阶段。
+最后更新: 2026-06-04
+摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前重点是依赖大版本迁移后的平台基线、控制工作台与 Arena 集成、控制校正学习路径、全课程智能助教提案、OpenSpec/Buddy 多工作树协作和数据治理口径。
 上游:
 - [00-overview.md](00-overview.md)
 下游:
 - [20-roadmap.md](20-roadmap.md)
 相关:
 - [docs/ProjectDescription.md](../../ProjectDescription.md)
+- [../02-recent-summary.md](../02-recent-summary.md)
 - [../30-operations/50-known-deploy-risks.md](../30-operations/50-known-deploy-risks.md)
 
 ## 当前高优先级现状
 
-- 统一课程框架已明确为 DB BOPPPS + `TeachingResource/registry` + `ClassSession`
-- 多门精品课程已接入独立入口与教师/学生双端课堂页，包括 L-2a、L-2b、L-2c、L-2d、L-sum、1-1、1-2 等
-- 运行时课程资源已转为镜像外置部署，远端通过 `rsync` 同步 `course-content/runtime`
-- 容器启动阶段默认执行 Prisma 迁移，但真实线上仍需警惕迁移状态与实际表结构漂移
+- 项目当前是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6 的单体应用。依赖链已大版本迁移，后续新增功能必须留意 SSR、R3F、Prisma generate、Tailwind source 边界和测试脚本噪声。
+- 基线分支为 `integration`，发布分支为 `main`。主工作树绑定 `integration`，职责是 OpenSpec 提案、集成验证和协调登记；功能实现默认进入 `act-dev1` 或 `act-dev2`，课程资源制作进入 `act-resource`。
+- OpenSpec/Buddy 是功能推进主线。进行中能力不应只看代码，还要看 `openspec/changes/`、`openspec/specs/`、GitHub issue 父子关系、blockedBy 依赖和 Project 状态。
+- 互动学习入口已经以控制工作台、互动课程、跨域探索和互动组件为主；首页保留控制工作台入口，并把原个人中心链接调整为互动学习。
+- 综合仿真工作台 `/interactive-learning/control-workbench` 已承载经典四视图、复合校正、预测控制、黑箱辨识等控制设计流，并与 Arena 路由和提交面板衔接。
+- Arena 已形成对象、任务、允许方法、评测协议、榜单规则、教师发布和班级报告链路。正式排名以 `ArenaSubmission` 为准，不能用前端预览或 `LearningFact` 上下文替代官方提交。
+- 数据治理从课堂事件回放推进到 session data quality、evidence source coverage、学生证据特征缓存、互动提交重算和报告指标口径。画像与报告排障必须分清原始事件、学习事实、特征缓存、快照和页面聚合。
+- 控制校正学习路径是当前自适应能力的首个目标切片。`control-correction` 是 canonical goal slice，资源节点图已实现并归档；后续 active changes 继续处理路径轮次、证据缓存、专门化中心、控灵辅导、终端验证、教师报告和 demo 包。
+- 全课程智能助教系列已经提出并登记，目标是把控制校正样例扩展为全课程能力：goal slice registry、角色化诊断、多路径策略、学习证据 RAG、文档 rubric 批改、教师备课包、Konling 多模式和演示验收。
 
-## 最近值得记住的变化
+## 近期已落地的关键事实
 
-- `1-2` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-2-block-diagram-simplification`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
-- `1-2` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/legacy/1-2` 读取知识图、讲义、知识卡与审查索引，课堂内按 `interactive-page.md` 的 17 步蓝图实现结构图四元素、等效变换、AI 对照、信号流图与梅森公式等内容
-- 互动课程制作前现在有独立 `lesson-content-review` 前置环节：先审 `design/handout.md` / `practice-guide.md` / `assessment-spec.md` 的技术正确性，再审 `design/boppps.md`、知识卡 sequence 与卡片正文，最后按 `design/multimedia.md` 生成并核对代码直出媒体
-- `course-content/scripts/review_lesson_content.py` 已成为新课内容审查入口；它会把问题修回 `course-content/authoring`，再导出 `course-content/runtime/lessons/<lesson>/review`，并把 `boppps`、审查报告、知识卡检查、多媒体检查索引写进 runtime
-- `1-2` 已完成首个课程审查试跑：补齐了缺失知识卡和代码直出媒体，runtime 下现在存在可供后续互动课程制作直接消费的 `review/*` 产物
-- `course-content/scripts/export_runtime.py` 已调整为“processed 优先、raw fallback”模式：新课按审查流走 `media/processed`，旧课仍可继续导出，避免已完成课程被迫回补新目录结构
-- `1-1` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-1-laplace-transfer-function`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
-- `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/legacy/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
-- `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/legacy/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/legacy/1-1/media`
-- 课堂外资源互动追踪已经形成统一分层方案：入口页媒体、知识卡片、知识图谱节点、跨域探索模块、standalone 互动资源与自适应练习等行为，先统一进入 `InteractionLog` 与个人中心活动流，再由高价值事件升格为 `LearningFact`/能力贡献；对应实现入口是 `useResourceInteractionTracking`、`/api/interactive/events` 的“先落 InteractionLog 再治理路由”策略，以及 `/api/user/profile` 的新事件映射
-- 学生个人中心 `/profile` 已不再使用旧的五维仿真雷达或课外展示补强卡口径，而是统一消费数据治理六维能力快照；姓名下显示学号，页面只保留学生态信息，不再显示“学生”角色文案
-- 学生个人中心的最近活动已经改为真实聚合：来源包括 `StudentState/ClassSession` 的课堂加入记录、`InteractionLog` 的互动/知识卡/跨域探索行为、`SimulationLog` 的仿真记录，以及 `LearningFact(question)` 的题目与自适应练习记录
-- 个性化补强路径已接入 `generateRecommendations(userId)` 与自适应习题诊断摘要；个人中心现在直接展示资源推荐卡和 `/assessment/adaptive-practice` 的继续练习入口
-- 成长中枢 `/profile/growth` 所依赖的 `/api/student/competency-snapshot` 已对重复 `StudentRiskFlag` 和重复建议做接口层去重，因此 UI 中“学习活跃度低/增加学习活跃度”类重复卡片已明显收敛
-- 教师端班级链路已重构为“教师首页/班级页 -> 班级学情总览 -> 学生个体学情”模式；不再把教师引向独立的数据治理入口或无上下文的 `analytics-v2` 坏路由
-- 教师端新增聚合接口 `/api/teacher/classes/[classId]/insights` 与 `/api/teacher/classes/[classId]/students/[studentId]/insights`，班级页、班级学情页与学生详情页已改为直接消费治理产物
-- `src/app/api/teacher/classes/[classId]/heatmap/route.ts` 已修复；此前会因原生 SQL 错把 Prisma 驼峰列名写成下划线列名而返回 500
-- 本地 `startup/shutdown` 脚本已补上“按端口释放前端残留进程 + 记录真实监听 PID”的兜底逻辑；启动脚本不再只依赖 pid 文件去杀 `npm` 父进程
-- 管理员后台已经改为“统一入口 + 三个子路由”结构：`/admin` 为管理总台，`/admin/users` 负责账号管理，`/admin/states` 负责使用量统计，`/admin/data-governance` 负责数据治理看板
-- 用户管理页已统一接入后台全局视觉样式，浅色模式下不再保留深色硬编码表格与容器
-- 系统使用量统计真实数据入口为 `/api/admin/system-usage`，与演示数据共用同一前端面板
-- 数据治理页已经中文化，并下钻到事实分布、队列健康、风险清单与快照明细，不再只是基础计数
-- `PlatformSetting` 已被纳入平台级开关体系，首页动态模型渲染可后台切换
-- 远端部署链路新增 `scripts/remote-deploy.sh`，并带有 Prisma 失败迁移自愈逻辑
-- 会话同步已经从部分精品课程打通到真实 `/api/session` 与 `/api/session/[id]/state` 链路
-- 数据治理事件归一化链路已收口，课堂内的 `lesson_submit` 等事件现在可以通过 worker 或回放脚本沉淀到 `LearningFact`
-- 本地已形成“远端数据库全量替换开发数据库”的确定性脚本流程，默认入口是 `scripts/db/sync-remote-db-to-local.sh`
+- `seed-control-correction-resource-path-graph` 已进入 `origin/integration` 并归档，新增了 `src/lib/control-correction-resource-seed.ts` 以及资源节点注册、路径规划验证和终端验证约束。
+- 控制校正资源 seed 不允许使用占位 `/course-runtime` 媒体路径；应指向真实 runtime handout、knowledge-card markdown、已注册资源或真实 App Router 动态路由。
+- 控制校正路径中的 `terminal-validation` 必须是主路径终点，且节点类型必须是 simulation 或 arena_task。路径中途出现验证节点后再接非验证资源时，仍应 fallback 并报告缺失原因。
+- 智能助教系列提案已推送到 `integration`，提交为 `b8bff30f docs: propose intelligent teaching assistant series`。该提交经过 `critical-reviewer` 初审阻断、修复、复审通过后提交。
+- `docs/proposals/2026-06-04-teaching-assistant.md` 是智能助教实施的重要分析报告；对应 OpenSpec change 包括 `generalize-adaptive-goal-slice-registry`、`materialize-role-based-diagnosis-views`、`extend-adaptive-path-policy-families`、`build-learning-evidence-rag-corpus`、`add-document-rubric-grading-workbench`、`generate-teacher-prep-pack-workflow`、`expand-konling-teaching-assistant-modes`、`package-intelligent-teaching-assistant-demo`。
+- 文档 rubric 批改工作台中，MarkItDown 只承担 PDF/Office 到 Markdown 的转换适配器职责；评分、教师审核、学生反馈、证据定位和画像回写需要平台契约与 UI 工作台。
+- 子代理配置以 `.codex/agents/*.toml` 和 `.codex/agents/README.md`、`ROUTING.md`、`HARNESS.md` 为真源。代码类提交需要高推理审查时，修复后必须复审，直到没有重大问题。
+- `multi_agent_v1.spawn_agent` 不能同时传 `fork_context: true` 和 `agent_type`/模型/推理强度覆盖。需要角色代理时不要 full-history fork；需要 fork 时不要覆盖角色。
+- OpenWolf 多工作树共享采用“长期知识文件软链接、运行态本地化”的策略。不要把派生工作树的 `.wolf/` 整体软链接到主工作树。
 
 ## 当前主要风险
 
-- 旧前端 chunk 与新后端同时存在时，浏览器可能出现与当前源码不一致的报错
-- 教师端学生学情页会直接暴露治理层历史风险记录；如果本地数据里存在重复未解决风险，会在 UI 上形成大量重复卡片，当前已通过接口去重为摘要态，但排障时仍应先确认数据是否异常膨胀
-- 数据库迁移元数据和实际 schema 可能短时不一致，导致 Prisma 缺表类故障
-- 会话类页面既依赖公开 session 读取，也依赖受保护的 state 接口，排障时必须区分两者
-- 数据治理链路目前只确认了事件批次和学生快照在持续产生，班级快照仍明显偏少，不能假设远端班级画像调度已经稳定
+- Active OpenSpec change 数量较多，后续实现时容易把系列依赖误解成线性依赖。实际依赖应以 issue `blockedBy` 和 change metadata 为准。
+- 控制校正学习路径与全课程智能助教存在继承关系。智能助教设计应默认未来未完成的控制校正 change 会实现，但不应复制其目标切片专用逻辑。
+- `openspec list --json` 若出现已归档 change 的 `no-tasks` 幽灵项，通常是本地空目录残留；先查文件，再清理空目录，避免误判 active 状态。
+- `git diff --check` 不覆盖未跟踪文件。新增文档提案在 staging 前需要用 `rg` 或 `git diff --no-index --check` 检查 citation token 和行尾空格，staging 后再跑 `git diff --cached --check`。
+- 依赖大版本迁移后，全量 tsc 可能仍暴露既有仓库债务；提交前应按改动风险选择最小充分验证，不要把历史 tsc 债务混同为本次改动失败。
+- Tailwind/Turbopack source 边界必须只覆盖业务代码和必要 helper，不要扫描系统环境配置、缓存、工作树运行态或外部同步目录。
+- 生产运行问题不能只看配置文件。优先查 `.logs/`、端口监听、`/api/readyz`、worker/scheduler 日志、Prisma generate、容器和 systemd 状态。
+
+## 建议下一跳
+
+- 做 OpenSpec 提案：先查当前 active changes 和 `openspec/specs/`，再生成 proposal/design/tasks/spec delta，最后用 `rtk openspec validate --changes --strict`。
+- 执行 OpenSpec change：先 claim 对应 GitHub issue，确认工作树职责与分支，再按 change 边界实现，不要跨系列顺手改。
+- 改控制工作台或 Arena：先读 `src/features/control-workbench/`、`src/features/arena/` 和相关测试；注意官方评测与本地预演边界。
+- 改数据治理或画像：先定位数据层级，明确原始事件、学习事实、特征缓存、快照和页面 DTO 各自职责。
+- 改智能助教：先读 `docs/proposals/2026-06-04-teaching-assistant.md` 和智能助教 OpenSpec 系列，不要把控灵聊天框当作唯一入口。
+- 改课程内容或互动课：继续遵循 authoring -> review/export -> runtime 的边界，正式页面只读 runtime。

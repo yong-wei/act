@@ -1,101 +1,57 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-05-04
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，模块 4 的 `4-2` 则已完成 13 步整改并沉淀出“KaTeX 公式字符串不要 `String.raw` + 双反斜杠、正式页媒体只读 runtime 路径”的新护栏；同时作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界；互动课程 SVG marker 已完成首轮生产迁移和守护测试。
+最后更新: 2026-06-04
+摘要: 初始化时优先读取的最近上下文入口。当前项目已从早期精品互动课制作阶段，推进到依赖大版本迁移后的控制工作台、Arena、数据治理、控制校正学习路径和全课程智能助教协同建设阶段；主工作树固定用于 OpenSpec 提案与集成验证，功能实现应进入派生工作树。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
 下游:
 - [10-project/10-current-state.md](10-project/10-current-state.md)
-- [30-operations/30-database-and-migrations.md](30-operations/30-database-and-migrations.md)
-- [70-workflows/40-remote-db-sync.md](70-workflows/40-remote-db-sync.md)
+- [20-architecture/00-index.md](20-architecture/00-index.md)
+- [30-operations/00-index.md](30-operations/00-index.md)
+- [70-workflows/00-index.md](70-workflows/00-index.md)
 相关:
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
 
-- 2026-05-04 互动课程 SVG marker 已完成首轮生产迁移：`src/features/interactive/shared/interactive-svg-markers.tsx` 统一管理生产细长箭头、历史评审宽开口箭头、圆点、菱形、起始点、极点叉和 ECharts 点标 helper；4-1 入口知识图谱、4-1 共享控制图表点标、3-6 测速反馈结构图、5-2 相平面与扰动边界、Control Odyssey 方框图已迁移到共享类。新增 `interactive-svg-markers.test.ts` 守护生产路径不得手写私有 `<marker>`，生产箭头统一用 `arrow-slim-concave`。已通过定向 Vitest、4-1 strict review、lint、build 与浏览器抽查。后续处理互动课程 SVG 箭头或点标时，先读 [70-workflows/69-interactive-svg-marker-unification.md](70-workflows/69-interactive-svg-marker-unification.md)
+- 2026-06-04 项目依赖链已完成大版本迁移，当前基线是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6、Vitest 4、Playwright 1.60。构建链路需要先构建 `rust/control-engine` WASM，再执行 `prisma generate` 与 Next build。涉及 R3F/Three 的组件不能在 App Router SSR 入口顶层静态导入。
 
-- 2026-04-20 模块4后半链已重构为“显式带优化思想的控制器设计链”：`4-4` 固定为固定结构下的优化建模，`4-5` 固定为参数约束翻译与带约束参数优化实践，`4-6` 固定为固定结构优化边界、结构编码入口与场景迁移，`4-7` 固定为完整工程设计闭环实践；同时轻量回修 `4-1`，补入 `ITSE` 与控制量代价，轻量回修 `4-3`，补入参数优化入口卡。后续制作 `4-4 / 4-5 / 4-6 / 4-7` 讲义、教案、互动课程或媒体清单时，以 [ADR-2026-04-20-module4-optimization-chain.md](50-decisions/ADR-2026-04-20-module4-optimization-chain.md) 和 `course-content/syllabus-refactor/unit-design-details/module4.md` 为准，不再沿用“先权衡、再修正、再迁移”的旧口径。
+- 2026-06-04 工作树职责已经固定：主工作树绑定 `integration`，用于 OpenSpec 提案、集成验证和协调登记；`act-dev1` 绑定 `dev1`，`act-dev2` 绑定 `dev2`，用于功能实现；`act-resource` 绑定 `resource`，用于课程资源制作。进入任一 act 工作树后，先确认当前分支和职责是否匹配。
 
-- 2026-04-20 已重做 `4-3` 作者态互动课程设计：`interactive-page.md` 与 `interactive-contract.yaml` 继续保留 14 步框架，叙事固定为“结构工具箱优先”，三类复合结构采用“一结构一任务”，并把 `PI+超前`、`滞后+超前`、带微分滤波 `PID`、客船五步参数方向显影、最小例题、三卡实践工作区与横摇通道重写边界案例全部下沉为可直接呈现给学生的页面内容载荷；`review_lesson_content.py --lesson 4-3 --skip-export --strict-implementation-contract` 已通过，`missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 与 `formula_mapping_issues` 均为空。后续实现 `unit-4-3-initial-scheme-practice-first-validation` 时应直接消费这组双轨真源，不再回读讲义临时重写页面正文。
+- 2026-06-04 OpenSpec/Buddy 已成为功能推进主工作流。当前进行中主线包括控制校正学习路径系列和智能助教系列。Buddy issue 是跨工作树协调记录；一个可执行 change 对应一个 GitHub issue、一个 claim branch、一个 OpenSpec change 和一个 PR。提案批次需要父 issue、子 issue、Project 状态和依赖关系闭环。
 
-- 2026-04-19 已完成 `4-2` 精品互动课 `unit-4-2-controller-selection-first-start` 的 13 步整改：旧信息图总结页已删除，`step-03` 改为纯判断链静态页，`step-04` 改为“结构工具箱总表 + 多选矩阵”，`step-05/07` 改为 Rust/WASM 原生统一面板，`step-06/08/09` 改为逐步显影，`step-11` 压缩为六字段最小起步卡；同时还沉淀出两条新的稳定护栏：第一，React + KaTeX 公式字符串不能再使用 `String.raw` 叠加双反斜杠，否则会把 `\frac`、`\mathrm` 等命令错误传成字面量；第二，互动课正式页面只能读取 `/course-runtime/lessons/<lesson>/media/...`，不能回读 `course-content/authoring/.../media/processed/...`。后续若继续制作或回修互动课中的公式、结构图、四联图或原生统一面板，先读 [70-workflows/68-interactive-formula-and-runtime-media-guards.md](70-workflows/68-interactive-formula-and-runtime-media-guards.md)
+- 2026-06-04 控制校正学习路径已进入实现推进阶段。已完成 `seed-control-correction-resource-path-graph`，并在 `origin/integration` 归档；当前仍有路径轮次持久化、证据缓存、专门化自适应中心、控灵路径辅导、终端仿真/Arena 验证、教师报告、模型供应商矩阵和 demo 包等 active changes。
 
-- 2026-04-18 已正式把模块4原 `4-3 / 4-4` 合并为新的 `4-3（实践） 初始方案落地实践：从对象分析到结构组合与首轮验证`，并同步把模块4由 `8` 个单元压缩为 `7` 个单元、由 `16h` 调整为 `14h`；`4-4/4-5/4-6/4-7` 现分别对应多目标权衡、优化实践、场景迁移与双场景综合比较。新的稳定边界是：学生版讲义不再允许以“方案卡字段学”“失败三分类”“故意失败剧本”为正文骨架，而必须按“任务表达 -> 结构选型 -> 方案落地 -> 权衡修正 -> 迁移比较”直接展开；同时，这次合并只把全课程显性编排从 `76h` 压到 `74h`，距正式 `72h` 仍差 `2h`，后续还需继续确定减载位置。若后续继续制作模块4讲义、教案、互动课或媒体，先读 [50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md](50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md)
-- 2026-04-16 已把作者态互动课程设计从 `lesson` 技能中独立拆出，新增 `interactive-design` 技能及三份专用参考：`worked-example-modules.md`、`curve-interaction-panels.md`、`page-sequence-and-activity-controls.md`。新的固定边界是：`lesson` 只负责讲义、图谱、BOPPPS 与多媒体；`interactive-design` 负责 `interactive-page.md` 与 `interactive-contract.yaml`；`interactive-lesson` 只负责把双轨设计落成代码与 runtime 行为。后续若遇到“图先于逻辑、例题消失、推导被压扁、作答区过于笼统、教师控制语义混乱”等问题，先回到 `interactive-design`，不要继续把互动设计规则塞回 `lesson`，也不要在实现阶段临时脑补默认语义；优先阅读 [70-workflows/67-interactive-design-skill-split.md](70-workflows/67-interactive-design-skill-split.md)
-- 2026-04-15 针对教师驾驶舱线上长期停留在降级模式的问题，已经进一步确认并沉淀出三条新的稳定运维事实：第一，`deploy/podman/*.sh` 一度被根级 `.gitignore` 的 `deploy/` 规则整体排除，因此今后凡是修部署脚本，先确认这些文件已经被显式纳入 Git 版本控制，不要只在本地未跟踪文件里修改；第二，这台生产机上的 `Podman + Alpine/musl + Node 18` 组合里，`nslookup`/`dns.resolve4()` 能解析 `*.dns.podman` 并不代表 Node 业务进程里的 `getaddrinfo` 稳定，因此 `deploy/podman/deploy.sh` 已改为在创建 `app/worker` 时注入数据库与 Redis 的静态 `--add-host` 映射；第三，`configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only` 重建应用栈，不能再 `podman start` 旧的 `app/worker` 容器，否则数据库和 Redis 重启换 IP 后，旧容器内静态映射会立即失效。当前生产验收结果已恢复为四个核心容器全部 `Up`、`act-obe-stack.service` 为 `active`、`/api/readyz` 返回 `app=true, db=true, redis=true`、`/api/auth/session` 正常、BullMQ key 存在、worker 日志出现 `[Worker] Data governance worker started`。后续若再排查线上教师驾驶舱降级、Redis/DB 健康误判或 systemd 重启后的连接异常，先读 [60-incidents/2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md](60-incidents/2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md) 与 [30-operations/50-known-deploy-risks.md](30-operations/50-known-deploy-risks.md)
-- 2026-04-15 已完成教师驾驶舱线上部署链路的三项关键加固：`scripts/remote-deploy.sh --skip-build` 会先比较本地与远端镜像包 SHA256，一致时直接跳过重复上传；`deploy/podman/configure-service.sh` 已补上 `KillMode=none` 与 `Delegate=yes` 并改为优先从 `DATABASE_URL` 派生数据库密码，避免远端 `act-obe-stack.service` 再次触发 Podman `unable to freeze` / `conmon died without writing exit file`；`deploy/podman/deploy.sh` 现在会把生产环境中的 `NEXTAUTH_URL=http://localhost:3001` 归一化为 `https://$APP_DOMAIN`，并自动补齐 `DATABASE_URL` 的 `connection_limit=10&pool_timeout=20`，从而修复教师退出登录跳回本地地址与最终验收未达标的问题。后续若再做生产部署，继续坚持“本机构建镜像包、远端仅装载镜像与运维脚本”的固定模式，不要恢复远端构建或上传源码
-- 2026-04-15 已对 `.codex/skills/lesson` 与 `.agents/skills/interactive-lesson` 同步补齐 `3-5` 复盘暴露出的四类硬约束：作者态必须先产出“证据单元升级决策表”和“混合证据顺序表”；除照片/封面/信息图外，教学图片默认不得原样保留位图，需优先升级为原生组件、显影板或分步呈现；推导型页面默认必须写出 `起点公式 -> 中间推导 -> 目标公式 -> 结论解释` 的显影链；互动实现阶段明确禁止“共享媒体槽位把图片统一顶到正文前部”的做法，并把 `interactive-page-check.json` / `review-report.md` 的关键告警清零设为默认收工门槛。后续若继续制作模块 3/4 的精品互动课，应直接沿用这组新门槛，不再接受“图片后续再互动化”“图先公式后”或“公式只保留结果式”的旧口径
-- 2026-04-14 已把 lesson 技能中的根轨迹复绘流程正式固化为通用基线：凡根轨迹从 `Octave rlocus()` 真值转入 `Python/matplotlib` 复绘，必须调用 [/.codex/skills/lesson/scripts/root_locus_branch_match.py](../../.codex/skills/lesson/scripts/root_locus_branch_match.py) 做分支匹配与审计；独立图、局部放大图以及多联/四联图中的根轨迹子图必须共用同一份匹配后分支 CSV，不再允许各课次临时手写局部排序逻辑。当前 `3-4` 已按该链路改造完成，可直接参考 [docs/memory/70-workflows/65-root-locus-branch-match.md](70-workflows/65-root-locus-branch-match.md)
-- 2026-04-14 已把 lesson 技能中的“讲义正文先成文、封面漫画与信息图后回写”的流程正式分成草稿导出与正式导出两段：`.codex/skills/lesson/scripts/export_handout_pdf.py` 新增 `--draft-mode`，当 `cover-comic.png` / `info.png` 尚未完成时，只允许导出 `handout-draft.pdf`，并且占位图只在临时目录生成，不能回写 `media/processed/`；同时 `[单元编号]-cover-comic.png` 与 `[单元编号]-info.png` 已被固化为保留媒体文件名，代码直出脚本与批量复绘脚本不得再把它们作为输出目标。后续若再制作含封面漫画和课末信息图的讲义，先读 [docs/memory/70-workflows/66-lesson-pdf-draft-and-protected-media.md](70-workflows/66-lesson-pdf-draft-and-protected-media.md)
-- 2026-04-14 已正式改写 `3-6（实践） 零点作用与动态改善实验` 的边界：学生版 [course-content/authoring/lessons/3-6/design/handout.md](../../course-content/authoring/lessons/3-6/design/handout.md) 已恢复 `PD`、测速反馈、简单超前、同指标下 `PD`、非最小相边界与附录保守示例的完整设计链；同时 [course-content/syllabus-refactor/module-skeletons.md](../../course-content/syllabus-refactor/module-skeletons.md) 与 [course-content/syllabus-refactor/unit-design-details/module3.md](../../course-content/syllabus-refactor/unit-design-details/module3.md) 已把 `3-6` 从“只做四版本对照与风险识别”调整为“统一对象下的零点设计预展开”，后续若再制作 `3-6` 的讲义、教案或互动课，不要再删去参数化求解链，也不要把这条零点设计主线整体后移给模块4
-- 2026-04-06 已把 `2-1` 入口页升级为“课前预习台”首个样例，并把这套能力固化为 runtime-first 规范：前端不再硬编码视频/音频/PDF 外链，而是统一读取 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`；`design/handout.pdf` 会随审查/导出链复制为 runtime `handout.pdf`，供页面直接下载，而 `handout.md` 继续保留在线阅读职责。后续若继续给其他精品互动课接入预习资源，应复用 `lessonRuntime.mediaResources` 与 `lessonRuntime.handoutPdfPath`，并只在 runtime 媒体索引文件中维护外链
-- 2026-04-06 已完成 `2-4` 精品互动课 `unit-2-4-nyquist-margin-entry` 的 runtime-first 落地：实现直接以作者态 [course-content/authoring/lessons/2-4/design/interactive-page.md](../../course-content/authoring/lessons/2-4/design/interactive-page.md) 与 [course-content/authoring/lessons/2-4/design/interactive-contract.yaml](../../course-content/authoring/lessons/2-4/design/interactive-contract.yaml) 为双轨真源，已补齐独立入口页、教师页、学生页、步骤静态内容面板、学生活动区与教师聚合区，并正式接入 [src/features/interactive/learning-catalog.ts](../../src/features/interactive/learning-catalog.ts)、[src/features/teacher/preset-lessons/presets/unit-2-4-nyquist-margin-entry.ts](../../src/features/teacher/preset-lessons/presets/unit-2-4-nyquist-margin-entry.ts)、[src/lib/classroom-session-route.ts](../../src/lib/classroom-session-route.ts) 与课程级 AI 上下文。后续若继续制作模块 2 精品课，应直接把模块 2 精品课主线视为 `2-1 / 2-2 / 2-3 / 2-4`，并沿用“作者态契约 + runtime-first 实现 + 课程目录/预置教案/课堂路由/AI 上下文同步注册”的完整落地模板
-- 2026-04-05 已完成 `2-3` 精品互动课 `unit-2-3-frequency-response-bode-intro` 的 runtime-first 落地：实现直接以作者态 [course-content/authoring/lessons/2-3/design/interactive-page.md](../../course-content/authoring/lessons/2-3/design/interactive-page.md) 与 [course-content/authoring/lessons/2-3/design/interactive-contract.yaml](../../course-content/authoring/lessons/2-3/design/interactive-contract.yaml) 为双轨真源，已补齐独立入口页、教师页、学生页、步骤静态内容面板、学生提交区与教师聚合区，并正式接入 [src/features/interactive/learning-catalog.ts](../../src/features/interactive/learning-catalog.ts)、[src/features/teacher/preset-lessons/presets/unit-2-3-frequency-response-bode-intro.ts](../../src/features/teacher/preset-lessons/presets/unit-2-3-frequency-response-bode-intro.ts)、[src/lib/classroom-session-route.ts](../../src/lib/classroom-session-route.ts) 与课程级 AI 上下文。后续若继续制作模块 2 互动课，应直接把模块 2 精品课主线视为 `2-1 / 2-2 / 2-3`，并沿用“作者态契约 + runtime-first 实现 + 课程目录/预置教案/课堂路由/AI 上下文同步注册”的完整落地模板
-- 2026-04-02 已把 `3-7（理论） 型别、积分环节与稳态改善` 从“稳态改善线入口课”进一步固定为“误差分析总入口课”：在 [course-content/syllabus-refactor/unit-design-details/module3.md](../../course-content/syllabus-refactor/unit-design-details/module3.md) 中，`3-7` 现已明确承担“系统结构来源 vs 输入信号来源”的两类误差来源、给定输入与扰动作用下的闭环传递函数、总输出/总误差、输入/扰动作用下误差传递函数、终值定理与静态误差系数法；同时将 `pptx/3方框图_控制系统结构` 提升为本课必融入资源，并明确 `2-1` 只保留闭环对象求等效的结构表达入口，不再承担这组内容的正式分析主线。后续若继续制作 `3-7` 的 handout / boppps / interactive-page / multimedia，应直接沿用这条“误差两类来源 -> 双通道传函 -> 终值定理 -> 型别/误差系数 -> `PI/滞后`”主线，不要退回只讲 `Kp/Kv/Ka` 表的旧课形态
-- 2026-04-01 已把 `2-3` 的互动设计升级为 V2 双轨真源：作者态 [course-content/authoring/lessons/2-3/design/interactive-page.md](../../course-content/authoring/lessons/2-3/design/interactive-page.md) 现已补齐 `文档职责 / 表述规则 / 全课总览 / 讲义核心内容映射 / 步骤级静态承载内容 / 互动升级点`，并新增 [course-content/authoring/lessons/2-3/design/interactive-contract.yaml](../../course-content/authoring/lessons/2-3/design/interactive-contract.yaml)；`python3 course-content/scripts/review_lesson_content.py --lesson 2-3` 现已导出 `interactive-page-check.json`，其中 `missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 与 `formula_mapping_issues` 均为 `0`，后续实现 `unit-2-3-frequency-response-bode-intro` 时应直接消费这组双轨真源，不再把 2-3 当成旧版动作脚本稿
-- 2026-04-01 已把 `3-8（理论） 频域判别与跨域综合语言` 的资源库融入口径固定为一条可复用判断链：`pptx/16 -> pptx/19 -> pptx/21 -> 船舶 5.1/5.3` 分别承担“频域入口 -> 判稳主体 -> 三频段与性能读回 -> 工程案例落地”，并明确排除 `pptx/17` 与 `pptx/18`，防止 `3-8` 回退到模块2的作图/读图基础重讲；该样例已沉淀到 [70-workflows/55-resource-library-integration.md](70-workflows/55-resource-library-integration.md)，后续若继续做模块3后段频域课重构，可直接复用这条边界
-- 2026-03-30 已把 `2-2` 的互动设计升级为 V2 双轨真源：作者态 [course-content/authoring/lessons/2-2/design/interactive-page.md](../../course-content/authoring/lessons/2-2/design/interactive-page.md) 现已补齐 `文档职责 / 表述规则 / 全课总览 / 学生演示预览口径`，并新增 [course-content/authoring/lessons/2-2/design/interactive-contract.yaml](../../course-content/authoring/lessons/2-2/design/interactive-contract.yaml)；`review_lesson_content.py --lesson 2-2` 现会在 runtime `review/` 中导出 `contract_path`、完整的 `contract_required_fields` 和 `interactive_contract_source`，且 `missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 均为 `0`。后续实现 `unit-2-2-time-domain-response` 时应直接消费这组双轨真源，不再把 2-2 当成旧版单稿互动设计
-- 2026-03-30 已把 `2-1` 的互动设计升级为 V2 双轨真源：作者态 `interactive-page.md` 负责固定页面布局、文本/公式/图片填充和互动方式，`interactive-contract.yaml` 负责机读约束；`course-content/scripts/review_lesson_content.py` 现在会校验契约必需字段，并把 `contract_path`、`missing_contract_fields`、`step_contract_issues`、`interactive_contract_source` 导出到 `runtime/lessons/<lesson>/review/*`。同时，教师端预置教案预览已明确“默认打开学生演示页，所见即所得”，不再把教师模板弹窗当作真实页面预览；后续实现互动课时，若课次已提供契约，就不应再回读讲义自由发挥页面结构
-- 2026-03-28 已把 `course-content/questions/` 正式并入 [course-content/syllabus-refactor/homework-framework.md](../../course-content/syllabus-refactor/homework-framework.md)：`questions/AC-Q-*.json|md` 与 `indexes/` 现在是闭题设计的正式题源输入层，必须遵循“先定作业边界、再选题源”的规则；其中结构化解析题库当前共 `167` 题，适合做 `[C]` 题训练校准与 `[X]/[D]` 题的对象/图示/评分锚点候选，`objective-bank/icourse-bank-bankType4.*` 的 `226` 道客观题则明确只服务前测、补练与自适应推题，不直接占用 `20道闭题` 或 `O1-O7` 开放题名额
-- 2026-03-28 已把 [course-content/resource-library/integration-framework.md](../../course-content/resource-library/integration-framework.md) 作为资源库正式融入规范落地，并同步更新了 [.codex/skills/syllabus-refactor/SKILL.md](../../.codex/skills/syllabus-refactor/SKILL.md) 与 [.codex/skills/lesson/SKILL.md](../../.codex/skills/lesson/SKILL.md)：以后 `pptx`、思政案例、船舶案例和既有习题资源不再只是“可参考”，而必须按“先读蓝图边界 -> 再读资源索引 -> 形成资源融入评审单/本课资源采用单 -> 按讲义/教案/互动页/媒体转写”的流程使用；稳定工作流已沉淀到 [70-workflows/55-resource-library-integration.md](70-workflows/55-resource-library-integration.md)
-- 2026-03-28 已把 `iCourse163 bankType=4` 客观题正式落到 [course-content/questions/objective-bank](../../course-content/questions/objective-bank)；稳定链路是 `tmp/icourse-question-bank-repair -> tmp/icourse-formula-map.complete.json -> build_icourse_objective_bank.py -> objective-bank/icourse-bank-bankType4.*`，最终纳入 `226` 题（单选 `96`、多选 `129`、填空 `1`），并补齐了 `objective-bank/README.md` 与专用 schema；后续凡是处理同类网页导出客观题，优先复用 [70-workflows/60-icourse-objective-bank-flow.md](70-workflows/60-icourse-objective-bank-flow.md)
-- 2026-03-27 已把 [course-content/questions/source/自动控制原理习题解析.docx](../../course-content/questions/source/自动控制原理习题解析.docx) 接入新的结构化题库流程：`course-content/questions/` 下固定采用 `source / questions / assets / indexes / reports / schemas / scripts` 目录；`extract_docx_question_bank.py` 现可稳定产出 `167` 道单题 Markdown/JSON，Markdown 固定分为“题面 / 答案解析 / 行内得分点 / 评分指南 / 元数据”，并生成 `questions.jsonl`、`questions.sqlite` 与裸 LaTeX、缺图报告；本轮还额外修复了两类稳定缺陷：`2-16不完整` 这类无空格题头不再串题，题号后表格 `w:tbl` 中的内嵌图片也会跟题导出，故 `AC-Q-0012/0013/0014` 不再误判为源 DOCX 缺图；同时抽取器会保留已有 `usage_status != raw` 的人工精修题，避免全量重建覆盖 `cleaned` 内容；`homework` 已扩展 `inline_score_points` 与 `rubric` 并存的输出契约，后续命题与组题应优先复用这套结构
-- `slides-ref` 的旧版中文 `pptx` 现已确认可以按“`pptx` 对象层 + `ppt/media/*` 补公式/标签 + `TikZ` 重建线框图 + `extracted.md` 直接嵌图”的方式转成高质量教学资源库；正式提取包现统一存放在 [course-content/resource-library/pptx](../../course-content/resource-library/pptx)，首个完整样例是 [course-content/resource-library/pptx/3方框图_控制系统结构](../../course-content/resource-library/pptx/3方框图_控制系统结构)，稳定流程已沉淀到 [70-workflows/50-pptx-slides-ref-extraction.md](70-workflows/50-pptx-slides-ref-extraction.md)
-- 课程重构蓝图已进一步确认模块2的 `2-4` 不是单纯“Bode/Nyquist 图入门”，而是同时承担“典型环节与简单组合对象的手工绘图入门 + 纯极点系统 Nyquist 基础读图 + 基于基础 Bode 图的标准对象反向识别入口”；对应 `HW2/T2-3` 也已同步改成“时域-频域基础对照与频域反向识别”，但边界仍明确限制在标准对象、粗粒度参数判断，不提前进入判稳、裕度或完整系统辨识
-- 2026-03-25 已完成一次关键的运维侧收敛：数据治理 worker 现在具备 Redis/BullMQ 基础设施异常识别、冷却文件熔断、日志节流、`unhandledRejection` / `uncaughtException` 收敛；scheduler 也已改为“凌晨事件批处理 + 每小时活跃学生快照 + 每日班级快照”的 coordinator 模式，详细复盘见 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
-- 本地 `Octave` 已通过 Homebrew 安装，`control` 包可用；当前稳定做法是保持旧整包 `qt` 处于 `unlink` 状态，并补 `/opt/homebrew/share/qt/plugins/platforms -> /opt/homebrew/opt/qtbase/share/qt/plugins/platforms` 符号链接，使图形版 `octave` 无需额外环境变量即可启动；详细复盘见 [60-incidents/2026-03-24-homebrew-octave-qt-plugin.md](60-incidents/2026-03-24-homebrew-octave-qt-plugin.md)
-- `1-3`「时域响应分析——从响应曲线到动态性能指标」已经完成精品互动课首轮落地与增强版工作区收口：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步流程
-- `1-3` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/2-2` 运行时内容与 `review/*` 审查产物；课堂内已额外补强 `step-07` 参数-公式-现象三列表、`step-09` 四指标叠加总览与 `step-13` 例题三步法计算面板
-- `1-2`「系统结构图与化简——从积木块到系统蓝图」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步蓝图
-- `1-2` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/legacy/1-2` 运行时内容与 `review/*` 审查产物；课堂步骤覆盖结构图四元素、基本连接、等效变换、AI 对照、信号流图、梅森公式、前后测与总结
-- 已新增 `.codex/skills/lesson-content-review` 与 `course-content/scripts/review_lesson_content.py`：互动课程制作前，先按“正文/实践指南 -> BOPPPS -> sequence/knowledge cards -> multimedia -> runtime/review”顺序审查；修复回写 `authoring`，再导出 `course-content/runtime/lessons/<lesson>/review` 供制作技能直接消费
-- `.codex/skills/lesson` 已增强为“讲义/教案/互动课/媒体”一体化严约束工作流：讲义生成前必须先读 `legacy/L-2a/design/handout.md` 只吸收文风、不借具体内容；讲义正文不再做机械限长，需作为单元唯一真实来源，围绕单一逻辑链完整覆盖知识链与能力链，复杂长推导可转入附录；全流程统一公式写法为行内 `$...$`、行间 `$$...$$`，控制计算与仿真统一用 `python3` + `control` 验证，线框图统一走 `tikz-control-draw`
-- `.codex/skills/lesson-content-review` 已从“结构/格式审查”增强为“四层正确性审查”技能：先建待审事实与结论清单，再分别审结构正确性、事实正确性、科学合理性与确定性结论；对任务/事迹/新闻/标准/时间敏感数字等外部事实必须联网核验并记录来源链接与核验日期，对控制计算与响应/频域/根轨迹等确定性内容必须用 `python3` + `control` 复现，卡片与媒体也纳入同一正确性口径
-- `.agents/skills/interactive-lesson` 已升级到新 runtime-first 体系：不再把 `L-2c` 当唯一结构基线，而是以 `1-1`、`1-2`、`1-3` 为当前默认样例；技能明确“互动课先承担完整 PPT/课件职责，再升级关键互动”，并把步骤级 AI 上下文、`SubmissionStatus`/等待态/答案揭示、教师端统计与词云、统一事件治理、Redis/SSE 会话同步复用、`media/processed -> export-runtime -> runtime` 媒体链路，以及“所有图像禁止 ASCII 图、控制图用 `python3 + control`、线框图用 `tikz-control-draw`”写成显式约束
-- `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/legacy/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
-- `export_runtime.py` 现在对新课优先使用 `authoring/.../media/processed`，但仍保留 `media/raw` fallback，避免已完成旧课因为新审查流程缺失而回归
-- `1-1`「拉氏变换与传递函数——从微分方程到代数方程」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、步骤级 AI 上下文、教师/学生会话同步与统一课程事件埋点
-- `1-1` 课程已接入 `course-content/runtime/lessons/legacy/1-1` 运行时内容，包含 `lesson.json`、`graph-overlay.json`、`handout.md` 和 6 个媒体文件；课程首页统一通过 runtime 展示知识点网络、知识卡片预览、讲义入口和 PDF 导出
-- 针对 `1-1` 的代码直出媒体，当前稳定流程是：先生成到 `course-content/authoring/lessons/<lesson>/media/processed` 审核合理性，再执行 `bash course-content/scripts/export-runtime.sh <lesson>` 导出到 runtime；不要跳过 `processed` 审核直接进运行时
-- 精品课程族现在除 `L-2a/L-2b/L-2c/L-2d/L-sum/Cruise comfort` 外，还应包括 `1-1`、`1-2` 与 `1-3`
-- 学生端个人中心 `/profile` 与 `/api/user/profile` 已从旧的五维仿真/课外展示口径切到数据治理六维能力模型；页面现展示真实 `StudentCompetencySnapshot` 维度、聚合学习活动、资源推荐与自适应习题诊断摘要
-- 学生端最近活动已不再只看仿真和违规，而是聚合课堂加入记录、互动埋点、仿真记录与 `LearningFact(question)`；首页默认显示前三条，查看全部按课堂参与 / 互动探索 / 仿真训练 / 评测题目分类展开
-- 成长中枢 `/profile/growth` 的“关注事项”和“下一步建议”已在 `/api/student/competency-snapshot` 接口层按风险类型与建议标题去重，不再直接把重复 `StudentRiskFlag` 或重复建议逐条透出
-- 教师端班级链路已经改成“班级入口 -> 班级学情总览 -> 学生个体学情”主路径；教师首页不再暴露独立数据治理入口或无上下文的错误学情快捷入口
-- 教师端新增 `/api/teacher/classes/[classId]/insights` 与 `/api/teacher/classes/[classId]/students/[studentId]/insights` 聚合接口；班级页、班级学情页、学生详情页都已切到治理结果驱动
-- 班级 `heatmap` 接口已修复：此前原生 SQL 错把 Prisma 驼峰列名当成下划线列名，导致教师学情页能力矩阵返回 500
-- 本地 `npm run startup` / `npm run shutdown` 已修复“pid 文件和真实监听进程不一致”的老问题；现在会按端口回收 `next-server` 残留，并把 `frontend.pid` 更新为真实监听 PID
-- 管理员后台已调整为统一入口架构：`/admin` 只负责展示三大入口，用户管理、系统使用量统计、数据治理分别落到 `/admin/users`、`/admin/states`、`/admin/data-governance`
-- 管理员统计已补齐真实数据接口 `/api/admin/system-usage`，关闭演示模式时不再因为缺少路由而 404
-- 数据治理页已从英文基础计数页改为中文增强看板，管理员可以直接查看事实分布、队列健康、风险清单和快照明细
-- 课堂事件到数据治理事实的归一化链路已经补齐，`lesson_submit`、`lesson_resubmit`、`session_finalize` 被登记为 core event，worker 与回放脚本都能把它们沉淀为 `LearningFact`
-- 本地已形成确定性的“远端数据库全量替换开发数据库”流程，默认执行 `bash scripts/db/sync-remote-db-to-local.sh`，脚本会先备份本地库，再导出远端并重建本地库
-- 本地 `.agents/skills/server-ops` 已成为当前可执行的服务器操作入口，主入口保持精简，详细分支操作放在 `references/`
+- 2026-06-04 全课程智能助教系列已提出并推送到 `integration`。该系列覆盖 goal slice 注册、角色化诊断、多路径策略、学习证据 RAG、文档 rubric 批改工作台、教师备课增强包、Konling 多模式和智能助教演示包。MarkItDown 只作为 PDF/Office 到 Markdown 的转换适配器，不是评分系统或 PDF 阅读器。
+
+- 2026-06-04 综合仿真工作台成为互动学习核心入口之一。首页导航已把个人中心入口调整为互动学习；`/interactive-learning/control-workbench` 承载经典四视图、复合校正、预测控制、黑箱辨识和 Arena/workbench 路由。Arena 任务、控制工作台和虚拟仿真需要区分本地预演与官方评测。
+
+- 2026-06-04 Arena 已从单页竞技入口扩展为对象、任务、允许方法、评测协议、榜单规则和教师发布报告的统一评测层。正式排名只消费服务端官方评测写入的 `ArenaSubmission`；`LearningFact` 中的 Arena 上下文只能作为辅助证据。
+
+- 2026-06-04 数据治理当前重点已从简单事实回放转向 evidence source coverage、session data quality、学生证据特征缓存、互动提交评分迁移和报告指标口径。后续处理画像、报告或学习路径时，先区分原始事件、学习事实、特征缓存、快照和页面聚合接口。
+
+- 2026-06-04 子代理工作流已经迁移到项目级 `.codex/agents/*.toml` 与 `.codex/agents/README.md`、`ROUTING.md`、`HARNESS.md`。代码类提交前若用户要求或任务有实际风险，应使用高推理审查代理；修复后复审，直到无重大问题。注意 `multi_agent_v1.spawn_agent` 不能同时传 `fork_context: true` 和 `agent_type`。
+
+- 2026-06-04 OpenWolf 知识文件在多工作树间共享，派生工作树只链接长期知识文件，运行态文件保留本地。不要把派生工作树的 `.wolf/` 整体软链接到主工作树。
 
 ## 当前需要优先记住的运行事实
 
-- 若 `startup` 看似成功但 `/login` 或教师页仍是 `502/500`，先查 `3001` 端口监听、`.logs/error.log` 和 `.logs/pids/frontend.pid`，不要先假设是业务代码回归
-- 若线上磁盘突然暴涨且伴随 Redis `OOM command not allowed` 或 worker 高频重启，优先检查 `act-obe-worker` 的 `ctr.log`、`snapshot-student` 队列历史和 scheduler 是否被回滚成高频 repeatable jobs，不要先把问题归因为数据库容量
-- 2026-03-19 对齐远端后的数据库计数是 `User=291`、`LearningFact=0`、`StudentCompetencySnapshot=1829`、`StudentProfileSummary=100`、`ClassCompetencySnapshot=2`、`LearningEventBatch=25`
-- 在这份对齐库上执行 `npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts` 后，本地成功回放出 `55` 条 `LearningFact`，覆盖 `41` 个用户；再次 dry-run 为 `0`，说明回放脚本具备幂等性
-- 远端数据治理链路是“部分开展”：`LearningEventBatch` 与 `StudentCompetencySnapshot` 持续增长，但 `ClassCompetencySnapshot` 只有 `2` 条，未体现出按调度器预期持续产出
+- 本项目基线分支是 `integration`，发布分支是 `main`。只说“提交”默认本地提交；明确“推送”才推送；明确“当前所有变动”才按整棵当前工作树处理。
+- OpenSpec 校验默认使用 `rtk openspec validate --changes --strict`；仓库级 `--all` 可能混入旧债，不作为普通提案或实现的默认门槛。
+- 新建或修复派生工作树时，优先使用 `scripts/dev/sync-local-worktree-config.sh`，并开启依赖安装、Prisma generate、Git hooks、CodeGraph/CRG 和 OpenWolf 知识链接等显式选项。
+- Tailwind/Turbopack 扫描边界只应覆盖业务代码与必要 helper，不能把系统环境配置、缓存或工作树运行态带入扫描。
+- 处理控制校正 goal slice 时，目标归属必须来自显式 canonical scope，例如 `goalId`/`goal`/`targetGoal`/`learningGoal` 等于 `control-correction`，不要用中文“校正”或英文 `correction` 关键词猜测。
+- 控制校正路径中的 `terminal-validation` 必须是主路径终点，且资源类型必须是 simulation 或 arena_task，不能只按标签判断。
+- 处理 OpenSpec Buddy dependency 时，`link-issue-dependencies.sh` 参数必须按 `<blocked-issue> <blocking-issue>` 成对传入；一个 issue 有多个 blocker 时要重复 blocked issue。
+- 生产和本地运行问题优先查 `.logs/`、端口监听、`/api/readyz`、Prisma generate、worker/scheduler 日志和容器状态，不要只看配置文件。
 
 ## 初始化后的建议下一跳
 
-- 若任务是把 `course-content/resource-library/` 中的 `pptx`、思政案例、船舶案例或既有习题正式融入大纲、单元边界或课程制作，先读 [70-workflows/55-resource-library-integration.md](70-workflows/55-resource-library-integration.md)
-- 若任务是继续清洗 `iCourse163` 网页导出题库、重建 `objective-bank` 制品、补公式哈希映射或准备后续 DB 入库，先读 [70-workflows/60-icourse-objective-bank-flow.md](70-workflows/60-icourse-objective-bank-flow.md)
-- 若任务和根轨迹复绘、局部放大图、多联/四联图中的根轨迹子图一致性有关，先读 [70-workflows/65-root-locus-branch-match.md](70-workflows/65-root-locus-branch-match.md)
-- 若任务和 `slides-ref` 中的 `pptx` 课件提取、教学资源库构建、公式/图示恢复或 `TikZ` 重建有关，先读 [70-workflows/50-pptx-slides-ref-extraction.md](70-workflows/50-pptx-slides-ref-extraction.md)
-- 若任务是新课讲义、教案、知识卡或代码直出图的技术审查，先读 [70-workflows/35-lesson-content-review.md](70-workflows/35-lesson-content-review.md)
-- 若任务与 `1-1`、`1-2`、`1-3`、精品互动课注册、runtime 讲义/媒体导出或页面级 AI 上下文有关，先读 [40-domain/20-premium-courses.md](40-domain/20-premium-courses.md)
-- 若任务和学生个人中心、成长中枢、活动聚合或自适应习题接入有关，先读 [10-project/10-current-state.md](10-project/10-current-state.md)
-- 若任务和课堂事件、事实沉淀、会话同步有关，先读 [10-project/10-current-state.md](10-project/10-current-state.md)
-- 若任务和教师端班级页、班级学情、学生学情详情或 startup 失败有关，也先读 [10-project/10-current-state.md](10-project/10-current-state.md)
-- 若任务和管理员后台入口、统计或数据治理看板有关，也先读 [10-project/10-current-state.md](10-project/10-current-state.md)
-- 若任务和部署、数据库、worker、远端调查有关，先读 [30-operations/30-database-and-migrations.md](30-operations/30-database-and-migrations.md)
-- 若任务和 Redis OOM、worker 日志刷爆、Podman stopped container 占满磁盘有关，先读 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
-- 若任务和本地启动脚本、端口残留、伪成功启动有关，先读 [60-incidents/2026-03-19-startup-port-residue.md](60-incidents/2026-03-19-startup-port-residue.md)
-- 若任务要直接操作远端数据库同步，先读 [70-workflows/40-remote-db-sync.md](70-workflows/40-remote-db-sync.md)
+- 想快速了解项目现状：读 [10-project/10-current-state.md](10-project/10-current-state.md) 和 [docs/ProjectDescription.md](../ProjectDescription.md)。
+- 要做 OpenSpec 提案或实现：先查 `openspec/changes/`、`openspec/specs/` 和相关 GitHub issue；使用 `rtk openspec validate --changes --strict`。
+- 要继续控制校正学习路径：先查 `openspec/changes/*control-correction*`、`src/lib/adaptive-learning-path-planner.ts`、`src/lib/control-correction-resource-seed.ts` 和 `src/lib/data-governance/adaptive-learner-state-service.ts`。
+- 要继续智能助教：先读 `docs/proposals/2026-06-04-teaching-assistant.md` 与 `openspec/changes/*teaching-assistant*` 系列。
+- 要改 Arena 或控制工作台：先读 `src/features/arena/`、`src/features/control-workbench/`、`src/app/interactive-learning/control-workbench/page.tsx`。
+- 要排查部署、依赖、启动或工作树环境：先读 [30-operations/00-index.md](30-operations/00-index.md) 和 `scripts/dev/sync-local-worktree-config.sh`。

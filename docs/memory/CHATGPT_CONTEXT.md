@@ -1,7 +1,7 @@
 # ChatGPT Project Context Entry
 
 状态: active
-最后更新: 2026-05-12
+最后更新: 2026-06-04
 摘要: 面向网页版 ChatGPT GitHub 连接器的项目上下文入口，说明递归读取顺序、记忆契约和主干文件树。
 上游:
 - [00-index.md](00-index.md)
@@ -92,15 +92,23 @@ scripts/
     import_opencode_session_to_claude_mem.py
   db/
     backfill-class-session-attribution.ts
+    backfill-course-evidence-and-reporting.ts
     backfill-growth-evaluations.ts
     backfill-learning-facts-from-event-batches.ts
     backfill-learning-facts-from-interaction-logs.ts
     backfill-unit-4-1-growth-governance.ts
     backfill-unit-4-1-growth-options.ts
     backfill-unit-4-4-governance.ts
+    course-evidence-backfill-options.ts
+    materialize-historical-learning-facts.ts
     migrate-showcase-to-qihang.mjs
     migrate.sh
+    rebuild-student-evidence-feature-cache.ts
+    recompute-interactive-evidence-scoring-history.ts
+    recompute-interactive-evidence-scoring-options.ts
     repair-unit-4-4-incomplete-backfill.ts
+    report-evidence-source-coverage.ts
+    report-session-data-quality.ts
     schedule_calendar_sync.py
     seed-admin.mjs
     seed-all-knowledge.mjs
@@ -116,8 +124,12 @@ scripts/
     seed-missions.mjs
     seed-semester-usage-for-test-students.mjs
     seed-test-accounts.mjs
+    session-data-quality-report-options.ts
     sync-remote-db-to-local.sh
     update-fixed-account-passwords.mjs
+  dev/
+    openwolf-source-stamp.mjs
+    sync-local-worktree-config.sh
   figures/
     control_diagrams_matplotlib.py
     generate_control_plots.py
@@ -125,6 +137,8 @@ scripts/
     generate_schemdraw_diagrams.py
     generate_schemdraw_diagrams_v2.py
     generate_schemdraw_final.py
+  lib/
+    prisma-client.mjs
   migrations/
     001-seed-event-dictionary.ts
     002-migrate-to-learning-facts.ts
@@ -134,6 +148,8 @@ scripts/
     start.sh
     stop.sh
     sync-codex-mcp-env.py
+  security/
+    audit-governance.mjs
   wasm/
     build-control-engine.mjs
   workers/
@@ -141,13 +157,17 @@ scripts/
     scheduler.ts
     types.ts
   README.md
+  build-next-with-trace-check.mjs
   build.sh
+  prune-next-trace-boundary.mjs
   remote-deploy.sh
 src/
   app/
     (auth)/
       ...
     (main)/
+      ...
+    __tests__/
       ...
     actions/
       ...
@@ -164,6 +184,8 @@ src/
     classroom/
       ...
     course-runtime/
+      ...
+    data-center/
       ...
     ethics/
       ...
@@ -188,6 +210,8 @@ src/
     page-simple-working.tsx
     page.tsx
   features/
+    adaptive/
+      ...
     admin/
       ...
     ai/
@@ -196,7 +220,13 @@ src/
       ...
     assessment/
       ...
+    control-workbench/
+      ...
     dashboard/
+      ...
+    data-center/
+      ...
+    data-governance/
       ...
     ethics/
       ...
@@ -209,6 +239,8 @@ src/
     lesson-engine/
       ...
     mission/
+      ...
+    simulation-arena-workbench/
       ...
     teacher/
       ...
@@ -227,11 +259,15 @@ src/
       ...
     simulation/
       ...
+    adaptive-learning-optimization-experiments.ts
+    adaptive-learning-path-planner.ts
     admin.ts
     ai-branding.ts
     ai-client.ts
     ai-context-resolver.ts
+    ai-message-compat.ts
     ai-prompt-builder.ts
+    ai-stream-compat.ts
     ai-theme-styles.ts
     ai-tools.ts
     auth-redirect.ts
@@ -240,7 +276,9 @@ src/
     classroom-session-end.ts
     classroom-session-route.ts
     classroom-session-statistics.ts
+    commercial-ui-governance.ts
     competency.ts
+    control-correction-resource-seed.ts
     course-ai-contexts.ts
     course-runtime.ts
     cruise-ai-contexts.ts
@@ -250,28 +288,40 @@ src/
     handout-pdf-export.ts
     handout-pdf.ts
     homepage-theme.ts
+    interactive-lesson-identity.ts
     interactive-lesson-manifest.ts
+    interactive-response-contracts.ts
     interactive-session-access.ts
     join-code.ts
     knowledge-graph-source.ts
     knowledge-labels.ts
+    konling-agent-runtime.ts
+    konling-intervention-client-payload.ts
     lesson-artifact-names.ts
     lesson-plan-delete-policy.ts
     llm-client.ts
     lru-cache.ts
-    lsum-course.ts
+    manifest-objective-scoring.ts
     model-render-policy.ts
     nextjs-dynamic-error.ts
+    platform-role-navigation.ts
     platform-settings.ts
+    prisma-client.ts
     prisma.ts
     rate-limiter.ts
     redis-client.ts
+    resource-node-registry.ts
+    resource-registry-metadata.ts
     resource-registry.tsx
+    runtime-content-path.ts
     runtime-media.ts
+    server-spreadsheet.ts
     service-availability.ts
     session-lesson-snapshot.ts
     simulation-ai-contexts.ts
     system-resource-ids.ts
+    teacher-resource-node-data.ts
+    teacher-resource-node-management.ts
     theme-config.ts
     unit-2-1-ai-contexts.ts
     unit-2-1-course.ts
