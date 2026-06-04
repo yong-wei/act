@@ -11,6 +11,7 @@ export interface ControlCorrectionPathRoundDb {
   learningPath: {
     upsert: (args: any) => Promise<any>;
     findFirst: (args: any) => Promise<any | null>;
+    update?: (args: any) => Promise<any>;
   };
   learningPathExecution: AppendOnlyDelegate;
   learningPathDeviation: AppendOnlyDelegate;
@@ -190,6 +191,51 @@ export async function recordPathNodeExecution(
   });
 }
 
+export async function updateControlCorrectionPathRoundAfterExecution(
+  db: ControlCorrectionPathRoundDb,
+  path: any,
+  input: PathNodeExecutionInput,
+): Promise<any | null> {
+  if (!db.learningPath.update) return null;
+
+  const mainPathNodeIds = readMainPathNodeIds(path);
+  const currentIndex = mainPathNodeIds.indexOf(input.nodeId);
+  const nextNodeId = input.status === 'completed' && currentIndex >= 0
+    ? mainPathNodeIds[currentIndex + 1] ?? input.nodeId
+    : input.nodeId;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  if (input.status === 'completed') completedNodeIds.add(input.nodeId);
+  if (input.status === 'failed') failedNodeIds.add(input.nodeId);
+
+  const terminalValidation = updateTerminalValidationState(path.terminalValidation, input);
+  const terminalNodeId = typeof terminalValidation.nodeId === 'string' ? terminalValidation.nodeId : null;
+  const isTerminalCompleted = input.status === 'completed' && terminalNodeId === input.nodeId;
+
+  return db.learningPath.update({
+    where: { id: input.pathId },
+    data: {
+      currentNodeId: nextNodeId,
+      pathStatus: isTerminalCompleted ? 'completed' : path.pathStatus ?? 'active',
+      terminalValidation,
+      lastExecutionMetadata: {
+        ...metadata,
+        activeNodeId: nextNodeId,
+        completedNodeIds: [...completedNodeIds],
+        failedNodeIds: [...failedNodeIds],
+        lastExecution: {
+          nodeId: input.nodeId,
+          status: input.status,
+          completedAt: normalizeDate(input.completedAt)?.toISOString() ?? null,
+          failedAt: normalizeDate(input.failedAt)?.toISOString() ?? null,
+        },
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  });
+}
+
 export async function recordPathDeviation(
   db: ControlCorrectionPathRoundDb,
   input: PathDeviationInput,
@@ -356,4 +402,34 @@ function normalizeDate(value?: Date | string | null): Date | null {
 
 function isPrismaUniqueConstraintError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === 'P2002';
+}
+
+function readMainPathNodeIds(path: any): string[] {
+  const nodeIds = Array.isArray(path.nodeIds) ? path.nodeIds : [];
+  const payload = toRecord(path.pathPayload);
+  const payloadNodeIds = Array.isArray(payload.mainPathNodeIds) ? payload.mainPathNodeIds : [];
+  return [...new Set([...nodeIds, ...payloadNodeIds].filter((value): value is string => typeof value === 'string'))];
+}
+
+function updateTerminalValidationState(value: unknown, input: PathNodeExecutionInput): Record<string, unknown> {
+  const terminalValidation = toRecord(value);
+  if (terminalValidation.nodeId !== input.nodeId) return terminalValidation;
+  return {
+    ...terminalValidation,
+    state: input.status === 'completed'
+      ? 'completed'
+      : input.status === 'failed'
+        ? 'failed'
+        : terminalValidation.state ?? 'pending',
+  };
+}
+
+function toRecord(value: unknown): Record<string, any> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, any>
+    : {};
+}
+
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }

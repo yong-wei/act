@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { recordPathNodeExecution } from '@/lib/control-correction-path-rounds';
+import {
+  recordPathNodeExecution,
+  updateControlCorrectionPathRoundAfterExecution,
+} from '@/lib/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
   getLearningPathRequester,
   readPathForAccess,
+  readPathNodeIds,
 } from '../../route-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +29,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
-    const nodeIds = readPathNodeIds(path);
+    const nodeIds = new Set(readPathNodeIds(path));
     if (
       typeof body.nodeId !== 'string' ||
       !nodeIds.has(body.nodeId) ||
@@ -51,6 +55,21 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       arenaRef: body.arenaRef ?? null,
       idempotencyKey: body.idempotencyKey ?? null,
     });
+    await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
+      pathId: params.id,
+      userId: path.userId,
+      nodeId: body.nodeId,
+      resourceType: body.resourceType,
+      status: body.status,
+      startedAt: body.startedAt ?? null,
+      completedAt: body.completedAt ?? null,
+      failedAt: body.failedAt ?? null,
+      evidenceRefs: body.evidenceRefs ?? [],
+      liftMetadata: body.liftMetadata ?? {},
+      simulationRef: body.simulationRef ?? null,
+      arenaRef: body.arenaRef ?? null,
+      idempotencyKey: body.idempotencyKey ?? null,
+    });
 
     return NextResponse.json({ execution });
   } catch (error) {
@@ -58,13 +77,4 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }
-}
-
-function readPathNodeIds(path: { nodeIds?: unknown; pathPayload?: unknown }): Set<string> {
-  const fromNodeIds = Array.isArray(path.nodeIds) ? path.nodeIds : [];
-  const payload = path.pathPayload && typeof path.pathPayload === 'object'
-    ? path.pathPayload as { mainPathNodeIds?: unknown }
-    : {};
-  const fromPayload = Array.isArray(payload.mainPathNodeIds) ? payload.mainPathNodeIds : [];
-  return new Set([...fromNodeIds, ...fromPayload].filter((value): value is string => typeof value === 'string'));
 }

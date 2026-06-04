@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     learningPath: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     studentProfile: {
       findUnique: vi.fn(),
@@ -68,11 +69,15 @@ describe('learning path round API routes', () => {
       classId: 'class-1',
       goalId: 'control-correction',
       pathStatus: 'active',
+      currentNodeId: 'node-1',
       nodeIds: ['node-1'],
       pathPayload: { mainPathNodeIds: ['node-1'] },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
     });
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.learningPath.update.mockResolvedValue({ id: 'path-1' });
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
       id: 'path-1',
@@ -270,6 +275,14 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       idempotencyKey: 'exec-key',
     }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        currentNodeId: 'node-1',
+        pathStatus: 'completed',
+        terminalValidation: expect.objectContaining({ state: 'completed' }),
+      }),
+    }));
     expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       idempotencyKey: 'dev-key',
     }));
@@ -285,6 +298,18 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(400);
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed deviation writes before persistence', async () => {
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'manual_jump',
+      priorNodeId: 'outside-node',
+      evidenceConfidence: 'certain',
+      idempotencyKey: 'dev-key',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
   });
 
   it('rejects read and writes when the feature flag is disabled', async () => {

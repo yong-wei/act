@@ -157,6 +157,15 @@ export function assertCanWriteStudentPath(
   return NextResponse.json({ error: '无权写入该学习路径' }, { status: 403 });
 }
 
+export function readPathNodeIds(path: { nodeIds?: unknown; pathPayload?: unknown }): string[] {
+  const fromNodeIds = Array.isArray(path.nodeIds) ? path.nodeIds : [];
+  const payload = path.pathPayload && typeof path.pathPayload === 'object'
+    ? path.pathPayload as { mainPathNodeIds?: unknown }
+    : {};
+  const fromPayload = Array.isArray(payload.mainPathNodeIds) ? payload.mainPathNodeIds : [];
+  return [...new Set([...fromNodeIds, ...fromPayload].filter((value): value is string => typeof value === 'string'))];
+}
+
 function normalizeRole(role: string | undefined): LearningPathRequesterRole {
   if (role === 'ADMIN') return 'admin';
   if (role === 'TEACHER') return 'teacher';

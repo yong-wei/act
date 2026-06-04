@@ -7,9 +7,13 @@ import {
   assertCanWriteStudentPath,
   getLearningPathRequester,
   readPathForAccess,
+  readPathNodeIds,
 } from '../../route-helpers';
 
 export const dynamic = 'force-dynamic';
+
+const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'abandonment', 'help-request']);
+const EVIDENCE_CONFIDENCE = new Set(['low', 'medium', 'high', 'unknown']);
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -22,6 +26,25 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
+    const nodeIds = new Set(readPathNodeIds(path));
+    if (
+      typeof body.deviationType !== 'string' ||
+      !DEVIATION_TYPES.has(body.deviationType) ||
+      (body.evidenceConfidence !== undefined && (
+        typeof body.evidenceConfidence !== 'string' ||
+        !EVIDENCE_CONFIDENCE.has(body.evidenceConfidence)
+      )) ||
+      (body.priorNodeId !== undefined && body.priorNodeId !== null && (
+        typeof body.priorNodeId !== 'string' ||
+        !nodeIds.has(body.priorNodeId)
+      )) ||
+      (body.targetNodeId !== undefined && body.targetNodeId !== null && (
+        typeof body.targetNodeId !== 'string' ||
+        !nodeIds.has(body.targetNodeId)
+      ))
+    ) {
+      return NextResponse.json({ error: '路径偏离事件不符合枚举或节点契约' }, { status: 400 });
+    }
     const deviation = await recordPathDeviation(prisma as any, {
       pathId: params.id,
       userId: path.userId,
