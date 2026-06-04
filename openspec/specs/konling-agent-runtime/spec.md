@@ -158,3 +158,16 @@ Konling SHALL provide control-correction coaching from server-owned path context
 - **WHEN** a student accepts, ignores, rejects, or partially accepts a Konling control-correction intervention
 - **THEN** the runtime SHALL persist the outcome with path id, node id, evidence references, privacy-safe summary, and confidence state
 - **AND** the outcome SHALL be available to governed evidence or feature-cache refresh.
+
+### Requirement: Konling corrects failed validation from governed evidence
+Konling SHALL use governed simulation and Arena validation summaries when coaching a student after failed control-correction terminal validation.
+
+#### Scenario: Validation failure triggers coaching
+- **WHEN** a control-correction path records failed or low-confidence terminal validation
+- **THEN** Konling SHALL be able to analyze the failure from authorized validation summaries, learner-state slice, path context, and instructional citations
+- **AND** it SHALL propose a fallback or correction step without exposing hidden Arena internals, raw traces, or private memory.
+
+#### Scenario: Evidence is insufficient for diagnosis
+- **WHEN** validation evidence is missing, stale, preview-only, or low-confidence
+- **THEN** Konling SHALL present the diagnosis as tentative
+- **AND** it SHALL recommend evidence-gathering or fallback actions instead of claiming verified causality.

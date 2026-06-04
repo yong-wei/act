@@ -6,6 +6,16 @@ import {
 
 export const CONTROL_CORRECTION_PATH_ROUND_GOAL_ID = 'control-correction';
 export const CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION = 'stage-1-rules-graph';
+export const CONTROL_CORRECTION_TERMINAL_VALIDATION_POLICY_VERSION = 'control-correction-terminal-validation.v1';
+
+const DEFAULT_TERMINAL_VALIDATION_POLICY = {
+  version: CONTROL_CORRECTION_TERMINAL_VALIDATION_POLICY_VERSION,
+  mustIncludeSimulation: true,
+  mustEndWithArena: true,
+  allowPreviewValidation: false,
+  minimumReplayConfidence: 0.7,
+  requireOfficialArenaEvidence: true,
+};
 
 export interface ControlCorrectionPathRoundDb {
   learningPath: {
@@ -277,13 +287,24 @@ export async function updateControlCorrectionPathRoundAfterExecution(
 
   const terminalValidation = updateTerminalValidationState(path.terminalValidation, input);
   const terminalNodeId = typeof terminalValidation.nodeId === 'string' ? terminalValidation.nodeId : null;
-  const isTerminalCompleted = input.status === 'completed' && terminalNodeId === input.nodeId;
+  const isTerminalExecution = terminalNodeId === input.nodeId;
+  const terminalState = typeof terminalValidation.state === 'string' ? terminalValidation.state : null;
+  const terminalFailureReasons = arrayOfStrings(terminalValidation.failureReasons);
+  const terminalLowConfidenceMarkers = arrayOfStrings(terminalValidation.lowConfidenceMarkers);
+  const terminalFallbackReasons = terminalFailureReasons.concat(terminalLowConfidenceMarkers);
+  const nextPathStatus = isTerminalExecution
+    ? terminalState === 'completed'
+      ? 'completed'
+      : terminalState === 'failed' || terminalState === 'low-confidence'
+        ? 'fallback'
+        : path.pathStatus ?? 'active'
+    : path.pathStatus ?? 'active';
 
   return db.learningPath.update({
     where: { id: input.pathId },
     data: {
       currentNodeId: nextNodeId,
-      pathStatus: isTerminalCompleted ? 'completed' : path.pathStatus ?? 'active',
+      pathStatus: nextPathStatus,
       terminalValidation,
       lastExecutionMetadata: {
         ...metadata,
@@ -296,6 +317,12 @@ export async function updateControlCorrectionPathRoundAfterExecution(
           completedAt: normalizeDate(input.completedAt)?.toISOString() ?? null,
           failedAt: normalizeDate(input.failedAt)?.toISOString() ?? null,
         },
+        ...(isTerminalExecution ? {
+          terminalValidationState: terminalState,
+          failureReasons: terminalFailureReasons,
+          lowConfidenceMarkers: terminalLowConfidenceMarkers,
+          fallbackReasons: terminalFallbackReasons,
+        } : {}),
         updatedAt: new Date().toISOString(),
       },
     },
@@ -507,14 +534,268 @@ function readMainPathNodeIds(path: any): string[] {
 function updateTerminalValidationState(value: unknown, input: PathNodeExecutionInput): Record<string, unknown> {
   const terminalValidation = toRecord(value);
   if (terminalValidation.nodeId !== input.nodeId) return terminalValidation;
+  const policy = readTerminalValidationPolicy(terminalValidation.policy);
+  const evidence = buildTerminalValidationEvidence(input);
+  const failureReasons: string[] = [];
+  const lowConfidenceMarkers: string[] = [];
+
+  if (input.status === 'started') {
+    return {
+      ...terminalValidation,
+      policy,
+      evidence,
+      state: 'in-progress',
+      fallbackRequired: false,
+      failureReasons,
+      lowConfidenceMarkers,
+    };
+  }
+
+  if (input.status === 'failed' || input.status === 'abandoned') {
+    failureReasons.push(input.resourceType === 'simulation' ? 'simulation-failed' : 'terminal-validation-failed');
+    return {
+      ...terminalValidation,
+      policy,
+      evidence,
+      state: 'failed',
+      fallbackRequired: true,
+      failureReasons,
+      lowConfidenceMarkers,
+    };
+  }
+
+  if (input.status !== 'completed') {
+    return {
+      ...terminalValidation,
+      policy,
+      evidence,
+      state: terminalValidation.state ?? 'pending',
+      fallbackRequired: false,
+      failureReasons,
+      lowConfidenceMarkers,
+    };
+  }
+
+  if (policy.mustIncludeSimulation && !evidence.simulation) {
+    lowConfidenceMarkers.push('simulation-evidence-missing');
+  }
+  if (policy.mustEndWithArena && input.resourceType !== 'arena_task') {
+    lowConfidenceMarkers.push('arena-terminal-evidence-missing');
+  }
+  if (input.resourceType === 'arena_task' && !evidence.arena) {
+    lowConfidenceMarkers.push('arena-evidence-missing');
+  }
+
+  if (evidence.simulation) {
+    collectReplayConfidenceMarkers('simulation', evidence.simulation.replayConfidence, policy.minimumReplayConfidence, lowConfidenceMarkers);
+    if (evidence.simulation.status === 'failed') {
+      failureReasons.push('simulation-failed');
+    }
+  }
+
+  if (evidence.arena) {
+    collectReplayConfidenceMarkers('arena', evidence.arena.replayConfidence, policy.minimumReplayConfidence, lowConfidenceMarkers);
+    const expectedArenaTaskId = readExpectedArenaTaskId(terminalValidation, input.nodeId);
+    if (expectedArenaTaskId && evidence.arena.taskId && evidence.arena.taskId !== expectedArenaTaskId) {
+      lowConfidenceMarkers.push('arena-task-mismatch');
+    }
+    if (evidence.arena.provenance === 'preview' && !policy.allowPreviewValidation) {
+      lowConfidenceMarkers.push('arena-preview-only');
+    }
+    if (policy.requireOfficialArenaEvidence && !evidence.arena.official) {
+      lowConfidenceMarkers.push('arena-official-evidence-missing');
+    }
+    if (evidence.arena.valid === false) {
+      failureReasons.push('arena-submission-invalid');
+    }
+  }
+
+  const state = failureReasons.length > 0
+    ? 'failed'
+    : lowConfidenceMarkers.length > 0
+      ? 'low-confidence'
+      : 'completed';
+
   return {
     ...terminalValidation,
-    state: input.status === 'completed'
-      ? 'completed'
-      : input.status === 'failed'
-        ? 'failed'
-        : terminalValidation.state ?? 'pending',
+    policy,
+    evidence,
+    state,
+    fallbackRequired: state === 'failed' || state === 'low-confidence',
+    failureReasons,
+    lowConfidenceMarkers,
   };
+}
+
+function readExpectedArenaTaskId(terminalValidation: Record<string, unknown>, nodeId: string): string | null {
+  const value = firstString(
+    terminalValidation.sourceRef,
+    terminalValidation.taskId,
+    terminalValidation.target,
+    typeof nodeId === 'string' && nodeId.startsWith('arena-task:') ? nodeId.slice('arena-task:'.length) : null,
+  );
+  return value ? normalizeValidationRef(value) : null;
+}
+
+function readTerminalValidationPolicy(value: unknown) {
+  const policy = toRecord(value);
+  return {
+    version: typeof policy.version === 'string' ? policy.version : DEFAULT_TERMINAL_VALIDATION_POLICY.version,
+    mustIncludeSimulation: typeof policy.mustIncludeSimulation === 'boolean'
+      ? policy.mustIncludeSimulation
+      : DEFAULT_TERMINAL_VALIDATION_POLICY.mustIncludeSimulation,
+    mustEndWithArena: typeof policy.mustEndWithArena === 'boolean'
+      ? policy.mustEndWithArena
+      : DEFAULT_TERMINAL_VALIDATION_POLICY.mustEndWithArena,
+    allowPreviewValidation: typeof policy.allowPreviewValidation === 'boolean'
+      ? policy.allowPreviewValidation
+      : DEFAULT_TERMINAL_VALIDATION_POLICY.allowPreviewValidation,
+    minimumReplayConfidence: typeof policy.minimumReplayConfidence === 'number' && Number.isFinite(policy.minimumReplayConfidence)
+      ? policy.minimumReplayConfidence
+      : DEFAULT_TERMINAL_VALIDATION_POLICY.minimumReplayConfidence,
+    requireOfficialArenaEvidence: typeof policy.requireOfficialArenaEvidence === 'boolean'
+      ? policy.requireOfficialArenaEvidence
+      : DEFAULT_TERMINAL_VALIDATION_POLICY.requireOfficialArenaEvidence,
+  };
+}
+
+function buildTerminalValidationEvidence(input: PathNodeExecutionInput) {
+  return compactObject({
+    simulation: sanitizeSimulationValidationEvidence(input.simulationRef ?? findEvidenceRef(input.evidenceRefs, ['SimulationRun', 'simulation-run'])),
+    arena: sanitizeArenaValidationEvidence(input.arenaRef ?? findEvidenceRef(input.evidenceRefs, [
+      'ArenaSubmission',
+      'arena-submission',
+      'ArenaVirtualSimulationRun',
+      'arena-preview',
+    ])),
+    citedRefs: sanitizeValidationRefs(input.evidenceRefs),
+  });
+}
+
+function sanitizeSimulationValidationEvidence(value: unknown): Record<string, unknown> | undefined {
+  const record = toRecord(value);
+  const id = firstString(record.id, record.ref, record.runId, record.sourceId);
+  if (!id) return undefined;
+  const provenance = readProvenance(record);
+  return compactObject({
+    kind: firstString(record.kind, record.sourceType) ?? 'SimulationRun',
+    id,
+    provenance,
+    official: provenance === 'official',
+    status: firstString(record.status, record.outcome),
+    replayConfidence: readConfidence(record.replayConfidence ?? record.confidence ?? toRecord(record.replay).confidence),
+    summaryMetrics: sanitizeMetricRecord(record.summaryMetrics ?? record.metrics ?? record.summary),
+  });
+}
+
+function sanitizeArenaValidationEvidence(value: unknown): Record<string, unknown> | undefined {
+  const record = toRecord(value);
+  const id = firstString(record.id, record.ref, record.submissionId, record.runId, record.sourceId);
+  if (!id) return undefined;
+  const provenance = readProvenance(record);
+  const evaluation = toRecord(record.evaluation);
+  return compactObject({
+    kind: firstString(record.kind, record.sourceType) ?? (provenance === 'preview' ? 'ArenaVirtualSimulationRun' : 'ArenaSubmission'),
+    id,
+    taskId: firstString(record.taskId, evaluation.taskId),
+    provenance,
+    official: provenance === 'official',
+    valid: readBoolean(record.valid ?? evaluation.valid),
+    score: readNumber(record.score ?? evaluation.score),
+    replayConfidence: readConfidence(record.replayConfidence ?? record.confidence ?? toRecord(record.replay).confidence),
+    summaryMetrics: sanitizeMetricRecord(record.summaryMetrics ?? record.metrics ?? evaluation.metrics),
+  });
+}
+
+function findEvidenceRef(refs: unknown[] | undefined, kinds: string[]): unknown | undefined {
+  if (!Array.isArray(refs)) return undefined;
+  const accepted = new Set(kinds);
+  return refs.find((item) => {
+    const record = toRecord(item);
+    return accepted.has(firstString(record.kind, record.sourceType) ?? '');
+  });
+}
+
+function sanitizeValidationRefs(refs: unknown[] | undefined): Array<Record<string, unknown>> {
+  if (!Array.isArray(refs)) return [];
+  const safeKinds = new Set(['LearningFact', 'SimulationRun', 'ArenaSubmission', 'ArenaVirtualSimulationRun']);
+  return refs
+    .map((item) => {
+      const record = toRecord(item);
+      const kind = firstString(record.kind, record.sourceType);
+      const id = firstString(record.id, record.ref, record.sourceId);
+      if (!kind || !id || !safeKinds.has(kind)) return null;
+      return compactObject({ kind, id });
+    })
+    .filter((item): item is Record<string, unknown> => Boolean(item));
+}
+
+function collectReplayConfidenceMarkers(
+  prefix: 'simulation' | 'arena',
+  value: unknown,
+  minimum: number,
+  markers: string[],
+): void {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    markers.push(`${prefix}-replay-confidence-missing`);
+    return;
+  }
+  if (value < minimum) {
+    markers.push(`${prefix}-replay-confidence-low`);
+  }
+}
+
+function readProvenance(record: Record<string, unknown>): 'official' | 'preview' | 'unknown' {
+  const raw = firstString(record.provenance, record.evaluationVisibility, record.visibility, record.sourceKind);
+  if (raw === 'official') return 'official';
+  if (raw === 'preview') return 'preview';
+  if (record.official === true) return 'official';
+  if (record.official === false || record.officialEligible === false) return 'preview';
+  return 'unknown';
+}
+
+function sanitizeMetricRecord(value: unknown): Record<string, number> | undefined {
+  const record = toRecord(value);
+  const entries = Object.entries(record).filter(([key, entry]) => {
+    const lower = key.toLowerCase();
+    return (
+      typeof entry === 'number' &&
+      Number.isFinite(entry) &&
+      !lower.includes('trace') &&
+      !lower.includes('hidden') &&
+      !lower.includes('raw')
+    );
+  });
+  return entries.length ? Object.fromEntries(entries) as Record<string, number> : undefined;
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  return values.find((value): value is string => typeof value === 'string' && value.length > 0);
+}
+
+function normalizeValidationRef(value: string): string {
+  const withoutPrefix = value.startsWith('simulation:')
+    ? value.slice('simulation:'.length)
+    : value.startsWith('arena-task:')
+      ? value.slice('arena-task:'.length)
+      : value;
+  const normalized = withoutPrefix.trim().replace(/\/+$/, '');
+  const index = normalized.lastIndexOf('/');
+  return index >= 0 ? normalized.slice(index + 1) : normalized;
+}
+
+function readNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readConfidence(value: unknown): number | undefined {
+  const number = readNumber(value);
+  if (number === undefined) return undefined;
+  return Math.max(0, Math.min(1, number));
+}
+
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
 }
 
 type PathEvidenceEventKind = 'execution' | 'deviation' | 'intervention';

@@ -10,6 +10,7 @@ import {
   recordPathNodeExecution,
   toControlCorrectionPathRoundView,
   toLegacyLearningPathSummary,
+  updateControlCorrectionPathRoundAfterExecution,
 } from '../control-correction-path-rounds';
 import type { AdaptiveLearningPathPlan } from '../adaptive-learning-path-planner';
 
@@ -448,5 +449,341 @@ describe('control-correction path rounds', () => {
     expect(view?.interventions[0]).toEqual(expect.objectContaining({ privacySafeSummary: '建议回看根轨迹规则。' }));
     expect(view?.interventions[0]).not.toHaveProperty('suggestedAction');
     expect(view?.interventions[0]).not.toHaveProperty('citedEvidence');
+  });
+
+  it('completes terminal validation only with governed simulation plus official Arena replay evidence', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      pathPayload: {
+        mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        target: '/arena/challenges/task-second-order-lead-pid',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      simulationRef: {
+        kind: 'SimulationRun',
+        id: 'sim-run-1',
+        status: 'completed',
+        provenance: 'official',
+        replayConfidence: 0.86,
+        summaryMetrics: { settlingTime: 3.1, overshoot: 0.08 },
+      },
+      arenaRef: {
+        kind: 'ArenaSubmission',
+        id: 'arena-submission-1',
+        taskId: 'task-second-order-lead-pid',
+        provenance: 'official',
+        valid: true,
+        score: 82,
+        replayConfidence: 0.91,
+        hiddenEvaluation: { privateScenario: 'do-not-leak' },
+      },
+      evidenceRefs: [
+        { kind: 'SimulationRun', id: 'sim-run-1' },
+        { kind: 'ArenaSubmission', id: 'arena-submission-1' },
+      ],
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'completed',
+        terminalValidation: expect.objectContaining({
+          state: 'completed',
+          policy: expect.objectContaining({
+            mustIncludeSimulation: true,
+            mustEndWithArena: true,
+            requireOfficialArenaEvidence: true,
+          }),
+          evidence: expect.objectContaining({
+            simulation: expect.objectContaining({
+              id: 'sim-run-1',
+              provenance: 'official',
+              replayConfidence: 0.86,
+            }),
+            arena: expect.objectContaining({
+              id: 'arena-submission-1',
+              provenance: 'official',
+              valid: true,
+              replayConfidence: 0.91,
+            }),
+          }),
+          lowConfidenceMarkers: [],
+          fallbackRequired: false,
+        }),
+      }),
+    }));
+    expect(JSON.stringify(db.learningPath.update.mock.calls)).not.toContain('privateScenario');
+    expect(JSON.stringify(db.learningPath.update.mock.calls)).not.toContain('hiddenEvaluation');
+    expect(JSON.stringify(db.learningPath.update.mock.calls)).not.toContain('trace');
+  });
+
+  it('falls back when repeated simulation failure reaches terminal validation', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:control-correction-step-response-lab',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      terminalValidation: {
+        nodeId: 'simulation:control-correction-step-response-lab',
+        resourceType: 'simulation',
+        state: 'pending',
+      },
+      lastExecutionMetadata: { failedNodeIds: ['simulation:control-correction-step-response-lab'] },
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'failed',
+      failedAt: '2026-06-04T10:00:00.000Z',
+      simulationRef: {
+        kind: 'SimulationRun',
+        id: 'sim-run-failed',
+        status: 'failed',
+        replayConfidence: 0.84,
+        failureCount: 2,
+        summaryMetrics: { overshoot: 0.42 },
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'failed',
+          fallbackRequired: true,
+          failureReasons: expect.arrayContaining(['simulation-failed']),
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          terminalValidationState: 'failed',
+          fallbackReasons: expect.arrayContaining(['simulation-failed']),
+        }),
+      }),
+    }));
+  });
+
+  it('marks preview-only Arena evidence as low confidence unless policy allows preview validation', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      simulationRef: { kind: 'SimulationRun', id: 'sim-run-1', status: 'completed', replayConfidence: 0.8 },
+      arenaRef: {
+        kind: 'ArenaVirtualSimulationRun',
+        id: 'preview-run-1',
+        provenance: 'preview',
+        valid: true,
+        score: 91,
+        replayConfidence: 0.88,
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          fallbackRequired: true,
+          lowConfidenceMarkers: expect.arrayContaining(['arena-preview-only']),
+          evidence: expect.objectContaining({
+            arena: expect.objectContaining({
+              provenance: 'preview',
+              official: false,
+            }),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('does not treat official eligibility as official Arena validation evidence', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      simulationRef: { kind: 'SimulationRun', id: 'sim-run-1', status: 'completed', replayConfidence: 0.8 },
+      arenaRef: {
+        kind: 'ArenaVirtualSimulationRun',
+        id: 'eligible-preview-run',
+        officialEligible: true,
+        valid: true,
+        replayConfidence: 0.88,
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          lowConfidenceMarkers: expect.arrayContaining(['arena-official-evidence-missing']),
+          evidence: expect.objectContaining({
+            arena: expect.objectContaining({
+              official: false,
+            }),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('does not complete terminal validation with official Arena evidence from another task', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        target: 'task-second-order-lead-pid',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      simulationRef: {
+        kind: 'SimulationRun',
+        id: 'sim-run-1',
+        status: 'completed',
+        replayConfidence: 0.8,
+      },
+      arenaRef: {
+        kind: 'ArenaSubmission',
+        id: 'arena-submission-other-task',
+        taskId: 'unrelated-task',
+        provenance: 'official',
+        valid: true,
+        replayConfidence: 0.9,
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          fallbackRequired: true,
+          lowConfidenceMarkers: expect.arrayContaining(['arena-task-mismatch']),
+        }),
+      }),
+    }));
+  });
+
+  it('marks missing replay confidence as low confidence without exposing hidden Arena internals', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+    db.learningPath.update = vi.fn(async ({ data }) => ({ id: 'path-1', ...data }));
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      simulationRef: { kind: 'SimulationRun', id: 'sim-run-1', status: 'completed' },
+      arenaRef: {
+        kind: 'ArenaSubmission',
+        id: 'arena-submission-1',
+        provenance: 'official',
+        valid: true,
+        score: 88,
+        hiddenTrace: [{ t: 0, y: 1 }],
+        hiddenScenarioOrder: ['private-scenario'],
+      },
+    });
+
+    const updateCall = JSON.stringify(db.learningPath.update.mock.calls);
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'fallback',
+        terminalValidation: expect.objectContaining({
+          state: 'low-confidence',
+          fallbackRequired: true,
+          lowConfidenceMarkers: expect.arrayContaining([
+            'simulation-replay-confidence-missing',
+            'arena-replay-confidence-missing',
+          ]),
+        }),
+      }),
+    }));
+    expect(updateCall).not.toContain('hiddenTrace');
+    expect(updateCall).not.toContain('hiddenScenarioOrder');
+    expect(updateCall).not.toContain('private-scenario');
   });
 });
