@@ -1,0 +1,167 @@
+{
+  "runId": "2026-06-04T13-58-56-606Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "capturedAt": "2026-06-04T13:59:39.354Z",
+  "captures": [
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/dashboard",
+      "theme": "light",
+      "width": 1440,
+      "role": "student",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/dashboard-auth-light-1440.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/dashboard",
+      "theme": "light",
+      "width": 320,
+      "role": "student",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/dashboard-auth-light-320.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/dashboard",
+      "theme": "dark",
+      "width": 1440,
+      "role": "student",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/dashboard-auth-dark-1440.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/dashboard",
+      "theme": "dark",
+      "width": 320,
+      "role": "student",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/dashboard-auth-dark-320.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/teacher",
+      "theme": "light",
+      "width": 1440,
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/teacher-auth-light-1440.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/teacher",
+      "theme": "light",
+      "width": 320,
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/teacher-auth-light-320.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/teacher",
+      "theme": "dark",
+      "width": 1440,
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/teacher-auth-dark-1440.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/teacher",
+      "theme": "dark",
+      "width": 320,
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/teacher-auth-dark-320.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/admin",
+      "theme": "light",
+      "width": 1440,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-auth-light-1440.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/admin",
+      "theme": "light",
+      "width": 320,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-auth-light-320.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/admin",
+      "theme": "dark",
+      "width": 1440,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-auth-dark-1440.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/admin",
+      "theme": "dark",
+      "width": 320,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-auth-dark-320.png"
+    },
+    {
+      "route": "/admin/data-governance",
+      "finalUrl": "http://127.0.0.1:3001/admin/data-governance",
+      "theme": "light",
+      "width": 1440,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-data-governance-auth-light-1440.png"
+    },
+    {
+      "route": "/admin/data-governance",
+      "finalUrl": "http://127.0.0.1:3001/admin/data-governance",
+      "theme": "light",
+      "width": 320,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-data-governance-auth-light-320.png"
+    },
+    {
+      "route": "/admin/data-governance",
+      "finalUrl": "http://127.0.0.1:3001/admin/data-governance",
+      "theme": "dark",
+      "width": 1440,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-data-governance-auth-dark-1440.png"
+    },
+    {
+      "route": "/admin/data-governance",
+      "finalUrl": "http://127.0.0.1:3001/admin/data-governance",
+      "theme": "dark",
+      "width": 320,
+      "role": "admin",
+      "authState": "authenticated",
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-data-governance-auth-dark-320.png"
+    }
+  ]
+}

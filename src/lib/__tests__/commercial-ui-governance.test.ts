@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
+  PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialNavigationCoverageInput,
@@ -29,16 +32,49 @@ const fullNavigationCoverage: CommercialNavigationCoverageInput = {
 function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
   return DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => ({
     href: route.href,
-    viewports: route.requiredWidths.map((width) => ({
-      width,
-      screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${width}.png`,
-      firstViewportUseful: true,
-      navigationReachable: true,
-      noTextOverlap: true,
-      stablePanelGeometry: true,
-      coherentBrandApplication: true,
-      taskControlsVisible: true,
-    })),
+    viewports: (PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.some((entry) => entry.href === route.href)
+      ? PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((entry) => entry.href === route.href).flatMap((premiumRoute) => (
+          premiumRoute.requiredThemes.flatMap((theme) => premiumRoute.requiredWidths.map((width) => ({
+            width,
+            theme,
+            role: premiumRoute.role,
+            requestedRoute: route.href,
+            finalUrl: premiumRoute.acceptedAuthState === 'unauth-redirect-fallback'
+              ? 'http://localhost:3000/login'
+              : `http://localhost:3000${route.href}`,
+            authState: premiumRoute.acceptedAuthState,
+            screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${premiumRoute.acceptedAuthState}-${theme}-${width}.png`,
+            firstViewportUseful: true,
+            navigationReachable: true,
+            noTextOverlap: true,
+            stablePanelGeometry: true,
+            coherentBrandApplication: true,
+            taskControlsVisible: true,
+            dockPlacementChecked: premiumRoute.floatingDock !== 'hidden',
+            noDockCollision: premiumRoute.floatingDock !== 'hidden',
+            dockFocusReachable: premiumRoute.floatingDock !== 'hidden',
+          })))
+        ))
+      : ['light', 'dark'].flatMap((theme) => route.requiredWidths.map((width) => {
+      return {
+        width,
+        theme: theme as 'light' | 'dark',
+        role: 'student' as const,
+        requestedRoute: route.href,
+        finalUrl: `http://localhost:3000${route.href}`,
+        authState: 'public' as const,
+        screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
+        firstViewportUseful: true,
+        navigationReachable: true,
+        noTextOverlap: true,
+        stablePanelGeometry: true,
+        coherentBrandApplication: true,
+        taskControlsVisible: true,
+        dockPlacementChecked: true,
+        noDockCollision: true,
+        dockFocusReachable: true,
+      };
+    }))),
   }));
 }
 
@@ -69,6 +105,133 @@ function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): Commer
 }
 
 describe('commercial UI governance', () => {
+  it('defines premium platform visual QA routes for light, dark, desktop, mobile, and dock placement', () => {
+    expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/',
+      '/login',
+      '/interactive-learning',
+      '/simulations',
+      '/interactive-learning/control-workbench',
+      '/dashboard',
+      '/dashboard',
+      '/teacher',
+      '/teacher',
+      '/admin',
+      '/admin',
+      '/admin/data-governance',
+      '/knowledge',
+    ]);
+    for (const route of PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX) {
+      expect(route.requiredThemes).toEqual(['light', 'dark']);
+      expect(route.requiredWidths).toEqual([1440, 320]);
+      expect(route.routeFile).toContain('src/app/');
+      expect(existsSync(join(process.cwd(), route.routeFile))).toBe(true);
+      expect(route.artifactDirectory).toBe('artifacts/commercial-ui/premium-foundation');
+    }
+    expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.floatingDock === 'required').map((route) => route.href)).toEqual([
+      '/interactive-learning/control-workbench',
+      '/dashboard',
+      '/teacher',
+      '/admin',
+      '/admin/data-governance',
+    ]);
+    expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.acceptedAuthState === 'unauth-redirect-fallback').map((route) => route.href)).toEqual([
+      '/dashboard',
+      '/teacher',
+      '/admin',
+    ]);
+    expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.acceptedAuthState === 'authenticated').map((route) => route.href)).toEqual([
+      '/dashboard',
+      '/teacher',
+      '/admin',
+      '/admin/data-governance',
+    ]);
+    expect(DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
+      expect.arrayContaining(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)),
+    );
+  });
+
+  it('fails when premium visual QA loses dark theme evidence', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.filter((viewport) => viewport.theme !== 'dark'),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-premium-theme-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['theme=dark']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when required floating dock evidence is missing', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => ({
+          ...viewport,
+          dockPlacementChecked: false,
+          noDockCollision: false,
+          dockFocusReachable: false,
+        })),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-premium-theme-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['dockPlacementChecked', 'noDockCollision', 'dockFocusReachable']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when protected premium route evidence uses the wrong auth outcome', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/admin') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => ({
+          ...viewport,
+          finalUrl: 'http://localhost:3000/admin',
+          authState: 'authenticated' as const,
+        })),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-premium-theme-evidence',
+          path: '/admin',
+          evidence: expect.arrayContaining(['finalUrl=/login', 'authState=unauth-redirect-fallback']),
+        }),
+      ]),
+    );
+  });
+
   it('reports allowlisted legacy debt in advisory mode without failing the gate', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       mode: 'advisory',

@@ -44,11 +44,32 @@ export type PlatformTokenCategory =
   | 'replay'
   | 'evaluation'
   | 'chart';
+export type PlatformThemeMode = 'light' | 'dark';
+export type PlatformPremiumVisualRole =
+  | 'matte-chart'
+  | 'engineering-paper'
+  | 'instrument-panel'
+  | 'evidence-state'
+  | 'night-navigation'
+  | 'low-light-instrument'
+  | 'trace-signal'
+  | 'warning-success-signal';
+export type PlatformFloatingActionDockControl = 'konling' | 'management' | 'settings';
+export type PlatformFloatingActionDockVisibility = 'role-aware' | 'feature-flagged' | 'workspace-hidden';
+export type PlatformFloatingActionDockResponsiveMode = 'expanded' | 'collapsed-icons' | 'hidden-by-workspace';
 
 export interface PlatformSemanticToken {
   name: string;
   category: PlatformTokenCategory;
   purpose: string;
+}
+
+export interface PlatformPremiumVisualThemeContract {
+  theme: PlatformThemeMode;
+  visualWorld: string;
+  requiredRoles: readonly PlatformPremiumVisualRole[];
+  requiredTokenCategories: readonly PlatformTokenCategory[];
+  prohibitedFallbacks: readonly string[];
 }
 
 export interface PlatformNavigationItem {
@@ -151,6 +172,28 @@ export interface PlatformLegacyShellRetirementContract {
   retirementRule: string;
 }
 
+export interface PlatformFloatingActionDockContract {
+  owner: 'platform-shell';
+  controls: readonly PlatformFloatingActionDockControl[];
+  visibility: PlatformFloatingActionDockVisibility;
+  bottomOffset: string;
+  rightOffset: string;
+  spacing: string;
+  minHitTargetPx: number;
+  zIndexToken: string;
+  responsiveModes: readonly PlatformFloatingActionDockResponsiveMode[];
+  collisionRules: readonly string[];
+  keyboardRules: readonly string[];
+}
+
+export interface PlatformFloatingActionDockControlContract {
+  control: PlatformFloatingActionDockControl;
+  roleScope: readonly PlatformNavigationAudience[];
+  purpose: string;
+  hiddenWhen: readonly string[];
+  payloadBoundary: string;
+}
+
 export interface PlatformCommercialWorkspaceShell {
   workspace: 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'data-center' | 'admin';
   derivedFrom: 'commercial-platform-shell';
@@ -185,6 +228,31 @@ export interface PlatformCommercialWorkspaceRoute {
 }
 
 export const PLATFORM_SHELL_ROLLBACK_FLAG = 'platform.unifiedShell';
+
+export const PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS: PlatformPremiumVisualThemeContract[] = [
+  {
+    theme: 'light',
+    visualWorld: 'matte chart paper with engineering instruments and governed evidence signals',
+    requiredRoles: ['matte-chart', 'engineering-paper', 'instrument-panel', 'evidence-state'],
+    requiredTokenCategories: ['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart'],
+    prohibitedFallbacks: [
+      'unrelated white-card administration styling',
+      'page-local pastel marketing palette',
+      'decorative gradients without token roles',
+    ],
+  },
+  {
+    theme: 'dark',
+    visualWorld: 'night-navigation control desk with low-light instruments and readable traces',
+    requiredRoles: ['night-navigation', 'low-light-instrument', 'trace-signal', 'warning-success-signal'],
+    requiredTokenCategories: ['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart'],
+    prohibitedFallbacks: [
+      'washed-out inverted light theme',
+      'low-contrast chart traces',
+      'hidden controls on dark surfaces',
+    ],
+  },
+] as const;
 
 const PLATFORM_STATUS_LABELS = {
   confidence: {
@@ -480,6 +548,52 @@ export const PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS: PlatformLegacyShellReti
     allowedDisposition: 'retire-or-adapt',
     preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
     retirementRule: 'Replace with a commercial shell when local return links and floating tool mode are preserved.',
+  },
+] as const;
+
+export const PLATFORM_FLOATING_ACTION_DOCK_CONTRACT: PlatformFloatingActionDockContract = {
+  owner: 'platform-shell',
+  controls: ['konling', 'management', 'settings'],
+  visibility: 'role-aware',
+  bottomOffset: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
+  rightOffset: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
+  spacing: '0.5rem',
+  minHitTargetPx: 44,
+  zIndexToken: 'platform-floating-dock',
+  responsiveModes: ['expanded', 'collapsed-icons', 'hidden-by-workspace'],
+  collisionRules: [
+    'dock owns bottom-right fixed controls on primary platform routes',
+    'page-local fixed buttons must register as dock controls or move into local tool navigation',
+    'mobile collapse must not cover primary submit, playback, or lesson navigation controls',
+  ],
+  keyboardRules: [
+    'controls remain reachable in document order after page-local toolbars',
+    'collapsed icon controls expose accessible labels',
+    'hidden controls do not leave orphan focus targets',
+  ],
+} as const;
+
+export const PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS: PlatformFloatingActionDockControlContract[] = [
+  {
+    control: 'konling',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Open governed assistant, coaching, or support affordances without page-local fixed buttons.',
+    hiddenWhen: ['feature flag disabled', 'workspace uses a modal assistant surface', 'role cannot access assistant context'],
+    payloadBoundary: 'Dock receives visibility and launcher state only; feature-owned assistant modules own private memory and prompts.',
+  },
+  {
+    control: 'management',
+    roleScope: ['teacher', 'admin'],
+    purpose: 'Expose teacher/admin management shortcuts without competing with local workspace command bars.',
+    hiddenWhen: ['role lacks management permissions', 'route frame declares management controls local-only'],
+    payloadBoundary: 'Dock does not fetch classroom, roster, governance, or audit payloads.',
+  },
+  {
+    control: 'settings',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Expose theme, density, account, and workspace preference entry points consistently.',
+    hiddenWhen: ['workspace takes over settings in an immersive full-screen mode'],
+    payloadBoundary: 'Dock receives account/action metadata only; profile and authorization data stay in auth and route layers.',
   },
 ] as const;
 

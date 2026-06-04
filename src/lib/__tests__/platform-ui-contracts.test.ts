@@ -8,7 +8,10 @@ import {
   PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX,
   PLATFORM_COMMERCIAL_WORKSPACE_SHELLS,
   PLATFORM_COMMERCIAL_WORKSPACE_ZONES,
+  PLATFORM_FLOATING_ACTION_DOCK_CONTRACT,
+  PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS,
   PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS,
+  PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS,
   PLATFORM_SEMANTIC_TOKENS,
   PLATFORM_SHELL_ADAPTERS,
   PLATFORM_SHELL_ROLLBACK_FLAG,
@@ -171,6 +174,47 @@ describe('platform UI contracts', () => {
         expect(source).not.toContain(`from "${forbiddenPrefix}`);
       }
     }
+  });
+
+  it('defines premium light and dark visual-world contracts', () => {
+    expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.map((contract) => contract.theme)).toEqual(['light', 'dark']);
+    expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.find((contract) => contract.theme === 'light')).toMatchObject({
+      requiredRoles: expect.arrayContaining(['matte-chart', 'engineering-paper', 'instrument-panel', 'evidence-state']),
+      requiredTokenCategories: expect.arrayContaining(['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart']),
+      prohibitedFallbacks: expect.arrayContaining(['unrelated white-card administration styling']),
+    });
+    expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.find((contract) => contract.theme === 'dark')).toMatchObject({
+      requiredRoles: expect.arrayContaining(['night-navigation', 'low-light-instrument', 'trace-signal', 'warning-success-signal']),
+      prohibitedFallbacks: expect.arrayContaining(['washed-out inverted light theme']),
+    });
+  });
+
+  it('defines a shared floating action dock for Konling and management controls', () => {
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTRACT).toMatchObject({
+      owner: 'platform-shell',
+      controls: ['konling', 'management', 'settings'],
+      visibility: 'role-aware',
+      minHitTargetPx: 44,
+      zIndexToken: 'platform-floating-dock',
+      responsiveModes: expect.arrayContaining(['expanded', 'collapsed-icons', 'hidden-by-workspace']),
+    });
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTRACT.collisionRules).toEqual(
+      expect.arrayContaining([
+        'dock owns bottom-right fixed controls on primary platform routes',
+        'page-local fixed buttons must register as dock controls or move into local tool navigation',
+      ]),
+    );
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.map((contract) => contract.control)).toEqual([
+      'konling',
+      'management',
+      'settings',
+    ]);
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'konling')?.payloadBoundary).toContain('private memory');
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'management')?.roleScope).toEqual([
+      'teacher',
+      'admin',
+    ]);
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.flatMap((contract) => contract.roleScope)).not.toContain('audit');
   });
 
   it('allows legacy shells to retire when a commercial shell preserves route and role semantics', () => {

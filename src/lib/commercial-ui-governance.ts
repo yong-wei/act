@@ -14,6 +14,7 @@ export type CommercialUiGovernanceRule =
   | 'module-chrome.private-chrome'
   | 'visual-acceptance.missing-route-evidence'
   | 'visual-acceptance.incomplete-evidence'
+  | 'visual-acceptance.incomplete-premium-theme-evidence'
   | 'accessibility-text-fit.missing-route-evidence'
   | 'accessibility-text-fit.incomplete-evidence'
   | 'allowlist.invalid-entry';
@@ -87,8 +88,28 @@ export interface CommercialVisualAcceptanceRoute {
   requiredWidths: readonly [1440, 320];
 }
 
+export type CommercialVisualQaTheme = 'light' | 'dark';
+export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
+export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
+
+export interface CommercialPremiumVisualQaRoute {
+  href: string;
+  routeFile: string;
+  requiredThemes: readonly CommercialVisualQaTheme[];
+  requiredWidths: readonly [1440, 320];
+  role: CommercialVisualQaRole;
+  floatingDock: 'required' | 'collapsed' | 'hidden';
+  acceptedAuthState: CommercialVisualQaAuthState;
+  artifactDirectory: string;
+}
+
 export interface CommercialViewportVisualEvidence {
   width: number;
+  theme?: CommercialVisualQaTheme;
+  role?: CommercialVisualQaRole;
+  requestedRoute?: string;
+  finalUrl?: string;
+  authState?: CommercialVisualQaAuthState;
   screenshot?: string;
   artifact?: string;
   firstViewportUseful?: boolean;
@@ -97,6 +118,9 @@ export interface CommercialViewportVisualEvidence {
   stablePanelGeometry?: boolean;
   coherentBrandApplication?: boolean;
   taskControlsVisible?: boolean;
+  dockPlacementChecked?: boolean;
+  noDockCollision?: boolean;
+  dockFocusReachable?: boolean;
 }
 
 export interface CommercialVisualAcceptanceEvidence {
@@ -141,19 +165,157 @@ export interface CommercialUiGovernanceResult {
 }
 
 export const DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES: CommercialVisualAcceptanceRoute[] = [
-  { href: '/login?callbackUrl=%2Fprofile', requiredWidths: [1440, 320] },
   { href: '/', requiredWidths: [1440, 320] },
+  { href: '/login', requiredWidths: [1440, 320] },
+  { href: '/login?callbackUrl=%2Fprofile', requiredWidths: [1440, 320] },
   { href: '/dashboard', requiredWidths: [1440, 320] },
   { href: '/data-center', requiredWidths: [1440, 320] },
   { href: '/interactive-learning', requiredWidths: [1440, 320] },
+  { href: '/simulations', requiredWidths: [1440, 320] },
   { href: '/arena', requiredWidths: [1440, 320] },
   { href: '/assessment/adaptive-practice', requiredWidths: [1440, 320] },
   { href: '/profile', requiredWidths: [1440, 320] },
   { href: '/interactive-learning/control-workbench', requiredWidths: [1440, 320] },
   { href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition', requiredWidths: [1440, 320] },
+  { href: '/teacher', requiredWidths: [1440, 320] },
   { href: '/teacher/classes/[classId]/analytics-v2', requiredWidths: [1440, 320] },
+  { href: '/admin', requiredWidths: [1440, 320] },
   { href: '/admin/data-governance', requiredWidths: [1440, 320] },
+  { href: '/knowledge', requiredWidths: [1440, 320] },
 ];
+
+export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaRoute[] = [
+  {
+    href: '/',
+    routeFile: 'src/app/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'guest',
+    floatingDock: 'collapsed',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/login',
+    routeFile: 'src/app/(auth)/login/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'guest',
+    floatingDock: 'hidden',
+    acceptedAuthState: 'auth-entry',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/interactive-learning',
+    routeFile: 'src/app/interactive-learning/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'collapsed',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/simulations',
+    routeFile: 'src/app/simulations/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'collapsed',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'required',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'hidden',
+    acceptedAuthState: 'unauth-redirect-fallback',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/teacher',
+    routeFile: 'src/app/teacher/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'teacher',
+    floatingDock: 'hidden',
+    acceptedAuthState: 'unauth-redirect-fallback',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/teacher',
+    routeFile: 'src/app/teacher/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'teacher',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/admin',
+    routeFile: 'src/app/admin/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'admin',
+    floatingDock: 'hidden',
+    acceptedAuthState: 'unauth-redirect-fallback',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/admin',
+    routeFile: 'src/app/admin/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'admin',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/admin/data-governance',
+    routeFile: 'src/app/admin/data-governance/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'admin',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/knowledge',
+    routeFile: 'src/app/knowledge/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'collapsed',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+] as const;
 
 const REQUIRED_COMMERCIAL_STUDENT_INTENTS = ['learn', 'practice', 'challenge', 'experiment', 'review', 'account-profile'];
 const REQUIRED_STUDENT_CORE_ENTRY_IDS = [
@@ -394,6 +556,62 @@ function buildVisualViolations(
   });
 }
 
+function findPremiumViewport(
+  viewports: readonly CommercialViewportVisualEvidence[],
+  width: number,
+  theme: CommercialVisualQaTheme,
+  route: CommercialPremiumVisualQaRoute,
+) {
+  const expectedFinalUrl = route.acceptedAuthState === 'unauth-redirect-fallback' ? '/login' : route.href;
+  return viewports.find((viewport) => (
+    viewport.width === width
+    && viewport.theme === theme
+    && viewport.authState === route.acceptedAuthState
+    && viewport.role === route.role
+    && viewport.finalUrl?.endsWith(expectedFinalUrl)
+  ));
+}
+
+function buildPremiumVisualQaViolations(
+  requiredRoutes: readonly CommercialPremiumVisualQaRoute[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  return requiredRoutes.flatMap((route) => {
+    const routeEvidence = visualEvidence.find((entry) => entry.href === route.href);
+    if (!routeEvidence) {
+      return [withCategory({
+        path: route.href,
+        rule: 'visual-acceptance.missing-route-evidence',
+        message: 'Premium platform route is missing structured visual QA evidence.',
+        evidence: route.requiredThemes.flatMap((theme) => route.requiredWidths.map((width) => `${theme}:${width}`)),
+      })];
+    }
+    return route.requiredThemes.flatMap((theme) => route.requiredWidths.flatMap((width) => {
+      const viewport = findPremiumViewport(routeEvidence.viewports, width, theme, route);
+      const expectedFinalUrl = route.acceptedAuthState === 'unauth-redirect-fallback' ? '/login' : route.href;
+      const dockFieldsRequired = route.floatingDock !== 'hidden';
+      const missing = [
+        !viewport?.screenshot && !viewport?.artifact ? 'screenshot or artifact' : '',
+        viewport?.requestedRoute !== route.href ? 'requestedRoute' : '',
+        !viewport?.finalUrl?.endsWith(expectedFinalUrl) ? `finalUrl=${expectedFinalUrl}` : '',
+        viewport?.authState !== route.acceptedAuthState ? `authState=${route.acceptedAuthState}` : '',
+        viewport?.role !== route.role ? `role=${route.role}` : '',
+        dockFieldsRequired && !viewport?.dockPlacementChecked ? 'dockPlacementChecked' : '',
+        dockFieldsRequired && !viewport?.noDockCollision ? 'noDockCollision' : '',
+        dockFieldsRequired && !viewport?.dockFocusReachable ? 'dockFocusReachable' : '',
+      ].filter(Boolean);
+      return missing.length > 0
+        ? [withCategory({
+            path: route.href,
+            rule: 'visual-acceptance.incomplete-premium-theme-evidence',
+            message: 'Premium platform route has incomplete theme, auth, or dock evidence.',
+            evidence: [`theme=${theme}`, `width=${width}`, ...missing],
+          })]
+        : [];
+    }));
+  });
+}
+
 function buildAccessibilityViolations(
   requiredRoutes: readonly CommercialVisualAcceptanceRoute[],
   accessibilityEvidence: readonly CommercialAccessibilityTextFitEvidence[],
@@ -440,6 +658,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildStatusViolations(input.statusInventory),
     ...buildNavigationViolations(input.navigationCoverage),
     ...buildVisualViolations(input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES, input.visualEvidence),
+    ...buildPremiumVisualQaViolations(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX, input.visualEvidence),
     ...buildAccessibilityViolations(
       input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
       input.accessibilityEvidence,
