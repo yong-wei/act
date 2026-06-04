@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { CompetencyVector } from '../competency-model';
 import {
+  ADAPTIVE_GOAL_SLICE_REGISTRY,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   CONTROL_CORRECTION_GOAL_DIMENSIONS,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
+  resolveAdaptiveGoalSliceDefinition,
   validateControlCorrectionGoalSliceContract,
 } from '../adaptive-learner-state-service';
 
@@ -261,6 +263,7 @@ function controlCorrectionFact(
   overrides: Record<string, unknown> = {},
 ) {
   return {
+    id: `fact-${factType}-${startedAt}`,
     factType,
     startedAt: new Date(startedAt),
     score,
@@ -318,6 +321,38 @@ function adaptiveLearnerStateFeature(overrides: Record<string, unknown> = {}) {
 }
 
 describe('adaptive learner state service', () => {
+  it('exposes registered goal-slice metadata for control-correction', () => {
+    const definition = resolveAdaptiveGoalSliceDefinition('control-correction');
+
+    expect(definition).toBe(ADAPTIVE_GOAL_SLICE_REGISTRY['control-correction']);
+    expect(definition).toMatchObject({
+      goalId: 'control-correction',
+      payloadVersion: 'control-correction-goal-slice.v1',
+      eligibility: {
+        path: 'declared',
+        report: 'declared',
+        konling: 'declared',
+        grading: 'not-declared',
+      },
+      confidencePolicy: 'dimension confidence is capped by source coverage and fallback markers',
+    });
+    expect(definition?.dimensions.map((dimension) => dimension.id)).toEqual(CONTROL_CORRECTION_GOAL_DIMENSIONS);
+    expect(definition?.dimensions[0]).toMatchObject({
+      valueRange: '0-100',
+      sourceFamilies: expect.arrayContaining(['StudentCompetencySnapshot', 'LearningFact']),
+      privacy: expect.objectContaining({
+        score: 'student-visible',
+        rawPayloads: 'system-internal',
+      }),
+      fallbackReason: 'missing-control-correction-governed-evidence',
+    });
+    expect(definition?.fieldFamilies.pathContext).toMatchObject({
+      valueRange: 'active path id/status/current node, terminal validation state, recent path references, no-active-path marker',
+      privacyScope: 'student-visible',
+      fallbackReason: 'path-planning-not-started',
+    });
+  });
+
   it('keeps learner state server-owned and ignores client hints as authority', async () => {
     const state = await readAdaptiveLearnerState(createDb(), {
       userId: 'student-1',
@@ -451,6 +486,14 @@ describe('adaptive learner state service', () => {
     expect(slice.dimensions.map((dimension) => dimension.id)).toEqual(
       CONTROL_CORRECTION_GOAL_DIMENSIONS,
     );
+    expect(slice.pathContext).toMatchObject({
+      activePathId: null,
+      activePathStatus: null,
+      currentNodeId: null,
+      terminalValidationState: null,
+      recentPathIds: ['path-1'],
+      noActivePath: true,
+    });
     expect(slice.dimensions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -485,6 +528,193 @@ describe('adaptive learner state service', () => {
     expect(JSON.stringify(slice)).not.toContain('rawAnswerBody');
     expect(JSON.stringify(slice)).not.toContain('hiddenArenaInternals');
     expect(JSON.stringify(slice)).not.toContain('rawSimulationTrace');
+  });
+
+  it('returns an explicit unsupported goal slice instead of silently falling back to general state', async () => {
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'future-goal',
+    });
+
+    expect(state.goalSlices?.unsupported).toEqual({
+      goalId: 'future-goal',
+      state: 'unsupported-goal',
+      fallbackReason: 'unregistered-adaptive-goal',
+      supportedGoalIds: ['control-correction'],
+    });
+    expect(state.goalSlices?.controlCorrection).toBeUndefined();
+    expect(state.primaryCompetencies.vector.controlModeling.score).toBe(78);
+  });
+
+  it('rejects undeclared control-correction dimensions before consumers can use them', async () => {
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+    const slice = state.goalSlices?.controlCorrection;
+    if (!slice) throw new Error('expected control-correction goal slice');
+
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      dimensions: [
+        ...slice.dimensions.slice(1),
+        {
+          ...slice.dimensions[0],
+          id: 'undeclared-dimension',
+        },
+      ],
+    })).toThrow('control-correction goal slice missing required dimensions');
+  });
+
+  it('preserves path context field families for registered control-correction slices', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async () => [
+          {
+            id: 'path-active',
+            status: 'active',
+            currentNodeId: 'node-current',
+            terminalValidationState: 'pending',
+            isBookmarked: true,
+            updatedAt: new Date('2026-05-19T00:00:00.000Z'),
+          },
+          {
+            id: 'path-completed',
+            status: 'completed',
+            terminalValidationState: 'passed',
+            updatedAt: new Date('2026-05-18T00:00:00.000Z'),
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.pathContext).toEqual({
+      activePathId: 'path-active',
+      activePathStatus: 'active',
+      currentNodeId: 'node-current',
+      terminalValidationState: 'pending',
+      recentPathIds: ['path-active', 'path-completed'],
+      noActivePath: false,
+    });
+
+    const noActivePathState = await readAdaptiveLearnerState(createDb({
+      learningPath: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(noActivePathState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: null,
+      activePathStatus: null,
+      recentPathIds: [],
+      noActivePath: true,
+    });
+
+    const legacyPathShapeState = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async () => [
+          {
+            id: 'legacy-path',
+            title: '历史推荐路径',
+            nodeIds: ['node-a', 'node-b'],
+            isBookmarked: true,
+            updatedAt: new Date('2026-05-19T00:00:00.000Z'),
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(legacyPathShapeState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: null,
+      activePathStatus: null,
+      recentPathIds: ['legacy-path'],
+      noActivePath: true,
+    });
+
+    const statusMatrixState = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async () => [
+          {
+            id: 'ready-plan',
+            status: 'ready',
+            executionStatus: { adopted: false },
+            updatedAt: new Date('2026-05-19T00:00:00.000Z'),
+          },
+          {
+            id: 'explicit-active-path',
+            isActive: true,
+            currentNodeId: 'node-active',
+            terminalValidationState: 'in-progress',
+            updatedAt: new Date('2026-05-18T00:00:00.000Z'),
+          },
+          {
+            id: 'in-progress-path',
+            status: 'in-progress',
+            currentNodeId: 'node-in-progress',
+            terminalValidationState: 'pending',
+            updatedAt: new Date('2026-05-17T00:00:00.000Z'),
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(statusMatrixState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: 'explicit-active-path',
+      activePathStatus: 'active',
+      currentNodeId: 'node-active',
+      terminalValidationState: 'in-progress',
+      recentPathIds: ['ready-plan', 'explicit-active-path', 'in-progress-path'],
+      noActivePath: false,
+    });
+
+    const inProgressPathState = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async () => [
+          {
+            id: 'in-progress-path',
+            status: 'in-progress',
+            currentNodeId: 'node-in-progress',
+            terminalValidationState: 'pending',
+            updatedAt: new Date('2026-05-19T00:00:00.000Z'),
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(inProgressPathState.goalSlices?.controlCorrection?.pathContext).toMatchObject({
+      activePathId: 'in-progress-path',
+      activePathStatus: 'in-progress',
+      currentNodeId: 'node-in-progress',
+      terminalValidationState: 'pending',
+      noActivePath: false,
+    });
   });
 
   it('queries goal-scoped learning facts separately for control-correction slices', async () => {
@@ -531,12 +761,24 @@ describe('adaptive learner state service', () => {
       goal: 'control-correction',
     });
 
-    expect(learningFactQueries).toHaveLength(2);
-    expect(learningFactQueries[1]).toMatchObject({
+    expect(learningFactQueries).toHaveLength(3);
+    expect(learningFactQueries[1]).toEqual({
+      where: {
+        userId: 'student-1',
+        OR: [
+          { contextJson: { path: ['goalId'], equals: 'control-correction' } },
+          { contextJson: { path: ['goal'], equals: 'control-correction' } },
+          { contextJson: { path: ['targetGoal'], equals: 'control-correction' } },
+          { contextJson: { path: ['learningGoal'], equals: 'control-correction' } },
+        ],
+      },
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+      take: 500,
+    });
+    expect(learningFactQueries[2]).toMatchObject({
       where: {
         userId: 'student-1',
         OR: expect.arrayContaining([
-          { contextJson: { path: ['goalId'], equals: 'control-correction' } },
           { courseId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
           { lessonId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
           { moduleId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
@@ -562,7 +804,7 @@ describe('adaptive learner state service', () => {
     });
   });
 
-  it('counts existing production-scoped assessment simulation reflection and AI facts', async () => {
+  it('counts registered legacy and explicitly goal-scoped assessment simulation reflection and AI facts', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       learningFact: {
         findMany: async () => [
@@ -580,7 +822,7 @@ describe('adaptive learner state service', () => {
             contextJson: { agentTool: { courseId: 'unit-3-6-zero-design-workshop-v1' } },
           }),
           controlCorrectionFact('prompt_design', '2026-05-15T00:00:00.000Z', 82, {
-            contextJson: { agentTool: { taskId: 'task-second-order-lead-pid' } },
+            contextJson: { goalId: 'control-correction', agentTool: { taskId: 'task-second-order-lead-pid' } },
           }),
         ],
       },
@@ -613,12 +855,159 @@ describe('adaptive learner state service', () => {
     });
   });
 
+  it('does not count facts outside registered control-correction legacy scopes', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          {
+            factType: 'reflection',
+            lessonId: 'unrelated-lesson',
+            startedAt: new Date('2026-05-17T00:00:00.000Z'),
+            score: 86,
+            contextJson: {},
+          },
+          {
+            factType: 'ai_intervention',
+            moduleId: 'unrelated-module',
+            startedAt: new Date('2026-05-16T00:00:00.000Z'),
+            score: 84,
+            contextJson: { agentTool: { taskId: 'unrelated-task' } },
+          },
+          {
+            factType: 'reflection',
+            lessonId: '3-6',
+            startedAt: new Date('2026-05-15T00:00:00.000Z'),
+            score: 92,
+            contextJson: { goalId: 'other-goal' },
+          },
+          {
+            factType: 'reflection',
+            lessonId: '3-6',
+            startedAt: new Date('2026-05-14T00:00:00.000Z'),
+            score: 94,
+            contextJson: { goalId: 'other-goal', targetGoal: 'control-correction' },
+          },
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 0,
+      sourceCoverage: expect.objectContaining({ reflection: 'missing' }),
+    });
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
+      evidenceCount: 0,
+      sourceCoverage: expect.objectContaining({ aiCollaboration: 'missing' }),
+    });
+  });
+
+  it('keeps explicit control-correction facts from being squeezed out by legacy white-list noise', async () => {
+    let explicitPage = 0;
+    let legacyPage = 0;
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async (args: any) => {
+          if (args.take === 100) {
+            return [];
+          }
+          const goals = (args.where?.OR ?? [])
+            .map((condition: any) => condition.contextJson?.path?.join('.'))
+            .filter(Boolean);
+          if (goals.includes('goalId') && goals.includes('learningGoal') && args.where.OR.length === 4) {
+            explicitPage += 1;
+            return [
+              controlCorrectionFact('reflection', '2026-04-01T00:00:00.000Z', 86, {
+                id: 'real-control-correction-reflection',
+                contextJson: { goalId: 'control-correction' },
+              }),
+            ];
+          }
+          legacyPage += 1;
+          return Array.from({ length: 500 }, (_, index) => ({
+            id: `other-goal-legacy-${index}`,
+            factType: 'reflection',
+            lessonId: '3-6',
+            startedAt: new Date(`2026-05-${String(20 - (index % 20)).padStart(2, '0')}T00:00:00.000Z`),
+            score: 90,
+            contextJson: { goalId: 'other-goal' },
+          }));
+        },
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ reflection: 'available' }),
+    });
+    expect(explicitPage).toBe(1);
+    expect(legacyPage).toBeGreaterThan(1);
+  });
+
+  it('keeps explicit control-correction facts from being squeezed out by conflicting explicit goal fields', async () => {
+    let explicitPage = 0;
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async (args: any) => {
+          if (args.take === 100) {
+            return [];
+          }
+          const goals = (args.where?.OR ?? [])
+            .map((condition: any) => condition.contextJson?.path?.join('.'))
+            .filter(Boolean);
+          if (goals.includes('goalId') && goals.includes('learningGoal') && args.where.OR.length === 4) {
+            explicitPage += 1;
+            if (explicitPage === 1) {
+              return Array.from({ length: 500 }, (_, index) => ({
+                id: `conflicting-explicit-${index}`,
+                factType: 'reflection',
+                startedAt: new Date(`2026-05-${String(20 - (index % 20)).padStart(2, '0')}T00:00:00.000Z`),
+                score: 90,
+                contextJson: { goalId: 'other-goal', targetGoal: 'control-correction' },
+              }));
+            }
+            return [
+              controlCorrectionFact('reflection', '2026-04-01T00:00:00.000Z', 86, {
+                id: 'real-explicit-control-correction-reflection',
+                contextJson: { goalId: 'control-correction' },
+              }),
+            ];
+          }
+          return [];
+        },
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ reflection: 'available' }),
+    });
+    expect(explicitPage).toBe(2);
+  });
+
   it('counts Arena-context design facts as preview Arena evidence for control-correction', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       learningFact: {
         findMany: async () => [
           controlCorrectionFact('design', '2026-05-19T00:00:00.000Z', 88, {
-            contextJson: { arena: { taskId: 'task-second-order-lead-pid' } },
+            contextJson: { goalId: 'control-correction', arena: { taskId: 'task-second-order-lead-pid' } },
           }),
         ],
       },

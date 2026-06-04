@@ -164,7 +164,7 @@ describe('adaptive learner-state API', () => {
     );
   });
 
-  it('ignores unsupported learner-state goal values instead of forwarding arbitrary strings', async () => {
+  it('forwards unsupported learner-state goal values so the service can return explicit unavailable state', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
@@ -177,7 +177,7 @@ describe('adaptive learner-state API', () => {
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',
-        goal: null,
+        goal: 'unknown-goal',
       }),
     );
   });

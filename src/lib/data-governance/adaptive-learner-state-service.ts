@@ -61,6 +61,9 @@ const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
 ] as const;
 const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
 const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARENA_TASK_ID_VALUES);
+const CONTROL_CORRECTION_FACT_TAKE = 500;
+const CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES = 10;
+const CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES = 10;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   'foundation',
   'developing',
@@ -105,6 +108,38 @@ export interface AdaptiveLearnerStateFieldContract {
   confidencePolicy: string;
   fallbackReason: string;
   privacyScope: AdaptiveLearnerStatePrivacyScope;
+}
+
+export interface AdaptiveGoalSliceDimensionDefinition {
+  id: ControlCorrectionDimensionId;
+  valueRange: string;
+  targetLevelMapping: Record<ControlCorrectionTargetLevel, string>;
+  sourceFamilies: string[];
+  evidenceThreshold: string;
+  freshnessPolicy: string;
+  confidencePolicy: string;
+  privacy: ControlCorrectionGoalSliceDimension['privacy'];
+  fallbackReason: string;
+}
+
+export interface AdaptiveGoalSliceDefinition {
+  goalId: AdaptiveLearnerStateGoalId;
+  displayLabel: string;
+  shortLabel: string;
+  payloadVersion: typeof CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION;
+  dimensions: AdaptiveGoalSliceDimensionDefinition[];
+  targetLevels: ControlCorrectionTargetLevel[];
+  evidenceSourceFamilies: string[];
+  privacyClasses: ControlCorrectionGoalSlice['privacyClasses'];
+  confidencePolicy: string;
+  fieldFamilies: {
+    pathContext: AdaptiveLearnerStateFieldContract;
+    report: AdaptiveLearnerStateFieldContract;
+    konling: AdaptiveLearnerStateFieldContract;
+    grading: AdaptiveLearnerStateFieldContract;
+  };
+  eligibility: Record<'path' | 'report' | 'konling' | 'grading', 'declared' | 'not-declared'>;
+  validationFixtures: string[];
 }
 
 export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerStateFieldFamily, AdaptiveLearnerStateFieldContract> = {
@@ -197,7 +232,7 @@ export interface AdaptiveLearnerStateInput {
   classId?: string | null;
   now?: Date;
   clientHints?: Record<string, unknown>;
-  goal?: AdaptiveLearnerStateGoalId | null;
+  goal?: string | null;
 }
 
 export interface ControlCorrectionGoalSliceDimension {
@@ -230,7 +265,24 @@ export interface ControlCorrectionGoalSlice {
   generatedAt: string;
   targetLevels: ControlCorrectionTargetLevel[];
   dimensions: ControlCorrectionGoalSliceDimension[];
+  pathContext: ControlCorrectionGoalSlicePathContext;
   privacyClasses: Record<'student' | 'teacher' | 'admin' | 'audit' | 'internal', AdaptiveLearnerStatePrivacyScope>;
+}
+
+export interface ControlCorrectionGoalSlicePathContext {
+  activePathId: string | null;
+  activePathStatus: string | null;
+  currentNodeId: string | null;
+  terminalValidationState: string | null;
+  recentPathIds: string[];
+  noActivePath: boolean;
+}
+
+export interface UnsupportedAdaptiveGoalSlice {
+  goalId: string;
+  state: 'unsupported-goal';
+  fallbackReason: 'unregistered-adaptive-goal';
+  supportedGoalIds: AdaptiveLearnerStateGoalId[];
 }
 
 export interface AdaptiveLearnerState {
@@ -326,6 +378,7 @@ export interface AdaptiveLearnerState {
   };
   goalSlices?: {
     controlCorrection?: ControlCorrectionGoalSlice;
+    unsupported?: UnsupportedAdaptiveGoalSlice;
   };
   fieldContracts: typeof ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS;
   missingEvidence: string[];
@@ -424,11 +477,82 @@ const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyCla
   internal: 'system-internal',
 };
 
+const CONTROL_CORRECTION_TARGET_LEVEL_MAPPING: Record<ControlCorrectionTargetLevel, string> = {
+  foundation: 'recognizes canonical control-correction concepts with guided evidence',
+  developing: 'applies corrective reasoning with partial multi-source evidence',
+  proficient: 'selects and validates corrective methods across governed evidence',
+  advanced: 'transfers corrective strategies across constrained tasks with robust validation',
+};
+
+const CONTROL_CORRECTION_DIMENSION_DEFINITIONS: AdaptiveGoalSliceDimensionDefinition[] =
+  CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => ({
+    id,
+    valueRange: '0-100',
+    targetLevelMapping: CONTROL_CORRECTION_TARGET_LEVEL_MAPPING,
+    sourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
+    evidenceThreshold: 'dimension declares sufficient, partial, stale, or missing governed evidence',
+    freshnessPolicy: 'current within governed learner-state evidence window, stale when sources age out, missing when no declared source is present',
+    confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
+    privacy: CONTROL_CORRECTION_PRIVACY,
+    fallbackReason: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.fallbackReason,
+  }));
+
+export const ADAPTIVE_GOAL_SLICE_REGISTRY: Record<AdaptiveLearnerStateGoalId, AdaptiveGoalSliceDefinition> = {
+  [CONTROL_CORRECTION_GOAL_ID]: {
+    goalId: CONTROL_CORRECTION_GOAL_ID,
+    displayLabel: 'Control Correction',
+    shortLabel: 'Control Correction',
+    payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
+    dimensions: CONTROL_CORRECTION_DIMENSION_DEFINITIONS,
+    targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
+    evidenceSourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
+    privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
+    confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
+    fieldFamilies: {
+      pathContext: {
+        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.pathContext,
+        valueRange: 'active path id/status/current node, terminal validation state, recent path references, no-active-path marker',
+      },
+      report: {
+        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+        valueRange: 'declared report-ready control-correction dimensions and metadata',
+      },
+      konling: {
+        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+        valueRange: 'declared Konling-readable control-correction dimensions and metadata',
+      },
+      grading: {
+        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+        valueRange: 'not declared for grading decisions',
+        fallbackReason: 'grading-eligibility-not-declared',
+      },
+    },
+    eligibility: {
+      path: 'declared',
+      report: 'declared',
+      konling: 'declared',
+      grading: 'not-declared',
+    },
+    validationFixtures: [
+      'registered-control-correction-parity',
+      'unknown-goal-unsupported',
+      'undeclared-dimension-fail-closed',
+      'path-context-preservation',
+    ],
+  },
+};
+
 const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
   firstStartedAt: null,
   lastStartedAt: null,
   daysCovered: 0,
 };
+
+export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefined): AdaptiveGoalSliceDefinition | null {
+  const normalizedGoal = normalizeRequestedGoal(goal);
+  if (!normalizedGoal) return null;
+  return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId] ?? null;
+}
 
 export function isAdaptiveLearnerStateServiceEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -441,6 +565,9 @@ export async function readAdaptiveLearnerState(
   input: AdaptiveLearnerStateInput,
 ): Promise<AdaptiveLearnerState> {
   const now = input.now ?? new Date();
+  const requestedGoal = normalizeRequestedGoal(input.goal);
+  const requestedGoalDefinition = resolveAdaptiveGoalSliceDefinition(requestedGoal);
+  const shouldBuildControlCorrectionGoalSlice = requestedGoalDefinition?.goalId === CONTROL_CORRECTION_GOAL_ID;
   const featureRead = await readFeatureCache(db, input.userId, now);
   const featureCache = asRecord(featureRead.cache);
   const featureSnapshot = getObject(getObject(getObject(featureCache.features).approvedAggregates).latestSnapshot);
@@ -488,14 +615,10 @@ export async function readAdaptiveLearnerState(
       orderBy: { updatedAt: 'desc' },
       take: 10,
     }) ?? Promise.resolve([]),
-    input.goal === CONTROL_CORRECTION_GOAL_ID
-      ? db.learningFact?.findMany?.({
-          where: buildControlCorrectionLearningFactWhere(input.userId),
-          orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-          take: 500,
-        }) ?? Promise.resolve([])
+    shouldBuildControlCorrectionGoalSlice
+      ? readControlCorrectionLearningFacts(db, input.userId)
       : Promise.resolve([]),
-    input.goal === CONTROL_CORRECTION_GOAL_ID
+    shouldBuildControlCorrectionGoalSlice
       ? db.arenaSubmission?.findMany?.({
           where: {
             userId: input.userId,
@@ -526,6 +649,19 @@ export async function readAdaptiveLearnerState(
     profileSummary,
     featureRead,
     masteryUpdates,
+  });
+  const goalSlices = buildAdaptiveGoalSlices({
+    requestedGoal,
+    requestedGoalDefinition,
+    shouldBuildControlCorrectionGoalSlice,
+    now,
+    vector,
+    evidence,
+    knowledgeMastery,
+    facts: controlCorrectionFacts,
+    arenaSubmissions: controlCorrectionArenaSubmissions,
+    prerequisiteFeatureGroups,
+    paths,
   });
 
   return {
@@ -563,21 +699,7 @@ export async function readAdaptiveLearnerState(
     },
     evidence,
     prerequisiteFeatureGroups,
-    ...(input.goal === CONTROL_CORRECTION_GOAL_ID
-      ? {
-          goalSlices: {
-            controlCorrection: buildControlCorrectionGoalSlice({
-              now,
-              vector,
-              evidence,
-              knowledgeMastery,
-              facts: controlCorrectionFacts,
-              arenaSubmissions: controlCorrectionArenaSubmissions,
-              prerequisiteFeatureGroups,
-            }),
-          },
-        }
-      : {}),
+    ...(goalSlices ? { goalSlices } : {}),
     fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
     missingEvidence,
   };
@@ -638,6 +760,52 @@ function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerStat
   ) as AdaptiveLearnerState['secondaryDimensions'];
 }
 
+function buildAdaptiveGoalSlices(input: {
+  requestedGoal: string | null;
+  requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
+  shouldBuildControlCorrectionGoalSlice: boolean;
+  now: Date;
+  vector: CompetencyVector;
+  evidence: AdaptiveLearnerState['evidence'];
+  knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
+  facts: Array<Record<string, unknown>>;
+  arenaSubmissions: Array<Record<string, unknown>>;
+  prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
+  paths: Array<Record<string, unknown>>;
+}): AdaptiveLearnerState['goalSlices'] | undefined {
+  if (!input.requestedGoal) {
+    return undefined;
+  }
+
+  if (!input.requestedGoalDefinition) {
+    return {
+      unsupported: {
+        goalId: input.requestedGoal,
+        state: 'unsupported-goal',
+        fallbackReason: 'unregistered-adaptive-goal',
+        supportedGoalIds: Object.keys(ADAPTIVE_GOAL_SLICE_REGISTRY) as AdaptiveLearnerStateGoalId[],
+      },
+    };
+  }
+
+  if (input.shouldBuildControlCorrectionGoalSlice) {
+    return {
+      controlCorrection: buildControlCorrectionGoalSlice({
+        now: input.now,
+        vector: input.vector,
+        evidence: input.evidence,
+        knowledgeMastery: input.knowledgeMastery,
+        facts: input.facts,
+        arenaSubmissions: input.arenaSubmissions,
+        prerequisiteFeatureGroups: input.prerequisiteFeatureGroups,
+        paths: input.paths,
+      }),
+    };
+  }
+
+  return undefined;
+}
+
 function buildControlCorrectionGoalSlice(input: {
   now: Date;
   vector: CompetencyVector;
@@ -646,6 +814,7 @@ function buildControlCorrectionGoalSlice(input: {
   facts: Array<Record<string, unknown>>;
   arenaSubmissions: Array<Record<string, unknown>>;
   prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
+  paths: Array<Record<string, unknown>>;
 }): ControlCorrectionGoalSlice {
   const simulationArena = getObject(input.prerequisiteFeatureGroups.simulationArena);
   const sourceEvidence = buildControlCorrectionSourceEvidence({
@@ -694,6 +863,7 @@ function buildControlCorrectionGoalSlice(input: {
     generatedAt: input.now.toISOString(),
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
     dimensions,
+    pathContext: buildControlCorrectionPathContext(input.paths),
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
   };
   validateControlCorrectionGoalSliceContract(slice);
@@ -724,6 +894,14 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   }
   if (dimensions.length !== CONTROL_CORRECTION_GOAL_DIMENSIONS.length) {
     throw new Error('control-correction goal slice missing required dimensions');
+  }
+  const pathContext = getObject(slice.pathContext);
+  if (
+    typeof pathContext.noActivePath !== 'boolean' ||
+    !Array.isArray(pathContext.recentPathIds) ||
+    pathContext.recentPathIds.some((id) => typeof id !== 'string')
+  ) {
+    throw new Error('control-correction goal slice missing path context metadata');
   }
   const dimensionIds = dimensions.map((dimension) => readString(getObject(dimension).id)).filter((id): id is string => Boolean(id));
   if (!sameStringSet(dimensionIds, CONTROL_CORRECTION_GOAL_DIMENSIONS)) {
@@ -833,6 +1011,27 @@ function buildPathContext(paths: Array<Record<string, unknown>>): AdaptiveLearne
     bookmarkedPathCount: paths.filter((path) => path.isBookmarked === true).length,
     recentPathIds: paths.map((path) => readString(path.id)).filter((id): id is string => Boolean(id)),
     statusMarkers: paths.length > 0 ? ['available'] : ['missing'],
+  };
+}
+
+function buildControlCorrectionPathContext(paths: Array<Record<string, unknown>>): ControlCorrectionGoalSlicePathContext {
+  const recentPathIds = paths
+    .map((path) => readString(path.id))
+    .filter((id): id is string => Boolean(id));
+  const activePath = paths.find((path) => {
+    if (path.isActive === true) return true;
+    const status = readString(path.status);
+    return status === 'active' || status === 'in-progress';
+  }) ?? null;
+
+  return {
+    activePathId: readString(activePath?.id),
+    activePathStatus: readString(activePath?.status) ?? (activePath ? 'active' : null),
+    currentNodeId: readString(activePath?.currentNodeId) ?? readString(getObject(activePath?.currentNode).id),
+    terminalValidationState: readString(activePath?.terminalValidationState)
+      ?? readString(getObject(activePath?.terminalValidation).state),
+    recentPathIds,
+    noActivePath: activePath === null,
   };
 }
 
@@ -964,6 +1163,73 @@ function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>):
 	  return { counts };
 	}
 
+async function readControlCorrectionLearningFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+): Promise<Array<Record<string, unknown>>> {
+  if (!db.learningFact?.findMany) {
+    return [];
+  }
+
+  const [explicitFacts, legacyFacts] = await Promise.all([
+    readPagedControlCorrectionLearningFacts({
+      findMany: db.learningFact.findMany,
+      where: buildExplicitControlCorrectionLearningFactWhere(userId),
+      filter: isControlCorrectionFact,
+      maxPages: CONTROL_CORRECTION_EXPLICIT_FACT_SCAN_MAX_PAGES,
+    }),
+    readLegacyControlCorrectionLearningFacts(db, userId),
+  ]);
+
+  return uniqueFactsById([...explicitFacts, ...legacyFacts]);
+}
+
+async function readLegacyControlCorrectionLearningFacts(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const findMany = db.learningFact?.findMany;
+  if (!findMany) {
+    return [];
+  }
+
+  return readPagedControlCorrectionLearningFacts({
+    findMany,
+    where: buildLegacyControlCorrectionLearningFactWhere(userId),
+    filter: (fact) => !hasExplicitAdaptiveGoal(fact) && isLegacyControlCorrectionFact(fact, getObject(fact.contextJson)),
+    maxPages: CONTROL_CORRECTION_LEGACY_FACT_SCAN_MAX_PAGES,
+  });
+}
+
+async function readPagedControlCorrectionLearningFacts(input: {
+  findMany: (args: any) => Promise<Array<Record<string, unknown>>>;
+  where: Record<string, unknown>;
+  filter: (fact: Record<string, unknown>) => boolean;
+  maxPages: number;
+}): Promise<Array<Record<string, unknown>>> {
+  const facts: Array<Record<string, unknown>> = [];
+  let cursorId: string | null = null;
+  for (let page = 0; page < input.maxPages; page += 1) {
+    const rows = await input.findMany({
+      where: input.where,
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+      take: CONTROL_CORRECTION_FACT_TAKE,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+    });
+    facts.push(...rows.filter(input.filter));
+    if (facts.length >= CONTROL_CORRECTION_FACT_TAKE || rows.length < CONTROL_CORRECTION_FACT_TAKE) {
+      break;
+    }
+    const lastId = readString(rows.at(-1)?.id);
+    if (!lastId) {
+      break;
+    }
+    cursorId = lastId;
+  }
+
+  return facts.slice(0, CONTROL_CORRECTION_FACT_TAKE);
+}
+
 function isControlCorrectionArenaFact(fact: Record<string, unknown>): boolean {
   const context = getObject(fact.contextJson);
   const taskId = readString(getObject(context.arena).taskId);
@@ -972,14 +1238,31 @@ function isControlCorrectionArenaFact(fact: Record<string, unknown>): boolean {
 
 function isControlCorrectionFact(fact: Record<string, unknown>): boolean {
   const context = getObject(fact.contextJson);
-  const explicitGoal = [
+  const explicitGoalValues = explicitAdaptiveGoalValues(fact);
+  if (explicitGoalValues.length > 0) {
+    return explicitGoalValues.every((value) => value === CONTROL_CORRECTION_GOAL_ID);
+  }
+  return isLegacyControlCorrectionFact(fact, context);
+}
+
+function hasExplicitAdaptiveGoal(fact: Record<string, unknown>): boolean {
+  return explicitAdaptiveGoalValues(fact).length > 0;
+}
+
+function explicitAdaptiveGoalValues(fact: Record<string, unknown>): string[] {
+  const context = getObject(fact.contextJson);
+  return [
     readString(context.goalId),
     readString(context.goal),
     readString(context.targetGoal),
     readString(context.learningGoal),
-  ].some((value) => value === CONTROL_CORRECTION_GOAL_ID);
-  if (explicitGoal) return true;
+  ].filter((value): value is string => value !== null);
+}
 
+function isLegacyControlCorrectionFact(
+  fact: Record<string, unknown>,
+  context: Record<string, unknown>,
+): boolean {
   return [
     readString(fact.courseId),
     readString(fact.lessonId),
@@ -1004,7 +1287,7 @@ function isControlCorrectionFact(fact: Record<string, unknown>): boolean {
     ].some((value) => value !== null && CONTROL_CORRECTION_ARENA_TASK_IDS.has(value));
 }
 
-function buildControlCorrectionLearningFactWhere(userId: string) {
+function buildExplicitControlCorrectionLearningFactWhere(userId: string) {
   return {
     userId,
     OR: [
@@ -1012,6 +1295,14 @@ function buildControlCorrectionLearningFactWhere(userId: string) {
       { contextJson: { path: ['goal'], equals: CONTROL_CORRECTION_GOAL_ID } },
       { contextJson: { path: ['targetGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
       { contextJson: { path: ['learningGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
+    ],
+  };
+}
+
+function buildLegacyControlCorrectionLearningFactWhere(userId: string) {
+  return {
+    userId,
+    OR: [
       { courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
       { lessonId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
       { moduleId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
@@ -1051,6 +1342,18 @@ function controlCorrectionJsonPathWhere(
   return paths.flatMap((path) => values.map((value) => ({
     contextJson: { path, equals: value },
   })));
+}
+
+function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const seen = new Set<string>();
+  const result: Array<Record<string, unknown>> = [];
+  for (const fact of facts) {
+    const id = readString(fact.id);
+    if (id && seen.has(id)) continue;
+    if (id) seen.add(id);
+    result.push(fact);
+  }
+  return result;
 }
 
 function countOfficialControlCorrectionArenaSubmissions(submissions: Array<Record<string, unknown>>): number {
@@ -1366,6 +1669,10 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeRequestedGoal(value: string | null | undefined): string | null {
+  return readString(value);
 }
 
 function arrayOfStrings(value: unknown): string[] {
