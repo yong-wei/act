@@ -141,6 +141,15 @@ describe('learning evidence RAG corpus contract', () => {
     }, { tags: ['terminal-validation'] });
     expect(otherStudentResults).toEqual([]);
 
+    const publicCourseForStudent = retrieveLearningEvidenceCorpus(corpus, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['control-correction'] });
+    expect(publicCourseForStudent.map((item) => item.id)).toContain('chunk-course-1');
+
     const forgedTargetResults = retrieveLearningEvidenceCorpus(corpus, {
       role: 'student',
       userId: 'student-2',
@@ -150,6 +159,59 @@ describe('learning evidence RAG corpus contract', () => {
       includePrivateText: true,
     }, { tags: ['terminal-validation'] });
     expect(forgedTargetResults).toEqual([]);
+  });
+
+  it('constrains privileged retrieval to the requested learner owner when targetUserId is present', () => {
+    const otherLearnerChunk = chunk({
+      id: 'chunk-student-2-path',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'path-2', ownerUserId: 'student-2', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'terminalValidation' },
+      display: { title: '另一个学生路径', href: null, capsule: '另一个学生终端验证。' },
+      content: { text: 'student 2 private path', redactedSummary: '另一个学生终端验证。', hash: 'hash-path-2' },
+      privacyClass: 'student-visible',
+      confidence: 'medium',
+      retrieval: { tags: ['terminal-validation'], goals: ['control-correction'], useCases: ['konling'] },
+    });
+    const teacher = retrieveLearningEvidenceCorpus([...corpus, otherLearnerChunk], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['terminal-validation'] });
+    expect(teacher.map((item) => item.id)).toEqual(['chunk-student-path']);
+
+    const service = retrieveLearningEvidenceCorpus([...corpus, otherLearnerChunk], {
+      role: 'service',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+      includePrivateText: true,
+    }, { tags: ['konling-memory', 'terminal-validation'] });
+    expect(service.map((item) => item.id)).toEqual(expect.arrayContaining(['chunk-service-memory', 'chunk-student-path']));
+    expect(service.map((item) => item.id)).not.toContain('chunk-student-2-path');
+
+    const ownerlessStudentVisible = chunk({
+      id: 'chunk-ownerless-path',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'ownerless-path', ownerUserId: null, classId: 'class-1', goalId: 'control-correction' },
+      privacyClass: 'student-visible',
+      retrieval: { tags: ['terminal-validation'], goals: ['control-correction'], useCases: ['konling'] },
+    });
+    const ownerlessResults = retrieveLearningEvidenceCorpus([...corpus, ownerlessStudentVisible], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['terminal-validation'] });
+    expect(ownerlessResults.map((item) => item.id)).not.toContain('chunk-ownerless-path');
   });
 
   it('enforces teacher, admin, and service visibility boundaries', () => {
@@ -308,6 +370,17 @@ describe('learning evidence RAG corpus contract', () => {
       { chunkId: 'chunk-teacher-report', useCase: 'teacher-report' },
     ]);
     expect(callerUseCaseMismatch.limitations).toContainEqual({ chunkId: 'chunk-teacher-report', reason: 'unsupported-source-type' });
+
+    const ownerMismatch = verifyLearningEvidenceCitations(corpus, {
+      role: 'service',
+      targetUserId: 'student-2',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [
+      { chunkId: 'chunk-student-path', useCase: 'konling' },
+    ]);
+    expect(ownerMismatch.limitations).toContainEqual({ chunkId: 'chunk-student-path', reason: 'inaccessible-source' });
   });
 
   it('covers diagnosis, grading, and Konling citation use cases with verified refs', () => {

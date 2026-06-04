@@ -257,6 +257,7 @@ export function verifyLearningEvidenceCitations(
 function matchesRetrievalScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {
   return matchesGoalScope(chunk, scope) &&
     matchesClassScope(chunk, scope) &&
+    matchesOwnerScope(chunk, scope) &&
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
     isChunkVisible(chunk, scope);
@@ -271,6 +272,14 @@ function matchesClassScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
   return !chunk.sourceRef.classId || scope.classIds.includes(chunk.sourceRef.classId);
 }
 
+function matchesOwnerScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {
+  const ownerUserId = chunk.sourceRef.ownerUserId;
+  if (!ownerUserId) return chunk.privacyClass !== 'student-visible';
+  if (scope.role === 'student') return Boolean(scope.userId && ownerUserId === scope.userId);
+  if (!scope.targetUserId) return true;
+  return ownerUserId === scope.targetUserId;
+}
+
 function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {
   if (chunk.privacyClass === 'service-only') return scope.role === 'service';
   if (chunk.privacyClass === 'admin-only') return scope.role === 'admin' || scope.role === 'service';
@@ -281,9 +290,7 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   if (chunk.privacyClass === 'student-visible') {
     if (scope.role === 'admin' || scope.role === 'service') return true;
     if (scope.role === 'teacher') return Boolean(chunk.sourceRef.classId && scope.classIds?.includes(chunk.sourceRef.classId));
-    return scope.role === 'student' &&
-      (!scope.targetUserId || scope.targetUserId === scope.userId) &&
-      chunk.sourceRef.ownerUserId === scope.userId;
+    return scope.role === 'student' && (!scope.targetUserId || scope.targetUserId === scope.userId);
   }
   return true;
 }
