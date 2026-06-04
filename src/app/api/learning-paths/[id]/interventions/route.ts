@@ -11,6 +11,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+const INTERVENTION_KINDS = new Set(['diagnosis', 'hint', 'rollback', 'fallback-path', 'reflection-prompt']);
+const STUDENT_OUTCOMES = new Set(['pending', 'accepted', 'dismissed', 'completed']);
+
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const requester = await getLearningPathRequester();
@@ -22,6 +25,20 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
+    if (
+      typeof body.interventionKind !== 'string' ||
+      !INTERVENTION_KINDS.has(body.interventionKind) ||
+      (body.studentOutcome !== undefined && (
+        typeof body.studentOutcome !== 'string' ||
+        !STUDENT_OUTCOMES.has(body.studentOutcome)
+      )) ||
+      typeof body.suggestedAction !== 'string' ||
+      body.suggestedAction.trim().length === 0 ||
+      typeof body.privacySafeSummary !== 'string' ||
+      body.privacySafeSummary.trim().length === 0
+    ) {
+      return NextResponse.json({ error: '路径干预事件不符合枚举或必填字段契约' }, { status: 400 });
+    }
     const intervention = await recordPathIntervention(prisma as any, {
       pathId: params.id,
       userId: path.userId,

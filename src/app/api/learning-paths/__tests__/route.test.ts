@@ -267,6 +267,21 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('rejects malformed intervention writes before persistence', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await intervenePath(post('http://localhost/api/learning-paths/path-1/interventions', {
+      interventionKind: 'random-kind',
+      studentOutcome: 'maybe',
+      suggestedAction: '',
+      privacySafeSummary: '',
+      idempotencyKey: 'int-key',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathIntervention).not.toHaveBeenCalled();
+  });
+
   it('rejects a teacher outside the class scope', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-2', role: 'TEACHER' } });
 
