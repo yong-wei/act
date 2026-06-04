@@ -53,9 +53,58 @@ run('git', ['init'], target);
 
 writeFile('.codex/agents/starter.toml', 'name = "starter"\n');
 writeFile('.codex/config.toml', '[tools]\n');
+writeFile(
+  '.codex/hooks.json',
+  JSON.stringify(
+    {
+      hooks: {
+        SessionStart: [
+          {
+            matcher: 'startup|resume',
+            hooks: [{ type: 'command', command: 'run-openwolf-hook.sh session-start', timeout: 10 }],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: '^Write$|^Edit$',
+            hooks: [{ type: 'command', command: 'run-openwolf-hook.sh post-write', timeout: 10 }],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [{ type: 'command', command: 'run-openwolf-hook.sh stop', timeout: 10 }],
+          },
+        ],
+      },
+    },
+    null,
+    2,
+  ),
+);
 writeFile('.codex/tmp/runtime.txt', 'runtime cache\n');
 writeFile('.codex/cache/index.db', 'cache\n');
 writeFile('.github/workflows/ci.yml', 'name: ci\n');
+writeFile('.wolf/OPENWOLF.md', '# OpenWolf\n');
+writeFile('.wolf/identity.md', '# Identity\n');
+writeFile('.wolf/cerebrum.md', '# Cerebrum\n');
+writeFile('.wolf/buglog.json', '{ "version": 1, "bugs": [] }\n');
+writeFile('.wolf/memory.md', '# Memory\n中文记录\n');
+writeFile('.wolf/config.json', '{ "version": 1 }\n');
+writeFile('.wolf/reframe-frameworks.md', '# Reframe\n');
+writeFile('.wolf/cron-manifest.json', '{ "version": 1, "tasks": [] }\n');
+writeFile('.wolf/anatomy.md', '# anatomy.md\n');
+writeFile('.wolf/token-ledger.json', '{ "version": 1 }\n');
+writeFile('.wolf/cron-state.json', '{ "engine_status": "initialized" }\n');
+writeFile('.wolf/designqc-report.json', '{ "captures": [] }\n');
+writeFile('.wolf/suggestions.json', '{ "suggestions": [] }\n');
+writeFile('.wolf/hooks/session-start.js', '// session-start\n');
+writeFile('.wolf/hooks/pre-read.js', '// pre-read\n');
+writeFile('.wolf/hooks/pre-write.js', '// pre-write\n');
+writeFile('.wolf/hooks/post-read.js', '// post-read\n');
+writeFile('.wolf/hooks/post-write.js', '// post-write\n');
+writeFile('.wolf/hooks/stop.js', '// stop\n');
+writeFile('.wolf/hooks/shared.js', '// shared\n');
+writeFile('.wolf/hooks/_session.json', '{ "session_id": "source" }\n');
 writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
 writeTargetFile('.github/workflows/ci.yml', 'name: old-ci\n');
 
@@ -144,6 +193,237 @@ assert.equal(
   fs.existsSync(path.join(target, 'node_modules')),
   false,
   'apply 模式不应创建 node_modules 软链接或目录',
+);
+
+const openwolfDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+
+assert.match(
+  openwolfDryRun.stdout,
+  /OpenWolf knowledge links: enabled/,
+  'dry-run 应说明启用 OpenWolf 长期知识链接',
+);
+assert.match(
+  openwolfDryRun.stdout,
+  /would link OpenWolf knowledge file: \.wolf\/cerebrum\.md/,
+  'dry-run 应说明会链接 OpenWolf 长期知识文件',
+);
+
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+
+for (const rel of [
+  '.wolf/OPENWOLF.md',
+  '.wolf/identity.md',
+  '.wolf/cerebrum.md',
+  '.wolf/buglog.json',
+  '.wolf/memory.md',
+  '.wolf/config.json',
+  '.wolf/reframe-frameworks.md',
+  '.wolf/cron-manifest.json',
+]) {
+  const fullPath = path.join(target, rel);
+  assert.equal(fs.lstatSync(fullPath).isSymbolicLink(), true, `${rel} 应软链接到主工作树 .wolf`);
+  assert.equal(fs.readlinkSync(fullPath), path.join(source, rel), `${rel} 应指向 source .wolf`);
+}
+
+for (const rel of [
+  '.wolf/anatomy.md',
+  '.wolf/token-ledger.json',
+  '.wolf/cron-state.json',
+  '.wolf/designqc-report.json',
+  '.wolf/suggestions.json',
+  '.wolf/hooks/session-start.js',
+]) {
+  const fullPath = path.join(target, rel);
+  assert.equal(fs.existsSync(fullPath), true, `${rel} 应在目标工作树本地存在`);
+  assert.equal(fs.lstatSync(fullPath).isSymbolicLink(), false, `${rel} 不应软链接共享`);
+}
+
+assert.equal(
+  fs.existsSync(path.join(target, '.wolf/hooks/_session.json')),
+  false,
+  'OpenWolf 会话运行态不应从主工作树复制',
+);
+
+const worktreeSource = JSON.parse(fs.readFileSync(path.join(target, '.wolf/worktree-source.json'), 'utf8'));
+assert.equal(worktreeSource.id, 'target', '非 .codex worktree 的 OpenWolf 来源 id 应使用目标目录名');
+assert.equal(worktreeSource.path, target, 'OpenWolf 来源应记录目标工作树路径');
+assert.equal(worktreeSource.sharedWolf, path.join(source, '.wolf'), 'OpenWolf 来源应记录共享 .wolf 路径');
+
+const sourceMemorySize = Buffer.byteLength(fs.readFileSync(path.join(source, '.wolf/memory.md'), 'utf8'));
+const stampState = JSON.parse(fs.readFileSync(path.join(target, '.wolf/source-stamp-state.json'), 'utf8'));
+assert.equal(stampState.memorySize, sourceMemorySize, 'stamp 状态应从当前共享 memory 大小开始');
+
+const codexHooks = JSON.parse(fs.readFileSync(path.join(target, '.codex/hooks.json'), 'utf8'));
+assert.match(
+  JSON.stringify(codexHooks),
+  /openwolf-source-stamp\.mjs session-start/,
+  '同步脚本应安装 session-start 来源 stamp hook',
+);
+assert.match(
+  JSON.stringify(codexHooks),
+  /openwolf-source-stamp\.mjs post-write/,
+  '同步脚本应安装 post-write 来源 stamp hook',
+);
+assert.match(
+  JSON.stringify(codexHooks),
+  /openwolf-source-stamp\.mjs stop/,
+  '同步脚本应安装 stop 来源 stamp hook',
+);
+
+const freshLinkTarget = path.join(tmpRoot, 'fresh-link-target');
+mkdirp(freshLinkTarget);
+run('git', ['init'], freshLinkTarget);
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    freshLinkTarget,
+    '--apply',
+    '--link-config',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+
+assert.equal(
+  fs.existsSync(path.join(freshLinkTarget, '.codex/hooks.json')),
+  true,
+  'fresh link-config 目标也应获得 .codex/hooks.json',
+);
+assert.match(
+  fs.readFileSync(path.join(freshLinkTarget, '.codex/hooks.json'), 'utf8'),
+  /openwolf-source-stamp\.mjs post-write/,
+  'fresh link-config 目标应安装 OpenWolf source stamp hook',
+);
+const freshHooksConfig = JSON.parse(fs.readFileSync(path.join(freshLinkTarget, '.codex/hooks.json'), 'utf8'));
+assert.equal(
+  freshHooksConfig.hooks.SessionStart.at(0).hooks.at(0).command,
+  'run-openwolf-hook.sh session-start',
+  'source stamp hook 不应排在原 OpenWolf session-start hook 前面',
+);
+assert.match(
+  freshHooksConfig.hooks.SessionStart.at(-1).hooks.at(0).command,
+  /openwolf-source-stamp\.mjs session-start/,
+  'source stamp session-start hook 应追加在原 OpenWolf hook 后面',
+);
+
+const noOverwriteTarget = path.join(tmpRoot, 'no-overwrite-target');
+mkdirp(path.join(noOverwriteTarget, '.wolf'));
+run('git', ['init'], noOverwriteTarget);
+fs.writeFileSync(path.join(noOverwriteTarget, '.wolf/cerebrum.md'), 'local cerebrum\n');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    noOverwriteTarget,
+    '--apply',
+    '--no-overwrite',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+assert.equal(
+  fs.lstatSync(path.join(noOverwriteTarget, '.wolf/cerebrum.md')).isSymbolicLink(),
+  false,
+  '--no-overwrite 不应替换已有 OpenWolf 长期知识文件',
+);
+assert.equal(
+  fs.readFileSync(path.join(noOverwriteTarget, '.wolf/cerebrum.md'), 'utf8'),
+  'local cerebrum\n',
+  '--no-overwrite 应保留已有 OpenWolf 长期知识内容',
+);
+
+const trackedWolfTarget = path.join(tmpRoot, 'tracked-wolf-target');
+mkdirp(path.join(trackedWolfTarget, '.wolf'));
+run('git', ['init'], trackedWolfTarget);
+fs.writeFileSync(path.join(trackedWolfTarget, '.wolf/cerebrum.md'), 'tracked cerebrum\n');
+run('git', ['-C', trackedWolfTarget, 'add', '.wolf/cerebrum.md'], root);
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    trackedWolfTarget,
+    '--apply',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedWolfTarget, '.wolf/cerebrum.md')).isSymbolicLink(),
+  false,
+  '已被 Git 跟踪的 OpenWolf 长期知识文件不应被替换为软链接',
+);
+
+const peerTarget = path.join(tmpRoot, 'target-peer');
+mkdirp(peerTarget);
+run('git', ['init'], peerTarget);
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    peerTarget,
+    '--apply',
+    '--link-openwolf-knowledge',
+  ],
+  root,
+);
+
+fs.appendFileSync(
+  path.join(source, '.wolf/memory.md'),
+  '\n## Session: 2026-06-04 10:30\n\n| Time | Action | File(s) | Outcome | ~Tokens |\n|------|--------|---------|---------|--------|\n| 10:31 | Investigated source stamping | `.wolf/memory.md` | ok | ~1k |\n',
+);
+run('node', [path.join(root, 'scripts/dev/openwolf-source-stamp.mjs'), 'post-write'], target);
+run('node', [path.join(root, 'scripts/dev/openwolf-source-stamp.mjs'), 'post-write'], peerTarget);
+const stampedMemory = fs.readFileSync(path.join(source, '.wolf/memory.md'), 'utf8');
+assert.match(
+  stampedMemory,
+  new RegExp(`## Session: 2026-06-04 10:30 - Source: \\[${worktreeSource.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`),
+  'stamp hook 应为新增 session header 注入来源',
+);
+assert.match(
+  stampedMemory,
+  new RegExp(`\\| 10:31 \\| \\[${worktreeSource.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\] Investigated source stamping \\|`),
+  'stamp hook 应为新增 memory 行注入来源',
+);
+assert.doesNotMatch(
+  stampedMemory,
+  /\| 10:31 \| \[[^\]]+\] \[[^\]]+\] Investigated source stamping \|/,
+  '多个工作树共享 memory 时不应重复叠加来源前缀',
 );
 
 const graphDryRun = run(
@@ -490,6 +770,7 @@ assert.match(bootstrapDryRun.stdout, /Config sync: symlink/, 'bootstrap 应启�
 assert.match(bootstrapDryRun.stdout, /Graph init: enabled/, 'bootstrap 应启用图谱初始化');
 assert.match(bootstrapDryRun.stdout, /Git hooks: enabled/, 'bootstrap 应启用 Git hook 安装');
 assert.match(bootstrapDryRun.stdout, /Dependency install: enabled/, 'bootstrap 应启用依赖安装');
+assert.match(bootstrapDryRun.stdout, /OpenWolf knowledge links: enabled/, 'bootstrap 应启用 OpenWolf 长期知识链接');
 
 const linkedMain = path.join(tmpRoot, 'linked-main');
 const linkedTarget = path.join(tmpRoot, 'linked-target');
