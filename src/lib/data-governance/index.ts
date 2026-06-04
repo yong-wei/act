@@ -30,5 +30,8 @@ export * from './submission-evidence-quality';
 // Course evidence specifications
 export * from './course-evidence-specs';
 
+// Learning evidence RAG corpus
+export * from './learning-evidence-rag-corpus';
+
 // Interactive session finalization
 export * from './interactive-session-finalization';
