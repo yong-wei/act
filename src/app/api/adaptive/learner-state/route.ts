@@ -5,6 +5,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
+  type AdaptiveLearnerStateGoalId,
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
 
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const requestedUserId = url.searchParams.get('userId') || session.user.id;
     const classId = url.searchParams.get('classId');
+    const goal = normalizeGoal(url.searchParams.get('goal'));
     const role = normalizeRole(session.user.role);
 
     if (role === 'student' && requestedUserId !== session.user.id) {
@@ -51,6 +53,7 @@ export async function GET(request: Request) {
       userId: requestedUserId,
       role,
       classId,
+      goal,
     });
 
     return NextResponse.json(learnerState);
@@ -65,6 +68,10 @@ function normalizeRole(role: string | undefined): AdaptiveLearnerStateRole {
   if (role === 'ADMIN') return 'admin';
   if (role === 'TEACHER') return 'teacher';
   return 'student';
+}
+
+function normalizeGoal(goal: string | null): AdaptiveLearnerStateGoalId | null {
+  return goal === 'control-correction' ? goal : null;
 }
 
 async function verifyTeacherStudentScope(input: {

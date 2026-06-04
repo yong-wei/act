@@ -4,6 +4,7 @@ import {
   type CompetencyDimension,
   type CompetencyVector,
 } from './competency-model';
+import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
 import {
   readStudentEvidenceFeatures,
   type StudentEvidenceCoverageState,
@@ -32,7 +33,51 @@ export type AdaptiveLearnerStateFieldFamily =
   | 'mediaAbsorption'
   | 'pathContext'
   | 'riskState'
-  | 'prerequisiteFeatureGroups';
+  | 'prerequisiteFeatureGroups'
+  | 'controlCorrectionGoalSlice';
+
+export type AdaptiveLearnerStateGoalId = 'control-correction';
+export type ControlCorrectionTargetLevel = 'foundation' | 'developing' | 'proficient' | 'advanced';
+export type ControlCorrectionDimensionId =
+  | 'time-domain-analysis'
+  | 'root-locus-reasoning'
+  | 'frequency-domain-margin-analysis'
+  | 'method-selection'
+  | 'constraint-tradeoff'
+  | 'simulation-validation'
+  | 'arena-transfer'
+  | 'reflection'
+  | 'ai-collaboration';
+
+export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = 'control-correction';
+export const CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION = 'control-correction-goal-slice.v1';
+const CONTROL_CORRECTION_COURSE_ID_VALUES = [
+  '3-6',
+  'unit-3-6-zero-design-workshop',
+  'unit-3-6-zero-design-workshop-v1',
+] as const;
+const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
+  'task-second-order-lead-pid',
+] as const;
+const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
+const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARENA_TASK_ID_VALUES);
+export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
+  'foundation',
+  'developing',
+  'proficient',
+  'advanced',
+];
+export const CONTROL_CORRECTION_GOAL_DIMENSIONS: ControlCorrectionDimensionId[] = [
+  'time-domain-analysis',
+  'root-locus-reasoning',
+  'frequency-domain-margin-analysis',
+  'method-selection',
+  'constraint-tradeoff',
+  'simulation-validation',
+  'arena-transfer',
+  'reflection',
+  'ai-collaboration',
+];
 
 export type AdaptiveLearnerSecondaryDimension =
   | 'conceptMastery'
@@ -135,6 +180,15 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
     fallbackReason: 'missing-prerequisite-feature-cache',
     privacyScope: 'student-visible',
   },
+  controlCorrectionGoalSlice: {
+    valueRange: 'stable governed dimensions for the control-correction goal',
+    sourceFamilies: ['StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission'],
+    algorithmVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
+    evidenceThreshold: 'each dimension declares sufficient, partial, stale, or missing governed evidence',
+    confidencePolicy: 'dimension confidence is capped by source coverage and fallback markers',
+    fallbackReason: 'missing-control-correction-governed-evidence',
+    privacyScope: 'student-visible',
+  },
 };
 
 export interface AdaptiveLearnerStateInput {
@@ -143,6 +197,40 @@ export interface AdaptiveLearnerStateInput {
   classId?: string | null;
   now?: Date;
   clientHints?: Record<string, unknown>;
+  goal?: AdaptiveLearnerStateGoalId | null;
+}
+
+export interface ControlCorrectionGoalSliceDimension {
+  id: ControlCorrectionDimensionId;
+  targetLevel: ControlCorrectionTargetLevel;
+  score: number;
+  sourceCoverage: Record<'assessment' | 'simulation' | 'arena' | 'reflection' | 'aiCollaboration', StudentEvidenceCoverageState>;
+  evidenceCount: number;
+  freshness: 'current' | 'partial' | 'stale' | 'missing';
+  evidenceProvenance: {
+    assessment: 'assessment-backed' | 'snapshot-derived' | 'missing';
+    simulation: 'governed-replay' | 'missing';
+    arena: 'official' | 'preview' | 'missing';
+    reflection: 'governed-reflection' | 'missing';
+    aiCollaboration: 'governed-ai-collaboration' | 'missing';
+  };
+  confidence: {
+    state: 'none' | 'low' | 'medium' | 'high';
+    score: number;
+    evidenceCount: number;
+    sourceCompleteness: number;
+  };
+  privacy: Record<'score' | 'sourceCoverage' | 'confidence' | 'teacherExplanation' | 'auditRefs' | 'rawPayloads', AdaptiveLearnerStatePrivacyScope>;
+  fallbackMarkers: string[];
+}
+
+export interface ControlCorrectionGoalSlice {
+  goalId: typeof CONTROL_CORRECTION_GOAL_ID;
+  payloadVersion: typeof CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION;
+  generatedAt: string;
+  targetLevels: ControlCorrectionTargetLevel[];
+  dimensions: ControlCorrectionGoalSliceDimension[];
+  privacyClasses: Record<'student' | 'teacher' | 'admin' | 'audit' | 'internal', AdaptiveLearnerStatePrivacyScope>;
 }
 
 export interface AdaptiveLearnerState {
@@ -236,6 +324,9 @@ export interface AdaptiveLearnerState {
   prerequisiteFeatureGroups: {
     simulationArena: Record<string, unknown> | null;
   };
+  goalSlices?: {
+    controlCorrection?: ControlCorrectionGoalSlice;
+  };
   fieldContracts: typeof ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS;
   missingEvidence: string[];
 }
@@ -251,6 +342,9 @@ interface AdaptiveLearnerStateDb {
     findUnique?: (args: any) => Promise<any | null>;
   };
   learningFact?: {
+    findMany?: (args: any) => Promise<Array<any>>;
+  };
+  arenaSubmission?: {
     findMany?: (args: any) => Promise<Array<any>>;
   };
   adaptiveMasteryUpdate?: {
@@ -286,6 +380,50 @@ const SECONDARY_DIMENSION_PRIMARY: Record<AdaptiveLearnerSecondaryDimension, Com
   remedialInitiative: 'selfDirectedLearning',
 };
 
+const CONTROL_CORRECTION_DIMENSION_PRIMARY: Record<ControlCorrectionDimensionId, CompetencyDimension> = {
+  'time-domain-analysis': 'controlModeling',
+  'root-locus-reasoning': 'parameterDesign',
+  'frequency-domain-margin-analysis': 'crossDomainTransfer',
+  'method-selection': 'engineeringDecision',
+  'constraint-tradeoff': 'engineeringDecision',
+  'simulation-validation': 'parameterDesign',
+  'arena-transfer': 'crossDomainTransfer',
+  reflection: 'inquiryReflection',
+  'ai-collaboration': 'selfDirectedLearning',
+};
+
+const CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES: Record<
+  ControlCorrectionDimensionId,
+  Array<keyof ControlCorrectionGoalSliceDimension['sourceCoverage']>
+> = {
+  'time-domain-analysis': ['assessment'],
+  'root-locus-reasoning': ['assessment', 'simulation', 'arena'],
+  'frequency-domain-margin-analysis': ['assessment'],
+  'method-selection': ['assessment'],
+  'constraint-tradeoff': ['assessment'],
+  'simulation-validation': ['simulation'],
+  'arena-transfer': ['arena'],
+  reflection: ['reflection'],
+  'ai-collaboration': ['aiCollaboration'],
+};
+
+const CONTROL_CORRECTION_PRIVACY: ControlCorrectionGoalSliceDimension['privacy'] = {
+  score: 'student-visible',
+  sourceCoverage: 'student-visible',
+  confidence: 'student-visible',
+  teacherExplanation: 'teacher-scoped',
+  auditRefs: 'audit-only',
+  rawPayloads: 'system-internal',
+};
+
+const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyClasses'] = {
+  student: 'student-visible',
+  teacher: 'teacher-scoped',
+  admin: 'admin-scoped',
+  audit: 'audit-only',
+  internal: 'system-internal',
+};
+
 const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
   firstStartedAt: null,
   lastStartedAt: null,
@@ -316,6 +454,8 @@ export async function readAdaptiveLearnerState(
     latestAbility,
     riskFlags,
     paths,
+    controlCorrectionFacts,
+    controlCorrectionArenaSubmissions,
   ] = await Promise.all([
     db.studentCompetencySnapshot?.findFirst?.({
       where: { userId: input.userId },
@@ -348,11 +488,39 @@ export async function readAdaptiveLearnerState(
       orderBy: { updatedAt: 'desc' },
       take: 10,
     }) ?? Promise.resolve([]),
+    input.goal === CONTROL_CORRECTION_GOAL_ID
+      ? db.learningFact?.findMany?.({
+          where: buildControlCorrectionLearningFactWhere(input.userId),
+          orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
+          take: 500,
+        }) ?? Promise.resolve([])
+      : Promise.resolve([]),
+    input.goal === CONTROL_CORRECTION_GOAL_ID
+      ? db.arenaSubmission?.findMany?.({
+          where: {
+            userId: input.userId,
+            valid: true,
+            taskId: { in: [...CONTROL_CORRECTION_ARENA_TASK_ID_VALUES] },
+          },
+          include: {
+            controllerArtifact: true,
+            evaluationRun: true,
+          },
+          orderBy: { submittedAt: 'desc' },
+          take: 200,
+        }) ?? Promise.resolve([])
+      : Promise.resolve([]),
   ]);
 
   const { vector, source } = resolvePrimaryCompetencyVector(latestSnapshot, featureSnapshot);
   const knowledgeMastery = buildKnowledgeMastery(masteryUpdates);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
+  const secondaryDimensions = buildSecondaryDimensions(vector);
+  const prerequisiteFeatureGroups = {
+    simulationArena: Object.keys(featureSimulationArena).length > 0
+      ? getObject(featureSimulationArena.allTime)
+      : null,
+  };
   const missingEvidence = buildMissingEvidence({
     latestSnapshot,
     profileSummary,
@@ -384,7 +552,7 @@ export async function readAdaptiveLearnerState(
       source,
       vector,
     },
-    secondaryDimensions: buildSecondaryDimensions(vector),
+    secondaryDimensions,
     knowledgeMastery,
     resourcePreference: buildResourcePreference(facts),
     mediaAbsorption: buildMediaAbsorption(facts),
@@ -394,11 +562,22 @@ export async function readAdaptiveLearnerState(
       latestAbilityEstimate: buildAbilityEstimate(latestAbility),
     },
     evidence,
-    prerequisiteFeatureGroups: {
-      simulationArena: Object.keys(featureSimulationArena).length > 0
-        ? getObject(featureSimulationArena.allTime)
-        : null,
-    },
+    prerequisiteFeatureGroups,
+    ...(input.goal === CONTROL_CORRECTION_GOAL_ID
+      ? {
+          goalSlices: {
+            controlCorrection: buildControlCorrectionGoalSlice({
+              now,
+              vector,
+              evidence,
+              knowledgeMastery,
+              facts: controlCorrectionFacts,
+              arenaSubmissions: controlCorrectionArenaSubmissions,
+              prerequisiteFeatureGroups,
+            }),
+          },
+        }
+      : {}),
     fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
     missingEvidence,
   };
@@ -457,6 +636,138 @@ function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerStat
       }];
     }),
   ) as AdaptiveLearnerState['secondaryDimensions'];
+}
+
+function buildControlCorrectionGoalSlice(input: {
+  now: Date;
+  vector: CompetencyVector;
+  evidence: AdaptiveLearnerState['evidence'];
+  knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
+  facts: Array<Record<string, unknown>>;
+  arenaSubmissions: Array<Record<string, unknown>>;
+  prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
+}): ControlCorrectionGoalSlice {
+  const simulationArena = getObject(input.prerequisiteFeatureGroups.simulationArena);
+  const sourceEvidence = buildControlCorrectionSourceEvidence({
+    facts: input.facts,
+    arenaSubmissions: input.arenaSubmissions,
+    simulationArena,
+  });
+  const dimensions = CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => {
+    const primary = input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
+    const sourceCoverage = buildControlCorrectionDimensionSourceCoverage(id, sourceEvidence);
+    const evidenceCount = buildControlCorrectionDimensionEvidenceCount(id, primary.evidenceCount, sourceEvidence);
+    const evidenceProvenance = buildControlCorrectionEvidenceProvenance(sourceEvidence);
+    const fallbackMarkers = buildControlCorrectionFallbackMarkers(
+      id,
+      sourceCoverage,
+      evidenceProvenance,
+      sourceEvidence.simulationArenaQualityMarkers,
+      input.evidence.statusMarkers,
+      input.evidence.readState,
+    );
+    const confidence = buildControlCorrectionConfidence({
+      id,
+      baseScore: primary.confidence,
+      evidenceCount,
+      sourceCoverage,
+      fallbackMarkers,
+    });
+
+    return {
+      id,
+      targetLevel: controlCorrectionTargetLevel(primary.score),
+      score: round(primary.score),
+      sourceCoverage,
+      evidenceCount: confidence.evidenceCount,
+      freshness: controlCorrectionFreshness(confidence.evidenceCount, fallbackMarkers, input.evidence.statusMarkers),
+      evidenceProvenance,
+      confidence,
+      privacy: CONTROL_CORRECTION_PRIVACY,
+      fallbackMarkers,
+    };
+  });
+
+  const slice: ControlCorrectionGoalSlice = {
+    goalId: CONTROL_CORRECTION_GOAL_ID,
+    payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
+    generatedAt: input.now.toISOString(),
+    targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
+    dimensions,
+    privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
+  };
+  validateControlCorrectionGoalSliceContract(slice);
+  return slice;
+}
+
+export function validateControlCorrectionGoalSliceContract(value: unknown): asserts value is ControlCorrectionGoalSlice {
+  const slice = getObject(value);
+  const dimensions = Array.isArray(slice.dimensions) ? slice.dimensions : [];
+  if (slice.goalId !== CONTROL_CORRECTION_GOAL_ID) {
+    throw new Error('control-correction goal slice missing canonical goal id');
+  }
+  if (slice.payloadVersion !== CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION) {
+    throw new Error('control-correction goal slice missing payload version');
+  }
+  if (!sameStringSet(arrayOfStrings(slice.targetLevels), CONTROL_CORRECTION_TARGET_LEVELS)) {
+    throw new Error('control-correction goal slice missing target levels');
+  }
+  const privacyClasses = getObject(slice.privacyClasses);
+  if (
+    privacyClasses.student !== 'student-visible' ||
+    privacyClasses.teacher !== 'teacher-scoped' ||
+    privacyClasses.admin !== 'admin-scoped' ||
+    privacyClasses.audit !== 'audit-only' ||
+    privacyClasses.internal !== 'system-internal'
+  ) {
+    throw new Error('control-correction goal slice missing privacy classes');
+  }
+  if (dimensions.length !== CONTROL_CORRECTION_GOAL_DIMENSIONS.length) {
+    throw new Error('control-correction goal slice missing required dimensions');
+  }
+  const dimensionIds = dimensions.map((dimension) => readString(getObject(dimension).id)).filter((id): id is string => Boolean(id));
+  if (!sameStringSet(dimensionIds, CONTROL_CORRECTION_GOAL_DIMENSIONS)) {
+    throw new Error('control-correction goal slice missing required dimensions');
+  }
+  for (const dimensionValue of dimensions) {
+    const dimension = getObject(dimensionValue);
+    if (!dimension.confidence) {
+      throw new Error('control-correction dimension missing confidence metadata');
+    }
+    if (!dimension.privacy) {
+      throw new Error('control-correction dimension missing privacy metadata');
+    }
+    const confidence = getObject(dimension.confidence);
+    const privacy = getObject(dimension.privacy);
+    const sourceCoverage = getObject(dimension.sourceCoverage);
+    const freshness = readString(dimension.freshness);
+    if (
+      !isControlCorrectionConfidenceState(confidence.state) ||
+      !Number.isFinite(confidence.score) ||
+      !Number.isFinite(confidence.evidenceCount) ||
+      !Number.isFinite(confidence.sourceCompleteness)
+    ) {
+      throw new Error('control-correction dimension missing confidence metadata');
+    }
+    if (
+      !isCoverageState(sourceCoverage.assessment) ||
+      !isCoverageState(sourceCoverage.simulation) ||
+      !isCoverageState(sourceCoverage.arena) ||
+      !isCoverageState(sourceCoverage.reflection) ||
+      !isCoverageState(sourceCoverage.aiCollaboration)
+    ) {
+      throw new Error('control-correction dimension missing source coverage metadata');
+    }
+    if (freshness !== 'current' && freshness !== 'partial' && freshness !== 'stale' && freshness !== 'missing') {
+      throw new Error('control-correction dimension missing freshness metadata');
+    }
+    if (privacy.score !== 'student-visible' || privacy.sourceCoverage !== 'student-visible' || privacy.confidence !== 'student-visible') {
+      throw new Error('control-correction dimension missing privacy metadata');
+    }
+    if (privacy.teacherExplanation !== 'teacher-scoped' || privacy.auditRefs !== 'audit-only' || privacy.rawPayloads !== 'system-internal') {
+      throw new Error('control-correction dimension missing privacy metadata');
+    }
+  }
 }
 
 function buildKnowledgeMastery(rows: Array<Record<string, unknown>>): AdaptiveLearnerState['knowledgeMastery'] {
@@ -598,6 +909,356 @@ function buildMissingEvidence(input: {
   return missing;
 }
 
+interface ControlCorrectionSourceEvidence {
+  assessmentCoverage: StudentEvidenceCoverageState;
+  assessmentCount: number;
+  simulationCoverage: StudentEvidenceCoverageState;
+  simulationCount: number;
+  arenaCoverage: StudentEvidenceCoverageState;
+  officialArenaCount: number;
+  previewArenaCount: number;
+  simulationArenaQualityMarkers: string[];
+  reflectionCount: number;
+  aiCollaborationCount: number;
+}
+
+interface ControlCorrectionFactCounts {
+  assessment: number;
+  simulation: number;
+  arena: number;
+  previewArena: number;
+  reflection: number;
+  aiCollaboration: number;
+}
+
+interface ControlCorrectionScopedFactSummary {
+  counts: ControlCorrectionFactCounts;
+}
+
+function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>): ControlCorrectionScopedFactSummary {
+	  const scopedFacts = facts.filter(isControlCorrectionFact);
+	  const counts = scopedFacts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
+	    if (isControlCorrectionArenaFact(fact)) {
+	      counts.arena += 1;
+	      counts.previewArena += 1;
+	      return counts;
+	    }
+	    const modality = factTypeToModality(readString(fact.factType));
+    if (modality === 'assessment') counts.assessment += 1;
+    if (modality === 'simulation') counts.simulation += 1;
+    if (modality === 'arena') {
+      counts.arena += 1;
+      counts.previewArena += 1;
+    }
+    if (modality === 'reflection') counts.reflection += 1;
+    if (modality === 'ai' || modality === 'ai-collaboration' || modality === 'konling') counts.aiCollaboration += 1;
+    return counts;
+  }, {
+    assessment: 0,
+    simulation: 0,
+    arena: 0,
+    previewArena: 0,
+    reflection: 0,
+    aiCollaboration: 0,
+  });
+	  return { counts };
+	}
+
+function isControlCorrectionArenaFact(fact: Record<string, unknown>): boolean {
+  const context = getObject(fact.contextJson);
+  const taskId = readString(getObject(context.arena).taskId);
+  return taskId !== null && CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId);
+}
+
+function isControlCorrectionFact(fact: Record<string, unknown>): boolean {
+  const context = getObject(fact.contextJson);
+  const explicitGoal = [
+    readString(context.goalId),
+    readString(context.goal),
+    readString(context.targetGoal),
+    readString(context.learningGoal),
+  ].some((value) => value === CONTROL_CORRECTION_GOAL_ID);
+  if (explicitGoal) return true;
+
+  return [
+    readString(fact.courseId),
+    readString(fact.lessonId),
+    readString(fact.moduleId),
+    readString(getObject(context.adaptiveAssessment).courseId),
+    readString(getObject(context.adaptiveAssessment).lessonId),
+    readString(getObject(context.adaptiveAssessment).moduleId),
+    readString(getObject(context.simulation).courseId),
+    readString(getObject(context.simulation).lessonId),
+    readString(getObject(context.simulation).taskId),
+    readString(getObject(getObject(context.simulation).summary).sourceId),
+    readString(getObject(getObject(context.simulation).summary).taskId),
+    readString(getObject(context.agentTool).courseId),
+    readString(getObject(context.agentTool).lessonId),
+    readString(getObject(context.agentTool).taskId),
+  ].some((value) => value !== null && CONTROL_CORRECTION_COURSE_IDS.has(value))
+    || [
+      readString(getObject(context.arena).taskId),
+      readString(getObject(context.simulation).taskId),
+      readString(getObject(getObject(context.simulation).summary).taskId),
+      readString(getObject(context.agentTool).taskId),
+    ].some((value) => value !== null && CONTROL_CORRECTION_ARENA_TASK_IDS.has(value));
+}
+
+function buildControlCorrectionLearningFactWhere(userId: string) {
+  return {
+    userId,
+    OR: [
+      { contextJson: { path: ['goalId'], equals: CONTROL_CORRECTION_GOAL_ID } },
+      { contextJson: { path: ['goal'], equals: CONTROL_CORRECTION_GOAL_ID } },
+      { contextJson: { path: ['targetGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
+      { contextJson: { path: ['learningGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
+      { courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
+      { lessonId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
+      { moduleId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
+      ...controlCorrectionJsonPathWhere(
+        [
+          ['adaptiveAssessment', 'courseId'],
+          ['adaptiveAssessment', 'lessonId'],
+          ['adaptiveAssessment', 'moduleId'],
+          ['simulation', 'courseId'],
+          ['simulation', 'lessonId'],
+          ['simulation', 'taskId'],
+          ['simulation', 'summary', 'sourceId'],
+          ['simulation', 'summary', 'taskId'],
+          ['agentTool', 'courseId'],
+          ['agentTool', 'lessonId'],
+          ['agentTool', 'taskId'],
+        ],
+        CONTROL_CORRECTION_COURSE_ID_VALUES,
+      ),
+      ...controlCorrectionJsonPathWhere(
+        [
+          ['arena', 'taskId'],
+          ['simulation', 'taskId'],
+          ['simulation', 'summary', 'taskId'],
+          ['agentTool', 'taskId'],
+        ],
+        CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
+      ),
+    ],
+  };
+}
+
+function controlCorrectionJsonPathWhere(
+  paths: string[][],
+  values: readonly string[],
+) {
+  return paths.flatMap((path) => values.map((value) => ({
+    contextJson: { path, equals: value },
+  })));
+}
+
+function countOfficialControlCorrectionArenaSubmissions(submissions: Array<Record<string, unknown>>): number {
+  return submissions.filter((submission) => {
+    if (submission.valid !== true) return false;
+    const evaluationRun = getObject(submission.evaluationRun);
+    const controllerArtifact = getObject(submission.controllerArtifact);
+    const artifactPayload = getObject(controllerArtifact.payload);
+    const taskId = readString(submission.taskId);
+    if (!taskId) return false;
+    if (!CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId)) return false;
+    const method = readString(submission.method) ?? readString(artifactPayload.method);
+    return readString(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion({
+      taskId,
+      ...(method ? { method: method as Parameters<typeof getArenaEvaluationProtocolVersion>[0]['method'] } : {}),
+    });
+  }).length;
+}
+
+function buildControlCorrectionSourceEvidence(input: {
+  facts: Array<Record<string, unknown>>;
+  arenaSubmissions: Array<Record<string, unknown>>;
+  simulationArena: Record<string, unknown>;
+}): ControlCorrectionSourceEvidence {
+  const factSummary = summarizeControlCorrectionFacts(input.facts);
+  const factCounts = factSummary.counts;
+  const officialArenaCount = countOfficialControlCorrectionArenaSubmissions(input.arenaSubmissions);
+  const simulationArenaCoverage = getObject(input.simulationArena.sourceCoverage);
+  return {
+    assessmentCoverage: factCounts.assessment > 0 ? 'available' : 'missing',
+    assessmentCount: factCounts.assessment,
+    simulationCoverage: factCounts.simulation > 0 ? normalizeCoverageState(simulationArenaCoverage.simulation) : 'missing',
+    simulationCount: factCounts.simulation,
+	    arenaCoverage: officialArenaCount > 0
+	      ? 'available'
+	      : factCounts.arena > 0 ? previewArenaCoverage(simulationArenaCoverage.arena) : 'missing',
+    officialArenaCount,
+    previewArenaCount: factCounts.previewArena,
+    simulationArenaQualityMarkers: arrayOfStrings(input.simulationArena.qualityMarkers),
+    reflectionCount: factCounts.reflection,
+    aiCollaborationCount: factCounts.aiCollaboration,
+  };
+	}
+
+function previewArenaCoverage(value: unknown): StudentEvidenceCoverageState {
+  const coverage = normalizeCoverageState(value);
+  return coverage === 'missing' ? 'partial' : coverage;
+}
+
+function buildControlCorrectionDimensionSourceCoverage(
+  id: ControlCorrectionDimensionId,
+  sourceEvidence: ControlCorrectionSourceEvidence,
+): ControlCorrectionGoalSliceDimension['sourceCoverage'] {
+  const requiredSources = new Set(CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id]);
+  return {
+    assessment: requiredSources.has('assessment') ? sourceEvidence.assessmentCoverage : 'missing',
+    simulation: requiredSources.has('simulation') ? sourceEvidence.simulationCoverage : 'missing',
+    arena: requiredSources.has('arena') ? sourceEvidence.arenaCoverage : 'missing',
+    reflection: requiredSources.has('reflection')
+      ? sourceEvidence.reflectionCount > 0 ? 'available' : 'missing'
+      : 'missing',
+    aiCollaboration: requiredSources.has('aiCollaboration')
+      ? sourceEvidence.aiCollaborationCount > 0 ? 'available' : 'missing'
+      : 'missing',
+  };
+}
+
+function buildControlCorrectionDimensionEvidenceCount(
+  id: ControlCorrectionDimensionId,
+  _primaryEvidenceCount: number,
+  sourceEvidence: ControlCorrectionSourceEvidence,
+): number {
+  return CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id].reduce((count, source) => {
+    if (source === 'assessment') return count + sourceEvidence.assessmentCount;
+    if (source === 'simulation') return count + sourceEvidence.simulationCount;
+	    if (source === 'arena') return count + (sourceEvidence.officialArenaCount > 0
+	      ? sourceEvidence.officialArenaCount
+	      : sourceEvidence.previewArenaCount);
+    if (source === 'reflection') return count + sourceEvidence.reflectionCount;
+    return count + sourceEvidence.aiCollaborationCount;
+  }, 0);
+}
+
+function buildControlCorrectionEvidenceProvenance(
+  sourceEvidence: ControlCorrectionSourceEvidence,
+): ControlCorrectionGoalSliceDimension['evidenceProvenance'] {
+  return {
+    assessment: sourceEvidence.assessmentCount > 0 ? 'assessment-backed' : sourceEvidence.assessmentCoverage !== 'missing' ? 'snapshot-derived' : 'missing',
+    simulation: sourceEvidence.simulationCount > 0 ? 'governed-replay' : 'missing',
+    arena: sourceEvidence.officialArenaCount > 0 ? 'official' : sourceEvidence.previewArenaCount > 0 ? 'preview' : 'missing',
+    reflection: sourceEvidence.reflectionCount > 0 ? 'governed-reflection' : 'missing',
+    aiCollaboration: sourceEvidence.aiCollaborationCount > 0 ? 'governed-ai-collaboration' : 'missing',
+  };
+}
+
+function buildControlCorrectionFallbackMarkers(
+  id: ControlCorrectionDimensionId,
+  sourceCoverage: ControlCorrectionGoalSliceDimension['sourceCoverage'],
+  evidenceProvenance: ControlCorrectionGoalSliceDimension['evidenceProvenance'],
+  simulationArenaQualityMarkers: string[],
+  statusMarkers: StudentEvidenceStatusMarker[],
+  readState: StudentEvidenceFeatureReadResult['state'],
+): string[] {
+  const markers: string[] = statusMarkers.map((marker) => marker === 'missing-source' ? 'missing-governed-evidence' : marker);
+  if (readState === 'stale') {
+    markers.push('stale');
+  }
+  for (const source of CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id]) {
+    if (sourceCoverage[source] === 'missing') {
+      markers.push(`missing-${controlCorrectionSourceMarker(source)}-evidence`);
+    }
+    if (sourceCoverage[source] === 'partial') {
+      markers.push(`partial-${controlCorrectionSourceMarker(source)}-evidence`);
+    }
+  }
+  if (CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id].includes('arena') && evidenceProvenance.arena !== 'official') {
+    markers.push(evidenceProvenance.arena === 'preview' ? 'preview-only-arena-evidence' : 'missing-official-arena-evidence');
+  }
+  const requiredSources = CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id];
+  if (requiredSources.some((source) => source === 'simulation' || source === 'arena')) {
+    if (simulationArenaQualityMarkers.includes('stale')) {
+      markers.push('stale');
+    }
+    if (simulationArenaQualityMarkers.includes('low-confidence')) {
+      markers.push('low-confidence');
+    }
+    if (simulationArenaQualityMarkers.includes('preview-only')) {
+      markers.push('preview-only-simulation-arena-evidence', 'low-confidence');
+    }
+    if (simulationArenaQualityMarkers.includes('standalone-only')) {
+      markers.push('standalone-only-simulation-arena-evidence', 'low-confidence');
+    }
+    if (simulationArenaQualityMarkers.includes('partial')) {
+      if (requiredSources.includes('simulation')) {
+        markers.push('partial-simulation-evidence');
+      }
+      if (requiredSources.includes('arena')) {
+        markers.push('partial-arena-evidence');
+      }
+    }
+  }
+  if (Object.values(sourceCoverage).every((coverage) => coverage === 'missing')) {
+    markers.push('missing-governed-evidence');
+  }
+  return unique(markers);
+}
+
+function buildControlCorrectionConfidence(input: {
+  id: ControlCorrectionDimensionId;
+  baseScore: number;
+  evidenceCount: number;
+  sourceCoverage: ControlCorrectionGoalSliceDimension['sourceCoverage'];
+  fallbackMarkers: string[];
+}): ControlCorrectionGoalSliceDimension['confidence'] {
+  const sourceValues = CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[input.id].map((source) => input.sourceCoverage[source]);
+  const sourceCompleteness = round(
+    sourceValues.reduce((sum, coverage) => sum + (coverage === 'available' ? 1 : coverage === 'partial' ? 0.5 : 0), 0) /
+      sourceValues.length,
+    2,
+  );
+  const hasMissingRequired = input.fallbackMarkers.some((marker) => marker.startsWith('missing-'));
+  const hasLowConfidenceMarker = input.fallbackMarkers.includes('low-confidence');
+  const score = input.evidenceCount === 0
+    ? 0
+    : round(Math.min(input.baseScore, sourceCompleteness), 2);
+  const state = input.evidenceCount === 0
+    ? 'none'
+    : hasMissingRequired || hasLowConfidenceMarker || score < 0.4
+      ? 'low'
+      : score < 0.7
+        ? 'medium'
+        : 'high';
+  return {
+    state,
+    score,
+    evidenceCount: input.evidenceCount,
+    sourceCompleteness,
+  };
+}
+
+function controlCorrectionFreshness(
+  evidenceCount: number,
+  fallbackMarkers: string[],
+  statusMarkers: StudentEvidenceStatusMarker[],
+): ControlCorrectionGoalSliceDimension['freshness'] {
+  if (evidenceCount === 0) return 'missing';
+  if (fallbackMarkers.some((marker) => marker.startsWith('missing-'))) return 'missing';
+  if (statusMarkers.includes('stale') || fallbackMarkers.includes('stale')) return 'stale';
+  if (
+    statusMarkers.includes('partial') ||
+    statusMarkers.includes('missing-source') ||
+    fallbackMarkers.some((marker) => marker.startsWith('partial-') || marker === 'preview-only-arena-evidence')
+  ) return 'partial';
+  return 'current';
+}
+
+function controlCorrectionTargetLevel(score: number): ControlCorrectionTargetLevel {
+  if (score >= 85) return 'advanced';
+  if (score >= 70) return 'proficient';
+  if (score >= 50) return 'developing';
+  return 'foundation';
+}
+
+function controlCorrectionSourceMarker(source: keyof ControlCorrectionGoalSliceDimension['sourceCoverage']): string {
+  if (source === 'aiCollaboration') return 'ai-collaboration';
+  return source;
+}
+
 function privacyScopesForRole(role: AdaptiveLearnerStateRole): AdaptiveLearnerStatePrivacyScope[] {
   if (role === 'admin') {
     return ['student-visible', 'teacher-scoped', 'admin-scoped'];
@@ -616,7 +1277,10 @@ function factTypeToModality(factType: string | null): string | null {
   if (factType === 'question' || factType === 'assessment') return 'assessment';
   if (factType === 'media' || factType === 'video' || factType === 'audio') return 'media';
   if (factType === 'simulation' || factType === 'design') return 'simulation';
+  if (factType === 'arena') return 'arena';
   if (factType === 'reflection') return 'reflection';
+  if (factType === 'ai_intervention' || factType === 'prompt_design') return 'ai-collaboration';
+  if (factType === 'ai' || factType === 'ai-collaboration' || factType === 'konling') return factType;
   if (factType === 'resource') return 'resource';
   return factType;
 }
@@ -649,6 +1313,14 @@ function normalizeCoverageRecord(value: unknown): Record<string, StudentEvidence
 
 function normalizeCoverageState(value: unknown): StudentEvidenceCoverageState {
   return value === 'available' || value === 'partial' || value === 'missing' ? value : 'missing';
+}
+
+function isCoverageState(value: unknown): value is StudentEvidenceCoverageState {
+  return value === 'available' || value === 'partial' || value === 'missing';
+}
+
+function isControlCorrectionConfidenceState(value: unknown): value is ControlCorrectionGoalSliceDimension['confidence']['state'] {
+  return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
 }
 
 function normalizeConfidence(value: unknown): AdaptiveLearnerState['evidence']['confidence'] {
@@ -694,6 +1366,16 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function sameStringSet(left: readonly string[], right: readonly string[]): boolean {
+  if (left.length !== right.length) return false;
+  const leftSet = new Set(left);
+  return right.every((item) => leftSet.has(item));
 }
 
 function numberValue(value: unknown): number {
