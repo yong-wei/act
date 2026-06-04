@@ -656,9 +656,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("searchParams.get('intent')");
     expect(source).toContain("searchParams.get('pathId')");
     expect(source).toContain("searchParams.get('nodeId')");
+    expect(source).toContain("controlCorrectionQuery.set('pathId', activePathId)");
+    expect(source).toContain("controlCorrectionQuery.set('nodeId', activeNodeId)");
     expect(source).toContain('data-control-correction-center="adaptive-practice"');
     expect(source).toContain("fetch('/api/adaptive/learner-state?goal=control-correction')");
-    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(activePathId)}`)');
+    expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
+    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
   });

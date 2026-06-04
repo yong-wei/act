@@ -210,13 +210,22 @@ test('adaptive practice renders ready control-correction path context when APIs 
     });
   });
 
-  await page.goto('/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1');
+  await page.goto('/assessment/adaptive-practice?goal=control-correction&intent=path-execution');
 
   const center = page.locator('[data-control-correction-center="adaptive-practice"]');
   await expect(center).toHaveAttribute('data-control-correction-ready', 'true');
   await expect(center.getByRole('link', { name: '控制校正知识卡' })).toHaveAttribute(
     'href',
     '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+  );
+});
+
+test('adaptive practice login callback preserves control-correction path and node context', async ({ page }) => {
+  await page.goto('/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1');
+
+  await expect(page.getByRole('link', { name: '登录后继续' })).toHaveAttribute(
+    'href',
+    '/login?callbackUrl=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dpath-1%26nodeId%3Dnode-1',
   );
 });
 

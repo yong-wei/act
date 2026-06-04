@@ -251,7 +251,10 @@ export default function AdaptivePracticePage() {
   const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
-  const controlCorrectionContextHref = `/assessment/adaptive-practice?goal=control-correction&intent=${routeIntent}`;
+  const controlCorrectionQuery = new URLSearchParams({ goal: 'control-correction', intent: routeIntent });
+  if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
+  if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
+  const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoal ? controlCorrectionContextHref : '/assessment/adaptive-practice')}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
 
@@ -356,22 +359,26 @@ export default function AdaptivePracticePage() {
 
     let cancelled = false;
     async function loadControlCorrectionCenterData() {
+      let learnerState: AdaptiveLearnerState | null = null;
       try {
         const learnerResponse = await fetch('/api/adaptive/learner-state?goal=control-correction');
         if (!cancelled && learnerResponse.ok) {
-          setControlCorrectionLearnerState((await learnerResponse.json()) as AdaptiveLearnerState);
+          learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
+          setControlCorrectionLearnerState(learnerState);
         }
       } catch {
         if (!cancelled) setControlCorrectionLearnerState(null);
       }
 
-      if (!activePathId) {
+      const fallbackPathId = learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null;
+      const pathIdToLoad = activePathId ?? fallbackPathId;
+      if (!pathIdToLoad) {
         if (!cancelled) setControlCorrectionPathPlan(null);
         return;
       }
 
       try {
-        const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(activePathId)}`);
+        const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
         if (!cancelled && pathResponse.ok) {
           const payload = (await pathResponse.json()) as LearningPathRoundResponse;
           setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
