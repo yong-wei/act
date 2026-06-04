@@ -268,6 +268,83 @@ describe('adaptive learning path planner', () => {
     expect(plan.explanations.fallbackReasons).toContain('terminal-validation-resource-missing');
   });
 
+  it('does not accept non-validation resource types as control-correction terminal validation', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'control-correction-quiz-with-terminal-label',
+          label: '误标终端验证的控制校正测验',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
+          knowledgeNodeIds: [
+            'control-correction:time-domain-targets',
+            'control-correction:root-locus-design',
+            'control-correction:simulation-validation',
+            'control-correction:arena-transfer',
+          ],
+          planningOverride: {
+            estimatedTimeMinutes: 35,
+            terminalConstraints: ['terminal-validation'],
+            evidenceInstrumentation: ['answer_submit'],
+            abilityImpact: {
+              parameterDesign: 0.4,
+              engineeringDecision: 0.35,
+              crossDomainTransfer: 0.25,
+            },
+          },
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('terminal-validation-resource-missing');
+  });
+
   it('generates a constrained explainable Stage 1 path without bandit or RL', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
 

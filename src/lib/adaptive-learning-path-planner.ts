@@ -1042,7 +1042,7 @@ function buildFallbackReasons(input: {
   }
   if (
     requiresTerminalValidation(input.goal) &&
-    !input.mainPathNodes.some((entry) => entry.node.planningMetadata.terminalConstraints.includes('terminal-validation'))
+    !input.mainPathNodes.some((entry) => isTerminalValidationNode(entry.node))
   ) {
     reasons.push('terminal-validation-resource-missing');
   }
@@ -1051,6 +1051,11 @@ function buildFallbackReasons(input: {
 
 function requiresTerminalValidation(goal: AdaptiveLearningPathGoal): boolean {
   return goal.id === 'control-correction';
+}
+
+function isTerminalValidationNode(node: ResourceNode): boolean {
+  return (node.type === 'simulation' || node.type === 'arena_task') &&
+    node.planningMetadata.terminalConstraints.includes('terminal-validation');
 }
 
 function buildPlanScore(
