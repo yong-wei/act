@@ -153,16 +153,29 @@ const USE_CASE_SOURCE_TYPES: Record<LearningEvidenceCitationUseCase, Set<Learnin
 };
 
 export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpusChunk): string[] {
+  const record = readRecord(chunk);
+  const sourceRef = readRecord(record.sourceRef);
+  const display = readRecord(record.display);
+  const content = readRecord(record.content);
+  const freshness = readRecord(record.freshness);
+  const retrieval = readRecord(record.retrieval);
+  const family = typeof record.family === 'string' ? record.family as LearningEvidenceCorpusFamily : null;
+  const sourceType = typeof record.sourceType === 'string' ? record.sourceType as LearningEvidenceCorpusSourceType : null;
   const errors = [
-    chunk.id ? null : 'missing-id',
-    chunk.sourceRef.id ? null : 'missing-source-ref',
-    chunk.display.title ? null : 'missing-display-title',
-    chunk.display.capsule ? null : 'missing-display-capsule',
-    chunk.content.hash ? null : 'missing-content-hash',
-    chunk.freshness.indexedAt ? null : 'missing-indexed-at',
-    LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[chunk.family]?.includes(chunk.sourceType) ? null : 'family-source-type-mismatch',
+    record.id ? null : 'missing-id',
+    sourceRef.id ? null : 'missing-source-ref',
+    display.title ? null : 'missing-display-title',
+    display.capsule ? null : 'missing-display-capsule',
+    content.hash ? null : 'missing-content-hash',
+    freshness.indexedAt ? null : 'missing-indexed-at',
+    isPrivacyClass(record.privacyClass) ? null : 'missing-privacy-class',
+    isConfidence(record.confidence) ? null : 'missing-confidence',
+    isStringArray(retrieval.tags) ? null : 'missing-retrieval-tags',
+    isStringArray(retrieval.goals) ? null : 'missing-retrieval-goals',
+    isUseCaseArray(retrieval.useCases) ? null : 'missing-retrieval-use-cases',
+    family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
   ];
-  if (!chunk.content.text && !chunk.content.redactedSummary) errors.push('missing-retrievable-text');
+  if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
   return errors.filter((item): item is string => Boolean(item));
 }
 
@@ -292,7 +305,7 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
     if (scope.role === 'teacher') return Boolean(chunk.sourceRef.classId && scope.classIds?.includes(chunk.sourceRef.classId));
     return scope.role === 'student' && (!scope.targetUserId || scope.targetUserId === scope.userId);
   }
-  return true;
+  return chunk.privacyClass === 'public';
 }
 
 function redactChunkForScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): LearningEvidenceCorpusChunk {
@@ -322,4 +335,28 @@ function sameSpanRef(left: LearningEvidenceCorpusChunk['spanRef'], right: Learni
     (left.locator ?? null) === (right.locator ?? null) &&
     (left.start ?? null) === (right.start ?? null) &&
     (left.end ?? null) === (right.end ?? null);
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isUseCaseArray(value: unknown): value is LearningEvidenceCitationUseCase[] {
+  return isStringArray(value) && value.every((item) => Object.prototype.hasOwnProperty.call(USE_CASE_SOURCE_TYPES, item));
+}
+
+function isPrivacyClass(value: unknown): value is LearningEvidenceCorpusPrivacyClass {
+  return value === 'public' ||
+    value === 'student-visible' ||
+    value === 'teacher-visible' ||
+    value === 'admin-only' ||
+    value === 'service-only';
+}
+
+function isConfidence(value: unknown): value is LearningEvidenceConfidence {
+  return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
 }

@@ -1,7 +1,7 @@
 # learning-evidence-rag-corpus Specification
 
 ## Purpose
-TBD - created by archiving change build-learning-evidence-rag-corpus. Update Purpose after archive.
+Define the governed evidence corpus and citation verification contract used by diagnosis, Konling, recommendations, grading, teacher reports, and prep-pack generation.
 ## Requirements
 ### Requirement: RAG corpus preserves governed source provenance
 The system SHALL index learning evidence and course content as governed corpus chunks with source provenance.

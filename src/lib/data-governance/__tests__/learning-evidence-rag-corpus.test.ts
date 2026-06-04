@@ -117,6 +117,23 @@ describe('learning evidence RAG corpus contract', () => {
       invalidationSignals: expect.arrayContaining(['stale-source-hash', 'access-scope-revoked']),
       retention: expect.objectContaining({ learnerEvidenceDays: 180 }),
     });
+    expect(validateLearningEvidenceCorpusChunk({
+      id: 'malformed',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+    } as LearningEvidenceCorpusChunk)).toEqual(expect.arrayContaining([
+      'missing-source-ref',
+      'missing-display-title',
+      'missing-display-capsule',
+      'missing-content-hash',
+      'missing-indexed-at',
+      'missing-privacy-class',
+      'missing-confidence',
+      'missing-retrieval-tags',
+      'missing-retrieval-goals',
+      'missing-retrieval-use-cases',
+      'missing-retrievable-text',
+    ]));
   });
 
   it('retrieves student-visible evidence only inside the student scope and redacts raw text', () => {
@@ -381,6 +398,100 @@ describe('learning evidence RAG corpus contract', () => {
       { chunkId: 'chunk-student-path', useCase: 'konling' },
     ]);
     expect(ownerMismatch.limitations).toContainEqual({ chunkId: 'chunk-student-path', reason: 'inaccessible-source' });
+  });
+
+  it('skips malformed corpus records instead of interrupting retrieval or verification', () => {
+    const malformed = {
+      id: 'malformed',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+    } as LearningEvidenceCorpusChunk;
+
+    const results = retrieveLearningEvidenceCorpus([malformed, ...corpus], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    });
+    expect(results.map((item) => item.id)).not.toContain('malformed');
+
+    const verification = verifyLearningEvidenceCitations([malformed, ...corpus], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [
+      { chunkId: 'malformed', useCase: 'konling' },
+    ]);
+    expect(verification.status).toBe('rejected');
+    expect(verification.limitations).toContainEqual({ chunkId: 'malformed', reason: 'unsupported-source-type' });
+
+    const missingRetrieval = chunk({
+      id: 'missing-retrieval',
+    });
+    delete (missingRetrieval as unknown as { retrieval?: unknown }).retrieval;
+    expect(validateLearningEvidenceCorpusChunk(missingRetrieval)).toEqual(expect.arrayContaining([
+      'missing-retrieval-tags',
+      'missing-retrieval-goals',
+      'missing-retrieval-use-cases',
+    ]));
+    expect(retrieveLearningEvidenceCorpus([missingRetrieval, ...corpus], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }).map((item) => item.id)).not.toContain('missing-retrieval');
+
+    const malformedRetrievalItems = chunk({
+      id: 'malformed-retrieval-items',
+      retrieval: {
+        tags: [123] as unknown as string[],
+        goals: [null] as unknown as string[],
+        useCases: ['unknown-use-case'] as unknown as ['konling'],
+      },
+    });
+    expect(validateLearningEvidenceCorpusChunk(malformedRetrievalItems)).toEqual(expect.arrayContaining([
+      'missing-retrieval-tags',
+      'missing-retrieval-goals',
+      'missing-retrieval-use-cases',
+    ]));
+    expect(retrieveLearningEvidenceCorpus([malformedRetrievalItems, ...corpus], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['x'] }).map((item) => item.id)).not.toContain('malformed-retrieval-items');
+
+    const malformedEnums = chunk({
+      id: 'malformed-enums',
+      privacyClass: 'service_only' as unknown as 'service-only',
+      confidence: 'certain' as unknown as 'high',
+      retrieval: { tags: ['konling-memory'], goals: ['control-correction'], useCases: ['konling'] },
+    });
+    expect(validateLearningEvidenceCorpusChunk(malformedEnums)).toEqual(expect.arrayContaining([
+      'missing-privacy-class',
+      'missing-confidence',
+    ]));
+    expect(retrieveLearningEvidenceCorpus([malformedEnums, ...corpus], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['konling-memory'] }).map((item) => item.id)).not.toContain('malformed-enums');
+    expect(verifyLearningEvidenceCitations([malformedEnums, ...corpus], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [
+      { chunkId: 'malformed-enums', useCase: 'konling' },
+    ]).limitations).toContainEqual({ chunkId: 'malformed-enums', reason: 'unsupported-source-type' });
   });
 
   it('covers diagnosis, grading, and Konling citation use cases with verified refs', () => {
