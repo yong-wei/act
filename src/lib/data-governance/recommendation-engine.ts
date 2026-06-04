@@ -702,7 +702,23 @@ function normalizePathExecutionWindow(
     },
     confidence: normalizePathExecutionConfidence(window.confidence),
     interventionOutcome: normalizePathExecutionInterventionOutcome(window.interventionOutcome),
+    terminalValidation: normalizePathExecutionTerminalValidation(window.terminalValidation),
     sourceReferences: normalizePathExecutionSourceReferences(window.sourceReferences),
+  };
+}
+
+function normalizePathExecutionTerminalValidation(
+  value: unknown,
+): StudentPathEvidenceFeatureSummary['allTime']['terminalValidation'] {
+  const terminalValidation = getObject(value);
+  return {
+    latestState: typeof terminalValidation.latestState === 'string' ? terminalValidation.latestState : null,
+    completedCount: numberValue(terminalValidation.completedCount),
+    failedCount: numberValue(terminalValidation.failedCount),
+    lowConfidenceCount: numberValue(terminalValidation.lowConfidenceCount),
+    fallbackRequiredCount: numberValue(terminalValidation.fallbackRequiredCount),
+    lowConfidenceMarkers: stringList(terminalValidation.lowConfidenceMarkers),
+    failureReasons: stringList(terminalValidation.failureReasons),
   };
 }
 
@@ -1101,6 +1117,10 @@ function stringOrNull(value: unknown): string | null {
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 /**

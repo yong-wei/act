@@ -396,7 +396,7 @@ function sanitizeTerminalEvidenceRefs(
   refs: unknown[] | undefined,
   simulationRef: Record<string, unknown> | null,
   arenaRef: Record<string, unknown> | null,
-): Array<Record<string, unknown>> {
+): Array<{ kind: string; id: string }> {
   const safeRefs = Array.isArray(refs)
     ? refs
         .map((item) => {
@@ -408,10 +408,12 @@ function sanitizeTerminalEvidenceRefs(
           }
           return { kind, id };
         })
-        .filter((item): item is Record<string, unknown> => Boolean(item))
+        .filter((item): item is { kind: string; id: string } => Boolean(item))
     : [];
-  if (simulationRef?.id) safeRefs.push({ kind: 'SimulationRun', id: simulationRef.id });
-  if (arenaRef?.id) safeRefs.push({ kind: arenaRef.kind ?? 'ArenaSubmission', id: arenaRef.id });
+  if (typeof simulationRef?.id === 'string') safeRefs.push({ kind: 'SimulationRun', id: simulationRef.id });
+  if (typeof arenaRef?.id === 'string') {
+    safeRefs.push({ kind: typeof arenaRef.kind === 'string' ? arenaRef.kind : 'ArenaSubmission', id: arenaRef.id });
+  }
   return safeRefs;
 }
 

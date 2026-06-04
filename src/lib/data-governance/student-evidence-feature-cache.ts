@@ -942,7 +942,7 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       privacyLevel: 'student-visible',
       status,
       resourceType,
-      ...(terminalExecution ? {
+      ...(terminalExecution && terminalValidationState ? {
         terminalValidationState,
         lowConfidenceMarkers: terminalValidationLowConfidenceMarkers,
         failureReasons: terminalValidationFailureReasons,
