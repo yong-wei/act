@@ -12,6 +12,9 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    learningPathExecution: {
+      findFirst: vi.fn(),
+    },
     studentProfile: {
       findUnique: vi.fn(),
     },
@@ -78,6 +81,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
     mocks.prisma.learningPath.update.mockResolvedValue({ id: 'path-1' });
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(null);
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
       id: 'path-1',
@@ -304,6 +308,27 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(400);
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('does not advance the parent path on idempotent execution retry', async () => {
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
+      id: 'exec-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'exec-key',
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-key',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.execution.id).toBe('exec-existing');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('rejects malformed deviation writes before persistence', async () => {

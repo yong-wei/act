@@ -40,6 +40,17 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '执行事件不符合路径节点或状态契约' }, { status: 400 });
     }
+    if (typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0) {
+      const existingExecution = await prisma.learningPathExecution.findFirst({
+        where: {
+          pathId: params.id,
+          idempotencyKey: body.idempotencyKey,
+        },
+      });
+      if (existingExecution) {
+        return NextResponse.json({ execution: existingExecution });
+      }
+    }
     const execution = await recordPathNodeExecution(prisma as any, {
       pathId: params.id,
       userId: path.userId,
